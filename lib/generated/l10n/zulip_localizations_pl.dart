@@ -53,6 +53,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'Wyślij wiadomość bezpośrednią';
 
   @override
+  String get errorCouldNotShowUserProfile => 'Could not show user profile.';
+
+  @override
   String get permissionsNeededTitle => 'Wymagane uprawnienia';
 
   @override
@@ -189,6 +192,14 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
+  String get errorCouldNotOpenLinkDialogTitle => 'Unable to open link';
+
+  @override
+  String errorCouldNotOpenLinkDialogMessage(String url) {
+    return 'Link could not be opened: $url';
+  }
+
+  @override
   String get errorMuteTopicFailed => 'Wyciszenie bez powodzenia';
 
   @override
@@ -256,7 +267,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get composeBoxSendTooltip => 'Wyślij';
 
   @override
-  String get composeBoxUnknownChannelName => '(nieznany kanał)';
+  String get unknownChannelName => '(unknown channel)';
 
   @override
   String get composeBoxTopicHintText => 'Wątek';
@@ -267,11 +278,24 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
+  String composeBoxLoadingMessage(int messageId) {
+    return '(loading message $messageId)';
+  }
+
+  @override
   String get unknownUserName => '(nieznany użytkownik)';
+
+  @override
+  String get dmsWithYourselfPageTitle => 'DMs with yourself';
 
   @override
   String messageListGroupYouAndOthers(String others) {
     return 'Ty i $others';
+  }
+
+  @override
+  String dmsWithOthersPageTitle(String others) {
+    return 'DMs with $others';
   }
 
   @override
@@ -309,6 +333,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get lightboxCopyLinkTooltip => 'Skopiuj odnośnik';
+
+  @override
+  String get lightboxVideoCurrentPositionLabel => 'Current position';
+
+  @override
+  String get lightboxVideoDurationLabel => 'Video duration';
 
   @override
   String get loginPageTitle => 'Zaloguj';
@@ -464,6 +494,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get recentDmConversationsPageTitle => 'Wiadomości bezpośrednie';
 
   @override
+  String get recentDmConversationsSectionHeader => 'Direct messages';
+
+  @override
   String get combinedFeedPageTitle => 'Mieszany widok';
 
   @override
@@ -482,6 +515,11 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get channelFeedButtonTooltip => 'Strumień kanału';
 
   @override
+  String notifChannelConversationLabel(String channel, String topic) {
+    return '#$channel > $topic';
+  }
+
+  @override
   String notifGroupDmConversationLabel(String senderFullName, int numOthers) {
     String _temp0 = intl.Intl.pluralLogic(
       numOthers,
@@ -493,7 +531,19 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
+  String get pinnedSubscriptionsLabel => 'Pinned';
+
+  @override
+  String get unpinnedSubscriptionsLabel => 'Unpinned';
+
+  @override
+  String get subscriptionListNoChannels => 'No channels found';
+
+  @override
   String get notifSelfUser => 'Ty';
+
+  @override
+  String get reactedEmojiSelfUser => 'You';
 
   @override
   String onePersonTyping(String typist) {
@@ -542,6 +592,11 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get messageIsMovedLabel => 'PRZENIESIONO';
 
   @override
+  String pollVoterNames(String voterNames) {
+    return '($voterNames)';
+  }
+
+  @override
   String get pollWidgetQuestionMissing => 'Brak pytania.';
 
   @override
@@ -564,4 +619,10 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get emojiPickerSearchEmoji => 'Szukaj emoji';
+
+  @override
+  String get noEarlierMessages => 'No earlier messages';
+
+  @override
+  String get scrollToBottomTooltip => 'Scroll to bottom';
 }

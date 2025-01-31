@@ -56,6 +56,10 @@
   "@profileButtonSendDirectMessage": {
     "description": "Label for button in profile screen to navigate to DMs with the shown user."
   },
+  "errorCouldNotShowUserProfile": "Could not show user profile.",
+  "@errorCouldNotShowUserProfile": {
+    "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
   "permissionsNeededTitle": "Permissions needed",
   "@permissionsNeededTitle": {
     "description": "Title for dialog asking the user to grant additional permissions."
@@ -230,6 +234,17 @@
       "event": {"type": "String", "example": "UpdateMessageEvent(id: 123, messageIds: [2345, 3456], newTopic: 'dinner')"}
     }
   },
+  "errorCouldNotOpenLinkDialogTitle": "Unable to open link",
+  "@errorCouldNotOpenLinkDialogTitle": {
+    "description": "Title for an error dialog when opening a link failed."
+  },
+  "errorCouldNotOpenLinkDialogMessage": "Link could not be opened: {url}",
+  "@errorCouldNotOpenLinkDialogMessage": {
+    "description": "Message for an error dialog when opening a link failed.",
+    "placeholders": {
+      "url": {"type":  "String", "example":  "https://chat.example.com"}
+    }
+  },
   "errorMuteTopicFailed": "Failed to mute topic",
   "@errorMuteTopicFailed": {
     "description": "Error message when muting a topic failed."
@@ -321,8 +336,8 @@
   "@composeBoxSendTooltip":  {
     "description": "Tooltip for send button in compose box."
   },
-  "composeBoxUnknownChannelName": "(unknown channel)",
-  "@composeBoxUnknownChannelName": {
+  "unknownChannelName": "(unknown channel)",
+  "@unknownChannelName": {
     "description": "Replacement name for channel when it cannot be found in the store."
   },
   "composeBoxTopicHintText": "Topic",
@@ -336,13 +351,31 @@
       "filename": {"type": "String", "example": "file.txt"}
     }
   },
+  "composeBoxLoadingMessage": "(loading message {messageId})",
+  "@composeBoxLoadingMessage": {
+    "description": "Placeholder in compose box showing the quoted message is currently loading.",
+    "placeholders": {
+      "messageId": {"type": "int", "example": "1234"}
+    }
+  },
   "unknownUserName": "(unknown user)",
   "@unknownUserName": {
     "description": "Name placeholder to use for a user when we don't know their name."
   },
+  "dmsWithYourselfPageTitle": "DMs with yourself",
+  "@dmsWithYourselfPageTitle": {
+    "description": "Message list page title for a DM group that only includes yourself."
+  },
   "messageListGroupYouAndOthers": "You and {others}",
   "@messageListGroupYouAndOthers": {
     "description": "Message list recipient header for a DM group with others.",
+    "placeholders": {
+      "others": {"type": "String", "example": "Alice, Bob"}
+    }
+  },
+  "dmsWithOthersPageTitle": "DMs with {others}",
+  "@dmsWithOthersPageTitle": {
+    "description": "Message list page title for a DM group with others.",
     "placeholders": {
       "others": {"type": "String", "example": "Alice, Bob"}
     }
@@ -394,6 +427,14 @@
   "lightboxCopyLinkTooltip": "Copy link",
   "@lightboxCopyLinkTooltip": {
     "description": "Tooltip in lightbox for the copy link action."
+  },
+  "lightboxVideoCurrentPositionLabel": "Current position",
+  "@lightboxVideoCurrentPositionLabel": {
+    "description": "The current playback position of the video playing in the lightbox."
+  },
+  "lightboxVideoDurationLabel": "Video duration",
+  "@lightboxVideoDurationLabel": {
+    "description": "The total duration of the video playing in the lightbox."
   },
   "loginPageTitle": "Log in",
   "@loginPageTitle": {
@@ -586,6 +627,10 @@
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
   },
+  "recentDmConversationsSectionHeader": "Direct messages",
+  "@recentDmConversationsSectionHeader": {
+    "description": "Heading for direct messages section on the 'Inbox' message view."
+  },
   "combinedFeedPageTitle": "Combined feed",
   "@combinedFeedPageTitle": {
     "description": "Page title for the 'Combined feed' message view."
@@ -610,6 +655,14 @@
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
   },
+  "notifChannelConversationLabel": "#{channel} > {topic}",
+  "@notifChannelConversationLabel": {
+    "description": "Label for a channel conversation notification.",
+    "placeholders": {
+      "channel": {"type": "String", "example": "channel name"},
+      "topic": {"type": "String", "example": "topic name"}
+    }
+  },
   "notifGroupDmConversationLabel": "{senderFullName} to you and {numOthers, plural, =1{1 other} other{{numOthers} others}}",
   "@notifGroupDmConversationLabel": {
     "description": "Label for a group DM conversation notification.",
@@ -618,9 +671,25 @@
       "numOthers": {"type": "int", "example": "4"}
     }
   },
+  "pinnedSubscriptionsLabel": "Pinned",
+  "@pinnedSubscriptionsLabel": {
+    "description": "Label for the list of pinned subscribed channels."
+  },
+  "unpinnedSubscriptionsLabel": "Unpinned",
+  "@unpinnedSubscriptionsLabel": {
+    "description": "Label for the list of unpinned subscribed channels."
+  },
+  "subscriptionListNoChannels": "No channels found",
+  "@subscriptionListNoChannels": {
+    "description": "Text to display on subscribed-channels page when there are no subscribed channels."
+  },
   "notifSelfUser": "You",
   "@notifSelfUser": {
     "description": "Display name for the user themself, to show after replying in an Android notification"
+  },
+  "reactedEmojiSelfUser": "You",
+  "@reactedEmojiSelfUser": {
+    "description": "Display name for the user themself, to show on an emoji reaction added by the user."
   },
   "onePersonTyping": "{typist} is typing…",
   "@onePersonTyping": {
@@ -685,6 +754,13 @@
   "@messageIsMovedLabel": {
     "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
+  "pollVoterNames": "({voterNames})",
+  "@pollVoterNames": {
+    "description": "The list of people voted for a poll option, wrapped in parentheses.",
+    "placeholders": {
+      "voterNames": {"type":  "String", "example": "Alice, Bob, Chad"}
+    }
+  },
   "pollWidgetQuestionMissing": "No question.",
   "@pollWidgetQuestionMissing": {
     "description": "Text to display for a poll when the question is missing"
@@ -716,5 +792,13 @@
   "emojiPickerSearchEmoji": "Search emoji",
   "@emojiPickerSearchEmoji": {
     "description": "Hint text for the emoji picker search text field."
+  },
+  "noEarlierMessages": "No earlier messages",
+  "@noEarlierMessages": {
+    "description": "Text to show at the start of a message list if there are no earlier messages."
+  },
+  "scrollToBottomTooltip": "Scroll to bottom",
+  "@scrollToBottomTooltip": {
+    "description": "Tooltip for button to scroll to bottom."
   }
 }

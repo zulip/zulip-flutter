@@ -323,6 +323,7 @@ class ChooseAccountPageOverflowButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final materialLocalizations = MaterialLocalizations.of(context);
     return MenuAnchor(
       menuChildren: [
@@ -330,7 +331,7 @@ class ChooseAccountPageOverflowButton extends StatelessWidget {
           onPressed: () {
             Navigator.push(context, AboutZulipPage.buildRoute(context));
           },
-          child: const Text('About Zulip')), // TODO(i18n)
+          child: Text(zulipLocalizations.aboutPageTitle)),
       ],
       builder: (BuildContext context, MenuController controller, Widget? child) {
         return IconButton(
