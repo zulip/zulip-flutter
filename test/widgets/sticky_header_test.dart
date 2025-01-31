@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:checks/checks.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -304,10 +305,11 @@ Future<void> _checkSequence(
     // Check the header gets hit when it should, and not when it shouldn't.
     await tester.tapAt(headerInset(1));
     await tester.tapAt(headerInset(expectedHeaderInsetExtent - 1));
-    check(_Header.takeTapCount()).equals(2);
+    check(_TapLogged.takeTapLog())..length.equals(2)
+      ..every((it) => it.isA<_Header>());
     await tester.tapAt(headerInset(extent - 1));
     await tester.tapAt(headerInset(extent - (expectedHeaderInsetExtent - 1)));
-    check(_Header.takeTapCount()).equals(0);
+    check(_TapLogged.takeTapLog()).isEmpty();
   }
 
   Future<void> jumpAndCheck(double position) async {
@@ -354,18 +356,20 @@ Iterable<int> _itemIndexes(WidgetTester tester) {
   return tester.widgetList<_Item>(find.byType(_Item)).map((w) => w.index);
 }
 
-class _Header extends StatelessWidget {
+sealed class _TapLogged {
+  static List<_TapLogged> takeTapLog() {
+    final result = _tapLog;
+    _tapLog = [];
+    return result;
+  }
+  static List<_TapLogged> _tapLog = [];
+}
+
+class _Header extends StatelessWidget implements _TapLogged {
   const _Header(this.index, {required this.height});
 
   final int index;
   final double height;
-
-  static int takeTapCount() {
-    final result = _tapCount;
-    _tapCount = 0;
-    return result;
-  }
-  static int _tapCount = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -373,8 +377,14 @@ class _Header extends StatelessWidget {
       height: height,
       width: height, // TODO clean up
       child: GestureDetector(
-        onTap: () => _tapCount++,
+        onTap: () => _TapLogged._tapLog.add(this),
         child: Text("Header $index")));
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(IntProperty('index', index));
   }
 }
 
