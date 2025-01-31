@@ -630,22 +630,30 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
 
           // This sliver's paint region consists entirely of the header.
           final paintExtent = headerExtent;
-          headerOffset = _headerAtCoordinateEnd()
-            ? childExtent - headerExtent // TODO buggy, should be zero
-            : 0.0;
+          headerOffset = 0.0;
 
           // Its layout region (affecting where the next sliver begins layout)
           // is that given by the child sliver.
           final layoutExtent = childExtent;
 
           // The paint origin places this sliver's paint region relative to its
-          // layout region.
-          final paintOrigin = 0.0; // TODO buggy
+          // layout region so that they share the edge the header appears at
+          // (which should be the edge of the viewport).
+          final headerGrowthPlacement =
+            _widget.headerPlacement._byGrowth(constraints.growthDirection);
+          final paintOrigin = switch (headerGrowthPlacement) {
+            _HeaderGrowthPlacement.growthStart => 0.0,
+            _HeaderGrowthPlacement.growthEnd => layoutExtent - paintExtent,
+          };
+          // TODO the child sliver should be painted at offset -paintOrigin
+          //   (This bug doesn't matter so long as the header is opaque,
+          //   because the header covers the child in that case.
+          //   For that reason the Zulip message list isn't affected.)
 
           geometry = SliverGeometry( // TODO review interaction with other slivers
             scrollExtent: geometry.scrollExtent,
             layoutExtent: layoutExtent,
-            paintExtent: childExtent, // TODO buggy
+            paintExtent: paintExtent,
             paintOrigin: paintOrigin,
             maxPaintExtent: math.max(geometry.maxPaintExtent, paintExtent),
             hasVisualOverflow: geometry.hasVisualOverflow
