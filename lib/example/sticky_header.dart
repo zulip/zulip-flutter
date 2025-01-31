@@ -197,6 +197,7 @@ class WideHeader extends StatelessWidget {
     return Material(
       color: Theme.of(context).colorScheme.primaryContainer,
       child: ListTile(
+        onTap: () {}, // nop, but non-null so the ink splash appears
         title: Text("Section ${i + 1}",
           style: TextStyle(
             color: Theme.of(context).colorScheme.onPrimaryContainer))));
@@ -211,7 +212,9 @@ class WideItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(title: Text("Item ${i + 1}.${j + 1}"));
+    return ListTile(
+      onTap: () {}, // nop, but non-null so the ink splash appears
+      title: Text("Item ${i + 1}.${j + 1}"));
   }
 }
 
