@@ -141,6 +141,7 @@ extension ElementChecks on Subject<Element> {
 }
 
 extension MediaQueryDataChecks on Subject<MediaQueryData> {
+  Subject<EdgeInsetsGeometry> get padding => has((x) => x.padding, 'padding');
   Subject<TextScaler> get textScaler => has((x) => x.textScaler, 'textScaler');
   // TODO more
 }
@@ -169,3 +170,8 @@ extension TableChecks on Subject<Table> {
 extension IconButtonChecks on Subject<IconButton> {
   Subject<bool?> get isSelected => has((x) => x.isSelected, 'isSelected');
 }
+
+extension ListViewChecks on Subject<ListView> {
+  Subject<EdgeInsetsGeometry?> get padding => has((x) => x.padding, 'padding');
+}
+

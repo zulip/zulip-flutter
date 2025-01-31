@@ -18,6 +18,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/emoji_reaction.dart';
 import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/inset_shadow.dart';
 import 'package:zulip/widgets/message_list.dart';
 
 import '../api/fake_api.dart';
@@ -350,6 +351,8 @@ void main() {
     }
 
     final searchFieldFinder = find.widgetWithText(TextField, 'Search emoji');
+    Finder findInPicker(Finder finder) =>
+      find.descendant(of: find.byType(EmojiPicker), matching: finder);
 
     Condition<Object?> conditionEmojiListEntry({
       required ReactionType emojiType,
@@ -429,9 +432,7 @@ void main() {
       await setupEmojiPicker(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
       connection.prepare(json: {});
-      await tester.tap(find.descendant(
-        of: find.byType(BottomSheet),
-        matching: find.text('\u{1f4a4}'))); // 'zzz' emoji
+      await tester.tap(findInPicker(find.text('\u{1f4a4}'))); // 'zzz' emoji
       await tester.pump(Duration.zero);
 
       check(connection.lastRequest).isA<http.Request>()
@@ -458,9 +459,7 @@ void main() {
           'result': 'error',
         });
 
-      await tester.tap(find.descendant(
-        of: find.byType(BottomSheet),
-        matching: find.text('\u{1f4a4}'))); // 'zzz' emoji
+      await tester.tap(findInPicker(find.text('\u{1f4a4}'))); // 'zzz' emoji
       await tester.pump(); // register tap
       await tester.pump(const Duration(seconds: 1)); // emoji picker animates away
       await tester.pump(const Duration(seconds: 1)); // error arrives; error dialog shows
@@ -468,6 +467,46 @@ void main() {
       await tester.tap(find.byWidget(checkErrorDialog(tester,
         expectedTitle: 'Adding reaction failed',
         expectedMessage: 'Invalid message(s)')));
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('consume bottom padding with less than 8px', (tester) async {
+      final fakePadding = FakeViewPadding(
+        left: 20, top: 20, right: 20, bottom: 6 * tester.view.devicePixelRatio);
+      tester.view.viewPadding = fakePadding;
+      tester.view.padding = fakePadding;
+      final message = eg.streamMessage();
+      await setupEmojiPicker(
+        tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+      final shadowBox = tester.element(findInPicker(find.byType(InsetShadowBox)));
+      check(MediaQuery.of(shadowBox).padding).equals(EdgeInsets.only(bottom: 6));
+
+      final listView = tester.element(findInPicker(find.byType(ListView)));
+      check(MediaQuery.of(listView).padding).equals(EdgeInsets.zero);
+      check(listView.widget).isA<ListView>().padding
+        .equals(EdgeInsets.only(top: 8, bottom: 8));
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('consume bottom padding with more than 8px', (tester) async {
+      final fakePadding = FakeViewPadding(
+        left: 20, top: 20, right: 20, bottom: 10 * tester.view.devicePixelRatio);
+      tester.view.viewPadding = fakePadding;
+      tester.view.padding = fakePadding;
+      final message = eg.streamMessage();
+      await setupEmojiPicker(
+        tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+      final shadowBox = tester.element(findInPicker(find.byType(InsetShadowBox)));
+      check(MediaQuery.of(shadowBox)).padding.equals(EdgeInsets.only(bottom: 10));
+
+      final listView = tester.element(findInPicker(find.byType(ListView)));
+      check(MediaQuery.of(listView)).padding.equals(EdgeInsets.zero);
+      check(listView.widget).isA<ListView>().padding
+        .equals(EdgeInsets.only(top: 8, bottom: 10));
 
       debugNetworkImageHttpClientProvider = null;
     });
