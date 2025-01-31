@@ -395,6 +395,22 @@
   "@lightboxCopyLinkTooltip": {
     "description": "Tooltip in lightbox for the copy link action."
   },
+  "lightboxDownloadImageTooltip": "Download image",
+  "@lightboxDownloadImageTooltip": {
+    "description": "Tooltip in lightbox for the download image action."
+  },
+  "lightboxDownloadImageSuccess": "Image downloaded successfully!",
+  "@lightboxDownloadImageSuccess": {
+    "description": "Message shown when the image downloads successfully."
+  },
+  "lightboxDownloadImageFailed": "Failed to download the image.",
+  "@lightboxDownloadImageFailed": {
+    "description": "Message shown when the image download fails."
+  },
+  "lightboxDownloadImageError": "An error occurred while downloading the image.",
+  "@lightboxDownloadImageError": {
+    "description": "Message shown when an unexpected error occurs during image download."
+  },
   "loginPageTitle": "Log in",
   "@loginPageTitle": {
     "description": "Title for login page."
