@@ -111,6 +111,15 @@ void main() {
     await tester.pump(Duration.zero);
   }
 
+  group('ComposeBoxTheme', () {
+    test('lerp light to dark, no crash', () {
+      final a = ComposeBoxTheme.light;
+      final b = ComposeBoxTheme.dark;
+
+      check(() => a.lerp(b, 0.5)).returnsNormally();
+    });
+  });
+
   group('ComposeContentController', () {
     group('insertPadded', () {
       // Like `parseMarkedText` in test/model/autocomplete_test.dart,
