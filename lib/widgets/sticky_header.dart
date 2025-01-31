@@ -628,11 +628,10 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
           // The header will overflow the child sliver.
           // That makes this sliver's geometry a bit more complicated.
 
-          final paintedHeaderSize = calculatePaintOffset(constraints, from: 0, to: headerExtent);
           geometry = SliverGeometry( // TODO review interaction with other slivers
             scrollExtent: geometry.scrollExtent,
             layoutExtent: childExtent,
-            paintExtent: math.max(childExtent, paintedHeaderSize),
+            paintExtent: childExtent,
             maxPaintExtent: math.max(geometry.maxPaintExtent, headerExtent),
             hasVisualOverflow: geometry.hasVisualOverflow
               || headerExtent > constraints.remainingPaintExtent,
