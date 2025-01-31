@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:checks/checks.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/widgets/sticky_header.dart';
@@ -8,12 +9,14 @@ import 'package:zulip/widgets/sticky_header.dart';
 void main() {
   testWidgets('sticky headers: scroll up, headers overflow items, explicit version', (tester) async {
     await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr,
-      child: StickyHeaderListView(
-        reverse: true,
-        children: List.generate(100, (i) => StickyHeaderItem(
-          allowOverflow: true,
-          header: _Header(i, height: 20),
-          child: _Item(i, height: 100))))));
+      child: TouchSlop(touchSlop: 1,
+        child: StickyHeaderListView(
+          dragStartBehavior: DragStartBehavior.down,
+          reverse: true,
+          children: List.generate(100, (i) => StickyHeaderItem(
+            allowOverflow: true,
+            header: _Header(i, height: 20),
+            child: _Item(i, height: 100)))))));
     check(_itemIndexes(tester)).deepEquals([0, 1, 2, 3, 4, 5]);
     check(_headerIndex(tester)).equals(5);
     check(tester.getTopLeft(find.byType(_Item).last)).equals(const Offset(0, 0));
@@ -43,11 +46,13 @@ void main() {
 
   testWidgets('sticky headers: scroll up, headers bounded by items, semi-explicit version', (tester) async {
     await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr,
-      child: StickyHeaderListView(
-        reverse: true,
-        children: List.generate(100, (i) => StickyHeaderItem(
-          header: _Header(i, height: 20),
-          child: _Item(i, height: 100))))));
+      child: TouchSlop(touchSlop: 1,
+        child: StickyHeaderListView(
+          dragStartBehavior: DragStartBehavior.down,
+          reverse: true,
+          children: List.generate(100, (i) => StickyHeaderItem(
+            header: _Header(i, height: 20),
+            child: _Item(i, height: 100)))))));
 
     void checkState(int index, {required double item, required double header}) =>
       _checkHeader(tester, index, first: false,
@@ -108,6 +113,7 @@ void main() {
     Widget page(Widget Function(BuildContext, int) itemBuilder) {
       return Directionality(textDirection: TextDirection.ltr,
         child: StickyHeaderListView.builder(
+          dragStartBehavior: DragStartBehavior.down,
           cacheExtent: 0,
           itemCount: 10, itemBuilder: itemBuilder));
     }
@@ -384,5 +390,29 @@ class _Item extends StatelessWidget {
       height: height,
       width: height,
       child: Text("Item $index"));
+  }
+}
+
+
+/// Sets [DeviceGestureSettings.touchSlop] for the child subtree
+/// to the given value, by inserting a [MediaQuery].
+///
+/// For example `TouchSlop(touchSlop: 1, …)` means a touch that moves by even
+/// a single pixel will be interpreted as a drag, even if a tap gesture handler
+/// is competing for the gesture.  For human fingers that'd make it unreasonably
+/// difficult to make a tap, but in a test carried out by software it can be
+/// convenient for making small drag gestures straightforward.
+class TouchSlop extends StatelessWidget {
+  const TouchSlop({super.key, required this.touchSlop, required this.child});
+
+  final double touchSlop;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        gestureSettings: DeviceGestureSettings(touchSlop: touchSlop)),
+      child: child);
   }
 }
