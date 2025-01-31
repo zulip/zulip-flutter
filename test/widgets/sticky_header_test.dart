@@ -309,7 +309,8 @@ Future<void> _checkSequence(
       ..every((it) => it.isA<_Header>());
     await tester.tapAt(headerInset(extent - 1));
     await tester.tapAt(headerInset(extent - (expectedHeaderInsetExtent - 1)));
-    check(_TapLogged.takeTapLog()).isEmpty();
+    check(_TapLogged.takeTapLog())..length.equals(2)
+      ..every((it) => it.isA<_Item>());
   }
 
   Future<void> jumpAndCheck(double position) async {
@@ -388,7 +389,7 @@ class _Header extends StatelessWidget implements _TapLogged {
   }
 }
 
-class _Item extends StatelessWidget {
+class _Item extends StatelessWidget implements _TapLogged {
   const _Item(this.index, {required this.height});
 
   final int index;
@@ -399,10 +400,17 @@ class _Item extends StatelessWidget {
     return SizedBox(
       height: height,
       width: height,
-      child: Text("Item $index"));
+      child: GestureDetector(
+        onTap: () => _TapLogged._tapLog.add(this),
+        child: Text("Item $index")));
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(IntProperty('index', index));
   }
 }
-
 
 /// Sets [DeviceGestureSettings.touchSlop] for the child subtree
 /// to the given value, by inserting a [MediaQuery].
