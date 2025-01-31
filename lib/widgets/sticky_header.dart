@@ -99,6 +99,18 @@ class RenderStickyHeaderItem extends RenderProxyBox {
 /// or if [scrollDirection] is horizontal then to the start in the
 /// reading direction of the ambient [Directionality].
 /// It can be controlled with [reverseHeader].
+///
+/// Much like [ListView], a [StickyHeaderListView] is basically
+/// a [CustomScrollView] with a single sliver in its [CustomScrollView.slivers]
+/// property.
+/// For a [StickyHeaderListView], that sliver is a [SliverStickyHeaderList].
+///
+/// If more than one sliver is needed, any code using [StickyHeaderListView]
+/// can be ported to use [CustomScrollView] directly, in much the same way
+/// as for code using [ListView].  See [ListView] for details.
+///
+/// See also:
+///  * [SliverStickyHeaderList], which provides the sticky-header behavior.
 class StickyHeaderListView extends BoxScrollView {
   // Like ListView, but with sticky headers.
   StickyHeaderListView({
@@ -296,6 +308,10 @@ enum _HeaderGrowthPlacement {
   growthEnd
 }
 
+/// A list sliver with sticky headers.
+///
+/// This widget takes most of its behavior from [SliverList],
+/// but adds sticky headers as described at [StickyHeaderListView].
 class SliverStickyHeaderList extends RenderObjectWidget {
   SliverStickyHeaderList({
     super.key,
@@ -306,7 +322,16 @@ class SliverStickyHeaderList extends RenderObjectWidget {
     delegate: delegate,
   );
 
+  /// Whether the sticky header appears at the start or the end
+  /// in the scrolling direction.
+  ///
+  /// For example, if the enclosing [Viewport] has [Viewport.axisDirection]
+  /// of [AxisDirection.down], then
+  /// [HeaderPlacement.scrollingStart] means the header appears at
+  /// the top of the viewport, and
+  /// [HeaderPlacement.scrollingEnd] means it appears at the bottom.
   final HeaderPlacement headerPlacement;
+
   final _SliverStickyHeaderListInner _child;
 
   @override
