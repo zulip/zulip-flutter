@@ -152,11 +152,42 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
 
     PreferredSizeWidget? appBar;
     if (_headerFooterVisible) {
-      // TODO(#45): Format with e.g. "Yesterday at 4:47 PM"
-      final timestampText = DateFormat
-        .yMMMd(/* TODO(#278): Pass selected language here, I think? */)
-        .add_Hms()
-        .format(DateTime.fromMillisecondsSinceEpoch(widget.message.timestamp * 1000));
+      final zulipLocalizations = ZulipLocalizations.of(context);
+
+      String formatLocalizedTimestamp(DateTime date) {
+        final now = DateTime.now();
+        final nowDateOnly = DateTime(now.year, now.month, now.day);
+        final messageDateOnly = DateTime(date.year, date.month, date.day);
+
+        final differenceInSeconds = now.difference(date).inSeconds;
+        final differenceInMinutes = now.difference(date).inMinutes;
+        final differenceInDays = nowDateOnly.difference(messageDateOnly).inDays;
+
+        if (differenceInSeconds < 60) {
+          return zulipLocalizations.aFewSecondsAgo;
+        } else if (differenceInMinutes < 60) {
+          return Intl.plural(
+            differenceInMinutes,
+            one: zulipLocalizations.oneMinuteAgo,
+            other: zulipLocalizations.minutesAgo(differenceInMinutes),
+            locale: zulipLocalizations.localeName,
+          );
+        } else if (differenceInDays == 0) {
+          final time = DateFormat.jm(zulipLocalizations.localeName).format(date);
+          return zulipLocalizations.todayAt(time);
+        } else if (differenceInDays == 1) {
+          final time = DateFormat.jm(zulipLocalizations.localeName).format(date);
+          return zulipLocalizations.yesterdayAt(time);
+        } else {
+          final dateStr = DateFormat('MMM d, yyyy', zulipLocalizations.localeName).format(date);
+          final timeStr = DateFormat('hh:mm a', zulipLocalizations.localeName).format(date);
+          return zulipLocalizations.dateAtTime(dateStr, timeStr);
+        }
+      }
+
+      final timestampText = formatLocalizedTimestamp(
+        DateTime.fromMillisecondsSinceEpoch(widget.message.timestamp * 1000),
+      );
 
       // We use plain [AppBar] instead of [ZulipAppBar], even though this page
       // has a [PerAccountStore], because:
