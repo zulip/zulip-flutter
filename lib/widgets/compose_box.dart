@@ -22,6 +22,59 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 
+/// Compose-box styles that differ between light and dark theme.
+///
+/// These styles will animate on theme changes (with help from [lerp]).
+class ComposeBoxTheme extends ThemeExtension<ComposeBoxTheme> {
+  static final light = ComposeBoxTheme._(
+    boxShadow: null,
+  );
+
+  static final dark = ComposeBoxTheme._(
+    boxShadow: [BoxShadow(
+      color: DesignVariables.dark.bgTopBar,
+      offset: const Offset(0, -4),
+      blurRadius: 16,
+      spreadRadius: 0,
+    )],
+  );
+
+  ComposeBoxTheme._({
+    required this.boxShadow,
+  });
+
+  /// The [ComposeBoxTheme] from the context's active theme.
+  ///
+  /// The [ThemeData] must include [ComposeBoxTheme] in [ThemeData.extensions].
+  static ComposeBoxTheme of(BuildContext context) {
+    final theme = Theme.of(context);
+    final extension = theme.extension<ComposeBoxTheme>();
+    assert(extension != null);
+    return extension!;
+  }
+
+  final List<BoxShadow>? boxShadow;
+
+  @override
+  ComposeBoxTheme copyWith({
+    List<BoxShadow>? boxShadow,
+  }) {
+    return ComposeBoxTheme._(
+      boxShadow: boxShadow ?? this.boxShadow,
+    );
+  }
+
+  @override
+  ComposeBoxTheme lerp(ComposeBoxTheme other, double t) {
+    if (identical(this, other)) {
+      return this;
+    }
+    return ComposeBoxTheme._(
+      boxShadow: BoxShadow.lerpList(boxShadow, other.boxShadow, t)!,
+    );
+  }
+}
+
 const double _composeButtonSize = 44;
 
 /// A [TextEditingController] for use in the compose box.
@@ -1090,7 +1143,9 @@ class _ComposeBoxContainer extends StatelessWidget {
     //   the message list itself; if so, remember to update ComposeBox's dartdoc.
     return Container(width: double.infinity,
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: designVariables.borderBar))),
+        border: Border(top: BorderSide(color: designVariables.borderBar)),
+        boxShadow: ComposeBoxTheme.of(context).boxShadow,
+      ),
       // TODO(#720) try a Stack for the overlaid linear progress indicator
       child: Material(
         color: designVariables.composeBoxBg,
