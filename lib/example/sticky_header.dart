@@ -134,23 +134,20 @@ class ExampleVerticalDouble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const centerSliverKey = ValueKey('center sliver');
-    const numSections = 100;
+    const numSections = 4;
     const numBottomSections = 2;
     const numPerSection = 10;
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: CustomScrollView(
         semanticChildCount: numSections,
-        anchor: 0.5,
-        center: centerSliverKey,
         slivers: [
           SliverStickyHeaderList(
             headerPlacement: HeaderPlacement.scrollingStart,
             delegate: SliverChildBuilderDelegate(
               childCount: numSections - numBottomSections,
               (context, i) {
-                final ii = i + numBottomSections;
+                final ii = numSections - 1 - i;
                 return StickyHeaderItem(
                   allowOverflow: true,
                   header: WideHeader(i: ii),
@@ -161,7 +158,6 @@ class ExampleVerticalDouble extends StatelessWidget {
                     })));
               })),
           SliverStickyHeaderList(
-            key: centerSliverKey,
             headerPlacement: HeaderPlacement.scrollingStart,
             delegate: SliverChildBuilderDelegate(
               childCount: numBottomSections,
