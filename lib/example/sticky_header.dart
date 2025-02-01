@@ -126,11 +126,13 @@ class ExampleVerticalDouble extends StatelessWidget {
     required this.title,
     // this.reverse = false,
     required this.headerPlacement,
+    required this.topSliverGrowsUpward,
   });
 
   final String title;
   // final bool reverse;
   final HeaderPlacement headerPlacement;
+  final bool topSliverGrowsUpward;
 
   @override
   Widget build(BuildContext context) {
@@ -144,13 +146,8 @@ class ExampleVerticalDouble extends StatelessWidget {
       HeaderPlacement.scrollingEnd   => true,
     };
 
-    // Choose the "center" sliver so that the sliver which might need to paint
-    // a header overflowing the other header is the sliver that paints last.
-    final centerKey = headerAtBottom ?
+    final centerKey = topSliverGrowsUpward ?
       const ValueKey('bottom') : const ValueKey('top');
-
-    // This is a side effect of our choice of centerKey.
-    final topSliverGrowsUpward = headerAtBottom;
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
@@ -345,11 +342,19 @@ class MainPage extends StatelessWidget {
         title: 'Double slivers, headers at top',
         page: ExampleVerticalDouble(
           title: 'Double slivers, headers at top',
+          topSliverGrowsUpward: false,
           headerPlacement: HeaderPlacement.scrollingStart)),
       _buildButton(context,
-        title: 'Double slivers, headers at bottom',
+        title: 'Split slivers, headers at top',
         page: ExampleVerticalDouble(
-          title: 'Double slivers, headers at bottom',
+          title: 'Split slivers, headers at top',
+          topSliverGrowsUpward: true,
+          headerPlacement: HeaderPlacement.scrollingStart)),
+      _buildButton(context,
+        title: 'Split slivers, headers at bottom',
+        page: ExampleVerticalDouble(
+          title: 'Split slivers, headers at bottom',
+          topSliverGrowsUpward: true,
           headerPlacement: HeaderPlacement.scrollingEnd)),
     ];
     return Scaffold(
