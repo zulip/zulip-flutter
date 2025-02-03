@@ -1354,14 +1354,6 @@ class MessageWithPossibleSender extends StatelessWidget {
     }
 
     final localizations = ZulipLocalizations.of(context);
-    String? editStateText;
-    switch (message.editState) {
-      case MessageEditState.edited:
-        editStateText = localizations.messageIsEditedLabel;
-      case MessageEditState.moved:
-        editStateText = localizations.messageIsMovedLabel;
-      case MessageEditState.none:
-    }
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -1383,15 +1375,51 @@ class MessageWithPossibleSender extends StatelessWidget {
                   MessageContent(message: message, content: item.content),
                   if ((message.reactions?.total ?? 0) > 0)
                     ReactionChipsList(messageId: message.id, reactions: message.reactions!),
-                  if (editStateText != null)
-                    Text(editStateText,
-                      textAlign: TextAlign.end,
-                      style: TextStyle(
-                        color: designVariables.labelEdited,
-                        fontSize: 12,
-                        height: (12 / 12),
-                        letterSpacing: proportionalLetterSpacing(
-                          context, 0.05, baseFontSize: 12))),
+                  ValueListenableBuilder(
+                    valueListenable: message.editStateNotifier,
+                    builder: (context, editState, _) {
+                      String? editStateText;
+                      switch (editState) {
+                        case MessageEditState.edited:
+                          editStateText = localizations.messageIsEditedLabel;
+                        case MessageEditState.moved:
+                          editStateText = localizations.messageIsMovedLabel;
+                        case MessageEditState.editing:
+                          editStateText = localizations.messageIsEditingLabel;
+                        case MessageEditState.editError:
+                          editStateText = localizations.messageIsEditErrorLabel;
+                        case MessageEditState.none:
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (editStateText != null)
+                            Text(editStateText,
+                              textAlign: TextAlign.end,
+                              style: TextStyle(
+                                color: (editState == MessageEditState.editError)
+                                  ? designVariables.btnLabelAttLowIntDanger
+                                  : (editState == MessageEditState.editing)
+                                    ? designVariables.btnLabelAttLowIntInfo
+                                    : designVariables.labelEdited,
+                                fontSize: 12,
+                                height: (12 / 12),
+                                letterSpacing: proportionalLetterSpacing(
+                                  context, 0.05, baseFontSize: 12))),
+                          if (editState == MessageEditState.editing)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: LinearProgressIndicator(
+                                backgroundColor: designVariables.foreground.withAlpha(20),
+                                color: designVariables.foreground.withAlpha(50),
+                                minHeight: 2,
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
                 ])),
               SizedBox(width: 16,
                 child: message.flags.contains(MessageFlag.starred)

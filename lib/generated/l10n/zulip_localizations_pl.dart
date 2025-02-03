@@ -542,6 +542,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get messageIsMovedLabel => 'PRZENIESIONO';
 
   @override
+  String get messageIsEditingLabel => 'SAVING EDIT...';
+
+  @override
+  String get messageIsEditErrorLabel => 'EDIT ISN\'T SAVED. CHECK YOUR CONNECTION.';
+
+  @override
   String get pollWidgetQuestionMissing => 'Brak pytania.';
 
   @override
@@ -564,4 +570,19 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get emojiPickerSearchEmoji => 'Szukaj emoji';
+
+  @override
+  String get actionSheetOptionEditMessage => 'Edit';
+
+  @override
+  String get errorEditingFailed => 'Failed to edit message';
+
+  @override
+  String get editMessageSaveTooltip => 'Save changes';
+
+  @override
+  String get editMessageTitle => 'Edit the message';
+
+  @override
+  String get dialogSave => 'Save';
 }

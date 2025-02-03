@@ -721,6 +721,16 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     );
   }
 
+  Future<void> editMessage({required int messageId, required String content}) {
+    assert(!_disposed);
+
+    return _apiUpdateMessage(connection,
+      messageId: messageId,
+      content: content,
+      propagateMode: PropagateMode.changeOne,
+    );
+  }
+
   static List<CustomProfileField> _sortCustomProfileFields(List<CustomProfileField> initialCustomProfileFields) {
     // TODO(server): The realm-wide field objects have an `order` property,
     //   but the actual API appears to be that the fields should be shown in
@@ -741,6 +751,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
 }
 
 const _apiSendMessage = sendMessage; // Bit ugly; for alternatives, see: https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20PerAccountStore.20methods/near/1545809
+const _apiUpdateMessage = updateMessage;
 const _tryResolveUrl = tryResolveUrl;
 
 /// Like [Uri.resolve], but on failure return null instead of throwing.
