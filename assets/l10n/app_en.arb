@@ -685,6 +685,14 @@
   "@messageIsMovedLabel": {
     "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
+  "messageIsEditingLabel": "SAVING EDIT...",
+  "@messageIsEditingLabel": {
+    "description": "Label shown while a message edit is being saved. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "messageIsEditErrorLabel": "EDIT ISN'T SAVED. CHECK YOUR CONNECTION.",
+  "@messageIsEditErrorLabel": {
+    "description": "Label shown when a message edit failed to save. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
   "pollWidgetQuestionMissing": "No question.",
   "@pollWidgetQuestionMissing": {
     "description": "Text to display for a poll when the question is missing"
@@ -716,5 +724,25 @@
   "emojiPickerSearchEmoji": "Search emoji",
   "@emojiPickerSearchEmoji": {
     "description": "Hint text for the emoji picker search text field."
+  },
+  "actionSheetOptionEditMessage": "Edit",
+  "@actionSheetOptionEditMessage": {
+    "description": "Label for action sheet button to edit a message."
+  },
+  "errorEditingFailed": "Failed to edit message",
+  "@errorEditingFailed": {
+    "description": "Error title when editing a message fails."
+  },
+  "editMessageSaveTooltip": "Save changes",
+  "@editMessageSaveTooltip": {
+    "description": "Tooltip for the save button when editing a message"
+  },
+  "editMessageTitle": "Edit the message",
+  "@editMessageTitle": {
+    "description": "Title shown in the edit message banner"
+  },
+  "dialogSave": "Save",
+  "@dialogSave": {
+    "description": "Button label to save changes"
   }
 }

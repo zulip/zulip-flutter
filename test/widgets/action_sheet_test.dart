@@ -1083,6 +1083,150 @@ void main() {
         checkActionSheet(tester, isShown: false);
       });
     });
+
+    group('EditMessageButton', () {
+      Future<void> setupToMessageActionSheetWithEditableMessage(WidgetTester tester) async {
+        final message = eg.streamMessage(sender: eg.selfUser, flags: [MessageFlag.read]);
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: TopicNarrow.ofMessage(message));
+      }
+
+      Future<void> setupToMessageActionSheetWithNonEditableMessage(WidgetTester tester) async {
+        final message = eg.streamMessage(sender: eg.otherUser, flags: [MessageFlag.read]);
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: TopicNarrow.ofMessage(message));
+      }
+
+      Future<void> setupToMessageActionSheetInCombinedFeed(WidgetTester tester) async {
+        final message = eg.streamMessage(sender: eg.selfUser, flags: [MessageFlag.read]);
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: const CombinedFeedNarrow());
+      }
+
+      group('visibility', () {
+        testWidgets('shows button when message is editable', (tester) async {
+          await setupToMessageActionSheetWithEditableMessage(tester);
+
+          final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+          check(find.text(zulipLocalizations.actionSheetOptionEditMessage)).findsOne();
+        });
+
+        testWidgets('hides button when message is from another user', (tester) async {
+          await setupToMessageActionSheetWithNonEditableMessage(tester);
+
+          final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+          check(find.text(zulipLocalizations.actionSheetOptionEditMessage)).findsNothing();
+        });
+
+        testWidgets('hides button in combined feed narrow', (tester) async {
+          await setupToMessageActionSheetInCombinedFeed(tester);
+
+          final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+          check(find.text(zulipLocalizations.actionSheetOptionEditMessage)).findsNothing();
+        });
+      });
+
+      Future<void> tapEditButton(WidgetTester tester) async {
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        final editButton = find.text(zulipLocalizations.actionSheetOptionEditMessage);
+        check(editButton).findsOne();
+        await tester.tap(editButton);
+        await tester.pump();
+      }
+
+      group('onPress', () {
+        testWidgets('shows edit UI with original message content', (tester) async {
+          final message = eg.streamMessage(content: 'Hello world', sender: eg.selfUser, flags: [MessageFlag.read]);
+          await setupToMessageActionSheet(tester,
+            message: message,
+            narrow: ChannelNarrow(message.streamId));
+
+          connection.prepare(json: {
+            'message': message.toJson(),
+            'raw_content': 'Hello world',
+          });
+
+          connection.prepare(json: {'result': 'success'});
+          connection.prepare(json: {'result': 'success'});
+          connection.prepare(json: {'result': 'success'});
+
+          await tapEditButton(tester);
+          await tester.pump();
+          await tester.pump(const Duration(seconds: 5));
+          await tester.pumpAndSettle();
+
+          final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+          check(find.text(zulipLocalizations.editMessageTitle)).findsOne();
+          check(find.text(zulipLocalizations.dialogSave)).findsOne();
+          check(find.text(zulipLocalizations.dialogCancel)).findsOne();
+
+          final textField = find.byType(TextField);
+          check(textField).findsOne();
+          check(tester.widget<TextField>(textField).controller?.text)
+            .equals('Hello world');
+        });
+
+        testWidgets('shows progress while saving edit', (tester) async {
+          final message = eg.streamMessage(content: 'Hello world', sender: eg.selfUser, flags: [MessageFlag.read]);
+          await setupToMessageActionSheet(tester,
+            message: message,
+            narrow: ChannelNarrow(message.streamId));
+
+          connection.prepare(json: {
+            'message': message.toJson(),
+            'raw_content': 'Hello world',
+          });
+
+          connection.prepare(json: {'result': 'success'});
+          connection.prepare(json: {'result': 'success'});
+          connection.prepare(json: {'result': 'success'});
+
+          await tapEditButton(tester);
+          await tester.pump();
+          await tester.pump(const Duration(seconds: 5));
+          await tester.pumpAndSettle();
+
+          connection.prepare(delay: const Duration(milliseconds: 500), json: {'result': 'success'});
+
+          await tester.tap(find.text(GlobalLocalizations.zulipLocalizations.dialogSave));
+          await tester.pump();
+
+          check(find.byType(LinearProgressIndicator)).findsOne();
+          check(find.text(GlobalLocalizations.zulipLocalizations.messageIsEditingLabel))
+              .findsOne();
+          await tester.pumpAndSettle();
+        });
+
+        testWidgets('cancels editing and resets state', (tester) async {
+          final message = eg.streamMessage(content: 'Hello world', sender: eg.selfUser, flags: [MessageFlag.read]);
+          await setupToMessageActionSheet(tester,
+            message: message,
+            narrow: ChannelNarrow(message.streamId));
+
+          connection.prepare(json: {
+            'message': message.toJson(),
+            'raw_content': 'Hello world',
+          });
+
+          connection.prepare(json: {'result': 'success'});
+          connection.prepare(json: {'result': 'success'});
+          connection.prepare(json: {'result': 'success'});
+
+          await tapEditButton(tester);
+          await tester.pump();
+          await tester.pump(const Duration(seconds: 5));
+          await tester.pumpAndSettle();
+
+          await tester.tap(find.text(GlobalLocalizations.zulipLocalizations.dialogCancel));
+          await tester.pump();
+          check(find.text(GlobalLocalizations.zulipLocalizations.editMessageTitle))
+              .findsNothing();
+        });
+      });
+    });
   });
 }
 

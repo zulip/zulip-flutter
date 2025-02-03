@@ -1023,6 +1023,18 @@ abstract class ZulipLocalizations {
   /// **'MOVED'**
   String get messageIsMovedLabel;
 
+  /// Label shown while a message edit is being saved. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)
+  ///
+  /// In en, this message translates to:
+  /// **'SAVING EDIT...'**
+  String get messageIsEditingLabel;
+
+  /// Label shown when a message edit failed to save. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)
+  ///
+  /// In en, this message translates to:
+  /// **'EDIT ISN\'T SAVED. CHECK YOUR CONNECTION.'**
+  String get messageIsEditErrorLabel;
+
   /// Text to display for a poll when the question is missing
   ///
   /// In en, this message translates to:
@@ -1070,6 +1082,36 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Search emoji'**
   String get emojiPickerSearchEmoji;
+
+  /// Label for action sheet button to edit a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get actionSheetOptionEditMessage;
+
+  /// Error title when editing a message fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to edit message'**
+  String get errorEditingFailed;
+
+  /// Tooltip for the save button when editing a message
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get editMessageSaveTooltip;
+
+  /// Title shown in the edit message banner
+  ///
+  /// In en, this message translates to:
+  /// **'Edit the message'**
+  String get editMessageTitle;
+
+  /// Button label to save changes
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get dialogSave;
 }
 
 class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizations> {

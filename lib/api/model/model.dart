@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:flutter/foundation.dart';
 
 import 'events.dart';
 import 'initial_snapshot.dart';
@@ -541,8 +542,15 @@ sealed class Message {
   final String contentType;
 
   // final List<MessageEditHistory> editHistory; // TODO handle
-  @JsonKey(readValue: MessageEditState._readFromMessage, fromJson: Message._messageEditStateFromJson)
-  MessageEditState editState;
+  @JsonKey(readValue: MessageEditState._readFromMessage, fromJson: _messageEditStateFromJson)
+  final ValueNotifier<MessageEditState> _editStateNotifier;
+
+  MessageEditState get editState => _editStateNotifier.value;
+  set editState(MessageEditState value) {
+    _editStateNotifier.value = value;
+  }
+
+  ValueNotifier<MessageEditState> get editStateNotifier => _editStateNotifier;
 
   final int id;
   bool isMeMessage;
@@ -572,7 +580,7 @@ sealed class Message {
   @JsonKey(name: 'match_subject')
   final String? matchTopic;
 
-  static MessageEditState _messageEditStateFromJson(Object? json) {
+  static MessageEditState _messageEditStateFromJson(dynamic json) {
     // This is a no-op so that [MessageEditState._readFromMessage]
     // can return the enum value directly.
     return json as MessageEditState;
@@ -603,7 +611,7 @@ sealed class Message {
     required this.client,
     required this.content,
     required this.contentType,
-    required this.editState,
+    required MessageEditState editState,
     required this.id,
     required this.isMeMessage,
     required this.lastEditTimestamp,
@@ -617,7 +625,7 @@ sealed class Message {
     required this.flags,
     required this.matchContent,
     required this.matchTopic,
-  });
+  }) : _editStateNotifier = ValueNotifier(editState);
 
   factory Message.fromJson(Map<String, dynamic> json) {
     final type = json['type'] as String;
@@ -863,7 +871,9 @@ class DmMessage extends Message {
 enum MessageEditState {
   none,
   edited,
-  moved;
+  moved,
+  editing,
+  editError;
 
   /// Whether the given topic move reflected either a "resolve topic"
   /// or "unresolve topic" operation.

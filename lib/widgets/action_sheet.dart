@@ -390,6 +390,9 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final markAsUnreadSupported = store.connection.zulipFeatureLevel! >= 155; // TODO(server-6)
   final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
 
+  final canEditMessage = message.senderId == store.selfUserId
+    && messageListPage.narrow is! CombinedFeedNarrow;
+
   final optionButtons = [
     ReactionButtons(message: message, pageContext: context),
     StarButton(message: message, pageContext: context),
@@ -397,6 +400,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       QuoteAndReplyButton(message: message, pageContext: context),
     if (showMarkAsUnreadButton)
       MarkAsUnreadButton(message: message, pageContext: context),
+    if (canEditMessage)
+      EditButton(message: message, pageContext: context),
     CopyMessageTextButton(message: message, pageContext: context),
     CopyMessageLinkButton(message: message, pageContext: context),
     ShareButton(message: message, pageContext: context),
@@ -705,6 +710,39 @@ class MarkAsUnreadButton extends MessageActionSheetMenuItemButton {
   @override void onPressed() async {
     final narrow = findMessageListPage().narrow;
     unawaited(markNarrowAsUnreadFromMessage(pageContext, message, narrow));
+  }
+}
+
+class EditButton extends MessageActionSheetMenuItemButton {
+  EditButton({super.key, required super.message, required super.pageContext});
+
+  @override
+  IconData get icon => ZulipIcons.edit;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionEditMessage;
+  }
+
+  @override
+  void onPressed() async {
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
+    final rawContent = await fetchRawContentWithFeedback(
+      context: pageContext,
+      messageId: message.id,
+      errorDialogTitle: zulipLocalizations.errorEditingFailed,
+    );
+
+    if (rawContent == null) return;
+    if (!pageContext.mounted) return;
+
+    final messageListPage = findMessageListPage();
+    final composeBoxController = messageListPage.composeBoxController;
+
+    if (composeBoxController == null) return;
+
+    composeBoxController.startEditing(message);
+    composeBoxController.content.text = rawContent;
   }
 }
 

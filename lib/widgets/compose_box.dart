@@ -1022,6 +1022,10 @@ class _SendButtonState extends State<_SendButton> {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
+    if (widget.controller.isEditing) {
+      return const SizedBox(width: _composeButtonSize);
+    }
+
     final iconColor = _hasValidationErrors
       ? designVariables.icon.withFadedAlpha(0.5)
       : designVariables.icon;
@@ -1040,10 +1044,96 @@ class _SendButtonState extends State<_SendButton> {
   }
 }
 
+class _EditHeader extends StatelessWidget {
+  const _EditHeader({
+    required this.onCancel,
+    required this.onSave,
+  });
+
+  final VoidCallback onCancel;
+  final VoidCallback onSave;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    return Container(
+      height: 40,
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 5, 8, 5),
+      decoration: BoxDecoration(
+        color: designVariables.bannerBgIntInfo,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            zulipLocalizations.editMessageTitle,
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              color: designVariables.bannerTextIntInfo,
+            ).merge(weightVariableTextStyle(context, wght: 600)),
+          ),
+          Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: designVariables.btnShadowAttMedium,
+                      blurRadius: 1,
+                      spreadRadius: 1,
+                      offset: Offset(0, 0),
+                    ),
+                  ],
+                ),
+                child: FilledButton(
+                  onPressed: onCancel,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    backgroundColor: designVariables.btnBgAttMediumIntInfoNormal,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  child: Text(zulipLocalizations.dialogCancel, style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: designVariables.btnLabelAttMediumIntInfo,
+                  ),),
+                ),
+              ),
+              const SizedBox(width: 8),
+              FilledButton(
+                onPressed: onSave,
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  backgroundColor: designVariables.btnBgAttHighIntInfoNormal,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                child: Text(zulipLocalizations.dialogSave, style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: designVariables.btnLabelAttHigh,
+                ),),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ComposeBoxContainer extends StatelessWidget {
   const _ComposeBoxContainer({
     required this.body,
     this.errorBanner,
+    this.editHeader,
   }) : assert(body != null || errorBanner != null);
 
   /// The text inputs, compose-button row, and send button.
@@ -1062,6 +1152,7 @@ class _ComposeBoxContainer extends StatelessWidget {
   /// and bottom device insets.
   /// (A bottom inset may occur if [body] is null.)
   final Widget? errorBanner;
+  final Widget? editHeader;
 
   Widget _paddedBody() {
     assert(body != null);
@@ -1073,17 +1164,30 @@ class _ComposeBoxContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
-    final List<Widget> children = switch ((errorBanner, body)) {
-      (Widget(), Widget()) => [
+    final List<Widget> children = switch ((errorBanner, editHeader, body)) {
+      (Widget(), Widget(), Widget()) => [
         // _paddedBody() already pads the bottom inset,
         // so make sure the error banner doesn't double-pad it.
         MediaQuery.removePadding(context: context, removeBottom: true,
           child: errorBanner!),
+        editHeader!,
         _paddedBody(),
       ],
-      (Widget(),     null) => [errorBanner!],
-      (null,     Widget()) => [_paddedBody()],
-      (null,         null) => throw UnimplementedError(), // not allowed, see dartdoc
+      (Widget(), Widget(),     null) => [
+        MediaQuery.removePadding(context: context, removeBottom: true,
+          child: errorBanner!),
+        editHeader!,
+      ],
+      (Widget(),     null, Widget()) => [
+        MediaQuery.removePadding(context: context, removeBottom: true,
+          child: errorBanner!),
+        _paddedBody(),
+      ],
+      (Widget(),     null,     null) => [errorBanner!],
+      (null,     Widget(), Widget()) => [editHeader!, _paddedBody()],
+      (null,     Widget(),     null) => [editHeader!],
+      (null,         null, Widget()) => [_paddedBody()],
+      (null,         null,     null) => throw UnimplementedError(),
     };
 
     // TODO(design): Maybe put a max width on the compose box, like we do on
@@ -1147,7 +1251,14 @@ abstract class _ComposeBoxBody extends StatelessWidget {
         child: Theme(
           data: inputThemeData,
           child: Column(children: [
-            if (topicInput != null) topicInput,
+            ValueListenableBuilder(
+              valueListenable: controller.isEditingNotifier,
+              builder: (context, isEditing, _) {
+                return (!isEditing && topicInput != null)
+                    ? topicInput
+                    : const SizedBox.shrink();
+              },
+            ),
             buildContentInput(),
           ]))),
       SizedBox(
@@ -1177,10 +1288,13 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   @override
   final StreamComposeBoxController controller;
 
-  @override Widget buildTopicInput() => _TopicInput(
-    streamId: narrow.streamId,
-    controller: controller,
-  );
+  @override
+  Widget? buildTopicInput() => controller.isEditing
+      ? null
+      : _TopicInput(
+          streamId: narrow.streamId,
+          controller: controller,
+        );
 
   @override Widget buildContentInput() => _StreamContentInput(
     narrow: narrow,
@@ -1220,10 +1334,29 @@ sealed class ComposeBoxController {
   final content = ComposeContentController();
   final contentFocusNode = FocusNode();
 
+  final ValueNotifier<bool> isEditingNotifier = ValueNotifier(false);
+  bool get isEditing => _messageBeingEdited != null;
+
+  Message? _messageBeingEdited;
+  Message? get messageBeingEdited => _messageBeingEdited;
+
+  void startEditing(Message message) {
+    _messageBeingEdited = message;
+    contentFocusNode.requestFocus();
+    isEditingNotifier.value = true;
+  }
+
+  void cancelEditing() {
+    _messageBeingEdited = null;
+    content.clear();
+    isEditingNotifier.value = false;
+  }
+
   @mustCallSuper
   void dispose() {
     content.dispose();
     contentFocusNode.dispose();
+    isEditingNotifier.dispose();
   }
 }
 
@@ -1391,11 +1524,53 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       }
     }
 
-    // TODO(#720) dismissable message-send error, maybe something like:
-    //     if (controller.sendMessageError.value != null) {
-    //       errorBanner = _ErrorBanner(label:
-    //         ZulipLocalizations.of(context).errorSendMessageTimeout);
-    //     }
-    return _ComposeBoxContainer(body: body, errorBanner: null);
+    return ValueListenableBuilder(
+      valueListenable: controller.isEditingNotifier,
+      builder: (context, isEditing, child) {
+        final Widget? editHeader = isEditing ? _EditHeader(
+          onCancel: () {
+            controller.cancelEditing();
+          },
+          onSave: () {
+            final store = PerAccountStoreWidget.of(context);
+            final content = controller.content.textNormalized;
+            final message = controller.messageBeingEdited!;
+
+            controller.content.clear();
+            controller.cancelEditing();
+
+            setState(() {
+              message.editState = MessageEditState.editing;
+            });
+
+            store.editMessage(
+              messageId: message.id,
+              content: content,
+            ).then((_) {
+              if (!mounted) return;
+              setState(() {
+                message.editState = MessageEditState.edited;
+              });
+            }).catchError((e) {
+              if (!mounted) return;
+              setState(() {
+                message.editState = MessageEditState.editError;
+              });
+            });
+          },
+        ) : null;
+
+        // TODO(#720) dismissable message-send error, maybe something like:
+        //     if (controller.sendMessageError.value != null) {
+        //       errorBanner = _ErrorBanner(label:
+        //         ZulipLocalizations.of(context).errorSendMessageTimeout);
+        //     }
+        return _ComposeBoxContainer(
+          body: body,
+          errorBanner: errorBanner,
+          editHeader: editHeader,
+        );
+      },
+    );
   }
 }
