@@ -776,5 +776,12 @@
   "errorMessageNotSent": "Сообщение не отправлено",
   "@errorMessageNotSent": {
     "description": "Error message for compose box when a message could not be sent."
+  },
+  "userLocalTime": "{userTime} местное время",
+  "@userLocalTime": {
+    "description": "Current time in the user's timezone",
+    "placeholders": {
+      "userTime": {"type": "DateTime", "format": "jm"}
+    }
   }
 }

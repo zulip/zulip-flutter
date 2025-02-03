@@ -1070,6 +1070,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Search emoji'**
   String get emojiPickerSearchEmoji;
+
+  /// Current time in the user's timezone
+  ///
+  /// In en, this message translates to:
+  /// **'{userTime} local time'**
+  String userLocalTime(DateTime userTime);
 }
 
 class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizations> {

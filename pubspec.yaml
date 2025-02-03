@@ -64,6 +64,7 @@ dependencies:
   wakelock_plus: ^1.2.8
   zulip_plugin:
     path: ./packages/zulip_plugin
+  timezone: ^0.10.0
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
 
 dependency_overrides:
@@ -114,6 +115,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/timezone/latest_all.tzf
     - assets/Noto_Color_Emoji/LICENSE
     - assets/Pygments/AUTHORS.txt
     - assets/Pygments/LICENSE.txt

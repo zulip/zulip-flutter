@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
@@ -63,6 +65,17 @@ class ProfilePage extends StatelessWidget {
     }
   }
 
+  Future<String> _getDisplayLocalTimeFor(User user, ZulipLocalizations zulipLocalizations) async {
+    if (!tz.timeZoneDatabase.isInitialized) {
+      final blob = Uint8List.sublistView(await rootBundle.load('assets/timezone/latest_all.tzf'));
+      tz.initializeDatabase(blob);
+    }
+
+    final location = tz.getLocation(user.timezone);
+    final localTime = tz.TZDateTime.now(location);
+    return zulipLocalizations.userLocalTime(localTime);
+  }
+
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -73,6 +86,7 @@ class ProfilePage extends StatelessWidget {
     }
 
     final displayEmail = _getDisplayEmailFor(user, store: store);
+    final displayLocalTime = _getDisplayLocalTimeFor(user, zulipLocalizations);
     final items = [
       Center(
         child: Avatar(userId: userId, size: 200, borderRadius: 200 / 8)),
@@ -90,7 +104,16 @@ class ProfilePage extends StatelessWidget {
         style: _TextStyles.primaryFieldText),
       // TODO(#197) render user status
       // TODO(#196) render active status
-      // TODO(#292) render user local time
+      FutureBuilder(
+        future: displayLocalTime,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) Error.throwWithStackTrace(snapshot.error!, snapshot.stackTrace!);
+          return Text(snapshot.data ?? '',
+            textAlign: TextAlign.center,
+            style: _TextStyles.primaryFieldText
+          );
+        }
+      ),
 
       _ProfileDataTable(profileData: user.profileData),
       const SizedBox(height: 16),

@@ -776,5 +776,12 @@
   "errorUnmuteTopicFailed": "Wznowienie bez powodzenia",
   "@errorUnmuteTopicFailed": {
     "description": "Error message when unmuting a topic failed."
+  },
+  "userLocalTime": "{userTime} czas lokalny",
+  "@userLocalTime": {
+    "description": "Current time in the user's timezone",
+    "placeholders": {
+      "userTime": {"type": "DateTime", "format": "jm"}
+    }
   }
 }

@@ -564,4 +564,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get emojiPickerSearchEmoji => 'Поиск эмодзи';
+
+  @override
+  String userLocalTime(DateTime userTime) {
+    final intl.DateFormat userTimeDateFormat = intl.DateFormat.jm(localeName);
+    final String userTimeString = userTimeDateFormat.format(userTime);
+
+    return '$userTimeString местное время';
+  }
 }
