@@ -274,6 +274,24 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get composeBoxGenericContentHint => 'Type a message';
 
   @override
+  String get newDmSheetBackButtonLabel => 'Back';
+
+  @override
+  String get newDmSheetNextButtonLabel => 'Next';
+
+  @override
+  String get newDmSheetScreenTitle => 'New DM';
+
+  @override
+  String get newDmFabButtonLabel => 'New DM';
+
+  @override
+  String get newDmSheetSearchHintEmpty => 'Add one or more users';
+
+  @override
+  String get newDmSheetSearchHintSomeSelected => 'Add another user…';
+
+  @override
   String composeBoxDmContentHint(String user) {
     return 'Message @$user';
   }
