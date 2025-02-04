@@ -321,11 +321,11 @@ void main() {
     });
 
     test('assets; ensure the timezone database used to display users\' local time is up-to-date', () async {
-      await ProfilePage.initializeTimezonesUsingAssets();
-      final currentTimezones = tz.timeZoneDatabase;
-
       tz.initializeTimeZones();
       final latestTimezones = tz.timeZoneDatabase;
+
+      await ProfilePage.initializeTimezonesUsingAssets();
+      final currentTimezones = tz.timeZoneDatabase;
 
       check(
         currentTimezones == latestTimezones,
