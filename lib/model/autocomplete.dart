@@ -947,6 +947,8 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
       return store.realmEmptyTopicDisplayName.toLowerCase()
         .contains(raw.toLowerCase());
     }
+    // This checks for inequality because there is nothing to autocomplete to
+    // when `raw` already matches the topic exactly.
     return topic.displayName != raw
       // ignore: unnecessary_non_null_assertion // null topic names soon to be enabled
       && topic.displayName!.toLowerCase().contains(raw.toLowerCase());
