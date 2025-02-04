@@ -519,6 +519,36 @@ abstract class ZulipLocalizations {
   /// **'Type a message'**
   String get composeBoxGenericContentHint;
 
+  /// Label for the back button in the new DM sheet, allowing the user to return to the previous screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get newDmSheetBackButtonLabel;
+
+  /// Label for the front button in the new DM sheet, if applicable, for navigation or action.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get newDmSheetNextButtonLabel;
+
+  /// Title displayed at the top of the new DM screen.
+  ///
+  /// In en, this message translates to:
+  /// **'New DM'**
+  String get newDmSheetScreenTitle;
+
+  /// Label for the floating action button (FAB) that opens the new DM sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'New DM'**
+  String get newDmFabButtonLabel;
+
+  /// Hint text for the search bar in the new DM sheet, prompting the user to add people to the conversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Add person'**
+  String get newDmSheetSearchHint;
+
   /// Hint text for content input when sending a message to one other person.
   ///
   /// In en, this message translates to:
