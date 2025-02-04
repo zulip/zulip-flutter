@@ -947,6 +947,7 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
       return store.realmEmptyTopicDisplayName.toLowerCase()
         .contains(raw.toLowerCase());
     }
+    // Skip this option if it matches the query exactly.
     return topic.displayName != raw
       // ignore: unnecessary_non_null_assertion // null topic names soon to be enabled
       && topic.displayName!.toLowerCase().contains(raw.toLowerCase());
