@@ -160,10 +160,17 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
     return trimmed.isEmpty ? kNoTopicTopic : trimmed;
   }
 
+  /// Whether [textNormalized] is invalid in terms of checks for mandatory
+  /// topics.
+  ///
+  /// The term "vacuumous" draws distinction from [String.isEmpty], in the sense
+  /// that certain strings are empty but also indicate the absence of a topic.
+  bool get isTopicVacuumous => textNormalized == kNoTopicTopic;
+
   @override
   List<TopicValidationError> _computeValidationErrors() {
     return [
-      if (mandatory && textNormalized == kNoTopicTopic)
+      if (mandatory && isTopicVacuumous)
         TopicValidationError.mandatoryButEmpty,
 
       if (
