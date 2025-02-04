@@ -160,10 +160,14 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
     return trimmed.isEmpty ? kNoTopicTopic : trimmed;
   }
 
+  bool get _isTopicConsideredEmpty {
+    return textNormalized.isEmpty || textNormalized == kNoTopicTopic;
+  }
+
   @override
   List<TopicValidationError> _computeValidationErrors() {
     return [
-      if (mandatory && textNormalized == kNoTopicTopic)
+      if (mandatory && _isTopicConsideredEmpty)
         TopicValidationError.mandatoryButEmpty,
 
       if (
