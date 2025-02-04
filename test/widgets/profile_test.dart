@@ -1,6 +1,8 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -316,6 +318,20 @@ void main() {
             urlPattern: 'https://example/%(username)s')});
 
       check(find.textContaining(longString).evaluate()).length.equals(7);
+    });
+
+    test('assets; ensure the timezone database used to display users\' local time is up-to-date', () async {
+      await ProfilePage.initializeTimezonesUsingAssets();
+      final currentTimezones = tz.timeZoneDatabase;
+
+      tz.initializeTimeZones();
+      final latestTimezones = tz.timeZoneDatabase;
+
+      check(
+        currentTimezones == latestTimezones,
+        because:
+            'the timezone database used to display users\' local time is not up-to-date',
+      ).isTrue();
     });
   });
 }

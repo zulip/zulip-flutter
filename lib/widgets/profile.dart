@@ -65,11 +65,14 @@ class ProfilePage extends StatelessWidget {
     }
   }
 
+  @visibleForTesting
+  static Future<void> initializeTimezonesUsingAssets() async {
+    final blob = Uint8List.sublistView(await rootBundle.load('assets/timezone/latest_all.tzf'));
+    tz.initializeDatabase(blob);
+  }
+
   Future<String> _getDisplayLocalTimeFor(User user, ZulipLocalizations zulipLocalizations) async {
-    if (!tz.timeZoneDatabase.isInitialized) {
-      final blob = Uint8List.sublistView(await rootBundle.load('assets/timezone/latest_all.tzf'));
-      tz.initializeDatabase(blob);
-    }
+    if (!tz.timeZoneDatabase.isInitialized) await initializeTimezonesUsingAssets();
 
     final location = tz.getLocation(user.timezone);
     final localTime = tz.TZDateTime.now(location);
