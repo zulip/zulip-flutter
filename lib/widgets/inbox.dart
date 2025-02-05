@@ -382,12 +382,10 @@ class _DmItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final selfUser = store.users[store.selfUserId]!;
-
     final designVariables = DesignVariables.of(context);
 
     final title = switch (narrow.otherRecipientIds) { // TODO dedupe with [RecentDmConversationsItem]
-      [] => selfUser.fullName,
+      [] => store.users[store.selfUserId]!.fullName,
       [var otherUserId] => store.userDisplayName(otherUserId),
 
       // TODO(i18n): List formatting, like you can do in JavaScript:
