@@ -467,7 +467,10 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
   int get selfUserId => _users.selfUserId;
 
   @override
-  Map<int, User> get users => _users.users;
+  User? getUser(int userId) => _users.getUser(userId);
+
+  @override
+  Iterable<User> get allUsers => _users.allUsers;
 
   final UserStoreImpl _users;
 
