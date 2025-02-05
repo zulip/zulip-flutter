@@ -43,9 +43,25 @@ mixin UserStore {
   ///
   /// This is the user's [User.fullName] if the user is known,
   /// and otherwise a translation of "(unknown user)".
+  ///
+  /// When a [Message] is available which the user sent,
+  /// use [senderDisplayName] instead for a better-informed fallback.
   String userDisplayName(int userId) {
     return users[userId]?.fullName
       ?? GlobalLocalizations.zulipLocalizations.unknownUserName;
+  }
+
+  /// The name to show for the given message's sender in the UI.
+  ///
+  /// If the user is known (see [users]), this is their current [User.fullName].
+  /// If unknown, this uses the fallback value conveniently provided on the
+  /// [Message] object itself, namely [Message.senderFullName].
+  ///
+  /// For a user who isn't the sender of some known message,
+  /// see [userDisplayName].
+  String senderDisplayName(Message message) {
+    return users[message.senderId]?.fullName
+      ?? message.senderFullName;
   }
 }
 

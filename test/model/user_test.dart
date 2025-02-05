@@ -22,6 +22,36 @@ void main() {
     });
   });
 
+  group('senderDisplayName', () {
+    test('on a known user', () async {
+      final store = eg.store();
+      final user = eg.user(fullName: 'Old Name');
+      await store.addUser(user);
+      final message = eg.streamMessage(sender: user);
+      await store.addMessage(message);
+      check(store.senderDisplayName(message)).equals('Old Name');
+
+      // If the user's name changes, `store.senderDisplayName` should update...
+      await store.handleEvent(RealmUserUpdateEvent(id: 1,
+        userId: user.userId, fullName: 'New Name'));
+      check(store.senderDisplayName(message)).equals('New Name');
+      // ... even though the Message object itself still has the old name.
+      check(store.messages[message.id]!).senderFullName.equals('Old Name');
+    });
+
+    test('on an unknown user', () async {
+      final store = eg.store();
+      final message = eg.streamMessage(sender: eg.user(fullName: 'Some User'));
+      await store.addMessage(message);
+      // If the user is unknown, `store.senderDisplayName` should fall back
+      // to the name in the message...
+      check(store.senderDisplayName(message)).equals('Some User');
+      // ... even though `store.userDisplayName` (with no message available
+      // for fallback) only has a generic fallback name.
+      check(store.userDisplayName(message.senderId)).equals('(unknown user)');
+    });
+  });
+
   group('RealmUserUpdateEvent', () {
     // TODO write more tests for handling RealmUserUpdateEvent
 
