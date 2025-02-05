@@ -1419,16 +1419,17 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   Widget? _errorBanner(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final selfUser = store.users[store.selfUserId]!;
     switch (widget.narrow) {
       case ChannelNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         final channel = store.streams[streamId];
+        final selfUser = store.users[store.selfUserId]!;
         if (channel == null || !store.hasPostingPermission(inChannel: channel,
             user: selfUser, byDate: DateTime.now())) {
           return _ErrorBanner(label:
             ZulipLocalizations.of(context).errorBannerCannotPostInChannelLabel);
         }
+
       case DmNarrow(:final otherRecipientIds):
         final hasDeactivatedUser = otherRecipientIds.any((id) =>
           !(store.users[id]?.isActive ?? true));
@@ -1436,6 +1437,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
           return _ErrorBanner(label:
             ZulipLocalizations.of(context).errorBannerDeactivatedDmLabel);
         }
+
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
