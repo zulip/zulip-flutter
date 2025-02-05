@@ -200,7 +200,7 @@ class _ProfileDataTable extends StatelessWidget {
         // TODO(server): The value's format is undocumented, but empirically
         //   it's a date in ISO format, like 2000-01-01.
         // That's readable as is, but:
-        // TODO format this date using user's locale.
+        // TODO(i18n) format this date using user's locale.
         return _TextWidget(text: value);
 
       case CustomProfileFieldType.shortText:
