@@ -271,8 +271,8 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
   String get composeBoxSelfDmContentHint => 'Jot down something';
 
   @override
-  String composeBoxChannelContentHint(String channel, String topic) {
-    return 'Message #$channel > $topic';
+  String composeBoxChannelContentHint(String destination) {
+    return 'Message $destination';
   }
 
   @override

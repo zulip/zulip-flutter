@@ -263,20 +263,6 @@
   "@composeBoxSelfDmContentHint": {
     "description": "Hint text for content input when sending a message to yourself."
   },
-  "composeBoxChannelContentHint": "Wiadomość #{channel} > {topic}",
-  "@composeBoxChannelContentHint": {
-    "description": "Hint text for content input when sending a message to a channel",
-    "placeholders": {
-      "channel": {
-        "type": "String",
-        "example": "channel name"
-      },
-      "topic": {
-        "type": "String",
-        "example": "topic name"
-      }
-    }
-  },
   "composeBoxTopicHintText": "Wątek",
   "@composeBoxTopicHintText": {
     "description": "Hint text for topic input widget in compose box."

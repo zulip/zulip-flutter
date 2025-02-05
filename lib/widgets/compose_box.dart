@@ -587,7 +587,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       destination: TopicNarrow(widget.narrow.streamId, topic),
       controller: widget.controller,
       hintText: zulipLocalizations.composeBoxChannelContentHint(
-        streamName, topic.displayName));
+        '#$streamName > ${topic.displayName}'));
   }
 }
 
@@ -646,7 +646,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
         final streamName = store.streams[streamId]?.name
           ?? zulipLocalizations.unknownChannelName;
         return zulipLocalizations.composeBoxChannelContentHint(
-          streamName, topic.displayName);
+          '#$streamName > ${topic.displayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;
