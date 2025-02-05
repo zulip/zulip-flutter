@@ -1410,5 +1410,5 @@ class MessageWithPossibleSender extends StatelessWidget {
   }
 }
 
-// TODO web seems to ignore locale in formatting time, but we could do better
+// TODO(i18n): web seems to ignore locale in formatting time, but we could do better
 final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
