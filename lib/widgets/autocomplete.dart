@@ -202,7 +202,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
         }
         // TODO(i18n) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
-        replacementString = '${userMention(store.users[userId]!, silent: query.silent, users: store.users)} ';
+        replacementString = '${userMention(store.users[userId]!, silent: query.silent, users: store)} ';
       case WildcardMentionAutocompleteResult(:var wildcardOption):
         replacementString = '${wildcardMention(wildcardOption, store: store)} ';
     }

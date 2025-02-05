@@ -5,6 +5,7 @@ import '../generated/l10n/zulip_localizations.dart';
 import 'internal_link.dart';
 import 'narrow.dart';
 import 'store.dart';
+import 'user.dart';
 
 /// The available user wildcard mention options,
 /// known to the server as [canonicalString].
@@ -127,11 +128,12 @@ String wrapWithBacktickFence({required String content, String? infoString}) {
 /// An @-mention of an individual user, like @**Chris Bobbe|13313**.
 ///
 /// To omit the user ID part ("|13313") whenever the name part is unambiguous,
-/// pass a Map of all users we know about. This means accepting a linear scan
+/// pass the full UserStore.  This means accepting a linear scan
 /// through all users; avoid it in performance-sensitive codepaths.
-String userMention(User user, {bool silent = false, Map<int, User>? users}) {
+String userMention(User user, {bool silent = false, UserStore? users}) {
   bool includeUserId = users == null
-    || users.values.where((u) => u.fullName == user.fullName).take(2).length == 2;
+    || users.users.values.where((u) => u.fullName == user.fullName)
+         .take(2).length == 2;
 
   return '@${silent ? '_' : ''}**${user.fullName}${includeUserId ? '|${user.userId}' : ''}**';
 }
