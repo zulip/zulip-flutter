@@ -59,7 +59,7 @@ void main() {
       final store = eg.store(initialSnapshot: eg.initialSnapshot(
         realmUsers: [eg.selfUser, user]));
 
-      User getUser() => store.users[user.userId]!;
+      User getUser() => store.getUser(user.userId)!;
 
       await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
         deliveryEmail: null));

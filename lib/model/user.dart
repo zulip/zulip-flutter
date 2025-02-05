@@ -37,7 +37,14 @@ mixin UserStore {
   /// i.e. the account the person using this app is logged into.
   ///
   /// When only the user ID is needed, see [selfUserId].
-  User get selfUser => users[selfUserId]!;
+  User get selfUser => getUser(selfUserId)!;
+
+  /// The user with the given ID, if that user is known.
+  ///
+  /// There may be perfectly real users that are not known,
+  /// so callers must handle that possibility.
+  /// For details, see [users].
+  User? getUser(int userId) => users[userId];
 
   /// The name to show the given user as in the UI, even for unknown users.
   ///
@@ -47,7 +54,7 @@ mixin UserStore {
   /// When a [Message] is available which the user sent,
   /// use [senderDisplayName] instead for a better-informed fallback.
   String userDisplayName(int userId) {
-    return users[userId]?.fullName
+    return getUser(userId)?.fullName
       ?? GlobalLocalizations.zulipLocalizations.unknownUserName;
   }
 
@@ -60,7 +67,7 @@ mixin UserStore {
   /// For a user who isn't the sender of some known message,
   /// see [userDisplayName].
   String senderDisplayName(Message message) {
-    return users[message.senderId]?.fullName
+    return getUser(message.senderId)?.fullName
       ?? message.senderFullName;
   }
 }
