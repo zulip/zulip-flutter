@@ -449,7 +449,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     required PerAccountStore store,
     required Narrow narrow,
   }) {
-    return store.users.values.toList()
+    return store.allUsers.toList()
       ..sort(_comparator(store: store, narrow: narrow));
   }
 
