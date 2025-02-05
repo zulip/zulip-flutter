@@ -1214,7 +1214,7 @@ class GlobalTime extends StatelessWidget {
   final GlobalTimeNode node;
   final TextStyle ambientTextStyle;
 
-  static final _dateFormat = DateFormat('EEE, MMM d, y, h:mm a'); // TODO(intl): localize date
+  static final _dateFormat = DateFormat('EEE, MMM d, y, h:mm a'); // TODO(i18n): localize date
 
   @override
   Widget build(BuildContext context) {
