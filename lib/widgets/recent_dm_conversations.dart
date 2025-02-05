@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
@@ -82,7 +81,6 @@ class RecentDmConversationsItem extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final selfUser = store.users[store.selfUserId]!;
 
-    final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
 
     final String title;
@@ -95,16 +93,14 @@ class RecentDmConversationsItem extends StatelessWidget {
         // TODO(#296) actually don't show this row if the user is muted?
         //   (should we offer a "spam folder" style summary screen of recent
         //   1:1 DM conversations from muted users?)
-        final otherUser = store.users[otherUserId];
-        title = otherUser?.fullName ?? zulipLocalizations.unknownUserName;
+        title = store.userDisplayName(otherUserId);
         avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
       default:
         // TODO(i18n): List formatting, like you can do in JavaScript:
         //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
         //   // 'Chris、Greg、Alya'
-        title = narrow.otherRecipientIds.map(
-          (id) => store.users[id]?.fullName ?? zulipLocalizations.unknownUserName
-        ).join(', ');
+        title = narrow.otherRecipientIds.map(store.userDisplayName)
+          .join(', ');
         avatar = ColoredBox(color: designVariables.groupDmConversationIconBg,
           child: Center(
             child: Icon(color: designVariables.groupDmConversationIcon,

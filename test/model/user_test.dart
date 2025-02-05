@@ -5,8 +5,23 @@ import 'package:zulip/api/model/model.dart';
 
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
+import 'test_store.dart';
 
 void main() {
+  group('userDisplayName', () {
+    test('on a known user', () async {
+      final user = eg.user(fullName: 'Some User');
+      final store = eg.store();
+      await store.addUser(user);
+      check(store.userDisplayName(user.userId)).equals('Some User');
+    });
+
+    test('on an unknown user', () {
+      final store = eg.store();
+      check(store.userDisplayName(eg.user().userId)).equals('(unknown user)');
+    });
+  });
+
   group('RealmUserUpdateEvent', () {
     // TODO write more tests for handling RealmUserUpdateEvent
 

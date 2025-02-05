@@ -1,6 +1,7 @@
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
+import 'localizations.dart';
 
 /// The portion of [PerAccountStore] describing the users in the realm.
 mixin UserStore {
@@ -21,8 +22,17 @@ mixin UserStore {
   /// Code that looks up a user in this map should therefore always handle
   /// the possibility that the user is not found (except
   /// where there is a specific reason to know the user should be found).
-  /// Consider using [ZulipLocalizations.unknownUserName].
+  /// Consider using [userDisplayName].
   Map<int, User> get users;
+
+  /// The name to show the given user as in the UI, even for unknown users.
+  ///
+  /// This is the user's [User.fullName] if the user is known,
+  /// and otherwise a translation of "(unknown user)".
+  String userDisplayName(int userId) {
+    return users[userId]?.fullName
+      ?? GlobalLocalizations.zulipLocalizations.unknownUserName;
+  }
 }
 
 /// The implementation of [UserStore] that does the work.

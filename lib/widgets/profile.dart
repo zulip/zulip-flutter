@@ -291,9 +291,6 @@ class _UserWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    final user = store.users[userId];
-    final fullName = user?.fullName ?? zulipLocalizations.unknownUserName;
     return InkWell(
       onTap: () => Navigator.push(context,
         ProfilePage.buildRoute(context: context,
@@ -301,9 +298,12 @@ class _UserWidget extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: Row(children: [
+          // TODO(#196) render active status
           Avatar(userId: userId, size: 32, borderRadius: 32 / 8),
           const SizedBox(width: 8),
-          Expanded(child: Text(fullName, style: _TextStyles.customProfileFieldText)), // TODO(#196) render active status
+          Expanded(
+            child: Text(store.userDisplayName(userId),
+              style: _TextStyles.customProfileFieldText)),
         ])));
   }
 }

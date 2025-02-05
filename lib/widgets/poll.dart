@@ -80,8 +80,7 @@ class _PollWidgetState extends State<PollWidget> {
       //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Zixuan'])
       //   // 'Chris、Greg、Alya、Zixuan'
       final voterNames = option.voters
-        .map((userId) =>
-          store.users[userId]?.fullName ?? zulipLocalizations.unknownUserName)
+        .map(store.userDisplayName)
         .join(', ');
 
       return Row(
