@@ -9,6 +9,8 @@ mixin UserStore {
   /// i.e. the account the person using this app is logged into.
   ///
   /// This always equals the [Account.userId] on [PerAccountStore.account].
+  ///
+  /// For the corresponding [User] object, see [selfUser].
   int get selfUserId;
 
   /// All known users in the realm, by [User.userId].
@@ -30,6 +32,12 @@ mixin UserStore {
   /// where there is a specific reason to know the user should be found).
   /// Consider using [userDisplayName].
   Map<int, User> get users;
+
+  /// The [User] object for the "self-user",
+  /// i.e. the account the person using this app is logged into.
+  ///
+  /// When only the user ID is needed, see [selfUserId].
+  User get selfUser => users[selfUserId]!;
 
   /// The name to show the given user as in the UI, even for unknown users.
   ///
