@@ -46,6 +46,15 @@ mixin UserStore {
   /// For details, see [users].
   User? getUser(int userId) => users[userId];
 
+  /// All known users in the realm.
+  ///
+  /// This may have a large number of elements, like tens of thousands.
+  /// Consider [getUser] or other alternatives to iterating through this.
+  ///
+  /// There may be perfectly real users which are not known
+  /// and so are not found here.  For details, see [users].
+  Iterable<User> get allUsers => users.values;
+
   /// The name to show the given user as in the UI, even for unknown users.
   ///
   /// This is the user's [User.fullName] if the user is known,
