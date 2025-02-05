@@ -212,7 +212,8 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
                 child: Column(
                   children: [
                     const SizedBox(height: 16),
-                    Text(zulipLocalizations.tryAnotherAccountMessage(account.realmUrl.toString())),
+                    Text(textAlign: TextAlign.center,
+                      zulipLocalizations.tryAnotherAccountMessage(account.realmUrl.toString())),
                     const SizedBox(height: 8),
                     ElevatedButton(
                       onPressed: () => Navigator.push(context,
