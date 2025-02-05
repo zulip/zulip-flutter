@@ -191,7 +191,7 @@ String quoteAndReplyPlaceholder(
   required Message message,
 }) {
   final sender = store.users[message.senderId];
-  assert(sender != null);
+  assert(sender != null); // TODO(#716): should use `store.senderDisplayName`
   final url = narrowLink(store,
     SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
     nearMessageId: message.id);
@@ -213,7 +213,7 @@ String quoteAndReply(PerAccountStore store, {
   required String rawContent,
 }) {
   final sender = store.users[message.senderId];
-  assert(sender != null);
+  assert(sender != null); // TODO(#716): should use `store.senderDisplayName`
   final url = narrowLink(store,
     SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
     nearMessageId: message.id);
