@@ -79,14 +79,13 @@ class RecentDmConversationsItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final selfUser = store.users[store.selfUserId]!;
-
     final designVariables = DesignVariables.of(context);
 
     final String title;
     final Widget avatar;
     switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
       case []:
+        final selfUser = store.users[store.selfUserId]!;
         title = selfUser.fullName;
         avatar = AvatarImage(userId: selfUser.userId, size: _avatarSize);
       case [var otherUserId]:
