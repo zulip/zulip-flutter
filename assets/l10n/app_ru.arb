@@ -373,20 +373,6 @@
   "@composeBoxGenericContentHint": {
     "description": "Hint text for content input when sending a message."
   },
-  "composeBoxChannelContentHint": "Сообщение для #{channel} > {topic}",
-  "@composeBoxChannelContentHint": {
-    "description": "Hint text for content input when sending a message to a channel",
-    "placeholders": {
-      "channel": {
-        "type": "String",
-        "example": "channel name"
-      },
-      "topic": {
-        "type": "String",
-        "example": "topic name"
-      }
-    }
-  },
   "composeBoxSendTooltip": "Отправить",
   "@composeBoxSendTooltip": {
     "description": "Tooltip for send button in compose box."

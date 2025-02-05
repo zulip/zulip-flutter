@@ -567,11 +567,11 @@ abstract class ZulipLocalizations {
   /// **'Jot down something'**
   String get composeBoxSelfDmContentHint;
 
-  /// Hint text for content input when sending a message to a channel
+  /// Hint text for content input when sending a message to a channel.
   ///
   /// In en, this message translates to:
-  /// **'Message #{channel} > {topic}'**
-  String composeBoxChannelContentHint(String channel, String topic);
+  /// **'Message {destination}'**
+  String composeBoxChannelContentHint(String destination);
 
   /// Tooltip for send button in compose box.
   ///

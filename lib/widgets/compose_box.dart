@@ -590,7 +590,11 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       destination: TopicNarrow(widget.narrow.streamId, topic),
       controller: widget.controller,
       hintText: zulipLocalizations.composeBoxChannelContentHint(
-        streamName, topic.displayName));
+        // No i18n of this use of "#" and ">" string; those are part of how
+        // Zulip expresses channels and topics, not any normal English punctuation,
+        // so don't make sense to translate. See:
+        //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
+        '#$streamName > ${topic.displayName}'));
   }
 }
 
@@ -649,7 +653,11 @@ class _FixedDestinationContentInput extends StatelessWidget {
         final streamName = store.streams[streamId]?.name
           ?? zulipLocalizations.unknownChannelName;
         return zulipLocalizations.composeBoxChannelContentHint(
-          streamName, topic.displayName);
+          // No i18n of this use of "#" and ">" string; those are part of how
+          // Zulip expresses channels and topics, not any normal English punctuation,
+          // so don't make sense to translate. See:
+          //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
+          '#$streamName > ${topic.displayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;

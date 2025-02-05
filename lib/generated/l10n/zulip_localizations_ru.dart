@@ -276,8 +276,8 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get composeBoxSelfDmContentHint => 'Сделать заметку';
 
   @override
-  String composeBoxChannelContentHint(String channel, String topic) {
-    return 'Сообщение для #$channel > $topic';
+  String composeBoxChannelContentHint(String destination) {
+    return 'Message $destination';
   }
 
   @override
