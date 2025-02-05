@@ -87,10 +87,12 @@ class RecentDmConversationsItem extends StatelessWidget {
 
     final String title;
     final Widget avatar;
+    bool self=false;
     switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
       case []:
         title = selfUser.fullName;
         avatar = AvatarImage(userId: selfUser.userId, size: _avatarSize);
+        self=true;
       case [var otherUserId]:
         // TODO(#296) actually don't show this row if the user is muted?
         //   (should we offer a "spam folder" style summary screen of recent
@@ -125,16 +127,29 @@ class RecentDmConversationsItem extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                style: TextStyle(
-                  fontSize: 17,
-                  height: (20 / 17),
-                  // TODO(design) check if this is the right variable
-                  color: designVariables.labelMenuButton,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                title))),
+              child: Row(
+                children:[Text(
+                  style: TextStyle(
+                    fontSize: 17,
+                    height: (20 / 17),
+                    // TODO(design) check if this is the right variable
+                    color: designVariables.labelMenuButton,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  title),if (self) // Conditionally add "(you)"
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Text(
+                        "(you)",
+                        style: TextStyle(
+                          fontSize: 17,
+                          height: (20 / 17),
+                          color: designVariables.labelMenuButton.withAlpha(180),
+                        ),
+                      ),
+                    ),]
+              ))),
             const SizedBox(width: 12),
             unreadCount > 0
               ? Padding(padding: const EdgeInsetsDirectional.only(end: 16),
