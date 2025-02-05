@@ -13,9 +13,10 @@ mixin UserStore {
   /// For the corresponding [User] object, see [selfUser].
   int get selfUserId;
 
-  /// All known users in the realm, by [User.userId].
+  /// The user with the given ID, if that user is known.
   ///
-  /// There may be other users not found in this map, for multiple reasons:
+  /// There may be other users that are perfectly real but are
+  /// not known to the app, for multiple reasons:
   ///
   ///  * The self-user may not have permission to see all the users in the
   ///    realm, for example because the self-user is a guest.
@@ -27,24 +28,11 @@ mixin UserStore {
   ///    Those may therefore refer to users for which we have yet to see the
   ///    [RealmUserAddEvent], or have already handled a [RealmUserRemoveEvent].
   ///
-  /// Code that looks up a user in this map should therefore always handle
+  /// Code that looks up a user here should therefore always handle
   /// the possibility that the user is not found (except
   /// where there is a specific reason to know the user should be found).
   /// Consider using [userDisplayName].
-  Map<int, User> get users;
-
-  /// The [User] object for the "self-user",
-  /// i.e. the account the person using this app is logged into.
-  ///
-  /// When only the user ID is needed, see [selfUserId].
-  User get selfUser => getUser(selfUserId)!;
-
-  /// The user with the given ID, if that user is known.
-  ///
-  /// There may be perfectly real users that are not known,
-  /// so callers must handle that possibility.
-  /// For details, see [users].
-  User? getUser(int userId) => users[userId];
+  User? getUser(int userId);
 
   /// All known users in the realm.
   ///
@@ -52,8 +40,14 @@ mixin UserStore {
   /// Consider [getUser] or other alternatives to iterating through this.
   ///
   /// There may be perfectly real users which are not known
-  /// and so are not found here.  For details, see [users].
-  Iterable<User> get allUsers => users.values;
+  /// and so are not found here.  For details, see [getUser].
+  Iterable<User> get allUsers;
+
+  /// The [User] object for the "self-user",
+  /// i.e. the account the person using this app is logged into.
+  ///
+  /// When only the user ID is needed, see [selfUserId].
+  User get selfUser => getUser(selfUserId)!;
 
   /// The name to show the given user as in the UI, even for unknown users.
   ///
@@ -69,7 +63,7 @@ mixin UserStore {
 
   /// The name to show for the given message's sender in the UI.
   ///
-  /// If the user is known (see [users]), this is their current [User.fullName].
+  /// If the user is known (see [getUser]), this is their current [User.fullName].
   /// If unknown, this uses the fallback value conveniently provided on the
   /// [Message] object itself, namely [Message.senderFullName].
   ///
@@ -90,7 +84,7 @@ class UserStoreImpl with UserStore {
   UserStoreImpl({
     required this.selfUserId,
     required InitialSnapshot initialSnapshot,
-  }) : users = Map.fromEntries(
+  }) : _users = Map.fromEntries(
          initialSnapshot.realmUsers
          .followedBy(initialSnapshot.realmNonActiveUsers)
          .followedBy(initialSnapshot.crossRealmBots)
@@ -99,19 +93,24 @@ class UserStoreImpl with UserStore {
   @override
   final int selfUserId;
 
+  final Map<int, User> _users;
+
   @override
-  final Map<int, User> users;
+  User? getUser(int userId) => _users[userId];
+
+  @override
+  Iterable<User> get allUsers => _users.values;
 
   void handleRealmUserEvent(RealmUserEvent event) {
     switch (event) {
       case RealmUserAddEvent():
-        users[event.person.userId] = event.person;
+        _users[event.person.userId] = event.person;
 
       case RealmUserRemoveEvent():
-        users.remove(event.userId);
+        _users.remove(event.userId);
 
       case RealmUserUpdateEvent():
-        final user = users[event.userId];
+        final user = _users[event.userId];
         if (user == null) {
           return; // TODO log
         }
