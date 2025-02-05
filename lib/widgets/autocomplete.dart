@@ -200,7 +200,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
         if (query is! MentionAutocompleteQuery) {
           return; // Shrug; similar to `intent == null` case above.
         }
-        final user = store.users[userId]!; // must exist because UserMentionAutocompleteResult
+        final user = store.getUser(userId)!; // must exist because UserMentionAutocompleteResult
         // TODO(i18n) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
         replacementString = '${userMention(user, silent: query.silent, users: store)} ';
@@ -268,7 +268,7 @@ class _MentionAutocompleteItem extends StatelessWidget {
     Widget label;
     switch (option) {
       case UserMentionAutocompleteResult(:var userId):
-        final user = store.users[userId]!; // must exist because UserMentionAutocompleteResult
+        final user = store.getUser(userId)!; // must exist because UserMentionAutocompleteResult
         avatar = Avatar(userId: userId, size: 32, borderRadius: 3); // web uses 21px
         label = Text(user.fullName);
       case WildcardMentionAutocompleteResult(:var wildcardOption):

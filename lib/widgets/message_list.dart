@@ -1311,7 +1311,7 @@ class MessageWithPossibleSender extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final message = item.message;
-    final sender = store.users[message.senderId];
+    final sender = store.getUser(message.senderId);
 
     Widget? senderRow;
     if (item.showSender) {

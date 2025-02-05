@@ -67,7 +67,7 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
-    final user = store.users[userId];
+    final user = store.getUser(userId);
     if (user == null) {
       return const _ProfileErrorPage();
     }
