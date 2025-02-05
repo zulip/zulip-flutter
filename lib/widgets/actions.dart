@@ -24,9 +24,8 @@ abstract final class ZulipAction {
   /// for details on the UI feedback, see there.
   static Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
     final store = PerAccountStoreWidget.of(context);
-    final connection = store.connection;
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final useLegacy = connection.zulipFeatureLevel! < 155; // TODO(server-6)
+    final useLegacy = store.zulipFeatureLevel < 155; // TODO(server-6)
     if (useLegacy) {
       try {
         await _legacyMarkNarrowAsRead(context, narrow);
@@ -78,8 +77,7 @@ abstract final class ZulipAction {
     Message message,
     Narrow narrow,
   ) async {
-    final connection = PerAccountStoreWidget.of(context).connection;
-    assert(connection.zulipFeatureLevel! >= 155); // TODO(server-6)
+    assert(PerAccountStoreWidget.of(context).zulipFeatureLevel >= 155); // TODO(server-6)
     final zulipLocalizations = ZulipLocalizations.of(context);
     await updateMessageFlagsStartingFromAnchor(
       context: context,

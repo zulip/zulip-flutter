@@ -241,7 +241,7 @@ class _MentionAutocompleteItem extends StatelessWidget {
     required PerAccountStore store,
   }) {
     final isDmNarrow = narrow is DmNarrow;
-    final isChannelWildcardAvailable = store.account.zulipFeatureLevel >= 247; // TODO(server-9)
+    final isChannelWildcardAvailable = store.zulipFeatureLevel >= 247; // TODO(server-9)
     final localizations = ZulipLocalizations.of(context);
     final description = switch (wildcardOption) {
       WildcardMentionOption.all || WildcardMentionOption.everyone => isDmNarrow

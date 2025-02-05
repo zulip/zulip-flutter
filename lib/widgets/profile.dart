@@ -40,7 +40,7 @@ class ProfilePage extends StatelessWidget {
   ///
   /// Returns null if self-user isn't able to see [user]'s real email address.
   String? _getDisplayEmailFor(User user, {required PerAccountStore store}) {
-    if (store.account.zulipFeatureLevel >= 163) { // TODO(server-7)
+    if (store.zulipFeatureLevel >= 163) { // TODO(server-7)
       // A non-null value means self-user has access to [user]'s real email,
       // while a null value means it doesn't have access to the email.
       // Search for "delivery_email" in https://zulip.com/api/register-queue.

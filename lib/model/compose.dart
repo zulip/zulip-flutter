@@ -140,8 +140,8 @@ String userMention(User user, {bool silent = false, Map<int, User>? users}) {
 String wildcardMention(WildcardMentionOption wildcardOption, {
   required PerAccountStore store,
 }) {
-  final isChannelWildcardAvailable = store.account.zulipFeatureLevel >= 247; // TODO(server-9)
-  final isTopicWildcardAvailable = store.account.zulipFeatureLevel >= 224; // TODO(server-8)
+  final isChannelWildcardAvailable = store.zulipFeatureLevel >= 247; // TODO(server-9)
+  final isTopicWildcardAvailable = store.zulipFeatureLevel >= 224; // TODO(server-8)
 
   String name = wildcardOption.canonicalString;
   switch (wildcardOption) {

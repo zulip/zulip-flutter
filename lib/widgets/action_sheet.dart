@@ -182,9 +182,9 @@ void showTopicActionSheet(BuildContext context, {
   final optionButtons = <ActionSheetMenuItemButton>[];
 
   // TODO(server-7): simplify this condition away
-  final supportsUnmutingTopics = store.connection.zulipFeatureLevel! >= 170;
+  final supportsUnmutingTopics = store.zulipFeatureLevel >= 170;
   // TODO(server-8): simplify this condition away
-  final supportsFollowingTopics = store.connection.zulipFeatureLevel! >= 219;
+  final supportsFollowingTopics = store.zulipFeatureLevel >= 219;
 
   final visibilityOptions = <UserTopicVisibilityPolicy>[];
   final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
@@ -477,7 +477,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final isComposeBoxOffered = messageListPage.composeBoxController != null;
 
   final isMessageRead = message.flags.contains(MessageFlag.read);
-  final markAsUnreadSupported = store.connection.zulipFeatureLevel! >= 155; // TODO(server-6)
+  final markAsUnreadSupported = store.zulipFeatureLevel >= 155; // TODO(server-6)
   final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
 
   final optionButtons = [
