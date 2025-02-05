@@ -85,9 +85,8 @@ class RecentDmConversationsItem extends StatelessWidget {
     final Widget avatar;
     switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
       case []:
-        final selfUser = store.users[store.selfUserId]!;
-        title = selfUser.fullName;
-        avatar = AvatarImage(userId: selfUser.userId, size: _avatarSize);
+        title = store.selfUser.fullName;
+        avatar = AvatarImage(userId: store.selfUserId, size: _avatarSize);
       case [var otherUserId]:
         // TODO(#296) actually don't show this row if the user is muted?
         //   (should we offer a "spam folder" style summary screen of recent
