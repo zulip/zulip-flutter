@@ -178,7 +178,7 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
             child: RichText(
               text: TextSpan(children: [
                 TextSpan(
-                  text: '${widget.message.senderFullName}\n',
+                  text: '${widget.message.senderFullName}\n', // TODO(#716): use `store.senderDisplayName`
 
                   // Restate default
                   style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),

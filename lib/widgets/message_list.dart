@@ -1352,7 +1352,7 @@ class MessageWithPossibleSender extends StatelessWidget {
                     userId: message.senderId),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text(message.senderFullName, // TODO get from user data
+                    child: Text(message.senderFullName, // TODO(#716): use `store.senderDisplayName`
                       style: TextStyle(
                         fontSize: 18,
                         height: (22 / 18),
