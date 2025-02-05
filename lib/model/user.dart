@@ -5,6 +5,12 @@ import 'localizations.dart';
 
 /// The portion of [PerAccountStore] describing the users in the realm.
 mixin UserStore {
+  /// The user ID of the "self-user",
+  /// i.e. the account the person using this app is logged into.
+  ///
+  /// This always equals the [Account.userId] on [PerAccountStore.account].
+  int get selfUserId;
+
   /// All known users in the realm, by [User.userId].
   ///
   /// There may be other users not found in this map, for multiple reasons:
@@ -41,12 +47,17 @@ mixin UserStore {
 /// itself.  Other code accesses this functionality through [PerAccountStore],
 /// or through the mixin [UserStore] which describes its interface.
 class UserStoreImpl with UserStore {
-  UserStoreImpl({required InitialSnapshot initialSnapshot})
-     : users = Map.fromEntries(
+  UserStoreImpl({
+    required this.selfUserId,
+    required InitialSnapshot initialSnapshot,
+  }) : users = Map.fromEntries(
          initialSnapshot.realmUsers
          .followedBy(initialSnapshot.realmNonActiveUsers)
          .followedBy(initialSnapshot.crossRealmBots)
          .map((user) => MapEntry(user.userId, user)));
+
+  @override
+  final int selfUserId;
 
   @override
   final Map<int, User> users;
