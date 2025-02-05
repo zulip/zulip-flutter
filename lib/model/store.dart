@@ -308,7 +308,6 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
       emoji: EmojiStoreImpl(
         realmUrl: realmUrl, allRealmEmoji: initialSnapshot.realmEmoji),
       accountId: accountId,
-      selfUserId: account.userId,
       userSettings: initialSnapshot.userSettings,
       typingNotifier: TypingNotifier(
         connection: connection,
@@ -317,7 +316,9 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
         typingStartedWaitPeriod: Duration(
           milliseconds: initialSnapshot.serverTypingStartedWaitPeriodMilliseconds),
       ),
-      users: UserStoreImpl(initialSnapshot: initialSnapshot),
+      users: UserStoreImpl(
+        selfUserId: account.userId,
+        initialSnapshot: initialSnapshot),
       typingStatus: TypingStatus(
         selfUserId: account.userId,
         typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
@@ -348,7 +349,6 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
     required this.emailAddressVisibility,
     required EmojiStoreImpl emoji,
     required this.accountId,
-    required this.selfUserId,
     required this.userSettings,
     required this.typingNotifier,
     required UserStoreImpl users,
@@ -358,8 +358,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
     required this.unreads,
     required this.recentDmConversationsView,
     required this.recentSenders,
-  }) : assert(selfUserId == globalStore.getAccount(accountId)!.userId),
-       assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
+  }) : assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
        assert(realmUrl == connection.realmUrl),
        assert(emoji.realmUrl == realmUrl),
        _globalStore = globalStore,
@@ -457,15 +456,15 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
   /// Will throw if called after [dispose] has been called.
   Account get account => _globalStore.getAccount(accountId)!;
 
-  /// Always equal to `account.userId`.
-  final int selfUserId;
-
   final UserSettings? userSettings; // TODO(server-5)
 
   final TypingNotifier typingNotifier;
 
   ////////////////////////////////
   // Users and data about them.
+
+  @override
+  int get selfUserId => _users.selfUserId;
 
   @override
   Map<int, User> get users => _users.users;
