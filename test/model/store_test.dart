@@ -433,7 +433,7 @@ void main() {
       //    clobber the recorded registerQueue request so we can't check it.
       // checkLastRequest();
 
-      check(updateMachine.store.users.values).unorderedMatches(
+      check(updateMachine.store.allUsers).unorderedMatches(
         users.map((expected) => (it) => it.fullName.equals(expected.fullName)));
     }));
 
@@ -490,7 +490,7 @@ void main() {
       updateMachine.debugPauseLoop();
       check(complete).isTrue();
       // checkLastRequest(); TODO UpdateMachine.debugPauseLoop was too late; see comment above
-      check(updateMachine.store.users.values).unorderedMatches(
+      check(updateMachine.store.allUsers).unorderedMatches(
         users.map((expected) => (it) => it.fullName.equals(expected.fullName)));
     }));
 

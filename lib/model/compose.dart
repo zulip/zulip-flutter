@@ -132,7 +132,7 @@ String wrapWithBacktickFence({required String content, String? infoString}) {
 /// through all users; avoid it in performance-sensitive codepaths.
 String userMention(User user, {bool silent = false, UserStore? users}) {
   bool includeUserId = users == null
-    || users.users.values.where((u) => u.fullName == user.fullName)
+    || users.allUsers.where((u) => u.fullName == user.fullName)
          .take(2).length == 2;
 
   return '@${silent ? '_' : ''}**${user.fullName}${includeUserId ? '|${user.userId}' : ''}**';
