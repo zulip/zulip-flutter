@@ -355,12 +355,11 @@
       "channel": {"type": "String", "example": "channel name"}
     }
   },
-  "composeBoxChannelTopicContentHint": "Message #{channel} > {topic}",
+  "composeBoxChannelTopicContentHint": "Message {destination}",
   "@composeBoxChannelTopicContentHint": {
     "description": "Hint text for content input when sending a message to a topic in a channel",
     "placeholders": {
-      "channel": {"type": "String", "example": "channel name"},
-      "topic": {"type": "String", "example": "topic name"}
+      "destination": {"type": "String", "example": "#channel name > topic name"}
     }
   },
   "composeBoxSendTooltip": "Send",
