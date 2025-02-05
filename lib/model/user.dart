@@ -4,6 +4,24 @@ import '../api/model/model.dart';
 
 /// The portion of [PerAccountStore] describing the users in the realm.
 mixin UserStore {
+  /// All known users in the realm, by [User.userId].
+  ///
+  /// There may be other users not found in this map, for multiple reasons:
+  ///
+  ///  * The self-user may not have permission to see all the users in the
+  ///    realm, for example because the self-user is a guest.
+  ///
+  ///  * Because of the fetch/event race, any data that the client fetched
+  ///    outside of the event system may reflect an earlier or later time
+  ///    than this data, which is maintained by the event system.
+  ///    This includes messages fetched for a message list, and notifications.
+  ///    Those may therefore refer to users for which we have yet to see the
+  ///    [RealmUserAddEvent], or have already handled a [RealmUserRemoveEvent].
+  ///
+  /// Code that looks up a user in this map should therefore always handle
+  /// the possibility that the user is not found (except
+  /// where there is a specific reason to know the user should be found).
+  /// Consider using [ZulipLocalizations.unknownUserName].
   Map<int, User> get users;
 }
 
