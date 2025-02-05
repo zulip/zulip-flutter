@@ -417,8 +417,7 @@ class MessageListAppBarTitle extends StatelessWidget {
         if (otherRecipientIds.isEmpty) {
           return Text(zulipLocalizations.dmsWithYourselfPageTitle);
         } else {
-          final names = otherRecipientIds.map(
-            (id) => store.users[id]?.fullName ?? zulipLocalizations.unknownUserName);
+          final names = otherRecipientIds.map(store.userDisplayName);
           // TODO show avatars
           return Text(
             zulipLocalizations.dmsWithOthersPageTitle(names.join(', ')));
@@ -756,10 +755,10 @@ class _TypingStatusWidgetState extends State<TypingStatusWidget> with PerAccount
     if (typistIds.isEmpty) return const SizedBox();
     final text = switch (typistIds.length) {
       1 => localizations.onePersonTyping(
-        store.users[typistIds.first]?.fullName ?? localizations.unknownUserName),
+             store.userDisplayName(typistIds.first)),
       2 => localizations.twoPeopleTyping(
-        store.users[typistIds.first]?.fullName ?? localizations.unknownUserName,
-        store.users[typistIds.last]?.fullName  ?? localizations.unknownUserName),
+             store.userDisplayName(typistIds.first),
+             store.userDisplayName(typistIds.last)),
       _ => localizations.manyPeopleTyping,
     };
 
@@ -1159,7 +1158,7 @@ class DmRecipientHeader extends StatelessWidget {
     if (message.allRecipientIds.length > 1) {
       title = zulipLocalizations.messageListGroupYouAndOthers(message.allRecipientIds
         .where((id) => id != store.selfUserId)
-        .map((id) => store.users[id]?.fullName ?? zulipLocalizations.unknownUserName)
+        .map(store.userDisplayName)
         .sorted()
         .join(", "));
     } else {
