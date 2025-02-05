@@ -1509,7 +1509,7 @@ class AvatarImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final user = store.users[userId];
+    final user = store.getUser(userId);
 
     if (user == null) { // TODO(log)
       return const SizedBox.shrink();

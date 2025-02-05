@@ -664,7 +664,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
 
       case DmNarrow(otherRecipientIds: [final otherUserId]):
         final store = PerAccountStoreWidget.of(context);
-        final fullName = store.users[otherUserId]?.fullName;
+        final fullName = store.getUser(otherUserId)?.fullName;
         if (fullName == null) return zulipLocalizations.composeBoxGenericContentHint;
         return zulipLocalizations.composeBoxDmContentHint(fullName);
 
@@ -1431,7 +1431,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
       case DmNarrow(:final otherRecipientIds):
         final hasDeactivatedUser = otherRecipientIds.any((id) =>
-          !(store.users[id]?.isActive ?? true));
+          !(store.getUser(id)?.isActive ?? true));
         if (hasDeactivatedUser) {
           return _ErrorBanner(label:
             ZulipLocalizations.of(context).errorBannerDeactivatedDmLabel);
