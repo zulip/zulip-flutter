@@ -281,8 +281,8 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   }
 
   @override
-  String composeBoxChannelTopicContentHint(String channel, String topic) {
-    return 'Message #$channel > $topic';
+  String composeBoxChannelTopicContentHint(String destination) {
+    return 'Message $destination';
   }
 
   @override
