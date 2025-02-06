@@ -1,9 +1,11 @@
 
 import 'package:checks/checks.dart';
+import 'package:collection/collection.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/model/algorithms.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/channel.dart';
 
@@ -392,6 +394,120 @@ void main() {
         .equals(UserTopicVisibilityPolicy.followed);
       check(store.topicVisibilityPolicy(stream.streamId, eg.t('topic 4')))
         .equals(UserTopicVisibilityPolicy.none);
+    });
+  });
+    group('TopicMap with QueueList<int>', () {
+    test('initially empty', () {
+      final topicMap = TopicMap<QueueList<int>>();
+      check(topicMap.size).equals(0);
+      check(topicMap.keys()).isEmpty();
+      check(topicMap.values()).isEmpty();
+      check(topicMap.entries).isEmpty();
+      check(topicMap.toMap()).deepEquals({});
+    });
+
+    test('set and get values', () {
+      final topicMap = TopicMap<QueueList<int>>();
+      final topic = TopicName('Topic1');
+      final value = QueueList<int>();
+      value.addAll([1, 2, 3]);
+      topicMap.set(topic, value);
+
+      check(topicMap.size).equals(1);
+      check(topicMap.get(topic)).equals(value);
+    });
+
+    test('containsKey and remove', () {
+      final topicMap = TopicMap<QueueList<int>>();
+      final topic = TopicName('Math');
+      final value = QueueList<int>();
+      value.addAll([3, 1, 4]);
+      topicMap.set(topic, value);
+
+      check(topicMap.containsKey(topic)).isTrue();
+      // Removing should return true.
+      check(topicMap.remove(topic)).isTrue();
+      check(topicMap.containsKey(topic)).isFalse();
+      check(topicMap.size).equals(0);
+      // Removing a non-existent key returns false.
+      check(topicMap.remove(topic)).isFalse();
+    });
+
+    test('keys, values, and entries', () {
+      final topicMap = TopicMap<QueueList<int>>();
+      final topicA = TopicName('A');
+      final topicB = TopicName('B');
+      final valueA = QueueList<int>();
+      valueA.addAll([10, 20]);
+      final valueB = QueueList<int>();
+      valueB.addAll([30,40]);
+      topicMap.set(topicA, valueA);
+      topicMap.set(topicB, valueB);
+
+      final keys = topicMap.keys().toList();
+      check(keys.length).equals(2);
+      check(keys).contains(topicA);
+      check(keys).contains(topicB);
+
+      final values = topicMap.values().toList();
+      check(values.length).equals(2);
+      check(values).contains(valueA);
+      check(values).contains(valueB);
+
+      final entries = topicMap.entries.toList();
+      check(entries.length).equals(2);
+      for (final entry in entries) {
+        if (entry.key == topicA) {
+          check(entry.value).equals(valueA);
+        } else if (entry.key == topicB) {
+          check(entry.value).equals(valueB);
+        }
+      }
+    });
+
+    test('clear and toMap', () {
+      final topicMap = TopicMap<QueueList<int>>();
+      final topic1 = TopicName('One');
+      final topic2 = TopicName('Two');
+      final value1 = QueueList<int>();
+      final value2 = QueueList<int>();
+      value1.add(1);
+      value2.add(2);
+      topicMap.set(topic1, value1);
+      topicMap.set(topic2, value2);
+
+      check(topicMap.size).equals(2);
+      check(topicMap.toMap()).deepEquals({
+        topic1: value1,
+        topic2: value2,
+      });
+
+      topicMap.clear();
+      check(topicMap.size).equals(0);
+      check(topicMap.toMap()).deepEquals({});
+    });
+
+    test('key normalization is case-insensitive', () {
+      final topicMap = TopicMap<QueueList<int>>();
+      // Using two TopicName instances that differ only by case.
+      final topicUpper = TopicName('HELLO');
+      final topicLower = TopicName('hello');
+      final valueLower = QueueList<int>();
+      final valueUpper = QueueList<int>();
+      valueUpper.add(42);
+      valueLower.add(32);
+      topicMap.set(topicLower, valueLower);
+      topicMap.set(topicUpper, setUnion(topicMap.get(topicLower) as Iterable<int>, valueUpper));
+      // Since _munge lowercases the key, using a different case should return the same value.
+      final list1 = topicMap.get(topicUpper);
+      final list2 = setUnion(valueUpper, valueLower);
+      check(list1?.length).equals(list2.length);
+      for ( int i = 0; i < list1!.length; i++ ) {
+        check(list1[i]).equals(list2[i]);
+      }
+
+      check(topicMap.toMap().containsKey(TopicName("HELLO"))).isTrue();
+      check(topicMap.toMap().containsKey(TopicName("hello"))).isFalse();
     });
   });
 }

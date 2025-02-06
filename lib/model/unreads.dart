@@ -40,14 +40,14 @@ class Unreads extends ChangeNotifier {
     required int selfUserId,
     required ChannelStore channelStore,
   }) {
-    final streams = <int, Map<TopicName, QueueList<int>>>{};
+    final streams = <int, TopicMap<QueueList<int>>>{};
     final dms = <DmNarrow, QueueList<int>>{};
     final mentions = Set.of(initial.mentions);
 
     for (final unreadChannelSnapshot in initial.channels) {
       final streamId = unreadChannelSnapshot.streamId;
       final topic = unreadChannelSnapshot.topic;
-      (streams[streamId] ??= {})[topic] = QueueList.from(unreadChannelSnapshot.unreadMessageIds);
+      (streams[streamId] ??= TopicMap<QueueList<int>>()).set(topic,QueueList.from(unreadChannelSnapshot.unreadMessageIds));
     }
 
     for (final unreadDmSnapshot in initial.dms) {
@@ -86,7 +86,7 @@ class Unreads extends ChangeNotifier {
   // int count;
 
   /// Unread stream messages, as: stream ID → topic → message IDs (sorted).
-  final Map<int, Map<TopicName, QueueList<int>>> streams;
+  final Map<int, TopicMap<QueueList<int>>> streams;
 
   /// Unread DM messages, as: DM narrow → message IDs (sorted).
   final Map<DmNarrow, QueueList<int>> dms;
@@ -187,7 +187,9 @@ class Unreads extends ChangeNotifier {
 
   int countInTopicNarrow(int streamId, TopicName topic) {
     final topics = streams[streamId];
-    return topics?[topic]?.length ?? 0;
+    if (topics == null) return 0;
+    final qlist = topics.get(topic);
+    return qlist?.length ?? 0;
   }
 
   int countInDmNarrow(DmNarrow narrow) => dms[narrow]?.length ?? 0;
@@ -443,26 +445,30 @@ class Unreads extends ChangeNotifier {
   // TODO use efficient lookups
   bool _slowIsPresentInStreams(int messageId) {
     return streams.values.any(
-      (topics) => topics.values.any(
+      (topics) => topics.values().any(
         (messageIds) => messageIds.contains(messageId),
       ),
     );
   }
 
   void _addLastInStreamTopic(int messageId, int streamId, TopicName topic) {
-    ((streams[streamId] ??= {})[topic] ??= QueueList()).addLast(messageId);
+    if ((streams[streamId] ??= TopicMap<QueueList<int>>()).get(topic) == null) {
+      streams[streamId]?.set(topic, QueueList<int>());
+    }
+    (streams[streamId] ??= TopicMap<QueueList<int>>()).get(topic)?.addLast(messageId);
   }
 
   // [messageIds] must be sorted ascending and without duplicates.
   void _addAllInStreamTopic(QueueList<int> messageIds, int streamId, TopicName topic) {
-    final topics = streams[streamId] ??= {};
-    topics.update(topic,
-      ifAbsent: () => messageIds,
-      // setUnion dedupes existing and incoming unread IDs,
-      // so we tolerate zulip/zulip#22164, fixed in 6.0
-      // TODO(server-6) remove 6.0 comment
-      (existing) => setUnion(existing, messageIds),
-    );
+    final topics = streams[streamId] ??= TopicMap<QueueList<int>>();
+    if (topics.containsKey(topic)) {
+      // If the topic already exists, update its message ids with setUnion
+    topics.set(topic, setUnion(topics.get(topic) ?? QueueList<int>(), messageIds));
+    } else {
+      // If the topic does not exist, insert the new messageIds list
+    topics.set(topic, messageIds);
+    }
+
   }
 
   // TODO use efficient model lookups
@@ -479,7 +485,7 @@ class Unreads extends ChangeNotifier {
       for (final topic in newlyEmptyTopics) {
         topics.remove(topic);
       }
-      if (topics.isEmpty) {
+      if (topics.size==0) {
         newlyEmptyStreams.add(streamId);
       }
     }
@@ -491,14 +497,14 @@ class Unreads extends ChangeNotifier {
   void _removeAllInStreamTopic(Set<int> incomingMessageIds, int streamId, TopicName topic) {
     final topics = streams[streamId];
     if (topics == null) return;
-    final messageIds = topics[topic];
+    final messageIds = topics.get(topic);
     if (messageIds == null) return;
 
     // ([QueueList] doesn't have a `removeAll`)
     messageIds.removeWhere((id) => incomingMessageIds.contains(id));
     if (messageIds.isEmpty) {
       topics.remove(topic);
-      if (topics.isEmpty) {
+      if (topics.size==0) {
         streams.remove(streamId);
       }
     }
