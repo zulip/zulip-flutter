@@ -122,6 +122,74 @@ flutter:
     - assets/Source_Sans_3/LICENSE.md
 
   fonts:
+    # KaTeX custom fonts.
+    - family: KaTeX_AMS
+      fonts:
+        - asset: assets/KaTeX/KaTeX_AMS-Regular.ttf
+
+    - family: KaTeX_Caligraphic
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Caligraphic-Bold.ttf
+          weight: 700
+        - asset: assets/KaTeX/KaTeX_Caligraphic-Regular.ttf
+
+    - family: KaTeX_Fraktur
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Fraktur-Bold.ttf
+          weight: 700
+        - asset: assets/KaTeX/KaTeX_Fraktur-Regular.ttf
+
+    - family: KaTeX_Main
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Main-Bold.ttf
+          weight: 700
+        - asset: assets/KaTeX/KaTeX_Main-BoldItalic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/KaTeX/KaTeX_Main-Italic.ttf
+          style: italic
+        - asset: assets/KaTeX/KaTeX_Main-Regular.ttf
+
+    - family: KaTeX_Math
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Math-BoldItalic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/KaTeX/KaTeX_Math-Italic.ttf
+          style: italic
+
+    - family: KaTeX_SansSerif
+      fonts:
+        - asset: assets/KaTeX/KaTeX_SansSerif-Bold.ttf
+          weight: 700
+        - asset: assets/KaTeX/KaTeX_SansSerif-Italic.ttf
+          style: italic
+        - asset: assets/KaTeX/KaTeX_SansSerif-Regular.ttf
+
+    - family: KaTeX_Script
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Script-Regular.ttf
+
+    - family: KaTeX_Size1
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Size1-Regular.ttf
+
+    - family: KaTeX_Size2
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Size2-Regular.ttf
+
+    - family: KaTeX_Size3
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Size3-Regular.ttf
+
+    - family: KaTeX_Size4
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Size4-Regular.ttf
+
+    - family: KaTeX_Typewriter
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Typewriter-Regular.ttf
+
     # Google's emoji font. (Web uses these emoji for the "Google" emojiset.)
     #
     # This should not be used on iOS.
