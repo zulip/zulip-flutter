@@ -632,4 +632,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get scrollToBottomTooltip => 'Przewiń do dołu';
+
+  @override
+  String get appVersionUnknownPlaceholder => '(…)';
 }

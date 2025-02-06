@@ -808,5 +808,9 @@
   "scrollToBottomTooltip": "Scroll to bottom",
   "@scrollToBottomTooltip": {
     "description": "Tooltip for button to scroll to bottom."
+  },
+  "appVersionUnknownPlaceholder": "(…)",
+  "@appVersionUnknownPlaceholder": {
+    "description": "Placeholder to show in place of the app version when it is unknown."
   }
 }
