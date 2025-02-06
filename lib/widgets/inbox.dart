@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
+import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
@@ -237,7 +238,7 @@ abstract class _HeaderItem extends StatelessWidget {
     required this.sectionContext,
   });
 
-  String get title;
+  String title(ZulipLocalizations zulipLocalizations);
   IconData get icon;
   Color collapsedIconColor(BuildContext context);
   Color uncollapsedIconColor(BuildContext context);
@@ -257,6 +258,7 @@ abstract class _HeaderItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
     return Material(
       color: collapsed
@@ -291,7 +293,7 @@ abstract class _HeaderItem extends StatelessWidget {
               ).merge(weightVariableTextStyle(context, wght: 600)),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              title))),
+              title(zulipLocalizations)))),
           const SizedBox(width: 12),
           if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
           Padding(padding: const EdgeInsetsDirectional.only(end: 16),
@@ -312,7 +314,8 @@ class _AllDmsHeaderItem extends _HeaderItem {
     required super.sectionContext,
   });
 
-  @override String get title => 'Direct messages'; // TODO(i18n)
+  @override String title(ZulipLocalizations zulipLocalizations) =>
+    zulipLocalizations.recentDmConversationsSectionHeader;
   @override IconData get icon => ZulipIcons.user;
 
   // TODO(design) check if this is the right variable for these
@@ -381,16 +384,20 @@ class _DmItem extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final selfUser = store.users[store.selfUserId]!;
 
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
 
     final title = switch (narrow.otherRecipientIds) { // TODO dedupe with [RecentDmConversationsItem]
       [] => selfUser.fullName,
-      [var otherUserId] => store.users[otherUserId]?.fullName ?? '(unknown user)',
+      [var otherUserId] =>
+        store.users[otherUserId]?.fullName ?? zulipLocalizations.unknownUserName,
 
       // TODO(i18n): List formatting, like you can do in JavaScript:
       //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Shu'])
       //   // 'Chris、Greg、Alya、Shu'
-      _ => narrow.otherRecipientIds.map((id) => store.users[id]?.fullName ?? '(unknown user)').join(', '),
+      _ => narrow.otherRecipientIds.map(
+        (id) => store.users[id]?.fullName ?? zulipLocalizations.unknownUserName
+      ).join(', '),
     };
 
     return Material(
@@ -436,7 +443,8 @@ class _StreamHeaderItem extends _HeaderItem {
     required super.sectionContext,
   });
 
-  @override String get title => subscription.name;
+  @override String title(ZulipLocalizations zulipLocalizations) =>
+    subscription.name;
   @override IconData get icon => iconDataForStream(subscription);
   @override Color collapsedIconColor(context) =>
     colorSwatchFor(context, subscription).iconOnPlainBackground;

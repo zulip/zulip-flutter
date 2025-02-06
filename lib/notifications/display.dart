@@ -204,7 +204,7 @@ class NotificationChannelManager {
 
     await _androidHost.createNotificationChannel(NotificationChannel(
       id: kChannelId,
-      name: 'Messages', // TODO(i18n)
+      name: 'Messages', // TODO(#1284)
       importance: NotificationImportance.high,
       lightsEnabled: true,
       soundUrl: defaultSoundUrl,
@@ -263,7 +263,7 @@ class NotificationDisplayManager {
       FcmMessageChannelRecipient(:var streamName?, :var topic) =>
         '#$streamName > ${topic.displayName}',
       FcmMessageChannelRecipient(:var topic) =>
-        '#(unknown channel) > ${topic.displayName}', // TODO get stream name from data
+        '#${zulipLocalizations.unknownChannelName} > ${topic.displayName}', // TODO get stream name from data
       FcmMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>
         zulipLocalizations.notifGroupDmConversationLabel(
           data.senderFullName, allRecipientIds.length - 2), // TODO use others' names, from data

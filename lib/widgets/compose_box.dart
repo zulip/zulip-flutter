@@ -22,6 +22,59 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 
+/// Compose-box styles that differ between light and dark theme.
+///
+/// These styles will animate on theme changes (with help from [lerp]).
+class ComposeBoxTheme extends ThemeExtension<ComposeBoxTheme> {
+  static final light = ComposeBoxTheme._(
+    boxShadow: null,
+  );
+
+  static final dark = ComposeBoxTheme._(
+    boxShadow: [BoxShadow(
+      color: DesignVariables.dark.bgTopBar,
+      offset: const Offset(0, -4),
+      blurRadius: 16,
+      spreadRadius: 0,
+    )],
+  );
+
+  ComposeBoxTheme._({
+    required this.boxShadow,
+  });
+
+  /// The [ComposeBoxTheme] from the context's active theme.
+  ///
+  /// The [ThemeData] must include [ComposeBoxTheme] in [ThemeData.extensions].
+  static ComposeBoxTheme of(BuildContext context) {
+    final theme = Theme.of(context);
+    final extension = theme.extension<ComposeBoxTheme>();
+    assert(extension != null);
+    return extension!;
+  }
+
+  final List<BoxShadow>? boxShadow;
+
+  @override
+  ComposeBoxTheme copyWith({
+    List<BoxShadow>? boxShadow,
+  }) {
+    return ComposeBoxTheme._(
+      boxShadow: boxShadow ?? this.boxShadow,
+    );
+  }
+
+  @override
+  ComposeBoxTheme lerp(ComposeBoxTheme other, double t) {
+    if (identical(this, other)) {
+      return this;
+    }
+    return ComposeBoxTheme._(
+      boxShadow: BoxShadow.lerpList(boxShadow, other.boxShadow, t)!,
+    );
+  }
+}
+
 const double _composeButtonSize = 44;
 
 /// A [TextEditingController] for use in the compose box.
@@ -213,10 +266,15 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   ///
   /// Returns an int "tag" that should be passed to registerQuoteAndReplyEnd on
   /// success or failure
-  int registerQuoteAndReplyStart(PerAccountStore store, {required Message message}) {
+  int registerQuoteAndReplyStart(
+    ZulipLocalizations zulipLocalizations,
+    PerAccountStore store, {
+      required Message message,
+    }) {
     final tag = _nextQuoteAndReplyTag;
     _nextQuoteAndReplyTag += 1;
-    final placeholder = quoteAndReplyPlaceholder(store, message: message);
+    final placeholder = quoteAndReplyPlaceholder(
+      zulipLocalizations, store, message: message);
     _quoteAndReplies[tag] = (messageId: message.id, placeholder: placeholder);
     notifyListeners(); // _quoteAndReplies change could affect validationErrors
     insertPadded(placeholder);
@@ -521,7 +579,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     final streamName = store.streams[widget.narrow.streamId]?.name
-      ?? zulipLocalizations.composeBoxUnknownChannelName;
+      ?? zulipLocalizations.unknownChannelName;
     return _ContentInput(
       narrow: widget.narrow,
       destination: TopicNarrow(widget.narrow.streamId, TopicName(_topicTextNormalized)),
@@ -583,7 +641,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
       case TopicNarrow(:final streamId, :final topic):
         final store = PerAccountStoreWidget.of(context);
         final streamName = store.streams[streamId]?.name
-          ?? zulipLocalizations.composeBoxUnknownChannelName;
+          ?? zulipLocalizations.unknownChannelName;
         return zulipLocalizations.composeBoxChannelContentHint(
           streamName, topic.displayName);
 
@@ -1090,7 +1148,9 @@ class _ComposeBoxContainer extends StatelessWidget {
     //   the message list itself; if so, remember to update ComposeBox's dartdoc.
     return Container(width: double.infinity,
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: designVariables.borderBar))),
+        border: Border(top: BorderSide(color: designVariables.borderBar)),
+        boxShadow: ComposeBoxTheme.of(context).boxShadow,
+      ),
       // TODO(#720) try a Stack for the overlaid linear progress indicator
       child: Material(
         color: designVariables.composeBoxBg,
