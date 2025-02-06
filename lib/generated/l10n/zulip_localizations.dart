@@ -351,6 +351,12 @@ abstract class ZulipLocalizations {
   /// **'Failed to upload file: {filename}'**
   String errorFailedToUploadFileTitle(String filename);
 
+  /// The name of a file, and its size in mebibytes.
+  ///
+  /// In en, this message translates to:
+  /// **'{filename}: {size} MiB'**
+  String filenameAndSizeInMiB(String filename, String size);
+
   /// Error message when attached files are too large in size.
   ///
   /// In en, this message translates to:

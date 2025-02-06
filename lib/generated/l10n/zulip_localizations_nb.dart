@@ -138,6 +138,11 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   }
 
   @override
+  String filenameAndSizeInMiB(String filename, String size) {
+    return '$filename: $size MiB';
+  }
+
+  @override
   String errorFilesTooLarge(int num, int maxFileUploadSizeMib, String listMessage) {
     String _temp0 = intl.Intl.pluralLogic(
       num,
