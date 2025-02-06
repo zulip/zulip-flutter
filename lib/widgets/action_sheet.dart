@@ -24,6 +24,8 @@ import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
 import 'message_list.dart';
+import 'page.dart';
+import 'recent_dm_users.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -52,11 +54,11 @@ void _showActionSheet(
               // TODO(#217): show message text
               Flexible(child: InsetShadowBox(
                 top: 8, bottom: 8,
-                color: DesignVariables.of(context).bgContextMenu,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(top: 16, bottom: 8),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(7),
+                  color: DesignVariables.of(context).bgContextMenu,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.only(top: 16, bottom: 8),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(7),
                     child: Column(spacing: 1,
                       children: optionButtons))))),
               const ActionSheetCancelButton(),
@@ -150,8 +152,8 @@ class ActionSheetCancelButton extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
         splashFactory: NoSplash.splashFactory,
       ).copyWith(backgroundColor: WidgetStateColor.fromMap({
-        WidgetState.pressed: designVariables.contextMenuCancelPressedBg,
-        ~WidgetState.pressed: designVariables.contextMenuCancelBg,
+          WidgetState.pressed: designVariables.contextMenuCancelPressedBg,
+          ~WidgetState.pressed: designVariables.contextMenuCancelBg,
       })),
       onPressed: () {
         Navigator.pop(context);
@@ -248,6 +250,32 @@ void showTopicActionSheet(BuildContext context, {
     //   is-empty case by having at least one button that's always present,
     //   such as "copy link to topic".
     return;
+  }
+
+  _showActionSheet(context, optionButtons: optionButtons);
+}
+
+void showDMActionSheet(BuildContext context, {required DmNarrow narrow}) {
+  final optionButtons = <ActionSheetMenuItemButton>[];
+
+  optionButtons.add(
+    DMActionSheetButton(
+      pageContext: context,
+      dmActionSheetOption: DMActionSheetOption.markAsRead,
+      recepientIds: narrow.allRecipientIds,
+      narrow: narrow,
+    ),
+  );
+
+  if(narrow.allRecipientIds.length>1){
+  optionButtons.add(
+    DMActionSheetButton(
+      pageContext: context,
+      dmActionSheetOption: DMActionSheetOption.groupDmUsers,
+      recepientIds: narrow.allRecipientIds,
+      narrow: narrow,
+    ),
+  );
   }
 
   _showActionSheet(context, optionButtons: optionButtons);
@@ -360,14 +388,71 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
       switch (e) {
         case ZulipApiException():
           errorMessage = e.message;
-          // TODO(#741) specific messages for common errors, like network errors
-          //   (support with reusable code)
+        // TODO(#741) specific messages for common errors, like network errors
+        //   (support with reusable code)
         default:
       }
 
       final zulipLocalizations = ZulipLocalizations.of(pageContext);
-      showErrorDialog(context: pageContext,
-        title: _errorTitle(zulipLocalizations), message: errorMessage);
+      showErrorDialog(
+        context: pageContext,
+        title: _errorTitle(zulipLocalizations),
+        message: errorMessage,
+      );
+    }
+  }
+}
+
+class DMActionSheetButton extends ActionSheetMenuItemButton {
+  const DMActionSheetButton({
+    super.key,
+    required super.pageContext,
+    required this.dmActionSheetOption,
+    required this.recepientIds,
+    required this.narrow,
+  });
+
+  final DMActionSheetOption dmActionSheetOption;
+  final List<int> recepientIds;
+  final Narrow narrow;
+
+  @override
+  IconData get icon {
+    switch (dmActionSheetOption) {
+      case DMActionSheetOption.markAsRead:
+        return ZulipIcons.read_receipts;
+
+      case DMActionSheetOption.groupDmUsers:
+        return ZulipIcons.user;
+    }
+  }
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    switch (dmActionSheetOption) {
+      case DMActionSheetOption.markAsRead:
+        return zulipLocalizations.markAllAsReadLabel;
+
+      case DMActionSheetOption.groupDmUsers:
+        return zulipLocalizations.showUsersInDM;
+    }
+  }
+
+  @override
+  void onPressed() async {
+    switch (dmActionSheetOption) {
+      case DMActionSheetOption.markAsRead:
+        await markNarrowAsRead(pageContext, narrow);
+      case DMActionSheetOption.groupDmUsers:
+       await Navigator.push(
+          pageContext,
+          MaterialWidgetRoute(
+            page: PerAccountStoreWidget(
+              accountId: PerAccountStoreWidget.accountIdOf(pageContext),
+              child: RecentDMUsersPage(recepientIds: recepientIds),
+            ),
+          ),
+        );
     }
   }
 }
@@ -443,7 +528,7 @@ class ReactionButtons extends StatelessWidget {
       messageId: message.id,
       emoji: emoji,
       errorDialogTitle: isSelfVoted
-        ? zulipLocalizations.errorReactionRemovingFailedTitle
+              ? zulipLocalizations.errorReactionRemovingFailedTitle
         : zulipLocalizations.errorReactionAddingFailedTitle);
   }
 
@@ -465,25 +550,25 @@ class ReactionButtons extends StatelessWidget {
   }) {
     final designVariables = DesignVariables.of(context);
     return Flexible(child: InkWell(
-      onTap: () => _handleTapReaction(emoji: emoji, isSelfVoted: isSelfVoted),
-      splashFactory: NoSplash.splashFactory,
+        onTap: () => _handleTapReaction(emoji: emoji, isSelfVoted: isSelfVoted),
+        splashFactory: NoSplash.splashFactory,
       borderRadius: isFirst
-        ? const BorderRadius.only(topLeft: Radius.circular(7))
-        : null,
+                ? const BorderRadius.only(topLeft: Radius.circular(7))
+                : null,
       overlayColor: WidgetStateColor.resolveWith((states) =>
-        states.any((e) => e == WidgetState.pressed)
-          ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+              states.any((e) => e == WidgetState.pressed)
+                  ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
           : Colors.transparent),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
-        alignment: Alignment.center,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
+          alignment: Alignment.center,
         color: isSelfVoted
-          ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
-          : null,
-        child: UnicodeEmojiWidget(
-          emojiDisplay: emoji.emojiDisplay as UnicodeEmojiDisplay,
-          notoColorEmojiTextSize: 20.1,
+                  ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+                  : null,
+          child: UnicodeEmojiWidget(
+            emojiDisplay: emoji.emojiDisplay as UnicodeEmojiDisplay,
+            notoColorEmojiTextSize: 20.1,
           size: 24))));
   }
 
@@ -511,29 +596,29 @@ class ReactionButtons extends StatelessWidget {
         Flexible(child: Row(spacing: 1, children: List.unmodifiable(
           EmojiStore.popularEmojiCandidates.mapIndexed((index, emoji) =>
             _buildButton(
-              context: context,
-              emoji: emoji,
-              isSelfVoted: hasSelfVote(emoji),
+                    context: context,
+                    emoji: emoji,
+                    isSelfVoted: hasSelfVote(emoji),
               isFirst: index == 0))))),
-        InkWell(
-          onTap: _handleTapMore,
-          splashFactory: NoSplash.splashFactory,
-          borderRadius: const BorderRadius.only(topRight: Radius.circular(7)),
+          InkWell(
+            onTap: _handleTapMore,
+            splashFactory: NoSplash.splashFactory,
+            borderRadius: const BorderRadius.only(topRight: Radius.circular(7)),
           overlayColor: WidgetStateColor.resolveWith((states) =>
-            states.any((e) => e == WidgetState.pressed)
-              ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+                  states.any((e) => e == WidgetState.pressed)
+                      ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
               : Colors.transparent),
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 4, 12),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 4, 12),
             child: Row(children: [
               Text(zulipLocalizations.emojiReactionsMore,
-                textAlign: TextAlign.end,
-                style: TextStyle(
-                  color: designVariables.contextMenuItemText,
-                  fontSize: 14,
+                    textAlign: TextAlign.end,
+                    style: TextStyle(
+                      color: designVariables.contextMenuItemText,
+                      fontSize: 14,
                 ).merge(weightVariableTextStyle(context, wght: 600))),
               Icon(ZulipIcons.chevron_right,
-                color: designVariables.contextMenuItemText,
+                    color: designVariables.contextMenuItemText,
                 size: 24),
             ]),
           )),
@@ -552,15 +637,15 @@ class StarButton extends MessageActionSheetMenuItemButton {
   @override
   String label(ZulipLocalizations zulipLocalizations) {
     return _isStarred
-      ? zulipLocalizations.actionSheetOptionUnstarMessage
-      : zulipLocalizations.actionSheetOptionStarMessage;
+        ? zulipLocalizations.actionSheetOptionUnstarMessage
+        : zulipLocalizations.actionSheetOptionStarMessage;
   }
 
   @override void onPressed() async {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
     final op = message.flags.contains(MessageFlag.starred)
-      ? UpdateMessageFlagsOp.remove
-      : UpdateMessageFlagsOp.add;
+            ? UpdateMessageFlagsOp.remove
+            : UpdateMessageFlagsOp.add;
 
     try {
       final connection = PerAccountStoreWidget.of(pageContext).connection;
@@ -573,8 +658,8 @@ class StarButton extends MessageActionSheetMenuItemButton {
       switch (e) {
         case ZulipApiException():
           errorMessage = e.message;
-          // TODO specific messages for common errors, like network errors
-          //   (support with reusable code)
+        // TODO specific messages for common errors, like network errors
+        //   (support with reusable code)
         default:
       }
 
@@ -594,45 +679,45 @@ Future<String?> fetchRawContentWithFeedback({
   required int messageId,
   required String errorDialogTitle,
 }) async {
-    Message? fetchedMessage;
-    String? errorMessage;
-    // TODO, supported by reusable code:
-    // - (?) Retry with backoff on plausibly transient errors.
-    // - If request(s) take(s) a long time, show snackbar with cancel
-    //   button, like "Still working on quote-and-reply…".
-    //   On final failure or success, auto-dismiss the snackbar.
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    try {
+  Message? fetchedMessage;
+  String? errorMessage;
+  // TODO, supported by reusable code:
+  // - (?) Retry with backoff on plausibly transient errors.
+  // - If request(s) take(s) a long time, show snackbar with cancel
+  //   button, like "Still working on quote-and-reply…".
+  //   On final failure or success, auto-dismiss the snackbar.
+  final zulipLocalizations = ZulipLocalizations.of(context);
+  try {
       fetchedMessage = await getMessageCompat(PerAccountStoreWidget.of(context).connection,
-        messageId: messageId,
-        applyMarkdown: false,
-      );
-      if (fetchedMessage == null) {
-        errorMessage = zulipLocalizations.errorMessageDoesNotSeemToExist;
-      }
-    } catch (e) {
-      switch (e) {
-        case ZulipApiException():
-          errorMessage = e.message;
-        // TODO specific messages for common errors, like network errors
-        //   (support with reusable code)
-        default:
-          errorMessage = zulipLocalizations.errorCouldNotFetchMessageSource;
-      }
-    }
-
-    if (!context.mounted) return null;
-
+      messageId: messageId,
+      applyMarkdown: false,
+    );
     if (fetchedMessage == null) {
-      assert(errorMessage != null);
-      // TODO(?) give no feedback on error conditions we expect to
-      //   flag centrally in event polling, like invalid auth,
-      //   user/realm deactivated. (Support with reusable code.)
+      errorMessage = zulipLocalizations.errorMessageDoesNotSeemToExist;
+    }
+  } catch (e) {
+    switch (e) {
+      case ZulipApiException():
+        errorMessage = e.message;
+      // TODO specific messages for common errors, like network errors
+      //   (support with reusable code)
+      default:
+        errorMessage = zulipLocalizations.errorCouldNotFetchMessageSource;
+    }
+  }
+
+  if (!context.mounted) return null;
+
+  if (fetchedMessage == null) {
+    assert(errorMessage != null);
+    // TODO(?) give no feedback on error conditions we expect to
+    //   flag centrally in event polling, like invalid auth,
+    //   user/realm deactivated. (Support with reusable code.)
       showErrorDialog(context: context,
         title: errorDialogTitle, message: errorMessage);
-    }
+  }
 
-    return fetchedMessage?.content;
+  return fetchedMessage?.content;
 }
 
 class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
@@ -685,9 +770,9 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     // during the raw-content request.
     composeBoxController!.content
       .registerQuoteAndReplyEnd(PerAccountStoreWidget.of(pageContext), tag,
-        message: message,
-        rawContent: rawContent,
-      );
+      message: message,
+      rawContent: rawContent,
+    );
     if (!composeBoxController.contentFocusNode.hasFocus) {
       composeBoxController.contentFocusNode.requestFocus();
     }
@@ -774,8 +859,8 @@ class ShareButton extends MessageActionSheetMenuItemButton {
 
   @override
   IconData get icon => defaultTargetPlatform == TargetPlatform.iOS
-    ? ZulipIcons.share_ios
-    : ZulipIcons.share;
+          ? ZulipIcons.share_ios
+          : ZulipIcons.share;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
@@ -820,7 +905,7 @@ class ShareButton extends MessageActionSheetMenuItemButton {
           title: zulipLocalizations.errorSharingFailed);
       case ShareResultStatus.success:
       case ShareResultStatus.dismissed:
-        // nothing to do
+      // nothing to do
     }
   }
 }

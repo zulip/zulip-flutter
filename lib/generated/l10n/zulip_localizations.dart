@@ -1166,6 +1166,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Scroll to bottom'**
   String get scrollToBottomTooltip;
+
+  /// Label for showing users in DM through DM Action Sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Show users in DM'**
+  String get showUsersInDM;
 }
 
 class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizations> {
