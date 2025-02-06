@@ -326,18 +326,25 @@ class UserLocalTimeText extends StatelessWidget {
     tz.initializeDatabase(blob);
   }
 
-  Future<String> _getDisplayLocalTimeFor(User user, ZulipLocalizations zulipLocalizations) async {
+  Stream<String> _getDisplayLocalTimeFor(User user, ZulipLocalizations zulipLocalizations) async* {
     if (!tz.timeZoneDatabase.isInitialized) await initializeTimezonesUsingAssets();
 
-    final location = tz.getLocation(user.timezone);
-    final localTime = tz.TZDateTime.now(location);
-    return zulipLocalizations.userLocalTime(localTime);
+    Stream<DateTime> timer(Duration duration) async* {
+      yield DateTime.timestamp();
+      yield* Stream.periodic(duration, (_) => DateTime.timestamp());
+    }
+
+    await for (final DateTime time in timer(Duration(seconds: 1))) {
+      final location = tz.getLocation(user.timezone);
+      final localTime = tz.TZDateTime.from(time, location);
+      yield zulipLocalizations.userLocalTime(localTime);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _getDisplayLocalTimeFor(user, ZulipLocalizations.of(context)),
+    return StreamBuilder(
+      stream: _getDisplayLocalTimeFor(user, ZulipLocalizations.of(context)),
       builder: (context, snapshot) {
         if (snapshot.hasError) Error.throwWithStackTrace(snapshot.error!, snapshot.stackTrace!);
         return Text(snapshot.data ?? '');
