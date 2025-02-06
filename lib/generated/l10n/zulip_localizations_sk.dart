@@ -375,7 +375,7 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'Pridať účet';
 
   @override
-  String get loginServerUrlInputLabel => 'Adresa vášho Zulip servera';
+  String get loginServerUrlLabel => 'Adresa vášho Zulip servera';
 
   @override
   String get loginHidePassword => 'Skryť heslo';
