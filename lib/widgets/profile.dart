@@ -95,7 +95,7 @@ class ProfilePage extends StatelessWidget {
       DefaultTextStyle.merge(
         textAlign: TextAlign.center,
         style: _TextStyles.primaryFieldText,
-        child: UserLocalTimeWidget(user: user)
+        child: UserLocalTimeText(user: user)
       ),
 
       _ProfileDataTable(profileData: user.profileData),
@@ -313,8 +313,8 @@ class _UserWidget extends StatelessWidget {
 }
 
 @visibleForTesting
-class UserLocalTimeWidget extends StatelessWidget {
-  const UserLocalTimeWidget({
+class UserLocalTimeText extends StatelessWidget {
+  const UserLocalTimeText({
     super.key,
     required this.user,
   });
