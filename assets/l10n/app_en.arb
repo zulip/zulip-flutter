@@ -171,6 +171,14 @@
       "filename": {"type": "String", "example": "file.txt"}
     }
   },
+  "filenameAndSizeInMiB": "{filename}: {size} MiB",
+  "@filenameAndSizeInMiB": {
+    "description": "The name of a file, and its size in mebibytes.",
+    "placeholders": {
+      "filename": {"type": "String", "example": "foo.txt"},
+      "size": {"type": "String", "example": "20.2"}
+    }
+  },
   "errorFilesTooLarge": "{num, plural, =1{File is} other{{num} files are}} larger than the server's limit of {maxFileUploadSizeMib} MiB and will not be uploaded:\n\n{listMessage}",
   "@errorFilesTooLarge": {
     "description": "Error message when attached files are too large in size.",
