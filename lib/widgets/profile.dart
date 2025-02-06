@@ -314,7 +314,7 @@ class _UserWidget extends StatelessWidget {
   }
 }
 
-@visibleForTesting
+/// The text of current time in [user]'s timezone.
 class UserLocalTimeText extends StatelessWidget {
   const UserLocalTimeText({
     super.key,
@@ -323,6 +323,11 @@ class UserLocalTimeText extends StatelessWidget {
 
   final User user;
 
+  /// Initialize the timezone database used to know time difference from a timezone string.
+  ///
+  /// Usually, database initialization is done using `initializeTimeZones`, but it takes >100ms and not asynchronous.
+  /// So, we initialize database from the assets file copied from timezone library.
+  /// This file is checked up-to-date in `test/widgets/profile_test.dart`.
   static Future<void> initializeTimezonesUsingAssets() async {
     final blob = Uint8List.sublistView(await rootBundle.load('assets/timezone/latest_all.tzf'));
     tz.initializeDatabase(blob);
