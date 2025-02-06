@@ -1196,6 +1196,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'(…)'**
   String get appVersionUnknownPlaceholder;
+
+  /// The name of Zulip. This should be either 'Zulip' or a transliteration.
+  ///
+  /// In en, this message translates to:
+  /// **'Zulip'**
+  String get zulipAppTitle;
 }
 
 class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizations> {

@@ -635,4 +635,7 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
 
   @override
   String get appVersionUnknownPlaceholder => '(…)';
+
+  @override
+  String get zulipAppTitle => 'Zulip';
 }
