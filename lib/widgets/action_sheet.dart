@@ -796,7 +796,7 @@ class MarkAsUnreadButton extends MessageActionSheetMenuItemButton {
 
   @override void onPressed() async {
     final narrow = findMessageListPage().narrow;
-    unawaited(markNarrowAsUnreadFromMessage(pageContext, message, narrow));
+    unawaited(ZulipAction.markNarrowAsUnreadFromMessage(pageContext, message, narrow));
   }
 }
 
