@@ -185,7 +185,7 @@
     "placeholders": {
       "num": {"type": "int", "example": "2"},
       "maxFileUploadSizeMib": {"type": "int", "example": "15"},
-      "listMessage": {"type": "String", "example": "foo.txt\nbar.txt"}
+      "listMessage": {"type": "String", "example": "foo.txt: 10.1 MiB\nbar.txt 20.2 MiB"}
     }
   },
   "errorFilesTooLargeTitle": "{num, plural, =1{File} other{Files}} too large",
