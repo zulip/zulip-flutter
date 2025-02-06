@@ -831,11 +831,465 @@ class MathBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _CodeBlockContainer(
-      borderColor: ContentTheme.of(context).colorMathBlockBorder,
-      child: Text.rich(TextSpan(
-        style: ContentTheme.of(context).codeBlockTextStyles.plain,
-        children: [TextSpan(text: node.texSource)])));
+    return Semantics(
+      value: node.texSource,
+      child: DefaultTextStyle(
+        style: TextStyle(
+          fontSize: kBaseFontSize * 1.21,
+          fontFamily: 'KaTeX_Main',
+          height: 1.2,
+        ),
+        child: Center(
+          child: SingleChildScrollViewWithScrollbar(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              children: List.unmodifiable(
+                node.spans.map((e) => _MathBlockSpan(e))))))));
+  }
+}
+
+class _MathBlockSpan extends StatelessWidget {
+  const _MathBlockSpan(this.span);
+
+  final KatexSpan span;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    Widget widget = const SizedBox.shrink();
+    if (span.text != null) {
+      widget = Text(span.text!);
+    } else if (span.spans.isNotEmpty) {
+      widget = Row(
+        mainAxisSize: MainAxisSize.max,
+        children: List.unmodifiable(
+          span.spans.map((e) => _MathBlockSpan(e))));
+    }
+
+    TextStyle? textStyle;
+    TextAlign? textAlign;
+    double? width;
+    double? height;
+    double? marginLeft;
+    double? marginRight;
+    double? minWidth;
+    double? minHeight;
+    double? paddingLeft;
+    double? left;
+    double? top;
+    double? right;
+    double? bottom;
+    double? verticalAlign;
+
+    var index = 0;
+    final spanClasses = span.spanClasses;
+    while (index < spanClasses.length) {
+      final spanClass = spanClasses[index];
+      switch (spanClass) {
+        case 'textbf':
+          // .textbf { font-weight: bold; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(fontWeight: FontWeight.bold);
+
+        case 'textit':
+          // .textit { font-style: italic; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(fontStyle: FontStyle.italic);
+
+        case 'textrm':
+          // .textrm { font-family: KaTeX_Main; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(fontFamily: 'KaTeX_Main');
+
+        case 'textsf':
+          // .textsf { font-family: KaTeX_SansSerif; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(fontFamily: 'KaTeX_SansSerif');
+
+        case 'texttt':
+          // .texttt { font-family: KaTeX_Typewriter; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(fontFamily: 'KaTeX_Typewriter');
+
+        case 'mathnormal':
+          // .mathnormal { font-family: KaTeX_Math; font-style: italic; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(
+            fontFamily: 'KaTeX_Math',
+            fontStyle: FontStyle.italic);
+
+        case 'mathit':
+          // .mathit { font-family: KaTeX_Main; font-style: italic; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(
+            fontFamily: 'KaTeX_Main',
+            fontStyle: FontStyle.italic);
+
+        case 'mathrm':
+          // .mathrm { font-style: normal; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(fontStyle: FontStyle.normal);
+
+        case 'mathbf':
+          // .mathbf { font-family: KaTeX_Main; font-weight: bold; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(
+            fontFamily: 'KaTeX_Main',
+            fontWeight: FontWeight.bold);
+
+        case 'boldsymbol':
+          // .boldsymbol { font-family: KaTeX_Math; font-weight: bold; font-style: italic; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(
+            fontFamily: 'KaTeX_Math',
+            fontWeight: FontWeight.bold,
+            fontStyle: FontStyle.italic);
+
+        case 'amsrm':
+          // .amsrm { font-family: KaTeX_AMS; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(fontFamily: 'KaTeX_AMS');
+
+        case 'mathbb':
+        case 'textbb':
+          // .mathbb,
+          // .textbb { font-family: KaTeX_AMS; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(fontFamily: 'KaTeX_AMS');
+
+        case 'mathcal':
+          // .mathcal { font-family: KaTeX_Caligraphic; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(fontFamily: 'KaTeX_Caligraphic');
+
+        case 'mathfrak':
+        case 'textfrak':
+          // .mathfrak,
+          // .textfrak { font-family: KaTeX_Fraktur; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(fontFamily: 'KaTeX_Fraktur');
+
+        case 'mathboldfrak':
+        case 'textboldfrak':
+          // .mathboldfrak,
+          // .textboldfrak { font-family: KaTeX_Fraktur; font-weight: bold; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(
+            fontFamily: 'KaTeX_Fraktur',
+            fontWeight: FontWeight.bold);
+
+        case 'mathtt':
+          // .mathtt { font-family: KaTeX_Typewriter; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(fontFamily: 'KaTeX_Typewriter');
+
+        case 'mathscr':
+        case 'textscr':
+          // .mathscr,
+          // .textscr { font-family: KaTeX_Script; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(fontFamily: 'KaTeX_Script');
+
+        case 'mathsf':
+        case 'textsf':
+          // .mathsf,
+          // .textsf { font-family: KaTeX_SansSerif; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(fontFamily: 'KaTeX_SansSerif');
+
+        case 'mathboldsf':
+        case 'textboldsf':
+          // .mathboldsf,
+          // .textboldsf { font-family: KaTeX_SansSerif; font-weight: bold; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(
+            fontFamily: 'KaTeX_SansSerif',
+            fontWeight: FontWeight.bold);
+
+        case 'mathsfit':
+        case 'mathitsf':
+        case 'textitsf':
+          // .mathsfit,
+          // .mathitsf,
+          // .textitsf { font-family: KaTeX_SansSerif; font-style: italic; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(
+            fontFamily: 'KaTeX_SansSerif',
+            fontStyle: FontStyle.italic);
+
+        case 'mainrm':
+          // .mainrm { font-family: KaTeX_Main; font-style: normal; }
+          textStyle ??= TextStyle();
+          textStyle = textStyle.copyWith(
+            fontFamily: 'KaTeX_Main',
+            fontStyle: FontStyle.normal);
+
+        case 'vlist-t':
+          // .vlist-t { display: inline-table; ... }
+          break; // TODO
+
+        case 'vlist-r':
+          // .vlist-r { display: table-row; }
+          break; // TODO
+
+        case 'vlist':
+          // .vlist { display: table-cell; ... }
+          break; // TODO
+
+        case 'vlist-t2':
+          // .vlist-t2 { ... }
+          break; // TODO
+
+        case 'vlist-s':
+          // .vlist-s { ... }
+          break; // TODO
+
+        case 'vbox':
+          // .vbox { display: inline-flex; flex-direction: column;  align-items: baseline;  }
+          break; // TODO
+
+        case 'hbox':
+          // .hbox { display: inline-flex; flex-direction: row; width: 100%; }
+          break; // TODO
+
+        case 'thinbox':
+          // .thinbox { display: inline-flex; flex-direction: row; width: 0; max-width: 0; }
+          break; // TODO
+
+        case 'msupsub':
+          // .msupsub { text-align: left; }
+          textAlign = TextAlign.left;
+
+        case 'mfrac':
+          // .mfrac { ... }
+          break; // TODO
+
+        case 'mfrac':
+        case 'frac-line':
+        case 'overline':
+        case 'overline-line':
+        case 'underline':
+        case 'underline-line':
+        case 'hline':
+        case 'hdashline':
+        case 'rule':
+          // .mfrac .frac-line,
+          // .overline .overline-line,
+          // .underline .underline-line,
+          // .hline,
+          // .hdashline,
+          // .rule { min-height: 1px; }
+          minHeight = 1;
+
+        case 'mspace':
+          // .mspace { display: inline-block; }
+          break; // TODO
+
+        case 'llap':
+        case 'rlap':
+        case 'clap':
+          // .llap,
+          // .rlap,
+          // .clap { ... }
+          break; // TODO
+
+        // TODO .llap > .inner { ... }
+        // TODO .rlap > .inner, .clap > .inner { ... }
+        // TODO .clap > .inner > span { ... }
+
+        case 'rule':
+          // .rule { display: inline-block; border: solid 0; position: relative; }
+          break; // TODO
+
+        case 'overline':
+        case 'overline-line':
+        case 'underline':
+        case 'underline-line':
+        case 'hline':
+          // .overline .overline-line,
+          // .underline .underline-line,
+          // .hline { display: inline-block; width: 100%; border-bottom-style: solid; }
+          break; // TODO
+
+        case 'hdashline':
+          // .hdashline { display: inline-block; width: 100%; border-bottom-style: dashed; }
+          break; // TODO
+
+        case 'sqrt':
+          // .sqrt { ... }
+          break; // TODO
+
+        case 'sizing':
+        case 'fontsize-ensurer':
+          // .sizing,
+          // .fontsize-ensurer { ... }
+          if (index + 2 < spanClass.length) {
+            final resetSizeClass = spanClasses[index + 1];
+            final sizeClass = spanClasses[index + 2];
+
+            final resetSizeClassSuffix = RegExp(r'^reset-size(\d\d?)$').firstMatch(resetSizeClass)?.group(1);
+            final sizeClassSuffix = RegExp(r'^size(\d\d?)$').firstMatch(sizeClass)?.group(1);
+
+            if (resetSizeClassSuffix != null && sizeClassSuffix != null) {
+              const sizes = <double>[0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.2, 1.44, 1.728, 2.074, 2.488];
+
+              final resetSizeIdx = int.parse(resetSizeClassSuffix, radix: 10);
+              final sizeIdx = int.parse(sizeClassSuffix, radix: 10);
+
+              // These indexes start at 1.
+              if (resetSizeIdx <= sizes.length && sizeIdx <= sizes.length) {
+                textStyle ??= TextStyle();
+                textStyle = textStyle.copyWith(
+                  fontSize: sizes[resetSizeIdx - 1] * sizes[sizeIdx - 1] * em,
+                );
+
+                index += 3;
+                continue;
+              }
+            }
+          }
+
+          // Should be unreachable.
+          assert(false);
+
+        case 'delimsizing':
+          // .delimsizing { ... }
+          if (index + 1 < spanClasses.length) {
+            final nextClass = spanClasses[index + 1];
+            String? fontFamily;
+            switch (nextClass) {
+              case 'size1':
+                fontFamily = 'KaTeX_Size1';
+              case 'size2':
+                fontFamily = 'KaTeX_Size2';
+              case 'size3':
+                fontFamily = 'KaTeX_Size3';
+              case 'size4':
+                fontFamily = 'KaTeX_Size4';
+            }
+            assert(fontFamily != null);
+
+            textStyle ??= TextStyle();
+            textStyle = textStyle.copyWith(fontFamily: fontFamily);
+
+            index += 2;
+            continue;
+          }
+
+          // Should be unreachable.
+          assert(false);
+
+        case 'nulldelimiter':
+          // .nulldelimiter { display: inline-block; width: $nulldelimiterspace; }
+          break; // TODO
+
+        case 'delimcenter':
+           // .delimcenter { position: relative; }
+          break; // TODO
+
+        case 'op-symbol':
+          // .op-symbol { ... }
+          // TODO position: relative;
+          if (index + 1 < spanClasses.length) {
+           final nextClass = spanClasses[index + 1];
+            String? fontFamily;
+            switch (nextClass) {
+              case 'small-op':
+                fontFamily = 'KaTeX_Size1';
+              case 'large-op':
+                fontFamily = 'KaTeX_Size2';
+            }
+            assert(fontFamily != null);
+
+            textStyle ??= TextStyle();
+            textStyle = textStyle.copyWith(fontFamily: fontFamily);
+
+            index += 2;
+            continue;
+          }
+
+        case '.op-limits':
+          // .op-limits { ... }
+          break; // TODO
+
+        case '.accent':
+          // .accent { ... }
+          break; // TODO
+
+        case 'overlay':
+          // .overlay { display: block; }
+          break; // TODO
+
+        case 'mtable':
+          // .mtable { ... }
+          break; // TODO
+
+        case 'svg-align':
+          // .svg-align { text-align: left; }
+          textAlign = TextAlign.left;
+      }
+
+      index++;
+    }
+
+    final spanStyle = span.spanStyle;
+    if (spanStyle != null) {
+      if (spanStyle.width != null) width = spanStyle.width! * em;
+      if (spanStyle.height != null) height = spanStyle.height! * em;
+      if (spanStyle.marginLeft != null) marginLeft = spanStyle.marginLeft! * em;
+      if (spanStyle.marginRight != null) marginRight = spanStyle.marginRight! * em;
+      if (spanStyle.minWidth != null) minWidth = spanStyle.minWidth! * em;
+      if (spanStyle.paddingLeft != null) paddingLeft = spanStyle.paddingLeft! * em;
+      if (spanStyle.left != null) left = spanStyle.left! * em;
+      if (spanStyle.top != null) top = spanStyle.top! * em;
+      if (spanStyle.verticalAlign != null) verticalAlign = spanStyle.verticalAlign! * em;
+    }
+
+    Offset offset = Offset.zero;
+    if (left != null) {
+      offset += Offset(left, 0);
+    }
+    if (top != null) {
+      offset += Offset(0, top);
+    }
+    if (right != null) {
+      offset += Offset(-right, 0);
+    }
+    if (bottom != null) {
+      offset += Offset(0, -bottom);
+    }
+    // TODO will probably make sense after table layout
+    // if (offset != Offset.zero) {
+    //   widget = Transform.translate(offset: offset, child: widget);
+    // }
+
+    if (width != null || height != null) {
+      widget = SizedBox(
+        width: width,
+        height: height,
+        child: widget);
+    }
+    if (paddingLeft != null) {
+      widget = Padding(
+        padding: EdgeInsets.only(left: paddingLeft),
+        child: widget);
+    }
+    if (minHeight != null || minWidth != null) {
+      widget = ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: minWidth ?? 0,
+          minHeight: minHeight ?? 0),
+        child: widget);
+    }
+    if (textStyle != null || textAlign != null) {
+      widget = DefaultTextStyle.merge(
+        style: textStyle,
+        textAlign: textAlign,
+        child: widget);
+    }
+    return widget;
   }
 }
 

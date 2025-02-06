@@ -1,11 +1,13 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 
 import '../api/model/model.dart';
 import '../api/model/submessage.dart';
 import 'code_block.dart';
+import 'katex.dart';
 
 /// A node in a parse tree for Zulip message-style content.
 ///
@@ -340,23 +342,46 @@ class CodeBlockSpanNode extends ContentNode {
   }
 }
 
-class MathBlockNode extends BlockContentNode {
-  const MathBlockNode({super.debugHtmlNode, required this.texSource});
+class KatexSpan extends ContentNode {
+  const KatexSpan({
+    required this.spanClasses,
+    required this.spanStyle,
+    required this.text,
+    this.spans = const [],
+  });
 
-  final String texSource;
-
-  @override
-  bool operator ==(Object other) {
-    return other is MathBlockNode && other.texSource == texSource;
-  }
-
-  @override
-  int get hashCode => Object.hash('MathBlockNode', texSource);
+  final List<String> spanClasses;
+  final KatexSpanStyle? spanStyle;
+  final String? text;
+  final List<KatexSpan> spans;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(StringProperty('texSource', texSource));
+    properties.add(StringProperty('spanClass', spanClasses.join(', ')));
+    properties.add(KatexSpanStyleProperty('spanStyle', spanStyle));
+    properties.add(StringProperty('text', text));
+  }
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return spans.map((node) => node.toDiagnosticsNode()).toList();
+  }
+}
+
+class MathBlockNode extends BlockContentNode {
+  const MathBlockNode({
+    super.debugHtmlNode,
+    required this.texSource,
+    required this.spans,
+  });
+
+  final String texSource;
+  final List<KatexSpan> spans;
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return spans.map((node) => node.toDiagnosticsNode()).toList();
   }
 }
 
@@ -1113,6 +1138,13 @@ class _ZulipContentParser {
     return inlineParser.parseBlockInline(nodes);
   }
 
+  // BlockContentNode parseMathBlock(dom.Element element) {
+  //   final debugHtmlNode = kDebugMode ? element : null;
+  //   final texSource = _parseMath(element, block: true);
+  //   if (texSource == null) return UnimplementedBlockContentNode(htmlNode: element);
+  //   return MathBlockNode(texSource: texSource, debugHtmlNode: debugHtmlNode);
+  // }
+
   BlockContentNode parseListNode(dom.Element element) {
     assert(element.localName == 'ol' || element.localName == 'ul');
     assert(element.className.isEmpty);
@@ -1624,11 +1656,9 @@ class _ZulipContentParser {
     })());
 
     final firstChild = nodes.first as dom.Element;
-    final texSource = _parseMath(firstChild, block: true);
-    if (texSource != null) {
-      result.add(MathBlockNode(
-        texSource: texSource,
-        debugHtmlNode: kDebugMode ? firstChild : null));
+    final block = parseKatexBlock(firstChild);
+    if (block != null) {
+      result.add(block);
     } else {
       result.add(UnimplementedBlockContentNode(htmlNode: firstChild));
     }
@@ -1649,7 +1679,6 @@ class _ZulipContentParser {
       : nodes.length;
     for (int i = 1; i < length; i++) {
       final child = nodes[i];
-      final debugHtmlNode = kDebugMode ? child : null;
 
       // If there are multiple <span class="katex-display"> nodes in a <p>
       // each node is interleaved by '\n\n'. Whitespaces are ignored in HTML
@@ -1659,16 +1688,41 @@ class _ZulipContentParser {
       if (child case dom.Text(text: '\n\n')) continue;
 
       if (child case dom.Element(localName: 'span', className: 'katex-display')) {
-        final texSource = _parseMath(child, block: true);
-        if (texSource != null) {
-          result.add(MathBlockNode(
-            texSource: texSource,
-            debugHtmlNode: debugHtmlNode));
+        final block = parseKatexBlock(firstChild);
+        if (block != null) {
+          result.add(block);
           continue;
         }
       }
 
       result.add(UnimplementedBlockContentNode(htmlNode: child));
+    }
+  }
+
+  BlockContentNode? parseKatexBlock(dom.Element element) {
+    assert(element.localName == 'span' && element.className == 'katex-display');
+    if (element.nodes.length != 1) return null;
+    final child = element.nodes.single;
+    if (child is! dom.Element) return null;
+    if (child.localName != 'span') return null;
+    if (child.className != 'katex') return null;
+
+    if (child.nodes.length != 2) return null;
+    final grandchild = child.nodes.last;
+    if (grandchild is! dom.Element) return null;
+    if (grandchild.localName != 'span') return null;
+    if (grandchild.className != 'katex-html') return null;
+
+    try {
+      final debugHtmlNode = kDebugMode ? element : null;
+      final spans = parseKatexSpans(grandchild);
+      return MathBlockNode(
+        texSource: '',
+        spans: spans,
+        debugHtmlNode: debugHtmlNode);
+    } on KatexHtmlParseError catch (e, st) {
+      print('$e\n$st');
+      return null;
     }
   }
 
