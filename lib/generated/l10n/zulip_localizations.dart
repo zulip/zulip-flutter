@@ -1190,6 +1190,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Scroll to bottom'**
   String get scrollToBottomTooltip;
+
+  /// Placeholder to show in place of the app version when it is unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'(…)'**
+  String get appVersionUnknownPlaceholder;
 }
 
 class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizations> {
