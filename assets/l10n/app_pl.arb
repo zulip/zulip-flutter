@@ -355,9 +355,9 @@
   "@loginAddAnAccountPageTitle": {
     "description": "Title for page to add a Zulip account."
   },
-  "loginServerUrlInputLabel": "URL serwera Zulip",
-  "@loginServerUrlInputLabel": {
-    "description": "Input label in login page for Zulip server URL entry."
+  "loginServerUrlLabel": "URL serwera Zulip",
+  "@loginServerUrlLabel": {
+    "description": "Label in login page for Zulip server URL entry."
   },
   "loginHidePassword": "Ukryj hasło",
   "@loginHidePassword": {

@@ -230,7 +230,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   // …but leave out unfocusing the input in case more editing is needed.
                 },
                 decoration: InputDecoration(
-                  labelText: zulipLocalizations.loginServerUrlInputLabel,
+                  labelText: zulipLocalizations.loginServerUrlLabel,
                   errorText: errorText,
                   helperText: kLayoutPinningHelperText,
                   hintText: 'your-org.zulipchat.com')),
