@@ -324,7 +324,7 @@ void main() {
       tz.initializeTimeZones();
       final latestTimezones = tz.timeZoneDatabase;
 
-      await ProfilePage.initializeTimezonesUsingAssets();
+      await UserLocalTimeWidget.initializeTimezonesUsingAssets();
       final currentTimezones = tz.timeZoneDatabase;
 
       check(

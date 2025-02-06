@@ -65,20 +65,6 @@ class ProfilePage extends StatelessWidget {
     }
   }
 
-  @visibleForTesting
-  static Future<void> initializeTimezonesUsingAssets() async {
-    final blob = Uint8List.sublistView(await rootBundle.load('assets/timezone/latest_all.tzf'));
-    tz.initializeDatabase(blob);
-  }
-
-  Future<String> _getDisplayLocalTimeFor(User user, ZulipLocalizations zulipLocalizations) async {
-    if (!tz.timeZoneDatabase.isInitialized) await initializeTimezonesUsingAssets();
-
-    final location = tz.getLocation(user.timezone);
-    final localTime = tz.TZDateTime.now(location);
-    return zulipLocalizations.userLocalTime(localTime);
-  }
-
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -89,7 +75,6 @@ class ProfilePage extends StatelessWidget {
     }
 
     final displayEmail = _getDisplayEmailFor(user, store: store);
-    final displayLocalTime = _getDisplayLocalTimeFor(user, zulipLocalizations);
     final items = [
       Center(
         child: Avatar(userId: userId, size: 200, borderRadius: 200 / 8)),
@@ -107,15 +92,10 @@ class ProfilePage extends StatelessWidget {
         style: _TextStyles.primaryFieldText),
       // TODO(#197) render user status
       // TODO(#196) render active status
-      FutureBuilder(
-        future: displayLocalTime,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) Error.throwWithStackTrace(snapshot.error!, snapshot.stackTrace!);
-          return Text(snapshot.data ?? '',
-            textAlign: TextAlign.center,
-            style: _TextStyles.primaryFieldText
-          );
-        }
+      DefaultTextStyle.merge(
+        textAlign: TextAlign.center,
+        style: _TextStyles.primaryFieldText,
+        child: UserLocalTimeWidget(user: user)
       ),
 
       _ProfileDataTable(profileData: user.profileData),
@@ -329,5 +309,39 @@ class _UserWidget extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(child: Text(fullName, style: _TextStyles.customProfileFieldText)), // TODO(#196) render active status
         ])));
+  }
+}
+
+@visibleForTesting
+class UserLocalTimeWidget extends StatelessWidget {
+  const UserLocalTimeWidget({
+    super.key,
+    required this.user,
+  });
+
+  final User user;
+
+  static Future<void> initializeTimezonesUsingAssets() async {
+    final blob = Uint8List.sublistView(await rootBundle.load('assets/timezone/latest_all.tzf'));
+    tz.initializeDatabase(blob);
+  }
+
+  Future<String> _getDisplayLocalTimeFor(User user, ZulipLocalizations zulipLocalizations) async {
+    if (!tz.timeZoneDatabase.isInitialized) await initializeTimezonesUsingAssets();
+
+    final location = tz.getLocation(user.timezone);
+    final localTime = tz.TZDateTime.now(location);
+    return zulipLocalizations.userLocalTime(localTime);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: _getDisplayLocalTimeFor(user, ZulipLocalizations.of(context)),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) Error.throwWithStackTrace(snapshot.error!, snapshot.stackTrace!);
+        return Text(snapshot.data ?? '');
+      }
+    );
   }
 }
