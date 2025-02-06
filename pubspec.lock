@@ -227,7 +227,7 @@ packages:
     source: hosted
     version: "3.0.6"
   csslib:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: csslib
       sha256: "09bad715f418841f976c77db72d5398dc1253c21fb9c0c7f0b0b985860b2d58e"
