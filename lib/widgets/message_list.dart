@@ -415,15 +415,41 @@ class MessageListAppBarTitle extends StatelessWidget {
       case DmNarrow(:var otherRecipientIds):
         final store = PerAccountStoreWidget.of(context);
         if (otherRecipientIds.isEmpty) {
-          return Text(zulipLocalizations.dmsWithYourselfPageTitle);
+          return DmNarrowAppbarTitle(
+            narrow: narrow as DmNarrow,
+           title:  zulipLocalizations.dmsWithYourselfPageTitle);
         } else {
           final names = otherRecipientIds.map(
             (id) => store.users[id]?.fullName ?? zulipLocalizations.unknownUserName);
           // TODO show avatars
-          return Text(
-            zulipLocalizations.dmsWithOthersPageTitle(names.join(', ')));
+          return DmNarrowAppbarTitle(
+            narrow: narrow as DmNarrow,
+           title: zulipLocalizations.dmsWithOthersPageTitle(names.join(', ')));
         }
     }
+  }
+}
+
+class DmNarrowAppbarTitle extends StatelessWidget {
+  const DmNarrowAppbarTitle({
+    super.key,
+    required this.narrow,
+    required this.title,
+  });
+
+  final DmNarrow narrow;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: GestureDetector(
+        onLongPress: (){
+          showDMActionSheet(context, narrow: narrow);
+        },
+        child: Text(title),
+     ), );
   }
 }
 
@@ -1170,6 +1196,9 @@ class DmRecipientHeader extends StatelessWidget {
     final messageListTheme = MessageListTheme.of(context);
 
     return GestureDetector(
+      onLongPress: (){
+        showDMActionSheet(context, narrow: narrow as DmNarrow);
+      },
       // When already in a DM narrow, disable tap interaction that would just
       // push a MessageListPage for the same DM narrow.
       // TODO(#1244) simplify by removing DM-narrow condition if we remove

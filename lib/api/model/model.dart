@@ -949,3 +949,8 @@ enum PropagateMode {
 
   String toJson() => _$PropagateModeEnumMap[this]!;
 }
+
+enum DMActionSheetOption{
+  markAsRead,
+  groupDmUsers,
+}

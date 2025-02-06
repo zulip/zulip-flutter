@@ -792,5 +792,9 @@
   "scrollToBottomTooltip": "Scroll to bottom",
   "@scrollToBottomTooltip": {
     "description": "Tooltip for button to scroll to bottom."
+  },
+  "showUsersInDM": "Show users in DM",
+  "@showUsersInDM": {
+    "description": "Label for showing users in DM through DM Action Sheet"
   }
 }

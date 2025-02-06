@@ -620,4 +620,7 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
 
   @override
   String get scrollToBottomTooltip => 'Scroll to bottom';
+
+  @override
+  String get showUsersInDM => 'Show users in DM';
 }
