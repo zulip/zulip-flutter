@@ -1177,6 +1177,7 @@ class UpdateMachine {
     store.isLoading = true;
 
     bool isUnexpected;
+    // TODO(#1054): handle auth failure
     switch (error) {
       case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
         assert(debugLog('Lost event queue for $store.  Replacing…'));
