@@ -140,26 +140,6 @@ class ZulipApp extends StatefulWidget {
 
 class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   @override
-  Future<bool> didPushRouteInformation(routeInformation) async {
-    switch (routeInformation.uri) {
-      case Uri(scheme: 'zulip', host: 'login') && var url:
-        await LoginPage.handleWebAuthUrl(url);
-        return true;
-      case Uri(scheme: 'zulip', host: 'notification') && var url:
-        await NotificationDisplayManager.navigateForNotification(url);
-        return true;
-    }
-    return super.didPushRouteInformation(routeInformation);
-  }
-
-  Future<void> _handleInitialRoute() async {
-    final initialRouteUrl = Uri.parse(WidgetsBinding.instance.platformDispatcher.defaultRouteName);
-    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
-      await NotificationDisplayManager.navigateForNotification(initialRouteUrl);
-    }
-  }
-
-  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
@@ -170,6 +150,26 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  Future<void> _handleInitialRoute() async {
+    final initialRouteUrl = Uri.parse(WidgetsBinding.instance.platformDispatcher.defaultRouteName);
+    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
+      await NotificationDisplayManager.navigateForNotification(initialRouteUrl);
+    }
+  }
+
+  @override
+  Future<bool> didPushRouteInformation(routeInformation) async {
+    switch (routeInformation.uri) {
+      case Uri(scheme: 'zulip', host: 'login') && var url:
+        await LoginPage.handleWebAuthUrl(url);
+        return true;
+      case Uri(scheme: 'zulip', host: 'notification') && var url:
+        await NotificationDisplayManager.navigateForNotification(url);
+        return true;
+    }
+    return super.didPushRouteInformation(routeInformation);
   }
 
   @override
