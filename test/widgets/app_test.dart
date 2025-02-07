@@ -4,6 +4,7 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/log.dart';
+import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/home.dart';
@@ -54,6 +55,42 @@ void main() {
           ..accountId.equals(eg.selfAccount.id)
           ..page.isA<HomePage>(),
       ]);
+    });
+  });
+
+  group('_PreventEmptyStack', () {
+    late List<Route<void>> pushedRoutes;
+    late List<Route<void>> removedRoutes;
+
+    Future<void> prepare(WidgetTester tester) async {
+      addTearDown(testBinding.reset);
+
+      pushedRoutes = [];
+      removedRoutes = [];
+      final testNavObserver = TestNavigatorObserver();
+      testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      testNavObserver.onRemoved = (route, prevRoute) => removedRoutes.add(route);
+
+      await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
+      await tester.pump(); // start to load account
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
+      pushedRoutes.clear();
+    }
+
+    testWidgets('push route when removing last route on stack', (tester) async {
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await prepare(tester);
+      // The navigator stack should contain only a home page route.
+
+      // Log out, causing the home page to be removed from the stack.
+      final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
+      await tester.pump(TestGlobalStore.removeAccountDuration);
+      await future;
+      check(testBinding.globalStore.takeDoRemoveAccountCalls())
+        .single.equals(eg.selfAccount.id);
+      // The choose-account page should appear.
+      check(removedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<ChooseAccountPage>();
     });
   });
 
