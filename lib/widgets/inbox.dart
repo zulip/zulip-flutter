@@ -6,6 +6,7 @@ import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
+import 'color.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'sticky_header.dart';
@@ -160,6 +161,10 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       sections.add(_StreamSectionData(streamId, countInStream, streamHasMention, topicItems));
     }
 
+    if (sections.isEmpty) {
+      return const InboxEmptyWidget();
+    }
+
     return SafeArea(
       // Don't pad the bottom here; we want the list content to do that.
       bottom: false,
@@ -179,6 +184,92 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
               return _StreamSection(data: section, collapsed: collapsed, pageState: this);
           }
         }));
+  }
+}
+
+class InboxEmptyWidget extends StatelessWidget {
+  const InboxEmptyWidget({super.key});
+
+  // Splits a message containing text in square brackets into three parts.
+  List<String> _splitMessage(String message) {
+    final pattern = RegExp(r'(.*?)\[(.*?)\](.*)', dotAll: true);
+    final match = pattern.firstMatch(message);
+
+    return match == null
+      ? [message, '', '']
+      : [
+          match.group(1) ?? '',
+          match.group(2) ?? '',
+          match.group(3) ?? '',
+        ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+
+    final messageParts = _splitMessage(zulipLocalizations.emptyInboxMessage);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const SizedBox(height: 48),
+            Icon(
+              ZulipIcons.inbox_done,
+              size: 80,
+              color: designVariables.foreground.withFadedAlpha(0.3),
+            ),
+            const SizedBox(height: 16),
+            Text.rich(
+              TextSpan(
+                style: TextStyle(
+                  color: designVariables.labelSearchPrompt,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w500,
+                ),
+                children: [
+                  TextSpan(text: messageParts[0]),
+                  WidgetSpan(
+                    alignment: PlaceholderAlignment.baseline,
+                    baseline: TextBaseline.alphabetic,
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        splashFactory: NoSplash.splashFactory
+                      ),
+                      onPressed: () => Navigator.push(context,
+                          MessageListPage.buildRoute(context: context,
+                            narrow: const CombinedFeedNarrow())),
+                      child: Text(
+                        messageParts[1],
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500,
+                          color: designVariables.link,
+                          decoration: TextDecoration.underline,
+                          decorationStyle: TextDecorationStyle.solid,
+                          decorationThickness: 2.5,
+                          decorationColor: designVariables.link,
+                          height: 1.5,
+                        )
+                      ),
+                    ),
+                  ),
+                  TextSpan(text: messageParts[2]),
+                ],
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

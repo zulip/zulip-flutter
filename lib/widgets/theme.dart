@@ -157,8 +157,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     groupDmConversationIcon: Colors.black.withValues(alpha: 0.5),
     groupDmConversationIconBg: const Color(0x33808080),
     inboxItemIconMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
+    labelSearchPrompt: const Color(0xff000000).withValues(alpha: 0.5),
     loginOrDivider: const Color(0xffdedede),
     loginOrDividerText: const Color(0xff575757),
+    link: const Color(0xff066bd0),
     modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.3),
     mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.8).toColor(),
     navigationButtonBg: Colors.black.withValues(alpha: 0.05),
@@ -209,8 +211,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
     groupDmConversationIconBg: const Color(0x33cccccc),
     inboxItemIconMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
+    labelSearchPrompt: const Color(0xffffffff).withValues(alpha: 0.5),
     loginOrDivider: const Color(0xff424242),
     loginOrDividerText: const Color(0xffa8a8a8),
+    link: const Color(0xff00aaff),
     modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.5),
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
     mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.6).toColor(),
@@ -263,8 +267,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.groupDmConversationIcon,
     required this.groupDmConversationIconBg,
     required this.inboxItemIconMarker,
+    required this.labelSearchPrompt,
     required this.loginOrDivider,
     required this.loginOrDividerText,
+    required this.link,
     required this.modalBarrierColor,
     required this.mutedUnreadBadge,
     required this.navigationButtonBg,
@@ -325,8 +331,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color groupDmConversationIcon;
   final Color groupDmConversationIconBg;
   final Color inboxItemIconMarker;
+  final Color labelSearchPrompt;
   final Color loginOrDivider; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
   final Color loginOrDividerText; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+  final Color link;
   final Color modalBarrierColor;
   final Color mutedUnreadBadge;
   final Color navigationButtonBg;
@@ -374,8 +382,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? groupDmConversationIcon,
     Color? groupDmConversationIconBg,
     Color? inboxItemIconMarker,
+    Color? labelSearchPrompt,
     Color? loginOrDivider,
     Color? loginOrDividerText,
+    Color? link,
     Color? modalBarrierColor,
     Color? mutedUnreadBadge,
     Color? navigationButtonBg,
@@ -422,8 +432,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       groupDmConversationIcon: groupDmConversationIcon ?? this.groupDmConversationIcon,
       groupDmConversationIconBg: groupDmConversationIconBg ?? this.groupDmConversationIconBg,
       inboxItemIconMarker: inboxItemIconMarker ?? this.inboxItemIconMarker,
+      labelSearchPrompt: labelSearchPrompt ?? this.labelSearchPrompt,
       loginOrDivider: loginOrDivider ?? this.loginOrDivider,
       loginOrDividerText: loginOrDividerText ?? this.loginOrDividerText,
+      link: link ?? this.link,
       modalBarrierColor: modalBarrierColor ?? this.modalBarrierColor,
       mutedUnreadBadge: mutedUnreadBadge ?? this.mutedUnreadBadge,
       navigationButtonBg: navigationButtonBg ?? this.navigationButtonBg,
@@ -477,8 +489,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       groupDmConversationIcon: Color.lerp(groupDmConversationIcon, other.groupDmConversationIcon, t)!,
       groupDmConversationIconBg: Color.lerp(groupDmConversationIconBg, other.groupDmConversationIconBg, t)!,
       inboxItemIconMarker: Color.lerp(inboxItemIconMarker, other.inboxItemIconMarker, t)!,
+      labelSearchPrompt: Color.lerp(labelSearchPrompt, other.labelSearchPrompt, t)!,
       loginOrDivider: Color.lerp(loginOrDivider, other.loginOrDivider, t)!,
       loginOrDividerText: Color.lerp(loginOrDividerText, other.loginOrDividerText, t)!,
+      link: Color.lerp(link, other.link, t)!,
       modalBarrierColor: Color.lerp(modalBarrierColor, other.modalBarrierColor, t)!,
       mutedUnreadBadge: Color.lerp(mutedUnreadBadge, other.mutedUnreadBadge, t)!,
       navigationButtonBg: Color.lerp(navigationButtonBg, other.navigationButtonBg, t)!,

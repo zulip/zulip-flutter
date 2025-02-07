@@ -643,4 +643,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get zulipAppTitle => 'Zulip';
+
+  @override
+  String get emptyInboxMessage => 'There are no unread messages in your Inbox.\nCheck out the [combined feed] for recent messages.';
 }

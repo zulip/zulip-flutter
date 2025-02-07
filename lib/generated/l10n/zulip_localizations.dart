@@ -1208,6 +1208,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Zulip'**
   String get zulipAppTitle;
+
+  /// Message shown when inbox is empty. [combined feed] will be replaced with a clickable link to Combined Feed.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no unread messages in your Inbox.\nCheck out the [combined feed] for recent messages.'**
+  String get emptyInboxMessage;
 }
 
 class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizations> {
