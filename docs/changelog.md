@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 0.0.26 (2025-02-07)
+
 ### Highlights for users
 
 * Resolve or unresolve a topic, from the menu after you
