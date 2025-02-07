@@ -92,6 +92,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get actionSheetOptionShare => 'Udostępnij';
 
   @override
+  String get actionSheetOptionViewReactions => 'See who reacted';
+
+  @override
   String get actionSheetOptionQuoteAndReply => 'Odpowiedz cytując';
 
   @override
@@ -99,6 +102,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get actionSheetOptionUnstarMessage => 'Odbierz gwiazdkę';
+
+  @override
+  String get reactionSheetEmptyReactions => 'No reactions yet';
 
   @override
   String get errorWebAuthOperationalErrorTitle => 'Coś poszło nie tak';

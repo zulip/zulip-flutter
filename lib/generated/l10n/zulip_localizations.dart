@@ -267,6 +267,12 @@ abstract class ZulipLocalizations {
   /// **'Share'**
   String get actionSheetOptionShare;
 
+  /// Label for View Reactions button on action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'See who reacted'**
+  String get actionSheetOptionViewReactions;
+
   /// Label for Quote and reply button on action sheet.
   ///
   /// In en, this message translates to:
@@ -284,6 +290,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Unstar message'**
   String get actionSheetOptionUnstarMessage;
+
+  /// Text to display when the reactions sheet is open, but there are no reactions to show.
+  ///
+  /// In en, this message translates to:
+  /// **'No reactions yet'**
+  String get reactionSheetEmptyReactions;
 
   /// Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials).
   ///

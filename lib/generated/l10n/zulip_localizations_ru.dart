@@ -92,6 +92,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get actionSheetOptionShare => 'Поделиться';
 
   @override
+  String get actionSheetOptionViewReactions => 'See who reacted';
+
+  @override
   String get actionSheetOptionQuoteAndReply => 'Ответить с цитированием';
 
   @override
@@ -99,6 +102,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get actionSheetOptionUnstarMessage => 'Снять отметку с сообщения';
+
+  @override
+  String get reactionSheetEmptyReactions => 'No reactions yet';
 
   @override
   String get errorWebAuthOperationalErrorTitle => 'Что-то пошло не так';
