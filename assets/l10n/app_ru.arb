@@ -571,10 +571,6 @@
   "@errorFollowTopicFailed": {
     "description": "Error message when following a topic failed."
   },
-  "composeBoxUnknownChannelName": "(неизвестный канал)",
-  "@composeBoxUnknownChannelName": {
-    "description": "Replacement name for channel when it cannot be found in the store."
-  },
   "dialogContinue": "Продолжить",
   "@dialogContinue": {
     "description": "Button label in dialogs to proceed."
