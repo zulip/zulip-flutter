@@ -691,16 +691,21 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
   double childMainAxisPosition(RenderObject child) {
     if (child == this.child) return 0.0;
     assert(child == header);
+
+    final headerParentData = (header!.parentData as SliverPhysicalParentData);
+    final paintOffset = headerParentData.paintOffset;
+
     // We use Sliver*Physical*ParentData, so the header's position is stored in
     // physical coordinates.  To meet the spec of `childMainAxisPosition`, we
     // need to convert to the sliver's coordinate system.
-    final headerParentData = (header!.parentData as SliverPhysicalParentData);
-    final paintOffset = headerParentData.paintOffset;
+    // This is all a bit silly because callers like [hitTestBoxChild] are just
+    // going to do the same things in reverse to get physical coordinates.
+    // Ah well; that's the API.
     return switch (constraints.growthAxisDirection) {
       AxisDirection.right => paintOffset.dx,
-      AxisDirection.left  => geometry!.layoutExtent - header!.size.width  - paintOffset.dx,
+      AxisDirection.left  => geometry!.paintExtent - header!.size.width  - paintOffset.dx,
       AxisDirection.down  => paintOffset.dy,
-      AxisDirection.up    => geometry!.layoutExtent - header!.size.height - paintOffset.dy,
+      AxisDirection.up    => geometry!.paintExtent - header!.size.height - paintOffset.dy,
     };
   }
 
