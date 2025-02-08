@@ -1,8 +1,10 @@
 import 'package:checks/checks.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/src/tzdb.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -322,13 +324,13 @@ void main() {
 
     test('assets; ensure the timezone database used to display users\' local time is up-to-date', () async {
       tz.initializeTimeZones();
-      final latestTimezones = tz.timeZoneDatabase;
+      final latestTimezones = tz.tzdbSerialize(tz.timeZoneDatabase);
 
       await UserLocalTimeText.initializeTimezonesUsingAssets();
-      final currentTimezones = tz.timeZoneDatabase;
+      final currentTimezones = tz.tzdbSerialize(tz.timeZoneDatabase);
 
       check(
-        currentTimezones == latestTimezones,
+        listEquals(currentTimezones, latestTimezones),
         because:
             'the timezone database used to display users\' local time is not up-to-date',
       ).isTrue();
