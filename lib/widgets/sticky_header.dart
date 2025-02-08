@@ -628,13 +628,28 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
           // The header will overflow the child sliver.
           // That makes this sliver's geometry a bit more complicated.
 
+          // This sliver's paint region consists entirely of the header.
+          final paintExtent = headerExtent;
+          headerOffset = _headerAtCoordinateEnd()
+            ? childExtent - headerExtent // TODO buggy, should be zero
+            : 0.0;
+
+          // Its layout region (affecting where the next sliver begins layout)
+          // is that given by the child sliver.
+          final layoutExtent = childExtent;
+
+          // The paint origin places this sliver's paint region relative to its
+          // layout region.
+          final paintOrigin = 0.0; // TODO buggy
+
           geometry = SliverGeometry( // TODO review interaction with other slivers
             scrollExtent: geometry.scrollExtent,
-            layoutExtent: childExtent,
-            paintExtent: childExtent,
-            maxPaintExtent: math.max(geometry.maxPaintExtent, headerExtent),
+            layoutExtent: layoutExtent,
+            paintExtent: childExtent, // TODO buggy
+            paintOrigin: paintOrigin,
+            maxPaintExtent: math.max(geometry.maxPaintExtent, paintExtent),
             hasVisualOverflow: geometry.hasVisualOverflow
-              || headerExtent > constraints.remainingPaintExtent,
+              || paintExtent > constraints.remainingPaintExtent,
 
             // The cache extent is an extension of layout, not paint; it controls
             // where the next sliver should start laying out content.  (See
@@ -643,10 +658,6 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
             // affect the cache extent.
             cacheExtent: geometry.cacheExtent,
           );
-
-          headerOffset = _headerAtCoordinateEnd()
-            ? childExtent - headerExtent
-            : 0.0;
         }
       } else {
         // The header's item has [StickyHeaderItem.allowOverflow] false.
