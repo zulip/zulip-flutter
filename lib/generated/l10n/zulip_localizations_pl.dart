@@ -80,16 +80,16 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get actionSheetOptionUnfollowTopic => 'Nie śledź wątku';
 
   @override
-  String get actionSheetOptionResolveTopic => 'Mark as resolved';
+  String get actionSheetOptionResolveTopic => 'Oznacz jako rozwiązany';
 
   @override
-  String get actionSheetOptionUnresolveTopic => 'Mark as unresolved';
+  String get actionSheetOptionUnresolveTopic => 'Oznacz brak rozwiązania';
 
   @override
-  String get errorResolveTopicFailedTitle => 'Failed to mark topic as resolved';
+  String get errorResolveTopicFailedTitle => 'Nie udało się oznaczyć jako rozwiązany';
 
   @override
-  String get errorUnresolveTopicFailedTitle => 'Failed to mark topic as unresolved';
+  String get errorUnresolveTopicFailedTitle => 'Nie udało się oznaczyć brak rozwiązania';
 
   @override
   String get actionSheetOptionCopyMessageText => 'Skopiuj tekst wiadomości';

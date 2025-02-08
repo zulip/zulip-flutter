@@ -900,5 +900,43 @@
   "unpinnedSubscriptionsLabel": "Odpięte",
   "@unpinnedSubscriptionsLabel": {
     "description": "Label for the list of unpinned subscribed channels."
+  },
+  "actionSheetOptionResolveTopic": "Oznacz jako rozwiązany",
+  "@actionSheetOptionResolveTopic": {
+    "description": "Label for the 'Mark as resolved' button on the topic action sheet."
+  },
+  "actionSheetOptionUnresolveTopic": "Oznacz brak rozwiązania",
+  "@actionSheetOptionUnresolveTopic": {
+    "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
+  },
+  "errorResolveTopicFailedTitle": "Nie udało się oznaczyć jako rozwiązany",
+  "@errorResolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as resolved failed."
+  },
+  "errorUnresolveTopicFailedTitle": "Nie udało się oznaczyć brak rozwiązania",
+  "@errorUnresolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as unresolved failed."
+  },
+  "appVersionUnknownPlaceholder": "(…)",
+  "@appVersionUnknownPlaceholder": {
+    "description": "Placeholder to show in place of the app version when it is unknown."
+  },
+  "zulipAppTitle": "Zulip",
+  "@zulipAppTitle": {
+    "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
+  },
+  "filenameAndSizeInMiB": "{filename}: {size} MiB",
+  "@filenameAndSizeInMiB": {
+    "description": "The name of a file, and its size in mebibytes.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "foo.txt"
+      },
+      "size": {
+        "type": "String",
+        "example": "20.2"
+      }
+    }
   }
 }
