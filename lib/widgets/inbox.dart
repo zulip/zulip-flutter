@@ -507,7 +507,8 @@ class _TopicItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _StreamSectionTopicData(:topic, :count, :hasMention) = data;
+    final _StreamSectionTopicData(
+      :topic, :count, :hasMention, :lastUnreadId) = data;
 
     final store = PerAccountStoreWidget.of(context);
     final subscription = store.subscriptions[streamId]!;
@@ -525,7 +526,9 @@ class _TopicItem extends StatelessWidget {
             MessageListPage.buildRoute(context: context, narrow: narrow));
         },
         onLongPress: () => showTopicActionSheet(context,
-          channelId: streamId, topic: topic),
+          channelId: streamId,
+          topic: topic,
+          someMessageIdInTopic: lastUnreadId),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
             const SizedBox(width: 63),

@@ -709,7 +709,8 @@ Future<void> _uploadFiles({
 
   if (tooLargeFiles.isNotEmpty) {
     final listMessage = tooLargeFiles
-      .map((file) => '${file.filename}: ${(file.length / (1 << 20)).toStringAsFixed(1)} MiB')
+      .map((file) => zulipLocalizations.filenameAndSizeInMiB(
+        file.filename, (file.length / (1 << 20)).toStringAsFixed(1)))
       .join('\n');
     showErrorDialog(
       context: context,

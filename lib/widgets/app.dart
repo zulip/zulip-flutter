@@ -181,7 +181,9 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
         // TODO(#524) choose initial account as last one used
         final initialAccountId = globalStore.accounts.firstOrNull?.id;
         return MaterialApp(
-          title: 'Zulip',
+          onGenerateTitle: (BuildContext context) {
+            return ZulipLocalizations.of(context).zulipAppTitle;
+          },
           localizationsDelegates: ZulipLocalizations.localizationsDelegates,
           supportedLocales: ZulipLocalizations.supportedLocales,
           theme: themeData,

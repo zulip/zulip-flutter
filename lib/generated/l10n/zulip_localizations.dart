@@ -243,6 +243,30 @@ abstract class ZulipLocalizations {
   /// **'Unfollow topic'**
   String get actionSheetOptionUnfollowTopic;
 
+  /// Label for the 'Mark as resolved' button on the topic action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as resolved'**
+  String get actionSheetOptionResolveTopic;
+
+  /// Label for the 'Mark as unresolved' button on the topic action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as unresolved'**
+  String get actionSheetOptionUnresolveTopic;
+
+  /// Error title when marking a topic as resolved failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to mark topic as resolved'**
+  String get errorResolveTopicFailedTitle;
+
+  /// Error title when marking a topic as unresolved failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to mark topic as unresolved'**
+  String get errorUnresolveTopicFailedTitle;
+
   /// Label for copy message text button on action sheet.
   ///
   /// In en, this message translates to:
@@ -326,6 +350,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Failed to upload file: {filename}'**
   String errorFailedToUploadFileTitle(String filename);
+
+  /// The name of a file, and its size in mebibytes.
+  ///
+  /// In en, this message translates to:
+  /// **'{filename}: {size} MiB'**
+  String filenameAndSizeInMiB(String filename, String size);
 
   /// Error message when attached files are too large in size.
   ///
@@ -711,11 +741,11 @@ abstract class ZulipLocalizations {
   /// **'Add an account'**
   String get loginAddAnAccountPageTitle;
 
-  /// Input label in login page for Zulip server URL entry.
+  /// Label in login page for Zulip server URL entry.
   ///
   /// In en, this message translates to:
   /// **'Your Zulip server URL'**
-  String get loginServerUrlInputLabel;
+  String get loginServerUrlLabel;
 
   /// Icon label for button to hide password in input form.
   ///
@@ -1166,6 +1196,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Scroll to bottom'**
   String get scrollToBottomTooltip;
+
+  /// Placeholder to show in place of the app version when it is unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'(…)'**
+  String get appVersionUnknownPlaceholder;
+
+  /// The name of Zulip. This should be either 'Zulip' or a transliteration.
+  ///
+  /// In en, this message translates to:
+  /// **'Zulip'**
+  String get zulipAppTitle;
 
   /// Current time in the user's timezone
   ///

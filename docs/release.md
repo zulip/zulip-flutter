@@ -6,6 +6,9 @@
   Flutter and packages dependencies, do that first.
   For details of how, see our README.
 
+* Update translations from Weblate.
+  See `git log --stat --grep eblate` for previous examples.
+
 * Write an entry in `docs/changelog.md`, under "Unreleased".
   Commit that change.
 

@@ -25,10 +25,11 @@ import '../widgets/theme.dart';
 AndroidNotificationHostApi get _androidHost => ZulipBinding.instance.androidNotificationHost;
 
 enum NotificationSound {
-  // Any new entry here must appear in `keep.xml` too, see #528.
+  // TODO(i18n): translate these file display names
   chime2(resourceName: 'chime2', fileDisplayName: 'Zulip - Low Chime.m4a'),
   chime3(resourceName: 'chime3', fileDisplayName: 'Zulip - Chime.m4a'),
   chime4(resourceName: 'chime4', fileDisplayName: 'Zulip - High Chime.m4a');
+  // Any new entry here must appear in `keep.xml` too, see #528.
 
   const NotificationSound({
     required this.resourceName,

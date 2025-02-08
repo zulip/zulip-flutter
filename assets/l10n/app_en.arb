@@ -92,6 +92,22 @@
   "@actionSheetOptionUnfollowTopic":  {
     "description": "Label for unfollowing a topic on action sheet."
   },
+  "actionSheetOptionResolveTopic": "Mark as resolved",
+  "@actionSheetOptionResolveTopic": {
+    "description": "Label for the 'Mark as resolved' button on the topic action sheet."
+  },
+  "actionSheetOptionUnresolveTopic": "Mark as unresolved",
+  "@actionSheetOptionUnresolveTopic": {
+    "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
+  },
+  "errorResolveTopicFailedTitle": "Failed to mark topic as resolved",
+  "@errorResolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as resolved failed."
+  },
+  "errorUnresolveTopicFailedTitle": "Failed to mark topic as unresolved",
+  "@errorUnresolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as unresolved failed."
+  },
   "actionSheetOptionCopyMessageText": "Copy message text",
   "@actionSheetOptionCopyMessageText":  {
     "description": "Label for copy message text button on action sheet."
@@ -155,13 +171,21 @@
       "filename": {"type": "String", "example": "file.txt"}
     }
   },
+  "filenameAndSizeInMiB": "{filename}: {size} MiB",
+  "@filenameAndSizeInMiB": {
+    "description": "The name of a file, and its size in mebibytes.",
+    "placeholders": {
+      "filename": {"type": "String", "example": "foo.txt"},
+      "size": {"type": "String", "example": "20.2"}
+    }
+  },
   "errorFilesTooLarge": "{num, plural, =1{File is} other{{num} files are}} larger than the server's limit of {maxFileUploadSizeMib} MiB and will not be uploaded:\n\n{listMessage}",
   "@errorFilesTooLarge": {
     "description": "Error message when attached files are too large in size.",
     "placeholders": {
       "num": {"type": "int", "example": "2"},
       "maxFileUploadSizeMib": {"type": "int", "example": "15"},
-      "listMessage": {"type": "String", "example": "foo.txt\nbar.txt"}
+      "listMessage": {"type": "String", "example": "foo.txt: 10.1 MiB\nbar.txt 20.2 MiB"}
     }
   },
   "errorFilesTooLargeTitle": "{num, plural, =1{File} other{Files}} too large",
@@ -459,9 +483,9 @@
   "@loginAddAnAccountPageTitle": {
     "description": "Title for page to add a Zulip account."
   },
-  "loginServerUrlInputLabel": "Your Zulip server URL",
-  "@loginServerUrlInputLabel": {
-    "description": "Input label in login page for Zulip server URL entry."
+  "loginServerUrlLabel": "Your Zulip server URL",
+  "@loginServerUrlLabel": {
+    "description": "Label in login page for Zulip server URL entry."
   },
   "loginHidePassword": "Hide password",
   "@loginHidePassword": {
@@ -792,6 +816,14 @@
   "scrollToBottomTooltip": "Scroll to bottom",
   "@scrollToBottomTooltip": {
     "description": "Tooltip for button to scroll to bottom."
+  },
+  "appVersionUnknownPlaceholder": "(…)",
+  "@appVersionUnknownPlaceholder": {
+    "description": "Placeholder to show in place of the app version when it is unknown."
+  },
+  "zulipAppTitle": "Zulip",
+  "@zulipAppTitle": {
+    "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
   },
   "userLocalTime": "{userTime} local time",
   "@userLocalTime": {

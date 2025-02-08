@@ -227,9 +227,10 @@ void main() {
         }
 
         checkButton('Follow topic');
+        checkButton('Mark as resolved');
       }
 
-      testWidgets('show from inbox', (tester) async {
+      testWidgets('show from inbox; message in Unreads but not in MessageStore', (tester) async {
         await prepare(unreadMsgs: eg.unreadMsgs(count: 1,
           channels: [eg.unreadChannelMsgs(
             streamId: someChannel.streamId,
@@ -237,6 +238,17 @@ void main() {
             unreadMessageIds: [someMessage.id],
           )]));
         await showFromInbox(tester);
+        check(store.unreads.isUnread(someMessage.id)).isNotNull().isTrue();
+        check(store.messages).not((it) => it.containsKey(someMessage.id));
+        checkButtons();
+      });
+
+      testWidgets('show from inbox; message in Unreads and in MessageStore', (tester) async {
+        await prepare();
+        await store.addMessage(someMessage);
+        await showFromInbox(tester);
+        check(store.unreads.isUnread(someMessage.id)).isNotNull().isTrue();
+        check(store.messages)[someMessage.id].isNotNull();
         checkButtons();
       });
 
@@ -244,6 +256,13 @@ void main() {
         await prepare();
         await showFromAppBar(tester);
         checkButtons();
+      });
+
+      testWidgets('show from app bar: resolve/unresolve not offered when msglist empty', (tester) async {
+        await prepare();
+        await showFromAppBar(tester, messages: []);
+        check(findButtonForLabel('Mark as resolved')).findsNothing();
+        check(findButtonForLabel('Mark as unresolved')).findsNothing();
       });
 
       testWidgets('show from recipient header', (tester) async {
@@ -289,10 +308,6 @@ void main() {
       }
 
       void checkButtons(List<Finder> expectedButtonFinders) {
-        if (expectedButtonFinders.isEmpty) {
-          check(actionSheetFinder).findsNothing();
-          return;
-        }
         check(actionSheetFinder).findsOne();
 
         for (final buttonFinder in expectedButtonFinders) {
@@ -448,6 +463,109 @@ void main() {
             checkButtons(buttons);
           });
         }
+      });
+    });
+
+    group('ResolveUnresolveButton', () {
+      void checkRequest(int messageId, String topic) {
+        check(connection.takeRequests()).single.isA<http.Request>()
+          ..method.equals('PATCH')
+          ..url.path.equals('/api/v1/messages/$messageId')
+          ..bodyFields.deepEquals({
+            'topic': topic,
+            'propagate_mode': 'change_all',
+            'send_notification_to_old_thread': 'false',
+            'send_notification_to_new_thread': 'true',
+          });
+      }
+
+      testWidgets('resolve: happy path from inbox; message in Unreads but not MessageStore', (tester) async {
+        final message = eg.streamMessage(stream: someChannel, topic: 'zulip');
+        await prepare(
+          topic: 'zulip',
+          unreadMsgs: eg.unreadMsgs(count: 1,
+            channels: [eg.unreadChannelMsgs(
+              streamId: someChannel.streamId,
+              topic: 'zulip',
+              unreadMessageIds: [message.id],
+            )]));
+        await showFromInbox(tester, topic: 'zulip');
+        check(store.messages).not((it) => it.containsKey(message.id));
+        connection.prepare(json: UpdateMessageResult().toJson());
+        await tester.tap(findButtonForLabel('Mark as resolved'));
+        await tester.pumpAndSettle();
+
+        checkNoErrorDialog(tester);
+        checkRequest(message.id, '✔ zulip');
+      });
+
+      testWidgets('resolve: happy path from inbox; message in Unreads and MessageStore', (tester) async {
+        final message = eg.streamMessage(stream: someChannel, topic: 'zulip');
+        await prepare(topic: 'zulip');
+        await store.addMessage(message);
+        await showFromInbox(tester, topic: 'zulip');
+        check(store.unreads.isUnread(message.id)).isNotNull().isTrue();
+        check(store.messages)[message.id].isNotNull();
+        connection.prepare(json: UpdateMessageResult().toJson());
+        await tester.tap(findButtonForLabel('Mark as resolved'));
+        await tester.pumpAndSettle();
+
+        checkNoErrorDialog(tester);
+        checkRequest(message.id, '✔ zulip');
+      });
+
+      testWidgets('unresolve: happy path', (tester) async {
+        final message = eg.streamMessage(stream: someChannel, topic: '✔ zulip');
+        await prepare(topic: '✔ zulip');
+        await showFromAppBar(tester, topic: '✔ zulip', messages: [message]);
+        connection.takeRequests();
+        connection.prepare(json: UpdateMessageResult().toJson());
+        await tester.tap(findButtonForLabel('Mark as unresolved'));
+        await tester.pumpAndSettle();
+
+        checkNoErrorDialog(tester);
+        checkRequest(message.id, 'zulip');
+      });
+
+      testWidgets('unresolve: weird prefix', (tester) async {
+        final message = eg.streamMessage(stream: someChannel, topic: '✔ ✔ zulip');
+        await prepare(topic: '✔ ✔ zulip');
+        await showFromAppBar(tester, topic: '✔ ✔ zulip', messages: [message]);
+        connection.takeRequests();
+        connection.prepare(json: UpdateMessageResult().toJson());
+        await tester.tap(findButtonForLabel('Mark as unresolved'));
+        await tester.pumpAndSettle();
+
+        checkNoErrorDialog(tester);
+        checkRequest(message.id, 'zulip');
+      });
+
+      testWidgets('resolve: request fails', (tester) async {
+        final message = eg.streamMessage(stream: someChannel, topic: 'zulip');
+        await prepare(topic: 'zulip');
+        await showFromRecipientHeader(tester, message: message);
+        connection.takeRequests();
+        connection.prepare(exception: http.ClientException('Oops'));
+        await tester.tap(findButtonForLabel('Mark as resolved'));
+        await tester.pumpAndSettle();
+        checkRequest(message.id, '✔ zulip');
+
+        checkErrorDialog(tester,
+          expectedTitle: 'Failed to mark topic as resolved');
+      });
+
+      testWidgets('unresolve: request fails', (tester) async {
+        final message = eg.streamMessage(stream: someChannel, topic: '✔ zulip');
+        await prepare(topic: '✔ zulip');
+        await showFromRecipientHeader(tester, message: message);
+        connection.takeRequests();
+        connection.prepare(exception: http.ClientException('Oops'));
+        await tester.tap(findButtonForLabel('Mark as unresolved'));
+        await tester.pumpAndSettle();
+        checkRequest(message.id, 'zulip');
+
+        checkErrorDialog(tester,
+          expectedTitle: 'Failed to mark topic as unresolved');
       });
     });
   });

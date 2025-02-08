@@ -80,6 +80,18 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get actionSheetOptionUnfollowTopic => 'Prestať sledovať tému';
 
   @override
+  String get actionSheetOptionResolveTopic => 'Mark as resolved';
+
+  @override
+  String get actionSheetOptionUnresolveTopic => 'Mark as unresolved';
+
+  @override
+  String get errorResolveTopicFailedTitle => 'Failed to mark topic as resolved';
+
+  @override
+  String get errorUnresolveTopicFailedTitle => 'Failed to mark topic as unresolved';
+
+  @override
   String get actionSheetOptionCopyMessageText => 'Skopírovať text správy';
 
   @override
@@ -123,6 +135,11 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   @override
   String errorFailedToUploadFileTitle(String filename) {
     return 'Nepodarilo sa nahrať súbor: $filename';
+  }
+
+  @override
+  String filenameAndSizeInMiB(String filename, String size) {
+    return '$filename: $size MiB';
   }
 
   @override
@@ -358,7 +375,7 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'Pridať účet';
 
   @override
-  String get loginServerUrlInputLabel => 'Adresa vášho Zulip servera';
+  String get loginServerUrlLabel => 'Adresa vášho Zulip servera';
 
   @override
   String get loginHidePassword => 'Skryť heslo';
@@ -620,6 +637,12 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
 
   @override
   String get scrollToBottomTooltip => 'Scroll to bottom';
+
+  @override
+  String get appVersionUnknownPlaceholder => '(…)';
+
+  @override
+  String get zulipAppTitle => 'Zulip';
 
   @override
   String userLocalTime(DateTime userTime) {

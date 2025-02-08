@@ -9,13 +9,13 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   ZulipLocalizationsNb([String locale = 'nb']) : super(locale);
 
   @override
-  String get aboutPageTitle => 'About Zulip';
+  String get aboutPageTitle => 'Om Zulip';
 
   @override
-  String get aboutPageAppVersion => 'App version';
+  String get aboutPageAppVersion => 'App versjon';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Open-source licenses';
+  String get aboutPageOpenSourceLicenses => 'Lisenser for åpen kildekode';
 
   @override
   String get aboutPageTapToView => 'Tap to view';
@@ -80,6 +80,18 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get actionSheetOptionUnfollowTopic => 'Unfollow topic';
 
   @override
+  String get actionSheetOptionResolveTopic => 'Mark as resolved';
+
+  @override
+  String get actionSheetOptionUnresolveTopic => 'Mark as unresolved';
+
+  @override
+  String get errorResolveTopicFailedTitle => 'Failed to mark topic as resolved';
+
+  @override
+  String get errorUnresolveTopicFailedTitle => 'Failed to mark topic as unresolved';
+
+  @override
   String get actionSheetOptionCopyMessageText => 'Copy message text';
 
   @override
@@ -123,6 +135,11 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   @override
   String errorFailedToUploadFileTitle(String filename) {
     return 'Failed to upload file: $filename';
+  }
+
+  @override
+  String filenameAndSizeInMiB(String filename, String size) {
+    return '$filename: $size MiB';
   }
 
   @override
@@ -358,7 +375,7 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'Add an account';
 
   @override
-  String get loginServerUrlInputLabel => 'Your Zulip server URL';
+  String get loginServerUrlLabel => 'Your Zulip server URL';
 
   @override
   String get loginHidePassword => 'Hide password';
@@ -620,6 +637,12 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
 
   @override
   String get scrollToBottomTooltip => 'Scroll to bottom';
+
+  @override
+  String get appVersionUnknownPlaceholder => '(…)';
+
+  @override
+  String get zulipAppTitle => 'Zulip';
 
   @override
   String userLocalTime(DateTime userTime) {
