@@ -9,13 +9,13 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   ZulipLocalizationsNb([String locale = 'nb']) : super(locale);
 
   @override
-  String get aboutPageTitle => 'About Zulip';
+  String get aboutPageTitle => 'Om Zulip';
 
   @override
-  String get aboutPageAppVersion => 'App version';
+  String get aboutPageAppVersion => 'App versjon';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Open-source licenses';
+  String get aboutPageOpenSourceLicenses => 'Lisenser for åpen kildekode';
 
   @override
   String get aboutPageTapToView => 'Tap to view';
