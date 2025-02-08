@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -315,7 +316,7 @@ class _UserWidget extends StatelessWidget {
 }
 
 /// The text of current time in [user]'s timezone.
-class UserLocalTimeText extends StatelessWidget {
+class UserLocalTimeText extends StatefulWidget {
   const UserLocalTimeText({
     super.key,
     required this.user,
@@ -333,15 +334,32 @@ class UserLocalTimeText extends StatelessWidget {
     tz.initializeDatabase(blob);
   }
 
+  @override
+  State<UserLocalTimeText> createState() => _UserLocalTimeTextState();
+}
+
+class _UserLocalTimeTextState extends State<UserLocalTimeText> {
+  late final Timer _timer;
+  final StreamController<DateTime> _streamController = StreamController();
+  Stream<DateTime> get _stream => _streamController.stream;
+
+  @override
+  void initState() {
+    _streamController.add(DateTime.timestamp());
+    _timer = Timer(const Duration(seconds: 1), () { _streamController.add(DateTime.timestamp()); });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
   Stream<String> _getDisplayLocalTimeFor(User user, ZulipLocalizations zulipLocalizations) async* {
-    if (!tz.timeZoneDatabase.isInitialized) await initializeTimezonesUsingAssets();
+    if (!tz.timeZoneDatabase.isInitialized) await UserLocalTimeText.initializeTimezonesUsingAssets();
 
-    Stream<DateTime> timer(Duration duration) async* {
-      yield DateTime.timestamp();
-      yield* Stream.periodic(duration, (_) => DateTime.timestamp());
-    }
-
-    await for (final DateTime time in timer(Duration(seconds: 1))) {
+    await for (final DateTime time in _stream) {
       final location = tz.getLocation(user.timezone);
       final localTime = tz.TZDateTime.from(time, location);
       yield zulipLocalizations.userLocalTime(localTime);
@@ -351,7 +369,7 @@ class UserLocalTimeText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-      stream: _getDisplayLocalTimeFor(user, ZulipLocalizations.of(context)),
+      stream: _getDisplayLocalTimeFor(widget.user, ZulipLocalizations.of(context)),
       builder: (context, snapshot) {
         if (snapshot.hasError) Error.throwWithStackTrace(snapshot.error!, snapshot.stackTrace!);
         return Text(snapshot.data ?? '');
