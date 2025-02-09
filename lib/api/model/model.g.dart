@@ -172,6 +172,7 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
       channelPostPolicy:
           $enumDecode(_$ChannelPostPolicyEnumMap, json['stream_post_policy']),
       streamWeeklyTraffic: (json['stream_weekly_traffic'] as num?)?.toInt(),
+      isArchived: json['is_archived'] as bool,
     );
 
 Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
@@ -188,6 +189,7 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
       'message_retention_days': instance.messageRetentionDays,
       'stream_post_policy': instance.channelPostPolicy,
       'stream_weekly_traffic': instance.streamWeeklyTraffic,
+      'is_archived': instance.isArchived,
     };
 
 const _$ChannelPostPolicyEnumMap = {
@@ -212,6 +214,7 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
       channelPostPolicy:
           $enumDecode(_$ChannelPostPolicyEnumMap, json['stream_post_policy']),
       streamWeeklyTraffic: (json['stream_weekly_traffic'] as num?)?.toInt(),
+      isArchived: json['is_archived'] as bool,
       desktopNotifications: json['desktop_notifications'] as bool?,
       emailNotifications: json['email_notifications'] as bool?,
       wildcardMentionsNotify: json['wildcard_mentions_notify'] as bool?,
@@ -236,6 +239,7 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'message_retention_days': instance.messageRetentionDays,
       'stream_post_policy': instance.channelPostPolicy,
       'stream_weekly_traffic': instance.streamWeeklyTraffic,
+      'is_archived': instance.isArchived,
       'desktop_notifications': instance.desktopNotifications,
       'email_notifications': instance.emailNotifications,
       'wildcard_mentions_notify': instance.wildcardMentionsNotify,

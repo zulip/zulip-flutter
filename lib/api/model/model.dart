@@ -347,6 +347,8 @@ class ZulipStream {
   // TODO(server-8): added in FL 199, was previously only on [Subscription] objects
   int? streamWeeklyTraffic;
 
+  final bool isArchived;
+
   ZulipStream({
     required this.streamId,
     required this.name,
@@ -360,6 +362,7 @@ class ZulipStream {
     required this.messageRetentionDays,
     required this.channelPostPolicy,
     required this.streamWeeklyTraffic,
+    required this.isArchived
   });
 
   factory ZulipStream.fromJson(Map<String, dynamic> json) =>
@@ -470,6 +473,7 @@ class Subscription extends ZulipStream {
     required super.messageRetentionDays,
     required super.channelPostPolicy,
     required super.streamWeeklyTraffic,
+    required super.isArchived,
     required this.desktopNotifications,
     required this.emailNotifications,
     required this.wildcardMentionsNotify,
