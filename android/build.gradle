@@ -1,3 +1,13 @@
+buildscript {
+    repositories {
+        google() // Ensure this is included
+        mavenCentral()// Optional, depending on your project
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.2.0' // Your Gradle plugin version
+    }
+}
+
 allprojects {
     repositories {
         google()
@@ -6,6 +16,7 @@ allprojects {
 }
 
 rootProject.buildDir = '../build'
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
