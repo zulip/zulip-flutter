@@ -1080,6 +1080,32 @@ void main() {
       });
     });
 
+    group('in channel/topic narrow with archived channels', () {
+      void checkComposeBox({required bool isShown}) => checkComposeBoxIsShown(isShown,
+        bannerLabel: zulipLocalizations.errorBannerCannotPostInChannelLabel);
+
+      final narrowTestCases = [
+        ('channel', const ChannelNarrow(1)),
+        ('topic',   eg.topicNarrow(1, 'topic')),
+      ];
+
+      for (final (String narrowType, Narrow narrow) in narrowTestCases) {
+        testWidgets('error banner is shown in $narrowType narrow', (tester) async {
+          await prepareComposeBox(tester,
+            narrow: narrow,
+            streams: [eg.stream(streamId: 1, isArchived: true)]);
+          checkComposeBox(isShown: false);
+        });
+
+        testWidgets('compose box is shown in $narrowType narrow', (tester) async {
+          await prepareComposeBox(tester,
+            narrow: narrow,
+            streams: [eg.stream(streamId: 1, isArchived: false)]);
+          checkComposeBox(isShown: true);
+        });
+      }
+    });
+
     group('in channel/topic narrow according to channel post policy', () {
       void checkComposeBox({required bool isShown}) => checkComposeBoxIsShown(isShown,
         bannerLabel: zulipLocalizations.errorBannerCannotPostInChannelLabel);
