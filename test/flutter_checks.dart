@@ -80,12 +80,14 @@ extension TextFieldChecks on Subject<TextField> {
   Subject<TextCapitalization?> get textCapitalization => has((t) => t.textCapitalization, 'textCapitalization');
   Subject<InputDecoration?> get decoration => has((t) => t.decoration, 'decoration');
   Subject<TextEditingController?> get controller => has((t) => t.controller, 'controller');
+  Subject<TextStyle?> get style => has((t) => t.style, 'style');
 }
 
 extension TextStyleChecks on Subject<TextStyle> {
   Subject<bool> get inherit => has((t) => t.inherit, 'inherit');
   Subject<Color?> get color => has((t) => t.color, 'color');
   Subject<double?> get fontSize => has((t) => t.fontSize, 'fontSize');
+  Subject<FontStyle?> get fontStyle => has((t) => t.fontStyle, 'fontStyle');
   Subject<FontWeight?> get fontWeight => has((t) => t.fontWeight, 'fontWeight');
   Subject<double?> get letterSpacing => has((t) => t.letterSpacing, 'letterSpacing');
   Subject<List<FontVariation>?> get fontVariations => has((t) => t.fontVariations, 'fontVariations');

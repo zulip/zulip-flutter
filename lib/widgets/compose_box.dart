@@ -608,37 +608,80 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   }
 }
 
-class _TopicInput extends StatelessWidget {
+class _TopicInput extends StatefulWidget {
   const _TopicInput({required this.streamId, required this.controller});
 
   final int streamId;
   final StreamComposeBoxController controller;
 
   @override
+  State<_TopicInput> createState() => _TopicInputState();
+}
+
+class _TopicInputState extends State<_TopicInput> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.topic.addListener(_topicChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _TopicInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller.topic != oldWidget.controller.topic) {
+      oldWidget.controller.topic.removeListener(_topicChanged);
+      widget.controller.topic.addListener(_topicChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.topic.removeListener(_topicChanged);
+    super.dispose();
+  }
+
+  void _topicChanged() {
+    setState(() {
+      // The actual state lives in `widget.controller.topic`.
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
     TextStyle topicTextStyle = TextStyle(
       fontSize: 20,
       height: 22 / 20,
       color: designVariables.textInput.withFadedAlpha(0.9),
     ).merge(weightVariableTextStyle(context, wght: 600));
 
+    final allowEmptyTopics =
+      store.connection.zulipFeatureLevel! >= 334 && !store.realmMandatoryTopics;
+
     return TopicAutocomplete(
-      streamId: streamId,
-      controller: controller.topic,
-      focusNode: controller.topicFocusNode,
-      contentFocusNode: controller.contentFocusNode,
+      streamId: widget.streamId,
+      controller: widget.controller.topic,
+      focusNode: widget.controller.topicFocusNode,
+      contentFocusNode: widget.controller.contentFocusNode,
       fieldViewBuilder: (context) => Container(
         padding: const EdgeInsets.only(top: 10, bottom: 9),
         decoration: BoxDecoration(border: Border(bottom: BorderSide(
           width: 1,
           color: designVariables.foreground.withFadedAlpha(0.2)))),
         child: TextField(
-          controller: controller.topic,
-          focusNode: controller.topicFocusNode,
+          controller: widget.controller.topic,
+          focusNode: widget.controller.topicFocusNode,
           textInputAction: TextInputAction.next,
-          style: topicTextStyle,
+          style: topicTextStyle.copyWith(
+            fontStyle:
+              allowEmptyTopics
+              && widget.controller.topic.textNormalized
+                   == store.realmEmptyTopicDisplayName
+              ? FontStyle.italic
+              : null,
+          ),
           decoration: InputDecoration(
             hintText: zulipLocalizations.composeBoxTopicHintText,
             hintStyle: topicTextStyle.copyWith(

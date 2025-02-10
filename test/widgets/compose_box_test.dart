@@ -291,7 +291,8 @@ void main() {
         addTearDown(TypingNotifier.debugReset);
 
         final narrow = ChannelNarrow(channel.streamId);
-        await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+        await prepareComposeBox(tester, narrow: narrow, streams: [channel],
+          mandatoryTopics: false);
         await enterTopic(tester, narrow: narrow, topic: topic);
         await enterContent(tester, 'some content');
       }
@@ -320,6 +321,31 @@ void main() {
         await prepareWithTopic(tester, 'a' * kMaxTopicLengthCodePoints);
         check((controller as StreamComposeBoxController)
           .topic.debugLengthUnicodeCodePointsIfLong).isNull();
+      });
+
+      testWidgets('update fontStyle if topic matches realmEmptyTopicDisplayName', (tester) async {
+        await prepareWithTopic(tester, 'some topic');
+        await tester.pump();
+        check(tester.widget<TextField>(topicInputFinder))
+          .style.isNotNull().fontStyle.isNull();
+
+        await tester.enterText(topicInputFinder,
+          eg.defaultRealmEmptyTopicDisplayName);
+        await tester.pump();
+        check(tester.widget<TextField>(topicInputFinder))
+          .style.isNotNull().fontStyle.equals(FontStyle.italic);
+
+        await tester.enterText(topicInputFinder,
+          '${eg.defaultRealmEmptyTopicDisplayName} ');
+        await tester.pump();
+        check(tester.widget<TextField>(topicInputFinder))
+          .style.isNotNull().fontStyle.equals(FontStyle.italic);
+
+        await tester.enterText(topicInputFinder,
+          '${eg.defaultRealmEmptyTopicDisplayName}a');
+        await tester.pump();
+        check(tester.widget<TextField>(topicInputFinder))
+          .style.isNotNull().fontStyle.isNull();
       });
     });
   });
