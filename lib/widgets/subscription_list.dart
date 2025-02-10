@@ -85,6 +85,7 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     final List<Subscription> pinned = [];
     final List<Subscription> unpinned = [];
     for (final subscription in store.subscriptions.values) {
+      if (subscription.isArchived) continue;
       if (subscription.pinToTop) {
         pinned.add(subscription);
       } else {
@@ -188,6 +189,8 @@ class _SubscriptionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    assert(subscriptions.every((subscription) => !subscription.isArchived));
+
     return SliverList.builder(
       itemCount: subscriptions.length,
       itemBuilder: (BuildContext context, int index) {
