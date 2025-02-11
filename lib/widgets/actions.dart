@@ -10,6 +10,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/model/narrow.dart';
 import '../api/route/messages.dart';
@@ -35,9 +36,13 @@ abstract final class ZulipAction {
         return;
       } catch (e) {
         if (!context.mounted) return;
+        final message = switch (e) {
+          ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
+          _ => e.toString(),
+        };
         showErrorDialog(context: context,
           title: zulipLocalizations.errorMarkAsReadFailedTitle,
-          message: e.toString()); // TODO(#741): extract user-facing message better
+          message: message); // TODO(#741): extract user-facing message better
         return;
       }
     }
@@ -168,9 +173,14 @@ abstract final class ZulipAction {
       }
     } catch (e) {
       if (!context.mounted) return false;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      final message = switch (e) {
+        ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
+        _ => e.toString(),
+      };
       showErrorDialog(context: context,
         title: onFailedTitle,
-        message: e.toString()); // TODO(#741): extract user-facing message better
+        message: message); // TODO(#741): extract user-facing message better
       return false;
     }
   }
