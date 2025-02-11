@@ -296,6 +296,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get unknownChannelName => '(unknown channel)';
 
   @override
+  String get channelArchivedLabel => '(archived)';
+
+  @override
   String get composeBoxTopicHintText => 'Topic';
 
   @override

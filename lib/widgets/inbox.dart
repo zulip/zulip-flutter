@@ -240,6 +240,7 @@ abstract class _HeaderItem extends StatelessWidget {
 
   String title(ZulipLocalizations zulipLocalizations);
   IconData get icon;
+  InlineSpan? buildTrailing(BuildContext context) => null;
   Color collapsedIconColor(BuildContext context);
   Color uncollapsedIconColor(BuildContext context);
   Color uncollapsedBackgroundColor(BuildContext context);
@@ -285,18 +286,24 @@ abstract class _HeaderItem extends StatelessWidget {
               : uncollapsedIconColor(context),
             icon),
           const SizedBox(width: 5),
-          Expanded(child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Text(
-              style: TextStyle(
-                fontSize: 17,
-                height: (20 / 17),
-                // TODO(design) check if this is the right variable
-                color: designVariables.labelMenuButton,
-              ).merge(weightVariableTextStyle(context, wght: 600)),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              title(zulipLocalizations)))),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: RichText(
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: title(zulipLocalizations),
+                      style: TextStyle(
+                        fontSize: 17,
+                        height: 20 / 17,
+                        // TODO(design) check if this is the right variable
+                        color: designVariables.labelMenuButton)
+                          .merge(weightVariableTextStyle(context, wght: 600))),
+                    buildTrailing(context) ?? const TextSpan(),
+                  ])))),
           const SizedBox(width: 12),
           if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
           Padding(padding: const EdgeInsetsDirectional.only(end: 16),
@@ -436,9 +443,11 @@ mixin _LongPressable on _HeaderItem {
 
 class _StreamHeaderItem extends _HeaderItem with _LongPressable {
   final Subscription subscription;
+  final bool isArchived;
 
   const _StreamHeaderItem({
     required this.subscription,
+    required this.isArchived,
     required super.collapsed,
     required super.pageState,
     required super.count,
@@ -449,6 +458,23 @@ class _StreamHeaderItem extends _HeaderItem with _LongPressable {
   @override String title(ZulipLocalizations zulipLocalizations) =>
     subscription.name;
   @override IconData get icon => iconDataForStream(subscription);
+  @override InlineSpan? buildTrailing(BuildContext context) {
+    if (!isArchived) return null;
+
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    return WidgetSpan(
+      child: Padding(
+        padding: const EdgeInsetsDirectional.only(start: 4),
+        child: Text(
+          zulipLocalizations.channelArchivedLabel,
+          style: TextStyle(
+            fontSize: 17,
+            height: 20 / 17,
+            color: designVariables.labelMessageHeaderArchived,
+            fontStyle: FontStyle.italic))));
+  }
   @override Color collapsedIconColor(context) =>
     colorSwatchFor(context, subscription).iconOnPlainBackground;
   @override Color uncollapsedIconColor(context) =>
@@ -495,6 +521,7 @@ class _StreamSection extends StatelessWidget {
       collapsed: collapsed,
       pageState: pageState,
       sectionContext: context,
+      isArchived: subscription.isArchived,
     );
     return StickyHeaderItem(
       header: header,

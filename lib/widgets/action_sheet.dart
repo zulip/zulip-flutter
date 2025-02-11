@@ -230,10 +230,12 @@ void showTopicActionSheet(BuildContext context, {
   final pageContext = PageRoot.contextOf(context);
 
   final store = PerAccountStoreWidget.of(pageContext);
+  final channel = store.streams[channelId];
   final subscription = store.subscriptions[channelId];
 
   final optionButtons = <ActionSheetMenuItemButton>[];
 
+  final isChannelArchived = channel?.isArchived == true;
   // TODO(server-7): simplify this condition away
   final supportsUnmutingTopics = store.zulipFeatureLevel >= 170;
   // TODO(server-8): simplify this condition away
@@ -241,8 +243,9 @@ void showTopicActionSheet(BuildContext context, {
 
   final visibilityOptions = <UserTopicVisibilityPolicy>[];
   final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
-  if (subscription == null) {
-    // Not subscribed to the channel; there is no user topic change to be made.
+  if (subscription == null || isChannelArchived) {
+    // Not subscribed to the channel or the channel is archived;
+    // there is no user topic change to be made.
   } else if (!subscription.isMuted) {
     // Channel is subscribed and not muted.
     switch (visibilityPolicy) {
@@ -306,7 +309,8 @@ void showTopicActionSheet(BuildContext context, {
   //   limit for editing topics).
   if (someMessageIdInTopic != null
       // ignore: unnecessary_null_comparison // null topic names soon to be enabled
-      && topic.displayName != null) {
+      && topic.displayName != null
+      && !isChannelArchived) {
     optionButtons.add(ResolveUnresolveButton(pageContext: pageContext,
       topic: topic,
       someMessageIdInTopic: someMessageIdInTopic));
@@ -564,6 +568,11 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final messageListPage = MessageListPage.ancestorOf(pageContext);
   final isComposeBoxOffered = messageListPage.composeBoxController != null;
 
+  bool isInArchivedChannel = false;
+  if (message is StreamMessage) {
+    final channel = store.streams[message.streamId];
+    isInArchivedChannel = channel?.isArchived == true;
+  }
   final isMessageRead = message.flags.contains(MessageFlag.read);
   final markAsUnreadSupported = store.zulipFeatureLevel >= 155; // TODO(server-6)
   final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
@@ -571,7 +580,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final optionButtons = [
     ReactionButtons(message: message, pageContext: pageContext),
     StarButton(message: message, pageContext: pageContext),
-    if (isComposeBoxOffered)
+    if (isComposeBoxOffered && !isInArchivedChannel)
       QuoteAndReplyButton(message: message, pageContext: pageContext),
     if (showMarkAsUnreadButton)
       MarkAsUnreadButton(message: message, pageContext: pageContext),

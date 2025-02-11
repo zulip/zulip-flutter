@@ -313,6 +313,7 @@ class MessageListAppBarTitle extends StatelessWidget {
     ZulipStream? stream,
   }) {
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
     // A null [Icon.icon] makes a blank space.
     final icon = stream != null ? iconDataForStream(stream) : null;
     return Row(
@@ -326,6 +327,17 @@ class MessageListAppBarTitle extends StatelessWidget {
         const SizedBox(width: 4),
         Flexible(child: Text(
           stream?.name ?? zulipLocalizations.unknownChannelName)),
+        if (stream?.isArchived ?? false)
+          // TODO(#1285): Avoid concatenating translated strings
+          Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(4, 4, 0, 4),
+            child: Text(
+              zulipLocalizations.channelArchivedLabel,
+              style: TextStyle(
+                fontSize: 18,
+                // TODO(design): check if this is the right variable
+                color: designVariables.labelMessageHeaderArchived,
+                fontStyle: FontStyle.italic))),
       ]);
   }
 
@@ -1102,6 +1114,18 @@ class StreamMessageRecipientHeader extends StatelessWidget {
                 style: recipientHeaderTextStyle(context),
                 overflow: TextOverflow.ellipsis),
             ),
+            if (stream?.isArchived ?? false)
+              // TODO(#1285): Avoid concatenating translated strings
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(4, 4, 0, 4),
+                child: Text(
+                  zulipLocalizations.channelArchivedLabel,
+                  style: recipientHeaderTextStyle(context,
+                    // TODO(design): check if this is the right variable
+                    color: designVariables.labelMessageHeaderArchived,
+                    fontStyle: FontStyle.italic),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1)),
             Padding(
               // Figma has 5px horizontal padding around an 8px wide icon.
               // Icon is 16px wide here so horizontal padding is 1px.
@@ -1220,9 +1244,13 @@ class DmRecipientHeader extends StatelessWidget {
   }
 }
 
-TextStyle recipientHeaderTextStyle(BuildContext context, {FontStyle? fontStyle}) {
+TextStyle recipientHeaderTextStyle(
+  BuildContext context, {
+  Color? color,
+  FontStyle? fontStyle,
+}) {
   return TextStyle(
-    color: DesignVariables.of(context).title,
+    color: color ?? DesignVariables.of(context).title,
     fontSize: 16,
     letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
     height: (18 / 16),

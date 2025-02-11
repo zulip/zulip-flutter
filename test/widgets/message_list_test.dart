@@ -241,6 +241,22 @@ void main() {
         of: find.byType(MessageListAppBarTitle),
         matching: find.byIcon(ZulipIcons.mute))).findsOne();
     });
+
+    testWidgets('shows archived label in app bar for archived channels', (tester) async {
+      final archivedChannel = eg.stream(isArchived: true);
+      final message = eg.streamMessage(stream: archivedChannel, topic: 'topic');
+
+      await setupMessageListPage(tester,
+        narrow: ChannelNarrow(archivedChannel.streamId),
+        messages: [message],
+        streams: [archivedChannel],
+        subscriptions: [eg.subscription(archivedChannel)]);
+      final appBarFinder = find.byType(MessageListAppBarTitle);
+      check(appBarFinder).findsOne();
+      check(find.descendant(
+        of: appBarFinder,
+        matching: find.text("(archived)"))).findsOne();
+    });
   });
 
   group('presents message content appropriately', () {
@@ -1132,6 +1148,19 @@ void main() {
           matching: find.text('topic name')));
         await tester.pump();
         check(pushedRoutes).isEmpty();
+      });
+
+      testWidgets('shows archived label for archived streams', (tester) async {
+        final stream = eg.stream(isArchived: true);
+        final message = eg.streamMessage(stream: stream, topic: 'topic');
+
+        await setupMessageListPage(tester,
+          narrow: const CombinedFeedNarrow(),
+          messages: [message],
+          streams: [stream],
+          subscriptions: [eg.subscription(stream)]);
+        await tester.pump();
+        check(findInMessageList("(archived)")).length.equals(1);
       });
     });
 
