@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:checks/checks.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
@@ -247,27 +248,35 @@ Future<void> _checkSequence(
       child: _Item(i, height: 100));
   }
 
+  const center = ValueKey("center");
+  final slivers = <Widget>[
+    const SliverPadding(
+      key: center,
+      padding: EdgeInsets.zero),
+    SliverStickyHeaderList(
+      headerPlacement: headerPlacement,
+      delegate: SliverChildListDelegate(
+        List.generate(100, (i) => buildItem(i)))),
+  ];
+
+  final double anchor;
+  if (reverseGrowth) {
+    slivers.reverseRange(0, slivers.length);
+    anchor = 1.0;
+  } else {
+    anchor = 0.0;
+  }
+
   final controller = ScrollController();
-  const listKey = ValueKey("list");
-  const emptyKey = ValueKey("empty");
   await tester.pumpWidget(Directionality(
     textDirection: textDirection ?? TextDirection.rtl,
     child: CustomScrollView(
       controller: controller,
       scrollDirection: axis,
       reverse: reverse,
-      anchor: reverseGrowth ? 1.0 : 0.0,
-      center: reverseGrowth ? emptyKey : listKey,
-      slivers: [
-        SliverStickyHeaderList(
-          key: listKey,
-          headerPlacement: headerPlacement,
-          delegate: SliverChildListDelegate(
-            List.generate(100, (i) => buildItem(i)))),
-        const SliverPadding(
-          key: emptyKey,
-          padding: EdgeInsets.zero),
-      ])));
+      anchor: anchor,
+      center: center,
+      slivers: slivers)));
 
   final overallSize = tester.getSize(find.byType(CustomScrollView));
   final extent = overallSize.onAxis(axis);
