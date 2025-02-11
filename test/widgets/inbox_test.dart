@@ -118,17 +118,27 @@ void main() {
 
   /// Find a row with the given label.
   Widget? findRowByLabel(WidgetTester tester, String label) {
-    final rowLabel = tester.widgetList(
-      find.text(label),
-    ).firstOrNull;
-    if (rowLabel == null) {
-      return null;
+    final textFinder = find.text(label);
+    if (textFinder.evaluate().isNotEmpty) {
+      return tester.widget(
+        find.ancestor(
+          of: textFinder.first,
+          matching: find.byType(Row))
+      );
     }
 
-    return tester.widget(
-      find.ancestor(
-        of: find.byWidget(rowLabel),
-        matching: find.byType(Row)));
+    final richTextFinder = find.byWidgetPredicate((widget) =>
+      widget is RichText &&
+      widget.text.toPlainText().contains(label));
+    if (richTextFinder.evaluate().isNotEmpty) {
+      return tester.widget(
+        find.ancestor(
+          of: richTextFinder.first,
+          matching: find.byType(Row))
+      );
+    }
+
+    return null;
   }
 
   /// Find the all-DMs header element.
@@ -602,6 +612,22 @@ void main() {
           // Check that the position of the header before and after
           // collapsing is the same.
           check(rectAfterTap).equals(rectBeforeTap);
+        });
+
+        testWidgets('shows archived label for archived streams', (tester) async {
+          final stream = eg.stream(isArchived: true);
+          final subscription = eg.subscription(stream);
+          await setupPage(tester,
+            streams: [stream],
+            subscriptions: [subscription],
+            unreadMessages: [eg.streamMessage(stream: stream)]);
+          await tester.pumpAndSettle();
+          final headerRow = findStreamHeaderRow(tester, stream.streamId);
+          check(headerRow).isNotNull();
+          final archivedLabelFinder = find.descendant(
+            of: find.byWidget(headerRow!),
+            matching: find.text('(archived)'));
+          check(archivedLabelFinder).findsOne();
         });
 
         // TODO check it remains collapsed even if you scroll far away and back
