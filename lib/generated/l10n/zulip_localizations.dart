@@ -570,8 +570,14 @@ abstract class ZulipLocalizations {
   /// Hint text for content input when sending a message to a channel
   ///
   /// In en, this message translates to:
+  /// **'Message #{channel}'**
+  String composeBoxChannelContentHint(String channel);
+
+  /// Hint text for content input when sending a message to a topic in a channel
+  ///
+  /// In en, this message translates to:
   /// **'Message #{channel} > {topic}'**
-  String composeBoxChannelContentHint(String channel, String topic);
+  String composeBoxChannelTopicContentHint(String channel, String topic);
 
   /// Tooltip for send button in compose box.
   ///
