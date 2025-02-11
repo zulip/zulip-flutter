@@ -237,6 +237,15 @@ Future<void> _checkSequence(
     Axis.vertical   => reverseHeader,
   };
   final reverseGrowth = (growthDirection == GrowthDirection.reverse);
+  final headerPlacement = reverseHeader ^ reverse
+    ? HeaderPlacement.scrollingEnd : HeaderPlacement.scrollingStart;
+
+  Widget buildItem(int i) {
+    return StickyHeaderItem(
+      allowOverflow: allowOverflow,
+      header: _Header(i, height: 20),
+      child: _Item(i, height: 100));
+  }
 
   final controller = ScrollController();
   const listKey = ValueKey("list");
@@ -252,13 +261,9 @@ Future<void> _checkSequence(
       slivers: [
         SliverStickyHeaderList(
           key: listKey,
-          headerPlacement: (reverseHeader ^ reverse)
-            ? HeaderPlacement.scrollingEnd : HeaderPlacement.scrollingStart,
+          headerPlacement: headerPlacement,
           delegate: SliverChildListDelegate(
-            List.generate(100, (i) => StickyHeaderItem(
-              allowOverflow: allowOverflow,
-              header: _Header(i, height: 20),
-              child: _Item(i, height: 100))))),
+            List.generate(100, (i) => buildItem(i)))),
         const SliverPadding(
           key: emptyKey,
           padding: EdgeInsets.zero),
@@ -315,7 +320,8 @@ Future<void> _checkSequence(
   }
 
   Future<void> jumpAndCheck(double position) async {
-    controller.jumpTo(position * (reverseGrowth ? -1 : 1));
+    final scrollPosition = position * (reverseGrowth ? -1 : 1);
+    controller.jumpTo(scrollPosition);
     await tester.pump();
     await checkState();
   }
