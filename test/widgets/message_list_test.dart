@@ -7,11 +7,13 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:zulip/api/exception.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -56,6 +58,7 @@ void main() {
     List<Subscription>? subscriptions,
     UnreadMessagesSnapshot? unreadMsgs,
     List<NavigatorObserver> navObservers = const [],
+    bool skipAssertAccountExists = false,
   }) async {
     TypingNotifier.debugEnable = false;
     addTearDown(TypingNotifier.debugReset);
@@ -77,6 +80,7 @@ void main() {
       eg.newestGetMessagesResult(foundOldest: foundOldest, messages: messages).toJson());
 
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+      skipAssertAccountExists: skipAssertAccountExists,
       navigatorObservers: navObservers,
       child: MessageListPage(initNarrow: narrow)));
 
@@ -129,6 +133,47 @@ void main() {
         messages: [eg.streamMessage(content: "<p>a message</p>")]);
       final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
       check(state.composeBoxController).isNull();
+    });
+
+    testWidgets('dispose MessageListView when event queue expired', (tester) async {
+      final message = eg.streamMessage();
+      await setupMessageListPage(tester, messages: [message]);
+      final oldViewModel = store.debugMessageListViews.single;
+      final updateMachine = store.updateMachine!;
+      updateMachine.debugPauseLoop();
+      updateMachine.poll();
+
+      updateMachine.debugPrepareLoopError(ZulipApiException(
+        routeName: 'events', httpStatus: 400, code: 'BAD_EVENT_QUEUE_ID',
+        data: {'queue_id': updateMachine.queueId}, message: 'Bad event queue ID.'));
+      updateMachine.debugAdvanceLoop();
+      await tester.pump();
+      // Event queue has been replaced; but the [MessageList] hasn't been
+      // rebuilt yet.
+      final newStore = testBinding.globalStore.perAccountSync(eg.selfAccount.id)!;
+      check(connection.isOpen).isFalse(); // indicates that the old store has been disposed
+      check(store.debugMessageListViews).single.equals(oldViewModel);
+      check(newStore.debugMessageListViews).isEmpty();
+
+      (newStore.connection as FakeApiConnection).prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [message]).toJson());
+      await tester.pump();
+      await tester.pump(Duration.zero);
+      // As [MessageList] rebuilds, the old view model gets disposed and
+      // replaced with a fresh one.
+      check(store.debugMessageListViews).isEmpty();
+      check(newStore.debugMessageListViews).single.not((it) => it.equals(oldViewModel));
+    });
+
+    testWidgets('dispose MessageListView when logged out', (tester) async {
+      await setupMessageListPage(tester,
+        messages: [eg.streamMessage()], skipAssertAccountExists: true);
+      check(store.debugMessageListViews).single;
+
+      final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
+      await tester.pump(TestGlobalStore.removeAccountDuration);
+      await future;
+      check(store.debugMessageListViews).isEmpty();
     });
   });
 
