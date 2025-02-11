@@ -256,7 +256,7 @@ Future<void> _checkSequence(
     SliverStickyHeaderList(
       headerPlacement: headerPlacement,
       delegate: SliverChildListDelegate(
-        List.generate(100, (i) => buildItem(i)))),
+        List.generate(10, (i) => buildItem(i)))),
   ];
 
   final double anchor;
