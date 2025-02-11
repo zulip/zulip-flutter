@@ -273,7 +273,7 @@ void main() {
         await tester.tap(findButtonForLabel('Mark channel as read'));
         await tester.pumpAndSettle();
         checkRequest(someChannel.streamId);
-        checkNoErrorDialog(tester);
+        checkNoDialog(tester);
       });
 
       testWidgets('request fails', (tester) async {
@@ -675,7 +675,7 @@ void main() {
         await tester.tap(findButtonForLabel('Mark as resolved'));
         await tester.pumpAndSettle();
 
-        checkNoErrorDialog(tester);
+        checkNoDialog(tester);
         checkRequest(message.id, '✔ zulip');
       });
 
@@ -690,7 +690,7 @@ void main() {
         await tester.tap(findButtonForLabel('Mark as resolved'));
         await tester.pumpAndSettle();
 
-        checkNoErrorDialog(tester);
+        checkNoDialog(tester);
         checkRequest(message.id, '✔ zulip');
       });
 
@@ -703,7 +703,7 @@ void main() {
         await tester.tap(findButtonForLabel('Mark as unresolved'));
         await tester.pumpAndSettle();
 
-        checkNoErrorDialog(tester);
+        checkNoDialog(tester);
         checkRequest(message.id, 'zulip');
       });
 
@@ -716,7 +716,7 @@ void main() {
         await tester.tap(findButtonForLabel('Mark as unresolved'));
         await tester.pumpAndSettle();
 
-        checkNoErrorDialog(tester);
+        checkNoDialog(tester);
         checkRequest(message.id, 'zulip');
       });
 
