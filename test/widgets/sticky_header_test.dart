@@ -4,6 +4,7 @@ import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/widgets/sticky_header.dart';
@@ -75,36 +76,42 @@ void main() {
   for (final reverse in [true, false]) {
     for (final reverseHeader in [true, false]) {
       for (final growthDirection in GrowthDirection.values) {
-        for (final allowOverflow in [true, false]) {
-          final name = 'sticky headers: '
-            'scroll ${reverse ? 'up' : 'down'}, '
-            'header at ${reverseHeader ? 'bottom' : 'top'}, '
-            '$growthDirection, '
-            'headers ${allowOverflow ? 'overflow' : 'bounded'}';
-          testWidgets(name, (tester) =>
-            _checkSequence(tester,
-              Axis.vertical,
-              reverse: reverse,
-              reverseHeader: reverseHeader,
-              growthDirection: growthDirection,
-              allowOverflow: allowOverflow,
-            ));
-
-          for (final textDirection in TextDirection.values) {
+        for (final sliverConfig in _SliverConfig.values) {
+          for (final allowOverflow in [true, false]) {
             final name = 'sticky headers: '
-              '${textDirection.name.toUpperCase()} '
-              'scroll ${reverse ? 'backward' : 'forward'}, '
-              'header at ${reverseHeader ? 'end' : 'start'}, '
+              'scroll ${reverse ? 'up' : 'down'}, '
+              'header at ${reverseHeader ? 'bottom' : 'top'}, '
               '$growthDirection, '
-              'headers ${allowOverflow ? 'overflow' : 'bounded'}';
+              'headers ${allowOverflow ? 'overflow' : 'bounded'}, '
+              'slivers ${sliverConfig.name}';
             testWidgets(name, (tester) =>
               _checkSequence(tester,
-                Axis.horizontal, textDirection: textDirection,
+                Axis.vertical,
                 reverse: reverse,
                 reverseHeader: reverseHeader,
                 growthDirection: growthDirection,
                 allowOverflow: allowOverflow,
+                sliverConfig: sliverConfig,
               ));
+
+            for (final textDirection in TextDirection.values) {
+              final name = 'sticky headers: '
+                '${textDirection.name.toUpperCase()} '
+                'scroll ${reverse ? 'backward' : 'forward'}, '
+                'header at ${reverseHeader ? 'end' : 'start'}, '
+                '$growthDirection, '
+                'headers ${allowOverflow ? 'overflow' : 'bounded'}, '
+                'slivers ${sliverConfig.name}';
+              testWidgets(name, (tester) =>
+                _checkSequence(tester,
+                  Axis.horizontal, textDirection: textDirection,
+                  reverse: reverse,
+                  reverseHeader: reverseHeader,
+                  growthDirection: growthDirection,
+                  allowOverflow: allowOverflow,
+                  sliverConfig: sliverConfig,
+                ));
+            }
           }
         }
       }
@@ -223,6 +230,12 @@ void main() {
   });
 }
 
+enum _SliverConfig {
+  single,
+  backToBack,
+  followed,
+}
+
 Future<void> _checkSequence(
   WidgetTester tester,
   Axis axis, {
@@ -231,6 +244,7 @@ Future<void> _checkSequence(
   bool reverseHeader = false,
   GrowthDirection growthDirection = GrowthDirection.forward,
   required bool allowOverflow,
+  _SliverConfig sliverConfig = _SliverConfig.single,
 }) async {
   assert(textDirection != null || axis == Axis.vertical);
   final headerAtCoordinateEnd = switch (axis) {
@@ -241,6 +255,19 @@ Future<void> _checkSequence(
   final headerPlacement = reverseHeader ^ reverse
     ? HeaderPlacement.scrollingEnd : HeaderPlacement.scrollingStart;
 
+  if (allowOverflow
+      && ((sliverConfig == _SliverConfig.backToBack
+           && (reverse ^ reverseHeader))
+       || (sliverConfig == _SliverConfig.followed
+           && (reverse ^ reverseHeader ^ !reverseGrowth)))) {
+    // (The condition for this skip is pretty complicated; it's just the
+    // conditions where the bug gets triggered, and I haven't tried to
+    // work through why this exact set of cases is what's affected.
+    // The important thing is they all get fixed in an upcoming commit.)
+    markTestSkipped('bug in header overflowing sliver'); // TODO fix
+    return;
+  }
+
   Widget buildItem(int i) {
     return StickyHeaderItem(
       allowOverflow: allowOverflow,
@@ -248,8 +275,14 @@ Future<void> _checkSequence(
       child: _Item(i, height: 100));
   }
 
+  const sliverScrollExtent = 1000;
   const center = ValueKey("center");
   final slivers = <Widget>[
+    if (sliverConfig == _SliverConfig.backToBack)
+      SliverStickyHeaderList(
+        headerPlacement: headerPlacement,
+        delegate: SliverChildListDelegate(
+          List.generate(10, (i) => buildItem(-i - 1)))),
     const SliverPadding(
       key: center,
       padding: EdgeInsets.zero),
@@ -257,15 +290,44 @@ Future<void> _checkSequence(
       headerPlacement: headerPlacement,
       delegate: SliverChildListDelegate(
         List.generate(10, (i) => buildItem(i)))),
+    if (sliverConfig == _SliverConfig.followed)
+      SliverStickyHeaderList(
+        headerPlacement: headerPlacement,
+        delegate: SliverChildListDelegate(
+          List.generate(10, (i) => buildItem(i + 10)))),
   ];
 
   final double anchor;
+  bool paintOrderGood;
   if (reverseGrowth) {
     slivers.reverseRange(0, slivers.length);
     anchor = 1.0;
+    paintOrderGood = switch (sliverConfig) {
+      _SliverConfig.single => true,
+      // The last sliver will paint last.
+      _SliverConfig.backToBack => headerPlacement == HeaderPlacement.scrollingEnd,
+      // The last sliver will paint last.
+      _SliverConfig.followed => headerPlacement == HeaderPlacement.scrollingEnd,
+    };
   } else {
     anchor = 0.0;
+    paintOrderGood = switch (sliverConfig) {
+      _SliverConfig.single => true,
+      // The last sliver will paint last.
+      _SliverConfig.backToBack => headerPlacement == HeaderPlacement.scrollingEnd,
+      // The first sliver will paint last.
+      _SliverConfig.followed => headerPlacement == HeaderPlacement.scrollingStart,
+    };
   }
+
+  final skipBecausePaintOrder = allowOverflow && !paintOrderGood;
+  if (skipBecausePaintOrder) {
+    // TODO need to control paint order of slivers within viewport in order to
+    //   make some configurations behave properly when headers overflow slivers
+    markTestSkipped('sliver paint order');
+    // Don't return yet; we'll still check layout, and skip specific affected checks below.
+  }
+
 
   final controller = ScrollController();
   await tester.pumpWidget(Directionality(
@@ -281,6 +343,7 @@ Future<void> _checkSequence(
   final overallSize = tester.getSize(find.byType(CustomScrollView));
   final extent = overallSize.onAxis(axis);
   assert(extent % 100 == 0);
+  assert(sliverScrollExtent - extent > 100);
 
   // A position `inset` from the center of the edge the header is found on.
   Offset headerInset(double inset) {
@@ -318,6 +381,7 @@ Future<void> _checkSequence(
     check(insetExtent(find.byType(_Header))).equals(expectedHeaderInsetExtent);
 
     // Check the header gets hit when it should, and not when it shouldn't.
+    if (skipBecausePaintOrder) return;
     await tester.tapAt(headerInset(1));
     await tester.tapAt(headerInset(expectedHeaderInsetExtent - 1));
     check(_TapLogged.takeTapLog())..length.equals(2)
@@ -335,15 +399,60 @@ Future<void> _checkSequence(
     await checkState();
   }
 
-  await checkState();
-  await jumpAndCheck(5);
-  await jumpAndCheck(10);
-  await jumpAndCheck(20);
-  await jumpAndCheck(50);
-  await jumpAndCheck(80);
-  await jumpAndCheck(90);
-  await jumpAndCheck(95);
-  await jumpAndCheck(100);
+  Future<void> checkLocally() async {
+    final scrollOffset = controller.position.pixels * (reverseGrowth ? -1 : 1);
+    await checkState();
+    await jumpAndCheck(scrollOffset + 5);
+    await jumpAndCheck(scrollOffset + 10);
+    await jumpAndCheck(scrollOffset + 20);
+    await jumpAndCheck(scrollOffset + 50);
+    await jumpAndCheck(scrollOffset + 80);
+    await jumpAndCheck(scrollOffset + 90);
+    await jumpAndCheck(scrollOffset + 95);
+    await jumpAndCheck(scrollOffset + 100);
+  }
+
+  Iterable<double> listExtents() {
+    final result = tester.renderObjectList(find.byType(SliverStickyHeaderList, skipOffstage: false))
+      .map((renderObject) => (renderObject as RenderSliver)
+        .geometry!.layoutExtent);
+    return reverseGrowth ? result.toList().reversed : result;
+  }
+
+  switch (sliverConfig) {
+    case _SliverConfig.single:
+      // Just check the first header, at a variety of offsets,
+      // and check it hands off to the next header.
+      await checkLocally();
+
+    case _SliverConfig.followed:
+      // Check behavior as the next sliver scrolls into view.
+      await jumpAndCheck(sliverScrollExtent - extent);
+      check(listExtents()).deepEquals([extent, 0]);
+      await checkLocally();
+      check(listExtents()).deepEquals([extent - 100, 100]);
+
+      // Check behavior as the original sliver scrolls out of view.
+      await jumpAndCheck(sliverScrollExtent - 100);
+      check(listExtents()).deepEquals([100, extent - 100]);
+      await checkLocally();
+      check(listExtents()).deepEquals([0, extent]);
+
+    case _SliverConfig.backToBack:
+      // Scroll the other sliver into view;
+      // check behavior as it scrolls back out.
+      await jumpAndCheck(-100);
+      check(listExtents()).deepEquals([100, extent - 100]);
+      await checkLocally();
+      check(listExtents()).deepEquals([0, extent]);
+
+      // Scroll the original sliver out of view;
+      // check behavior as it scrolls back in.
+      await jumpAndCheck(-extent);
+      check(listExtents()).deepEquals([extent, 0]);
+      await checkLocally();
+      check(listExtents()).deepEquals([extent - 100, 100]);
+  }
 }
 
 abstract class _SelectItemFinder extends FinderBase<Element> with ChainedFinderMixin<Element> {
