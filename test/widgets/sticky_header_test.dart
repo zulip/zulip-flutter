@@ -277,9 +277,10 @@ Future<void> _checkSequence(
 
   final first = !(reverse ^ reverseHeader ^ reverseGrowth);
 
-  final itemFinder = first ? find.byType(_Item).first : find.byType(_Item).last;
+  final itemFinder = first ? _LeastItemFinder(find.byType(_Item))
+                           : _GreatestItemFinder(find.byType(_Item));
 
-  double insetExtent(Finder finder) {
+  double insetExtent(FinderBase<Element> finder) {
     return headerAtCoordinateEnd
       ? extent - tester.getTopLeft(finder).inDirection(axis.coordinateDirection)
       : tester.getBottomRight(finder).inDirection(axis.coordinateDirection);
@@ -328,6 +329,64 @@ Future<void> _checkSequence(
   await jumpAndCheck(90);
   await jumpAndCheck(95);
   await jumpAndCheck(100);
+}
+
+abstract class _SelectItemFinder extends FinderBase<Element> with ChainedFinderMixin<Element> {
+  bool shouldPrefer(_Item candidate, _Item previous);
+
+  @override
+  Iterable<Element> filter(Iterable<Element> parentCandidates) {
+    Element? result;
+    _Item? resultWidget;
+    for (final candidate in parentCandidates) {
+      if (candidate is! ComponentElement) continue;
+      final widget = candidate.widget;
+      if (widget is! _Item) continue;
+      if (resultWidget == null || shouldPrefer(widget, resultWidget)) {
+        result = candidate;
+        resultWidget = widget;
+      }
+    }
+    return [if (result != null) result];
+  }
+}
+
+/// Finds the [_Item] with least [_Item.index]
+/// out of all elements found by the given parent finder.
+class _LeastItemFinder extends _SelectItemFinder {
+  _LeastItemFinder(this.parent);
+
+  @override
+  final FinderBase<Element> parent;
+
+  @override
+  String describeMatch(Plurality plurality) {
+    return 'least-index _Item from ${parent.describeMatch(plurality)}';
+  }
+
+  @override
+  bool shouldPrefer(_Item candidate, _Item previous) {
+    return candidate.index < previous.index;
+  }
+}
+
+/// Finds the [_Item] with greatest [_Item.index]
+/// out of all elements found by the given parent finder.
+class _GreatestItemFinder extends _SelectItemFinder {
+  _GreatestItemFinder(this.parent);
+
+  @override
+  final FinderBase<Element> parent;
+
+  @override
+  String describeMatch(Plurality plurality) {
+    return 'greatest-index _Item from ${parent.describeMatch(plurality)}';
+  }
+
+  @override
+  bool shouldPrefer(_Item candidate, _Item previous) {
+    return candidate.index > previous.index;
+  }
 }
 
 Future<void> _drag(WidgetTester tester, Offset offset) async {
