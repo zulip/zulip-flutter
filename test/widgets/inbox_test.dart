@@ -118,17 +118,29 @@ void main() {
 
   /// Find a row with the given label.
   Widget? findRowByLabel(WidgetTester tester, String label) {
-    final rowLabel = tester.widgetList(
-      find.text(label),
-    ).firstOrNull;
-    if (rowLabel == null) {
-      return null;
+    final textFinder = find.text(label);
+    if (textFinder.evaluate().isNotEmpty) {
+      return tester.widget(
+        find.ancestor(
+          of: textFinder.first,
+          matching: find.byType(Row))
+      );
     }
 
-    return tester.widget(
-      find.ancestor(
-        of: find.byWidget(rowLabel),
-        matching: find.byType(Row)));
+    final richTextFinder = find.byWidgetPredicate((widget) =>
+      widget is RichText &&
+      widget.text.toPlainText().contains(label)
+    );
+
+    if (richTextFinder.evaluate().isNotEmpty) {
+      return tester.widget(
+        find.ancestor(
+          of: richTextFinder.first,
+          matching: find.byType(Row))
+      );
+    }
+
+    return null;
   }
 
   /// Find the all-DMs header element.
@@ -593,6 +605,38 @@ void main() {
           // Check that the position of the header before and after
           // collapsing is the same.
           check(rectAfterTap).equals(rectBeforeTap);
+        });
+
+        testWidgets('shows archived label for archived streams', (tester) async {
+          final stream = eg.stream(streamId: 1, isArchived: true);
+          final subscription = eg.subscription(stream);
+          await setupPage(tester,
+            streams: [stream],
+            subscriptions: [subscription],
+            unreadMessages: [eg.streamMessage(stream: stream)]);
+          await tester.pumpAndSettle();
+
+          final headerRowFinder = findStreamHeaderRow(tester, stream.streamId);
+          check(headerRowFinder).isNotNull();
+
+          final richTextFinder = find.descendant(
+            of: find.byWidget(headerRowFinder!),
+            matching: find.byWidgetPredicate((widget) =>
+              widget is RichText &&
+              widget.text.toPlainText().contains(stream.name)
+            ),
+          );
+          expect(richTextFinder, findsOneWidget);
+
+          final archivedLabelFinder = find.descendant(
+            of: find.byWidget(headerRowFinder),
+            matching: find.text(' (archived)')
+          );
+          expect(archivedLabelFinder, findsOneWidget);
+
+          // Check that the Text widget has italic style
+          final archivedLabelText = tester.widget<Text>(archivedLabelFinder);
+          expect(archivedLabelText.style?.fontStyle, FontStyle.italic);
         });
 
         // TODO check it remains collapsed even if you scroll far away and back
