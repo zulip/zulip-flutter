@@ -31,7 +31,9 @@ Widget checkErrorDialog(WidgetTester tester, {
 }
 
 // TODO(#996) update this to check for per-platform flavors of alert dialog
-void checkNoErrorDialog(WidgetTester tester) {
+/// Checks that there is no dialog.
+/// Fails if one is found.
+void checkNoDialog(WidgetTester tester) {
   check(find.byType(AlertDialog)).findsNothing();
 }
 
