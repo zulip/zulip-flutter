@@ -42,7 +42,7 @@ void main() {
       final button = checkErrorDialog(tester, expectedTitle: title);
       await tester.tap(find.byWidget(button));
       await tester.pump();
-      checkNoErrorDialog(tester);
+      checkNoDialog(tester);
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
   });
 
@@ -75,7 +75,7 @@ void main() {
         expectedMessage: message, expectedActionButtonText: actionButtonText);
       await tester.tap(find.byWidget(actionButton));
       await tester.pump();
-      checkNoErrorDialog(tester);
+      checkNoDialog(tester);
       check(wasPressed).isTrue();
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
@@ -94,7 +94,7 @@ void main() {
         expectedMessage: message, expectedActionButtonText: actionButtonText);
       await tester.tap(find.byWidget(cancelButton));
       await tester.pump();
-      checkNoErrorDialog(tester);
+      checkNoDialog(tester);
       check(wasPressed).isFalse();
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
   });

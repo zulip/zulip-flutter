@@ -48,9 +48,9 @@ Widget checkErrorDialog(WidgetTester tester, {
   }
 }
 
-/// Checks that there is no error dialog.
+/// Checks that there is no dialog.
 /// Fails if one is found.
-void checkNoErrorDialog(WidgetTester tester) {
+void checkNoDialog(WidgetTester tester) {
   check(find.byType(Dialog)).findsNothing();
   check(find.byType(CupertinoAlertDialog)).findsNothing();
 }
