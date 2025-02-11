@@ -1131,6 +1131,19 @@ void main() {
         await tester.pump();
         check(pushedRoutes).isEmpty();
       });
+
+      testWidgets('shows archived label for archived streams', (tester) async {
+        final stream = eg.stream(isArchived: true);
+        final message = eg.streamMessage(stream: stream, topic: 'topic');
+
+        await setupMessageListPage(tester,
+          narrow: const CombinedFeedNarrow(),
+          messages: [message],
+          streams: [stream],
+          subscriptions: [eg.subscription(stream)]);
+        await tester.pump();
+        check(findInMessageList("(archived)")).length.equals(1);
+      });
     });
 
     group('DmRecipientHeader', () {

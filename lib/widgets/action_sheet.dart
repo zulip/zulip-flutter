@@ -228,53 +228,31 @@ void showTopicActionSheet(BuildContext context, {
   final pageContext = PageRoot.contextOf(context);
 
   final store = PerAccountStoreWidget.of(pageContext);
+  final channel = store.streams[channelId];
   final subscription = store.subscriptions[channelId];
 
   final optionButtons = <ActionSheetMenuItemButton>[];
 
-  // TODO(server-7): simplify this condition away
-  final supportsUnmutingTopics = store.zulipFeatureLevel >= 170;
-  // TODO(server-8): simplify this condition away
-  final supportsFollowingTopics = store.zulipFeatureLevel >= 219;
+  final isChannelArchived = channel?.isArchived == true;
+  if (!isChannelArchived) {
+    // TODO(server-7): simplify this condition away
+    final supportsUnmutingTopics = store.zulipFeatureLevel >= 170;
+    // TODO(server-8): simplify this condition away
+    final supportsFollowingTopics = store.zulipFeatureLevel >= 219;
 
-  final visibilityOptions = <UserTopicVisibilityPolicy>[];
-  final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
-  if (subscription == null) {
-    // Not subscribed to the channel; there is no user topic change to be made.
-  } else if (!subscription.isMuted) {
-    // Channel is subscribed and not muted.
-    switch (visibilityPolicy) {
-      case UserTopicVisibilityPolicy.muted:
-        visibilityOptions.add(UserTopicVisibilityPolicy.none);
-        if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
-        }
-      case UserTopicVisibilityPolicy.none:
-      case UserTopicVisibilityPolicy.unmuted:
-        visibilityOptions.add(UserTopicVisibilityPolicy.muted);
-        if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
-        }
-      case UserTopicVisibilityPolicy.followed:
-        visibilityOptions.add(UserTopicVisibilityPolicy.muted);
-        if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.none);
-        }
-      case UserTopicVisibilityPolicy.unknown:
-        // TODO(#1074): This should be unreachable as we keep `unknown` out of
-        //   our data structures.
-        assert(false);
-    }
-  } else {
-    // Channel is muted.
-    if (supportsUnmutingTopics) {
+    final visibilityOptions = <UserTopicVisibilityPolicy>[];
+    final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
+    if (subscription == null) {
+      // Not subscribed to the channel; there is no user topic change to be made.
+    } else if (!subscription.isMuted) {
+      // Channel is subscribed and not muted.
       switch (visibilityPolicy) {
-        case UserTopicVisibilityPolicy.none:
         case UserTopicVisibilityPolicy.muted:
-          visibilityOptions.add(UserTopicVisibilityPolicy.unmuted);
+          visibilityOptions.add(UserTopicVisibilityPolicy.none);
           if (supportsFollowingTopics) {
             visibilityOptions.add(UserTopicVisibilityPolicy.followed);
           }
+        case UserTopicVisibilityPolicy.none:
         case UserTopicVisibilityPolicy.unmuted:
           visibilityOptions.add(UserTopicVisibilityPolicy.muted);
           if (supportsFollowingTopics) {
@@ -290,20 +268,46 @@ void showTopicActionSheet(BuildContext context, {
           //   our data structures.
           assert(false);
       }
+    } else {
+      // Channel is muted.
+      if (supportsUnmutingTopics) {
+        switch (visibilityPolicy) {
+          case UserTopicVisibilityPolicy.none:
+          case UserTopicVisibilityPolicy.muted:
+            visibilityOptions.add(UserTopicVisibilityPolicy.unmuted);
+            if (supportsFollowingTopics) {
+              visibilityOptions.add(UserTopicVisibilityPolicy.followed);
+            }
+          case UserTopicVisibilityPolicy.unmuted:
+            visibilityOptions.add(UserTopicVisibilityPolicy.muted);
+            if (supportsFollowingTopics) {
+              visibilityOptions.add(UserTopicVisibilityPolicy.followed);
+            }
+          case UserTopicVisibilityPolicy.followed:
+            visibilityOptions.add(UserTopicVisibilityPolicy.muted);
+            if (supportsFollowingTopics) {
+              visibilityOptions.add(UserTopicVisibilityPolicy.none);
+            }
+          case UserTopicVisibilityPolicy.unknown:
+            // TODO(#1074): This should be unreachable as we keep `unknown` out of
+            //   our data structures.
+            assert(false);
+        }
+      }
     }
-  }
-  optionButtons.addAll(visibilityOptions.map((to) {
-    return UserTopicUpdateButton(
-      currentVisibilityPolicy: visibilityPolicy,
-      newVisibilityPolicy: to,
-      narrow: TopicNarrow(channelId, topic),
-      pageContext: pageContext);
-  }));
+    optionButtons.addAll(visibilityOptions.map((to) {
+      return UserTopicUpdateButton(
+        currentVisibilityPolicy: visibilityPolicy,
+        newVisibilityPolicy: to,
+        narrow: TopicNarrow(channelId, topic),
+        pageContext: pageContext);
+    }));
 
-  if (someMessageIdInTopic != null) {
-    optionButtons.add(ResolveUnresolveButton(pageContext: pageContext,
-      topic: topic,
-      someMessageIdInTopic: someMessageIdInTopic));
+    if (someMessageIdInTopic != null) {
+      optionButtons.add(ResolveUnresolveButton(pageContext: pageContext,
+        topic: topic,
+        someMessageIdInTopic: someMessageIdInTopic));
+    }
   }
 
   final unreadCount = store.unreads.countInTopicNarrow(channelId, topic);
@@ -558,6 +562,11 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final messageListPage = MessageListPage.ancestorOf(pageContext);
   final isComposeBoxOffered = messageListPage.composeBoxController != null;
 
+  bool isInArchivedChannel = false;
+  if (message is StreamMessage) {
+    final channel = store.streams[message.streamId];
+    isInArchivedChannel = channel?.isArchived == true;
+  }
   final isMessageRead = message.flags.contains(MessageFlag.read);
   final markAsUnreadSupported = store.zulipFeatureLevel >= 155; // TODO(server-6)
   final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
@@ -565,7 +574,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final optionButtons = [
     ReactionButtons(message: message, pageContext: pageContext),
     StarButton(message: message, pageContext: pageContext),
-    if (isComposeBoxOffered)
+    if (isComposeBoxOffered && !isInArchivedChannel)
       QuoteAndReplyButton(message: message, pageContext: pageContext),
     if (showMarkAsUnreadButton)
       MarkAsUnreadButton(message: message, pageContext: pageContext),
