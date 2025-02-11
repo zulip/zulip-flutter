@@ -395,7 +395,7 @@ void main() {
         await prepareWithContent(tester,
           makeStringWithCodePoints(kMaxMessageLengthCodePoints));
         await tapSendButton(tester);
-        checkNoErrorDialog(tester);
+        checkNoDialog(tester);
       });
 
       testWidgets('code points not counted unnecessarily', (tester) async {
@@ -434,7 +434,7 @@ void main() {
         await prepareWithTopic(tester,
           makeStringWithCodePoints(kMaxTopicLengthCodePoints));
         await tapSendButton(tester);
-        checkNoErrorDialog(tester);
+        checkNoDialog(tester);
       });
 
       testWidgets('code points not counted unnecessarily', (tester) async {
@@ -938,7 +938,7 @@ void main() {
       await setupAndTapSend(tester, prepareResponse: (int messageId) {
         connection.prepare(json: SendMessageResult(id: messageId).toJson());
       });
-      checkNoErrorDialog(tester);
+      checkNoDialog(tester);
     });
 
     testWidgets('ZulipApiException', (tester) async {
@@ -1078,7 +1078,7 @@ void main() {
         check(call.allowMultiple).equals(true);
         check(call.type).equals(FileType.media);
 
-        checkNoErrorDialog(tester);
+        checkNoDialog(tester);
 
         check(controller!.content.text)
           .equals('see image: [Uploading image.jpg…]()\n\n');
@@ -1137,7 +1137,7 @@ void main() {
         check(call.source).equals(ImageSource.camera);
         check(call.requestFullMetadata).equals(false);
 
-        checkNoErrorDialog(tester);
+        checkNoDialog(tester);
 
         check(controller!.content.text)
           .equals('see image: [Uploading image.jpg…]()\n\n');
@@ -1864,7 +1864,7 @@ void main() {
           UploadFileResult(url: '/path/file.jpg').toJson());
         await tester.tap(find.byIcon(ZulipIcons.attach_file), warnIfMissed: false);
         await tester.pump(Duration.zero);
-        checkNoErrorDialog(tester);
+        checkNoDialog(tester);
         check(testBinding.takePickFilesCalls()).length.equals(1);
         connection.takeRequests(); // upload request
 
