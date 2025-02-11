@@ -592,8 +592,11 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       narrow: widget.narrow,
       destination: TopicNarrow(widget.narrow.streamId, topic),
       controller: widget.controller,
-      hintText: zulipLocalizations.composeBoxChannelContentHint(
-        streamName, topic.displayName));
+      hintText: store.realmMandatoryTopics
+        && widget.controller.topic.isTopicVacuumous
+          ? zulipLocalizations.composeBoxChannelContentHint(streamName)
+          : zulipLocalizations.composeBoxChannelTopicContentHint(
+              streamName, topic.displayName));
   }
 }
 
@@ -651,7 +654,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
         final store = PerAccountStoreWidget.of(context);
         final streamName = store.streams[streamId]?.name
           ?? zulipLocalizations.unknownChannelName;
-        return zulipLocalizations.composeBoxChannelContentHint(
+        return zulipLocalizations.composeBoxChannelTopicContentHint(
           streamName, topic.displayName);
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
