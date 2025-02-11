@@ -617,26 +617,38 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
         // even if the (visible part of the) item is smaller than the header,
         // and even if the whole child sliver is smaller than the header.
 
-        final paintedHeaderSize = calculatePaintOffset(constraints, from: 0, to: headerExtent);
-        geometry = SliverGeometry( // TODO review interaction with other slivers
-          scrollExtent: geometry.scrollExtent,
-          layoutExtent: childExtent,
-          paintExtent: math.max(childExtent, paintedHeaderSize),
-          maxPaintExtent: math.max(geometry.maxPaintExtent, headerExtent),
-          hasVisualOverflow: geometry.hasVisualOverflow
-            || headerExtent > constraints.remainingPaintExtent,
+        if (headerExtent <= childExtent) {
+          // The header fits within the child sliver.
+          // So it doesn't affect this sliver's overall geometry.
 
-          // The cache extent is an extension of layout, not paint; it controls
-          // where the next sliver should start laying out content.  (See
-          // [SliverConstraints.remainingCacheExtent].)  The header isn't meant
-          // to affect where the next sliver gets laid out, so it shouldn't
-          // affect the cache extent.
-          cacheExtent: geometry.cacheExtent,
-        );
+          headerOffset = _headerAtCoordinateEnd()
+            ? childExtent - headerExtent
+            : 0.0;
+        } else {
+          // The header will overflow the child sliver.
+          // That makes this sliver's geometry a bit more complicated.
 
-        headerOffset = _headerAtCoordinateEnd()
-          ? childExtent - headerExtent
-          : 0.0;
+          final paintedHeaderSize = calculatePaintOffset(constraints, from: 0, to: headerExtent);
+          geometry = SliverGeometry( // TODO review interaction with other slivers
+            scrollExtent: geometry.scrollExtent,
+            layoutExtent: childExtent,
+            paintExtent: math.max(childExtent, paintedHeaderSize),
+            maxPaintExtent: math.max(geometry.maxPaintExtent, headerExtent),
+            hasVisualOverflow: geometry.hasVisualOverflow
+              || headerExtent > constraints.remainingPaintExtent,
+
+            // The cache extent is an extension of layout, not paint; it controls
+            // where the next sliver should start laying out content.  (See
+            // [SliverConstraints.remainingCacheExtent].)  The header isn't meant
+            // to affect where the next sliver gets laid out, so it shouldn't
+            // affect the cache extent.
+            cacheExtent: geometry.cacheExtent,
+          );
+
+          headerOffset = _headerAtCoordinateEnd()
+            ? childExtent - headerExtent
+            : 0.0;
+        }
       } else {
         // The header's item has [StickyHeaderItem.allowOverflow] false.
         // Keep the header within the item, pushing the header partly out of
