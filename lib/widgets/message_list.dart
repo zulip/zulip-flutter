@@ -1179,7 +1179,6 @@ class DmRecipientHeader extends StatelessWidget {
         .sorted()
         .join(", "));
     } else {
-      // TODO pick string; web has glitchy "You and $yourname"
       title = zulipLocalizations.messageListGroupYouWithYourself;
     }
 

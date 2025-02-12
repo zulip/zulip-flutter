@@ -630,7 +630,7 @@ abstract class ZulipLocalizations {
   /// Message list recipient header for a DM group that only includes yourself.
   ///
   /// In en, this message translates to:
-  /// **'You with yourself'**
+  /// **'Messages with yourself'**
   String get messageListGroupYouWithYourself;
 
   /// Content validation error message when the message is too long.
