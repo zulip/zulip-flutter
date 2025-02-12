@@ -289,7 +289,7 @@ void main() {
         processedCount: 11, updatedCount: 3,
         firstProcessedId: null, lastProcessedId: null,
         foundOldest: true, foundNewest: true).toJson());
-      final future = markNarrowAsRead(context, narrow);
+      final future = ZulipAction.markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       await future;
       final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
@@ -314,7 +314,7 @@ void main() {
         processedCount: 11, updatedCount: 3,
         firstProcessedId: null, lastProcessedId: null,
         foundOldest: true, foundNewest: true).toJson());
-      final future = markNarrowAsRead(context, narrow);
+      final future = ZulipAction.markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       await future;
       check(connection.lastRequest).isA<http.Request>()
@@ -340,7 +340,7 @@ void main() {
         processedCount: 11, updatedCount: 3,
         firstProcessedId: null, lastProcessedId: null,
         foundOldest: true, foundNewest: true).toJson());
-      final future = markNarrowAsRead(context, narrow);
+      final future = ZulipAction.markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       await future;
       check(store.unreads.oldUnreadsMissing).isFalse();
@@ -354,7 +354,7 @@ void main() {
 
       connection.zulipFeatureLevel = 154;
       connection.prepare(json: {});
-      final future = markNarrowAsRead(context, narrow);
+      final future = ZulipAction.markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       await future;
       check(connection.lastRequest).isA<http.Request>()
@@ -373,7 +373,7 @@ void main() {
       await prepare(tester);
       connection.zulipFeatureLevel = 154;
       connection.prepare(json: {});
-      final future = markNarrowAsRead(context, narrow);
+      final future = ZulipAction.markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       await future;
       check(connection.lastRequest).isA<http.Request>()
@@ -389,7 +389,7 @@ void main() {
       await prepare(tester);
       connection.zulipFeatureLevel = 154;
       connection.prepare(json: {});
-      final future = markNarrowAsRead(context, narrow);
+      final future = ZulipAction.markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       await future;
       check(connection.lastRequest).isA<http.Request>()
@@ -412,7 +412,7 @@ void main() {
       connection.zulipFeatureLevel = 154;
       connection.prepare(json:
         UpdateMessageFlagsResult(messages: [message.id]).toJson());
-      final future = markNarrowAsRead(context, narrow);
+      final future = ZulipAction.markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       await future;
       check(connection.lastRequest).isA<http.Request>()
@@ -433,7 +433,7 @@ void main() {
       connection.zulipFeatureLevel = 154;
       connection.prepare(json:
         UpdateMessageFlagsResult(messages: [message.id]).toJson());
-      final future = markNarrowAsRead(context, narrow);
+      final future = ZulipAction.markNarrowAsRead(context, narrow);
       await tester.pump(Duration.zero);
       await future;
       check(connection.lastRequest).isA<http.Request>()
@@ -455,7 +455,7 @@ void main() {
     final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
 
     Future<bool> invokeUpdateMessageFlagsStartingFromAnchor() =>
-      updateMessageFlagsStartingFromAnchor(
+      ZulipAction.updateMessageFlagsStartingFromAnchor(
         context: context,
         apiNarrow: apiNarrow,
         op: UpdateMessageFlagsOp.add,
