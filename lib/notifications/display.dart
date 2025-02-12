@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Notification;
+import 'package:http/http.dart' as http;
 
 import '../api/model/model.dart';
 import '../api/notifications.dart';
@@ -231,8 +231,15 @@ class NotificationDisplayManager {
   static Future<void> _onMessageFcmMessage(MessageFcmMessage data, Map<String, dynamic> dataJson) async {
     assert(debugLog('notif message content: ${data.content}'));
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-    final groupKey = _groupKey(data);
+    final groupKey = _groupKey(data.realmUrl, data.userId);
     final conversationKey = _conversationKey(data, groupKey);
+
+    final globalStore = await ZulipBinding.instance.getGlobalStore();
+    final account = globalStore.accounts.firstWhereOrNull((account) =>
+      account.realmUrl.origin == data.realmUrl.origin && account.userId == data.userId);
+    if (account == null) {
+      return;
+    }
 
     final oldMessagingStyle = await _androidHost
       .getActiveNotificationMessagingStyleByTag(conversationKey);
@@ -365,7 +372,7 @@ class NotificationDisplayManager {
     // There may be a lot of messages mentioned here, across a lot of
     // conversations.  But they'll all be for one account, so they'll
     // fall under one notification group.
-    final groupKey = _groupKey(data);
+    final groupKey = _groupKey(data.realmUrl, data.userId);
 
     // Find any conversations we can cancel the notification for.
     // The API doesn't lend itself to removing individual messages as
@@ -445,10 +452,10 @@ class NotificationDisplayManager {
     return '$groupKey|$conversation';
   }
 
-  static String _groupKey(FcmMessageWithIdentity data) {
+  static String _groupKey(Uri realmUrl, int userId) {
     // The realm URL can't contain a `|`, because `|` is not a URL code point:
     //   https://url.spec.whatwg.org/#url-code-points
-    return "${data.realmUrl}|${data.userId}";
+    return "$realmUrl|$userId";
   }
 
   static String _personKey(Uri realmUrl, int userId) => "$realmUrl|$userId";
@@ -517,6 +524,16 @@ class NotificationDisplayManager {
       // TODO(log)
     }
     return null;
+  }
+
+  static Future<void> removeNotificationsForAccount(Uri realmUri, int userId) async {
+    final groupKey = _groupKey(realmUri, userId);
+    final activeNotifications = await _androidHost.getActiveNotifications(desiredExtras: [kExtraLastZulipMessageId]);
+    for (final statusBarNotification in activeNotifications) {
+      if (statusBarNotification.notification.group == groupKey) {
+        await _androidHost.cancel(tag: statusBarNotification.tag, id: statusBarNotification.id);
+      }
+    }
   }
 }
 

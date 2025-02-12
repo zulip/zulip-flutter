@@ -26,9 +26,9 @@ import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/theme.dart';
 
+import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../model/binding.dart';
-import '../example_data.dart' as eg;
 import '../model/narrow_checks.dart';
 import '../stdlib_checks.dart';
 import '../test_images.dart';
@@ -481,7 +481,11 @@ void main() {
       await init();
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
-      await checkNotifications(async, messageFcmMessage(message, streamName: stream.name),
+      final data =messageFcmMessage(message, streamName: stream.name);
+      final account = eg.account(id: data.userId, user: eg.user(userId: data.userId));
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+
+      await checkNotifications(async, data,
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > ${message.topic}',
         expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
@@ -493,6 +497,9 @@ void main() {
       const topic = 'topic 1';
       final message1 = eg.streamMessage(topic: topic, stream: stream);
       final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final account = eg.account(id: data1.userId, user: eg.user(userId: data1.userId));
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+
       final message2 = eg.streamMessage(topic: topic, stream: stream);
       final data2 = messageFcmMessage(message2, streamName: stream.name);
       final message3 = eg.streamMessage(topic: topic, stream: stream);
@@ -530,6 +537,9 @@ void main() {
       const topicB = 'topic B';
       final message1 = eg.streamMessage(topic: topicA, stream: stream);
       final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final account = eg.account(id: data1.userId, user: eg.user(userId: data1.userId));
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+
       final message2 = eg.streamMessage(topic: topicB, stream: stream);
       final data2 = messageFcmMessage(message2, streamName: stream.name);
       final message3 = eg.streamMessage(topic: topicA, stream: stream);
@@ -564,6 +574,9 @@ void main() {
       const topic2 = 'a TOpic';
       final message1 = eg.streamMessage(topic: topic1, stream: stream);
       final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final account = eg.account(id: data1.userId, user: eg.user(userId: data1.userId));
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+
       final message2 = eg.streamMessage(topic: topic2, stream: stream);
       final data2 = messageFcmMessage(message2, streamName: stream.name);
 
@@ -589,13 +602,15 @@ void main() {
       const topic = 'topic';
       final message1 = eg.streamMessage(topic: topic, stream: stream);
       final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final account = eg.account(id: data1.userId, user: eg.user(userId: data1.userId));
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
 
       receiveFcmMessage(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: '#Before > $topic',
-        expectedTagComponent: 'stream:${stream.streamId}:$topic');
+        expectedTagComponent: 'stream:${stream.streamId}:${topic.toLowerCase()}');
 
       stream = eg.stream(streamId: 1, name: 'After');
       final message2 = eg.streamMessage(topic: topic, stream: stream);
@@ -606,13 +621,17 @@ void main() {
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: true,
         expectedTitle: '#After > $topic',
-        expectedTagComponent: 'stream:${stream.streamId}:$topic');
+        expectedTagComponent: 'stream:${stream.streamId}:${topic.toLowerCase()}');
     })));
 
     test('stream message: stream name omitted', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
+      final data = messageFcmMessage(message, streamName: null);
+      final account = eg.account(id: data.userId, user: eg.user(userId: data.userId));
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+
       await checkNotifications(async, messageFcmMessage(message, streamName: null),
         expectedIsGroupConversation: true,
         expectedTitle: '#(unknown channel) > ${message.topic}',
@@ -622,7 +641,11 @@ void main() {
     test('group DM: 3 users', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.thirdUser, to: [eg.otherUser, eg.selfUser]);
-      await checkNotifications(async, messageFcmMessage(message),
+      final data = messageFcmMessage(message);
+      final account = eg.account(id: data.userId, user: eg.user(userId: data.userId));
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+
+      await checkNotifications(async, data,
         expectedIsGroupConversation: true,
         expectedTitle: "${eg.thirdUser.fullName} to you and 1 other",
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
@@ -632,7 +655,11 @@ void main() {
       await init();
       final message = eg.dmMessage(from: eg.thirdUser,
         to: [eg.otherUser, eg.selfUser, eg.fourthUser]);
-      await checkNotifications(async, messageFcmMessage(message),
+      final data = messageFcmMessage(message);
+      final account = eg.account(id: data.userId, user: eg.user(userId: data.userId));
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+
+      await checkNotifications(async, data,
         expectedIsGroupConversation: true,
         expectedTitle: "${eg.thirdUser.fullName} to you and 2 others",
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
@@ -642,6 +669,8 @@ void main() {
       await init();
       final message1 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser, eg.thirdUser]);
       final data1 = messageFcmMessage(message1);
+      final account = eg.account(id: data1.userId, user: eg.user(userId: data1.userId), realmUrl: data1.realmUrl);
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
       final message2 = eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser]);
       final data2 = messageFcmMessage(message2);
 
@@ -665,7 +694,11 @@ void main() {
     test('1:1 DM', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-      await checkNotifications(async, messageFcmMessage(message),
+      final data = messageFcmMessage(message);
+      final account = eg.account(id: data.userId, user: eg.user(userId: data.userId), realmUrl: data.realmUrl);
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+
+      await checkNotifications(async, data,
         expectedIsGroupConversation: false,
         expectedTitle: eg.otherUser.fullName,
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
@@ -676,6 +709,8 @@ void main() {
       final otherUser = eg.user(fullName: 'Before');
       final message1 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
       final data1 = messageFcmMessage(message1);
+      final account = eg.account(id: data1.userId, user: eg.user(userId: data1.userId), realmUrl: data1.realmUrl);
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
 
       final expectedTagComponent = 'dm:${message1.allRecipientIds.join(",")}';
 
@@ -703,6 +738,8 @@ void main() {
       final otherUser = eg.user(email: 'before@example.com');
       final message1 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
       final data1 = messageFcmMessage(message1);
+      final account = eg.account(id: data1.userId, user: eg.user(userId: data1.userId), realmUrl: data1.realmUrl);
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
 
       final expectedTagComponent = 'dm:${message1.allRecipientIds.join(",")}';
 
@@ -730,6 +767,9 @@ void main() {
         await init();
         final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
         final data = messageFcmMessage(message);
+        final account = eg.account(id: data.userId, user: eg.user(userId: data.userId), realmUrl: data.realmUrl);
+        await testBinding.globalStore.add(account, eg.initialSnapshot());
+
         receiveFcmMessage(async, data);
         checkNotification(data,
           messageStyleMessages: [data],
@@ -746,6 +786,9 @@ void main() {
         await init();
         final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
         final data = messageFcmMessage(message);
+        final account = eg.account(id: data.userId, user: eg.user(userId: data.userId), realmUrl: data.realmUrl);
+        await testBinding.globalStore.add(account, eg.initialSnapshot());
+
         receiveFcmMessage(async, data);
         checkNotification(data,
           messageStyleMessages: [data],
@@ -760,7 +803,11 @@ void main() {
     test('self-DM', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.selfUser, to: []);
-      await checkNotifications(async, messageFcmMessage(message),
+      final data = messageFcmMessage(message);
+      final account = eg.account(id: data.userId, user: eg.user(userId: data.userId), realmUrl: data.realmUrl);
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+
+      await checkNotifications(async, data,
         expectedIsGroupConversation: false,
         expectedTitle: eg.selfUser.fullName,
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
@@ -770,6 +817,8 @@ void main() {
       await init();
       final message = eg.streamMessage();
       final data = messageFcmMessage(message);
+      final account = eg.account(id: data.userId, user: eg.user(userId: data.userId), realmUrl: data.realmUrl);
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
       final expectedGroupKey = '${data.realmUrl}|${data.userId}';
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
@@ -803,6 +852,8 @@ void main() {
       const topicA = 'Topic A';
       final message1 = eg.streamMessage(stream: stream, topic: topicA);
       final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final account = eg.account(id: data1.userId, user: eg.user(userId: data1.userId), realmUrl: data1.realmUrl);
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
       final message2 = eg.streamMessage(stream: stream, topic: topicA);
       final data2 = messageFcmMessage(message2, streamName: stream.name);
       final message3 = eg.streamMessage(stream: stream, topic: topicA);
@@ -839,6 +890,8 @@ void main() {
       const topicA = 'Topic A';
       final message1 = eg.streamMessage(stream: stream, topic: topicA);
       final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final account = eg.account(id: data1.userId, user: eg.user(userId: data1.userId), realmUrl: data1.realmUrl);
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
       final conversationKey1 = 'stream:${stream.streamId}:${topicA.toLowerCase()}';
       final expectedGroupKey = '${data1.realmUrl}|${data1.userId}';
 
@@ -881,6 +934,7 @@ void main() {
         realmUrl: Uri.parse('https://1.chat.example'),
         id: 1001,
         user: eg.user(userId: 1001));
+      await testBinding.globalStore.add(account1, eg.initialSnapshot());
       final message1 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data1 =
         messageFcmMessage(message1, account: account1, streamName: stream.name);
@@ -890,6 +944,7 @@ void main() {
         realmUrl: Uri.parse('https://2.chat.example'),
         id: 1002,
         user: eg.user(userId: 1001));
+      await testBinding.globalStore.add(account2, eg.initialSnapshot());
       final message2 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data2 =
         messageFcmMessage(message2, account: account2, streamName: stream.name);
@@ -924,12 +979,14 @@ void main() {
       final conversationKey = 'stream:${stream.streamId}:some topic';
 
       final account1 = eg.account(id: 1001, user: eg.user(userId: 1001), realmUrl: realmUrl);
+      await testBinding.globalStore.add(account1, eg.initialSnapshot());
       final message1 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data1 =
         messageFcmMessage(message1, account: account1, streamName: stream.name);
       final groupKey1 = '${account1.realmUrl}|${account1.userId}';
 
       final account2 = eg.account(id: 1002, user: eg.user(userId: 1002), realmUrl: realmUrl);
+      await testBinding.globalStore.add(account2, eg.initialSnapshot());
       final message2 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data2 =
         messageFcmMessage(message2, account: account2, streamName: stream.name);
@@ -953,6 +1010,21 @@ void main() {
       ]);
 
       receiveFcmMessage(async, removeFcmMessage([message2], account: account2));
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+    })));
+
+    test('removeNotificationsForAccount removes notifications', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
+
+      await checkNotifications(async, messageFcmMessage(message),
+        expectedIsGroupConversation: false,
+        expectedTitle: eg.otherUser.fullName,
+        expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
+
+      check(testBinding.androidNotificationHost.activeNotifications).isNotEmpty();
+      await NotificationDisplayManager.removeNotificationsForAccount(eg.selfAccount.realmUrl, eg.selfAccount.userId);
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
   });
