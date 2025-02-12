@@ -207,9 +207,9 @@
   "@loginAddAnAccountPageTitle": {
     "description": "Title for page to add a Zulip account."
   },
-  "loginServerUrlInputLabel": "URL вашего сервера Zulip",
-  "@loginServerUrlInputLabel": {
-    "description": "Input label in login page for Zulip server URL entry."
+  "loginServerUrlLabel": "URL вашего сервера Zulip",
+  "@loginServerUrlLabel": {
+    "description": "Label in login page for Zulip server URL entry."
   },
   "loginHidePassword": "Скрыть пароль",
   "@loginHidePassword": {
@@ -570,10 +570,6 @@
   "errorFollowTopicFailed": "Не удалось начать отслеживать тему",
   "@errorFollowTopicFailed": {
     "description": "Error message when following a topic failed."
-  },
-  "composeBoxUnknownChannelName": "(неизвестный канал)",
-  "@composeBoxUnknownChannelName": {
-    "description": "Replacement name for channel when it cannot be found in the store."
   },
   "dialogContinue": "Продолжить",
   "@dialogContinue": {

@@ -3,32 +3,32 @@ PODS:
     - FlutterMacOS
   - file_selector_macos (0.0.1):
     - FlutterMacOS
-  - Firebase/CoreOnly (11.4.2):
-    - FirebaseCore (= 11.4.2)
-  - Firebase/Messaging (11.4.2):
+  - Firebase/CoreOnly (11.6.0):
+    - FirebaseCore (~> 11.6.0)
+  - Firebase/Messaging (11.6.0):
     - Firebase/CoreOnly
-    - FirebaseMessaging (~> 11.4.0)
-  - firebase_core (3.9.0):
-    - Firebase/CoreOnly (~> 11.4.0)
+    - FirebaseMessaging (~> 11.6.0)
+  - firebase_core (3.10.0):
+    - Firebase/CoreOnly (~> 11.6.0)
     - FlutterMacOS
-  - firebase_messaging (15.1.6):
-    - Firebase/CoreOnly (~> 11.4.0)
-    - Firebase/Messaging (~> 11.4.0)
+  - firebase_messaging (15.2.0):
+    - Firebase/CoreOnly (~> 11.6.0)
+    - Firebase/Messaging (~> 11.6.0)
     - firebase_core
     - FlutterMacOS
-  - FirebaseCore (11.4.2):
-    - FirebaseCoreInternal (< 12.0, >= 11.4.2)
+  - FirebaseCore (11.6.0):
+    - FirebaseCoreInternal (~> 11.6.0)
     - GoogleUtilities/Environment (~> 8.0)
     - GoogleUtilities/Logger (~> 8.0)
   - FirebaseCoreInternal (11.6.0):
     - "GoogleUtilities/NSData+zlib (~> 8.0)"
-  - FirebaseInstallations (11.4.0):
-    - FirebaseCore (~> 11.0)
+  - FirebaseInstallations (11.6.0):
+    - FirebaseCore (~> 11.6.0)
     - GoogleUtilities/Environment (~> 8.0)
     - GoogleUtilities/UserDefaults (~> 8.0)
     - PromisesObjC (~> 2.4)
-  - FirebaseMessaging (11.4.0):
-    - FirebaseCore (~> 11.0)
+  - FirebaseMessaging (11.6.0):
+    - FirebaseCore (~> 11.6.0)
     - FirebaseInstallations (~> 11.0)
     - GoogleDataTransport (~> 10.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
@@ -158,15 +158,15 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos
 
 SPEC CHECKSUMS:
-  device_info_plus: ce1b7762849d3ec103d0e0517299f2db7ad60720
+  device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
   file_selector_macos: cc3858c981fe6889f364731200d6232dac1d812d
-  Firebase: 7fd5466678d964be78fbf536d8a3385da19c4828
-  firebase_core: 1dfe1f4d02ad78be0277e320aa3d8384cf46231f
-  firebase_messaging: 61f678060b69a7ae1013e3a939ec8e1c56ef6fcf
-  FirebaseCore: 6b32c57269bd999aab34354c3923d92a6e5f3f84
+  Firebase: 374a441a91ead896215703a674d58cdb3e9d772b
+  firebase_core: 6d9bb8b0ea817e8fe0d928177d42275b45fdba6f
+  firebase_messaging: ae8e88b586e4d50abc7cac5bacf74d21967fd226
+  FirebaseCore: 48b0dd707581cf9c1a1220da68223fb0a562afaa
   FirebaseCoreInternal: d98ab91e2d80a56d7b246856a8885443b302c0c2
-  FirebaseInstallations: 6ef4a1c7eb2a61ee1f74727d7f6ce2e72acf1414
-  FirebaseMessaging: f8a160d99c2c2e5babbbcc90c4a3e15db036aee2
+  FirebaseInstallations: efc0946fc756e4d22d8113f7c761948120322e8c
+  FirebaseMessaging: e1aca1fcc23e8b9eddb0e33f375ff90944623021
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 26a3abef001b6533cf678d3eb38fd3f614b7872d

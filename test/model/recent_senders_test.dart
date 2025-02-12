@@ -7,7 +7,7 @@ import '../example_data.dart' as eg;
 /// [messages] should be sorted by [id] ascending.
 void checkMatchesMessages(RecentSenders model, List<Message> messages) {
   final Map<int, Map<int, Set<int>>> messagesByUserInStream = {};
-  final Map<int, Map<String, Map<int, Set<int>>>> messagesByUserInTopic = {};
+  final Map<int, Map<TopicName, Map<int, Set<int>>>> messagesByUserInTopic = {};
   for (final message in messages) {
     if (message is! StreamMessage) {
       throw UnsupportedError('Message of type ${message.runtimeType} is not expected.');
@@ -199,15 +199,15 @@ void main() {
     model.handleMessages(messages);
 
     check(model.latestMessageIdOfSenderInTopic(streamId: 1,
-      topic: 'a', senderId: 10)).equals(300);
+      topic: eg.t('a'), senderId: 10)).equals(300);
     // No message of user 20 in topic "a".
     check(model.latestMessageIdOfSenderInTopic(streamId: 1,
-      topic: 'a', senderId: 20)).equals(null);
+      topic: eg.t('a'), senderId: 20)).equals(null);
     // No message in topic "b" at all.
     check(model.latestMessageIdOfSenderInTopic(streamId: 1,
-      topic: 'b', senderId: 10)).equals(null);
+      topic: eg.t('b'), senderId: 10)).equals(null);
     // No message in stream 2 at all.
     check(model.latestMessageIdOfSenderInTopic(streamId: 2,
-      topic: 'a', senderId: 10)).equals(null);
+      topic: eg.t('a'), senderId: 10)).equals(null);
   });
 }

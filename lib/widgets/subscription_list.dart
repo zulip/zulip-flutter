@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
+import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/unreads.dart';
 import 'icons.dart';
@@ -41,10 +42,22 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     });
   }
 
+  static final _startsWithEmojiRegex = RegExp(r'^\p{Emoji}', unicode: true);
+
   void _sortSubs(List<Subscription> list) {
     list.sort((a, b) {
       if (a.isMuted && !b.isMuted) return 1;
       if (!a.isMuted && b.isMuted) return -1;
+
+      // A user gave feedback wanting zulip-flutter to match web in putting
+      // emoji-prefixed channels first; see #1202.
+      // For matching web's ordering completely, see:
+      //   https://github.com/zulip/zulip-flutter/issues/1165
+      final aStartsWithEmoji = _startsWithEmojiRegex.hasMatch(a.name);
+      final bStartsWithEmoji = _startsWithEmojiRegex.hasMatch(b.name);
+      if (aStartsWithEmoji && !bStartsWithEmoji) return -1;
+      if (!aStartsWithEmoji && bStartsWithEmoji) return 1;
+
       // TODO(i18n): add locale-aware sorting
       return a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
@@ -65,10 +78,8 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
 
     // TODO: Implement collapsible topics
 
-    // TODO(i18n): localize strings on page
-    //   Strings here left unlocalized as they likely will not
-    //   exist in the settled design.
     final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     final List<Subscription> pinned = [];
     final List<Subscription> unpinned = [];
@@ -90,11 +101,11 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
           if (pinned.isEmpty && unpinned.isEmpty)
             const _NoSubscriptionsItem(),
           if (pinned.isNotEmpty) ...[
-            const _SubscriptionListHeader(label: "Pinned"),
+            _SubscriptionListHeader(label: zulipLocalizations.pinnedSubscriptionsLabel),
             _SubscriptionList(unreadsModel: unreadsModel, subscriptions: pinned),
           ],
           if (unpinned.isNotEmpty) ...[
-            const _SubscriptionListHeader(label: "Unpinned"),
+            _SubscriptionListHeader(label: zulipLocalizations.unpinnedSubscriptionsLabel),
             _SubscriptionList(unreadsModel: unreadsModel, subscriptions: unpinned),
           ],
 
@@ -112,11 +123,12 @@ class _NoSubscriptionsItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.all(10),
-        child: Text("No channels found",
+        child: Text(zulipLocalizations.subscriptionListNoChannels,
           textAlign: TextAlign.center,
           style: TextStyle(
             color: designVariables.subscriptionListHeaderText,

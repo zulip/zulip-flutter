@@ -1,4 +1,5 @@
 import 'package:checks/checks.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/autocomplete.dart';
 import 'package:zulip/widgets/compose_box.dart';
 
@@ -20,5 +21,5 @@ extension UserMentionAutocompleteResultChecks on Subject<UserMentionAutocomplete
 }
 
 extension TopicAutocompleteResultChecks on Subject<TopicAutocompleteResult> {
-  Subject<String> get topic => has((r) => r.topic, 'topic');
+  Subject<TopicName> get topic => has((r) => r.topic, 'topic');
 }

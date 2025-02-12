@@ -268,6 +268,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
       globalStore: globalStore,
       connection: connection,
       realmUrl: realmUrl,
+      realmWildcardMentionPolicy: initialSnapshot.realmWildcardMentionPolicy,
+      realmMandatoryTopics: initialSnapshot.realmMandatoryTopics,
       realmWaitingPeriodThreshold: initialSnapshot.realmWaitingPeriodThreshold,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
@@ -311,6 +313,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     required GlobalStore globalStore,
     required this.connection,
     required this.realmUrl,
+    required this.realmWildcardMentionPolicy,
+    required this.realmMandatoryTopics,
     required this.realmWaitingPeriodThreshold,
     required this.maxFileUploadSizeMib,
     required this.realmDefaultExternalAccounts,
@@ -375,6 +379,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   Uri? tryResolveUrl(String reference) => _tryResolveUrl(realmUrl, reference);
 
   String get zulipVersion => account.zulipVersion;
+  final RealmWildcardMentionPolicy realmWildcardMentionPolicy; // TODO(#668): update this realm setting
+  final bool realmMandatoryTopics;  // TODO(#668): update this realm setting
   /// For docs, please see [InitialSnapshot.realmWaitingPeriodThreshold].
   final int realmWaitingPeriodThreshold;  // TODO(#668): update this realm setting
   final int maxFileUploadSizeMib; // No event for this.
@@ -466,10 +472,10 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   @override
   Map<int, Subscription> get subscriptions => _channels.subscriptions;
   @override
-  UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, String topic) =>
+  UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic) =>
     _channels.topicVisibilityPolicy(streamId, topic);
   @override
-  Map<int, Map<String, UserTopicVisibilityPolicy>> get debugTopicVisibility =>
+  Map<int, Map<TopicName, UserTopicVisibilityPolicy>> get debugTopicVisibility =>
     _channels.debugTopicVisibility;
 
   final ChannelStoreImpl _channels;
@@ -1128,8 +1134,7 @@ class UpdateMachine {
       case Server5xxException():
         shouldReportToUser = true;
 
-      case ServerException(httpStatus: 429):
-      case ZulipApiException(httpStatus: 429):
+      case HttpException(httpStatus: 429):
       case ZulipApiException(code: 'RATE_LIMIT_HIT'):
         // TODO(#946) handle rate-limit errors more generally, in ApiConnection
         shouldReportToUser = true;

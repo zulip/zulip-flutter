@@ -1214,7 +1214,7 @@ class GlobalTime extends StatelessWidget {
   final GlobalTimeNode node;
   final TextStyle ambientTextStyle;
 
-  static final _dateFormat = DateFormat('EEE, MMM d, y, h:mm a'); // TODO(intl): localize date
+  static final _dateFormat = DateFormat('EEE, MMM d, y, h:mm a'); // TODO(i18n): localize date
 
   @override
   Widget build(BuildContext context) {
@@ -1319,10 +1319,11 @@ class MessageTableCell extends StatelessWidget {
 
 void _launchUrl(BuildContext context, String urlString) async {
   DialogStatus showError(BuildContext context, String? message) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     return showErrorDialog(context: context,
-      title: 'Unable to open link',
+      title: zulipLocalizations.errorCouldNotOpenLinkTitle,
       message: [
-        'Link could not be opened: $urlString',
+        zulipLocalizations.errorCouldNotOpenLink(urlString),
         if (message != null) message,
       ].join("\n\n"));
   }
@@ -1570,6 +1571,7 @@ InlineSpan _errorUnimplemented(UnimplementedNode node, {required BuildContext co
   // because release mode isn't yet about general users but developer demos,
   // and we want to keep the demos honest.
   // TODO(#194) think through UX for general release
+  // TODO(#1285) translate this
   final htmlNode = node.htmlNode;
   if (htmlNode is dom.Element) {
     return TextSpan(children: [

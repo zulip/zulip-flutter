@@ -64,6 +64,13 @@ class InitialSnapshot {
 
   final List<UserTopicItem>? userTopics; // TODO(server-6)
 
+  /// The policy for who can use wildcard mentions in large channels.
+  ///
+  /// Search for "realm_wildcard_mention_policy" in https://zulip.com/api/register-queue.
+  final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
+
+  final bool realmMandatoryTopics;
+
   /// The number of days until a user's account is treated as a full member.
   ///
   /// Search for "realm_waiting_period_threshold" in https://zulip.com/api/register-queue.
@@ -125,6 +132,8 @@ class InitialSnapshot {
     required this.streams,
     required this.userSettings,
     required this.userTopics,
+    required this.realmWildcardMentionPolicy,
+    required this.realmMandatoryTopics,
     required this.realmWaitingPeriodThreshold,
     required this.realmDefaultExternalAccounts,
     required this.maxFileUploadSizeMib,
@@ -146,6 +155,22 @@ enum EmailAddressVisibility {
   @JsonValue(3) admins,
   @JsonValue(4) nobody,
   @JsonValue(5) moderators,
+}
+
+@JsonEnum(valueField: 'apiValue')
+enum RealmWildcardMentionPolicy {
+  everyone(apiValue: 1),
+  members(apiValue: 2),
+  fullMembers(apiValue: 3),
+  admins(apiValue: 5),
+  nobody(apiValue: 6),
+  moderators(apiValue: 7);
+
+  const RealmWildcardMentionPolicy({required this.apiValue});
+
+  final int? apiValue;
+
+  int? toJson() => apiValue;
 }
 
 /// An item in `realm_default_external_accounts`.
@@ -231,7 +256,7 @@ class UserSettings {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UserTopicItem {
   final int streamId;
-  final String topicName;
+  final TopicName topicName;
   final int lastUpdated;
   @JsonKey(unknownEnumValue: UserTopicVisibilityPolicy.unknown)
   final UserTopicVisibilityPolicy visibilityPolicy;
@@ -310,7 +335,7 @@ class UnreadDmSnapshot {
 /// An item in [UnreadMessagesSnapshot.channels].
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UnreadChannelSnapshot {
-  final String topic;
+  final TopicName topic;
   final int streamId;
   final List<int> unreadMessageIds;
 

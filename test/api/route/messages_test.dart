@@ -184,7 +184,7 @@ void main() {
       checkNarrow(const ChannelNarrow(12).apiEncode(), jsonEncode([
         {'operator': 'stream', 'operand': 12},
       ]));
-      checkNarrow(const TopicNarrow(12, 'stuff').apiEncode(), jsonEncode([
+      checkNarrow(eg.topicNarrow(12, 'stuff').apiEncode(), jsonEncode([
         {'operator': 'stream', 'operand': 12},
         {'operator': 'topic', 'operand': 'stuff'},
       ]));
@@ -328,7 +328,7 @@ void main() {
     test('smoke', () {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
-          destination: const StreamDestination(streamId, topic), content: content,
+          destination: StreamDestination(streamId, eg.t(topic)), content: content,
           queueId: 'abc:123',
           localId: '456',
           readBySender: true,
@@ -347,7 +347,7 @@ void main() {
     test('to stream', () {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
-          destination: const StreamDestination(streamId, topic), content: content,
+          destination: StreamDestination(streamId, eg.t(topic)), content: content,
           readBySender: true,
           expectedBodyFields: {
             'type': 'stream',
@@ -391,7 +391,7 @@ void main() {
     test('when readBySender is null, sends a User-Agent we know the server will recognize', () {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
-          destination: const StreamDestination(streamId, topic), content: content,
+          destination: StreamDestination(streamId, eg.t(topic)), content: content,
           readBySender: null,
           expectedBodyFields: {
             'type': 'stream',
@@ -406,7 +406,7 @@ void main() {
     test('legacy: when server does not support readBySender, sends a User-Agent the server will recognize', () {
       return FakeApiConnection.with_(zulipFeatureLevel: 235, (connection) async {
         await checkSendMessage(connection,
-          destination: const StreamDestination(streamId, topic), content: content,
+          destination: StreamDestination(streamId, eg.t(topic)), content: content,
           readBySender: true,
           expectedBodyFields: {
             'type': 'stream',
@@ -416,6 +416,67 @@ void main() {
             'read_by_sender': 'true',
           },
           expectedUserAgent: 'ZulipMobile/flutter');
+      });
+    });
+  });
+
+  group('updateMessage', () {
+    Future<UpdateMessageResult> checkUpdateMessage(
+      FakeApiConnection connection, {
+      required int messageId,
+      TopicName? topic,
+      PropagateMode? propagateMode,
+      bool? sendNotificationToOldThread,
+      bool? sendNotificationToNewThread,
+      String? content,
+      int? streamId,
+      required Map<String, String> expected,
+    }) async {
+      final result = await updateMessage(connection,
+        messageId: messageId,
+        topic: topic,
+        propagateMode: propagateMode,
+        sendNotificationToOldThread: sendNotificationToOldThread,
+        sendNotificationToNewThread: sendNotificationToNewThread,
+        content: content,
+        streamId: streamId,
+      );
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('PATCH')
+        ..url.path.equals('/api/v1/messages/$messageId')
+        ..bodyFields.deepEquals(expected);
+      return result;
+    }
+
+    test('topic/content change', () {
+      // A separate test exercises `streamId`;
+      // the API doesn't allow changing channel and content at the same time.
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: UpdateMessageResult().toJson());
+        await checkUpdateMessage(connection,
+          messageId: eg.streamMessage().id,
+          topic: eg.t('new topic'),
+          propagateMode: PropagateMode.changeAll,
+          sendNotificationToOldThread: true,
+          sendNotificationToNewThread: true,
+          content: 'asdf',
+          expected: {
+            'topic': 'new topic',
+            'propagate_mode': 'change_all',
+            'send_notification_to_old_thread': 'true',
+            'send_notification_to_new_thread': 'true',
+            'content': 'asdf',
+          });
+      });
+    });
+
+    test('channel change', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: UpdateMessageResult().toJson());
+        await checkUpdateMessage(connection,
+          messageId: eg.streamMessage().id,
+          streamId: 1,
+          expected: {'stream_id': '1'});
       });
     });
   });
@@ -743,7 +804,7 @@ void main() {
     }) async {
       connection.prepare(json: {});
       await markTopicAsRead(connection,
-        streamId: streamId, topicName: topicName);
+        streamId: streamId, topicName: eg.t(topicName));
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/mark_topic_as_read')

@@ -386,7 +386,7 @@ void main() {
       final stream = eg.stream();
       connection.prepare(json: SendMessageResult(id: 12345).toJson());
       await store.sendMessage(
-        destination: StreamDestination(stream.streamId, 'world'),
+        destination: StreamDestination(stream.streamId, eg.t('world')),
         content: 'hello');
       check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('POST')

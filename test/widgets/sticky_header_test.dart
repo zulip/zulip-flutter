@@ -103,6 +103,116 @@ void main() {
       }
     }
   }
+
+  testWidgets('sticky headers: propagate scrollOffsetCorrection properly', (tester) async {
+    Widget page(Widget Function(BuildContext, int) itemBuilder) {
+      return Directionality(textDirection: TextDirection.ltr,
+        child: StickyHeaderListView.builder(
+          cacheExtent: 0,
+          itemCount: 10, itemBuilder: itemBuilder));
+    }
+
+    await tester.pumpWidget(page((context, i) =>
+      StickyHeaderItem(
+        allowOverflow: true,
+        header: _Header(i, height: 40),
+        child: _Item(i, height: 200))));
+    check(tester.getTopLeft(find.text("Item 2"))).equals(Offset(0, 400));
+
+    // Scroll down (dragging up) to get item 0 off screen.
+    await tester.drag(find.text("Item 2"), Offset(0, -300));
+    await tester.pump();
+    check(tester.getTopLeft(find.text("Item 2"))).equals(Offset(0, 100));
+
+    // Make the off-screen item 0 taller, so scrolling back up will underflow.
+    await tester.pumpWidget(page((context, i) =>
+      StickyHeaderItem(
+        allowOverflow: true,
+        header: _Header(i, height: 40),
+        child: _Item(i, height: i == 0 ? 400 : 200))));
+    // Confirm the change in item 0's height hasn't already been applied,
+    // as it would if the item were within the viewport or its cache area.
+    check(tester.getTopLeft(find.text("Item 2"))).equals(Offset(0, 100));
+
+    // Scroll back up (dragging down).  This will cause a correction as the list
+    // discovers that moving 300px up doesn't reach the start anymore.
+    await tester.drag(find.text("Item 2"), Offset(0, 300));
+
+    // As a bonus, mark one of the already-visible items as needing layout.
+    // (In a real app, this would typically happen because some state changed.)
+    tester.firstElement(find.widgetWithText(SizedBox, "Item 2"))
+      .renderObject!.markNeedsLayout();
+
+    // If scrollOffsetCorrection doesn't get propagated to the viewport, this
+    // pump will record an exception (causing the test to fail at the end)
+    // because the marked item won't get laid out.
+    await tester.pump();
+    check(tester.getTopLeft(find.text("Item 2"))).equals(Offset(0, 400));
+
+    // Moreover if scrollOffsetCorrection doesn't get propagated, this item
+    // will get placed at zero rather than properly extend up off screen.
+    check(tester.getTopLeft(find.text("Item 0"))).equals(Offset(0, -200));
+  });
+
+  testWidgets('sliver only part of viewport, header at end', (tester) async {
+    const centerKey = ValueKey('center');
+    final controller = ScrollController();
+    await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr,
+      child: CustomScrollView(
+        controller: controller,
+        anchor: 0.5,
+        center: centerKey,
+        slivers: [
+          SliverStickyHeaderList(
+            headerPlacement: HeaderPlacement.scrollingStart,
+            delegate: SliverChildListDelegate(
+              List.generate(100, (i) => StickyHeaderItem(
+                header: _Header(99 - i, height: 20),
+                child: _Item(99 - i, height: 100))))),
+          SliverStickyHeaderList(
+            key: centerKey,
+            headerPlacement: HeaderPlacement.scrollingStart,
+            delegate: SliverChildListDelegate(
+              List.generate(100, (i) => StickyHeaderItem(
+                header: _Header(100 + i, height: 20),
+                child: _Item(100 + i, height: 100))))),
+        ])));
+
+    final overallSize = tester.getSize(find.byType(CustomScrollView));
+    final extent = overallSize.onAxis(Axis.vertical);
+    assert(extent == 600);
+
+    void checkState(int index, {required double item, required double header}) {
+      final itemElement = tester.firstElement(find.byElementPredicate((element) {
+        if (element.widget is! _Item) return false;
+        final renderObject = element.renderObject as RenderBox;
+        return (renderObject.size.contains(renderObject.globalToLocal(
+            Offset(overallSize.width / 2, 1)
+        )));
+      }));
+      final itemWidget = itemElement.widget as _Item;
+      check(itemWidget.index).equals(index);
+      check(_headerIndex(tester)).equals(index);
+      check((itemElement.renderObject as RenderBox).localToGlobal(Offset(0, 0)))
+        .equals(Offset(0, item));
+      check(tester.getTopLeft(find.byType(_Header))).equals(Offset(0, header));
+    }
+
+    check(controller.offset).equals(0);
+    checkState( 97, item:   0, header:   0);
+
+    controller.jumpTo(-5);
+    await tester.pump();
+    checkState( 96, item: -95, header: -15);
+
+    controller.jumpTo(-600);
+    await tester.pump();
+    checkState( 91, item:   0, header:   0);
+
+    controller.jumpTo(600);
+    await tester.pump();
+    checkState(103, item:   0, header:   0);
+  });
 }
 
 Future<void> _checkSequence(
@@ -174,7 +284,6 @@ Future<void> _checkSequence(
     final expectedHeaderIndex = first
       ? (scrollOffset / 100).floor()
       : (extent ~/ 100 - 1) + (scrollOffset / 100).ceil();
-    // print("$scrollOffset, $extent, $expectedHeaderIndex");
     check(tester.widget<_Item>(itemFinder).index).equals(expectedHeaderIndex);
     check(_headerIndex(tester)).equals(expectedHeaderIndex);
 

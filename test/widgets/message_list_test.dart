@@ -133,12 +133,14 @@ void main() {
   });
 
   group('app bar', () {
+    // Tests for the topic action sheet are in test/widgets/action_sheet_test.dart.
+
     testWidgets('has channel-feed action for topic narrows', (tester) async {
       final pushedRoutes = <Route<void>>[];
       final navObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
       final channel = eg.stream();
-      await setupMessageListPage(tester, narrow: TopicNarrow(channel.streamId, 'hi'),
+      await setupMessageListPage(tester, narrow: eg.topicNarrow(channel.streamId, 'hi'),
         navObservers: [navObserver],
         streams: [channel], messageCount: 1);
 
@@ -157,7 +159,7 @@ void main() {
       final channel = eg.stream();
       const topic = 'topic';
       await setupMessageListPage(tester,
-        narrow: TopicNarrow(channel.streamId, topic),
+        narrow: eg.topicNarrow(channel.streamId, topic),
         streams: [channel], subscriptions: [eg.subscription(channel)],
         messageCount: 1);
       await store.handleEvent(eg.userTopicEvent(
@@ -207,17 +209,17 @@ void main() {
       return widget.color;
     }
 
-    check(backgroundColor()).isSameColorAs(MessageListTheme.light().streamMessageBgDefault);
+    check(backgroundColor()).isSameColorAs(MessageListTheme.light.streamMessageBgDefault);
 
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
     await tester.pump();
 
     await tester.pump(kThemeAnimationDuration * 0.4);
-    final expectedLerped = MessageListTheme.light().lerp(MessageListTheme.dark(), 0.4);
+    final expectedLerped = MessageListTheme.light.lerp(MessageListTheme.dark, 0.4);
     check(backgroundColor()).isSameColorAs(expectedLerped.streamMessageBgDefault);
 
     await tester.pump(kThemeAnimationDuration * 0.6);
-    check(backgroundColor()).isSameColorAs(MessageListTheme.dark().streamMessageBgDefault);
+    check(backgroundColor()).isSameColorAs(MessageListTheme.dark.streamMessageBgDefault);
   });
 
   group('fetch older messages on scroll', () {
@@ -661,7 +663,7 @@ void main() {
     const topic = 'foo';
     final channel = eg.stream();
     final otherChannel = eg.stream();
-    final narrow = TopicNarrow(channel.streamId, topic);
+    final narrow = eg.topicNarrow(channel.streamId, topic);
 
     void prepareGetMessageResponse(List<Message> messages) {
       connection.prepare(json: eg.newestGetMessagesResult(
@@ -671,7 +673,7 @@ void main() {
     void handleMessageMoveEvent(List<StreamMessage> messages, String newTopic, {int? newChannelId}) {
       store.handleEvent(eg.updateMessageEventMoveFrom(
         origMessages: messages,
-        newTopic: newTopic,
+        newTopicStr: newTopic,
         newStreamId: newChannelId,
         propagateMode: PropagateMode.changeAll));
     }
@@ -748,8 +750,11 @@ void main() {
 
   group('recipient headers', () {
     group('StreamMessageRecipientHeader', () {
+      // Tests for the topic action sheet are in test/widgets/action_sheet_test.dart.
+
       final stream = eg.stream(name: 'stream name');
-      final message = eg.streamMessage(stream: stream, topic: 'topic name');
+      const topic = 'topic name';
+      final message = eg.streamMessage(stream: stream, topic: topic);
 
       FinderResult<Element> findInMessageList(String text) {
         // Stream name shows up in [AppBar] so need to avoid matching that
@@ -808,7 +813,7 @@ void main() {
           narrow: const CombinedFeedNarrow(),
           messages: [message], subscriptions: [eg.subscription(stream)]);
         await store.handleEvent(eg.userTopicEvent(
-          stream.streamId, message.topic, UserTopicVisibilityPolicy.followed));
+          stream.streamId, topic, UserTopicVisibilityPolicy.followed));
         await tester.pump();
         check(find.descendant(
           of: find.byType(MessageList),
@@ -820,7 +825,7 @@ void main() {
           narrow: TopicNarrow.ofMessage(message),
           messages: [message], subscriptions: [eg.subscription(stream, isMuted: true)]);
         await store.handleEvent(eg.userTopicEvent(
-          stream.streamId, message.topic, UserTopicVisibilityPolicy.unmuted));
+          stream.streamId, topic, UserTopicVisibilityPolicy.unmuted));
         await tester.pump();
         check(find.descendant(
           of: find.byType(MessageList),
@@ -922,6 +927,54 @@ void main() {
         await tester.pump();
         tester.widget(find.text('new stream name'));
       });
+
+      testWidgets('navigates to TopicNarrow on tapping topic in ChannelNarrow', (tester) async {
+        final pushedRoutes = <Route<void>>[];
+        final navObserver = TestNavigatorObserver()
+          ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+        final channel = eg.stream();
+        final message = eg.streamMessage(stream: channel, topic: 'topic name');
+        await setupMessageListPage(tester,
+          narrow: ChannelNarrow(channel.streamId),
+          streams: [channel],
+          messages: [message],
+          navObservers: [navObserver]);
+
+        assert(pushedRoutes.length == 1);
+        pushedRoutes.clear();
+
+        connection.prepare(json: eg.newestGetMessagesResult(
+          foundOldest: true, messages: [message]).toJson());
+        await tester.tap(find.descendant(
+          of: find.byType(StreamMessageRecipientHeader),
+          matching: find.text('topic name')));
+        await tester.pump();
+        check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+          .initNarrow.equals(TopicNarrow.ofMessage(message));
+        await tester.pumpAndSettle();
+      });
+
+      testWidgets('does not navigate on tapping topic in TopicNarrow', (tester) async {
+        final pushedRoutes = <Route<void>>[];
+        final navObserver = TestNavigatorObserver()
+          ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+        final channel = eg.stream();
+        final message = eg.streamMessage(stream: channel, topic: 'topic name');
+        await setupMessageListPage(tester,
+          narrow: TopicNarrow.ofMessage(message),
+          streams: [channel],
+          messages: [message],
+          navObservers: [navObserver]);
+
+        assert(pushedRoutes.length == 1);
+        pushedRoutes.clear();
+
+        await tester.tap(find.descendant(
+          of: find.byType(StreamMessageRecipientHeader),
+          matching: find.text('topic name')));
+        await tester.pump();
+        check(pushedRoutes).isEmpty();
+      });
     });
 
     group('DmRecipientHeader', () {
@@ -986,6 +1039,46 @@ void main() {
       // For this test, just accept outputs corresponding to any possible timezone.
       tester.widget(find.textContaining(RegExp("Dec 1[89], 2022")));
       tester.widget(find.textContaining(RegExp("Aug 2[23], 2022")));
+    });
+
+    testWidgets('navigates to DmNarrow on tapping recipient header in CombinedFeedNarrow', (tester) async {
+      final pushedRoutes = <Route<void>>[];
+      final navObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      final dmMessage = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+      await setupMessageListPage(tester,
+        narrow: const CombinedFeedNarrow(),
+        messages: [dmMessage],
+        navObservers: [navObserver]);
+
+      assert(pushedRoutes.length == 1);
+      pushedRoutes.clear();
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [dmMessage]).toJson());
+      await tester.tap(find.byType(DmRecipientHeader));
+      await tester.pump();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+        .initNarrow.equals(DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId));
+      await tester.pumpAndSettle();
+    });
+    
+    testWidgets('does not navigate on tapping recipient header in DmNarrow', (tester) async {
+      final pushedRoutes = <Route<void>>[];
+      final navObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      final dmMessage = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+      await setupMessageListPage(tester,
+        narrow: DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId),
+        messages: [dmMessage],
+        navObservers: [navObserver]);
+
+      assert(pushedRoutes.length == 1);
+      pushedRoutes.clear();
+
+      await tester.tap(find.byType(DmRecipientHeader));
+      await tester.pump();
+      check(pushedRoutes).isEmpty();
     });
   });
 
@@ -1134,7 +1227,7 @@ void main() {
       checkMarkersCount(edited: 1, moved: 0);
 
       await store.handleEvent(eg.updateMessageEventMoveFrom(
-        origMessages: [message, message2], newTopic: 'new'));
+        origMessages: [message, message2], newTopicStr: 'new'));
       await tester.pump();
       checkMarkersCount(edited: 1, moved: 1);
 

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../api/model/model.dart';
 import '../api/model/narrow.dart';
 import 'narrow.dart';
 import 'store.dart';
@@ -76,7 +77,7 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
         final slugifiedName = _encodeHashComponent(name.replaceAll(' ', '-'));
         fragment.write('$streamId-$slugifiedName');
       case ApiNarrowTopic():
-        fragment.write(_encodeHashComponent(element.operand));
+        fragment.write(_encodeHashComponent(element.operand.apiName));
       case ApiNarrowDmModern():
         final suffix = element.operand.length >= 3 ? 'group' : 'dm';
         fragment.write('${element.operand.join(',')}-$suffix');
@@ -178,7 +179,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
         if (topicElement != null) return null;
         final String? topic = decodeHashComponent(operand);
         if (topic == null) return null;
-        topicElement = ApiNarrowTopic(topic, negated: negated);
+        topicElement = ApiNarrowTopic(TopicName(topic), negated: negated);
 
       case _NarrowOperator.dm:
       case _NarrowOperator.pmWith:

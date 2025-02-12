@@ -26,7 +26,7 @@ GetStreamTopicsEntry _$GetStreamTopicsEntryFromJson(
         Map<String, dynamic> json) =>
     GetStreamTopicsEntry(
       maxId: (json['max_id'] as num).toInt(),
-      name: json['name'] as String,
+      name: TopicName.fromJson(json['name'] as String),
     );
 
 Map<String, dynamic> _$GetStreamTopicsEntryToJson(

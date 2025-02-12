@@ -47,7 +47,7 @@ FcmMessageChannelRecipient _$FcmMessageChannelRecipientFromJson(
     FcmMessageChannelRecipient(
       streamId: const _IntConverter().fromJson(json['stream_id'] as String),
       streamName: json['stream'] as String?,
-      topic: json['topic'] as String,
+      topic: TopicName.fromJson(json['topic'] as String),
     );
 
 RemoveFcmMessage _$RemoveFcmMessageFromJson(Map<String, dynamic> json) =>

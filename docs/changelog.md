@@ -3,6 +3,43 @@
 ## Unreleased
 
 
+## 0.0.26 (2025-02-07)
+
+### Highlights for users
+
+* Resolve or unresolve a topic, from the menu after you
+  press and hold the topic. (#744)
+* Autocomplete now offers `@all`, `@topic`, and other
+  wildcards. (#234)
+* Channel names starting with emoji go at the start of the
+  list. (#1202)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* Resolved: #1205, #1289, #942, #1238, #1202, #1219, #1204, #1171,
+  PR #1296, #234, #1207, #1330, #1309, #725, #744
+
+
+## 0.0.25 (2025-01-13)
+
+### Highlights for users
+
+* The combined feed is now conveniently accessible from the app's main
+  navigation bar. (#1164)
+* Messages with @-topic mentions now show them properly. (#892)
+* The lightbox now shows the sender's avatar. (#41)
+* The About Zulip screen is now available from the main menu. (#1128)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* Resolved in main: #892, #1177, #1164, #1177, #1128, #1189, #1116,
+  #739, #41
+
+
 ## 0.0.24 (2024-12-11)
 
 This is a preview beta, including some experimental changes

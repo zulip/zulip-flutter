@@ -340,7 +340,7 @@ class VideoDurationLabel extends StatelessWidget {
     final hours = value.inHours.toString().padLeft(2, '0');
     final minutes = value.inMinutes.remainder(60).toString().padLeft(2, '0');
     final seconds = value.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '${hours == '00' ? '' : '$hours:'}$minutes:$seconds';
+    return '${hours == '00' ? '' : '$hours:'}$minutes:$seconds'; // TODO(i18n)
   }
 
   @override
@@ -385,13 +385,14 @@ class _VideoPositionSliderControlState extends State<_VideoPositionSliderControl
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final currentPosition = _isSliderDragging
       ? _sliderValue
       : widget.controller.value.position;
 
     return Row(children: [
       VideoDurationLabel(currentPosition,
-        semanticsLabel: "Current position"),
+        semanticsLabel: zulipLocalizations.lightboxVideoCurrentPosition),
       Expanded(
         child: Slider(
           value: currentPosition.inMilliseconds.toDouble(),
@@ -421,7 +422,7 @@ class _VideoPositionSliderControlState extends State<_VideoPositionSliderControl
         ),
       ),
       VideoDurationLabel(widget.controller.value.duration,
-        semanticsLabel: "Video duration"),
+        semanticsLabel: zulipLocalizations.lightboxVideoDuration),
     ]);
   }
 }

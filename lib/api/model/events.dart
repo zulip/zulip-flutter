@@ -645,7 +645,7 @@ class UserTopicEvent extends Event {
   String get type => 'user_topic';
 
   final int streamId;
-  final String topicName;
+  final TopicName topicName;
   final int lastUpdated;
   final UserTopicVisibilityPolicy visibilityPolicy;
 
@@ -725,9 +725,9 @@ class UpdateMessageEvent extends Event {
   final PropagateMode? propagateMode;
 
   @JsonKey(name: 'orig_subject')
-  final String? origTopic;
+  final TopicName? origTopic;
   @JsonKey(name: 'subject')
-  final String? newTopic;
+  final TopicName? newTopic;
 
   // final List<TopicLink> topicLinks; // TODO handle
 
@@ -766,14 +766,6 @@ class UpdateMessageEvent extends Event {
   Map<String, dynamic> toJson() => _$UpdateMessageEventToJson(this);
 }
 
-/// As in [UpdateMessageEvent.propagateMode].
-@JsonEnum(fieldRename: FieldRename.snake)
-enum PropagateMode {
-  changeOne,
-  changeLater,
-  changeAll;
-}
-
 /// A Zulip event of type `delete_message`: https://zulip.com/api/get-events#delete_message
 @JsonSerializable(fieldRename: FieldRename.snake)
 class DeleteMessageEvent extends Event {
@@ -788,7 +780,7 @@ class DeleteMessageEvent extends Event {
   @MessageTypeConverter()
   final MessageType messageType;
   final int? streamId;
-  final String? topic;
+  final TopicName? topic;
 
   DeleteMessageEvent({
     required super.id,
@@ -924,7 +916,7 @@ class UpdateMessageFlagsMessageDetail {
   final bool? mentioned;
   final List<int>? userIds;
   final int? streamId;
-  final String? topic;
+  final TopicName? topic;
 
   UpdateMessageFlagsMessageDetail({
     required this.type,
@@ -1002,7 +994,7 @@ class TypingEvent extends Event {
   @JsonKey(name: 'recipients', fromJson: _recipientIdsFromJson)
   final List<int>? recipientIds;
   final int? streamId;
-  final String? topic;
+  final TopicName? topic;
 
   TypingEvent({
     required super.id,

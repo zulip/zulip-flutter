@@ -6,6 +6,6 @@ extension WidgetRouteChecks<T> on Subject<WidgetRoute<T>> {
   Subject<Widget> get page => has((x) => x.page, 'page');
 }
 
-extension AccountPageRouteMixinChecks<T> on Subject<AccountPageRouteMixin<T>> {
+extension AccountRouteChecks<T> on Subject<AccountRoute<T>> {
   Subject<int> get accountId => has((x) => x.accountId, 'accountId');
 }

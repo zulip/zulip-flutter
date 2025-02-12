@@ -156,7 +156,7 @@ class GetMessagesResult {
 }
 
 // https://zulip.com/api/send-message#parameter-topic
-const int kMaxTopicLength = 60;
+const int kMaxTopicLengthCodePoints = 60;
 
 // https://zulip.com/api/send-message#parameter-content
 const int kMaxMessageLengthCodePoints = 10000;
@@ -186,7 +186,7 @@ Future<SendMessageResult> sendMessage(
       StreamDestination() => {
         'type': RawParameter('stream'),
         'to': destination.streamId,
-        'topic': RawParameter(destination.topic),
+        'topic': RawParameter(destination.topic.apiName),
       },
       DmDestination() => {
         'type': supportsTypeDirect ? RawParameter('direct') : RawParameter('private'),
@@ -231,7 +231,7 @@ class StreamDestination extends MessageDestination {
   const StreamDestination(this.streamId, this.topic);
 
   final int streamId;
-  final String topic;
+  final TopicName topic;
 }
 
 /// A DM conversation, for specifying to [sendMessage].
@@ -256,6 +256,39 @@ class SendMessageResult {
     _$SendMessageResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$SendMessageResultToJson(this);
+}
+
+/// https://zulip.com/api/update-message
+Future<UpdateMessageResult> updateMessage(
+  ApiConnection connection, {
+  required int messageId,
+  TopicName? topic,
+  PropagateMode? propagateMode,
+  bool? sendNotificationToOldThread,
+  bool? sendNotificationToNewThread,
+  String? content,
+  int? streamId,
+}) {
+  return connection.patch('updateMessage', UpdateMessageResult.fromJson, 'messages/$messageId', {
+    if (topic != null) 'topic': RawParameter(topic.apiName),
+    if (propagateMode != null) 'propagate_mode': RawParameter(propagateMode.toJson()),
+    if (sendNotificationToOldThread != null) 'send_notification_to_old_thread': sendNotificationToOldThread,
+    if (sendNotificationToNewThread != null) 'send_notification_to_new_thread': sendNotificationToNewThread,
+    if (content != null) 'content': RawParameter(content),
+    if (streamId != null) 'stream_id': streamId,
+  });
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UpdateMessageResult {
+  // final List<DetachedUpload> detachedUploads; // TODO handle
+
+  UpdateMessageResult();
+
+  factory UpdateMessageResult.fromJson(Map<String, dynamic> json) =>
+    _$UpdateMessageResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UpdateMessageResultToJson(this);
 }
 
 /// https://zulip.com/api/upload-file
@@ -449,10 +482,10 @@ Future<void> markStreamAsRead(ApiConnection connection, {
 // TODO(server-6): Remove as deprecated by updateMessageFlagsForNarrow
 Future<void> markTopicAsRead(ApiConnection connection, {
   required int streamId,
-  required String topicName,
+  required TopicName topicName,
 }) {
   return connection.post('markTopicAsRead', (_) {}, 'mark_topic_as_read', {
     'stream_id': streamId,
-    'topic_name': RawParameter(topicName),
+    'topic_name': RawParameter(topicName.apiName),
   });
 }

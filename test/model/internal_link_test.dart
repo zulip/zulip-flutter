@@ -72,7 +72,7 @@ void main() {
         await store.addStream(eg.stream(streamId: streamId, name: name));
         final narrow = topic == null
           ? ChannelNarrow(streamId)
-          : TopicNarrow(streamId, topic);
+          : eg.topicNarrow(streamId, topic);
         check(narrowLink(store, narrow, nearMessageId: nearMessageId))
           .equals(store.realmUrl.resolve(expectedFragment));
       }
@@ -281,28 +281,28 @@ void main() {
     });
 
     group('"/#narrow/stream/<...>/topic/<...>" returns expected TopicNarrow', () {
-      const testCases = [
-        ('/#narrow/stream/check/topic/test',                 TopicNarrow(1, 'test')),
-        ('/#narrow/stream/mobile/subject/topic/near/378333', TopicNarrow(3, 'topic')),
-        ('/#narrow/stream/mobile/subject/topic/with/1',      TopicNarrow(3, 'topic')),
-        ('/#narrow/stream/mobile/topic/topic/',              TopicNarrow(3, 'topic')),
-        ('/#narrow/stream/stream/topic/topic/near/1',        TopicNarrow(5, 'topic')),
-        ('/#narrow/stream/stream/topic/topic/with/22',       TopicNarrow(5, 'topic')),
-        ('/#narrow/stream/stream/subject/topic/near/1',      TopicNarrow(5, 'topic')),
-        ('/#narrow/stream/stream/subject/topic/with/333',    TopicNarrow(5, 'topic')),
-        ('/#narrow/stream/stream/subject/topic',             TopicNarrow(5, 'topic')),
+      final testCases = [
+        ('/#narrow/stream/check/topic/test',                 eg.topicNarrow(1, 'test')),
+        ('/#narrow/stream/mobile/subject/topic/near/378333', eg.topicNarrow(3, 'topic')),
+        ('/#narrow/stream/mobile/subject/topic/with/1',      eg.topicNarrow(3, 'topic')),
+        ('/#narrow/stream/mobile/topic/topic/',              eg.topicNarrow(3, 'topic')),
+        ('/#narrow/stream/stream/topic/topic/near/1',        eg.topicNarrow(5, 'topic')),
+        ('/#narrow/stream/stream/topic/topic/with/22',       eg.topicNarrow(5, 'topic')),
+        ('/#narrow/stream/stream/subject/topic/near/1',      eg.topicNarrow(5, 'topic')),
+        ('/#narrow/stream/stream/subject/topic/with/333',    eg.topicNarrow(5, 'topic')),
+        ('/#narrow/stream/stream/subject/topic',             eg.topicNarrow(5, 'topic')),
       ];
       testExpectedNarrows(testCases, streams: streams);
     });
 
     group('Both `stream` and `channel` can be used interchangeably', () {
-      const testCases = [
-        ('/#narrow/stream/check',                         ChannelNarrow(1)),
-        ('/#narrow/channel/check',                        ChannelNarrow(1)),
-        ('/#narrow/stream/check/topic/test',              TopicNarrow(1, 'test')),
-        ('/#narrow/channel/check/topic/test',             TopicNarrow(1, 'test')),
-        ('/#narrow/stream/check/topic/test/near/378333',  TopicNarrow(1, 'test')),
-        ('/#narrow/channel/check/topic/test/near/378333', TopicNarrow(1, 'test')),
+      final testCases = [
+        ('/#narrow/stream/check',                         const ChannelNarrow(1)),
+        ('/#narrow/channel/check',                        const ChannelNarrow(1)),
+        ('/#narrow/stream/check/topic/test',              eg.topicNarrow(1, 'test')),
+        ('/#narrow/channel/check/topic/test',             eg.topicNarrow(1, 'test')),
+        ('/#narrow/stream/check/topic/test/near/378333',  eg.topicNarrow(1, 'test')),
+        ('/#narrow/channel/check/topic/test/near/378333', eg.topicNarrow(1, 'test')),
       ];
       testExpectedNarrows(testCases, streams: streams);
     });
@@ -414,13 +414,13 @@ void main() {
         eg.stream(streamId: 2, name: 'some stream'),
         eg.stream(streamId: 3, name: 'some.stream'),
       ];
-      const testCases = [
-        ('/#narrow/stream/some_stream',                    ChannelNarrow(1)),
-        ('/#narrow/stream/some.20stream',                  ChannelNarrow(2)),
-        ('/#narrow/stream/some.2Estream',                  ChannelNarrow(3)),
-        ('/#narrow/stream/some_stream/topic/some_topic',   TopicNarrow(1, 'some_topic')),
-        ('/#narrow/stream/some_stream/topic/some.20topic', TopicNarrow(1, 'some topic')),
-        ('/#narrow/stream/some_stream/topic/some.2Etopic', TopicNarrow(1, 'some.topic')),
+      final testCases = [
+        ('/#narrow/stream/some_stream',                    const ChannelNarrow(1)),
+        ('/#narrow/stream/some.20stream',                  const ChannelNarrow(2)),
+        ('/#narrow/stream/some.2Estream',                  const ChannelNarrow(3)),
+        ('/#narrow/stream/some_stream/topic/some_topic',   eg.topicNarrow(1, 'some_topic')),
+        ('/#narrow/stream/some_stream/topic/some.20topic', eg.topicNarrow(1, 'some topic')),
+        ('/#narrow/stream/some_stream/topic/some.2Etopic', eg.topicNarrow(1, 'some.topic')),
       ];
       testExpectedNarrows(testCases, streams: streams);
     });
@@ -518,8 +518,8 @@ void main() {
           return '#narrow/stream/${stream.streamId}-${stream.name}/topic/$operand';
         }
         final testCases = [
-          (mkUrlString('(no.20topic)'), TopicNarrow(stream.streamId, '(no topic)')),
-          (mkUrlString('lunch'),        TopicNarrow(stream.streamId, 'lunch')),
+          (mkUrlString('(no.20topic)'), eg.topicNarrow(stream.streamId, '(no topic)')),
+          (mkUrlString('lunch'),        eg.topicNarrow(stream.streamId, 'lunch')),
         ];
         testExpectedNarrows(testCases, streams: [stream]);
       });
@@ -529,12 +529,12 @@ void main() {
           return '#narrow/stream/${stream.name}/topic/$operand';
         }
         final testCases = [
-          (mkUrlString('(no.20topic)'), TopicNarrow(stream.streamId, '(no topic)')),
-          (mkUrlString('google.2Ecom'), TopicNarrow(stream.streamId, 'google.com')),
+          (mkUrlString('(no.20topic)'), eg.topicNarrow(stream.streamId, '(no topic)')),
+          (mkUrlString('google.2Ecom'), eg.topicNarrow(stream.streamId, 'google.com')),
           (mkUrlString('google.com'),   null),
-          (mkUrlString('topic.20name'), TopicNarrow(stream.streamId, 'topic name')),
-          (mkUrlString('stream'),       TopicNarrow(stream.streamId, 'stream')),
-          (mkUrlString('topic'),        TopicNarrow(stream.streamId, 'topic')),
+          (mkUrlString('topic.20name'), eg.topicNarrow(stream.streamId, 'topic name')),
+          (mkUrlString('stream'),       eg.topicNarrow(stream.streamId, 'stream')),
+          (mkUrlString('topic'),        eg.topicNarrow(stream.streamId, 'topic')),
         ];
         testExpectedNarrows(testCases, streams: [stream]);
       });
