@@ -13,6 +13,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/lightbox.dart';
+import 'package:zulip/widgets/message_list.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
@@ -215,6 +216,7 @@ void main() {
       final navigator = await ZulipApp.navigator;
       unawaited(navigator.push(getImageLightboxRoute(
         accountId: eg.selfAccount.id,
+        narrow: MessageListPage.ancestorOf(navigator.context).narrow,
         message: message ?? eg.streamMessage(),
         src: src,
         thumbnailUrl: thumbnailUrl,

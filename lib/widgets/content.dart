@@ -634,6 +634,7 @@ class MessageImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = InheritedMessage.of(context);
+    final narrow = MessageListPage.ancestorOf(context).narrow;
 
     // TODO image hover animation
     final srcUrl = node.srcUrl;
@@ -653,12 +654,14 @@ class MessageImage extends StatelessWidget {
           src: resolvedSrcUrl,
           thumbnailUrl: resolvedThumbnailUrl,
           originalWidth: node.originalWidth,
-          originalHeight: node.originalHeight));
+          originalHeight: node.originalHeight,
+          narrow: narrow));
       },
       child: node.loading
         ? const CupertinoActivityIndicator()
         : resolvedSrcUrl == null ? null : LightboxHero(
             message: message,
+            narrow: narrow,
             src: resolvedSrcUrl,
             child: RealmContentNetworkImage(
               resolvedThumbnailUrl ?? resolvedSrcUrl,
