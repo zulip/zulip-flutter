@@ -309,7 +309,7 @@ void main() {
       check(findSnackBarByText(message).evaluate()).single;
     }
 
-    testWidgets('reportErrorToUser dismissing SnackBar', (tester) async {
+    testWidgets('reportErrorToUserBriefly dismissing SnackBar', (tester) async {
       const message = 'test error message';
       const details = 'error details';
       await prepareSnackBarWithDetails(tester, message, details);
