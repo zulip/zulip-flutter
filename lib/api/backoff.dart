@@ -8,7 +8,8 @@ class BackoffMachine {
   BackoffMachine({
     this.firstBound = const Duration(milliseconds: 100),
     this.maxBound = const Duration(seconds: 10),
-  }) : assert(firstBound <= maxBound);
+  }) : assert(firstBound <= maxBound),
+      _currentBound = firstBound; // Initialize _currentBound;
 
   /// How many waits have completed so far.
   ///
@@ -82,13 +83,15 @@ class BackoffMachine {
   /// the smallest durations up to one microsecond instead of down to zero.
   /// Because in the real world any delay takes nonzero time, this mainly
   /// affects tests that use fake time, and keeps their behavior more realistic.
+  Duration _currentBound;  // New variable to track backoff time incrementally
   Future<void> wait() async {
     final bound = _minDuration(maxBound,
-                               firstBound * pow(base, _waitsCompleted));
+                               _currentBound);
     final duration = debugDuration ?? _maxDuration(const Duration(microseconds: 1),
                                                    bound * Random().nextDouble());
     await Future<void>.delayed(duration);
     _waitsCompleted++;
+    _currentBound = _minDuration(maxBound, _currentBound*base); // Update backoff duration safely
   }
 }
 
