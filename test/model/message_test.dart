@@ -77,18 +77,6 @@ void main() {
     checkNotified(count: messageList.fetched ? messages.length : 0);
   }
 
-  test('disposing multiple registered MessageListView instances', () async {
-    // Regression test for: https://github.com/zulip/zulip-flutter/issues/810
-    await prepare(narrow: const MentionsNarrow());
-    MessageListView.init(store: store, narrow: const StarredMessagesNarrow());
-    check(store.debugMessageListViews).length.equals(2);
-
-    // When disposing, the [MessageListView]s are expected to unregister
-    // themselves from the message store.
-    store.dispose();
-    check(store.debugMessageListViews).isEmpty();
-  });
-
   group('reconcileMessages', () {
     test('from empty', () async {
       await prepare();

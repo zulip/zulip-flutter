@@ -453,6 +453,40 @@ class NotificationDisplayManager {
 
   static String _personKey(Uri realmUrl, int userId) => "$realmUrl|$userId";
 
+  /// Provides the route and the account ID by parsing the notification URL.
+  ///
+  /// The URL must have been generated using [NotificationOpenPayload.buildUrl]
+  /// while creating the notification.
+  ///
+  /// Returns null and shows an error dialog if the associated account is not
+  /// found in the global store.
+  static AccountRoute<void>? routeForNotification({
+    required BuildContext context,
+    required Uri url,
+  }) {
+    final globalStore = GlobalStoreWidget.of(context);
+
+    assert(debugLog('got notif: url: $url'));
+    assert(url.scheme == 'zulip' && url.host == 'notification');
+    final payload = NotificationOpenPayload.parseUrl(url);
+
+    final account = globalStore.accounts.firstWhereOrNull(
+      (account) => account.realmUrl.origin == payload.realmUrl.origin
+                && account.userId == payload.userId);
+    if (account == null) { // TODO(log)
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorNotificationOpenTitle,
+        message: zulipLocalizations.errorNotificationOpenAccountMissing);
+      return null;
+    }
+
+    return MessageListPage.buildRoute(
+      accountId: account.id,
+      // TODO(#82): Open at specific message, not just conversation
+      narrow: payload.narrow);
+  }
+
   /// Navigates to the [MessageListPage] of the specific conversation
   /// given the `zulip://notification/…` Android intent data URL,
   /// generated with [NotificationOpenPayload.buildUrl] while creating
@@ -460,29 +494,16 @@ class NotificationDisplayManager {
   static Future<void> navigateForNotification(Uri url) async {
     assert(debugLog('opened notif: url: $url'));
 
-    assert(url.scheme == 'zulip' && url.host == 'notification');
-    final payload = NotificationOpenPayload.parseUrl(url);
-
     NavigatorState navigator = await ZulipApp.navigator;
     final context = navigator.context;
     assert(context.mounted);
     if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
 
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    final globalStore = GlobalStoreWidget.of(context);
-    final account = globalStore.accounts.firstWhereOrNull((account) =>
-      account.realmUrl == payload.realmUrl && account.userId == payload.userId);
-    if (account == null) { // TODO(log)
-      showErrorDialog(context: context,
-        title: zulipLocalizations.errorNotificationOpenTitle,
-        message: zulipLocalizations.errorNotificationOpenAccountMissing);
-      return;
-    }
+    final route = routeForNotification(context: context, url: url);
+    if (route == null) return; // TODO(log)
 
     // TODO(nav): Better interact with existing nav stack on notif open
-    unawaited(navigator.push(MaterialAccountWidgetRoute<void>(accountId: account.id,
-      // TODO(#82): Open at specific message, not just conversation
-      page: MessageListPage(initNarrow: payload.narrow))));
+    unawaited(navigator.push(route));
   }
 
   static Future<Uint8List?> _fetchBitmap(Uri url) async {

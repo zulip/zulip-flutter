@@ -404,7 +404,7 @@
       "others": {"type": "String", "example": "Alice, Bob"}
     }
   },
-  "messageListGroupYouWithYourself": "You with yourself",
+  "messageListGroupYouWithYourself": "Messages with yourself",
   "@messageListGroupYouWithYourself": {
     "description": "Message list recipient header for a DM group that only includes yourself."
   },

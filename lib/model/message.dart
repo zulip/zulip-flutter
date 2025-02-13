@@ -61,12 +61,20 @@ class MessageStoreImpl with MessageStore {
   }
 
   void dispose() {
-    // When a MessageListView is disposed, it removes itself from the Set
-    // `MessageStoreImpl._messageListViews`. Instead of iterating on that Set,
-    // iterate on a copy, to avoid concurrent modifications.
-    for (final view in _messageListViews.toList()) {
-      view.dispose();
-    }
+    // Not disposing the [MessageListView]s here, because they are owned by
+    // (i.e., they get [dispose]d by) the [_MessageListState], including in the
+    // case where the [PerAccountStore] is replaced.
+    //
+    // TODO: Add assertions that the [MessageListView]s are indeed disposed, by
+    //   first ensuring that [PerAccountStore] is only disposed after those with
+    //   references to it are disposed, then reinstating this `dispose` method.
+    //
+    //   We can't add the assertions as-is because the sequence of events
+    //   guarantees that `PerAccountStore` is disposed (when that happens,
+    //   [GlobalStore] notifies its listeners, causing widgets dependent on the
+    //   [InheritedNotifier] to rebuild in the next frame) before the owner's
+    //   `dispose` or `onNewStore` is called.  Discussion:
+    //     https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/MessageListView.20lifecycle/near/2086893
   }
 
   @override

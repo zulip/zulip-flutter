@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
+import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/about_zulip.dart';
-import 'package:zulip/widgets/actions.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/home.dart';
@@ -453,8 +453,7 @@ void main () {
     await tester.pump(); // wait for the loading page
     checkOnLoadingPage();
 
-    final element = tester.element(find.byType(MaterialApp));
-    final future = logOutAccount(element, eg.selfAccount.id);
+    final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
     await tester.pump(TestGlobalStore.removeAccountDuration);
     await future;
     // No error expected from briefly not having
@@ -471,8 +470,7 @@ void main () {
     await tester.pump(); // wait for store
     checkOnHomePage(tester, expectedAccount: eg.selfAccount);
 
-    final element = tester.element(find.byType(HomePage));
-    final future = logOutAccount(element, eg.selfAccount.id);
+    final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
     await tester.pump(TestGlobalStore.removeAccountDuration);
     await future;
     // No error expected from briefly not having

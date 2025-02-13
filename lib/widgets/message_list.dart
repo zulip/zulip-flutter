@@ -188,7 +188,7 @@ abstract class MessageListPageState {
 class MessageListPage extends StatefulWidget {
   const MessageListPage({super.key, required this.initNarrow});
 
-  static Route<void> buildRoute({int? accountId, BuildContext? context,
+  static AccountRoute<void> buildRoute({int? accountId, BuildContext? context,
       required Narrow narrow}) {
     return MaterialAccountWidgetRoute(accountId: accountId, context: context,
       page: MessageListPage(initNarrow: narrow));
@@ -483,6 +483,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   @override
   void onNewStore() { // TODO(#464) try to keep using old model until new one gets messages
+    model?.dispose();
     _initModel(PerAccountStoreWidget.of(context));
   }
 
@@ -1179,7 +1180,6 @@ class DmRecipientHeader extends StatelessWidget {
         .sorted()
         .join(", "));
     } else {
-      // TODO pick string; web has glitchy "You and $yourname"
       title = zulipLocalizations.messageListGroupYouWithYourself;
     }
 
