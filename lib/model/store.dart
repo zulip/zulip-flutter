@@ -151,6 +151,7 @@ abstract class GlobalStore extends ChangeNotifier {
     assert(_accounts.containsKey(accountId));
     final store = await doLoadPerAccount(accountId);
     if (!_accounts.containsKey(accountId)) {
+      // TODO(#1354): handle this earlier
       // [removeAccount] was called during [doLoadPerAccount].
       store.dispose();
       throw AccountNotFoundException();
