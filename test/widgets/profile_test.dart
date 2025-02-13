@@ -332,7 +332,7 @@ void main() {
       check(
         listEquals(currentTimezones, latestTimezones),
         because:
-            'the timezone database used to display users\' local time is not up-to-date',
+            'the timezone database used to display users\' local time is not up-to-date, please copy `package:timezone/data/latest_all.tzf` to `assets/timezone/latest_all.tzf`',
       ).isTrue();
     });
   });
