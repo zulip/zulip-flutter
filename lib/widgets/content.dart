@@ -18,6 +18,7 @@ import '../model/internal_link.dart';
 import 'code_block.dart';
 import 'dialog.dart';
 import 'icons.dart';
+import 'inset_shadow.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
@@ -42,6 +43,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorDirectMentionBackground: const HSLColor.fromAHSL(0.2, 240, 0.7, 0.7).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(1, 0, 0, 0.8).toColor(),
+      colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(),
       colorMathBlockBorder: const HSLColor.fromAHSL(0.15, 240, 0.8, 0.5).toColor(),
       colorMessageMediaContainerBackground: const Color.fromRGBO(0, 0, 0, 0.03),
       colorPollNames: const HSLColor.fromAHSL(1, 0, 0, .45).toColor(),
@@ -75,6 +77,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorDirectMentionBackground: const HSLColor.fromAHSL(0.25, 240, 0.52, 0.6).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(0.2, 0, 0, 0).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(0.4, 0, 0, 0).toColor(),
+      colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(), // the same as light in Web
       colorMathBlockBorder: const HSLColor.fromAHSL(1, 240, 0.4, 0.4).toColor(),
       colorMessageMediaContainerBackground: const HSLColor.fromAHSL(0.03, 0, 0, 1).toColor(),
       colorPollNames: const HSLColor.fromAHSL(1, 236, .15, .7).toColor(),
@@ -107,6 +110,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     required this.colorDirectMentionBackground,
     required this.colorGlobalTimeBackground,
     required this.colorGlobalTimeBorder,
+    required this.colorLink,
     required this.colorMathBlockBorder,
     required this.colorMessageMediaContainerBackground,
     required this.colorPollNames,
@@ -139,6 +143,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   final Color colorDirectMentionBackground;
   final Color colorGlobalTimeBackground;
   final Color colorGlobalTimeBorder;
+  final Color colorLink;
   final Color colorMathBlockBorder; // TODO(#46) this won't be needed
   final Color colorMessageMediaContainerBackground;
   final Color colorPollNames;
@@ -199,6 +204,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     Color? colorDirectMentionBackground,
     Color? colorGlobalTimeBackground,
     Color? colorGlobalTimeBorder,
+    Color? colorLink,
     Color? colorMathBlockBorder,
     Color? colorMessageMediaContainerBackground,
     Color? colorPollNames,
@@ -221,6 +227,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorDirectMentionBackground: colorDirectMentionBackground ?? this.colorDirectMentionBackground,
       colorGlobalTimeBackground: colorGlobalTimeBackground ?? this.colorGlobalTimeBackground,
       colorGlobalTimeBorder: colorGlobalTimeBorder ?? this.colorGlobalTimeBorder,
+      colorLink: colorLink ?? this.colorLink,
       colorMathBlockBorder: colorMathBlockBorder ?? this.colorMathBlockBorder,
       colorMessageMediaContainerBackground: colorMessageMediaContainerBackground ?? this.colorMessageMediaContainerBackground,
       colorPollNames: colorPollNames ?? this.colorPollNames,
@@ -250,6 +257,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorDirectMentionBackground: Color.lerp(colorDirectMentionBackground, other.colorDirectMentionBackground, t)!,
       colorGlobalTimeBackground: Color.lerp(colorGlobalTimeBackground, other.colorGlobalTimeBackground, t)!,
       colorGlobalTimeBorder: Color.lerp(colorGlobalTimeBorder, other.colorGlobalTimeBorder, t)!,
+      colorLink: Color.lerp(colorLink, other.colorLink, t)!,
       colorMathBlockBorder: Color.lerp(colorMathBlockBorder, other.colorMathBlockBorder, t)!,
       colorMessageMediaContainerBackground: Color.lerp(colorMessageMediaContainerBackground, other.colorMessageMediaContainerBackground, t)!,
       colorPollNames: Color.lerp(colorPollNames, other.colorPollNames, t)!,
@@ -364,10 +372,10 @@ class BlockContentList extends StatelessWidget {
             );
             return const SizedBox.shrink();
           }(),
+          LinkPreviewNode() => LinkPreview(node: node),
           UnimplementedBlockContentNode() =>
             Text.rich(_errorUnimplemented(node, context: context)),
         };
-
       }),
     ]);
   }
@@ -839,6 +847,101 @@ class MathBlock extends StatelessWidget {
   }
 }
 
+class LinkPreview extends StatelessWidget {
+  const LinkPreview({super.key, required this.node});
+
+  final LinkPreviewNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final resolvedImageSrcUrl = store.tryResolveUrl(node.imageSrcUrl);
+    final isSmallWidth = MediaQuery.sizeOf(context).width <= 576;
+
+    // On Web on larger width viewports, the title and description container's
+    // width is constrained using `max-width: calc(100% - 115px)`, we do not
+    // follow the same here for potential benefits listed here:
+    //   https://github.com/zulip/zulip-flutter/pull/1049#discussion_r1915740997
+    final titleAndDescription = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (node.title != null)
+          GestureDetector(
+            onTap: () => _launchUrl(context, node.hrefUrl),
+            child: Text(node.title!,
+              style: TextStyle(
+                fontSize: 1.2 * kBaseFontSize,
+                height: kTextHeightNone,
+                color: ContentTheme.of(context).colorLink))),
+        if (node.description != null)
+          Container(
+            padding: const EdgeInsets.only(top: 3),
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Text(node.description!)),
+      ]);
+
+    final clippedTitleAndDescription = Container(
+      constraints: const BoxConstraints(maxHeight: 80),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      child: InsetShadowBox(
+        bottom: 8,
+        // TODO(#488) use different color for non-message contexts
+        // TODO(#647) use different color for highlighted messages
+        // TODO(#681) use different color for DM messages
+        color: MessageListTheme.of(context).streamMessageBgDefault,
+        child: UnconstrainedBox(
+          alignment: AlignmentDirectional.topStart,
+          constrainedAxis: Axis.horizontal,
+          clipBehavior: Clip.hardEdge,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: titleAndDescription))));
+
+    final result = isSmallWidth
+      ? Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 15,
+          children: [
+            if (resolvedImageSrcUrl != null)
+              GestureDetector(
+                onTap: () => _launchUrl(context, node.hrefUrl),
+                child: RealmContentNetworkImage(
+                  resolvedImageSrcUrl,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: 100)),
+            clippedTitleAndDescription,
+          ])
+      : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (resolvedImageSrcUrl != null)
+            GestureDetector(
+              onTap: () => _launchUrl(context, node.hrefUrl),
+              child: RealmContentNetworkImage(
+                resolvedImageSrcUrl,
+                fit: BoxFit.cover,
+                width: 80,
+                height: 80)),
+          Flexible(child: clippedTitleAndDescription),
+        ]);
+
+    return Padding(
+      // TODO(?) Web has a bottom margin `--markdown-interelement-space-px`
+      //   around the `message_embed` container, which is calculated here:
+      //     https://github.com/zulip/zulip/blob/d28f7d86223bab4f11629637d4237381943f6fc1/web/src/information_density.ts#L80-L102
+      //   But for now we use a static value instead, see discussion:
+      //     https://github.com/zulip/zulip-flutter/pull/1049#discussion_r1915747908
+      padding: const EdgeInsets.only(bottom: 5),
+      child: Container(
+        decoration: const BoxDecoration(
+          border: BorderDirectional(start: BorderSide(
+            // Web has the same color in light and dark mode.
+            color: Color(0xffededed), width: 3))),
+        padding: const EdgeInsets.all(5),
+        child: result));
+  }
+}
+
 //
 // Inline layout.
 //
@@ -1029,8 +1132,7 @@ class _InlineContentBuilder {
         assert(recognizer != null);
         _pushRecognizer(recognizer);
         final result = _buildNodes(node.nodes,
-          // Web has the same color in light and dark mode.
-          style: TextStyle(color: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor()));
+          style: TextStyle(color: ContentTheme.of(_context!).colorLink));
         _popRecognizer();
         return result;
 

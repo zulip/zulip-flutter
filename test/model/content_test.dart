@@ -1155,6 +1155,67 @@ class ContentExample {
       ], isHeader: false),
     ]),
   ]);
+
+  static const linkPreviewSmoke = ContentExample(
+    'link preview smoke',
+    'https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title+description.html',
+    '<p><a href="https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title+description.html">https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title+description.html</a></p>\n'
+      '<div class="message_embed">'
+        '<a class="message_embed_image" href="https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title+description.html" style="background-image: url(&quot;https://uploads.zulipusercontent.net/98fe2fe57d1ac641d4d84b6de2c520ff48fcf498/68747470733a2f2f7374617469632e7a756c6970636861742e636f6d2f7374617469632f696d616765732f6c6f676f2f7a756c69702d69636f6e2d313238783132382e706e67&quot;)"></a>'
+        '<div class="data-container">'
+          '<div class="message_embed_title"><a href="https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title+description.html" title="Zulip — organized team chat">Zulip — organized team chat</a></div>'
+          '<div class="message_embed_description">Zulip is an organized team chat app for distributed teams of all sizes.</div></div></div>', [
+    ParagraphNode(links: [], nodes: [
+      LinkNode(
+        nodes: [TextNode('https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title+description.html')],
+        url: 'https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title+description.html'),
+    ]),
+    LinkPreviewNode(
+      hrefUrl: 'https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title+description.html',
+      imageSrcUrl: 'https://uploads.zulipusercontent.net/98fe2fe57d1ac641d4d84b6de2c520ff48fcf498/68747470733a2f2f7374617469632e7a756c6970636861742e636f6d2f7374617469632f696d616765732f6c6f676f2f7a756c69702d69636f6e2d313238783132382e706e67',
+      title: 'Zulip — organized team chat',
+      description: 'Zulip is an organized team chat app for distributed teams of all sizes.'),
+  ]);
+
+  static const linkPreviewWithoutTitle = ContentExample(
+    'link preview without title',
+    'https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+description+notitle.html',
+    '<p><a href="https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+description+notitle.html">https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+description+notitle.html</a></p>\n'
+      '<div class="message_embed">'
+        '<a class="message_embed_image" href="https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+description+notitle.html" style="background-image: url(&quot;https://uploads.zulipusercontent.net/98fe2fe57d1ac641d4d84b6de2c520ff48fcf498/68747470733a2f2f7374617469632e7a756c6970636861742e636f6d2f7374617469632f696d616765732f6c6f676f2f7a756c69702d69636f6e2d313238783132382e706e67&quot;)"></a>'
+        '<div class="data-container">'
+          '<div class="message_embed_description">Zulip is an organized team chat app for distributed teams of all sizes.</div></div></div>', [
+    ParagraphNode(links: [], nodes: [
+      LinkNode(
+        nodes: [TextNode('https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+description+notitle.html')],
+        url: 'https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+description+notitle.html'),
+    ]),
+    LinkPreviewNode(
+      hrefUrl: 'https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+description+notitle.html',
+      imageSrcUrl: 'https://uploads.zulipusercontent.net/98fe2fe57d1ac641d4d84b6de2c520ff48fcf498/68747470733a2f2f7374617469632e7a756c6970636861742e636f6d2f7374617469632f696d616765732f6c6f676f2f7a756c69702d69636f6e2d313238783132382e706e67',
+      title: null,
+      description: 'Zulip is an organized team chat app for distributed teams of all sizes.'),
+  ]);
+
+  static const linkPreviewWithoutDescription = ContentExample(
+    'link preview without description',
+    'https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title.html',
+    '<p><a href="https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title.html">https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title.html</a></p>\n'
+      '<div class="message_embed">'
+        '<a class="message_embed_image" href="https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title.html" style="background-image: url(&quot;https://uploads.zulipusercontent.net/98fe2fe57d1ac641d4d84b6de2c520ff48fcf498/68747470733a2f2f7374617469632e7a756c6970636861742e636f6d2f7374617469632f696d616765732f6c6f676f2f7a756c69702d69636f6e2d313238783132382e706e67&quot;)"></a>'
+        '<div class="data-container">'
+          '<div class="message_embed_title"><a href="https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title.html" title="Zulip — organized team chat">Zulip — organized team chat</a></div></div></div>', [
+    ParagraphNode(links: [], nodes: [
+      LinkNode(
+        nodes: [TextNode('https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title.html')],
+        url: 'https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title.html'),
+    ]),
+    LinkPreviewNode(
+      hrefUrl: 'https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title.html',
+      imageSrcUrl: 'https://uploads.zulipusercontent.net/98fe2fe57d1ac641d4d84b6de2c520ff48fcf498/68747470733a2f2f7374617469632e7a756c6970636861742e636f6d2f7374617469632f696d616765732f6c6f676f2f7a756c69702d69636f6e2d313238783132382e706e67',
+      title: 'Zulip — organized team chat',
+      description: null),
+  ]);
 }
 
 UnimplementedBlockContentNode blockUnimplemented(String html) {
@@ -1503,6 +1564,10 @@ void main() {
   testParseExample(ContentExample.tableMissingOneBodyColumnInMarkdown);
   testParseExample(ContentExample.tableWithDifferentTextAlignmentInColumns);
   testParseExample(ContentExample.tableWithLinkCenterAligned);
+
+  testParseExample(ContentExample.linkPreviewSmoke);
+  testParseExample(ContentExample.linkPreviewWithoutTitle);
+  testParseExample(ContentExample.linkPreviewWithoutDescription);
 
   testParse('parse nested lists, quotes, headings, code blocks',
     // "1. > ###### two\n   > * three\n\n      four"
