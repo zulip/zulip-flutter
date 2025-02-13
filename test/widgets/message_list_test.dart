@@ -91,6 +91,15 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  void checkAppBarChannelTopic(String channelName, String topic) {
+    final appBarFinder = find.byType(MessageListAppBarTitle);
+    check(appBarFinder).findsOne();
+    check(find.descendant(of: appBarFinder, matching: find.text(channelName)))
+      .findsOne();
+    check(find.descendant(of: appBarFinder, matching: find.text(topic)))
+      .findsOne();
+  }
+
   ScrollController? findMessageListScrollController(WidgetTester tester) {
     final scrollView = tester.widget<CustomScrollView>(find.byType(CustomScrollView));
     return scrollView.controller;
@@ -783,10 +792,7 @@ void main() {
         of: find.byType(RecipientHeader),
         matching: find.text('new topic')).evaluate()
       ).length.equals(1);
-      check(find.descendant(
-        of: find.byType(MessageListAppBarTitle),
-        matching: find.text('new topic')).evaluate()
-      ).length.equals(1);
+      checkAppBarChannelTopic(channel.name, 'new topic');
     });
   });
 
