@@ -245,7 +245,9 @@ void main() {
       check(ZulipApp.scaffoldMessenger).isNotNull();
       check(ZulipApp.ready).value.isTrue();
     });
+  });
 
+  group('error reporting', () {
     Finder findSnackBarByText(String text) => find.descendant(
       of: find.byType(SnackBar),
       matching: find.text(text));
@@ -307,7 +309,7 @@ void main() {
       check(findSnackBarByText(message).evaluate()).single;
     }
 
-    testWidgets('reportErrorToUser dismissing SnackBar', (tester) async {
+    testWidgets('reportErrorToUserBriefly dismissing SnackBar', (tester) async {
       const message = 'test error message';
       const details = 'error details';
       await prepareSnackBarWithDetails(tester, message, details);
