@@ -118,6 +118,12 @@ abstract class ZulipBinding {
   /// Outside tests, this just calls the [Stopwatch] constructor.
   Stopwatch stopwatch();
 
+  /// Testable [DateTime.now].
+  ///
+  /// Please refer to this issue:
+  ///   https://github.com/dart-lang/sdk/issues/28985
+  DateTime now();
+
   /// Provides device and operating system information,
   /// via package:device_info_plus.
   ///
@@ -367,6 +373,9 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   Stopwatch stopwatch() => Stopwatch();
+
+  @override
+  DateTime now() => DateTime.now();
 
   @override
   Future<BaseDeviceInfo?> get deviceInfo => _deviceInfo;

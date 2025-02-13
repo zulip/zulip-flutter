@@ -8,6 +8,7 @@ import 'package:timezone/timezone.dart' as tz;
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
@@ -345,8 +346,8 @@ class _UserLocalTimeTextState extends State<UserLocalTimeText> {
 
   @override
   void initState() {
-    _streamController.add(DateTime.timestamp());
-    _timer = Timer(const Duration(seconds: 1), () { _streamController.add(DateTime.timestamp()); });
+    _streamController.add(ZulipBinding.instance.now());
+    _timer = Timer(const Duration(seconds: 1), () { _streamController.add(ZulipBinding.instance.now()); });
     super.initState();
   }
 
