@@ -824,5 +824,9 @@
   "zulipAppTitle": "Zulip",
   "@zulipAppTitle": {
     "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
+  },
+  "emptyInboxMessage": "There are no unread messages in your Inbox.\nCheck out the [combined feed] for recent messages.",
+  "@emptyInboxMessage": {
+    "description": "Message shown when inbox is empty. [combined feed] will be replaced with a clickable link to Combined Feed."
   }
 }
