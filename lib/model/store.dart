@@ -1220,8 +1220,18 @@ class UpdateMachine {
       if (_disposed) return;
     }
 
-    await store._globalStore._reloadPerAccount(store.accountId);
-    assert(_disposed);
+    try {
+      await store._globalStore._reloadPerAccount(store.accountId);
+    } on AccountNotFoundException {
+      // The event queue didn't get replaced because the account was logged out,
+      // but that's OK as long as other code will ensure that the user
+      // eventually navigates from the route associated with the old queue
+      // (usually by using [routeToRemoveOnLogout]).
+      assert(debugLog('… Event queue not replaced; account logged out.'));
+      return;
+    } finally {
+      assert(_disposed);
+    }
     assert(debugLog('… Event queue replaced.'));
   }
 

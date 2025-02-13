@@ -13,6 +13,7 @@ import 'package:zulip/api/route/events.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/log.dart';
+import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
 
@@ -969,6 +970,46 @@ void main() {
           r"Error: .*channel\.dart.. Failed assertion.*"
         ));
       });
+    });
+
+    group('errors while reloading', () {
+      void checkReloadFailure({
+        required void Function() prepareError,
+        required Future<void> Function(FakeAsync async) callbackWhileReloading,
+      }) {
+        awaitFakeAsync((async) async {
+          await preparePoll();
+
+          globalStore.loadPerAccountPostDuration = Duration(seconds: 1);
+
+          prepareError();
+          updateMachine.debugAdvanceLoop();
+          async.elapse(Duration.zero);
+          check(store.isLoading).isTrue();
+
+          await callbackWhileReloading(async);
+          async.elapse(Duration(seconds: 1));
+          check(store.isLoading).isTrue();
+
+          async.flushTimers();
+          // reload never succeeds, no unhandled errors
+          check(store.isLoading).isTrue();
+
+          check(globalStore).getAccount(eg.selfAccount.id).isNull();
+        });
+      }
+
+      Future<void> doLogOutAccount(FakeAsync async) async {
+        final future = logOutAccount(globalStore, eg.selfAccount.id);
+        async.elapse(TestGlobalStore.removeAccountDuration);
+        await future;
+      }
+
+      test('user logged out', () => awaitFakeAsync((async) async {
+        checkReloadFailure(
+          prepareError: prepareExpiredEventQueue,
+          callbackWhileReloading: doLogOutAccount);
+      }));
     });
   });
 

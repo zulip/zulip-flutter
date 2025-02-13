@@ -129,6 +129,7 @@ class TestGlobalStore extends GlobalStore {
 
   static const Duration removeAccountDuration = Duration(milliseconds: 1);
   Duration? loadPerAccountDuration;
+  Duration? loadPerAccountPostDuration;
 
   /// Consume the log of calls made to [doRemoveAccount].
   List<int> takeDoRemoveAccountCalls() {
@@ -158,6 +159,9 @@ class TestGlobalStore extends GlobalStore {
     );
     updateMachines[accountId] = UpdateMachine.fromInitialSnapshot(
       store: store, initialSnapshot: initialSnapshot);
+    if (loadPerAccountPostDuration != null) {
+      await Future<void>.delayed(loadPerAccountPostDuration!);
+    }
     return Future.value(store);
   }
 }
