@@ -1220,8 +1220,14 @@ class UpdateMachine {
       if (_disposed) return;
     }
 
-    await store._globalStore._reloadPerAccount(store.accountId);
-    assert(_disposed);
+    try {
+      await store._globalStore._reloadPerAccount(store.accountId);
+    } on AccountNotFoundException {
+      assert(debugLog('… Event queue not replaced; account was logged out.'));
+      return;
+    } finally {
+      assert(_disposed);
+    }
     assert(debugLog('… Event queue replaced.'));
   }
 

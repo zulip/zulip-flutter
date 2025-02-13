@@ -5,6 +5,7 @@
 /// part of the Dart standard library.
 library;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
@@ -72,6 +73,10 @@ Object? deepToJson(Object? object) {
       return (null, false);
   }
   return (result, true);
+}
+
+extension CompleterChecks<T> on Subject<Completer<T>> {
+  Subject<bool> get isCompleted => has((x) => x.isCompleted, 'isCompleted');
 }
 
 extension JsonChecks on Subject<Object?> {

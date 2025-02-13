@@ -13,6 +13,7 @@ import 'package:zulip/api/route/events.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/log.dart';
+import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
 
@@ -967,6 +968,65 @@ void main() {
         ));
       });
     });
+  });
+
+  group('UpdateMachine.poll reload failure', () {
+    late LoadingTestGlobalStore globalStore;
+
+    List<Completer<PerAccountStore>> completers() =>
+      globalStore.completers[eg.selfAccount.id]!;
+
+    Future<void> prepareReload(FakeAsync async) async {
+      globalStore = LoadingTestGlobalStore(accounts: [eg.selfAccount]);
+      final future = globalStore.perAccount(eg.selfAccount.id);
+      final store = eg.store(globalStore: globalStore, account: eg.selfAccount);
+      completers().single.complete(store);
+      await future;
+      completers().clear();
+      final updateMachine = globalStore.updateMachines[eg.selfAccount.id] =
+        UpdateMachine.fromInitialSnapshot(
+          store: store, initialSnapshot: eg.initialSnapshot());
+      updateMachine.debugPauseLoop();
+      updateMachine.poll();
+
+      (store.connection as FakeApiConnection).prepare(
+        apiException: eg.apiExceptionBadEventQueueId());
+      updateMachine.debugAdvanceLoop();
+      async.elapse(Duration.zero);
+      check(store).isLoading.isTrue();
+    }
+
+    void checkReloadFailure({
+      required Future<void> Function() completeLoading,
+    }) {
+      awaitFakeAsync((async) async {
+        await prepareReload(async);
+        check(completers()).single.isCompleted.isFalse();
+
+        await completeLoading();
+        check(completers()).single.isCompleted.isTrue();
+        check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+
+        async.elapse(TestGlobalStore.removeAccountDuration);
+        check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+
+        async.flushTimers();
+        // Reload never succeeds and there are no unhandled errors.
+        check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+      });
+    }
+
+    Future<void> logOutAndCompleteWithNewStore() async {
+      // [PerAccountStore.fromInitialSnapshot] requires the account
+      // to be in the global store when called; do so before logging out.
+      final newStore = eg.store(globalStore: globalStore, account: eg.selfAccount);
+      await logOutAccount(globalStore, eg.selfAccount.id);
+      completers().single.complete(newStore);
+    }
+
+    test('user logged out before new store is loaded', () => awaitFakeAsync((async) async {
+      checkReloadFailure(completeLoading: logOutAndCompleteWithNewStore);
+    }));
   });
 
   group('UpdateMachine.registerNotificationToken', () {

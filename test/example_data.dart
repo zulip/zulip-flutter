@@ -879,6 +879,7 @@ ChannelUpdateEvent channelUpdateEvent(
 TestGlobalStore globalStore({List<Account> accounts = const []}) {
   return TestGlobalStore(accounts: accounts);
 }
+const _globalStore = globalStore;
 
 InitialSnapshot initialSnapshot({
   String? queueId,
@@ -949,10 +950,14 @@ InitialSnapshot initialSnapshot({
 }
 const _initialSnapshot = initialSnapshot;
 
-PerAccountStore store({Account? account, InitialSnapshot? initialSnapshot}) {
+PerAccountStore store({
+  GlobalStore? globalStore,
+  Account? account,
+  InitialSnapshot? initialSnapshot,
+}) {
   final effectiveAccount = account ?? selfAccount;
   return PerAccountStore.fromInitialSnapshot(
-    globalStore: globalStore(accounts: [effectiveAccount]),
+    globalStore: globalStore ?? _globalStore(accounts: [effectiveAccount]),
     accountId: effectiveAccount.id,
     initialSnapshot: initialSnapshot ?? _initialSnapshot(),
   );
