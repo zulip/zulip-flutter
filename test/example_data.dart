@@ -117,6 +117,7 @@ User user({
   bool? isActive,
   bool? isBot,
   UserRole? role,
+  String? timezone,
   String? avatarUrl,
   Map<int, ProfileFieldUserData>? profileData,
 }) {
@@ -134,7 +135,7 @@ User user({
     botType: null,
     botOwnerId: null,
     role: role ?? UserRole.member,
-    timezone: 'UTC',
+    timezone: timezone ?? 'UTC',
     avatarUrl: avatarUrl,
     avatarVersion: 0,
     profileData: profileData,
