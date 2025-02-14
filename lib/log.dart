@@ -53,8 +53,8 @@ typedef ReportErrorCancellablyCallback = void Function(String? message, {String?
 // the app.
 ReportErrorCancellablyCallback reportErrorToUserBriefly = defaultReportErrorToUserBriefly;
 
-void defaultReportErrorToUserBriefly(String? message, {String? details}) {
-  // Error dismissing is a no-op to the default handler.
+void _reportErrorToConsole(String? message, String? details) {
+  // Error dismissing is a no-op for the console.
   if (message == null) return;
   // If this callback is still in place, then the app's widget tree
   // hasn't mounted yet even as far as the [Navigator].
@@ -62,4 +62,8 @@ void defaultReportErrorToUserBriefly(String? message, {String? details}) {
   // just log, in case the user is actually a developer watching the console.
   assert(debugLog(message));
   if (details != null) assert(debugLog(details));
+}
+
+void defaultReportErrorToUserBriefly(String? message, {String? details}) {
+  _reportErrorToConsole(message, details);
 }
