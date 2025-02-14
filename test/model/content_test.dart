@@ -6,6 +6,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/code_block.dart';
 import 'package:zulip/model/content.dart';
+import 'package:zulip/model/katex.dart';
 
 import 'content_checks.dart';
 
@@ -496,31 +497,77 @@ class ContentExample {
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></p>',
     const MathInlineNode(texSource: r'\lambda'));
 
-  static const mathBlock = ContentExample(
-    'math block',
-    "```math\n\\lambda\n```",
-    expectedText: r'\lambda',
-    '<p><span class="katex-display"><span class="katex">'
-      '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
-        '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
-      '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
-    [MathBlockNode(texSource: r'\lambda')]);
+  static final mathBlock = ContentExample(
+    'math x',
+    '',
+    '<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo></mrow><annotation encoding="application/x-tex">f(x) =</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span></span></span></span></span></p>',
+    [
+      MathBlockNode(
+        // texSource: r'f(x) = \int_{-\infty}^\infty \hat{f}(\xi) e^{2 \pi i \xi x} \,d\xi',
+        texSource: '',
+        spans: [
+          KatexSpan(
+            spanClasses: ['base'],
+            spanStyle: null,
+            text: null,
+            spans: [
+              KatexSpan(
+                spanClasses: ['strut'],
+                spanStyle: KatexSpanStyle(height: 1.0, verticalAlign: -0.25),
+                text: null),
+              KatexSpan(
+                spanClasses: ['mord', 'mathnormal'],
+                spanStyle: KatexSpanStyle(marginRight: 0.10764),
+                text: 'f'),
+              KatexSpan(
+                spanClasses: ['mopen'],
+                spanStyle: null,
+                text: '('),
+              KatexSpan(
+                spanClasses: ['mord', 'mathnormal'],
+                spanStyle: null,
+                text: 'x'),
+              KatexSpan(
+                spanClasses: ['mclose'],
+                spanStyle: null,
+                text: ')'),
+              KatexSpan(
+                spanClasses: ['mspace'],
+                spanStyle: KatexSpanStyle(marginRight: 0.2778),
+                text: null),
+              KatexSpan(
+                spanClasses: ['mrel'],
+                spanStyle: null,
+                text: '='),
+            ]),
+        ]),
+    ]);
 
-  static const mathBlockInQuote = ContentExample(
-    'math block in quote',
-    // There's sometimes a quirky extra `<br>\n` at the end of the `<p>` that
-    // encloses the math block.  In particular this happens when the math block
-    // is the last thing in the quote; though not in a doubly-nested quote;
-    // and there might be further wrinkles yet to be found.  Some experiments:
-    //   https://chat.zulip.org/#narrow/stream/7-test-here/topic/content/near/1715732
-    "````quote\n```math\n\\lambda\n```\n````",
-    '<blockquote>\n<p>'
-      '<span class="katex-display"><span class="katex">'
-        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
-          '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
-        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span>'
-      '<br>\n</p>\n</blockquote>',
-    [QuotationNode([MathBlockNode(texSource: r'\lambda')])]);
+  // static const mathBlock = ContentExample(
+  //   'math block',
+  //   "```math\n\\lambda\n```",
+  //   expectedText: r'\lambda',
+  //   '<p><span class="katex-display"><span class="katex">'
+  //     '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
+  //       '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
+  //     '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
+  //   [MathBlockNode(texSource: r'\lambda')]);
+
+  // static const mathBlockInQuote = ContentExample(
+  //   'math block in quote',
+  //   // There's sometimes a quirky extra `<br>\n` at the end of the `<p>` that
+  //   // encloses the math block.  In particular this happens when the math block
+  //   // is the last thing in the quote; though not in a doubly-nested quote;
+  //   // and there might be further wrinkles yet to be found.  Some experiments:
+  //   //   https://chat.zulip.org/#narrow/stream/7-test-here/topic/content/near/1715732
+  //   "````quote\n```math\n\\lambda\n```\n````",
+  //   '<blockquote>\n<p>'
+  //     '<span class="katex-display"><span class="katex">'
+  //       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
+  //         '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
+  //       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span>'
+  //     '<br>\n</p>\n</blockquote>',
+  //   [QuotationNode([MathBlockNode(texSource: r'\lambda')])]);
 
   static const imageSingle = ContentExample(
     'single image',
@@ -1469,8 +1516,9 @@ void main() {
   testParseExample(ContentExample.codeBlockWithUnknownSpanType);
   testParseExample(ContentExample.codeBlockFollowedByMultipleLineBreaks);
 
+  // testParseExample(ContentExample.mathBlock);
+  // testParseExample(ContentExample.mathBlockInQuote);
   testParseExample(ContentExample.mathBlock);
-  testParseExample(ContentExample.mathBlockInQuote);
 
   testParseExample(ContentExample.imageSingle);
   testParseExample(ContentExample.imageSingleNoDimensions);

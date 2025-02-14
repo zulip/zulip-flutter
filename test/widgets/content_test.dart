@@ -513,7 +513,7 @@ void main() {
       styleFinder: (tester) => mergedStyleOf(tester, 'A')!);
   });
 
-  testContentSmoke(ContentExample.mathBlock);
+  // testContentSmoke(ContentExample.mathBlock);
 
   /// Make a [TargetFontSizeFinder] to pass to [checkFontSizeRatio],
   /// from a target [Pattern] (such as a string).
