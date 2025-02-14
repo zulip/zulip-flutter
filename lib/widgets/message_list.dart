@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -1387,6 +1387,17 @@ class MessageWithPossibleSender extends StatelessWidget {
       case MessageEditState.none:
     }
 
+    Widget? star;
+    if (message.flags.contains(MessageFlag.starred)) {
+      final starOffset = switch (Directionality.of(context)) {
+        TextDirection.ltr => -2.0,
+        TextDirection.rtl => 2.0,
+      };
+      star = Transform.translate(
+        offset: Offset(starOffset, 0),
+        child: Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star));
+    }
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onLongPress: () => showMessageActionSheet(context: context, message: message),
@@ -1418,9 +1429,7 @@ class MessageWithPossibleSender extends StatelessWidget {
                           context, 0.05, baseFontSize: 12))),
                 ])),
               SizedBox(width: 16,
-                child: message.flags.contains(MessageFlag.starred)
-                  ? Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star)
-                  : null),
+                child: star),
             ]),
         ])));
   }
