@@ -234,6 +234,13 @@ class NotificationDisplayManager {
     final groupKey = _groupKey(data);
     final conversationKey = _conversationKey(data, groupKey);
 
+    final globalStore = await ZulipBinding.instance.getGlobalStore();
+    final account = globalStore.accounts.firstWhereOrNull((account) =>
+      account.realmUrl == data.realmUrl && account.userId == data.userId);
+    if (account == null) {
+      return;
+    }
+
     final oldMessagingStyle = await _androidHost
       .getActiveNotificationMessagingStyleByTag(conversationKey);
 
