@@ -530,7 +530,7 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
               style: const TextStyle(fontSize: 20, height: 30 / 20))),
         ])),
       Expanded(child: InsetShadowBox(
-        top: 8, bottom: 8,
+        top: 8,
         color: designVariables.bgContextMenu,
         child: CustomScrollView(
           slivers: [
