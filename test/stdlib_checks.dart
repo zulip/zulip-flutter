@@ -5,6 +5,7 @@
 /// part of the Dart standard library.
 library;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
@@ -143,4 +144,8 @@ extension HttpMultipartFileChecks on Subject<http.MultipartFile> {
 
 extension MediaTypeChecks on Subject<MediaType> {
   Subject<String> get asString => has((x) => x.toString(), 'toString'); // TODO(checks): what's a good convention for this?
+}
+
+extension CompleterChecks<T> on Subject<Completer<T>> {
+  Subject<bool> get isCompleted => has((x) => x.isCompleted, 'isCompleted');
 }

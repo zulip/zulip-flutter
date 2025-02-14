@@ -19,6 +19,7 @@ import '../api/backoff.dart';
 import '../api/route/realm.dart';
 import '../log.dart';
 import '../notifications/receive.dart';
+import 'actions.dart';
 import 'autocomplete.dart';
 import 'database.dart';
 import 'emoji.dart';
@@ -149,8 +150,36 @@ abstract class GlobalStore extends ChangeNotifier {
   /// and/or [perAccountSync].
   Future<PerAccountStore> loadPerAccount(int accountId) async {
     assert(_accounts.containsKey(accountId));
-    final store = await doLoadPerAccount(accountId);
+    final PerAccountStore store;
+    try {
+      store = await doLoadPerAccount(accountId);
+    } catch (e) {
+      switch (e) {
+        case HttpException(httpStatus: 401):
+          // The API key is invalid and the store can never be loaded
+          // unless the user retries manually.
+          final account = getAccount(accountId);
+          if (account == null) {
+            // The account was logged out during `await doLoadPerAccount`.
+            // Here, that seems possible only by the user's own action;
+            // the logout can't have been done programmatically.
+            // Even if it were, it would have come with its own UI feedback.
+            // Anyway, skip showing feedback, to not be confusing or repetitive.
+            throw AccountNotFoundException();
+          }
+          final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+          reportErrorToUserModally(
+            zulipLocalizations.errorCouldNotConnectTitle,
+            message: zulipLocalizations.errorInvalidApiKeyMessage(
+              account.realmUrl.toString()));
+          await logOutAccount(this, accountId);
+          throw AccountNotFoundException();
+        default:
+          rethrow;
+      }
+    }
     if (!_accounts.containsKey(accountId)) {
+      // TODO(#1354): handle this earlier
       // [removeAccount] was called during [doLoadPerAccount].
       store.dispose();
       throw AccountNotFoundException();
@@ -913,12 +942,19 @@ class UpdateMachine {
       try {
         return await registerQueue(connection);
       } catch (e, s) {
-        assert(debugLog('Error fetching initial snapshot: $e'));
-        // Print stack trace in its own log entry; log entries are truncated
-        // at 1 kiB (at least on Android), and stack can be longer than that.
-        assert(debugLog('Stack:\n$s'));
+        // TODO(#890): tell user if initial-fetch errors persist, or look non-transient
+        switch (e) {
+          case HttpException(httpStatus: 401):
+            // We cannot recover from this error through retrying.
+            // Leave it to [GlobalStore.loadPerAccount].
+            rethrow;
+          default:
+            assert(debugLog('Error fetching initial snapshot: $e'));
+            // Print stack trace in its own log entry; log entries are truncated
+            // at 1 kiB (at least on Android), and stack can be longer than that.
+            assert(debugLog('Stack:\n$s'));
+        }
         assert(debugLog('Backing off, then will retry…'));
-        // TODO tell user if initial-fetch errors persist, or look non-transient
         await (backoffMachine ??= BackoffMachine()).wait();
         assert(debugLog('… Backoff wait complete, retrying initial fetch.'));
       }
@@ -1177,6 +1213,7 @@ class UpdateMachine {
     store.isLoading = true;
 
     bool isUnexpected;
+    // TODO(#1054): handle auth failure
     switch (error) {
       case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
         assert(debugLog('Lost event queue for $store.  Replacing…'));
@@ -1218,8 +1255,14 @@ class UpdateMachine {
       if (_disposed) return;
     }
 
-    await store._globalStore._reloadPerAccount(store.accountId);
-    assert(_disposed);
+    try {
+      await store._globalStore._reloadPerAccount(store.accountId);
+    } on AccountNotFoundException {
+      assert(debugLog('… Event queue not replaced; account was logged out.'));
+      return;
+    } finally {
+      assert(_disposed);
+    }
     assert(debugLog('… Event queue replaced.'));
   }
 

@@ -13,6 +13,7 @@ import 'package:zulip/api/route/events.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/log.dart';
+import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
 
@@ -119,6 +120,29 @@ void main() {
     check(await globalStore.perAccount(1)).identicalTo(store1);
     check(completers(1)).length.equals(1);
   });
+
+  test('GlobalStore.perAccount loading fails with HTTP status code 401', () => awaitFakeAsync((async) async {
+    final globalStore = LoadingTestGlobalStore(accounts: [eg.selfAccount]);
+    final future = globalStore.perAccount(eg.selfAccount.id);
+
+    globalStore.completers[eg.selfAccount.id]!
+      .single.completeError(eg.apiExceptionUnauthorized());
+    await check(future).throws<AccountNotFoundException>();
+  }));
+
+  test('GlobalStore.perAccount account is logged out while loading; then fails with HTTP status code 401', () => awaitFakeAsync((async) async {
+    final globalStore = LoadingTestGlobalStore(accounts: [eg.selfAccount]);
+    final future = globalStore.perAccount(eg.selfAccount.id);
+
+    await logOutAccount(globalStore, eg.selfAccount.id);
+    check(globalStore.takeDoRemoveAccountCalls())
+      .single.equals(eg.selfAccount.id);
+
+    globalStore.completers[eg.selfAccount.id]!
+      .single.completeError(eg.apiExceptionUnauthorized());
+    await check(future).throws<AccountNotFoundException>();
+    check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
+  }));
 
   // TODO test insertAccount
 
@@ -970,6 +994,68 @@ void main() {
         ));
       });
     });
+
+    group('reload failure', () {
+      List<Completer<PerAccountStore>> completers() =>
+        (globalStore as LoadingTestGlobalStore).completers[eg.selfAccount.id]!;
+
+      Future<void> preparePoll() async {
+        globalStore = LoadingTestGlobalStore(accounts: [eg.selfAccount]);
+        final future = globalStore.perAccount(eg.selfAccount.id);
+        completers()
+          ..single.complete(
+              eg.store(globalStore: globalStore, account: eg.selfAccount))
+          ..clear();
+        await future;
+        updateFromGlobalStore();
+        updateMachine.debugPauseLoop();
+        updateMachine.poll();
+      }
+
+      void checkReloadFailure({
+        required FutureOr<void> Function(FakeAsync async) completeLoading,
+      }) {
+        awaitFakeAsync((async) async {
+          await preparePoll();
+
+          prepareExpiredEventQueue();
+          updateMachine.debugAdvanceLoop();
+          async.elapse(Duration.zero);
+          check(store).isLoading.isTrue();
+          check(completers()).single.isCompleted.isFalse();
+
+          await completeLoading(async);
+          check(store).isLoading.isTrue();
+          check(completers()).single.isCompleted.isTrue();
+
+          async.flushTimers();
+          // Reload never succeeds and there is no unhandled errors.
+          check(store).isLoading.isTrue();
+          check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+          check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+        });
+      }
+
+      Future<void> logOutAndCompleteWithNewStore(FakeAsync async) async {
+        // [PerAccountStore.fromInitialSnapshot] requires the account
+        // to be in the global store when called; do so before logging out.
+        final newStore = eg.store(globalStore: globalStore, account: eg.selfAccount);
+        await logOutAccount(globalStore, eg.selfAccount.id);
+        completers().single.complete(newStore);
+      }
+
+      test('user logged out before new store is loaded', () => awaitFakeAsync((async) async {
+        checkReloadFailure(completeLoading: logOutAndCompleteWithNewStore);
+      }));
+
+      void completeWithApiExceptionUnauthorized(FakeAsync async) {
+        completers().single.completeError(eg.apiExceptionUnauthorized());
+      }
+
+      test('new store is not loaded, gets HTTP 401 error instead', () => awaitFakeAsync((async) async {
+        checkReloadFailure(completeLoading: completeWithApiExceptionUnauthorized);
+      }));
+    });
   });
 
   group('UpdateMachine.registerNotificationToken', () {
@@ -1070,10 +1156,13 @@ class LoadingTestGlobalStore extends TestGlobalStore {
   Map<int, List<Completer<PerAccountStore>>> completers = {};
 
   @override
-  Future<PerAccountStore> doLoadPerAccount(int accountId) {
+  Future<PerAccountStore> doLoadPerAccount(int accountId) async {
     final completer = Completer<PerAccountStore>();
     (completers[accountId] ??= []).add(completer);
-    return completer.future;
+    final store = await completer.future;
+    updateMachines[accountId] = UpdateMachine.fromInitialSnapshot(
+      store: store, initialSnapshot: eg.initialSnapshot());
+    return store;
   }
 }
 
