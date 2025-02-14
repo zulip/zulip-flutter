@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:zulip/api/exception.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -18,8 +19,26 @@ void _checkPositive(int? value, String description) {
   assert(value == null || value > 0, '$description should be positive');
 }
 
+////////////////////////////////////////////////////////////////
+// Error objects.
+//
+
 Object nullCheckError() {
   try { null!; } catch (e) { return e; } // ignore: null_check_always_fails
+}
+
+/// The error the server gives when the client's credentials
+/// (API key together with email and realm URL) are no longer valid.
+///
+/// This isn't really documented, but comes from experiment and from
+/// reading the server implementation.  See:
+///   https://github.com/zulip/zulip-flutter/pull/1183#discussion_r1945865983
+///   https://chat.zulip.org/#narrow/channel/378-api-design/topic/general.20handling.20HTTP.20status.20code.20401/near/2090024
+ZulipApiException apiExceptionUnauthorized({String routeName = 'someRoute'}) {
+  return ZulipApiException(
+    routeName: routeName,
+    httpStatus: 401, code: 'UNAUTHORIZED',
+    data: {}, message: 'Invalid API key');
 }
 
 ////////////////////////////////////////////////////////////////

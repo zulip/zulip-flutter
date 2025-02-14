@@ -102,13 +102,7 @@ void main() {
       check(testBinding.globalStore).accountIds.single.equals(eg.selfAccount.id);
       const unregisterDelay = Duration(seconds: 5);
       assert(unregisterDelay > TestGlobalStore.removeAccountDuration);
-      final exception = ZulipApiException(
-        httpStatus: 401,
-        code: 'UNAUTHORIZED',
-        data: {},
-        routeName: 'removeEtcEtcToken',
-        message: 'Invalid API key',
-      );
+      final exception = eg.apiExceptionUnauthorized(routeName: 'removeEtcEtcToken');
       final newConnection = separateConnection()
         ..prepare(delay: unregisterDelay, exception: exception);
 
@@ -170,14 +164,9 @@ void main() {
     test('connection closed if request errors', () => awaitFakeAsync((async) async {
       await prepare(ackedPushToken: '123');
 
+      final exception = eg.apiExceptionUnauthorized(routeName: 'removeEtcEtcToken');
       final newConnection = separateConnection()
-        ..prepare(exception: ZulipApiException(
-            httpStatus: 401,
-            code: 'UNAUTHORIZED',
-            data: {},
-            routeName: 'removeEtcEtcToken',
-            message: 'Invalid API key',
-          ));
+        ..prepare(exception: exception);
       final future = unregisterToken(testBinding.globalStore, eg.selfAccount.id);
       async.elapse(Duration.zero);
       await future;
