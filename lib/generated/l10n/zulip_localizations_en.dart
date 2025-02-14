@@ -113,6 +113,9 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
   String get actionSheetOptionUnstarMessage => 'Unstar message';
 
   @override
+  String get actionSheetOptionMarkTopicAsRead => 'Mark topic as read';
+
+  @override
   String get errorWebAuthOperationalErrorTitle => 'Something went wrong';
 
   @override
