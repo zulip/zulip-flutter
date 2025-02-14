@@ -482,7 +482,7 @@ class ListNodeWidget extends StatelessWidget {
     final items = List.generate(node.items.length, (index) {
       final item = node.items[index];
       String marker;
-      switch (node.style) {
+      switch (node) {
         // TODO(#161): different unordered marker styles at different levels of nesting
         //   see:
         //     https://html.spec.whatwg.org/multipage/rendering.html#lists
@@ -490,37 +490,27 @@ class ListNodeWidget extends StatelessWidget {
         // TODO proper alignment of unordered marker; should be "• ", one space,
         //   but that comes out too close to item; not sure what's fixing that
         //   in a browser
-        case ListStyle.unordered: marker = "•   "; break;
-        // TODO(#59) ordered lists starting not at 1
-        case ListStyle.ordered: marker = "${index+1}. "; break;
+        case UnorderedListNode(): marker = "•   "; break;
+        case OrderedListNode(:final start): marker = "${start + index}. "; break;
       }
-      return ListItemWidget(marker: marker, nodes: item);
+      return TableRow(children: [
+        Align(
+          alignment: AlignmentDirectional.topEnd,
+          child: Text(marker)),
+        BlockContentList(nodes: item),
+      ]);
     });
+
     return Padding(
       padding: const EdgeInsets.only(top: 2, bottom: 5),
-      child: Column(children: items));
-  }
-}
-
-class ListItemWidget extends StatelessWidget {
-  const ListItemWidget({super.key, required this.marker, required this.nodes});
-
-  final String marker;
-  final List<BlockContentNode> nodes;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: localizedTextBaseline(context),
-      children: [
-        SizedBox(
-          width: 20, // TODO handle long numbers in <ol>, like https://github.com/zulip/zulip/pull/25063
-          child: Align(
-            alignment: AlignmentDirectional.topEnd, child: Text(marker))),
-        Expanded(child: BlockContentList(nodes: nodes)),
-      ]);
+      child: Table(
+        defaultVerticalAlignment: TableCellVerticalAlignment.baseline,
+        textBaseline: localizedTextBaseline(context),
+        columnWidths: const <int, TableColumnWidth>{
+          0: IntrinsicColumnWidth(),
+          1: FlexColumnWidth(),
+        },
+        children: items));
   }
 }
 
