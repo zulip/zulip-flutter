@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/api/exception.dart';
 import 'package:zulip/log.dart';
+import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/home.dart';
@@ -54,6 +56,106 @@ void main() {
           ..accountId.equals(eg.selfAccount.id)
           ..page.isA<HomePage>(),
       ]);
+    });
+  });
+
+  group('_PreventEmptyStack', () {
+    late List<Route<void>> pushedRoutes;
+    late List<Route<void>> removedRoutes;
+    late List<Route<void>> poppedRoutes;
+
+    Future<void> prepare(WidgetTester tester) async {
+      addTearDown(testBinding.reset);
+
+      pushedRoutes = [];
+      removedRoutes = [];
+      poppedRoutes = [];
+      final testNavObserver = TestNavigatorObserver();
+      testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      testNavObserver.onRemoved = (route, prevRoute) => removedRoutes.add(route);
+      testNavObserver.onPopped = (route, prevRoute) => poppedRoutes.add(route);
+
+      await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
+      await tester.pump(); // start to load account
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
+      pushedRoutes.clear();
+    }
+
+    testWidgets('do not push route to non-empty navigator stack', (tester) async {
+      const loadPerAccountDuration = Duration(seconds: 30);
+      assert(loadPerAccountDuration > kTryAnotherAccountWaitPeriod);
+      testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
+      testBinding.globalStore.loadPerAccountException = ZulipApiException(
+        routeName: '/register', code: 'UNAUTHORIZED', httpStatus: 401,
+        data: {}, message: '');
+      await testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      await prepare(tester);
+
+      await tester.pump(kTryAnotherAccountWaitPeriod);
+      await tester.tap(find.text('Try another account'));
+      await tester.pump(); // tap the button
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<ChooseAccountPage>();
+      pushedRoutes.clear();
+
+      await tester.pump(loadPerAccountDuration); // got the error
+      await tester.pump(TestGlobalStore.removeAccountDuration);
+      check(testBinding.globalStore.takeDoRemoveAccountCalls())
+        .single.equals(eg.selfAccount.id);
+      check(removedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
+      check(poppedRoutes).isEmpty();
+      check(pushedRoutes).single.isA<DialogRoute<void>>();
+      pushedRoutes.clear();
+
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: 'Could not connect',
+        expectedMessage:
+          'Your account at https://chat.example/ could not be authenticated.'
+          ' Please try logging in again or use another account.')));
+      // No more routes are pushed after dismissing the error dialog,
+      // because the navigator stack was non-empty.
+      check(poppedRoutes).single.isA<DialogRoute<void>>();
+      check(pushedRoutes).isEmpty();
+    });
+
+    testWidgets('push route when popping last route on stack', (tester) async {
+      testBinding.globalStore.loadPerAccountDuration = Duration.zero;
+      testBinding.globalStore.loadPerAccountException = ZulipApiException(
+        routeName: '/register', code: 'UNAUTHORIZED', httpStatus: 401,
+        data: {}, message: '');
+      await testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      await prepare(tester);
+
+      await tester.pump(Duration.zero); // got the error
+      await tester.pump(TestGlobalStore.removeAccountDuration);
+      check(testBinding.globalStore.takeDoRemoveAccountCalls())
+        .single.equals(eg.selfAccount.id);
+      check(removedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
+      check(poppedRoutes).isEmpty();
+      check(pushedRoutes).single.isA<DialogRoute<void>>();
+      pushedRoutes.clear();
+
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: 'Could not connect',
+        expectedMessage:
+          'Your account at https://chat.example/ could not be authenticated.'
+          ' Please try logging in again or use another account.')));
+      // The navigator stack became empty after dismissing the error dialog,
+      // so a choose-account page route was pushed.
+      check(poppedRoutes).single.isA<DialogRoute<void>>();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<ChooseAccountPage>();
+    });
+
+    testWidgets('push route when removing last route on stack', (tester) async {
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await prepare(tester);
+
+      final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
+      await tester.pump(TestGlobalStore.removeAccountDuration);
+      await future;
+      check(testBinding.globalStore.takeDoRemoveAccountCalls())
+        .single.equals(eg.selfAccount.id);
+      check(removedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<ChooseAccountPage>();
     });
   });
 
@@ -245,7 +347,9 @@ void main() {
       check(ZulipApp.scaffoldMessenger).isNotNull();
       check(ZulipApp.ready).value.isTrue();
     });
+  });
 
+  group('error reporting', () {
     Finder findSnackBarByText(String text) => find.descendant(
       of: find.byType(SnackBar),
       matching: find.text(text));
@@ -307,7 +411,7 @@ void main() {
       check(findSnackBarByText(message).evaluate()).single;
     }
 
-    testWidgets('reportErrorToUser dismissing SnackBar', (tester) async {
+    testWidgets('reportErrorToUserBriefly dismissing SnackBar', (tester) async {
       const message = 'test error message';
       const details = 'error details';
       await prepareSnackBarWithDetails(tester, message, details);
@@ -360,6 +464,25 @@ void main() {
       reportErrorToUserBriefly(null);
       await tester.pumpAndSettle();
       check(findSnackBarByText('unrelated').evaluate()).single;
+    });
+
+    testWidgets('reportErrorToUserModally', (tester) async {
+      addTearDown(testBinding.reset);
+      await tester.pumpWidget(const ZulipApp());
+      const title = 'test title';
+      const message = 'test message';
+
+      // Prior to app startup, reportErrorToUserModally only logs.
+      reportErrorToUserModally(title, message: message);
+      check(ZulipApp.ready).value.isFalse();
+      await tester.pump();
+      checkNoErrorDialog(tester);
+
+      check(ZulipApp.ready).value.isTrue();
+      // After app startup, reportErrorToUserModally displays an [AlertDialog].
+      reportErrorToUserModally(title, message: message);
+      await tester.pump();
+      checkErrorDialog(tester, expectedTitle: title, expectedMessage: message);
     });
   });
 }

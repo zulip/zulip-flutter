@@ -179,7 +179,7 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   }
 
   @override
-  String get errorLoginCouldNotConnectTitle => 'Nepodarilo sa pripojiť';
+  String get errorCouldNotConnectTitle => 'Could not connect';
 
   @override
   String get errorMessageDoesNotSeemToExist => 'Správa zrejme neexistuje.';
@@ -403,6 +403,11 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
 
   @override
   String get topicValidationErrorMandatoryButEmpty => 'Topics are required in this organization.';
+
+  @override
+  String errorInvalidApiKeyMessage(String url) {
+    return 'Your account at $url could not be authenticated. Please try logging in again or use another account.';
+  }
 
   @override
   String get errorInvalidResponse => 'Server poslal nesprávnu odpoveď';
