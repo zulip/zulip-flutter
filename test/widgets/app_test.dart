@@ -280,14 +280,14 @@ void main() {
       check(ZulipApp.ready).value.isFalse();
       await tester.pump();
       check(findSnackBarByText(message).evaluate()).isEmpty();
-      checkNoErrorDialog(tester);
+      checkNoDialog(tester);
 
       check(ZulipApp.ready).value.isTrue();
       // After app startup, reportErrorToUserBriefly displays a SnackBar.
       reportErrorToUserBriefly(message, details: details);
       await tester.pumpAndSettle();
       check(findSnackBarByText(message).evaluate()).single;
-      checkNoErrorDialog(tester);
+      checkNoDialog(tester);
 
       // Open the error details dialog.
       await tester.tap(find.text('Details'));
