@@ -157,13 +157,34 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   @override
   String _computeTextNormalized() {
     String trimmed = text.trim();
-    return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    // TODO(server-10): simplify
+    if (store.connection.zulipFeatureLevel! < 334) {
+      return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    }
+
+    return trimmed;
+  }
+
+  bool get _isTopicConsideredEmpty {
+    bool result = textNormalized.isEmpty
+      // We keep checking for '(no topic)' regardless of the feature level
+      // because it remains equivalent to an empty topic even when FL >= 334.
+      // This can change in the future:
+      //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/.28realm_.29mandatory_topics.20behavior/near/2062391
+      || textNormalized == kNoTopicTopic;
+
+    // TODO(server-10): simplify
+    if (store.connection.zulipFeatureLevel! >= 334) {
+      result |= textNormalized == store.realmEmptyTopicDisplayName;
+    }
+
+    return result;
   }
 
   @override
   List<TopicValidationError> _computeValidationErrors() {
     return [
-      if (mandatory && textNormalized == kNoTopicTopic)
+      if (mandatory && _isTopicConsideredEmpty)
         TopicValidationError.mandatoryButEmpty,
 
       if (
@@ -175,7 +196,7 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   void setTopic(TopicName newTopic) {
-    value = TextEditingValue(text: newTopic.displayName);
+    value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
 
@@ -580,11 +601,13 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.unknownChannelName;
+    final topic = TopicName(_topicTextNormalized);
     return _ContentInput(
       narrow: widget.narrow,
-      destination: TopicNarrow(widget.narrow.streamId, TopicName(_topicTextNormalized)),
+      destination: TopicNarrow(widget.narrow.streamId, topic),
       controller: widget.controller,
-      hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
+      hintText: zulipLocalizations.composeBoxChannelContentHint(
+        '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}'));
   }
 }
 
@@ -603,6 +626,9 @@ class _TopicInput extends StatelessWidget {
       height: 22 / 20,
       color: designVariables.textInput.withFadedAlpha(0.9),
     ).merge(weightVariableTextStyle(context, wght: 600));
+    final store = PerAccountStoreWidget.of(context);
+    final allowsEmptyTopics =
+      store.connection.zulipFeatureLevel! >= 334 && !store.realmMandatoryTopics;
 
     return TopicAutocomplete(
       streamId: streamId,
@@ -620,8 +646,11 @@ class _TopicInput extends StatelessWidget {
           textInputAction: TextInputAction.next,
           style: topicTextStyle,
           decoration: InputDecoration(
-            hintText: zulipLocalizations.composeBoxTopicHintText,
+            hintText: allowsEmptyTopics
+              ? store.realmEmptyTopicDisplayName
+              : zulipLocalizations.composeBoxTopicHintText,
             hintStyle: topicTextStyle.copyWith(
+              fontStyle: allowsEmptyTopics ? FontStyle.italic : null,
               color: designVariables.textInput.withFadedAlpha(0.5))))));
   }
 }
@@ -643,7 +672,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
         final streamName = store.streams[streamId]?.name
           ?? zulipLocalizations.unknownChannelName;
         return zulipLocalizations.composeBoxChannelContentHint(
-          streamName, topic.displayName);
+          '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;
