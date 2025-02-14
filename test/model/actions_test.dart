@@ -105,7 +105,7 @@ void main() {
       final exception = ZulipApiException(
         httpStatus: 401,
         code: 'UNAUTHORIZED',
-        data: {"result": "error", "msg": "Invalid API key", "code": "UNAUTHORIZED"},
+        data: {},
         routeName: 'removeEtcEtcToken',
         message: 'Invalid API key',
       );
@@ -174,7 +174,7 @@ void main() {
         ..prepare(exception: ZulipApiException(
             httpStatus: 401,
             code: 'UNAUTHORIZED',
-            data: {"result": "error", "msg": "Invalid API key", "code": "UNAUTHORIZED"},
+            data: {},
             routeName: 'removeEtcEtcToken',
             message: 'Invalid API key',
           ));
