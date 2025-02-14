@@ -84,10 +84,12 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     final List<Subscription> pinned = [];
     final List<Subscription> unpinned = [];
     for (final subscription in store.subscriptions.values) {
-      if (subscription.pinToTop) {
-        pinned.add(subscription);
-      } else {
-        unpinned.add(subscription);
+      if(!subscription.isArchived) {
+        if (subscription.pinToTop) {
+          pinned.add(subscription);
+        } else {
+          unpinned.add(subscription);
+        }
       }
     }
     _sortSubs(pinned);
@@ -187,10 +189,13 @@ class _SubscriptionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Filtering out the archived subscriptions.
+    final activeSubscriptions = subscriptions.where((sub) => !sub.isArchived).toList();
+
     return SliverList.builder(
-      itemCount: subscriptions.length,
+      itemCount: activeSubscriptions.length,
       itemBuilder: (BuildContext context, int index) {
-        final subscription = subscriptions[index];
+        final subscription = activeSubscriptions[index];
         final unreadCount = unreadsModel!.countInChannel(subscription.streamId);
         final showMutedUnreadBadge = unreadCount == 0
           && unreadsModel!.countInChannelNarrow(subscription.streamId) > 0;
