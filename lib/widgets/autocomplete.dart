@@ -200,9 +200,10 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
         if (query is! MentionAutocompleteQuery) {
           return; // Shrug; similar to `intent == null` case above.
         }
+        final user = store.getUser(userId)!; // must exist because UserMentionAutocompleteResult
         // TODO(i18n) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
-        replacementString = '${userMention(store.users[userId]!, silent: query.silent, users: store.users)} ';
+        replacementString = '${userMention(user, silent: query.silent, users: store)} ';
       case WildcardMentionAutocompleteResult(:var wildcardOption):
         replacementString = '${wildcardMention(wildcardOption, store: store)} ';
     }
@@ -241,7 +242,7 @@ class _MentionAutocompleteItem extends StatelessWidget {
     required PerAccountStore store,
   }) {
     final isDmNarrow = narrow is DmNarrow;
-    final isChannelWildcardAvailable = store.account.zulipFeatureLevel >= 247; // TODO(server-9)
+    final isChannelWildcardAvailable = store.zulipFeatureLevel >= 247; // TODO(server-9)
     final localizations = ZulipLocalizations.of(context);
     final description = switch (wildcardOption) {
       WildcardMentionOption.all || WildcardMentionOption.everyone => isDmNarrow
@@ -267,8 +268,9 @@ class _MentionAutocompleteItem extends StatelessWidget {
     Widget label;
     switch (option) {
       case UserMentionAutocompleteResult(:var userId):
+        final user = store.getUser(userId)!; // must exist because UserMentionAutocompleteResult
         avatar = Avatar(userId: userId, size: 32, borderRadius: 3); // web uses 21px
-        label = Text(store.users[userId]!.fullName);
+        label = Text(user.fullName);
       case WildcardMentionAutocompleteResult(:var wildcardOption):
         avatar = const Icon(ZulipIcons.three_person, size: 29); // web uses 19px
         label = wildcardLabel(wildcardOption, context: context, store: store);

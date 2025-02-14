@@ -650,7 +650,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
 
       case DmNarrow(otherRecipientIds: [final otherUserId]):
         final store = PerAccountStoreWidget.of(context);
-        final fullName = store.users[otherUserId]?.fullName;
+        final fullName = store.getUser(otherUserId)?.fullName;
         if (fullName == null) return zulipLocalizations.composeBoxGenericContentHint;
         return zulipLocalizations.composeBoxDmContentHint(fullName);
 
@@ -1405,23 +1405,24 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   Widget? _errorBanner(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final selfUser = store.users[store.selfUserId]!;
     switch (widget.narrow) {
       case ChannelNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         final channel = store.streams[streamId];
         if (channel == null || !store.hasPostingPermission(inChannel: channel,
-            user: selfUser, byDate: DateTime.now())) {
+            user: store.selfUser, byDate: DateTime.now())) {
           return _ErrorBanner(label:
             ZulipLocalizations.of(context).errorBannerCannotPostInChannelLabel);
         }
+
       case DmNarrow(:final otherRecipientIds):
         final hasDeactivatedUser = otherRecipientIds.any((id) =>
-          !(store.users[id]?.isActive ?? true));
+          !(store.getUser(id)?.isActive ?? true));
         if (hasDeactivatedUser) {
           return _ErrorBanner(label:
             ZulipLocalizations.of(context).errorBannerDeactivatedDmLabel);
         }
+
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():

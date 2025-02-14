@@ -345,36 +345,8 @@ void main() {
 
   group('PerAccountStore.handleEvent', () {
     // Mostly this method just dispatches to ChannelStore and MessageStore etc.,
-    // and so most of the tests live in the test files for those
+    // and so its tests generally live in the test files for those
     // (but they call the handleEvent method because it's the entry point).
-
-    group('RealmUserUpdateEvent', () {
-      // TODO write more tests for handling RealmUserUpdateEvent
-
-      test('deliveryEmail', () {
-        final user = eg.user(deliveryEmail: 'a@mail.example');
-        final store = eg.store(initialSnapshot: eg.initialSnapshot(
-          realmUsers: [eg.selfUser, user]));
-
-        User getUser() => store.users[user.userId]!;
-
-        store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
-          deliveryEmail: null));
-        check(getUser()).deliveryEmail.equals('a@mail.example');
-
-        store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
-          deliveryEmail: const JsonNullable(null)));
-        check(getUser()).deliveryEmail.isNull();
-
-        store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
-          deliveryEmail: const JsonNullable('b@mail.example')));
-        check(getUser()).deliveryEmail.equals('b@mail.example');
-
-        store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
-          deliveryEmail: const JsonNullable('c@mail.example')));
-        check(getUser()).deliveryEmail.equals('c@mail.example');
-      });
-    });
   });
 
   group('PerAccountStore.sendMessage', () {
@@ -437,7 +409,7 @@ void main() {
       //    clobber the recorded registerQueue request so we can't check it.
       // checkLastRequest();
 
-      check(updateMachine.store.users.values).unorderedMatches(
+      check(updateMachine.store.allUsers).unorderedMatches(
         users.map((expected) => (it) => it.fullName.equals(expected.fullName)));
     }));
 
@@ -494,7 +466,7 @@ void main() {
       updateMachine.debugPauseLoop();
       check(complete).isTrue();
       // checkLastRequest(); TODO UpdateMachine.debugPauseLoop was too late; see comment above
-      check(updateMachine.store.users.values).unorderedMatches(
+      check(updateMachine.store.allUsers).unorderedMatches(
         users.map((expected) => (it) => it.fullName.equals(expected.fullName)));
     }));
 
