@@ -138,6 +138,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     contextMenuItemBg: const Color(0xff6159e1),
     contextMenuItemText: const Color(0xff381da7),
     editorButtonPressedBg: Colors.black.withValues(alpha: 0.06),
+    fabBg: const Color(0xff4f42c9),
+    fabLabel: const Color(0xfff1f3fe),
     foreground: const Color(0xff000000),
     icon: const Color(0xff6159e1),
     iconSelected: const Color(0xff222222),
@@ -187,6 +189,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     contextMenuItemBg: const Color(0xff7977fe),
     contextMenuItemText: const Color(0xff9398fd),
     editorButtonPressedBg: Colors.white.withValues(alpha: 0.06),
+    fabBg: const Color(0xff6e69f3),
+    fabLabel: const Color(0xffeceefc),
     foreground: const Color(0xffffffff),
     icon: const Color(0xff7977fe),
     iconSelected: Colors.white.withValues(alpha: 0.8),
@@ -245,6 +249,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.contextMenuItemText,
     required this.editorButtonPressedBg,
     required this.foreground,
+    required this.fabBg,
+    required this.fabLabel,
     required this.icon,
     required this.iconSelected,
     required this.labelCounterUnread,
@@ -302,6 +308,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color contextMenuItemBg;
   final Color contextMenuItemText;
   final Color editorButtonPressedBg;
+  final Color fabBg;
+  final Color fabLabel;
   final Color foreground;
   final Color icon;
   final Color iconSelected;
@@ -355,6 +363,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? contextMenuItemBg,
     Color? contextMenuItemText,
     Color? editorButtonPressedBg,
+    Color? fabBg,
+    Color? fabLabel,
     Color? foreground,
     Color? icon,
     Color? iconSelected,
@@ -404,6 +414,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       contextMenuItemText: contextMenuItemText ?? this.contextMenuItemBg,
       editorButtonPressedBg: editorButtonPressedBg ?? this.editorButtonPressedBg,
       foreground: foreground ?? this.foreground,
+      fabBg: fabBg ?? this.fabBg,
+      fabLabel: fabLabel ?? this.fabLabel,
       icon: icon ?? this.icon,
       iconSelected: iconSelected ?? this.iconSelected,
       labelCounterUnread: labelCounterUnread ?? this.labelCounterUnread,
@@ -459,6 +471,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       contextMenuItemText: Color.lerp(contextMenuItemText, other.contextMenuItemBg, t)!,
       editorButtonPressedBg: Color.lerp(editorButtonPressedBg, other.editorButtonPressedBg, t)!,
       foreground: Color.lerp(foreground, other.foreground, t)!,
+      fabBg: Color.lerp(fabBg, other.fabBg, t)!,
+      fabLabel: Color.lerp(fabLabel, other.fabLabel, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
       iconSelected: Color.lerp(iconSelected, other.iconSelected, t)!,
       labelCounterUnread: Color.lerp(labelCounterUnread, other.labelCounterUnread, t)!,
