@@ -1062,7 +1062,7 @@ void main() {
         .initNarrow.equals(DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId));
       await tester.pumpAndSettle();
     });
-    
+
     testWidgets('does not navigate on tapping recipient header in DmNarrow', (tester) async {
       final pushedRoutes = <Route<void>>[];
       final navObserver = TestNavigatorObserver()
