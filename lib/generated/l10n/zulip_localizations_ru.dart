@@ -405,6 +405,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get topicValidationErrorMandatoryButEmpty => 'Темы обязательны в этой организации.';
 
   @override
+  String get errorContentNotInsertedTitle => 'Content not inserted';
+
+  @override
+  String get errorContentToInsertIsEmpty => 'The file to be inserted is empty or cannot be accessed.';
+
+  @override
   String get errorInvalidResponse => 'Получен недопустимый ответ сервера';
 
   @override
