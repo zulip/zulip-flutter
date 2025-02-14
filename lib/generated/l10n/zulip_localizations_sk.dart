@@ -643,4 +643,12 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
 
   @override
   String get zulipAppTitle => 'Zulip';
+
+  @override
+  String userLocalTime(DateTime userTime) {
+    final intl.DateFormat userTimeDateFormat = intl.DateFormat.jm(localeName);
+    final String userTimeString = userTimeDateFormat.format(userTime);
+
+    return '$userTimeString local time';
+  }
 }
