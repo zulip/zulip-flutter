@@ -347,7 +347,7 @@ class _UserLocalTimeTextState extends State<UserLocalTimeText> {
   @override
   void initState() {
     _streamController.add(ZulipBinding.instance.now());
-    _timer = Timer(const Duration(seconds: 1), () { _streamController.add(ZulipBinding.instance.now()); });
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) { _streamController.add(ZulipBinding.instance.now()); });
     super.initState();
   }
 
