@@ -81,7 +81,10 @@ class ZulipApiException extends HttpException {
     required this.code,
     required this.data,
     required super.message,
-  }) : assert(400 <= httpStatus && httpStatus <= 499);
+  }) : assert(400 <= httpStatus && httpStatus <= 499),
+       assert(!data.containsKey('result')
+           && !data.containsKey('code')
+           && !data.containsKey('msg'));
 
   @override
   String toString() {
