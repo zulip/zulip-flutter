@@ -149,8 +149,7 @@ class NotificationService {
         await addFcmToken(connection, token: token);
 
       case TargetPlatform.iOS:
-        const appBundleId = 'com.zulip.flutter'; // TODO(#407) find actual value live
-        await addApnsToken(connection, token: token, appid: appBundleId);
+        await addApnsToken(connection, token: token, appid: (await ZulipBinding.instance.packageInfo)?.packageName?? 'com.zulip.flutter');
 
       case TargetPlatform.linux:
       case TargetPlatform.macOS:
