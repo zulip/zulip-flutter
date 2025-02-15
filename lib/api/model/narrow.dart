@@ -6,18 +6,41 @@ part 'narrow.g.dart';
 
 typedef ApiNarrow = List<ApiNarrowElement>;
 
-/// Resolve any [ApiNarrowDm] elements appropriately.
+/// Adapt the given narrow to be sent to the given Zulip server version.
 ///
-/// This encapsulates a server-feature check.
-ApiNarrow resolveDmElements(ApiNarrow narrow, int zulipFeatureLevel) {
-  if (!narrow.any((element) => element is ApiNarrowDm)) {
+/// Any elements that take a different name on old vs. new servers
+/// will be resolved to the specific name to use.
+/// Any elements that are unknown to old servers and can
+/// reasonably be omitted will be omitted.
+ApiNarrow resolveApiNarrowForServer(ApiNarrow narrow, int zulipFeatureLevel) {
+  final supportsOperatorDm = zulipFeatureLevel >= 177; // TODO(server-7)
+  final supportsOperatorWith = zulipFeatureLevel >= 271; // TODO(server-9)
+
+  bool hasDmElement = false;
+  bool hasWithElement = false;
+  for (final element in narrow) {
+    switch (element) {
+      case ApiNarrowDm():   hasDmElement = true;
+      case ApiNarrowWith(): hasWithElement = true;
+      default:
+    }
+  }
+  if (!hasDmElement && (!hasWithElement || supportsOperatorWith)) {
     return narrow;
   }
-  final supportsOperatorDm = zulipFeatureLevel >= 177; // TODO(server-7)
-  return narrow.map((element) => switch (element) {
-    ApiNarrowDm() => element.resolve(legacy: !supportsOperatorDm),
-    _             => element,
-  }).toList();
+
+  final result = <ApiNarrowElement>[];
+  for (final element in narrow) {
+    switch (element) {
+      case ApiNarrowDm():
+        result.add(element.resolve(legacy: !supportsOperatorDm));
+      case ApiNarrowWith() when !supportsOperatorWith:
+        break; // drop unsupported element
+      default:
+        result.add(element);
+    }
+  }
+  return result;
 }
 
 /// An element in the list representing a narrow in the Zulip API.
@@ -102,7 +125,7 @@ class ApiNarrowTopic extends ApiNarrowElement {
 /// and more generally its [operator] getter must not be called.
 /// Instead, call [resolve] and use the object it returns.
 ///
-/// If part of [ApiNarrow] use [resolveDmElements].
+/// If part of [ApiNarrow] use [resolveApiNarrowForServer].
 class ApiNarrowDm extends ApiNarrowElement {
   @override String get operator {
     assert(false,
@@ -148,6 +171,22 @@ class ApiNarrowPmWith extends ApiNarrowDm {
   @override String get operator => 'pm-with';
 
   ApiNarrowPmWith._(super.operand, {super.negated});
+}
+
+/// An [ApiNarrowElement] with the 'with' operator.
+///
+/// If part of [ApiNarrow] use [resolveApiNarrowElements].
+class ApiNarrowWith extends ApiNarrowElement {
+  @override String get operator => 'with';
+
+  @override final int operand;
+
+  ApiNarrowWith(this.operand, {super.negated});
+
+  factory ApiNarrowWith.fromJson(Map<String, dynamic> json) => ApiNarrowWith(
+    json['operand'] as int,
+    negated: json['negated'] as bool? ?? false,
+  );
 }
 
 class ApiNarrowIs extends ApiNarrowElement {
