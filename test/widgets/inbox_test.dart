@@ -4,17 +4,24 @@ import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/channel_colors.dart';
+import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/page.dart';
 
+import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
+import '../test_navigation.dart';
+import 'message_list_checks.dart';
 import 'test_app.dart';
+import 'page_checks.dart';
 
 /// Repeatedly drags `view` by `moveStep` until `finder` is invisible.
 ///
@@ -52,6 +59,7 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   late PerAccountStore store;
+  late FakeApiConnection connection;
 
   Future<void> setupPage(WidgetTester tester, {
     List<ZulipStream>? streams,
@@ -201,6 +209,36 @@ void main() {
     // TODO more checks: ordering, etc.
     testWidgets('page builds; not empty', (tester) async {
       await setupVarious(tester);
+    });
+
+    testWidgets('empty inbox shows empty state', (tester) async {
+      final pushedRoutes = <Route<dynamic>>[];
+      final testNavObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+      await setupPage(tester,
+        unreadMessages: [],
+        navigatorObserver: testNavObserver);
+      pushedRoutes.clear();
+
+      connection = store.connection as FakeApiConnection;
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true,
+        messages: []).toJson());
+
+      expect(find.byIcon(ZulipIcons.inbox_done), findsOneWidget);
+      expect(find.textContaining('There are no unread messages in your Inbox.'), findsOneWidget);
+
+      final combinedFeedButton = find.text('combined feed');
+      expect(combinedFeedButton, findsOneWidget);
+
+      await tester.tap(combinedFeedButton);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+
+      check(pushedRoutes).single.isA<WidgetRoute>().page
+        .isA<MessageListPage>()
+        .initNarrow.equals(const CombinedFeedNarrow());
     });
 
     // TODO test that tapping a conversation row opens the message list
