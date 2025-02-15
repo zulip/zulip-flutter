@@ -20,6 +20,7 @@ import '../api/route/realm.dart';
 import '../log.dart';
 import '../notifications/receive.dart';
 import 'autocomplete.dart';
+import 'binding.dart';
 import 'database.dart';
 import 'emoji.dart';
 import 'localizations.dart';
@@ -483,7 +484,6 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   bool hasPostingPermission({
     required ZulipStream inChannel,
     required User user,
-    required DateTime byDate,
   }) {
     final role = user.role;
     // We let the users with [unknown] role to send the message, then the server
@@ -495,7 +495,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
       case ChannelPostPolicy.fullMembers:     {
         if (!role.isAtLeast(UserRole.member)) return false;
         return role == UserRole.member
-          ? hasPassedWaitingPeriod(user, byDate: byDate)
+          ? hasPassedWaitingPeriod(user, byDate: ZulipBinding.instance.now())
           : true;
       }
       case ChannelPostPolicy.moderators:      return role.isAtLeast(UserRole.moderator);
