@@ -21,20 +21,22 @@ import 'store.dart';
 //   fly to an image preview with a different URL, following a message edit
 //   while the lightbox was open.
 class _LightboxHeroTag {
-  _LightboxHeroTag({required this.messageId, required this.src});
+  _LightboxHeroTag({required this.messageId, required this.src, required this.pageContext});
 
   final int messageId;
   final Uri src;
+  final BuildContext pageContext;
 
   @override
   bool operator ==(Object other) {
     return other is _LightboxHeroTag &&
       other.messageId == messageId &&
-      other.src == src;
+      other.src == src &&
+      other.pageContext == pageContext;
   }
 
   @override
-  int get hashCode => Object.hash('_LightboxHeroTag', messageId, src);
+  int get hashCode => Object.hash('_LightboxHeroTag', messageId, src, pageContext);
 }
 
 /// Builds a [Hero] from an image in the message list to the lightbox page.
@@ -44,16 +46,18 @@ class LightboxHero extends StatelessWidget {
     required this.message,
     required this.src,
     required this.child,
+    required this.pageContext,
   });
 
   final Message message;
   final Uri src;
   final Widget child;
+  final BuildContext pageContext;
 
   @override
   Widget build(BuildContext context) {
     return Hero(
-      tag: _LightboxHeroTag(messageId: message.id, src: src),
+      tag: _LightboxHeroTag(messageId: message.id, src: src, pageContext: pageContext),
       flightShuttleBuilder: (
         BuildContext flightContext,
         Animation<double> animation,
@@ -230,6 +234,7 @@ class _ImageLightboxPage extends StatefulWidget {
     required this.thumbnailUrl,
     required this.originalWidth,
     required this.originalHeight,
+    required this.pageContext,
   });
 
   final Animation<double> routeEntranceAnimation;
@@ -238,6 +243,7 @@ class _ImageLightboxPage extends StatefulWidget {
   final Uri? thumbnailUrl;
   final double? originalWidth;
   final double? originalHeight;
+  final BuildContext pageContext;
 
   @override
   State<_ImageLightboxPage> createState() => _ImageLightboxPageState();
@@ -319,6 +325,7 @@ class _ImageLightboxPageState extends State<_ImageLightboxPage> {
             child: LightboxHero(
               message: widget.message,
               src: widget.src,
+              pageContext: widget.pageContext,
               child: RealmContentNetworkImage(widget.src,
                 filterQuality: FilterQuality.medium,
                 frameBuilder: _frameBuilder,
@@ -603,6 +610,7 @@ Route<void> getImageLightboxRoute({
   required Uri? thumbnailUrl,
   required double? originalWidth,
   required double? originalHeight,
+  required BuildContext pageContext,
 }) {
   return _getLightboxRoute(
     accountId: accountId,
@@ -614,7 +622,8 @@ Route<void> getImageLightboxRoute({
         src: src,
         thumbnailUrl: thumbnailUrl,
         originalWidth: originalWidth,
-        originalHeight: originalHeight);
+        originalHeight: originalHeight,
+        pageContext: pageContext);
     });
 }
 
