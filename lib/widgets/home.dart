@@ -310,6 +310,7 @@ void _showMainMenu(BuildContext context, {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
+              _OrganizationHeader(),
               Flexible(child: InsetShadowBox(
                 top: 8, bottom: 8,
                 color: designVariables.bgBotBar,
@@ -324,6 +325,84 @@ void _showMainMenu(BuildContext context, {
                   child: ActionSheetCancelButton())),
             ])));
     });
+}
+
+class _OrganizationHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    String organizationName = store.realmName;
+    Uri? organizationIcon = store.tryResolveUrl(store.realmIcon);
+    final buttonStyle = TextButton.styleFrom(
+      splashFactory: NoSplash.splashFactory,
+      overlayColor: Colors.transparent
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Image.network(
+                  organizationIcon.toString(),
+                  width: 28,
+                  height: 28,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: Placeholder(),
+                    );
+                  },
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return const SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: CircularProgressIndicator(),
+                    );
+                  },
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    organizationName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).push(MaterialWidgetRoute(page: const ChooseAccountPage()));
+            },
+            style: buttonStyle,
+            child: Text(
+              zulipLocalizations.organizationsButtonLabel,
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.w500,
+                color: designVariables.icon,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 abstract class _MenuButton extends StatelessWidget {

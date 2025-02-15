@@ -23,6 +23,10 @@
   "@switchAccountButton": {
     "description": "Label for main-menu button leading to the choose-account page."
   },
+  "organizationsButtonLabel": "Organizations",
+  "@organizationsButtonLabel": {
+    "description": "Button text to view and switch between different organizations."
+  },
   "tryAnotherAccountMessage": "Your account at {url} is taking a while to load.",
   "@tryAnotherAccountMessage": {
     "description": "Message that appears on the loading screen after waiting for some time.",
