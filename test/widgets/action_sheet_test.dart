@@ -568,6 +568,44 @@ void main() {
           expectedTitle: 'Failed to mark topic as unresolved');
       });
     });
+
+    group('MarkTopicAsReadButton', () {
+      testWidgets('visible if topic has unread messages', (tester) async {
+        await prepare();
+        final message = eg.streamMessage(stream: someChannel, topic: someTopic);
+        await store.handleEvent(MessageEvent(id: 0, message: message));
+        await showFromAppBar(tester, messages: [message]);
+        check(find.text('Mark topic as read')).findsOne();
+      });
+
+      testWidgets('not visible if topic has no unread messages', (tester) async {
+        await prepare();
+        final message = eg.streamMessage(stream: someChannel, topic: someTopic);
+        await showFromAppBar(tester, messages: [message]);
+        check(find.text('Mark topic as read')).findsNothing();
+      });
+
+      testWidgets('marks topic as read when pressed', (tester) async {
+        await prepare();
+        final message = eg.streamMessage(stream: someChannel, topic: someTopic);
+        await store.handleEvent(MessageEvent(id: 0, message: message));
+        await showFromAppBar(tester, messages: [message]);
+
+        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+          processedCount: 1, updatedCount: 1,
+          firstProcessedId: message.id, lastProcessedId: message.id,
+          foundOldest: true, foundNewest: true).toJson());
+        await tester.tap(find.text('Mark topic as read'));
+        await tester.pumpAndSettle();
+
+        check(connection.lastRequest).isA<http.Request>()
+          ..url.path.equals('/api/v1/messages/flags/narrow')
+          ..bodyFields['narrow'].equals(jsonEncode([
+              ...TopicNarrow(someChannel.streamId, TopicName(someTopic)).apiEncode(),
+              {'operator': 'is', 'operand': 'unread'},
+            ]));
+      });
+    });
   });
 
   group('message action sheet', () {
