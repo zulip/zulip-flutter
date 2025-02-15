@@ -13,6 +13,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/lightbox.dart';
+import 'package:zulip/widgets/page.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
@@ -207,14 +208,19 @@ void main() {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
-      // ZulipApp instead of TestZulipApp because we need the navigator to push
-      // the lightbox route. The lightbox page works together with the route;
-      // it takes the route's entrance animation.
-      await tester.pumpWidget(const ZulipApp());
+      // ZulipApp instead of TestZulipApp because we need:
+      // 1. The navigator to push the lightbox route. The lightbox page works
+      //    together with the route; it takes the route's entrance animation.
+      // 2. The PageRoot widget to provide context for Hero animations between
+      //    the message list and lightbox.
+      await tester.pumpWidget(PageRoot(
+        child: const ZulipApp()
+      ));
       await tester.pump();
       final navigator = await ZulipApp.navigator;
       unawaited(navigator.push(getImageLightboxRoute(
         accountId: eg.selfAccount.id,
+        pageContext: PageRoot.contextOf(navigator.context),
         message: message ?? eg.streamMessage(),
         src: src,
         thumbnailUrl: thumbnailUrl,
@@ -284,6 +290,48 @@ void main() {
       tester.widget(find.byType(BottomAppBar));
 
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('LightboxHero with different pageContext does not share hero animation', (tester) async {
+      final message = eg.streamMessage();
+      final src = Uri.parse('https://chat.example/image.png');
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: Row(
+            children: [
+              Builder(builder: (context1) {
+                return LightboxHero(
+                  message: message,
+                  src: src,
+                  pageContext: context1,
+                  child: const SizedBox(width: 50, height: 50),
+                );
+              }),
+              Builder(builder: (context2) {
+                return LightboxHero(
+                  message: message,
+                  src: src,
+                  pageContext: context2,
+                  child: const SizedBox(width: 50, height: 50),
+                );
+              }),
+            ],
+          ),
+        ),
+      ));
+
+      final heroes = tester.widgetList<Hero>(find.byType(Hero)).toList();
+      expect(heroes.length, 2);
+
+      final heroTag1 = heroes[0].tag;
+      final heroTag2 = heroes[1].tag;
+      expect(heroTag1, isNot(equals(heroTag2)));
+
+      final tag1 = heroTag1 as dynamic;
+      final tag2 = heroTag2 as dynamic;
+      expect(tag1.messageId, equals(tag2.messageId));
+      expect(tag1.src, equals(tag2.src));
+      expect(tag1.pageContext, isNot(equals(tag2.pageContext)));
     });
 
     // TODO test _CopyLinkButton
