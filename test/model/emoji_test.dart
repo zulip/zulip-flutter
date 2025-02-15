@@ -262,14 +262,14 @@ void main() {
       ]);
     });
 
-    test('updates on RealmEmojiUpdateEvent', () {
+    test('updates on RealmEmojiUpdateEvent', () async {
       final store = prepare();
       check(store.allEmojiCandidates()).deepEquals([
         ...arePopularCandidates,
         isZulipCandidate(),
       ]);
 
-      store.handleEvent(RealmEmojiUpdateEvent(id: 1, realmEmoji: {
+      await store.handleEvent(RealmEmojiUpdateEvent(id: 1, realmEmoji: {
         '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'happy'),
       }));
       check(store.allEmojiCandidates()).deepEquals([

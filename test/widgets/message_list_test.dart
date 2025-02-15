@@ -799,8 +799,8 @@ void main() {
         foundOldest: false, messages: messages).toJson());
     }
 
-    void handleMessageMoveEvent(List<StreamMessage> messages, String newTopic, {int? newChannelId}) {
-      store.handleEvent(eg.updateMessageEventMoveFrom(
+    Future<void> handleMessageMoveEvent(List<StreamMessage> messages, String newTopic, {int? newChannelId}) async {
+      await store.handleEvent(eg.updateMessageEventMoveFrom(
         origMessages: messages,
         newTopicStr: newTopic,
         newStreamId: newChannelId,
@@ -821,7 +821,7 @@ void main() {
         ..controller.isNotNull().text.equals('Some text');
 
       prepareGetMessageResponse([message]);
-      handleMessageMoveEvent([message], 'new topic', newChannelId: otherChannel.streamId);
+      await handleMessageMoveEvent([message], 'new topic', newChannelId: otherChannel.streamId);
       await tester.pump(const Duration(seconds: 1));
       check(tester.widget<TextField>(channelContentInputFinder))
         ..decoration.isNotNull().hintText.equals('Message #${otherChannel.name} > new topic')
@@ -851,7 +851,7 @@ void main() {
       final existingMessage = eg.streamMessage(
         stream: eg.stream(), topic: 'new topic', content: 'Existing message');
       prepareGetMessageResponse([existingMessage, message]);
-      handleMessageMoveEvent([message], 'new topic');
+      await handleMessageMoveEvent([message], 'new topic');
       await tester.pump(const Duration(seconds: 1));
 
       check(find.textContaining('Existing message').evaluate()).length.equals(1);
@@ -863,7 +863,7 @@ void main() {
       await setupMessageListPage(tester, narrow: narrow, messages: [message], streams: [channel]);
 
       prepareGetMessageResponse([message]);
-      handleMessageMoveEvent([message], 'new topic');
+      await handleMessageMoveEvent([message], 'new topic');
       await tester.pump(const Duration(seconds: 1));
 
       check(find.descendant(
