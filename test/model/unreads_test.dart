@@ -59,6 +59,8 @@ void main() {
       'checkMatchesMessages: duplicate messages in test input');
 
     final Map<int, Map<TopicName, QueueList<int>>> expectedStreams = {};
+    final earliestCapitalizationByStream =
+      <int, Map<String, String>>{};
     final Map<DmNarrow, QueueList<int>> expectedDms = {};
     final Set<int> expectedMentions = {};
     for (final message in messages) {
@@ -67,9 +69,25 @@ void main() {
       }
       switch (message) {
         case StreamMessage():
-          final perTopic = expectedStreams[message.streamId] ??= {};
-          final messageIds = perTopic[message.topic] ??= QueueList();
-          messageIds.add(message.id);
+          // Convert the message’s topic to lowercase, just like our code.
+          final streamId = message.streamId;
+          final realTopic = message.topic.toString();
+          final lowerTopic = realTopic.toLowerCase();
+
+          final perTopic = expectedStreams[streamId]
+              ??= <TopicName, QueueList<int>>{};
+
+          final earliestMap = earliestCapitalizationByStream[streamId]
+              ??= <String, String>{};
+
+          // If we already have a capitalization for this topic, reuse it;
+          // otherwise, record this new capitalization as earliest.
+          final earliestCaps = earliestMap[lowerTopic] ??= realTopic;
+
+          // Insert the message under that earliestCaps key
+          final topicName = TopicName(earliestCaps);
+          final qlist = perTopic[topicName] ??= QueueList<int>();
+          qlist.add(message.id);
         case DmMessage():
           final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
           final messageIds = expectedDms[narrow] ??= QueueList();
@@ -332,13 +350,15 @@ void main() {
         final stream2 = eg.stream(streamId: 2);
         for (final (oldStream, newStream, oldTopic, newTopic) in [
           (stream1, stream1, 'a', 'a'),
+          (stream1, stream1, 'a', 'A'),
+          (stream1, stream1, 'Zebra', 'ZEBRa'),
           (stream1, stream1, 'a', 'b'),
           (stream1, stream2, 'a', 'a'),
           (stream1, stream2, 'a', 'b'),
         ]) {
           final description = [
             oldStream.streamId == newStream.streamId ? 'same stream' : 'different stream',
-            oldTopic == newTopic ? 'same topic' : 'different topic',
+            oldTopic.toLowerCase() == newTopic.toLowerCase() ? 'same topic' : 'different topic',
           ].join(' / ');
           test(description, () {
             final oldMessage = eg.streamMessage(stream: oldStream, topic: oldTopic, flags: []);
