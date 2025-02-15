@@ -553,11 +553,8 @@ class _SwitchAccountButton extends _MenuButton {
   const _SwitchAccountButton();
 
   @override
-  // TODO(design): choose an icon
-  IconData? get icon => null;
-
-  @override
-  Widget buildLeading(BuildContext context) => const SizedBox.shrink();
+ 
+  IconData? get icon => ZulipIcons.arrow_left_right;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
