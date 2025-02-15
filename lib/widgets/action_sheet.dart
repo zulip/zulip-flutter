@@ -489,7 +489,7 @@ class MarkTopicAsReadButton extends ActionSheetMenuItemButton {
 
   @override void onPressed() async {
     if (!pageContext.mounted) return;
-    await markNarrowAsRead(pageContext, TopicNarrow(channelId, topic));
+    await ZulipAction.markNarrowAsRead(pageContext, TopicNarrow(channelId, topic));
   }
 }
 
