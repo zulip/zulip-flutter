@@ -215,7 +215,7 @@ void main() {
           checkTitle(tester, user.fullName);
         });
 
-        testWidgets('no error when user somehow missing from store.users', (tester) async {
+        testWidgets('no error when user somehow missing from user store', (tester) async {
           final user = eg.user(userId: 1);
           final message = eg.dmMessage(from: eg.selfUser, to: [user]);
           await setupPage(tester,
@@ -271,7 +271,7 @@ void main() {
           checkTitle(tester, '${user0.fullName}, ${user1.fullName}');
         });
 
-        testWidgets('no error when one user somehow missing from store.users', (tester) async {
+        testWidgets('no error when one user somehow missing from user store', (tester) async {
           final users = usersList(2);
           final user0 = users[0];
           final user1 = users[1];
