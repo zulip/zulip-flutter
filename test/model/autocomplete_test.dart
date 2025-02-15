@@ -369,7 +369,7 @@ void main() {
     }
   });
 
-  test('MentionAutocompleteView mutating store.users while in progress does not '
+  test('MentionAutocompleteView mutating user store while in progress does not '
       'prevent query from finishing', () async {
     const narrow = ChannelNarrow(1);
     final store = eg.store();

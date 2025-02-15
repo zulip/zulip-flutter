@@ -30,6 +30,7 @@ import 'recent_senders.dart';
 import 'channel.dart';
 import 'typing_status.dart';
 import 'unreads.dart';
+import 'user.dart';
 
 export 'package:drift/drift.dart' show Value;
 export 'database.dart' show Account, AccountsCompanion, AccountAlreadyExistsException;
@@ -237,7 +238,7 @@ class AccountNotFoundException implements Exception {}
 /// This class does not attempt to poll an event queue
 /// to keep the data up to date.  For that behavior, see
 /// [UpdateMachine].
-class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, MessageStore {
+class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, ChannelStore, MessageStore {
   /// Construct a store for the user's data, starting from the given snapshot.
   ///
   /// The global store must already have been updated with
@@ -278,7 +279,6 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
       emoji: EmojiStoreImpl(
         realmUrl: realmUrl, allRealmEmoji: initialSnapshot.realmEmoji),
       accountId: accountId,
-      selfUserId: account.userId,
       userSettings: initialSnapshot.userSettings,
       typingNotifier: TypingNotifier(
         connection: connection,
@@ -287,11 +287,9 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
         typingStartedWaitPeriod: Duration(
           milliseconds: initialSnapshot.serverTypingStartedWaitPeriodMilliseconds),
       ),
-      users: Map.fromEntries(
-        initialSnapshot.realmUsers
-        .followedBy(initialSnapshot.realmNonActiveUsers)
-        .followedBy(initialSnapshot.crossRealmBots)
-        .map((user) => MapEntry(user.userId, user))),
+      users: UserStoreImpl(
+        selfUserId: account.userId,
+        initialSnapshot: initialSnapshot),
       typingStatus: TypingStatus(
         selfUserId: account.userId,
         typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
@@ -322,22 +320,21 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     required this.emailAddressVisibility,
     required EmojiStoreImpl emoji,
     required this.accountId,
-    required this.selfUserId,
     required this.userSettings,
     required this.typingNotifier,
-    required this.users,
+    required UserStoreImpl users,
     required this.typingStatus,
     required ChannelStoreImpl channels,
     required MessageStoreImpl messages,
     required this.unreads,
     required this.recentDmConversationsView,
     required this.recentSenders,
-  }) : assert(selfUserId == globalStore.getAccount(accountId)!.userId),
-       assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
+  }) : assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
        assert(realmUrl == connection.realmUrl),
        assert(emoji.realmUrl == realmUrl),
        _globalStore = globalStore,
        _emoji = emoji,
+       _users = users,
        _channels = channels,
        _messages = messages;
 
@@ -377,6 +374,10 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   ///
   /// This returns null if [reference] fails to parse as a URL.
   Uri? tryResolveUrl(String reference) => _tryResolveUrl(realmUrl, reference);
+
+  /// Always equal to `connection.zulipFeatureLevel`
+  /// and `account.zulipFeatureLevel`.
+  int get zulipFeatureLevel => connection.zulipFeatureLevel!;
 
   String get zulipVersion => account.zulipVersion;
   final RealmWildcardMentionPolicy realmWildcardMentionPolicy; // TODO(#668): update this realm setting
@@ -426,9 +427,6 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   /// Will throw if called after [dispose] has been called.
   Account get account => _globalStore.getAccount(accountId)!;
 
-  /// Always equal to `account.userId`.
-  final int selfUserId;
-
   final UserSettings? userSettings; // TODO(server-5)
 
   final TypingNotifier typingNotifier;
@@ -436,7 +434,16 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   ////////////////////////////////
   // Users and data about them.
 
-  final Map<int, User> users;
+  @override
+  int get selfUserId => _users.selfUserId;
+
+  @override
+  User? getUser(int userId) => _users.getUser(userId);
+
+  @override
+  Iterable<User> get allUsers => _users.allUsers;
+
+  final UserStoreImpl _users;
 
   final TypingStatus typingStatus;
 
@@ -605,44 +612,18 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
 
       case RealmUserAddEvent():
         assert(debugLog("server event: realm_user/add"));
-        users[event.person.userId] = event.person;
+        _users.handleRealmUserEvent(event);
         notifyListeners();
 
       case RealmUserRemoveEvent():
         assert(debugLog("server event: realm_user/remove"));
-        users.remove(event.userId);
+        _users.handleRealmUserEvent(event);
         autocompleteViewManager.handleRealmUserRemoveEvent(event);
         notifyListeners();
 
       case RealmUserUpdateEvent():
         assert(debugLog("server event: realm_user/update"));
-        final user = users[event.userId];
-        if (user == null) {
-          return; // TODO log
-        }
-        if (event.fullName != null)       user.fullName       = event.fullName!;
-        if (event.avatarUrl != null)      user.avatarUrl      = event.avatarUrl!;
-        if (event.avatarVersion != null)  user.avatarVersion  = event.avatarVersion!;
-        if (event.timezone != null)       user.timezone       = event.timezone!;
-        if (event.botOwnerId != null)     user.botOwnerId     = event.botOwnerId!;
-        if (event.role != null)           user.role           = event.role!;
-        if (event.isBillingAdmin != null) user.isBillingAdmin = event.isBillingAdmin!;
-        if (event.deliveryEmail != null)  user.deliveryEmail  = event.deliveryEmail!.value;
-        if (event.newEmail != null)       user.email          = event.newEmail!;
-        if (event.isActive != null)       user.isActive       = event.isActive!;
-        if (event.customProfileField != null) {
-          final profileData = (user.profileData ??= {});
-          final update = event.customProfileField!;
-          if (update.value != null) {
-            profileData[update.id] = ProfileFieldUserData(value: update.value!, renderedValue: update.renderedValue);
-          } else {
-            profileData.remove(update.id);
-          }
-          if (profileData.isEmpty) {
-            // null is equivalent to `{}` for efficiency; see [User._readProfileData].
-            user.profileData = null;
-          }
-        }
+        _users.handleRealmUserEvent(event);
         autocompleteViewManager.handleRealmUserUpdateEvent(event);
         notifyListeners();
 
