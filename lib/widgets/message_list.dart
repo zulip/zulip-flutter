@@ -183,6 +183,8 @@ abstract class MessageListPageState {
   ///
   /// This is null if [MessageList] has not mounted yet.
   MessageListView? get model;
+
+  bool showDMWarningBanner = true;
 }
 
 class MessageListPage extends StatefulWidget {
@@ -225,9 +227,13 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
   final GlobalKey<_MessageListState> _messageListKey = GlobalKey();
 
   @override
+  late bool showDMWarningBanner;
+
+  @override
   void initState() {
     super.initState();
     narrow = widget.initNarrow;
+    showDMWarningBanner = narrow is DmNarrow;
   }
 
   void _narrowChanged(Narrow newNarrow) {
@@ -241,6 +247,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
     final store = PerAccountStoreWidget.of(context);
     final messageListTheme = MessageListTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables= DesignVariables.of(context);
 
     final Color? appBarBackgroundColor;
     bool removeAppBarBottomBorder = false;
@@ -318,9 +325,71 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
                   narrow: narrow,
                   onNarrowChanged: _narrowChanged,
                 ))),
+            if(shouldShowGuestUserWarningPrompt(store))
+              showGuestUserWarningPrompt(narrow as DmNarrow, store, designVariables, zulipLocalizations),
             if (ComposeBox.hasComposeBox(narrow))
               ComposeBox(key: _composeBoxKey, narrow: narrow)
           ]))));
+  }
+
+  bool shouldShowGuestUserWarningPrompt(PerAccountStore store) =>
+  store.connection.zulipFeatureLevel! >= 348 &&
+   narrow is DmNarrow && (store.realmEnableGuestUserDmWarning ?? false);
+
+  Widget showGuestUserWarningPrompt(
+    DmNarrow narrow,
+    PerAccountStore store,
+    DesignVariables designVariables,
+    ZulipLocalizations zulipLocalizations,
+  ) {
+    final recipients = narrow.otherRecipientIds;
+    final allUsersInStore = Map<int, User>.from(store.users);
+    allUsersInStore.removeWhere((userId, user) => !recipients.contains(userId));
+    final guestNames =
+        allUsersInStore.values
+            .where((user) => user.role == UserRole.guest)
+            .map((e) => e.fullName)
+            .toList();
+
+    if(guestNames.isEmpty){
+      return SizedBox();
+    }
+
+    return Visibility(
+      visible: showDMWarningBanner,
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Container(
+          width: MediaQuery.of(context).size.width,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: designVariables.dmUserWarningBannerBorder,),
+            color: designVariables.dmUserWarningBanner,
+          ),
+          margin: EdgeInsets.all(4),
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  zulipLocalizations.bannerText(guestNames.length, guestNames.join(', ')),
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                 setState(() {
+                   showDMWarningBanner= false;
+                 });
+                },
+                child: Icon(Icons.close, color: Colors.white),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
