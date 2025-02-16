@@ -247,8 +247,7 @@ void main() {
     await prepareMessages(foundOldest: false, messages: initialMessages);
     check(connection.takeRequests()).single;
 
-    connection.prepare(httpStatus: 400, json: {
-      'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'});
+    connection.prepare(apiException: eg.apiBadRequest());
     check(async.pendingTimers).isEmpty();
     await check(model.fetchOlder()).throws<ZulipApiException>();
     checkNotified(count: 2);
@@ -1061,8 +1060,7 @@ void main() {
         addTearDown(() => BackoffMachine.debugDuration = null);
         await prepareNarrow(narrow, initialMessages);
 
-        connection.prepare(httpStatus: 400, json: {
-          'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'});
+        connection.prepare(apiException: eg.apiBadRequest());
         BackoffMachine.debugDuration = const Duration(seconds: 1);
         await check(model.fetchOlder()).throws<ZulipApiException>();
         final backoffTimerA = async.pendingTimers.single;
@@ -1094,8 +1092,7 @@ void main() {
         check(model).fetchOlderCoolingDown.isFalse();
         check(backoffTimerA.isActive).isTrue();
 
-        connection.prepare(httpStatus: 400, json: {
-          'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'});
+        connection.prepare(apiException: eg.apiBadRequest());
         BackoffMachine.debugDuration = const Duration(seconds: 2);
         await check(model.fetchOlder()).throws<ZulipApiException>();
         final backoffTimerB = async.pendingTimers.last;

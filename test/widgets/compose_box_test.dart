@@ -553,13 +553,8 @@ void main() {
 
     testWidgets('ZulipApiException', (tester) async {
       await setupAndTapSend(tester, prepareResponse: (message) {
-        connection.prepare(
-          httpStatus: 400,
-          json: {
-            'result': 'error',
-            'code': 'BAD_REQUEST',
-            'msg': 'You do not have permission to initiate direct message conversations.',
-          });
+        connection.prepare(apiException: eg.apiBadRequest(
+          message: 'You do not have permission to initiate direct message conversations.'));
       });
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       await tester.tap(find.byWidget(checkErrorDialog(tester,
