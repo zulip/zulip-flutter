@@ -103,7 +103,7 @@ void main() {
       assert(unregisterDelay > TestGlobalStore.removeAccountDuration);
       final exception = eg.apiExceptionUnauthorized(routeName: 'removeEtcEtcToken');
       final newConnection = separateConnection()
-        ..prepare(delay: unregisterDelay, httpException: exception); // TODO this isn't an HTTP exception
+        ..prepare(delay: unregisterDelay, apiException: exception);
 
       final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
       // Unregister-token request and account removal dispatched together
@@ -165,7 +165,7 @@ void main() {
 
       final exception = eg.apiExceptionUnauthorized(routeName: 'removeEtcEtcToken');
       final newConnection = separateConnection()
-        ..prepare(httpException: exception); // TODO this isn't an HTTP exception
+        ..prepare(apiException: exception);
       final future = unregisterToken(testBinding.globalStore, eg.selfAccount.id);
       async.elapse(Duration.zero);
       await future;

@@ -34,6 +34,22 @@ void main() {
         ..cause.identicalTo(exception));
   });
 
+  test('prepare API exception', () async {
+    final connection = FakeApiConnection();
+    final exception = ZulipApiException(routeName: 'someRoute',
+      httpStatus: 456, code: 'SOME_ERROR',
+      data: {'foo': ['bar']}, message: 'Something failed');
+    connection.prepare(apiException: exception);
+    await check(connection.get('aRoute', (json) => json, '/', null))
+      .throws((it) => it.isA<ZulipApiException>()
+        ..routeName.equals('aRoute') // actual route, not the prepared one
+        ..routeName.not((it) => it.equals(exception.routeName))
+        ..httpStatus.equals(exception.httpStatus)
+        ..code.equals(exception.code)
+        ..data.deepEquals(exception.data)
+        ..message.equals(exception.message));
+  });
+
   test('delay success', () => awaitFakeAsync((async) async {
     final connection = FakeApiConnection();
     connection.prepare(delay: const Duration(seconds: 2),
