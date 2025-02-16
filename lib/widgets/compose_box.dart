@@ -22,15 +22,89 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 
+/// Compose-box styles that differ between light and dark theme.
+///
+/// These styles will animate on theme changes (with help from [lerp]).
+class ComposeBoxTheme extends ThemeExtension<ComposeBoxTheme> {
+  static final light = ComposeBoxTheme._(
+    boxShadow: null,
+  );
+
+  static final dark = ComposeBoxTheme._(
+    boxShadow: [BoxShadow(
+      color: DesignVariables.dark.bgTopBar,
+      offset: const Offset(0, -4),
+      blurRadius: 16,
+      spreadRadius: 0,
+    )],
+  );
+
+  ComposeBoxTheme._({
+    required this.boxShadow,
+  });
+
+  /// The [ComposeBoxTheme] from the context's active theme.
+  ///
+  /// The [ThemeData] must include [ComposeBoxTheme] in [ThemeData.extensions].
+  static ComposeBoxTheme of(BuildContext context) {
+    final theme = Theme.of(context);
+    final extension = theme.extension<ComposeBoxTheme>();
+    assert(extension != null);
+    return extension!;
+  }
+
+  final List<BoxShadow>? boxShadow;
+
+  @override
+  ComposeBoxTheme copyWith({
+    List<BoxShadow>? boxShadow,
+  }) {
+    return ComposeBoxTheme._(
+      boxShadow: boxShadow ?? this.boxShadow,
+    );
+  }
+
+  @override
+  ComposeBoxTheme lerp(ComposeBoxTheme other, double t) {
+    if (identical(this, other)) {
+      return this;
+    }
+    return ComposeBoxTheme._(
+      boxShadow: BoxShadow.lerpList(boxShadow, other.boxShadow, t)!,
+    );
+  }
+}
+
 const double _composeButtonSize = 44;
 
 /// A [TextEditingController] for use in the compose box.
 ///
 /// Subclasses must ensure that [_update] is called in all exposed constructors.
 abstract class ComposeController<ErrorT> extends TextEditingController {
+  int get maxLengthUnicodeCodePoints;
+
   String get textNormalized => _textNormalized;
   late String _textNormalized;
   String _computeTextNormalized();
+
+  /// Length of [textNormalized] in Unicode code points
+  /// if it might exceed [maxLengthUnicodeCodePoints], else null.
+  ///
+  /// Use this instead of [String.length]
+  /// to enforce a max length expressed in code points.
+  /// [String.length] is conservative and may cut the user off too short.
+  ///
+  /// Counting code points ([String.runes])
+  /// is more expensive than getting the number of UTF-16 code units
+  /// ([String.length]), so we avoid it when the result definitely won't exceed
+  /// [maxLengthUnicodeCodePoints].
+  late int? _lengthUnicodeCodePointsIfLong;
+  @visibleForTesting
+  int? get debugLengthUnicodeCodePointsIfLong => _lengthUnicodeCodePointsIfLong;
+  int? _computeLengthUnicodeCodePointsIfLong() =>
+    _textNormalized.length > maxLengthUnicodeCodePoints
+      ? _textNormalized.runes.length
+      : null;
 
   List<ErrorT> get validationErrors => _validationErrors;
   late List<ErrorT> _validationErrors;
@@ -40,6 +114,8 @@ abstract class ComposeController<ErrorT> extends TextEditingController {
 
   void _update() {
     _textNormalized = _computeTextNormalized();
+    // uses _textNormalized, so comes after _computeTextNormalized()
+    _lengthUnicodeCodePointsIfLong = _computeLengthUnicodeCodePointsIfLong();
     _validationErrors = _computeValidationErrors();
     hasValidationErrors.value = _validationErrors.isNotEmpty;
   }
@@ -66,13 +142,17 @@ enum TopicValidationError {
 }
 
 class ComposeTopicController extends ComposeController<TopicValidationError> {
-  ComposeTopicController() {
+  ComposeTopicController({required this.store}) {
     _update();
   }
 
-  // TODO: subscribe to this value:
-  //   https://zulip.com/help/require-topics
-  final mandatory = true;
+  PerAccountStore store;
+
+  // TODO(#668): listen to [PerAccountStore] once we subscribe to this value
+  bool get mandatory => store.realmMandatoryTopics;
+
+  // TODO(#307) use `max_topic_length` instead of hardcoded limit
+  @override final maxLengthUnicodeCodePoints = kMaxTopicLengthCodePoints;
 
   @override
   String _computeTextNormalized() {
@@ -85,7 +165,11 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
     return [
       if (mandatory && textNormalized == kNoTopicTopic)
         TopicValidationError.mandatoryButEmpty,
-      if (textNormalized.length > kMaxTopicLength)
+
+      if (
+        _lengthUnicodeCodePointsIfLong != null
+        && _lengthUnicodeCodePointsIfLong! > maxLengthUnicodeCodePoints
+      )
         TopicValidationError.tooLong,
     ];
   }
@@ -119,6 +203,9 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   ComposeContentController() {
     _update();
   }
+
+  // TODO(#1237) use `max_message_length` instead of hardcoded limit
+  @override final maxLengthUnicodeCodePoints = kMaxMessageLengthCodePoints;
 
   int _nextQuoteAndReplyTag = 0;
   int _nextUploadTag = 0;
@@ -179,10 +266,15 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   ///
   /// Returns an int "tag" that should be passed to registerQuoteAndReplyEnd on
   /// success or failure
-  int registerQuoteAndReplyStart(PerAccountStore store, {required Message message}) {
+  int registerQuoteAndReplyStart(
+    ZulipLocalizations zulipLocalizations,
+    PerAccountStore store, {
+      required Message message,
+    }) {
     final tag = _nextQuoteAndReplyTag;
     _nextQuoteAndReplyTag += 1;
-    final placeholder = quoteAndReplyPlaceholder(store, message: message);
+    final placeholder = quoteAndReplyPlaceholder(
+      zulipLocalizations, store, message: message);
     _quoteAndReplies[tag] = (messageId: message.id, placeholder: placeholder);
     notifyListeners(); // _quoteAndReplies change could affect validationErrors
     insertPadded(placeholder);
@@ -261,10 +353,10 @@ class ComposeContentController extends ComposeController<ContentValidationError>
       if (textNormalized.isEmpty)
         ContentValidationError.empty,
 
-      // normalized.length is the number of UTF-16 code units, while the server
-      // API expresses the max in Unicode code points. So this comparison will
-      // be conservative and may cut the user off shorter than necessary.
-      if (textNormalized.length > kMaxMessageLengthCodePoints)
+      if (
+        _lengthUnicodeCodePointsIfLong != null
+        && _lengthUnicodeCodePointsIfLong! > maxLengthUnicodeCodePoints
+      )
         ContentValidationError.tooLong,
 
       if (_quoteAndReplies.isNotEmpty)
@@ -487,7 +579,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     final streamName = store.streams[widget.narrow.streamId]?.name
-      ?? zulipLocalizations.composeBoxUnknownChannelName;
+      ?? zulipLocalizations.unknownChannelName;
     return _ContentInput(
       narrow: widget.narrow,
       destination: TopicNarrow(widget.narrow.streamId, TopicName(_topicTextNormalized)),
@@ -549,7 +641,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
       case TopicNarrow(:final streamId, :final topic):
         final store = PerAccountStoreWidget.of(context);
         final streamName = store.streams[streamId]?.name
-          ?? zulipLocalizations.composeBoxUnknownChannelName;
+          ?? zulipLocalizations.unknownChannelName;
         return zulipLocalizations.composeBoxChannelContentHint(
           streamName, topic.displayName);
 
@@ -617,7 +709,8 @@ Future<void> _uploadFiles({
 
   if (tooLargeFiles.isNotEmpty) {
     final listMessage = tooLargeFiles
-      .map((file) => '${file.filename}: ${(file.length / (1 << 20)).toStringAsFixed(1)} MiB')
+      .map((file) => zulipLocalizations.filenameAndSizeInMiB(
+        file.filename, (file.length / (1 << 20)).toStringAsFixed(1)))
       .join('\n');
     showErrorDialog(
       context: context,
@@ -1053,10 +1146,12 @@ class _ComposeBoxContainer extends StatelessWidget {
     };
 
     // TODO(design): Maybe put a max width on the compose box, like we do on
-    //   the message list itself
+    //   the message list itself; if so, remember to update ComposeBox's dartdoc.
     return Container(width: double.infinity,
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: designVariables.borderBar))),
+        border: Border(top: BorderSide(color: designVariables.borderBar)),
+        boxShadow: ComposeBoxTheme.of(context).boxShadow,
+      ),
       // TODO(#720) try a Stack for the overlaid linear progress indicator
       child: Material(
         color: designVariables.composeBoxBg,
@@ -1194,7 +1289,10 @@ sealed class ComposeBoxController {
 }
 
 class StreamComposeBoxController extends ComposeBoxController {
-  final topic = ComposeTopicController();
+  StreamComposeBoxController({required PerAccountStore store})
+    : topic = ComposeTopicController(store: store);
+
+  final ComposeTopicController topic;
   final topicFocusNode = FocusNode();
 
   @override
@@ -1242,6 +1340,10 @@ class _ErrorBanner extends StatelessWidget {
   }
 }
 
+/// The compose box.
+///
+/// Takes the full screen width, covering the horizontal insets with its surface.
+/// Also covers the bottom inset with its surface.
 class ComposeBox extends StatefulWidget {
   ComposeBox({super.key, required this.narrow})
     : assert(ComposeBox.hasComposeBox(narrow));
@@ -1271,16 +1373,20 @@ abstract class ComposeBoxState extends State<ComposeBox> {
   ComposeBoxController get controller;
 }
 
-class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
-  @override ComposeBoxController get controller => _controller;
-  late final ComposeBoxController _controller;
+class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateMixin<ComposeBox> implements ComposeBoxState {
+  @override ComposeBoxController get controller => _controller!;
+  ComposeBoxController? _controller;
 
   @override
-  void initState() {
-    super.initState();
+  void onNewStore() {
     switch (widget.narrow) {
       case ChannelNarrow():
-        _controller = StreamComposeBoxController();
+        final store = PerAccountStoreWidget.of(context);
+        if (_controller == null) {
+          _controller = StreamComposeBoxController(store: store);
+        } else {
+          (controller as StreamComposeBoxController).topic.store = store;
+        }
       case TopicNarrow():
       case DmNarrow():
         _controller = FixedDestinationComposeBoxController();
@@ -1293,7 +1399,7 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
 
   @override
   void dispose() {
-    _controller.dispose();
+    controller.dispose();
     super.dispose();
   }
 
@@ -1333,15 +1439,16 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
       return _ComposeBoxContainer(body: null, errorBanner: errorBanner);
     }
 
+    final controller = this.controller;
     final narrow = widget.narrow;
-    switch (_controller) {
+    switch (controller) {
       case StreamComposeBoxController(): {
         narrow as ChannelNarrow;
-        body = _StreamComposeBoxBody(controller: _controller, narrow: narrow);
+        body = _StreamComposeBoxBody(controller: controller, narrow: narrow);
       }
       case FixedDestinationComposeBoxController(): {
         narrow as SendableNarrow;
-        body = _FixedDestinationComposeBoxBody(controller: _controller, narrow: narrow);
+        body = _FixedDestinationComposeBoxBody(controller: controller, narrow: narrow);
       }
     }
 

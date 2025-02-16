@@ -1055,13 +1055,6 @@ class _ZulipContentParser {
     return inlineParser.parseBlockInline(nodes);
   }
 
-  BlockContentNode parseMathBlock(dom.Element element) {
-    final debugHtmlNode = kDebugMode ? element : null;
-    final texSource = _parseMath(element, block: true);
-    if (texSource == null) return UnimplementedBlockContentNode(htmlNode: element);
-    return MathBlockNode(texSource: texSource, debugHtmlNode: debugHtmlNode);
-  }
-
   BlockContentNode parseListNode(dom.Element element) {
     ListStyle? listStyle;
     switch (element.localName) {
@@ -1453,6 +1446,64 @@ class _ZulipContentParser {
     return tableNode ?? UnimplementedBlockContentNode(htmlNode: tableElement);
   }
 
+  void parseMathBlocks(dom.NodeList nodes, List<BlockContentNode> result) {
+    assert(nodes.isNotEmpty);
+    assert((() {
+      final first = nodes.first;
+      return first is dom.Element
+        && first.localName == 'span'
+        && first.className == 'katex-display';
+    })());
+
+    final firstChild = nodes.first as dom.Element;
+    final texSource = _parseMath(firstChild, block: true);
+    if (texSource != null) {
+      result.add(MathBlockNode(
+        texSource: texSource,
+        debugHtmlNode: kDebugMode ? firstChild : null));
+    } else {
+      result.add(UnimplementedBlockContentNode(htmlNode: firstChild));
+    }
+
+    // Skip further checks if there was only a single child.
+    if (nodes.length == 1) return;
+
+    // The case with the `<br>\n` can happen when at the end of a quote;
+    // it seems like a glitch in the server's Markdown processing,
+    // so hopefully there just aren't any further such glitches.
+    bool hasTrailingBreakNewline = false;
+    if (nodes case [..., dom.Element(localName: 'br'), dom.Text(text: '\n')]) {
+      hasTrailingBreakNewline = true;
+    }
+
+    final length = hasTrailingBreakNewline
+      ? nodes.length - 2
+      : nodes.length;
+    for (int i = 1; i < length; i++) {
+      final child = nodes[i];
+      final debugHtmlNode = kDebugMode ? child : null;
+
+      // If there are multiple <span class="katex-display"> nodes in a <p>
+      // each node is interleaved by '\n\n'. Whitespaces are ignored in HTML
+      // on web but each node has `display: block`, which renders each node
+      // on a new line. Since the emitted MathBlockNode are BlockContentNode,
+      // we skip these newlines here to replicate the same behavior as on web.
+      if (child case dom.Text(text: '\n\n')) continue;
+
+      if (child case dom.Element(localName: 'span', className: 'katex-display')) {
+        final texSource = _parseMath(child, block: true);
+        if (texSource != null) {
+          result.add(MathBlockNode(
+            texSource: texSource,
+            debugHtmlNode: debugHtmlNode));
+          continue;
+        }
+      }
+
+      result.add(UnimplementedBlockContentNode(htmlNode: child));
+    }
+  }
+
   BlockContentNode parseBlockContent(dom.Node node) {
     final debugHtmlNode = kDebugMode ? node : null;
     if (node is! dom.Element) {
@@ -1471,21 +1522,6 @@ class _ZulipContentParser {
     }
 
     if (localName == 'p' && className.isEmpty) {
-      // Oddly, the way a math block gets encoded in Zulip HTML is inside a <p>.
-      if (element.nodes case [dom.Element(localName: 'span') && var child, ...]) {
-        if (child.className == 'katex-display') {
-          if (element.nodes case [_]
-                              || [_, dom.Element(localName: 'br'),
-                                     dom.Text(text: "\n")]) {
-            // This might be too specific; we'll find out when we do #190.
-            // The case with the `<br>\n` can happen when at the end of a quote;
-            // it seems like a glitch in the server's Markdown processing,
-            // so hopefully there just aren't any further such glitches.
-            return parseMathBlock(child);
-          }
-        }
-      }
-
       final parsed = parseBlockInline(element.nodes);
       return ParagraphNode(debugHtmlNode: debugHtmlNode,
         links: parsed.links,
@@ -1599,6 +1635,17 @@ class _ZulipContentParser {
     for (final node in nodes) {
       if (node is dom.Text && (node.text == '\n')) continue;
 
+      // Oddly, the way math blocks get encoded in Zulip HTML is inside a <p>.
+      // And there can be multiple math blocks inside the paragraph node, so
+      // handle it explicitly here.
+      if (node case dom.Element(localName: 'p', className: '', nodes: [
+            dom.Element(localName: 'span', className: 'katex-display'), ...])) {
+        if (currentParagraph.isNotEmpty) consumeParagraph();
+        if (imageNodes.isNotEmpty) consumeImageNodes();
+        parseMathBlocks(node.nodes, result);
+        continue;
+      }
+
       if (_isPossibleInlineNode(node)) {
         if (imageNodes.isNotEmpty) {
           consumeImageNodes();
@@ -1639,6 +1686,16 @@ class _ZulipContentParser {
       // We get a bunch of newline Text nodes between paragraphs.
       // A browser seems to ignore these; let's do the same.
       if (node is dom.Text && _redundantLineBreaksRegexp.hasMatch(node.text)) {
+        continue;
+      }
+
+      // Oddly, the way math blocks get encoded in Zulip HTML is inside a <p>.
+      // And there can be multiple math blocks inside the paragraph node, so
+      // handle it explicitly here.
+      if (node case dom.Element(localName: 'p', className: '', nodes: [
+            dom.Element(localName: 'span', className: 'katex-display'), ...])) {
+        if (imageNodes.isNotEmpty) consumeImageNodes();
+        parseMathBlocks(node.nodes, result);
         continue;
       }
 

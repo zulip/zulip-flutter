@@ -7,8 +7,11 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/channels.dart';
+import 'package:zulip/generated/l10n/zulip_localizations.dart';
 import 'package:zulip/model/autocomplete.dart';
+import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/emoji.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/compose_box.dart';
@@ -20,6 +23,11 @@ import 'test_store.dart';
 import 'autocomplete_checks.dart';
 
 typedef MarkedTextParse = ({int? expectedSyntaxStart, TextEditingValue value});
+
+final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+final zulipLocalizationsArabic =
+  lookupZulipLocalizations(ZulipLocalizations.supportedLocales
+    .firstWhere((locale) => locale.languageCode == 'ar'));
 
 void main() {
   ({int? expectedSyntaxStart, TextEditingValue value}) parseMarkedText(String markedText) {
@@ -258,8 +266,8 @@ void main() {
     final store = eg.store();
     await store.addUsers([eg.selfUser, eg.otherUser, eg.thirdUser]);
 
-    final view = MentionAutocompleteView.init(store: store, narrow: narrow,
-      query: MentionAutocompleteQuery('Third'));
+    final view = MentionAutocompleteView.init(store: store, localizations: zulipLocalizations,
+      narrow: narrow, query: MentionAutocompleteQuery('Third'));
     bool done = false;
     view.addListener(() { done = true; });
     await Future(() {});
@@ -288,8 +296,8 @@ void main() {
         check(searchDone).isFalse();
       });
 
-      final view = MentionAutocompleteView.init(store: store, narrow: narrow,
-        query: MentionAutocompleteQuery('Third'));
+      final view = MentionAutocompleteView.init(store: store, localizations: zulipLocalizations,
+        narrow: narrow, query: MentionAutocompleteQuery('Third'));
       view.addListener(() {
         searchDone = true;
       });
@@ -312,8 +320,8 @@ void main() {
     }
 
     bool done = false;
-    final view = MentionAutocompleteView.init(store: store, narrow: narrow,
-      query: MentionAutocompleteQuery('User 2222'));
+    final view = MentionAutocompleteView.init(store: store, localizations: zulipLocalizations,
+      narrow: narrow, query: MentionAutocompleteQuery('User 2222'));
     view.addListener(() { done = true; });
 
     await Future(() {});
@@ -335,8 +343,8 @@ void main() {
     }
 
     bool done = false;
-    final view = MentionAutocompleteView.init(store: store, narrow: narrow,
-      query: MentionAutocompleteQuery('User 1111'));
+    final view = MentionAutocompleteView.init(store: store, localizations: zulipLocalizations,
+      narrow: narrow, query: MentionAutocompleteQuery('User 1111'));
     view.addListener(() { done = true; });
 
     await Future(() {});
@@ -370,8 +378,8 @@ void main() {
     }
 
     bool done = false;
-    final view = MentionAutocompleteView.init(store: store, narrow: narrow,
-      query: MentionAutocompleteQuery('User 110'));
+    final view = MentionAutocompleteView.init(store: store, localizations: zulipLocalizations,
+      narrow: narrow, query: MentionAutocompleteQuery('User 110'));
     view.addListener(() { done = true; });
 
     await Future(() {});
@@ -625,8 +633,8 @@ void main() {
 
     group('ranking across signals', () {
       void checkPrecedes(Narrow narrow, User userA, Iterable<User> usersB) {
-        final view = MentionAutocompleteView.init(store: store, narrow: narrow,
-          query: MentionAutocompleteQuery(''));
+        final view = MentionAutocompleteView.init(store: store, localizations: zulipLocalizations,
+          narrow: narrow, query: MentionAutocompleteQuery(''));
         for (final userB in usersB) {
           check(view.debugCompareUsers(userA, userB)).isLessThan(0);
           check(view.debugCompareUsers(userB, userA)).isGreaterThan(0);
@@ -634,8 +642,8 @@ void main() {
       }
 
       void checkRankEqual(Narrow narrow, List<User> users) {
-        final view = MentionAutocompleteView.init(store: store, narrow: narrow,
-          query: MentionAutocompleteQuery(''));
+        final view = MentionAutocompleteView.init(store: store, localizations: zulipLocalizations,
+          narrow: narrow, query: MentionAutocompleteQuery(''));
         for (int i = 0; i < users.length; i++) {
           for (int j = i + 1; j < users.length; j++) {
             check(view.debugCompareUsers(users[i], users[j])).equals(0);
@@ -752,42 +760,47 @@ void main() {
       test('CombinedFeedNarrow gives error', () async {
         await prepare(users: [eg.user(), eg.user()], messages: []);
         const narrow = CombinedFeedNarrow();
-        check(() => MentionAutocompleteView.init(store: store, narrow: narrow,
-                      query: MentionAutocompleteQuery('')))
+        check(() => MentionAutocompleteView.init(store: store, localizations: zulipLocalizations,
+                      narrow: narrow, query: MentionAutocompleteQuery('')))
           .throws<AssertionError>();
       });
 
       test('MentionsNarrow gives error', () async {
         await prepare(users: [eg.user(), eg.user()], messages: []);
         const narrow = MentionsNarrow();
-        check(() => MentionAutocompleteView.init(store: store, narrow: narrow,
-                      query: MentionAutocompleteQuery('')))
+        check(() => MentionAutocompleteView.init(store: store, localizations: zulipLocalizations,
+                      narrow: narrow, query: MentionAutocompleteQuery('')))
           .throws<AssertionError>();
       });
 
       test('StarredMessagesNarrow gives error', () async {
         await prepare(users: [eg.user(), eg.user()], messages: []);
         const narrow = StarredMessagesNarrow();
-        check(() => MentionAutocompleteView.init(store: store, narrow: narrow,
-                      query: MentionAutocompleteQuery('')))
+        check(() => MentionAutocompleteView.init(store: store, localizations: zulipLocalizations,
+                      narrow: narrow, query: MentionAutocompleteQuery('')))
           .throws<AssertionError>();
       });
     });
 
     test('final results end-to-end', () async {
-      Future<Iterable<int>> getResults(
+      Future<Iterable<MentionAutocompleteResult>> getResults(
           Narrow narrow, MentionAutocompleteQuery query) async {
         bool done = false;
-        final view = MentionAutocompleteView.init(store: store, narrow: narrow,
-          query: query);
+        final view = MentionAutocompleteView.init(store: store,
+          localizations: zulipLocalizations, narrow: narrow, query: query);
         view.addListener(() { done = true; });
         await Future(() {});
         check(done).isTrue();
-        final results = view.results
-          .map((e) => (e as UserMentionAutocompleteResult).userId);
+        final results = view.results;
         view.dispose();
         return results;
       }
+
+      Iterable<int> getUsersFromResults(Iterable<MentionAutocompleteResult> results)
+        => results.map((e) => (e as UserMentionAutocompleteResult).userId);
+
+      Iterable<WildcardMentionOption> getWildcardOptionsFromResults(Iterable<MentionAutocompleteResult> results)
+        => results.map((e) => (e as WildcardMentionAutocompleteResult).wildcardOption);
 
       final stream = eg.stream();
       const topic = 'topic';
@@ -812,20 +825,133 @@ void main() {
         RecentDmConversation(userIds: [1, 2], maxMessageId: 100),
       ]);
 
-      // Check the ranking of the full list of users.
+      // Check the ranking of the full list of mentions.
       // The order should be:
-      // 1. Users most recent in the current topic/stream.
-      // 2. Users most recent in the DM conversations.
-      // 3. Human vs. Bot users (human users come first).
-      // 4. Alphabetical order by name.
-      check(await getResults(topicNarrow, MentionAutocompleteQuery('')))
+      // 1. Wildcards before individual users.
+      // 2. Users most recent in the current topic/stream.
+      // 3. Users most recent in the DM conversations.
+      // 4. Human vs. Bot users (human users come first).
+      // 5. Users by name alphabetical order.
+      final results1 = await getResults(topicNarrow, MentionAutocompleteQuery(''));
+      check(getWildcardOptionsFromResults(results1.take(2)))
+        .deepEquals([WildcardMentionOption.all, WildcardMentionOption.topic]);
+      check(getUsersFromResults(results1.skip(2)))
         .deepEquals([1, 5, 4, 2, 7, 3, 6]);
 
       // Check the ranking applies also to results filtered by a query.
-      check(await getResults(topicNarrow, MentionAutocompleteQuery('t')))
-        .deepEquals([2, 3]);
-      check(await getResults(topicNarrow, MentionAutocompleteQuery('f')))
-        .deepEquals([5, 4]);
+      final results2 = await getResults(topicNarrow, MentionAutocompleteQuery('t'));
+      check(getWildcardOptionsFromResults(results2.take(2)))
+        .deepEquals([WildcardMentionOption.stream, WildcardMentionOption.topic]);
+      check(getUsersFromResults(results2.skip(2))).deepEquals([2, 3]);
+      final results3 = await getResults(topicNarrow, MentionAutocompleteQuery('f'));
+      check(getWildcardOptionsFromResults(results3.take(0))).deepEquals([]);
+      check(getUsersFromResults(results3.skip(0))).deepEquals([5, 4]);
+    });
+  });
+
+  group('MentionAutocompleteView.computeWildcardMentionResults', () {
+    Iterable<WildcardMentionOption> getWildcardOptionsFor(String rawQuery, {
+      bool isSilent = false,
+      required Narrow narrow,
+      int? zulipFeatureLevel,
+      ZulipLocalizations? localizations,
+    }) {
+      final store = eg.store(
+        account: eg.account(user: eg.selfUser, zulipFeatureLevel: zulipFeatureLevel),
+        initialSnapshot: eg.initialSnapshot(zulipFeatureLevel: zulipFeatureLevel));
+      localizations ??= zulipLocalizations;
+      final view = MentionAutocompleteView.init(store: store, localizations: localizations,
+        narrow: narrow, query: MentionAutocompleteQuery(rawQuery, silent: isSilent));
+      final results = <MentionAutocompleteResult>[];
+      view.computeWildcardMentionResults(results: results,
+        isComposingChannelMessage: narrow is ChannelNarrow
+          || narrow is TopicNarrow);
+      view.dispose();
+      return results.map((e) => (e as WildcardMentionAutocompleteResult).wildcardOption);
+    }
+
+    const channelNarrow = ChannelNarrow(1);
+    const topicNarrow = TopicNarrow(1, TopicName('topic'));
+    final dmNarrow = DmNarrow.withUser(10, selfUserId: 5);
+
+    final testCases = [
+      ('',          channelNarrow, [WildcardMentionOption.all, WildcardMentionOption.topic]),
+      ('',          topicNarrow,   [WildcardMentionOption.all, WildcardMentionOption.topic]),
+      ('',          dmNarrow,      [WildcardMentionOption.all]),
+
+      ('c',         channelNarrow, [WildcardMentionOption.channel, WildcardMentionOption.topic]),
+      ('ch',        topicNarrow,   [WildcardMentionOption.channel]),
+      ('str',       channelNarrow, [WildcardMentionOption.stream]),
+      ('e',         topicNarrow,   [WildcardMentionOption.everyone]),
+      ('everyone',  channelNarrow, [WildcardMentionOption.everyone]),
+      ('t',         topicNarrow,   [WildcardMentionOption.stream, WildcardMentionOption.topic]),
+      ('topic',     channelNarrow, [WildcardMentionOption.topic]),
+      ('topic etc', topicNarrow,   <WildcardMentionOption>[]),
+
+      ('a',         dmNarrow,      [WildcardMentionOption.all]),
+      ('every',     dmNarrow,      [WildcardMentionOption.everyone]),
+      ('channel',   dmNarrow,      <WildcardMentionOption>[]),
+      ('stream',    dmNarrow,      <WildcardMentionOption>[]),
+      ('topic',     dmNarrow,      <WildcardMentionOption>[]),
+    ];
+
+    for (final (String query, Narrow narrow, List<WildcardMentionOption> wildcardOptions) in testCases) {
+      test('query "$query" in ${narrow.runtimeType} -> $wildcardOptions', () async {
+        check(getWildcardOptionsFor(query, narrow: narrow)).deepEquals(wildcardOptions);
+      });
+    }
+
+    final localizedTestCases = [
+      ('ال',        channelNarrow, [WildcardMentionOption.all, WildcardMentionOption.topic]),
+      ('الجميع',    topicNarrow,   [WildcardMentionOption.all]),
+      ('الموضوع',   channelNarrow, [WildcardMentionOption.topic]),
+      ('ق',         topicNarrow,   [WildcardMentionOption.channel]),
+      ('دفق',       channelNarrow, [WildcardMentionOption.stream]),
+      ('الكل',      dmNarrow,      [WildcardMentionOption.everyone]),
+
+      ('top',       channelNarrow, [WildcardMentionOption.topic]),
+      ('channel',   topicNarrow,   [WildcardMentionOption.channel]),
+      ('every',     dmNarrow,      [WildcardMentionOption.everyone]),
+    ];
+
+    for (final (String localizedQuery, Narrow narrow, List<WildcardMentionOption> wildcardOptions) in localizedTestCases) {
+      test('different locale -> query "$localizedQuery" in ${narrow.runtimeType} -> $wildcardOptions', () async {
+        check(getWildcardOptionsFor(localizedQuery, narrow: narrow,
+          localizations: zulipLocalizationsArabic)).deepEquals(wildcardOptions);
+      });
+    }
+
+    test('no wildcards for a silent mention', () {
+      check(getWildcardOptionsFor('', isSilent: true, narrow: channelNarrow))
+        .isEmpty();
+      check(getWildcardOptionsFor('all', isSilent: true, narrow: topicNarrow))
+        .isEmpty();
+      check(getWildcardOptionsFor('everyone', isSilent: true, narrow: dmNarrow))
+        .isEmpty();
+    });
+
+    test('${WildcardMentionOption.channel} is available FL-247 onwards', () {
+      check(getWildcardOptionsFor('channel',
+          narrow: channelNarrow, zulipFeatureLevel: 247))
+        .deepEquals([WildcardMentionOption.channel]);
+    });
+
+    test('${WildcardMentionOption.channel} is not available before FL-247', () {
+      check(getWildcardOptionsFor('channel',
+          narrow: channelNarrow, zulipFeatureLevel: 246))
+        .deepEquals([]);
+    });
+
+    test('${WildcardMentionOption.topic} is available FL-224 onwards', () {
+      check(getWildcardOptionsFor('topic',
+          narrow: channelNarrow, zulipFeatureLevel: 224))
+        .deepEquals([WildcardMentionOption.topic]);
+    });
+
+    test('${WildcardMentionOption.topic} is not available before FL-224', () {
+      check(getWildcardOptionsFor('topic',
+          narrow: channelNarrow, zulipFeatureLevel: 223))
+        .deepEquals([]);
     });
   });
 
@@ -835,7 +961,8 @@ void main() {
 
       final description = 'topic-input with text: $markedText produces: ${expectedQuery?.raw ?? 'No Query!'}';
       test(description, () {
-        final controller = ComposeTopicController();
+        final store = eg.store();
+        final controller = ComposeTopicController(store: store);
         controller.value = parsed.value;
         if (expectedQuery == null) {
           check(controller).autocompleteIntent.isNull();

@@ -183,7 +183,7 @@ private class AndroidNotificationHost(val context: Context)
         contentIntent: PendingIntent?,
         contentText: String?,
         contentTitle: String?,
-        extras: Map<String?, String?>?,
+        extras: Map<String, String>?,
         groupKey: String?,
         inboxStyle: InboxStyle?,
         isGroupSummary: Boolean?,
@@ -221,13 +221,13 @@ private class AndroidNotificationHost(val context: Context)
                 val style = NotificationCompat.MessagingStyle(toAndroidPerson(messagingStyle.user))
                     .setConversationTitle(messagingStyle.conversationTitle)
                     .setGroupConversation(messagingStyle.isGroupConversation)
-                messagingStyle.messages.forEach { it?.let {
+                messagingStyle.messages.forEach {
                     style.addMessage(NotificationCompat.MessagingStyle.Message(
                         it.text,
                         it.timestampMs,
                         toAndroidPerson(it.person),
                     ))
-                } }
+                }
                 setStyle(style)
             }
             number?.let { setNumber(it.toInt()) }
@@ -268,8 +268,11 @@ private class AndroidNotificationHost(val context: Context)
                 Notification(
                     it.notification.group,
                     desiredExtras
-                        .associateWith { key -> it.notification.extras.getString(key) }
-                        .filter { entry -> entry.value != null }
+                        .mapNotNull { key ->
+                            it.notification.extras.getString(key)?.let { value ->
+                                key to value
+                            } }
+                        .toMap()
                 ),
             )
         }

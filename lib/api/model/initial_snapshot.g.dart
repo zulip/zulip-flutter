@@ -58,6 +58,10 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
       userTopics: (json['user_topics'] as List<dynamic>?)
           ?.map((e) => UserTopicItem.fromJson(e as Map<String, dynamic>))
           .toList(),
+      realmWildcardMentionPolicy: $enumDecode(
+          _$RealmWildcardMentionPolicyEnumMap,
+          json['realm_wildcard_mention_policy']),
+      realmMandatoryTopics: json['realm_mandatory_topics'] as bool,
       realmWaitingPeriodThreshold:
           (json['realm_waiting_period_threshold'] as num).toInt(),
       realmDefaultExternalAccounts:
@@ -108,6 +112,8 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'streams': instance.streams,
       'user_settings': instance.userSettings,
       'user_topics': instance.userTopics,
+      'realm_wildcard_mention_policy': instance.realmWildcardMentionPolicy,
+      'realm_mandatory_topics': instance.realmMandatoryTopics,
       'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
       'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
       'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
@@ -123,6 +129,15 @@ const _$EmailAddressVisibilityEnumMap = {
   EmailAddressVisibility.admins: 3,
   EmailAddressVisibility.nobody: 4,
   EmailAddressVisibility.moderators: 5,
+};
+
+const _$RealmWildcardMentionPolicyEnumMap = {
+  RealmWildcardMentionPolicy.everyone: 1,
+  RealmWildcardMentionPolicy.members: 2,
+  RealmWildcardMentionPolicy.fullMembers: 3,
+  RealmWildcardMentionPolicy.admins: 5,
+  RealmWildcardMentionPolicy.nobody: 6,
+  RealmWildcardMentionPolicy.moderators: 7,
 };
 
 RealmDefaultExternalAccount _$RealmDefaultExternalAccountFromJson(

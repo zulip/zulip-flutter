@@ -3,12 +3,42 @@ import 'package:flutter/material.dart';
 
 import 'store.dart';
 
+/// An [InheritedWidget] for near the root of a page's widget subtree,
+/// providing its [BuildContext].
+///
+/// Useful when needing a context that persists through the page's lifespan,
+/// e.g. for a show-action-sheet function
+/// whose buttons use a context to close the sheet
+/// or show an error dialog / snackbar asynchronously.
+///
+/// (In this scenario, it would be buggy to use the context of the element
+/// that was long-pressed,
+/// if the element can unmount as part of handling a Zulip event.)
+class PageRoot extends InheritedWidget {
+  const PageRoot({super.key, required super.child});
+
+  @override
+  bool updateShouldNotify(covariant PageRoot oldWidget) => false;
+
+  static BuildContext contextOf(BuildContext context) {
+    final element = context.getElementForInheritedWidgetOfExactType<PageRoot>();
+    assert(element != null, 'No PageRoot ancestor');
+    return element!;
+  }
+}
+
 /// A page route that always builds the same widget.
 ///
 /// This is useful for making the route more transparent for a test to inspect.
 abstract class WidgetRoute<T extends Object?> extends PageRoute<T> {
   /// The widget that this page route always builds.
   Widget get page;
+}
+
+/// A page route that specifies a particular Zulip account to use, by ID.
+abstract class AccountRoute<T extends Object?> extends PageRoute<T> {
+  /// The [Account.id] of the account to use for this page.
+  int get accountId;
 }
 
 /// A [MaterialPageRoute] that always builds the same widget.
@@ -32,8 +62,10 @@ class MaterialWidgetRoute<T extends Object?> extends MaterialPageRoute<T> implem
 }
 
 /// A mixin for providing a given account's per-account store on a page route.
-mixin AccountPageRouteMixin<T extends Object?> on PageRoute<T> {
+mixin AccountPageRouteMixin<T extends Object?> on PageRoute<T> implements AccountRoute<T> {
+  @override
   int get accountId;
+
   Widget? get loadingPlaceholderPage;
 
   @override
@@ -42,7 +74,10 @@ mixin AccountPageRouteMixin<T extends Object?> on PageRoute<T> {
       accountId: accountId,
       placeholder: loadingPlaceholderPage ?? const LoadingPlaceholderPage(),
       routeToRemoveOnLogout: this,
-      child: super.buildPage(context, animation, secondaryAnimation));
+      // PageRoot goes under PerAccountStoreWidget, so the provided context
+      // can be used for PerAccountStoreWidget.of.
+      child: PageRoot(
+        child: super.buildPage(context, animation, secondaryAnimation)));
   }
 }
 

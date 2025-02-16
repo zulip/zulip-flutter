@@ -1,1 +1,11 @@
-{}
+{
+  "wildcardMentionAll": "الجميع",
+  "wildcardMentionEveryone": "الكل",
+  "wildcardMentionChannel": "القناة",
+  "wildcardMentionStream": "الدفق",
+  "wildcardMentionTopic": "الموضوع",
+  "wildcardMentionChannelDescription": "إخطار القناة",
+  "wildcardMentionStreamDescription": "إخطار الدفق",
+  "wildcardMentionAllDmDescription": "إخطار المستلمين",
+  "wildcardMentionTopicDescription": "إخطار الموضوع"
+}

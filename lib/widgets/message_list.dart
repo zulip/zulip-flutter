@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -27,56 +27,54 @@ import 'theme.dart';
 
 /// Message-list styles that differ between light and dark themes.
 class MessageListTheme extends ThemeExtension<MessageListTheme> {
-  MessageListTheme.light() :
-    this._(
-      dateSeparator: Colors.black,
-      dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
-      dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
-      messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.2).toColor(),
-      recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
-      senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.08, 0.65).toColor(),
-      senderName: const HSLColor.fromAHSL(1, 0, 0, 0.2).toColor(),
-      streamMessageBgDefault: Colors.white,
-      streamRecipientHeaderChevronRight: Colors.black.withValues(alpha: 0.3),
+  static final light = MessageListTheme._(
+    dateSeparator: Colors.black,
+    dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 0.15).toColor(),
+    dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
+    messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.2).toColor(),
+    recipientHeaderText: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
+    senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.08, 0.65).toColor(),
+    senderName: const HSLColor.fromAHSL(1, 0, 0, 0.2).toColor(),
+    streamMessageBgDefault: Colors.white,
+    streamRecipientHeaderChevronRight: Colors.black.withValues(alpha: 0.3),
 
-      // From the Figma mockup at:
-      //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132-9684
-      // See discussion about design at:
-      //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20unread.20marker/near/1658008
-      // (Web uses a left-to-right gradient from hsl(217deg 64% 59%) to transparent,
-      // in both light and dark theme.)
-      unreadMarker: const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor(),
+    // From the Figma mockup at:
+    //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132-9684
+    // See discussion about design at:
+    //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20unread.20marker/near/1658008
+    // (Web uses a left-to-right gradient from hsl(217deg 64% 59%) to transparent,
+    // in both light and dark theme.)
+    unreadMarker: const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor(),
 
-      unreadMarkerGap: Colors.white.withValues(alpha: 0.6),
+    unreadMarkerGap: Colors.white.withValues(alpha: 0.6),
 
-      // TODO(design) this seems ad-hoc; is there a better color?
-      unsubscribedStreamRecipientHeaderBg: const Color(0xfff5f5f5),
-    );
+    // TODO(design) this seems ad-hoc; is there a better color?
+    unsubscribedStreamRecipientHeaderBg: const Color(0xfff5f5f5),
+  );
 
-  MessageListTheme.dark() :
-    this._(
-      dateSeparator: Colors.white,
-      dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
-      dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
-      messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.85).toColor(),
-      recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
-      senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
-      senderName: const HSLColor.fromAHSL(0.85, 0, 0, 1).toColor(),
-      streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
-      streamRecipientHeaderChevronRight: Colors.white.withValues(alpha: 0.3),
+  static final dark = MessageListTheme._(
+    dateSeparator: Colors.white,
+    dateSeparatorText: const HSLColor.fromAHSL(0.75, 0, 0, 1).toColor(),
+    dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
+    messageTimestamp: const HSLColor.fromAHSL(0.8, 0, 0, 0.85).toColor(),
+    recipientHeaderText: const HSLColor.fromAHSL(0.8, 0, 0, 1).toColor(),
+    senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
+    senderName: const HSLColor.fromAHSL(0.85, 0, 0, 1).toColor(),
+    streamMessageBgDefault: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
+    streamRecipientHeaderChevronRight: Colors.white.withValues(alpha: 0.3),
 
-      // 0.75 opacity from here:
-      //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=807-33998&m=dev
-      // Discussion, some weeks after the discussion linked on the light variant:
-      //   https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
-      // where Vlad includes screenshots that look like they're from there.
-      unreadMarker: const HSLColor.fromAHSL(0.75, 227, 0.78, 0.59).toColor(),
+    // 0.75 opacity from here:
+    //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=807-33998&m=dev
+    // Discussion, some weeks after the discussion linked on the light variant:
+    //   https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
+    // where Vlad includes screenshots that look like they're from there.
+    unreadMarker: const HSLColor.fromAHSL(0.75, 227, 0.78, 0.59).toColor(),
 
-      unreadMarkerGap: Colors.transparent,
+    unreadMarkerGap: Colors.transparent,
 
-      // TODO(design) this is ad-hoc and untested; is there a better color?
-      unsubscribedStreamRecipientHeaderBg: const Color(0xff0a0a0a),
-    );
+    // TODO(design) this is ad-hoc and untested; is there a better color?
+    unsubscribedStreamRecipientHeaderBg: const Color(0xff0a0a0a),
+  );
 
   MessageListTheme._({
     required this.dateSeparator,
@@ -155,7 +153,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     return MessageListTheme._(
       dateSeparator: Color.lerp(dateSeparator, other.dateSeparator, t)!,
       dateSeparatorText: Color.lerp(dateSeparatorText, other.dateSeparatorText, t)!,
-      dmRecipientHeaderBg: Color.lerp(streamMessageBgDefault, other.dmRecipientHeaderBg, t)!,
+      dmRecipientHeaderBg: Color.lerp(dmRecipientHeaderBg, other.dmRecipientHeaderBg, t)!,
       messageTimestamp: Color.lerp(messageTimestamp, other.messageTimestamp, t)!,
       recipientHeaderText: Color.lerp(recipientHeaderText, other.recipientHeaderText, t)!,
       senderBotIcon: Color.lerp(senderBotIcon, other.senderBotIcon, t)!,
@@ -177,14 +175,20 @@ abstract class MessageListPageState {
   Narrow get narrow;
 
   /// The controller for this [MessageListPage]'s compose box,
-  /// if this [MessageListPage] offers a compose box.
+  /// if this [MessageListPage] offers a compose box and it has mounted,
+  /// else null.
   ComposeBoxController? get composeBoxController;
+
+  /// The active [MessageListView].
+  ///
+  /// This is null if [MessageList] has not mounted yet.
+  MessageListView? get model;
 }
 
 class MessageListPage extends StatefulWidget {
   const MessageListPage({super.key, required this.initNarrow});
 
-  static Route<void> buildRoute({int? accountId, BuildContext? context,
+  static AccountRoute<void> buildRoute({int? accountId, BuildContext? context,
       required Narrow narrow}) {
     return MaterialAccountWidgetRoute(accountId: accountId, context: context,
       page: MessageListPage(initNarrow: narrow));
@@ -214,8 +218,11 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
 
   @override
   ComposeBoxController? get composeBoxController => _composeBoxKey.currentState?.controller;
-
   final GlobalKey<ComposeBoxState> _composeBoxKey = GlobalKey();
+
+  @override
+  MessageListView? get model => _messageListKey.currentState?.model;
+  final GlobalKey<_MessageListState> _messageListKey = GlobalKey();
 
   @override
   void initState() {
@@ -262,8 +269,6 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
 
     List<Widget>? actions;
     if (narrow case TopicNarrow(:final streamId)) {
-      // The helper [_getEffectiveCenterTitle] relies on the fact that we
-      // have at most one action here.
       (actions ??= []).add(IconButton(
         icon: const Icon(ZulipIcons.message_feed),
         tooltip: zulipLocalizations.channelFeedButtonTooltip,
@@ -272,9 +277,12 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
             narrow: ChannelNarrow(streamId)))));
     }
 
-    return Scaffold(
+    // Insert a PageRoot here, to provide a context that can be used for
+    // MessageListPage.ancestorOf.
+    return PageRoot(child: Scaffold(
       appBar: ZulipAppBar(
-        title: MessageListAppBarTitle(narrow: narrow),
+        buildTitle: (willCenterTitle) =>
+          MessageListAppBarTitle(narrow: narrow, willCenterTitle: willCenterTitle),
         actions: actions,
         backgroundColor: appBarBackgroundColor,
         shape: removeAppBarBottomBorder
@@ -288,8 +296,11 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
       //   we matched to the Figma in 21dbae120. See another frame, which uses that:
       //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=147%3A9088&mode=dev
       body: Builder(
-        builder: (BuildContext context) => Center(
-          child: Column(children: [
+        builder: (BuildContext context) => Column(
+          // Children are expected to take the full horizontal space
+          // and handle the horizontal device insets.
+          // The bottom inset should be handled by the last child only.
+          children: [
             MediaQuery.removePadding(
               // Scaffold knows about the app bar, and so has run this
               // BuildContext, which is under `body`, through
@@ -302,7 +313,11 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
               removeBottom: ComposeBox.hasComposeBox(narrow),
 
               child: Expanded(
-                child: MessageList(narrow: narrow, onNarrowChanged: _narrowChanged))),
+                child: MessageList(
+                  key: _messageListKey,
+                  narrow: narrow,
+                  onNarrowChanged: _narrowChanged,
+                ))),
             if (ComposeBox.hasComposeBox(narrow))
               ComposeBox(key: _composeBoxKey, narrow: narrow)
           ]))));
@@ -310,13 +325,19 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
 }
 
 class MessageListAppBarTitle extends StatelessWidget {
-  const MessageListAppBarTitle({super.key, required this.narrow});
+  const MessageListAppBarTitle({
+    super.key,
+    required this.narrow,
+    required this.willCenterTitle,
+  });
 
   final Narrow narrow;
+  final bool willCenterTitle;
 
   Widget _buildStreamRow(BuildContext context, {
     ZulipStream? stream,
   }) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     // A null [Icon.icon] makes a blank space.
     final icon = stream != null ? iconDataForStream(stream) : null;
     return Row(
@@ -328,7 +349,8 @@ class MessageListAppBarTitle extends StatelessWidget {
       children: [
         Icon(size: 16, icon),
         const SizedBox(width: 4),
-        Flexible(child: Text(stream?.name ?? '(unknown channel)')),
+        Flexible(child: Text(
+          stream?.name ?? zulipLocalizations.unknownChannelName)),
       ]);
   }
 
@@ -356,29 +378,6 @@ class MessageListAppBarTitle extends StatelessWidget {
       ]);
   }
 
-  // TODO(upstream): provide an API for this
-  // Adapted from [AppBar._getEffectiveCenterTitle].
-  bool _getEffectiveCenterTitle(ThemeData theme) {
-    bool platformCenter() {
-      switch (theme.platform) {
-        case TargetPlatform.android:
-        case TargetPlatform.fuchsia:
-        case TargetPlatform.linux:
-        case TargetPlatform.windows:
-          return false;
-        case TargetPlatform.iOS:
-        case TargetPlatform.macOS:
-        // We rely on the fact that there is at most one action
-        // on the message list app bar, so that the expression returned
-        // in the original helper, `actions == null || actions!.length < 2`,
-        // always evaluates to `true`:
-          return true;
-      }
-    }
-
-    return theme.appBarTheme.centerTitle ?? platformCenter();
-  }
-
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -399,19 +398,29 @@ class MessageListAppBarTitle extends StatelessWidget {
         return _buildStreamRow(context, stream: stream);
 
       case TopicNarrow(:var streamId, :var topic):
-        final theme = Theme.of(context);
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
-        final centerTitle = _getEffectiveCenterTitle(theme);
         return SizedBox(
           width: double.infinity,
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
-            onLongPress: () => showTopicActionSheet(context,
-              channelId: streamId, topic: topic),
+            onLongPress: () {
+              final someMessage = MessageListPage.ancestorOf(context)
+                .model?.messages.firstOrNull;
+              // If someMessage is null, the topic action sheet won't have a
+              // resolve/unresolve button. That seems OK; in that case we're
+              // either still fetching messages (and the user can reopen the
+              // sheet after that finishes) or there aren't any messages to
+              // act on anyway.
+              assert(someMessage == null || narrow.containsMessage(someMessage));
+              showTopicActionSheet(context,
+                channelId: streamId,
+                topic: topic,
+                someMessageIdInTopic: someMessage?.id);
+            },
             child: Column(
-              crossAxisAlignment: centerTitle ? CrossAxisAlignment.center
-                                              : CrossAxisAlignment.start,
+              crossAxisAlignment: willCenterTitle ? CrossAxisAlignment.center
+                                                  : CrossAxisAlignment.start,
               children: [
                 _buildStreamRow(context, stream: stream),
                 _buildTopicRow(context, stream: stream, topic: topic),
@@ -420,10 +429,13 @@ class MessageListAppBarTitle extends StatelessWidget {
       case DmNarrow(:var otherRecipientIds):
         final store = PerAccountStoreWidget.of(context);
         if (otherRecipientIds.isEmpty) {
-          return const Text("DMs with yourself");
+          return Text(zulipLocalizations.dmsWithYourselfPageTitle);
         } else {
-          final names = otherRecipientIds.map((id) => store.users[id]?.fullName ?? '(unknown user)');
-          return Text("DMs with ${names.join(", ")}"); // TODO show avatars
+          final names = otherRecipientIds.map(
+            (id) => store.users[id]?.fullName ?? zulipLocalizations.unknownUserName);
+          // TODO show avatars
+          return Text(
+            zulipLocalizations.dmsWithOthersPageTitle(names.join(', ')));
         }
     }
   }
@@ -442,6 +454,12 @@ const _kShortMessageHeight = 80;
 // previous batch.
 const kFetchMessagesBufferPixels = (kMessageListFetchBatchSize / 2) * _kShortMessageHeight;
 
+/// The message list.
+///
+/// Takes the full screen width, keeping its contents
+/// out of the horizontal insets with transparent [SafeArea] padding.
+/// When there is no [ComposeBox], also takes responsibility
+/// for dealing with the bottom inset.
 class MessageList extends StatefulWidget {
   const MessageList({super.key, required this.narrow, required this.onNarrowChanged});
 
@@ -465,6 +483,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   @override
   void onNewStore() { // TODO(#464) try to keep using old model until new one gets messages
+    model?.dispose();
     _initModel(PerAccountStoreWidget.of(context));
   }
 
@@ -535,12 +554,15 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     // Pad the left and right insets, for small devices in landscape.
     return SafeArea(
       // Don't let this be the place we pad the bottom inset. When there's
-      // no compose box, we want to let the message-list content pad it.
+      // no compose box, we want to let the message-list content
+      // and the scroll-to-bottom button avoid it.
       // TODO(#311) Remove as unnecessary if we do a bottom nav.
       //   The nav will pad the bottom inset, and an ancestor of this widget
       //   will have a `MediaQuery.removePadding` with `removeBottom: true`.
       bottom: false,
 
+      // Horizontally, on wide screens, this Center grows the SafeArea
+      // to position its padding over the device insets and centers content.
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 760),
@@ -553,7 +575,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
                   bottom: 0,
                   right: 0,
                   // TODO(#311) SafeArea shouldn't be needed if we have a
-                  //   bottom nav. That will pad the bottom inset.
+                  //   bottom nav; that will pad the bottom inset. Remove it,
+                  //   and the mention of bottom-inset handling in
+                  //   MessageList's dartdoc.
                   child: SafeArea(
                     child: ScrollToBottomButton(
                       scrollController: scrollController,
@@ -564,6 +588,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   Widget _buildListView(BuildContext context) {
     final length = model!.items.length;
     const centerSliverKey = ValueKey('center sliver');
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     Widget sliver = SliverStickyHeaderList(
       headerPlacement: HeaderPlacement.scrollingStart,
@@ -600,12 +625,12 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           if (i == 2) return TypingStatusWidget(narrow: widget.narrow);
 
           final data = model!.items[length - 1 - (i - 3)];
-          return _buildItem(data, i);
+          return _buildItem(zulipLocalizations, data, i);
         }));
 
     if (!ComposeBox.hasComposeBox(widget.narrow)) {
-      // TODO(#311) If we have a bottom nav, it will pad the bottom
-      //   inset, and this shouldn't be necessary
+      // TODO(#311) If we have a bottom nav, it will pad the bottom inset,
+      //   and this can be removed; also remove mention in MessageList dartdoc
       sliver = SliverSafeArea(sliver: sliver);
     }
 
@@ -636,13 +661,13 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       ]);
   }
 
-  Widget _buildItem(MessageListItem data, int i) {
+  Widget _buildItem(ZulipLocalizations zulipLocalizations, MessageListItem data, int i) {
     switch (data) {
       case MessageListHistoryStartItem():
-        return const Center(
+        return Center(
           child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.0),
-            child: Text("No earlier messages."))); // TODO use an icon
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: Text(zulipLocalizations.noEarlierMessages))); // TODO use an icon
       case MessageListLoadingItem():
         return const Center(
           child: Padding(
@@ -686,6 +711,7 @@ class ScrollToBottomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     return ValueListenableBuilder<bool>(
       valueListenable: visibleValue,
       builder: (BuildContext context, bool value, Widget? child) {
@@ -693,7 +719,7 @@ class ScrollToBottomButton extends StatelessWidget {
       },
       // TODO: fix hardcoded values for size and style here
       child: IconButton(
-        tooltip: "Scroll to bottom",
+        tooltip: zulipLocalizations.scrollToBottomTooltip,
         icon: const Icon(Icons.expand_circle_down_rounded),
         iconSize: 40,
         // Web has the same color in light and dark mode.
@@ -880,27 +906,12 @@ class RecipientHeader extends StatelessWidget {
   final Message message;
   final Narrow narrow;
 
-  static bool _containsDifferentChannels(Narrow narrow) {
-    switch (narrow) {
-      case CombinedFeedNarrow():
-      case MentionsNarrow():
-      case StarredMessagesNarrow():
-        return true;
-
-      case ChannelNarrow():
-      case TopicNarrow():
-      case DmNarrow():
-        return false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final message = this.message;
     return switch (message) {
-      StreamMessage() => StreamMessageRecipientHeader(message: message,
-        showStream: _containsDifferentChannels(narrow)),
-      DmMessage() => DmRecipientHeader(message: message),
+      StreamMessage() => StreamMessageRecipientHeader(message: message, narrow: narrow),
+      DmMessage() => DmRecipientHeader(message: message, narrow: narrow),
     };
   }
 }
@@ -1014,11 +1025,25 @@ class StreamMessageRecipientHeader extends StatelessWidget {
   const StreamMessageRecipientHeader({
     super.key,
     required this.message,
-    required this.showStream,
+    required this.narrow,
   });
 
   final StreamMessage message;
-  final bool showStream;
+  final Narrow narrow;
+
+  static bool _containsDifferentChannels(Narrow narrow) {
+    switch (narrow) {
+      case CombinedFeedNarrow():
+      case MentionsNarrow():
+      case StarredMessagesNarrow():
+        return true;
+
+      case ChannelNarrow():
+      case TopicNarrow():
+      case DmNarrow():
+        return false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1027,6 +1052,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     //   https://github.com/zulip/zulip-mobile/issues/5511
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     final topic = message.topic;
 
@@ -1045,13 +1071,13 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     }
 
     final Widget streamWidget;
-    if (!showStream) {
+    if (!_containsDifferentChannels(narrow)) {
       streamWidget = const SizedBox(width: 16);
     } else {
       final stream = store.streams[message.streamId];
       final streamName = stream?.name
         ?? message.displayRecipient
-        ?? '(unknown channel)'; // TODO(log)
+        ?? zulipLocalizations.unknownChannelName; // TODO(log)
 
       streamWidget = GestureDetector(
         onTap: () => Navigator.push(context,
@@ -1105,11 +1131,18 @@ class StreamMessageRecipientHeader extends StatelessWidget {
         ]));
 
     return GestureDetector(
-      onTap: () => Navigator.push(context,
-        MessageListPage.buildRoute(context: context,
-          narrow: TopicNarrow.ofMessage(message))),
+      // When already in a topic narrow, disable tap interaction that would just
+      // push a MessageListPage for the same topic narrow.
+      // TODO(#1039) simplify by removing topic-narrow condition if we remove
+      //   recipient headers in topic narrows
+      onTap: narrow is TopicNarrow ? null
+        : () => Navigator.push(context,
+            MessageListPage.buildRoute(context: context,
+              narrow: TopicNarrow.ofMessage(message))),
       onLongPress: () => showTopicActionSheet(context,
-        channelId: message.streamId, topic: topic),
+        channelId: message.streamId,
+        topic: topic,
+        someMessageIdInTopic: message.id),
       child: ColoredBox(
         color: backgroundColor,
         child: Row(
@@ -1126,9 +1159,14 @@ class StreamMessageRecipientHeader extends StatelessWidget {
 }
 
 class DmRecipientHeader extends StatelessWidget {
-  const DmRecipientHeader({super.key, required this.message});
+  const DmRecipientHeader({
+    super.key,
+    required this.message,
+    required this.narrow,
+  });
 
   final DmMessage message;
+  final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
@@ -1142,16 +1180,20 @@ class DmRecipientHeader extends StatelessWidget {
         .sorted()
         .join(", "));
     } else {
-      // TODO pick string; web has glitchy "You and $yourname"
       title = zulipLocalizations.messageListGroupYouWithYourself;
     }
 
     final messageListTheme = MessageListTheme.of(context);
 
     return GestureDetector(
-      onTap: () => Navigator.push(context,
-        MessageListPage.buildRoute(context: context,
-          narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
+      // When already in a DM narrow, disable tap interaction that would just
+      // push a MessageListPage for the same DM narrow.
+      // TODO(#1244) simplify by removing DM-narrow condition if we remove
+      //   recipient headers in DM narrows
+      onTap: narrow is DmNarrow ? null
+        : () => Navigator.push(context,
+            MessageListPage.buildRoute(context: context,
+              narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
       child: ColoredBox(
         color: messageListTheme.dmRecipientHeaderBg,
         child: Padding(
@@ -1345,6 +1387,17 @@ class MessageWithPossibleSender extends StatelessWidget {
       case MessageEditState.none:
     }
 
+    Widget? star;
+    if (message.flags.contains(MessageFlag.starred)) {
+      final starOffset = switch (Directionality.of(context)) {
+        TextDirection.ltr => -2.0,
+        TextDirection.rtl => 2.0,
+      };
+      star = Transform.translate(
+        offset: Offset(starOffset, 0),
+        child: Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star));
+    }
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onLongPress: () => showMessageActionSheet(context: context, message: message),
@@ -1376,13 +1429,11 @@ class MessageWithPossibleSender extends StatelessWidget {
                           context, 0.05, baseFontSize: 12))),
                 ])),
               SizedBox(width: 16,
-                child: message.flags.contains(MessageFlag.starred)
-                  ? Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star)
-                  : null),
+                child: star),
             ]),
         ])));
   }
 }
 
-// TODO web seems to ignore locale in formatting time, but we could do better
+// TODO(i18n): web seems to ignore locale in formatting time, but we could do better
 final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');

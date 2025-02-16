@@ -251,15 +251,15 @@ void main() {
     }
 
     check(backgroundColor('smile')).isNotNull()
-      .isSameColorAs(EmojiReactionTheme.light().bgSelected);
+      .isSameColorAs(EmojiReactionTheme.light.bgSelected);
     check(backgroundColor('tada')).isNotNull()
-      .isSameColorAs(EmojiReactionTheme.light().bgUnselected);
+      .isSameColorAs(EmojiReactionTheme.light.bgUnselected);
 
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
     await tester.pump();
 
     await tester.pump(kThemeAnimationDuration * 0.4);
-    final expectedLerped = EmojiReactionTheme.light().lerp(EmojiReactionTheme.dark(), 0.4);
+    final expectedLerped = EmojiReactionTheme.light.lerp(EmojiReactionTheme.dark, 0.4);
     check(backgroundColor('smile')).isNotNull()
       .isSameColorAs(expectedLerped.bgSelected);
     check(backgroundColor('tada')).isNotNull()
@@ -267,9 +267,9 @@ void main() {
 
     await tester.pump(kThemeAnimationDuration * 0.6);
     check(backgroundColor('smile')).isNotNull()
-      .isSameColorAs(EmojiReactionTheme.dark().bgSelected);
+      .isSameColorAs(EmojiReactionTheme.dark.bgSelected);
     check(backgroundColor('tada')).isNotNull()
-      .isSameColorAs(EmojiReactionTheme.dark().bgUnselected);
+      .isSameColorAs(EmojiReactionTheme.dark.bgUnselected);
   });
 
   testWidgets('use emoji font', (tester) async {

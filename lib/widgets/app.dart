@@ -6,11 +6,11 @@ import 'package:flutter/scheduler.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
+import '../model/actions.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
 import '../notifications/display.dart';
 import 'about_zulip.dart';
-import 'actions.dart';
 import 'dialog.dart';
 import 'home.dart';
 import 'login.dart';
@@ -140,6 +140,52 @@ class ZulipApp extends StatefulWidget {
 
 class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  List<Route<dynamic>> _handleGenerateInitialRoutes(String initialRoute) {
+    // The `_ZulipAppState.context` lacks the required ancestors. Instead
+    // we use the Navigator which should be available when this callback is
+    // called and it's context should have the required ancestors.
+    final context = ZulipApp.navigatorKey.currentContext!;
+
+    final initialRouteUrl = Uri.tryParse(initialRoute);
+    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
+      final route = NotificationDisplayManager.routeForNotification(
+        context: context,
+        url: initialRouteUrl);
+
+      if (route != null) {
+        return [
+          HomePage.buildRoute(accountId: route.accountId),
+          route,
+        ];
+      } else {
+        // The account didn't match any existing accounts,
+        // fall through to show the default route below.
+      }
+    }
+
+    final globalStore = GlobalStoreWidget.of(context);
+    // TODO(#524) choose initial account as last one used
+    final initialAccountId = globalStore.accounts.firstOrNull?.id;
+    return [
+      if (initialAccountId == null)
+        MaterialWidgetRoute(page: const ChooseAccountPage())
+      else
+        HomePage.buildRoute(accountId: initialAccountId),
+    ];
+  }
+
+  @override
   Future<bool> didPushRouteInformation(routeInformation) async {
     switch (routeInformation.uri) {
       case Uri(scheme: 'zulip', host: 'login') && var url:
@@ -152,69 +198,39 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     return super.didPushRouteInformation(routeInformation);
   }
 
-  Future<void> _handleInitialRoute() async {
-    final initialRouteUrl = Uri.parse(WidgetsBinding.instance.platformDispatcher.defaultRouteName);
-    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
-      await NotificationDisplayManager.navigateForNotification(initialRouteUrl);
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _handleInitialRoute();
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final themeData = zulipThemeData(context);
     return GlobalStoreWidget(
-      child: Builder(builder: (context) {
-        final globalStore = GlobalStoreWidget.of(context);
-        // TODO(#524) choose initial account as last one used
-        final initialAccountId = globalStore.accounts.firstOrNull?.id;
-        return MaterialApp(
-          title: 'Zulip',
-          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-          supportedLocales: ZulipLocalizations.supportedLocales,
-          theme: themeData,
+      child: MaterialApp(
+        onGenerateTitle: (BuildContext context) {
+          return ZulipLocalizations.of(context).zulipAppTitle;
+        },
+        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+        supportedLocales: ZulipLocalizations.supportedLocales,
+        theme: themeData,
 
-          navigatorKey: ZulipApp.navigatorKey,
-          navigatorObservers: widget.navigatorObservers ?? const [],
-          builder: (BuildContext context, Widget? child) {
-            if (!ZulipApp.ready.value) {
-              SchedulerBinding.instance.addPostFrameCallback(
-                (_) => widget._declareReady());
-            }
-            GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
-            return child!;
-          },
+        navigatorKey: ZulipApp.navigatorKey,
+        navigatorObservers: widget.navigatorObservers ?? const [],
+        builder: (BuildContext context, Widget? child) {
+          if (!ZulipApp.ready.value) {
+            SchedulerBinding.instance.addPostFrameCallback(
+              (_) => widget._declareReady());
+          }
+          GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
+          return child!;
+        },
 
-          // We use onGenerateInitialRoutes for the real work of specifying the
-          // initial nav state.  To do that we need [MaterialApp] to decide to
-          // build a [Navigator]... which means specifying either `home`, `routes`,
-          // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
-          // It never actually gets called, though: `onGenerateInitialRoutes`
-          // handles startup, and then we always push whole routes with methods
-          // like [Navigator.push], never mere names as with [Navigator.pushNamed].
-          onGenerateRoute: (_) => null,
+        // We use onGenerateInitialRoutes for the real work of specifying the
+        // initial nav state.  To do that we need [MaterialApp] to decide to
+        // build a [Navigator]... which means specifying either `home`, `routes`,
+        // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
+        // It never actually gets called, though: `onGenerateInitialRoutes`
+        // handles startup, and then we always push whole routes with methods
+        // like [Navigator.push], never mere names as with [Navigator.pushNamed].
+        onGenerateRoute: (_) => null,
 
-          onGenerateInitialRoutes: (_) {
-            return [
-              if (initialAccountId == null)
-                MaterialWidgetRoute(page: const ChooseAccountPage())
-              else
-                HomePage.buildRoute(accountId: initialAccountId),
-            ];
-          });
-        }));
+        onGenerateInitialRoutes: _handleGenerateInitialRoutes));
   }
 }
 
@@ -249,7 +265,7 @@ class ChooseAccountPage extends StatelessWidget {
                   actionButtonText: zulipLocalizations.logOutConfirmationDialogConfirmButton,
                   onActionButtonPress: () {
                     // TODO error handling if db write fails?
-                    logOutAccount(context, accountId);
+                    logOutAccount(GlobalStoreWidget.of(context), accountId);
                   });
               },
               child: Text(zulipLocalizations.chooseAccountPageLogOutButton)),
@@ -323,6 +339,7 @@ class ChooseAccountPageOverflowButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final materialLocalizations = MaterialLocalizations.of(context);
     return MenuAnchor(
       menuChildren: [
@@ -330,7 +347,7 @@ class ChooseAccountPageOverflowButton extends StatelessWidget {
           onPressed: () {
             Navigator.push(context, AboutZulipPage.buildRoute(context));
           },
-          child: const Text('About Zulip')), // TODO(i18n)
+          child: Text(zulipLocalizations.aboutPageTitle)),
       ],
       builder: (BuildContext context, MenuController controller, Widget? child) {
         return IconButton(

@@ -664,6 +664,19 @@ enum MessageFlag {
 //   Using as a Map key is almost certainly a bug because it won't case-fold;
 //   see for example #739, #980, #1205.
 extension type const TopicName(String _value) {
+  /// The canonical form of the resolved-topic prefix.
+  // This is RESOLVED_TOPIC_PREFIX in web:
+  //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts
+  static const resolvedTopicPrefix = '✔ ';
+
+  /// Pattern for an arbitrary resolved-topic prefix.
+  ///
+  /// These always begin with [resolvedTopicPrefix]
+  /// but can be weird and go on longer, like "✔ ✔✔ ".
+  // This is RESOLVED_TOPIC_PREFIX_RE in web:
+  //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts#L4-L12
+  static final resolvedTopicPrefixRegexp = RegExp(r'^✔ [ ✔]*');
+
   /// The string this topic is identified by in the Zulip API.
   ///
   /// This should be used in constructing HTTP requests to the server,
@@ -681,6 +694,20 @@ extension type const TopicName(String _value) {
 
   /// The key to use for "same topic as" comparisons.
   String canonicalize() => apiName.toLowerCase();
+
+  /// Whether the topic starts with [resolvedTopicPrefix].
+  bool get isResolved => _value.startsWith(resolvedTopicPrefix);
+
+  /// This [TopicName] plus the [resolvedTopicPrefix] prefix.
+  TopicName resolve() => TopicName(resolvedTopicPrefix + _value);
+
+  /// A [TopicName] with [resolvedTopicPrefixRegexp] stripped if present.
+  TopicName unresolve() =>
+    TopicName(_value.replaceFirst(resolvedTopicPrefixRegexp, ''));
+
+  /// Whether [this] and [other] have the same canonical form,
+  /// using [canonicalize].
+  bool isSameAs(TopicName other) => canonicalize() == other.canonicalize();
 
   TopicName.fromJson(this._value);
 
@@ -844,11 +871,6 @@ enum MessageEditState {
   edited,
   moved;
 
-  // Adapted from the shared code:
-  //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts
-  // The canonical resolved-topic prefix.
-  static const String _resolvedTopicPrefix = '✔ ';
-
   /// Whether the given topic move reflected either a "resolve topic"
   /// or "unresolve topic" operation.
   ///
@@ -856,13 +878,21 @@ enum MessageEditState {
   /// but for purposes of [Message.editState], we want to ignore such renames.
   /// This method identifies topic moves that should be ignored in that context.
   static bool topicMoveWasResolveOrUnresolve(TopicName topic, TopicName prevTopic) {
-    if (topic.apiName.startsWith(_resolvedTopicPrefix)
-        && topic.apiName.substring(_resolvedTopicPrefix.length) == prevTopic.apiName) {
+    // Implemented to match web; see analyze_edit_history in zulip/zulip's
+    // web/src/message_list_view.ts.
+    //
+    // Also, this is a hot codepath (decoding messages, a high-volume type of
+    // data we get from the server), so we avoid calling [canonicalize] and
+    // using [TopicName.resolvedTopicPrefixRegexp], to be performance-sensitive.
+    // Discussion:
+    //   https://github.com/zulip/zulip-flutter/pull/1242#discussion_r1917592157
+    if (topic.apiName.startsWith(TopicName.resolvedTopicPrefix)
+        && topic.apiName.substring(TopicName.resolvedTopicPrefix.length) == prevTopic.apiName) {
       return true;
     }
 
-    if (prevTopic.apiName.startsWith(_resolvedTopicPrefix)
-        && prevTopic.apiName.substring(_resolvedTopicPrefix.length) == topic.apiName) {
+    if (prevTopic.apiName.startsWith(TopicName.resolvedTopicPrefix)
+        && prevTopic.apiName.substring(TopicName.resolvedTopicPrefix.length) == topic.apiName) {
       return true;
     }
 
@@ -914,4 +944,14 @@ enum MessageEditState {
     // This can happen when a topic is resolved but nothing else has been edited
     return MessageEditState.none;
   }
+}
+
+/// As in [updateMessage] or [UpdateMessageEvent.propagateMode].
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum PropagateMode {
+  changeOne,
+  changeLater,
+  changeAll;
+
+  String toJson() => _$PropagateModeEnumMap[this]!;
 }

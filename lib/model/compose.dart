@@ -1,9 +1,32 @@
 import 'dart:math';
 
 import '../api/model/model.dart';
+import '../generated/l10n/zulip_localizations.dart';
 import 'internal_link.dart';
 import 'narrow.dart';
 import 'store.dart';
+
+/// The available user wildcard mention options,
+/// known to the server as [canonicalString].
+///
+/// See API docs:
+///   https://zulip.com/api/message-formatting#mentions-and-silent-mentions
+enum WildcardMentionOption {
+  all(canonicalString: 'all'),
+  everyone(canonicalString: 'everyone'),
+  channel(canonicalString: 'channel'),
+  // TODO(server-9): Deprecated in FL 247. Empirically, current servers (FL 339)
+  // still parse "@**stream**" in messages though.
+  stream(canonicalString: 'stream'),
+  topic(canonicalString: 'topic'); // TODO(server-8): New in FL 224.
+
+  const WildcardMentionOption({required this.canonicalString});
+
+  /// The string identifying this option (e.g. "all" as in "@**all**").
+  final String canonicalString;
+
+  String get name => throw UnsupportedError('Use [canonicalString] instead.');
+}
 
 //
 // Put functions for nontrivial message-content generation in this file.
@@ -101,16 +124,40 @@ String wrapWithBacktickFence({required String content, String? infoString}) {
   return resultBuffer.toString();
 }
 
-/// An @-mention, like @**Chris Bobbe|13313**.
+/// An @-mention of an individual user, like @**Chris Bobbe|13313**.
 ///
 /// To omit the user ID part ("|13313") whenever the name part is unambiguous,
 /// pass a Map of all users we know about. This means accepting a linear scan
 /// through all users; avoid it in performance-sensitive codepaths.
-String mention(User user, {bool silent = false, Map<int, User>? users}) {
+String userMention(User user, {bool silent = false, Map<int, User>? users}) {
   bool includeUserId = users == null
     || users.values.where((u) => u.fullName == user.fullName).take(2).length == 2;
 
   return '@${silent ? '_' : ''}**${user.fullName}${includeUserId ? '|${user.userId}' : ''}**';
+}
+
+/// An @-mention of all the users in a conversation, like @**channel**.
+String wildcardMention(WildcardMentionOption wildcardOption, {
+  required PerAccountStore store,
+}) {
+  final isChannelWildcardAvailable = store.account.zulipFeatureLevel >= 247; // TODO(server-9)
+  final isTopicWildcardAvailable = store.account.zulipFeatureLevel >= 224; // TODO(server-8)
+
+  String name = wildcardOption.canonicalString;
+  switch (wildcardOption) {
+    case WildcardMentionOption.all:
+    case WildcardMentionOption.everyone:
+      break;
+    case WildcardMentionOption.channel:
+      assert(isChannelWildcardAvailable);
+    case WildcardMentionOption.stream:
+      if (isChannelWildcardAvailable) {
+        name = WildcardMentionOption.channel.canonicalString;
+      }
+    case WildcardMentionOption.topic:
+      assert(isTopicWildcardAvailable);
+  }
+  return '@**$name**';
 }
 
 /// https://spec.commonmark.org/0.30/#inline-link
@@ -136,7 +183,9 @@ String inlineLink(String visibleText, Uri? destination) {
 }
 
 /// What we show while fetching the target message's raw Markdown.
-String quoteAndReplyPlaceholder(PerAccountStore store, {
+String quoteAndReplyPlaceholder(
+  ZulipLocalizations zulipLocalizations,
+  PerAccountStore store, {
   required Message message,
 }) {
   final sender = store.users[message.senderId];
@@ -145,8 +194,8 @@ String quoteAndReplyPlaceholder(PerAccountStore store, {
     SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
     nearMessageId: message.id);
   // See note in [quoteAndReply] about asking `mention` to omit the |<id> part.
-  return '${mention(sender!, silent: true)} ${inlineLink('said', url)}: ' // TODO(i18n) ?
-    '*(loading message ${message.id})*\n'; // TODO(i18n) ?
+  return '${userMention(sender!, silent: true)} ${inlineLink('said', url)}: ' // TODO(#1285)
+    '*${zulipLocalizations.composeBoxLoadingMessage(message.id)}*\n';
 }
 
 /// Quote-and-reply syntax.
@@ -169,6 +218,6 @@ String quoteAndReply(PerAccountStore store, {
     // Could ask `mention` to omit the |<id> part unless the mention is ambiguous…
     // but that would mean a linear scan through all users, and the extra noise
     // won't much matter with the already probably-long message link in there too.
-    return '${mention(sender!, silent: true)} ${inlineLink('said', url)}:\n' // TODO(i18n) ?
+    return '${userMention(sender!, silent: true)} ${inlineLink('said', url)}:\n' // TODO(#1285)
       '${wrapWithBacktickFence(content: rawContent, infoString: 'quote')}';
 }

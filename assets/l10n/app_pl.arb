@@ -277,10 +277,6 @@
       }
     }
   },
-  "composeBoxUnknownChannelName": "(nieznany kanał)",
-  "@composeBoxUnknownChannelName": {
-    "description": "Replacement name for channel when it cannot be found in the store."
-  },
   "composeBoxTopicHintText": "Wątek",
   "@composeBoxTopicHintText": {
     "description": "Hint text for topic input widget in compose box."
@@ -359,9 +355,9 @@
   "@loginAddAnAccountPageTitle": {
     "description": "Title for page to add a Zulip account."
   },
-  "loginServerUrlInputLabel": "URL serwera Zulip",
-  "@loginServerUrlInputLabel": {
-    "description": "Input label in login page for Zulip server URL entry."
+  "loginServerUrlLabel": "URL serwera Zulip",
+  "@loginServerUrlLabel": {
+    "description": "Label in login page for Zulip server URL entry."
   },
   "loginHidePassword": "Ukryj hasło",
   "@loginHidePassword": {
@@ -776,5 +772,133 @@
   "errorUnmuteTopicFailed": "Wznowienie bez powodzenia",
   "@errorUnmuteTopicFailed": {
     "description": "Error message when unmuting a topic failed."
+  },
+  "wildcardMentionAll": "wszyscy",
+  "@wildcardMentionAll": {
+    "description": "Text for \"@all\" wildcard-mention autocomplete option when writing a channel or DM message."
+  },
+  "wildcardMentionStream": "strumień",
+  "@wildcardMentionStream": {
+    "description": "Text for \"@stream\" wildcard-mention autocomplete option when writing a channel message in older servers."
+  },
+  "wildcardMentionEveryone": "każdy",
+  "@wildcardMentionEveryone": {
+    "description": "Text for \"@everyone\" wildcard-mention autocomplete option when writing a channel or DM message."
+  },
+  "wildcardMentionChannel": "kanał",
+  "@wildcardMentionChannel": {
+    "description": "Text for \"@channel\" wildcard-mention autocomplete option when writing a channel message."
+  },
+  "wildcardMentionTopic": "wątek",
+  "@wildcardMentionTopic": {
+    "description": "Text for \"@topic\" wildcard-mention autocomplete option when writing a channel message."
+  },
+  "wildcardMentionTopicDescription": "Powiadom w wątku",
+  "@wildcardMentionTopicDescription": {
+    "description": "Description for \"@topic\" wildcard-mention autocomplete options when writing a channel message."
+  },
+  "wildcardMentionAllDmDescription": "Powiadom zainteresowanych",
+  "@wildcardMentionAllDmDescription": {
+    "description": "Description for \"@all\" and \"@everyone\" wildcard-mention autocomplete options when writing a DM message."
+  },
+  "wildcardMentionStreamDescription": "Powiadom w strumieniu",
+  "@wildcardMentionStreamDescription": {
+    "description": "Description for \"@all\", \"@everyone\", and \"@stream\" wildcard-mention autocomplete options when writing a channel message in older servers."
+  },
+  "wildcardMentionChannelDescription": "Powiadom w kanale",
+  "@wildcardMentionChannelDescription": {
+    "description": "Description for \"@all\", \"@everyone\", \"@channel\", and \"@stream\" wildcard-mention autocomplete options when writing a channel message."
+  },
+  "errorCouldNotShowUserProfile": "Nie udało się wyświetlić profilu.",
+  "@errorCouldNotShowUserProfile": {
+    "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
+  "errorCouldNotOpenLinkTitle": "Nie udało się otworzyć odnośnika",
+  "@errorCouldNotOpenLinkTitle": {
+    "description": "Error title when opening a link failed."
+  },
+  "errorCouldNotOpenLink": "Nie można otworzyć: {url}",
+  "@errorCouldNotOpenLink": {
+    "description": "Error message when opening a link failed.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "https://chat.example.com"
+      }
+    }
+  },
+  "dmsWithYourselfPageTitle": "DM do siebie",
+  "@dmsWithYourselfPageTitle": {
+    "description": "Message list page title for a DM group that only includes yourself."
+  },
+  "dmsWithOthersPageTitle": "DM z {others}",
+  "@dmsWithOthersPageTitle": {
+    "description": "Message list page title for a DM group with others.",
+    "placeholders": {
+      "others": {
+        "type": "String",
+        "example": "Alice, Bob"
+      }
+    }
+  },
+  "lightboxVideoCurrentPosition": "Obecna pozycja",
+  "@lightboxVideoCurrentPosition": {
+    "description": "The current playback position of the video playing in the lightbox."
+  },
+  "lightboxVideoDuration": "Długość wideo",
+  "@lightboxVideoDuration": {
+    "description": "The total duration of the video playing in the lightbox."
+  },
+  "recentDmConversationsSectionHeader": "Wiadomości bezpośrednie",
+  "@recentDmConversationsSectionHeader": {
+    "description": "Heading for direct messages section on the 'Inbox' message view."
+  },
+  "reactedEmojiSelfUser": "Ty",
+  "@reactedEmojiSelfUser": {
+    "description": "Display name for the user themself, to show on an emoji reaction added by the user."
+  },
+  "pollVoterNames": "({voterNames})",
+  "@pollVoterNames": {
+    "description": "The list of people who voted for a poll option, wrapped in parentheses.",
+    "placeholders": {
+      "voterNames": {
+        "type": "String",
+        "example": "Alice, Bob, Chad"
+      }
+    }
+  },
+  "noEarlierMessages": "Brak historii",
+  "@noEarlierMessages": {
+    "description": "Text to show at the start of a message list if there are no earlier messages."
+  },
+  "scrollToBottomTooltip": "Przewiń do dołu",
+  "@scrollToBottomTooltip": {
+    "description": "Tooltip for button to scroll to bottom."
+  },
+  "composeBoxLoadingMessage": "(ładowanie wiadomości {messageId})",
+  "@composeBoxLoadingMessage": {
+    "description": "Placeholder in compose box showing the quoted message is currently loading.",
+    "placeholders": {
+      "messageId": {
+        "type": "int",
+        "example": "1234"
+      }
+    }
+  },
+  "pinnedSubscriptionsLabel": "Przypięte",
+  "@pinnedSubscriptionsLabel": {
+    "description": "Label for the list of pinned subscribed channels."
+  },
+  "subscriptionListNoChannels": "Nie odnaleziono kanałów",
+  "@subscriptionListNoChannels": {
+    "description": "Text to display on subscribed-channels page when there are no subscribed channels."
+  },
+  "unknownChannelName": "(nieznany kanał)",
+  "@unknownChannelName": {
+    "description": "Replacement name for channel when it cannot be found in the store."
+  },
+  "unpinnedSubscriptionsLabel": "Odpięte",
+  "@unpinnedSubscriptionsLabel": {
+    "description": "Label for the list of unpinned subscribed channels."
   }
 }

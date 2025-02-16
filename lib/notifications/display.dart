@@ -25,10 +25,11 @@ import '../widgets/theme.dart';
 AndroidNotificationHostApi get _androidHost => ZulipBinding.instance.androidNotificationHost;
 
 enum NotificationSound {
-  // Any new entry here must appear in `keep.xml` too, see #528.
+  // TODO(i18n): translate these file display names
   chime2(resourceName: 'chime2', fileDisplayName: 'Zulip - Low Chime.m4a'),
   chime3(resourceName: 'chime3', fileDisplayName: 'Zulip - Chime.m4a'),
   chime4(resourceName: 'chime4', fileDisplayName: 'Zulip - High Chime.m4a');
+  // Any new entry here must appear in `keep.xml` too, see #528.
 
   const NotificationSound({
     required this.resourceName,
@@ -108,7 +109,7 @@ class NotificationChannelManager {
     // and check against our list of sounds we have.
     final soundsToAdd = NotificationSound.values.toList();
 
-    final List<StoredNotificationSound?> storedSounds;
+    final List<StoredNotificationSound> storedSounds;
     try {
       storedSounds = await _androidHost.listStoredSoundsInNotificationsDirectory();
     } catch (e, st) {
@@ -116,11 +117,9 @@ class NotificationChannelManager {
       return defaultSoundUrl;
     }
     for (final storedSound in storedSounds) {
-      assert(storedSound != null); // TODO(#942)
-
       // If the file is one we put there, and has the name we give to our
       // default sound, then use it as the default sound.
-      if (storedSound!.fileName == kDefaultNotificationSound.fileDisplayName
+      if (storedSound.fileName == kDefaultNotificationSound.fileDisplayName
           && storedSound.isOwned) {
         defaultSoundUrl = storedSound.contentUrl;
       }
@@ -188,8 +187,7 @@ class NotificationChannelManager {
     var found = false;
     final channels = await _androidHost.getNotificationChannels();
     for (final channel in channels) {
-      assert(channel != null); // TODO(#942)
-      if (channel!.id == kChannelId) {
+      if (channel.id == kChannelId) {
         found = true;
       } else {
         await _androidHost.deleteNotificationChannel(channel.id);
@@ -207,7 +205,7 @@ class NotificationChannelManager {
 
     await _androidHost.createNotificationChannel(NotificationChannel(
       id: kChannelId,
-      name: 'Messages', // TODO(i18n)
+      name: 'Messages', // TODO(#1284)
       importance: NotificationImportance.high,
       lightsEnabled: true,
       soundUrl: defaultSoundUrl,
@@ -266,7 +264,7 @@ class NotificationDisplayManager {
       FcmMessageChannelRecipient(:var streamName?, :var topic) =>
         '#$streamName > ${topic.displayName}',
       FcmMessageChannelRecipient(:var topic) =>
-        '#(unknown channel) > ${topic.displayName}', // TODO get stream name from data
+        '#${zulipLocalizations.unknownChannelName} > ${topic.displayName}', // TODO get stream name from data
       FcmMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>
         zulipLocalizations.notifGroupDmConversationLabel(
           data.senderFullName, allRecipientIds.length - 2), // TODO use others' names, from data
@@ -378,8 +376,6 @@ class NotificationDisplayManager {
     final activeNotifications = await _androidHost.getActiveNotifications(
       desiredExtras: [kExtraLastZulipMessageId]);
     for (final statusBarNotification in activeNotifications) {
-      if (statusBarNotification == null) continue; // TODO(pigeon) eliminate this case
-
       // The StatusBarNotification object describes an active notification in the UI.
       // Its `.tag`, `.id`, and `.notification` are the same values as we passed to
       // [AndroidNotificationHostApi.notify] (and so to `NotificationManager#notify`
@@ -457,6 +453,40 @@ class NotificationDisplayManager {
 
   static String _personKey(Uri realmUrl, int userId) => "$realmUrl|$userId";
 
+  /// Provides the route and the account ID by parsing the notification URL.
+  ///
+  /// The URL must have been generated using [NotificationOpenPayload.buildUrl]
+  /// while creating the notification.
+  ///
+  /// Returns null and shows an error dialog if the associated account is not
+  /// found in the global store.
+  static AccountRoute<void>? routeForNotification({
+    required BuildContext context,
+    required Uri url,
+  }) {
+    final globalStore = GlobalStoreWidget.of(context);
+
+    assert(debugLog('got notif: url: $url'));
+    assert(url.scheme == 'zulip' && url.host == 'notification');
+    final payload = NotificationOpenPayload.parseUrl(url);
+
+    final account = globalStore.accounts.firstWhereOrNull(
+      (account) => account.realmUrl.origin == payload.realmUrl.origin
+                && account.userId == payload.userId);
+    if (account == null) { // TODO(log)
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorNotificationOpenTitle,
+        message: zulipLocalizations.errorNotificationOpenAccountMissing);
+      return null;
+    }
+
+    return MessageListPage.buildRoute(
+      accountId: account.id,
+      // TODO(#82): Open at specific message, not just conversation
+      narrow: payload.narrow);
+  }
+
   /// Navigates to the [MessageListPage] of the specific conversation
   /// given the `zulip://notification/…` Android intent data URL,
   /// generated with [NotificationOpenPayload.buildUrl] while creating
@@ -464,29 +494,16 @@ class NotificationDisplayManager {
   static Future<void> navigateForNotification(Uri url) async {
     assert(debugLog('opened notif: url: $url'));
 
-    assert(url.scheme == 'zulip' && url.host == 'notification');
-    final payload = NotificationOpenPayload.parseUrl(url);
-
     NavigatorState navigator = await ZulipApp.navigator;
     final context = navigator.context;
     assert(context.mounted);
     if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
 
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    final globalStore = GlobalStoreWidget.of(context);
-    final account = globalStore.accounts.firstWhereOrNull((account) =>
-      account.realmUrl == payload.realmUrl && account.userId == payload.userId);
-    if (account == null) { // TODO(log)
-      showErrorDialog(context: context,
-        title: zulipLocalizations.errorNotificationOpenTitle,
-        message: zulipLocalizations.errorNotificationOpenAccountMissing);
-      return;
-    }
+    final route = routeForNotification(context: context, url: url);
+    if (route == null) return; // TODO(log)
 
     // TODO(nav): Better interact with existing nav stack on notif open
-    unawaited(navigator.push(MaterialAccountWidgetRoute<void>(accountId: account.id,
-      // TODO(#82): Open at specific message, not just conversation
-      page: MessageListPage(initNarrow: payload.narrow))));
+    unawaited(navigator.push(route));
   }
 
   static Future<Uint8List?> _fetchBitmap(Uri url) async {

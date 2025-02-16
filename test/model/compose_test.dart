@@ -1,6 +1,8 @@
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/compose.dart';
+import 'package:zulip/model/localizations.dart';
+import 'package:zulip/model/store.dart';
 
 import '../example_data.dart' as eg;
 import 'test_store.dart';
@@ -221,27 +223,54 @@ hello
   });
 
   group('mention', () {
-    final user = eg.user(userId: 123, fullName: 'Full Name');
-    test('not silent', () {
-      check(mention(user, silent: false)).equals('@**Full Name|123**');
+    group('user', () {
+      final user = eg.user(userId: 123, fullName: 'Full Name');
+      test('not silent', () {
+        check(userMention(user, silent: false)).equals('@**Full Name|123**');
+      });
+      test('silent', () {
+        check(userMention(user, silent: true)).equals('@_**Full Name|123**');
+      });
+      test('`users` passed; has two users with same fullName', () async {
+        final store = eg.store();
+        await store.addUsers([user, eg.user(userId: 5), eg.user(userId: 234, fullName: user.fullName)]);
+        check(userMention(user, silent: true, users: store.users)).equals('@_**Full Name|123**');
+      });
+      test('`users` passed; has two same-name users but one of them is deactivated', () async {
+        final store = eg.store();
+        await store.addUsers([user, eg.user(userId: 5), eg.user(userId: 234, fullName: user.fullName, isActive: false)]);
+        check(userMention(user, silent: true, users: store.users)).equals('@_**Full Name|123**');
+      });
+      test('`users` passed; user has unique fullName', () async {
+        final store = eg.store();
+        await store.addUsers([user, eg.user(userId: 234, fullName: 'Another Name')]);
+        check(userMention(user, silent: true, users: store.users)).equals('@_**Full Name**');
+      });
     });
-    test('silent', () {
-      check(mention(user, silent: true)).equals('@_**Full Name|123**');
-    });
-    test('`users` passed; has two users with same fullName', () async {
-      final store = eg.store();
-      await store.addUsers([user, eg.user(userId: 5), eg.user(userId: 234, fullName: user.fullName)]);
-      check(mention(user, silent: true, users: store.users)).equals('@_**Full Name|123**');
-    });
-    test('`users` passed; has two same-name users but one of them is deactivated', () async {
-      final store = eg.store();
-      await store.addUsers([user, eg.user(userId: 5), eg.user(userId: 234, fullName: user.fullName, isActive: false)]);
-      check(mention(user, silent: true, users: store.users)).equals('@_**Full Name|123**');
-    });
-    test('`users` passed; user has unique fullName', () async {
-      final store = eg.store();
-      await store.addUsers([user, eg.user(userId: 234, fullName: 'Another Name')]);
-      check(mention(user, silent: true, users: store.users)).equals('@_**Full Name**');
+
+    test('wildcard', () {
+      PerAccountStore store({int? zulipFeatureLevel}) {
+        return eg.store(
+          account: eg.account(user: eg.selfUser,
+            zulipFeatureLevel: zulipFeatureLevel),
+          initialSnapshot: eg.initialSnapshot(
+            zulipFeatureLevel: zulipFeatureLevel));
+      }
+
+      check(wildcardMention(WildcardMentionOption.all, store: store()))
+        .equals('@**all**');
+      check(wildcardMention(WildcardMentionOption.everyone, store: store()))
+        .equals('@**everyone**');
+      check(wildcardMention(WildcardMentionOption.channel, store: store()))
+        .equals('@**channel**');
+      check(wildcardMention(WildcardMentionOption.stream,
+          store: store(zulipFeatureLevel: 247)))
+        .equals('@**channel**');
+      check(wildcardMention(WildcardMentionOption.stream,
+          store: store(zulipFeatureLevel: 246)))
+        .equals('@**stream**');
+      check(wildcardMention(WildcardMentionOption.topic, store: store()))
+        .equals('@**topic**');
     });
   });
 
@@ -260,7 +289,8 @@ hello
     await store.addStream(stream);
     await store.addUser(sender);
 
-    check(quoteAndReplyPlaceholder(store, message: message)).equals('''
+    check(quoteAndReplyPlaceholder(
+      GlobalLocalizations.zulipLocalizations, store, message: message)).equals('''
 @_**Full Name|123** [said](${eg.selfAccount.realmUrl}#narrow/stream/1-test-here/topic/some.20topic/near/${message.id}): *(loading message ${message.id})*
 ''');
 

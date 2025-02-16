@@ -129,9 +129,7 @@ class MessagingStyle {
 
   final Person user;
   final String? conversationTitle;
-  // TODO(pigeon): Make list item non-nullable, once pigeon supports non-nullable type arguments.
-  //   https://github.com/flutter/flutter/issues/97848
-  final List<MessagingStyleMessage?> messages;
+  final List<MessagingStyleMessage> messages;
   final bool isGroupConversation;
 }
 
@@ -142,7 +140,7 @@ class Notification {
   Notification({required this.group, required this.extras});
 
   final String group;
-  final Map<String?, String?> extras;
+  final Map<String, String> extras;
   // Various other properties too; add them if needed.
 }
 
@@ -267,7 +265,7 @@ abstract class AndroidNotificationHostApi {
     PendingIntent? contentIntent,
     String? contentText,
     String? contentTitle,
-    Map<String?, String?>? extras,
+    Map<String, String>? extras,
     String? groupKey,
     InboxStyle? inboxStyle,
     bool? isGroupSummary,

@@ -69,9 +69,9 @@
       }
     }
   },
-  "loginServerUrlInputLabel": "Adresa vášho Zulip servera",
-  "@loginServerUrlInputLabel": {
-    "description": "Input label in login page for Zulip server URL entry."
+  "loginServerUrlLabel": "Adresa vášho Zulip servera",
+  "@loginServerUrlLabel": {
+    "description": "Label in login page for Zulip server URL entry."
   },
   "errorMessageNotSent": "Správa nebola odoslaná",
   "@errorMessageNotSent": {

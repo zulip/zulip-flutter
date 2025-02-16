@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
+import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/about_zulip.dart';
@@ -21,6 +22,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/store_checks.dart';
 import '../model/test_store.dart';
 import '../test_navigation.dart';
 import 'message_list_checks.dart';
@@ -47,6 +49,23 @@ void main () {
       navigatorObservers: navigatorObserver != null ? [navigatorObserver] : [],
       child: const HomePage()));
     await tester.pump();
+  }
+
+  void checkOnLoadingPage() {
+    check(find.byType(CircularProgressIndicator).hitTestable()).findsOne();
+    check(find.byType(ChooseAccountPage)).findsNothing();
+    check(find.byType(HomePage)).findsNothing();
+  }
+
+  ModalRoute<void>? getRouteOf(WidgetTester tester, Finder finder) =>
+    ModalRoute.of(tester.element(finder));
+
+  void checkOnHomePage(WidgetTester tester, {required Account expectedAccount}) {
+    check(find.byType(CircularProgressIndicator)).findsNothing();
+    check(find.byType(ChooseAccountPage)).findsNothing();
+    check(find.byType(HomePage).hitTestable()).findsOne();
+    check(getRouteOf(tester, find.byType(HomePage)))
+      .isA<MaterialAccountWidgetRoute>().accountId.equals(expectedAccount.id);
   }
 
   group('bottom nav navigation', () {
@@ -255,28 +274,11 @@ void main () {
     const loadPerAccountDuration = Duration(seconds: 30);
     assert(loadPerAccountDuration > kTryAnotherAccountWaitPeriod);
 
-    void checkOnLoadingPage() {
-      check(find.byType(CircularProgressIndicator).hitTestable()).findsOne();
-      check(find.byType(ChooseAccountPage)).findsNothing();
-      check(find.byType(HomePage)).findsNothing();
-    }
-
     void checkOnChooseAccountPage() {
       // Ignore the possible loading page in the background.
       check(find.byType(CircularProgressIndicator).hitTestable()).findsNothing();
       check(find.byType(ChooseAccountPage)).findsOne();
       check(find.byType(HomePage)).findsNothing();
-    }
-
-    ModalRoute<void>? getRouteOf(WidgetTester tester, Finder finder) =>
-      ModalRoute.of(tester.element(finder));
-
-    void checkOnHomePage(WidgetTester tester, {required Account expectedAccount}) {
-      check(find.byType(CircularProgressIndicator)).findsNothing();
-      check(find.byType(ChooseAccountPage)).findsNothing();
-      check(find.byType(HomePage).hitTestable()).findsOne();
-      check(getRouteOf(tester, find.byType(HomePage)))
-        .isA<MaterialAccountWidgetRoute>().accountId.equals(expectedAccount.id);
     }
 
     Future<void> prepare(WidgetTester tester) async {
@@ -441,5 +443,38 @@ void main () {
       // No additional wait for loadPerAccount.
       checkOnHomePage(tester, expectedAccount: eg.selfAccount);
     });
+  });
+
+  testWidgets('logging out while still loading', (tester) async {
+    // Regression test for: https://github.com/zulip/zulip-flutter/issues/1219
+    addTearDown(testBinding.reset);
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    await tester.pumpWidget(const ZulipApp());
+    await tester.pump(); // wait for the loading page
+    checkOnLoadingPage();
+
+    final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
+    await tester.pump(TestGlobalStore.removeAccountDuration);
+    await future;
+    // No error expected from briefly not having
+    // access to the account being logged out.
+    check(testBinding.globalStore).accountIds.isEmpty();
+  });
+
+  testWidgets('logging out after fully loaded', (tester) async {
+    // Regression test for: https://github.com/zulip/zulip-flutter/issues/1219
+    addTearDown(testBinding.reset);
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    await tester.pumpWidget(const ZulipApp());
+    await tester.pump(); // wait for the loading page
+    await tester.pump(); // wait for store
+    checkOnHomePage(tester, expectedAccount: eg.selfAccount);
+
+    final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
+    await tester.pump(TestGlobalStore.removeAccountDuration);
+    await future;
+    // No error expected from briefly not having
+    // access to the account being logged out.
+    check(testBinding.globalStore).accountIds.isEmpty();
   });
 }

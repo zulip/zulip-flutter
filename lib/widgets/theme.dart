@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
+import 'compose_box.dart';
 import 'content.dart';
 import 'emoji_reaction.dart';
 import 'message_list.dart';
@@ -30,8 +31,9 @@ ThemeData zulipThemeData(BuildContext context) {
       themeExtensions = [
         ContentTheme.light(context),
         designVariables,
-        EmojiReactionTheme.light(),
-        MessageListTheme.light(),
+        EmojiReactionTheme.light,
+        MessageListTheme.light,
+        ComposeBoxTheme.light,
       ];
     }
     case Brightness.dark: {
@@ -39,8 +41,9 @@ ThemeData zulipThemeData(BuildContext context) {
       themeExtensions = [
         ContentTheme.dark(context),
         designVariables,
-        EmojiReactionTheme.dark(),
-        MessageListTheme.dark(),
+        EmojiReactionTheme.dark,
+        MessageListTheme.dark,
+        ComposeBoxTheme.dark,
       ];
     }
   }
@@ -176,7 +179,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgMenuButtonActive: Colors.black.withValues(alpha: 0.2),
       bgMenuButtonSelected: Colors.black.withValues(alpha: 0.25),
       bgTopBar: const Color(0xff242424),
-      borderBar: Colors.black.withValues(alpha: 0.5),
+      borderBar: Colors.black.withValues(alpha: 0.1),
       borderMenuButtonSelected: Colors.white.withValues(alpha: 0.1),
       btnLabelAttLowIntDanger: const Color(0xffff8b7c),
       btnLabelAttMediumIntDanger: const Color(0xffff8b7c),

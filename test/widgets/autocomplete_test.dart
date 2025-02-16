@@ -13,6 +13,8 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
+import 'package:zulip/widgets/compose_box.dart';
+import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 
 import '../api/fake_api.dart';
@@ -34,7 +36,9 @@ import 'test_app.dart';
 /// before the end of the test.
 Future<Finder> setupToComposeInput(WidgetTester tester, {
   List<User> users = const [],
+  Narrow? narrow,
 }) async {
+  assert(narrow is ChannelNarrow? || narrow is SendableNarrow?);
   TypingNotifier.debugEnable = false;
   addTearDown(TypingNotifier.debugReset);
 
@@ -45,8 +49,24 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
   await store.addUsers(users);
   final connection = store.connection as FakeApiConnection;
 
+  narrow ??= DmNarrow(
+    allRecipientIds: [eg.selfUser.userId, eg.otherUser.userId],
+    selfUserId: eg.selfUser.userId);
   // prepare message list data
-  final message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+  final Message message;
+  switch(narrow) {
+    case DmNarrow():
+      message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+    case ChannelNarrow(:final streamId):
+      final stream = eg.stream(streamId: streamId);
+      message = eg.streamMessage(stream: stream);
+      await store.addStream(stream);
+    case TopicNarrow(:final streamId, :final topic):
+      final stream = eg.stream(streamId: streamId);
+      message = eg.streamMessage(stream: stream, topic: topic.apiName);
+      await store.addStream(stream);
+    default: throw StateError('unexpected narrow type');
+  }
   connection.prepare(json: GetMessagesResult(
     anchor: message.id,
     foundNewest: true,
@@ -59,15 +79,13 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
   prepareBoringImageHttpClient();
 
   await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-    child: MessageListPage(initNarrow: DmNarrow(
-      allRecipientIds: [eg.selfUser.userId, eg.otherUser.userId],
-      selfUserId: eg.selfUser.userId))));
+    child: MessageListPage(initNarrow: narrow)));
 
   // global store, per-account store, and message list get loaded
   await tester.pumpAndSettle();
 
-  // (hint text of compose input in a 1:1 DM)
-  final finder = find.widgetWithText(TextField, 'Message @${eg.otherUser.fullName}');
+  final finder = find.byWidgetPredicate((widget) => widget is TextField
+    && widget.controller is ComposeContentController);
   check(finder.evaluate()).isNotEmpty();
   return finder;
 }
@@ -134,7 +152,7 @@ void main() {
       check(avatarFinder.evaluate().length).equals(expected ? 1 : 0);
     }
 
-    testWidgets('options appear, disappear, and change correctly', (tester) async {
+    testWidgets('user options appear, disappear, and change correctly', (tester) async {
       final user1 = eg.user(userId: 1, fullName: 'User One', avatarUrl: 'user1.png');
       final user2 = eg.user(userId: 2, fullName: 'User Two', avatarUrl: 'user2.png');
       final user3 = eg.user(userId: 3, fullName: 'User Three', avatarUrl: 'user3.png');
@@ -156,7 +174,7 @@ void main() {
       await tester.tap(find.text('User Three'));
       await tester.pump();
       check(tester.widget<TextField>(composeInputFinder).controller!.text)
-        .contains(mention(user3, users: store.users));
+        .contains(userMention(user3, users: store.users));
       checkUserShown(user1, store, expected: false);
       checkUserShown(user2, store, expected: false);
       checkUserShown(user3, store, expected: false);
@@ -175,6 +193,46 @@ void main() {
       checkUserShown(user1, store, expected: false);
       checkUserShown(user2, store, expected: false);
       checkUserShown(user3, store, expected: false);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    void checkWildcardShown(WildcardMentionOption wildcard, {required bool expected}) {
+      final richTextFinder = find.textContaining(wildcard.canonicalString, findRichText: true);
+      final iconFinder = find.byIcon(ZulipIcons.three_person);
+      final wildcardItemFinder = find.ancestor(of: richTextFinder,
+        matching: find.ancestor(of: iconFinder, matching: find.byType(Row)));
+      check(wildcardItemFinder.evaluate().length).equals(expected ? 1 : 0);
+    }
+
+    testWidgets('wildcard options appear, disappear, and change correctly', (tester) async {
+      final composeInputFinder = await setupToComposeInput(tester,
+        narrow: const ChannelNarrow(1));
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      // Options are filtered correctly for query
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'hello @');
+      await tester.enterText(composeInputFinder, 'hello @c');
+      await tester.pumpAndSettle(); // async computation; options appear
+
+      checkWildcardShown(WildcardMentionOption.channel, expected: true);
+      checkWildcardShown(WildcardMentionOption.topic, expected: true);
+      checkWildcardShown(WildcardMentionOption.all, expected: false);
+      checkWildcardShown(WildcardMentionOption.everyone, expected: false);
+      checkWildcardShown(WildcardMentionOption.stream, expected: false);
+
+      // Finishing autocomplete updates compose box; causes options to disappear
+      await tester.tap(find.textContaining(WildcardMentionOption.channel.canonicalString,
+        findRichText: true));
+      await tester.pump();
+      check(tester.widget<TextField>(composeInputFinder).controller!.text)
+        .contains(wildcardMention(WildcardMentionOption.channel, store: store));
+      checkWildcardShown(WildcardMentionOption.channel, expected: false);
+      checkWildcardShown(WildcardMentionOption.topic, expected: false);
+      checkWildcardShown(WildcardMentionOption.all, expected: false);
+      checkWildcardShown(WildcardMentionOption.everyone, expected: false);
+      checkWildcardShown(WildcardMentionOption.stream, expected: false);
 
       debugNetworkImageHttpClientProvider = null;
     });
@@ -330,6 +388,10 @@ void main() {
         text: 'some',
         selection: TextSelection(baseOffset: 1, extentOffset: 3)));
       await tester.pump();
+      // Add an extra pump to account for any potential frame delays introduced
+      // by the post frame callback in RawAutocomplete's implementation.
+      await tester.pump();
+
       check(controller.value)
         ..text.equals('some')
         ..selection.equals(

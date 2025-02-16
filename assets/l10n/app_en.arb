@@ -56,6 +56,10 @@
   "@profileButtonSendDirectMessage": {
     "description": "Label for button in profile screen to navigate to DMs with the shown user."
   },
+  "errorCouldNotShowUserProfile": "Could not show user profile.",
+  "@errorCouldNotShowUserProfile": {
+    "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
   "permissionsNeededTitle": "Permissions needed",
   "@permissionsNeededTitle": {
     "description": "Title for dialog asking the user to grant additional permissions."
@@ -87,6 +91,22 @@
   "actionSheetOptionUnfollowTopic": "Unfollow topic",
   "@actionSheetOptionUnfollowTopic":  {
     "description": "Label for unfollowing a topic on action sheet."
+  },
+  "actionSheetOptionResolveTopic": "Mark as resolved",
+  "@actionSheetOptionResolveTopic": {
+    "description": "Label for the 'Mark as resolved' button on the topic action sheet."
+  },
+  "actionSheetOptionUnresolveTopic": "Mark as unresolved",
+  "@actionSheetOptionUnresolveTopic": {
+    "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
+  },
+  "errorResolveTopicFailedTitle": "Failed to mark topic as resolved",
+  "@errorResolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as resolved failed."
+  },
+  "errorUnresolveTopicFailedTitle": "Failed to mark topic as unresolved",
+  "@errorUnresolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as unresolved failed."
   },
   "actionSheetOptionCopyMessageText": "Copy message text",
   "@actionSheetOptionCopyMessageText":  {
@@ -151,13 +171,21 @@
       "filename": {"type": "String", "example": "file.txt"}
     }
   },
+  "filenameAndSizeInMiB": "{filename}: {size} MiB",
+  "@filenameAndSizeInMiB": {
+    "description": "The name of a file, and its size in mebibytes.",
+    "placeholders": {
+      "filename": {"type": "String", "example": "foo.txt"},
+      "size": {"type": "String", "example": "20.2"}
+    }
+  },
   "errorFilesTooLarge": "{num, plural, =1{File is} other{{num} files are}} larger than the server's limit of {maxFileUploadSizeMib} MiB and will not be uploaded:\n\n{listMessage}",
   "@errorFilesTooLarge": {
     "description": "Error message when attached files are too large in size.",
     "placeholders": {
       "num": {"type": "int", "example": "2"},
       "maxFileUploadSizeMib": {"type": "int", "example": "15"},
-      "listMessage": {"type": "String", "example": "foo.txt\nbar.txt"}
+      "listMessage": {"type": "String", "example": "foo.txt: 10.1 MiB\nbar.txt 20.2 MiB"}
     }
   },
   "errorFilesTooLargeTitle": "{num, plural, =1{File} other{Files}} too large",
@@ -228,6 +256,17 @@
       "serverUrl": {"type":  "String", "example":  "https://chat.example.com"},
       "error": {"type": "String", "example": "Unexpected null value"},
       "event": {"type": "String", "example": "UpdateMessageEvent(id: 123, messageIds: [2345, 3456], newTopic: 'dinner')"}
+    }
+  },
+  "errorCouldNotOpenLinkTitle": "Unable to open link",
+  "@errorCouldNotOpenLinkTitle": {
+    "description": "Error title when opening a link failed."
+  },
+  "errorCouldNotOpenLink": "Link could not be opened: {url}",
+  "@errorCouldNotOpenLink": {
+    "description": "Error message when opening a link failed.",
+    "placeholders": {
+      "url": {"type":  "String", "example":  "https://chat.example.com"}
     }
   },
   "errorMuteTopicFailed": "Failed to mute topic",
@@ -321,8 +360,8 @@
   "@composeBoxSendTooltip":  {
     "description": "Tooltip for send button in compose box."
   },
-  "composeBoxUnknownChannelName": "(unknown channel)",
-  "@composeBoxUnknownChannelName": {
+  "unknownChannelName": "(unknown channel)",
+  "@unknownChannelName": {
     "description": "Replacement name for channel when it cannot be found in the store."
   },
   "composeBoxTopicHintText": "Topic",
@@ -336,9 +375,20 @@
       "filename": {"type": "String", "example": "file.txt"}
     }
   },
+  "composeBoxLoadingMessage": "(loading message {messageId})",
+  "@composeBoxLoadingMessage": {
+    "description": "Placeholder in compose box showing the quoted message is currently loading.",
+    "placeholders": {
+      "messageId": {"type": "int", "example": "1234"}
+    }
+  },
   "unknownUserName": "(unknown user)",
   "@unknownUserName": {
     "description": "Name placeholder to use for a user when we don't know their name."
+  },
+  "dmsWithYourselfPageTitle": "DMs with yourself",
+  "@dmsWithYourselfPageTitle": {
+    "description": "Message list page title for a DM group that only includes yourself."
   },
   "messageListGroupYouAndOthers": "You and {others}",
   "@messageListGroupYouAndOthers": {
@@ -347,7 +397,14 @@
       "others": {"type": "String", "example": "Alice, Bob"}
     }
   },
-  "messageListGroupYouWithYourself": "You with yourself",
+  "dmsWithOthersPageTitle": "DMs with {others}",
+  "@dmsWithOthersPageTitle": {
+    "description": "Message list page title for a DM group with others.",
+    "placeholders": {
+      "others": {"type": "String", "example": "Alice, Bob"}
+    }
+  },
+  "messageListGroupYouWithYourself": "Messages with yourself",
   "@messageListGroupYouWithYourself": {
     "description": "Message list recipient header for a DM group that only includes yourself."
   },
@@ -395,6 +452,14 @@
   "@lightboxCopyLinkTooltip": {
     "description": "Tooltip in lightbox for the copy link action."
   },
+  "lightboxVideoCurrentPosition": "Current position",
+  "@lightboxVideoCurrentPosition": {
+    "description": "The current playback position of the video playing in the lightbox."
+  },
+  "lightboxVideoDuration": "Video duration",
+  "@lightboxVideoDuration": {
+    "description": "The total duration of the video playing in the lightbox."
+  },
   "loginPageTitle": "Log in",
   "@loginPageTitle": {
     "description": "Title for login page."
@@ -418,9 +483,9 @@
   "@loginAddAnAccountPageTitle": {
     "description": "Title for page to add a Zulip account."
   },
-  "loginServerUrlInputLabel": "Your Zulip server URL",
-  "@loginServerUrlInputLabel": {
-    "description": "Input label in login page for Zulip server URL entry."
+  "loginServerUrlLabel": "Your Zulip server URL",
+  "@loginServerUrlLabel": {
+    "description": "Label in login page for Zulip server URL entry."
   },
   "loginHidePassword": "Hide password",
   "@loginHidePassword": {
@@ -586,6 +651,10 @@
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
   },
+  "recentDmConversationsSectionHeader": "Direct messages",
+  "@recentDmConversationsSectionHeader": {
+    "description": "Heading for direct messages section on the 'Inbox' message view."
+  },
   "combinedFeedPageTitle": "Combined feed",
   "@combinedFeedPageTitle": {
     "description": "Page title for the 'Combined feed' message view."
@@ -618,9 +687,25 @@
       "numOthers": {"type": "int", "example": "4"}
     }
   },
+  "pinnedSubscriptionsLabel": "Pinned",
+  "@pinnedSubscriptionsLabel": {
+    "description": "Label for the list of pinned subscribed channels."
+  },
+  "unpinnedSubscriptionsLabel": "Unpinned",
+  "@unpinnedSubscriptionsLabel": {
+    "description": "Label for the list of unpinned subscribed channels."
+  },
+  "subscriptionListNoChannels": "No channels found",
+  "@subscriptionListNoChannels": {
+    "description": "Text to display on subscribed-channels page when there are no subscribed channels."
+  },
   "notifSelfUser": "You",
   "@notifSelfUser": {
     "description": "Display name for the user themself, to show after replying in an Android notification"
+  },
+  "reactedEmojiSelfUser": "You",
+  "@reactedEmojiSelfUser": {
+    "description": "Display name for the user themself, to show on an emoji reaction added by the user."
   },
   "onePersonTyping": "{typist} is typing…",
   "@onePersonTyping": {
@@ -641,6 +726,42 @@
   "@manyPeopleTyping": {
     "description": "Text to display when there are multiple users typing."
   },
+  "wildcardMentionAll": "all",
+  "@wildcardMentionAll": {
+    "description": "Text for \"@all\" wildcard-mention autocomplete option when writing a channel or DM message."
+  },
+  "wildcardMentionEveryone": "everyone",
+  "@wildcardMentionEveryone": {
+    "description": "Text for \"@everyone\" wildcard-mention autocomplete option when writing a channel or DM message."
+  },
+  "wildcardMentionChannel": "channel",
+  "@wildcardMentionChannel": {
+    "description": "Text for \"@channel\" wildcard-mention autocomplete option when writing a channel message."
+  },
+  "wildcardMentionStream": "stream",
+  "@wildcardMentionStream": {
+    "description": "Text for \"@stream\" wildcard-mention autocomplete option when writing a channel message in older servers."
+  },
+  "wildcardMentionTopic": "topic",
+  "@wildcardMentionTopic": {
+    "description": "Text for \"@topic\" wildcard-mention autocomplete option when writing a channel message."
+  },
+  "wildcardMentionChannelDescription": "Notify channel",
+  "@wildcardMentionChannelDescription": {
+    "description": "Description for \"@all\", \"@everyone\", \"@channel\", and \"@stream\" wildcard-mention autocomplete options when writing a channel message."
+  },
+  "wildcardMentionStreamDescription": "Notify stream",
+  "@wildcardMentionStreamDescription": {
+    "description": "Description for \"@all\", \"@everyone\", and \"@stream\" wildcard-mention autocomplete options when writing a channel message in older servers."
+  },
+  "wildcardMentionAllDmDescription": "Notify recipients",
+  "@wildcardMentionAllDmDescription": {
+    "description": "Description for \"@all\" and \"@everyone\" wildcard-mention autocomplete options when writing a DM message."
+  },
+  "wildcardMentionTopicDescription": "Notify topic",
+  "@wildcardMentionTopicDescription": {
+    "description": "Description for \"@topic\" wildcard-mention autocomplete options when writing a channel message."
+  },
   "messageIsEditedLabel": "EDITED",
   "@messageIsEditedLabel": {
     "description": "Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
@@ -648,6 +769,13 @@
   "messageIsMovedLabel": "MOVED",
   "@messageIsMovedLabel": {
     "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "pollVoterNames": "({voterNames})",
+  "@pollVoterNames": {
+    "description": "The list of people who voted for a poll option, wrapped in parentheses.",
+    "placeholders": {
+      "voterNames": {"type":  "String", "example": "Alice, Bob, Chad"}
+    }
   },
   "pollWidgetQuestionMissing": "No question.",
   "@pollWidgetQuestionMissing": {
@@ -680,5 +808,21 @@
   "emojiPickerSearchEmoji": "Search emoji",
   "@emojiPickerSearchEmoji": {
     "description": "Hint text for the emoji picker search text field."
+  },
+  "noEarlierMessages": "No earlier messages",
+  "@noEarlierMessages": {
+    "description": "Text to show at the start of a message list if there are no earlier messages."
+  },
+  "scrollToBottomTooltip": "Scroll to bottom",
+  "@scrollToBottomTooltip": {
+    "description": "Tooltip for button to scroll to bottom."
+  },
+  "appVersionUnknownPlaceholder": "(…)",
+  "@appVersionUnknownPlaceholder": {
+    "description": "Placeholder to show in place of the app version when it is unknown."
+  },
+  "zulipAppTitle": "Zulip",
+  "@zulipAppTitle": {
+    "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
   }
 }

@@ -7,11 +7,13 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:zulip/api/exception.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -56,6 +58,7 @@ void main() {
     List<Subscription>? subscriptions,
     UnreadMessagesSnapshot? unreadMsgs,
     List<NavigatorObserver> navObservers = const [],
+    bool skipAssertAccountExists = false,
   }) async {
     TypingNotifier.debugEnable = false;
     addTearDown(TypingNotifier.debugReset);
@@ -77,6 +80,7 @@ void main() {
       eg.newestGetMessagesResult(foundOldest: foundOldest, messages: messages).toJson());
 
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+      skipAssertAccountExists: skipAssertAccountExists,
       navigatorObservers: navObservers,
       child: MessageListPage(initNarrow: narrow)));
 
@@ -130,9 +134,52 @@ void main() {
       final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
       check(state.composeBoxController).isNull();
     });
+
+    testWidgets('dispose MessageListView when event queue expired', (tester) async {
+      final message = eg.streamMessage();
+      await setupMessageListPage(tester, messages: [message]);
+      final oldViewModel = store.debugMessageListViews.single;
+      final updateMachine = store.updateMachine!;
+      updateMachine.debugPauseLoop();
+      updateMachine.poll();
+
+      updateMachine.debugPrepareLoopError(ZulipApiException(
+        routeName: 'events', httpStatus: 400, code: 'BAD_EVENT_QUEUE_ID',
+        data: {'queue_id': updateMachine.queueId}, message: 'Bad event queue ID.'));
+      updateMachine.debugAdvanceLoop();
+      await tester.pump();
+      // Event queue has been replaced; but the [MessageList] hasn't been
+      // rebuilt yet.
+      final newStore = testBinding.globalStore.perAccountSync(eg.selfAccount.id)!;
+      check(connection.isOpen).isFalse(); // indicates that the old store has been disposed
+      check(store.debugMessageListViews).single.equals(oldViewModel);
+      check(newStore.debugMessageListViews).isEmpty();
+
+      (newStore.connection as FakeApiConnection).prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [message]).toJson());
+      await tester.pump();
+      await tester.pump(Duration.zero);
+      // As [MessageList] rebuilds, the old view model gets disposed and
+      // replaced with a fresh one.
+      check(store.debugMessageListViews).isEmpty();
+      check(newStore.debugMessageListViews).single.not((it) => it.equals(oldViewModel));
+    });
+
+    testWidgets('dispose MessageListView when logged out', (tester) async {
+      await setupMessageListPage(tester,
+        messages: [eg.streamMessage()], skipAssertAccountExists: true);
+      check(store.debugMessageListViews).single;
+
+      final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
+      await tester.pump(TestGlobalStore.removeAccountDuration);
+      await future;
+      check(store.debugMessageListViews).isEmpty();
+    });
   });
 
   group('app bar', () {
+    // Tests for the topic action sheet are in test/widgets/action_sheet_test.dart.
+
     testWidgets('has channel-feed action for topic narrows', (tester) async {
       final pushedRoutes = <Route<void>>[];
       final navObserver = TestNavigatorObserver()
@@ -207,17 +254,17 @@ void main() {
       return widget.color;
     }
 
-    check(backgroundColor()).isSameColorAs(MessageListTheme.light().streamMessageBgDefault);
+    check(backgroundColor()).isSameColorAs(MessageListTheme.light.streamMessageBgDefault);
 
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
     await tester.pump();
 
     await tester.pump(kThemeAnimationDuration * 0.4);
-    final expectedLerped = MessageListTheme.light().lerp(MessageListTheme.dark(), 0.4);
+    final expectedLerped = MessageListTheme.light.lerp(MessageListTheme.dark, 0.4);
     check(backgroundColor()).isSameColorAs(expectedLerped.streamMessageBgDefault);
 
     await tester.pump(kThemeAnimationDuration * 0.6);
-    check(backgroundColor()).isSameColorAs(MessageListTheme.dark().streamMessageBgDefault);
+    check(backgroundColor()).isSameColorAs(MessageListTheme.dark.streamMessageBgDefault);
   });
 
   group('fetch older messages on scroll', () {
@@ -748,6 +795,8 @@ void main() {
 
   group('recipient headers', () {
     group('StreamMessageRecipientHeader', () {
+      // Tests for the topic action sheet are in test/widgets/action_sheet_test.dart.
+
       final stream = eg.stream(name: 'stream name');
       const topic = 'topic name';
       final message = eg.streamMessage(stream: stream, topic: topic);
@@ -923,6 +972,54 @@ void main() {
         await tester.pump();
         tester.widget(find.text('new stream name'));
       });
+
+      testWidgets('navigates to TopicNarrow on tapping topic in ChannelNarrow', (tester) async {
+        final pushedRoutes = <Route<void>>[];
+        final navObserver = TestNavigatorObserver()
+          ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+        final channel = eg.stream();
+        final message = eg.streamMessage(stream: channel, topic: 'topic name');
+        await setupMessageListPage(tester,
+          narrow: ChannelNarrow(channel.streamId),
+          streams: [channel],
+          messages: [message],
+          navObservers: [navObserver]);
+
+        assert(pushedRoutes.length == 1);
+        pushedRoutes.clear();
+
+        connection.prepare(json: eg.newestGetMessagesResult(
+          foundOldest: true, messages: [message]).toJson());
+        await tester.tap(find.descendant(
+          of: find.byType(StreamMessageRecipientHeader),
+          matching: find.text('topic name')));
+        await tester.pump();
+        check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+          .initNarrow.equals(TopicNarrow.ofMessage(message));
+        await tester.pumpAndSettle();
+      });
+
+      testWidgets('does not navigate on tapping topic in TopicNarrow', (tester) async {
+        final pushedRoutes = <Route<void>>[];
+        final navObserver = TestNavigatorObserver()
+          ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+        final channel = eg.stream();
+        final message = eg.streamMessage(stream: channel, topic: 'topic name');
+        await setupMessageListPage(tester,
+          narrow: TopicNarrow.ofMessage(message),
+          streams: [channel],
+          messages: [message],
+          navObservers: [navObserver]);
+
+        assert(pushedRoutes.length == 1);
+        pushedRoutes.clear();
+
+        await tester.tap(find.descendant(
+          of: find.byType(StreamMessageRecipientHeader),
+          matching: find.text('topic name')));
+        await tester.pump();
+        check(pushedRoutes).isEmpty();
+      });
     });
 
     group('DmRecipientHeader', () {
@@ -987,6 +1084,46 @@ void main() {
       // For this test, just accept outputs corresponding to any possible timezone.
       tester.widget(find.textContaining(RegExp("Dec 1[89], 2022")));
       tester.widget(find.textContaining(RegExp("Aug 2[23], 2022")));
+    });
+
+    testWidgets('navigates to DmNarrow on tapping recipient header in CombinedFeedNarrow', (tester) async {
+      final pushedRoutes = <Route<void>>[];
+      final navObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      final dmMessage = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+      await setupMessageListPage(tester,
+        narrow: const CombinedFeedNarrow(),
+        messages: [dmMessage],
+        navObservers: [navObserver]);
+
+      assert(pushedRoutes.length == 1);
+      pushedRoutes.clear();
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [dmMessage]).toJson());
+      await tester.tap(find.byType(DmRecipientHeader));
+      await tester.pump();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+        .initNarrow.equals(DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId));
+      await tester.pumpAndSettle();
+    });
+    
+    testWidgets('does not navigate on tapping recipient header in DmNarrow', (tester) async {
+      final pushedRoutes = <Route<void>>[];
+      final navObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      final dmMessage = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+      await setupMessageListPage(tester,
+        narrow: DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId),
+        messages: [dmMessage],
+        navObservers: [navObserver]);
+
+      assert(pushedRoutes.length == 1);
+      pushedRoutes.clear();
+
+      await tester.tap(find.byType(DmRecipientHeader));
+      await tester.pump();
+      check(pushedRoutes).isEmpty();
     });
   });
 
