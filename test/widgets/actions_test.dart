@@ -329,7 +329,7 @@ void main() {
 
     testWidgets('catch-all api errors', (tester) async {
       await prepare(tester);
-      connection.prepare(exception: http.ClientException('Oops'));
+      connection.prepare(httpException: http.ClientException('Oops'));
       final didPass = invokeUpdateMessageFlagsStartingFromAnchor();
       await tester.pump(Duration.zero);
       checkErrorDialog(tester,

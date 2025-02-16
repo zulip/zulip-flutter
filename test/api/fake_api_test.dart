@@ -25,6 +25,15 @@ void main() {
         ..asString.contains('FakeApiConnection.prepare'));
   });
 
+  test('prepare HTTP exception -> get NetworkException', () async {
+    final connection = FakeApiConnection();
+    final exception = Exception('oops');
+    connection.prepare(httpException: exception);
+    await check(connection.get('aRoute', (json) => json, '/', null))
+      .throws((it) => it.isA<NetworkException>()
+        ..cause.identicalTo(exception));
+  });
+
   test('delay success', () => awaitFakeAsync((async) async {
     final connection = FakeApiConnection();
     connection.prepare(delay: const Duration(seconds: 2),
@@ -44,7 +53,7 @@ void main() {
   test('delay exception', () => awaitFakeAsync((async) async {
     final connection = FakeApiConnection();
     connection.prepare(delay: const Duration(seconds: 2),
-      exception: Exception("oops"));
+      httpException: Exception("oops"));
 
     Object? error;
     unawaited(connection.get('aRoute', (json) => null, '/', null)

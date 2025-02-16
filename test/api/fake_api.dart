@@ -209,20 +209,23 @@ class FakeApiConnection extends ApiConnection {
 
   List<http.BaseRequest> takeRequests() => client.takeRequests();
 
-  /// Prepare the response for the next request.
+  /// Prepare the HTTP response for the next request.
   ///
-  /// If `exception` is null, the next request will produce an [http.Response]
+  /// If `httpException` is null, the next request will produce an [http.Response]
   /// with the given `httpStatus`, defaulting to 200.  The body of the response
   /// will be `body` if non-null, or `jsonEncode(json)` if `json` is non-null,
   /// or else ''.  The `body` and `json` parameters must not both be non-null.
   ///
-  /// If `exception` is non-null, then `httpStatus`, `body`, and `json` must
-  /// all be null, and the next request will throw the given exception.
+  /// If `httpException` is non-null, then
+  /// `httpStatus`, `body`, and `json` must all be null, and the next request
+  /// will throw the given exception within the HTTP client layer,
+  /// causing the API request to throw a [NetworkException]
+  /// wrapping the given exception.
   ///
   /// In either case, the next request will complete a duration of `delay`
   /// after being started.
   void prepare({
-    Object? exception,
+    Object? httpException,
     int? httpStatus,
     Map<String, dynamic>? json,
     String? body,
@@ -230,7 +233,7 @@ class FakeApiConnection extends ApiConnection {
   }) {
     assert(isOpen);
     client.prepare(
-      exception: exception,
+      exception: httpException,
       httpStatus: httpStatus, json: json, body: body,
       delay: delay,
     );

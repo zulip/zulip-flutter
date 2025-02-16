@@ -473,7 +473,7 @@ void main() {
 
       // Try to load, inducing an error in the request.
       globalStore.useCachedApiConnections = true;
-      connection.prepare(exception: Exception('failed'));
+      connection.prepare(httpException: Exception('failed'));
       final future = UpdateMachine.load(globalStore, eg.selfAccount.id);
       bool complete = false;
       unawaited(future.whenComplete(() => complete = true));
@@ -541,7 +541,7 @@ void main() {
       check(store.debugServerEmojiData).isNull();
 
       // Try to fetch, inducing an error in the request.
-      connection.prepare(exception: Exception('failed'));
+      connection.prepare(httpException: Exception('failed'));
       final future = updateMachine.fetchEmojiData(emojiDataUrl);
       bool complete = false;
       unawaited(future.whenComplete(() => complete = true));
@@ -712,11 +712,11 @@ void main() {
     }
 
     void prepareNetworkExceptionSocketException() {
-      connection.prepare(exception: const SocketException('failed'));
+      connection.prepare(httpException: const SocketException('failed'));
     }
 
     void prepareNetworkException() {
-      connection.prepare(exception: Exception("failed"));
+      connection.prepare(httpException: Exception("failed"));
     }
 
     void prepareServer5xxException() {

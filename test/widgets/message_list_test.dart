@@ -694,7 +694,7 @@ void main() {
           narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
         check(isMarkAsReadButtonVisible(tester)).isTrue();
 
-        connection.prepare(exception: http.ClientException('Oops'));
+        connection.prepare(httpException: http.ClientException('Oops'));
         await tester.tap(find.byType(MarkAsReadWidget));
         await tester.pumpAndSettle();
         checkErrorDialog(tester,
