@@ -241,6 +241,24 @@ class FakeApiConnection extends ApiConnection {
   }) {
     assert(isOpen);
 
+    // The doc on [http.BaseClient.send] goes further than the following
+    // condition, suggesting that any exception thrown there should be an
+    // [http.ClientException].  But from the upstream implementation, in the
+    // actual live app, we already get TlsException and SocketException,
+    // without them getting wrapped in http.ClientException as that specifies.
+    // So naturally our tests need to simulate those too.
+    if (httpException is ApiRequestException) {
+      throw FlutterError.fromParts([
+        ErrorSummary('FakeApiConnection.prepare was passed an ApiRequestException.'),
+        ErrorDescription(
+          'The `httpException` parameter to FakeApiConnection.prepare describes '
+          'an exception for the underlying HTTP request to throw.  '
+          'In the actual app, that will never be a Zulip-specific exception '
+          'like an ApiRequestException.'),
+        ErrorHint('Try using the `apiException` parameter instead.')
+      ]);
+    }
+
     if (apiException != null) {
       assert(httpException == null
         && httpStatus == null && json == null && body == null);
