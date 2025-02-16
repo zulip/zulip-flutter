@@ -5,6 +5,7 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/api/exception.dart';
 
 import '../fake_async.dart';
+import '../stdlib_checks.dart';
 import 'exception_checks.dart';
 import 'fake_api.dart';
 
@@ -32,6 +33,15 @@ void main() {
     await check(connection.get('aRoute', (json) => json, '/', null))
       .throws((it) => it.isA<NetworkException>()
         ..cause.identicalTo(exception));
+  });
+
+  test('error message on prepare API exception as "HTTP exception"', () async {
+    final connection = FakeApiConnection();
+    final exception = ZulipApiException(routeName: 'someRoute',
+      httpStatus: 456, code: 'SOME_ERROR',
+      data: {'foo': ['bar']}, message: 'Something failed');
+    check(() => connection.prepare(httpException: exception))
+      .throws<Error>().asString.contains('apiException');
   });
 
   test('prepare API exception', () async {
