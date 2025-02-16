@@ -306,6 +306,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
       recentDmConversationsView: RecentDmConversationsView(
         initial: initialSnapshot.recentPrivateConversations, selfUserId: account.userId),
       recentSenders: RecentSenders(),
+      realmEnableGuestUserDmWarning: initialSnapshot.realmEnableGuestUserDmWarning,
     );
   }
 
@@ -332,6 +333,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     required this.unreads,
     required this.recentDmConversationsView,
     required this.recentSenders,
+    required this.realmEnableGuestUserDmWarning,
   }) : assert(selfUserId == globalStore.getAccount(accountId)!.userId),
        assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
        assert(realmUrl == connection.realmUrl),
@@ -537,6 +539,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   // Other digests of data.
 
   final AutocompleteViewManager autocompleteViewManager = AutocompleteViewManager();
+
+  final bool? realmEnableGuestUserDmWarning;
 
   // End of data.
   ////////////////////////////////////////////////////////////////
