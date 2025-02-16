@@ -100,12 +100,7 @@ void main() {
   }
 
   void prepareRawContentResponseError() {
-    final fakeResponseJson = {
-      'code': 'BAD_REQUEST',
-      'msg': 'Invalid message(s)',
-      'result': 'error',
-    };
-    connection.prepare(httpStatus: 400, json: fakeResponseJson);
+    connection.prepare(apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
   }
 
   group('topic action sheet', () {
@@ -377,8 +372,7 @@ void main() {
           isChannelMuted: false,
           visibilityPolicy: UserTopicVisibilityPolicy.followed);
 
-        connection.prepare(httpStatus: 400, json: {
-          'result': 'error', 'code': 'BAD_REQUEST', 'msg': ''});
+        connection.prepare(apiException: eg.apiBadRequest());
         await tester.tap(unfollow);
         await tester.pumpAndSettle();
 
@@ -629,11 +623,8 @@ void main() {
           final message = eg.streamMessage();
           await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
-          connection.prepare(httpStatus: 400, json: {
-            'code': 'BAD_REQUEST',
-            'msg': 'Invalid message(s)',
-            'result': 'error',
-          });
+          connection.prepare(
+            apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
           await tapButton(tester);
           await tester.pump(Duration.zero); // error arrives; error dialog shows
 
@@ -698,11 +689,8 @@ void main() {
         await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
         final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
-        connection.prepare(httpStatus: 400, json: {
-          'code': 'BAD_REQUEST',
-          'msg': 'Invalid message(s)',
-          'result': 'error',
-        });
+        connection.prepare(
+          apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
         await tapButton(tester);
         await tester.pump(Duration.zero); // error arrives; error dialog shows
 
@@ -716,11 +704,8 @@ void main() {
         await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
         final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
-        connection.prepare(httpStatus: 400, json: {
-          'code': 'BAD_REQUEST',
-          'msg': 'Invalid message(s)',
-          'result': 'error',
-        });
+        connection.prepare(
+          apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
         await tapButton(tester, starred: true);
         await tester.pump(Duration.zero); // error arrives; error dialog shows
 

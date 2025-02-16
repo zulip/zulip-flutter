@@ -595,15 +595,10 @@ void main() {
           await setupMessageListPage(tester,
             narrow: narrow, messages: [message], unreadMsgs: unreadMsgs);
           check(isMarkAsReadButtonVisible(tester)).isTrue();
-
-          connection.prepare(httpStatus: 400, json: {
-            'code': 'BAD_REQUEST',
-            'msg': 'Invalid message(s)',
-            'result': 'error',
-          });
-
           checkAppearsLoading(tester, false);
 
+          connection.prepare(
+            apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
           await tester.tap(find.byType(MarkAsReadWidget));
           await tester.pump();
           checkAppearsLoading(tester, true);

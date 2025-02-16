@@ -27,6 +27,18 @@ Object nullCheckError() {
   try { null!; } catch (e) { return e; } // ignore: null_check_always_fails
 }
 
+/// A Zulip API error with the generic "BAD_REQUEST" error code.
+///
+/// The server returns this error code for a wide range of error conditions;
+/// it's the default within the server code when no more-specific code is chosen.
+ZulipApiException apiBadRequest({
+    String routeName = 'someRoute', String message = 'Something failed'}) {
+  return ZulipApiException(
+    routeName: routeName,
+    httpStatus: 400, code: 'BAD_REQUEST',
+    data: {}, message: message);
+}
+
 /// The error the server gives when the client's credentials
 /// (API key together with email and realm URL) are no longer valid.
 ///

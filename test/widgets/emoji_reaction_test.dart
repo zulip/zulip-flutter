@@ -452,12 +452,7 @@ void main() {
 
       connection.prepare(
         delay: const Duration(seconds: 2),
-        httpStatus: 400, json: {
-          'code': 'BAD_REQUEST',
-          'msg': 'Invalid message(s)',
-          'result': 'error',
-        });
-
+        apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
       await tester.tap(find.descendant(
         of: find.byType(BottomSheet),
         matching: find.text('\u{1f4a4}'))); // 'zzz' emoji

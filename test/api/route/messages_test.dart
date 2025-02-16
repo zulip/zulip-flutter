@@ -65,12 +65,8 @@ void main() {
     test('modern; message not found', () {
       return FakeApiConnection.with_((connection) async {
         final message = eg.streamMessage();
-        final fakeResponseJson = {
-          'code': 'BAD_REQUEST',
-          'msg': 'Invalid message(s)',
-          'result': 'error',
-        };
-        connection.prepare(httpStatus: 400, json: fakeResponseJson);
+        connection.prepare(
+          apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
         final result = await checkGetMessageCompat(connection,
           expectLegacy: false,
           messageId: message.id,
