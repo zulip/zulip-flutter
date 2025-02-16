@@ -545,7 +545,7 @@ void main() {
         await prepare(topic: 'zulip');
         await showFromRecipientHeader(tester, message: message);
         connection.takeRequests();
-        connection.prepare(exception: http.ClientException('Oops'));
+        connection.prepare(httpException: http.ClientException('Oops'));
         await tester.tap(findButtonForLabel('Mark as resolved'));
         await tester.pumpAndSettle();
         checkRequest(message.id, '✔ zulip');
@@ -559,7 +559,7 @@ void main() {
         await prepare(topic: '✔ zulip');
         await showFromRecipientHeader(tester, message: message);
         connection.takeRequests();
-        connection.prepare(exception: http.ClientException('Oops'));
+        connection.prepare(httpException: http.ClientException('Oops'));
         await tester.tap(findButtonForLabel('Mark as unresolved'));
         await tester.pumpAndSettle();
         checkRequest(message.id, 'zulip');
@@ -1016,7 +1016,7 @@ void main() {
           final message = eg.streamMessage(flags: [MessageFlag.read]);
           await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
-          connection.prepare(exception: http.ClientException('Oops'));
+          connection.prepare(httpException: http.ClientException('Oops'));
           final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
           await tester.ensureVisible(find.byIcon(Icons.mark_chat_unread_outlined, skipOffstage: false));
