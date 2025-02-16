@@ -504,7 +504,7 @@ Future<T> tryRequest<T extends Object?>({
   fromJson ??= (((Map<String, dynamic> x) => x) as T Function(Map<String, dynamic>));
   return FakeApiConnection.with_((connection) {
     connection.prepare(
-      exception: exception, httpStatus: httpStatus, json: json, body: body);
+      httpException: exception, httpStatus: httpStatus, json: json, body: body);
     return connection.get(kExampleRouteName, fromJson!, 'example/route', {});
   });
 }

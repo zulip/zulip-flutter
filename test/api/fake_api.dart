@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/core.dart';
+import 'package:zulip/api/exception.dart';
 import 'package:zulip/model/store.dart';
 
 import '../example_data.dart' as eg;
@@ -209,28 +210,69 @@ class FakeApiConnection extends ApiConnection {
 
   List<http.BaseRequest> takeRequests() => client.takeRequests();
 
-  /// Prepare the response for the next request.
+  /// Prepare the HTTP response for the next request.
   ///
-  /// If `exception` is null, the next request will produce an [http.Response]
+  /// If `httpException` and `apiException` are both null, then
+  /// the next request will produce an [http.Response]
   /// with the given `httpStatus`, defaulting to 200.  The body of the response
   /// will be `body` if non-null, or `jsonEncode(json)` if `json` is non-null,
   /// or else ''.  The `body` and `json` parameters must not both be non-null.
   ///
-  /// If `exception` is non-null, then `httpStatus`, `body`, and `json` must
-  /// all be null, and the next request will throw the given exception.
+  /// If `httpException` is non-null, then `apiException`,
+  /// `httpStatus`, `body`, and `json` must all be null, and the next request
+  /// will throw the given exception within the HTTP client layer,
+  /// causing the API request to throw a [NetworkException]
+  /// wrapping the given exception.
   ///
-  /// In either case, the next request will complete a duration of `delay`
+  /// If `apiException` is non-null, then `httpException`,
+  /// `httpStatus`, `body`, and `json` must all be null, and the next request
+  /// will throw an exception equivalent to the given exception
+  /// (except [ApiRequestException.routeName], which is ignored).
+  ///
+  /// In each case, the next request will complete a duration of `delay`
   /// after being started.
   void prepare({
-    Object? exception,
+    Object? httpException,
+    ZulipApiException? apiException,
     int? httpStatus,
     Map<String, dynamic>? json,
     String? body,
     Duration delay = Duration.zero,
   }) {
     assert(isOpen);
+
+    // The doc on [http.BaseClient.send] goes further than the following
+    // condition, suggesting that any exception thrown there should be an
+    // [http.ClientException].  But from the upstream implementation, in the
+    // actual live app, we already get TlsException and SocketException,
+    // without them getting wrapped in http.ClientException as that specifies.
+    // So naturally our tests need to simulate those too.
+    if (httpException is ApiRequestException) {
+      throw FlutterError.fromParts([
+        ErrorSummary('FakeApiConnection.prepare was passed an ApiRequestException.'),
+        ErrorDescription(
+          'The `httpException` parameter to FakeApiConnection.prepare describes '
+          'an exception for the underlying HTTP request to throw.  '
+          'In the actual app, that will never be a Zulip-specific exception '
+          'like an ApiRequestException.'),
+        ErrorHint('Try using the `apiException` parameter instead.')
+      ]);
+    }
+
+    if (apiException != null) {
+      assert(httpException == null
+        && httpStatus == null && json == null && body == null);
+      httpStatus = apiException.httpStatus;
+      json = {
+        'result': 'error',
+        'code': apiException.code,
+        'msg': apiException.message,
+        ...apiException.data,
+      };
+    }
+
     client.prepare(
-      exception: exception,
+      exception: httpException,
       httpStatus: httpStatus, json: json, body: body,
       delay: delay,
     );

@@ -25,6 +25,10 @@ extension NullableMapChecks<K, V> on Subject<Map<K, V>?> {
   }
 }
 
+extension ErrorChecks on Subject<Error> {
+  Subject<String> get asString => has((x) => x.toString(), 'toString'); // TODO(checks): what's a good convention for this?
+}
+
 /// Convert [object] to a pure JSON-like value.
 ///
 /// The result is similar to `jsonDecode(jsonEncode(object))`, but without

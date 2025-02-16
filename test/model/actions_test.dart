@@ -2,7 +2,6 @@ import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-import 'package:zulip/api/exception.dart';
 import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
@@ -102,15 +101,9 @@ void main() {
       check(testBinding.globalStore).accountIds.single.equals(eg.selfAccount.id);
       const unregisterDelay = Duration(seconds: 5);
       assert(unregisterDelay > TestGlobalStore.removeAccountDuration);
-      final exception = ZulipApiException(
-        httpStatus: 401,
-        code: 'UNAUTHORIZED',
-        data: {"result": "error", "msg": "Invalid API key", "code": "UNAUTHORIZED"},
-        routeName: 'removeEtcEtcToken',
-        message: 'Invalid API key',
-      );
+      final exception = eg.apiExceptionUnauthorized(routeName: 'removeEtcEtcToken');
       final newConnection = separateConnection()
-        ..prepare(delay: unregisterDelay, exception: exception);
+        ..prepare(delay: unregisterDelay, apiException: exception);
 
       final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
       // Unregister-token request and account removal dispatched together
@@ -170,14 +163,9 @@ void main() {
     test('connection closed if request errors', () => awaitFakeAsync((async) async {
       await prepare(ackedPushToken: '123');
 
+      final exception = eg.apiExceptionUnauthorized(routeName: 'removeEtcEtcToken');
       final newConnection = separateConnection()
-        ..prepare(exception: ZulipApiException(
-            httpStatus: 401,
-            code: 'UNAUTHORIZED',
-            data: {"result": "error", "msg": "Invalid API key", "code": "UNAUTHORIZED"},
-            routeName: 'removeEtcEtcToken',
-            message: 'Invalid API key',
-          ));
+        ..prepare(apiException: exception);
       final future = unregisterToken(testBinding.globalStore, eg.selfAccount.id);
       async.elapse(Duration.zero);
       await future;
