@@ -1214,6 +1214,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Zulip'**
   String get zulipAppTitle;
+
+  /// Message displaying guest names in the organization.
+  ///
+  /// In en, this message translates to:
+  /// **'{guestCount, plural, =1{{guestNamesList} is a guest in this organization.} other{{guestNamesList} are guests in this organization.}}'**
+  String bannerText(int guestCount, String guestNamesList);
 }
 
 class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizations> {

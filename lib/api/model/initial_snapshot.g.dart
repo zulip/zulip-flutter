@@ -64,6 +64,8 @@ InitialSnapshot _$InitialSnapshotFromJson(Map<String, dynamic> json) =>
       realmMandatoryTopics: json['realm_mandatory_topics'] as bool,
       realmWaitingPeriodThreshold:
           (json['realm_waiting_period_threshold'] as num).toInt(),
+      realmEnableGuestUserDmWarning:
+          json['realm_enable_guest_user_dm_warning'] as bool?,
       realmDefaultExternalAccounts:
           (json['realm_default_external_accounts'] as Map<String, dynamic>).map(
         (k, e) => MapEntry(
@@ -115,6 +117,8 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'realm_wildcard_mention_policy': instance.realmWildcardMentionPolicy,
       'realm_mandatory_topics': instance.realmMandatoryTopics,
       'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
+      'realm_enable_guest_user_dm_warning':
+          instance.realmEnableGuestUserDmWarning,
       'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
       'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
       'server_emoji_data_url': instance.serverEmojiDataUrl?.toString(),

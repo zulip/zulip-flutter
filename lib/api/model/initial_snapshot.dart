@@ -79,6 +79,8 @@ class InitialSnapshot {
   ///   https://zulip.com/api/roles-and-permissions#determining-if-a-user-is-a-full-member
   final int realmWaitingPeriodThreshold;
 
+  final bool? realmEnableGuestUserDmWarning;
+
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
 
   final int maxFileUploadSizeMib;
@@ -135,6 +137,7 @@ class InitialSnapshot {
     required this.realmWildcardMentionPolicy,
     required this.realmMandatoryTopics,
     required this.realmWaitingPeriodThreshold,
+    required this.realmEnableGuestUserDmWarning,
     required this.realmDefaultExternalAccounts,
     required this.maxFileUploadSizeMib,
     required this.serverEmojiDataUrl,
