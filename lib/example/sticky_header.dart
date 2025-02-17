@@ -17,8 +17,10 @@
 /// so as to set the app ID differently.
 library;
 
-import 'package:flutter/material.dart';
+// ignore: undefined_hidden_name // anticipates https://github.com/flutter/flutter/pull/164818
+import 'package:flutter/material.dart' hide SliverPaintOrder;
 
+import '../widgets/scrolling.dart';
 import '../widgets/sticky_header.dart';
 
 /// Example page using [StickyHeaderListView] and [StickyHeaderItem] in a
@@ -151,9 +153,11 @@ class ExampleVerticalDouble extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: CustomScrollView(
+      body: CustomPaintOrderScrollView(
         semanticChildCount: numSections,
         center: centerKey,
+        paintOrder: headerAtBottom ?
+          SliverPaintOrder.lastIsTop : SliverPaintOrder.firstIsTop,
         slivers: [
           SliverStickyHeaderList(
             key: const ValueKey('top'),
