@@ -116,6 +116,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/timezone/latest_all.tzf
     - assets/KaTeX/LICENSE
     - assets/Noto_Color_Emoji/LICENSE
     - assets/Pygments/AUTHORS.txt
