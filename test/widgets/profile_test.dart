@@ -1,6 +1,12 @@
 import 'package:checks/checks.dart';
+import 'package:clock/clock.dart';
+import 'package:fake_async/fake_async.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/src/tzdb.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -64,6 +70,10 @@ CustomProfileField mkCustomProfileField(
     fieldData: fieldData ?? '',
     displayInProfileSummary: displayInProfileSummary ?? true,
   );
+}
+
+void resetTimezones() {
+  tz.initializeDatabase([]);
 }
 
 void main() {
@@ -316,6 +326,20 @@ void main() {
             urlPattern: 'https://example/%(username)s')});
 
       check(find.textContaining(longString).evaluate()).length.equals(7);
+    });
+
+    test('assets; ensure the timezone database used to display users\' local time is up-to-date', () async {
+      tz.initializeTimeZones();
+      final latestTimezones = tz.tzdbSerialize(tz.timeZoneDatabase);
+
+      await UserLocalTimeText.initializeTimezonesUsingAssets();
+      final currentTimezones = tz.tzdbSerialize(tz.timeZoneDatabase);
+
+      check(
+        listEquals(currentTimezones, latestTimezones),
+        because:
+            'the timezone database used to display users\' local time is not up-to-date, please copy `package:timezone/data/latest_all.tzf` to `assets/timezone/latest_all.tzf`',
+      ).isTrue();
     });
   });
 }
