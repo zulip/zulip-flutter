@@ -1,1 +1,9 @@
-{}
+{
+  "userLocalTime": "{userTime} Ortszeit",
+  "@userLocalTime": {
+    "description": "Current time in the user's timezone",
+    "placeholders": {
+      "userTime": {"type": "DateTime", "format": "jm"}
+    }
+  }
+}

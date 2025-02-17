@@ -1,3 +1,10 @@
 {
-  "settingsPageTitle": "设置"
+  "settingsPageTitle": "设置",
+  "userLocalTime": "{userTime} 当地时间",
+  "@userLocalTime": {
+    "description": "Current time in the user's timezone",
+    "placeholders": {
+      "userTime": {"type": "DateTime", "format": "jm"}
+    }
+  }
 }

@@ -813,6 +813,14 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
 
   @override
   String get zulipAppTitle => 'Zulip';
+
+  @override
+  String userLocalTime(DateTime userTime) {
+    final intl.DateFormat userTimeDateFormat = intl.DateFormat.jm(localeName);
+    final String userTimeString = userTimeDateFormat.format(userTime);
+
+    return '$userTimeString local time';
+  }
 }
 
 /// The translations for Chinese, as used in China, using the Han script (`zh_Hans_CN`).
@@ -821,6 +829,14 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get settingsPageTitle => '设置';
+
+  @override
+  String userLocalTime(DateTime userTime) {
+    final intl.DateFormat userTimeDateFormat = intl.DateFormat.jm(localeName);
+    final String userTimeString = userTimeDateFormat.format(userTime);
+
+    return '$userTimeString 当地时间';
+  }
 }
 
 /// The translations for Chinese, as used in Taiwan, using the Han script (`zh_Hant_TW`).
@@ -829,4 +845,12 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get settingsPageTitle => '設定';
+
+  @override
+  String userLocalTime(DateTime userTime) {
+    final intl.DateFormat userTimeDateFormat = intl.DateFormat.jm(localeName);
+    final String userTimeString = userTimeDateFormat.format(userTime);
+
+    return '$userTimeString 本地時間';
+  }
 }
