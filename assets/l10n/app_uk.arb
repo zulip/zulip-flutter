@@ -1006,5 +1006,12 @@
   "emojiReactionsMore": "більше",
   "@emojiReactionsMore": {
     "description": "Label for a button opening the emoji picker."
+  },
+  "userLocalTime": "{userTime} місцевий час",
+  "@userLocalTime": {
+    "description": "Current time in the user's timezone",
+    "placeholders": {
+      "userTime": {"type": "DateTime", "format": "jm"}
+    }
   }
 }
