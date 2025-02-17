@@ -59,6 +59,7 @@ dependencies:
   share_plus_platform_interface: ^6.0.0
   sqlite3: ^2.4.0
   sqlite3_flutter_libs: ^0.5.13
+  timezone: ^0.10.1
   url_launcher: ^6.1.11
   url_launcher_android: ">=6.1.0"
   video_player: 2.9.5 # TODO unpin and upgrade to latest version
