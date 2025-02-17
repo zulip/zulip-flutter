@@ -1632,19 +1632,19 @@ class DateText extends StatelessWidget {
       ),
       formatHeaderDate(
         zulipLocalizations,
-        DateTime.fromMillisecondsSinceEpoch(timestamp * 1000),
-        now: ZulipBinding.instance.utcNow().toLocal()));
+        DateTime.fromMillisecondsSinceEpoch(timestamp * 1000)));
   }
 }
 
 @visibleForTesting
 String formatHeaderDate(
   ZulipLocalizations zulipLocalizations,
-  DateTime dateTime, {
-  required DateTime now,
-}) {
-  assert(!dateTime.isUtc && !now.isUtc,
-    '`dateTime` and `now` need to be in local time.');
+  DateTime dateTime,
+) {
+  assert(!dateTime.isUtc,
+    '`dateTime` need to be in local time.');
+
+  final now = ZulipBinding.instance.utcNow().toLocal();
 
   if (dateTime.year == now.year &&
       dateTime.month == now.month &&
