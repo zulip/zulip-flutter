@@ -10,13 +10,22 @@ import 'package:video_player_platform_interface/video_player_platform_interface.
 import 'package:video_player/video_player.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/localizations.dart';
+import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/lightbox.dart';
+import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/page.dart';
+import 'package:zulip/widgets/store.dart';
 
+import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
+import '../model/content_test.dart';
+import '../model/test_store.dart';
 import '../test_images.dart';
+import '../test_navigation.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
 
@@ -197,6 +206,39 @@ class FakeVideoPlayerPlatform extends Fake
 void main() {
   TestZulipBinding.ensureInitialized();
 
+  late PerAccountStore store;
+  late FakeApiConnection connection;
+
+  Future<void> setupMessageListPage(WidgetTester tester, {
+    Narrow narrow = const CombinedFeedNarrow(),
+    List<Message>? messages,
+    List<ZulipStream>? streams,
+    List<NavigatorObserver> navObservers = const [],
+
+  }) async {
+    addTearDown(testBinding.reset);
+    final stream = streams?.first ?? eg.stream(streamId: eg.defaultStreamMessageStreamId);
+    final subscription = eg.subscription(stream);
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+      streams: streams ?? [stream], subscriptions: [subscription]));
+    store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+    connection = store.connection as FakeApiConnection;
+
+    await store.addUser(eg.selfUser);
+
+    prepareBoringImageHttpClient();
+
+    connection.prepare(json:
+      eg.newestGetMessagesResult(foundOldest: true, messages: messages ?? []).toJson());
+
+    await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+      navigatorObservers: navObservers,
+      child: MessageListPage(initNarrow: narrow)));
+
+    await tester.pumpAndSettle();
+    debugNetworkImageHttpClientProvider = null;
+  }
+
   group('_ImageLightboxPage', () {
     final src = Uri.parse('https://chat.example/lightbox-image.png');
 
@@ -207,14 +249,19 @@ void main() {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
-      // ZulipApp instead of TestZulipApp because we need the navigator to push
-      // the lightbox route. The lightbox page works together with the route;
-      // it takes the route's entrance animation.
-      await tester.pumpWidget(const ZulipApp());
+      // ZulipApp instead of TestZulipApp because we need:
+      // 1. The navigator to push the lightbox route. The lightbox page works
+      //    together with the route; it takes the route's entrance animation.
+      // 2. The PageRoot widget to provide context for Hero animations between
+      //    the message list and lightbox.
+      await tester.pumpWidget(PageRoot(
+        child: const ZulipApp()
+      ));
       await tester.pump();
       final navigator = await ZulipApp.navigator;
       unawaited(navigator.push(getImageLightboxRoute(
         accountId: eg.selfAccount.id,
+        pageContext: PageRoot.contextOf(navigator.context),
         message: message ?? eg.streamMessage(),
         src: src,
         thumbnailUrl: thumbnailUrl,
@@ -556,6 +603,97 @@ void main() {
       // … and check the movement is forward, and corresponds to the video.
       check(position).isGreaterThan(basePosition);
       check(platform.position).equals(position);
+    });
+  });
+
+  group('LightboxHero', () {
+    testWidgets('no hero animation occurs between different message list pages for same image', (tester) async {
+      final pushedRoutes = <Route<dynamic>>[];
+      final testNavObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      final channel = eg.stream(streamId: eg.defaultStreamMessageStreamId);
+      final message = eg.streamMessage(stream: channel,
+        contentMarkdown: ContentExample.imageSingle.html, topic: 'test topic');
+      await setupMessageListPage(tester,
+        narrow: const CombinedFeedNarrow(),
+        streams: [channel],
+        messages: [message],
+        navObservers: [testNavObserver]);
+
+      assert(pushedRoutes.length == 1);
+      pushedRoutes.clear();
+
+      final heroTag1 = tester.widget<Hero>(
+        find.descendant(
+          of: find.byType(LightboxHero),
+          matching: find.byType(Hero),
+        )
+      );
+
+      connection.prepare(json:
+        eg.newestGetMessagesResult(foundOldest: true, messages: [message]).toJson());
+
+      await tester.tap(find.descendant(
+        of: find.byType(StreamMessageRecipientHeader),
+        matching: find.text('test topic')));
+      await tester.pump();
+
+      final heroFinder = find.descendant(
+        of: find.byType(Overlay),
+        matching: find.byType(Hero),
+      );
+      expect(heroFinder, findsOneWidget);
+      await tester.pumpAndSettle();
+
+      final heroTag2 = tester.widget<Hero>(
+        find.descendant(
+          of: find.byType(LightboxHero),
+          matching: find.byType(Hero),
+        )
+      );
+      expect(heroTag1.tag, isNot(equals(heroTag2.tag)));
+    });
+
+    testWidgets('hero animation occurs when opening lightbox from message list', (tester) async {
+      final pushedRoutes = <Route<dynamic>>[];
+      final testNavObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      final channel = eg.stream(streamId: eg.defaultStreamMessageStreamId);
+      final message = eg.streamMessage(stream: channel,
+        contentMarkdown: ContentExample.spoilerHeaderHasImage.html);
+      await setupMessageListPage(tester,
+        narrow: const CombinedFeedNarrow(),
+        streams: [channel],
+        messages: [message],
+        navObservers: [testNavObserver]);
+
+      connection.prepare(json:
+        eg.newestGetMessagesResult(foundOldest: true, messages: [message]).toJson());
+
+      pushedRoutes.clear();
+
+      final initialHero = tester.widget<Hero>(
+        find.descendant(
+          of: find.byType(LightboxHero),
+          matching: find.byType(Hero),
+        )
+      );
+      expect(initialHero.flightShuttleBuilder, isNotNull);
+      await tester.tap(find.byType(RealmContentNetworkImage));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 150));
+      expect(find.byType(PerAccountStoreWidget), findsWidgets);
+      await tester.pumpAndSettle();
+
+      final lightboxHero = tester.widget<Hero>(
+        find.descendant(
+          of: find.byType(Overlay),
+          matching: find.byType(Hero),
+        )
+      );
+      check(lightboxHero.tag).equals(initialHero.tag);
+      check(lightboxHero.flightShuttleBuilder).isNotNull();
+      debugNetworkImageHttpClientProvider = null;
     });
   });
 }
