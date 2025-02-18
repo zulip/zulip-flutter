@@ -757,11 +757,8 @@ void main() {
     }
 
     void prepareExpiredEventQueue() {
-      connection.prepare(httpStatus: 400, json: {
-        'result': 'error', 'code': 'BAD_EVENT_QUEUE_ID',
-        'queue_id': updateMachine.queueId,
-        'msg': 'Bad event queue ID: ${updateMachine.queueId}',
-      });
+      connection.prepare(apiException: eg.apiExceptionBadEventQueueId(
+        queueId: updateMachine.queueId));
     }
 
     Future<void> prepareHandleEventError() async {

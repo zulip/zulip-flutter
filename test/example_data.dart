@@ -39,6 +39,18 @@ ZulipApiException apiBadRequest({
     data: {}, message: message);
 }
 
+/// The error for the "events" route when the target event queue has been
+/// garbage collected.
+///
+/// https://zulip.com/api/get-events#bad_event_queue_id-errors
+ZulipApiException apiExceptionBadEventQueueId({
+  String queueId = 'fb67bf8a-c031-47cc-84cf-ed80accacda8',
+}) {
+  return ZulipApiException(
+    routeName: 'events', httpStatus: 400, code: 'BAD_EVENT_QUEUE_ID',
+    data: {'queue_id': queueId}, message: 'Bad event queue ID: $queueId');
+}
+
 /// The error the server gives when the client's credentials
 /// (API key together with email and realm URL) are no longer valid.
 ///

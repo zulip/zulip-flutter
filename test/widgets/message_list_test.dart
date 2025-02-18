@@ -7,7 +7,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-import 'package:zulip/api/exception.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -143,9 +142,8 @@ void main() {
       updateMachine.debugPauseLoop();
       updateMachine.poll();
 
-      updateMachine.debugPrepareLoopError(ZulipApiException(
-        routeName: 'events', httpStatus: 400, code: 'BAD_EVENT_QUEUE_ID',
-        data: {'queue_id': updateMachine.queueId}, message: 'Bad event queue ID.'));
+      updateMachine.debugPrepareLoopError(
+        eg.apiExceptionBadEventQueueId(queueId: updateMachine.queueId));
       updateMachine.debugAdvanceLoop();
       await tester.pump();
       // Event queue has been replaced; but the [MessageList] hasn't been
