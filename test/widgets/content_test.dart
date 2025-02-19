@@ -1005,6 +1005,65 @@ void main() {
     });
   });
 
+  group('WebsitePreview', () {
+    Future<void> prepare(WidgetTester tester, String html) async {
+      await prepareContent(tester, plainContent(html),
+        wrapWithPerAccountStoreWidget: true);
+    }
+
+    testWidgets('smoke', (tester) async {
+      final url = Uri.parse(ContentExample.websitePreviewSmoke.markdown!);
+      await prepare(tester, ContentExample.websitePreviewSmoke.html);
+      tester.widget(find.byType(WebsitePreview));
+
+      await tester.tap(find.text('Zulip — organized team chat'));
+      check(testBinding.takeLaunchUrlCalls())
+        .single.equals((url: url, mode: LaunchMode.platformDefault));
+
+      await tester.tap(find.byType(RealmContentNetworkImage));
+      check(testBinding.takeLaunchUrlCalls())
+        .single.equals((url: url, mode: LaunchMode.platformDefault));
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('smoke: without title', (tester) async {
+      final url = Uri.parse(ContentExample.websitePreviewWithoutTitle.markdown!);
+      await prepare(tester, ContentExample.websitePreviewWithoutTitle.html);
+      tester.widget(find.byType(WebsitePreview));
+
+      await tester.tap(find.byType(RealmContentNetworkImage));
+      check(testBinding.takeLaunchUrlCalls())
+        .single.equals((url: url, mode: LaunchMode.platformDefault));
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('smoke: without description', (tester) async {
+      final url = Uri.parse(ContentExample.websitePreviewWithoutDescription.markdown!);
+      await prepare(tester, ContentExample.websitePreviewWithoutDescription.html);
+      tester.widget(find.byType(WebsitePreview));
+
+      await tester.tap(find.text('Zulip — organized team chat'));
+      check(testBinding.takeLaunchUrlCalls())
+        .single.equals((url: url, mode: LaunchMode.platformDefault));
+
+      await tester.tap(find.byType(RealmContentNetworkImage));
+      check(testBinding.takeLaunchUrlCalls())
+        .single.equals((url: url, mode: LaunchMode.platformDefault));
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('smoke: without title and description', (tester) async {
+      final url = Uri.parse(ContentExample.websitePreviewWithoutTitleAndDescription.markdown!);
+      await prepare(tester, ContentExample.websitePreviewWithoutTitleAndDescription.html);
+      tester.widget(find.byType(WebsitePreview));
+
+      await tester.tap(find.byType(RealmContentNetworkImage));
+      check(testBinding.takeLaunchUrlCalls())
+        .single.equals((url: url, mode: LaunchMode.platformDefault));
+      debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
   group('RealmContentNetworkImage', () {
     final authHeaders = authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey);
 
