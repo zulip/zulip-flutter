@@ -38,6 +38,10 @@ InitialSnapshot _$InitialSnapshotFromJson(
       (json['server_typing_started_wait_period_milliseconds'] as num?)
           ?.toInt() ??
       10000,
+  mutedUsers:
+      (json['muted_users'] as List<dynamic>)
+          .map((e) => MutedUserItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
   realmEmoji: (json['realm_emoji'] as Map<String, dynamic>).map(
     (k, e) => MapEntry(k, RealmEmojiItem.fromJson(e as Map<String, dynamic>)),
   ),
@@ -123,6 +127,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
           instance.serverTypingStoppedWaitPeriodMilliseconds,
       'server_typing_started_wait_period_milliseconds':
           instance.serverTypingStartedWaitPeriodMilliseconds,
+      'muted_users': instance.mutedUsers,
       'realm_emoji': instance.realmEmoji,
       'recent_private_conversations': instance.recentPrivateConversations,
       'subscriptions': instance.subscriptions,
@@ -158,6 +163,15 @@ const _$RealmWildcardMentionPolicyEnumMap = {
   RealmWildcardMentionPolicy.nobody: 6,
   RealmWildcardMentionPolicy.moderators: 7,
 };
+
+MutedUserItem _$MutedUserItemFromJson(Map<String, dynamic> json) =>
+    MutedUserItem(
+      id: (json['id'] as num).toInt(),
+      timestamp: (json['timestamp'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$MutedUserItemToJson(MutedUserItem instance) =>
+    <String, dynamic>{'id': instance.id, 'timestamp': instance.timestamp};
 
 RealmDefaultExternalAccount _$RealmDefaultExternalAccountFromJson(
   Map<String, dynamic> json,
