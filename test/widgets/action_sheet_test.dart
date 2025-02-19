@@ -31,6 +31,7 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:share_plus_platform_interface/method_channel/method_channel_share.dart';
+import 'package:zulip/widgets/subscription_list.dart';
 import '../api/fake_api.dart';
 
 import '../example_data.dart' as eg;
@@ -103,6 +104,190 @@ void main() {
   void prepareRawContentResponseError() {
     connection.prepare(apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
   }
+
+  group('channel action sheet', () {
+    late ZulipStream someChannel;
+    const someTopic = 'my topic';
+    late StreamMessage someMessage;
+
+    Future<void> prepare({bool hasUnreadMessages = true}) async {
+      someChannel = eg.stream();
+      someMessage = eg.streamMessage(
+        stream: someChannel, topic: someTopic, sender: eg.otherUser,
+        flags: hasUnreadMessages ? [] : [MessageFlag.read]);
+      addTearDown(testBinding.reset);
+
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      connection = store.connection as FakeApiConnection;
+
+      await store.addUser(eg.selfUser);
+      await store.addUser(eg.otherUser);
+      await store.addStream(someChannel);
+      await store.addSubscription(eg.subscription(someChannel));
+      await store.addMessage(someMessage);
+    }
+
+    Future<void> showFromInbox(WidgetTester tester) async {
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: const HomePage()));
+      await tester.pump();
+      check(find.byType(InboxPageBody)).findsOne();
+
+      await tester.longPress(find.text(someChannel.name).hitTestable());
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+
+    Future<void> showFromSubscriptionList(WidgetTester tester) async {
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: const HomePage()));
+      await tester.pump();
+      await tester.tap(find.byIcon(ZulipIcons.hash_italic));
+      await tester.pump();
+      check(find.byType(SubscriptionListPageBody)).findsOne();
+
+      await tester.longPress(find.text(someChannel.name).hitTestable());
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+
+    Future<void> showFromAppBar(WidgetTester tester, {
+      ZulipStream? channel,
+      List<StreamMessage>? messages,
+      required Narrow narrow,
+    }) async {
+      channel ??= someChannel;
+      messages ??= [someMessage];
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: messages).toJson());
+      await tester.pumpWidget(TestZulipApp(
+        accountId: eg.selfAccount.id,
+        child: MessageListPage(
+          initNarrow: narrow)));
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.text(channel.name)));
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+
+    Future<void> showFromRecipientHeader(WidgetTester tester, {
+      StreamMessage? message,
+    }) async {
+      message ??= someMessage;
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [message]).toJson());
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: const MessageListPage(initNarrow: CombinedFeedNarrow())));
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.descendant(
+        of: find.byType(RecipientHeader),
+        matching: find.text(message.displayRecipient ?? '')));
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+
+    final actionSheetFinder = find.byType(BottomSheet);
+    Finder findButtonForLabel(String label) =>
+      find.descendant(of: actionSheetFinder, matching: find.text(label));
+
+    void checkButton(String label) {
+      check(findButtonForLabel(label)).findsOne();
+    }
+
+    group('showChannelActionSheet', () {
+      void checkButtons() {
+        check(actionSheetFinder).findsOne();
+        checkButton('Mark channel as read');
+      }
+
+      testWidgets('show from inbox', (tester) async {
+        await prepare();
+        await showFromInbox(tester);
+        checkButtons();
+      });
+
+      testWidgets('show from subscription list', (tester) async {
+        await prepare();
+        await showFromSubscriptionList(tester);
+        checkButtons();
+      });
+
+      testWidgets('show with no unread messages', (tester) async {
+        await prepare(hasUnreadMessages: false);
+        await showFromSubscriptionList(tester);
+        check(actionSheetFinder).findsNothing();
+      });
+
+      testWidgets('show from app bar in channel narrow', (tester) async {
+        await prepare();
+        final narrow = ChannelNarrow(someChannel.streamId);
+        await showFromAppBar(tester, narrow: narrow);
+        checkButtons();
+      });
+
+      testWidgets('show from app bar in topic narrow', (tester) async {
+        await prepare();
+        final narrow = eg.topicNarrow(someChannel.streamId, someTopic);
+        await showFromAppBar(tester, narrow: narrow);
+        checkButtons();
+      });
+
+      testWidgets('show from recipient header', (tester) async {
+        await prepare();
+        await showFromRecipientHeader(tester, message: someMessage);
+        checkButtons();
+      });
+    });
+
+    group('MarkChannelAsReadButton', () {
+      void checkRequest(int channelId) {
+        check(connection.takeRequests()).single.isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/messages/flags/narrow')
+          ..bodyFields.deepEquals({
+            'anchor': 'oldest',
+            'include_anchor': 'false',
+            'num_before': '0',
+            'num_after': '1000',
+            'narrow': jsonEncode([
+              {'operator': 'stream', 'operand': channelId},
+              {'operator': 'is', 'operand': 'unread'},
+            ]),
+            'op': 'add',
+            'flag': 'read',
+          });
+      }
+
+      testWidgets('happy path from inbox', (tester) async {
+        await prepare();
+        final message = eg.streamMessage(stream: someChannel, topic: someTopic);
+        await store.addMessage(message);
+        await showFromInbox(tester);
+        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+          processedCount: 1, updatedCount: 1,
+          firstProcessedId: message.id, lastProcessedId: message.id,
+          foundOldest: true, foundNewest: true).toJson());
+        await tester.tap(findButtonForLabel('Mark channel as read'));
+        await tester.pumpAndSettle();
+        checkRequest(someChannel.streamId);
+        checkNoErrorDialog(tester);
+      });
+
+      testWidgets('request fails', (tester) async {
+        await prepare();
+        await showFromInbox(tester);
+        connection.prepare(httpException: http.ClientException('Oops'));
+        await tester.tap(findButtonForLabel('Mark channel as read'));
+        await tester.pumpAndSettle();
+        checkRequest(someChannel.streamId);
+        checkErrorDialog(tester,
+          expectedTitle: "Mark as read failed");
+      });
+    });
+  });
 
   group('topic action sheet', () {
     final someChannel = eg.stream();

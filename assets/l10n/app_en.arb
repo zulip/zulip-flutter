@@ -76,6 +76,10 @@
   "@permissionsDeniedReadExternalStorage": {
     "description": "Message for dialog asking the user to grant permissions for external storage read access."
   },
+  "actionSheetOptionMarkChannelAsRead": "Mark channel as read",
+  "@actionSheetOptionMarkChannelAsRead": {
+    "description": "Label for marking a channel as read."
+  },
   "actionSheetOptionMuteTopic": "Mute topic",
   "@actionSheetOptionMuteTopic":  {
     "description": "Label for muting a topic on action sheet."

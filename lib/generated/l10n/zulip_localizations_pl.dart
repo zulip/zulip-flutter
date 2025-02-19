@@ -68,6 +68,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get permissionsDeniedReadExternalStorage => 'Aby odebrać pliki Zulip musi uzyskać dodatkowe uprawnienia w Ustawieniach.';
 
   @override
+  String get actionSheetOptionMarkChannelAsRead => 'Mark channel as read';
+
+  @override
   String get actionSheetOptionMuteTopic => 'Wycisz wątek';
 
   @override

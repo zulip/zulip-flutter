@@ -4,6 +4,7 @@ import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/unreads.dart';
+import 'action_sheet.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'store.dart';
@@ -230,6 +231,7 @@ class SubscriptionItem extends StatelessWidget {
             MessageListPage.buildRoute(context: context,
               narrow: ChannelNarrow(subscription.streamId)));
         },
+        onLongPress: () => showChannelActionSheet(context, channelId: subscription.streamId),
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           const SizedBox(width: 16),
           Padding(
