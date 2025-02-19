@@ -86,13 +86,13 @@ class AppDatabase extends _$AppDatabase {
         }
         assert(1 <= from && from <= to && to <= schemaVersion);
 
-        if (from < 2 && 2 <= to) {
-          final schema = Schema2(database: m.database);
-          await m.addColumn(schema.accounts, schema.accounts.ackedPushToken);
-        }
-        // New migrations go here.
-      }
-    );
+        await m.runMigrationSteps(from: from, to: to,
+          steps: migrationSteps(
+            from1To2: (m, schema) async {
+              await m.addColumn(schema.accounts, schema.accounts.ackedPushToken);
+            },
+          ));
+      });
   }
 
   Future<int> createAccount(AccountsCompanion values) async {
