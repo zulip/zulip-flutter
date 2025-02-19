@@ -504,6 +504,58 @@ class EmbedVideoNode extends BlockContentNode {
   }
 }
 
+// See:
+//  https://ogp.me/
+//  https://oembed.com/
+//  https://zulip.com/help/image-video-and-website-previews#configure-whether-website-previews-are-shown
+class WebsitePreviewNode extends BlockContentNode {
+  const WebsitePreviewNode({
+    super.debugHtmlNode,
+    required this.hrefUrl,
+    required this.imageSrcUrl,
+    required this.title,
+    required this.description,
+  });
+
+  /// The URL from which this preview data was retrieved.
+  final String hrefUrl;
+
+  /// The image URL representing the webpage, content value
+  /// of `og:image` HTML meta property.
+  final String imageSrcUrl;
+
+  /// Represents the webpage title, derived from either
+  /// the content of the `og:title` HTML meta property or
+  /// the <title> HTML element.
+  final String? title;
+
+  /// Description about the webpage, content value of
+  /// `og:description` HTML meta property.
+  final String? description;
+
+  @override
+  bool operator ==(Object other) {
+    return other is WebsitePreviewNode
+      && other.hrefUrl == hrefUrl
+      && other.imageSrcUrl == imageSrcUrl
+      && other.title == title
+      && other.description == description;
+  }
+
+  @override
+  int get hashCode =>
+    Object.hash('WebsitePreviewNode', hrefUrl, imageSrcUrl, title, description);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('hrefUrl', hrefUrl));
+    properties.add(StringProperty('imageSrcUrl', imageSrcUrl));
+    properties.add(StringProperty('title', title));
+    properties.add(StringProperty('description', description));
+  }
+}
+
 class TableNode extends BlockContentNode {
   const TableNode({super.debugHtmlNode, required this.rows});
 
@@ -1339,6 +1391,113 @@ class _ZulipContentParser {
     return EmbedVideoNode(hrefUrl: href, previewImageSrcUrl: imgSrc, debugHtmlNode: debugHtmlNode);
   }
 
+  static final _websitePreviewImageSrcRegexp = RegExp(r'background-image: url\("(.+)"\)');
+
+  BlockContentNode parseWebsitePreviewNode(dom.Element divElement) {
+    assert(divElement.localName == 'div'
+      && divElement.className == 'message_embed');
+
+    final debugHtmlNode = kDebugMode ? divElement : null;
+    final result = () {
+      if (divElement.nodes case [
+        dom.Element(
+          localName: 'a',
+          className: 'message_embed_image',
+          attributes: {
+            'href': final String imageHref,
+            'style': final String imageStyleAttr,
+          },
+          nodes: []),
+        dom.Element(
+          localName: 'div',
+          className: 'data-container',
+          nodes: [...]) && final dataContainer,
+      ]) {
+        final match = _websitePreviewImageSrcRegexp.firstMatch(imageStyleAttr);
+        if (match == null) return null;
+        final imageSrcUrl = match.group(1);
+        if (imageSrcUrl == null) return null;
+
+        String? parseTitle(dom.Element element) {
+          assert(element.localName == 'div' &&
+            element.className == 'message_embed_title');
+          if (element.nodes case [
+            dom.Element(localName: 'a', className: '') && final child,
+          ]) {
+            final titleHref = child.attributes['href'];
+            // Make sure both image hyperlink and title hyperlink are same.
+            if (imageHref != titleHref) return null;
+
+            if (child.nodes case [dom.Text(text: final title)]) {
+              return title;
+            }
+          }
+          return null;
+        }
+
+        String? parseDescription(dom.Element element) {
+          assert(element.localName == 'div' &&
+            element.className == 'message_embed_description');
+          if (element.nodes case [dom.Text(text: final description)]) {
+            return description;
+          }
+          return null;
+        }
+
+        String? title, description;
+        switch (dataContainer.nodes) {
+          case [
+            dom.Element(
+              localName: 'div',
+              className: 'message_embed_title') && final first,
+            dom.Element(
+              localName: 'div',
+              className: 'message_embed_description') && final second,
+          ]:
+            title = parseTitle(first);
+            if (title == null) return null;
+            description = parseDescription(second);
+            if (description == null) return null;
+
+          case [dom.Element(localName: 'div') && final single]:
+            switch (single.className) {
+              case 'message_embed_title':
+                title = parseTitle(single);
+                if (title == null) return null;
+
+              case 'message_embed_description':
+                description = parseDescription(single);
+                if (description == null) return null;
+
+              default:
+                return null;
+            }
+
+          case []:
+            // Server generates an empty `<div class="data-container"></div>`
+            // if website HTML has neither title (derived from
+            // `og:title` or `<title>…</title>`) nor description (derived from
+            // `og:description`).
+            break;
+
+          default:
+            return null;
+        }
+
+        return WebsitePreviewNode(
+          hrefUrl: imageHref,
+          imageSrcUrl: imageSrcUrl,
+          title: title,
+          description: description,
+          debugHtmlNode: debugHtmlNode);
+      } else {
+        return null;
+      }
+    }();
+
+    return result ?? UnimplementedBlockContentNode(htmlNode: divElement);
+  }
+
   BlockContentNode parseTableContent(dom.Element tableElement) {
     assert(tableElement.localName == 'table'
         && tableElement.className.isEmpty);
@@ -1581,6 +1740,10 @@ class _ZulipContentParser {
             return parseEmbedVideoNode(element);
         }
       }
+    }
+
+    if (localName == 'div' && className == 'message_embed') {
+      return parseWebsitePreviewNode(element);
     }
 
     // TODO more types of node
