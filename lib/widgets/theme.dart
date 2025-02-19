@@ -137,13 +137,17 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       contextMenuCancelText: const Color(0xff222222),
       contextMenuItemBg: const Color(0xff6159e1),
       contextMenuItemText: const Color(0xff381da7),
+      contextMenuItemIcon: const Color(0xff4F42C9),
       editorButtonPressedBg: Colors.black.withValues(alpha: 0.06),
+      fabBg: const Color(0xFF6E69F3),
+      fabLabel: const Color(0xffECEEFC),
       foreground: const Color(0xff000000),
       icon: const Color(0xff6159e1),
       iconSelected: const Color(0xff222222),
       labelCounterUnread: const Color(0xff222222),
       labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
       labelMenuButton: const Color(0xff222222),
+      labelSearchPrompt: const Color(0xff000000).withValues(alpha: 0.5),
       mainBackground: const Color(0xfff0f0f0),
       textInput: const Color(0xff000000),
       title: const Color(0xff1a1a1a),
@@ -162,11 +166,12 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.3),
       mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.8).toColor(),
       navigationButtonBg: Colors.black.withValues(alpha: 0.05),
-      newDmButtonBg: const Color(0xff4F42C9),
+      radioFillSelected: const Color(0xff4370F0),
       sectionCollapseIcon: const Color(0x7f1e2e48),
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
       subscriptionListHeaderLine: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor(),
       subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
+      statusOnline: const Color(0xff46AA62),
       unreadCountBadgeTextForChannel: Colors.black.withValues(alpha: 0.9),
     );
 
@@ -187,13 +192,17 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       contextMenuCancelText: const Color(0xffffffff).withValues(alpha: 0.75),
       contextMenuItemBg: const Color(0xff7977fe),
       contextMenuItemText: const Color(0xff9398fd),
+      contextMenuItemIcon: const Color(0xff9398FD),
       editorButtonPressedBg: Colors.white.withValues(alpha: 0.06),
+      fabBg: const Color(0xFF4F42C9),
+      fabLabel: const Color(0xffECEEFC),
       foreground: const Color(0xffffffff),
       icon: const Color(0xff7977fe),
       iconSelected: Colors.white.withValues(alpha: 0.8),
       labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
       labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
       labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
+      labelSearchPrompt: const Color(0xffffffff).withValues(alpha: 0.5),
       mainBackground: const Color(0xff1d1d1d),
       textInput: const Color(0xffffffff).withValues(alpha: 0.9),
       title: const Color(0xffffffff),
@@ -216,11 +225,12 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.6).toColor(),
       navigationButtonBg: Colors.white.withValues(alpha: 0.05),
-      newDmButtonBg: const Color(0xff4F42C9),
+      radioFillSelected: const Color(0xff4E7CFA),
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       sectionCollapseIcon: const Color(0x7fb6c8e2),
       // TODO(design-dark) unchanged in dark theme?
       star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
+      statusOnline: const Color(0xff46AA62),
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
       subscriptionListHeaderLine: const HSLColor.fromAHSL(0.4, 240, 0.1, 0.75).toColor(),
       // TODO(design-dark) need proper dark-theme color (this is ad hoc)
@@ -246,7 +256,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.contextMenuCancelText,
     required this.contextMenuItemBg,
     required this.contextMenuItemText,
+    required this.contextMenuItemIcon,
     required this.editorButtonPressedBg,
+    required this.fabBg,
+    required this.fabLabel,
     required this.foreground,
     required this.icon,
     required this.iconSelected,
@@ -271,12 +284,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.modalBarrierColor,
     required this.mutedUnreadBadge,
     required this.navigationButtonBg,
-    required this.newDmButtonBg,
     required this.sectionCollapseIcon,
     required this.star,
     required this.subscriptionListHeaderLine,
     required this.subscriptionListHeaderText,
     required this.unreadCountBadgeTextForChannel,
+    required this.labelSearchPrompt,
+    required this.radioFillSelected,
+    required this.statusOnline,
   });
 
   /// The [DesignVariables] from the context's active theme.
@@ -305,7 +320,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color contextMenuCancelText;
   final Color contextMenuItemBg;
   final Color contextMenuItemText;
+  final Color contextMenuItemIcon;
   final Color editorButtonPressedBg;
+  final Color fabBg;
+  final Color fabLabel;
   final Color foreground;
   final Color icon;
   final Color iconSelected;
@@ -334,12 +352,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color modalBarrierColor;
   final Color mutedUnreadBadge;
   final Color navigationButtonBg;
-  final Color newDmButtonBg;
   final Color sectionCollapseIcon;
   final Color star;
   final Color subscriptionListHeaderLine;
   final Color subscriptionListHeaderText;
   final Color unreadCountBadgeTextForChannel;
+  final Color labelSearchPrompt;
+  final Color radioFillSelected;
+  final Color statusOnline;
 
   @override
   DesignVariables copyWith({
@@ -359,6 +379,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? contextMenuCancelText,
     Color? contextMenuItemBg,
     Color? contextMenuItemText,
+    Color? contextMenuItemIcon,
     Color? editorButtonPressedBg,
     Color? foreground,
     Color? icon,
@@ -366,6 +387,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? labelCounterUnread,
     Color? labelEdited,
     Color? labelMenuButton,
+    Color? labelSearchPrompt,
     Color? mainBackground,
     Color? textInput,
     Color? title,
@@ -384,9 +406,12 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? modalBarrierColor,
     Color? mutedUnreadBadge,
     Color? navigationButtonBg,
-    Color? newDmButtonBg,
+    Color? fabBg,
+    Color? fabLabel,
+    Color? radioFillSelected,
     Color? sectionCollapseIcon,
     Color? star,
+    Color? statusOnline,
     Color? subscriptionListHeaderLine,
     Color? subscriptionListHeaderText,
     Color? unreadCountBadgeTextForChannel,
@@ -408,6 +433,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       contextMenuCancelText: contextMenuCancelText ?? this.contextMenuCancelText,
       contextMenuItemBg: contextMenuItemBg ?? this.contextMenuItemBg,
       contextMenuItemText: contextMenuItemText ?? this.contextMenuItemBg,
+      contextMenuItemIcon: contextMenuItemIcon ?? this.contextMenuItemIcon,
       editorButtonPressedBg: editorButtonPressedBg ?? this.editorButtonPressedBg,
       foreground: foreground ?? this.foreground,
       icon: icon ?? this.icon,
@@ -433,12 +459,16 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       modalBarrierColor: modalBarrierColor ?? this.modalBarrierColor,
       mutedUnreadBadge: mutedUnreadBadge ?? this.mutedUnreadBadge,
       navigationButtonBg: navigationButtonBg ?? this.navigationButtonBg,
-      newDmButtonBg: newDmButtonBg ?? this.newDmButtonBg,
+      fabBg: fabBg ?? this.fabBg,
+      fabLabel: fabLabel ?? this.fabLabel,
       sectionCollapseIcon: sectionCollapseIcon ?? this.sectionCollapseIcon,
       star: star ?? this.star,
       subscriptionListHeaderLine: subscriptionListHeaderLine ?? this.subscriptionListHeaderLine,
       subscriptionListHeaderText: subscriptionListHeaderText ?? this.subscriptionListHeaderText,
       unreadCountBadgeTextForChannel: unreadCountBadgeTextForChannel ?? this.unreadCountBadgeTextForChannel,
+      labelSearchPrompt: labelSearchPrompt ?? this.labelSearchPrompt,
+      radioFillSelected: radioFillSelected ?? this.radioFillSelected,
+      statusOnline: statusOnline ?? this.statusOnline,
     );
   }
 
@@ -489,12 +519,17 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       modalBarrierColor: Color.lerp(modalBarrierColor, other.modalBarrierColor, t)!,
       mutedUnreadBadge: Color.lerp(mutedUnreadBadge, other.mutedUnreadBadge, t)!,
       navigationButtonBg: Color.lerp(navigationButtonBg, other.navigationButtonBg, t)!,
-      newDmButtonBg: Color.lerp(newDmButtonBg, other.newDmButtonBg, t)!,
+      fabBg: Color.lerp(fabBg, other.fabBg, t)!,
+      fabLabel: Color.lerp(fabLabel, other.fabLabel, t)!,
       sectionCollapseIcon: Color.lerp(sectionCollapseIcon, other.sectionCollapseIcon, t)!,
       star: Color.lerp(star, other.star, t)!,
       subscriptionListHeaderLine: Color.lerp(subscriptionListHeaderLine, other.subscriptionListHeaderLine, t)!,
       subscriptionListHeaderText: Color.lerp(subscriptionListHeaderText, other.subscriptionListHeaderText, t)!,
       unreadCountBadgeTextForChannel: Color.lerp(unreadCountBadgeTextForChannel, other.unreadCountBadgeTextForChannel, t)!,
+      contextMenuItemIcon: Color.lerp(contextMenuItemIcon, other.contextMenuItemIcon, t)!,
+      labelSearchPrompt: Color.lerp(labelSearchPrompt, other.labelSearchPrompt, t)!,
+      radioFillSelected: Color.lerp(radioFillSelected, other.radioFillSelected, t)!,
+      statusOnline: Color.lerp(statusOnline, other.statusOnline, t)!,
     );
   }
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../api/model/model.dart';
 import '../model/narrow.dart';
 import 'content.dart';
@@ -58,41 +57,37 @@ class _NewDmScreenState extends State<NewDmScreen> {
       final usersMap = store.users;
       setState(() {
         _allUsers = usersMap.values.toList();
+        _allUsers.removeWhere((user) => user.userId == store.selfUserId);
         _isLoading = false;
       });
-      print('Fetched ${_allUsers.length} users');
     } catch (error) {
       setState(() {
         _isLoading = false;
       });
-      // Handle error appropriately
-      print('Error fetching users: $error');
     }
   }
 
   List<User> get _filteredUsers {
     final query = _searchController.text.toLowerCase();
     return _allUsers.where((user) =>
-    !_selectedUsers.contains(user) &&
         user.fullName.toLowerCase().contains(query)
     ).toList();
   }
 
   void _handleUserSelect(User user) {
     setState(() {
-      _selectedUsers.add(user);
+      if (_selectedUsers.contains(user)) {
+        _selectedUsers.remove(user);
+      } else {
+        _selectedUsers.add(user);
+      }
       _searchController.clear();
     });
-    Future.delayed(Duration(milliseconds: 10), () {
+    Future.delayed(const Duration(milliseconds: 10), () {
       _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
     });
   }
 
-  void _handleUserRemove(User user) {
-    setState(() {
-      _selectedUsers.remove(user);
-    });
-  }
 
   void _handleDone() {
     if (_selectedUsers.isNotEmpty) {
@@ -112,50 +107,73 @@ class _NewDmScreenState extends State<NewDmScreen> {
     DesignVariables designVariables = DesignVariables.of(context);
 
     return Scaffold(
+      backgroundColor: designVariables.bgContextMenu,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+        automaticallyImplyLeading: false,
+        title: Row(
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Row(
+                children: [
+                  Icon(Icons.chevron_left, color: designVariables.icon, size: 24),
+                  Text('Back', style: TextStyle(color: designVariables.icon, fontSize: 20, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+            const Spacer(), // Pushes the title to the center
+            const Text('New DM', textAlign: TextAlign.center),
+            const Spacer(), // Ensures title stays centered
+          ],
         ),
-        title: const Text('New DM'),
+        centerTitle: false, // Prevents default centering when using custom layout
         actions: [
           TextButton(
             onPressed: _selectedUsers.isEmpty ? null : _handleDone,
-            child: Text(
-              'Next',
-              style: TextStyle(
-                color: _selectedUsers.isEmpty
-                    ? Colors.grey
-                    : designVariables.icon,
-              ),
+            child: Row(
+              children: [
+                Text(
+                  'Next',
+                  style: TextStyle(
+                    color: _selectedUsers.isEmpty ? designVariables.icon.withValues(alpha: 0.5) : designVariables.icon,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: _selectedUsers.isEmpty ? designVariables.icon.withValues(alpha: 0.5) : designVariables.icon, size: 24),
+              ],
             ),
           ),
         ],
       ),
+
       body: _isLoading? const Center(child: CircularProgressIndicator()) : Column(
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                color: const Color(0xff313131),
+                color: designVariables.bgSearchInput,
                 constraints: BoxConstraints(
                   minWidth: double.infinity,
                   maxHeight: screenHeight * 0.2, // Limit height to 20% of screen
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  padding: const EdgeInsets.fromLTRB(14,11,14,0),
                   child: SingleChildScrollView(
                     controller: _scrollController,
                     scrollDirection: Axis.vertical,
                     child: Wrap(
-                      spacing: 5,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 16,
                       children: [
                         ..._selectedUsers.map((user) => Chip(
-                          avatar: Avatar(userId: user.userId, size: 32, borderRadius: 3),
-                          label: Text(user.fullName),
-                          onDeleted: () => _handleUserRemove(user),
-                          backgroundColor: Color(0xFF40000000),
+                          avatar: Avatar(userId: user.userId, size: 22, borderRadius: 3),
+                          label: Text(user.fullName, style: TextStyle(fontSize: 16, color: designVariables.labelMenuButton)),
+                          deleteIcon: null,
+                          backgroundColor: designVariables.bgMenuButtonSelected,
+                          padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 1), // Adjust padding to control height
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap
                         )),
                         SizedBox(
                           width: 150,
@@ -181,24 +199,48 @@ class _NewDmScreenState extends State<NewDmScreen> {
               itemCount: _filteredUsers.length,
               itemBuilder: (context, index) {
                 final user = _filteredUsers[index];
-                return ListTile(
-                  leading: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _selectedUsers.contains(user)
-                            ? Icons.check_circle
-                            : Icons.circle_outlined,
-                        color: _selectedUsers.contains(user)
-                            ? Theme.of(context).primaryColor
-                            : Colors.grey,
-                      ),
-                      const SizedBox(width: 8), // Add spacing between the icon and avatar
-                      Avatar(userId: user.userId, size: 32, borderRadius: 3),
-                    ],
+                final isSelected = _selectedUsers.contains(user); // Check if user is selected
+
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                      color: isSelected ? designVariables.bgMenuButtonSelected : designVariables.bgContextMenu,
+                      borderRadius: BorderRadius.circular(10)
                   ),
-                  title: Text(user.fullName),
-                  onTap: () => _handleUserSelect(user),
+                  child: ListTile(
+                    leading: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isSelected ? Icons.check_circle : Icons.circle_outlined,
+                          color: isSelected ? designVariables.radioFillSelected : Colors.grey,
+                        ),
+                        const SizedBox(width: 8),
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Avatar(userId: user.userId, size: 32, borderRadius: 3),
+                            if (user.isActive)
+                              Positioned(
+                                bottom: -2,
+                                right: -2,
+                                child: Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: designVariables.statusOnline,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: isSelected ? designVariables.bgMenuButtonSelected: designVariables.bgContextMenu, width: 1.5),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    title: Text(user.fullName, style: TextStyle(color: designVariables.textMessage, fontSize: 17, fontWeight: FontWeight.w500)),
+                    onTap: () => _handleUserSelect(user),
+                  ),
                 );
               },
             ),
