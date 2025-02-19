@@ -17,6 +17,11 @@ import 'store.dart';
 /// But they don't belong in `lib/api/`, because they also interact with widgets
 /// in order to present success or error feedback to the user through the UI.
 abstract final class ZulipAction {
+  /// Mark the given narrow as read,
+  /// showing feedback to the user on progress or failure.
+  ///
+  /// This is mostly a wrapper around [updateMessageFlagsStartingFromAnchor];
+  /// for details on the UI feedback, see there.
   static Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
     final store = PerAccountStoreWidget.of(context);
     final connection = store.connection;
@@ -63,6 +68,11 @@ abstract final class ZulipAction {
     }
   }
 
+  /// Mark the given narrow as unread from the given message onward,
+  /// showing feedback to the user on progress or failure.
+  ///
+  /// This is a wrapper around [updateMessageFlagsStartingFromAnchor];
+  /// for details on the UI feedback, see there.
   static Future<void> markNarrowAsUnreadFromMessage(
     BuildContext context,
     Message message,
