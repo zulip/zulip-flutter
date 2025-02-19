@@ -219,6 +219,12 @@ abstract class ZulipLocalizations {
   /// **'To upload files, please grant Zulip additional permissions in Settings.'**
   String get permissionsDeniedReadExternalStorage;
 
+  /// Label for marking a channel as read.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark channel as read'**
+  String get actionSheetOptionMarkChannelAsRead;
+
   /// Label for muting a topic on action sheet.
   ///
   /// In en, this message translates to:
