@@ -803,7 +803,7 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
   void _handlePress(BuildContext context) async {
     if (!context.mounted) return;
     setState(() => _loading = true);
-    await markNarrowAsRead(context, widget.narrow);
+    await ZulipAction.markNarrowAsRead(context, widget.narrow);
     setState(() => _loading = false);
   }
 
