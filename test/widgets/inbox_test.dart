@@ -4,6 +4,7 @@ import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/home.dart';
@@ -133,7 +134,14 @@ void main() {
 
   /// Find the all-DMs header element.
   Widget? findAllDmsHeaderRow(WidgetTester tester) {
-    return findRowByLabel(tester, 'Direct messages');
+    final finder = find.ancestor(
+      of: find.byWidgetPredicate((widget) =>
+        widget is RichText &&
+        widget.text.toPlainText().contains('Direct messages')
+      ),
+      matching: find.byType(Row),
+    );
+    return finder.evaluate().isNotEmpty ? tester.widget(finder.first) : null;
   }
 
   Color? allDmsHeaderBackgroundColor(WidgetTester tester) {
@@ -149,7 +157,15 @@ void main() {
   /// For the given stream ID, find the stream header element.
   Widget? findStreamHeaderRow(WidgetTester tester, int streamId) {
     final stream = store.streams[streamId]!;
-    return findRowByLabel(tester, stream.name);
+    return tester.widget<Row>(
+      find.ancestor(
+        of: find.byWidgetPredicate((widget) =>
+          widget is RichText &&
+          widget.text.toPlainText().contains(stream.name)
+        ),
+        matching: find.byType(Row),
+      ).first
+    );
   }
 
   Color? streamHeaderBackgroundColor(WidgetTester tester, int streamId) {
@@ -259,8 +275,13 @@ void main() {
       final subscription = eg.subscription(stream);
       const topic = 'lunch';
 
-      bool hasAtSign(WidgetTester tester, Widget? parent) =>
-        hasIcon(tester, parent: parent, icon: ZulipIcons.at_sign);
+      bool hasAtSign(WidgetTester tester, {required Widget? parent}) {
+        if (parent == null) return false;
+        return tester.widgetList(find.descendant(
+          of: find.byWidget(parent),
+          matching: find.byIcon(ZulipIcons.at_sign),
+        )).isNotEmpty;
+      }
 
       testWidgets('topic with a mention', (tester) async {
         await setupPage(tester,
@@ -269,9 +290,9 @@ void main() {
           unreadMessages: [eg.streamMessage(stream: stream, topic: topic,
             flags: [MessageFlag.mentioned])]);
 
-        check(hasAtSign(tester, findStreamHeaderRow(tester, stream.streamId)))
+        check(hasAtSign(tester, parent: findStreamHeaderRow(tester, stream.streamId)))
           .isTrue();
-        check(hasAtSign(tester, findRowByLabel(tester, topic))).isTrue();
+        check(hasAtSign(tester, parent: findRowByLabel(tester, topic))).isTrue();
       });
 
       testWidgets('topic without a mention', (tester) async {
@@ -281,9 +302,9 @@ void main() {
           unreadMessages: [eg.streamMessage(stream: stream, topic: topic,
             flags: [])]);
 
-        check(hasAtSign(tester, findStreamHeaderRow(tester, stream.streamId)))
+        check(hasAtSign(tester, parent: findStreamHeaderRow(tester, stream.streamId)))
           .isFalse();
-        check(hasAtSign(tester, findRowByLabel(tester, topic))).isFalse();
+        check(hasAtSign(tester, parent: findRowByLabel(tester, topic))).isFalse();
       });
 
       testWidgets('dm with a mention', (tester) async {
@@ -292,8 +313,8 @@ void main() {
           unreadMessages: [eg.dmMessage(from: eg.otherUser, to: [eg.selfUser],
             flags: [MessageFlag.mentioned])]);
 
-        check(hasAtSign(tester, findAllDmsHeaderRow(tester))).isTrue();
-        check(hasAtSign(tester, findRowByLabel(tester, eg.otherUser.fullName))).isTrue();
+        check(hasAtSign(tester, parent: findAllDmsHeaderRow(tester))).isTrue();
+        check(hasAtSign(tester, parent: findRowByLabel(tester, eg.otherUser.fullName))).isTrue();
       });
 
       testWidgets('dm without mention', (tester) async {
@@ -302,8 +323,8 @@ void main() {
           unreadMessages: [eg.dmMessage(from: eg.otherUser, to: [eg.selfUser],
             flags: [])]);
 
-        check(hasAtSign(tester, findAllDmsHeaderRow(tester))).isFalse();
-        check(hasAtSign(tester, findRowByLabel(tester, eg.otherUser.fullName))).isFalse();
+        check(hasAtSign(tester, parent: findAllDmsHeaderRow(tester))).isFalse();
+        check(hasAtSign(tester, parent: findRowByLabel(tester, eg.otherUser.fullName))).isFalse();
       });
     });
 
@@ -593,6 +614,36 @@ void main() {
           // Check that the position of the header before and after
           // collapsing is the same.
           check(rectAfterTap).equals(rectBeforeTap);
+        });
+
+        testWidgets('shows archived label for archived streams', (tester) async {
+          final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+          final stream = eg.stream(streamId: 1, isArchived: true);
+          final subscription = eg.subscription(stream);
+
+          await setupPage(tester,
+            streams: [stream],
+            subscriptions: [subscription],
+            unreadMessages: [eg.streamMessage(stream: stream)]);
+          await tester.pumpAndSettle();
+
+          final headerRowFinder = findStreamHeaderRow(tester, stream.streamId);
+          check(headerRowFinder).isNotNull();
+
+          final richTextFinder = find.descendant(
+            of: find.byWidget(headerRowFinder!),
+            matching: find.byWidgetPredicate((widget) =>
+              widget is RichText &&
+              widget.text.toPlainText().contains(stream.name) &&
+              widget.text.toPlainText().contains(zulipLocalizations.channelArchivedLabel)
+            ),
+          );
+          expect(richTextFinder, findsOneWidget);
+
+          final richText = tester.widget<RichText>(richTextFinder);
+          final textSpan = richText.text as TextSpan;
+          final archivedSpan = textSpan.children![1] as TextSpan;
+          expect(archivedSpan.style?.fontStyle, FontStyle.italic);
         });
 
         // TODO check it remains collapsed even if you scroll far away and back
