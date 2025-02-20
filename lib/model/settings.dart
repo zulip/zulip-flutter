@@ -45,7 +45,8 @@ enum BrowserPreference {
 }
 
 extension GlobalSettingsHelpers on GlobalSettingsData {
-  BrowserPreference get defaultBrowserPreference {
+  BrowserPreference get effectiveBrowserPreference {
+    if (browserPreference != null) return browserPreference!;
     return switch (defaultTargetPlatform) {
       // On iOS we prefer UrlLaunchMode.externalApplication because (for
       // HTTP URLs) UrlLaunchMode.platformDefault uses SFSafariViewController,
@@ -61,7 +62,7 @@ extension GlobalSettingsHelpers on GlobalSettingsData {
   }
 
   UrlLaunchMode getUrlLaunchMode(Uri url) {
-    switch (defaultBrowserPreference) {
+    switch (effectiveBrowserPreference) {
       case BrowserPreference.inApp:
         if (!(url.scheme == 'https' || url.scheme == 'http')) {
           // For URLs on non-HTTP schemes such as `mailto`,

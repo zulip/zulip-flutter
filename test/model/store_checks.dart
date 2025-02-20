@@ -33,7 +33,7 @@ extension GlobalStoreChecks on Subject<GlobalStore> {
 extension GlobalSettingsDataChecks on Subject<GlobalSettingsData> {
   Subject<ThemeSetting?> get themeSetting => has((x) => x.themeSetting, 'themeSetting');
   Subject<BrowserPreference?> get browserPreference => has((x) => x.browserPreference, 'browserPreference');
-  Subject<BrowserPreference> get defaultBrowserPreference => has((x) => x.defaultBrowserPreference, 'defaultBrowserPreference');
+  Subject<BrowserPreference> get effectiveBrowserPreference => has((x) => x.effectiveBrowserPreference, 'effectiveBrowserPreference');
   Subject<UrlLaunchMode> getUrlLaunchMode(Uri url) => has((x) => x.getUrlLaunchMode(url), 'getUrlLaunchMode');
 }
 
