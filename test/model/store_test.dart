@@ -428,7 +428,7 @@ void main() {
     late FakeApiConnection connection;
 
     Future<void> prepareStore({Account? account}) async {
-      globalStore = TestGlobalStore(accounts: []);
+      globalStore = eg.globalStore();
       account ??= eg.selfAccount;
       await globalStore.insertAccount(account.toCompanion(false));
       connection = (globalStore.apiConnectionFromAccount(account)
@@ -603,7 +603,7 @@ void main() {
     }
 
     Future<void> preparePoll({int? lastEventId}) async {
-      globalStore = TestGlobalStore(accounts: []);
+      globalStore = eg.globalStore();
       await globalStore.add(eg.selfAccount, eg.initialSnapshot(
         lastEventId: lastEventId));
       await globalStore.perAccount(eg.selfAccount.id);
