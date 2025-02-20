@@ -101,21 +101,25 @@ void main() {
       'edit_timestamp': 1718741351,
       'stream_id': eg.stream().streamId,
     };
+    final baseMoveJson = { ...baseJson,
+      'orig_subject': 'foo',
+      'propagate_mode': 'change_all',
+    };
 
     test('stream_id -> origStreamId', () {
-      check(Event.fromJson({ ...baseJson,
+      check(Event.fromJson({ ...baseMoveJson,
         'stream_id': 1,
         'new_stream_id': 2,
-      }) as UpdateMessageEvent)
+      })).isA<UpdateMessageEvent>()
         ..origStreamId.equals(1)
         ..newStreamId.equals(2);
     });
 
     test('orig_subject -> origTopic, subject -> newTopic', () {
-      check(Event.fromJson({ ...baseJson,
+      check(Event.fromJson({ ...baseMoveJson,
         'orig_subject': 'foo',
         'subject': 'bar',
-      }) as UpdateMessageEvent)
+      })).isA<UpdateMessageEvent>()
         ..origTopic.equals(const TopicName('foo'))
         ..newTopic.equals(const TopicName('bar'));
     });
