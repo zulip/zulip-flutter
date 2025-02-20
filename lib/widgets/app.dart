@@ -212,41 +212,44 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final themeData = zulipThemeData(context);
     return GlobalStoreWidget(
-      child: MaterialApp(
-        onGenerateTitle: (BuildContext context) {
-          return ZulipLocalizations.of(context).zulipAppTitle;
-        },
-        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-        supportedLocales: ZulipLocalizations.supportedLocales,
-        theme: themeData,
+      child: Builder(builder: (context) {
+        return MaterialApp(
+          onGenerateTitle: (BuildContext context) {
+            return ZulipLocalizations.of(context).zulipAppTitle;
+          },
+          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+          supportedLocales: ZulipLocalizations.supportedLocales,
+          // The context has to be taken from the [Builder] because
+          // [zulipThemeData] requires access to [GlobalStoreWidget] in the tree.
+          theme: zulipThemeData(context),
 
-        navigatorKey: ZulipApp.navigatorKey,
-        navigatorObservers: [
-          if (widget.navigatorObservers != null)
-            ...widget.navigatorObservers!,
-          _PreventEmptyStack(),
-        ],
-        builder: (BuildContext context, Widget? child) {
-          if (!ZulipApp.ready.value) {
-            SchedulerBinding.instance.addPostFrameCallback(
-              (_) => widget._declareReady());
-          }
-          GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
-          return child!;
-        },
+          navigatorKey: ZulipApp.navigatorKey,
+          navigatorObservers: [
+            if (widget.navigatorObservers != null)
+              ...widget.navigatorObservers!,
+            _PreventEmptyStack(),
+          ],
+          builder: (BuildContext context, Widget? child) {
+            if (!ZulipApp.ready.value) {
+              SchedulerBinding.instance.addPostFrameCallback(
+                (_) => widget._declareReady());
+            }
+            GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
+            return child!;
+          },
 
-        // We use onGenerateInitialRoutes for the real work of specifying the
-        // initial nav state.  To do that we need [MaterialApp] to decide to
-        // build a [Navigator]... which means specifying either `home`, `routes`,
-        // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
-        // It never actually gets called, though: `onGenerateInitialRoutes`
-        // handles startup, and then we always push whole routes with methods
-        // like [Navigator.push], never mere names as with [Navigator.pushNamed].
-        onGenerateRoute: (_) => null,
+          // We use onGenerateInitialRoutes for the real work of specifying the
+          // initial nav state.  To do that we need [MaterialApp] to decide to
+          // build a [Navigator]... which means specifying either `home`, `routes`,
+          // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
+          // It never actually gets called, though: `onGenerateInitialRoutes`
+          // handles startup, and then we always push whole routes with methods
+          // like [Navigator.push], never mere names as with [Navigator.pushNamed].
+          onGenerateRoute: (_) => null,
 
-        onGenerateInitialRoutes: _handleGenerateInitialRoutes));
+          onGenerateInitialRoutes: _handleGenerateInitialRoutes);
+      }));
   }
 }
 

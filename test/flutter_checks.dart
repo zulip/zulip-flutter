@@ -172,6 +172,10 @@ extension InputDecorationChecks on Subject<InputDecoration> {
   Subject<String?> get hintText => has((x) => x.hintText, 'hintText');
 }
 
+extension ThemeDataChecks on Subject<ThemeData> {
+  Subject<Brightness> get brightness => has((x) => x.brightness, 'brightness');
+}
+
 extension BoxDecorationChecks on Subject<BoxDecoration> {
   Subject<Color?> get color => has((x) => x.color, 'color');
 }

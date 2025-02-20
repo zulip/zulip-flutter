@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
+import '../model/settings.dart';
 import 'compose_box.dart';
 import 'content.dart';
 import 'emoji_reaction.dart';
 import 'message_list.dart';
 import 'channel_colors.dart';
+import 'store.dart';
 import 'text.dart';
 
 ThemeData zulipThemeData(BuildContext context) {
   final DesignVariables designVariables;
   final List<ThemeExtension> themeExtensions;
-  Brightness brightness = MediaQuery.platformBrightnessOf(context);
+  final globalSettings = GlobalStoreWidget.of(context).globalSettings;
+  Brightness brightness = switch (globalSettings.themeSetting) {
+    null => MediaQuery.platformBrightnessOf(context),
+    ThemeSetting.light => Brightness.light,
+    ThemeSetting.dark => Brightness.dark,
+  };
 
   // This applies Material 3's color system to produce a palette of
   // appropriately matching and contrasting colors for use in a UI.
