@@ -169,12 +169,19 @@ void main() {
     });
   });
 
-  test('Narrow.toJson', () {
+  test('ApiNarrow.toJson', () {
     return FakeApiConnection.with_((connection) async {
       void checkNarrow(ApiNarrow narrow, String expected) {
         narrow = resolveApiNarrowForServer(narrow, connection.zulipFeatureLevel!);
         check(jsonEncode(narrow)).equals(expected);
       }
+
+      checkNarrow(const MentionsNarrow().apiEncode(), jsonEncode([
+        {'operator': 'is', 'operand': 'mentioned'},
+      ]));
+      checkNarrow(const StarredMessagesNarrow().apiEncode(), jsonEncode([
+        {'operator': 'is', 'operand': 'starred'},
+      ]));
 
       checkNarrow(const CombinedFeedNarrow().apiEncode(), jsonEncode([]));
       checkNarrow(const ChannelNarrow(12).apiEncode(), jsonEncode([
@@ -183,12 +190,6 @@ void main() {
       checkNarrow(eg.topicNarrow(12, 'stuff').apiEncode(), jsonEncode([
         {'operator': 'stream', 'operand': 12},
         {'operator': 'topic', 'operand': 'stuff'},
-      ]));
-      checkNarrow(const MentionsNarrow().apiEncode(), jsonEncode([
-        {'operator': 'is', 'operand': 'mentioned'},
-      ]));
-      checkNarrow(const StarredMessagesNarrow().apiEncode(), jsonEncode([
-        {'operator': 'is', 'operand': 'starred'},
       ]));
 
       checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
