@@ -161,7 +161,7 @@ void main() {
         'orig_subject': null,
         'subject': null,
         'propagate_mode': 'change_all',
-      })).throws<FormatException>();
+      })).throws<void>();
     });
 
     test('move but no subject or new_stream_id', () {
@@ -181,17 +181,7 @@ void main() {
         'orig_subject': 'foo',
         'subject': 'bar',
         'propagate_mode': 'change_all',
-      })).throws<FormatException>();
-    });
-
-    test('move but no propagate_mode', () {
-      check(() => Event.fromJson({...baseJson,
-        'stream_id': 1,
-        'new_stream_id': 2,
-        'orig_subject': 'foo',
-        'subject': 'bar',
-        'propagate_mode': null,
-      })).throws<FormatException>();
+      })).throws<void>();
     });
   });
 

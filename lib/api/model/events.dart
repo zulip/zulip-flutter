@@ -717,7 +717,7 @@ class UpdateMessageMoveData {
     required this.propagateMode,
     required this.origTopic,
     required this.newTopic,
-  });
+  }) : assert(origStreamId != newStreamId || origTopic != newTopic);
 
   /// Try to extract [UpdateMessageMoveData] from the JSON object for an
   /// [UpdateMessageEvent].
@@ -730,50 +730,33 @@ class UpdateMessageMoveData {
   // This may matter if we ever need 'stream_id' when no message move occurred.
   static UpdateMessageMoveData? tryParseFromJson(Object? json) {
     json as Map<String, Object?>;
-    final origStreamId = (json['stream_id'] as num?)?.toInt();
-    final newStreamId = (json['new_stream_id'] as num?)?.toInt();
     final propagateModeString = json['propagate_mode'] as String?;
     final propagateMode = propagateModeString == null ? null
       : PropagateMode.fromRawString(propagateModeString);
-    final origTopic = json['orig_subject'] == null ? null
-      : TopicName.fromJson(json['orig_subject'] as String);
-    final newTopic = json['subject'] == null ? null
-      : TopicName.fromJson(json['subject'] as String);
 
-    if (origTopic == null) {
+    if (propagateMode == null) {
       // There was no move.
-      assert(() {
-        if (newStreamId != null && origStreamId != null
-            && newStreamId != origStreamId) {
-          // This should be impossible; `orig_subject` (aka origTopic) is
-          // documented to be present when either the stream or topic changed.
-          throw FormatException('stream move but no origTopic');
-        }
-        return true;
-      }());
       return null;
     }
 
-    if (newStreamId == null && newTopic == null) {
+    final origStreamId = (json['stream_id'] as num).toInt();
+    final newStreamId = (json['new_stream_id'] as num?)?.toInt() ?? origStreamId;
+    final origTopic = TopicName.fromJson(json['orig_subject'] as String);
+    final newTopic = json['subject'] == null ? origTopic
+      : TopicName.fromJson(json['subject'] as String);
+
+    if (origStreamId == newStreamId && origTopic == newTopic) {
       // If neither the channel nor topic name changed, nothing moved.
-      // In that case `orig_subject` (aka origTopic) should have been null.
-      throw FormatException('move but no newStreamId or newTopic');
-    }
-    if (origStreamId == null) {
-      // The `stream_id` field (aka origStreamId) is documented to be present on moves.
-      throw FormatException('move but no origStreamId');
-    }
-    if (propagateMode == null) {
-      // The `propagate_mode` field (aka propagateMode) is documented to be present on moves.
-      throw FormatException('move but no propagateMode');
+      // In that case `propagate_mode` (aka propagateMode) should have been null.
+      throw FormatException('move but unchanged newStreamId and newTopic');
     }
 
     return UpdateMessageMoveData(
       origStreamId: origStreamId,
-      newStreamId: newStreamId ?? origStreamId,
+      newStreamId: newStreamId,
       propagateMode: propagateMode,
       origTopic: origTopic,
-      newTopic: newTopic ?? origTopic,
+      newTopic: newTopic,
     );
   }
 
