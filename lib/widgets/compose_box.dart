@@ -157,13 +157,39 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   @override
   String _computeTextNormalized() {
     String trimmed = text.trim();
-    return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    // TODO(server-10): simplify
+    if (store.connection.zulipFeatureLevel! < 334) {
+      return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    }
+
+    return trimmed;
+  }
+
+  /// Whether [textNormalized] would fail a mandatory-topics check
+  /// (see [mandatory]).
+  ///
+  /// The term "Vacuous" draws distinction from [String.isEmpty], in the sense
+  /// that certain strings are empty but also indicate the absence of a topic.
+  bool get isTopicVacuous {
+    bool result = textNormalized.isEmpty
+      // We keep checking for '(no topic)' regardless of the feature level
+      // because it remains equivalent to an empty topic even when FL >= 334.
+      // This can change in the future:
+      //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/.28realm_.29mandatory_topics.20behavior/near/2062391
+      || textNormalized == kNoTopicTopic;
+
+    // TODO(server-10): simplify
+    if (store.connection.zulipFeatureLevel! >= 334) {
+      result |= textNormalized == store.realmEmptyTopicDisplayName;
+    }
+
+    return result;
   }
 
   @override
   List<TopicValidationError> _computeValidationErrors() {
     return [
-      if (mandatory && textNormalized == kNoTopicTopic)
+      if (mandatory && isTopicVacuous)
         TopicValidationError.mandatoryButEmpty,
 
       if (
@@ -175,7 +201,7 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   void setTopic(TopicName newTopic) {
-    value = TextEditingValue(text: newTopic.displayName);
+    value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
 
@@ -580,11 +606,22 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.unknownChannelName;
+    final topic = TopicName(_topicTextNormalized);
+    final String? topicDisplayName;
+    if (store.realmMandatoryTopics && widget.controller.topic.isTopicVacuous) {
+      topicDisplayName = null;
+    } else {
+      topicDisplayName = topic.displayName ?? store.realmEmptyTopicDisplayName;
+    }
+
     return _ContentInput(
       narrow: widget.narrow,
-      destination: TopicNarrow(widget.narrow.streamId, TopicName(_topicTextNormalized)),
+      destination: TopicNarrow(widget.narrow.streamId, topic),
       controller: widget.controller,
-      hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
+      hintText: topicDisplayName == null
+        ? zulipLocalizations.composeBoxChannelContentHint(streamName)
+        : zulipLocalizations.composeBoxChannelTopicContentHint(
+            '#$streamName > $topicDisplayName'));
   }
 }
 
@@ -642,8 +679,8 @@ class _FixedDestinationContentInput extends StatelessWidget {
         final store = PerAccountStoreWidget.of(context);
         final streamName = store.streams[streamId]?.name
           ?? zulipLocalizations.unknownChannelName;
-        return zulipLocalizations.composeBoxChannelContentHint(
-          streamName, topic.displayName);
+        return zulipLocalizations.composeBoxChannelTopicContentHint(
+          '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;
