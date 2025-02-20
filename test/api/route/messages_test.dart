@@ -169,12 +169,19 @@ void main() {
     });
   });
 
-  test('Narrow.toJson', () {
+  test('ApiNarrow.toJson', () {
     return FakeApiConnection.with_((connection) async {
       void checkNarrow(ApiNarrow narrow, String expected) {
-        narrow = resolveDmElements(narrow, connection.zulipFeatureLevel!);
+        narrow = resolveApiNarrowForServer(narrow, connection.zulipFeatureLevel!);
         check(jsonEncode(narrow)).equals(expected);
       }
+
+      checkNarrow(const MentionsNarrow().apiEncode(), jsonEncode([
+        {'operator': 'is', 'operand': 'mentioned'},
+      ]));
+      checkNarrow(const StarredMessagesNarrow().apiEncode(), jsonEncode([
+        {'operator': 'is', 'operand': 'starred'},
+      ]));
 
       checkNarrow(const CombinedFeedNarrow().apiEncode(), jsonEncode([]));
       checkNarrow(const ChannelNarrow(12).apiEncode(), jsonEncode([
@@ -184,21 +191,51 @@ void main() {
         {'operator': 'stream', 'operand': 12},
         {'operator': 'topic', 'operand': 'stuff'},
       ]));
-      checkNarrow(const MentionsNarrow().apiEncode(), jsonEncode([
-        {'operator': 'is', 'operand': 'mentioned'},
+      checkNarrow(eg.topicNarrow(12, 'stuff', with_: 1).apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+        {'operator': 'topic', 'operand': 'stuff'},
+        {'operator': 'with', 'operand': 1},
       ]));
-      checkNarrow(const StarredMessagesNarrow().apiEncode(), jsonEncode([
-        {'operator': 'is', 'operand': 'starred'},
-      ]));
-
       checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
         {'operator': 'dm', 'operand': [123, 234]},
       ]));
 
+      // Unlikely to occur in the wild but should still be handled correctly
+      checkNarrow([ApiNarrowDm([123, 234]), ApiNarrowWith(1)], jsonEncode([
+        {'operator': 'dm', 'operand': [123, 234]},
+        {'operator': 'with', 'operand': 1},
+      ]));
+
       connection.zulipFeatureLevel = 176;
+
+      checkNarrow(eg.topicNarrow(12, 'stuff', with_: 1).apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+        {'operator': 'topic', 'operand': 'stuff'},
+      ]));
       checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
         {'operator': 'pm-with', 'operand': [123, 234]},
       ]));
+
+      // Unlikely to occur in the wild but should still be handled correctly
+      checkNarrow([ApiNarrowDm([123, 234]), ApiNarrowWith(1)], jsonEncode([
+        {'operator': 'pm-with', 'operand': [123, 234]},
+      ]));
+
+      connection.zulipFeatureLevel = 270;
+
+      checkNarrow(eg.topicNarrow(12, 'stuff', with_: 1).apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+        {'operator': 'topic', 'operand': 'stuff'},
+      ]));
+      checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
+        {'operator': 'dm', 'operand': [123, 234]},
+      ]));
+
+      // Unlikely to occur in the wild but should still be handled correctly
+      checkNarrow([ApiNarrowDm([123, 234]), ApiNarrowWith(1)], jsonEncode([
+        {'operator': 'dm', 'operand': [123, 234]},
+      ]));
+
       connection.zulipFeatureLevel = eg.futureZulipFeatureLevel;
     });
   });
@@ -259,7 +296,7 @@ void main() {
       });
     });
 
-    test('narrow uses resolveDmElements to encode', () {
+    test('narrow uses resolveApiNarrowForServer to encode', () {
       return FakeApiConnection.with_(zulipFeatureLevel: 176, (connection) async {
         connection.prepare(json: fakeResult.toJson());
         await checkGetMessages(connection,
@@ -707,7 +744,7 @@ void main() {
       });
     });
 
-    test('narrow uses resolveDmElements to encode', () {
+    test('narrow uses resolveApiNarrowForServer to encode', () {
       return FakeApiConnection.with_(zulipFeatureLevel: 176, (connection) async {
         connection.prepare(json: mkResult(foundOldest: true).toJson());
         await checkUpdateMessageFlagsForNarrow(connection,
