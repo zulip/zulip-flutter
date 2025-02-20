@@ -648,4 +648,15 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get zulipAppTitle => 'Zulip';
+
+  @override
+  String bannerText(int guestCount, String guestNamesList) {
+    String _temp0 = intl.Intl.pluralLogic(
+      guestCount,
+      locale: localeName,
+      other: '$guestNamesList are guests in this organization.',
+      one: '$guestNamesList is a guest in this organization.',
+    );
+    return '$_temp0';
+  }
 }

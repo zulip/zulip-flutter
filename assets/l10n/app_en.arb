@@ -831,5 +831,13 @@
   "zulipAppTitle": "Zulip",
   "@zulipAppTitle": {
     "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
+  },
+  "bannerText": "{guestCount, plural, =1{{guestNamesList} is a guest in this organization.} other{{guestNamesList} are guests in this organization.}}",
+  "@bannerText": {
+    "description": "Message displaying guest names in the organization.",
+    "placeholders": {
+      "guestCount": {"type": "int", "example": "3"},
+      "guestNamesList": {"type": "String", "example": "Alice, Bob, Charlie"}
+    }
   }
 }

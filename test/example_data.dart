@@ -909,6 +909,7 @@ InitialSnapshot initialSnapshot({
   List<User>? realmUsers,
   List<User>? realmNonActiveUsers,
   List<User>? crossRealmBots,
+  bool? realmEnableGuestUserDmWarning,
 }) {
   return InitialSnapshot(
     queueId: queueId ?? '1:2345',
@@ -946,6 +947,7 @@ InitialSnapshot initialSnapshot({
     realmUsers: realmUsers ?? [],
     realmNonActiveUsers: realmNonActiveUsers ?? [],
     crossRealmBots: crossRealmBots ?? [],
+    realmEnableGuestUserDmWarning: realmEnableGuestUserDmWarning ?? false
   );
 }
 const _initialSnapshot = initialSnapshot;
