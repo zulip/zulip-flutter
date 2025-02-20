@@ -54,4 +54,5 @@ extension PerAccountStoreChecks on Subject<PerAccountStore> {
 
 extension GlobalSettingsDataChecks on Subject<GlobalSettingsData> {
   Subject<ThemeSetting> get themeSetting => has((x) => x.themeSetting, 'themeSetting');
+  Subject<BrowserPreference> get effectiveBrowserPreference => has((x) => x.effectiveBrowserPreference, 'effectiveBrowserPreference');
 }

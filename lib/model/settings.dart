@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
+import 'database.dart';
 
 /// The visual theme of the app.
 ///
@@ -43,4 +44,20 @@ enum BrowserPreference {
 
   /// Use the user's default browser app.
   external,
+}
+
+extension GlobalSettingsHelpers on GlobalSettingsData {
+  BrowserPreference get effectiveBrowserPreference {
+    if (browserPreference != null) {
+      return browserPreference!;
+    }
+    return switch (defaultTargetPlatform) {
+      // On iOS we prefer LaunchMode.externalApplication because (for
+      // HTTP URLs) LaunchMode.platformDefault uses SFSafariViewController,
+      // which gives an awkward UX as described here:
+      //  https://chat.zulip.org/#narrow/stream/48-mobile/topic/in-app.20browser/near/1169118
+      TargetPlatform.iOS => BrowserPreference.external,
+      _ => BrowserPreference.embedded,
+    };
+  }
 }
