@@ -25,6 +25,51 @@ void main() {
     await tester.pump();
   }
 
+  group('BrowserPreference', () {
+    Finder useInAppBrowserSwitchFinder = find.ancestor(
+      of: find.text('Open links with in-app browser'),
+      matching: find.byType(SwitchListTile));
+
+    void checkSwitchAndGlobalSettings(WidgetTester tester, {
+      required bool checked,
+      required BrowserPreference? expectedBrowserPreference,
+    }) {
+      check(tester.widget<SwitchListTile>(useInAppBrowserSwitchFinder))
+        .value.equals(checked);
+      check(testBinding.globalStore)
+        .globalSettings.browserPreference.equals(expectedBrowserPreference);
+    }
+
+    testWidgets('smoke', (tester) async {
+      await testBinding.globalStore.updateGlobalSettings(
+        eg.globalSettings(
+          browserPreference: BrowserPreference.external).toCompanion(false));
+      await prepare(tester);
+      checkSwitchAndGlobalSettings(tester,
+        checked: false, expectedBrowserPreference: BrowserPreference.external);
+
+      await tester.tap(useInAppBrowserSwitchFinder);
+      await tester.pump();
+      checkSwitchAndGlobalSettings(tester,
+        checked: true, expectedBrowserPreference: BrowserPreference.embedded);
+    });
+
+    testWidgets('use platform-specific default browser preference', (tester) async {
+      await prepare(tester);
+      bool useInAppBrowserExpected = defaultTargetPlatform == TargetPlatform.android;
+      checkSwitchAndGlobalSettings(tester,
+        checked: useInAppBrowserExpected, expectedBrowserPreference: null);
+
+      await tester.tap(useInAppBrowserSwitchFinder);
+      await tester.pump();
+      useInAppBrowserExpected = !useInAppBrowserExpected;
+      checkSwitchAndGlobalSettings(tester,
+        checked: useInAppBrowserExpected,
+        expectedBrowserPreference: useInAppBrowserExpected
+          ? BrowserPreference.embedded : BrowserPreference.external);
+    }, variant: TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+  });
+
   group('ThemeSetting', () {
     Finder findRadioListTileWithTitle(String title) => find.ancestor(
       of: find.text(title),
