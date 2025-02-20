@@ -677,8 +677,6 @@ UpdateMessageEvent _updateMessageMoveEvent(
 }) {
   _checkPositive(origStreamId, 'stream ID');
   _checkPositive(newStreamId, 'stream ID');
-  assert(newTopic != origTopic
-         || (newStreamId != null && newStreamId != origStreamId));
   assert(messageIds.isNotEmpty);
   return UpdateMessageEvent(
     id: 0,
