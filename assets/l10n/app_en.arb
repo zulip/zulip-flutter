@@ -136,6 +136,10 @@
   "@actionSheetOptionUnstarMessage":  {
     "description": "Label for unstar button on action sheet."
   },
+  "actionSheetOptionMarkTopicAsRead": "Mark topic as read",
+  "@actionSheetOptionMarkTopicAsRead": {
+    "description": "Option to mark a specific topic as read in the action sheet."
+  },
   "errorWebAuthOperationalErrorTitle": "Something went wrong",
   "@errorWebAuthOperationalErrorTitle": {
     "description": "Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
