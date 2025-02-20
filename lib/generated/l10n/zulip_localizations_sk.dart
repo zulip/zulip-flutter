@@ -27,6 +27,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get settingsPageTitle => 'Settings';
 
   @override
+  String get settingsUseExternalBrowser => 'Use external browser';
+
+  @override
   String get switchAccountButton => 'Zmeniť účet';
 
   @override

@@ -24,6 +24,30 @@ void main() {
     await tester.pump();
   }
 
+  group('BrowserPreference', () {
+    Finder useExternalBrowserSwitchFinder = find.ancestor(
+      of: find.text('Use external browser'),
+      matching: find.byType(SwitchListTile));
+
+    testWidgets('smoke', (tester) async {
+      await testBinding.globalStore.updateGlobalSettings(
+        eg.globalSettings(
+          browserPreference: BrowserPreference.external).toCompanion(false));
+      await prepare(tester);
+      check(tester.widget<SwitchListTile>(useExternalBrowserSwitchFinder))
+        .value.isTrue();
+      check(testBinding.globalStore).globalSettings.effectiveBrowserPreference.equals(
+        BrowserPreference.external);
+
+      await tester.tap(useExternalBrowserSwitchFinder);
+      await tester.pump();
+      check(tester.widget<SwitchListTile>(useExternalBrowserSwitchFinder))
+        .value.isFalse();
+      check(testBinding.globalStore).globalSettings.effectiveBrowserPreference.equals(
+        BrowserPreference.embedded);
+    });
+  });
+
   group('ThemeSetting', () {
     Finder findRadioListTileWithTitle(String title) => find.ancestor(
       of: find.text(title),

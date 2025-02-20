@@ -27,6 +27,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get settingsPageTitle => 'Settings';
 
   @override
+  String get settingsUseExternalBrowser => 'Use external browser';
+
+  @override
   String get switchAccountButton => 'Switch account';
 
   @override
