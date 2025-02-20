@@ -811,6 +811,10 @@
   "@themeSettingSystem": {
     "description": "Label for system theme setting."
   },
+  "openLinksWithInAppBrowser": "Open links with in-app browser",
+  "@openLinksWithInAppBrowser": {
+    "description": "Label for toggling setting to open links with in-app browser"
+  },
   "pollWidgetQuestionMissing": "No question.",
   "@pollWidgetQuestionMissing": {
     "description": "Text to display for a poll when the question is missing"

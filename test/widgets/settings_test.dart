@@ -83,4 +83,49 @@ void main() {
       debugBrightnessOverride = null;
     });
   });
+
+  group('BrowserPreference', () {
+    Finder useInAppBrowserSwitchFinder = find.ancestor(
+      of: find.text('Open links with in-app browser'),
+      matching: find.byType(SwitchListTile));
+
+    void checkSwitchAndGlobalSettings(WidgetTester tester, {
+      required bool checked,
+      required BrowserPreference? expectedBrowserPreference,
+    }) {
+      check(tester.widget<SwitchListTile>(useInAppBrowserSwitchFinder))
+        .value.equals(checked);
+      check(testBinding.globalStore)
+        .globalSettings.browserPreference.equals(expectedBrowserPreference);
+    }
+
+    testWidgets('smoke', (tester) async {
+      await testBinding.globalStore.updateGlobalSettings(
+        eg.globalSettings(
+          browserPreference: BrowserPreference.external).toCompanion(false));
+      await prepare(tester);
+      checkSwitchAndGlobalSettings(tester,
+        checked: false, expectedBrowserPreference: BrowserPreference.external);
+
+      await tester.tap(useInAppBrowserSwitchFinder);
+      await tester.pump();
+      checkSwitchAndGlobalSettings(tester,
+        checked: true, expectedBrowserPreference: BrowserPreference.inApp);
+    });
+
+    testWidgets('use our per-platform default browser preference', (tester) async {
+      await prepare(tester);
+      bool expectInApp = defaultTargetPlatform == TargetPlatform.android;
+      checkSwitchAndGlobalSettings(tester,
+        checked: expectInApp, expectedBrowserPreference: null);
+
+      await tester.tap(useInAppBrowserSwitchFinder);
+      await tester.pump();
+      expectInApp = !expectInApp;
+      checkSwitchAndGlobalSettings(tester,
+        checked: expectInApp,
+        expectedBrowserPreference: expectInApp
+          ? BrowserPreference.inApp : BrowserPreference.external);
+    }, variant: TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+  });
 }

@@ -635,6 +635,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get themeSettingSystem => 'System';
 
   @override
+  String get openLinksWithInAppBrowser => 'Open links with in-app browser';
+
+  @override
   String get pollWidgetQuestionMissing => 'Bez otázky.';
 
   @override

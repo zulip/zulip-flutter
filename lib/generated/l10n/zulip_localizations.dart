@@ -1185,6 +1185,12 @@ abstract class ZulipLocalizations {
   /// **'System'**
   String get themeSettingSystem;
 
+  /// Label for toggling setting to open links with in-app browser
+  ///
+  /// In en, this message translates to:
+  /// **'Open links with in-app browser'**
+  String get openLinksWithInAppBrowser;
+
   /// Text to display for a poll when the question is missing
   ///
   /// In en, this message translates to:

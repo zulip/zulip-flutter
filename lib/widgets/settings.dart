@@ -24,6 +24,7 @@ class SettingsPage extends StatelessWidget {
         title: Text(zulipLocalizations.settingsPageTitle)),
       body: Column(children: [
         const _ThemeSetting(),
+        const _BrowserPreferenceSetting(),
       ]));
   }
 }
@@ -52,5 +53,28 @@ class _ThemeSetting extends StatelessWidget {
             groupValue: globalStore.globalSettings.themeSetting,
             onChanged: (newValue) => _handleChange(context, newValue)),
       ]);
+  }
+}
+
+class _BrowserPreferenceSetting extends StatelessWidget {
+  const _BrowserPreferenceSetting();
+
+  void _handleChange(BuildContext context, bool newOpenLinksWithInAppBrowser) {
+    GlobalStoreWidget.of(context).updateGlobalSettings(
+      GlobalSettingsCompanion(browserPreference: Value(
+        newOpenLinksWithInAppBrowser ? BrowserPreference.inApp
+                                     : BrowserPreference.external)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final openLinksWithInAppBrowser =
+      GlobalStoreWidget.of(context).globalSettings.effectiveBrowserPreference
+      == BrowserPreference.inApp;
+    return SwitchListTile.adaptive(
+      title: Text(zulipLocalizations.openLinksWithInAppBrowser),
+      value: openLinksWithInAppBrowser,
+      onChanged: (newValue) => _handleChange(context, newValue));
   }
 }

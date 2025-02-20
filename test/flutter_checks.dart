@@ -176,6 +176,10 @@ extension RadioListTileChecks<T> on Subject<RadioListTile<T>> {
   Subject<bool> get checked => has((x) => x.checked, 'checked');
 }
 
+extension SwitchListTileChecks<T> on Subject<SwitchListTile> {
+  Subject<bool> get value => has((x) => x.value, 'value');
+}
+
 extension ThemeDataChecks on Subject<ThemeData> {
   Subject<Brightness> get brightness => has((x) => x.brightness, 'brightness');
 }
