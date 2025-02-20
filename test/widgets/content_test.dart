@@ -230,6 +230,33 @@ void main() {
     });
   });
 
+  group('ListNodeWidget', () {
+    testWidgets('ordered list with custom start', (tester) async {
+      await prepareContent(tester, plainContent('<ol start="3">\n<li>third</li>\n<li>fourth</li>\n</ol>'));
+
+      expect(find.text('3. '), findsOneWidget);
+      expect(find.text('4. '), findsOneWidget);
+      expect(find.text('third'), findsOneWidget);
+      expect(find.text('fourth'), findsOneWidget);
+    });
+
+    testWidgets('list uses correct text baseline alignment', (tester) async {
+      await prepareContent(tester, plainContent(ContentExample.orderedListLargeStart.html));
+
+      final table = tester.widget<Table>(find.byType(Table));
+      check(table.defaultVerticalAlignment).equals(TableCellVerticalAlignment.baseline);
+      check(table.textBaseline).equals(localizedTextBaseline(tester.element(find.byType(Table))));
+
+      await prepareContent(tester, Directionality(
+        textDirection: TextDirection.rtl,
+        child: plainContent(ContentExample.orderedListLargeStart.html)));
+
+      final tableRtl = tester.widget<Table>(find.byType(Table));
+      check(tableRtl.defaultVerticalAlignment).equals(TableCellVerticalAlignment.baseline);
+      check(tableRtl.textBaseline).equals(localizedTextBaseline(tester.element(find.byType(Table))));
+    });
+  });
+
   group('Spoiler', () {
     testContentSmoke(ContentExample.spoilerDefaultHeader);
     testContentSmoke(ContentExample.spoilerPlainCustomHeader);
