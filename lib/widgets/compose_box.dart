@@ -157,13 +157,39 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   @override
   String _computeTextNormalized() {
     String trimmed = text.trim();
-    return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    // TODO(server-10): simplify
+    if (store.connection.zulipFeatureLevel! < 334) {
+      return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    }
+
+    return trimmed;
+  }
+
+  /// Whether [textNormalized] would fail a mandatory-topics check
+  /// (see [mandatory]).
+  ///
+  /// The term "Vacuous" draws distinction from [String.isEmpty], in the sense
+  /// that certain strings are empty but also indicate the absence of a topic.
+  bool get isTopicVacuous {
+    bool result = textNormalized.isEmpty
+      // We keep checking for '(no topic)' regardless of the feature level
+      // because it remains equivalent to an empty topic even when FL >= 334.
+      // This can change in the future:
+      //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/.28realm_.29mandatory_topics.20behavior/near/2062391
+      || textNormalized == kNoTopicTopic;
+
+    // TODO(server-10): simplify
+    if (store.connection.zulipFeatureLevel! >= 334) {
+      result |= textNormalized == store.realmEmptyTopicDisplayName;
+    }
+
+    return result;
   }
 
   @override
   List<TopicValidationError> _computeValidationErrors() {
     return [
-      if (mandatory && textNormalized == kNoTopicTopic)
+      if (mandatory && isTopicVacuous)
         TopicValidationError.mandatoryButEmpty,
 
       if (
@@ -175,7 +201,7 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   void setTopic(TopicName newTopic) {
-    value = TextEditingValue(text: newTopic.displayName);
+    value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
 
@@ -552,11 +578,18 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     });
   }
 
+  void _focusChanged() {
+    setState(() {
+      // The actual state lives in `widget.controller.contentFocusNode`.
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _topicTextNormalized = widget.controller.topic.textNormalized;
     widget.controller.topic.addListener(_topicChanged);
+    widget.controller.contentFocusNode.addListener(_focusChanged);
   }
 
   @override
@@ -566,11 +599,16 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       oldWidget.controller.topic.removeListener(_topicChanged);
       widget.controller.topic.addListener(_topicChanged);
     }
+    if (widget.controller.contentFocusNode != oldWidget.controller.contentFocusNode) {
+      widget.controller.contentFocusNode.removeListener(_focusChanged);
+      widget.controller.contentFocusNode.addListener(_focusChanged);
+    }
   }
 
   @override
   void dispose() {
     widget.controller.topic.removeListener(_topicChanged);
+    widget.controller.contentFocusNode.removeListener(_focusChanged);
     super.dispose();
   }
 
@@ -580,49 +618,126 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.unknownChannelName;
+    final topic = TopicName(_topicTextNormalized);
+
+    final String? topicDisplayName;
+    if (topic.displayName != null) {
+      topicDisplayName = topic.displayName;
+    } else if (widget.controller.contentFocusNode.hasFocus) {
+      // The empty topic display name can only be shown when the user is
+      // actively sending a message, i.e., when the content input is focused.
+      topicDisplayName = store.realmEmptyTopicDisplayName;
+    } else {
+      topicDisplayName = null;
+    }
+
     return _ContentInput(
       narrow: widget.narrow,
-      destination: TopicNarrow(widget.narrow.streamId, TopicName(_topicTextNormalized)),
+      destination: TopicNarrow(widget.narrow.streamId, topic),
       controller: widget.controller,
-      hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
+      hintText: topicDisplayName == null
+        ? zulipLocalizations.composeBoxChannelContentHint(streamName)
+        : zulipLocalizations.composeBoxChannelTopicContentHint(
+            '#$streamName > $topicDisplayName'));
   }
 }
 
-class _TopicInput extends StatelessWidget {
+class _TopicInput extends StatefulWidget {
   const _TopicInput({required this.streamId, required this.controller});
 
   final int streamId;
   final StreamComposeBoxController controller;
 
   @override
+  State<_TopicInput> createState() => _TopicInputState();
+}
+
+class _TopicInputState extends State<_TopicInput> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.topic.addListener(_topicChanged);
+    widget.controller.contentFocusNode.addListener(_contentFocusChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _TopicInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller.topic != oldWidget.controller.topic) {
+      oldWidget.controller.topic.removeListener(_topicChanged);
+      widget.controller.topic.addListener(_topicChanged);
+    }
+    if (widget.controller.contentFocusNode != oldWidget.controller.contentFocusNode) {
+      oldWidget.controller.contentFocusNode.removeListener(_contentFocusChanged);
+      widget.controller.contentFocusNode.addListener(_contentFocusChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.topic.removeListener(_topicChanged);
+    widget.controller.contentFocusNode.removeListener(_contentFocusChanged);
+    super.dispose();
+  }
+
+  void _topicChanged() {
+    setState(() {
+      // The actual state lives in `widget.controller.topic`.
+    });
+  }
+
+  void _contentFocusChanged() {
+    setState(() {
+      // The actual state lives in `widget.controller.contentFocusNode`.
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
     TextStyle topicTextStyle = TextStyle(
       fontSize: 20,
       height: 22 / 20,
       color: designVariables.textInput.withFadedAlpha(0.9),
     ).merge(weightVariableTextStyle(context, wght: 600));
 
+    final allowEmptyTopics =
+      store.connection.zulipFeatureLevel! >= 334 && !store.realmMandatoryTopics;
+    final decoration =
+      allowEmptyTopics && widget.controller.contentFocusNode.hasFocus
+        ? InputDecoration(
+            hintText: store.realmEmptyTopicDisplayName,
+            hintStyle: topicTextStyle.copyWith(fontStyle: FontStyle.italic))
+        : InputDecoration(
+            hintText: zulipLocalizations.composeBoxTopicHintText,
+            hintStyle: topicTextStyle.copyWith(
+              color: designVariables.textInput.withFadedAlpha(0.5)));
+
     return TopicAutocomplete(
-      streamId: streamId,
-      controller: controller.topic,
-      focusNode: controller.topicFocusNode,
-      contentFocusNode: controller.contentFocusNode,
+      streamId: widget.streamId,
+      controller: widget.controller.topic,
+      focusNode: widget.controller.topicFocusNode,
+      contentFocusNode: widget.controller.contentFocusNode,
       fieldViewBuilder: (context) => Container(
         padding: const EdgeInsets.only(top: 10, bottom: 9),
         decoration: BoxDecoration(border: Border(bottom: BorderSide(
           width: 1,
           color: designVariables.foreground.withFadedAlpha(0.2)))),
         child: TextField(
-          controller: controller.topic,
-          focusNode: controller.topicFocusNode,
+          controller: widget.controller.topic,
+          focusNode: widget.controller.topicFocusNode,
           textInputAction: TextInputAction.next,
-          style: topicTextStyle,
-          decoration: InputDecoration(
-            hintText: zulipLocalizations.composeBoxTopicHintText,
-            hintStyle: topicTextStyle.copyWith(
-              color: designVariables.textInput.withFadedAlpha(0.5))))));
+          style: topicTextStyle.copyWith(
+            fontStyle:
+              allowEmptyTopics
+              && widget.controller.topic.textNormalized
+                   == store.realmEmptyTopicDisplayName
+              ? FontStyle.italic
+              : null,
+          ),
+          decoration: decoration)));
   }
 }
 
@@ -642,8 +757,8 @@ class _FixedDestinationContentInput extends StatelessWidget {
         final store = PerAccountStoreWidget.of(context);
         final streamName = store.streams[streamId]?.name
           ?? zulipLocalizations.unknownChannelName;
-        return zulipLocalizations.composeBoxChannelContentHint(
-          streamName, topic.displayName);
+        return zulipLocalizations.composeBoxChannelTopicContentHint(
+          '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;
