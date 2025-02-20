@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Notification;
+import 'package:http/http.dart' as http;
 
 import '../api/model/model.dart';
 import '../api/notifications.dart';
@@ -233,6 +233,13 @@ class NotificationDisplayManager {
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
     final groupKey = _groupKey(data);
     final conversationKey = _conversationKey(data, groupKey);
+
+    final globalStore = await ZulipBinding.instance.getGlobalStore();
+    final account = globalStore.accounts.firstWhereOrNull((account) =>
+      account.realmUrl == data.realmUrl && account.userId == data.userId);
+    if (account == null) {
+      return;
+    }
 
     final oldMessagingStyle = await _androidHost
       .getActiveNotificationMessagingStyleByTag(conversationKey);
@@ -517,6 +524,16 @@ class NotificationDisplayManager {
       // TODO(log)
     }
     return null;
+  }
+
+  static Future<void> removeNotificationsForAccount(Uri realmUri, int userId) async {
+    final groupKey = "$realmUri|$userId";
+    final activeNotifications = await _androidHost.getActiveNotifications(desiredExtras: [kExtraLastZulipMessageId]);
+    for (final statusBarNotification in activeNotifications) {
+      if (statusBarNotification.notification.group == groupKey) {
+        await _androidHost.cancel(tag: statusBarNotification.tag, id: statusBarNotification.id);
+      }
+    }
   }
 }
 
