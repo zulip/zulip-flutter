@@ -718,7 +718,7 @@ class UpdateMessageMoveData {
     required this.propagateMode,
     required this.origTopic,
     required this.newTopic,
-  });
+  }) : assert(origStreamId != newStreamId || origTopic != newTopic);
 
   /// Try to extract [UpdateMessageMoveData] from the JSON object for an
   /// [UpdateMessageEvent].
@@ -741,17 +741,8 @@ class UpdateMessageMoveData {
     final newTopic = json['subject'] == null ? null
       : TopicName.fromJson(json['subject'] as String);
 
-    if (origTopic == null) {
+    if (propagateMode == null) {
       // There was no move.
-      assert(() {
-        if (newStreamId != null && origStreamId != null
-            && newStreamId != origStreamId) {
-          // This should be impossible; `orig_subject` (aka origTopic) is
-          // documented to be present when either the stream or topic changed.
-          debugLog('Malformed UpdateMessageEvent: stream move but no origTopic'); // TODO(log)
-        }
-        return true;
-      }());
       return null;
     }
 
@@ -761,22 +752,12 @@ class UpdateMessageMoveData {
       assert(debugLog('Malformed UpdateMessageEvent: move but no newStreamId or newTopic')); // TODO(log)
       throw FormatException();
     }
-    if (origStreamId == null) {
-      // The `stream_id` field (aka origStreamId) is documented to be present on moves.
-      assert(debugLog('Malformed UpdateMessageEvent: move but no origStreamId')); // TODO(log)
-      throw FormatException();
-    }
-    if (propagateMode == null) {
-      // The `propagate_mode` field (aka propagateMode) is documented to be present on moves.
-      assert(debugLog('Malformed UpdateMessageEvent: move but no propagateMode')); // TODO(log)
-      throw FormatException();
-    }
 
     return UpdateMessageMoveData(
-      origStreamId: origStreamId,
+      origStreamId: origStreamId!,
       newStreamId: newStreamId ?? origStreamId,
       propagateMode: propagateMode,
-      origTopic: origTopic,
+      origTopic: origTopic!,
       newTopic: newTopic ?? origTopic,
     );
   }
