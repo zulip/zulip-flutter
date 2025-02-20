@@ -825,11 +825,14 @@ void main() {
       });
 
       test('unrelated channel -> new channel: unaffected', () async {
+        final thirdStream = eg.stream();
         await prepareNarrow(narrow, initialMessages);
+        await store.addStream(thirdStream);
+        await store.addSubscription(eg.subscription(thirdStream));
 
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: otherChannelMovedMessages,
-          newStreamId: otherStream.streamId,
+          newStreamId: thirdStream.streamId,
         ));
         checkHasMessages(initialMessages);
         checkNotNotified();
