@@ -12,6 +12,7 @@ import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
 
+import '../example_data.dart' as eg;
 import 'test_store.dart';
 
 /// The binding instance used in tests.
@@ -86,7 +87,7 @@ class TestZulipBinding extends ZulipBinding {
   ///
   /// Tests that access this getter, or that mount a [GlobalStoreWidget],
   /// should clean up by calling [reset].
-  TestGlobalStore get globalStore => _globalStore ??= TestGlobalStore(accounts: []);
+  TestGlobalStore get globalStore => _globalStore ??= eg.globalStore();
   TestGlobalStore? _globalStore;
 
   bool _debugAlreadyLoadedStore = false;
