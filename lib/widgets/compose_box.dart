@@ -544,18 +544,15 @@ class _StreamContentInput extends StatefulWidget {
 }
 
 class _StreamContentInputState extends State<_StreamContentInput> {
-  late String _topicTextNormalized;
-
   void _topicChanged() {
     setState(() {
-      _topicTextNormalized = widget.controller.topic.textNormalized;
+      // The relevant state lives on widget.controller.topic itself.
     });
   }
 
   @override
   void initState() {
     super.initState();
-    _topicTextNormalized = widget.controller.topic.textNormalized;
     widget.controller.topic.addListener(_topicChanged);
   }
 
@@ -582,9 +579,11 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       ?? zulipLocalizations.unknownChannelName;
     return _ContentInput(
       narrow: widget.narrow,
-      destination: TopicNarrow(widget.narrow.streamId, TopicName(_topicTextNormalized)),
+      destination: TopicNarrow(widget.narrow.streamId,
+        TopicName(widget.controller.topic.textNormalized)),
       controller: widget.controller,
-      hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
+      hintText: zulipLocalizations.composeBoxChannelContentHint(streamName,
+        widget.controller.topic.textNormalized));
   }
 }
 
