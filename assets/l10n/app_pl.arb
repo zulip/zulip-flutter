@@ -900,5 +900,12 @@
   "unpinnedSubscriptionsLabel": "Odpięte",
   "@unpinnedSubscriptionsLabel": {
     "description": "Label for the list of unpinned subscribed channels."
+  },
+  "userLocalTime": "{userTime} czas lokalny",
+  "@userLocalTime": {
+    "description": "Current time in the user's timezone",
+    "placeholders": {
+      "userTime": {"type": "DateTime", "format": "jm"}
+    }
   }
 }
