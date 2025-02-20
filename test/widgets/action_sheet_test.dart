@@ -489,7 +489,7 @@ void main() {
         await tester.tap(findButtonForLabel('Mark as resolved'));
         await tester.pumpAndSettle();
 
-        checkNoErrorDialog(tester);
+        checkNoDialog(tester);
         checkRequest(message.id, '✔ zulip');
       });
 
@@ -504,7 +504,7 @@ void main() {
         await tester.tap(findButtonForLabel('Mark as resolved'));
         await tester.pumpAndSettle();
 
-        checkNoErrorDialog(tester);
+        checkNoDialog(tester);
         checkRequest(message.id, '✔ zulip');
       });
 
@@ -517,7 +517,7 @@ void main() {
         await tester.tap(findButtonForLabel('Mark as unresolved'));
         await tester.pumpAndSettle();
 
-        checkNoErrorDialog(tester);
+        checkNoDialog(tester);
         checkRequest(message.id, 'zulip');
       });
 
@@ -530,7 +530,7 @@ void main() {
         await tester.tap(findButtonForLabel('Mark as unresolved'));
         await tester.pumpAndSettle();
 
-        checkNoErrorDialog(tester);
+        checkNoDialog(tester);
         checkRequest(message.id, 'zulip');
       });
 

@@ -1,10 +1,12 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/widgets/dialog.dart';
 
-/// In a widget test, check that showErrorDialog was called with the right text.
+/// In a widget test, check that [showErrorDialog] was called with the right text.
 ///
 /// Checks for an error dialog matching an expected title
 /// and, optionally, matching an expected message. Fails if none is found.
@@ -15,22 +17,50 @@ Widget checkErrorDialog(WidgetTester tester, {
   required String expectedTitle,
   String? expectedMessage,
 }) {
-  final dialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
-  tester.widget(find.descendant(matchRoot: true,
-    of: find.byWidget(dialog.title!), matching: find.text(expectedTitle)));
-  if (expectedMessage != null) {
-    tester.widget(find.descendant(matchRoot: true,
-      of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
-  }
+  switch (defaultTargetPlatform) {
+    case TargetPlatform.android:
+    case TargetPlatform.fuchsia:
+    case TargetPlatform.linux:
+    case TargetPlatform.windows:
+      final dialog = tester.widget<AlertDialog>(find.bySubtype<AlertDialog>());
+      tester.widget(find.descendant(matchRoot: true,
+        of: find.byWidget(dialog.title!), matching: find.text(expectedTitle)));
+      if (expectedMessage != null) {
+        tester.widget(find.descendant(matchRoot: true,
+          of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
+      }
 
-  return tester.widget(
-    find.descendant(of: find.byWidget(dialog),
-      matching: find.widgetWithText(TextButton, 'OK')));
+      return tester.widget(find.descendant(of: find.byWidget(dialog),
+          matching: find.widgetWithText(TextButton, 'OK')));
+
+    case TargetPlatform.iOS:
+    case TargetPlatform.macOS:
+      final dialog = tester.widget<CupertinoAlertDialog>(find.byType(CupertinoAlertDialog));
+      tester.widget(find.descendant(matchRoot: true,
+        of: find.byWidget(dialog.title!), matching: find.text(expectedTitle)));
+      if (expectedMessage != null) {
+        tester.widget(find.descendant(matchRoot: true,
+          of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
+      }
+      
+      return tester.widget(find.descendant(of: find.byWidget(dialog),
+        matching: find.widgetWithText(CupertinoDialogAction, 'OK')));
+  }
 }
 
-// TODO(#996) update this to check for per-platform flavors of alert dialog
-void checkNoErrorDialog(WidgetTester tester) {
-  check(find.byType(AlertDialog)).findsNothing();
+/// Checks that there is no dialog.
+/// Fails if one is found.
+void checkNoDialog(WidgetTester tester) {
+  switch (defaultTargetPlatform) {
+    case TargetPlatform.android:
+    case TargetPlatform.fuchsia:
+    case TargetPlatform.linux:
+    case TargetPlatform.windows:
+      check(find.byType(Dialog)).findsNothing();
+    case TargetPlatform.iOS:
+    case TargetPlatform.macOS:
+      check(find.byType(CupertinoAlertDialog)).findsNothing();
+  }
 }
 
 /// In a widget test, check that [showSuggestedActionDialog] was called
@@ -47,19 +77,39 @@ void checkNoErrorDialog(WidgetTester tester) {
   required String expectedMessage,
   String? expectedActionButtonText,
 }) {
-  final dialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
-  tester.widget(find.descendant(matchRoot: true,
-    of: find.byWidget(dialog.title!), matching: find.text(expectedTitle)));
-  tester.widget(find.descendant(matchRoot: true,
-    of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
+  switch (defaultTargetPlatform) {
+    case TargetPlatform.android:
+    case TargetPlatform.fuchsia:
+    case TargetPlatform.linux:
+    case TargetPlatform.windows:
+      final dialog = tester.widget<AlertDialog>(find.bySubtype<AlertDialog>());
+      tester.widget(find.descendant(matchRoot: true,
+        of: find.byWidget(dialog.title!), matching: find.text(expectedTitle)));
+      tester.widget(find.descendant(matchRoot: true,
+        of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
 
-  final actionButton = tester.widget(
-    find.descendant(of: find.byWidget(dialog),
-      matching: find.widgetWithText(TextButton, expectedActionButtonText ?? 'Continue')));
+      final actionButton = tester.widget(find.descendant(of: find.byWidget(dialog),
+          matching: find.widgetWithText(TextButton, expectedActionButtonText ?? 'Continue')));
 
-  final cancelButton = tester.widget(
-    find.descendant(of: find.byWidget(dialog),
-      matching: find.widgetWithText(TextButton, 'Cancel')));
+      final cancelButton = tester.widget(find.descendant(of: find.byWidget(dialog),
+          matching: find.widgetWithText(TextButton, 'Cancel')));
 
-  return (actionButton, cancelButton);
+      return (actionButton, cancelButton);
+
+    case TargetPlatform.iOS:
+    case TargetPlatform.macOS:
+      final dialog = tester.widget<CupertinoAlertDialog>(find.byType(CupertinoAlertDialog));
+      tester.widget(find.descendant(matchRoot: true,
+        of: find.byWidget(dialog.title!), matching: find.text(expectedTitle)));
+      tester.widget(find.descendant(matchRoot: true,
+        of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
+
+      final actionButton = tester.widget(find.descendant(of: find.byWidget(dialog),
+          matching: find.widgetWithText(CupertinoDialogAction, expectedActionButtonText ?? 'Continue')));
+
+      final cancelButton = tester.widget(find.descendant(of: find.byWidget(dialog),
+          matching: find.widgetWithText(CupertinoDialogAction, 'Cancel')));
+
+      return (actionButton, cancelButton);
+  }
 }
