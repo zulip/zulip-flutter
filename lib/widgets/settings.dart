@@ -24,8 +24,47 @@ class SettingsPage extends StatelessWidget {
       appBar: ZulipAppBar(
         title: Text(zulipLocalizations.settingsPageTitle)),
       body: Column(children: [
+        _BrowserPreferenceSetting(),
         _ThemeSetting(),
       ]));
+  }
+}
+
+class _BrowserPreferenceSetting extends StatefulWidget {
+  const _BrowserPreferenceSetting();
+
+  @override
+  State<_BrowserPreferenceSetting> createState() => _BrowserPreferenceSettingState();
+}
+
+class _BrowserPreferenceSettingState extends State<_BrowserPreferenceSetting> {
+  late bool openLinksWithInAppBrowser;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    openLinksWithInAppBrowser =
+      GlobalStoreWidget.of(context).globalSettings.effectiveBrowserPreference
+      == BrowserPreference.embedded;
+  }
+
+  void _handleChange(bool openLinksWithInAppBrowser) {
+    GlobalStoreWidget.of(context).updateGlobalSettings(
+      GlobalSettingsCompanion(browserPreference: Value(
+        openLinksWithInAppBrowser ? BrowserPreference.embedded
+                                  : BrowserPreference.external)));
+    setState(() {
+      this.openLinksWithInAppBrowser = openLinksWithInAppBrowser;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return SwitchListTile.adaptive(
+      title: Text(zulipLocalizations.openLinksWithInAppBrowser),
+      value: openLinksWithInAppBrowser,
+      onChanged: _handleChange);
   }
 }
 

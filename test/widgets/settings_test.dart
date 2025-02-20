@@ -1,4 +1,5 @@
 import 'package:checks/checks.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/model/settings.dart';
@@ -23,6 +24,43 @@ void main() {
     await tester.pump();
     await tester.pump();
   }
+
+  group('BrowserPreference', () {
+    Finder useInAppBrowserSwitchFinder = find.ancestor(
+      of: find.text('Open links with in-app browser'),
+      matching: find.byType(SwitchListTile));
+
+    void checkSwitchAndGlobalSettings(WidgetTester tester, {
+      required bool useInAppBrowser,
+    }) {
+      check(tester.widget<SwitchListTile>(useInAppBrowserSwitchFinder))
+        .value.equals(useInAppBrowser);
+      check(testBinding.globalStore).globalSettings.effectiveBrowserPreference.equals(
+        useInAppBrowser ? BrowserPreference.embedded : BrowserPreference.external);
+    }
+
+    testWidgets('smoke', (tester) async {
+      await testBinding.globalStore.updateGlobalSettings(
+        eg.globalSettings(
+          browserPreference: BrowserPreference.external).toCompanion(false));
+      await prepare(tester);
+      checkSwitchAndGlobalSettings(tester, useInAppBrowser: false);
+
+      await tester.tap(useInAppBrowserSwitchFinder);
+      await tester.pump();
+      checkSwitchAndGlobalSettings(tester, useInAppBrowser: true);
+    });
+
+    testWidgets('use platform-specific default browser preference', (tester) async {
+      await prepare(tester);
+      final defaultUseInAppBrowser = defaultTargetPlatform == TargetPlatform.android;
+      checkSwitchAndGlobalSettings(tester, useInAppBrowser: defaultUseInAppBrowser);
+
+      await tester.tap(useInAppBrowserSwitchFinder);
+      await tester.pump();
+      checkSwitchAndGlobalSettings(tester, useInAppBrowser: !defaultUseInAppBrowser);
+    }, variant: TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+  });
 
   group('ThemeSetting', () {
     Finder findRadioListTileWithTitle(String title) => find.ancestor(
