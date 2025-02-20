@@ -61,6 +61,10 @@ extension ValueListenableChecks<T> on Subject<ValueListenable<T>> {
   Subject<T> get value => has((c) => c.value, 'value');
 }
 
+extension ThemeDataChecks on Subject<ThemeData> {
+  Subject<Brightness> get brightness => has((x) => x.brightness, 'brightness');
+}
+
 extension TextChecks on Subject<Text> {
   Subject<String?> get data => has((t) => t.data, 'data');
   Subject<TextStyle?> get style => has((t) => t.style, 'style');
