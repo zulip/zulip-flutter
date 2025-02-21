@@ -395,11 +395,22 @@ void main() {
       });
     });
 
-    testWidgets('to TopicNarrow', (tester) async {
-      await prepare(tester,
-        narrow: TopicNarrow(channel.streamId, TopicName('topic')));
-      checkComposeBoxHintTexts(tester,
-        contentHintText: 'Message #${channel.name} > topic');
+    group('to TopicNarrow', () {
+      testWidgets('to TopicNarrow with non-empty topic', (tester) async {
+        await prepare(tester,
+          narrow: TopicNarrow(channel.streamId, TopicName('topic')),
+          mandatoryTopics: false);
+        checkComposeBoxHintTexts(tester,
+          contentHintText: 'Message #${channel.name} > topic');
+      });
+
+      testWidgets('to TopicNarrow with empty topic', (tester) async {
+        await prepare(tester,
+          narrow: TopicNarrow(channel.streamId, TopicName('')),
+          mandatoryTopics: false);
+        checkComposeBoxHintTexts(tester, contentHintText:
+          'Message #${channel.name} > ${eg.defaultRealmEmptyTopicDisplayName}');
+      }, skip: true); // null topic names soon to be enabled
     });
 
     testWidgets('to DmNarrow with self', (tester) async {
