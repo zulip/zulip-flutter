@@ -1099,7 +1099,7 @@ void main() {
       if (defaultTargetPlatform == TargetPlatform.android) {
         checkLastRequestFcm(token: '012abc');
       } else {
-        checkLastRequestApns(token: '012abc', appid: 'com.zulip.flutter');
+        checkLastRequestApns(token: '012abc', appid: 'com.zulip.flutter.test');
       }
 
       if (defaultTargetPlatform == TargetPlatform.android) {
@@ -1138,7 +1138,7 @@ void main() {
       if (defaultTargetPlatform == TargetPlatform.android) {
         checkLastRequestFcm(token: '012abc');
       } else {
-        checkLastRequestApns(token: '012abc', appid: 'com.zulip.flutter');
+        checkLastRequestApns(token: '012abc', appid: 'com.zulip.flutter.test');
       }
 
       if (defaultTargetPlatform == TargetPlatform.android) {
@@ -1149,6 +1149,22 @@ void main() {
         checkLastRequestFcm(token: '456def');
       }
     }));
+
+
+    test('fallback to default appBundleId in case packageInfo is null', ()async{
+      // This tests the case where packageInfo is null
+      // and default appBundleId gets passed to the [NotificationService.registerToken] method
+
+      prepareStore();
+      connection.prepare(json: {});
+
+      if(defaultTargetPlatform == TargetPlatform.iOS){
+        testBinding.packageInfoResult=null;
+        await NotificationService.registerToken(connection, token: '012abc');
+        checkLastRequestApns(token: '012abc', appid: 'com.zulip.flutter');
+        addTearDown(testBinding.reset);
+      }
+    });
   });
 }
 
