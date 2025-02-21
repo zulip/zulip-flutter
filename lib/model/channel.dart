@@ -361,3 +361,51 @@ class ChannelStoreImpl with ChannelStore {
     }
   }
 }
+
+class TopicMap<T> {
+  final Map<String, _KeyValue<T>> _topicMessageMap = {};
+
+  int get size => _topicMessageMap.length;
+
+  T? get(TopicName key) {
+    return _topicMessageMap[_munge(key)]?.v;
+  }
+
+  void set(TopicName key, T value) {
+    _topicMessageMap[_munge(key)] = _KeyValue(k: key, v: value);
+  }
+
+  bool containsKey(TopicName key) => _topicMessageMap.containsKey(_munge(key));
+
+  bool remove(TopicName key) => _topicMessageMap.remove(_munge(key)) != null;
+
+  Iterable<TopicName> keys() => _topicMessageMap.values.map((kv) => kv.k);
+
+  Iterable<T> values() => _topicMessageMap.values.map((kv) => kv.v);
+
+  Iterable<MapEntry<TopicName, T>> get entries =>
+      _topicMessageMap.entries.map((kv) => MapEntry(kv.value.k, kv.value.v));
+
+  void clear() => _topicMessageMap.clear();
+
+  String _munge(TopicName key) => key.toString().toLowerCase();
+}
+
+extension TopicMapExtensions<T> on TopicMap<T> {
+  // Converts this `TopicMap<T>` into a plain `Map<TopicName, T>`,
+  // making it easier to do standard deep equality checks in tests.
+  Map<TopicName, T> toMap() {
+    final result = <TopicName, T>{};
+    for (final entry in entries) {
+      result[entry.key] = entry.value;
+    }
+    return result;
+  }
+}
+
+class _KeyValue<T> {
+  final TopicName k;
+  final T v;
+
+  _KeyValue({required this.k, required this.v});
+}
