@@ -353,18 +353,56 @@ void main() {
         .decoration.isNotNull().hintText.equals(contentHintText);
     }
 
-    group('to ChannelNarrow', () {
+    group('to ChannelNarrow, topics not mandatory', () {
       final narrow = ChannelNarrow(channel.streamId);
 
       testWidgets('with empty topic', (tester) async {
-        await prepare(tester, narrow: narrow);
+        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name} > (no topic)');
+      });
+
+      testWidgets('with non-empty but vacuous topic', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await enterTopic(tester, narrow: narrow, topic: '(no topic)');
+        await tester.pump();
         checkComposeBoxHintTexts(tester,
           topicHintText: 'Topic',
           contentHintText: 'Message #${channel.name} > (no topic)');
       });
 
       testWidgets('with non-empty topic', (tester) async {
-        await prepare(tester, narrow: narrow);
+        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await enterTopic(tester, narrow: narrow, topic: 'new topic');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name} > new topic');
+      });
+    });
+
+    group('to ChannelNarrow, mandatory topics', () {
+      final narrow = ChannelNarrow(channel.streamId);
+
+      testWidgets('with empty topic', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: true);
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name}');
+      });
+
+      testWidgets('with non-empty but vacuous topic', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: true);
+        await enterTopic(tester, narrow: narrow, topic: '(no topic)');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name} > (no topic)');
+      });
+
+      testWidgets('with non-empty topic', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: true);
         await enterTopic(tester, narrow: narrow, topic: 'new topic');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
