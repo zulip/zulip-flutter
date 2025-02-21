@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/core.dart';
 import 'package:zulip/model/content.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
@@ -482,7 +483,7 @@ void main() {
       final expectedLaunchUrl = expectedVideo.hrefUrl;
       await tester.tap(find.byIcon(Icons.play_arrow_rounded));
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse(expectedLaunchUrl), mode: LaunchMode.platformDefault));
+        .single.equals((url: Uri.parse(expectedLaunchUrl), mode: LaunchMode.inAppBrowserView));
     }
 
     testWidgets('video preview for youtube embed', (tester) async {
@@ -754,9 +755,21 @@ void main() {
       await tapText(tester, find.text('hello'));
 
       final expectedLaunchMode = defaultTargetPlatform == TargetPlatform.iOS ?
-        LaunchMode.externalApplication : LaunchMode.platformDefault;
+        LaunchMode.externalApplication : LaunchMode.inAppBrowserView;
       check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse('https://example/'), mode: expectedLaunchMode));
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+
+    testWidgets('override default with browser preference setting', (tester) async {
+      await testBinding.globalStore.updateGlobalSettings(
+        eg.globalSettings(
+          browserPreference: BrowserPreference.external).toCompanion(false));
+      await prepare(tester,
+          '<p><a href="https://example/">hello</a></p>');
+
+      await tapText(tester, find.text('hello'));
+      check(testBinding.takeLaunchUrlCalls())
+        .single.equals((url: Uri.parse('https://example/'), mode: LaunchMode.externalApplication));
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('multiple links in paragraph', (tester) async {
@@ -772,11 +785,11 @@ void main() {
 
       await tester.tapAt(base.translate(1*fontSize, 0)); // "fXo bar baz"
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.platformDefault));
+        .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.inAppBrowserView));
 
       await tester.tapAt(base.translate(9*fontSize, 0)); // "foo bar bXz"
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('https://b/'), mode: LaunchMode.platformDefault));
+        .single.equals((url: Uri.parse('https://b/'), mode: LaunchMode.inAppBrowserView));
     });
 
     testWidgets('link nested in other spans', (tester) async {
@@ -784,7 +797,7 @@ void main() {
         '<p><strong><em><a href="https://a/">word</a></em></strong></p>');
       await tapText(tester, find.text('word'));
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.platformDefault));
+        .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.inAppBrowserView));
     });
 
     testWidgets('link containing other spans', (tester) async {
@@ -797,11 +810,11 @@ void main() {
 
       await tester.tapAt(base.translate(1*fontSize, 0)); // "tXo words"
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.platformDefault));
+        .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.inAppBrowserView));
 
       await tester.tapAt(base.translate(6*fontSize, 0)); // "two woXds"
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.platformDefault));
+        .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.inAppBrowserView));
     });
 
     testWidgets('relative links are resolved', (tester) async {
@@ -809,7 +822,7 @@ void main() {
         '<p><a href="/a/b?c#d">word</a></p>');
       await tapText(tester, find.text('word'));
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('${eg.realmUrl}a/b?c#d'), mode: LaunchMode.platformDefault));
+        .single.equals((url: Uri.parse('${eg.realmUrl}a/b?c#d'), mode: LaunchMode.inAppBrowserView));
     });
 
     testWidgets('link inside HeadingNode', (tester) async {
@@ -817,7 +830,7 @@ void main() {
         '<h6><a href="https://a/">word</a></h6>');
       await tapText(tester, find.text('word'));
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.platformDefault));
+        .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.inAppBrowserView));
     });
 
     testWidgets('error dialog if invalid link', (tester) async {
@@ -827,7 +840,7 @@ void main() {
       await tapText(tester, find.text('word'));
       await tester.pump();
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: Uri.parse('file:///etc/bad'), mode: LaunchMode.platformDefault));
+        .single.equals((url: Uri.parse('file:///etc/bad'), mode: LaunchMode.inAppBrowserView));
       checkErrorDialog(tester, expectedTitle: 'Unable to open link');
     });
   });
@@ -871,7 +884,7 @@ void main() {
       await tapText(tester, find.text('invalid'));
       final expectedUrl = eg.realmUrl.resolve('/#narrow/stream/1-check/topic');
       check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: expectedUrl, mode: LaunchMode.platformDefault));
+        .single.equals((url: expectedUrl, mode: LaunchMode.inAppBrowserView));
       check(pushedRoutes).isEmpty();
     });
   });

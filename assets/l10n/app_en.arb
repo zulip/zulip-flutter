@@ -19,6 +19,14 @@
   "@chooseAccountPageTitle": {
     "description": "Title for the page to choose between Zulip accounts."
   },
+  "settingsPageTitle": "Settings",
+  "@settingsPageTitle": {
+    "description": "Title for the settings page."
+  },
+  "settingsUseExternalBrowser": "Use external browser",
+  "@settingsUseExternalBrowser": {
+    "description": "Whether to open links with external browser or not"
+  },
   "switchAccountButton": "Switch account",
   "@switchAccountButton": {
     "description": "Label for main-menu button leading to the choose-account page."
@@ -782,6 +790,22 @@
     "placeholders": {
       "voterNames": {"type":  "String", "example": "Alice, Bob, Chad"}
     }
+  },
+  "themeSettingTitle": "THEME",
+  "@themeSettingTitle": {
+    "description": "Title for theme setting. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "themeSettingDark": "Dark",
+  "@themeSettingDark": {
+    "description": "Label for dark theme setting."
+  },
+  "themeSettingLight": "Light",
+  "@themeSettingLight": {
+    "description": "Label for light theme setting."
+  },
+  "themeSettingSystem": "System",
+  "@themeSettingSystem": {
+    "description": "Label for following system theme setting."
   },
   "pollWidgetQuestionMissing": "No question.",
   "@pollWidgetQuestionMissing": {
