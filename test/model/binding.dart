@@ -214,6 +214,9 @@ class TestZulipBinding extends ZulipBinding {
   @override
   Stopwatch stopwatch() => clock.stopwatch();
 
+  @override
+  DateTime now() => clock.now();
+
   /// The value that `ZulipBinding.instance.deviceInfo` should return.
   BaseDeviceInfo deviceInfoResult = _defaultDeviceInfoResult;
   static const _defaultDeviceInfoResult = AndroidDeviceInfo(sdkInt: 33, release: '13');

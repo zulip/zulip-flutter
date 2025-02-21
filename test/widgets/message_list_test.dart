@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
+import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -1210,7 +1211,6 @@ void main() {
 
   group('formatHeaderDate', () {
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-    final now = DateTime.parse("2023-01-10 12:00");
     final testCases = [
       ("2023-01-10 12:00", zulipLocalizations.today),
       ("2023-01-10 00:00", zulipLocalizations.today),
@@ -1225,8 +1225,10 @@ void main() {
     ];
     for (final (dateTime, expected) in testCases) {
       test('$dateTime returns $expected', () {
-        check(formatHeaderDate(zulipLocalizations, DateTime.parse(dateTime), now: now))
-          .equals(expected);
+        withClock(Clock.fixed(DateTime.parse("2023-01-10 12:00")), () {
+          check(formatHeaderDate(zulipLocalizations, DateTime.parse(dateTime)))
+            .equals(expected);
+        });
       });
     }
   });
