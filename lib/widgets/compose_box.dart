@@ -167,6 +167,23 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   /// that certain strings are not empty but also indicate the absence of a topic.
   bool get isTopicVacuous => textNormalized == kNoTopicTopic;
 
+  /// The send destination as a string.
+  ///
+  /// This returns a string formatted like "#stream name" when topics are
+  /// mandatory but [textNormalized] is vacuous (see [isTopicVacuous]).
+  ///
+  /// Otherwise, returns a string formatted like "#stream name > topic name".
+  // No i18n of the use of "#" and ">" strings; those are part of how
+  // Zulip expresses channels and topics, not any normal English punctuation,
+  // so don't make sense to translate. See:
+  //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
+  String getDestinationString({required String streamName}) {
+    if (mandatory && isTopicVacuous) {
+      return '#$streamName';
+    }
+    return '#$streamName > $textNormalized';
+  }
+
   @override
   List<TopicValidationError> _computeValidationErrors() {
     return [
@@ -585,17 +602,13 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.unknownChannelName;
-    final topic = TopicName(widget.controller.topic.textNormalized);
     return _ContentInput(
       narrow: widget.narrow,
-      destination: TopicNarrow(widget.narrow.streamId, topic),
+      destination: TopicNarrow(widget.narrow.streamId,
+        TopicName(widget.controller.topic.textNormalized)),
       controller: widget.controller,
       hintText: zulipLocalizations.composeBoxChannelContentHint(
-        // No i18n of this use of "#" and ">" string; those are part of how
-        // Zulip expresses channels and topics, not any normal English punctuation,
-        // so don't make sense to translate. See:
-        //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-        '#$streamName > ${topic.displayName}'));
+        widget.controller.topic.getDestinationString(streamName: streamName)));
   }
 }
 
