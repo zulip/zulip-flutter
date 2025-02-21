@@ -2673,4 +2673,107 @@ void main() {
         ..status.equals(AnimationStatus.dismissed);
     });
   });
+
+  group('recipient header navigation in multi-channel narrows', () {
+    late List<Route<void>> pushedRoutes;
+
+    final channel = eg.stream();
+    const testTopic = 'testTopic';
+    final message = eg.streamMessage(stream: channel, topic: testTopic);
+
+    final recipientHeaderFinder = find.byType(StreamMessageRecipientHeader);
+    late Rect recipientHeaderRect;
+
+    Future<void> prepare(WidgetTester tester) async {
+      pushedRoutes = [];
+      final navObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+      await setupMessageListPage(tester,
+        narrow: const CombinedFeedNarrow(),
+        streams: [channel],
+        subscriptions: [eg.subscription(channel)],
+        messages: [message],
+        navObservers: [navObserver]);
+
+      assert(pushedRoutes.length == 1);
+      pushedRoutes.clear();
+
+      recipientHeaderRect = tester.getRect(recipientHeaderFinder);
+    }
+
+    // Regression test for: https://github.com/zulip/zulip-flutter/issues/1179
+    testWidgets("navigates to ChannelNarrow when tapping above or below channel name in recipient header", (tester) async {
+      await prepare(tester);
+
+      final channelNameFinder = find.descendant(
+        of: recipientHeaderFinder,
+        matching: find.text(channel.name));
+      final channelNameRect = tester.getRect(channelNameFinder);
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [message]).toJson());
+      // Tap just right below the top of recipient header, above and outside of
+      // its channel name component.
+      await tester.tapAt(Offset(
+        channelNameRect.center.dx, recipientHeaderRect.top + 1));
+      await tester.pump();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+        .initNarrow.equals(ChannelNarrow(channel.streamId));
+      await tester.pumpAndSettle();
+
+      // Navigate back to original page and clear routes.
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      pushedRoutes.clear();
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [message]).toJson());
+      // Tap just above the bottom of recipient header, below and outside of
+      // its channel name component.
+      await tester.tapAt(Offset(
+        channelNameRect.center.dx, recipientHeaderRect.bottom - 1));
+      await tester.pump();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+        .initNarrow.equals(ChannelNarrow(channel.streamId));
+      await tester.pumpAndSettle();
+    });
+
+    // Regression test for: https://github.com/zulip/zulip-flutter/issues/1179
+    testWidgets("navigates to TopicNarrow when tapping above or below topic name in recipient header", (tester) async {
+      await prepare(tester);
+
+      final topicNameFinder = find.descendant(
+        of: recipientHeaderFinder,
+        matching: find.text(testTopic));
+      final topicNameRect = tester.getRect(topicNameFinder);
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [message]).toJson());
+      // Tap just right below the top of recipient header, above and outside of
+      // its topic name component.
+      await tester.tapAt(Offset(
+        topicNameRect.center.dx, recipientHeaderRect.top + 1));
+      await tester.pump();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+        .initNarrow.equals(TopicNarrow(channel.streamId, message.topic));
+      await tester.pumpAndSettle();
+
+      // Navigate back to original page and clear routes.
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      pushedRoutes.clear();
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [message]).toJson());
+      // Tap just above the bottom of recipient header, below and outside of
+      // its topic name component.
+      await tester.tapAt(Offset(
+        topicNameRect.center.dx, recipientHeaderRect.bottom - 1));
+      await tester.pump();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+        .initNarrow.equals(TopicNarrow(channel.streamId, message.topic));
+      await tester.pumpAndSettle();
+    });
+  });
 }
