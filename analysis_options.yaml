@@ -3,6 +3,11 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
+  exclude:
+    # TODO(drift): remove this. See also:
+    #   https://github.com/simolus3/drift/issues/3384
+    # Generated code from drift can contain unused local variables.
+    - lib/model/database.g.dart
   language:
     strict-inference: true
     strict-raw-types: true
