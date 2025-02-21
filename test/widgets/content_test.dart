@@ -239,6 +239,38 @@ void main() {
       expect(find.text('third'), findsOneWidget);
       expect(find.text('fourth'), findsOneWidget);
     });
+
+    testWidgets('list uses correct text baseline alignment', (tester) async {
+      await prepareContent(tester, plainContent(ContentExample.orderedListLargeStart.html));
+
+      final table = tester.widget<Table>(find.byType(Table));
+      check(table.defaultVerticalAlignment).equals(TableCellVerticalAlignment.baseline);
+      check(table.textBaseline).equals(localizedTextBaseline(tester.element(find.byType(Table))));
+    });
+
+    testWidgets('long ordered list markers render completely and are right-aligned', (tester) async {
+      await prepareContent(tester, plainContent(ContentExample.orderedListLargeStart.html));
+
+      final markerTexts = tester.widgetList<Text>(
+        find.descendant(of: find.byType(Align), matching: find.byType(Text)));
+        
+      for (final text in markerTexts) {
+        final renderParagraph = tester.renderObject(find.text(text.data!)) as RenderParagraph;
+        final textHeight = renderParagraph.size.height;
+        final lineHeight = renderParagraph.text.style!.height! * renderParagraph.text.style!.fontSize!;
+        check(textHeight).equals(lineHeight);
+
+        final textWidth = renderParagraph.size.width;
+        final renderBox = tester.renderObject(find.ancestor(
+            of: find.text(text.data!),
+            matching: find.byType(Align))) as RenderBox;
+        check(renderBox.size.width >= textWidth).isTrue();
+
+        final align = tester.widget<Align>(
+          find.ancestor(of: find.text(text.data!), matching: find.byType(Align)));
+        check(align.alignment).equals(AlignmentDirectional.topEnd);
+      }
+    });
   });
 
   group('Spoiler', () {
