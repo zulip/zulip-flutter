@@ -1101,6 +1101,29 @@ void main() {
         await tester.pump();
         check(pushedRoutes).isEmpty();
       });
+
+      testWidgets('shows archived label for archived streams', (tester) async {
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        final stream = eg.stream(streamId: 1, name: 'stream name', isArchived: true);
+        final message = eg.streamMessage(stream: stream, topic: 'topic');
+
+        await setupMessageListPage(tester,
+          narrow: const CombinedFeedNarrow(),
+          messages: [message],
+          streams: [stream],
+          subscriptions: [eg.subscription(stream)]);
+        await tester.pump();
+
+        check(findInMessageList('stream name')).length.equals(1);
+        check(findInMessageList(zulipLocalizations.channelArchivedLabel)).length.equals(1);
+
+        final archivedLabelFinder = find.descendant(
+          of: find.byType(MessageList),
+          matching: find.text(zulipLocalizations.channelArchivedLabel),
+        );
+        final textWidget = tester.widget<Text>(archivedLabelFinder);
+        expect(textWidget.style?.fontStyle, FontStyle.italic);
+      });
     });
 
     group('DmRecipientHeader', () {

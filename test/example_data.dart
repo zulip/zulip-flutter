@@ -259,6 +259,7 @@ ZulipStream stream({
   int? messageRetentionDays,
   ChannelPostPolicy? channelPostPolicy,
   int? streamWeeklyTraffic,
+  bool? isArchived,
 }) {
   _checkPositive(streamId, 'stream ID');
   _checkPositive(firstMessageId, 'message ID');
@@ -278,6 +279,7 @@ ZulipStream stream({
     messageRetentionDays: messageRetentionDays,
     channelPostPolicy: channelPostPolicy ?? ChannelPostPolicy.any,
     streamWeeklyTraffic: streamWeeklyTraffic,
+    isArchived: isArchived ?? false
   );
 }
 const _stream = stream;
@@ -316,6 +318,7 @@ Subscription subscription(
     messageRetentionDays: stream.messageRetentionDays,
     channelPostPolicy: stream.channelPostPolicy,
     streamWeeklyTraffic: stream.streamWeeklyTraffic,
+    isArchived: stream.isArchived,
     desktopNotifications: desktopNotifications ?? false,
     emailNotifications: emailNotifications ?? false,
     wildcardMentionsNotify: wildcardMentionsNotify ?? false,

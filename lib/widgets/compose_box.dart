@@ -1425,7 +1425,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       case TopicNarrow(:final streamId):
         final channel = store.streams[streamId];
         if (channel == null || !store.hasPostingPermission(inChannel: channel,
-            user: selfUser, byDate: DateTime.now())) {
+            user: selfUser, byDate: DateTime.now()) || channel.isArchived) {
           return _ErrorBanner(label:
             ZulipLocalizations.of(context).errorBannerCannotPostInChannelLabel);
         }
