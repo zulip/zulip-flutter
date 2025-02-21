@@ -1470,4 +1470,38 @@ void main() {
         ..status.equals(AnimationStatus.dismissed);
     });
   });
+
+  testWidgets("navigates to ChannelNarrow when tapping the empty space in the channel part area of the CombinedFeedNarrow header", (tester) async {
+    final pushedRoutes = <Route<void>>[];
+    final navObserver = TestNavigatorObserver()
+      ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+    final channel = eg.stream();
+    final message = eg.streamMessage(stream: channel);
+    await setupMessageListPage(tester,
+      narrow: const CombinedFeedNarrow(),
+      streams: [channel],
+      subscriptions: [eg.subscription(channel)],
+      messages: [message],
+      navObservers: [navObserver]);
+
+    assert(pushedRoutes.length == 1);
+    pushedRoutes.clear();
+
+    connection.prepare(json: eg.newestGetMessagesResult(
+      foundOldest: true, messages: [message]).toJson());
+
+    // Find the chevron icon
+    final chevronFinder = find.descendant(
+      of: find.byType(StreamMessageRecipientHeader),
+      matching: find.byIcon(ZulipIcons.chevron_right));
+
+    // Get the position of the chevron icon and tap 3px above it
+    final chevronRect = tester.getRect(chevronFinder);
+    await tester.tapAt(Offset(chevronRect.center.dx, chevronRect.top - 3));
+
+    await tester.pump();
+    check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+      .initNarrow.equals(ChannelNarrow(channel.streamId));
+    await tester.pumpAndSettle();
+  });
 }
