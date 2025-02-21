@@ -653,11 +653,7 @@ UpdateMessageEvent updateMessageEditEvent(
     messageIds: [messageId],
     flags: flags ?? origMessage.flags,
     editTimestamp: editTimestamp ?? 1234567890, // TODO generate timestamp
-    origStreamId: origMessage is StreamMessage ? origMessage.streamId : null,
-    newStreamId: null,
-    propagateMode: null,
-    origTopic: null,
-    newTopic: null,
+    moveData: null,
     origContent: 'some probably-mismatched old Markdown',
     origRenderedContent: origMessage.content,
     content: 'some probably-mismatched new Markdown',
@@ -679,8 +675,6 @@ UpdateMessageEvent _updateMessageMoveEvent(
 }) {
   _checkPositive(origStreamId, 'stream ID');
   _checkPositive(newStreamId, 'stream ID');
-  assert(newTopic != origTopic
-         || (newStreamId != null && newStreamId != origStreamId));
   assert(messageIds.isNotEmpty);
   return UpdateMessageEvent(
     id: 0,
@@ -690,11 +684,13 @@ UpdateMessageEvent _updateMessageMoveEvent(
     messageIds: messageIds,
     flags: flags,
     editTimestamp: 1234567890, // TODO generate timestamp
-    origStreamId: origStreamId,
-    newStreamId: newStreamId,
-    propagateMode: propagateMode,
-    origTopic: origTopic,
-    newTopic: newTopic,
+    moveData: UpdateMessageMoveData(
+      origStreamId: origStreamId,
+      newStreamId: newStreamId ?? origStreamId,
+      propagateMode: propagateMode,
+      origTopic: origTopic,
+      newTopic: newTopic ?? origTopic,
+    ),
     origContent: origContent,
     origRenderedContent: origContent,
     content: newContent,
