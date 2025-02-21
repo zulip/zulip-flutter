@@ -26,9 +26,9 @@ import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/theme.dart';
 
+import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../model/binding.dart';
-import '../example_data.dart' as eg;
 import '../model/narrow_checks.dart';
 import '../stdlib_checks.dart';
 import '../test_images.dart';
@@ -953,6 +953,20 @@ void main() {
       ]);
 
       receiveFcmMessage(async, removeFcmMessage([message2], account: account2));
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+    })));
+
+    test('removeNotificationsForAccount removes notifications', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
+
+      await checkNotifications(async, messageFcmMessage(message),
+        expectedIsGroupConversation: false,
+        expectedTitle: eg.otherUser.fullName,
+        expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
+
+      check(testBinding.androidNotificationHost.activeNotifications).isNotEmpty();
+      await NotificationDisplayManager.removeNotificationsForAccount(eg.selfAccount.realmUrl, eg.selfAccount.userId);
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
   });
