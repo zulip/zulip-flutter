@@ -113,6 +113,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get actionSheetOptionUnstarMessage => 'Odbierz gwiazdkę';
 
   @override
+  String get actionSheetOptionMarkTopicAsRead => 'Mark topic as read';
+
+  @override
   String get errorWebAuthOperationalErrorTitle => 'Coś poszło nie tak';
 
   @override
