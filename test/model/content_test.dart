@@ -1109,6 +1109,30 @@ class ContentExample {
       description: null),
   ]);
 
+  static const legacyWebsitePreviewSmoke = ContentExample(
+    'legacy website preview smoke',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/URL.20previews/near/192777
+    'www.youtube.com',
+    '<p><a href="http://www.youtube.com" target="_blank" title="http://www.youtube.com">www.youtube.com</a></p>\n'
+    '<div class="message_embed">'
+      '<a class="message_embed_image" href="http://www.youtube.com" style="background-image: url(https://youtube.com/yts/img/yt_1200-vfl4C3T0K.png)" target="_blank"></a>'
+      '<div class="data-container">'
+        '<div class="message_embed_title"><a href="http://www.youtube.com" target="_blank" title="YouTube">YouTube</a></div>'
+        '<div class="message_embed_description">Enjoy the videos and music you love, upload original content, and share it all with friends, family, and the world on YouTube.</div></div></div>', [
+    ParagraphNode(links: [], nodes: [
+      LinkNode(
+        nodes: [TextNode('www.youtube.com')],
+        url: 'http://www.youtube.com'),
+    ]),
+    WebsitePreviewNode(
+      hrefUrl: 'http://www.youtube.com',
+      imageSrcUrl: 'https://youtube.com/yts/img/yt_1200-vfl4C3T0K.png',
+      title: 'YouTube',
+      description: 'Enjoy the videos and music you love, upload '
+        'original content, and share it all with friends, family, and '
+        'the world on YouTube.'),
+  ]);
+
   static const tableWithSingleRow = ContentExample(
     'table with single row',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/1971202
@@ -1654,6 +1678,7 @@ void main() {
   testParseExample(ContentExample.websitePreviewWithoutTitle);
   testParseExample(ContentExample.websitePreviewWithoutDescription);
   testParseExample(ContentExample.websitePreviewWithoutTitleOrDescription);
+  testParseExample(ContentExample.legacyWebsitePreviewSmoke);
 
   testParseExample(ContentExample.tableWithSingleRow);
   testParseExample(ContentExample.tableWithMultipleRows);

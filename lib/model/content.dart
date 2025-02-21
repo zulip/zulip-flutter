@@ -1391,7 +1391,7 @@ class _ZulipContentParser {
     return EmbedVideoNode(hrefUrl: href, previewImageSrcUrl: imgSrc, debugHtmlNode: debugHtmlNode);
   }
 
-  static final _websitePreviewImageSrcRegexp = RegExp(r'background-image: url\("(.+)"\)');
+  static final _websitePreviewImageSrcRegexp = RegExp(r'background-image: url\(("?)(.+?)\1\)');
 
   BlockContentNode parseWebsitePreviewNode(dom.Element divElement) {
     assert(divElement.localName == 'div'
@@ -1415,7 +1415,7 @@ class _ZulipContentParser {
       ]) {
         final match = _websitePreviewImageSrcRegexp.firstMatch(imageStyleAttr);
         if (match == null) return null;
-        final imageSrcUrl = match.group(1);
+        final imageSrcUrl = match.group(2);
         if (imageSrcUrl == null) return null;
 
         String? parseTitle(dom.Element element) {
