@@ -171,10 +171,6 @@
       }
     }
   },
-  "errorLoginCouldNotConnectTitle": "Nepodarilo sa pripojiť",
-  "@errorLoginCouldNotConnectTitle": {
-    "description": "Error title when the app could not connect to the server."
-  },
   "errorMessageDoesNotSeemToExist": "Správa zrejme neexistuje.",
   "@errorMessageDoesNotSeemToExist": {
     "description": "Error message when loading a message that does not exist."

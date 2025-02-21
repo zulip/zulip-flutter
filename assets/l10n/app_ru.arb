@@ -325,10 +325,6 @@
       }
     }
   },
-  "errorLoginCouldNotConnectTitle": "Не удалось подключиться",
-  "@errorLoginCouldNotConnectTitle": {
-    "description": "Error title when the app could not connect to the server."
-  },
   "errorMessageDoesNotSeemToExist": "Это сообщение, похоже, отсутствует.",
   "@errorMessageDoesNotSeemToExist": {
     "description": "Error message when loading a message that does not exist."
