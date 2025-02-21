@@ -326,11 +326,13 @@ void main() {
 
     Future<void> prepare(WidgetTester tester, {
       required Narrow narrow,
+      bool? mandatoryTopics,
     }) async {
       await prepareComposeBox(tester,
         narrow: narrow,
         otherUsers: [eg.otherUser, eg.thirdUser],
-        streams: [channel]);
+        streams: [channel],
+        mandatoryTopics: mandatoryTopics);
     }
 
     /// This checks the input's configured hint text without regard to whether
@@ -371,11 +373,20 @@ void main() {
       });
     });
 
-    testWidgets('to TopicNarrow', (tester) async {
-      await prepare(tester,
-        narrow: TopicNarrow(channel.streamId, TopicName('topic')));
-      checkComposeBoxHintTexts(tester,
-        contentHintText: 'Message #${channel.name} > topic');
+    group('to TopicNarrow', () {
+      testWidgets('with non-empty topic', (tester) async {
+        await prepare(tester,
+          narrow: TopicNarrow(channel.streamId, TopicName('topic')));
+        checkComposeBoxHintTexts(tester,
+          contentHintText: 'Message #${channel.name} > topic');
+      });
+
+      testWidgets('with empty topic', (tester) async {
+        await prepare(tester,
+          narrow: TopicNarrow(channel.streamId, TopicName('')));
+        checkComposeBoxHintTexts(tester, contentHintText:
+          'Message #${channel.name} > ${eg.defaultRealmEmptyTopicDisplayName}');
+      }, skip: true); // null topic names soon to be enabled
     });
 
     testWidgets('to DmNarrow with self', (tester) async {
