@@ -251,20 +251,10 @@ class HeadingNode extends BlockInlineContainerNode {
   }
 }
 
-enum ListStyle { ordered, unordered }
+sealed class ListNode extends BlockContentNode {
+  const ListNode({required this.items, super.debugHtmlNode});
 
-class ListNode extends BlockContentNode {
-  const ListNode(this.style, this.items, {super.debugHtmlNode});
-
-  final ListStyle style;
   final List<List<BlockContentNode>> items;
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(FlagProperty('ordered', value: style == ListStyle.ordered,
-      ifTrue: 'ordered', ifFalse: 'unordered'));
-  }
 
   @override
   List<DiagnosticsNode> debugDescribeChildren() {
@@ -272,6 +262,22 @@ class ListNode extends BlockContentNode {
       .mapIndexed((i, nodes) =>
         _BlockContentListNode(nodes).toDiagnosticsNode(name: 'item $i'))
       .toList();
+  }
+}
+
+class UnorderedListNode extends ListNode {
+  const UnorderedListNode({required super.items, super.debugHtmlNode});
+}
+
+class OrderedListNode extends ListNode {
+  const OrderedListNode({required super.items, required this.start, super.debugHtmlNode});
+
+  final int start;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(IntProperty('start', start));
   }
 }
 
@@ -1056,12 +1062,7 @@ class _ZulipContentParser {
   }
 
   BlockContentNode parseListNode(dom.Element element) {
-    ListStyle? listStyle;
-    switch (element.localName) {
-      case 'ol': listStyle = ListStyle.ordered; break;
-      case 'ul': listStyle = ListStyle.unordered; break;
-    }
-    assert(listStyle != null);
+    assert(element.localName == 'ol' || element.localName == 'ul');
     assert(element.className.isEmpty);
 
     final debugHtmlNode = kDebugMode ? element : null;
@@ -1074,7 +1075,15 @@ class _ZulipContentParser {
       items.add(parseImplicitParagraphBlockContentList(item.nodes));
     }
 
-    return ListNode(listStyle!, items, debugHtmlNode: debugHtmlNode);
+    if (element.localName == 'ol') {
+      final startAttr = element.attributes['start'];
+      final start = startAttr == null ? 1
+        : int.tryParse(startAttr, radix: 10);
+      if (start == null) return UnimplementedBlockContentNode(htmlNode: element);
+      return OrderedListNode(start: start, items: items, debugHtmlNode: debugHtmlNode);
+    } else {
+      return UnorderedListNode(items: items, debugHtmlNode: debugHtmlNode);
+    }
   }
 
   BlockContentNode parseSpoilerNode(dom.Element divElement) {
