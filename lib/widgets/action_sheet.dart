@@ -29,11 +29,11 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 
-void _showActionSheet(
+ModalStatus _showActionSheet(
   BuildContext context, {
   required List<Widget> optionButtons,
 }) {
-  showModalBottomSheet<void>(
+  final future = showModalBottomSheet<void>(
     context: context,
     // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
     // on my iPhone 13 Pro but is marked as "much slower":
@@ -63,6 +63,7 @@ void _showActionSheet(
               const ActionSheetCancelButton(),
             ])));
     });
+  return ModalStatus(future);
 }
 
 /// A button in an action sheet.
@@ -464,7 +465,7 @@ class ResolveUnresolveButton extends ActionSheetMenuItemButton {
 /// Show a sheet of actions you can take on a message in the message list.
 ///
 /// Must have a [MessageListPage] ancestor.
-void showMessageActionSheet({required BuildContext context, required Message message}) {
+ModalStatus showMessageActionSheet({required BuildContext context, required Message message}) {
   final pageContext = PageRoot.contextOf(context);
   final store = PerAccountStoreWidget.of(pageContext);
 
@@ -492,7 +493,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
     ShareButton(message: message, pageContext: pageContext),
   ];
 
-  _showActionSheet(pageContext, optionButtons: optionButtons);
+  return _showActionSheet(pageContext, optionButtons: optionButtons);
 }
 
 abstract class MessageActionSheetMenuItemButton extends ActionSheetMenuItemButton {
