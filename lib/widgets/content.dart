@@ -20,6 +20,7 @@ import 'dialog.dart';
 import 'icons.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
+import 'page.dart';
 import 'poll.dart';
 import 'store.dart';
 import 'text.dart';
@@ -638,6 +639,7 @@ class MessageImage extends StatelessWidget {
     // TODO image hover animation
     final srcUrl = node.srcUrl;
     final thumbnailUrl = node.thumbnailUrl;
+    final pageContext = PageRoot.contextOf(context);
     final store = PerAccountStoreWidget.of(context);
     final resolvedSrcUrl = store.tryResolveUrl(srcUrl);
     final resolvedThumbnailUrl = thumbnailUrl == null
@@ -653,12 +655,14 @@ class MessageImage extends StatelessWidget {
           src: resolvedSrcUrl,
           thumbnailUrl: resolvedThumbnailUrl,
           originalWidth: node.originalWidth,
-          originalHeight: node.originalHeight));
+          originalHeight: node.originalHeight,
+          pageContext: pageContext));
       },
       child: node.loading
         ? const CupertinoActivityIndicator()
         : resolvedSrcUrl == null ? null : LightboxHero(
             message: message,
+            pageContext: pageContext,
             src: resolvedSrcUrl,
             child: RealmContentNetworkImage(
               resolvedThumbnailUrl ?? resolvedSrcUrl,
