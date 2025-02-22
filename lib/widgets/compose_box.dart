@@ -196,7 +196,10 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   // Zulip expresses channels and topics, not any normal English punctuation,
   // so don't make sense to translate. See:
   //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-  String getDestinationString({required String streamName}) {
+  String getDestinationString({
+    required String streamName,
+    required bool contentHasFocus,
+  }) {
     if (mandatory && isTopicVacuous) {
       return '#$streamName';
     }
@@ -205,7 +208,12 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
     if (textNormalized.isEmpty) {
       // [textNormalized] cannot be empty prior to empty topics.
       assert(store.connection.zulipFeatureLevel! >= 334);
-      return '#$streamName > ${store.realmEmptyTopicDisplayName}';
+      // We do not fall back to a default topic when the user is just looking
+      // at the channel narrow, because we would expect a call to action for
+      // the user to pick a topic first.
+      return contentHasFocus
+        ? '#$streamName > ${store.realmEmptyTopicDisplayName}'
+        : '#$streamName';
     }
 
     return '#$streamName > $textNormalized';
@@ -602,10 +610,17 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     });
   }
 
+  void _contentFocusChanged() {
+    setState(() {
+      // The relevant state lives on widget.controller.contentFocusNode itself.
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     widget.controller.topic.addListener(_topicChanged);
+    widget.controller.contentFocusNode.addListener(_contentFocusChanged);
   }
 
   @override
@@ -615,11 +630,16 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       oldWidget.controller.topic.removeListener(_topicChanged);
       widget.controller.topic.addListener(_topicChanged);
     }
+    if (widget.controller.contentFocusNode != oldWidget.controller.contentFocusNode) {
+      oldWidget.controller.contentFocusNode.removeListener(_contentFocusChanged);
+      widget.controller.contentFocusNode.addListener(_contentFocusChanged);
+    }
   }
 
   @override
   void dispose() {
     widget.controller.topic.removeListener(_topicChanged);
+    widget.controller.contentFocusNode.removeListener(_contentFocusChanged);
     super.dispose();
   }
 
@@ -635,7 +655,9 @@ class _StreamContentInputState extends State<_StreamContentInput> {
         TopicName(widget.controller.topic.textNormalized)),
       controller: widget.controller,
       hintText: zulipLocalizations.composeBoxChannelContentHint(
-        widget.controller.topic.getDestinationString(streamName: streamName)));
+        widget.controller.topic.getDestinationString(
+          streamName: streamName,
+          contentHasFocus: widget.controller.contentFocusNode.hasFocus)));
   }
 }
 
