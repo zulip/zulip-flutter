@@ -231,3 +231,37 @@ abstract final class ZulipAction {
     }
   }
 }
+
+// Update width calculation to include text content and padding
+double calculateMarkerWidth(int number) {
+  final digitCount = number.toString().length;
+  final totalCharacters = digitCount + 1; // Number + dot
+  const characterWidth = 14.0; // Approximate width per character
+  const rightPadding = 4.0;     // Matching the widget's padding
+  return (totalCharacters * characterWidth) + rightPadding;
+}
+
+// Example usage in a widget
+Widget buildOrderedList(List<String> items) {
+  return ListView.builder(
+    itemCount: items.length,
+    itemBuilder: (context, index) {
+      final markerWidth = calculateMarkerWidth(index + 1);
+      return Row(
+        children: [
+          Container(
+            width: markerWidth,
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 4.0),
+              child: Text('${index + 1}.'),
+            ),
+          ),
+          Expanded(
+            child: Text(items[index]),
+          ),
+        ],
+      );
+    },
+  );
+}
