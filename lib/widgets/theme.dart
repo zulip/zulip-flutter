@@ -121,110 +121,123 @@ const kZulipBrandColor = Color.fromRGBO(0x64, 0x92, 0xfe, 1);
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2945-49492&t=MEb4vtp7S26nntxm-0
 class DesignVariables extends ThemeExtension<DesignVariables> {
   static final light = DesignVariables._(
-    background: const Color(0xffffffff),
-    bannerBgIntDanger: const Color(0xfff2e4e4),
-    bgBotBar: const Color(0xfff6f6f6),
-    bgContextMenu: const Color(0xfff2f2f2),
-    bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.15),
-    bgMenuButtonActive: Colors.black.withValues(alpha: 0.05),
-    bgMenuButtonSelected: Colors.white,
-    bgTopBar: const Color(0xfff5f5f5),
-    borderBar: Colors.black.withValues(alpha: 0.2),
-    borderMenuButtonSelected: Colors.black.withValues(alpha: 0.2),
-    btnLabelAttLowIntDanger: const Color(0xffc0070a),
-    btnLabelAttMediumIntDanger: const Color(0xffac0508),
-    composeBoxBg: const Color(0xffffffff),
-    contextMenuCancelText: const Color(0xff222222),
-    contextMenuItemBg: const Color(0xff6159e1),
-    contextMenuItemText: const Color(0xff381da7),
-    editorButtonPressedBg: Colors.black.withValues(alpha: 0.06),
-    foreground: const Color(0xff000000),
-    icon: const Color(0xff6159e1),
-    iconSelected: const Color(0xff222222),
-    labelCounterUnread: const Color(0xff222222),
-    labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
-    labelMenuButton: const Color(0xff222222),
-    mainBackground: const Color(0xfff0f0f0),
-    textInput: const Color(0xff000000),
-    title: const Color(0xff1a1a1a),
-    bgSearchInput: const Color(0xffe3e3e3),
-    textMessage: const Color(0xff262626),
-    channelColorSwatches: ChannelColorSwatches.light,
-    colorMessageHeaderIconInteractive: Colors.black.withValues(alpha: 0.2),
-    contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15),
-    contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20),
-    dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
-    groupDmConversationIcon: Colors.black.withValues(alpha: 0.5),
-    groupDmConversationIconBg: const Color(0x33808080),
-    inboxItemIconMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
-    loginOrDivider: const Color(0xffdedede),
-    loginOrDividerText: const Color(0xff575757),
-    modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.3),
-    mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.8).toColor(),
-    navigationButtonBg: Colors.black.withValues(alpha: 0.05),
-    sectionCollapseIcon: const Color(0x7f1e2e48),
-    star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
-    subscriptionListHeaderLine: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor(),
-    subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
-    unreadCountBadgeTextForChannel: Colors.black.withValues(alpha: 0.9),
-  );
+      background: const Color(0xffffffff),
+      bannerBgIntDanger: const Color(0xfff2e4e4),
+      bgBotBar: const Color(0xfff6f6f6),
+      bgContextMenu: const Color(0xfff2f2f2),
+      bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.15),
+      bgMenuButtonActive: Colors.black.withValues(alpha: 0.05),
+      bgMenuButtonSelected: Colors.white,
+      bgTopBar: const Color(0xfff5f5f5),
+      borderBar: Colors.black.withValues(alpha: 0.2),
+      borderMenuButtonSelected: Colors.black.withValues(alpha: 0.2),
+      btnLabelAttLowIntDanger: const Color(0xffc0070a),
+      btnLabelAttMediumIntDanger: const Color(0xffac0508),
+      composeBoxBg: const Color(0xffffffff),
+      contextMenuCancelText: const Color(0xff222222),
+      contextMenuItemBg: const Color(0xff6159e1),
+      contextMenuItemText: const Color(0xff381da7),
+      contextMenuItemIcon: const Color(0xff4F42C9),
+      editorButtonPressedBg: Colors.black.withValues(alpha: 0.06),
+      fabBg: const Color(0xFF6E69F3),
+      fabLabel: const Color(0xffECEEFC),
+      foreground: const Color(0xff000000),
+      icon: const Color(0xff6159e1),
+      iconSelected: const Color(0xff222222),
+      labelCounterUnread: const Color(0xff222222),
+      labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
+      labelMenuButton: const Color(0xff222222),
+      labelSearchPrompt: const Color(0xff000000).withValues(alpha: 0.5),
+      mainBackground: const Color(0xfff0f0f0),
+      textInput: const Color(0xff000000),
+      title: const Color(0xff1a1a1a),
+      bgSearchInput: const Color(0xffe3e3e3),
+      textMessage: const Color(0xff262626),
+      channelColorSwatches: ChannelColorSwatches.light,
+      colorMessageHeaderIconInteractive: Colors.black.withValues(alpha: 0.2),
+      contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15),
+      contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20),
+      dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
+      groupDmConversationIcon: Colors.black.withValues(alpha: 0.5),
+      groupDmConversationIconBg: const Color(0x33808080),
+      inboxItemIconMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
+      loginOrDivider: const Color(0xffdedede),
+      loginOrDividerText: const Color(0xff575757),
+      modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.3),
+      mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.8).toColor(),
+      navigationButtonBg: Colors.black.withValues(alpha: 0.05),
+      radioFillSelected: const Color(0xff4370F0),
+      sectionCollapseIcon: const Color(0x7f1e2e48),
+      star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
+      subscriptionListHeaderLine: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor(),
+      subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
+      statusOnline: const Color(0xff46AA62),
+      unreadCountBadgeTextForChannel: Colors.black.withValues(alpha: 0.9),
+    );
 
   static final dark = DesignVariables._(
-    background: const Color(0xff000000),
-    bannerBgIntDanger: const Color(0xff461616),
-    bgBotBar: const Color(0xff222222),
-    bgContextMenu: const Color(0xff262626),
-    bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
-    bgMenuButtonActive: Colors.black.withValues(alpha: 0.2),
-    bgMenuButtonSelected: Colors.black.withValues(alpha: 0.25),
-    bgTopBar: const Color(0xff242424),
-    borderBar: const Color(0xffffffff).withValues(alpha: 0.1),
-    borderMenuButtonSelected: Colors.white.withValues(alpha: 0.1),
-    btnLabelAttLowIntDanger: const Color(0xffff8b7c),
-    btnLabelAttMediumIntDanger: const Color(0xffff8b7c),
-    composeBoxBg: const Color(0xff0f0f0f),
-    contextMenuCancelText: const Color(0xffffffff).withValues(alpha: 0.75),
-    contextMenuItemBg: const Color(0xff7977fe),
-    contextMenuItemText: const Color(0xff9398fd),
-    editorButtonPressedBg: Colors.white.withValues(alpha: 0.06),
-    foreground: const Color(0xffffffff),
-    icon: const Color(0xff7977fe),
-    iconSelected: Colors.white.withValues(alpha: 0.8),
-    labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
-    labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
-    labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
-    mainBackground: const Color(0xff1d1d1d),
-    textInput: const Color(0xffffffff).withValues(alpha: 0.9),
-    title: const Color(0xffffffff),
-    bgSearchInput: const Color(0xff313131),
-    textMessage: const Color(0xffffffff).withValues(alpha: 0.8),
-    channelColorSwatches: ChannelColorSwatches.dark,
-    contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15), // the same as the light mode in Figma
-    contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20), // the same as the light mode in Figma
-    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-    colorMessageHeaderIconInteractive: Colors.white.withValues(alpha: 0.2),
-    dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
-    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-    groupDmConversationIcon: Colors.white.withValues(alpha: 0.5),
-    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-    groupDmConversationIconBg: const Color(0x33cccccc),
-    inboxItemIconMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
-    loginOrDivider: const Color(0xff424242),
-    loginOrDividerText: const Color(0xffa8a8a8),
-    modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.5),
-    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-    mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.6).toColor(),
-    navigationButtonBg: Colors.white.withValues(alpha: 0.05),
-    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-    sectionCollapseIcon: const Color(0x7fb6c8e2),
-    // TODO(design-dark) unchanged in dark theme?
-    star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
-    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-    subscriptionListHeaderLine: const HSLColor.fromAHSL(0.4, 240, 0.1, 0.75).toColor(),
-    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-    subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.75).toColor(),
-    unreadCountBadgeTextForChannel: Colors.white.withValues(alpha: 0.9),
-  );
+      background: const Color(0xff000000),
+      bannerBgIntDanger: const Color(0xff461616),
+      bgBotBar: const Color(0xff222222),
+      bgContextMenu: const Color(0xff262626),
+      bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
+      bgMenuButtonActive: Colors.black.withValues(alpha: 0.2),
+      bgMenuButtonSelected: Colors.black.withValues(alpha: 0.25),
+      bgTopBar: const Color(0xff242424),
+      borderBar: Colors.black.withValues(alpha: 0.1),
+      borderMenuButtonSelected: Colors.white.withValues(alpha: 0.1),
+      btnLabelAttLowIntDanger: const Color(0xffff8b7c),
+      btnLabelAttMediumIntDanger: const Color(0xffff8b7c),
+      composeBoxBg: const Color(0xff0f0f0f),
+      contextMenuCancelText: const Color(0xffffffff).withValues(alpha: 0.75),
+      contextMenuItemBg: const Color(0xff7977fe),
+      contextMenuItemText: const Color(0xff9398fd),
+      contextMenuItemIcon: const Color(0xff9398FD),
+      editorButtonPressedBg: Colors.white.withValues(alpha: 0.06),
+      fabBg: const Color(0xFF4F42C9),
+      fabLabel: const Color(0xffECEEFC),
+      foreground: const Color(0xffffffff),
+      icon: const Color(0xff7977fe),
+      iconSelected: Colors.white.withValues(alpha: 0.8),
+      labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
+      labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
+      labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
+      labelSearchPrompt: const Color(0xffffffff).withValues(alpha: 0.5),
+      mainBackground: const Color(0xff1d1d1d),
+      textInput: const Color(0xffffffff).withValues(alpha: 0.9),
+      title: const Color(0xffffffff),
+      bgSearchInput: const Color(0xff313131),
+      textMessage: const Color(0xffffffff).withValues(alpha: 0.8),
+      channelColorSwatches: ChannelColorSwatches.dark,
+      contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15), // the same as the light mode in Figma
+      contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20), // the same as the light mode in Figma
+      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+      colorMessageHeaderIconInteractive: Colors.white.withValues(alpha: 0.2),
+      dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
+      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+      groupDmConversationIcon: Colors.white.withValues(alpha: 0.5),
+      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+      groupDmConversationIconBg: const Color(0x33cccccc),
+      inboxItemIconMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
+      loginOrDivider: const Color(0xff424242),
+      loginOrDividerText: const Color(0xffa8a8a8),
+      modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.5),
+      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+      mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.6).toColor(),
+      navigationButtonBg: Colors.white.withValues(alpha: 0.05),
+      radioFillSelected: const Color(0xff4E7CFA),
+      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+      sectionCollapseIcon: const Color(0x7fb6c8e2),
+      // TODO(design-dark) unchanged in dark theme?
+      star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
+      statusOnline: const Color(0xff46AA62),
+      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+      subscriptionListHeaderLine: const HSLColor.fromAHSL(0.4, 240, 0.1, 0.75).toColor(),
+      // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+      subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.75).toColor(),
+      unreadCountBadgeTextForChannel: Colors.white.withValues(alpha: 0.9),
+    );
+
 
   DesignVariables._({
     required this.background,
@@ -243,7 +256,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.contextMenuCancelText,
     required this.contextMenuItemBg,
     required this.contextMenuItemText,
+    required this.contextMenuItemIcon,
     required this.editorButtonPressedBg,
+    required this.fabBg,
+    required this.fabLabel,
     required this.foreground,
     required this.icon,
     required this.iconSelected,
@@ -273,6 +289,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.subscriptionListHeaderLine,
     required this.subscriptionListHeaderText,
     required this.unreadCountBadgeTextForChannel,
+    required this.labelSearchPrompt,
+    required this.radioFillSelected,
+    required this.statusOnline,
   });
 
   /// The [DesignVariables] from the context's active theme.
@@ -301,7 +320,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color contextMenuCancelText;
   final Color contextMenuItemBg;
   final Color contextMenuItemText;
+  final Color contextMenuItemIcon;
   final Color editorButtonPressedBg;
+  final Color fabBg;
+  final Color fabLabel;
   final Color foreground;
   final Color icon;
   final Color iconSelected;
@@ -335,6 +357,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color subscriptionListHeaderLine;
   final Color subscriptionListHeaderText;
   final Color unreadCountBadgeTextForChannel;
+  final Color labelSearchPrompt;
+  final Color radioFillSelected;
+  final Color statusOnline;
 
   @override
   DesignVariables copyWith({
@@ -354,6 +379,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? contextMenuCancelText,
     Color? contextMenuItemBg,
     Color? contextMenuItemText,
+    Color? contextMenuItemIcon,
     Color? editorButtonPressedBg,
     Color? foreground,
     Color? icon,
@@ -361,6 +387,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? labelCounterUnread,
     Color? labelEdited,
     Color? labelMenuButton,
+    Color? labelSearchPrompt,
     Color? mainBackground,
     Color? textInput,
     Color? title,
@@ -379,8 +406,12 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? modalBarrierColor,
     Color? mutedUnreadBadge,
     Color? navigationButtonBg,
+    Color? fabBg,
+    Color? fabLabel,
+    Color? radioFillSelected,
     Color? sectionCollapseIcon,
     Color? star,
+    Color? statusOnline,
     Color? subscriptionListHeaderLine,
     Color? subscriptionListHeaderText,
     Color? unreadCountBadgeTextForChannel,
@@ -402,6 +433,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       contextMenuCancelText: contextMenuCancelText ?? this.contextMenuCancelText,
       contextMenuItemBg: contextMenuItemBg ?? this.contextMenuItemBg,
       contextMenuItemText: contextMenuItemText ?? this.contextMenuItemBg,
+      contextMenuItemIcon: contextMenuItemIcon ?? this.contextMenuItemIcon,
       editorButtonPressedBg: editorButtonPressedBg ?? this.editorButtonPressedBg,
       foreground: foreground ?? this.foreground,
       icon: icon ?? this.icon,
@@ -427,11 +459,16 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       modalBarrierColor: modalBarrierColor ?? this.modalBarrierColor,
       mutedUnreadBadge: mutedUnreadBadge ?? this.mutedUnreadBadge,
       navigationButtonBg: navigationButtonBg ?? this.navigationButtonBg,
+      fabBg: fabBg ?? this.fabBg,
+      fabLabel: fabLabel ?? this.fabLabel,
       sectionCollapseIcon: sectionCollapseIcon ?? this.sectionCollapseIcon,
       star: star ?? this.star,
       subscriptionListHeaderLine: subscriptionListHeaderLine ?? this.subscriptionListHeaderLine,
       subscriptionListHeaderText: subscriptionListHeaderText ?? this.subscriptionListHeaderText,
       unreadCountBadgeTextForChannel: unreadCountBadgeTextForChannel ?? this.unreadCountBadgeTextForChannel,
+      labelSearchPrompt: labelSearchPrompt ?? this.labelSearchPrompt,
+      radioFillSelected: radioFillSelected ?? this.radioFillSelected,
+      statusOnline: statusOnline ?? this.statusOnline,
     );
   }
 
@@ -482,11 +519,17 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       modalBarrierColor: Color.lerp(modalBarrierColor, other.modalBarrierColor, t)!,
       mutedUnreadBadge: Color.lerp(mutedUnreadBadge, other.mutedUnreadBadge, t)!,
       navigationButtonBg: Color.lerp(navigationButtonBg, other.navigationButtonBg, t)!,
+      fabBg: Color.lerp(fabBg, other.fabBg, t)!,
+      fabLabel: Color.lerp(fabLabel, other.fabLabel, t)!,
       sectionCollapseIcon: Color.lerp(sectionCollapseIcon, other.sectionCollapseIcon, t)!,
       star: Color.lerp(star, other.star, t)!,
       subscriptionListHeaderLine: Color.lerp(subscriptionListHeaderLine, other.subscriptionListHeaderLine, t)!,
       subscriptionListHeaderText: Color.lerp(subscriptionListHeaderText, other.subscriptionListHeaderText, t)!,
       unreadCountBadgeTextForChannel: Color.lerp(unreadCountBadgeTextForChannel, other.unreadCountBadgeTextForChannel, t)!,
+      contextMenuItemIcon: Color.lerp(contextMenuItemIcon, other.contextMenuItemIcon, t)!,
+      labelSearchPrompt: Color.lerp(labelSearchPrompt, other.labelSearchPrompt, t)!,
+      radioFillSelected: Color.lerp(radioFillSelected, other.radioFillSelected, t)!,
+      statusOnline: Color.lerp(statusOnline, other.statusOnline, t)!,
     );
   }
 }
