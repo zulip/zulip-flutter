@@ -47,6 +47,7 @@ void main() {
     List<User> otherUsers = const [],
     List<ZulipStream> streams = const [],
     bool? mandatoryTopics,
+    int? zulipFeatureLevel,
   }) async {
     if (narrow case ChannelNarrow(:var streamId) || TopicNarrow(: var streamId)) {
       assert(streams.any((stream) => stream.streamId == streamId),
@@ -54,8 +55,10 @@ void main() {
     }
     addTearDown(testBinding.reset);
     selfUser ??= eg.selfUser;
-    final selfAccount = eg.account(user: selfUser);
+    zulipFeatureLevel ??= eg.futureZulipFeatureLevel;
+    final selfAccount = eg.account(user: selfUser, zulipFeatureLevel: zulipFeatureLevel);
     await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
+      zulipFeatureLevel: zulipFeatureLevel,
       realmMandatoryTopics: mandatoryTopics,
     ));
 
@@ -326,11 +329,15 @@ void main() {
 
     Future<void> prepare(WidgetTester tester, {
       required Narrow narrow,
+      bool? mandatoryTopics,
+      int? zulipFeatureLevel,
     }) async {
       await prepareComposeBox(tester,
         narrow: narrow,
         otherUsers: [eg.otherUser, eg.thirdUser],
-        streams: [channel]);
+        streams: [channel],
+        mandatoryTopics: mandatoryTopics,
+        zulipFeatureLevel: zulipFeatureLevel);
     }
 
     /// This checks the input's configured hint text without regard to whether
@@ -351,9 +358,31 @@ void main() {
         .decoration.isNotNull().hintText.equals(contentHintText);
     }
 
-    group('to ChannelNarrow', () {
-      testWidgets('with empty topic', (tester) async {
-        await prepare(tester, narrow: ChannelNarrow(channel.streamId));
+    group('to ChannelNarrow, topics not mandatory', () {
+      testWidgets('with empty topic, content input has focus', (tester) async {
+        await prepare(tester, narrow: ChannelNarrow(channel.streamId),
+          mandatoryTopics: false);
+        await enterContent(tester, '');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name} > ${eg.defaultRealmEmptyTopicDisplayName}');
+      });
+
+      testWidgets('with empty topic, topic input has focus', (tester) async {
+        final narrow = ChannelNarrow(channel.streamId);
+        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await enterTopic(tester, narrow: narrow, topic: '');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name}');
+      });
+
+      testWidgets('legacy: with empty topic', (tester) async {
+        await prepare(tester, narrow: ChannelNarrow(channel.streamId),
+          mandatoryTopics: false,
+          zulipFeatureLevel: 333);
         checkComposeBoxHintTexts(tester,
           topicHintText: 'Topic',
           contentHintText: 'Message #${channel.name} > (no topic)');
@@ -361,7 +390,8 @@ void main() {
 
       testWidgets('with non-empty topic', (tester) async {
         final narrow = ChannelNarrow(channel.streamId);
-        await prepare(tester, narrow: narrow);
+        await prepare(tester, narrow: narrow,
+          mandatoryTopics: false);
         await enterTopic(tester, narrow: narrow, topic: 'new topic');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
@@ -370,11 +400,52 @@ void main() {
       });
     });
 
-    testWidgets('to TopicNarrow', (tester) async {
-      await prepare(tester,
-        narrow: TopicNarrow(channel.streamId, TopicName('topic')));
-      checkComposeBoxHintTexts(tester,
-        contentHintText: 'Message #${channel.name} > topic');
+    group('to ChannelNarrow, mandatory topics', () {
+      testWidgets('with empty topic', (tester) async {
+        await prepare(tester, narrow: ChannelNarrow(channel.streamId),
+          mandatoryTopics: true);
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name}');
+      });
+
+      testWidgets('legacy: with empty topic', (tester) async {
+        await prepare(tester, narrow: ChannelNarrow(channel.streamId),
+          mandatoryTopics: true,
+          zulipFeatureLevel: 333);
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name}');
+      });
+
+      testWidgets('with non-empty topic', (tester) async {
+        final narrow = ChannelNarrow(channel.streamId);
+        await prepare(tester, narrow: narrow,
+          mandatoryTopics: true);
+        await enterTopic(tester, narrow: narrow, topic: 'new topic');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name} > new topic');
+      });
+    });
+
+    group('to TopicNarrow', () {
+      testWidgets('to TopicNarrow with non-empty topic', (tester) async {
+        await prepare(tester,
+          narrow: TopicNarrow(channel.streamId, TopicName('topic')),
+          mandatoryTopics: false);
+        checkComposeBoxHintTexts(tester,
+          contentHintText: 'Message #${channel.name} > topic');
+      });
+
+      testWidgets('to TopicNarrow with empty topic', (tester) async {
+        await prepare(tester,
+          narrow: TopicNarrow(channel.streamId, TopicName('')),
+          mandatoryTopics: false);
+        checkComposeBoxHintTexts(tester, contentHintText:
+          'Message #${channel.name} > ${eg.defaultRealmEmptyTopicDisplayName}');
+      });
     });
 
     testWidgets('to DmNarrow with self', (tester) async {
@@ -653,6 +724,7 @@ void main() {
     Future<void> setupAndTapSend(WidgetTester tester, {
       required String topicInputText,
       required bool mandatoryTopics,
+      int? zulipFeatureLevel,
     }) async {
       TypingNotifier.debugEnable = false;
       addTearDown(TypingNotifier.debugReset);
@@ -661,7 +733,8 @@ void main() {
       final narrow = ChannelNarrow(channel.streamId);
       await prepareComposeBox(tester,
         narrow: narrow, streams: [channel],
-        mandatoryTopics: mandatoryTopics);
+        mandatoryTopics: mandatoryTopics,
+        zulipFeatureLevel: zulipFeatureLevel);
 
       await enterTopic(tester, narrow: narrow, topic: topicInputText);
       await tester.enterText(contentInputFinder, 'test content');
@@ -676,10 +749,21 @@ void main() {
         expectedMessage: 'Topics are required in this organization.');
     }
 
-    testWidgets('empty topic -> "(no topic)"', (tester) async {
+    testWidgets('empty topic -> empty topic', (tester) async {
       await setupAndTapSend(tester,
         topicInputText: '',
         mandatoryTopics: false);
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields['topic'].equals('');
+    });
+
+    testWidgets('legacy: empty topic -> "(no topic)"', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '',
+        mandatoryTopics: false,
+        zulipFeatureLevel: 333);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
@@ -693,10 +777,25 @@ void main() {
       checkMessageNotSent(tester);
     });
 
+    testWidgets('if topics are mandatory, reject `realmEmptyTopicDisplayName`', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: eg.defaultRealmEmptyTopicDisplayName,
+        mandatoryTopics: true);
+      checkMessageNotSent(tester);
+    });
+
     testWidgets('if topics are mandatory, reject "(no topic)"', (tester) async {
       await setupAndTapSend(tester,
         topicInputText: '(no topic)',
         mandatoryTopics: true);
+      checkMessageNotSent(tester);
+    });
+
+    testWidgets('legacy: if topics are mandatory, reject "(no topic)"', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '(no topic)',
+        mandatoryTopics: true,
+        zulipFeatureLevel: 333);
       checkMessageNotSent(tester);
     });
   });

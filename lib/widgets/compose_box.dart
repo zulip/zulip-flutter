@@ -157,7 +157,12 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   @override
   String _computeTextNormalized() {
     String trimmed = text.trim();
-    return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    // TODO(server-10): simplify
+    if (store.connection.zulipFeatureLevel! < 334) {
+      return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    }
+
+    return trimmed;
   }
 
   /// Whether [textNormalized] would fail a mandatory-topics check
@@ -165,7 +170,54 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   ///
   /// The term "Vacuous" draws distinction from [String.isEmpty], in the sense
   /// that certain strings are not empty but also indicate the absence of a topic.
-  bool get isTopicVacuous => textNormalized == kNoTopicTopic;
+  bool get isTopicVacuous {
+    bool result = textNormalized.isEmpty
+      // We keep checking for '(no topic)' regardless of the feature level
+      // because it remains equivalent to an empty topic even when FL >= 334.
+      // This can change in the future:
+      //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/.28realm_.29mandatory_topics.20behavior/near/2062391
+      || textNormalized == kNoTopicTopic;
+
+    // TODO(server-10): simplify
+    if (store.connection.zulipFeatureLevel! >= 334) {
+      result |= textNormalized == store.realmEmptyTopicDisplayName;
+    }
+
+    return result;
+  }
+
+  /// The send destination as a string.
+  ///
+  /// This returns a string formatted like "#stream name" when topics are
+  /// mandatory but [textNormalized] is vacuous (see [isTopicVacuous]).
+  ///
+  /// Otherwise, returns a string formatted like "#stream name > topic name".
+  // No i18n of the use of "#" and ">" strings; those are part of how
+  // Zulip expresses channels and topics, not any normal English punctuation,
+  // so don't make sense to translate. See:
+  //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
+  String getDestinationString({
+    required String streamName,
+    required bool contentHasFocus,
+  }) {
+    if (mandatory && isTopicVacuous) {
+      return '#$streamName';
+    }
+
+    // TODO(server-10): simplify
+    if (textNormalized.isEmpty) {
+      // [textNormalized] cannot be empty prior to empty topics.
+      assert(store.connection.zulipFeatureLevel! >= 334);
+      // We do not fall back to a default topic when the user is just looking
+      // at the channel narrow, because we would expect a call to action for
+      // the user to pick a topic first.
+      return contentHasFocus
+        ? '#$streamName > ${store.realmEmptyTopicDisplayName}'
+        : '#$streamName';
+    }
+
+    return '#$streamName > $textNormalized';
+  }
 
   @override
   List<TopicValidationError> _computeValidationErrors() {
@@ -182,7 +234,7 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   void setTopic(TopicName newTopic) {
-    value = TextEditingValue(text: newTopic.displayName);
+    value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
 
@@ -557,10 +609,17 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     });
   }
 
+  void _contentFocusChanged() {
+    setState(() {
+      // The relevant state lives on widget.controller.contentFocusNode itself.
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     widget.controller.topic.addListener(_topicChanged);
+    widget.controller.contentFocusNode.addListener(_contentFocusChanged);
   }
 
   @override
@@ -570,11 +629,16 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       oldWidget.controller.topic.removeListener(_topicChanged);
       widget.controller.topic.addListener(_topicChanged);
     }
+    if (widget.controller.contentFocusNode != oldWidget.controller.contentFocusNode) {
+      oldWidget.controller.contentFocusNode.removeListener(_contentFocusChanged);
+      widget.controller.contentFocusNode.addListener(_contentFocusChanged);
+    }
   }
 
   @override
   void dispose() {
     widget.controller.topic.removeListener(_topicChanged);
+    widget.controller.contentFocusNode.removeListener(_contentFocusChanged);
     super.dispose();
   }
 
@@ -584,17 +648,15 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.unknownChannelName;
-    final topic = TopicName(widget.controller.topic.textNormalized);
     return _ContentInput(
       narrow: widget.narrow,
-      destination: TopicNarrow(widget.narrow.streamId, topic),
+      destination: TopicNarrow(widget.narrow.streamId,
+        TopicName(widget.controller.topic.textNormalized)),
       controller: widget.controller,
       hintText: zulipLocalizations.composeBoxChannelContentHint(
-        // No i18n of this use of "#" and ">" string; those are part of how
-        // Zulip expresses channels and topics, not any normal English punctuation,
-        // so don't make sense to translate. See:
-        //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-        '#$streamName > ${topic.displayName}'));
+        widget.controller.topic.getDestinationString(
+          streamName: streamName,
+          contentHasFocus: widget.controller.contentFocusNode.hasFocus)));
   }
 }
 
@@ -657,7 +719,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
           // Zulip expresses channels and topics, not any normal English punctuation,
           // so don't make sense to translate. See:
           //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-          '#$streamName > ${topic.displayName}');
+          '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;

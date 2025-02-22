@@ -334,16 +334,11 @@ void main() {
   });
 
   group('TopicAutocomplete', () {
-    void checkTopicShown(GetStreamTopicsEntry topic, PerAccountStore store, {required bool expected}) {
-      check(find.text(topic.name.displayName).evaluate().length).equals(expected ? 1 : 0);
-    }
-
     testWidgets('options appear, disappear, and change correctly', (WidgetTester tester) async {
       final topic1 = eg.getStreamTopicsEntry(maxId: 1, name: 'Topic one');
       final topic2 = eg.getStreamTopicsEntry(maxId: 2, name: 'Topic two');
       final topic3 = eg.getStreamTopicsEntry(maxId: 3, name: 'Topic three');
       final topicInputFinder = await setupToTopicInput(tester, topics: [topic1, topic2, topic3]);
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       // Options are filtered correctly for query
       // TODO(#226): Remove this extra edit when this bug is fixed.
@@ -352,24 +347,24 @@ void main() {
       await tester.pumpAndSettle();
 
       // "topic three" and "topic two" appear, but not "topic one"
-      checkTopicShown(topic1, store, expected: false);
-      checkTopicShown(topic2, store, expected: true);
-      checkTopicShown(topic3, store, expected: true);
+      check(find.text('Topic one'  )).findsNothing();
+      check(find.text('Topic two'  )).findsOne();
+      check(find.text('Topic three')).findsOne();
 
       // Finishing autocomplete updates topic box; causes options to disappear
       await tester.tap(find.text('Topic three'));
       await tester.pumpAndSettle();
       check(tester.widget<TextField>(topicInputFinder).controller!.text)
-        .equals(topic3.name.displayName);
-      checkTopicShown(topic1, store, expected: false);
-      checkTopicShown(topic2, store, expected: false);
-      checkTopicShown(topic3, store, expected: true); // shown in `_TopicInput` once
+        .equals(topic3.name.displayName!);
+      check(find.text('Topic one'  )).findsNothing();
+      check(find.text('Topic two'  )).findsNothing();
+      check(find.text('Topic three')).findsOne(); // shown in `_TopicInput` once
 
       // Then a new autocomplete intent brings up options again
       await tester.enterText(topicInputFinder, 'Topic');
       await tester.enterText(topicInputFinder, 'Topic T');
       await tester.pumpAndSettle();
-      checkTopicShown(topic2, store, expected: true);
+      check(find.text('Topic two')).findsOne();
     });
 
     testWidgets('text selection is reset on choosing an option', (tester) async {
@@ -405,6 +400,45 @@ void main() {
             const TextSelection.collapsed(offset: 'some topic'.length));
 
       await tester.pump(Duration.zero);
+    });
+
+    testWidgets('display general chat for empty topic', (tester) async {
+      final topic = eg.getStreamTopicsEntry(name: '');
+      final topicInputFinder = await setupToTopicInput(tester, topics: [topic]);
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(topicInputFinder, 'a');
+      await tester.enterText(topicInputFinder, '');
+      await tester.pumpAndSettle();
+
+      check(find.text(eg.defaultRealmEmptyTopicDisplayName)).findsOne();
+    });
+
+    testWidgets('match general chat in autocomplete', (tester) async {
+      final topic = eg.getStreamTopicsEntry(name: '');
+      final topicInputFinder = await setupToTopicInput(tester, topics: [topic]);
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(topicInputFinder, 'general ch');
+      await tester.enterText(topicInputFinder, 'general cha');
+      await tester.pumpAndSettle();
+
+      check(find.text(eg.defaultRealmEmptyTopicDisplayName)).findsOne();
+    });
+
+    testWidgets('autocomplete to general chat sets topic to empty string', (tester) async {
+      final topic = eg.getStreamTopicsEntry(name: '');
+      final topicInputFinder = await setupToTopicInput(tester, topics: [topic]);
+      final controller = tester.widget<TextField>(topicInputFinder).controller!;
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(topicInputFinder, 'general ch');
+      await tester.enterText(topicInputFinder, 'general cha');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(eg.defaultRealmEmptyTopicDisplayName));
+      await tester.pump(Duration.zero);
+      check(controller.value).text.equals('');
     });
   });
 }
