@@ -630,6 +630,9 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   @override
   Iterable<User> get allUsers => _users.allUsers;
 
+  @override
+  bool isUserMuted(int id) => _users.isUserMuted(id);
+
   final UserStoreImpl _users;
 
   final TypingStatus typingStatus;
