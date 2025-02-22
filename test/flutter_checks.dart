@@ -169,3 +169,8 @@ extension TableChecks on Subject<Table> {
 extension IconButtonChecks on Subject<IconButton> {
   Subject<bool?> get isSelected => has((x) => x.isSelected, 'isSelected');
 }
+
+extension OffsetChecks on Subject<Offset> {
+  Subject<double> get dx => has((x) => x.dx, 'dx');
+  Subject<double> get dy => has((x) => x.dy, 'dy');
+}
