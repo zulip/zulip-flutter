@@ -502,6 +502,16 @@ class ListNodeWidget extends StatelessWidget {
   }
 }
 
+// Update the width calculation to match the corrected version from actions.dart
+double calculateMarkerWidth(int number) {
+  final digitCount = number.toString().length;
+  final totalCharacters = digitCount + 1; // Number + dot
+  const characterWidth = 14.0; // Approximate width per character
+  const rightPadding = 4.0;     // Matching the widget's padding
+  return (totalCharacters * characterWidth) + rightPadding;
+}
+
+// Update ListItemWidget to use proper width calculation
 class ListItemWidget extends StatelessWidget {
   const ListItemWidget({super.key, required this.marker, required this.nodes});
 
@@ -510,15 +520,29 @@ class ListItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get index from marker instead of parsing string
+    final index = int.parse(marker.split('.')[0]) - 1;
+    final markerWidth = calculateMarkerWidth(index + 1);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: localizedTextBaseline(context),
       children: [
         SizedBox(
-          width: 20, // TODO handle long numbers in <ol>, like https://github.com/zulip/zulip/pull/25063
+          width: markerWidth,
           child: Align(
-            alignment: AlignmentDirectional.topEnd, child: Text(marker))),
+            alignment: AlignmentDirectional.topEnd,
+            child: Text(marker,
+              style: TextStyle(
+                letterSpacing: proportionalLetterSpacing(context,
+                  kButtonTextLetterSpacingProportion,
+                  baseFontSize: 14 // Match base font size
+                ),
+              ),
+            ),
+          ),
+        ),
         Expanded(child: BlockContentList(nodes: nodes)),
       ]);
   }
@@ -1313,7 +1337,8 @@ class MessageTableCell extends StatelessWidget {
                 ? DefaultTextStyle.of(context).style
                 : DefaultTextStyle.of(context).style
                     .merge(weightVariableTextStyle(context, wght: 700))),
-      ));
+            ),
+      );
   }
 }
 
