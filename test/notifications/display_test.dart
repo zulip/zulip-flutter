@@ -1176,6 +1176,49 @@ void main() {
       takeStartingRoutes(account: accountB);
       matchesNavigation(check(pushedRoutes).single, accountB, message);
     });
+
+    testWidgets('back navigation after opening a notification will preserve target account context', (tester) async {
+      addTearDown(testBinding.reset);
+
+      final accountA = eg.selfAccount;
+      final accountB = eg.otherAccount;
+      final message = eg.streamMessage();
+
+      await testBinding.globalStore.add(accountA, eg.initialSnapshot());
+      await testBinding.globalStore.add(accountB, eg.initialSnapshot());
+
+      await prepare(tester, early: true);
+      await tester.pump();
+      takeStartingRoutes(account: accountA);
+
+      Route<dynamic>? topRoute;
+      final navigator = await ZulipApp.navigator;
+      navigator.popUntil((r) {
+        topRoute = r;
+        return true;
+      });
+      check(topRoute).isA<AccountRoute>().accountId.equals(accountA.id);
+      await openNotification(tester, accountB, message);
+
+      navigator.popUntil((r) {
+        topRoute = r;
+        return true;
+      });
+      check(topRoute).isA<MaterialAccountWidgetRoute>()
+        ..accountId.equals(accountB.id)
+        ..page.isA<MessageListPage>();
+
+      navigator.pop();
+      await tester.pumpAndSettle();
+
+      navigator.popUntil((r) {
+        topRoute = r;
+        return true;
+      });
+      check(topRoute).isA<MaterialAccountWidgetRoute>()
+        ..accountId.equals(accountB.id)
+        ..page.isA<HomePage>();
+    });
   });
 
   group('NotificationOpenPayload', () {
