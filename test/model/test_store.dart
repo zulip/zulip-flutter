@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -265,6 +266,21 @@ extension PerAccountStoreTestExtension on PerAccountStore {
     for (final user in users) {
       await addUser(user);
     }
+  }
+
+  Future<void> muteUser(int id) async {
+    await handleEvent(eg.mutedUsersEvent([...mutedUsers, id]));
+  }
+
+  Future<void> muteUsers(List<int> ids) async {
+    for (final id in ids) {
+      await muteUser(id);
+    }
+  }
+
+  Future<void> unmuteUser(int id) async {
+    await handleEvent(eg.mutedUsersEvent(
+      mutedUsers.whereNot((userId) => userId == id).toList()));
   }
 
   Future<void> addStream(ZulipStream stream) async {

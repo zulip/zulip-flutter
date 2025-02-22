@@ -5,6 +5,7 @@ import 'package:zulip/api/model/model.dart';
 
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
+import 'store_checks.dart';
 import 'test_store.dart';
 
 void main() {
@@ -78,5 +79,22 @@ void main() {
         deliveryEmail: const JsonNullable('c@mail.example')));
       check(getUser()).deliveryEmail.equals('c@mail.example');
     });
+  });
+
+  testWidgets('MutedUsersEvent', (tester) async {
+    final user1 = eg.user(userId: 1);
+    final user2 = eg.user(userId: 2);
+    final user3 = eg.user(userId: 3);
+
+    final store = eg.store(initialSnapshot: eg.initialSnapshot(
+      realmUsers: [user1, user2, user3],
+      mutedUsers: [MutedUserItem(id: 2), MutedUserItem(id: 1)]));
+    check(store).mutedUsers.deepEquals({2, 1});
+
+    await store.handleEvent(eg.mutedUsersEvent([2, 1, 3]));
+    check(store).mutedUsers.deepEquals({2, 1, 3});
+
+    await store.handleEvent(eg.mutedUsersEvent([2, 3]));
+    check(store).mutedUsers.deepEquals({2, 3});
   });
 }
