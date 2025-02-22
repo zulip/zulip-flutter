@@ -645,6 +645,10 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   @override
   Iterable<User> get allUsers => _users.allUsers;
 
+  @override
+  bool isUserMuted(int userId, {MutedUsersEvent? event}) =>
+    _users.isUserMuted(userId, event: event);
+
   final UserStoreImpl _users;
 
   final TypingStatus typingStatus;
@@ -950,8 +954,9 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         _messages.handleReactionEvent(event);
 
       case MutedUsersEvent():
-        // TODO handle
-        break;
+        assert(debugLog("server event: muted_users"));
+        _users.handleMutedUsersEvent(event);
+        notifyListeners();
 
       case UnexpectedEvent():
         assert(debugLog("server event: ${jsonEncode(event.toJson())}")); // TODO log better

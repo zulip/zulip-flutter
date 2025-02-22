@@ -66,6 +66,12 @@ mixin UserStore on PerAccountStoreBase {
     return getUser(message.senderId)?.fullName
       ?? message.senderFullName;
   }
+
+  /// Whether the user with [userId] is muted by the self-user.
+  ///
+  /// Looks for [userId] in a private [Set],
+  /// or in [event.mutedUsers] instead if event is non-null.
+  bool isUserMuted(int userId, {MutedUsersEvent? event});
 }
 
 /// The implementation of [UserStore] that does the work.
@@ -81,7 +87,8 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
          initialSnapshot.realmUsers
          .followedBy(initialSnapshot.realmNonActiveUsers)
          .followedBy(initialSnapshot.crossRealmBots)
-         .map((user) => MapEntry(user.userId, user)));
+         .map((user) => MapEntry(user.userId, user))),
+       _mutedUsers = Set.from(initialSnapshot.mutedUsers.map((item) => item.id));
 
   final Map<int, User> _users;
 
@@ -90,6 +97,13 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
 
   @override
   Iterable<User> get allUsers => _users.values;
+
+  final Set<int> _mutedUsers;
+
+  @override
+  bool isUserMuted(int userId, {MutedUsersEvent? event}) {
+    return (event?.mutedUsers.map((item) => item.id) ?? _mutedUsers).contains(userId);
+  }
 
   void handleRealmUserEvent(RealmUserEvent event) {
     switch (event) {
@@ -128,5 +142,10 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
           }
         }
     }
+  }
+
+  void handleMutedUsersEvent(MutedUsersEvent event) {
+    _mutedUsers.clear();
+    _mutedUsers.addAll(event.mutedUsers.map((item) => item.id));
   }
 }
