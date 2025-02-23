@@ -1100,7 +1100,7 @@ void main() {
         .initNarrow.equals(DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId));
       await tester.pumpAndSettle();
     });
-    
+
     testWidgets('does not navigate on tapping recipient header in DmNarrow', (tester) async {
       final pushedRoutes = <Route<void>>[];
       final navObserver = TestNavigatorObserver()
@@ -1380,6 +1380,52 @@ void main() {
       check(getAnimation(tester, newMessage.id))
         ..value.equals(0.0)
         ..status.equals(AnimationStatus.dismissed);
+    });
+  });
+
+  group('Guest warning banner', () {
+    Finder guestUserDmWarningBannerFinder(String label) =>
+        find.textContaining(label);
+
+    void checkGuestUserWarningBanner(WidgetTester tester, String label) {
+      final state = MessageListPage.ancestorOf(
+        tester.element(find.text("a message")),
+      );
+      bool shouldShow =
+          store.connection.zulipFeatureLevel! >= 348 &&
+          state.narrow is DmNarrow &&
+          (store.realmEnableGuestUserDmWarning ?? false);
+
+      check(
+        guestUserDmWarningBannerFinder(label).evaluate().length,
+      ).equals(shouldShow ? 1 : 0);
+    }
+
+    void checkDmGuestUserWarning(WidgetTester tester, String label) =>
+        checkGuestUserWarningBanner(tester, label);
+
+    testWidgets('guest user DM warning banner text', (tester) async {
+      // check if DM warning banner shows text
+      // if the recipient is a guest user
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      await setupMessageListPage(
+        tester,
+        users: [
+          eg.user(userId: 1, fullName: 'User 1')
+        ],
+        narrow: DmNarrow(
+          allRecipientIds: [eg.selfUser.userId],
+          selfUserId: eg.selfUser.userId,
+        ),
+        messages: [eg.streamMessage(content: "<p>a message</p>")],
+      );
+      checkDmGuestUserWarning(
+        tester,
+        zulipLocalizations.bannerText(
+          1,
+          'User 1',
+        ),
+      );
     });
   });
 }
