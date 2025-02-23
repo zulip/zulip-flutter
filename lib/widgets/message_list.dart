@@ -1337,6 +1337,9 @@ class MessageWithPossibleSender extends StatelessWidget {
     if (item.showSender) {
       final time = _kMessageTimestampFormat
         .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
+
+      final isCurrentUser = store.account.userId == message.senderId;
+
       senderRow = Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -1353,13 +1356,15 @@ class MessageWithPossibleSender extends StatelessWidget {
                     userId: message.senderId),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text(message.senderFullName, // TODO get from user data
+                    child: Text(isCurrentUser ? '${message.senderFullName} (you)' : message.senderFullName, // TODO get from user data
                       style: TextStyle(
                         fontSize: 18,
                         height: (22 / 18),
                         color: messageListTheme.senderName,
                       ).merge(weightVariableTextStyle(context, wght: 600)),
-                      overflow: TextOverflow.ellipsis)),
+                      overflow: TextOverflow.ellipsis
+                    )
+                  ),
                   if (sender?.isBot ?? false) ...[
                     const SizedBox(width: 5),
                     Icon(
@@ -1368,7 +1373,8 @@ class MessageWithPossibleSender extends StatelessWidget {
                       color: messageListTheme.senderBotIcon,
                     ),
                   ],
-                ]))),
+                ]
+              ))),
           const SizedBox(width: 4),
           Text(time,
             style: TextStyle(
