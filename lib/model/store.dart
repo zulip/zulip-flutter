@@ -368,7 +368,11 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
         channelStore: channels,
       ),
       recentDmConversationsView: RecentDmConversationsView(
-        initial: initialSnapshot.recentPrivateConversations, selfUserId: account.userId),
+        initial: _filterRecentPrivateConversations(
+          initialSnapshot.recentPrivateConversations,
+          initialSnapshot.mutedUsers),
+        selfUserId: account.userId,
+      ),
       recentSenders: RecentSenders(),
     );
   }
@@ -835,6 +839,17 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
 
   static List<int> _sortMutedUsers(List<MutedUserItem> mutedUsers) {
     return mutedUsers.map((user) => user.id).toList()..sort();
+  }
+
+  static List<RecentDmConversation> _filterRecentPrivateConversations(
+    List<RecentDmConversation> recentPms,
+    List<MutedUserItem> mutedUsers,
+  ) {
+    final mutedUserIds = {for (var user in mutedUsers) user.id};
+    return recentPms
+      .where((conversation) =>
+        conversation.userIds.any((id) => !mutedUserIds.contains(id)))
+      .toList();
   }
 
   @override
