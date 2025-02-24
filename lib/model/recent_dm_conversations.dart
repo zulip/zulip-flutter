@@ -8,6 +8,7 @@ import '../api/model/model.dart';
 import '../api/model/events.dart';
 import 'narrow.dart';
 import 'store.dart';
+import 'user.dart';
 
 /// A view-model for the recent-DM-conversations UI.
 ///
@@ -17,7 +18,9 @@ class RecentDmConversationsView extends PerAccountStoreBase with ChangeNotifier 
   factory RecentDmConversationsView({
     required CorePerAccountStore core,
     required List<RecentDmConversation> initial,
+    required UserStore userStore,
   }) {
+    initial = _filterRecentDmConversations(initial, userStore);
     final entries = initial.map((conversation) => MapEntry(
         DmNarrow.ofRecentDmConversation(conversation, selfUserId: core.selfUserId),
         conversation.maxMessageId,
@@ -35,18 +38,32 @@ class RecentDmConversationsView extends PerAccountStoreBase with ChangeNotifier 
 
     return RecentDmConversationsView._(
       core: core,
+      userStore: userStore,
       map: Map.fromEntries(entries),
       sorted: QueueList.from(entries.map((e) => e.key)),
       latestMessagesByRecipient: latestMessagesByRecipient,
     );
   }
 
+    static List<RecentDmConversation> _filterRecentDmConversations(
+      List<RecentDmConversation> recentDms,
+      UserStore userStore,
+    ) {
+      return recentDms
+        .where((conversation) =>
+          conversation.userIds.any((id) => !userStore.isUserMuted(id)))
+        .toList();
+    }
+
   RecentDmConversationsView._({
     required super.core,
+    required UserStore userStore,
     required this.map,
     required this.sorted,
     required this.latestMessagesByRecipient,
-  });
+  }) : _userStore = userStore;
+
+  final UserStore _userStore;
 
   /// The latest message ID in each conversation.
   final Map<DmNarrow, int> map;
@@ -158,4 +175,6 @@ class RecentDmConversationsView extends PerAccountStoreBase with ChangeNotifier 
   // TODO update from messages loaded in message lists. When doing so,
   //   review handleMessageEvent so it acknowledges the subtle races that can
   //   happen when taking data from outside the event system.
+
+  void handleMutedUsersEvent(MutedUsersEvent event) {}
 }
