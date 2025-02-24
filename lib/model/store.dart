@@ -328,6 +328,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
     assert(connection.zulipFeatureLevel == account.zulipFeatureLevel);
 
     final realmUrl = account.realmUrl;
+    final mutedUserIdsSorted = _sortMutedUsers(initialSnapshot.mutedUsers);
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       globalStore: globalStore,
@@ -346,6 +347,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
       accountId: accountId,
       userSettings: initialSnapshot.userSettings,
       mutedUsers: initialSnapshot.mutedUsers,
+      mutedUserIdsSorted: mutedUserIdsSorted,
       typingNotifier: TypingNotifier(
         connection: connection,
         typingStoppedWaitPeriod: Duration(
@@ -368,7 +370,11 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
         channelStore: channels,
       ),
       recentDmConversationsView: RecentDmConversationsView(
-        initial: initialSnapshot.recentPrivateConversations, selfUserId: account.userId),
+        initial: _filterRecentPrivateConversations(
+          initialSnapshot.recentPrivateConversations,
+          mutedUserIdsSorted),
+        selfUserId: account.userId,
+      ),
       recentSenders: RecentSenders(),
     );
   }
@@ -389,6 +395,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
     required this.accountId,
     required this.userSettings,
     required this.mutedUsers,
+    required List<int> mutedUserIdsSorted,
     required this.typingNotifier,
     required UserStoreImpl users,
     required this.typingStatus,
@@ -403,7 +410,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
        _globalStore = globalStore,
        _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
        _emoji = emoji,
-       _mutedUserIdsSorted = _sortMutedUsers(mutedUsers),
+       _mutedUserIdsSorted = mutedUserIdsSorted,
        _users = users,
        _channels = channels,
        _messages = messages;
@@ -835,6 +842,19 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
 
   static List<int> _sortMutedUsers(List<MutedUserItem> mutedUsers) {
     return mutedUsers.map((user) => user.id).toList()..sort();
+  }
+
+  static List<RecentDmConversation> _filterRecentPrivateConversations(
+    List<RecentDmConversation> recentPms,
+    List<int> mutedUserIdsSorted,
+  ) {
+    bool isUserMuted(int id) =>
+      mutedUserIdsSorted.binarySearch(id, (a, b) => a.compareTo(b)) >= 0;
+
+    return recentPms
+      .where((conversation) =>
+        conversation.userIds.any((id) => !isUserMuted(id)))
+      .toList();
   }
 
   @override
