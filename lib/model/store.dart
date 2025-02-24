@@ -471,6 +471,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       accountId: accountId,
       selfUserId: account.userId,
     );
+    final users = UserStoreImpl(core: core, initialSnapshot: initialSnapshot);
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       core: core,
@@ -496,7 +497,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         typingStartedWaitPeriod: Duration(
           milliseconds: initialSnapshot.serverTypingStartedWaitPeriodMilliseconds),
       ),
-      users: UserStoreImpl(core: core, initialSnapshot: initialSnapshot),
+      users: users,
       typingStatus: TypingStatus(core: core,
         typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
       ),
@@ -507,8 +508,11 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         core: core,
         channelStore: channels,
       ),
-      recentDmConversationsView: RecentDmConversationsView(core: core,
-        initial: initialSnapshot.recentPrivateConversations),
+      recentDmConversationsView: RecentDmConversationsView(
+        initial: initialSnapshot.recentPrivateConversations,
+        core: core,
+        userStore: users,
+      ),
       recentSenders: RecentSenders(),
     );
   }
