@@ -49,7 +49,7 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
 
   @override
   Widget build(BuildContext context) {
-    final sorted = model!.sorted;
+    final sorted = model!.sortedFiltered;
     return SafeArea(
       // Don't pad the bottom here; we want the list content to do that.
       bottom: false,

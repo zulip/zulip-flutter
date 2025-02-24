@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/recent_dm_conversations.dart';
 
@@ -24,6 +25,7 @@ void main() {
       ))).recentDmConversationsView
           ..map.isEmpty()
           ..sorted.isEmpty()
+          ..sortedFiltered.isEmpty()
           ..latestMessagesByRecipient.isEmpty();
 
       check(eg.store(initialSnapshot: eg.initialSnapshot(
@@ -38,7 +40,45 @@ void main() {
             key([1]):    100,
           })
           ..sorted.deepEquals([key([1, 2]), key([]), key([1])])
+          ..sortedFiltered.deepEquals([key([1, 2]), key([]), key([1])])
           ..latestMessagesByRecipient.deepEquals({1: 300, 2: 300});
+
+      check(eg.store(initialSnapshot: eg.initialSnapshot(
+        recentPrivateConversations: [
+          RecentDmConversation(userIds: [],     maxMessageId: 200),
+          RecentDmConversation(userIds: [1],    maxMessageId: 100),
+          RecentDmConversation(userIds: [2],    maxMessageId: 400),
+          RecentDmConversation(userIds: [2, 1], maxMessageId: 300), // userIds out of order
+          RecentDmConversation(userIds: [1, 3], maxMessageId: 500),
+          RecentDmConversation(userIds: [2, 4], maxMessageId: 600),
+        ],
+        mutedUsers: [
+          MutedUserItem(id: 1),
+          MutedUserItem(id: 3),
+        ]))).recentDmConversationsView
+          ..map.deepEquals({
+            key([2, 4]): 600,
+            key([1, 3]): 500,
+            key([2]):    400,
+            key([1, 2]): 300,
+            key([]):     200,
+            key([1]):    100,
+          })
+          ..sorted.deepEquals([
+            key([2, 4]),
+            key([1, 3]),
+            key([2]),
+            key([1, 2]),
+            key([]),
+            key([1]),
+          ])
+          ..sortedFiltered.deepEquals([
+            key([2, 4]),
+            key([2]),
+            key([1, 2]),
+            key([]),
+          ])
+          ..latestMessagesByRecipient.deepEquals({1: 500, 2: 600, 3: 500, 4: 600});
     });
 
     group('message event (new message)', () {

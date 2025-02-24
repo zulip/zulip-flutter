@@ -211,6 +211,12 @@ void main() {
       group('1:1', () {
         group('has right title/avatar', () {
           for (final isUserMuted in [false, true]) {
+            if (isUserMuted) {
+              // Right now, we don't show DM conversations where all other
+              // recipients are muted.
+              continue;
+            }
+
             testWidgets(isUserMuted ? 'muted user' : 'normal user', (tester) async {
               final user = eg.user(userId: 1);
               final message = eg.dmMessage(from: eg.selfUser, to: [user]);
@@ -275,6 +281,12 @@ void main() {
 
         group('has right title/avatar', () {
           for (final areUsersMuted in [false, true]) {
+            if (areUsersMuted) {
+              // Right now, we don't show DM conversations where all other
+              // recipients are muted.
+              continue;
+            }
+
             testWidgets(areUsersMuted ? 'muted users' : 'normal users', (tester) async {
               final users = usersList(2);
               final user0 = users[0];

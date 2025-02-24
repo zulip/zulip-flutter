@@ -8,6 +8,7 @@ import '../api/model/model.dart';
 import '../api/model/events.dart';
 import 'narrow.dart';
 import 'store.dart';
+import 'user.dart';
 
 /// A view-model for the recent-DM-conversations UI.
 ///
@@ -17,6 +18,7 @@ class RecentDmConversationsView extends PerAccountStoreBase with ChangeNotifier 
   factory RecentDmConversationsView({
     required CorePerAccountStore core,
     required List<RecentDmConversation> initial,
+    required UserStore userStore,
   }) {
     final entries = initial.map((conversation) => MapEntry(
         DmNarrow.ofRecentDmConversation(conversation, selfUserId: core.selfUserId),
@@ -35,6 +37,7 @@ class RecentDmConversationsView extends PerAccountStoreBase with ChangeNotifier 
 
     return RecentDmConversationsView._(
       core: core,
+      userStore: userStore,
       map: Map.fromEntries(entries),
       sorted: QueueList.from(entries.map((e) => e.key)),
       latestMessagesByRecipient: latestMessagesByRecipient,
@@ -43,10 +46,13 @@ class RecentDmConversationsView extends PerAccountStoreBase with ChangeNotifier 
 
   RecentDmConversationsView._({
     required super.core,
+    required this.userStore,
     required this.map,
     required this.sorted,
     required this.latestMessagesByRecipient,
   });
+
+  final UserStore userStore;
 
   /// The latest message ID in each conversation.
   final Map<DmNarrow, int> map;
@@ -62,6 +68,11 @@ class RecentDmConversationsView extends PerAccountStoreBase with ChangeNotifier 
   /// (The identified message was not necessarily sent by the identified user;
   /// it might have been sent by anyone in its conversation.)
   final Map<int, int> latestMessagesByRecipient;
+
+  /// Same as [sorted] but excluding conversations where all the recipients are
+  /// muted.
+  QueueList<DmNarrow> get sortedFiltered => QueueList.from(
+    sorted.whereNot((narrow) => userStore.ignoreConversation(narrow)));
 
   /// Insert the key at the proper place in [sorted].
   ///

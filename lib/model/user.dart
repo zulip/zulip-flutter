@@ -4,6 +4,7 @@ import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import 'localizations.dart';
+import 'narrow.dart';
 import 'store.dart';
 
 /// The portion of [PerAccountStore] describing the users in the realm.
@@ -78,6 +79,18 @@ mixin UserStore on PerAccountStoreBase {
   /// By default, looks for the user id in [UserStore.mutedUsers] unless
   /// [mutedUsers] is non-null, in which case looks in the latter.
   bool isUserMuted(int id, {Set<int>? mutedUsers});
+
+  /// Ignores conversation where all of the users corresponding to
+  /// [DmNarrow.otherRecipientIds] are muted by [selfUser].
+  ///
+  /// Returns false for self-1:1 conversation.
+  ///
+  /// By default, looks for the recipients in [UserStore.mutedUsers] unless
+  /// [mutedUsers] is non-null, in which case looks in the latter.
+  bool ignoreConversation(DmNarrow narrow, {Set<int>? mutedUsers}) {
+    if (narrow.otherRecipientIds.isEmpty) return false;
+    return !narrow.otherRecipientIds.any((id) => !isUserMuted(id, mutedUsers: mutedUsers));
+  }
 }
 
 /// The implementation of [UserStore] that does the work.
