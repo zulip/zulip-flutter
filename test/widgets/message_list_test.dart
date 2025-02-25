@@ -1278,7 +1278,7 @@ void main() {
         final textSpan = tester.renderObject<RenderParagraph>(find.text(
           zulipLocalizations.messageListGroupYouAndOthers(
             zulipLocalizations.unknownUserName))).text;
-        final icon = tester.widget<Icon>(find.byIcon(ZulipIcons.user));
+        final icon = tester.widget<Icon>(find.byIcon(ZulipIcons.two_person));
         check(textSpan).style.isNotNull().color.isNotNull().isSameColorAs(icon.color!);
       });
     });
