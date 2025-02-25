@@ -240,7 +240,7 @@ packages:
     source: hosted
     version: "1.0.2"
   dart_style:
-    dependency: "direct dev"
+    dependency: transitive
     description:
       name: dart_style
       sha256: "27eb0ae77836989a3bc541ce55595e8ceee0992807f14511552a898ddd0d88ac"
@@ -839,10 +839,10 @@ packages:
     dependency: "direct dev"
     description:
       name: pigeon
-      sha256: a8b124eda229d9b0a07ecff9710c6aa7f3cd65595b982c28e41f4e8f88ffc09a
+      sha256: "1bab69b62617e5f31cf84dcab82c62aa21b7883055f0ca7ff93e76651eef8575"
       url: "https://pub.dev"
     source: hosted
-    version: "22.7.4"
+    version: "24.2.1"
   platform:
     dependency: transitive
     description:
