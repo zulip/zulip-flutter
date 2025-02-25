@@ -111,7 +111,7 @@ class _HomePageState extends State<HomePage> {
             narrow: const CombinedFeedNarrow()))),
       button(_HomePageTab.channels,       ZulipIcons.hash_italic),
       // TODO(#1094): Users
-      button(_HomePageTab.directMessages, ZulipIcons.user),
+      button(_HomePageTab.directMessages, ZulipIcons.two_person),
       _NavigationBarButton(         icon: ZulipIcons.menu,
         selected: false,
         onPressed: () => _showMainMenu(context, tabNotifier: _tab)),
@@ -549,7 +549,7 @@ class _DirectMessagesButton extends _NavigationBarMenuButton {
   const _DirectMessagesButton({required super.tabNotifier});
 
   @override
-  IconData get icon => ZulipIcons.user;
+  IconData get icon => ZulipIcons.two_person;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {

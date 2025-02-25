@@ -1389,7 +1389,7 @@ class DmRecipientHeader extends StatelessWidget {
                 child: Icon(
                   color: designVariables.title,
                   size: 16,
-                  ZulipIcons.user)),
+                  ZulipIcons.two_person)),
               Expanded(
                 child: Text(title,
                   style: recipientHeaderTextStyle(context),
