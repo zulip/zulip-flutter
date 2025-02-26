@@ -503,33 +503,24 @@ class ListNodeWidget extends StatelessWidget {
         case UnorderedListNode(): marker = "•   "; break;
         case OrderedListNode(:final start): marker = "${start + index}. "; break;
       }
-      return ListItemWidget(marker: marker, nodes: item);
+      return TableRow(children: [
+        Align(
+          alignment: AlignmentDirectional.topEnd,
+          child: Text(marker)),
+        BlockContentList(nodes: item),
+      ]);
     });
+
     return Padding(
       padding: const EdgeInsets.only(top: 2, bottom: 5),
-      child: Column(children: items));
-  }
-}
-
-class ListItemWidget extends StatelessWidget {
-  const ListItemWidget({super.key, required this.marker, required this.nodes});
-
-  final String marker;
-  final List<BlockContentNode> nodes;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: localizedTextBaseline(context),
-      children: [
-        SizedBox(
-          width: 20, // TODO handle long numbers in <ol>, like https://github.com/zulip/zulip/pull/25063
-          child: Align(
-            alignment: AlignmentDirectional.topEnd, child: Text(marker))),
-        Expanded(child: BlockContentList(nodes: nodes)),
-      ]);
+      child: Table(
+        defaultVerticalAlignment: TableCellVerticalAlignment.baseline,
+        textBaseline: localizedTextBaseline(context),
+        columnWidths: const <int, TableColumnWidth>{
+          0: IntrinsicColumnWidth(),
+          1: FlexColumnWidth(),
+        },
+        children: items));
   }
 }
 

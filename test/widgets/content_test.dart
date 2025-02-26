@@ -238,6 +238,30 @@ void main() {
       expect(find.text('third'), findsOneWidget);
       expect(find.text('fourth'), findsOneWidget);
     });
+
+    testWidgets('list uses correct text baseline alignment', (tester) async {
+      await prepareContent(tester, plainContent(ContentExample.orderedListLargeStart.html));
+      final table = tester.widget<Table>(find.byType(Table));
+      check(table.defaultVerticalAlignment).equals(TableCellVerticalAlignment.baseline);
+      check(table.textBaseline).equals(localizedTextBaseline(tester.element(find.byType(Table))));
+    });
+
+    testWidgets('ordered list markers have enough space to render completely', (tester) async {
+      await prepareContent(tester, plainContent(ContentExample.orderedListLargeStart.html));
+      final renderParagraph = tester.renderObject(find.textContaining('9999.')) as RenderParagraph;
+      final textHeight = renderParagraph.size.height;
+      final lineHeight = renderParagraph.text.style!.height! * renderParagraph.text.style!.fontSize!;
+      check(textHeight).equals(lineHeight);
+      check(renderParagraph.didExceedMaxLines).isFalse();
+    });
+
+    testWidgets('ordered list markers are end-aligned', (tester) async {
+      await prepareContent(tester, plainContent(ContentExample.orderedListLargeStart.html));
+      final marker9999 = tester.getRect(find.textContaining('9999.'));
+      final marker10000 = tester.getRect(find.textContaining('10000.'));
+      check(marker9999.width != marker10000.width).isTrue();
+      check(marker9999.right).equals(marker10000.right);
+    });
   });
 
   group('Spoiler', () {
