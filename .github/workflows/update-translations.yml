@@ -18,7 +18,11 @@ jobs:
         run: |
           git remote add weblate https://hosted.weblate.org/git/zulip/zulip-flutter/
           git fetch weblate
-          git merge --ff-only weblate/main
+          # This may lag behind `main` if weblate is backlogged; this can
+          # theoretically cause the PR to not be able to auto-merged, though
+          # re-running the action once weblate has caught up should be
+          # sufficient to fix that.
+          git reset --hard weblate/main
 
       - name: Clone Flutter SDK
         # We can't do a depth-1 clone, because we need the most recent tag
