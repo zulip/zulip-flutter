@@ -352,15 +352,16 @@ void main() {
     }
 
     group('to ChannelNarrow', () {
+      final narrow = ChannelNarrow(channel.streamId);
+
       testWidgets('with empty topic', (tester) async {
-        await prepare(tester, narrow: ChannelNarrow(channel.streamId));
+        await prepare(tester, narrow: narrow);
         checkComposeBoxHintTexts(tester,
           topicHintText: 'Topic',
           contentHintText: 'Message #${channel.name} > (no topic)');
       });
 
       testWidgets('with non-empty topic', (tester) async {
-        final narrow = ChannelNarrow(channel.streamId);
         await prepare(tester, narrow: narrow);
         await enterTopic(tester, narrow: narrow, topic: 'new topic');
         await tester.pump();
