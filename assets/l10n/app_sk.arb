@@ -546,5 +546,13 @@
   "errorNotificationOpenTitle": "Nepodarilo sa otvoriť oznámenie",
   "@errorNotificationOpenTitle": {
     "description": "Error title when notification opening fails"
+  },
+  "topicListButtonTooltip": "Zobraziť témy",
+  "@topicListButtonTooltip": {
+    "description": "Tooltip for button to navigate to a given channel's topic list"
+  },
+  "searchTopicsPlaceholder": "Hľadať témy",
+  "@searchTopicsPlaceholder": {
+    "description": "Placeholder text for the search field in the topic list page"
   }
 }

@@ -830,5 +830,13 @@
   "zulipAppTitle": "Zulip",
   "@zulipAppTitle": {
     "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
+  },
+  "topicListButtonTooltip": "Show topics",
+  "@topicListButtonTooltip": {
+    "description": "Tooltip for button to navigate to a given channel's topic list"
+  },
+  "searchTopicsPlaceholder": "Search topics",
+  "@searchTopicsPlaceholder": {
+    "description": "Placeholder text for the search field in the topic list page"
   }
 }

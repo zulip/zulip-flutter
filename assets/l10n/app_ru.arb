@@ -758,5 +758,13 @@
   "errorMessageNotSent": "Сообщение не отправлено",
   "@errorMessageNotSent": {
     "description": "Error message for compose box when a message could not be sent."
+  },
+  "topicListButtonTooltip": "Показать темы",
+  "@topicListButtonTooltip": {
+    "description": "Tooltip for button to navigate to a given channel's topic list"
+  },
+  "searchTopicsPlaceholder": "Поиск тем",
+  "@searchTopicsPlaceholder": {
+    "description": "Placeholder text for the search field in the topic list page"
   }
 }

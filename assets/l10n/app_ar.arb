@@ -7,5 +7,13 @@
   "wildcardMentionChannelDescription": "إخطار القناة",
   "wildcardMentionStreamDescription": "إخطار الدفق",
   "wildcardMentionAllDmDescription": "إخطار المستلمين",
-  "wildcardMentionTopicDescription": "إخطار الموضوع"
+  "wildcardMentionTopicDescription": "إخطار الموضوع",
+  "topicListButtonTooltip": "عرض المواضيع",
+  "@topicListButtonTooltip": {
+    "description": "Tooltip for button to navigate to a given channel's topic list"
+  },
+  "searchTopicsPlaceholder": "بحث المواضيع",
+  "@searchTopicsPlaceholder": {
+    "description": "Placeholder text for the search field in the topic list page"
+  }
 }

@@ -10,5 +10,13 @@
   "aboutPageOpenSourceLicenses": "Lisenser for åpen kildekode",
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
+  },
+  "topicListButtonTooltip": "Vis emner",
+  "@topicListButtonTooltip": {
+    "description": "Tooltip for button to navigate to a given channel's topic list"
+  },
+  "searchTopicsPlaceholder": "Søk emner",
+  "@searchTopicsPlaceholder": {
+    "description": "Placeholder text for the search field in the topic list page"
   }
 }

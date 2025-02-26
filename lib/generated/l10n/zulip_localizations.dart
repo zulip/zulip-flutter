@@ -1214,6 +1214,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Zulip'**
   String get zulipAppTitle;
+
+  /// Tooltip for button to navigate to a given channel's topic list
+  ///
+  /// In en, this message translates to:
+  /// **'Show topics'**
+  String get topicListButtonTooltip;
+
+  /// Placeholder text for the search field in the topic list page
+  ///
+  /// In en, this message translates to:
+  /// **'Search topics'**
+  String get searchTopicsPlaceholder;
 }
 
 class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizations> {

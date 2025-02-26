@@ -16,5 +16,13 @@
   "userRoleGuest": "ゲスト",
   "@userRoleGuest": {},
   "userRoleUnknown": "不明",
-  "@userRoleUnknown": {}
+  "@userRoleUnknown": {},
+  "topicListButtonTooltip": "トピックを表示",
+  "@topicListButtonTooltip": {
+    "description": "Tooltip for button to navigate to a given channel's topic list"
+  },
+  "searchTopicsPlaceholder": "トピックを検索",
+  "@searchTopicsPlaceholder": {
+    "description": "Placeholder text for the search field in the topic list page"
+  }
 }

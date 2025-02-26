@@ -886,5 +886,13 @@
   "unpinnedSubscriptionsLabel": "Odpięte",
   "@unpinnedSubscriptionsLabel": {
     "description": "Label for the list of unpinned subscribed channels."
+  },
+  "topicListButtonTooltip": "Pokaż tematy",
+  "@topicListButtonTooltip": {
+    "description": "Tooltip for button to navigate to a given channel's topic list"
+  },
+  "searchTopicsPlaceholder": "Szukaj tematów",
+  "@searchTopicsPlaceholder": {
+    "description": "Placeholder text for the search field in the topic list page"
   }
 }

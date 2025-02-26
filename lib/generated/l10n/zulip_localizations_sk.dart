@@ -648,4 +648,10 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
 
   @override
   String get zulipAppTitle => 'Zulip';
+
+  @override
+  String get topicListButtonTooltip => 'Zobraziť témy';
+
+  @override
+  String get searchTopicsPlaceholder => 'Hľadať témy';
 }

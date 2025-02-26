@@ -648,4 +648,10 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
 
   @override
   String get zulipAppTitle => 'Zulip';
+
+  @override
+  String get topicListButtonTooltip => 'Vis emner';
+
+  @override
+  String get searchTopicsPlaceholder => 'Søk emner';
 }

@@ -648,4 +648,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get zulipAppTitle => 'Zulip';
+
+  @override
+  String get topicListButtonTooltip => 'Показать темы';
+
+  @override
+  String get searchTopicsPlaceholder => 'Поиск тем';
 }
