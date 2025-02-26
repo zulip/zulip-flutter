@@ -24,6 +24,7 @@ import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'topic_list.dart';
 
 /// Message-list styles that differ between light and dark themes.
 class MessageListTheme extends ThemeExtension<MessageListTheme> {
@@ -275,6 +276,13 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
         onPressed: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
             narrow: ChannelNarrow(streamId)))));
+    } else if (narrow case ChannelNarrow(:final streamId)) {
+      (actions ??= []).add(IconButton(
+        icon: const Icon(ZulipIcons.topic),
+        tooltip: zulipLocalizations.topicListButtonTooltip,
+        onPressed: () => Navigator.push(context,
+          TopicListPage.buildRoute(context: context, streamId: streamId, messageListView: model!)),
+      ));
     }
 
     // Insert a PageRoot here, to provide a context that can be used for

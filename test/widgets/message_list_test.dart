@@ -26,6 +26,8 @@ import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/channel_colors.dart';
+import 'package:zulip/widgets/topic_list.dart';
+import 'package:zulip/api/route/channels.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -1468,6 +1470,118 @@ void main() {
       check(getAnimation(tester, newMessage.id))
         ..value.equals(0.0)
         ..status.equals(AnimationStatus.dismissed);
+    });
+  });
+
+  group('TopicListPage', () {
+    testWidgets('navigates to TopicListPage on tapping topic list button in ChannelNarrow', (tester) async {
+      final pushedRoutes = <Route<void>>[];
+      final navObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      final channel = eg.stream();
+      final message = eg.streamMessage(stream: channel);
+      await setupMessageListPage(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        streams: [channel],
+        messages: [message],
+        navObservers: [navObserver]);
+
+      // Clear initial route
+      assert(pushedRoutes.length == 1);
+      pushedRoutes.clear();
+
+      // Prepare API responses
+      connection.prepare(json: GetStreamTopicsResult(topics: [
+        eg.getStreamTopicsEntry(name: 'topic 1'),
+        eg.getStreamTopicsEntry(name: 'topic 2'),
+      ]).toJson());
+
+      // Find and tap the topic list button
+      final topicListButton = find.byIcon(ZulipIcons.topic);
+      check(topicListButton).findsOne();
+      await tester.tap(topicListButton);
+
+      // Wait for navigation and page to fully load
+      await tester.pumpAndSettle();
+
+      // Verify navigation to TopicListPage with correct parameters
+      final route = pushedRoutes.single as MaterialAccountWidgetRoute;
+      final page = route.page as TopicListPage;
+      check(page.streamId).equals(channel.streamId);
+      check(page.messageListView.narrow).equals(ChannelNarrow(channel.streamId));
+      check(find.text('topic 1')).findsOne();
+      check(find.text('topic 2')).findsOne();
+    });
+
+    testWidgets('live updates topic list when new message is added', (tester) async {
+      final pushedRoutes = <Route<void>>[];
+      final navObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      final channel = eg.stream();
+      final message = eg.streamMessage(stream: channel);
+      await setupMessageListPage(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        streams: [channel],
+        messages: [message],
+        navObservers: [navObserver]);
+
+      connection.prepare(json: GetStreamTopicsResult(topics: [
+        eg.getStreamTopicsEntry(name: 'topic 1'),
+        eg.getStreamTopicsEntry(name: 'topic 2'),
+      ]).toJson());
+
+      // Navigate to TopicListPage
+      await tester.tap(find.byIcon(ZulipIcons.topic));
+      await tester.pumpAndSettle();
+
+      // Clear routes pushed during navigation to TopicListPage
+      pushedRoutes.clear();
+
+      connection.prepare(json: GetStreamTopicsResult(topics: [
+        eg.getStreamTopicsEntry(name: 'topic 1'),
+        eg.getStreamTopicsEntry(name: 'topic 2'),
+        eg.getStreamTopicsEntry(name: 'topic 3'),
+      ]).toJson());
+
+      final newMessage = eg.streamMessage(stream: channel, topic: 'topic 3');
+      await store.handleEvent(MessageEvent(id: 0, message: newMessage));
+      await tester.pumpAndSettle();
+
+      check(find.text('topic 1')).findsOne();
+      check(find.text('topic 2')).findsOne();
+      check(find.text('topic 3')).findsOne();
+    });
+
+    testWidgets('navigates to topic narrow on tapping topic in TopicListPage', (tester) async {
+      final pushedRoutes = <Route<void>>[];
+      final navObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      final channel = eg.stream();
+      final message = eg.streamMessage(stream: channel);
+      await setupMessageListPage(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        streams: [channel],
+        messages: [message],
+        navObservers: [navObserver]);
+
+      connection.prepare(json: GetStreamTopicsResult(topics: [
+        eg.getStreamTopicsEntry(name: 'topic 1'),
+        eg.getStreamTopicsEntry(name: 'topic 2'),
+        eg.getStreamTopicsEntry(name: 'topic 3'),
+      ]).toJson());
+
+      await tester.tap(find.byIcon(ZulipIcons.topic));
+      await tester.pumpAndSettle();
+      pushedRoutes.clear();
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [message]).toJson());
+
+      await tester.tap(find.text('topic 3'));
+      await tester.pumpAndSettle();
+
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+        .initNarrow.equals(TopicNarrow(channel.streamId, TopicName('topic 3')));
     });
   });
 }
