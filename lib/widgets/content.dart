@@ -492,7 +492,7 @@ class ListNodeWidget extends StatelessWidget {
     final items = List.generate(node.items.length, (index) {
       final item = node.items[index];
       String marker;
-      switch (node.style) {
+      switch (node) {
         // TODO(#161): different unordered marker styles at different levels of nesting
         //   see:
         //     https://html.spec.whatwg.org/multipage/rendering.html#lists
@@ -500,9 +500,8 @@ class ListNodeWidget extends StatelessWidget {
         // TODO proper alignment of unordered marker; should be "• ", one space,
         //   but that comes out too close to item; not sure what's fixing that
         //   in a browser
-        case ListStyle.unordered: marker = "•   "; break;
-        // TODO(#59) ordered lists starting not at 1
-        case ListStyle.ordered: marker = "${index+1}. "; break;
+        case UnorderedListNode(): marker = "•   "; break;
+        case OrderedListNode(:final start): marker = "${start + index}. "; break;
       }
       return ListItemWidget(marker: marker, nodes: item);
     });

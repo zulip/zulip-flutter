@@ -269,6 +269,26 @@ class ContentExample {
       url: '/#narrow/channel/378-api-design/topic/notation.20for.20near.20links/near/1972281',
       nodes: [TextNode('#api design > notation for near links @ 💬')]));
 
+  static const orderedListCustomStart = ContentExample(
+    'ordered list with custom start',
+    '5. fifth\n6. sixth',
+    '<ol start="5">\n<li>fifth</li>\n<li>sixth</li>\n</ol>',
+    [OrderedListNode(start: 5, [
+      [ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('fifth')])],
+      [ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('sixth')])],
+    ])],
+  );
+
+  static const orderedListLargeStart = ContentExample(
+    'ordered list with large start number',
+    '9999. first\n10000. second',
+    '<ol start="9999">\n<li>first</li>\n<li>second</li>\n</ol>',
+    [OrderedListNode(start: 9999, [
+      [ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('first')])],
+      [ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('second')])],
+    ])],
+  );
+
   static const spoilerDefaultHeader = ContentExample(
     'spoiler with default header',
     '```spoiler\nhello world\n```',
@@ -306,8 +326,8 @@ class ContentExample {
         '<p><em>italic</em> <a href="https://zulip.com/">zulip</a></p>\n'
         '</div></div>',
     [SpoilerNode(
-      header: [ListNode(ListStyle.ordered, [
-        [ListNode(ListStyle.unordered, [
+      header: [OrderedListNode(start: 1, [
+        [UnorderedListNode([
           [HeadingNode(level: HeadingLevel.h2, links: null, nodes: [
             TextNode('hello'),
           ])]
@@ -836,7 +856,7 @@ class ContentExample {
         '<div class="message_inline_image">'
           '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png">'
             '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png"></a></div></li>\n</ul>', [
-    ListNode(ListStyle.unordered, [[
+    UnorderedListNode([[
       ImageNodeList([
         ImageNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png',
           thumbnailUrl: null, loading: false,
@@ -858,7 +878,7 @@ class ContentExample {
         '<div class="message_inline_image">'
           '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2" title="icon.png">'
             '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2"></a></div></li>\n</ul>', [
-    ListNode(ListStyle.unordered, [[
+    UnorderedListNode([[
       ParagraphNode(wasImplicit: true, links: null, nodes: [
         LinkNode(url: 'https://chat.zulip.org/user_avatars/2/realm/icon.png', nodes: [TextNode('icon.png')]),
         TextNode(' '),
@@ -887,7 +907,7 @@ class ContentExample {
           '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png" title="icon.png">'
             '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png"></a></div>'
         'more text</li>\n</ul>', [
-    ListNode(ListStyle.unordered, [[
+    UnorderedListNode([[
       const ParagraphNode(wasImplicit: true, links: null, nodes: [
         LinkNode(url: 'https://chat.zulip.org/user_avatars/2/realm/icon.png', nodes: [TextNode('icon.png')]),
         TextNode(' '),
@@ -1559,7 +1579,7 @@ void main() {
     testParse('<ol>',
       // "1. first\n2. then"
       '<ol>\n<li>first</li>\n<li>then</li>\n</ol>', const [
-        ListNode(ListStyle.ordered, [
+        OrderedListNode(start: 1, [
           [ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('first')])],
           [ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('then')])],
         ]),
@@ -1568,7 +1588,7 @@ void main() {
     testParse('<ul>',
       // "* something\n* another"
       '<ul>\n<li>something</li>\n<li>another</li>\n</ul>', const [
-        ListNode(ListStyle.unordered, [
+        UnorderedListNode([
           [ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('something')])],
           [ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('another')])],
         ]),
@@ -1577,7 +1597,7 @@ void main() {
     testParse('implicit paragraph with internal <br>',
       // "* a\n  b"
       '<ul>\n<li>a<br>\n  b</li>\n</ul>', const [
-        ListNode(ListStyle.unordered, [
+        UnorderedListNode([
           [ParagraphNode(wasImplicit: true, links: null, nodes: [
             TextNode('a'),
             LineBreakInlineNode(),
@@ -1589,13 +1609,16 @@ void main() {
     testParse('explicit paragraphs',
       // "* a\n\n  b"
       '<ul>\n<li>\n<p>a</p>\n<p>b</p>\n</li>\n</ul>', const [
-        ListNode(ListStyle.unordered, [
+        UnorderedListNode([
           [
             ParagraphNode(links: null, nodes: [TextNode('a')]),
             ParagraphNode(links: null, nodes: [TextNode('b')]),
           ],
         ]),
       ]);
+
+    testParseExample(ContentExample.orderedListCustomStart);
+    testParseExample(ContentExample.orderedListLargeStart);
   });
 
   testParseExample(ContentExample.spoilerDefaultHeader);
@@ -1628,7 +1651,7 @@ void main() {
     testParse('link in list item',
       // "* [t](/u)"
       '<ul>\n<li><a href="/u">t</a></li>\n</ul>', const [
-        ListNode(ListStyle.unordered, [
+        UnorderedListNode([
           [ParagraphNode(links: null, wasImplicit: true, nodes: [
             LinkNode(url: '/u', nodes: [TextNode('t')]),
           ])],
@@ -1695,10 +1718,10 @@ void main() {
     '<ol>\n<li>\n<blockquote>\n<h6>two</h6>\n<ul>\n<li>three</li>\n'
         '</ul>\n</blockquote>\n<div class="codehilite"><pre><span></span>'
         '<code>four\n</code></pre></div>\n\n</li>\n</ol>', const [
-      ListNode(ListStyle.ordered, [[
+      OrderedListNode(start: 1, [[
         QuotationNode([
           HeadingNode(level: HeadingLevel.h6, links: null, nodes: [TextNode('two')]),
-          ListNode(ListStyle.unordered, [[
+          UnorderedListNode([[
             ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('three')]),
           ]]),
         ]),

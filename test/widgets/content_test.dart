@@ -230,6 +230,16 @@ void main() {
     });
   });
 
+  group('ListNodeWidget', () {
+    testWidgets('ordered list with custom start', (tester) async {
+      await prepareContent(tester, plainContent('<ol start="3">\n<li>third</li>\n<li>fourth</li>\n</ol>'));
+      expect(find.text('3. '), findsOneWidget);
+      expect(find.text('4. '), findsOneWidget);
+      expect(find.text('third'), findsOneWidget);
+      expect(find.text('fourth'), findsOneWidget);
+    });
+  });
+
   group('Spoiler', () {
     testContentSmoke(ContentExample.spoilerDefaultHeader);
     testContentSmoke(ContentExample.spoilerPlainCustomHeader);
