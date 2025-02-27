@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:checks/checks.dart';
+import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/exception.dart';
 
@@ -25,4 +28,40 @@ void main() {
   });
 
   // NetworkException.toString: see "API network errors" test in core_test.dart
+
+  test('MalformedServerResponseException shows JSON parsing location', () {
+    const jsonResponse = '''
+      {
+        "result": "success",
+        "queue_id": "1234567890",
+        "last_event_id": -1,
+        "properties": {
+          "realm_uri": "https://example.zulipchat.com"
+        }
+      }
+    ''';
+
+    try {
+      Map<String, String> wrongType =
+        (jsonDecode(jsonResponse) as Map<String, dynamic>)
+          .map((key, value) => MapEntry(key, value.toString()));
+
+      wrongType['properties']! as Map<String, dynamic>;
+      fail('Should have thrown');
+    } catch (e, stackTrace) {
+      final exception = MalformedServerResponseException(
+        routeName: 'registerQueue',
+        httpStatus: 200,
+        data: jsonDecode(jsonResponse) as Map<String, dynamic>,
+        causeException: e,
+        causeStackTrace: stackTrace,
+      );
+
+      final string = exception.toString();
+      check(string)
+        ..contains('type \'String\'')
+        ..contains('Map<String, dynamic>')
+        ..contains(stackTrace.toString());
+    }
+  });
 }
