@@ -6,6 +6,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
+import 'package:zulip/api/backoff.dart';
 import 'package:zulip/api/core.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
@@ -157,6 +158,42 @@ void main() {
     await check(future).throws<AccountNotFoundException>();
   }));
 
+  test('GlobalStore.perAccount loading succeeds', () => awaitFakeAsync((async) async {
+    NotificationService.instance.token = ValueNotifier('asdf');
+    addTearDown(NotificationService.debugReset);
+
+    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
+    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
+    final future = globalStore.perAccount(eg.selfAccount.id);
+    check(connection.takeRequests()).length.equals(1); // register request
+
+    await future;
+    // poll, server-emoji-data, register-token requests
+    check(connection.takeRequests()).length.equals(3);
+    check(connection).isOpen.isTrue();
+  }));
+
+  test('GlobalStore.perAccount account is logged out while loading; then succeeds', () => awaitFakeAsync((async) async {
+    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
+    globalStore.prepareRegisterQueueResponse = (connection) =>
+      connection.prepare(
+        delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
+        json: eg.initialSnapshot().toJson());
+    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
+    final future = globalStore.perAccount(eg.selfAccount.id);
+    check(connection.takeRequests()).length.equals(1); // register request
+
+    await logOutAccount(globalStore, eg.selfAccount.id);
+    check(globalStore.takeDoRemoveAccountCalls())
+      .single.equals(eg.selfAccount.id);
+
+    await check(future).throws<AccountNotFoundException>();
+    check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
+    // no poll, server-emoji-data, or register-token requests
+    check(connection.takeRequests()).isEmpty();
+    check(connection).isOpen.isFalse();
+  }));
+
   test('GlobalStore.perAccount account is logged out while loading; then fails with HTTP status code 401', () => awaitFakeAsync((async) async {
     final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
     globalStore.prepareRegisterQueueResponse = (connection) =>
@@ -175,8 +212,31 @@ void main() {
     check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
     // no poll, server-emoji-data, or register-token requests
     check(connection.takeRequests()).isEmpty();
-    // TODO(#1354) uncomment
-    // check(connection).isOpen.isFalse();
+    check(connection).isOpen.isFalse();
+  }));
+
+  test('GlobalStore.perAccount account is logged out during transient-error backoff', () => awaitFakeAsync((async) async {
+    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
+    globalStore.prepareRegisterQueueResponse = (connection) =>
+      connection.prepare(
+        delay: Duration(seconds: 1),
+        httpException: http.ClientException('Oops'));
+    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
+    final future = globalStore.perAccount(eg.selfAccount.id);
+    BackoffMachine.debugDuration = Duration(seconds: 1);
+    async.elapse(Duration(milliseconds: 1500));
+    check(connection.takeRequests()).length.equals(1); // register request
+
+    assert(TestGlobalStore.removeAccountDuration < Duration(milliseconds: 500));
+    await logOutAccount(globalStore, eg.selfAccount.id);
+    check(globalStore.takeDoRemoveAccountCalls())
+      .single.equals(eg.selfAccount.id);
+
+    await check(future).throws<AccountNotFoundException>();
+    check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
+    // no retry-register, poll, server-emoji-data, or register-token requests
+    check(connection.takeRequests()).isEmpty();
+    check(connection).isOpen.isFalse();
   }));
 
   // TODO test insertAccount
@@ -278,10 +338,10 @@ void main() {
       checkGlobalStore(globalStore, eg.selfAccount.id,
         expectAccount: true, expectStore: false);
 
-      // assert(globalStore.useCachedApiConnections);
+      assert(globalStore.useCachedApiConnections);
       // Cache a connection and get this reference to it,
       // so we can check later that it gets closed.
-      // final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
+      final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
 
       globalStore.prepareRegisterQueueResponse = (connection) {
         connection.prepare(
@@ -301,14 +361,11 @@ void main() {
         expectAccount: false, expectStore: false);
       check(notifyCount).equals(1);
 
-      // Actually throws a null-check error; that's the bug #1354.
-      // TODO(#1354) should specifically throw AccountNotFoundException
-      await check(loadingFuture).throws();
+      await check(loadingFuture).throws<AccountNotFoundException>();
       checkGlobalStore(globalStore, eg.selfAccount.id,
         expectAccount: false, expectStore: false);
       check(notifyCount).equals(1); // no extra notify
-      // TODO(#1354) uncomment
-      // check(connection).isOpen.isFalse();
+      check(connection).isOpen.isFalse();
 
       check(globalStore.debugNumPerAccountStoresLoading).equals(0);
     });
@@ -1051,10 +1108,7 @@ void main() {
       async.flushTimers();
       // Reload never succeeds and there are no unhandled errors.
       check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
-    }),
-      // An unhandled error is actually the bug #1354, so skip for now
-      // TODO(#1354) unskip
-      skip: true);
+    }));
 
     test('new store is not loaded, gets HTTP 401 error instead', () => awaitFakeAsync((async) async {
       await prepareReload(async, prepareRegisterQueueResponse: (connection) {

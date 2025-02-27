@@ -175,6 +175,9 @@ abstract class GlobalStore extends ChangeNotifier {
   ///
   /// The account for `accountId` must exist.
   ///
+  /// Throws [AccountNotFoundException] if after any async gap
+  /// the account has been removed.
+  ///
   /// This method should be called only by the implementation of [perAccount].
   /// Other callers interested in per-account data should use [perAccount]
   /// and/or [perAccountSync].
@@ -189,37 +192,29 @@ abstract class GlobalStore extends ChangeNotifier {
           // The API key is invalid and the store can never be loaded
           // unless the user retries manually.
           final account = getAccount(accountId);
-          if (account == null) {
-            // The account was logged out during `await doLoadPerAccount`.
-            // Here, that seems possible only by the user's own action;
-            // the logout can't have been done programmatically.
-            // Even if it were, it would have come with its own UI feedback.
-            // Anyway, skip showing feedback, to not be confusing or repetitive.
-            throw AccountNotFoundException();
-          }
+          assert(account != null); // doLoadPerAccount would have thrown AccountNotFoundException
           final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
           reportErrorToUserModally(
             zulipLocalizations.errorCouldNotConnectTitle,
             message: zulipLocalizations.errorInvalidApiKeyMessage(
-              account.realmUrl.toString()));
+              account!.realmUrl.toString()));
           await logOutAccount(this, accountId);
           throw AccountNotFoundException();
         default:
           rethrow;
       }
     }
-    if (!_accounts.containsKey(accountId)) {
-      // TODO(#1354): handle this earlier
-      // [removeAccount] was called during [doLoadPerAccount].
-      store.dispose();
-      throw AccountNotFoundException();
-    }
+    // doLoadPerAccount would have thrown AccountNotFoundException
+    assert(_accounts.containsKey(accountId));
     return store;
   }
 
   /// Load per-account data for the given account, unconditionally.
   ///
   /// The account for `accountId` must exist.
+  ///
+  /// Throws [AccountNotFoundException] if after any async gap
+  /// the account has been removed.
   ///
   /// This method should be called only by [loadPerAccount].
   Future<PerAccountStore> doLoadPerAccount(int accountId);
@@ -956,13 +951,26 @@ class UpdateMachine {
   ///
   /// The account for `accountId` must exist.
   ///
+  /// Throws [AccountNotFoundException] if after any async gap
+  /// the account has been removed.
+  ///
   /// In the future this might load an old snapshot from local storage first.
   static Future<UpdateMachine> load(GlobalStore globalStore, int accountId) async {
     Account account = globalStore.getAccount(accountId)!;
     final connection = globalStore.apiConnectionFromAccount(account);
 
+    void stopAndThrowIfNoAccount() {
+      final account = globalStore.getAccount(accountId);
+      if (account == null) {
+        assert(debugLog('Account logged out during UpdateMachine.load'));
+        connection.close();
+        throw AccountNotFoundException();
+      }
+    }
+
     final stopwatch = Stopwatch()..start();
-    final initialSnapshot = await _registerQueueWithRetry(connection);
+    final initialSnapshot = await _registerQueueWithRetry(connection,
+      stopAndThrowIfNoAccount: stopAndThrowIfNoAccount);
     final t = (stopwatch..stop()).elapsed;
     assert(debugLog("initial fetch time: ${t.inMilliseconds}ms"));
 
@@ -1004,13 +1012,20 @@ class UpdateMachine {
 
   bool _disposed = false;
 
+  /// Make the register-queue request, with retries.
+  ///
+  /// After each async gap, calls [stopAndThrowIfNoAccount].
   static Future<InitialSnapshot> _registerQueueWithRetry(
-      ApiConnection connection) async {
+    ApiConnection connection, {
+    required void Function() stopAndThrowIfNoAccount,
+  }) async {
     BackoffMachine? backoffMachine;
     while (true) {
+      InitialSnapshot? result;
       try {
-        return await registerQueue(connection);
+        result = await registerQueue(connection);
       } catch (e, s) {
+        stopAndThrowIfNoAccount();
         // TODO(#890): tell user if initial-fetch errors persist, or look non-transient
         switch (e) {
           case HttpException(httpStatus: 401):
@@ -1025,7 +1040,12 @@ class UpdateMachine {
         }
         assert(debugLog('Backing off, then will retry…'));
         await (backoffMachine ??= BackoffMachine()).wait();
+        stopAndThrowIfNoAccount();
         assert(debugLog('… Backoff wait complete, retrying initial fetch.'));
+      }
+      if (result != null) {
+        stopAndThrowIfNoAccount();
+        return result;
       }
     }
   }
