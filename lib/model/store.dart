@@ -170,6 +170,8 @@ abstract class GlobalStore extends ChangeNotifier {
 
   /// Load per-account data for the given account, unconditionally.
   ///
+  /// The account for `accountId` must exist.
+  ///
   /// This method should be called only by the implementation of [perAccount].
   /// Other callers interested in per-account data should use [perAccount]
   /// and/or [perAccountSync].
@@ -213,6 +215,8 @@ abstract class GlobalStore extends ChangeNotifier {
   }
 
   /// Load per-account data for the given account, unconditionally.
+  ///
+  /// The account for `accountId` must exist.
   ///
   /// This method should be called only by [loadPerAccount].
   Future<PerAccountStore> doLoadPerAccount(int accountId);
@@ -264,6 +268,8 @@ abstract class GlobalStore extends ChangeNotifier {
   Future<void> doUpdateAccount(int accountId, AccountsCompanion data);
 
   /// Remove an account from the store.
+  ///
+  /// The account for `accountId` must exist.
   Future<void> removeAccount(int accountId) async {
     assert(_accounts.containsKey(accountId));
     await doRemoveAccount(accountId);
@@ -942,7 +948,10 @@ class UpdateMachine {
     store.updateMachine = this;
   }
 
-  /// Load the user's data from the server, and start an event queue going.
+  /// Load data for the given account from the server,
+  /// and start an event queue going.
+  ///
+  /// The account for `accountId` must exist.
   ///
   /// In the future this might load an old snapshot from local storage first.
   static Future<UpdateMachine> load(GlobalStore globalStore, int accountId) async {
