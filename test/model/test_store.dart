@@ -8,31 +8,7 @@ import 'package:zulip/widgets/store.dart';
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 
-/// A [GlobalStore] containing data provided by callers,
-/// and that causes no database queries or network requests.
-///
-/// Tests can provide data to the store by calling [add].
-///
-/// The per-account stores will use [FakeApiConnection].
-///
-/// Unlike with [LiveGlobalStore] and the associated [UpdateMachine.load],
-/// there is no automatic event-polling loop or other automated requests.
-/// For each account loaded, there is a corresponding [UpdateMachine]
-/// in [updateMachines], which tests can use for invoking that logic
-/// explicitly when desired.
-///
-/// See also [TestZulipBinding.globalStore], which provides one of these.
-class TestGlobalStore extends GlobalStore {
-  TestGlobalStore({
-    GlobalSettingsData? globalSettings,
-    required super.accounts,
-  }) : super(globalSettings: globalSettings ?? eg.globalSettings());
-
-  @override
-  Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data) async {
-    // Nothing to do.
-  }
-
+mixin _ApiConnectionsMixin on GlobalStore {
   final Map<
     ({Uri realmUrl, int? zulipFeatureLevel, String? email, String? apiKey}),
     FakeApiConnection
@@ -81,25 +57,12 @@ class TestGlobalStore extends GlobalStore {
       realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel,
       email: email, apiKey: apiKey));
   }
+}
 
-  /// A corresponding [UpdateMachine] for each loaded account.
-  final Map<int, UpdateMachine> updateMachines = {};
-
-  final Map<int, InitialSnapshot> _initialSnapshots = {};
-
-  /// Add an account and corresponding server data to the test data.
-  ///
-  /// The given account will be added to the store.
-  /// The given initial snapshot will be used to initialize a corresponding
-  /// [PerAccountStore] when [perAccount] is subsequently called for this
-  /// account, in particular when a [PerAccountStoreWidget] is mounted.
-  Future<void> add(Account account, InitialSnapshot initialSnapshot) async {
-    assert(initialSnapshot.zulipVersion == account.zulipVersion);
-    assert(initialSnapshot.zulipMergeBase == account.zulipMergeBase);
-    assert(initialSnapshot.zulipFeatureLevel == account.zulipFeatureLevel);
-    await insertAccount(account.toCompanion(false));
-    assert(!_initialSnapshots.containsKey(account.id));
-    _initialSnapshots[account.id] = initialSnapshot;
+mixin _DatabaseMixin on GlobalStore {
+  @override
+  Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data) async {
+    // Nothing to do.
   }
 
   int _nextAccountId = 1;
@@ -136,10 +99,6 @@ class TestGlobalStore extends GlobalStore {
     // Nothing to do.
   }
 
-  static const Duration removeAccountDuration = Duration(milliseconds: 1);
-  Duration? loadPerAccountDuration;
-  Object? loadPerAccountException;
-
   /// Consume the log of calls made to [doRemoveAccount].
   List<int> takeDoRemoveAccountCalls() {
     final result = _doRemoveAccountCalls;
@@ -151,9 +110,55 @@ class TestGlobalStore extends GlobalStore {
   @override
   Future<void> doRemoveAccount(int accountId) async {
     (_doRemoveAccountCalls ??= []).add(accountId);
-    await Future<void>.delayed(removeAccountDuration);
+    await Future<void>.delayed(TestGlobalStore.removeAccountDuration);
     // Nothing else to do.
   }
+}
+
+/// A [GlobalStore] containing data provided by callers,
+/// and that causes no database queries or network requests.
+///
+/// Tests can provide data to the store by calling [add].
+///
+/// The per-account stores will use [FakeApiConnection].
+///
+/// Unlike with [LiveGlobalStore] and the associated [UpdateMachine.load],
+/// there is no automatic event-polling loop or other automated requests.
+/// For each account loaded, there is a corresponding [UpdateMachine]
+/// in [updateMachines], which tests can use for invoking that logic
+/// explicitly when desired.
+///
+/// See also [TestZulipBinding.globalStore], which provides one of these.
+class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMixin {
+  TestGlobalStore({
+    GlobalSettingsData? globalSettings,
+    required super.accounts,
+  }) : super(globalSettings: globalSettings ?? eg.globalSettings());
+
+  /// A corresponding [UpdateMachine] for each loaded account.
+  final Map<int, UpdateMachine> updateMachines = {};
+
+  final Map<int, InitialSnapshot> _initialSnapshots = {};
+
+  static const Duration removeAccountDuration = Duration(milliseconds: 1);
+
+  /// Add an account and corresponding server data to the test data.
+  ///
+  /// The given account will be added to the store.
+  /// The given initial snapshot will be used to initialize a corresponding
+  /// [PerAccountStore] when [perAccount] is subsequently called for this
+  /// account, in particular when a [PerAccountStoreWidget] is mounted.
+  Future<void> add(Account account, InitialSnapshot initialSnapshot) async {
+    assert(initialSnapshot.zulipVersion == account.zulipVersion);
+    assert(initialSnapshot.zulipMergeBase == account.zulipMergeBase);
+    assert(initialSnapshot.zulipFeatureLevel == account.zulipFeatureLevel);
+    await insertAccount(account.toCompanion(false));
+    assert(!_initialSnapshots.containsKey(account.id));
+    _initialSnapshots[account.id] = initialSnapshot;
+  }
+
+  Duration? loadPerAccountDuration;
+  Object? loadPerAccountException;
 
   @override
   Future<PerAccountStore> doLoadPerAccount(int accountId) async {
