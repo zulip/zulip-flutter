@@ -154,6 +154,7 @@ abstract class GlobalStore extends ChangeNotifier {
   }
 
   Future<void> _reloadPerAccount(int accountId) async {
+    assert(_accounts.containsKey(accountId));
     assert(_perAccountStores.containsKey(accountId));
     assert(!_perAccountStoresLoading.containsKey(accountId));
     final store = await loadPerAccount(accountId);
