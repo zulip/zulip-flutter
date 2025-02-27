@@ -366,7 +366,8 @@ void main() {
         await enterTopic(tester, narrow: narrow, topic: '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
-          topicHintText: 'Topic',
+          topicHintText: 'Enter a topic '
+                         '(skip for “${eg.defaultRealmEmptyTopicDisplayName}”)',
           contentHintText: 'Message #${channel.name}');
       });
 
@@ -376,7 +377,7 @@ void main() {
         await enterTopic(tester, narrow: narrow, topic: '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
-          topicHintText: 'Topic',
+          topicHintText: 'Enter a topic (skip for “(no topic)”)',
           contentHintText: 'Message #${channel.name}');
       });
 
@@ -386,7 +387,8 @@ void main() {
           topic: eg.defaultRealmEmptyTopicDisplayName);
         await tester.pump();
         checkComposeBoxHintTexts(tester,
-          topicHintText: 'Topic',
+          topicHintText: 'Enter a topic '
+                         '(skip for “${eg.defaultRealmEmptyTopicDisplayName}”)',
           contentHintText: 'Message #${channel.name}');
       });
 
@@ -395,13 +397,14 @@ void main() {
         await enterTopic(tester, narrow: narrow, topic: '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
-          topicHintText: 'Topic',
+          topicHintText: 'Enter a topic '
+                         '(skip for “${eg.defaultRealmEmptyTopicDisplayName}”)',
           contentHintText: 'Message #${channel.name}');
 
         await enterContent(tester, '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
-          topicHintText: 'Topic',
+          topicHintText: eg.defaultRealmEmptyTopicDisplayName,
           contentHintText: 'Message #${channel.name} > '
                            '${eg.defaultRealmEmptyTopicDisplayName}');
       });
@@ -411,7 +414,8 @@ void main() {
         await enterTopic(tester, narrow: narrow, topic: '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
-          topicHintText: 'Topic',
+          topicHintText: 'Enter a topic '
+                         '(skip for “${eg.defaultRealmEmptyTopicDisplayName}”)',
           contentHintText: 'Message #${channel.name}');
 
         FocusManager.instance.primaryFocus!.unfocus();
@@ -426,9 +430,11 @@ void main() {
         await enterContent(tester, '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
-          topicHintText: 'Topic',
+          topicHintText: eg.defaultRealmEmptyTopicDisplayName,
           contentHintText: 'Message #${channel.name} > '
                            '${eg.defaultRealmEmptyTopicDisplayName}');
+        check(tester.widget<TextField>(topicInputFinder)).decoration.isNotNull()
+          .hintStyle.isNotNull().fontStyle.equals(FontStyle.italic);
       });
 
       testWidgets('legacy: with empty topic, content input has focus', (tester) async {
@@ -437,8 +443,10 @@ void main() {
         await enterContent(tester, '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
-          topicHintText: 'Topic',
+          topicHintText: '(no topic)',
           contentHintText: 'Message #${channel.name} > (no topic)');
+        check(tester.widget<TextField>(topicInputFinder)).decoration.isNotNull()
+          .hintStyle.isNotNull().fontStyle.isNull();
       });
 
       testWidgets('with empty topic, content input has focus, then topic input gains focus', (tester) async {
@@ -446,14 +454,15 @@ void main() {
         await enterContent(tester, '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
-          topicHintText: 'Topic',
+          topicHintText: eg.defaultRealmEmptyTopicDisplayName,
           contentHintText: 'Message #${channel.name} > '
                            '${eg.defaultRealmEmptyTopicDisplayName}');
 
         await enterTopic(tester, narrow: narrow, topic: '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
-          topicHintText: 'Topic',
+          topicHintText: 'Enter a topic '
+                         '(skip for “${eg.defaultRealmEmptyTopicDisplayName}”)',
           contentHintText: 'Message #${channel.name}');
       });
 
@@ -462,14 +471,14 @@ void main() {
         await enterContent(tester, '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
-          topicHintText: 'Topic',
+          topicHintText: eg.defaultRealmEmptyTopicDisplayName,
           contentHintText: 'Message #${channel.name} > '
                            '${eg.defaultRealmEmptyTopicDisplayName}');
 
         FocusManager.instance.primaryFocus!.unfocus();
         await tester.pump();
         checkComposeBoxHintTexts(tester,
-          topicHintText: 'Topic',
+          topicHintText: eg.defaultRealmEmptyTopicDisplayName,
           contentHintText: 'Message #${channel.name} > '
                            '${eg.defaultRealmEmptyTopicDisplayName}');
       });
@@ -479,7 +488,8 @@ void main() {
         await enterTopic(tester, narrow: narrow, topic: 'new topic');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
-          topicHintText: 'Topic',
+          topicHintText: 'Enter a topic '
+                         '(skip for “${eg.defaultRealmEmptyTopicDisplayName}”)',
           contentHintText: 'Message #${channel.name} > new topic');
       });
     });

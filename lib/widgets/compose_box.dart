@@ -686,6 +686,7 @@ class _TopicInputState extends State<_TopicInput> {
   void initState() {
     super.initState();
     widget.controller.topicFocusNode.addListener(_topicFocusChanged);
+    widget.controller.hasChosenTopic.addListener(_hasChosenTopicChanged);
   }
 
   @override
@@ -695,11 +696,16 @@ class _TopicInputState extends State<_TopicInput> {
       oldWidget.controller.topicFocusNode.removeListener(_topicFocusChanged);
       widget.controller.topicFocusNode.addListener(_topicFocusChanged);
     }
+    if (widget.controller.hasChosenTopic != oldWidget.controller.hasChosenTopic) {
+      oldWidget.controller.hasChosenTopic.removeListener(_hasChosenTopicChanged);
+      widget.controller.hasChosenTopic.addListener(_hasChosenTopicChanged);
+    }
   }
 
   @override
   void dispose() {
     widget.controller.topicFocusNode.removeListener(_topicFocusChanged);
+    widget.controller.hasChosenTopic.removeListener(_hasChosenTopicChanged);
     super.dispose();
   }
 
@@ -712,15 +718,52 @@ class _TopicInputState extends State<_TopicInput> {
     }
   }
 
+  void _hasChosenTopicChanged() {
+    setState(() {
+      // The relevant state lives on widget.controller.hasChosenTopic itself.
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
-    TextStyle topicTextStyle = TextStyle(
+    final store = PerAccountStoreWidget.of(context);
+
+    final topicTextStyle = TextStyle(
       fontSize: 20,
       height: 22 / 20,
       color: designVariables.textInput.withFadedAlpha(0.9),
     ).merge(weightVariableTextStyle(context, wght: 600));
+    final hintStyle = topicTextStyle.copyWith(
+      color: designVariables.textInput.withFadedAlpha(0.5));
+    final defaultTopicDisplayName = store.zulipFeatureLevel >= 334
+      ? store.realmEmptyTopicDisplayName : kNoTopicTopic;
+
+    final decoration = switch ((
+      store.realmMandatoryTopics,
+      widget.controller.hasChosenTopic.value,
+      widget.controller.topicFocusNode.hasFocus,
+    )) {
+      (false, true, false) => InputDecoration(
+        // The topic has been chosen.  Show the default topic display name as if
+        // the user has entered that when they left the input empty.
+        hintText: defaultTopicDisplayName,
+        hintStyle: topicTextStyle.copyWith(
+          fontStyle: store.zulipFeatureLevel >= 334 ? FontStyle.italic : null)),
+
+      (false, false, true) => InputDecoration(
+        // The user is actively interacting with the input.  Show a long and
+        // engaging hint text.
+        hintText: zulipLocalizations.composeBoxEnterTopicOrSkipHintText(
+          defaultTopicDisplayName),
+        hintStyle: hintStyle),
+
+      (_, _, _) => InputDecoration(
+        // In all other cases, show a short hint text for less distraction.
+        hintText: zulipLocalizations.composeBoxTopicHintText,
+        hintStyle: hintStyle),
+    };
 
     return TopicAutocomplete(
       streamId: widget.streamId,
@@ -737,10 +780,7 @@ class _TopicInputState extends State<_TopicInput> {
           focusNode: widget.controller.topicFocusNode,
           textInputAction: TextInputAction.next,
           style: topicTextStyle,
-          decoration: InputDecoration(
-            hintText: zulipLocalizations.composeBoxTopicHintText,
-            hintStyle: topicTextStyle.copyWith(
-              color: designVariables.textInput.withFadedAlpha(0.5))))));
+          decoration: decoration)));
   }
 }
 
