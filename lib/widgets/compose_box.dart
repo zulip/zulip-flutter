@@ -165,12 +165,12 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   ///
   /// The term "Vacuous" draws distinction from [String.isEmpty], in the sense
   /// that certain strings are not empty but also indicate the absence of a topic.
-  bool get isTopicVacuous => textNormalized == kNoTopicTopic;
+  bool get _isTopicVacuous => textNormalized == kNoTopicTopic;
 
   @override
   List<TopicValidationError> _computeValidationErrors() {
     return [
-      if (mandatory && isTopicVacuous)
+      if (mandatory && _isTopicVacuous)
         TopicValidationError.mandatoryButEmpty,
 
       if (
