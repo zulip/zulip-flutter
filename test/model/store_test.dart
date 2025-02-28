@@ -18,6 +18,7 @@ import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/log.dart';
 import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/notifications/open.dart';
 import 'package:zulip/notifications/receive.dart';
 
 import '../api/fake_api.dart';
@@ -342,7 +343,7 @@ void main() {
 
     // TODO test database gets updated correctly (an integration test with sqlite?)
   });
-  
+
   test('GlobalStore.updateZulipVersionData', () async {
     final [currentZulipVersion,          newZulipVersion             ]
         = ['10.0-beta2-302-gf5b08b11f4', '10.0-beta2-351-g75ac8fe961'];
@@ -1281,6 +1282,7 @@ void main() {
       addTearDown(testBinding.reset);
       testBinding.firebaseMessagingInitialToken = '012abc';
       addTearDown(NotificationService.debugReset);
+      addTearDown(NotificationOpenManager.debugReset);
       await NotificationService.instance.start();
 
       // On store startup, send the token.
@@ -1308,6 +1310,7 @@ void main() {
       addTearDown(testBinding.reset);
       testBinding.firebaseMessagingInitialToken = '012abc';
       addTearDown(NotificationService.debugReset);
+      addTearDown(NotificationOpenManager.debugReset);
       final startFuture = NotificationService.instance.start();
 
       // TODO this test is a bit brittle in its interaction with asynchrony;
