@@ -6,7 +6,9 @@ import '../model/unreads.dart';
 import 'content.dart';
 import 'icons.dart';
 import 'message_list.dart';
+import 'new_dm_sheet.dart';
 import 'store.dart';
+import 'text.dart';
 import 'theme.dart';
 import 'unread_count_badge.dart';
 
@@ -48,8 +50,11 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
 
   @override
   Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final sorted = model!.sorted;
-    return SafeArea(
+    return Scaffold(
+      body: SafeArea(
       // Don't pad the bottom here; we want the list content to do that.
       bottom: false,
       child: ListView.builder(
@@ -60,7 +65,28 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
             narrow: narrow,
             unreadCount: unreadsModel!.countInDmNarrow(narrow),
           );
-        }));
+        })),
+      floatingActionButton: Container(
+        constraints: const BoxConstraints(
+          minWidth: 137,
+          minHeight: 48),
+        child: FloatingActionButton.extended(
+          elevation: 0,
+          onPressed: () {
+            showNewDmSheet(context);
+          },
+          extendedPadding: const EdgeInsetsDirectional.fromSTEB(16, 12, 20, 12),
+          icon: const Icon(Icons.add, size: 24),
+          label: Text(
+            zulipLocalizations.newDmFabButtonLabel,
+            style: const TextStyle(fontSize: 20, height: 24 / 20)
+              .merge(weightVariableTextStyle(context, wght: 500))),
+          backgroundColor: designVariables.fabBg,
+          foregroundColor: designVariables.fabLabel,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28)),
+          extendedIconLabelSpacing: 8)),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat);
   }
 }
 
