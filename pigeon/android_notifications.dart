@@ -4,7 +4,7 @@ import 'package:pigeon/pigeon.dart';
 // run `tools/check pigeon --fix`.
 @ConfigurePigeon(PigeonOptions(
   dartOut: 'lib/host/android_notifications.g.dart',
-  kotlinOut: 'android/app/src/main/kotlin/com/zulip/flutter/Notifications.g.kt',
+  kotlinOut: 'android/app/src/main/kotlin/com/zulip/flutter/AndroidNotifications.g.kt',
   kotlinOptions: KotlinOptions(package: 'com.zulip.flutter'),
 ))
 
