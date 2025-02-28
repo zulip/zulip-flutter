@@ -150,7 +150,7 @@ void main() {
     Finder findAvatarImage(int userId) =>
       find.byWidgetPredicate((widget) => widget is AvatarImage && widget.userId == userId);
 
-    void checkUserShown(User user, PerAccountStore store, {required bool expected}) {
+    void checkUserShown(User user, {required bool expected}) {
       check(find.text(user.fullName).evaluate().length).equals(expected ? 1 : 0);
       final avatarFinder = findAvatarImage(user.userId);
       check(avatarFinder.evaluate().length).equals(expected ? 1 : 0);
@@ -170,33 +170,33 @@ void main() {
       await tester.pumpAndSettle(); // async computation; options appear
 
       // "User Two" and "User Three" appear, but not "User One"
-      checkUserShown(user1, store, expected: false);
-      checkUserShown(user2, store, expected: true);
-      checkUserShown(user3, store, expected: true);
+      checkUserShown(user1, expected: false);
+      checkUserShown(user2, expected: true);
+      checkUserShown(user3, expected: true);
 
       // Finishing autocomplete updates compose box; causes options to disappear
       await tester.tap(find.text('User Three'));
       await tester.pump();
       check(tester.widget<TextField>(composeInputFinder).controller!.text)
         .contains(userMention(user3, users: store));
-      checkUserShown(user1, store, expected: false);
-      checkUserShown(user2, store, expected: false);
-      checkUserShown(user3, store, expected: false);
+      checkUserShown(user1, expected: false);
+      checkUserShown(user2, expected: false);
+      checkUserShown(user3, expected: false);
 
       // Then a new autocomplete intent brings up options again
       // TODO(#226): Remove this extra edit when this bug is fixed.
       await tester.enterText(composeInputFinder, 'hello @user tw');
       await tester.enterText(composeInputFinder, 'hello @user two');
       await tester.pumpAndSettle(); // async computation; options appear
-      checkUserShown(user2, store, expected: true);
+      checkUserShown(user2, expected: true);
 
       // Removing autocomplete intent causes options to disappear
       // TODO(#226): Remove one of these edits when this bug is fixed.
       await tester.enterText(composeInputFinder, '');
       await tester.enterText(composeInputFinder, ' ');
-      checkUserShown(user1, store, expected: false);
-      checkUserShown(user2, store, expected: false);
-      checkUserShown(user3, store, expected: false);
+      checkUserShown(user1, expected: false);
+      checkUserShown(user2, expected: false);
+      checkUserShown(user3, expected: false);
 
       debugNetworkImageHttpClientProvider = null;
     });
