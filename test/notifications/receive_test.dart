@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/notifications/open.dart';
 import 'package:zulip/notifications/receive.dart';
 
 import '../model/binding.dart';
@@ -12,6 +13,7 @@ void main() {
     addTearDown(testBinding.reset);
     testBinding.firebaseMessagingInitialToken = '012abc';
     addTearDown(NotificationService.debugReset);
+    addTearDown(NotificationOpenManager.debugReset);
     NotificationService.debugBackgroundIsolateIsLive = false;
     await NotificationService.instance.start();
   }

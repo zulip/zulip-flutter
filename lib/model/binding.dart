@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:wakelock_plus/wakelock_plus.dart' as wakelock_plus;
 
 import '../host/android_notifications.dart';
+import '../host/notifications.dart' as notif_pigeon;
 import '../log.dart';
 import '../widgets/store.dart';
 import 'store.dart';
@@ -168,6 +169,9 @@ abstract class ZulipBinding {
   /// Wraps the [AndroidNotificationHostApi] constructor.
   AndroidNotificationHostApi get androidNotificationHost;
 
+  /// Wraps the [notif_pigeon.NotificationHostApi] class.
+  NotificationPigeonApi get notificationPigeonApi;
+
   /// Pick files from the media library, via package:file_picker.
   ///
   /// This wraps [file_picker.pickFiles].
@@ -310,6 +314,13 @@ class PackageInfo {
   });
 }
 
+class NotificationPigeonApi {
+  final _hostApi = notif_pigeon.NotificationHostApi();
+
+  Future<notif_pigeon.NotificationDataFromLaunch?> getNotificationDataFromLaunch() =>
+    _hostApi.getNotificationDataFromLaunch();
+}
+
 /// A concrete binding for use in the live application.
 ///
 /// The global store returned by [getGlobalStore], and consequently by
@@ -441,6 +452,9 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   AndroidNotificationHostApi get androidNotificationHost => AndroidNotificationHostApi();
+
+  @override
+  NotificationPigeonApi get notificationPigeonApi => NotificationPigeonApi();
 
   @override
   Future<file_picker.FilePickerResult?> pickFiles({
