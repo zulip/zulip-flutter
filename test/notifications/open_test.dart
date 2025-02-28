@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:checks/checks.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/notifications.dart';
+import 'package:zulip/host/notifications.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
@@ -73,10 +75,7 @@ void main() {
   TestZulipBinding.ensureInitialized();
   final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
-  Future<void> init({bool addSelfAccount = true}) async {
-    if (addSelfAccount) {
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-    }
+  Future<void> init() async {
     addTearDown(testBinding.reset);
     testBinding.firebaseMessagingInitialToken = '012abc';
     addTearDown(NotificationService.debugReset);
@@ -87,12 +86,11 @@ void main() {
   group('NotificationOpenService', () {
     late List<Route<void>> pushedRoutes;
 
-    void takeStartingRoutes({Account? account, bool withAccount = true}) {
-      account ??= eg.selfAccount;
+    void takeStartingRoutes({Account? account}) {
       final expected = <Condition<Object?>>[
-        if (withAccount)
+        if (account != null)
           (it) => it.isA<MaterialAccountWidgetRoute>()
-            ..accountId.equals(account!.id)
+            ..accountId.equals(account.id)
             ..page.isA<HomePage>()
         else
           (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
@@ -101,27 +99,35 @@ void main() {
       pushedRoutes.removeRange(0, expected.length);
     }
 
-    Future<void> prepare(WidgetTester tester,
-        {bool early = false, bool withAccount = true}) async {
-      await init(addSelfAccount: false);
+    Future<void> prepare(
+      WidgetTester tester, {
+      bool dropStartingRoutes = true,
+      Account? account,
+      bool withAccount = true,
+    }) async {
+      if (withAccount) {
+        account ??= eg.selfAccount;
+        await testBinding.globalStore.add(account, eg.initialSnapshot());
+      }
+      await init();
       pushedRoutes = [];
       final testNavObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
       // This uses [ZulipApp] instead of [TestZulipApp] because notification
       // logic uses `await ZulipApp.navigator`.
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
-      if (early) {
+      if (!dropStartingRoutes) {
         check(pushedRoutes).isEmpty();
         return;
       }
       await tester.pump();
-      takeStartingRoutes(withAccount: withAccount);
+      takeStartingRoutes(account: account);
       check(pushedRoutes).isEmpty();
     }
 
-    Future<void> openNotification(WidgetTester tester, Account account, Message message) async {
+    Uri androidNotificationUrlForMessage(Account account, Message message) {
       final data = messageFcmMessage(message, account: account);
-      final intentDataUrl = NotificationOpenPayload(
+      return NotificationOpenPayload(
         realmUrl: data.realmUrl,
         userId: data.userId,
         narrow: switch (data.recipient) {
@@ -130,9 +136,40 @@ void main() {
         FcmMessageDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
       }).buildAndroidNotificationUrl();
-      unawaited(
-        WidgetsBinding.instance.handlePushRoute(intentDataUrl.toString()));
-      await tester.idle(); // let navigateForNotification find navigator
+    }
+
+    Future<void> openNotification(WidgetTester tester, Account account, Message message) async {
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.android:
+          final intentDataUrl = androidNotificationUrlForMessage(account, message);
+          unawaited(
+            WidgetsBinding.instance.handlePushRoute(intentDataUrl.toString()));
+          await tester.idle(); // let navigateForNotification find navigator
+
+        default:
+          throw UnsupportedError('Unsupported target platform: "$defaultTargetPlatform"');
+      }
+    }
+
+    void setupNotificationDataForLaunch(WidgetTester tester, Account account, Message message) {
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.android:
+          // Set up a value for `PlatformDispatcher.defaultRouteName` to return,
+          // for determining the initial route.
+          final intentDataUrl = androidNotificationUrlForMessage(account, message);
+          addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
+          tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
+
+        case TargetPlatform.iOS:
+          // Set up a value to return for
+          // `notificationPigeonApi.getNotificationDataFromLaunch`.
+          final payload = messageApnsPayload(message, account: account);
+          testBinding.notificationPigeonApi.setNotificationDataFromLaunch(
+            NotificationDataFromLaunch(payload: payload));
+
+        default:
+          throw UnsupportedError('Unsupported target platform: "$defaultTargetPlatform"');
+      }
     }
 
     void matchesNavigation(Subject<Route<void>> route, Account account, Message message) {
@@ -151,25 +188,21 @@ void main() {
 
     testWidgets('stream message', (tester) async {
       addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
       await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage());
-    });
+    }, variant: const TargetPlatformVariant({TargetPlatform.android}));
 
     testWidgets('direct message', (tester) async {
       addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
       await checkOpenNotification(tester, eg.selfAccount,
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]));
-    });
+    }, variant: const TargetPlatformVariant({TargetPlatform.android}));
 
     testWidgets('account queried by realmUrl origin component', (tester) async {
       addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(
-        eg.selfAccount.copyWith(realmUrl: Uri.parse('http://chat.example')),
-        eg.initialSnapshot());
-      await prepare(tester);
+      await prepare(tester,
+        account: eg.selfAccount.copyWith(realmUrl: Uri.parse('http://chat.example')));
 
       await checkOpenNotification(tester,
         eg.selfAccount.copyWith(realmUrl: Uri.parse('http://chat.example/')),
@@ -177,7 +210,7 @@ void main() {
       await checkOpenNotification(tester,
         eg.selfAccount.copyWith(realmUrl: Uri.parse('http://chat.example')),
         eg.streamMessage());
-    });
+    }, variant: const TargetPlatformVariant({TargetPlatform.android}));
 
     testWidgets('no accounts', (tester) async {
       await prepare(tester, withAccount: false);
@@ -187,11 +220,10 @@ void main() {
       await tester.tap(find.byWidget(checkErrorDialog(tester,
         expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
         expectedMessage: zulipLocalizations.errorNotificationOpenAccountNotFound)));
-    });
+    }, variant: const TargetPlatformVariant({TargetPlatform.android}));
 
     testWidgets('mismatching account', (tester) async {
       addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
       await openNotification(tester, eg.otherAccount, eg.streamMessage());
       await tester.pump();
@@ -199,7 +231,7 @@ void main() {
       await tester.tap(find.byWidget(checkErrorDialog(tester,
         expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
         expectedMessage: zulipLocalizations.errorNotificationOpenAccountNotFound)));
-    });
+    }, variant: const TargetPlatformVariant({TargetPlatform.android}));
 
     testWidgets('find account among several', (tester) async {
       addTearDown(testBinding.reset);
@@ -216,18 +248,21 @@ void main() {
       for (final account in accounts) {
         await testBinding.globalStore.add(account, eg.initialSnapshot());
       }
-      await prepare(tester);
+
+      await prepare(tester, dropStartingRoutes: false, withAccount: false);
+      check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
+      await tester.pump();
+      takeStartingRoutes(account: accounts[0]);
 
       await checkOpenNotification(tester, accounts[0], eg.streamMessage());
       await checkOpenNotification(tester, accounts[1], eg.streamMessage());
       await checkOpenNotification(tester, accounts[2], eg.streamMessage());
       await checkOpenNotification(tester, accounts[3], eg.streamMessage());
-    });
+    }, variant: const TargetPlatformVariant({TargetPlatform.android}));
 
     testWidgets('wait for app to become ready', (tester) async {
       addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      await prepare(tester, early: true);
+      await prepare(tester, dropStartingRoutes: false);
       final message = eg.streamMessage();
       await openNotification(tester, eg.selfAccount, message);
       // The app should still not be ready (or else this test won't work right).
@@ -239,40 +274,27 @@ void main() {
       // Now let the GlobalStore get loaded and the app's main UI get mounted.
       await tester.pump();
       // The navigator first pushes the starting routes…
-      takeStartingRoutes();
+      takeStartingRoutes(account: eg.selfAccount);
       // … and then the one the notification leads to.
       matchesNavigation(check(pushedRoutes).single, eg.selfAccount, message);
-    });
+    }, variant: const TargetPlatformVariant({TargetPlatform.android}));
 
     testWidgets('at app launch', (tester) async {
       addTearDown(testBinding.reset);
-      // Set up a value for `PlatformDispatcher.defaultRouteName` to return,
-      // for determining the intial route.
+
       final account = eg.selfAccount;
       final message = eg.streamMessage();
-      final data = messageFcmMessage(message, account: account);
-      final intentDataUrl = NotificationOpenPayload(
-        realmUrl: data.realmUrl,
-        userId: data.userId,
-        narrow: switch (data.recipient) {
-          FcmMessageChannelRecipient(:var streamId, :var topic) =>
-            TopicNarrow(streamId, topic),
-          FcmMessageDmRecipient(:var allRecipientIds) =>
-            DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-        }).buildAndroidNotificationUrl();
-      addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
-      tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
+      setupNotificationDataForLaunch(tester, account, message);
 
       // Now start the app.
-      await testBinding.globalStore.add(account, eg.initialSnapshot());
-      await prepare(tester, early: true);
+      await prepare(tester, dropStartingRoutes: false);
       check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
 
       // Once the app is ready, we navigate to the conversation.
       await tester.pump();
-      takeStartingRoutes();
+      takeStartingRoutes(account: account);
       matchesNavigation(check(pushedRoutes).single, account, message);
-    });
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('uses associated account as initial account; if initial route', (tester) async {
       addTearDown(testBinding.reset);
@@ -280,29 +302,17 @@ void main() {
       final accountA = eg.selfAccount;
       final accountB = eg.otherAccount;
       final message = eg.streamMessage();
-      final data = messageFcmMessage(message, account: accountB);
       await testBinding.globalStore.add(accountA, eg.initialSnapshot());
       await testBinding.globalStore.add(accountB, eg.initialSnapshot());
+      setupNotificationDataForLaunch(tester, accountB, message);
 
-      final intentDataUrl = NotificationOpenPayload(
-        realmUrl: data.realmUrl,
-        userId: data.userId,
-        narrow: switch (data.recipient) {
-          FcmMessageChannelRecipient(:var streamId, :var topic) =>
-            TopicNarrow(streamId, topic),
-          FcmMessageDmRecipient(:var allRecipientIds) =>
-            DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-        }).buildAndroidNotificationUrl();
-      addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
-      tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
-
-      await prepare(tester, early: true);
+      await prepare(tester, dropStartingRoutes: false, withAccount: false);
       check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
 
       await tester.pump();
       takeStartingRoutes(account: accountB);
       matchesNavigation(check(pushedRoutes).single, accountB, message);
-    });
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
   });
 
   group('NotificationOpenPayload', () {
