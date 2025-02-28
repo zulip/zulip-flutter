@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:convert';
 
+import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/core.dart';
@@ -277,4 +278,8 @@ class FakeApiConnection extends ApiConnection {
       delay: delay,
     );
   }
+}
+
+extension FakeApiConnectionChecks on Subject<FakeApiConnection> {
+  Subject<bool> get isOpen => has((x) => x.isOpen, 'isOpen');
 }

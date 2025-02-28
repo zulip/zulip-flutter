@@ -1,8 +1,11 @@
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/route/events.dart';
+import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/store.dart';
 
 import '../api/fake_api.dart';
@@ -127,7 +130,10 @@ mixin _DatabaseMixin on GlobalStore {
 /// Tests can use [PerAccountStore.updateMachine] in order to invoke that logic
 /// explicitly when desired.
 ///
-/// See also [TestZulipBinding.globalStore], which provides one of these.
+/// See also:
+///   * [TestZulipBinding.globalStore], which provides one of these.
+///   * [UpdateMachineTestGlobalStore], which prepares per-account data
+///     using [UpdateMachine.load] (like [LiveGlobalStore] does).
 class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMixin {
   TestGlobalStore({
     GlobalSettingsData? globalSettings,
@@ -173,6 +179,64 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
     UpdateMachine.fromInitialSnapshot(
       store: store, initialSnapshot: initialSnapshot);
     return Future.value(store);
+  }
+}
+
+/// A [GlobalStore] that causes no database queries,
+/// and loads per-account data from API responses prepared by callers.
+///
+/// The per-account stores will use [FakeApiConnection].
+///
+/// Like [LiveGlobalStore] and unlike [TestGlobalStore],
+/// account data is loaded via [UpdateMachine.load].
+/// Callers can set [prepareRegisterQueueResponse]
+/// to prepare a register-queue payload or an exception.
+/// The implementation pauses the event-polling loop
+/// to avoid being a nuisance and does a boring
+/// [FakeApiConnection.prepare] for the register-token request.
+///
+/// See also:
+///   * [TestGlobalStore], which prepares per-account data
+///     without using [UpdateMachine.load].
+class UpdateMachineTestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMixin {
+  UpdateMachineTestGlobalStore({
+    GlobalSettingsData? globalSettings,
+    required super.accounts,
+  }) : super(globalSettings: globalSettings ?? eg.globalSettings());
+
+  // [doLoadPerAccount] depends on the cache to prepare the API responses.
+  // Calling [clearCachedApiConnections] is permitted, though.
+  @override bool get useCachedApiConnections => true;
+  @override set useCachedApiConnections(bool value) =>
+    throw UnsupportedError(
+      'Setting UpdateMachineTestGlobalStore.useCachedApiConnections '
+      'is not supported.');
+
+  void Function(FakeApiConnection)? prepareRegisterQueueResponse;
+
+  void _prepareRegisterQueueSuccess(FakeApiConnection connection) {
+    connection.prepare(json: eg.initialSnapshot().toJson());
+  }
+
+  @override
+  Future<PerAccountStore> doLoadPerAccount(int accountId) async {
+    final account = getAccount(accountId);
+
+    // UpdateMachine.load should pick up the connection
+    // with the network-request responses that we've prepared.
+    assert(useCachedApiConnections);
+
+    final connection = apiConnectionFromAccount(account!) as FakeApiConnection;
+    (prepareRegisterQueueResponse ?? _prepareRegisterQueueSuccess)(connection);
+    connection
+      ..prepare(json: GetEventsResult(events: [HeartbeatEvent(id: 2)], queueId: null).toJson())
+      ..prepare(json: ServerEmojiData(codeToNames: {}).toJson());
+    if (NotificationService.instance.token.value != null) {
+      connection.prepare(json: {}); // register-token
+    }
+    final updateMachine = await UpdateMachine.load(this, accountId);
+    updateMachine.debugPauseLoop();
+    return updateMachine.store;
   }
 }
 
