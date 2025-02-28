@@ -10,6 +10,7 @@ import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:wakelock_plus/wakelock_plus.dart' as wakelock_plus;
 
+import '../host/android_download_manager.g.dart';
 import '../host/android_notifications.dart';
 import '../log.dart';
 import '../widgets/store.dart';
@@ -167,6 +168,9 @@ abstract class ZulipBinding {
 
   /// Wraps the [AndroidNotificationHostApi] constructor.
   AndroidNotificationHostApi get androidNotificationHost;
+
+  /// Wraps the [DownloadManagerHostApi] constructor.
+  DownloadManagerHostApi get androidDownloadHost;
 
   /// Pick files from the media library, via package:file_picker.
   ///
@@ -441,6 +445,9 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   AndroidNotificationHostApi get androidNotificationHost => AndroidNotificationHostApi();
+
+  @override
+  DownloadManagerHostApi get androidDownloadHost => DownloadManagerHostApi();
 
   @override
   Future<file_picker.FilePickerResult?> pickFiles({
