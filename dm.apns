@@ -1,0 +1,29 @@
+{
+    "aps": {
+        "alert": {
+            "title": "You and King Hamlet, Prospero from The Tempest, Zoe",
+            "subtitle": "Zoe:",
+            "body": "I am she whose language is sweeter than honey, the zealous follower of the Muses, as Homer has it: the poet."
+        },
+        "sound": "default",
+        "badge": 0,
+        "custom": {
+            "zulip": {
+                "server": "zulipdev.com:9991",
+                "realm_id": 2,
+                "realm_uri": "http://localhost:9991",
+                "realm_url": "http://localhost:9991",
+                "realm_name": "Zulip Dev",
+                "user_id": 6,
+                "sender_id": 7,
+                "sender_email": "user7@zulipdev.com",
+                "time": 1740873360,
+                "recipient_type": "private",
+                "pm_users": "6,7,10,14",
+                "message_ids": [
+                    83
+                ]
+            }
+        }
+    }
+}
