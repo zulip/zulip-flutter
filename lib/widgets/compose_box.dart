@@ -128,14 +128,20 @@ abstract class ComposeController<ErrorT> extends TextEditingController {
 }
 
 enum TopicValidationError {
-  mandatoryButEmpty,
+  /// Error when the topic fails a mandatory-topics check
+  /// (see [ComposeTopicController.mandatory]).
+  ///
+  /// The term "Vacuous" draws distinction from [String.isEmpty], in the sense
+  /// that certain strings are not empty but also indicate the absence of a topic.
+  mandatoryButVacuous,
+
   tooLong;
 
   String message(ZulipLocalizations zulipLocalizations) {
     switch (this) {
       case tooLong:
         return zulipLocalizations.topicValidationErrorTooLong;
-      case mandatoryButEmpty:
+      case mandatoryButVacuous:
         return zulipLocalizations.topicValidationErrorMandatoryButEmpty;
     }
   }
@@ -161,17 +167,14 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   /// Whether [textNormalized] would fail a mandatory-topics check
-  /// (see [mandatory]).
-  ///
-  /// The term "Vacuous" draws distinction from [String.isEmpty], in the sense
-  /// that certain strings are not empty but also indicate the absence of a topic.
-  bool get isTopicVacuous => textNormalized == kNoTopicTopic;
+  /// (see [TopicValidationError.mandatoryButVacuous]).
+  bool get _isTopicVacuous => textNormalized == kNoTopicTopic;
 
   @override
   List<TopicValidationError> _computeValidationErrors() {
     return [
-      if (mandatory && isTopicVacuous)
-        TopicValidationError.mandatoryButEmpty,
+      if (mandatory && _isTopicVacuous)
+        TopicValidationError.mandatoryButVacuous,
 
       if (
         _lengthUnicodeCodePointsIfLong != null
