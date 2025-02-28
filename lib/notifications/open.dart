@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
@@ -6,7 +7,9 @@ import 'package:flutter/widgets.dart';
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../host/notifications.dart';
 import '../log.dart';
+import '../model/binding.dart';
 import '../model/narrow.dart';
 import '../widgets/app.dart';
 import '../widgets/dialog.dart';
@@ -14,8 +17,75 @@ import '../widgets/message_list.dart';
 import '../widgets/page.dart';
 import '../widgets/store.dart';
 
+NotificationPigeonApi get _notifPigeonApi => ZulipBinding.instance.notificationPigeonApi;
+
 /// Responds to the user opening a notification.
 class NotificationOpenService {
+  static NotificationOpenService get instance => (_instance ??= NotificationOpenService._());
+  static NotificationOpenService? _instance;
+
+  NotificationOpenService._();
+
+  /// Reset the state of the [NotificationNavigationService], for testing.
+  static void debugReset() {
+    _instance = null;
+  }
+
+  NotificationDataFromLaunch? _notifDataFromLaunch;
+
+  /// A [Future] that completes to signal that the initialization of
+  /// [NotificationNavigationService] has completed
+  /// (with either success or failure).
+  ///
+  /// Null if [start] hasn't been called.
+  Future<void>? get initialized => _initializedSignal?.future;
+
+  Completer<void>? _initializedSignal;
+
+  Future<void> start() async {
+    assert(_initializedSignal == null);
+    _initializedSignal = Completer<void>();
+    try {
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.iOS:
+          _notifDataFromLaunch = await _notifPigeonApi.getNotificationDataFromLaunch();
+
+        case TargetPlatform.android:
+          // Do nothing; we do notification routing differently on Android.
+          // TODO migrate Android to use the new Pigeon API.
+          break;
+
+        case TargetPlatform.fuchsia:
+        case TargetPlatform.linux:
+        case TargetPlatform.macOS:
+        case TargetPlatform.windows:
+          // Do nothing; we don't offer notifications on these platforms.
+          break;
+      }
+    } finally {
+      _initializedSignal!.complete();
+    }
+  }
+
+  /// Provides the route to open if the app was launched through a tap on
+  /// a notification.
+  ///
+  /// Returns null if app launch wasn't triggered by a notification, or if
+  /// an error occurs while determining the route for the notification.
+  /// In the latter case an error dialog is also shown.
+  ///
+  /// The context argument should be a descendant of the app's main [Navigator].
+  AccountRoute<void>? routeForNotificationFromLaunch({required BuildContext context}) {
+    assert(defaultTargetPlatform == TargetPlatform.iOS);
+    final data = _notifDataFromLaunch;
+    if (data == null) return null;
+    assert(debugLog('opened notif: ${jsonEncode(data.payload)}'));
+
+    final notifNavData = _tryParseIosApnsPayload(context, data.payload);
+    if (notifNavData == null) return null; // TODO(log)
+
+    return routeForNotification(context: context, data: notifNavData);
+  }
 
   /// Provides the route to open by parsing the notification payload.
   ///
@@ -27,8 +97,6 @@ class NotificationOpenService {
     required BuildContext context,
     required NotificationOpenPayload data,
   }) {
-    assert(defaultTargetPlatform == TargetPlatform.android);
-
     final globalStore = GlobalStoreWidget.of(context);
 
     final account = globalStore.accounts.firstWhereOrNull(
@@ -69,6 +137,21 @@ class NotificationOpenService {
 
     // TODO(nav): Better interact with existing nav stack on notif open
     unawaited(navigator.push(route));
+  }
+
+  static NotificationOpenPayload? _tryParseIosApnsPayload(
+    BuildContext context,
+    Map<Object?, Object?> payload,
+  ) {
+    try {
+      return NotificationOpenPayload.parseIosApnsPayload(payload);
+    } on FormatException catch (e, st) {
+      assert(debugLog('$e\n$st'));
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorNotificationOpenTitle);
+      return null;
+    }
   }
 
   static NotificationOpenPayload? tryParseAndroidNotificationUrl({
