@@ -248,6 +248,24 @@ void main () {
       check(find.byType(BottomSheet)).findsNothing();
     });
 
+    testWidgets('organization header shows realm info and navigation works', (tester) async {
+      await prepare(tester);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      await tapOpenMenu(tester);
+
+      check(find.text(store.realmName)).findsOne();
+      check(find.byType(Image)).findsOne();
+
+      final organizationsButton = find.text('Organizations');
+      check(organizationsButton).findsOne();
+
+      await tester.tap(organizationsButton);
+      await tester.pump(Duration.zero);
+      await tester.pump(const Duration(milliseconds: 250)); // wait for animation
+
+      check(find.byType(ChooseAccountPage)).findsOne();
+    });
+
     testWidgets('_MyProfileButton', (tester) async {
       await prepare(tester);
       await tapOpenMenu(tester);
