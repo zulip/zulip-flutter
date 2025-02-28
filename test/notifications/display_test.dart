@@ -122,6 +122,7 @@ void main() {
     addTearDown(testBinding.reset);
     testBinding.firebaseMessagingInitialToken = '012abc';
     addTearDown(NotificationService.debugReset);
+    addTearDown(NotificationNavigationService.debugReset);
     NotificationService.debugBackgroundIsolateIsLive = false;
     await NotificationService.instance.start();
   }
