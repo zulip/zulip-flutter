@@ -18,6 +18,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/display.dart';
+import 'package:zulip/notifications/navigate.dart';
 import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/color.dart';
@@ -121,6 +122,7 @@ void main() {
     addTearDown(testBinding.reset);
     testBinding.firebaseMessagingInitialToken = '012abc';
     addTearDown(NotificationService.debugReset);
+    addTearDown(NotificationNavigationService.debugReset);
     NotificationService.debugBackgroundIsolateIsLive = false;
     await NotificationService.instance.start();
   }
