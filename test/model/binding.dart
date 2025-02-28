@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:test/fake.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:zulip/host/android_notifications.dart';
+import 'package:zulip/host/notifications.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
@@ -279,6 +280,7 @@ class TestZulipBinding extends ZulipBinding {
 
   void _resetNotifications() {
     _androidNotificationHostApi = null;
+    _notificationPigeonApi = null;
   }
 
   FakeAndroidNotificationHostApi? _androidNotificationHostApi;
@@ -286,6 +288,13 @@ class TestZulipBinding extends ZulipBinding {
   @override
   FakeAndroidNotificationHostApi get androidNotificationHost {
     return (_androidNotificationHostApi ??= FakeAndroidNotificationHostApi());
+  }
+
+  FakeNotificationPigeonApi? _notificationPigeonApi;
+
+  @override
+  FakeNotificationPigeonApi get notificationPigeonApi {
+    return (_notificationPigeonApi ??= FakeNotificationPigeonApi());
   }
 
   /// The value that `ZulipBinding.instance.pickFiles()` should return.
@@ -722,6 +731,20 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   Future<void> cancel({String? tag, required int id}) async {
     _activeNotifications.remove((id, tag));
   }
+}
+
+class FakeNotificationPigeonApi implements NotificationPigeonApi {
+  NotificationPayloadForOpen? _notificationDataFromLaunch;
+
+  /// Populates the notification data for launch to be returned
+  /// by [getNotificationDataFromLaunch].
+  void setNotificationDataFromLaunch(NotificationPayloadForOpen? data) {
+    _notificationDataFromLaunch = data;
+  }
+
+  @override
+  Future<NotificationPayloadForOpen?> getNotificationDataFromLaunch() async =>
+    _notificationDataFromLaunch;
 }
 
 typedef AndroidNotificationHostApiNotifyCall = ({
