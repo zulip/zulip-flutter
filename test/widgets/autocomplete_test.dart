@@ -151,9 +151,8 @@ void main() {
       find.byWidgetPredicate((widget) => widget is AvatarImage && widget.userId == userId);
 
     void checkUserShown(User user, {required bool expected}) {
-      check(find.text(user.fullName).evaluate().length).equals(expected ? 1 : 0);
-      final avatarFinder = findAvatarImage(user.userId);
-      check(avatarFinder.evaluate().length).equals(expected ? 1 : 0);
+      check(find.text(user.fullName)).findsExactly(expected ? 1 : 0);
+      check(findAvatarImage(user.userId)).findsExactly(expected ? 1 : 0);
     }
 
     testWidgets('user options appear, disappear, and change correctly', (tester) async {
@@ -206,7 +205,7 @@ void main() {
       final iconFinder = find.byIcon(ZulipIcons.three_person);
       final wildcardItemFinder = find.ancestor(of: richTextFinder,
         matching: find.ancestor(of: iconFinder, matching: find.byType(Row)));
-      check(wildcardItemFinder.evaluate().length).equals(expected ? 1 : 0);
+      check(wildcardItemFinder).findsExactly(expected ? 1 : 0);
     }
 
     testWidgets('wildcard options appear, disappear, and change correctly', (tester) async {
