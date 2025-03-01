@@ -13,6 +13,8 @@ extension PaintChecks on Subject<Paint> {
 extension RectChecks on Subject<Rect> {
   Subject<double> get top => has((d) => d.top, 'top');
   Subject<double> get bottom => has((d) => d.bottom, 'bottom');
+  Subject<double> get left => has((d) => d.left, 'left');
+  Subject<double> get right => has((d) => d.right, 'right');
 
   // TODO others
 }

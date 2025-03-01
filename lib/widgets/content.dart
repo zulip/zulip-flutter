@@ -663,12 +663,14 @@ class MessageImage extends StatelessWidget {
           src: resolvedSrcUrl,
           thumbnailUrl: resolvedThumbnailUrl,
           originalWidth: node.originalWidth,
-          originalHeight: node.originalHeight));
+          originalHeight: node.originalHeight,
+          pageContext: context));
       },
       child: node.loading
         ? const CupertinoActivityIndicator()
         : resolvedSrcUrl == null ? null : LightboxHero(
             message: message,
+            pageContext: context,
             src: resolvedSrcUrl,
             child: RealmContentNetworkImage(
               resolvedThumbnailUrl ?? resolvedSrcUrl,
