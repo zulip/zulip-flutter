@@ -256,10 +256,11 @@ void main() {
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
     addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
-    final message = eg.streamMessage();
-    await setupMessageListPage(tester, messages: [message]);
+    final streamMessage = eg.streamMessage();
+    final dmMessage = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+    await setupMessageListPage(tester, messages: [streamMessage, dmMessage]);
 
-    Color backgroundColor() {
+    Color getBackgroundColor(Message message) {
       final coloredBoxFinder = find.descendant(
         of: find.byWidgetPredicate((w) => w is MessageItem && w.item.message.id == message.id),
         matching: find.byType(ColoredBox),
@@ -268,17 +269,20 @@ void main() {
       return widget.color;
     }
 
-    check(backgroundColor()).isSameColorAs(MessageListTheme.light.streamMessageBgDefault);
+    check(getBackgroundColor(streamMessage)).isSameColorAs(MessageListTheme.light.streamMessageBgDefault);
+    check(getBackgroundColor(dmMessage)).isSameColorAs(MessageListTheme.light.dmMessageBgDefault);
 
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
     await tester.pump();
 
     await tester.pump(kThemeAnimationDuration * 0.4);
     final expectedLerped = MessageListTheme.light.lerp(MessageListTheme.dark, 0.4);
-    check(backgroundColor()).isSameColorAs(expectedLerped.streamMessageBgDefault);
+    check(getBackgroundColor(streamMessage)).isSameColorAs(expectedLerped.streamMessageBgDefault);
+    check(getBackgroundColor(dmMessage)).isSameColorAs(expectedLerped.dmMessageBgDefault);
 
     await tester.pump(kThemeAnimationDuration * 0.6);
-    check(backgroundColor()).isSameColorAs(MessageListTheme.dark.streamMessageBgDefault);
+    check(getBackgroundColor(streamMessage)).isSameColorAs(MessageListTheme.dark.streamMessageBgDefault);
+    check(getBackgroundColor(dmMessage)).isSameColorAs(MessageListTheme.dark.dmMessageBgDefault);
   });
 
   group('fetch initial batch of messages', () {
