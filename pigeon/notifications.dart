@@ -22,3 +22,10 @@ abstract class NotificationHostApi {
   /// Retrieves notification data if the app was launched by tapping on a notification.
   NotificationPayloadForOpen? getNotificationDataFromLaunch();
 }
+
+@EventChannelApi()
+abstract class NotificationHostEvents {
+  /// An event stream that emits a notification payload when
+  /// app encounters a notification tap, while the app is runnning.
+  NotificationPayloadForOpen notificationTapEvents();
+}

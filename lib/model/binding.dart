@@ -319,6 +319,9 @@ class NotificationPigeonApi {
 
   Future<notif_pigeon.NotificationPayloadForOpen?> getNotificationDataFromLaunch() =>
     _notifInteractionHost.getNotificationDataFromLaunch();
+
+  Stream<notif_pigeon.NotificationPayloadForOpen> notificationTapEventsStream() =>
+    notif_pigeon.notificationTapEvents();
 }
 
 /// A concrete binding for use in the live application.
