@@ -146,6 +146,12 @@ void main() {
             WidgetsBinding.instance.handlePushRoute(intentDataUrl.toString()));
           await tester.idle(); // let navigateForNotification find navigator
 
+        case TargetPlatform.iOS:
+          final payload = messageApnsPayload(message, account: account);
+          testBinding.notificationPigeonApi.addNotificationTapEvent(
+            NotificationTapEvent(payload: payload));
+          await tester.idle(); // let navigateForNotification find navigator
+
         default:
           throw UnsupportedError('Unsupported target platform: "$defaultTargetPlatform"');
       }
@@ -190,14 +196,14 @@ void main() {
       addTearDown(testBinding.reset);
       await prepare(tester);
       await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage());
-    }, variant: const TargetPlatformVariant({TargetPlatform.android}));
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('direct message', (tester) async {
       addTearDown(testBinding.reset);
       await prepare(tester);
       await checkOpenNotification(tester, eg.selfAccount,
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]));
-    }, variant: const TargetPlatformVariant({TargetPlatform.android}));
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('account queried by realmUrl origin component', (tester) async {
       addTearDown(testBinding.reset);
@@ -210,7 +216,7 @@ void main() {
       await checkOpenNotification(tester,
         eg.selfAccount.copyWith(realmUrl: Uri.parse('http://chat.example')),
         eg.streamMessage());
-    }, variant: const TargetPlatformVariant({TargetPlatform.android}));
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('no accounts', (tester) async {
       await prepare(tester, withAccount: false);
@@ -220,7 +226,7 @@ void main() {
       await tester.tap(find.byWidget(checkErrorDialog(tester,
         expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
         expectedMessage: zulipLocalizations.errorNotificationOpenAccountNotFound)));
-    }, variant: const TargetPlatformVariant({TargetPlatform.android}));
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('mismatching account', (tester) async {
       addTearDown(testBinding.reset);
@@ -231,7 +237,7 @@ void main() {
       await tester.tap(find.byWidget(checkErrorDialog(tester,
         expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
         expectedMessage: zulipLocalizations.errorNotificationOpenAccountNotFound)));
-    }, variant: const TargetPlatformVariant({TargetPlatform.android}));
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('find account among several', (tester) async {
       addTearDown(testBinding.reset);
@@ -258,7 +264,7 @@ void main() {
       await checkOpenNotification(tester, accounts[1], eg.streamMessage());
       await checkOpenNotification(tester, accounts[2], eg.streamMessage());
       await checkOpenNotification(tester, accounts[3], eg.streamMessage());
-    }, variant: const TargetPlatformVariant({TargetPlatform.android}));
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('wait for app to become ready', (tester) async {
       addTearDown(testBinding.reset);
@@ -277,7 +283,7 @@ void main() {
       takeStartingRoutes(account: eg.selfAccount);
       // … and then the one the notification leads to.
       matchesNavigation(check(pushedRoutes).single, eg.selfAccount, message);
-    }, variant: const TargetPlatformVariant({TargetPlatform.android}));
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('at app launch', (tester) async {
       addTearDown(testBinding.reset);
