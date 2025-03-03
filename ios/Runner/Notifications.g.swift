@@ -157,11 +157,42 @@ struct NotificationDataFromLaunch: Hashable {
   }
 }
 
+/// Generated class from Pigeon that represents data sent in messages.
+struct NotificationTapEvent: Hashable {
+  /// The raw payload that is attached to the notification,
+  /// holding the information required to carry out the navigation.
+  ///
+  /// See [notificationTapEvents].
+  var payload: [AnyHashable?: Any?]
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> NotificationTapEvent? {
+    let payload = pigeonVar_list[0] as! [AnyHashable?: Any?]
+
+    return NotificationTapEvent(
+      payload: payload
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      payload
+    ]
+  }
+  static func == (lhs: NotificationTapEvent, rhs: NotificationTapEvent) -> Bool {
+    return deepEqualsNotifications(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashNotifications(value: toList(), hasher: &hasher)
+  }
+}
+
 private class NotificationsPigeonCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
     case 129:
       return NotificationDataFromLaunch.fromList(self.readValue() as! [Any?])
+    case 130:
+      return NotificationTapEvent.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
     }
@@ -172,6 +203,9 @@ private class NotificationsPigeonCodecWriter: FlutterStandardWriter {
   override func writeValue(_ value: Any) {
     if let value = value as? NotificationDataFromLaunch {
       super.writeByte(129)
+      super.writeValue(value.toList())
+    } else if let value = value as? NotificationTapEvent {
+      super.writeByte(130)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -192,6 +226,8 @@ private class NotificationsPigeonCodecReaderWriter: FlutterStandardReaderWriter 
 class NotificationsPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable {
   static let shared = NotificationsPigeonCodec(readerWriter: NotificationsPigeonCodecReaderWriter())
 }
+
+var notificationsPigeonMethodCodec = FlutterStandardMethodCodec(readerWriter: NotificationsPigeonCodecReaderWriter());
 
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
 protocol NotificationHostApi {
@@ -233,3 +269,67 @@ class NotificationHostApiSetup {
     }
   }
 }
+
+private class PigeonStreamHandler<ReturnType>: NSObject, FlutterStreamHandler {
+  private let wrapper: PigeonEventChannelWrapper<ReturnType>
+  private var pigeonSink: PigeonEventSink<ReturnType>? = nil
+
+  init(wrapper: PigeonEventChannelWrapper<ReturnType>) {
+    self.wrapper = wrapper
+  }
+
+  func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink)
+    -> FlutterError?
+  {
+    pigeonSink = PigeonEventSink<ReturnType>(events)
+    wrapper.onListen(withArguments: arguments, sink: pigeonSink!)
+    return nil
+  }
+
+  func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    pigeonSink = nil
+    wrapper.onCancel(withArguments: arguments)
+    return nil
+  }
+}
+
+class PigeonEventChannelWrapper<ReturnType> {
+  func onListen(withArguments arguments: Any?, sink: PigeonEventSink<ReturnType>) {}
+  func onCancel(withArguments arguments: Any?) {}
+}
+
+class PigeonEventSink<ReturnType> {
+  private let sink: FlutterEventSink
+
+  init(_ sink: @escaping FlutterEventSink) {
+    self.sink = sink
+  }
+
+  func success(_ value: ReturnType) {
+    sink(value)
+  }
+
+  func error(code: String, message: String?, details: Any?) {
+    sink(FlutterError(code: code, message: message, details: details))
+  }
+
+  func endOfStream() {
+    sink(FlutterEndOfEventStream)
+  }
+
+}
+
+class NotificationTapEventsStreamHandler: PigeonEventChannelWrapper<NotificationTapEvent> {
+  static func register(with messenger: FlutterBinaryMessenger,
+                      instanceName: String = "",
+                      streamHandler: NotificationTapEventsStreamHandler) {
+    var channelName = "dev.flutter.pigeon.zulip.NotificationEventChannelApi.notificationTapEvents"
+    if !instanceName.isEmpty {
+      channelName += ".\(instanceName)"
+    }
+    let internalStreamHandler = PigeonStreamHandler<NotificationTapEvent>(wrapper: streamHandler)
+    let channel = FlutterEventChannel(name: channelName, binaryMessenger: messenger, codec: notificationsPigeonMethodCodec)
+    channel.setStreamHandler(internalStreamHandler)
+  }
+}
+      
