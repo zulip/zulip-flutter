@@ -11,6 +11,7 @@ import '../host/notifications.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/narrow.dart';
+import '../widgets/app.dart';
 import '../widgets/dialog.dart';
 import '../widgets/message_list.dart';
 import '../widgets/page.dart';
@@ -48,6 +49,8 @@ class NotificationNavigationService {
       switch (defaultTargetPlatform) {
         case TargetPlatform.iOS:
           _notifDataFromLaunch = await _notifPigeonApi.getNotificationDataFromLaunch();
+          _notifPigeonApi.notificationTapEventsStream()
+            .listen(_navigateForNotification);
 
         case TargetPlatform.android:
           // Do nothing; we do notification routing differently on Android.
@@ -113,7 +116,27 @@ class NotificationNavigationService {
       narrow: data.narrow);
   }
 
-  static NotificationNavigationData? _tryParsePayload(
+  /// Navigates to the [MessageListPage] of the specific conversation
+  /// for the provided payload that was attached while creating the
+  /// notification.
+  Future<void> _navigateForNotification(NotificationTapEvent event) async {
+    assert(debugLog('opened notif: ${jsonEncode(event.payload)}'));
+
+    NavigatorState navigator = await ZulipApp.navigator;
+    final context = navigator.context;
+    assert(context.mounted);
+    if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+
+    final notifNavData = _tryParsePayload(context, event.payload);
+    if (notifNavData == null) return; // TODO(log)
+    final route = routeForNotification(context, notifNavData);
+    if (route == null) return; // TODO(log)
+
+    // TODO(nav): Better interact with existing nav stack on notif open
+    unawaited(navigator.push(route));
+  }
+
+  NotificationNavigationData? _tryParsePayload(
     BuildContext context,
     Map<Object?, Object?> payload,
   ) {
