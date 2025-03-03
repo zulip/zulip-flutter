@@ -4,6 +4,7 @@ library;
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 extension PaintChecks on Subject<Paint> {
@@ -11,9 +12,12 @@ extension PaintChecks on Subject<Paint> {
 }
 
 extension RectChecks on Subject<Rect> {
+  Subject<double> get left => has((d) => d.left, 'left');
   Subject<double> get top => has((d) => d.top, 'top');
+  Subject<double> get right => has((d) => d.right, 'right');
   Subject<double> get bottom => has((d) => d.bottom, 'bottom');
-
+  Subject<double> get width => has((d) => d.width, 'width');
+  Subject<double> get height => has((d) => d.height, 'height');
   // TODO others
 }
 
@@ -34,6 +38,10 @@ extension GlobalKeyChecks<T extends State<StatefulWidget>> on Subject<GlobalKey<
   Subject<BuildContext?> get currentContext => has((k) => k.currentContext, 'currentContext');
   Subject<Widget?> get currentWidget => has((k) => k.currentWidget, 'currentWidget');
   Subject<T?> get currentState => has((k) => k.currentState, 'currentState');
+}
+
+extension RenderBoxChecks on Subject<RenderBox> {
+  Subject<Size> get size => has((x) => x.size, 'size');
 }
 
 extension IconChecks on Subject<Icon> {
@@ -128,6 +136,11 @@ extension TypographyChecks on Subject<Typography> {
 
 extension InlineSpanChecks on Subject<InlineSpan> {
   Subject<TextStyle?> get style => has((x) => x.style, 'style');
+}
+
+extension RenderParagraphChecks on Subject<RenderParagraph> {
+  Subject<InlineSpan> get text => has((x) => x.text, 'text');
+  Subject<bool> get didExceedMaxLines => has((x) => x.didExceedMaxLines, 'didExceedMaxLines');
 }
 
 extension SizeChecks on Subject<Size> {

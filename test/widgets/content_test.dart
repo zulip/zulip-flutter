@@ -248,19 +248,24 @@ void main() {
 
     testWidgets('ordered list markers have enough space to render completely', (tester) async {
       await prepareContent(tester, plainContent(ContentExample.orderedListLargeStart.html));
-      final renderParagraph = tester.renderObject(find.textContaining('9999.')) as RenderParagraph;
-      final textHeight = renderParagraph.size.height;
-      final lineHeight = renderParagraph.text.style!.height! * renderParagraph.text.style!.fontSize!;
+      final marker = tester.renderObject(find.textContaining('9999.')) as RenderParagraph;
+      // The marker has the height of just one line of text, not more.
+      final textHeight = marker.size.height;
+      final lineHeight = marker.text.style!.height! * marker.text.style!.fontSize!;
       check(textHeight).equals(lineHeight);
-      check(renderParagraph.didExceedMaxLines).isFalse();
+      // The marker's text didn't overflow to more lines
+      // (and get cut off by a `maxLines: 1`).
+      check(marker).didExceedMaxLines.isFalse();
     });
 
     testWidgets('ordered list markers are end-aligned', (tester) async {
       await prepareContent(tester, plainContent(ContentExample.orderedListLargeStart.html));
       final marker9999 = tester.getRect(find.textContaining('9999.'));
       final marker10000 = tester.getRect(find.textContaining('10000.'));
-      check(marker9999.width != marker10000.width).isTrue();
-      check(marker9999.right).equals(marker10000.right);
+      // The markers are aligned at their right edge...
+      check(marker9999).right.equals(marker10000.right);
+      // ... and not because they somehow happen to have the same width.
+      check(marker9999).width.isLessThan(marker10000.width);
     });
   });
 
