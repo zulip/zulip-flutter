@@ -49,6 +49,8 @@ class NotificationOpenService {
       switch (defaultTargetPlatform) {
         case TargetPlatform.iOS:
           _notifDataFromLaunch = await _notifPigeonApi.getNotificationDataFromLaunch();
+          _notifPigeonApi.notificationTapEventsStream()
+            .listen(_navigateForNotification);
 
         case TargetPlatform.android:
           // Do nothing; we do notification routing differently on Android.
@@ -114,6 +116,27 @@ class NotificationOpenService {
       accountId: account.id,
       // TODO(#82): Open at specific message, not just conversation
       narrow: data.narrow);
+  }
+
+  /// Navigates to the [MessageListPage] of the specific conversation
+  /// for the provided payload that was attached while creating the
+  /// notification.
+  static Future<void> _navigateForNotification(NotificationTapEvent event) async {
+    assert(defaultTargetPlatform == TargetPlatform.iOS);
+    assert(debugLog('opened notif: ${jsonEncode(event.payload)}'));
+
+    NavigatorState navigator = await ZulipApp.navigator;
+    final context = navigator.context;
+    assert(context.mounted);
+    if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+
+    final notifNavData = _tryParseIosApnsPayload(context, event.payload);
+    if (notifNavData == null) return; // TODO(log)
+    final route = routeForNotification(context: context, data: notifNavData);
+    if (route == null) return; // TODO(log)
+
+    // TODO(nav): Better interact with existing nav stack on notif open
+    unawaited(navigator.push(route));
   }
 
   /// Navigates to the [MessageListPage] of the specific conversation
