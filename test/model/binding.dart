@@ -742,6 +742,22 @@ class FakeNotificationPigeonApi implements NotificationPigeonApi {
   @override
   Future<NotificationPayloadForOpen?> getNotificationDataFromLaunch() async =>
     _notificationDataFromLaunch;
+
+  StreamController<NotificationPayloadForOpen>? _notificationTapEventsStreamController;
+
+  void addNotificationTapEvent(NotificationPayloadForOpen data) {
+    _notificationTapEventsStreamController!.add(data);
+  }
+
+  void resetNotificationTapEventStream() {
+    _notificationTapEventsStreamController?.close();
+  }
+
+  @override
+  Stream<NotificationPayloadForOpen> notificationTapEventsStream() {
+    _notificationTapEventsStreamController ??= StreamController();
+    return _notificationTapEventsStreamController!.stream;
+  }
 }
 
 typedef AndroidNotificationHostApiNotifyCall = ({

@@ -3,6 +3,8 @@ import Flutter
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
+  private var notificationTapEventListener: NotificationTapEventListener?
+
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -16,8 +18,23 @@ import Flutter
     let api = NotificationHostApiImpl(notificationData.map { NotificationPayloadForOpen(payload: $0) })
     NotificationHostApiSetup.setUp(binaryMessenger: controller.binaryMessenger, api: api)
 
+    notificationTapEventListener = NotificationTapEventListener()
+    NotificationTapEventsStreamHandler.register(with: controller.binaryMessenger, streamHandler: notificationTapEventListener!)
+
     UNUserNotificationCenter.current().delegate = self
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
+    if let listener = notificationTapEventListener {
+      let userInfo = response.notification.request.content.userInfo
+      listener.onNotificationTapEvent(data: NotificationPayloadForOpen(payload: userInfo))
+      completionHandler()
+    }
   }
 }
 
@@ -30,5 +47,24 @@ private class NotificationHostApiImpl: NotificationHostApi {
 
   func getNotificationDataFromLaunch() -> NotificationPayloadForOpen? {
     maybeNotifPayload
+  }
+}
+
+class NotificationTapEventListener: NotificationTapEventsStreamHandler {
+  var eventSink: PigeonEventSink<NotificationPayloadForOpen>?
+
+  override func onListen(withArguments arguments: Any?, sink: PigeonEventSink<NotificationPayloadForOpen>) {
+    eventSink = sink
+  }
+
+  func onNotificationTapEvent(data: NotificationPayloadForOpen) {
+    if let eventSink = eventSink {
+      eventSink.success(data)
+    }
+  }
+
+  func onEventsDone() {
+    eventSink?.endOfStream()
+    eventSink = nil
   }
 }

@@ -16,3 +16,8 @@ class NotificationPayloadForOpen {
 abstract class NotificationHostApi {
   NotificationPayloadForOpen? getNotificationDataFromLaunch();
 }
+
+@EventChannelApi()
+abstract class NotificationHostEvents {
+  NotificationPayloadForOpen notificationTapEvents();
+}
