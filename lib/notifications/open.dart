@@ -11,6 +11,7 @@ import '../host/notifications.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/narrow.dart';
+import '../widgets/app.dart';
 import '../widgets/dialog.dart';
 import '../widgets/message_list.dart';
 import '../widgets/page.dart';
@@ -46,6 +47,8 @@ class NotificationOpenManager {
       switch (defaultTargetPlatform) {
         case TargetPlatform.iOS:
           _notifDataFromLaunch = await _notifPigeonApi.getNotificationDataFromLaunch();
+          _notifPigeonApi.notificationTapEventsStream()
+            .listen(_navigateForNotification);
 
         case TargetPlatform.android:
           // Do nothing; we do notification routing differently on Android.
@@ -79,17 +82,8 @@ class NotificationOpenManager {
     if (data == null) return null;
     assert(debugLog('opened notif: ${jsonEncode(data.payload)}'));
 
-    final NotificationNavigationData notifNavData;
-    try {
-      notifNavData = NotificationNavigationData.fromIosApnsPayload(data.payload);
-    } on FormatException catch (e, st) {
-      assert(debugLog('$e\n$st'));
-      final zulipLocalizations = ZulipLocalizations.of(context);
-      showErrorDialog(context: context,
-        title: zulipLocalizations.errorNotificationOpenTitle);
-      return null;
-    }
-
+    final notifNavData = _tryParsePayload(context, data.payload);
+    if (notifNavData == null) return null; // TODO(log)
     return _routeForNotification(context, notifNavData);
   }
 
@@ -115,6 +109,41 @@ class NotificationOpenManager {
       accountId: account.id,
       // TODO(#82): Open at specific message, not just conversation
       narrow: data.narrow);
+  }
+
+  /// Navigates to the [MessageListPage] of the specific conversation
+  /// for the provided payload that was attached while creating the
+  /// notification.
+  Future<void> _navigateForNotification(NotificationTapEvent event) async {
+    assert(debugLog('opened notif: ${jsonEncode(event.payload)}'));
+
+    NavigatorState navigator = await ZulipApp.navigator;
+    final context = navigator.context;
+    assert(context.mounted);
+    if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+
+    final notifNavData = _tryParsePayload(context, event.payload);
+    if (notifNavData == null) return; // TODO(log)
+    final route = _routeForNotification(context, notifNavData);
+    if (route == null) return; // TODO(log)
+
+    // TODO(nav): Better interact with existing nav stack on notif open
+    unawaited(navigator.push(route));
+  }
+
+  NotificationNavigationData? _tryParsePayload(
+    BuildContext context,
+    Map<Object?, Object?> payload,
+  ) {
+    try {
+      return NotificationNavigationData.fromIosApnsPayload(payload);
+    } on FormatException catch (e, st) {
+      assert(debugLog('$e\n$st'));
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorNotificationOpenTitle);
+      return null;
+    }
   }
 }
 

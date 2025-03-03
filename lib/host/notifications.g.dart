@@ -40,6 +40,31 @@ class NotificationDataFromLaunch {
   }
 }
 
+class NotificationTapEvent {
+  NotificationTapEvent({
+    required this.payload,
+  });
+
+  /// The raw payload that is attached to the notification,
+  /// holding the information required to carry out the navigation.
+  ///
+  /// See [notificationTapEvents].
+  Map<Object?, Object?> payload;
+
+  Object encode() {
+    return <Object?>[
+      payload,
+    ];
+  }
+
+  static NotificationTapEvent decode(Object result) {
+    result as List<Object?>;
+    return NotificationTapEvent(
+      payload: (result[0] as Map<Object?, Object?>?)!.cast<Object?, Object?>(),
+    );
+  }
+}
+
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -51,6 +76,9 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is NotificationDataFromLaunch) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
+    }    else if (value is NotificationTapEvent) {
+      buffer.putUint8(130);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -61,11 +89,15 @@ class _PigeonCodec extends StandardMessageCodec {
     switch (type) {
       case 129: 
         return NotificationDataFromLaunch.decode(readValue(buffer)!);
+      case 130: 
+        return NotificationTapEvent.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
   }
 }
+
+const StandardMethodCodec pigeonMethodCodec = StandardMethodCodec(_PigeonCodec());
 
 class NotificationHostApi {
   /// Constructor for [NotificationHostApi].  The [binaryMessenger] named argument is
@@ -110,3 +142,15 @@ class NotificationHostApi {
     }
   }
 }
+
+Stream<NotificationTapEvent> notificationTapEvents( {String instanceName = ''}) {
+  if (instanceName.isNotEmpty) {
+    instanceName = '.$instanceName';
+  }
+  final EventChannel notificationTapEventsChannel =
+      EventChannel('dev.flutter.pigeon.zulip.NotificationEventChannelApi.notificationTapEvents$instanceName', pigeonMethodCodec);
+  return notificationTapEventsChannel.receiveBroadcastStream().map((dynamic event) {
+    return event as NotificationTapEvent;
+  });
+}
+    
