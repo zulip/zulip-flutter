@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/host/notifications.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
@@ -14,6 +15,7 @@ import 'package:zulip/widgets/page.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../test_navigation.dart';
+import '../widgets/dialog_checks.dart';
 import '../widgets/message_list_checks.dart';
 import '../widgets/page_checks.dart';
 
@@ -63,6 +65,7 @@ Map<String, Object?> messageApnsPayload(
 
 void main() {
   TestZulipBinding.ensureInitialized();
+  final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
   Future<void> init() async {
     addTearDown(testBinding.reset);
@@ -107,6 +110,13 @@ void main() {
       check(pushedRoutes).isEmpty();
     }
 
+    Future<void> openNotification(WidgetTester tester, Account account, Message message) async {
+      final payload = messageApnsPayload(message, account: account);
+      testBinding.notificationPigeonApi.addNotificationTapEvent(
+        NotificationPayloadForOpen(payload: payload));
+      await tester.idle(); // let navigateForNotification find navigator
+    }
+
     void matchesNavigation(Subject<Route<void>> route, Account account, Message message) {
       route.isA<MaterialAccountWidgetRoute>()
         ..accountId.equals(account.id)
@@ -114,6 +124,107 @@ void main() {
           .initNarrow.equals(SendableNarrow.ofMessage(message,
             selfUserId: account.userId));
     }
+
+    Future<void> checkOpenNotification(WidgetTester tester, Account account, Message message) async {
+      await openNotification(tester, account, message);
+      matchesNavigation(check(pushedRoutes).single, account, message);
+      pushedRoutes.clear();
+    }
+
+    testWidgets('(iOS) stream message', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await prepare(tester);
+      await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage());
+    }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
+
+    testWidgets('(iOS) direct message', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await prepare(tester);
+      await checkOpenNotification(tester, eg.selfAccount,
+        eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]));
+    }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
+
+    testWidgets('(iOS) account queried by realmUrl origin component', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(
+        eg.selfAccount.copyWith(realmUrl: Uri.parse('http://chat.example')),
+        eg.initialSnapshot());
+      await prepare(tester);
+
+      await checkOpenNotification(tester,
+        eg.selfAccount.copyWith(realmUrl: Uri.parse('http://chat.example/')),
+        eg.streamMessage());
+      await checkOpenNotification(tester,
+        eg.selfAccount.copyWith(realmUrl: Uri.parse('http://chat.example')),
+        eg.streamMessage());
+    }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
+
+    testWidgets('(iOS) no accounts', (tester) async {
+      await prepare(tester, withAccount: false);
+      await openNotification(tester, eg.selfAccount, eg.streamMessage());
+      await tester.pump();
+      check(pushedRoutes.single).isA<DialogRoute<void>>();
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
+        expectedMessage: zulipLocalizations.errorNotificationOpenAccountMissing)));
+    }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
+
+    testWidgets('(iOS) mismatching account', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await prepare(tester);
+      await openNotification(tester, eg.otherAccount, eg.streamMessage());
+      await tester.pump();
+      check(pushedRoutes.single).isA<DialogRoute<void>>();
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
+        expectedMessage: zulipLocalizations.errorNotificationOpenAccountMissing)));
+    }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
+
+    testWidgets('(iOS) find account among several', (tester) async {
+      addTearDown(testBinding.reset);
+      final realmUrlA = Uri.parse('https://a-chat.example/');
+      final realmUrlB = Uri.parse('https://chat-b.example/');
+      final user1 = eg.user();
+      final user2 = eg.user();
+      final accounts = [
+        eg.account(id: 1001, realmUrl: realmUrlA, user: user1),
+        eg.account(id: 1002, realmUrl: realmUrlA, user: user2),
+        eg.account(id: 1003, realmUrl: realmUrlB, user: user1),
+        eg.account(id: 1004, realmUrl: realmUrlB, user: user2),
+      ];
+      for (final account in accounts) {
+        await testBinding.globalStore.add(account, eg.initialSnapshot());
+      }
+      await prepare(tester);
+
+      await checkOpenNotification(tester, accounts[0], eg.streamMessage());
+      await checkOpenNotification(tester, accounts[1], eg.streamMessage());
+      await checkOpenNotification(tester, accounts[2], eg.streamMessage());
+      await checkOpenNotification(tester, accounts[3], eg.streamMessage());
+    }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
+
+    testWidgets('(iOS) wait for app to become ready', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await prepare(tester, early: true);
+      final message = eg.streamMessage();
+      await openNotification(tester, eg.selfAccount, message);
+      // The app should still not be ready (or else this test won't work right).
+      check(ZulipApp.ready.value).isFalse();
+      check(ZulipApp.navigatorKey.currentState).isNull();
+      // And the openNotification hasn't caused any navigation yet.
+      check(pushedRoutes).isEmpty();
+
+      // Now let the GlobalStore get loaded and the app's main UI get mounted.
+      await tester.pump();
+      // The navigator first pushes the starting routes…
+      takeStartingRoutes();
+      // … and then the one the notification leads to.
+      matchesNavigation(check(pushedRoutes).single, eg.selfAccount, message);
+    }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
 
     testWidgets('(iOS) at app launch', (tester) async {
       addTearDown(testBinding.reset);

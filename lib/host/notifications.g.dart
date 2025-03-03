@@ -65,6 +65,8 @@ class _PigeonCodec extends StandardMessageCodec {
   }
 }
 
+const StandardMethodCodec pigeonMethodCodec = StandardMethodCodec(_PigeonCodec());
+
 class NotificationHostApi {
   /// Constructor for [NotificationHostApi].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
@@ -109,3 +111,15 @@ class NotificationHostApi {
     }
   }
 }
+
+Stream<NotificationPayloadForOpen> notificationTapEvents( {String instanceName = ''}) {
+  if (instanceName.isNotEmpty) {
+    instanceName = '.$instanceName';
+  }
+  final EventChannel notificationTapEventsChannel =
+      EventChannel('dev.flutter.pigeon.zulip.NotificationHostEvents.notificationTapEvents$instanceName', pigeonMethodCodec);
+  return notificationTapEventsChannel.receiveBroadcastStream().map((dynamic event) {
+    return event as NotificationPayloadForOpen;
+  });
+}
+    
