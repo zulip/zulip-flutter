@@ -314,11 +314,17 @@ class PackageInfo {
   });
 }
 
+// Pigeon generates methods under `@EventChannelApi` annotated classes
+// in global scope of the generated file. This is a helper class to
+// namespace the notification related Pigeon API under a single class.
 class NotificationPigeonApi {
   final _notifInteractionHost = notif_pigeon.NotificationHostApi();
 
   Future<notif_pigeon.NotificationPayloadForOpen?> getNotificationDataFromLaunch() =>
     _notifInteractionHost.getNotificationDataFromLaunch();
+
+  Stream<notif_pigeon.NotificationPayloadForOpen> notificationTapEventsStream() =>
+    notif_pigeon.notificationTapEvents();
 }
 
 /// A concrete binding for use in the live application.

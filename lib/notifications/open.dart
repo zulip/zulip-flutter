@@ -12,6 +12,7 @@ import '../host/notifications.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/narrow.dart';
+import '../widgets/app.dart';
 import '../widgets/dialog.dart';
 import '../widgets/message_list.dart';
 import '../widgets/page.dart';
@@ -32,6 +33,8 @@ class NotificationOpenManager {
     switch (defaultTargetPlatform) {
       case TargetPlatform.iOS:
         _notifLaunchData = await _notifPigeonApi.getNotificationDataFromLaunch();
+        _notifPigeonApi.notificationTapEventsStream()
+          .listen(_navigateForNotification);
 
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
@@ -78,6 +81,24 @@ class NotificationOpenManager {
       accountId: account.id,
       // TODO(#82): Open at specific message, not just conversation
       narrow: openData.narrow);
+  }
+
+  /// Navigates to the [MessageListPage] of the specific conversation
+  /// for the provided payload that was attached while creating the
+  /// notification.
+  Future<void> _navigateForNotification(NotificationPayloadForOpen payload) async {
+    assert(debugLog('opened notif: ${jsonEncode(payload.payload)}'));
+
+    NavigatorState navigator = await ZulipApp.navigator;
+    final context = navigator.context;
+    assert(context.mounted);
+    if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+
+    final route = _routeForNotification(context, payload);
+    if (route == null) return; // TODO(log)
+
+    // TODO(nav): Better interact with existing nav stack on notif open
+    unawaited(navigator.push(route));
   }
 }
 
