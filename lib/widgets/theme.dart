@@ -105,6 +105,9 @@ ThemeData zulipThemeData(BuildContext context) {
     scaffoldBackgroundColor: designVariables.mainBackground,
     tooltipTheme: const TooltipThemeData(preferBelow: false),
     bottomSheetTheme: BottomSheetThemeData(
+      // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
+      // on my iPhone 13 Pro but is marked as "much slower":
+      //   https://api.flutter.dev/flutter/dart-ui/Clip.html
       clipBehavior: Clip.antiAlias,
       backgroundColor: designVariables.bgContextMenu,
       modalBarrierColor: designVariables.modalBarrierColor,
