@@ -57,6 +57,7 @@ dependencies:
   path_provider: ^2.0.13
   share_plus: ^11.0.0
   share_plus_platform_interface: ^6.0.0
+  sign_in_with_apple: ^7.0.1
   sqlite3: ^2.4.0
   sqlite3_flutter_libs: ^0.5.13
   url_launcher: ^6.1.11
