@@ -22,6 +22,8 @@ class NotificationDataFromLaunch {
 
   /// The raw payload that is attached to the notification,
   /// holding the information required to carry out the navigation.
+  ///
+  /// See [NotificationHostApi.getNotificationDataFromLaunch].
   Map<Object?, Object?> payload;
 
   Object encode() {
@@ -45,6 +47,8 @@ class NotificationTapEvent {
 
   /// The raw payload that is attached to the notification,
   /// holding the information required to carry out the navigation.
+  ///
+  /// See [notificationTapEvents].
   Map<Object?, Object?> payload;
 
   Object encode() {
@@ -110,11 +114,18 @@ class NotificationHostApi {
 
   /// Retrieves notification data if the app was launched by tapping on a notification.
   ///
-  /// Returns `launchOptions.remoteNotification`,
+  /// On iOS, this returns `launchOptions.remoteNotification`,
   /// which is the raw APNs data dictionary
   /// if the app launch was opened by a notification tap,
   /// else null. See Apple doc:
   ///   https://developer.apple.com/documentation/uikit/uiapplication/launchoptionskey/remotenotification
+  ///
+  /// On Android, this checks if the launch `intent` has the intent data uri
+  /// starting with `zulip://notification` and has the extras bundle containing
+  /// the notification open payload we set during creating the notification.
+  /// Either returns the payload we set in the extras bundle, or null if the
+  /// `intent` doesn't match the preconditions, meaning launch wasn't triggered
+  /// by a notification.
   Future<NotificationDataFromLaunch?> getNotificationDataFromLaunch() async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.zulip.NotificationHostApi.getNotificationDataFromLaunch$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
