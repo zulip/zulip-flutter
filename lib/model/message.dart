@@ -209,8 +209,8 @@ class MessageStoreImpl with MessageStore {
       return;
     }
 
-    final wasResolveOrUnresolve = (newStreamId == null
-      && MessageEditState.topicMoveWasResolveOrUnresolve(origTopic, newTopic!));
+    final wasResolveOrUnresolve = newStreamId == null
+      && MessageEditState.topicMoveWasResolveOrUnresolve(origTopic, newTopic!);
 
     for (final messageId in event.messageIds) {
       final message = messages[messageId];
