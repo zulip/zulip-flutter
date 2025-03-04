@@ -522,6 +522,14 @@
   "@topicValidationErrorMandatoryButEmpty": {
     "description": "Topic validation error when topic is required but was empty."
   },
+  "errorContentNotInsertedTitle": "Content not inserted",
+  "@errorContentNotInsertedTitle": {
+    "description": "Title for error dialog when an attempt to insert rich content failed."
+  },
+  "errorContentToInsertIsEmpty": "The file to be inserted is empty or cannot be accessed.",
+  "@errorContentToInsertIsEmpty": {
+    "description": "Error message when the rich content to be inserted is empty or cannot be accessed."
+  },
   "errorInvalidApiKeyMessage": "Your account at {url} could not be authenticated. Please try logging in again or use another account.",
   "@errorInvalidApiKeyMessage": {
     "description": "Error message in the dialog for invalid API key.",
