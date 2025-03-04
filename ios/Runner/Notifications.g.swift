@@ -159,11 +159,18 @@ var notificationsPigeonMethodCodec = FlutterStandardMethodCodec(readerWriter: No
 protocol NotificationHostApi {
   /// Retrieves notification data if the app was launched by tapping on a notification.
   ///
-  /// Returns `launchOptions.remoteNotification`,
+  /// On iOS, this returns `launchOptions.remoteNotification`,
   /// which is the raw APNs data dictionary
   /// if the app launch was opened by a notification tap,
   /// else null. See Apple doc:
   ///   https://developer.apple.com/documentation/uikit/uiapplication/launchoptionskey/remotenotification
+  ///
+  /// On Android, this checks if the launch `intent` has the intent data uri
+  /// starting with `zulip://notification` and has the extras bundle containing
+  /// the notification open payload we set during creating the notification.
+  /// Either returns the payload we set in the extras bundle, or null if the
+  /// `intent` doesn't match the preconditions, meaning launch wasn't triggered
+  /// by a notification.
   func getNotificationDataFromLaunch() throws -> NotificationDataFromLaunch?
 }
 
@@ -175,11 +182,18 @@ class NotificationHostApiSetup {
     let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
     /// Retrieves notification data if the app was launched by tapping on a notification.
     ///
-    /// Returns `launchOptions.remoteNotification`,
+    /// On iOS, this returns `launchOptions.remoteNotification`,
     /// which is the raw APNs data dictionary
     /// if the app launch was opened by a notification tap,
     /// else null. See Apple doc:
     ///   https://developer.apple.com/documentation/uikit/uiapplication/launchoptionskey/remotenotification
+    ///
+    /// On Android, this checks if the launch `intent` has the intent data uri
+    /// starting with `zulip://notification` and has the extras bundle containing
+    /// the notification open payload we set during creating the notification.
+    /// Either returns the payload we set in the extras bundle, or null if the
+    /// `intent` doesn't match the preconditions, meaning launch wasn't triggered
+    /// by a notification.
     let getNotificationDataFromLaunchChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.zulip.NotificationHostApi.getNotificationDataFromLaunch\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       getNotificationDataFromLaunchChannel.setMessageHandler { _, reply in

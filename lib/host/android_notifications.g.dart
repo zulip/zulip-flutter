@@ -78,6 +78,7 @@ class AndroidIntent {
     required this.action,
     required this.dataUrl,
     this.flags = 0,
+    required this.extrasData,
   });
 
   String action;
@@ -87,11 +88,14 @@ class AndroidIntent {
   /// A combination of flags from [IntentFlag].
   int flags;
 
+  Map<String, String> extrasData;
+
   Object encode() {
     return <Object?>[
       action,
       dataUrl,
       flags,
+      extrasData,
     ];
   }
 
@@ -101,6 +105,7 @@ class AndroidIntent {
       action: result[0]! as String,
       dataUrl: result[1]! as String,
       flags: result[2]! as int,
+      extrasData: (result[3] as Map<Object?, Object?>?)!.cast<String, String>(),
     );
   }
 }

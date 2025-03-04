@@ -46,14 +46,10 @@ class NotificationOpenManager {
     try {
       switch (defaultTargetPlatform) {
         case TargetPlatform.iOS:
+        case TargetPlatform.android:
           _notifDataFromLaunch = await _notifPigeonApi.getNotificationDataFromLaunch();
           _notifPigeonApi.notificationTapEventsStream()
             .listen(_navigateForNotification);
-
-        case TargetPlatform.android:
-          // Do nothing; we do notification routing differently on Android.
-          // TODO migrate Android to use the new Pigeon API.
-          break;
 
         case TargetPlatform.fuchsia:
         case TargetPlatform.linux:
@@ -136,7 +132,15 @@ class NotificationOpenManager {
     Map<Object?, Object?> payload,
   ) {
     try {
-      return NotificationNavigationData.fromIosApnsPayload(payload);
+      return switch (defaultTargetPlatform) {
+        TargetPlatform.android =>
+          NotificationNavigationData.fromAndroidIntentExtras(payload),
+        TargetPlatform.iOS =>
+          NotificationNavigationData.fromIosApnsPayload(payload),
+        _ =>
+          throw UnsupportedError('Unsupported target platform: '
+            '$defaultTargetPlatform'),
+      };
     } on FormatException catch (e, st) {
       assert(debugLog('$e\n$st'));
       final zulipLocalizations = ZulipLocalizations.of(context);
@@ -225,5 +229,68 @@ class NotificationNavigationData {
       // TODO(dart): simplify after https://github.com/dart-lang/language/issues/2537
       throw const FormatException();
     }
+  }
+
+  /// Parses the Android notification open data that was created using
+  /// [toAndroidIntentExtras].
+  factory NotificationNavigationData.fromAndroidIntentExtras(Map<Object?, Object?> payload) {
+    if (payload case {
+      'realm_url': final String realmUrlStr,
+      'user_id': final String userIdStr,
+    } && final data) {
+      final userId = int.parse(userIdStr, radix: 10);
+
+      final narrow = switch (data) {
+        {
+          'narrow_type': 'topic',
+          'channel_id': final String channelIdStr,
+          'topic': final String topicStr,
+        } =>
+          TopicNarrow(
+            int.parse(channelIdStr, radix: 10),
+            TopicName.fromJson(topicStr)),
+
+        {
+          'narrow_type': 'dm',
+          'all_recipient_ids': final String allRecipientIdsStr,
+        } =>
+          DmNarrow(
+            allRecipientIds: allRecipientIdsStr
+              .split(',')
+              .map((e) => int.parse(e, radix: 10))
+              .toList(growable: false)..sort(),
+            selfUserId: userId),
+
+        _ => throw const FormatException(),
+      };
+
+      return NotificationNavigationData(
+        realmUrl: Uri.parse(realmUrlStr),
+        userId: userId,
+        narrow: narrow);
+    } else {
+      // TODO(dart): simplify after https://github.com/dart-lang/language/issues/2537
+      throw const FormatException();
+    }
+  }
+
+  Map<String, String> toAndroidIntentExtras() {
+    return {
+      'realm_url': realmUrl.toString(),
+      'user_id': userId.toString(),
+      ...(switch (narrow) {
+        TopicNarrow(streamId: final channelId, :final topic) => {
+          'narrow_type': 'topic',
+          'channel_id': channelId.toString(),
+          'topic': topic.toJson(),
+        },
+        DmNarrow(:final allRecipientIds) => {
+          'narrow_type': 'dm',
+          'all_recipient_ids': allRecipientIds.join(','),
+        },
+        // This case should be unreachable.
+        _ => throw UnsupportedError('Unknown narrow of type "${narrow.runtimeType}"'),
+      }),
+    };
   }
 }

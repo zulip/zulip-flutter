@@ -44,13 +44,15 @@ class NotificationChannel {
 ///   https://developer.android.com/reference/android/content/Intent
 ///   https://developer.android.com/reference/android/content/Intent#Intent(java.lang.String,%20android.net.Uri,%20android.content.Context,%20java.lang.Class%3C?%3E)
 class AndroidIntent {
-  AndroidIntent({required this.action, required this.dataUrl, this.flags = 0});
+  AndroidIntent({required this.action, required this.dataUrl, this.flags = 0, required this.extrasData});
 
   final String action;
   final String dataUrl;
 
   /// A combination of flags from [IntentFlag].
   final int flags;
+
+  final Map<String, String> extrasData;
 }
 
 /// Corresponds to `android.app.PendingIntent`.

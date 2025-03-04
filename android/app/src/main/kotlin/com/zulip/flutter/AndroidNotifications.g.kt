@@ -104,7 +104,8 @@ data class AndroidIntent (
   val action: String,
   val dataUrl: String,
   /** A combination of flags from [IntentFlag]. */
-  val flags: Long
+  val flags: Long,
+  val extrasData: Map<String, String>
 )
  {
   companion object {
@@ -112,7 +113,8 @@ data class AndroidIntent (
       val action = pigeonVar_list[0] as String
       val dataUrl = pigeonVar_list[1] as String
       val flags = pigeonVar_list[2] as Long
-      return AndroidIntent(action, dataUrl, flags)
+      val extrasData = pigeonVar_list[3] as Map<String, String>
+      return AndroidIntent(action, dataUrl, flags, extrasData)
     }
   }
   fun toList(): List<Any?> {
@@ -120,6 +122,7 @@ data class AndroidIntent (
       action,
       dataUrl,
       flags,
+      extrasData,
     )
   }
 }

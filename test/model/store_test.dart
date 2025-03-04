@@ -1133,6 +1133,7 @@ void main() {
       addTearDown(testBinding.reset);
       testBinding.firebaseMessagingInitialToken = '012abc';
       addTearDown(NotificationService.debugReset);
+      addTearDown(NotificationOpenManager.debugReset);
       await NotificationService.instance.start();
 
       // On store startup, send the token.

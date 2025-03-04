@@ -54,6 +54,8 @@ class NotificationService {
   Future<void> start() async {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
+        await NotificationOpenManager.instance.init();
+
         await ZulipBinding.instance.firebaseInitializeApp(
           options: kFirebaseOptionsAndroid);
 
