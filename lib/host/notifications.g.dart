@@ -20,6 +20,9 @@ PlatformException _createConnectionError(String channelName) {
 ///
 /// On iOS, the notification payload will be the APNs data from
 /// the server.
+///
+/// On Android, the payload will be the Intent extras bundle provided
+/// during the creation of the notification.
 class NotificationPayloadForOpen {
   NotificationPayloadForOpen({
     required this.payload,
