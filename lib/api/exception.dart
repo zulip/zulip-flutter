@@ -149,16 +149,34 @@ class MalformedServerResponseException extends ServerException {
   /// in order to preserve the underlying exception's stack trace, which
   /// may be more informative than the exception object itself.
   final Object? causeException;
+  final StackTrace? causeStackTrace;
 
   MalformedServerResponseException({
     required super.routeName,
     required super.httpStatus,
     required super.data,
     this.causeException,
+    this.causeStackTrace
   }) : super(message: causeException == null
          ? GlobalLocalizations.zulipLocalizations
             .errorMalformedResponse(httpStatus)
          : GlobalLocalizations.zulipLocalizations
             .errorMalformedResponseWithCause(
               httpStatus, causeException.toString()));
+
+  @override
+  String toString() {
+    final sb = StringBuffer();
+    sb.write('${objectRuntimeType(this, 'MalformedServerResponseException')}:');
+    sb.write(" $httpStatus");
+    sb.write(" $routeName");
+    sb.write(": $message");
+    if (causeException != null) {
+      sb.write('\nCaused by: $causeException');
+      if (causeStackTrace != null) {
+        sb.write('\n$causeStackTrace');
+      }
+    }
+    return sb.toString();
+  }
 }
