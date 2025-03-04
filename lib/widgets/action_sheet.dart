@@ -249,7 +249,12 @@ void showTopicActionSheet(BuildContext context, {
       pageContext: pageContext);
   }));
 
-  if (someMessageIdInTopic != null) {
+  final message = store.messages[someMessageIdInTopic] as StreamMessage?;
+  // TODO: check for other cases that may disallow this action (e.g.: time
+  //   limit for editing topics).
+  final allowResolveUnresolve =
+    message == null || message.topic.displayName != null;
+  if (someMessageIdInTopic != null && allowResolveUnresolve) {
     optionButtons.add(ResolveUnresolveButton(pageContext: pageContext,
       topic: topic,
       someMessageIdInTopic: someMessageIdInTopic));
@@ -693,9 +698,12 @@ Future<String?> fetchRawContentWithFeedback({
     //   On final failure or success, auto-dismiss the snackbar.
     final zulipLocalizations = ZulipLocalizations.of(context);
     try {
-      fetchedMessage = await getMessageCompat(PerAccountStoreWidget.of(context).connection,
+      final store = PerAccountStoreWidget.of(context);
+      fetchedMessage = await getMessageCompat(store.connection,
         messageId: messageId,
         applyMarkdown: false,
+        // TODO(server-10): simplify this condition away
+        allowEmptyTopicName: store.zulipFeatureLevel >= 334 ? true : null,
       );
       if (fetchedMessage == null) {
         errorMessage = zulipLocalizations.errorMessageDoesNotSeemToExist;

@@ -367,12 +367,21 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
 
   @override
   Widget buildItem(BuildContext context, int index, TopicAutocompleteResult option) {
+    final Widget child;
+    if (option.topic.displayName == null) {
+      final store = PerAccountStoreWidget.of(context);
+      child = Text(store.realmEmptyTopicDisplayName,
+        style: const TextStyle(fontStyle: FontStyle.italic));
+    } else {
+      child = Text(option.topic.displayName!);
+    }
+
     return InkWell(
       onTap: () {
         _onTapOption(context, option);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Text(option.topic.displayName)));
+        child: child));
   }
 }
