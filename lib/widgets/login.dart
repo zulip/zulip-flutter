@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../api/exception.dart';
@@ -350,19 +351,6 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       assert(debugLog(e.toString()));
 
-      if (e is PlatformException
-        && defaultTargetPlatform == TargetPlatform.iOS
-        && e.message != null && e.message!.startsWith('Error while launching')) {
-        // Ignore; I've seen this on my iPhone even when auth succeeds.
-        // Specifically, Apple web auth…which on iOS should be replaced by
-        // Apple native auth; that's #462.
-        // Possibly related:
-        //   https://github.com/flutter/flutter/issues/91660
-        // but in that issue, people report authentication not succeeding.
-        // TODO(#462) remove this?
-        return;
-      }
-
       if (!mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(context);
 
@@ -428,6 +416,33 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _handleNativeAppleAuth() async {
+    final state = generateRandomToken();
+    final credential = await SignInWithApple.getAppleIDCredential(
+      state: state,
+      scopes: [
+        AppleIDAuthorizationScopes.fullName,
+        AppleIDAuthorizationScopes.email,
+      ],
+    );
+    if (credential.state != state) throw Exception('`state` mismatch');
+
+    __otp = generateOtp();
+
+    final url = widget.serverSettings.realmUrl.resolve('/complete/apple/')
+      .replace(queryParameters: {'mobile_flow_otp': _otp!, 'native_flow': 'true', 'id_token': credential.identityToken});
+
+    await ZulipBinding.instance.launchUrl(url, mode: LaunchMode.inAppBrowserView);
+  }
+
+  Future<void> _handleExtAuth(ExternalAuthenticationMethod method) async {
+    if (method.name == 'apple' && defaultTargetPlatform == TargetPlatform.iOS) {
+      await _handleNativeAppleAuth();
+    } else {
+      await _beginWebAuth(method);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
@@ -450,7 +465,7 @@ class _LoginPageState extends State<LoginPage> {
               ? Image.network(icon, width: 24, height: 24)
               : null,
             onPressed: !_inProgress
-              ? () => _beginWebAuth(method)
+              ? () => _handleExtAuth(method)
               : null,
             label: Text(
               zulipLocalizations.signInWithFoo(method.displayName)));
