@@ -74,6 +74,18 @@ extension ValueListenableChecks<T> on Subject<ValueListenable<T>> {
   Subject<T> get value => has((c) => c.value, 'value');
 }
 
+extension ThemeDataChecks on Subject<ThemeData> {
+  Subject<Brightness> get brightness => has((x) => x.brightness, 'brightness');
+}
+
+extension RadioListTileChecks<T> on Subject<RadioListTile<T>> {
+  Subject<bool> get checked => has((x) => x.checked, 'checked');
+}
+
+extension SwitchListTileChecks<T> on Subject<SwitchListTile> {
+  Subject<bool> get value => has((x) => x.value, 'value');
+}
+
 extension TextChecks on Subject<Text> {
   Subject<String?> get data => has((t) => t.data, 'data');
   Subject<TextStyle?> get style => has((t) => t.style, 'style');

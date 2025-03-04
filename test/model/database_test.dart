@@ -4,10 +4,14 @@ import 'package:drift/native.dart';
 import 'package:drift_dev/api/migrations_native.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/database.dart';
+import 'package:zulip/model/settings.dart';
 
 import 'schemas/schema.dart';
 import 'schemas/schema_v1.dart' as v1;
 import 'schemas/schema_v2.dart' as v2;
+import 'store_checks.dart';
+import 'schemas/schema_v3.dart' as v3;
+import 'schemas/schema_v4.dart' as v4;
 
 void main() {
   group('non-migration tests', () {
@@ -88,6 +92,34 @@ void main() {
       await database.createAccount(accountData);
       await check(database.createAccount(accountDataWithSameEmail))
         .throws<AccountAlreadyExistsException>();
+    });
+
+    test('initialize GlobalSettings with defaults', () async {
+      check(await database.ensureGlobalSettings()).themeSetting.isNull();
+    });
+
+    test('ensure single GlobalSettings row', () async {
+      check(await database.select(database.globalSettings).get()).isEmpty();
+
+      final globalSettings = await database.ensureGlobalSettings();
+      check(await database.select(database.globalSettings).get())
+        .single.equals(globalSettings);
+
+      // Subsequent calls to `ensureGlobalSettings` do not insert new rows.
+      check(await database.ensureGlobalSettings()).equals(globalSettings);
+      check(await database.select(database.globalSettings).get())
+        .single.equals(globalSettings);
+    });
+
+    test('does not crash if multiple global settings rows', () async {
+      await database.into(database.globalSettings)
+        .insert(const GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.dark)));
+      await database.into(database.globalSettings)
+        .insert(const GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.light)));
+
+      check(await database.select(database.globalSettings).get()).length.equals(2);
+      check(await database.ensureGlobalSettings())
+        .themeSetting.equals(ThemeSetting.dark);
     });
   });
 
@@ -172,6 +204,25 @@ void main() {
         ...accountV1.toJson(),
         'ackedPushToken': null,
       });
+      await after.close();
+    });
+
+    test('upgrade to v4, with data', () async {
+      final schema = await verifier.schemaAt(3);
+      final before = v3.DatabaseAtV3(schema.newConnection());
+      await before.into(before.globalSettings).insert(
+        v3.GlobalSettingsCompanion.insert(
+          themeSetting: Value(ThemeSetting.light.name)));
+      await before.close();
+
+      final db = AppDatabase(schema.newConnection());
+      await verifier.migrateAndValidate(db, 4);
+      await db.close();
+
+      final after = v4.DatabaseAtV4(schema.newConnection());
+      final globalSettings = await after.select(after.globalSettings).getSingle();
+      check(globalSettings.themeSetting).equals(ThemeSetting.light.name);
+      check(globalSettings.browserPreference).isNull();
       await after.close();
     });
   });
