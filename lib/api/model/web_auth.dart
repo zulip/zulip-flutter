@@ -75,6 +75,8 @@ String generateOtp() {
   return hex.encode(bytes);
 }
 
+String generateRandomToken() => generateOtp();
+
 /// For tests, create an OTP-encrypted API key.
 @visibleForTesting
 String debugEncodeApiKey(String apiKey, String otp) {
