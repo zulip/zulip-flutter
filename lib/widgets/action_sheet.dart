@@ -693,17 +693,20 @@ Future<String?> fetchRawContentWithFeedback({
     //   On final failure or success, auto-dismiss the snackbar.
     final zulipLocalizations = ZulipLocalizations.of(context);
     try {
-      fetchedMessage = await getMessageCompat(PerAccountStoreWidget.of(context).connection,
+      fetchedMessage = (await getMessage(PerAccountStoreWidget.of(context).connection,
         messageId: messageId,
         applyMarkdown: false,
-      );
-      if (fetchedMessage == null) {
-        errorMessage = zulipLocalizations.errorMessageDoesNotSeemToExist;
-      }
+      )).message;
     } catch (e) {
       switch (e) {
         case ZulipApiException():
-          errorMessage = e.message;
+          if (e.code == 'BAD_REQUEST') {
+            // Servers use this code when the message doesn't exist, according
+            // to the example in the doc.
+            errorMessage = zulipLocalizations.errorMessageDoesNotSeemToExist;
+          } else {
+            errorMessage = e.message;
+          }
         // TODO specific messages for common errors, like network errors
         //   (support with reusable code)
         default:

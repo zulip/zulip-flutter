@@ -416,8 +416,8 @@ const _$UserTopicVisibilityPolicyEnumMap = {
 UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
     UpdateMessageEvent(
       id: (json['id'] as num).toInt(),
-      userId: (json['user_id'] as num?)?.toInt(),
-      renderingOnly: json['rendering_only'] as bool?,
+      userId: (json['user_id'] as num).toInt(),
+      renderingOnly: json['rendering_only'] as bool,
       messageId: (json['message_id'] as num).toInt(),
       messageIds: (json['message_ids'] as List<dynamic>)
           .map((e) => (e as num).toInt())
@@ -425,7 +425,7 @@ UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
       flags: (json['flags'] as List<dynamic>)
           .map((e) => $enumDecode(_$MessageFlagEnumMap, e))
           .toList(),
-      editTimestamp: (json['edit_timestamp'] as num?)?.toInt(),
+      editTimestamp: (json['edit_timestamp'] as num).toInt(),
       origStreamId: (json['stream_id'] as num?)?.toInt(),
       newStreamId: (json['new_stream_id'] as num?)?.toInt(),
       propagateMode:

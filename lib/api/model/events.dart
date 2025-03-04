@@ -708,13 +708,13 @@ class UpdateMessageEvent extends Event {
   @JsonKey(includeToJson: true)
   String get type => 'update_message';
 
-  final int? userId; // TODO(server-5)
-  final bool? renderingOnly; // TODO(server-5)
+  final int userId;
+  final bool renderingOnly;
   final int messageId;
   final List<int> messageIds;
 
   final List<MessageFlag> flags;
-  final int? editTimestamp; // TODO(server-5)
+  final int editTimestamp;
 
   // final String? streamName; // ignore
 
