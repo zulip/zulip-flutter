@@ -70,6 +70,9 @@ private func nilOrValue<T>(_ value: Any?) -> T? {
 /// On iOS, the notification payload will be the APNs data from
 /// the server.
 ///
+/// On Android, the payload will be the Intent extras bundle provided
+/// during the creation of the notification.
+///
 /// Generated class from Pigeon that represents data sent in messages.
 struct NotificationPayloadForOpen {
   var payload: [AnyHashable?: Any?]
