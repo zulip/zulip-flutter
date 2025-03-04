@@ -162,6 +162,45 @@ void main() {
         ..origStreamId.equals(1)
         ..newStreamId.equals(1);
     });
+
+    test('no message move', () {
+      check(Event.fromJson({ ...baseJson,
+        'orig_content': 'foo',
+        'orig_rendered_content': 'foo',
+        'content': 'bar',
+        'rendered_content': 'bar',
+      })).isA<UpdateMessageEvent>().moveData.isNull();
+    });
+
+    test('stream move but no orig_subject', () {
+      check(() => Event.fromJson({ ...baseMoveJson,
+        'stream_id': 1,
+        'new_stream_id': 2,
+        'orig_subject': null,
+      })).throws<void>();
+    });
+
+    test('move but no subject or new_stream_id', () {
+      check(() => Event.fromJson({ ...baseMoveJson,
+        'new_stream_id': null,
+        'subject': null,
+      })).throws<FormatException>();
+    });
+
+    test('move but no orig_stream_id', () {
+      check(() => Event.fromJson({ ...baseMoveJson,
+        'stream_id': null,
+        'new_stream_id': 2,
+      })).throws<void>();
+    });
+
+    test('move but no propagate_mode', () {
+      check(() => Event.fromJson({ ...baseMoveJson,
+        'orig_subject': 'foo',
+        'subject': 'bar',
+        'propagate_mode': null,
+      })).throws<void>();
+    });
   });
 
   test('delete_message: require streamId and topic for stream messages', () {
