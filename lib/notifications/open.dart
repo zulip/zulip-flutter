@@ -31,11 +31,11 @@ class NotificationOpenManager {
   Future<void> init() async {
     switch (defaultTargetPlatform) {
       case TargetPlatform.iOS:
+      case TargetPlatform.android:
         _notifLaunchData = await _notifPigeonApi.getNotificationDataFromLaunch();
         _notifPigeonApi.notificationTapEventsStream()
           .listen(_navigateForNotification);
 
-      case TargetPlatform.android:
       case TargetPlatform.fuchsia:
       case TargetPlatform.linux:
       case TargetPlatform.macOS:
