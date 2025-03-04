@@ -1,0 +1,31 @@
+{
+    "aps": {
+        "alert": {
+            "title": "#devel > plotter",
+            "subtitle": "Desdemona:",
+            "body": "Despite the fact that such a claim at first glance seems counterintuitive, it is derived from known results. Electrical engineering follows a cycle of four phases: location, refinement, visualization, and evaluation."
+        },
+        "sound": "default",
+        "badge": 0,
+        "custom": {
+            "zulip": {
+                "server": "zulipdev.com:9991",
+                "realm_id": 2,
+                "realm_uri": "http://localhost:9991",
+                "realm_url": "http://localhost:9991",
+                "realm_name": "Zulip Dev",
+                "user_id": 6,
+                "sender_id": 9,
+                "sender_email": "user9@zulipdev.com",
+                "time": 1740558997,
+                "recipient_type": "stream",
+                "stream": "devel",
+                "stream_id": 11,
+                "topic": "plotter",
+                "message_ids": [
+                    40
+                ]
+            }
+        }
+    }
+}

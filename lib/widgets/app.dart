@@ -9,7 +9,7 @@ import '../log.dart';
 import '../model/actions.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
-import '../notifications/display.dart';
+import '../notifications/open.dart';
 import 'about_zulip.dart';
 import 'dialog.dart';
 import 'home.dart';
@@ -163,27 +163,18 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  List<Route<dynamic>> _handleGenerateInitialRoutes(String initialRoute) {
+  List<Route<dynamic>> _handleGenerateInitialRoutes(_) {
     // The `_ZulipAppState.context` lacks the required ancestors. Instead
     // we use the Navigator which should be available when this callback is
     // called and it's context should have the required ancestors.
     final context = ZulipApp.navigatorKey.currentContext!;
 
-    final initialRouteUrl = Uri.tryParse(initialRoute);
-    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
-      final route = NotificationDisplayManager.routeForNotification(
-        context: context,
-        url: initialRouteUrl);
-
-      if (route != null) {
-        return [
-          HomePage.buildRoute(accountId: route.accountId),
-          route,
-        ];
-      } else {
-        // The account didn't match any existing accounts,
-        // fall through to show the default route below.
-      }
+    final route = NotificationOpenManager.instance.routeForNotificationFromLaunch(context: context);
+    if (route != null) {
+      return [
+        HomePage.buildRoute(accountId: route.accountId),
+        route,
+      ];
     }
 
     final globalStore = GlobalStoreWidget.of(context);
@@ -199,13 +190,10 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
 
   @override
   Future<bool> didPushRouteInformation(routeInformation) async {
-    switch (routeInformation.uri) {
-      case Uri(scheme: 'zulip', host: 'login') && var url:
-        await LoginPage.handleWebAuthUrl(url);
-        return true;
-      case Uri(scheme: 'zulip', host: 'notification') && var url:
-        await NotificationDisplayManager.navigateForNotification(url);
-        return true;
+    if (routeInformation.uri
+        case Uri(scheme: 'zulip', host: 'login') && var url) {
+      await LoginPage.handleWebAuthUrl(url);
+      return true;
     }
     return super.didPushRouteInformation(routeInformation);
   }
