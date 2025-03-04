@@ -598,6 +598,43 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   }
 }
 
+class _TitleTextField extends StatelessWidget {
+  const _TitleTextField({
+    required this.controller,
+    required this.focusNode,
+    required this.hintText,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final String hintText;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    TextStyle topicTextStyle = TextStyle(
+      fontSize: 20,
+      height: 22 / 20,
+      color: designVariables.textInput.withFadedAlpha(0.9),
+    ).merge(weightVariableTextStyle(context, wght: 600));
+
+    return Container(
+      padding: const EdgeInsets.only(top: 10, bottom: 9),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(
+        width: 1,
+        color: designVariables.foreground.withFadedAlpha(0.2)))),
+      child: TextField(
+        controller: controller,
+        focusNode: focusNode,
+        textInputAction: TextInputAction.next,
+        style: topicTextStyle,
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: topicTextStyle.copyWith(
+            color: designVariables.textInput.withFadedAlpha(0.5)))));
+  }
+}
+
 class _TopicInput extends StatelessWidget {
   const _TopicInput({required this.streamId, required this.controller});
 
@@ -607,32 +644,18 @@ class _TopicInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final designVariables = DesignVariables.of(context);
-    TextStyle topicTextStyle = TextStyle(
-      fontSize: 20,
-      height: 22 / 20,
-      color: designVariables.textInput.withFadedAlpha(0.9),
-    ).merge(weightVariableTextStyle(context, wght: 600));
 
     return TopicAutocomplete(
       streamId: streamId,
       controller: controller.topic,
       focusNode: controller.topicFocusNode,
       contentFocusNode: controller.contentFocusNode,
-      fieldViewBuilder: (context) => Container(
-        padding: const EdgeInsets.only(top: 10, bottom: 9),
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(
-          width: 1,
-          color: designVariables.foreground.withFadedAlpha(0.2)))),
-        child: TextField(
+      fieldViewBuilder: (context) =>
+        _TitleTextField(
           controller: controller.topic,
           focusNode: controller.topicFocusNode,
-          textInputAction: TextInputAction.next,
-          style: topicTextStyle,
-          decoration: InputDecoration(
-            hintText: zulipLocalizations.composeBoxTopicHintText,
-            hintStyle: topicTextStyle.copyWith(
-              color: designVariables.textInput.withFadedAlpha(0.5))))));
+          hintText: zulipLocalizations.composeBoxTopicHintText,
+        ));
   }
 }
 
