@@ -157,7 +157,12 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   @override
   String _computeTextNormalized() {
     String trimmed = text.trim();
-    return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    // TODO(server-10): simplify
+    if (store.zulipFeatureLevel < 334) {
+      return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    }
+
+    return trimmed;
   }
 
   /// Whether [textNormalized] would fail a mandatory-topics check
@@ -165,12 +170,67 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   ///
   /// The term "Vacuous" draws distinction from [String.isEmpty], in the sense
   /// that certain strings are not empty but also indicate the absence of a topic.
-  bool get isTopicVacuous => textNormalized == kNoTopicTopic;
+  bool get _isTopicVacuous {
+    bool result = textNormalized.isEmpty
+      // We keep checking for '(no topic)' regardless of the feature level
+      // because it remains equivalent to an empty topic even when FL >= 334.
+      // This can change in the future:
+      //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/.28realm_.29mandatory_topics.20behavior/near/2062391
+      || textNormalized == kNoTopicTopic;
 
-  @override
-  List<TopicValidationError> _computeValidationErrors() {
+    // TODO(server-10): simplify
+    if (store.zulipFeatureLevel >= 334) {
+      result |= textNormalized == store.realmEmptyTopicDisplayName;
+    }
+
+    return result;
+  }
+
+  /// The send destination as a string.
+  ///
+  /// If topics are [mandatory], returns a string formatted with a topic name
+  /// when the trimmed input is non-empty. E.g.: "#stream name > topic name".
+  ///
+  /// If topics are not [mandatory], returns a string formatted with a topic
+  /// name only when the user intentionally leave the trimmed input empty.
+  ///
+  /// Otherwise, returns a string formatted without a topic name.
+  /// E.g.: "#stream name".
+  // No i18n of the use of "#" and ">" strings; those are part of how
+  // Zulip expresses channels and topics, not any normal English punctuation,
+  // so don't make sense to translate. See:
+  //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
+  String getDestinationString({
+    required String streamName,
+    required bool hasChosenTopic,
+  }) {
+    final textTrimmed = text.trim();
+    if (textTrimmed.isNotEmpty) {
+      return '#$streamName > $textTrimmed';
+    }
+
+    assert(_isTopicVacuous);
+    if (
+      // Sending to a vacuous topic (see [_isTopicVacuous]) is not possible if
+      // topics are [mandatory].
+      mandatory
+      // Do not fall back to a vacuous topic unless the user explicitly chooses
+      // to do so (by skipping topic input and moving focus to content input),
+      // because we expect a call to action for the user to pick one first.
+      || !hasChosenTopic
+    ) {
+      return '#$streamName';
+    }
+
+    final vacuousTopicDisplayName =
+      // TODO(server-10): simplify away conditional
+      textNormalized.isEmpty ? store.realmEmptyTopicDisplayName : textNormalized;
+    return '#$streamName > $vacuousTopicDisplayName';
+  }
+
+  @override List<TopicValidationError> _computeValidationErrors() {
     return [
-      if (mandatory && isTopicVacuous)
+      if (mandatory && _isTopicVacuous)
         TopicValidationError.mandatoryButEmpty,
 
       if (
@@ -182,7 +242,7 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   void setTopic(TopicName newTopic) {
-    value = TextEditingValue(text: newTopic.displayName);
+    value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
 
@@ -557,10 +617,27 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     });
   }
 
+  void _hasChosenTopicChanged() {
+    setState(() {
+      // The relevant state lives on widget.controller.hasChosenTopic itself.
+    });
+  }
+
+  void _contentFocusChanged() {
+    setState(() {
+      // The relevant state lives on widget.controller.contentFocusNode itself.
+    });
+    if (widget.controller.contentFocusNode.hasFocus){
+      widget.controller.hasChosenTopic.value = true;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     widget.controller.topic.addListener(_topicChanged);
+    widget.controller.hasChosenTopic.addListener(_hasChosenTopicChanged);
+    widget.controller.contentFocusNode.addListener(_contentFocusChanged);
   }
 
   @override
@@ -570,11 +647,21 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       oldWidget.controller.topic.removeListener(_topicChanged);
       widget.controller.topic.addListener(_topicChanged);
     }
+    if (widget.controller.hasChosenTopic != oldWidget.controller.hasChosenTopic) {
+      oldWidget.controller.hasChosenTopic.removeListener(_hasChosenTopicChanged);
+      widget.controller.hasChosenTopic.addListener(_hasChosenTopicChanged);
+    }
+    if (widget.controller.contentFocusNode != oldWidget.controller.contentFocusNode) {
+      oldWidget.controller.contentFocusNode.removeListener(_contentFocusChanged);
+      widget.controller.contentFocusNode.addListener(_contentFocusChanged);
+    }
   }
 
   @override
   void dispose() {
     widget.controller.topic.removeListener(_topicChanged);
+    widget.controller.hasChosenTopic.removeListener(_hasChosenTopicChanged);
+    widget.controller.contentFocusNode.removeListener(_contentFocusChanged);
     super.dispose();
   }
 
@@ -584,55 +671,121 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.unknownChannelName;
-    final topic = TopicName(widget.controller.topic.textNormalized);
     return _ContentInput(
       narrow: widget.narrow,
-      destination: TopicNarrow(widget.narrow.streamId, topic),
+      destination: TopicNarrow(widget.narrow.streamId,
+        TopicName(widget.controller.topic.textNormalized)),
       controller: widget.controller,
       hintText: zulipLocalizations.composeBoxChannelContentHint(
-        // No i18n of this use of "#" and ">" string; those are part of how
-        // Zulip expresses channels and topics, not any normal English punctuation,
-        // so don't make sense to translate. See:
-        //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-        '#$streamName > ${topic.displayName}'));
+        widget.controller.topic.getDestinationString(
+          streamName: streamName,
+          hasChosenTopic: widget.controller.hasChosenTopic.value)));
   }
 }
 
-class _TopicInput extends StatelessWidget {
+class _TopicInput extends StatefulWidget {
   const _TopicInput({required this.streamId, required this.controller});
 
   final int streamId;
   final StreamComposeBoxController controller;
 
   @override
+  State<_TopicInput> createState() => _TopicInputState();
+}
+
+class _TopicInputState extends State<_TopicInput> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.topicFocusNode.addListener(_topicFocusChanged);
+    widget.controller.hasChosenTopic.addListener(_hasChosenTopicChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _TopicInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller.topicFocusNode != oldWidget.controller.topicFocusNode) {
+      oldWidget.controller.topicFocusNode.removeListener(_topicFocusChanged);
+      widget.controller.topicFocusNode.addListener(_topicFocusChanged);
+    }
+    if (widget.controller.hasChosenTopic != oldWidget.controller.hasChosenTopic) {
+      oldWidget.controller.hasChosenTopic.removeListener(_hasChosenTopicChanged);
+      widget.controller.hasChosenTopic.addListener(_hasChosenTopicChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.topicFocusNode.removeListener(_topicFocusChanged);
+    widget.controller.hasChosenTopic.removeListener(_hasChosenTopicChanged);
+    super.dispose();
+  }
+
+  void _topicFocusChanged() {
+    setState(() {
+      // The relevant state lives on widget.controller.topicFocusNode itself.
+    });
+    if (widget.controller.topicFocusNode.hasFocus) {
+      widget.controller.hasChosenTopic.value = false;
+    }
+  }
+
+  void _hasChosenTopicChanged() {
+    setState(() {
+      // The relevant state lives on widget.controller.hasChosenTopic itself.
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
     TextStyle topicTextStyle = TextStyle(
       fontSize: 20,
       height: 22 / 20,
       color: designVariables.textInput.withFadedAlpha(0.9),
     ).merge(weightVariableTextStyle(context, wght: 600));
+    final hintStyle = topicTextStyle.copyWith(
+      color: designVariables.textInput.withFadedAlpha(0.5));
+
+    final defaultTopicDisplayName = store.zulipFeatureLevel >= 334
+      ? store.realmEmptyTopicDisplayName : kNoTopicTopic;
+
+    final decoration = switch ((
+      store.realmMandatoryTopics,
+      widget.controller.hasChosenTopic.value,
+      widget.controller.topicFocusNode.hasFocus,
+    )) {
+      (false, true, _) => InputDecoration(
+        hintText: defaultTopicDisplayName,
+        hintStyle: topicTextStyle.copyWith(
+          fontStyle: store.zulipFeatureLevel >= 334 ? FontStyle.italic : null)),
+      (false, false, true) => InputDecoration(
+        hintText: zulipLocalizations.composeBoxEnterTopicOrSkipHintText(
+          defaultTopicDisplayName),
+        hintStyle: hintStyle),
+      (_, _, _) => InputDecoration(
+        hintText: zulipLocalizations.composeBoxTopicHintText,
+        hintStyle: hintStyle),
+    };
 
     return TopicAutocomplete(
-      streamId: streamId,
-      controller: controller.topic,
-      focusNode: controller.topicFocusNode,
-      contentFocusNode: controller.contentFocusNode,
+      streamId: widget.streamId,
+      controller: widget.controller.topic,
+      focusNode: widget.controller.topicFocusNode,
+      contentFocusNode: widget.controller.contentFocusNode,
       fieldViewBuilder: (context) => Container(
         padding: const EdgeInsets.only(top: 10, bottom: 9),
         decoration: BoxDecoration(border: Border(bottom: BorderSide(
           width: 1,
           color: designVariables.foreground.withFadedAlpha(0.2)))),
         child: TextField(
-          controller: controller.topic,
-          focusNode: controller.topicFocusNode,
+          controller: widget.controller.topic,
+          focusNode: widget.controller.topicFocusNode,
           textInputAction: TextInputAction.next,
           style: topicTextStyle,
-          decoration: InputDecoration(
-            hintText: zulipLocalizations.composeBoxTopicHintText,
-            hintStyle: topicTextStyle.copyWith(
-              color: designVariables.textInput.withFadedAlpha(0.5))))));
+          decoration: decoration)));
   }
 }
 
@@ -657,7 +810,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
           // Zulip expresses channels and topics, not any normal English punctuation,
           // so don't make sense to translate. See:
           //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-          '#$streamName > ${topic.displayName}');
+          '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;
@@ -1309,10 +1462,18 @@ class StreamComposeBoxController extends ComposeBoxController {
   final ComposeTopicController topic;
   final topicFocusNode = FocusNode();
 
+  /// Whether the user has made up their mind choosing a topic.
+  ///
+  /// Empirically, this should be set to `false` whenever the user focuses on
+  /// the topic input, and set to `true` whenever the user focuses on the
+  /// content input.
+  ValueNotifier<bool> hasChosenTopic = ValueNotifier(false);
+
   @override
   void dispose() {
     topic.dispose();
     topicFocusNode.dispose();
+    hasChosenTopic.dispose();
     super.dispose();
   }
 }
