@@ -14,9 +14,7 @@ GetMessageResult _$GetMessageResultFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$GetMessageResultToJson(GetMessageResult instance) =>
-    <String, dynamic>{
-      'message': instance.message,
-    };
+    <String, dynamic>{'message': instance.message};
 
 GetMessagesResult _$GetMessagesResultFromJson(Map<String, dynamic> json) =>
     GetMessagesResult(
@@ -25,9 +23,10 @@ GetMessagesResult _$GetMessagesResultFromJson(Map<String, dynamic> json) =>
       foundOldest: json['found_oldest'] as bool,
       foundAnchor: json['found_anchor'] as bool,
       historyLimited: json['history_limited'] as bool,
-      messages: (json['messages'] as List<dynamic>)
-          .map((e) => Message.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      messages:
+          (json['messages'] as List<dynamic>)
+              .map((e) => Message.fromJson(e as Map<String, dynamic>))
+              .toList(),
     );
 
 Map<String, dynamic> _$GetMessagesResultToJson(GetMessagesResult instance) =>
@@ -41,67 +40,58 @@ Map<String, dynamic> _$GetMessagesResultToJson(GetMessagesResult instance) =>
     };
 
 SendMessageResult _$SendMessageResultFromJson(Map<String, dynamic> json) =>
-    SendMessageResult(
-      id: (json['id'] as num).toInt(),
-    );
+    SendMessageResult(id: (json['id'] as num).toInt());
 
 Map<String, dynamic> _$SendMessageResultToJson(SendMessageResult instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-    };
+    <String, dynamic>{'id': instance.id};
 
 UpdateMessageResult _$UpdateMessageResultFromJson(Map<String, dynamic> json) =>
     UpdateMessageResult();
 
 Map<String, dynamic> _$UpdateMessageResultToJson(
-        UpdateMessageResult instance) =>
-    <String, dynamic>{};
+  UpdateMessageResult instance,
+) => <String, dynamic>{};
 
 UploadFileResult _$UploadFileResultFromJson(Map<String, dynamic> json) =>
-    UploadFileResult(
-      uri: json['uri'] as String,
-    );
+    UploadFileResult(uri: json['uri'] as String);
 
 Map<String, dynamic> _$UploadFileResultToJson(UploadFileResult instance) =>
-    <String, dynamic>{
-      'uri': instance.uri,
-    };
+    <String, dynamic>{'uri': instance.uri};
 
 UpdateMessageFlagsResult _$UpdateMessageFlagsResultFromJson(
-        Map<String, dynamic> json) =>
-    UpdateMessageFlagsResult(
-      messages: (json['messages'] as List<dynamic>)
+  Map<String, dynamic> json,
+) => UpdateMessageFlagsResult(
+  messages:
+      (json['messages'] as List<dynamic>)
           .map((e) => (e as num).toInt())
           .toList(),
-    );
+);
 
 Map<String, dynamic> _$UpdateMessageFlagsResultToJson(
-        UpdateMessageFlagsResult instance) =>
-    <String, dynamic>{
-      'messages': instance.messages,
-    };
+  UpdateMessageFlagsResult instance,
+) => <String, dynamic>{'messages': instance.messages};
 
 UpdateMessageFlagsForNarrowResult _$UpdateMessageFlagsForNarrowResultFromJson(
-        Map<String, dynamic> json) =>
-    UpdateMessageFlagsForNarrowResult(
-      processedCount: (json['processed_count'] as num).toInt(),
-      updatedCount: (json['updated_count'] as num).toInt(),
-      firstProcessedId: (json['first_processed_id'] as num?)?.toInt(),
-      lastProcessedId: (json['last_processed_id'] as num?)?.toInt(),
-      foundOldest: json['found_oldest'] as bool,
-      foundNewest: json['found_newest'] as bool,
-    );
+  Map<String, dynamic> json,
+) => UpdateMessageFlagsForNarrowResult(
+  processedCount: (json['processed_count'] as num).toInt(),
+  updatedCount: (json['updated_count'] as num).toInt(),
+  firstProcessedId: (json['first_processed_id'] as num?)?.toInt(),
+  lastProcessedId: (json['last_processed_id'] as num?)?.toInt(),
+  foundOldest: json['found_oldest'] as bool,
+  foundNewest: json['found_newest'] as bool,
+);
 
 Map<String, dynamic> _$UpdateMessageFlagsForNarrowResultToJson(
-        UpdateMessageFlagsForNarrowResult instance) =>
-    <String, dynamic>{
-      'processed_count': instance.processedCount,
-      'updated_count': instance.updatedCount,
-      'first_processed_id': instance.firstProcessedId,
-      'last_processed_id': instance.lastProcessedId,
-      'found_oldest': instance.foundOldest,
-      'found_newest': instance.foundNewest,
-    };
+  UpdateMessageFlagsForNarrowResult instance,
+) => <String, dynamic>{
+  'processed_count': instance.processedCount,
+  'updated_count': instance.updatedCount,
+  'first_processed_id': instance.firstProcessedId,
+  'last_processed_id': instance.lastProcessedId,
+  'found_oldest': instance.foundOldest,
+  'found_newest': instance.foundNewest,
+};
 
 const _$AnchorCodeEnumMap = {
   AnchorCode.newest: 'newest',

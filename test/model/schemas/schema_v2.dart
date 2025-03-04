@@ -9,48 +9,84 @@ class Accounts extends Table with TableInfo<Accounts, AccountsData> {
   final String? _alias;
   Accounts(this.attachedDatabase, [this._alias]);
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
   late final GeneratedColumn<String> realmUrl = GeneratedColumn<String>(
-      'realm_url', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'realm_url',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   late final GeneratedColumn<int> userId = GeneratedColumn<int>(
-      'user_id', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
   late final GeneratedColumn<String> email = GeneratedColumn<String>(
-      'email', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'email',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   late final GeneratedColumn<String> apiKey = GeneratedColumn<String>(
-      'api_key', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'api_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   late final GeneratedColumn<String> zulipVersion = GeneratedColumn<String>(
-      'zulip_version', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'zulip_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   late final GeneratedColumn<String> zulipMergeBase = GeneratedColumn<String>(
-      'zulip_merge_base', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+    'zulip_merge_base',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   late final GeneratedColumn<int> zulipFeatureLevel = GeneratedColumn<int>(
-      'zulip_feature_level', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+    'zulip_feature_level',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
   late final GeneratedColumn<String> ackedPushToken = GeneratedColumn<String>(
-      'acked_push_token', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+    'acked_push_token',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
-        id,
-        realmUrl,
-        userId,
-        email,
-        apiKey,
-        zulipVersion,
-        zulipMergeBase,
-        zulipFeatureLevel,
-        ackedPushToken
-      ];
+    id,
+    realmUrl,
+    userId,
+    email,
+    apiKey,
+    zulipVersion,
+    zulipMergeBase,
+    zulipFeatureLevel,
+    ackedPushToken,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -60,31 +96,56 @@ class Accounts extends Table with TableInfo<Accounts, AccountsData> {
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   List<Set<GeneratedColumn>> get uniqueKeys => [
-        {realmUrl, userId},
-        {realmUrl, email},
-      ];
+    {realmUrl, userId},
+    {realmUrl, email},
+  ];
   @override
   AccountsData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return AccountsData(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      realmUrl: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}realm_url'])!,
-      userId: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}user_id'])!,
-      email: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}email'])!,
-      apiKey: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}api_key'])!,
-      zulipVersion: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}zulip_version'])!,
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}id'],
+          )!,
+      realmUrl:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}realm_url'],
+          )!,
+      userId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}user_id'],
+          )!,
+      email:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}email'],
+          )!,
+      apiKey:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}api_key'],
+          )!,
+      zulipVersion:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}zulip_version'],
+          )!,
       zulipMergeBase: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}zulip_merge_base']),
-      zulipFeatureLevel: attachedDatabase.typeMapping.read(
-          DriftSqlType.int, data['${effectivePrefix}zulip_feature_level'])!,
+        DriftSqlType.string,
+        data['${effectivePrefix}zulip_merge_base'],
+      ),
+      zulipFeatureLevel:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}zulip_feature_level'],
+          )!,
       ackedPushToken: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}acked_push_token']),
+        DriftSqlType.string,
+        data['${effectivePrefix}acked_push_token'],
+      ),
     );
   }
 
@@ -104,16 +165,17 @@ class AccountsData extends DataClass implements Insertable<AccountsData> {
   final String? zulipMergeBase;
   final int zulipFeatureLevel;
   final String? ackedPushToken;
-  const AccountsData(
-      {required this.id,
-      required this.realmUrl,
-      required this.userId,
-      required this.email,
-      required this.apiKey,
-      required this.zulipVersion,
-      this.zulipMergeBase,
-      required this.zulipFeatureLevel,
-      this.ackedPushToken});
+  const AccountsData({
+    required this.id,
+    required this.realmUrl,
+    required this.userId,
+    required this.email,
+    required this.apiKey,
+    required this.zulipVersion,
+    this.zulipMergeBase,
+    required this.zulipFeatureLevel,
+    this.ackedPushToken,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -141,18 +203,22 @@ class AccountsData extends DataClass implements Insertable<AccountsData> {
       email: Value(email),
       apiKey: Value(apiKey),
       zulipVersion: Value(zulipVersion),
-      zulipMergeBase: zulipMergeBase == null && nullToAbsent
-          ? const Value.absent()
-          : Value(zulipMergeBase),
+      zulipMergeBase:
+          zulipMergeBase == null && nullToAbsent
+              ? const Value.absent()
+              : Value(zulipMergeBase),
       zulipFeatureLevel: Value(zulipFeatureLevel),
-      ackedPushToken: ackedPushToken == null && nullToAbsent
-          ? const Value.absent()
-          : Value(ackedPushToken),
+      ackedPushToken:
+          ackedPushToken == null && nullToAbsent
+              ? const Value.absent()
+              : Value(ackedPushToken),
     );
   }
 
-  factory AccountsData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory AccountsData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AccountsData(
       id: serializer.fromJson<int>(json['id']),
@@ -182,29 +248,29 @@ class AccountsData extends DataClass implements Insertable<AccountsData> {
     };
   }
 
-  AccountsData copyWith(
-          {int? id,
-          String? realmUrl,
-          int? userId,
-          String? email,
-          String? apiKey,
-          String? zulipVersion,
-          Value<String?> zulipMergeBase = const Value.absent(),
-          int? zulipFeatureLevel,
-          Value<String?> ackedPushToken = const Value.absent()}) =>
-      AccountsData(
-        id: id ?? this.id,
-        realmUrl: realmUrl ?? this.realmUrl,
-        userId: userId ?? this.userId,
-        email: email ?? this.email,
-        apiKey: apiKey ?? this.apiKey,
-        zulipVersion: zulipVersion ?? this.zulipVersion,
-        zulipMergeBase:
-            zulipMergeBase.present ? zulipMergeBase.value : this.zulipMergeBase,
-        zulipFeatureLevel: zulipFeatureLevel ?? this.zulipFeatureLevel,
-        ackedPushToken:
-            ackedPushToken.present ? ackedPushToken.value : this.ackedPushToken,
-      );
+  AccountsData copyWith({
+    int? id,
+    String? realmUrl,
+    int? userId,
+    String? email,
+    String? apiKey,
+    String? zulipVersion,
+    Value<String?> zulipMergeBase = const Value.absent(),
+    int? zulipFeatureLevel,
+    Value<String?> ackedPushToken = const Value.absent(),
+  }) => AccountsData(
+    id: id ?? this.id,
+    realmUrl: realmUrl ?? this.realmUrl,
+    userId: userId ?? this.userId,
+    email: email ?? this.email,
+    apiKey: apiKey ?? this.apiKey,
+    zulipVersion: zulipVersion ?? this.zulipVersion,
+    zulipMergeBase:
+        zulipMergeBase.present ? zulipMergeBase.value : this.zulipMergeBase,
+    zulipFeatureLevel: zulipFeatureLevel ?? this.zulipFeatureLevel,
+    ackedPushToken:
+        ackedPushToken.present ? ackedPushToken.value : this.ackedPushToken,
+  );
   AccountsData copyWithCompanion(AccountsCompanion data) {
     return AccountsData(
       id: data.id.present ? data.id.value : this.id,
@@ -212,18 +278,22 @@ class AccountsData extends DataClass implements Insertable<AccountsData> {
       userId: data.userId.present ? data.userId.value : this.userId,
       email: data.email.present ? data.email.value : this.email,
       apiKey: data.apiKey.present ? data.apiKey.value : this.apiKey,
-      zulipVersion: data.zulipVersion.present
-          ? data.zulipVersion.value
-          : this.zulipVersion,
-      zulipMergeBase: data.zulipMergeBase.present
-          ? data.zulipMergeBase.value
-          : this.zulipMergeBase,
-      zulipFeatureLevel: data.zulipFeatureLevel.present
-          ? data.zulipFeatureLevel.value
-          : this.zulipFeatureLevel,
-      ackedPushToken: data.ackedPushToken.present
-          ? data.ackedPushToken.value
-          : this.ackedPushToken,
+      zulipVersion:
+          data.zulipVersion.present
+              ? data.zulipVersion.value
+              : this.zulipVersion,
+      zulipMergeBase:
+          data.zulipMergeBase.present
+              ? data.zulipMergeBase.value
+              : this.zulipMergeBase,
+      zulipFeatureLevel:
+          data.zulipFeatureLevel.present
+              ? data.zulipFeatureLevel.value
+              : this.zulipFeatureLevel,
+      ackedPushToken:
+          data.ackedPushToken.present
+              ? data.ackedPushToken.value
+              : this.ackedPushToken,
     );
   }
 
@@ -244,8 +314,17 @@ class AccountsData extends DataClass implements Insertable<AccountsData> {
   }
 
   @override
-  int get hashCode => Object.hash(id, realmUrl, userId, email, apiKey,
-      zulipVersion, zulipMergeBase, zulipFeatureLevel, ackedPushToken);
+  int get hashCode => Object.hash(
+    id,
+    realmUrl,
+    userId,
+    email,
+    apiKey,
+    zulipVersion,
+    zulipMergeBase,
+    zulipFeatureLevel,
+    ackedPushToken,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -292,12 +371,12 @@ class AccountsCompanion extends UpdateCompanion<AccountsData> {
     this.zulipMergeBase = const Value.absent(),
     required int zulipFeatureLevel,
     this.ackedPushToken = const Value.absent(),
-  })  : realmUrl = Value(realmUrl),
-        userId = Value(userId),
-        email = Value(email),
-        apiKey = Value(apiKey),
-        zulipVersion = Value(zulipVersion),
-        zulipFeatureLevel = Value(zulipFeatureLevel);
+  }) : realmUrl = Value(realmUrl),
+       userId = Value(userId),
+       email = Value(email),
+       apiKey = Value(apiKey),
+       zulipVersion = Value(zulipVersion),
+       zulipFeatureLevel = Value(zulipFeatureLevel);
   static Insertable<AccountsData> custom({
     Expression<int>? id,
     Expression<String>? realmUrl,
@@ -322,16 +401,17 @@ class AccountsCompanion extends UpdateCompanion<AccountsData> {
     });
   }
 
-  AccountsCompanion copyWith(
-      {Value<int>? id,
-      Value<String>? realmUrl,
-      Value<int>? userId,
-      Value<String>? email,
-      Value<String>? apiKey,
-      Value<String>? zulipVersion,
-      Value<String?>? zulipMergeBase,
-      Value<int>? zulipFeatureLevel,
-      Value<String?>? ackedPushToken}) {
+  AccountsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? realmUrl,
+    Value<int>? userId,
+    Value<String>? email,
+    Value<String>? apiKey,
+    Value<String>? zulipVersion,
+    Value<String?>? zulipMergeBase,
+    Value<int>? zulipFeatureLevel,
+    Value<String?>? ackedPushToken,
+  }) {
     return AccountsCompanion(
       id: id ?? this.id,
       realmUrl: realmUrl ?? this.realmUrl,

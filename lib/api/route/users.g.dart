@@ -9,11 +9,7 @@ part of 'users.dart';
 // **************************************************************************
 
 GetOwnUserResult _$GetOwnUserResultFromJson(Map<String, dynamic> json) =>
-    GetOwnUserResult(
-      userId: (json['user_id'] as num).toInt(),
-    );
+    GetOwnUserResult(userId: (json['user_id'] as num).toInt());
 
 Map<String, dynamic> _$GetOwnUserResultToJson(GetOwnUserResult instance) =>
-    <String, dynamic>{
-      'user_id': instance.userId,
-    };
+    <String, dynamic>{'user_id': instance.userId};
