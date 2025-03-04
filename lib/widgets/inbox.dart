@@ -272,6 +272,9 @@ abstract class _HeaderItem extends StatelessWidget {
         //   But that's in tension with the Figma, which gives these header rows
         //   40px min height.
         onTap: onCollapseButtonTap,
+        onLongPress: this is _LongPressable
+          ? (this as _LongPressable).onLongPress
+          : null,
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           Padding(padding: const EdgeInsets.all(10),
             child: Icon(size: 20, color: designVariables.sectionCollapseIcon,
@@ -425,7 +428,13 @@ class _DmItem extends StatelessWidget {
   }
 }
 
-class _StreamHeaderItem extends _HeaderItem {
+mixin _LongPressable on _HeaderItem {
+  // TODO(#1272) move to _HeaderItem base class
+  //   when DM headers become long-pressable; remove mixin
+  Future<void> onLongPress();
+}
+
+class _StreamHeaderItem extends _HeaderItem with _LongPressable {
   final Subscription subscription;
 
   const _StreamHeaderItem({
@@ -458,6 +467,11 @@ class _StreamHeaderItem extends _HeaderItem {
     }
   }
   @override Future<void> onRowTap() => onCollapseButtonTap(); // TODO open channel narrow
+
+  @override
+  Future<void> onLongPress() async {
+    showChannelActionSheet(sectionContext, channelId: subscription.streamId);
+  }
 }
 
 class _StreamSection extends StatelessWidget {

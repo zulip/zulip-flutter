@@ -367,36 +367,56 @@ class MessageListAppBarTitle extends StatelessWidget {
       case ChannelNarrow(:var streamId):
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
-        return _buildStreamRow(context, stream: stream);
+        final alignment = willCenterTitle
+          ? Alignment.center
+          : AlignmentDirectional.centerStart;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onLongPress: () {
+                showChannelActionSheet(context, channelId: streamId);
+              },
+              child: Align(alignment: alignment,
+                child: _buildStreamRow(context, stream: stream))),
+          ]);
 
       case TopicNarrow(:var streamId, :var topic):
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
-        return SizedBox(
-          width: double.infinity,
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onLongPress: () {
-              final someMessage = MessageListPage.ancestorOf(context)
-                .model?.messages.firstOrNull;
-              // If someMessage is null, the topic action sheet won't have a
-              // resolve/unresolve button. That seems OK; in that case we're
-              // either still fetching messages (and the user can reopen the
-              // sheet after that finishes) or there aren't any messages to
-              // act on anyway.
-              assert(someMessage == null || narrow.containsMessage(someMessage));
-              showTopicActionSheet(context,
-                channelId: streamId,
-                topic: topic,
-                someMessageIdInTopic: someMessage?.id);
-            },
-            child: Column(
-              crossAxisAlignment: willCenterTitle ? CrossAxisAlignment.center
-                                                  : CrossAxisAlignment.start,
-              children: [
-                _buildStreamRow(context, stream: stream),
-                _buildTopicRow(context, stream: stream, topic: topic),
-              ])));
+        final alignment = willCenterTitle
+          ? Alignment.center
+          : AlignmentDirectional.centerStart;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onLongPress: () {
+                showChannelActionSheet(context, channelId: streamId);
+              },
+              child: Align(alignment: alignment,
+                child: _buildStreamRow(context, stream: stream))),
+            GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onLongPress: () {
+                final someMessage = MessageListPage.ancestorOf(context)
+                  .model?.messages.firstOrNull;
+                // If someMessage is null, the topic action sheet won't have a
+                // resolve/unresolve button. That seems OK; in that case we're
+                // either still fetching messages (and the user can reopen the
+                // sheet after that finishes) or there aren't any messages to
+                // act on anyway.
+                assert(someMessage == null || narrow.containsMessage(someMessage));
+                showTopicActionSheet(context,
+                  channelId: streamId,
+                  topic: topic,
+                  someMessageIdInTopic: someMessage?.id);
+              },
+              child: Align(alignment: alignment,
+                child: _buildTopicRow(context, stream: stream, topic: topic))),
+          ]);
 
       case DmNarrow(:var otherRecipientIds):
         final store = PerAccountStoreWidget.of(context);
@@ -826,7 +846,7 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
                 backgroundColor: WidgetStatePropertyAll(messageListTheme.unreadMarker),
               ),
               onPressed: _loading ? null : () => _handlePress(context),
-              icon: const Icon(Icons.playlist_add_check),
+              icon: Icon(ZulipIcons.message_checked),
               label: Text(zulipLocalizations.markAllAsReadLabel))))));
   }
 }
@@ -1058,6 +1078,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
         onTap: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
             narrow: ChannelNarrow(message.streamId))),
+        onLongPress: () => showChannelActionSheet(context, channelId: message.streamId),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
