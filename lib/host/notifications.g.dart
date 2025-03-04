@@ -88,6 +88,13 @@ class NotificationHostApi {
   /// otherwise it will be null.
   ///
   /// See: https://developer.apple.com/documentation/uikit/uiapplication/launchoptionskey/remotenotification
+  ///
+  /// On Android, this checks if the launch `intent` has the intent data uri
+  /// starting with `zulip://notification` and has the extras bundle containing
+  /// the notification open payload we set during creating the notification.
+  /// Either returns the payload we set in the extras bundle, or null if the
+  /// `intent` doesn't match the preconditions, meaning launch wasn't triggered
+  /// by a notification.
   Future<NotificationPayloadForOpen?> getNotificationDataFromLaunch() async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.zulip.NotificationHostApi.getNotificationDataFromLaunch$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(

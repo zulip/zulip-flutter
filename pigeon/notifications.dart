@@ -5,6 +5,12 @@ import 'package:pigeon/pigeon.dart';
 @ConfigurePigeon(PigeonOptions(
   dartOut: 'lib/host/notifications.g.dart',
   swiftOut: 'ios/Runner/Notifications.g.swift',
+  kotlinOut: 'android/app/src/main/kotlin/com/zulip/flutter/Notifications.g.kt',
+  kotlinOptions: KotlinOptions(
+    package: 'com.zulip.flutter',
+    // One error class is already generated in AndroidNotifications.g.kt ,
+    // so avoid generating another one, preventing duplicate class build errors.
+    includeErrorClass: false),
 ))
 
 /// The payload that is attached to each notification and holds
@@ -24,6 +30,13 @@ abstract class NotificationHostApi {
   /// otherwise it will be null.
   ///
   /// See: https://developer.apple.com/documentation/uikit/uiapplication/launchoptionskey/remotenotification
+  ///
+  /// On Android, this checks if the launch `intent` has the intent data uri
+  /// starting with `zulip://notification` and has the extras bundle containing
+  /// the notification open payload we set during creating the notification.
+  /// Either returns the payload we set in the extras bundle, or null if the
+  /// `intent` doesn't match the preconditions, meaning launch wasn't triggered
+  /// by a notification.
   NotificationPayloadForOpen? getNotificationDataFromLaunch();
 }
 
@@ -37,5 +50,11 @@ abstract class NotificationHostEvents {
   /// called, indicating that the user has tapped on a notification. The
   /// emitted payload will be the raw APNs data from the
   /// `UNNotificationResponse` passed to the method.
+  ///
+  /// On Android, this emits an event when `onNewIntent` gets called, and
+  /// the intent matches preconditions of having a data uri starting with
+  /// `zulip://notification` and an extras bundle containing the notification
+  /// open payload we set during creating the notification. The emitted payload
+  /// will be the same payload we set in the extras bundle.
   NotificationPayloadForOpen notificationTapEvents();
 }
