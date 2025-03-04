@@ -161,6 +161,7 @@ Map<String, dynamic> _$ProfileFieldUserDataToJson(
 ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
       streamId: (json['stream_id'] as num).toInt(),
       name: json['name'] as String,
+      isArchived: json['is_archived'] as bool,
       description: json['description'] as String,
       renderedDescription: json['rendered_description'] as String,
       dateCreated: (json['date_created'] as num).toInt(),
@@ -178,6 +179,7 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
     <String, dynamic>{
       'stream_id': instance.streamId,
       'name': instance.name,
+      'is_archived': instance.isArchived,
       'description': instance.description,
       'rendered_description': instance.renderedDescription,
       'date_created': instance.dateCreated,
@@ -201,6 +203,7 @@ const _$ChannelPostPolicyEnumMap = {
 Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
       streamId: (json['stream_id'] as num).toInt(),
       name: json['name'] as String,
+      isArchived: json['is_archived'] as bool,
       description: json['description'] as String,
       renderedDescription: json['rendered_description'] as String,
       dateCreated: (json['date_created'] as num).toInt(),
@@ -226,6 +229,7 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
     <String, dynamic>{
       'stream_id': instance.streamId,
       'name': instance.name,
+      'is_archived': instance.isArchived,
       'description': instance.description,
       'rendered_description': instance.renderedDescription,
       'date_created': instance.dateCreated,

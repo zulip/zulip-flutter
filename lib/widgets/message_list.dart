@@ -311,6 +311,7 @@ class MessageListAppBarTitle extends StatelessWidget {
     ZulipStream? stream,
   }) {
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final messageListTheme = MessageListTheme.of(context);
     // A null [Icon.icon] makes a blank space.
     final icon = stream != null ? iconDataForStream(stream) : null;
     return Row(
@@ -324,6 +325,15 @@ class MessageListAppBarTitle extends StatelessWidget {
         const SizedBox(width: 4),
         Flexible(child: Text(
           stream?.name ?? zulipLocalizations.unknownChannelName)),
+        if (stream?.isArchived ?? false)
+          Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(4, 4, 0, 4),
+            child: Text(
+              ' ${zulipLocalizations.channelArchivedLabel}',
+              style: TextStyle(
+                fontSize: 18,
+                color: messageListTheme.streamRecipientHeaderChevronRight,
+                fontStyle: FontStyle.italic))),
       ]);
   }
 
@@ -1077,6 +1087,16 @@ class StreamMessageRecipientHeader extends StatelessWidget {
                 style: recipientHeaderTextStyle(context),
                 overflow: TextOverflow.ellipsis),
             ),
+            if (stream?.isArchived ?? false)
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(4, 4, 0, 4),
+                child: Text(
+                  ' ${zulipLocalizations.channelArchivedLabel}',
+                  style: recipientHeaderTextStyle(context).copyWith(
+                    color: messageListTheme.streamRecipientHeaderChevronRight,
+                    fontStyle: FontStyle.italic),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1)),
             Padding(
               // Figma has 5px horizontal padding around an 8px wide icon.
               // Icon is 16px wide here so horizontal padding is 1px.
