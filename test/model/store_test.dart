@@ -1018,13 +1018,15 @@ void main() {
       check(store).isLoading.isTrue();
     }
 
-    void checkReloadFailure(FakeAsync async, {
-      required FutureOr<void> Function() completeLoading,
-    }) async {
+    test('user logged out before new store is loaded', () => awaitFakeAsync((async) async {
       await prepareReload(async);
       check(completers()).single.isCompleted.isFalse();
 
-      await completeLoading();
+      // [PerAccountStore.fromInitialSnapshot] requires the account
+      // to be in the global store when called; do so before logging out.
+      final newStore = eg.store(globalStore: globalStore, account: eg.selfAccount);
+      await logOutAccount(globalStore, eg.selfAccount.id);
+      completers().single.complete(newStore);
       check(completers()).single.isCompleted.isTrue();
       check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
 
@@ -1034,26 +1036,23 @@ void main() {
       async.flushTimers();
       // Reload never succeeds and there are no unhandled errors.
       check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
-    }
-
-    Future<void> logOutAndCompleteWithNewStore() async {
-      // [PerAccountStore.fromInitialSnapshot] requires the account
-      // to be in the global store when called; do so before logging out.
-      final newStore = eg.store(globalStore: globalStore, account: eg.selfAccount);
-      await logOutAccount(globalStore, eg.selfAccount.id);
-      completers().single.complete(newStore);
-    }
-
-    test('user logged out before new store is loaded', () => awaitFakeAsync((async) async {
-      checkReloadFailure(async, completeLoading: logOutAndCompleteWithNewStore);
     }));
 
-    void completeWithApiExceptionUnauthorized() {
-      completers().single.completeError(eg.apiExceptionUnauthorized());
-    }
-
     test('new store is not loaded, gets HTTP 401 error instead', () => awaitFakeAsync((async) async {
-      checkReloadFailure(async, completeLoading: completeWithApiExceptionUnauthorized);
+      await prepareReload(async);
+      check(completers()).single.isCompleted.isFalse();
+
+      completers().single.completeError(eg.apiExceptionUnauthorized());
+      async.elapse(Duration.zero);
+      check(completers()).single.isCompleted.isTrue();
+      check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+
+      async.elapse(TestGlobalStore.removeAccountDuration);
+      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+
+      async.flushTimers();
+      // Reload never succeeds and there are no unhandled errors.
+      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
     }));
   });
 
