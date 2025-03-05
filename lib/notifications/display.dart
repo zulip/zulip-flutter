@@ -217,10 +217,12 @@ class NotificationChannelManager {
 /// Service for managing the notifications shown to the user.
 class NotificationDisplayManager {
   static Future<void> init() async {
+    assert(defaultTargetPlatform == TargetPlatform.android);
     await NotificationChannelManager.ensureChannel();
   }
 
   static void onFcmMessage(FcmMessage data, Map<String, dynamic> dataJson) {
+    assert(defaultTargetPlatform == TargetPlatform.android);
     switch (data) {
       case MessageFcmMessage(): _onMessageFcmMessage(data, dataJson);
       case RemoveFcmMessage(): _onRemoveFcmMessage(data);
@@ -434,6 +436,8 @@ class NotificationDisplayManager {
   }
 
   static Future<void> removeNotificationsForAccount(Uri realmUrl, int userId) async {
+    assert(defaultTargetPlatform == TargetPlatform.android);
+
     final groupKey = _groupKey(realmUrl, userId);
     final activeNotifications = await _androidHost.getActiveNotifications(
       desiredExtras: []);
@@ -488,6 +492,8 @@ class NotificationDisplayManager {
     required BuildContext context,
     required Uri url,
   }) {
+    assert(defaultTargetPlatform == TargetPlatform.android);
+
     final globalStore = GlobalStoreWidget.of(context);
 
     assert(debugLog('got notif: url: $url'));
@@ -516,6 +522,7 @@ class NotificationDisplayManager {
   /// generated with [NotificationOpenPayload.buildUrl] while creating
   /// the notification.
   static Future<void> navigateForNotification(Uri url) async {
+    assert(defaultTargetPlatform == TargetPlatform.android);
     assert(debugLog('opened notif: url: $url'));
 
     NavigatorState navigator = await ZulipApp.navigator;
