@@ -991,24 +991,22 @@ void main() {
       check(store).isLoading.isTrue();
     }
 
-    void checkReloadFailure({
+    void checkReloadFailure(FakeAsync async, {
       required FutureOr<void> Function() completeLoading,
-    }) {
-      awaitFakeAsync((async) async {
-        await prepareReload(async);
-        check(completers()).single.isCompleted.isFalse();
+    }) async {
+      await prepareReload(async);
+      check(completers()).single.isCompleted.isFalse();
 
-        await completeLoading();
-        check(completers()).single.isCompleted.isTrue();
-        check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+      await completeLoading();
+      check(completers()).single.isCompleted.isTrue();
+      check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
 
-        async.elapse(TestGlobalStore.removeAccountDuration);
-        check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+      async.elapse(TestGlobalStore.removeAccountDuration);
+      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
 
-        async.flushTimers();
-        // Reload never succeeds and there are no unhandled errors.
-        check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
-      });
+      async.flushTimers();
+      // Reload never succeeds and there are no unhandled errors.
+      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
     }
 
     Future<void> logOutAndCompleteWithNewStore() async {
@@ -1020,7 +1018,7 @@ void main() {
     }
 
     test('user logged out before new store is loaded', () => awaitFakeAsync((async) async {
-      checkReloadFailure(completeLoading: logOutAndCompleteWithNewStore);
+      checkReloadFailure(async, completeLoading: logOutAndCompleteWithNewStore);
     }));
 
     void completeWithApiExceptionUnauthorized() {
@@ -1028,7 +1026,7 @@ void main() {
     }
 
     test('new store is not loaded, gets HTTP 401 error instead', () => awaitFakeAsync((async) async {
-      checkReloadFailure(completeLoading: completeWithApiExceptionUnauthorized);
+      checkReloadFailure(async, completeLoading: completeWithApiExceptionUnauthorized);
     }));
   });
 
