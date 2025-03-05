@@ -21,6 +21,7 @@ try {
 
 android {
     namespace "com.zulip.flutter"
+    ndkVersion = "28.0.13004108"
 
     compileSdkVersion flutter.compileSdkVersion
 
