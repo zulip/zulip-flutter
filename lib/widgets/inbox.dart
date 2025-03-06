@@ -532,12 +532,13 @@ class _TopicItem extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 17,
                   height: (20 / 17),
+                  fontStyle: topic.displayName == null ? FontStyle.italic : null,
                   // TODO(design) check if this is the right variable
                   color: designVariables.labelMenuButton,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                topic.displayName))),
+                topic.displayName ?? store.realmEmptyTopicDisplayName))),
             const SizedBox(width: 12),
             if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
             // TODO(design) copies the "@" marker color; is there a better color?

@@ -302,6 +302,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
       realmMandatoryTopics: initialSnapshot.realmMandatoryTopics,
       realmWaitingPeriodThreshold: initialSnapshot.realmWaitingPeriodThreshold,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
+      realmEmptyTopicDisplayName: initialSnapshot.realmEmptyTopicDisplayName,
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
       emailAddressVisibility: initialSnapshot.emailAddressVisibility,
@@ -344,6 +345,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
     required this.realmMandatoryTopics,
     required this.realmWaitingPeriodThreshold,
     required this.maxFileUploadSizeMib,
+    required String? realmEmptyTopicDisplayName,
     required this.realmDefaultExternalAccounts,
     required this.customProfileFields,
     required this.emailAddressVisibility,
@@ -362,6 +364,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
        assert(realmUrl == connection.realmUrl),
        assert(emoji.realmUrl == realmUrl),
        _globalStore = globalStore,
+       _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
        _emoji = emoji,
        _users = users,
        _channels = channels,
@@ -414,6 +417,18 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
   /// For docs, please see [InitialSnapshot.realmWaitingPeriodThreshold].
   final int realmWaitingPeriodThreshold;  // TODO(#668): update this realm setting
   final int maxFileUploadSizeMib; // No event for this.
+
+  /// The display name to use for empty topics.
+  ///
+  /// This should only be accessed when FL >= 334, since topics cannot
+  /// be empty otherwise.
+  // TODO(server-10) simplify this
+  String get realmEmptyTopicDisplayName {
+    assert(_realmEmptyTopicDisplayName != null); // TODO(log)
+    return _realmEmptyTopicDisplayName ?? 'general chat';
+  }
+  final String? _realmEmptyTopicDisplayName; // TODO(#668): update this realm setting
+
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
   List<CustomProfileField> customProfileFields;
   /// For docs, please see [InitialSnapshot.emailAddressVisibility].
