@@ -9,6 +9,10 @@ import 'page.dart';
 ///
 /// There should be one of this widget, near the root of the tree.
 ///
+/// Shows the [placeholder] widget while concurrently waiting for all
+/// the futures in [otherAsyncTasks] and the global store loading to
+/// finish, and then switches to showing the [child] widget.
+///
 /// See also:
 ///  * [GlobalStoreWidget.of], to get access to the data.
 ///  * [PerAccountStoreWidget], for the user's data associated with a
@@ -16,10 +20,12 @@ import 'page.dart';
 class GlobalStoreWidget extends StatefulWidget {
   const GlobalStoreWidget({
     super.key,
+    this.otherAsyncTasks = const [],
     this.placeholder = const LoadingPlaceholder(),
     required this.child,
   });
 
+  final Iterable<Future<void>> otherAsyncTasks;
   final Widget placeholder;
   final Widget child;
 
@@ -56,24 +62,32 @@ class GlobalStoreWidget extends StatefulWidget {
 }
 
 class _GlobalStoreWidgetState extends State<GlobalStoreWidget> {
+  bool isLoading = true;
   GlobalStore? store;
+
+  Future<void> _loadGlobalStore() async {
+    store = await ZulipBinding.instance.getGlobalStoreUniquely();
+  }
 
   @override
   void initState() {
     super.initState();
-    (() async {
-      final store = await ZulipBinding.instance.getGlobalStoreUniquely();
-      setState(() {
-        this.store = store;
-      });
-    })();
+    () async {
+      try {
+        await Future.wait([
+          _loadGlobalStore(),
+          ...widget.otherAsyncTasks,
+        ]);
+      } finally {
+        if (mounted) setState(() => isLoading = false);
+      }
+    }();
   }
 
   @override
   Widget build(BuildContext context) {
-    final store = this.store;
-    if (store == null) return widget.placeholder;
-    return _GlobalStoreInheritedWidget(store: store, child: widget.child);
+    if (isLoading) return widget.placeholder;
+    return _GlobalStoreInheritedWidget(store: store!, child: widget.child);
   }
 }
 
