@@ -202,6 +202,11 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final themeData = zulipThemeData(context);
     return GlobalStoreWidget(
+      otherAsyncTasks: [
+        if (NotificationOpenManager.instance.intializationFuture
+            case final Future<void> future)
+          future,
+      ],
       child: MaterialApp(
         onGenerateTitle: (BuildContext context) {
           return ZulipLocalizations.of(context).zulipAppTitle;

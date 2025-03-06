@@ -80,7 +80,6 @@ void main() {
     testBinding.firebaseMessagingInitialToken = '012abc';
     addTearDown(NotificationService.debugReset);
     NotificationService.debugBackgroundIsolateIsLive = false;
-    await NotificationOpenManager.instance.init();
     await NotificationService.instance.start();
   }
 
