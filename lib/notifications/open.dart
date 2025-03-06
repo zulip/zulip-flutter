@@ -29,20 +29,28 @@ class NotificationOpenManager {
 
   NotificationPayloadForOpen? _notifLaunchData;
 
-  Future<void> init() async {
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.iOS:
-      case TargetPlatform.android:
-        _notifLaunchData = await _notifPigeonApi.getNotificationDataFromLaunch();
-        _notifPigeonApi.notificationTapEventsStream()
-          .listen(_navigateForNotification);
+  Completer<void>? _intializedSignal;
+  Future<void>? get intializationFuture => _intializedSignal?.future;
 
-      case TargetPlatform.fuchsia:
-      case TargetPlatform.linux:
-      case TargetPlatform.macOS:
-      case TargetPlatform.windows:
-        // Do nothing; we don't offer notifications on these platforms.
-        break;
+  Future<void> init() async {
+    _intializedSignal = Completer();
+    try {
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.iOS:
+        case TargetPlatform.android:
+          _notifLaunchData = await _notifPigeonApi.getNotificationDataFromLaunch();
+          _notifPigeonApi.notificationTapEventsStream()
+            .listen(_navigateForNotification);
+
+        case TargetPlatform.fuchsia:
+        case TargetPlatform.linux:
+        case TargetPlatform.macOS:
+        case TargetPlatform.windows:
+          // Do nothing; we don't offer notifications on these platforms.
+          break;
+      }
+    } finally {
+      _intializedSignal!.complete();
     }
   }
 
