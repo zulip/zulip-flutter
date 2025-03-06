@@ -375,8 +375,83 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   }
 }
 
-class _ContentInput extends StatefulWidget {
-  const _ContentInput({
+class _ContentInput extends StatelessWidget {
+  const _ContentInput({required this.controller, required this.hintText});
+
+  final ComposeBoxController controller;
+  final String hintText;
+
+  static double maxHeight(BuildContext context) {
+    final clampingTextScaler = MediaQuery.textScalerOf(context)
+      .clamp(maxScaleFactor: 1.5);
+    final scaledLineHeight = clampingTextScaler.scale(_fontSize) * _lineHeightRatio;
+
+    // Reserve space to fully show the first 7th lines and just partially
+    // clip the 8th line, where the height matches the spec at
+    //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
+    // > Maximum size of the compose box is suggested to be 178px. Which
+    // > has 7 fully visible lines of text
+    //
+    // The partial line hints that the content input is scrollable.
+    //
+    // Using the ambient TextScale means this works for different values of the
+    // system text-size setting. We clamp to a max scale factor to limit
+    // how tall the content input can get; that's to save room for the message
+    // list. The user can still scroll the input to see everything.
+    return _verticalPadding + 7.727 * scaledLineHeight;
+  }
+
+  static const _verticalPadding = 8.0;
+  static const _fontSize = 17.0;
+  static const _lineHeight = 22.0;
+  static const _lineHeightRatio = _lineHeight / _fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight(context)),
+      // This [ClipRect] replaces the [TextField] clipping we disable below.
+      child: ClipRect(
+        child: InsetShadowBox(
+          top: _verticalPadding, bottom: _verticalPadding,
+          color: designVariables.composeBoxBg,
+          child: TextField(
+            controller: controller.content,
+            focusNode: controller.contentFocusNode,
+            // Let the content show through the `contentPadding` so that
+            // our [InsetShadowBox] can fade it smoothly there.
+            clipBehavior: Clip.none,
+            style: TextStyle(
+              fontSize: _fontSize,
+              height: _lineHeightRatio,
+              color: designVariables.textInput),
+            // From the spec at
+            //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
+            // > Compose box has the height to fit 2 lines. This is [done] to
+            // > have a bigger hit area for the user to start the input. […]
+            minLines: 2,
+            maxLines: null,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: InputDecoration(
+              // This padding ensures that the user can always scroll long
+              // content entirely out of the top or bottom shadow if desired.
+              // With this and the `minLines: 2` above, an empty content input
+              // gets 60px vertical distance (with no text-size scaling)
+              // between the top of the top shadow and the bottom of the
+              // bottom shadow. That's a bit more than the 54px given in the
+              // Figma, and we can revisit if needed, but it's tricky to get
+              // that 54px distance while also making the scrolling work like
+              // this and offering two lines of touchable area.
+              contentPadding: const EdgeInsets.symmetric(vertical: _verticalPadding),
+              hintText: hintText,
+              hintStyle: TextStyle(
+                color: designVariables.textInput.withFadedAlpha(0.5)))))));
+  }
+}
+
+class _MessageContentInput extends StatefulWidget {
+  const _MessageContentInput({
     required this.narrow,
     required this.destination,
     required this.controller,
@@ -389,10 +464,10 @@ class _ContentInput extends StatefulWidget {
   final String hintText;
 
   @override
-  State<_ContentInput> createState() => _ContentInputState();
+  State<_MessageContentInput> createState() => _MessageContentInputState();
 }
 
-class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserver {
+class _MessageContentInputState extends State<_MessageContentInput> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -402,7 +477,7 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
   }
 
   @override
-  void didUpdateWidget(covariant _ContentInput oldWidget) {
+  void didUpdateWidget(covariant _MessageContentInput oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.controller != oldWidget.controller) {
       oldWidget.controller.content.removeListener(_contentChanged);
@@ -465,77 +540,15 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
     }
   }
 
-  static double maxHeight(BuildContext context) {
-    final clampingTextScaler = MediaQuery.textScalerOf(context)
-      .clamp(maxScaleFactor: 1.5);
-    final scaledLineHeight = clampingTextScaler.scale(_fontSize) * _lineHeightRatio;
-
-    // Reserve space to fully show the first 7th lines and just partially
-    // clip the 8th line, where the height matches the spec at
-    //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
-    // > Maximum size of the compose box is suggested to be 178px. Which
-    // > has 7 fully visible lines of text
-    //
-    // The partial line hints that the content input is scrollable.
-    //
-    // Using the ambient TextScale means this works for different values of the
-    // system text-size setting. We clamp to a max scale factor to limit
-    // how tall the content input can get; that's to save room for the message
-    // list. The user can still scroll the input to see everything.
-    return _verticalPadding + 7.727 * scaledLineHeight;
-  }
-
-  static const _verticalPadding = 8.0;
-  static const _fontSize = 17.0;
-  static const _lineHeight = 22.0;
-  static const _lineHeightRatio = _lineHeight / _fontSize;
-
   @override
   Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-
     return ComposeAutocomplete(
       narrow: widget.narrow,
       controller: widget.controller.content,
       focusNode: widget.controller.contentFocusNode,
-      fieldViewBuilder: (context) => ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight(context)),
-        // This [ClipRect] replaces the [TextField] clipping we disable below.
-        child: ClipRect(
-          child: InsetShadowBox(
-            top: _verticalPadding, bottom: _verticalPadding,
-            color: designVariables.composeBoxBg,
-            child: TextField(
-              controller: widget.controller.content,
-              focusNode: widget.controller.contentFocusNode,
-              // Let the content show through the `contentPadding` so that
-              // our [InsetShadowBox] can fade it smoothly there.
-              clipBehavior: Clip.none,
-              style: TextStyle(
-                fontSize: _fontSize,
-                height: _lineHeightRatio,
-                color: designVariables.textInput),
-              // From the spec at
-              //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
-              // > Compose box has the height to fit 2 lines. This is [done] to
-              // > have a bigger hit area for the user to start the input. […]
-              minLines: 2,
-              maxLines: null,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                // This padding ensures that the user can always scroll long
-                // content entirely out of the top or bottom shadow if desired.
-                // With this and the `minLines: 2` above, an empty content input
-                // gets 60px vertical distance (with no text-size scaling)
-                // between the top of the top shadow and the bottom of the
-                // bottom shadow. That's a bit more than the 54px given in the
-                // Figma, and we can revisit if needed, but it's tricky to get
-                // that 54px distance while also making the scrolling work like
-                // this and offering two lines of touchable area.
-                contentPadding: const EdgeInsets.symmetric(vertical: _verticalPadding),
-                hintText: widget.hintText,
-                hintStyle: TextStyle(
-                  color: designVariables.textInput.withFadedAlpha(0.5))))))));
+      fieldViewBuilder: (context) => _ContentInput(
+        controller: widget.controller,
+        hintText: widget.hintText));
   }
 }
 
@@ -585,7 +598,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.unknownChannelName;
     final topic = TopicName(widget.controller.topic.textNormalized);
-    return _ContentInput(
+    return _MessageContentInput(
       narrow: widget.narrow,
       destination: TopicNarrow(widget.narrow.streamId, topic),
       controller: widget.controller,
@@ -698,7 +711,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ContentInput(
+    return _MessageContentInput(
       narrow: narrow,
       destination: narrow,
       controller: controller,
