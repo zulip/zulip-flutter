@@ -9,6 +9,7 @@ import 'package:mime/mime.dart';
 import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
+import '../api/route/saved_snippets.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
 import '../model/compose.dart';
@@ -375,6 +376,28 @@ class ComposeContentController extends ComposeController<ContentValidationError>
         ContentValidationError.uploadInProgress,
     ];
   }
+}
+
+enum SavedSnippetTitleValidationError {
+  empty
+}
+
+class SavedSnippetTitleController extends ComposeController<SavedSnippetTitleValidationError> {
+  @override
+  String _computeTextNormalized() {
+    return text.trim();
+  }
+
+  @override
+  List<SavedSnippetTitleValidationError> _computeValidationErrors() {
+    return [
+      if (textNormalized.isEmpty)
+        SavedSnippetTitleValidationError.empty
+    ];
+  }
+
+  @override
+  int get maxLengthUnicodeCodePoints => kMaxTopicLengthCodePoints;
 }
 
 class _ContentInput extends StatelessWidget {
@@ -1363,6 +1386,42 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
       getDestination: () => narrow.destination));
 }
 
+class _SavedSnippetComposeBoxBody extends _ComposeBoxBody {
+  _SavedSnippetComposeBoxBody({required this.controller});
+
+  @override final SavedSnippetController controller;
+
+  @override Widget buildTopicInput(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return _TitleTextField(
+      controller: controller.title,
+      focusNode: controller.titleFocusNode,
+      hintText: zulipLocalizations.newSavedSnippetTitleHint,
+    );
+  }
+
+  @override Widget buildContentInput(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return _ContentInput(
+      controller: controller,
+      hintText: zulipLocalizations.newSavedSnippetMessageHint);
+  }
+
+  @override Widget buildComposeButtonRow(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
+   return Align(
+     alignment: Alignment.centerRight,
+     child: IconButton(
+       onPressed: () {
+         // TODO handle validation errors; server errors
+         createSavedSnippet(store.connection,
+           title: controller.title.textNormalized,
+           content: controller.content.textNormalized);
+       }, icon: Icon(ZulipIcons.check, color: designVariables.icon)));
+  }
+}
+
 sealed class ComposeBoxController {
   final content = ComposeContentController();
   final contentFocusNode = FocusNode();
@@ -1390,6 +1449,18 @@ class StreamComposeBoxController extends ComposeBoxController {
 }
 
 class FixedDestinationComposeBoxController extends ComposeBoxController {}
+
+class SavedSnippetController extends ComposeBoxController {
+  final title = SavedSnippetTitleController();
+  final titleFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    title.dispose();
+    titleFocusNode.dispose();
+    super.dispose();
+  }
+}
 
 class _ErrorBanner extends StatelessWidget {
   const _ErrorBanner({required this.label});
@@ -1537,6 +1608,9 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         narrow as SendableNarrow;
         body = _FixedDestinationComposeBoxBody(controller: controller, narrow: narrow);
       }
+      case SavedSnippetController():
+        assert(false);
+        body = SizedBox.shrink();
     }
 
     // TODO(#720) dismissable message-send error, maybe something like:
@@ -1545,5 +1619,34 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     //         ZulipLocalizations.of(context).errorSendMessageTimeout);
     //     }
     return _ComposeBoxContainer(body: body, errorBanner: null);
+  }
+}
+
+class SavedSnippetComposeBox extends StatefulWidget {
+  const SavedSnippetComposeBox({super.key});
+
+  @override
+  State<SavedSnippetComposeBox> createState() => _SavedSnippetComposeBoxState();
+}
+
+class _SavedSnippetComposeBoxState extends State<SavedSnippetComposeBox> {
+  late SavedSnippetController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = SavedSnippetController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _ComposeBoxContainer(
+      body: _SavedSnippetComposeBoxBody(controller: _controller));
   }
 }

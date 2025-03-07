@@ -23,14 +23,20 @@ void showSavedSnippetPickerSheet({
     isScrollControlled: true,
     useSafeArea: true,
     builder: (BuildContext context) {
-      return _SavedSnippetPicker(
-        controller: controller,
-        savedSnippets: savedSnippets);
+      return PerAccountStoreWidget(
+        accountId: store.accountId,
+        child: _SavedSnippetPicker(
+          controller: controller,
+          savedSnippets: savedSnippets),
+      );
     }));
 }
 
 class _SavedSnippetPicker extends StatelessWidget {
-  const _SavedSnippetPicker({required this.controller, required this.savedSnippets});
+  const _SavedSnippetPicker({
+    required this.controller,
+    required this.savedSnippets,
+  });
 
   final ComposeBoxController controller;
   final List<SavedSnippet> savedSnippets;
@@ -52,7 +58,7 @@ class _SavedSnippetPicker extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _SavedSnippetPickerHeader(),
+          const _SavedSnippetPickerHeader(),
           Flexible(
             child: InsetShadowBox(
               top: 8,
@@ -110,6 +116,19 @@ class _SavedSnippetPickerHeader extends StatelessWidget {
             child: Text(zulipLocalizations.dialogClose,
               style: textStyle.merge(weightVariableTextStyle(context, wght: 400)))),
           Expanded(child: SizedBox.shrink()),
+          TextButton(
+            onPressed: () => showSavedSnippetComposeBox(context: context),
+            style: textButtonStyle.copyWith(
+              padding: const WidgetStatePropertyAll(
+                EdgeInsetsDirectional.fromSTEB(3, 0, 10, 0))),
+            child: Row(
+              spacing: 4,
+              children: [
+                const Icon(ZulipIcons.plus, size: 24),
+                Text(zulipLocalizations.newSavedSnippetButton,
+                  style: textStyle.merge(
+                    weightVariableTextStyle(context, wght: 600))),
+              ])),
         ]));
   }
 }
@@ -161,4 +180,56 @@ class _SavedSnippetItem extends StatelessWidget {
               ).merge(weightVariableTextStyle(context, wght: 400))),
           ])));
   }
+}
+
+class _SavedSnippetComposeHeader extends StatelessWidget {
+  const _SavedSnippetComposeHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return Container(
+      padding: const EdgeInsets.only(top: 4.0),
+      constraints: BoxConstraints(minHeight: 44, maxHeight: 60),
+      color: designVariables.bgContextMenu,
+      // TODO(upstream) give more information when height is unconstrained;
+      //  document that.
+      child: NavigationToolbar(
+        middle: Text(zulipLocalizations.newSavedSnippetTitle,
+          style: TextStyle(
+            color: designVariables.title,
+            fontSize: 20,
+            height: 30 / 20,
+          ).merge(weightVariableTextStyle(context, wght: 600))),
+        trailing: TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(
+            shape: const ContinuousRectangleBorder(),
+            padding: EdgeInsetsDirectional.fromSTEB(8, 0, 16, 0)),
+          child: Text(zulipLocalizations.dialogCancel,
+            style: TextStyle(
+              color: designVariables.icon,
+              fontSize: 20,
+              height: 30 / 20,
+            ).merge(weightVariableTextStyle(context, wght: 400)),
+          ))));
+  }
+}
+
+void showSavedSnippetComposeBox({
+  required BuildContext context,
+}) {
+  final store = PerAccountStoreWidget.of(context);
+  showModalBottomSheet<void>(context: context,
+    builder: (_) =>
+       PerAccountStoreWidget(
+         accountId: store.accountId,
+         child: Column(
+           mainAxisSize: MainAxisSize.min,
+           children: [
+             const _SavedSnippetComposeHeader(),
+             const SavedSnippetComposeBox(),
+           ]),
+       ));
 }

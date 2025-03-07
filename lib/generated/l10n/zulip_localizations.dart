@@ -555,6 +555,30 @@ abstract class ZulipLocalizations {
   /// **'No saved snippets'**
   String get noSavedSnippets;
 
+  /// Label for adding a new saved snippet.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get newSavedSnippetButton;
+
+  /// Title for the bottom sheet to add a new saved snippet.
+  ///
+  /// In en, this message translates to:
+  /// **'New snippet'**
+  String get newSavedSnippetTitle;
+
+  /// Hint text for the title input when adding a new saved snippet.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get newSavedSnippetTitleHint;
+
+  /// Hint text for the content input when adding a new saved snippet.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get newSavedSnippetMessageHint;
+
   /// Hint text for content input when sending a message.
   ///
   /// In en, this message translates to:

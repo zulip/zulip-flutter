@@ -268,6 +268,18 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get noSavedSnippets => 'No saved snippets';
 
   @override
+  String get newSavedSnippetButton => 'New';
+
+  @override
+  String get newSavedSnippetTitle => 'New snippet';
+
+  @override
+  String get newSavedSnippetTitleHint => 'Title';
+
+  @override
+  String get newSavedSnippetMessageHint => 'Message';
+
+  @override
   String get composeBoxGenericContentHint => 'Ввести сообщение';
 
   @override
