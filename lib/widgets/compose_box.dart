@@ -1157,9 +1157,10 @@ class _SendButtonState extends State<_SendButton> {
 }
 
 class _ComposeButtonRow extends StatelessWidget {
-  const _ComposeButtonRow({required this.controller});
+  const _ComposeButtonRow({required this.controller, required this.sendButton});
 
   final ComposeBoxController controller;
+  final Widget sendButton;
 
   @override
   Widget build(BuildContext context) {
@@ -1168,7 +1169,12 @@ class _ComposeButtonRow extends StatelessWidget {
       _AttachMediaButton(controller: controller),
       _AttachFromCameraButton(controller: controller),
     ];
-    return Row(children: composeButtons);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(children: composeButtons),
+        sendButton,
+      ]);
   }
 }
 
@@ -1242,8 +1248,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 
   Widget? buildTopicInput();
   Widget buildContentInput();
-  Widget? buildComposeButtonRow();
-  Widget buildSendButton();
+  Widget buildComposeButtonRow();
 
   @override
   Widget build(BuildContext context) {
@@ -1270,7 +1275,6 @@ abstract class _ComposeBoxBody extends StatelessWidget {
           borderRadius: BorderRadius.all(Radius.circular(4)))));
 
     final topicInput = buildTopicInput();
-    final composeButtonRow = buildComposeButtonRow();
     return Column(children: [
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -1284,12 +1288,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
         height: _composeButtonSize,
         child: IconButtonTheme(
           data: iconButtonThemeData,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              if (composeButtonRow != null) composeButtonRow,
-              buildSendButton(),
-            ]))),
+          child: buildComposeButtonRow())),
     ]);
   }
 }
@@ -1319,13 +1318,10 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
 
   @override Widget buildComposeButtonRow() => _ComposeButtonRow(
     controller: controller,
-  );
-
-  @override Widget buildSendButton() => _SendButton(
-    controller: controller,
-    getDestination: () => StreamDestination(
-      narrow.streamId, TopicName(controller.topic.textNormalized)),
-  );
+    sendButton: _SendButton(
+      controller: controller,
+      getDestination: () => StreamDestination(
+        narrow.streamId, TopicName(controller.topic.textNormalized))));
 }
 
 class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
@@ -1346,12 +1342,9 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
 
   @override Widget buildComposeButtonRow() => _ComposeButtonRow(
     controller: controller,
-  );
-
-  @override Widget buildSendButton() => _SendButton(
-    controller: controller,
-    getDestination: () => narrow.destination,
-  );
+    sendButton: _SendButton(
+      controller: controller,
+      getDestination: () => narrow.destination));
 }
 
 sealed class ComposeBoxController {
