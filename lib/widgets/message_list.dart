@@ -339,8 +339,9 @@ class MessageListAppBarTitle extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Flexible(child: Text(topic.displayName, style: const TextStyle(
+        Flexible(child: Text(topic.displayName ?? store.realmEmptyTopicDisplayName, style: TextStyle(
           fontSize: 13,
+          fontStyle: topic.displayName == null ? FontStyle.italic : null,
         ).merge(weightVariableTextStyle(context)))),
         if (icon != null)
           Padding(
@@ -1092,11 +1093,13 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       child: Row(
         children: [
           Flexible(
-            child: Text(topic.displayName,
+            child: Text(topic.displayName ?? store.realmEmptyTopicDisplayName,
               // TODO: Give a way to see the whole topic (maybe a
               //   long-press interaction?)
               overflow: TextOverflow.ellipsis,
-              style: recipientHeaderTextStyle(context))),
+              style: recipientHeaderTextStyle(context,
+                fontStyle: topic.displayName == null ? FontStyle.italic : null,
+              ))),
           const SizedBox(width: 4),
           Icon(size: 14, color: designVariables.title.withFadedAlpha(0.5),
             // A null [Icon.icon] makes a blank space.
@@ -1191,12 +1194,13 @@ class DmRecipientHeader extends StatelessWidget {
   }
 }
 
-TextStyle recipientHeaderTextStyle(BuildContext context) {
+TextStyle recipientHeaderTextStyle(BuildContext context, {FontStyle? fontStyle}) {
   return TextStyle(
     color: DesignVariables.of(context).title,
     fontSize: 16,
     letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
     height: (18 / 16),
+    fontStyle: fontStyle,
   ).merge(weightVariableTextStyle(context, wght: 600));
 }
 

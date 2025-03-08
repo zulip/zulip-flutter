@@ -182,7 +182,7 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   void setTopic(TopicName newTopic) {
-    value = TextEditingValue(text: newTopic.displayName);
+    value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
 
@@ -585,6 +585,9 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.unknownChannelName;
     final topic = TopicName(widget.controller.topic.textNormalized);
+    // Until we support sending to empty topics, `topic.displayName` will remain
+    // non-null because the topic input text gets normalized to "(no topic)".
+    assert(topic.displayName != null);
     return _ContentInput(
       narrow: widget.narrow,
       destination: TopicNarrow(widget.narrow.streamId, topic),
@@ -657,7 +660,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
           // Zulip expresses channels and topics, not any normal English punctuation,
           // so don't make sense to translate. See:
           //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-          '#$streamName > ${topic.displayName}');
+          '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;
