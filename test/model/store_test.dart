@@ -6,6 +6,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
+import 'package:zulip/api/backoff.dart';
 import 'package:zulip/api/core.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
@@ -130,18 +131,70 @@ void main() {
     await check(future).throws<AccountNotFoundException>();
   }));
 
-  test('GlobalStore.perAccount account is logged out while loading; then fails with HTTP status code 401', () => awaitFakeAsync((async) async {
-    final globalStore = LoadingTestGlobalStore(accounts: [eg.selfAccount]);
+  test('GlobalStore.perAccount account is logged out while loading; then succeeds', () => awaitFakeAsync((async) async {
+    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
+    globalStore.prepareRegisterQueueResponse = (connection) =>
+      connection.prepare(
+        delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
+        json: eg.initialSnapshot().toJson());
+    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
     final future = globalStore.perAccount(eg.selfAccount.id);
+    check(connection.takeRequests()).length.equals(1); // register request
 
     await logOutAccount(globalStore, eg.selfAccount.id);
     check(globalStore.takeDoRemoveAccountCalls())
       .single.equals(eg.selfAccount.id);
 
-    globalStore.completers[eg.selfAccount.id]!
-      .single.completeError(eg.apiExceptionUnauthorized());
     await check(future).throws<AccountNotFoundException>();
     check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
+    // no poll, server-emoji-data, or register-token requests
+    check(connection.takeRequests()).isEmpty();
+    check(connection).isOpen.isFalse();
+  }));
+
+  test('GlobalStore.perAccount account is logged out while loading; then fails with HTTP status code 401', () => awaitFakeAsync((async) async {
+    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
+    globalStore.prepareRegisterQueueResponse = (connection) =>
+      connection.prepare(
+        delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
+        apiException: eg.apiExceptionUnauthorized());
+    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
+    final future = globalStore.perAccount(eg.selfAccount.id);
+    check(connection.takeRequests()).length.equals(1); // register request
+
+    await logOutAccount(globalStore, eg.selfAccount.id);
+    check(globalStore.takeDoRemoveAccountCalls())
+      .single.equals(eg.selfAccount.id);
+
+    await check(future).throws<AccountNotFoundException>();
+    check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
+    // no poll, server-emoji-data, or register-token requests
+    check(connection.takeRequests()).isEmpty();
+    check(connection).isOpen.isFalse();
+  }));
+
+  test('GlobalStore.perAccount account is logged out during transient-error backoff', () => awaitFakeAsync((async) async {
+    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
+    globalStore.prepareRegisterQueueResponse = (connection) =>
+      connection.prepare(
+        delay: Duration(seconds: 1),
+        httpException: http.ClientException('Oops'));
+    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
+    final future = globalStore.perAccount(eg.selfAccount.id);
+    BackoffMachine.debugDuration = Duration(seconds: 1);
+    async.elapse(Duration(milliseconds: 1500));
+    check(connection.takeRequests()).length.equals(1); // register request
+
+    assert(TestGlobalStore.removeAccountDuration < Duration(milliseconds: 500));
+    await logOutAccount(globalStore, eg.selfAccount.id);
+    check(globalStore.takeDoRemoveAccountCalls())
+      .single.equals(eg.selfAccount.id);
+
+    await check(future).throws<AccountNotFoundException>();
+    check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
+    // no retry-register, poll, server-emoji-data, or register-token requests
+    check(connection.takeRequests()).isEmpty();
+    check(connection).isOpen.isFalse();
   }));
 
   // TODO test insertAccount
@@ -239,11 +292,20 @@ void main() {
     });
 
     test('when store loading', () async {
-      final globalStore = LoadingTestGlobalStore(accounts: [eg.selfAccount]);
+      final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
       checkGlobalStore(globalStore, eg.selfAccount.id,
         expectAccount: true, expectStore: false);
 
-      // don't await; we'll complete/await it manually after removeAccount
+      assert(globalStore.useCachedApiConnections);
+      // Cache a connection and get this reference to it,
+      // so we can check later that it gets closed.
+      final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
+
+      globalStore.prepareRegisterQueueResponse = (connection) {
+        connection.prepare(
+          delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
+          json: eg.initialSnapshot().toJson());
+      };
       final loadingFuture = globalStore.perAccount(eg.selfAccount.id);
 
       checkGlobalStore(globalStore, eg.selfAccount.id,
@@ -257,13 +319,11 @@ void main() {
         expectAccount: false, expectStore: false);
       check(notifyCount).equals(1);
 
-      globalStore.completers[eg.selfAccount.id]!.single
-        .complete(eg.store(account: eg.selfAccount, initialSnapshot: eg.initialSnapshot()));
-      // TODO test that the never-used store got disposed and its connection closed
       await check(loadingFuture).throws<AccountNotFoundException>();
       checkGlobalStore(globalStore, eg.selfAccount.id,
         expectAccount: false, expectStore: false);
       check(notifyCount).equals(1); // no extra notify
+      check(connection).isOpen.isFalse();
 
       check(globalStore.debugNumPerAccountStoresLoading).equals(0);
     });
@@ -563,14 +623,13 @@ void main() {
 
   group('UpdateMachine.poll', () {
     late TestGlobalStore globalStore;
-    late UpdateMachine updateMachine;
     late PerAccountStore store;
+    late UpdateMachine updateMachine;
     late FakeApiConnection connection;
 
     void updateFromGlobalStore() {
-      updateMachine = globalStore.updateMachines[eg.selfAccount.id]!;
-      store = updateMachine.store;
-      assert(identical(store, globalStore.perAccountSync(eg.selfAccount.id)));
+      store = globalStore.perAccountSync(eg.selfAccount.id)!;
+      updateMachine = store.updateMachine!;
       connection = store.connection as FakeApiConnection;
     }
 
@@ -966,69 +1025,69 @@ void main() {
   });
 
   group('UpdateMachine.poll reload failure', () {
-    late LoadingTestGlobalStore globalStore;
+    late UpdateMachineTestGlobalStore globalStore;
 
-    List<Completer<PerAccountStore>> completers() =>
-      globalStore.completers[eg.selfAccount.id]!;
+    Future<void> prepareReload(FakeAsync async, {
+      required void Function(FakeApiConnection) prepareRegisterQueueResponse,
+    }) async {
+      globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
 
-    Future<void> prepareReload(FakeAsync async) async {
-      globalStore = LoadingTestGlobalStore(accounts: [eg.selfAccount]);
-      final future = globalStore.perAccount(eg.selfAccount.id);
-      final store = eg.store(globalStore: globalStore, account: eg.selfAccount);
-      completers().single.complete(store);
-      await future;
-      completers().clear();
-      final updateMachine = globalStore.updateMachines[eg.selfAccount.id] =
-        UpdateMachine.fromInitialSnapshot(
-          store: store, initialSnapshot: eg.initialSnapshot());
-      updateMachine.debugPauseLoop();
+      final store = await globalStore.perAccount(eg.selfAccount.id);
+      final updateMachine = store.updateMachine!;
       updateMachine.poll();
 
-      (store.connection as FakeApiConnection).prepare(
+      final connection = store.connection as FakeApiConnection;
+      connection.prepare(
         apiException: eg.apiExceptionBadEventQueueId());
+      globalStore.clearCachedApiConnections();
+      globalStore.prepareRegisterQueueResponse = (newConnection) {
+        // Assert this is actually a new connection, not the one on
+        // globalStore._perAccountStores, which at least one test will close
+        // via logOutAccount.
+        assert(!identical(connection, newConnection));
+        prepareRegisterQueueResponse(newConnection);
+      };
       updateMachine.debugAdvanceLoop();
       async.elapse(Duration.zero);
       check(store).isLoading.isTrue();
     }
 
-    void checkReloadFailure({
-      required FutureOr<void> Function() completeLoading,
-    }) {
-      awaitFakeAsync((async) async {
-        await prepareReload(async);
-        check(completers()).single.isCompleted.isFalse();
-
-        await completeLoading();
-        check(completers()).single.isCompleted.isTrue();
-        check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
-
-        async.elapse(TestGlobalStore.removeAccountDuration);
-        check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
-
-        async.flushTimers();
-        // Reload never succeeds and there are no unhandled errors.
-        check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
-      });
-    }
-
-    Future<void> logOutAndCompleteWithNewStore() async {
-      // [PerAccountStore.fromInitialSnapshot] requires the account
-      // to be in the global store when called; do so before logging out.
-      final newStore = eg.store(globalStore: globalStore, account: eg.selfAccount);
-      await logOutAccount(globalStore, eg.selfAccount.id);
-      completers().single.complete(newStore);
-    }
-
     test('user logged out before new store is loaded', () => awaitFakeAsync((async) async {
-      checkReloadFailure(completeLoading: logOutAndCompleteWithNewStore);
+      await prepareReload(async,
+        prepareRegisterQueueResponse: (newConnection) {
+          newConnection.prepare(
+            delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
+            json: eg.initialSnapshot().toJson());
+        });
+
+      await logOutAccount(globalStore, eg.selfAccount.id);
+      check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+
+      async.elapse(TestGlobalStore.removeAccountDuration);
+      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+
+      async.flushTimers();
+      // Reload never succeeds and there are no unhandled errors.
+      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
     }));
 
-    void completeWithApiExceptionUnauthorized() {
-      completers().single.completeError(eg.apiExceptionUnauthorized());
-    }
-
     test('new store is not loaded, gets HTTP 401 error instead', () => awaitFakeAsync((async) async {
-      checkReloadFailure(completeLoading: completeWithApiExceptionUnauthorized);
+      await prepareReload(async,
+        prepareRegisterQueueResponse: (newConnection) {
+          newConnection.prepare(
+            delay: Duration(seconds: 1),
+            apiException: eg.apiExceptionUnauthorized());
+        });
+
+      async.elapse(const Duration(seconds: 1));
+      check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+
+      async.elapse(TestGlobalStore.removeAccountDuration);
+      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+
+      async.flushTimers();
+      // Reload never succeeds and there are no unhandled errors.
+      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
     }));
   });
 
