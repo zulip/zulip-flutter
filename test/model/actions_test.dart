@@ -92,6 +92,10 @@ void main() {
       check(connection.isOpen).isFalse();
       check(newConnection.isOpen).isTrue(); // still busy with unregister-token
 
+      // Check that notifications were removed
+      final activeNotifications = await testBinding.androidNotificationHost.getActiveNotifications(desiredExtras: []);
+      check(activeNotifications).isEmpty();
+
       async.elapse(unregisterDelay - TestGlobalStore.removeAccountDuration);
       check(newConnection.isOpen).isFalse();
     }));
@@ -117,6 +121,10 @@ void main() {
       check(testBinding.globalStore).accountIds.isEmpty();
       check(connection.isOpen).isFalse();
       check(newConnection.isOpen).isTrue(); // for the unregister-token request
+
+      // Check that notifications were removed
+      final activeNotifications = await testBinding.androidNotificationHost.getActiveNotifications(desiredExtras: []);
+      check(activeNotifications).isEmpty();
 
       async.elapse(unregisterDelay - TestGlobalStore.removeAccountDuration);
       check(newConnection.isOpen).isFalse();
