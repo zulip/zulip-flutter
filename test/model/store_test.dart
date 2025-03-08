@@ -590,14 +590,13 @@ void main() {
 
   group('UpdateMachine.poll', () {
     late TestGlobalStore globalStore;
-    late UpdateMachine updateMachine;
     late PerAccountStore store;
+    late UpdateMachine updateMachine;
     late FakeApiConnection connection;
 
     void updateFromGlobalStore() {
-      updateMachine = globalStore.updateMachines[eg.selfAccount.id]!;
-      store = updateMachine.store;
-      assert(identical(store, globalStore.perAccountSync(eg.selfAccount.id)));
+      store = globalStore.perAccountSync(eg.selfAccount.id)!;
+      updateMachine = store.updateMachine!;
       connection = store.connection as FakeApiConnection;
     }
 
@@ -1005,9 +1004,8 @@ void main() {
       completers().single.complete(store);
       await future;
       completers().clear();
-      final updateMachine = globalStore.updateMachines[eg.selfAccount.id] =
-        UpdateMachine.fromInitialSnapshot(
-          store: store, initialSnapshot: eg.initialSnapshot());
+      final updateMachine = UpdateMachine.fromInitialSnapshot(
+        store: store, initialSnapshot: eg.initialSnapshot());
       updateMachine.debugPauseLoop();
       updateMachine.poll();
 

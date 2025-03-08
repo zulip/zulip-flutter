@@ -124,8 +124,7 @@ mixin _DatabaseMixin on GlobalStore {
 ///
 /// Unlike with [LiveGlobalStore] and the associated [UpdateMachine.load],
 /// there is no automatic event-polling loop or other automated requests.
-/// For each account loaded, there is a corresponding [UpdateMachine]
-/// in [updateMachines], which tests can use for invoking that logic
+/// Tests can use [PerAccountStore.updateMachine] in order to invoke that logic
 /// explicitly when desired.
 ///
 /// See also [TestZulipBinding.globalStore], which provides one of these.
@@ -134,9 +133,6 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
     GlobalSettingsData? globalSettings,
     required super.accounts,
   }) : super(globalSettings: globalSettings ?? eg.globalSettings());
-
-  /// A corresponding [UpdateMachine] for each loaded account.
-  final Map<int, UpdateMachine> updateMachines = {};
 
   final Map<int, InitialSnapshot> _initialSnapshots = {};
 
@@ -174,7 +170,7 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
       accountId: accountId,
       initialSnapshot: initialSnapshot,
     );
-    updateMachines[accountId] = UpdateMachine.fromInitialSnapshot(
+    UpdateMachine.fromInitialSnapshot(
       store: store, initialSnapshot: initialSnapshot);
     return Future.value(store);
   }
