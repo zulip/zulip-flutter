@@ -329,6 +329,30 @@
   "@composeBoxAttachFromCameraTooltip": {
     "description": "Tooltip for compose box icon to attach an image from the camera to the message."
   },
+  "composeBoxShowSavedSnippetsTooltip": "Show saved snippets",
+  "@composeBoxShowSavedSnippetsTooltip": {
+    "description": "Tooltip for compose box icon to show a list of saved snippets."
+  },
+  "noSavedSnippets": "No saved snippets",
+  "@noSavedSnippets": {
+    "description": "Text to show on the saved snippets bottom sheet when there are no saved snippets."
+  },
+  "newSavedSnippetButton": "New",
+  "@newSavedSnippetButton": {
+    "description": "Label for adding a new saved snippet."
+  },
+  "newSavedSnippetTitle": "New snippet",
+  "@newSavedSnippetTitle": {
+    "description": "Title for the bottom sheet to add a new saved snippet."
+  },
+  "newSavedSnippetTitleHint": "Title",
+  "@newSavedSnippetTitleHint": {
+    "description": "Hint text for the title input when adding a new saved snippet."
+  },
+  "newSavedSnippetMessageHint": "Message",
+  "@newSavedSnippetMessageHint": {
+    "description": "Hint text for the content input when adding a new saved snippet."
+  },
   "composeBoxGenericContentHint": "Type a message",
   "@composeBoxGenericContentHint": {
     "description": "Hint text for content input when sending a message."

@@ -47,6 +47,7 @@ void main() {
     List<User> otherUsers = const [],
     List<ZulipStream> streams = const [],
     bool? mandatoryTopics,
+    int zulipFeatureLevel = eg.futureZulipFeatureLevel,
   }) async {
     if (narrow case ChannelNarrow(:var streamId) || TopicNarrow(: var streamId)) {
       assert(streams.any((stream) => stream.streamId == streamId),
@@ -54,9 +55,11 @@ void main() {
     }
     addTearDown(testBinding.reset);
     selfUser ??= eg.selfUser;
-    final selfAccount = eg.account(user: selfUser);
+    final selfAccount = eg.account(
+      user: selfUser, zulipFeatureLevel: zulipFeatureLevel);
     await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
       realmMandatoryTopics: mandatoryTopics,
+      zulipFeatureLevel: zulipFeatureLevel,
     ));
 
     store = await testBinding.globalStore.perAccount(selfAccount.id);
@@ -838,6 +841,24 @@ void main() {
     // target platform the test is simulating.
     // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
     skip: Platform.isWindows);
+  });
+
+  group('saved snippet', () {
+    final channel = eg.stream();
+    final narrow = eg.topicNarrow(channel.streamId, 'topic');
+
+    testWidgets('smoke saved snippets compose button', (tester) async {
+      await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+      await tester.tap(find.byIcon(ZulipIcons.message_square_text));
+    });
+
+    testWidgets('legacy: hide saved snippets compose button when FL<297', (tester) async {
+      await prepareComposeBox(tester, narrow: narrow, streams: [channel],
+        zulipFeatureLevel: 296);
+      check(find.byIcon(ZulipIcons.message_square_text)).findsNothing();
+    });
+
+    // Saved snippet is tested more thoroughly in test/widgets/saved_snippet_test.dart
   });
 
   group('error banner', () {
