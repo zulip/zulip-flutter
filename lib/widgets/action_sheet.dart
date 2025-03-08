@@ -255,6 +255,14 @@ void showTopicActionSheet(BuildContext context, {
       someMessageIdInTopic: someMessageIdInTopic));
   }
 
+  final unreadCount = store.unreads.countInTopicNarrow(channelId, topic);
+  if (unreadCount > 0) {
+    optionButtons.add(MarkTopicAsReadButton(
+      channelId: channelId,
+      topic: topic,
+      pageContext: context));
+  }
+
   if (optionButtons.isEmpty) {
     // TODO(a11y): This case makes a no-op gesture handler; as a consequence,
     //   we're presenting some UI (to people who use screen-reader software) as
@@ -458,6 +466,29 @@ class ResolveUnresolveButton extends ActionSheetMenuItemButton {
         : zulipLocalizations.errorUnresolveTopicFailedTitle;
       showErrorDialog(context: pageContext, title: title, message: errorMessage);
     }
+  }
+}
+
+class MarkTopicAsReadButton extends ActionSheetMenuItemButton {
+  const MarkTopicAsReadButton({
+    super.key,
+    required this.channelId,
+    required this.topic,
+    required super.pageContext,
+  });
+
+  final int channelId;
+  final TopicName topic;
+
+  @override IconData get icon => ZulipIcons.message_checked;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionMarkTopicAsRead;
+  }
+
+  @override void onPressed() async {
+    await ZulipAction.markNarrowAsRead(pageContext, TopicNarrow(channelId, topic));
   }
 }
 
