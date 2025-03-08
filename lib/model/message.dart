@@ -169,48 +169,17 @@ class MessageStoreImpl with MessageStore {
   }
 
   void _handleUpdateMessageEventMove(UpdateMessageEvent event) {
-    // The interaction between the fields of these events are a bit tricky.
-    // For reference, see: https://zulip.com/api/get-events#update_message
-
-    final origStreamId = event.origStreamId;
-    final newStreamId = event.newStreamId; // null if topic-only move
-    final origTopic = event.origTopic;
-    final newTopic = event.newTopic;
-    final propagateMode = event.propagateMode;
-
-    if (origTopic == null) {
+    final messageMove = event.moveData;
+    if (messageMove == null) {
       // There was no move.
-      assert(() {
-        if (newStreamId != null && origStreamId != null
-            && newStreamId != origStreamId) {
-          // This should be impossible; `orig_subject` (aka origTopic) is
-          // documented to be present when either the stream or topic changed.
-          debugLog('Malformed UpdateMessageEvent: stream move but no origTopic'); // TODO(log)
-        }
-        return true;
-      }());
       return;
     }
 
-    if (newStreamId == null && newTopic == null) {
-      // If neither the channel nor topic name changed, nothing moved.
-      // In that case `orig_subject` (aka origTopic) should have been null.
-      assert(debugLog('Malformed UpdateMessageEvent: move but no newStreamId or newTopic')); // TODO(log)
-      return;
-    }
-    if (origStreamId == null) {
-      // The `stream_id` field (aka origStreamId) is documented to be present on moves.
-      assert(debugLog('Malformed UpdateMessageEvent: move but no origStreamId')); // TODO(log)
-      return;
-    }
-    if (propagateMode == null) {
-      // The `propagate_mode` field (aka propagateMode) is documented to be present on moves.
-      assert(debugLog('Malformed UpdateMessageEvent: move but no propagateMode')); // TODO(log)
-      return;
-    }
+    final UpdateMessageMoveData(
+      :origStreamId, :newStreamId, :origTopic, :newTopic) = messageMove;
 
-    final wasResolveOrUnresolve = (newStreamId == null
-      && MessageEditState.topicMoveWasResolveOrUnresolve(origTopic, newTopic!));
+    final wasResolveOrUnresolve = origStreamId == newStreamId
+      && MessageEditState.topicMoveWasResolveOrUnresolve(origTopic, newTopic);
 
     for (final messageId in event.messageIds) {
       final message = messages[messageId];
@@ -221,15 +190,15 @@ class MessageStoreImpl with MessageStore {
         continue;
       }
 
-      if (newStreamId != null) {
+      if (origStreamId != newStreamId) {
         message.streamId = newStreamId;
         // See [StreamMessage.displayRecipient] on why the invalidation is
         // needed.
         message.displayRecipient = null;
       }
 
-      if (newTopic != null) {
-        message.topic = newTopic;
+      if (origTopic != newTopic) {
+        message.topic = newTopic!;
       }
 
       if (!wasResolveOrUnresolve
@@ -239,14 +208,7 @@ class MessageStoreImpl with MessageStore {
     }
 
     for (final view in _messageListViews) {
-      view.messagesMoved(
-        origStreamId: origStreamId,
-        newStreamId: newStreamId ?? origStreamId,
-        origTopic: origTopic,
-        newTopic: newTopic ?? origTopic,
-        messageIds: event.messageIds,
-        propagateMode: propagateMode,
-      );
+      view.messagesMoved(messageMove: messageMove, messageIds: event.messageIds);
     }
   }
 

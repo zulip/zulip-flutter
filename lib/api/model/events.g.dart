@@ -443,20 +443,10 @@ UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
               .map((e) => $enumDecode(_$MessageFlagEnumMap, e))
               .toList(),
       editTimestamp: (json['edit_timestamp'] as num?)?.toInt(),
-      origStreamId: (json['stream_id'] as num?)?.toInt(),
-      newStreamId: (json['new_stream_id'] as num?)?.toInt(),
-      propagateMode: $enumDecodeNullable(
-        _$PropagateModeEnumMap,
-        json['propagate_mode'],
+      moveData: UpdateMessageMoveData.tryParseFromJson(
+        UpdateMessageEvent._readMoveData(json, 'move_data')
+            as Map<String, Object?>,
       ),
-      origTopic:
-          json['orig_subject'] == null
-              ? null
-              : TopicName.fromJson(json['orig_subject'] as String),
-      newTopic:
-          json['subject'] == null
-              ? null
-              : TopicName.fromJson(json['subject'] as String),
       origContent: json['orig_content'] as String?,
       origRenderedContent: json['orig_rendered_content'] as String?,
       content: json['content'] as String?,
@@ -474,11 +464,6 @@ Map<String, dynamic> _$UpdateMessageEventToJson(UpdateMessageEvent instance) =>
       'message_ids': instance.messageIds,
       'flags': instance.flags,
       'edit_timestamp': instance.editTimestamp,
-      'stream_id': instance.origStreamId,
-      'new_stream_id': instance.newStreamId,
-      'propagate_mode': instance.propagateMode,
-      'orig_subject': instance.origTopic,
-      'subject': instance.newTopic,
       'orig_content': instance.origContent,
       'orig_rendered_content': instance.origRenderedContent,
       'content': instance.content,
@@ -495,12 +480,6 @@ const _$MessageFlagEnumMap = {
   MessageFlag.hasAlertWord: 'has_alert_word',
   MessageFlag.historical: 'historical',
   MessageFlag.unknown: 'unknown',
-};
-
-const _$PropagateModeEnumMap = {
-  PropagateMode.changeOne: 'change_one',
-  PropagateMode.changeLater: 'change_later',
-  PropagateMode.changeAll: 'change_all',
 };
 
 DeleteMessageEvent _$DeleteMessageEventFromJson(Map<String, dynamic> json) =>
