@@ -309,6 +309,12 @@ abstract class ZulipLocalizations {
   /// **'Unstar message'**
   String get actionSheetOptionUnstarMessage;
 
+  /// Option to mark a specific topic as read in the action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark topic as read'**
+  String get actionSheetOptionMarkTopicAsRead;
+
   /// Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials).
   ///
   /// In en, this message translates to:

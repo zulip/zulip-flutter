@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/binding.dart';
@@ -560,6 +561,50 @@ void main() {
 
         checkErrorDialog(tester,
           expectedTitle: 'Failed to mark topic as unresolved');
+      });
+    });
+
+    group('MarkTopicAsReadButton', () {
+      testWidgets('visible if topic has unread messages', (tester) async {
+        await prepare();
+        final message = eg.streamMessage(stream: someChannel, topic: someTopic,
+          flags: []);
+        await store.addMessage(message);
+        await showFromAppBar(tester, messages: [message]);
+        check(find.text('Mark topic as read')).findsOne();
+      });
+
+      testWidgets('not visible if topic has no unread messages', (tester) async {
+        await prepare();
+        final message = eg.streamMessage(stream: someChannel, topic: someTopic,
+          flags: [MessageFlag.read]);
+        await store.addMessage(message);
+        await showFromAppBar(tester, messages: [message]);
+        check(find.text('Mark topic as read')).findsNothing();
+      });
+
+      testWidgets('marks topic as read when pressed', (tester) async {
+        await prepare();
+        final message = eg.streamMessage(stream: someChannel, topic: someTopic,
+          flags: []);
+        await store.addMessage(message);
+        await showFromAppBar(tester, messages: [message]);
+
+        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+          processedCount: 1, updatedCount: 1,
+          firstProcessedId: message.id, lastProcessedId: message.id,
+          foundOldest: true, foundNewest: true).toJson());
+        await tester.tap(find.text('Mark topic as read'));
+        await tester.pumpAndSettle();
+
+        check(connection.lastRequest).isA<http.Request>()
+          ..url.path.equals('/api/v1/messages/flags/narrow')
+          ..bodyFields['narrow'].equals(jsonEncode([
+              ...eg.topicNarrow(someChannel.streamId, someTopic).apiEncode(),
+              ApiNarrowIs(IsOperand.unread),
+            ]))
+          ..bodyFields['op'].equals('add')
+          ..bodyFields['flag'].equals('read');
       });
     });
   });

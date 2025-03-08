@@ -113,6 +113,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get actionSheetOptionUnstarMessage => 'Odhviezdičkovať správu';
 
   @override
+  String get actionSheetOptionMarkTopicAsRead => 'Mark topic as read';
+
+  @override
   String get errorWebAuthOperationalErrorTitle => 'Niečo sa pokazilo';
 
   @override

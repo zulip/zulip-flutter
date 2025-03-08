@@ -113,6 +113,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get actionSheetOptionUnstarMessage => 'Снять отметку с сообщения';
 
   @override
+  String get actionSheetOptionMarkTopicAsRead => 'Mark topic as read';
+
+  @override
   String get errorWebAuthOperationalErrorTitle => 'Что-то пошло не так';
 
   @override
