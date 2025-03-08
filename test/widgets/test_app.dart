@@ -73,6 +73,8 @@ class TestZulipApp extends StatelessWidget {
         title: 'Zulip',
         localizationsDelegates: ZulipLocalizations.localizationsDelegates,
         supportedLocales: ZulipLocalizations.supportedLocales,
+        // The context has to be taken from the [Builder] because
+        // [zulipThemeData] requires access to [GlobalStoreWidget] in the tree.
         theme: zulipThemeData(context),
 
         navigatorObservers: navigatorObservers ?? const [],

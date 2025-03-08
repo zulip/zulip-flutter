@@ -5,6 +5,266 @@
 part of 'database.dart';
 
 // ignore_for_file: type=lint
+class $GlobalSettingsTable extends GlobalSettings
+    with TableInfo<$GlobalSettingsTable, GlobalSettingsData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GlobalSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _themeSettingMeta = const VerificationMeta(
+    'themeSetting',
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<ThemeSetting?, String>
+  themeSetting = GeneratedColumn<String>(
+    'theme_setting',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<ThemeSetting?>($GlobalSettingsTable.$converterthemeSettingn);
+  static const VerificationMeta _browserPreferenceMeta = const VerificationMeta(
+    'browserPreference',
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<BrowserPreference?, String>
+  browserPreference = GeneratedColumn<String>(
+    'browser_preference',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<BrowserPreference?>(
+    $GlobalSettingsTable.$converterbrowserPreferencen,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [themeSetting, browserPreference];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'global_settings';
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  GlobalSettingsData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GlobalSettingsData(
+      themeSetting: $GlobalSettingsTable.$converterthemeSettingn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}theme_setting'],
+        ),
+      ),
+      browserPreference: $GlobalSettingsTable.$converterbrowserPreferencen
+          .fromSql(
+            attachedDatabase.typeMapping.read(
+              DriftSqlType.string,
+              data['${effectivePrefix}browser_preference'],
+            ),
+          ),
+    );
+  }
+
+  @override
+  $GlobalSettingsTable createAlias(String alias) {
+    return $GlobalSettingsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<ThemeSetting, String, String>
+  $converterthemeSetting = const EnumNameConverter<ThemeSetting>(
+    ThemeSetting.values,
+  );
+  static JsonTypeConverter2<ThemeSetting?, String?, String?>
+  $converterthemeSettingn = JsonTypeConverter2.asNullable(
+    $converterthemeSetting,
+  );
+  static JsonTypeConverter2<BrowserPreference, String, String>
+  $converterbrowserPreference = const EnumNameConverter<BrowserPreference>(
+    BrowserPreference.values,
+  );
+  static JsonTypeConverter2<BrowserPreference?, String?, String?>
+  $converterbrowserPreferencen = JsonTypeConverter2.asNullable(
+    $converterbrowserPreference,
+  );
+}
+
+class GlobalSettingsData extends DataClass
+    implements Insertable<GlobalSettingsData> {
+  final ThemeSetting? themeSetting;
+  final BrowserPreference? browserPreference;
+  const GlobalSettingsData({this.themeSetting, this.browserPreference});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || themeSetting != null) {
+      map['theme_setting'] = Variable<String>(
+        $GlobalSettingsTable.$converterthemeSettingn.toSql(themeSetting),
+      );
+    }
+    if (!nullToAbsent || browserPreference != null) {
+      map['browser_preference'] = Variable<String>(
+        $GlobalSettingsTable.$converterbrowserPreferencen.toSql(
+          browserPreference,
+        ),
+      );
+    }
+    return map;
+  }
+
+  GlobalSettingsCompanion toCompanion(bool nullToAbsent) {
+    return GlobalSettingsCompanion(
+      themeSetting:
+          themeSetting == null && nullToAbsent
+              ? const Value.absent()
+              : Value(themeSetting),
+      browserPreference:
+          browserPreference == null && nullToAbsent
+              ? const Value.absent()
+              : Value(browserPreference),
+    );
+  }
+
+  factory GlobalSettingsData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GlobalSettingsData(
+      themeSetting: $GlobalSettingsTable.$converterthemeSettingn.fromJson(
+        serializer.fromJson<String?>(json['themeSetting']),
+      ),
+      browserPreference: $GlobalSettingsTable.$converterbrowserPreferencen
+          .fromJson(serializer.fromJson<String?>(json['browserPreference'])),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'themeSetting': serializer.toJson<String?>(
+        $GlobalSettingsTable.$converterthemeSettingn.toJson(themeSetting),
+      ),
+      'browserPreference': serializer.toJson<String?>(
+        $GlobalSettingsTable.$converterbrowserPreferencen.toJson(
+          browserPreference,
+        ),
+      ),
+    };
+  }
+
+  GlobalSettingsData copyWith({
+    Value<ThemeSetting?> themeSetting = const Value.absent(),
+    Value<BrowserPreference?> browserPreference = const Value.absent(),
+  }) => GlobalSettingsData(
+    themeSetting: themeSetting.present ? themeSetting.value : this.themeSetting,
+    browserPreference:
+        browserPreference.present
+            ? browserPreference.value
+            : this.browserPreference,
+  );
+  GlobalSettingsData copyWithCompanion(GlobalSettingsCompanion data) {
+    return GlobalSettingsData(
+      themeSetting:
+          data.themeSetting.present
+              ? data.themeSetting.value
+              : this.themeSetting,
+      browserPreference:
+          data.browserPreference.present
+              ? data.browserPreference.value
+              : this.browserPreference,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GlobalSettingsData(')
+          ..write('themeSetting: $themeSetting, ')
+          ..write('browserPreference: $browserPreference')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(themeSetting, browserPreference);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GlobalSettingsData &&
+          other.themeSetting == this.themeSetting &&
+          other.browserPreference == this.browserPreference);
+}
+
+class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
+  final Value<ThemeSetting?> themeSetting;
+  final Value<BrowserPreference?> browserPreference;
+  final Value<int> rowid;
+  const GlobalSettingsCompanion({
+    this.themeSetting = const Value.absent(),
+    this.browserPreference = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GlobalSettingsCompanion.insert({
+    this.themeSetting = const Value.absent(),
+    this.browserPreference = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  static Insertable<GlobalSettingsData> custom({
+    Expression<String>? themeSetting,
+    Expression<String>? browserPreference,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (themeSetting != null) 'theme_setting': themeSetting,
+      if (browserPreference != null) 'browser_preference': browserPreference,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GlobalSettingsCompanion copyWith({
+    Value<ThemeSetting?>? themeSetting,
+    Value<BrowserPreference?>? browserPreference,
+    Value<int>? rowid,
+  }) {
+    return GlobalSettingsCompanion(
+      themeSetting: themeSetting ?? this.themeSetting,
+      browserPreference: browserPreference ?? this.browserPreference,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (themeSetting.present) {
+      map['theme_setting'] = Variable<String>(
+        $GlobalSettingsTable.$converterthemeSettingn.toSql(themeSetting.value),
+      );
+    }
+    if (browserPreference.present) {
+      map['browser_preference'] = Variable<String>(
+        $GlobalSettingsTable.$converterbrowserPreferencen.toSql(
+          browserPreference.value,
+        ),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GlobalSettingsCompanion(')
+          ..write('themeSetting: $themeSetting, ')
+          ..write('browserPreference: $browserPreference, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -611,14 +871,188 @@ class AccountsCompanion extends UpdateCompanion<Account> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $GlobalSettingsTable globalSettings = $GlobalSettingsTable(this);
   late final $AccountsTable accounts = $AccountsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [accounts];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    globalSettings,
+    accounts,
+  ];
 }
 
+typedef $$GlobalSettingsTableCreateCompanionBuilder =
+    GlobalSettingsCompanion Function({
+      Value<ThemeSetting?> themeSetting,
+      Value<BrowserPreference?> browserPreference,
+      Value<int> rowid,
+    });
+typedef $$GlobalSettingsTableUpdateCompanionBuilder =
+    GlobalSettingsCompanion Function({
+      Value<ThemeSetting?> themeSetting,
+      Value<BrowserPreference?> browserPreference,
+      Value<int> rowid,
+    });
+
+class $$GlobalSettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $GlobalSettingsTable> {
+  $$GlobalSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnWithTypeConverterFilters<ThemeSetting?, ThemeSetting, String>
+  get themeSetting => $composableBuilder(
+    column: $table.themeSetting,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<BrowserPreference?, BrowserPreference, String>
+  get browserPreference => $composableBuilder(
+    column: $table.browserPreference,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+}
+
+class $$GlobalSettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $GlobalSettingsTable> {
+  $$GlobalSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get themeSetting => $composableBuilder(
+    column: $table.themeSetting,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get browserPreference => $composableBuilder(
+    column: $table.browserPreference,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GlobalSettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GlobalSettingsTable> {
+  $$GlobalSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumnWithTypeConverter<ThemeSetting?, String> get themeSetting =>
+      $composableBuilder(
+        column: $table.themeSetting,
+        builder: (column) => column,
+      );
+
+  GeneratedColumnWithTypeConverter<BrowserPreference?, String>
+  get browserPreference => $composableBuilder(
+    column: $table.browserPreference,
+    builder: (column) => column,
+  );
+}
+
+class $$GlobalSettingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $GlobalSettingsTable,
+          GlobalSettingsData,
+          $$GlobalSettingsTableFilterComposer,
+          $$GlobalSettingsTableOrderingComposer,
+          $$GlobalSettingsTableAnnotationComposer,
+          $$GlobalSettingsTableCreateCompanionBuilder,
+          $$GlobalSettingsTableUpdateCompanionBuilder,
+          (
+            GlobalSettingsData,
+            BaseReferences<
+              _$AppDatabase,
+              $GlobalSettingsTable,
+              GlobalSettingsData
+            >,
+          ),
+          GlobalSettingsData,
+          PrefetchHooks Function()
+        > {
+  $$GlobalSettingsTableTableManager(
+    _$AppDatabase db,
+    $GlobalSettingsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$GlobalSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () =>
+                  $$GlobalSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$GlobalSettingsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<ThemeSetting?> themeSetting = const Value.absent(),
+                Value<BrowserPreference?> browserPreference =
+                    const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GlobalSettingsCompanion(
+                themeSetting: themeSetting,
+                browserPreference: browserPreference,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<ThemeSetting?> themeSetting = const Value.absent(),
+                Value<BrowserPreference?> browserPreference =
+                    const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GlobalSettingsCompanion.insert(
+                themeSetting: themeSetting,
+                browserPreference: browserPreference,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$GlobalSettingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $GlobalSettingsTable,
+      GlobalSettingsData,
+      $$GlobalSettingsTableFilterComposer,
+      $$GlobalSettingsTableOrderingComposer,
+      $$GlobalSettingsTableAnnotationComposer,
+      $$GlobalSettingsTableCreateCompanionBuilder,
+      $$GlobalSettingsTableUpdateCompanionBuilder,
+      (
+        GlobalSettingsData,
+        BaseReferences<_$AppDatabase, $GlobalSettingsTable, GlobalSettingsData>,
+      ),
+      GlobalSettingsData,
+      PrefetchHooks Function()
+    >;
 typedef $$AccountsTableCreateCompanionBuilder =
     AccountsCompanion Function({
       Value<int> id,
@@ -903,6 +1337,8 @@ typedef $$AccountsTableProcessedTableManager =
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
+  $$GlobalSettingsTableTableManager get globalSettings =>
+      $$GlobalSettingsTableTableManager(_db, _db.globalSettings);
   $$AccountsTableTableManager get accounts =>
       $$AccountsTableTableManager(_db, _db.accounts);
 }
