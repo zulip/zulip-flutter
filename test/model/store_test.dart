@@ -999,16 +999,20 @@ void main() {
 
     Future<void> prepareReload(FakeAsync async) async {
       globalStore = LoadingTestGlobalStore(accounts: [eg.selfAccount]);
+
+      // Simulate the setup that [TestGlobalStore.doLoadPerAccount] would do.
+      // (These tests use [LoadingTestGlobalStore] for greater control in
+      // later steps; that requires this setup step to be finer-grained too.)
+      final updateMachine = eg.updateMachine(
+        globalStore: globalStore, account: eg.selfAccount);
+      final store = updateMachine.store;
       final future = globalStore.perAccount(eg.selfAccount.id);
-      final store = eg.store(globalStore: globalStore, account: eg.selfAccount);
       completers().single.complete(store);
       await future;
       completers().clear();
-      final updateMachine = UpdateMachine.fromInitialSnapshot(
-        store: store, initialSnapshot: eg.initialSnapshot());
+
       updateMachine.debugPauseLoop();
       updateMachine.poll();
-
       (store.connection as FakeApiConnection).prepare(
         apiException: eg.apiExceptionBadEventQueueId());
       updateMachine.debugAdvanceLoop();

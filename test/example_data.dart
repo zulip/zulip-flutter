@@ -981,9 +981,14 @@ PerAccountStore store({
 }
 const _store = store;
 
-UpdateMachine updateMachine({Account? account, InitialSnapshot? initialSnapshot}) {
+UpdateMachine updateMachine({
+  GlobalStore? globalStore,
+  Account? account,
+  InitialSnapshot? initialSnapshot,
+}) {
   initialSnapshot ??= _initialSnapshot();
-  final store = _store(account: account, initialSnapshot: initialSnapshot);
+  final store = _store(globalStore: globalStore,
+    account: account, initialSnapshot: initialSnapshot);
   return UpdateMachine.fromInitialSnapshot(
     store: store, initialSnapshot: initialSnapshot);
 }
