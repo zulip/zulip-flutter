@@ -1176,6 +1176,86 @@ void main() {
       takeStartingRoutes(account: accountB);
       matchesNavigation(check(pushedRoutes).single, accountB, message);
     });
+
+    testWidgets('notification switches account only when from different account', (tester) async {
+      addTearDown(testBinding.reset);
+
+      final accountA = eg.selfAccount;
+      final accountB = eg.otherAccount;
+      final message = eg.streamMessage();
+
+      await testBinding.globalStore.add(accountA, eg.initialSnapshot());
+      await testBinding.globalStore.add(accountB, eg.initialSnapshot());
+
+      await prepare(tester, early: true);
+      await tester.pump();
+      takeStartingRoutes(account: accountA);
+
+      Route<dynamic>? topRoute;
+      final navigator = await ZulipApp.navigator;
+      navigator.popUntil((r) {
+        topRoute = r;
+        return true;
+      });
+      check(topRoute).isA<AccountRoute>().accountId.equals(accountA.id);
+
+      await openNotification(tester, accountA, message);
+      navigator.popUntil((r) {
+        topRoute = r;
+        return true;
+      });
+      check(topRoute).isA<MaterialAccountWidgetRoute>()
+        ..accountId.equals(accountA.id)
+        ..page.isA<MessageListPage>();
+
+      await openNotification(tester, accountB, message);
+      navigator.popUntil((r) {
+        topRoute = r;
+        return true;
+      });
+      check(topRoute).isA<MaterialAccountWidgetRoute>()
+        ..accountId.equals(accountB.id)
+        ..page.isA<MessageListPage>();
+    });
+
+    testWidgets('notification preserves navigation stack when in same account', (tester) async {
+      addTearDown(testBinding.reset);
+
+      final account = eg.selfAccount;
+      final message = eg.streamMessage();
+
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+
+      await prepare(tester, early: true);
+      await tester.pump();
+      takeStartingRoutes(account: account);
+
+      Route<dynamic>? topRoute;
+      final navigator = await ZulipApp.navigator;
+      navigator.popUntil((r) {
+        topRoute = r;
+        return true;
+      });
+      check(topRoute).isA<AccountRoute>().accountId.equals(account.id);
+
+      await openNotification(tester, account, message);
+      navigator.popUntil((r) {
+        topRoute = r;
+        return true;
+      });
+      check(topRoute).isA<MaterialAccountWidgetRoute>()
+        ..accountId.equals(account.id)
+        ..page.isA<MessageListPage>();
+
+      navigator.pop();
+      await tester.pumpAndSettle();
+      navigator.popUntil((r) {
+        topRoute = r;
+        return true;
+      });
+      check(topRoute).isA<AccountRoute>()
+        .accountId.equals(account.id);
+    });
   });
 
   group('NotificationOpenPayload', () {
