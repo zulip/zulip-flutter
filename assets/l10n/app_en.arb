@@ -552,6 +552,24 @@
       "details": {"type": "String", "example": "type 'Null' is not a subtype of type 'String' in type cast"}
     }
   },
+  "errorMalformedResponseFormat": "{className}: {httpStatus} {routeName}: {message}",
+  "@errorMalformedResponseFormat": {
+    "description": "Format for error messages from malformed server responses. The message parameter is already localized.",
+    "placeholders": {
+      "className": {"type": "String", "example": "MalformedServerResponseException"},
+      "httpStatus": {"type": "int", "example": "200"},
+      "routeName": {"type": "String", "example": "registerQueue"},
+      "message": {"type": "String", "example": "Server gave malformed response; HTTP status 200"}
+    }
+  },
+  "errorMalformedServerResponseExceptionName": "MalformedServerResponseException",
+  "@errorMalformedServerResponseExceptionName": {
+    "description": "Name of the error type for malformed server responses"
+  },
+  "errorMalformedServerResponseExceptionAssertMessage": "If causeException is provided, causeStackTrace must also be provided",
+  "@errorMalformedServerResponseExceptionAssertMessage": {
+    "description": "Developer error message when creating a MalformedServerResponseException with incomplete error details"
+  },
   "errorRequestFailed": "Network request failed: HTTP status {httpStatus}",
   "@errorRequestFailed": {
     "description": "Error message when an API call fails.",
