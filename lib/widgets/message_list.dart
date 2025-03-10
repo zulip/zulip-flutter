@@ -303,8 +303,6 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
 
               child: Expanded(
                 child: MessageList(narrow: narrow, onNarrowChanged: _narrowChanged))),
-            if (ComposeBox.hasComposeBox(narrow))
-              ComposeBox(key: _composeBoxKey, narrow: narrow)
           ]))),
       floatingActionButton: ElevatedButton.icon(
         icon: const Icon(Icons.add, color: Colors.white),
