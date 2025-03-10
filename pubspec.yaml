@@ -36,6 +36,7 @@ dependencies:
              # https://github.com/flutter/flutter/issues/117163
 
   app_settings: ^5.0.0
+  flutter_launcher_icons: ^0.13.1
   collection: ^1.17.2
   convert: ^3.1.1
   crypto: ^3.0.3
@@ -65,6 +66,19 @@ dependencies:
   zulip_plugin:
     path: ./packages/zulip_plugin
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
+  
+flutter_launcher_icons:
+  ios: true
+  android: true
+  image_path_ios: "assets/icons/app_icon.png"
+
+ 
+  android_generate_webp: true
+  android_webp_lossless: true
+  
+
+  
+
 
 dependency_overrides:
   # TODO(#918) remove this and `flutter_color_models` when `flutter_color_models` accommodates
