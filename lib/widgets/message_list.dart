@@ -299,7 +299,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
               // The compose box, when present, pads the bottom inset.
               // TODO(#311) If we have a bottom nav, it will pad the bottom
               //   inset, and this should always be true.
-              removeBottom: ComposeBox.hasComposeBox(narrow),
+              removeBottom: true,
 
               child: Expanded(
                 child: MessageList(narrow: narrow, onNarrowChanged: _narrowChanged))),
