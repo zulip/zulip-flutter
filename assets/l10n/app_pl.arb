@@ -585,7 +585,7 @@
   "@composeBoxSendTooltip": {
     "description": "Tooltip for send button in compose box."
   },
-  "messageListGroupYouWithYourself": "Ty ze sobą",
+  "messageListGroupYouWithYourself": "Zapiski na własne konto",
   "@messageListGroupYouWithYourself": {
     "description": "Message list recipient header for a DM group that only includes yourself."
   },
@@ -596,10 +596,6 @@
   "aboutPageTitle": "O Zulip",
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
-  },
-  "errorLoginCouldNotConnectTitle": "Nie można połączyć",
-  "@errorLoginCouldNotConnectTitle": {
-    "description": "Error title when the app could not connect to the server."
   },
   "contentValidationErrorEmpty": "Nie masz nic do wysłania!",
   "@contentValidationErrorEmpty": {
@@ -886,5 +882,67 @@
   "unpinnedSubscriptionsLabel": "Odpięte",
   "@unpinnedSubscriptionsLabel": {
     "description": "Label for the list of unpinned subscribed channels."
+  },
+  "actionSheetOptionResolveTopic": "Oznacz jako rozwiązany",
+  "@actionSheetOptionResolveTopic": {
+    "description": "Label for the 'Mark as resolved' button on the topic action sheet."
+  },
+  "actionSheetOptionUnresolveTopic": "Oznacz brak rozwiązania",
+  "@actionSheetOptionUnresolveTopic": {
+    "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
+  },
+  "errorResolveTopicFailedTitle": "Nie udało się oznaczyć jako rozwiązany",
+  "@errorResolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as resolved failed."
+  },
+  "errorUnresolveTopicFailedTitle": "Nie udało się oznaczyć brak rozwiązania",
+  "@errorUnresolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as unresolved failed."
+  },
+  "appVersionUnknownPlaceholder": "(…)",
+  "@appVersionUnknownPlaceholder": {
+    "description": "Placeholder to show in place of the app version when it is unknown."
+  },
+  "zulipAppTitle": "Zulip",
+  "@zulipAppTitle": {
+    "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
+  },
+  "filenameAndSizeInMiB": "{filename}: {size} MiB",
+  "@filenameAndSizeInMiB": {
+    "description": "The name of a file, and its size in mebibytes.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "foo.txt"
+      },
+      "size": {
+        "type": "String",
+        "example": "20.2"
+      }
+    }
+  },
+  "errorInvalidApiKeyMessage": "Konto w ramach {url} nie zostało przyjęte. Spróbuj ponownie lub skorzystaj z innego konta.",
+  "@errorInvalidApiKeyMessage": {
+    "description": "Error message in the dialog for invalid API key.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "http://chat.example.com/"
+      }
+    }
+  },
+  "errorCouldNotConnectTitle": "Brak połączenia",
+  "@errorCouldNotConnectTitle": {
+    "description": "Error title when the app could not connect to the server."
+  },
+  "composeBoxChannelContentHint": "Wiadomość do {destination}",
+  "@composeBoxChannelContentHint": {
+    "description": "Hint text for content input when sending a message to a channel.",
+    "placeholders": {
+      "destination": {
+        "type": "String",
+        "example": "#channel name > topic name"
+      }
+    }
   }
 }
