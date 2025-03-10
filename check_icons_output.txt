@@ -1,0 +1,17 @@
+Running icons...
+npm notice
+npm notice New major version of npm available! 10.9.0 -> 11.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.2.0
+npm notice To update run: npm install -g npm@11.2.0
+npm notice
+
+added 162 packages in 7s
+warning: in the working copy of 'lib/widgets/icons.dart', LF will be replaced by CRLF the next time Git touches it
+Error: there were icon updates:
+ M assets/icons/ZulipIcons.ttf
+ M lib/widgets/icons.dart
+
+FAILED: icons
+
+To rerun the suites that failed, run:
+  $ tools/check icons
