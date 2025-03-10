@@ -305,7 +305,129 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
                 child: MessageList(narrow: narrow, onNarrowChanged: _narrowChanged))),
             if (ComposeBox.hasComposeBox(narrow))
               ComposeBox(key: _composeBoxKey, narrow: narrow)
-          ]))));
+          ]))),
+      floatingActionButton: ElevatedButton.icon(
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          "New topic",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF6E69F3), // Purple color matching the image
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28), // Rounded corners
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          elevation: 2,
+        ),
+        onPressed: () => _showComposeActionSheet(context),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  void _showComposeActionSheet(BuildContext context) {
+    // Get the accountId from the current context
+    final perAccountStore = PerAccountStoreWidget.of(context);
+    final accountId = perAccountStore.accountId;
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      clipBehavior: Clip.antiAlias,
+      useSafeArea: true,
+      builder: (BuildContext bottomSheetContext) {
+        // Add padding to lift content when keyboard appears
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom,
+          ),
+          child: PerAccountStoreWidget(
+            accountId: accountId,
+            child: SafeArea(
+              minimum: const EdgeInsets.only(bottom: 15),
+              child: Container(
+                // Fixed height container to keep it compact
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(bottomSheetContext).size.height * 0.3,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: MediaQuery.of(bottomSheetContext).size.width * 0.04,
+                      ),
+                      child: Row(
+                        children: [
+                          const Opacity(
+                            opacity: 0,
+                            child: TextButton(
+                              onPressed: null, // No functionality
+                              child: Text(
+                                "Cancel",
+                                style: TextStyle(
+                                  fontFamily: 'Source Sans 3',
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Expanded(
+                            child: Center(
+                              child: Text(
+                                "New topic",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(bottomSheetContext);
+                            },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8), // Button-specific padding
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              foregroundColor: Colors.blue,
+                            ),
+                            child: const Text(
+                              "Cancel",
+                              style: TextStyle(
+                                fontFamily: 'Source Sans 3',
+                                fontSize: 20,
+                                color: Color(0xFF6159E1),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (ComposeBox.hasComposeBox(narrow))
+                      Flexible(
+                        child: ComposeBox(
+                          key: _composeBoxKey,
+                          narrow: narrow,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 
