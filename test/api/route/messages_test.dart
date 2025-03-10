@@ -20,10 +20,12 @@ void main() {
       required bool expectLegacy,
       required int messageId,
       bool? applyMarkdown,
+      bool? allowEmptyTopicName,
     }) async {
       final result = await getMessageCompat(connection,
         messageId: messageId,
         applyMarkdown: applyMarkdown,
+        allowEmptyTopicName: allowEmptyTopicName,
       );
       if (expectLegacy) {
         check(connection.lastRequest).isA<http.Request>()
@@ -43,6 +45,8 @@ void main() {
           ..url.path.equals('/api/v1/messages/$messageId')
           ..url.queryParameters.deepEquals({
             if (applyMarkdown != null) 'apply_markdown': applyMarkdown.toString(),
+            if (allowEmptyTopicName != null)
+              'allow_empty_topic_name': allowEmptyTopicName.toString(),
           });
       }
       return result;
@@ -57,6 +61,7 @@ void main() {
           expectLegacy: false,
           messageId: message.id,
           applyMarkdown: true,
+          allowEmptyTopicName: true,
         );
         check(result).isNotNull().jsonEquals(message);
       });
@@ -71,6 +76,7 @@ void main() {
           expectLegacy: false,
           messageId: message.id,
           applyMarkdown: true,
+          allowEmptyTopicName: true,
         );
         check(result).isNull();
       });
@@ -92,6 +98,7 @@ void main() {
           expectLegacy: true,
           messageId: message.id,
           applyMarkdown: true,
+          allowEmptyTopicName: null,
         );
         check(result).isNotNull().jsonEquals(message);
       });
@@ -113,6 +120,7 @@ void main() {
           expectLegacy: true,
           messageId: message.id,
           applyMarkdown: true,
+          allowEmptyTopicName: null,
         );
         check(result).isNull();
       });
@@ -124,11 +132,13 @@ void main() {
       FakeApiConnection connection, {
       required int messageId,
       bool? applyMarkdown,
+      bool? allowEmptyTopicName,
       required Map<String, String> expected,
     }) async {
       final result = await getMessage(connection,
         messageId: messageId,
         applyMarkdown: applyMarkdown,
+        allowEmptyTopicName: allowEmptyTopicName,
       );
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('GET')
@@ -156,6 +166,16 @@ void main() {
           messageId: 1,
           applyMarkdown: false,
           expected: {'apply_markdown': 'false'});
+      });
+    });
+
+    test('allow empty topic name', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: fakeResult.toJson());
+        await checkGetMessage(connection,
+          messageId: 1,
+          allowEmptyTopicName: true,
+          expected: {'allow_empty_topic_name': 'true'});
       });
     });
 
@@ -255,12 +275,14 @@ void main() {
       required int numAfter,
       bool? clientGravatar,
       bool? applyMarkdown,
+      bool? allowEmptyTopicName,
       required Map<String, String> expected,
     }) async {
       final result = await getMessages(connection,
         narrow: narrow, anchor: anchor, includeAnchor: includeAnchor,
         numBefore: numBefore, numAfter: numAfter,
         clientGravatar: clientGravatar, applyMarkdown: applyMarkdown,
+        allowEmptyTopicName: allowEmptyTopicName,
       );
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('GET')
@@ -279,11 +301,13 @@ void main() {
         await checkGetMessages(connection,
           narrow: const CombinedFeedNarrow().apiEncode(),
           anchor: AnchorCode.newest, numBefore: 10, numAfter: 20,
+          allowEmptyTopicName: true,
           expected: {
             'narrow': jsonEncode([]),
             'anchor': 'newest',
             'num_before': '10',
             'num_after': '20',
+            'allow_empty_topic_name': 'true',
           });
       });
     });
