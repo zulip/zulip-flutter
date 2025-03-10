@@ -74,6 +74,7 @@ android {
     }
 
     lint {
+                baseline = file("lint-baseline.xml")
         // For docs on options available here:
         //   https://developer.android.com/reference/tools/gradle-api/8.5/com/android/build/api/dsl/Lint
         checkAllWarnings = true
