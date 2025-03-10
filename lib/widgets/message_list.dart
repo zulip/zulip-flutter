@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 import '../api/model/model.dart';
@@ -826,7 +827,12 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
                 backgroundColor: WidgetStatePropertyAll(messageListTheme.unreadMarker),
               ),
               onPressed: _loading ? null : () => _handlePress(context),
-              icon: const Icon(Icons.playlist_add_check),
+              icon: SvgPicture.asset(
+                colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                'assets/icons/mark_read_icon.svg',
+                width: 24,
+                height: 24,
+              ),
               label: Text(zulipLocalizations.markAllAsReadLabel))))));
   }
 }
