@@ -23,9 +23,6 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
-  static const VerificationMeta _realmUrlMeta = const VerificationMeta(
-    'realmUrl',
-  );
   @override
   late final GeneratedColumnWithTypeConverter<Uri, String> realmUrl =
       GeneratedColumn<String>(
@@ -133,7 +130,6 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    context.handle(_realmUrlMeta, const VerificationResult.success());
     if (data.containsKey('user_id')) {
       context.handle(
         _userIdMeta,
