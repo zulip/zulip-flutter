@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 import 'package:zulip/generated/l10n/zulip_localizations.dart';
+import 'package:zulip/model/binding.dart';
+import 'package:zulip/model/store.dart';
+import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/theme.dart';
 
 /// A lightweight mock of [ZulipApp], suitable for most widget tests.
-class TestZulipApp extends StatelessWidget {
+class TestZulipApp extends StatefulWidget {
   const TestZulipApp({
     super.key,
     this.accountId,
@@ -44,45 +47,64 @@ class TestZulipApp extends StatelessWidget {
   final Widget child;
 
   @override
+  State<TestZulipApp> createState() => _TestZulipAppState();
+}
+
+class _TestZulipAppState extends State<TestZulipApp> {
+  late final Future<GlobalStore> _globalStoreFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _globalStoreFuture = ZulipBinding.instance.getGlobalStoreUniquely();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return GlobalStoreWidget(child: Builder(builder: (context) {
-      assert(() {
-        if (accountId != null && !skipAssertAccountExists) {
-          final account = GlobalStoreWidget.of(context).getAccount(accountId!);
-          if (account == null) {
-            throw FlutterError.fromParts([
-              ErrorSummary(
-                'TestZulipApp() was called with [accountId] but a corresponding '
-                'Account was not found in the GlobalStore.'),
-              ErrorHint(
-                'If [child] needs per-account data, consider calling '
-                '`testBinding.globalStore.add` before pumping `TestZulipApp`.'),
-              ErrorHint(
-                'If [child] is not specific to an account, omit [accountId].'),
-              ErrorHint(
-                'If you are testing behavior when an account is logged out, '
-                'consider building ZulipApp instead of TestZulipApp, '
-                'or pass `skipAssertAccountExists: true`.'),
-            ]);
-          }
-        }
-        return true;
-      }());
+    return DeferredBuilderWidget(
+      future: _globalStoreFuture,
+      builder: (context, store) {
+        return GlobalStoreWidget(
+          store: store,
+          child: Builder(builder: (context) {
+            assert(() {
+              if (widget.accountId != null && !widget.skipAssertAccountExists) {
+                final account = GlobalStoreWidget.of(context).getAccount(widget.accountId!);
+                if (account == null) {
+                  throw FlutterError.fromParts([
+                    ErrorSummary(
+                      'TestZulipApp() was called with [accountId] but a corresponding '
+                      'Account was not found in the GlobalStore.'),
+                    ErrorHint(
+                      'If [child] needs per-account data, consider calling '
+                      '`testBinding.globalStore.add` before pumping `TestZulipApp`.'),
+                    ErrorHint(
+                      'If [child] is not specific to an account, omit [accountId].'),
+                    ErrorHint(
+                      'If you are testing behavior when an account is logged out, '
+                      'consider building ZulipApp instead of TestZulipApp, '
+                      'or pass `skipAssertAccountExists: true`.'),
+                  ]);
+                }
+              }
+              return true;
+            }());
 
-      return MaterialApp(
-        title: 'Zulip',
-        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-        supportedLocales: ZulipLocalizations.supportedLocales,
-        // The context has to be taken from the [Builder] because
-        // [zulipThemeData] requires access to [GlobalStoreWidget] in the tree.
-        theme: zulipThemeData(context),
+            return MaterialApp(
+              title: 'Zulip',
+              localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+              supportedLocales: ZulipLocalizations.supportedLocales,
+              // The context has to be taken from the [Builder] because
+              // [zulipThemeData] requires access to [GlobalStoreWidget] in the tree.
+              theme: zulipThemeData(context),
 
-        navigatorObservers: navigatorObservers ?? const [],
+              navigatorObservers: widget.navigatorObservers ?? const [],
 
-        home: accountId != null
-          ? PerAccountStoreWidget(accountId: accountId!,
-              child: PageRoot(child: child))
-          : PageRoot(child: child));
-    }));
+              home: widget.accountId != null
+                ? PerAccountStoreWidget(accountId: widget.accountId!,
+                    child: PageRoot(child: widget.child))
+                : PageRoot(child: widget.child));
+          }));
+      });
   }
 }

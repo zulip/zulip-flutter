@@ -15,7 +15,6 @@ import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
-import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/text.dart';
 
 import '../example_data.dart' as eg;
@@ -1139,9 +1138,9 @@ void main() {
 
       final httpClient = prepareBoringImageHttpClient();
 
-      await tester.pumpWidget(GlobalStoreWidget(
-        child: PerAccountStoreWidget(accountId: eg.selfAccount.id,
-          child: RealmContentNetworkImage(src))));
+      await tester.pumpWidget(TestZulipApp(
+        accountId: eg.selfAccount.id,
+        child: RealmContentNetworkImage(src)));
       await tester.pump();
       await tester.pump();
 
@@ -1181,9 +1180,9 @@ void main() {
       await store.addUser(user);
 
       prepareBoringImageHttpClient();
-      await tester.pumpWidget(GlobalStoreWidget(
-        child: PerAccountStoreWidget(accountId: eg.selfAccount.id,
-          child: AvatarImage(userId: user.userId, size: size ?? 30))));
+      await tester.pumpWidget(TestZulipApp(
+        accountId: eg.selfAccount.id,
+        child: AvatarImage(userId: user.userId, size: size ?? 30)));
       await tester.pump();
       await tester.pump();
       tester.widget(find.byType(AvatarImage));

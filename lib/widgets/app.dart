@@ -7,6 +7,7 @@ import 'package:flutter/scheduler.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/actions.dart';
+import '../model/binding.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
 import '../notifications/display.dart';
@@ -151,10 +152,13 @@ class ZulipApp extends StatefulWidget {
 }
 
 class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
+  late final Future<GlobalStore> _globalStoreFuture;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _globalStoreFuture = ZulipBinding.instance.getGlobalStoreUniquely();
   }
 
   @override
@@ -212,44 +216,101 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return GlobalStoreWidget(
-      child: Builder(builder: (context) {
-        return MaterialApp(
-          onGenerateTitle: (BuildContext context) {
-            return ZulipLocalizations.of(context).zulipAppTitle;
-          },
-          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-          supportedLocales: ZulipLocalizations.supportedLocales,
-          // The context has to be taken from the [Builder] because
-          // [zulipThemeData] requires access to [GlobalStoreWidget] in the tree.
-          theme: zulipThemeData(context),
+    return DeferredBuilderWidget(
+      future: _globalStoreFuture,
+      builder: (context, store) {
+        return GlobalStoreWidget(
+          store: store,
+          child: Builder(builder: (context) {
+            return MaterialApp(
+              onGenerateTitle: (BuildContext context) {
+                return ZulipLocalizations.of(context).zulipAppTitle;
+              },
+              localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+              supportedLocales: ZulipLocalizations.supportedLocales,
+              // The context has to be taken from the [Builder] because
+              // [zulipThemeData] requires access to [GlobalStoreWidget] in the tree.
+              theme: zulipThemeData(context),
 
-          navigatorKey: ZulipApp.navigatorKey,
-          navigatorObservers: [
-            if (widget.navigatorObservers != null)
-              ...widget.navigatorObservers!,
-            _PreventEmptyStack(),
-          ],
-          builder: (BuildContext context, Widget? child) {
-            if (!ZulipApp.ready.value) {
-              SchedulerBinding.instance.addPostFrameCallback(
-                (_) => widget._declareReady());
-            }
-            GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
-            return child!;
-          },
+              navigatorKey: ZulipApp.navigatorKey,
+              navigatorObservers: [
+                if (widget.navigatorObservers != null)
+                  ...widget.navigatorObservers!,
+                _PreventEmptyStack(),
+              ],
+              builder: (BuildContext context, Widget? child) {
+                if (!ZulipApp.ready.value) {
+                  SchedulerBinding.instance.addPostFrameCallback(
+                    (_) => widget._declareReady());
+                }
+                GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
+                return child!;
+              },
 
-          // We use onGenerateInitialRoutes for the real work of specifying the
-          // initial nav state.  To do that we need [MaterialApp] to decide to
-          // build a [Navigator]... which means specifying either `home`, `routes`,
-          // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
-          // It never actually gets called, though: `onGenerateInitialRoutes`
-          // handles startup, and then we always push whole routes with methods
-          // like [Navigator.push], never mere names as with [Navigator.pushNamed].
-          onGenerateRoute: (_) => null,
+              // We use onGenerateInitialRoutes for the real work of specifying the
+              // initial nav state.  To do that we need [MaterialApp] to decide to
+              // build a [Navigator]... which means specifying either `home`, `routes`,
+              // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
+              // It never actually gets called, though: `onGenerateInitialRoutes`
+              // handles startup, and then we always push whole routes with methods
+              // like [Navigator.push], never mere names as with [Navigator.pushNamed].
+              onGenerateRoute: (_) => null,
 
-          onGenerateInitialRoutes: _handleGenerateInitialRoutes);
-      }));
+              onGenerateInitialRoutes: _handleGenerateInitialRoutes);
+          }));
+      });
+  }
+}
+
+/// A widget that defers the builder until the provided [future] completes.
+///
+/// It shows a placeholder widget while it waits for the [future]
+/// to complete.
+class DeferredBuilderWidget<T> extends StatefulWidget {
+  const DeferredBuilderWidget({
+    super.key,
+    required this.future,
+    required this.builder,
+    this.placeholderBuilder = _defaultPlaceHolderBuilder,
+  });
+
+  final Future<T> future;
+
+  /// The widget to build when [future] completes, with its result
+  /// passed as `result`.
+  final Widget Function(BuildContext context, T result) builder;
+
+  /// The placeholder widget to build while waiting for the [future]
+  /// to complete.
+  ///
+  /// By default, it will build the [LoadingPlaceholder].
+  final Widget Function(BuildContext context) placeholderBuilder;
+
+  static Widget _defaultPlaceHolderBuilder(BuildContext context) {
+    return const LoadingPlaceholder();
+  }
+
+  @override
+  State<DeferredBuilderWidget<T>> createState() => _DeferredBuilderWidgetState<T>();
+}
+
+class _DeferredBuilderWidgetState<T> extends State<DeferredBuilderWidget<T>> {
+  T? _result;
+
+  @override
+  void initState() {
+    super.initState();
+    () async {
+      _result = await widget.future;
+      if (mounted) setState(() {});
+    }();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final result = _result;
+    if (result == null) return widget.placeholderBuilder(context);
+    return widget.builder(context, result);
   }
 }
 
