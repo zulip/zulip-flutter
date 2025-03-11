@@ -203,6 +203,55 @@ Json? _$JsonConverterToJson<Json, Value>(
   Json? Function(Value value) toJson,
 ) => value == null ? null : toJson(value);
 
+SavedSnippetsAddEvent _$SavedSnippetsAddEventFromJson(
+  Map<String, dynamic> json,
+) => SavedSnippetsAddEvent(
+  id: (json['id'] as num).toInt(),
+  savedSnippet: SavedSnippet.fromJson(
+    json['saved_snippet'] as Map<String, dynamic>,
+  ),
+);
+
+Map<String, dynamic> _$SavedSnippetsAddEventToJson(
+  SavedSnippetsAddEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'saved_snippet': instance.savedSnippet,
+};
+
+SavedSnippetsUpdateEvent _$SavedSnippetsUpdateEventFromJson(
+  Map<String, dynamic> json,
+) => SavedSnippetsUpdateEvent(
+  id: (json['id'] as num).toInt(),
+  savedSnippet: SavedSnippet.fromJson(
+    json['saved_snippet'] as Map<String, dynamic>,
+  ),
+);
+
+Map<String, dynamic> _$SavedSnippetsUpdateEventToJson(
+  SavedSnippetsUpdateEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'saved_snippet': instance.savedSnippet,
+};
+
+SavedSnippetsRemoveEvent _$SavedSnippetsRemoveEventFromJson(
+  Map<String, dynamic> json,
+) => SavedSnippetsRemoveEvent(
+  id: (json['id'] as num).toInt(),
+  savedSnippetId: (json['saved_snippet_id'] as num).toInt(),
+);
+
+Map<String, dynamic> _$SavedSnippetsRemoveEventToJson(
+  SavedSnippetsRemoveEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'saved_snippet_id': instance.savedSnippetId,
+};
+
 ChannelCreateEvent _$ChannelCreateEventFromJson(Map<String, dynamic> json) =>
     ChannelCreateEvent(
       id: (json['id'] as num).toInt(),

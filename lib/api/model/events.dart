@@ -37,6 +37,13 @@ sealed class Event {
           case 'update': return RealmUserUpdateEvent.fromJson(json);
           default: return UnexpectedEvent.fromJson(json);
         }
+      case 'saved_snippets':
+        switch (json['op'] as String) {
+          case 'add': return SavedSnippetsAddEvent.fromJson(json);
+          case 'update': return SavedSnippetsUpdateEvent.fromJson(json);
+          case 'remove': return SavedSnippetsRemoveEvent.fromJson(json);
+          default: return UnexpectedEvent.fromJson(json);
+        }
       case 'stream':
         switch (json['op'] as String) {
           case 'create': return ChannelCreateEvent.fromJson(json);
@@ -334,6 +341,68 @@ class RealmUserUpdateEvent extends RealmUserEvent {
   // TODO make round-trip (see _readFromPerson)
   @override
   Map<String, dynamic> toJson() => _$RealmUserUpdateEventToJson(this);
+}
+
+/// A Zulip event of type `saved_snippets`: https://zulip.com/api/get-events#saved_snippets-add
+sealed class SavedSnippetsEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'saved_snippets';
+
+  String get op;
+
+  SavedSnippetsEvent({required super.id});
+}
+
+/// A [SavedSnippetsEvent] with op `add`: https://zulip.com/api/get-events#saved_snippets-add
+@JsonSerializable(fieldRename: FieldRename.snake)
+class SavedSnippetsAddEvent extends SavedSnippetsEvent {
+  @override
+  String get op => 'add';
+
+  final SavedSnippet savedSnippet;
+
+  SavedSnippetsAddEvent({required super.id, required this.savedSnippet});
+
+  factory SavedSnippetsAddEvent.fromJson(Map<String, dynamic> json) =>
+    _$SavedSnippetsAddEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$SavedSnippetsAddEventToJson(this);
+}
+
+/// A [SavedSnippetsEvent] with op `update`: https://zulip.com/api/get-events#saved_snippets-update
+@JsonSerializable(fieldRename: FieldRename.snake)
+class SavedSnippetsUpdateEvent extends SavedSnippetsEvent {
+  @override
+  String get op => 'update';
+
+  final SavedSnippet savedSnippet;
+
+  SavedSnippetsUpdateEvent({required super.id, required this.savedSnippet});
+
+  factory SavedSnippetsUpdateEvent.fromJson(Map<String, dynamic> json) =>
+    _$SavedSnippetsUpdateEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$SavedSnippetsUpdateEventToJson(this);
+}
+
+/// A [SavedSnippetsEvent] with op `remove`: https://zulip.com/api/get-events#saved_snippets-remove
+@JsonSerializable(fieldRename: FieldRename.snake)
+class SavedSnippetsRemoveEvent extends SavedSnippetsEvent {
+  @override
+  String get op => 'remove';
+
+  final int savedSnippetId;
+
+  SavedSnippetsRemoveEvent({required super.id, required this.savedSnippetId});
+
+  factory SavedSnippetsRemoveEvent.fromJson(Map<String, dynamic> json) =>
+    _$SavedSnippetsRemoveEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$SavedSnippetsRemoveEventToJson(this);
 }
 
 /// A Zulip event of type `stream`.

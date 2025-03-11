@@ -871,6 +871,10 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         autocompleteViewManager.handleRealmUserUpdateEvent(event);
         notifyListeners();
 
+      case SavedSnippetsEvent():
+        // TODO handle
+        break;
+
       case ChannelEvent():
         assert(debugLog("server event: stream/${event.op}"));
         _channels.handleChannelEvent(event);
