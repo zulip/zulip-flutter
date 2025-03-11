@@ -7,6 +7,7 @@ import 'package:flutter/scheduler.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/actions.dart';
+import '../model/binding.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
 import '../notifications/display.dart';
@@ -151,10 +152,19 @@ class ZulipApp extends StatefulWidget {
 }
 
 class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
+  GlobalStore? _globalStore;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    () async {
+      final globalStore = await ZulipBinding.instance.getGlobalStoreUniquely();
+      if (!mounted) return;
+      setState(() {
+        _globalStore = globalStore;
+      });
+    }();
   }
 
   @override
@@ -212,7 +222,10 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    if (_globalStore == null) return const LoadingPlaceholder();
+
     return GlobalStoreWidget(
+      store: _globalStore!,
       child: Builder(builder: (context) {
         return MaterialApp(
           onGenerateTitle: (BuildContext context) {

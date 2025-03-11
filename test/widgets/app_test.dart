@@ -5,10 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/log.dart';
 import 'package:zulip/model/actions.dart';
-import 'package:zulip/model/database.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/page.dart';
+import 'package:zulip/widgets/store.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
@@ -22,6 +23,31 @@ import 'test_app.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
+
+  testWidgets('ZulipApp loads data while showing placeholder', (tester) async {
+    addTearDown(testBinding.reset);
+
+    GlobalStore? globalStore;
+    await tester.pumpWidget(ZulipApp());
+    unawaited(ZulipApp.navigator.then((navigator) {
+      globalStore = GlobalStoreWidget.of(navigator.context);
+    }));
+
+    // First, shows a loading page instead of child.
+    check(tester.any(find.byType(CircularProgressIndicator))).isTrue();
+    check(globalStore).isNull();
+
+    await tester.pump();
+    // Then after loading, shows the ChooseAccountPage, with provided store.
+    check(tester.any(find.byType(CircularProgressIndicator))).isFalse();
+    check(tester.any(find.byType(ChooseAccountPage))).isTrue();
+    check(globalStore).identicalTo(testBinding.globalStore);
+
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    check(globalStore).isNotNull()
+      .accountEntries.single
+      .equals((accountId: eg.selfAccount.id, account: eg.selfAccount));
+  });
 
   group('ZulipApp initial navigation', () {
     late List<Route<dynamic>> pushedRoutes = [];
