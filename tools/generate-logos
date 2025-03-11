@@ -48,26 +48,22 @@ strip-nondeterminism --version >/dev/null 2>&1 \
     || die "Need strip-nondeterminism -- try 'apt install strip-nondeterminism'."
 
 
-# This should point to a zulip.git worktree.
-zulip_root="${root_dir%/*}"/zulip
+# Suppose (for comments below) this points to a zulip.git worktree.
+# zulip_root="${root_dir%/*}"/zulip
 
 # White Z in gradient-colored circle.
-src_icon_circle="${zulip_root}"/static/images/logo/zulip-icon-circle.svg
+# src_icon_circle="${zulip_root}"/static/images/logo/zulip-icon-circle.svg
 
 # White Z in gradient-colored circle with BETA banner.
-# Contains a link to the equivalent of ${src_icon_circle}.
+# Contains a near-verbatim copy of ${src_icon_circle}.
 src_icon_circle_beta="${root_dir}"/assets/app-icons/zulip-icon-circle-beta.svg
 
 # White Z in gradient-colored square, full-bleed.
 # src_icon_square="${zulip_root}"/static/images/logo/zulip-icon-square.svg
 
 # White Z in gradient-colored square, full-bleed, with BETA banner.
-# Contains a link to the equivalent of ${src_icon_square}.
+# Contains a near-verbatim copy of ${src_icon_square}.
 src_icon_square_beta="${root_dir}"/assets/app-icons/zulip-icon-square-beta.svg
-
-
-[ -r "${src_icon_circle}" ] \
-    || die "Expected Zulip worktree at: ${zulip_root}"
 
 
 make_one_ios_app_icon() {
