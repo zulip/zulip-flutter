@@ -35,8 +35,8 @@ die() {
     exit 1
 }
 
-inkscape --version >/dev/null 2>&1 \
-    || die "Need inkscape -- try 'apt install inkscape'."
+rsvg-convert --version >/dev/null 2>&1 \
+    || die "Need rsvg-convert -- try 'apt install librsvg2-bin'."
 
 cwebp -version >/dev/null 2>&1 \
     || die "Need cwebp -- try 'apt install webp'."
@@ -44,8 +44,6 @@ cwebp -version >/dev/null 2>&1 \
 jq --version >/dev/null 2>&1 \
     || die "Need jq -- try 'apt install jq'."
 
-strip-nondeterminism --version >/dev/null 2>&1 \
-    || die "Need strip-nondeterminism -- try 'apt install strip-nondeterminism'."
 
 
 # Suppose (for comments below) this points to a zulip.git worktree.
@@ -74,7 +72,7 @@ make_one_ios_app_icon() {
     local output_basename=Icon-"${size_pt}x${size_pt}@${scale}x".png
     local output="${iconset}"/"${output_basename}"
     if [ ! -f "${output}" ]; then
-        inkscape "${src_icon_square_beta}" -w "${size_px}" -o "${output}"
+        rsvg-convert "${src_icon_square_beta}" -w "${size_px}" -o "${output}"
     fi
 
     printf >>"${contents}" \
@@ -102,15 +100,6 @@ make_ios_app_icon() {
     make_one_ios_app_icon 76 2 ipad
     make_one_ios_app_icon 1024 1 ios-marketing
 
-    # For the App Store logo, it's required to not have transparency.
-    # We already don't have any intentional transparency, so just
-    # cut out the alpha channel.
-    mv "${iconset}"/Icon-1024x1024@1x{,.1}.png
-    convert "${iconset}"/Icon-1024x1024@1x.1.png \
-      -alpha deactivate "${iconset}"/Icon-1024x1024@1x.png
-    strip-nondeterminism "${iconset}"/Icon-1024x1024@1x.png
-    rm -f "${iconset}"/Icon-1024x1024@1x.1.png
-
     # From "Spotlight, Settings, and Notification Icons"
     # in the same iOS doc
     make_one_ios_app_icon 40 3 iphone
@@ -135,7 +124,7 @@ make_ios() {
 
 make_webp() {
     local input="$1" size="$2" output="$3"
-    inkscape "${input}" -w "${size}" -o "${tmpdir}"/tmp.png
+    rsvg-convert "${input}" -w "${size}" -o "${tmpdir}"/tmp.png
     # `cwebp -z 9` means lossless, and max/slowest compression
     cwebp -z 9 "${tmpdir}"/tmp.png -o "${output}"
 }
