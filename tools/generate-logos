@@ -45,23 +45,18 @@ jq --version >/dev/null 2>&1 \
     || die "Need jq -- try 'apt install jq'."
 
 
+# White Z above "BETA", on transparent background.
+# TODO(#715): use the non-beta version
+src_icon_foreground="${root_dir}"/assets/app-icons/zulip-white-z-beta-on-transparent.svg
 
-# Suppose (for comments below) this points to a zulip.git worktree.
-# zulip_root="${root_dir%/*}"/zulip
+# Gradient-colored square, full-bleed.
+src_icon_background="${root_dir}"/assets/app-icons/zulip-gradient.svg
 
-# White Z in gradient-colored circle.
-# src_icon_circle="${zulip_root}"/static/images/logo/zulip-icon-circle.svg
-
-# White Z in gradient-colored circle with BETA banner.
-# Contains a near-verbatim copy of ${src_icon_circle}.
-src_icon_circle_beta="${root_dir}"/assets/app-icons/zulip-icon-circle-beta.svg
-
-# White Z in gradient-colored square, full-bleed.
-# src_icon_square="${zulip_root}"/static/images/logo/zulip-icon-square.svg
-
-# White Z in gradient-colored square, full-bleed, with BETA banner.
-# Contains a near-verbatim copy of ${src_icon_square}.
-src_icon_square_beta="${root_dir}"/assets/app-icons/zulip-icon-square-beta.svg
+# Combination of ${src_icon_foreground} upon ${src_icon_background}...
+# more or less.  (The foreground layer is larger, with less padding,
+# and the SVG is different in random other ways.)
+# TODO(#715): use the non-beta version
+src_icon_combined="${root_dir}"/assets/app-icons/zulip-beta-combined.svg
 
 
 make_one_ios_app_icon() {
@@ -72,7 +67,7 @@ make_one_ios_app_icon() {
     local output_basename=Icon-"${size_pt}x${size_pt}@${scale}x".png
     local output="${iconset}"/"${output_basename}"
     if [ ! -f "${output}" ]; then
-        rsvg-convert "${src_icon_square_beta}" -w "${size_px}" -o "${output}"
+        rsvg-convert "${src_icon_combined}" -w "${size_px}" -o "${output}"
     fi
 
     printf >>"${contents}" \
@@ -152,9 +147,10 @@ make_android_icon() {
 }
 
 make_android() {
-    # Launcher icon goes in a mipmap:
+    # Launcher icons go into mipmaps:
     #   https://developer.android.com/training/multiscreen/screendensities#mipmap
-    make_android_icon "${src_icon_circle_beta}" 48 main mipmap ic_launcher
+    make_android_icon "${src_icon_background}" 108 main mipmap ic_launcher_background
+    make_android_icon "${src_icon_foreground}" 48 main mipmap ic_launcher_monochrome
 }
 
 make_ios
