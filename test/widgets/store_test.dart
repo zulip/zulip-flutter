@@ -18,6 +18,7 @@ import '../example_data.dart' as eg;
 import '../model/store_checks.dart';
 import '../model/test_store.dart';
 import '../test_navigation.dart';
+import 'test_app.dart';
 
 /// A widget whose state uses [PerAccountStoreAwareStateMixin].
 class MyWidgetWithMixin extends StatefulWidget {
@@ -63,7 +64,7 @@ void main() {
 
     GlobalStore? globalStore;
     await tester.pumpWidget(
-      GlobalStoreWidget(
+      TestZulipApp(
         child: Builder(
           builder: (context) {
             globalStore = GlobalStoreWidget.of(context);
@@ -89,12 +90,12 @@ void main() {
 
     List<int>? accountIds;
     await tester.pumpWidget(
-      Directionality(textDirection: TextDirection.ltr,
-        child: GlobalStoreWidget(
-          child: Builder(builder: (context) {
+      TestZulipApp(
+        child: Builder(
+          builder: (context) {
             accountIds = GlobalStoreWidget.of(context).accountIds.toList();
             return SizedBox.shrink();
-          }))));
+          })));
     await tester.pump();
     check(accountIds).isNotNull().isEmpty();
 
@@ -109,7 +110,7 @@ void main() {
 
     ThemeSetting? themeSetting;
     await tester.pumpWidget(
-      GlobalStoreWidget(
+      TestZulipApp(
         child: Builder(
           builder: (context) {
             themeSetting = GlobalStoreWidget.settingsOf(context).themeSetting;
@@ -128,16 +129,13 @@ void main() {
     addTearDown(testBinding.reset);
 
     await tester.pumpWidget(
-      Directionality(
-        textDirection: TextDirection.ltr,
-        child: GlobalStoreWidget(
-          child: PerAccountStoreWidget(
-            accountId: eg.selfAccount.id,
-            child: Builder(
-              builder: (context) {
-                final store = PerAccountStoreWidget.of(context);
-                return Text('found store, account: ${store.accountId}');
-              })))));
+      TestZulipApp(
+        accountId: eg.selfAccount.id,
+        child: Builder(
+          builder: (context) {
+            final store = PerAccountStoreWidget.of(context);
+            return Text('found store, account: ${store.accountId}');
+          })));
     await tester.pump();
     await tester.pump();
 
@@ -147,15 +145,12 @@ void main() {
   testWidgets('PerAccountStoreWidget.of detailed error', (tester) async {
     addTearDown(testBinding.reset);
     await tester.pumpWidget(
-      Directionality(
-        textDirection: TextDirection.ltr,
-        child: GlobalStoreWidget(
-          // no PerAccountStoreWidget
-          child: Builder(
-            builder: (context) {
-              final store = PerAccountStoreWidget.of(context);
-              return Text('found store, account: ${store.accountId}');
-            }))));
+      TestZulipApp(
+        child: Builder(
+          builder: (context) {
+            final store = PerAccountStoreWidget.of(context);
+            return Text('found store, account: ${store.accountId}');
+          })));
     await tester.pump();
     check(tester.takeException())
       .has((x) => x.toString(), 'toString') // TODO(checks): what's a good convention for this?
@@ -167,17 +162,14 @@ void main() {
     addTearDown(testBinding.reset);
 
     await tester.pumpWidget(
-      Directionality(
-        textDirection: TextDirection.ltr,
-        child: GlobalStoreWidget(
-          child: PerAccountStoreWidget(
-            key: const ValueKey(1),
-            accountId: eg.selfAccount.id,
-            child: Builder(
-              builder: (context) {
-                final store = PerAccountStoreWidget.of(context);
-                return Text('found store, account: ${store.accountId}');
-              })))));
+      TestZulipApp(
+        perAccountStoreWidgetKey: const ValueKey(1),
+        accountId: eg.selfAccount.id,
+        child: Builder(
+          builder: (context) {
+            final store = PerAccountStoreWidget.of(context);
+            return Text('found store, account: ${store.accountId}');
+          })));
 
     // First, the global store has to load.
     check(tester.any(find.byType(PerAccountStoreWidget))).isFalse();
@@ -195,17 +187,14 @@ void main() {
     // But then if we mount a separate PerAccountStoreWidget...
     final oldState = tester.state(find.byType(PerAccountStoreWidget));
     await tester.pumpWidget(
-      Directionality(
-        textDirection: TextDirection.ltr,
-        child: GlobalStoreWidget(
-          child: PerAccountStoreWidget(
-            key: const ValueKey(2),
-            accountId: eg.selfAccount.id,
-            child: Builder(
-              builder: (context) {
-                final store = PerAccountStoreWidget.of(context);
-                return Text('found store, account: ${store.accountId}');
-              })))));
+      TestZulipApp(
+        perAccountStoreWidgetKey: const ValueKey(2),
+        accountId: eg.selfAccount.id,
+        child: Builder(
+          builder: (context) {
+            final store = PerAccountStoreWidget.of(context);
+            return Text('found store, account: ${store.accountId}');
+          })));
 
     // (... even one that really is separate, with its own fresh state node ...)
     check(tester.state(find.byType(PerAccountStoreWidget)))
@@ -288,15 +277,11 @@ void main() {
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
     Future<void> pumpWithParams({required bool light, required int accountId}) async {
-      // TODO use [TestZulipApp]
-      //   (seeing some extraneous dep changes when trying that)
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: light ? ThemeData.light() : ThemeData.dark(),
-          home: GlobalStoreWidget(
-            child: PerAccountStoreWidget(
-              accountId: accountId,
-              child: MyWidgetWithMixin(key: widgetWithMixinKey)))));
+      await tester.pumpWidget(TestZulipApp(
+        theme: light ? ThemeData.light() : ThemeData.dark(),
+        accountId: accountId,
+        child: MyWidgetWithMixin(key: widgetWithMixinKey),
+      ));
     }
 
     // [onNewStore] called initially
