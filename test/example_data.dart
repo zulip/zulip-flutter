@@ -885,16 +885,12 @@ GlobalSettingsData globalSettings({
     themeSetting: themeSetting,
   );
 }
-const _globalSettings = globalSettings;
 
 TestGlobalStore globalStore({
   GlobalSettingsData? globalSettings,
   List<Account> accounts = const [],
 }) {
-  return TestGlobalStore(
-    globalSettings: globalSettings ?? _globalSettings(),
-    accounts: accounts,
-  );
+  return TestGlobalStore(globalSettings: globalSettings, accounts: accounts);
 }
 const _globalStore = globalStore;
 
