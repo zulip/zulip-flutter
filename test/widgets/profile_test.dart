@@ -164,7 +164,7 @@ void main() {
       await tester.tap(find.text(testUrl));
       check(testBinding.takeLaunchUrlCalls()).single.equals((
         url: Uri.parse(testUrl),
-        mode: LaunchMode.platformDefault,
+        mode: LaunchMode.inAppBrowserView,
       ));
     });
 
@@ -191,7 +191,7 @@ void main() {
       await tester.tap(find.text('externalValue'));
       check(testBinding.takeLaunchUrlCalls()).single.equals((
         url: Uri.parse('http://example/externalValue'),
-        mode: LaunchMode.platformDefault,
+        mode: LaunchMode.inAppBrowserView,
       ));
     });
 
