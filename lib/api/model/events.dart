@@ -809,27 +809,19 @@ class UpdateMessageMoveData {
       return null;
     }
 
-    if (origStreamId == null || newStreamId == null) {
+    return UpdateMessageMoveData(
       // The `stream_id` field (aka origStreamId) is documented to be present on moves;
       // newStreamId should not be null either because it falls back to origStreamId.
-      throw FormatException('Malformed UpdateMessageEvent: move but no origStreamId');
-    }
-    if (origTopic == null || newTopic == null) {
+      origStreamId: origStreamId!,
+      newStreamId: newStreamId!,
+
       // The `orig_subject` field (aka origTopic) is documented to be present on moves;
       // newTopic should not be null either because it falls back to origTopic.
-      throw FormatException('Malformed UpdateMessageEvent: move but no origTopic');
-    }
-    if (propagateMode == null) {
-      // The `propagate_mode` field (aka propagateMode) is documented to be present on moves.
-      throw FormatException('Malformed UpdateMessageEvent: move but no propagateMode');
-    }
+      origTopic: origTopic!,
+      newTopic: newTopic!,
 
-    return UpdateMessageMoveData(
-      origStreamId: origStreamId,
-      newStreamId: newStreamId,
-      origTopic: origTopic,
-      newTopic: newTopic,
-      propagateMode: propagateMode,
+      // The `propagate_mode` field (aka propagateMode) is documented to be present on moves.
+      propagateMode: propagateMode!,
     );
   }
 }
