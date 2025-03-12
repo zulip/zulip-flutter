@@ -23,7 +23,10 @@ import '../example_data.dart' as eg;
 ///
 /// See also [TestZulipBinding.globalStore], which provides one of these.
 class TestGlobalStore extends GlobalStore {
-  TestGlobalStore({required super.globalSettings, required super.accounts});
+  TestGlobalStore({
+    GlobalSettingsData? globalSettings,
+    required super.accounts,
+  }) : super(globalSettings: globalSettings ?? eg.globalSettings());
 
   @override
   Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data) async {
