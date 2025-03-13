@@ -538,6 +538,15 @@
   "@topicValidationErrorMandatoryButEmpty": {
     "description": "Topic validation error when topic is required but was empty."
   },
+  "errorServerVersionUnsupportedMessage": "{url} is running Zulip Server {zulipVersion}, which is unsupported. The minimum supported version is Zulip Server {minSupportedZulipVersion}.",
+  "@errorServerVersionUnsupportedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+    "placeholders": {
+      "url": {"type": "String", "example": "http://chat.example.com/"},
+      "zulipVersion": {"type": "String", "example": "3.2"},
+      "minSupportedZulipVersion": {"type": "String", "example": "4.0"}
+    }
+  },
   "errorInvalidApiKeyMessage": "Your account at {url} could not be authenticated. Please try logging in again or use another account.",
   "@errorInvalidApiKeyMessage": {
     "description": "Error message in the dialog for invalid API key.",

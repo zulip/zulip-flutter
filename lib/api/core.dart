@@ -10,6 +10,24 @@ import '../model/binding.dart';
 import '../model/localizations.dart';
 import 'exception.dart';
 
+/// The Zulip Server version below which we should refuse to connect.
+///
+/// When updating this, also update [kMinSupportedZulipFeatureLevel]
+/// and the README.
+const kMinSupportedZulipVersion = '4.0';
+
+/// The Zulip feature level reserved for the [kMinSupportedZulipVersion] release.
+///
+/// For this value, see the API changelog:
+///   https://zulip.com/api/changelog
+const kMinSupportedZulipFeatureLevel = 65;
+
+/// The doc stating our oldest supported server version.
+// TODO: Instead, link to new Help Center doc once we have it:
+//   https://github.com/zulip/zulip/issues/23842
+final kServerSupportDocUrl = Uri.parse(
+  'https://zulip.readthedocs.io/en/latest/overview/release-lifecycle.html#client-apps');
+
 /// A fused JSON + UTF-8 decoder.
 ///
 /// This object is an instance of [`_JsonUtf8Decoder`][1] which is

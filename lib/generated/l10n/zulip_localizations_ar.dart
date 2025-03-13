@@ -417,6 +417,11 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get topicValidationErrorMandatoryButEmpty => 'Topics are required in this organization.';
 
   @override
+  String errorServerVersionUnsupportedMessage(String url, String zulipVersion, String minSupportedZulipVersion) {
+    return '$url is running Zulip Server $zulipVersion, which is unsupported. The minimum supported version is Zulip Server $minSupportedZulipVersion.';
+  }
+
+  @override
   String errorInvalidApiKeyMessage(String url) {
     return 'Your account at $url could not be authenticated. Please try logging in again or use another account.';
   }

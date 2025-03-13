@@ -825,6 +825,12 @@ abstract class ZulipLocalizations {
   /// **'Topics are required in this organization.'**
   String get topicValidationErrorMandatoryButEmpty;
 
+  /// Error message in the dialog for when the Zulip Server version is unsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'{url} is running Zulip Server {zulipVersion}, which is unsupported. The minimum supported version is Zulip Server {minSupportedZulipVersion}.'**
+  String errorServerVersionUnsupportedMessage(String url, String zulipVersion, String minSupportedZulipVersion);
+
   /// Error message in the dialog for invalid API key.
   ///
   /// In en, this message translates to:
