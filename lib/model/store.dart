@@ -193,6 +193,20 @@ abstract class GlobalStore extends ChangeNotifier {
       assert(account != null); // doLoadPerAccount would have thrown AccountNotFoundException
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       switch (e) {
+        case _ServerVersionUnsupportedException():
+          reportErrorToUserModally(
+            zulipLocalizations.errorCouldNotConnectTitle,
+            message: zulipLocalizations.errorServerVersionUnsupportedMessage(
+              account!.realmUrl.toString(),
+              e.data.zulipVersion,
+              kMinSupportedZulipVersion),
+            learnMoreButtonUrl: kServerSupportDocUrl);
+          // The important thing is to tear down per-account UI,
+          // and logOutAccount conveniently handles that already.
+          // It's not ideal to force the user to reauthenticate when they retry,
+          // and we can revisit that later if needed.
+          await logOutAccount(this, accountId);
+          throw AccountNotFoundException();
         case HttpException(httpStatus: 401):
           // The API key is invalid and the store can never be loaded
           // unless the user retries manually.
@@ -984,8 +998,15 @@ class UpdateMachine {
     }
 
     final stopwatch = Stopwatch()..start();
-    final initialSnapshot = await _registerQueueWithRetry(connection,
-      stopAndThrowIfNoAccount: stopAndThrowIfNoAccount);
+    InitialSnapshot? initialSnapshot;
+    try {
+      initialSnapshot = await _registerQueueWithRetry(connection,
+        stopAndThrowIfNoAccount: stopAndThrowIfNoAccount);
+    } on _ServerVersionUnsupportedException catch (e) {
+      connection.close();
+      await updateZulipVersionData(e.data);
+      rethrow;
+    }
     final t = (stopwatch..stop()).elapsed;
     assert(debugLog("initial fetch time: ${t.inMilliseconds}ms"));
 
@@ -1034,7 +1055,12 @@ class UpdateMachine {
       } catch (e, s) {
         stopAndThrowIfNoAccount();
         // TODO(#890): tell user if initial-fetch errors persist, or look non-transient
+        final ZulipVersionData? zulipVersionData;
         switch (e) {
+          case MalformedServerResponseException()
+            when (zulipVersionData = ZulipVersionData.fromMalformedServerResponseException(e))
+              ?.isUnsupported == true:
+            throw _ServerVersionUnsupportedException(zulipVersionData!);
           case HttpException(httpStatus: 401):
             // We cannot recover from this error through retrying.
             // Leave it to [GlobalStore.loadPerAccount].
@@ -1052,6 +1078,10 @@ class UpdateMachine {
       }
       if (result != null) {
         stopAndThrowIfNoAccount();
+        final zulipVersionData = ZulipVersionData.fromInitialSnapshot(result);
+        if (zulipVersionData.isUnsupported) {
+          throw _ServerVersionUnsupportedException(zulipVersionData);
+        }
         return result;
       }
     }
@@ -1474,9 +1504,31 @@ class ZulipVersionData {
       zulipMergeBase: initialSnapshot.zulipMergeBase,
       zulipFeatureLevel: initialSnapshot.zulipFeatureLevel);
 
+  /// A [ZulipVersionData] from a [MalformedServerResponseException],
+  /// if the body was readable/valid JSON and contained the data, else null.
+  static ZulipVersionData? fromMalformedServerResponseException(MalformedServerResponseException e) {
+    try {
+      final data = e.data!;
+      return ZulipVersionData(
+        zulipVersion: data['zulip_version'] as String,
+        zulipMergeBase: data['zulip_merge_base'] as String?,
+        zulipFeatureLevel: data['zulip_feature_level'] as int);
+    } catch (inner) {
+      return null;
+    }
+  }
+
   final String zulipVersion;
   final String? zulipMergeBase;
   final int zulipFeatureLevel;
+
+  bool get isUnsupported => zulipFeatureLevel < kMinSupportedZulipFeatureLevel;
+}
+
+class _ServerVersionUnsupportedException implements Exception {
+  final ZulipVersionData data;
+
+  _ServerVersionUnsupportedException(this.data);
 }
 
 class _EventHandlingException implements Exception {

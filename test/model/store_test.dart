@@ -9,6 +9,7 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/api/backoff.dart';
 import 'package:zulip/api/core.dart';
 import 'package:zulip/api/model/events.dart';
+import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/events.dart';
 import 'package:zulip/api/route/messages.dart';
@@ -173,6 +174,42 @@ void main() {
     check(connection).isOpen.isTrue();
   }));
 
+  test('GlobalStore.perAccount loading succeeds; InitialSnapshot has ancient server version', () => awaitFakeAsync((async) async {
+    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
+    final json = eg.initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel).toJson();
+    globalStore.prepareRegisterQueueResponse = (connection) {
+      connection.prepare(json: json);
+    };
+    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
+    final future = globalStore.perAccount(eg.selfAccount.id);
+    check(connection.takeRequests()).length.equals(1); // register request
+
+    await check(future).throws<AccountNotFoundException>();
+    check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+    // no poll, server-emoji-data, or register-token requests
+    check(connection.takeRequests()).isEmpty();
+    check(connection).isOpen.isFalse();
+  }));
+
+  test('GlobalStore.perAccount loading fails; malformed response with ancient server version', () => awaitFakeAsync((async) async {
+    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
+    final json = eg.initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel).toJson();
+    json['realm_emoji'] = 123;
+    check(() => InitialSnapshot.fromJson(json)).throws<void>();
+    globalStore.prepareRegisterQueueResponse = (connection) {
+      connection.prepare(json: json);
+    };
+    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
+    final future = globalStore.perAccount(eg.selfAccount.id);
+    check(connection.takeRequests()).length.equals(1); // register request
+
+    await check(future).throws<AccountNotFoundException>();
+    check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+    // no poll, server-emoji-data, or register-token requests
+    check(connection.takeRequests()).isEmpty();
+    check(connection).isOpen.isFalse();
+  }));
+
   test('GlobalStore.perAccount account is logged out while loading; then succeeds', () => awaitFakeAsync((async) async {
     final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
     globalStore.prepareRegisterQueueResponse = (connection) =>
@@ -207,6 +244,52 @@ void main() {
     await logOutAccount(globalStore, eg.selfAccount.id);
     check(globalStore.takeDoRemoveAccountCalls())
       .single.equals(eg.selfAccount.id);
+
+    await check(future).throws<AccountNotFoundException>();
+    check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
+    // no poll, server-emoji-data, or register-token requests
+    check(connection.takeRequests()).isEmpty();
+    check(connection).isOpen.isFalse();
+  }));
+
+  test('GlobalStore.perAccount account is logged out while loading; then succeeds; InitialSnapshot has ancient server version', () => awaitFakeAsync((async) async {
+    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
+    final json = eg.initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel).toJson();
+    globalStore.prepareRegisterQueueResponse = (connection) {
+      connection.prepare(
+        delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
+        json: json);
+    };
+    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
+    final future = globalStore.perAccount(eg.selfAccount.id);
+    check(connection.takeRequests()).length.equals(1); // register request
+
+    await logOutAccount(globalStore, eg.selfAccount.id);
+    check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+
+    await check(future).throws<AccountNotFoundException>();
+    check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
+    // no poll, server-emoji-data, or register-token requests
+    check(connection.takeRequests()).isEmpty();
+    check(connection).isOpen.isFalse();
+  }));
+
+  test('GlobalStore.perAccount account is logged out while loading; then fails; malformed response with ancient server version', () => awaitFakeAsync((async) async {
+    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
+    final json = eg.initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel).toJson();
+    json['realm_emoji'] = 123;
+    check(() => InitialSnapshot.fromJson(json)).throws<void>();
+    globalStore.prepareRegisterQueueResponse = (connection) {
+      connection.prepare(
+        delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
+        json: json);
+    };
+    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
+    final future = globalStore.perAccount(eg.selfAccount.id);
+    check(connection.takeRequests()).length.equals(1); // register request
+
+    await logOutAccount(globalStore, eg.selfAccount.id);
+    check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
 
     await check(future).throws<AccountNotFoundException>();
     check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
@@ -1115,6 +1198,46 @@ void main() {
         connection.prepare(
           delay: Duration(seconds: 1),
           apiException: eg.apiExceptionUnauthorized());
+      });
+
+      async.elapse(const Duration(seconds: 1));
+      check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+
+      async.elapse(TestGlobalStore.removeAccountDuration);
+      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+
+      async.flushTimers();
+      // Reload never succeeds and there are no unhandled errors.
+      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+    }));
+
+    test('new store is not loaded, gets InitialSnapshot with ancient server version', () => awaitFakeAsync((async) async {
+      final json = eg.initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel).toJson();
+      await prepareReload(async, prepareRegisterQueueResponse: (connection) {
+        connection.prepare(
+          delay: Duration(seconds: 1),
+          json: json);
+      });
+
+      async.elapse(const Duration(seconds: 1));
+      check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+
+      async.elapse(TestGlobalStore.removeAccountDuration);
+      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+
+      async.flushTimers();
+      // Reload never succeeds and there are no unhandled errors.
+      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+    }));
+
+    test('new store is not loaded, gets malformed response with ancient server version', () => awaitFakeAsync((async) async {
+      final json = eg.initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel).toJson();
+      json['realm_emoji'] = 123;
+      check(() => InitialSnapshot.fromJson(json)).throws<void>();
+      await prepareReload(async, prepareRegisterQueueResponse: (connection) {
+        connection.prepare(
+          delay: Duration(seconds: 1),
+          json: json);
       });
 
       async.elapse(const Duration(seconds: 1));
