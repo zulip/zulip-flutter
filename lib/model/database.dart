@@ -100,7 +100,7 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 4; // See note.
 
-  Future<void> _dropAndCreateAll(Migrator m, {
+  static Future<void> _dropAndCreateAll(Migrator m, {
     required int schemaVersion,
   }) async {
     await m.database.transaction(() async {
