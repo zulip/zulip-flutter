@@ -367,6 +367,18 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get lightboxVideoDuration => 'Video duration';
 
   @override
+  String get lightboxDownloadImageTooltip => 'Download image';
+
+  @override
+  String get lightboxDownloadImageSuccess => 'Image downloaded successfully!';
+
+  @override
+  String get lightboxDownloadImageFailed => 'Failed to download the image.';
+
+  @override
+  String get lightboxDownloadImageError => 'An error occurred while downloading the image.';
+
+  @override
   String get loginPageTitle => 'Log in';
 
   @override
