@@ -95,7 +95,7 @@ class AppDatabase extends _$AppDatabase {
   //    See ../../README.md#generated-files for more
   //    information on using the build_runner.
   //  * Update [_getSchema] to handle the new schemaVersion.
-  //  * Write a migration in `onUpgrade` below.
+  //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
   @override
   int get schemaVersion => 4; // See note.
@@ -125,6 +125,19 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  static final MigrationStepWithVersion _migrationSteps = migrationSteps(
+    from1To2: (m, schema) async {
+      await m.addColumn(schema.accounts, schema.accounts.ackedPushToken);
+    },
+    from2To3: (m, schema) async {
+      await m.createTable(schema.globalSettings);
+    },
+    from3To4: (m, schema) async {
+      await m.addColumn(
+        schema.globalSettings, schema.globalSettings.browserPreference);
+    },
+  );
+
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
@@ -142,19 +155,7 @@ class AppDatabase extends _$AppDatabase {
         }
         assert(1 <= from && from <= to && to <= schemaVersion);
 
-        await m.runMigrationSteps(from: from, to: to,
-          steps: migrationSteps(
-            from1To2: (m, schema) async {
-              await m.addColumn(schema.accounts, schema.accounts.ackedPushToken);
-            },
-            from2To3: (m, schema) async {
-              await m.createTable(schema.globalSettings);
-            },
-            from3To4: (m, schema) async {
-              await m.addColumn(
-                schema.globalSettings, schema.globalSettings.browserPreference);
-            },
-          ));
+        await m.runMigrationSteps(from: from, to: to, steps: _migrationSteps);
       });
   }
 
