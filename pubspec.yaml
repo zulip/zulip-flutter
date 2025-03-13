@@ -62,6 +62,7 @@ dependencies:
   url_launcher_android: ">=6.1.0"
   video_player: ^2.8.3
   wakelock_plus: ^1.2.8
+  diacritic: ^0.1.6
   zulip_plugin:
     path: ./packages/zulip_plugin
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.

@@ -1,7 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
+import 'package:diacritic/diacritic.dart'; // Helps remove accents for better sorting
+import 'package:flutter/widgets.dart'; // For Localizations.localeOf()
 
 import '../api/model/events.dart';
 import '../api/model/model.dart';
@@ -466,7 +467,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   /// particularly because [List.sort] makes no guarantees about the order
   /// of items that compare equal.
   int debugCompareUsers(User userA, User userB) {
-    return _comparator(store: store, narrow: narrow)(userA, userB);
+    return _comparator(store: store, narrow: narrow,)(userA, userB);
   }
 
   static int Function(User, User) _comparator({
@@ -599,7 +600,13 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
       .normalizedNameForUser(userA);
     final userBName = store.autocompleteViewManager.autocompleteDataCache
       .normalizedNameForUser(userB);
-    return userAName.compareTo(userBName); // TODO(i18n): add locale-aware sorting
+
+    final normalizedA = removeDiacritics(userAName);
+    final normalizeB = removeDiacritics(userBName);
+
+    return normalizedA.compareTo(normalizeB);
+
+    // return userAName.compareTo(userBName); // TODO(i18n): add locale-aware sorting
   }
 
   void computeWildcardMentionResults({
@@ -744,7 +751,7 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
     required Narrow narrow,
   }) {
     return MentionAutocompleteView.init(
-      store: store, localizations: localizations, narrow: narrow, query: this);
+      store: store, localizations: localizations, narrow: narrow, query: this,);
   }
 
   bool testWildcardOption(WildcardMentionOption wildcardOption, {
