@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:html/dom.dart' as dom;
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' as intl;
 
 import '../api/core.dart';
 import '../api/model/model.dart';
@@ -16,6 +16,7 @@ import '../model/avatar_url.dart';
 import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
+import '../model/katex.dart';
 import 'code_block.dart';
 import 'dialog.dart';
 import 'icons.dart';
@@ -831,11 +832,153 @@ class MathBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _CodeBlockContainer(
+    final spans = node.spans;
+    if (spans == null) {
+      return _CodeBlockContainer(
       borderColor: ContentTheme.of(context).colorMathBlockBorder,
       child: Text.rich(TextSpan(
         style: ContentTheme.of(context).codeBlockTextStyles.plain,
         children: [TextSpan(text: node.texSource)])));
+    }
+
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: DefaultTextStyle(
+        style: TextStyle(
+          fontSize: kBaseFontSize * 1.21,
+          fontFamily: 'KaTeX_Main',
+          height: 1.2),
+        child: Center(
+          child: SingleChildScrollViewWithScrollbar(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: List.unmodifiable(spans.map((e) => switch (e) {
+                KatexSpan() => _MathBlockSpan(e),
+                KatexNegativeRightMarginSpans() =>
+                  _MathBlockNegativeMarginSpans(e),
+              })))))));
+  }
+}
+
+class _MathBlockSpan extends StatelessWidget {
+  const _MathBlockSpan(this.span);
+
+  final KatexSpan span;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    Widget widget = const SizedBox.shrink();
+    if (span.text != null) widget = Text(span.text!);
+    if (span.spans.isNotEmpty) {
+      widget = Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: List.unmodifiable(
+          span.spans.map(
+            (e) => switch (e) {
+              KatexSpan() => _MathBlockSpan(e),
+              KatexNegativeRightMarginSpans() =>
+                _MathBlockNegativeMarginSpans(e),
+            })));
+    }
+
+    final styles = span.styles;
+    TextStyle? textStyle;
+    TextAlign? textAlign;
+
+    if (styles.fontFamily != null) {
+      textStyle ??= TextStyle();
+      textStyle = textStyle.copyWith(fontFamily: styles.fontFamily);
+    }
+    if (styles.fontSizeEm != null) {
+      textStyle ??= TextStyle();
+      textStyle = textStyle.copyWith(fontSize: styles.fontSizeEm! * em);
+    }
+    if (styles.fontStyle != null) {
+      textStyle ??= TextStyle();
+      textStyle = textStyle.copyWith(fontStyle: switch (styles.fontStyle!) {
+        KatexSpanFontStyle.normal => FontStyle.normal,
+        KatexSpanFontStyle.italic => FontStyle.italic,
+      });
+    }
+    if (styles.fontWeight != null) {
+      textStyle ??= TextStyle();
+      textStyle = textStyle.copyWith(fontWeight: switch (styles.fontWeight!) {
+        KatexSpanFontWeight.bold => FontWeight.bold,
+      });
+    }
+    if (styles.textAlign != null) {
+      textAlign = switch (styles.textAlign!) {
+        KatexSpanTextAlign.left => TextAlign.left,
+        KatexSpanTextAlign.center => TextAlign.center,
+        KatexSpanTextAlign.right => TextAlign.right,
+      };
+    }
+
+    if (styles.heightEm != null || styles.widthEm != null) {
+      widget = SizedBox(
+        width: styles.widthEm != null ? styles.widthEm! * em : null,
+        height: styles.heightEm != null ? styles.heightEm! * em : null,
+        child: widget);
+    }
+    if (styles.topEm != null) {
+      // TODO
+    }
+    if (styles.verticalAlignEm != null) {
+      // TODO
+    }
+
+    final marginRightEm = styles.marginRightEm;
+    final marginLeftEm = styles.marginLeftEm;
+    if ((marginRightEm != null && !marginRightEm.isNegative) ||
+        (marginLeftEm != null && !marginLeftEm.isNegative)) {
+      widget = Padding(
+        padding: EdgeInsets.only(
+          left: marginLeftEm != null && !marginLeftEm.isNegative
+            ? marginLeftEm * em
+            : 0,
+          right: marginRightEm != null && !marginRightEm.isNegative
+            ? marginRightEm * em
+            : 0,
+        ),
+        child: widget);
+    }
+    if (textStyle != null || textAlign != null) {
+      widget = DefaultTextStyle.merge(
+        style: textStyle,
+        textAlign: textAlign,
+        child: widget);
+    }
+
+    return OverflowBox(
+      maxWidth: double.infinity,
+      maxHeight: double.infinity,
+      alignment: AlignmentDirectional.topStart,
+      fit: OverflowBoxFit.deferToChild,
+      child: widget);
+  }
+}
+
+class _MathBlockNegativeMarginSpans extends StatelessWidget {
+  const _MathBlockNegativeMarginSpans(this.spans);
+
+  final KatexNegativeRightMarginSpans spans;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    return Transform.translate(
+      offset: Offset(spans.marginRightEm * em, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: List.unmodifiable(
+          spans.spans.map((e) => _MathBlockSpan(e)))));
   }
 }
 
@@ -1310,7 +1453,7 @@ class GlobalTime extends StatelessWidget {
   final GlobalTimeNode node;
   final TextStyle ambientTextStyle;
 
-  static final _dateFormat = DateFormat('EEE, MMM d, y, h:mm a'); // TODO(i18n): localize date
+  static final _dateFormat = intl.DateFormat('EEE, MMM d, y, h:mm a'); // TODO(i18n): localize date
 
   @override
   Widget build(BuildContext context) {
