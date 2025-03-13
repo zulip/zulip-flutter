@@ -477,4 +477,8 @@ void main () {
     // access to the account being logged out.
     check(testBinding.globalStore).accountIds.isEmpty();
   });
+
+  // TODO end-to-end widget test that checks the error dialog when connecting
+  //   to an ancient server:
+  //     https://github.com/zulip/zulip-flutter/pull/1410#discussion_r1999991512
 }

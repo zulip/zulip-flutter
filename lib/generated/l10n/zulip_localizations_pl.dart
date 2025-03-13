@@ -417,6 +417,11 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get topicValidationErrorMandatoryButEmpty => 'Wątki są wymagane przez tę organizację.';
 
   @override
+  String errorServerVersionUnsupportedMessage(String url, String zulipVersion, String minSupportedZulipVersion) {
+    return '$url is running Zulip Server $zulipVersion, which is unsupported. The minimum supported version is Zulip Server $minSupportedZulipVersion.';
+  }
+
+  @override
   String errorInvalidApiKeyMessage(String url) {
     return 'Konto w ramach $url nie zostało przyjęte. Spróbuj ponownie lub skorzystaj z innego konta.';
   }
