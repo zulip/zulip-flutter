@@ -173,40 +173,36 @@ class MessageStoreImpl with MessageStore {
     // For reference, see: https://zulip.com/api/get-events#update_message
 
     final origStreamId = event.origStreamId;
+    final newStreamId = event.newStreamId ?? origStreamId;
     final origTopic = event.origTopic;
+    final newTopic = event.newTopic ?? origTopic;
     final propagateMode = event.propagateMode;
 
-    if (origTopic == null) {
+    if (newStreamId == origStreamId && newTopic == origTopic) {
       // There was no move.
-      assert(() {
-        if (event.newStreamId != null && origStreamId != null
-            && event.newStreamId != origStreamId) {
-          // This should be impossible; `orig_subject` (aka origTopic) is
-          // documented to be present when either the stream or topic changed.
-          debugLog('Malformed UpdateMessageEvent: stream move but no origTopic'); // TODO(log)
-        }
-        return true;
-      }());
+      if (propagateMode != null) {
+        assert(debugLog(
+          'Malformed UpdateMessageEvent: incoherent message-move fields; '
+          'propagate_mode present but no new channel or topic')); // TODO(log)
+      }
       return;
     }
 
-    if (origStreamId == null) {
+    if (origStreamId == null || newStreamId == null) {
       // The `stream_id` field (aka origStreamId) is documented to be present on moves.
+      // newStreamId should not be null either because it falls back to origStreamId.
       assert(debugLog('Malformed UpdateMessageEvent: move but no origStreamId')); // TODO(log)
+      return;
+    }
+    if (origTopic == null || newTopic == null) {
+      // The `orig_subject` field (aka origTopic) is documented to be present on moves.
+      // newTopic should not be null either because it falls back to origTopic.
+      assert(debugLog('Malformed UpdateMessageEvent: move but no origTopic')); // TODO(log)
       return;
     }
     if (propagateMode == null) {
       // The `propagate_mode` field (aka propagateMode) is documented to be present on moves.
       assert(debugLog('Malformed UpdateMessageEvent: move but no propagateMode')); // TODO(log)
-      return;
-    }
-
-    final newStreamId = event.newStreamId ?? origStreamId;
-    final newTopic = event.newTopic ?? origTopic;
-    if (newStreamId == origStreamId && newTopic == origTopic) {
-      // If neither the channel nor topic name changed, nothing moved.
-      // In that case `orig_subject` (aka origTopic) should have been null.
-      assert(debugLog('Malformed UpdateMessageEvent: move but no newStreamId or newTopic')); // TODO(log)
       return;
     }
 
