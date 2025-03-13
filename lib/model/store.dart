@@ -65,8 +65,6 @@ abstract class GlobalStore extends ChangeNotifier {
   GlobalSettingsData _globalSettings;
 
   /// Update the global settings in the store.
-  ///
-  /// The global settings must already exist in the store.
   Future<void> updateGlobalSettings(GlobalSettingsCompanion data) async {
     await doUpdateGlobalSettings(data);
     _globalSettings = _globalSettings.copyWithCompanion(data);
