@@ -1334,7 +1334,10 @@ class MessageWithPossibleSender extends StatelessWidget {
 
     Widget? senderRow;
     if (item.showSender) {
-      final time = _kMessageTimestampFormat
+      final userSettings = store.userSettings;
+      final is24HourFormat = userSettings?.twentyFourHourTime;
+      final timeFormat = DateFormat(getTimeFormat(is24HourFormat ?? false), ZulipLocalizations.of(context).localeName);
+      final time = timeFormat
         .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
       senderRow = Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1438,4 +1441,6 @@ class MessageWithPossibleSender extends StatelessWidget {
 }
 
 // TODO(i18n): web seems to ignore locale in formatting time, but we could do better
-final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
+String getTimeFormat(bool is24Hour) {
+  return is24Hour ? 'HH:mm' : 'h:mm aa';
+}
