@@ -58,25 +58,22 @@ abstract class GlobalStore extends ChangeNotifier {
     required GlobalSettingsData globalSettings,
     required Iterable<Account> accounts,
   })
-    : _globalSettings = globalSettings,
+    : settingsNotifier = GlobalSettingsStore(data: globalSettings),
       _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
 
-  // TODO use this as the actual store
-  final GlobalSettingsStore settingsNotifier = GlobalSettingsStore();
+  final GlobalSettingsStore settingsNotifier; // TODO rename as the store
 
   /// A cache of the [GlobalSettingsData] singleton in the underlying data store.
   ///
   /// To be notified for changes to this value, subscribe to [settingsNotifier]
   /// (usually by calling [GlobalStoreWidget.settingsOf]).
   /// The [GlobalStore] itself will not notify its own listeners.
-  GlobalSettingsData get globalSettings => _globalSettings;
-  GlobalSettingsData _globalSettings;
+  GlobalSettingsData get globalSettings => settingsNotifier.data;
 
   /// Update the global settings in the store.
   Future<void> updateGlobalSettings(GlobalSettingsCompanion data) async {
     await doUpdateGlobalSettings(data);
-    _globalSettings = _globalSettings.copyWithCompanion(data);
-    settingsNotifier.markUpdated();
+    settingsNotifier.update(data);
   }
 
   /// Update the global settings in the underlying data store.

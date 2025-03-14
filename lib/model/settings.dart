@@ -90,13 +90,17 @@ extension GlobalSettingsHelpers on GlobalSettingsData {
 ///
 /// From UI code, use [GlobalStoreWidget.settingsOf] to get hold of
 /// the settings data.
-///
-/// (At the moment the actual settings data lives on [GlobalStore];
-/// but when the settings change, the notification goes to listeners
-/// of this class, not [GlobalStore].  Soon the actual data will
-/// move to this class too.)
 class GlobalSettingsStore extends ChangeNotifier {
-  // TODO move the actual settings content to this class
+  GlobalSettingsStore({required GlobalSettingsData data}) : _data = data;
 
-  void markUpdated() => notifyListeners();
+  /// A cache of the [GlobalSettingsData] singleton in the underlying data store.
+  GlobalSettingsData get data => _data;
+  GlobalSettingsData _data;
+
+  /// (Should only be called by [GlobalStore].)
+  void update(GlobalSettingsCompanion data) {
+    // TODO move responsibility for updating the DB to this class too
+    _data = _data.copyWithCompanion(data);
+    notifyListeners();
+  }
 }
