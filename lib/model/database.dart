@@ -181,8 +181,7 @@ class AppDatabase extends _$AppDatabase {
       });
   }
 
-  // TODO rename ensureGlobalSettings to reflect its reduced role
-  Future<GlobalSettingsData> ensureGlobalSettings() async {
+  Future<GlobalSettingsData> getGlobalSettings() async {
     // The migrations ensure there is a row.
     return await (select(globalSettings)..limit(1)).getSingle();
   }

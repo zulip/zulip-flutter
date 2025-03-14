@@ -26,18 +26,7 @@ void main() {
     });
 
     test('initialize GlobalSettings with defaults', () async {
-      check(await database.ensureGlobalSettings()).themeSetting.isNull();
-    });
-
-    test('ensure single GlobalSettings row', () async {
-      final globalSettings = await database.ensureGlobalSettings();
-      check(await database.select(database.globalSettings).get())
-        .single.equals(globalSettings);
-
-      // Subsequent calls to `ensureGlobalSettings` do not insert new rows.
-      check(await database.ensureGlobalSettings()).equals(globalSettings);
-      check(await database.select(database.globalSettings).get())
-        .single.equals(globalSettings);
+      check(await database.getGlobalSettings()).themeSetting.isNull();
     });
 
     test('does not crash if multiple global settings rows', () async {
@@ -45,17 +34,17 @@ void main() {
         .insert(const GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.dark)));
 
       check(await database.select(database.globalSettings).get()).length.equals(2);
-      check(await database.ensureGlobalSettings()).themeSetting.isNull();
+      check(await database.getGlobalSettings()).themeSetting.isNull();
     });
 
     test('GlobalSettings updates work', () async {
-      check(await database.ensureGlobalSettings())
+      check(await database.getGlobalSettings())
         .themeSetting.isNull();
 
       // As in doUpdateGlobalSettings.
       await database.update(database.globalSettings)
         .write(GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.dark)));
-      check(await database.ensureGlobalSettings())
+      check(await database.getGlobalSettings())
         .themeSetting.equals(ThemeSetting.dark);
     });
 

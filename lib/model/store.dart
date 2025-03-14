@@ -855,7 +855,7 @@ class LiveGlobalStore extends GlobalStore {
   // by doing this loading up front before constructing a [GlobalStore].
   static Future<GlobalStore> load() async {
     final db = AppDatabase(NativeDatabase.createInBackground(await _dbFile()));
-    final globalSettings = await db.ensureGlobalSettings();
+    final globalSettings = await db.getGlobalSettings();
     final accounts = await db.select(db.accounts).get();
     return LiveGlobalStore._(db: db,
       globalSettings: globalSettings,
