@@ -1,9 +1,7 @@
 import 'package:checks/checks.dart';
-import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zulip/model/database.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/text.dart';
@@ -134,12 +132,10 @@ void main() {
     final element = tester.element(find.byType(Placeholder));
     check(zulipThemeData(element)).brightness.equals(Brightness.light);
 
-    await testBinding.globalStore.settings.update(
-      const GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.dark)));
+    await testBinding.globalStore.settings.setThemeSetting(ThemeSetting.dark);
     check(zulipThemeData(element)).brightness.equals(Brightness.dark);
 
-    await testBinding.globalStore.settings.update(
-      const GlobalSettingsCompanion(themeSetting: Value(null)));
+    await testBinding.globalStore.settings.setThemeSetting(null);
     check(zulipThemeData(element)).brightness.equals(Brightness.light);
   });
 

@@ -1,8 +1,6 @@
-import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
-import '../model/database.dart';
 import '../model/settings.dart';
 import 'app_bar.dart';
 import 'page.dart';
@@ -34,8 +32,7 @@ class _ThemeSetting extends StatelessWidget {
 
   void _handleChange(BuildContext context, ThemeSetting? newThemeSetting) {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
-    globalSettings.update(
-      GlobalSettingsCompanion(themeSetting: Value(newThemeSetting)));
+    globalSettings.setThemeSetting(newThemeSetting);
   }
 
   @override
@@ -62,9 +59,9 @@ class _BrowserPreferenceSetting extends StatelessWidget {
 
   void _handleChange(BuildContext context, bool newOpenLinksWithInAppBrowser) {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
-    globalSettings.update(GlobalSettingsCompanion(browserPreference: Value(
+    globalSettings.setBrowserPreference(
       newOpenLinksWithInAppBrowser ? BrowserPreference.inApp
-                                   : BrowserPreference.external)));
+                                   : BrowserPreference.external);
   }
 
   @override

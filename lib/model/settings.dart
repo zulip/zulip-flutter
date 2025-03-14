@@ -62,12 +62,16 @@ class GlobalSettingsStore extends ChangeNotifier {
 
   /// The user's choice of [ThemeSetting];
   /// null means the device-level choice of theme.
+  ///
+  /// See also [setThemeSetting].
   ThemeSetting? get themeSetting => _data.themeSetting;
 
   /// The user's choice of [BrowserPreference];
   /// null means use our default choice.
   ///
   /// Consider using [effectiveBrowserPreference] or [getUrlLaunchMode].
+  ///
+  /// See also [setBrowserPreference].
   BrowserPreference? get browserPreference => _data.browserPreference;
 
   /// The value of [BrowserPreference] to use:
@@ -110,10 +114,19 @@ class GlobalSettingsStore extends ChangeNotifier {
     }
   }
 
-  /// Update the global settings in the store.
-  Future<void> update(GlobalSettingsCompanion data) async {
+  Future<void> _update(GlobalSettingsCompanion data) async {
     await _backend.doUpdateGlobalSettings(data);
     _data = _data.copyWithCompanion(data);
     notifyListeners();
+  }
+
+  /// Set [themeSetting], persistently for future runs of the app.
+  Future<void> setThemeSetting(ThemeSetting? value) async {
+    await _update(GlobalSettingsCompanion(themeSetting: Value(value)));
+  }
+
+  /// Set [browserPreference], persistently for future runs of the app.
+  Future<void> setBrowserPreference(BrowserPreference? value) async {
+    await _update(GlobalSettingsCompanion(browserPreference: Value(value)));
   }
 }

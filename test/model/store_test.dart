@@ -15,7 +15,6 @@ import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/log.dart';
 import 'package:zulip/model/actions.dart';
-import 'package:zulip/model/database.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
@@ -37,8 +36,7 @@ void main() {
       final globalStore = eg.globalStore();
       check(globalStore).settings.themeSetting.equals(null);
 
-      await globalStore.settings.update(
-        GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.dark)));
+      await globalStore.settings.setThemeSetting(ThemeSetting.dark);
       check(globalStore).settings.themeSetting.equals(ThemeSetting.dark);
     });
 
@@ -48,8 +46,7 @@ void main() {
       globalStore.settings.addListener(() => notifyCount++);
       check(notifyCount).equals(0);
 
-      await globalStore.settings.update(
-        GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.light)));
+      await globalStore.settings.setThemeSetting(ThemeSetting.light);
       check(notifyCount).equals(1);
     });
 
