@@ -994,8 +994,8 @@ class UpdateMachine {
   ///
   /// In the future this might load an old snapshot from local storage first.
   static Future<UpdateMachine> load(GlobalStore globalStore, int accountId) async {
-    Account account = globalStore.getAccount(accountId)!;
-    final connection = globalStore.apiConnectionFromAccount(account);
+    final connection = globalStore.apiConnectionFromAccount(
+      globalStore.getAccount(accountId)!);
 
     void stopAndThrowIfNoAccount() {
       final account = globalStore.getAccount(accountId);
@@ -1014,9 +1014,8 @@ class UpdateMachine {
 
     final zulipVersionData = ZulipVersionData.fromInitialSnapshot(initialSnapshot);
     // `!` is OK because _registerQueueWithRetry would have thrown if no account
-    account = globalStore.getAccount(accountId)!;
-    if (!zulipVersionData.matchesAccount(account)) {
-      account = await globalStore.updateZulipVersionData(accountId, zulipVersionData);
+    if (!zulipVersionData.matchesAccount(globalStore.getAccount(accountId)!)) {
+      await globalStore.updateZulipVersionData(accountId, zulipVersionData);
       connection.zulipFeatureLevel = zulipVersionData.zulipFeatureLevel;
     }
 
