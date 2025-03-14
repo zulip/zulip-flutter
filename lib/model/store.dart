@@ -199,14 +199,16 @@ abstract class GlobalStore extends ChangeNotifier {
     final PerAccountStore store;
     try {
       store = await doLoadPerAccount(accountId);
+    } on AccountNotFoundException {
+      rethrow;
     } catch (e) {
+      final account = getAccount(accountId);
+      assert(account != null); // doLoadPerAccount would have thrown AccountNotFoundException
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       switch (e) {
         case HttpException(httpStatus: 401):
           // The API key is invalid and the store can never be loaded
           // unless the user retries manually.
-          final account = getAccount(accountId);
-          assert(account != null); // doLoadPerAccount would have thrown AccountNotFoundException
-          final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
           reportErrorToUserModally(
             zulipLocalizations.errorCouldNotConnectTitle,
             message: zulipLocalizations.errorInvalidApiKeyMessage(
