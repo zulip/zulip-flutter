@@ -37,6 +37,22 @@ import 'user.dart';
 export 'package:drift/drift.dart' show Value;
 export 'database.dart' show Account, AccountsCompanion, AccountAlreadyExistsException;
 
+/// An underlying data store that can support a [GlobalStore],
+/// possibly storing the data to persist between runs of the app.
+///
+/// In the real app, the implementation used is [LiveGlobalStoreBackend],
+/// which stores data persistently in a database on the user's device.
+/// This interface enables tests to use a different implementation.
+abstract class GlobalStoreBackend {
+  /// Update the global settings in the underlying data store.
+  ///
+  /// This should only be called from [GlobalSettingsStore].
+  Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data);
+
+  // TODO move here the similar methods for accounts;
+  //   perhaps the rest of the GlobalStore abstract methods, too.
+}
+
 /// Store for all the user's data.
 ///
 /// From UI code, use [GlobalStoreWidget.of] to get hold of an appropriate
@@ -55,10 +71,11 @@ export 'database.dart' show Account, AccountsCompanion, AccountAlreadyExistsExce
 ///    we use outside of tests.
 abstract class GlobalStore extends ChangeNotifier {
   GlobalStore({
+    required GlobalStoreBackend backend,
     required GlobalSettingsData globalSettings,
     required Iterable<Account> accounts,
   })
-    : settings = GlobalSettingsStore(data: globalSettings),
+    : settings = GlobalSettingsStore(backend: backend, data: globalSettings),
       _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
 
   /// The store for the user's account-independent settings.
@@ -70,15 +87,10 @@ abstract class GlobalStore extends ChangeNotifier {
   final GlobalSettingsStore settings;
 
   /// Update the global settings in the store.
+  // TODO inline this out
   Future<void> updateGlobalSettings(GlobalSettingsCompanion data) async {
-    await doUpdateGlobalSettings(data);
-    settings.update(data);
+    await settings.update(data);
   }
-
-  /// Update the global settings in the underlying data store.
-  ///
-  /// This should only be called from [updateGlobalSettings].
-  Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data);
 
   /// A cache of the [Accounts] table in the underlying data store.
   final Map<int, Account> _accounts;
@@ -832,6 +844,23 @@ Uri? tryResolveUrl(Uri baseUrl, String reference) {
   }
 }
 
+/// A [GlobalStoreBackend] that uses a live, persistent local database.
+///
+/// Used as part of a [LiveGlobalStore].
+/// The underlying data store is an [AppDatabase] corresponding to a
+/// SQLite database file in the app's persistent storage on the device.
+class LiveGlobalStoreBackend implements GlobalStoreBackend {
+  LiveGlobalStoreBackend._({required AppDatabase db}) : _db = db;
+
+  final AppDatabase _db;
+
+  @override
+  Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data) async {
+    final rowsAffected = await _db.update(_db.globalSettings).write(data);
+    assert(rowsAffected == 1);
+  }
+}
+
 /// A [GlobalStore] that uses a live server and live, persistent local database.
 ///
 /// The underlying data store is an [AppDatabase] corresponding to a SQLite
@@ -841,10 +870,11 @@ Uri? tryResolveUrl(Uri baseUrl, String reference) {
 /// and will have an associated [UpdateMachine].
 class LiveGlobalStore extends GlobalStore {
   LiveGlobalStore._({
-    required AppDatabase db,
+    required LiveGlobalStoreBackend backend,
     required super.globalSettings,
     required super.accounts,
-  }) : _db = db;
+  }) : _backend = backend,
+       super(backend: backend);
 
   @override
   ApiConnection apiConnection({
@@ -861,7 +891,8 @@ class LiveGlobalStore extends GlobalStore {
     final db = AppDatabase(NativeDatabase.createInBackground(await _dbFile()));
     final globalSettings = await db.getGlobalSettings();
     final accounts = await db.select(db.accounts).get();
-    return LiveGlobalStore._(db: db,
+    return LiveGlobalStore._(
+      backend: LiveGlobalStoreBackend._(db: db),
       globalSettings: globalSettings,
       accounts: accounts);
   }
@@ -885,13 +916,13 @@ class LiveGlobalStore extends GlobalStore {
     return File(p.join(dir.path, 'zulip.db'));
   }
 
-  final AppDatabase _db;
+  final LiveGlobalStoreBackend _backend;
 
-  @override
-  Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data) async {
-    final rowsAffected = await _db.update(_db.globalSettings).write(data);
-    assert(rowsAffected == 1);
-  }
+  // The methods that use this should probably all move to [GlobalStoreBackend]
+  // and [LiveGlobalStoreBackend] anyway (see comment on the former);
+  // so let the latter be the canonical home of the [AppDatabase].
+  // This getter just simplifies the transition.
+  AppDatabase get _db => _backend._db;
 
   @override
   Future<PerAccountStore> doLoadPerAccount(int accountId) async {

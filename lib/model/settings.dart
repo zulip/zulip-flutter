@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import 'binding.dart';
 import 'database.dart';
+import 'store.dart';
 
 /// The user's choice of visual theme for the app.
 ///
@@ -49,7 +50,12 @@ enum BrowserPreference {
 /// From UI code, use [GlobalStoreWidget.settingsOf] to get hold of
 /// an appropriate instance of this class.
 class GlobalSettingsStore extends ChangeNotifier {
-  GlobalSettingsStore({required GlobalSettingsData data}) : _data = data;
+  GlobalSettingsStore({
+    required GlobalStoreBackend backend,
+    required GlobalSettingsData data,
+  }) : _backend = backend, _data = data;
+
+  final GlobalStoreBackend _backend;
 
   /// A cache of the [GlobalSettingsData] singleton in the underlying data store.
   GlobalSettingsData _data;
@@ -104,9 +110,9 @@ class GlobalSettingsStore extends ChangeNotifier {
     }
   }
 
-  /// (Should only be called by [GlobalStore].)
-  void update(GlobalSettingsCompanion data) {
-    // TODO move responsibility for updating the DB to this class too
+  /// Update the global settings in the store.
+  Future<void> update(GlobalSettingsCompanion data) async {
+    await _backend.doUpdateGlobalSettings(data);
     _data = _data.copyWithCompanion(data);
     notifyListeners();
   }
