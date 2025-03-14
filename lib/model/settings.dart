@@ -44,7 +44,26 @@ enum BrowserPreference {
   external,
 }
 
-extension GlobalSettingsHelpers on GlobalSettingsData {
+/// Store for the user's account-independent settings.
+///
+/// From UI code, use [GlobalStoreWidget.settingsOf] to get hold of
+/// an appropriate instance of this class.
+class GlobalSettingsStore extends ChangeNotifier {
+  GlobalSettingsStore({required GlobalSettingsData data}) : _data = data;
+
+  /// A cache of the [GlobalSettingsData] singleton in the underlying data store.
+  GlobalSettingsData _data;
+
+  /// The user's choice of [ThemeSetting];
+  /// null means the device-level choice of theme.
+  ThemeSetting? get themeSetting => _data.themeSetting;
+
+  /// The user's choice of [BrowserPreference];
+  /// null means use our default choice.
+  ///
+  /// Consider using [effectiveBrowserPreference] or [getUrlLaunchMode].
+  BrowserPreference? get browserPreference => _data.browserPreference;
+
   /// The value of [BrowserPreference] to use:
   /// the user's choice [browserPreference] if any, else our default.
   ///
@@ -84,18 +103,6 @@ extension GlobalSettingsHelpers on GlobalSettingsData {
         return UrlLaunchMode.externalApplication;
     }
   }
-}
-
-/// Store for the user's account-independent settings.
-///
-/// From UI code, use [GlobalStoreWidget.settingsOf] to get hold of
-/// the settings data.
-class GlobalSettingsStore extends ChangeNotifier {
-  GlobalSettingsStore({required GlobalSettingsData data}) : _data = data;
-
-  /// A cache of the [GlobalSettingsData] singleton in the underlying data store.
-  GlobalSettingsData get data => _data;
-  GlobalSettingsData _data;
 
   /// (Should only be called by [GlobalStore].)
   void update(GlobalSettingsCompanion data) {

@@ -63,12 +63,13 @@ abstract class GlobalStore extends ChangeNotifier {
 
   final GlobalSettingsStore settingsNotifier; // TODO rename as the store
 
-  /// A cache of the [GlobalSettingsData] singleton in the underlying data store.
+  /// The store for the user's account-independent settings.
   ///
-  /// To be notified for changes to this value, subscribe to [settingsNotifier]
-  /// (usually by calling [GlobalStoreWidget.settingsOf]).
-  /// The [GlobalStore] itself will not notify its own listeners.
-  GlobalSettingsData get globalSettings => settingsNotifier.data;
+  /// When the settings data changes, the [GlobalSettingsStore] will notify
+  /// its listeners, but the [GlobalStore] will not notify its own listeners.
+  /// Consider using [GlobalStoreWidget.settingsOf], which automatically
+  /// subscribes to changes in the [GlobalSettingsStore].
+  GlobalSettingsStore get globalSettings => settingsNotifier;
 
   /// Update the global settings in the store.
   Future<void> updateGlobalSettings(GlobalSettingsCompanion data) async {

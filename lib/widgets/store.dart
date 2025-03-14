@@ -53,10 +53,10 @@ class GlobalStoreWidget extends StatefulWidget {
     return widget!.store;
   }
 
-  /// The user's [GlobalSettings] data, from the app's global data store.
+  /// The user's [GlobalSettings] data within the app's global data store.
   ///
   /// The given build context will be registered as a dependency and
-  /// subscribed to changes in the [GlobalSettingsStore].
+  /// subscribed to changes in the returned [GlobalSettingsStore].
   /// This means that when the setting values in the store change,
   /// the element at that build context will be rebuilt.
   ///
@@ -69,10 +69,10 @@ class GlobalStoreWidget extends StatefulWidget {
   /// ```
   ///
   /// See [of] for further discussion of how to use this kind of method.
-  static GlobalSettingsData settingsOf(BuildContext context) {
+  static GlobalSettingsStore settingsOf(BuildContext context) {
     final widget = context.dependOnInheritedWidgetOfExactType<_GlobalSettingsStoreInheritedWidget>();
     assert(widget != null, 'No GlobalStoreWidget ancestor');
-    return widget!.store.data;
+    return widget!.store;
   }
 
   @override
