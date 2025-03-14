@@ -932,6 +932,32 @@ void main() {
           expectedMessage: 'Content cannot be empty.');
       });
 
+      testWidgets('title is too long', (tester) async {
+        await prepareSavedSnippetComposeBox(tester,
+          title: 'a' * 61, content: 'content bar');
+
+        await tester.tap(find.byIcon(ZulipIcons.check));
+        await tester.pump(Duration.zero);
+        check(poppedRoutes).isEmpty();
+        check(connection.takeRequests()).isEmpty();
+        checkErrorDialog(tester,
+          expectedTitle: 'Failed to create saved snippet',
+          expectedMessage: "Title length shouldn't be greater than 60 characters.");
+      });
+
+      testWidgets('content is too long', (tester) async {
+        await prepareSavedSnippetComposeBox(tester,
+          title: 'title foo', content: 'a' * 10001);
+
+        await tester.tap(find.byIcon(ZulipIcons.check));
+        await tester.pump(Duration.zero);
+        check(poppedRoutes).isEmpty();
+        check(connection.takeRequests()).isEmpty();
+        checkErrorDialog(tester,
+          expectedTitle: 'Failed to create saved snippet',
+          expectedMessage: "Content length shouldn't be greater than 10000 characters.");
+      });
+
       testWidgets('disable send button if there are validation errors', (tester) async {
         await prepareSavedSnippetComposeBox(tester,
           title: '', content: 'content bar');

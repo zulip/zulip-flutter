@@ -379,11 +379,13 @@ class ComposeContentController extends ComposeController<ContentValidationError>
 }
 
 enum SavedSnippetTitleValidationError {
-  empty;
+  empty,
+  tooLong;
 
   String message(ZulipLocalizations zulipLocalizations) {
     return switch (this) {
       SavedSnippetTitleValidationError.empty => zulipLocalizations.savedSnippetTitleValidationErrorEmpty,
+      SavedSnippetTitleValidationError.tooLong => zulipLocalizations.savedSnippetTitleValidationErrorTooLong,
     };
   }
 }
@@ -393,7 +395,7 @@ class SavedSnippetTitleComposeController extends ComposeController<SavedSnippetT
     _update();
   }
 
-  @override final maxLengthUnicodeCodePoints = null;
+  @override int get maxLengthUnicodeCodePoints => kMaxTopicLengthCodePoints;
 
   @override
   String _computeTextNormalized() {
@@ -405,16 +407,24 @@ class SavedSnippetTitleComposeController extends ComposeController<SavedSnippetT
     return [
       if (textNormalized.isEmpty)
         SavedSnippetTitleValidationError.empty,
+
+      if (
+        _lengthUnicodeCodePointsIfLong != null
+        && _lengthUnicodeCodePointsIfLong! > maxLengthUnicodeCodePoints
+      )
+        SavedSnippetTitleValidationError.tooLong,
     ];
   }
 }
 
 enum SavedSnippetContentValidationError {
-  empty;
+  empty,
+  tooLong;
 
   String message(ZulipLocalizations zulipLocalizations) {
     return switch (this) {
       SavedSnippetContentValidationError.empty => zulipLocalizations.savedSnippetContentValidationErrorEmpty,
+      SavedSnippetContentValidationError.tooLong => zulipLocalizations.savedSnippetContentValidationErrorTooLong,
     };
   }
 }
@@ -424,7 +434,7 @@ class SavedSnippetContentComposeController extends ComposeController<SavedSnippe
     _update();
   }
 
-  @override final maxLengthUnicodeCodePoints = null;
+  @override int get maxLengthUnicodeCodePoints => kMaxMessageLengthCodePoints;
 
   @override
   String _computeTextNormalized() {
@@ -436,6 +446,12 @@ class SavedSnippetContentComposeController extends ComposeController<SavedSnippe
     return [
       if (textNormalized.isEmpty)
         SavedSnippetContentValidationError.empty,
+
+      if (
+        _lengthUnicodeCodePointsIfLong != null
+        && _lengthUnicodeCodePointsIfLong! > maxLengthUnicodeCodePoints
+      )
+        SavedSnippetContentValidationError.tooLong,
     ];
   }
 }

@@ -373,9 +373,17 @@
   "@savedSnippetTitleValidationErrorEmpty": {
     "description": "Validation error message when the title of the saved snippet is empty."
   },
+  "savedSnippetTitleValidationErrorTooLong": "Title length shouldn't be greater than 60 characters.",
+  "@savedSnippetTitleValidationErrorTooLong": {
+    "description": "Validation error message when the title of the saved snippet is too long."
+  },
   "savedSnippetContentValidationErrorEmpty": "Content cannot be empty.",
   "@savedSnippetContentValidationErrorEmpty": {
     "description": "Validation error message when the content of the saved snippet is empty."
+  },
+  "savedSnippetContentValidationErrorTooLong": "Content length shouldn't be greater than 10000 characters.",
+  "@savedSnippetContentValidationErrorTooLong": {
+    "description": "Validation error message when the content of the saved snippet is too long."
   },
   "composeBoxGenericContentHint": "Type a message",
   "@composeBoxGenericContentHint": {

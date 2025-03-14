@@ -295,7 +295,13 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get savedSnippetTitleValidationErrorEmpty => 'Title cannot be empty.';
 
   @override
+  String get savedSnippetTitleValidationErrorTooLong => 'Title length shouldn\'t be greater than 60 characters.';
+
+  @override
   String get savedSnippetContentValidationErrorEmpty => 'Content cannot be empty.';
+
+  @override
+  String get savedSnippetContentValidationErrorTooLong => 'Content length shouldn\'t be greater than 10000 characters.';
 
   @override
   String get composeBoxGenericContentHint => 'Type a message';

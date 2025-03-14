@@ -609,11 +609,23 @@ abstract class ZulipLocalizations {
   /// **'Title cannot be empty.'**
   String get savedSnippetTitleValidationErrorEmpty;
 
+  /// Validation error message when the title of the saved snippet is too long.
+  ///
+  /// In en, this message translates to:
+  /// **'Title length shouldn\'t be greater than 60 characters.'**
+  String get savedSnippetTitleValidationErrorTooLong;
+
   /// Validation error message when the content of the saved snippet is empty.
   ///
   /// In en, this message translates to:
   /// **'Content cannot be empty.'**
   String get savedSnippetContentValidationErrorEmpty;
+
+  /// Validation error message when the content of the saved snippet is too long.
+  ///
+  /// In en, this message translates to:
+  /// **'Content length shouldn\'t be greater than 10000 characters.'**
+  String get savedSnippetContentValidationErrorTooLong;
 
   /// Hint text for content input when sending a message.
   ///
