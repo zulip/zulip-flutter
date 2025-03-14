@@ -970,24 +970,27 @@ class UpdateMachine {
       }
     }
 
+    Future<void> updateZulipVersionData(ZulipVersionData data) async {
+      account = globalStore.getAccount(accountId)!;
+      if (data.zulipVersion != account.zulipVersion
+          || data.zulipMergeBase != account.zulipMergeBase
+          || data.zulipFeatureLevel != account.zulipFeatureLevel) {
+        account = await globalStore.updateAccount(accountId, AccountsCompanion(
+          zulipVersion: Value(data.zulipVersion),
+          zulipMergeBase: Value(data.zulipMergeBase),
+          zulipFeatureLevel: Value(data.zulipFeatureLevel)));
+        connection.zulipFeatureLevel = data.zulipFeatureLevel;
+      }
+    }
+
     final stopwatch = Stopwatch()..start();
     final initialSnapshot = await _registerQueueWithRetry(connection,
       stopAndThrowIfNoAccount: stopAndThrowIfNoAccount);
     final t = (stopwatch..stop()).elapsed;
     assert(debugLog("initial fetch time: ${t.inMilliseconds}ms"));
 
-    // `!` is OK because _registerQueueWithRetry would have thrown if no account
-    account = globalStore.getAccount(accountId)!;
-    if (initialSnapshot.zulipVersion != account.zulipVersion
-        || initialSnapshot.zulipMergeBase != account.zulipMergeBase
-        || initialSnapshot.zulipFeatureLevel != account.zulipFeatureLevel) {
-      account = await globalStore.updateAccount(accountId, AccountsCompanion(
-        zulipVersion: Value(initialSnapshot.zulipVersion),
-        zulipMergeBase: Value(initialSnapshot.zulipMergeBase),
-        zulipFeatureLevel: Value(initialSnapshot.zulipFeatureLevel),
-      ));
-      connection.zulipFeatureLevel = initialSnapshot.zulipFeatureLevel;
-    }
+    final zulipVersionData = ZulipVersionData.fromInitialSnapshot(initialSnapshot);
+    await updateZulipVersionData(zulipVersionData);
 
     final store = PerAccountStore.fromInitialSnapshot(
       globalStore: globalStore,
@@ -1454,6 +1457,26 @@ class UpdateMachine {
 
   @override
   String toString() => '${objectRuntimeType(this, 'UpdateMachine')}#${shortHash(this)}';
+}
+
+/// The fields 'zulip_version', 'zulip_merge_base', and 'zulip_feature_level'
+/// from a /register response.
+class ZulipVersionData {
+  ZulipVersionData({
+    required this.zulipVersion,
+    required this.zulipMergeBase,
+    required this.zulipFeatureLevel,
+  });
+
+  factory ZulipVersionData.fromInitialSnapshot(InitialSnapshot initialSnapshot) =>
+    ZulipVersionData(
+      zulipVersion: initialSnapshot.zulipVersion,
+      zulipMergeBase: initialSnapshot.zulipMergeBase,
+      zulipFeatureLevel: initialSnapshot.zulipFeatureLevel);
+
+  final String zulipVersion;
+  final String? zulipMergeBase;
+  final int zulipFeatureLevel;
 }
 
 class _EventHandlingException implements Exception {
