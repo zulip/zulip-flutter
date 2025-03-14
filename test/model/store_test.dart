@@ -258,6 +258,31 @@ void main() {
 
     // TODO test database gets updated correctly (an integration test with sqlite?)
   });
+  
+  test('GlobalStore.updateZulipVersionData', () async {
+    final [currentZulipVersion,          newZulipVersion             ]
+        = ['10.0-beta2-302-gf5b08b11f4', '10.0-beta2-351-g75ac8fe961'];
+    final [currentZulipMergeBase,        newZulipMergeBase           ]
+        = ['10.0-beta2-291-g33ffd8c040', '10.0-beta2-349-g463dc632b3'];
+    final [currentZulipFeatureLevel,     newZulipFeatureLevel        ]
+        = [368,                          370                         ];
+
+    final selfAccount = eg.selfAccount.copyWith(
+      zulipVersion: currentZulipVersion,
+      zulipMergeBase: Value(currentZulipMergeBase),
+      zulipFeatureLevel: currentZulipFeatureLevel);
+    final globalStore = eg.globalStore(accounts: [selfAccount]);
+    final updated = await globalStore.updateZulipVersionData(selfAccount.id,
+      ZulipVersionData(
+        zulipVersion: newZulipVersion,
+        zulipMergeBase: newZulipMergeBase,
+        zulipFeatureLevel: newZulipFeatureLevel));
+    check(globalStore.getAccount(selfAccount.id)).identicalTo(updated);
+    check(updated).equals(selfAccount.copyWith(
+      zulipVersion: newZulipVersion,
+      zulipMergeBase: Value(newZulipMergeBase),
+      zulipFeatureLevel: newZulipFeatureLevel));
+  });
 
   group('GlobalStore.removeAccount', () {
     void checkGlobalStore(GlobalStore store, int accountId, {
