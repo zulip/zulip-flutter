@@ -72,7 +72,7 @@ class GlobalStoreWidget extends StatefulWidget {
   static GlobalSettingsData settingsOf(BuildContext context) {
     final widget = context.dependOnInheritedWidgetOfExactType<_GlobalSettingsStoreInheritedWidget>();
     assert(widget != null, 'No GlobalStoreWidget ancestor');
-    return widget!.store.globalSettings;
+    return widget!.store.data;
   }
 
   @override
@@ -109,7 +109,8 @@ class _GlobalStoreInheritedWidget extends InheritedNotifier<GlobalStore> {
     required GlobalStore store,
     required Widget child,
   }) : super(notifier: store,
-         child: _GlobalSettingsStoreInheritedWidget(store: store, child: child));
+         child: _GlobalSettingsStoreInheritedWidget(
+           store: store.settingsNotifier, child: child));
 
   GlobalStore get store => notifier!;
 }
@@ -118,12 +119,12 @@ class _GlobalStoreInheritedWidget extends InheritedNotifier<GlobalStore> {
 // [GlobalSettingsStore] instead of the overall [GlobalStore].
 // That enables [settingsOf] to do the same.
 class _GlobalSettingsStoreInheritedWidget extends InheritedNotifier<GlobalSettingsStore> {
-  _GlobalSettingsStoreInheritedWidget({
-    required this.store,
+  const _GlobalSettingsStoreInheritedWidget({
+    required GlobalSettingsStore store,
     required super.child,
-  }) : super(notifier: store.settingsNotifier);
+  }) : super(notifier: store);
 
-  final GlobalStore store;
+  GlobalSettingsStore get store => notifier!;
 }
 
 /// Provides access to the user's data for a particular Zulip account.
