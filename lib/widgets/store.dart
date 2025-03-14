@@ -110,7 +110,7 @@ class _GlobalStoreInheritedWidget extends InheritedNotifier<GlobalStore> {
     required Widget child,
   }) : super(notifier: store,
          child: _GlobalSettingsStoreInheritedWidget(
-           store: store.settingsNotifier, child: child));
+           store: store.settings, child: child));
 
   GlobalStore get store => notifier!;
 }

@@ -35,17 +35,17 @@ void main() {
   group('GlobalStore.updateGlobalSettings', () {
     test('smoke', () async {
       final globalStore = eg.globalStore();
-      check(globalStore).globalSettings.themeSetting.equals(null);
+      check(globalStore).settings.themeSetting.equals(null);
 
       await globalStore.updateGlobalSettings(
         GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.dark)));
-      check(globalStore).globalSettings.themeSetting.equals(ThemeSetting.dark);
+      check(globalStore).settings.themeSetting.equals(ThemeSetting.dark);
     });
 
     test('should notify listeners', () async {
       int notifyCount = 0;
       final globalStore = eg.globalStore();
-      globalStore.settingsNotifier.addListener(() => notifyCount++);
+      globalStore.settings.addListener(() => notifyCount++);
       check(notifyCount).equals(0);
 
       await globalStore.updateGlobalSettings(

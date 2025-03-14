@@ -58,10 +58,8 @@ abstract class GlobalStore extends ChangeNotifier {
     required GlobalSettingsData globalSettings,
     required Iterable<Account> accounts,
   })
-    : settingsNotifier = GlobalSettingsStore(data: globalSettings),
+    : settings = GlobalSettingsStore(data: globalSettings),
       _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
-
-  final GlobalSettingsStore settingsNotifier; // TODO rename as the store
 
   /// The store for the user's account-independent settings.
   ///
@@ -69,12 +67,12 @@ abstract class GlobalStore extends ChangeNotifier {
   /// its listeners, but the [GlobalStore] will not notify its own listeners.
   /// Consider using [GlobalStoreWidget.settingsOf], which automatically
   /// subscribes to changes in the [GlobalSettingsStore].
-  GlobalSettingsStore get globalSettings => settingsNotifier;
+  final GlobalSettingsStore settings;
 
   /// Update the global settings in the store.
   Future<void> updateGlobalSettings(GlobalSettingsCompanion data) async {
     await doUpdateGlobalSettings(data);
-    settingsNotifier.update(data);
+    settings.update(data);
   }
 
   /// Update the global settings in the underlying data store.

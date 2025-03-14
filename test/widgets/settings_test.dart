@@ -45,7 +45,7 @@ void main() {
             .checked.equals(title == expectedCheckedTitle);
       }
       check(testBinding.globalStore)
-        .globalSettings.themeSetting.equals(expectedThemeSetting);
+        .settings.themeSetting.equals(expectedThemeSetting);
     }
 
     testWidgets('smoke', (tester) async {
@@ -97,7 +97,7 @@ void main() {
       check(tester.widget<SwitchListTile>(useInAppBrowserSwitchFinder))
         .value.equals(checked);
       check(testBinding.globalStore)
-        .globalSettings.browserPreference.equals(expectedBrowserPreference);
+        .settings.browserPreference.equals(expectedBrowserPreference);
     }
 
     testWidgets('smoke', (tester) async {

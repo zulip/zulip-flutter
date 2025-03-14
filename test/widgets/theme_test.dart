@@ -111,7 +111,7 @@ void main() {
 
     await tester.pumpWidget(const TestZulipApp(child: Placeholder()));
     await tester.pump();
-    check(testBinding.globalStore).globalSettings.themeSetting.isNull();
+    check(testBinding.globalStore).settings.themeSetting.isNull();
 
     final element = tester.element(find.byType(Placeholder));
     check(zulipThemeData(element)).brightness.equals(Brightness.light);
@@ -129,7 +129,7 @@ void main() {
 
     await tester.pumpWidget(const TestZulipApp(child: Placeholder()));
     await tester.pump();
-    check(testBinding.globalStore).globalSettings.themeSetting.isNull();
+    check(testBinding.globalStore).settings.themeSetting.isNull();
 
     final element = tester.element(find.byType(Placeholder));
     check(zulipThemeData(element)).brightness.equals(Brightness.light);
