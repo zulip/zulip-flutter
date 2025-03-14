@@ -85,3 +85,18 @@ extension GlobalSettingsHelpers on GlobalSettingsData {
     }
   }
 }
+
+/// Store for the user's account-independent settings.
+///
+/// From UI code, use [GlobalStoreWidget.settingsOf] to get hold of
+/// the settings data.
+///
+/// (At the moment the actual settings data lives on [GlobalStore];
+/// but when the settings change, the notification goes to listeners
+/// of this class, not [GlobalStore].  Soon the actual data will
+/// move to this class too.)
+class GlobalSettingsStore extends ChangeNotifier {
+  // TODO move the actual settings content to this class
+
+  void markUpdated() => notifyListeners();
+}

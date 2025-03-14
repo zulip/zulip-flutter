@@ -45,7 +45,7 @@ void main() {
     test('should notify listeners', () async {
       int notifyCount = 0;
       final globalStore = eg.globalStore();
-      globalStore.addListener(() => notifyCount++);
+      globalStore.settingsNotifier.addListener(() => notifyCount++);
       check(notifyCount).equals(0);
 
       await globalStore.updateGlobalSettings(

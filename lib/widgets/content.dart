@@ -1439,7 +1439,7 @@ void _launchUrl(BuildContext context, String urlString) async {
     return;
   }
 
-  final globalSettings = GlobalStoreWidget.of(context).globalSettings;
+  final globalSettings = GlobalStoreWidget.settingsOf(context);
   bool launched = false;
   String? errorMessage;
   try {

@@ -40,7 +40,7 @@ class _ThemeSetting extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final globalStore = GlobalStoreWidget.of(context);
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
     return Column(
       children: [
         ListTile(title: Text(zulipLocalizations.themeSettingTitle)),
@@ -50,7 +50,7 @@ class _ThemeSetting extends StatelessWidget {
               themeSetting: themeSettingOption,
               zulipLocalizations: zulipLocalizations)),
             value: themeSettingOption,
-            groupValue: globalStore.globalSettings.themeSetting,
+            groupValue: globalSettings.themeSetting,
             onChanged: (newValue) => _handleChange(context, newValue)),
       ]);
   }
@@ -69,9 +69,9 @@ class _BrowserPreferenceSetting extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
     final openLinksWithInAppBrowser =
-      GlobalStoreWidget.of(context).globalSettings.effectiveBrowserPreference
-      == BrowserPreference.inApp;
+      globalSettings.effectiveBrowserPreference == BrowserPreference.inApp;
     return SwitchListTile.adaptive(
       title: Text(zulipLocalizations.openLinksWithInAppBrowser),
       value: openLinksWithInAppBrowser,

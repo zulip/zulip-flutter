@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/model/actions.dart';
+import 'package:zulip/model/database.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/inbox.dart';
@@ -100,6 +102,28 @@ void main() {
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     await tester.pump();
     check(accountIds).isNotNull().deepEquals([eg.selfAccount.id]);
+  });
+
+  testWidgets('GlobalStoreWidget.settingsOf updates on settings update', (tester) async {
+    addTearDown(testBinding.reset);
+    await testBinding.globalStore.updateGlobalSettings(
+      GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.dark)));
+
+    ThemeSetting? themeSetting;
+    await tester.pumpWidget(
+      GlobalStoreWidget(
+        child: Builder(
+          builder: (context) {
+            themeSetting = GlobalStoreWidget.settingsOf(context).themeSetting;
+            return const SizedBox.shrink();
+          })));
+    await tester.pump();
+    check(themeSetting).equals(ThemeSetting.dark);
+
+    await testBinding.globalStore.updateGlobalSettings(
+      GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.light)));
+    await tester.pump();
+    check(themeSetting).equals(ThemeSetting.light);
   });
 
   testWidgets('PerAccountStoreWidget basic', (tester) async {

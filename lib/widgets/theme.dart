@@ -13,7 +13,7 @@ import 'text.dart';
 ThemeData zulipThemeData(BuildContext context) {
   final DesignVariables designVariables;
   final List<ThemeExtension> themeExtensions;
-  final globalSettings = GlobalStoreWidget.of(context).globalSettings;
+  final globalSettings = GlobalStoreWidget.settingsOf(context);
   Brightness brightness = switch (globalSettings.themeSetting) {
     null => MediaQuery.platformBrightnessOf(context),
     ThemeSetting.light => Brightness.light,

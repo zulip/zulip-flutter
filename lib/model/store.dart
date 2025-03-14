@@ -29,6 +29,7 @@ import 'message_list.dart';
 import 'recent_dm_conversations.dart';
 import 'recent_senders.dart';
 import 'channel.dart';
+import 'settings.dart';
 import 'typing_status.dart';
 import 'unreads.dart';
 import 'user.dart';
@@ -60,7 +61,14 @@ abstract class GlobalStore extends ChangeNotifier {
     : _globalSettings = globalSettings,
       _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
 
+  // TODO use this as the actual store
+  final GlobalSettingsStore settingsNotifier = GlobalSettingsStore();
+
   /// A cache of the [GlobalSettingsData] singleton in the underlying data store.
+  ///
+  /// To be notified for changes to this value, subscribe to [settingsNotifier]
+  /// (usually by calling [GlobalStoreWidget.settingsOf]).
+  /// The [GlobalStore] itself will not notify its own listeners.
   GlobalSettingsData get globalSettings => _globalSettings;
   GlobalSettingsData _globalSettings;
 
@@ -68,7 +76,7 @@ abstract class GlobalStore extends ChangeNotifier {
   Future<void> updateGlobalSettings(GlobalSettingsCompanion data) async {
     await doUpdateGlobalSettings(data);
     _globalSettings = _globalSettings.copyWithCompanion(data);
-    notifyListeners();
+    settingsNotifier.markUpdated();
   }
 
   /// Update the global settings in the underlying data store.
