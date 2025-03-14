@@ -2,6 +2,7 @@ import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/model/database.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/settings.dart';
 
@@ -51,7 +52,7 @@ void main() {
       debugBrightnessOverride = Brightness.light;
 
       await testBinding.globalStore.updateGlobalSettings(
-        eg.globalSettings(themeSetting: ThemeSetting.light).toCompanion(false));
+        GlobalSettingsData(themeSetting: ThemeSetting.light).toCompanion(false));
       await prepare(tester);
       final element = tester.element(find.byType(SettingsPage));
       check(Theme.of(element)).brightness.equals(Brightness.light);
@@ -101,7 +102,7 @@ void main() {
 
     testWidgets('smoke', (tester) async {
       await testBinding.globalStore.updateGlobalSettings(
-        eg.globalSettings(
+        GlobalSettingsData(
           browserPreference: BrowserPreference.external).toCompanion(false));
       await prepare(tester);
       checkSwitchAndGlobalSettings(tester,

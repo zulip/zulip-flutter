@@ -11,7 +11,6 @@ import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/narrow.dart';
-import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 
 import 'model/test_store.dart';
@@ -873,16 +872,6 @@ ChannelUpdateEvent channelUpdateEvent(
 ////////////////////////////////////////////////////////////////
 // The entire per-account or global state.
 //
-
-GlobalSettingsData globalSettings({
-  ThemeSetting? themeSetting,
-  BrowserPreference? browserPreference,
-}) {
-  return GlobalSettingsData(
-    themeSetting: themeSetting,
-    browserPreference: browserPreference,
-  );
-}
 
 TestGlobalStore globalStore({
   GlobalSettingsData? globalSettings,

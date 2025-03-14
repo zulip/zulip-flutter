@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/core.dart';
 import 'package:zulip/model/content.dart';
+import 'package:zulip/model/database.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
@@ -801,7 +802,7 @@ void main() {
 
     testWidgets('follow browser preference setting to open URL', (tester) async {
       await testBinding.globalStore.updateGlobalSettings(
-        eg.globalSettings(
+        GlobalSettingsData(
           browserPreference: BrowserPreference.inApp).toCompanion(false));
       await prepare(tester,
         '<p><a href="https://example/">hello</a></p>');

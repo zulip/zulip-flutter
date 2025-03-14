@@ -138,7 +138,7 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
   TestGlobalStore({
     GlobalSettingsData? globalSettings,
     required super.accounts,
-  }) : super(globalSettings: globalSettings ?? eg.globalSettings());
+  }) : super(globalSettings: globalSettings ?? GlobalSettingsData());
 
   final Map<int, InitialSnapshot> _initialSnapshots = {};
 
@@ -202,7 +202,7 @@ class UpdateMachineTestGlobalStore extends GlobalStore with _ApiConnectionsMixin
   UpdateMachineTestGlobalStore({
     GlobalSettingsData? globalSettings,
     required super.accounts,
-  }) : super(globalSettings: globalSettings ?? eg.globalSettings());
+  }) : super(globalSettings: globalSettings ?? GlobalSettingsData());
 
   // [doLoadPerAccount] depends on the cache to prepare the API responses.
   // Calling [clearCachedApiConnections] is permitted, though.
