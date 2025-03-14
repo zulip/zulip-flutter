@@ -87,10 +87,6 @@ class _GlobalStoreInheritedWidget extends InheritedNotifier<GlobalStore> {
   }) : super(notifier: store);
 
   GlobalStore get store => notifier!;
-
-  @override
-  bool updateShouldNotify(covariant _GlobalStoreInheritedWidget oldWidget) =>
-    store != oldWidget.store;
 }
 
 /// Provides access to the user's data for a particular Zulip account.
