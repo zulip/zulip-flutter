@@ -81,7 +81,7 @@ const double _composeButtonSize = 44;
 ///
 /// Subclasses must ensure that [_update] is called in all exposed constructors.
 abstract class ComposeController<ErrorT> extends TextEditingController {
-  int get maxLengthUnicodeCodePoints;
+  int? get maxLengthUnicodeCodePoints;
 
   String get textNormalized => _textNormalized;
   late String _textNormalized;
@@ -102,7 +102,8 @@ abstract class ComposeController<ErrorT> extends TextEditingController {
   @visibleForTesting
   int? get debugLengthUnicodeCodePointsIfLong => _lengthUnicodeCodePointsIfLong;
   int? _computeLengthUnicodeCodePointsIfLong() =>
-    _textNormalized.length > maxLengthUnicodeCodePoints
+    maxLengthUnicodeCodePoints != null
+    && _textNormalized.length > maxLengthUnicodeCodePoints!
       ? _textNormalized.runes.length
       : null;
 
@@ -152,7 +153,7 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   bool get mandatory => store.realmMandatoryTopics;
 
   // TODO(#307) use `max_topic_length` instead of hardcoded limit
-  @override final maxLengthUnicodeCodePoints = kMaxTopicLengthCodePoints;
+  @override final int maxLengthUnicodeCodePoints = kMaxTopicLengthCodePoints;
 
   @override
   String _computeTextNormalized() {
@@ -213,7 +214,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   }
 
   // TODO(#1237) use `max_message_length` instead of hardcoded limit
-  @override final maxLengthUnicodeCodePoints = kMaxMessageLengthCodePoints;
+  @override final int maxLengthUnicodeCodePoints = kMaxMessageLengthCodePoints;
 
   int _nextQuoteAndReplyTag = 0;
   int _nextUploadTag = 0;
