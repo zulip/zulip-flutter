@@ -801,7 +801,7 @@ void main() {
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('follow browser preference setting to open URL', (tester) async {
-      await testBinding.globalStore.updateGlobalSettings(
+      await testBinding.globalStore.settings.update(
         GlobalSettingsData(
           browserPreference: BrowserPreference.inApp).toCompanion(false));
       await prepare(tester,

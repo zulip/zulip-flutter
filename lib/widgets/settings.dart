@@ -33,7 +33,8 @@ class _ThemeSetting extends StatelessWidget {
   const _ThemeSetting();
 
   void _handleChange(BuildContext context, ThemeSetting? newThemeSetting) {
-    GlobalStoreWidget.of(context).updateGlobalSettings(
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    globalSettings.update(
       GlobalSettingsCompanion(themeSetting: Value(newThemeSetting)));
   }
 
@@ -60,10 +61,10 @@ class _BrowserPreferenceSetting extends StatelessWidget {
   const _BrowserPreferenceSetting();
 
   void _handleChange(BuildContext context, bool newOpenLinksWithInAppBrowser) {
-    GlobalStoreWidget.of(context).updateGlobalSettings(
-      GlobalSettingsCompanion(browserPreference: Value(
-        newOpenLinksWithInAppBrowser ? BrowserPreference.inApp
-                                     : BrowserPreference.external)));
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    globalSettings.update(GlobalSettingsCompanion(browserPreference: Value(
+      newOpenLinksWithInAppBrowser ? BrowserPreference.inApp
+                                   : BrowserPreference.external)));
   }
 
   @override

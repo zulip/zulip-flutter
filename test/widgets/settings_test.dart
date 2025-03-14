@@ -51,7 +51,7 @@ void main() {
     testWidgets('smoke', (tester) async {
       debugBrightnessOverride = Brightness.light;
 
-      await testBinding.globalStore.updateGlobalSettings(
+      await testBinding.globalStore.settings.update(
         GlobalSettingsData(themeSetting: ThemeSetting.light).toCompanion(false));
       await prepare(tester);
       final element = tester.element(find.byType(SettingsPage));
@@ -101,7 +101,7 @@ void main() {
     }
 
     testWidgets('smoke', (tester) async {
-      await testBinding.globalStore.updateGlobalSettings(
+      await testBinding.globalStore.settings.update(
         GlobalSettingsData(
           browserPreference: BrowserPreference.external).toCompanion(false));
       await prepare(tester);

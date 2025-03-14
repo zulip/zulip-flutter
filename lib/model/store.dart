@@ -86,12 +86,6 @@ abstract class GlobalStore extends ChangeNotifier {
   /// subscribes to changes in the [GlobalSettingsStore].
   final GlobalSettingsStore settings;
 
-  /// Update the global settings in the store.
-  // TODO inline this out
-  Future<void> updateGlobalSettings(GlobalSettingsCompanion data) async {
-    await settings.update(data);
-  }
-
   /// A cache of the [Accounts] table in the underlying data store.
   final Map<int, Account> _accounts;
 

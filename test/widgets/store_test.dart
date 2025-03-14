@@ -106,7 +106,7 @@ void main() {
 
   testWidgets('GlobalStoreWidget.settingsOf updates on settings update', (tester) async {
     addTearDown(testBinding.reset);
-    await testBinding.globalStore.updateGlobalSettings(
+    await testBinding.globalStore.settings.update(
       GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.dark)));
 
     ThemeSetting? themeSetting;
@@ -120,7 +120,7 @@ void main() {
     await tester.pump();
     check(themeSetting).equals(ThemeSetting.dark);
 
-    await testBinding.globalStore.updateGlobalSettings(
+    await testBinding.globalStore.settings.update(
       GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.light)));
     await tester.pump();
     check(themeSetting).equals(ThemeSetting.light);

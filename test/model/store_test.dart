@@ -37,7 +37,7 @@ void main() {
       final globalStore = eg.globalStore();
       check(globalStore).settings.themeSetting.equals(null);
 
-      await globalStore.updateGlobalSettings(
+      await globalStore.settings.update(
         GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.dark)));
       check(globalStore).settings.themeSetting.equals(ThemeSetting.dark);
     });
@@ -48,7 +48,7 @@ void main() {
       globalStore.settings.addListener(() => notifyCount++);
       check(notifyCount).equals(0);
 
-      await globalStore.updateGlobalSettings(
+      await globalStore.settings.update(
         GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.light)));
       check(notifyCount).equals(1);
     });

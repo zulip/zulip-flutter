@@ -134,11 +134,11 @@ void main() {
     final element = tester.element(find.byType(Placeholder));
     check(zulipThemeData(element)).brightness.equals(Brightness.light);
 
-    await testBinding.globalStore.updateGlobalSettings(
+    await testBinding.globalStore.settings.update(
       const GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.dark)));
     check(zulipThemeData(element)).brightness.equals(Brightness.dark);
 
-    await testBinding.globalStore.updateGlobalSettings(
+    await testBinding.globalStore.settings.update(
       const GlobalSettingsCompanion(themeSetting: Value(null)));
     check(zulipThemeData(element)).brightness.equals(Brightness.light);
   });
