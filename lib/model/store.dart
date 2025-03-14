@@ -958,8 +958,8 @@ class UpdateMachine {
   ///
   /// In the future this might load an old snapshot from local storage first.
   static Future<UpdateMachine> load(GlobalStore globalStore, int accountId) async {
-    Account account = globalStore.getAccount(accountId)!;
-    final connection = globalStore.apiConnectionFromAccount(account);
+    final connection = globalStore.apiConnectionFromAccount(
+      globalStore.getAccount(accountId)!);
 
     void stopAndThrowIfNoAccount() {
       final account = globalStore.getAccount(accountId);
@@ -971,11 +971,11 @@ class UpdateMachine {
     }
 
     Future<void> updateZulipVersionData(ZulipVersionData data) async {
-      account = globalStore.getAccount(accountId)!;
+      final account = globalStore.getAccount(accountId)!;
       if (data.zulipVersion != account.zulipVersion
           || data.zulipMergeBase != account.zulipMergeBase
           || data.zulipFeatureLevel != account.zulipFeatureLevel) {
-        account = await globalStore.updateAccount(accountId, AccountsCompanion(
+        await globalStore.updateAccount(accountId, AccountsCompanion(
           zulipVersion: Value(data.zulipVersion),
           zulipMergeBase: Value(data.zulipMergeBase),
           zulipFeatureLevel: Value(data.zulipFeatureLevel)));
