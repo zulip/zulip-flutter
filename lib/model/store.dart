@@ -976,6 +976,8 @@ class UpdateMachine {
     final t = (stopwatch..stop()).elapsed;
     assert(debugLog("initial fetch time: ${t.inMilliseconds}ms"));
 
+    // `!` is OK because _registerQueueWithRetry would have thrown if no account
+    account = globalStore.getAccount(accountId)!;
     if (initialSnapshot.zulipVersion != account.zulipVersion
         || initialSnapshot.zulipMergeBase != account.zulipMergeBase
         || initialSnapshot.zulipFeatureLevel != account.zulipFeatureLevel) {
