@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -279,6 +280,37 @@ abstract final class PlatformActions {
     if (shouldShowSnackbar) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(behavior: SnackBarBehavior.floating, content: successContent));
+    }
+  }
+
+  /// Opens a URL with [ZulipBinding.launchUrl], with an error dialog on failure.
+  // TODO widget tests
+  static Future<void> launchUrl(BuildContext context, Uri url) async {
+    bool launched = false;
+    String? errorMessage;
+    try {
+      launched = await ZulipBinding.instance.launchUrl(url,
+        mode: switch (defaultTargetPlatform) {
+          // On iOS we prefer LaunchMode.externalApplication because (for
+          // HTTP URLs) LaunchMode.platformDefault uses SFSafariViewController,
+          // which gives an awkward UX as described here:
+          //  https://chat.zulip.org/#narrow/stream/48-mobile/topic/in-app.20browser/near/1169118
+          TargetPlatform.iOS => UrlLaunchMode.externalApplication,
+          _ => UrlLaunchMode.platformDefault,
+        });
+    } on PlatformException catch (e) {
+      errorMessage = e.message;
+    }
+    if (!launched) { // TODO(log)
+      if (!context.mounted) return;
+
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorCouldNotOpenLinkTitle,
+        message: [
+          zulipLocalizations.errorCouldNotOpenLink(url.toString()),
+          if (errorMessage != null) errorMessage,
+        ].join("\n\n"));
     }
   }
 }
