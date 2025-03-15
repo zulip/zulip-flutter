@@ -9,10 +9,10 @@ import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/binding.dart';
+import 'actions.dart';
 import 'content.dart';
 import 'dialog.dart';
 import 'page.dart';
-import 'clipboard.dart';
 import 'store.dart';
 
 // TODO(#44): Add index of the image preview in the message, to not break if
@@ -82,7 +82,7 @@ class _CopyLinkButton extends StatelessWidget {
       tooltip: zulipLocalizations.lightboxCopyLinkTooltip,
       icon: const Icon(Icons.copy),
       onPressed: () async {
-        copyWithPopup(context: context,
+        PlatformActions.copyWithPopup(context: context,
           successContent: Text(zulipLocalizations.successLinkCopied),
           data: ClipboardData(text: url.toString()));
       });
