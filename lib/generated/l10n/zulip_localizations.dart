@@ -849,6 +849,24 @@ abstract class ZulipLocalizations {
   /// **'Server gave malformed response; HTTP status {httpStatus}; {details}'**
   String errorMalformedResponseWithCause(int httpStatus, String details);
 
+  /// Format for error messages from malformed server responses. The message parameter is already localized.
+  ///
+  /// In en, this message translates to:
+  /// **'{className}: {httpStatus} {routeName}: {message}'**
+  String errorMalformedResponseFormat(String className, int httpStatus, String routeName, String message);
+
+  /// Name of the error type for malformed server responses
+  ///
+  /// In en, this message translates to:
+  /// **'MalformedServerResponseException'**
+  String get errorMalformedServerResponseExceptionName;
+
+  /// Developer error message when creating a MalformedServerResponseException with incomplete error details
+  ///
+  /// In en, this message translates to:
+  /// **'If causeException is provided, causeStackTrace must also be provided'**
+  String get errorMalformedServerResponseExceptionAssertMessage;
+
   /// Error message when an API call fails.
   ///
   /// In en, this message translates to:

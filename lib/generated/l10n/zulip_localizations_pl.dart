@@ -435,6 +435,17 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
+  String errorMalformedResponseFormat(String className, int httpStatus, String routeName, String message) {
+    return '$className: $httpStatus $routeName: $message';
+  }
+
+  @override
+  String get errorMalformedServerResponseExceptionName => 'MalformedServerResponseException';
+
+  @override
+  String get errorMalformedServerResponseExceptionAssertMessage => 'If causeException is provided, causeStackTrace must also be provided';
+
+  @override
   String errorRequestFailed(int httpStatus) {
     return 'Błąd uzyskania sieci: status HTTP $httpStatus';
   }
