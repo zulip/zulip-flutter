@@ -234,6 +234,18 @@ class NotificationDisplayManager {
     final groupKey = _groupKey(data.realmUrl, data.userId);
     final conversationKey = _conversationKey(data, groupKey);
 
+    final globalStore = await ZulipBinding.instance.getGlobalStore();
+    final account = globalStore.accounts.firstWhereOrNull((account) =>
+      account.realmUrl.origin == data.realmUrl.origin && account.userId == data.userId);
+
+    // Skip showing notifications for a logged-out account. This can occur if
+    // the unregisterToken request failed previously. It would be annoying
+    // to the user if notifications keep showing up after they've logged out.
+    // (Also alarming: it suggests the logout didn't fully work.)
+    if (account == null) {
+      return;
+    }
+
     final oldMessagingStyle = await _androidHost
       .getActiveNotificationMessagingStyleByTag(conversationKey);
 
@@ -418,6 +430,18 @@ class NotificationDisplayManager {
       // during creation, the summary notification doesn't get auto canceled if
       // child notifications are canceled programatically as done above.
       await _androidHost.cancel(tag: groupKey, id: kNotificationId);
+    }
+  }
+
+  static Future<void> removeNotificationsForAccount(Uri realmUrl, int userId) async {
+    final groupKey = _groupKey(realmUrl, userId);
+    final activeNotifications = await _androidHost.getActiveNotifications(
+      desiredExtras: []);
+    for (final statusBarNotification in activeNotifications) {
+      if (statusBarNotification.notification.group == groupKey) {
+        await _androidHost.cancel(
+          tag: statusBarNotification.tag, id: statusBarNotification.id);
+      }
     }
   }
 

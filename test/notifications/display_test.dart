@@ -26,9 +26,9 @@ import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/theme.dart';
 
+import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../model/binding.dart';
-import '../example_data.dart' as eg;
 import '../model/narrow_checks.dart';
 import '../stdlib_checks.dart';
 import '../test_images.dart';
@@ -114,7 +114,10 @@ void main() {
     return http.runWithClient(callback, httpClientFactory ?? () => fakeHttpClientGivingSuccess);
   }
 
-  Future<void> init() async {
+  Future<void> init({bool addSelfAccount = true}) async {
+    if (addSelfAccount) {
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    }
     addTearDown(testBinding.reset);
     testBinding.firebaseMessagingInitialToken = '012abc';
     addTearDown(NotificationService.debugReset);
@@ -872,7 +875,8 @@ void main() {
     })));
 
     test('remove: different realm URLs but same user-ids and same message-ids', () => runWithHttpClient(() => awaitFakeAsync((async) async {
-      await init();
+      await init(addSelfAccount: false);
+
       final stream = eg.stream();
       const topic = 'Some Topic';
       final conversationKey = 'stream:${stream.streamId}:some topic';
@@ -881,6 +885,7 @@ void main() {
         realmUrl: Uri.parse('https://1.chat.example'),
         id: 1001,
         user: eg.user(userId: 1001));
+      await testBinding.globalStore.add(account1, eg.initialSnapshot());
       final message1 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data1 =
         messageFcmMessage(message1, account: account1, streamName: stream.name);
@@ -890,6 +895,7 @@ void main() {
         realmUrl: Uri.parse('https://2.chat.example'),
         id: 1002,
         user: eg.user(userId: 1001));
+      await testBinding.globalStore.add(account2, eg.initialSnapshot());
       final message2 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data2 =
         messageFcmMessage(message2, account: account2, streamName: stream.name);
@@ -917,19 +923,21 @@ void main() {
     })));
 
     test('remove: different user-ids but same realm URL and same message-ids', () => runWithHttpClient(() => awaitFakeAsync((async) async {
-      await init();
+      await init(addSelfAccount: false);
       final realmUrl = eg.realmUrl;
       final stream = eg.stream();
       const topic = 'Some Topic';
       final conversationKey = 'stream:${stream.streamId}:some topic';
 
       final account1 = eg.account(id: 1001, user: eg.user(userId: 1001), realmUrl: realmUrl);
+      await testBinding.globalStore.add(account1, eg.initialSnapshot());
       final message1 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data1 =
         messageFcmMessage(message1, account: account1, streamName: stream.name);
       final groupKey1 = '${account1.realmUrl}|${account1.userId}';
 
       final account2 = eg.account(id: 1002, user: eg.user(userId: 1002), realmUrl: realmUrl);
+      await testBinding.globalStore.add(account2, eg.initialSnapshot());
       final message2 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data2 =
         messageFcmMessage(message2, account: account2, streamName: stream.name);
@@ -955,6 +963,76 @@ void main() {
       receiveFcmMessage(async, removeFcmMessage([message2], account: account2));
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
+
+    test('removeNotificationsForAccount: removes notifications', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
+      receiveFcmMessage(async, messageFcmMessage(message));
+      check(testBinding.androidNotificationHost.activeNotifications).isNotEmpty();
+
+      await NotificationDisplayManager.removeNotificationsForAccount(
+        eg.selfAccount.realmUrl, eg.selfAccount.userId);
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+    })));
+
+    test('removeNotificationsForAccount: leaves notifications for other accounts (same realm URL)', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init(addSelfAccount: false);
+
+      final realmUrl = eg.realmUrl;
+      final account1 = eg.account(id: 1001, user: eg.user(userId: 1001), realmUrl: realmUrl);
+      final account2 = eg.account(id: 1002, user: eg.user(userId: 1002), realmUrl: realmUrl);
+      await testBinding.globalStore.add(account1, eg.initialSnapshot());
+      await testBinding.globalStore.add(account2, eg.initialSnapshot());
+
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+
+      final message1 = eg.streamMessage();
+      final message2 = eg.streamMessage();
+      receiveFcmMessage(async, messageFcmMessage(message1, account: account1));
+      receiveFcmMessage(async, messageFcmMessage(message2, account: account2));
+      check(testBinding.androidNotificationHost.activeNotifications)
+        .length.equals(4);
+
+      await NotificationDisplayManager.removeNotificationsForAccount(
+        realmUrl, account1.userId);
+      check(testBinding.androidNotificationHost.activeNotifications)
+        ..length.equals(2)
+        ..first.notification.group.equals('$realmUrl|${account2.userId}');
+    })));
+
+    test('removeNotificationsForAccount leaves notifications for other accounts (same user-ids)', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init(addSelfAccount: false);
+
+      final userId = 1001;
+      final account1 = eg.account(
+        id: 1001, user: eg.user(userId: userId),
+        realmUrl: Uri.parse('https://realm1.example'));
+      final account2 = eg.account(
+        id: 1002, user: eg.user(userId: userId),
+        realmUrl: Uri.parse('https://realm2.example'));
+      await testBinding.globalStore.add(account1, eg.initialSnapshot());
+      await testBinding.globalStore.add(account2, eg.initialSnapshot());
+
+      final message1 = eg.streamMessage();
+      final message2 = eg.streamMessage();
+      receiveFcmMessage(async, messageFcmMessage(message1, account: account1));
+      receiveFcmMessage(async, messageFcmMessage(message2, account: account2));
+      check(testBinding.androidNotificationHost.activeNotifications)
+        .length.equals(4);
+
+      await NotificationDisplayManager.removeNotificationsForAccount(account1.realmUrl, userId);
+      check(testBinding.androidNotificationHost.activeNotifications)
+        ..length.equals(2)
+        ..first.notification.group.equals('${account2.realmUrl}|$userId');
+    })));
+
+    test('removeNotificationsForAccount does nothing if there are no notifications', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+
+      await NotificationDisplayManager.removeNotificationsForAccount(eg.selfAccount.realmUrl, eg.selfAccount.userId);
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+    })));
   });
 
   group('NotificationDisplayManager open', () {
@@ -976,7 +1054,7 @@ void main() {
 
     Future<void> prepare(WidgetTester tester,
         {bool early = false, bool withAccount = true}) async {
-      await init();
+      await init(addSelfAccount: false);
       pushedRoutes = [];
       final testNavObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
