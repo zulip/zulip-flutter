@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+//import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -333,43 +333,40 @@ class _LoginPageState extends State<LoginPage> {
       });
     }
   }
-
+  // Fixed misbehavior
   Future<void> _beginWebAuth(ExternalAuthenticationMethod method) async {
-    __otp = generateOtp();
+    __otp = generateOtp(); // Ensure OTP is generated
+
+    if (_otp == null || _otp!.isEmpty) {
+      debugLog('Error: OTP generation failed');
+      return;
+    }
+
     try {
-      final url = widget.serverSettings.realmUrl.resolve(method.loginUrl)
-        .replace(queryParameters: {'mobile_flow_otp': _otp!});
+      // Construct the authentication URL
+      final Uri authUrl = widget.serverSettings.realmUrl.resolve(method.loginUrl)
+          .replace(queryParameters: {'mobile_flow_otp': _otp!});
 
-      // Could set [_inProgress]… but we'd need to unset it if the web-auth
-      // attempt is aborted (by the user closing the browser, for example),
-      // and I don't think we can reliably know when that happens.
-      await ZulipBinding.instance.launchUrl(url, mode: LaunchMode.inAppBrowserView);
-    } catch (e) {
-      assert(debugLog(e.toString()));
+      // Log the authentication URL
+      debugLog('Opening authentication URL: $authUrl');
 
-      if (e is PlatformException
-        && defaultTargetPlatform == TargetPlatform.iOS
-        && e.message != null && e.message!.startsWith('Error while launching')) {
-        // Ignore; I've seen this on my iPhone even when auth succeeds.
-        // Specifically, Apple web auth…which on iOS should be replaced by
-        // Apple native auth; that's #462.
-        // Possibly related:
-        //   https://github.com/flutter/flutter/issues/91660
-        // but in that issue, people report authentication not succeeding.
-        // TODO(#462) remove this?
-        return;
-      }
+      // Always use external browser to prevent "Open With" popup
+      await ZulipBinding.instance.launchUrl(
+        authUrl,
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (e, stackTrace) {
+      debugLog('Error during web auth: $e\nStackTrace: $stackTrace');
 
       if (!mounted) return;
-      final zulipLocalizations = ZulipLocalizations.of(context);
 
-      String message = zulipLocalizations.errorWebAuthOperationalError;
-      if (e is PlatformException && e.message != null) {
-        message = e.message!;
-      }
-      showErrorDialog(context: context,
+      // Show an error message to the user
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      showErrorDialog(
+        context: context,
         title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
-        message: message);
+        message: zulipLocalizations.errorWebAuthOperationalError,
+      );
     }
   }
 
