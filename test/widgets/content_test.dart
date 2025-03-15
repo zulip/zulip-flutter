@@ -7,10 +7,12 @@ import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/core.dart';
+import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/content.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
@@ -1129,9 +1131,14 @@ void main() {
 
       final httpClient = prepareBoringImageHttpClient();
 
-      await tester.pumpWidget(GlobalStoreWidget(
-        child: PerAccountStoreWidget(accountId: eg.selfAccount.id,
-          child: RealmContentNetworkImage(src))));
+      await tester.pumpWidget(DeferrredBuilderWidget(
+        future: ZulipBinding.instance.getGlobalStoreUniquely(),
+        builder: (context, store) {
+          return GlobalStoreWidget(
+            store: store,
+            child: PerAccountStoreWidget(accountId: eg.selfAccount.id,
+              child: RealmContentNetworkImage(src)));
+        }));
       await tester.pump();
       await tester.pump();
 
@@ -1171,9 +1178,14 @@ void main() {
       await store.addUser(user);
 
       prepareBoringImageHttpClient();
-      await tester.pumpWidget(GlobalStoreWidget(
-        child: PerAccountStoreWidget(accountId: eg.selfAccount.id,
-          child: AvatarImage(userId: user.userId, size: size ?? 30))));
+      await tester.pumpWidget(DeferrredBuilderWidget(
+        future: ZulipBinding.instance.getGlobalStoreUniquely(),
+        builder: (context, store) {
+          return GlobalStoreWidget(
+            store: store,
+            child: PerAccountStoreWidget(accountId: eg.selfAccount.id,
+              child: AvatarImage(userId: user.userId, size: size ?? 30)));
+        }));
       await tester.pump();
       await tester.pump();
       tester.widget(find.byType(AvatarImage));

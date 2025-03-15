@@ -7,9 +7,10 @@ import 'package:flutter/scheduler.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/actions.dart';
+import '../model/binding.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
-import '../notifications/display.dart';
+import '../notifications/open.dart';
 import 'about_zulip.dart';
 import 'dialog.dart';
 import 'home.dart';
@@ -151,10 +152,13 @@ class ZulipApp extends StatefulWidget {
 }
 
 class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
+  late final Future<GlobalStore> _globalStoreFuture;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _globalStoreFuture = ZulipBinding.instance.getGlobalStoreUniquely();
   }
 
   @override
@@ -163,27 +167,18 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  List<Route<dynamic>> _handleGenerateInitialRoutes(String initialRoute) {
+  List<Route<dynamic>> _handleGenerateInitialRoutes(_) {
     // The `_ZulipAppState.context` lacks the required ancestors. Instead
     // we use the Navigator which should be available when this callback is
     // called and it's context should have the required ancestors.
     final context = ZulipApp.navigatorKey.currentContext!;
 
-    final initialRouteUrl = Uri.tryParse(initialRoute);
-    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
-      final route = NotificationDisplayManager.routeForNotification(
-        context: context,
-        url: initialRouteUrl);
-
-      if (route != null) {
-        return [
-          HomePage.buildRoute(accountId: route.accountId),
-          route,
-        ];
-      } else {
-        // The account didn't match any existing accounts,
-        // fall through to show the default route below.
-      }
+    final route = NotificationOpenManager.instance.routeForNotificationFromLaunch(context: context);
+    if (route != null) {
+      return [
+        HomePage.buildRoute(accountId: route.accountId),
+        route,
+      ];
     }
 
     final globalStore = GlobalStoreWidget.of(context);
@@ -199,57 +194,117 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
 
   @override
   Future<bool> didPushRouteInformation(routeInformation) async {
-    switch (routeInformation.uri) {
-      case Uri(scheme: 'zulip', host: 'login') && var url:
-        await LoginPage.handleWebAuthUrl(url);
-        return true;
-      case Uri(scheme: 'zulip', host: 'notification') && var url:
-        await NotificationDisplayManager.navigateForNotification(url);
-        return true;
+    if (routeInformation.uri
+        case Uri(scheme: 'zulip', host: 'login') && var url) {
+      await LoginPage.handleWebAuthUrl(url);
+      return true;
     }
     return super.didPushRouteInformation(routeInformation);
   }
 
   @override
   Widget build(BuildContext context) {
-    return GlobalStoreWidget(
-      child: Builder(builder: (context) {
-        return MaterialApp(
-          onGenerateTitle: (BuildContext context) {
-            return ZulipLocalizations.of(context).zulipAppTitle;
-          },
-          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-          supportedLocales: ZulipLocalizations.supportedLocales,
-          // The context has to be taken from the [Builder] because
-          // [zulipThemeData] requires access to [GlobalStoreWidget] in the tree.
-          theme: zulipThemeData(context),
+    return DeferrredBuilderWidget(
+      future: Future.wait<Object?>([
+        _globalStoreFuture,
+        if (NotificationOpenManager.instance.intializationFuture
+            case final Future<void> future)
+          future,
+      ]),
+      builder: (context, result) {
+        final [store, ...] = result;
+        return GlobalStoreWidget(
+          store: store as GlobalStore,
+          child: Builder(builder: (context) {
+            return MaterialApp(
+              onGenerateTitle: (BuildContext context) {
+                return ZulipLocalizations.of(context).zulipAppTitle;
+              },
+              localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+              supportedLocales: ZulipLocalizations.supportedLocales,
+              // The context has to be taken from the [Builder] because
+              // [zulipThemeData] requires access to [GlobalStoreWidget] in the tree.
+              theme: zulipThemeData(context),
 
-          navigatorKey: ZulipApp.navigatorKey,
-          navigatorObservers: [
-            if (widget.navigatorObservers != null)
-              ...widget.navigatorObservers!,
-            _PreventEmptyStack(),
-          ],
-          builder: (BuildContext context, Widget? child) {
-            if (!ZulipApp.ready.value) {
-              SchedulerBinding.instance.addPostFrameCallback(
-                (_) => widget._declareReady());
-            }
-            GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
-            return child!;
-          },
+              navigatorKey: ZulipApp.navigatorKey,
+              navigatorObservers: [
+                if (widget.navigatorObservers != null)
+                  ...widget.navigatorObservers!,
+                _PreventEmptyStack(),
+              ],
+              builder: (BuildContext context, Widget? child) {
+                if (!ZulipApp.ready.value) {
+                  SchedulerBinding.instance.addPostFrameCallback(
+                    (_) => widget._declareReady());
+                }
+                GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
+                return child!;
+              },
 
-          // We use onGenerateInitialRoutes for the real work of specifying the
-          // initial nav state.  To do that we need [MaterialApp] to decide to
-          // build a [Navigator]... which means specifying either `home`, `routes`,
-          // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
-          // It never actually gets called, though: `onGenerateInitialRoutes`
-          // handles startup, and then we always push whole routes with methods
-          // like [Navigator.push], never mere names as with [Navigator.pushNamed].
-          onGenerateRoute: (_) => null,
+              // We use onGenerateInitialRoutes for the real work of specifying the
+              // initial nav state.  To do that we need [MaterialApp] to decide to
+              // build a [Navigator]... which means specifying either `home`, `routes`,
+              // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
+              // It never actually gets called, though: `onGenerateInitialRoutes`
+              // handles startup, and then we always push whole routes with methods
+              // like [Navigator.push], never mere names as with [Navigator.pushNamed].
+              onGenerateRoute: (_) => null,
 
-          onGenerateInitialRoutes: _handleGenerateInitialRoutes);
-      }));
+              onGenerateInitialRoutes: _handleGenerateInitialRoutes);
+          }));
+      });
+  }
+}
+
+/// A widget that defers the builder until the provided [future] completes.
+///
+/// It shows a placeholder widget while it waits for the [future]
+/// to complete.
+class DeferrredBuilderWidget<T> extends StatefulWidget {
+  const DeferrredBuilderWidget({
+    super.key,
+    required this.future,
+    required this.builder,
+    this.placeholderBuilder = _defaultPlaceHolderBuilder,
+  });
+
+  final Future<T> future;
+
+  /// The widget to build when [future] completes, with it's result
+  /// passed as `result`.
+  final Widget Function(BuildContext context, T result) builder;
+
+  /// The placeholder widget to build while waiting for the [future]
+  /// to complete.
+  ///
+  /// By default, it will build the [LoadingPlaceholder].
+  final Widget Function(BuildContext context) placeholderBuilder;
+
+  static Widget _defaultPlaceHolderBuilder(BuildContext context) {
+    return const LoadingPlaceholder();
+  }
+
+  @override
+  State<DeferrredBuilderWidget<T>> createState() => _DeferrredBuilderWidgetState<T>();
+}
+
+class _DeferrredBuilderWidgetState<T> extends State<DeferrredBuilderWidget<T>> {
+  T? _result;
+
+  @override
+  void initState() {
+    super.initState();
+    () async {
+      _result = await widget.future;
+      if (mounted) setState(() {});
+    }();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final result = _result;
+    if (result == null) return widget.placeholderBuilder(context);
+    return widget.builder(context, result);
   }
 }
 
