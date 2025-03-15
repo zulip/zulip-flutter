@@ -45,6 +45,10 @@ enum BrowserPreference {
 }
 
 extension GlobalSettingsHelpers on GlobalSettingsData {
+  /// The value of [BrowserPreference] to use:
+  /// the user's choice [browserPreference] if any, else our default.
+  ///
+  /// See also [getUrlLaunchMode].
   BrowserPreference get effectiveBrowserPreference {
     if (browserPreference != null) return browserPreference!;
     return switch (defaultTargetPlatform) {
@@ -61,6 +65,8 @@ extension GlobalSettingsHelpers on GlobalSettingsData {
     };
   }
 
+  /// The launch mode to use with `url_launcher`,
+  /// based on the user's choice in [browserPreference].
   UrlLaunchMode getUrlLaunchMode(Uri url) {
     switch (effectiveBrowserPreference) {
       case BrowserPreference.inApp:
