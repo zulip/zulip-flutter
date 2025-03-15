@@ -1414,20 +1414,13 @@ class MessageTableCell extends StatelessWidget {
 }
 
 void _launchUrl(BuildContext context, String urlString) async {
-  DialogStatus showError(BuildContext context, String? message) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    return showErrorDialog(context: context,
-      title: zulipLocalizations.errorCouldNotOpenLinkTitle,
-      message: [
-        zulipLocalizations.errorCouldNotOpenLink(urlString),
-        if (message != null) message,
-      ].join("\n\n"));
-  }
-
   final store = PerAccountStoreWidget.of(context);
   final url = store.tryResolveUrl(urlString);
   if (url == null) { // TODO(log)
-    showError(context, null);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    showErrorDialog(context: context,
+      title: zulipLocalizations.errorCouldNotOpenLinkTitle,
+      message: zulipLocalizations.errorCouldNotOpenLink(urlString));
     return;
   }
 
@@ -1456,7 +1449,14 @@ void _launchUrl(BuildContext context, String urlString) async {
   }
   if (!launched) { // TODO(log)
     if (!context.mounted) return;
-    showError(context, errorMessage);
+
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    showErrorDialog(context: context,
+      title: zulipLocalizations.errorCouldNotOpenLinkTitle,
+      message: [
+        zulipLocalizations.errorCouldNotOpenLink(urlString),
+        if (errorMessage != null) errorMessage,
+      ].join("\n\n"));
   }
 }
 
