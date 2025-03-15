@@ -1422,7 +1422,7 @@ void _launchUrl(BuildContext context, String urlString) async {
     showErrorDialog(context: context,
       title: zulipLocalizations.errorCouldNotOpenLinkTitle,
       message: [
-        zulipLocalizations.errorCouldNotOpenLink(urlString),
+        zulipLocalizations.errorCouldNotOpenLink(url.toString()),
         if (errorMessage != null) errorMessage,
       ].join("\n\n"));
   }
