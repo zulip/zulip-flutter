@@ -32,7 +32,7 @@ typedef FirebaseRemoteMessage = firebase_messaging.RemoteMessage;
 ///
 /// Most code should not interact with the bindings directly.
 /// Instead, use the corresponding higher-level APIs that expose the bindings'
-/// functionality in a widget-oriented way.
+/// functionality in a widget-oriented way; see [PlatformActions] for some.
 ///
 /// This piece of architecture is modelled on the "binding" classes in Flutter
 /// itself.  For discussion, see [BindingBase], [WidgetsFlutterBinding], and
