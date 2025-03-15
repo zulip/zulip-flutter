@@ -23,6 +23,8 @@ Widget checkErrorDialog(WidgetTester tester, {
       of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
   }
 
+  // TODO check "Learn more" button?
+
   return tester.widget(
     find.descendant(of: find.byWidget(dialog),
       matching: find.widgetWithText(TextButton, 'OK')));

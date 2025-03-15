@@ -186,14 +186,30 @@ abstract class GlobalStore extends ChangeNotifier {
     final PerAccountStore store;
     try {
       store = await doLoadPerAccount(accountId);
+    } on AccountNotFoundException {
+      rethrow;
     } catch (e) {
+      final account = getAccount(accountId);
+      assert(account != null); // doLoadPerAccount would have thrown AccountNotFoundException
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       switch (e) {
+        case _ServerVersionUnsupportedException():
+          reportErrorToUserModally(
+            zulipLocalizations.errorCouldNotConnectTitle,
+            message: zulipLocalizations.errorServerVersionUnsupportedMessage(
+              account!.realmUrl.toString(),
+              e.data.zulipVersion,
+              kMinSupportedZulipVersion),
+            learnMoreButtonUrl: kServerSupportDocUrl);
+          // The important thing is to tear down per-account UI,
+          // and logOutAccount conveniently handles that already.
+          // It's not ideal to force the user to reauthenticate when they retry,
+          // and we can revisit that later if needed.
+          await logOutAccount(this, accountId);
+          throw AccountNotFoundException();
         case HttpException(httpStatus: 401):
           // The API key is invalid and the store can never be loaded
           // unless the user retries manually.
-          final account = getAccount(accountId);
-          assert(account != null); // doLoadPerAccount would have thrown AccountNotFoundException
-          final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
           reportErrorToUserModally(
             zulipLocalizations.errorCouldNotConnectTitle,
             message: zulipLocalizations.errorInvalidApiKeyMessage(
@@ -956,8 +972,8 @@ class UpdateMachine {
   ///
   /// In the future this might load an old snapshot from local storage first.
   static Future<UpdateMachine> load(GlobalStore globalStore, int accountId) async {
-    Account account = globalStore.getAccount(accountId)!;
-    final connection = globalStore.apiConnectionFromAccount(account);
+    final connection = globalStore.apiConnectionFromAccount(
+      globalStore.getAccount(accountId)!);
 
     void stopAndThrowIfNoAccount() {
       final account = globalStore.getAccount(accountId);
@@ -968,22 +984,34 @@ class UpdateMachine {
       }
     }
 
+    Future<void> updateZulipVersionData(ZulipVersionData data) async {
+      final account = globalStore.getAccount(accountId)!;
+      if (data.zulipVersion != account.zulipVersion
+          || data.zulipMergeBase != account.zulipMergeBase
+          || data.zulipFeatureLevel != account.zulipFeatureLevel) {
+        await globalStore.updateAccount(accountId, AccountsCompanion(
+          zulipVersion: Value(data.zulipVersion),
+          zulipMergeBase: Value(data.zulipMergeBase),
+          zulipFeatureLevel: Value(data.zulipFeatureLevel)));
+        connection.zulipFeatureLevel = data.zulipFeatureLevel;
+      }
+    }
+
     final stopwatch = Stopwatch()..start();
-    final initialSnapshot = await _registerQueueWithRetry(connection,
-      stopAndThrowIfNoAccount: stopAndThrowIfNoAccount);
+    InitialSnapshot? initialSnapshot;
+    try {
+      initialSnapshot = await _registerQueueWithRetry(connection,
+        stopAndThrowIfNoAccount: stopAndThrowIfNoAccount);
+    } on _ServerVersionUnsupportedException catch (e) {
+      connection.close();
+      await updateZulipVersionData(e.data);
+      rethrow;
+    }
     final t = (stopwatch..stop()).elapsed;
     assert(debugLog("initial fetch time: ${t.inMilliseconds}ms"));
 
-    if (initialSnapshot.zulipVersion != account.zulipVersion
-        || initialSnapshot.zulipMergeBase != account.zulipMergeBase
-        || initialSnapshot.zulipFeatureLevel != account.zulipFeatureLevel) {
-      account = await globalStore.updateAccount(accountId, AccountsCompanion(
-        zulipVersion: Value(initialSnapshot.zulipVersion),
-        zulipMergeBase: Value(initialSnapshot.zulipMergeBase),
-        zulipFeatureLevel: Value(initialSnapshot.zulipFeatureLevel),
-      ));
-      connection.zulipFeatureLevel = initialSnapshot.zulipFeatureLevel;
-    }
+    final zulipVersionData = ZulipVersionData.fromInitialSnapshot(initialSnapshot);
+    await updateZulipVersionData(zulipVersionData);
 
     final store = PerAccountStore.fromInitialSnapshot(
       globalStore: globalStore,
@@ -1027,7 +1055,12 @@ class UpdateMachine {
       } catch (e, s) {
         stopAndThrowIfNoAccount();
         // TODO(#890): tell user if initial-fetch errors persist, or look non-transient
+        final ZulipVersionData? zulipVersionData;
         switch (e) {
+          case MalformedServerResponseException()
+            when (zulipVersionData = ZulipVersionData.fromMalformedServerResponseException(e))
+              ?.isUnsupported == true:
+            throw _ServerVersionUnsupportedException(zulipVersionData!);
           case HttpException(httpStatus: 401):
             // We cannot recover from this error through retrying.
             // Leave it to [GlobalStore.loadPerAccount].
@@ -1045,6 +1078,10 @@ class UpdateMachine {
       }
       if (result != null) {
         stopAndThrowIfNoAccount();
+        final zulipVersionData = ZulipVersionData.fromInitialSnapshot(result);
+        if (zulipVersionData.isUnsupported) {
+          throw _ServerVersionUnsupportedException(zulipVersionData);
+        }
         return result;
       }
     }
@@ -1450,6 +1487,48 @@ class UpdateMachine {
 
   @override
   String toString() => '${objectRuntimeType(this, 'UpdateMachine')}#${shortHash(this)}';
+}
+
+/// The fields 'zulip_version', 'zulip_merge_base', and 'zulip_feature_level'
+/// from a /register response.
+class ZulipVersionData {
+  ZulipVersionData({
+    required this.zulipVersion,
+    required this.zulipMergeBase,
+    required this.zulipFeatureLevel,
+  });
+
+  factory ZulipVersionData.fromInitialSnapshot(InitialSnapshot initialSnapshot) =>
+    ZulipVersionData(
+      zulipVersion: initialSnapshot.zulipVersion,
+      zulipMergeBase: initialSnapshot.zulipMergeBase,
+      zulipFeatureLevel: initialSnapshot.zulipFeatureLevel);
+
+  /// A [ZulipVersionData] from a [MalformedServerResponseException],
+  /// if the body was readable/valid JSON and contained the data, else null.
+  static ZulipVersionData? fromMalformedServerResponseException(MalformedServerResponseException e) {
+    try {
+      final data = e.data!;
+      return ZulipVersionData(
+        zulipVersion: data['zulip_version'] as String,
+        zulipMergeBase: data['zulip_merge_base'] as String?,
+        zulipFeatureLevel: data['zulip_feature_level'] as int);
+    } catch (inner) {
+      return null;
+    }
+  }
+
+  final String zulipVersion;
+  final String? zulipMergeBase;
+  final int zulipFeatureLevel;
+
+  bool get isUnsupported => zulipFeatureLevel < kMinSupportedZulipFeatureLevel;
+}
+
+class _ServerVersionUnsupportedException implements Exception {
+  final ZulipVersionData data;
+
+  _ServerVersionUnsupportedException(this.data);
 }
 
 class _EventHandlingException implements Exception {

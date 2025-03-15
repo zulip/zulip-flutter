@@ -1,11 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:intl/intl.dart';
 
@@ -13,9 +11,9 @@ import '../api/core.dart';
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/avatar_url.dart';
-import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
+import 'actions.dart';
 import 'code_block.dart';
 import 'dialog.dart';
 import 'icons.dart';
@@ -1414,20 +1412,13 @@ class MessageTableCell extends StatelessWidget {
 }
 
 void _launchUrl(BuildContext context, String urlString) async {
-  DialogStatus showError(BuildContext context, String? message) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    return showErrorDialog(context: context,
-      title: zulipLocalizations.errorCouldNotOpenLinkTitle,
-      message: [
-        zulipLocalizations.errorCouldNotOpenLink(urlString),
-        if (message != null) message,
-      ].join("\n\n"));
-  }
-
   final store = PerAccountStoreWidget.of(context);
   final url = store.tryResolveUrl(urlString);
   if (url == null) { // TODO(log)
-    showError(context, null);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    showErrorDialog(context: context,
+      title: zulipLocalizations.errorCouldNotOpenLinkTitle,
+      message: zulipLocalizations.errorCouldNotOpenLink(urlString));
     return;
   }
 
@@ -1439,25 +1430,7 @@ void _launchUrl(BuildContext context, String urlString) async {
     return;
   }
 
-  bool launched = false;
-  String? errorMessage;
-  try {
-    launched = await ZulipBinding.instance.launchUrl(url,
-      mode: switch (defaultTargetPlatform) {
-        // On iOS we prefer LaunchMode.externalApplication because (for
-        // HTTP URLs) LaunchMode.platformDefault uses SFSafariViewController,
-        // which gives an awkward UX as described here:
-        //  https://chat.zulip.org/#narrow/stream/48-mobile/topic/in-app.20browser/near/1169118
-        TargetPlatform.iOS => UrlLaunchMode.externalApplication,
-        _ => UrlLaunchMode.platformDefault,
-      });
-  } on PlatformException catch (e) {
-    errorMessage = e.message;
-  }
-  if (!launched) { // TODO(log)
-    if (!context.mounted) return;
-    showError(context, errorMessage);
-  }
+  await PlatformActions.launchUrl(context, url);
 }
 
 /// Like [Image.network], but includes [authHeader] if [src] is on-realm.

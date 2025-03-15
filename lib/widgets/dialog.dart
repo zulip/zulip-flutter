@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
+import 'actions.dart';
 
 Widget _dialogActionText(String text) {
   return Text(
@@ -27,7 +28,8 @@ class DialogStatus {
   final Future<void> closed;
 }
 
-/// Displays an [AlertDialog] with a dismiss button.
+/// Displays an [AlertDialog] with a dismiss button
+/// and optional "Learn more" button.
 ///
 /// The [DialogStatus.closed] field of the return value can be used
 /// for waiting for the dialog to be closed.
@@ -39,6 +41,7 @@ DialogStatus showErrorDialog({
   required BuildContext context,
   required String title,
   String? message,
+  Uri? learnMoreButtonUrl,
 }) {
   final zulipLocalizations = ZulipLocalizations.of(context);
   final future = showDialog<void>(
@@ -47,6 +50,10 @@ DialogStatus showErrorDialog({
       title: Text(title),
       content: message != null ? SingleChildScrollView(child: Text(message)) : null,
       actions: [
+        if (learnMoreButtonUrl != null)
+          TextButton(
+            onPressed: () => PlatformActions.launchUrl(context, learnMoreButtonUrl),
+            child: _dialogActionText(zulipLocalizations.errorDialogLearnMore)),
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
