@@ -349,6 +349,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get dialogClose => 'Закрыть';
 
   @override
+  String get errorDialogLearnMore => 'Learn more';
+
+  @override
   String get errorDialogContinue => 'OK';
 
   @override

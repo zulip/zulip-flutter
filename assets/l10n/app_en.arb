@@ -447,6 +447,10 @@
   "@dialogClose": {
     "description": "Button label in dialogs to close."
   },
+  "errorDialogLearnMore": "Learn more",
+  "@errorDialogLearnMore": {
+    "description": "Button label in error dialogs to open a web page with more information."
+  },
   "errorDialogContinue": "OK",
   "@errorDialogContinue": {
     "description": "Button label in error dialogs to acknowledge the error and close the dialog."

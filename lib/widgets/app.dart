@@ -130,13 +130,18 @@ class ZulipApp extends StatefulWidget {
   }
 
   /// The callback we normally use as [reportErrorToUserModally].
-  static void _reportErrorToUserModally(String title, {String? message}) {
+  static void _reportErrorToUserModally(
+    String title, {
+    String? message,
+    Uri? learnMoreButtonUrl,
+  }) {
     assert(_ready.value);
 
     showErrorDialog(
       context: navigatorKey.currentContext!,
       title: title,
-      message: message);
+      message: message,
+      learnMoreButtonUrl: learnMoreButtonUrl);
   }
 
   void _declareReady() {

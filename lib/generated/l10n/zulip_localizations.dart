@@ -693,6 +693,12 @@ abstract class ZulipLocalizations {
   /// **'Close'**
   String get dialogClose;
 
+  /// Button label in error dialogs to open a web page with more information.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn more'**
+  String get errorDialogLearnMore;
+
   /// Button label in error dialogs to acknowledge the error and close the dialog.
   ///
   /// In en, this message translates to:

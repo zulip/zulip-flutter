@@ -349,6 +349,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get dialogClose => 'Zavrieť';
 
   @override
+  String get errorDialogLearnMore => 'Learn more';
+
+  @override
   String get errorDialogContinue => 'OK';
 
   @override
