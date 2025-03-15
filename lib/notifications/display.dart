@@ -234,6 +234,18 @@ class NotificationDisplayManager {
     final groupKey = _groupKey(data.realmUrl, data.userId);
     final conversationKey = _conversationKey(data, groupKey);
 
+    final globalStore = await ZulipBinding.instance.getGlobalStore();
+    final account = globalStore.accounts.firstWhereOrNull((account) =>
+      account.realmUrl.origin == data.realmUrl.origin && account.userId == data.userId);
+
+    // If the account is null, it means the user is logged out. This can happen
+    // if the unregisterToken request failed previously, leaving the account
+    // in a state where it's no longer valid in our system. In this scenario,
+    // we simply return and do nothing, as there's no active account to process.
+    if (account == null) {
+      return;
+    }
+
     final oldMessagingStyle = await _androidHost
       .getActiveNotificationMessagingStyleByTag(conversationKey);
 
@@ -517,6 +529,16 @@ class NotificationDisplayManager {
       // TODO(log)
     }
     return null;
+  }
+
+  static Future<void> removeNotificationsForAccount(Uri realmUri, int userId) async {
+    final groupKey = _groupKey(realmUri, userId);
+    final activeNotifications = await _androidHost.getActiveNotifications(desiredExtras: [kExtraLastZulipMessageId]);
+    for (final statusBarNotification in activeNotifications) {
+      if (statusBarNotification.notification.group == groupKey) {
+        await _androidHost.cancel(tag: statusBarNotification.tag, id: statusBarNotification.id);
+      }
+    }
   }
 }
 
