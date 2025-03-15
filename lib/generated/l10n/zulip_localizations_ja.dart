@@ -271,6 +271,39 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get composeBoxAttachFromCameraTooltip => 'Take a photo';
 
   @override
+  String get composeBoxShowSavedSnippetsTooltip => 'Show saved snippets';
+
+  @override
+  String get noSavedSnippets => 'No saved snippets';
+
+  @override
+  String get newSavedSnippetButton => 'New';
+
+  @override
+  String get newSavedSnippetTitle => 'New snippet';
+
+  @override
+  String get newSavedSnippetTitleHint => 'Title';
+
+  @override
+  String get newSavedSnippetContentHint => 'Content';
+
+  @override
+  String get errorFailedToCreateSavedSnippet => 'Failed to create saved snippet';
+
+  @override
+  String get savedSnippetTitleValidationErrorEmpty => 'Title cannot be empty.';
+
+  @override
+  String get savedSnippetTitleValidationErrorTooLong => 'Title length shouldn\'t be greater than 60 characters.';
+
+  @override
+  String get savedSnippetContentValidationErrorEmpty => 'Content cannot be empty.';
+
+  @override
+  String get savedSnippetContentValidationErrorTooLong => 'Content length shouldn\'t be greater than 10000 characters.';
+
+  @override
   String get composeBoxGenericContentHint => 'Type a message';
 
   @override

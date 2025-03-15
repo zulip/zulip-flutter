@@ -29,6 +29,7 @@ import 'message_list.dart';
 import 'recent_dm_conversations.dart';
 import 'recent_senders.dart';
 import 'channel.dart';
+import 'saved_snippet.dart';
 import 'typing_status.dart';
 import 'unreads.dart';
 import 'user.dart';
@@ -295,7 +296,7 @@ class AccountNotFoundException implements Exception {}
 /// This class does not attempt to poll an event queue
 /// to keep the data up to date.  For that behavior, see
 /// [UpdateMachine].
-class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, ChannelStore, MessageStore {
+class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, SavedSnippetStore, ChannelStore, MessageStore {
   /// Construct a store for the user's data, starting from the given snapshot.
   ///
   /// The global store must already have been updated with
@@ -337,6 +338,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
       emoji: EmojiStoreImpl(
         realmUrl: realmUrl, allRealmEmoji: initialSnapshot.realmEmoji),
       accountId: accountId,
+      savedSnippets: SavedSnippetStoreImpl(
+        savedSnippets: initialSnapshot.savedSnippets ?? []),
       userSettings: initialSnapshot.userSettings,
       typingNotifier: TypingNotifier(
         connection: connection,
@@ -379,6 +382,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
     required this.emailAddressVisibility,
     required EmojiStoreImpl emoji,
     required this.accountId,
+    required SavedSnippetStoreImpl savedSnippets,
     required this.userSettings,
     required this.typingNotifier,
     required UserStoreImpl users,
@@ -395,6 +399,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
        _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
        _emoji = emoji,
        _users = users,
+        _savedSnippets = savedSnippets,
        _channels = channels,
        _messages = messages;
 
@@ -498,6 +503,10 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
   ///
   /// Will throw if called after [dispose] has been called.
   Account get account => _globalStore.getAccount(accountId)!;
+
+  @override
+  Iterable<SavedSnippet> get savedSnippets => _savedSnippets.savedSnippets;
+  final SavedSnippetStoreImpl _savedSnippets; // TODO(server-10)
 
   final UserSettings? userSettings; // TODO(server-5)
 
@@ -724,6 +733,11 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
         assert(debugLog("server event: realm_user/update"));
         _users.handleRealmUserEvent(event);
         autocompleteViewManager.handleRealmUserUpdateEvent(event);
+        notifyListeners();
+
+      case SavedSnippetsEvent():
+        assert(debugLog('server event: saved_snippet/${event.op}'));
+        _savedSnippets.handleSavedSnippetsEvent(event);
         notifyListeners();
 
       case ChannelEvent():
