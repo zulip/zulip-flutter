@@ -52,6 +52,17 @@ void main() {
         .themeSetting.equals(ThemeSetting.dark);
     });
 
+    test('GlobalSettings updates work', () async {
+      check(await database.ensureGlobalSettings())
+        .themeSetting.isNull();
+
+      // As in doUpdateGlobalSettings.
+      await database.update(database.globalSettings)
+        .write(GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.dark)));
+      check(await database.ensureGlobalSettings())
+        .themeSetting.equals(ThemeSetting.dark);
+    });
+
     test('create account', () async {
       final accountData = AccountsCompanion.insert(
         realmUrl: Uri.parse('https://chat.example/'),
