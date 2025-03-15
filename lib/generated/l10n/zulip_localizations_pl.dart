@@ -86,16 +86,16 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get actionSheetOptionUnfollowTopic => 'Nie śledź wątku';
 
   @override
-  String get actionSheetOptionResolveTopic => 'Mark as resolved';
+  String get actionSheetOptionResolveTopic => 'Oznacz jako rozwiązany';
 
   @override
-  String get actionSheetOptionUnresolveTopic => 'Mark as unresolved';
+  String get actionSheetOptionUnresolveTopic => 'Oznacz brak rozwiązania';
 
   @override
-  String get errorResolveTopicFailedTitle => 'Failed to mark topic as resolved';
+  String get errorResolveTopicFailedTitle => 'Nie udało się oznaczyć jako rozwiązany';
 
   @override
-  String get errorUnresolveTopicFailedTitle => 'Failed to mark topic as unresolved';
+  String get errorUnresolveTopicFailedTitle => 'Nie udało się oznaczyć brak rozwiązania';
 
   @override
   String get actionSheetOptionCopyMessageText => 'Skopiuj tekst wiadomości';
@@ -188,7 +188,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
-  String get errorCouldNotConnectTitle => 'Could not connect';
+  String get errorCouldNotConnectTitle => 'Brak połączenia';
 
   @override
   String get errorMessageDoesNotSeemToExist => 'Taka wiadomość raczej nie istnieje.';
@@ -286,7 +286,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String composeBoxChannelContentHint(String destination) {
-    return 'Message $destination';
+    return 'Wiadomość do $destination';
   }
 
   @override
@@ -325,7 +325,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
-  String get messageListGroupYouWithYourself => 'Ty ze sobą';
+  String get messageListGroupYouWithYourself => 'Zapiski na własne konto';
 
   @override
   String get contentValidationErrorTooLong => 'Wiadomość nie może być dłuższa niż 10000 znaków.';
@@ -415,7 +415,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String errorInvalidApiKeyMessage(String url) {
-    return 'Your account at $url could not be authenticated. Please try logging in again or use another account.';
+    return 'Konto w ramach $url nie zostało przyjęte. Spróbuj ponownie lub skorzystaj z innego konta.';
   }
 
   @override
