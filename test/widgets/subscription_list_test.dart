@@ -95,6 +95,25 @@ void main() {
     check(isUnpinnedHeaderInTree()).isTrue();
   });
 
+  testWidgets('archived subscriptions are filtered out', (tester) async {
+    await setupStreamListPage(tester, subscriptions: [
+      eg.subscription(eg.stream(streamId: 1, isArchived: true), pinToTop: true),
+      eg.subscription(eg.stream(streamId: 2, isArchived: true), pinToTop: false),
+      eg.subscription(eg.stream(streamId: 3), pinToTop: true),
+      eg.subscription(eg.stream(streamId: 4), pinToTop: false),
+    ]);
+
+    check(getItemCount()).equals(2);
+    check(isPinnedHeaderInTree()).isTrue();
+    check(isUnpinnedHeaderInTree()).isTrue();
+
+    check(find.text('stream 1')).findsNothing();
+    check(find.text('stream 2')).findsNothing();
+
+    check(find.text('stream 3')).findsOne();
+    check(find.text('stream 4')).findsOne();
+  });
+
   group('subscription sorting', () {
     Iterable<int> listedStreamIds(WidgetTester tester) => tester
       .widgetList<SubscriptionItem>(find.byType(SubscriptionItem))

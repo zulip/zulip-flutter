@@ -85,6 +85,29 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   await tester.pump(const Duration(milliseconds: 250));
 }
 
+Widget? findRowByLabel(WidgetTester tester, String label) {
+  final textFinder = find.text(label);
+  if (textFinder.evaluate().isNotEmpty) {
+    return tester.widget(
+      find.ancestor(
+        of: textFinder.first,
+        matching: find.byType(Row))
+    );
+  }
+
+  final richTextFinder = find.byWidgetPredicate((widget) =>
+    widget is RichText &&
+    widget.text.toPlainText().contains(label));
+  if (richTextFinder.evaluate().isNotEmpty) {
+    return tester.widget(
+      find.ancestor(
+        of: richTextFinder.first,
+        matching: find.byType(Row))
+    );
+  }
+  return null;
+}
+
 void main() {
   TestZulipBinding.ensureInitialized();
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -134,7 +157,12 @@ void main() {
       await tester.pump();
       check(find.byType(InboxPageBody)).findsOne();
 
-      await tester.longPress(find.text(someChannel.name).hitTestable());
+      final row = findRowByLabel(tester, someChannel.name);
+      check(row).isNotNull();
+      final materialFinders = find.ancestor(
+        of: find.byWidget(row!),
+        matching: find.byType(Material)).hitTestable();
+      await tester.longPress(materialFinders.first);
       await tester.pump(const Duration(milliseconds: 250));
     }
 
@@ -589,6 +617,45 @@ void main() {
             checkButtons(buttons);
           });
         }
+      });
+
+      group('archived channels', () {
+        testWidgets('limited topic actions for archived channels', (tester) async {
+          final archivedChannel = eg.stream(isArchived: true);
+          final someTopic = 'my topic';
+
+          final message = eg.streamMessage(
+            stream: archivedChannel,
+            topic: someTopic,
+            flags: []);
+
+          await prepare(
+            channel: archivedChannel,
+            topic: someTopic,
+            isChannelSubscribed: true,
+            isChannelMuted: false,
+            visibilityPolicy: UserTopicVisibilityPolicy.none,
+            unreadMsgs: eg.unreadMsgs(channels: [
+              eg.unreadChannelMsgs(
+                streamId: archivedChannel.streamId,
+                topic: someTopic,
+                unreadMessageIds: [message.id]),
+            ]));
+
+          await showFromAppBar(tester,
+            channel: archivedChannel,
+            topic: someTopic,
+            messages: [message]);
+          check(mute).findsNothing();
+          check(unmute).findsNothing();
+          check(follow).findsNothing();
+          check(unfollow).findsNothing();
+
+          check(findButtonForLabel('Mark as resolved')).findsNothing();
+          check(findButtonForLabel('Mark as unresolved')).findsNothing();
+
+          check(findButtonForLabel('Mark topic as read')).findsOne();
+        });
       });
 
       group('legacy: follow is unsupported when FL < 219', () {
@@ -1140,6 +1207,28 @@ void main() {
         final message = eg.streamMessage(flags: [MessageFlag.starred]);
         await setupToMessageActionSheet(tester, message: message, narrow: const StarredMessagesNarrow());
         check(findQuoteAndReplyButton(tester)).isNull();
+      });
+
+      group('archived channels', () {
+        testWidgets('not offered in archived channels', (tester) async {
+          final archivedChannel = eg.stream(isArchived: true);
+          final message = eg.streamMessage(stream: archivedChannel);
+
+          await setupToMessageActionSheet(tester,
+            message: message,
+            narrow: TopicNarrow.ofMessage(message));
+          check(findQuoteAndReplyButton(tester)).isNotNull();
+        });
+
+        testWidgets('offered in non-archived channels', (tester) async {
+          final channel = eg.stream(isArchived: false);
+          final message = eg.streamMessage(stream: channel);
+
+          await setupToMessageActionSheet(tester,
+            message: message,
+            narrow: TopicNarrow.ofMessage(message));
+          check(findQuoteAndReplyButton(tester)).isNotNull();
+        });
       });
     });
 
