@@ -343,6 +343,9 @@ class _LoginPageState extends State<LoginPage> {
       // Could set [_inProgress]… but we'd need to unset it if the web-auth
       // attempt is aborted (by the user closing the browser, for example),
       // and I don't think we can reliably know when that happens.
+
+      // Not using [PlatformActions.launchUrl] because web auth needs special
+      // error handling.
       await ZulipBinding.instance.launchUrl(url, mode: LaunchMode.inAppBrowserView);
     } catch (e) {
       assert(debugLog(e.toString()));
