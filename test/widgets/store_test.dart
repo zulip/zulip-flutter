@@ -57,7 +57,7 @@ extension MyWidgetWithMixinStateChecks on Subject<MyWidgetWithMixinState> {
 void main() {
   TestZulipBinding.ensureInitialized();
 
-  testWidgets('GlobalStoreWidget', (tester) async {
+  testWidgets('GlobalStoreWidget loads data while showing placeholder', (tester) async {
     addTearDown(testBinding.reset);
 
     GlobalStore? globalStore;
@@ -81,6 +81,25 @@ void main() {
     check(globalStore).isNotNull()
       .accountEntries.single
       .equals((accountId: eg.selfAccount.id, account: eg.selfAccount));
+  });
+
+  testWidgets('GlobalStoreWidget.of updates dependents', (tester) async {
+    addTearDown(testBinding.reset);
+
+    List<int>? accountIds;
+    await tester.pumpWidget(
+      Directionality(textDirection: TextDirection.ltr,
+        child: GlobalStoreWidget(
+          child: Builder(builder: (context) {
+            accountIds = GlobalStoreWidget.of(context).accountIds.toList();
+            return SizedBox.shrink();
+          }))));
+    await tester.pump();
+    check(accountIds).isNotNull().isEmpty();
+
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    await tester.pump();
+    check(accountIds).isNotNull().deepEquals([eg.selfAccount.id]);
   });
 
   testWidgets('PerAccountStoreWidget basic', (tester) async {
