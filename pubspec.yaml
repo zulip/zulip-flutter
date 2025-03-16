@@ -21,6 +21,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  shared_preferences: ^2.2.2
   flutter_localizations:
     sdk: flutter
 
