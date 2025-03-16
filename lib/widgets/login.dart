@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import '../api/exception.dart';
 import '../api/model/web_auth.dart';
 import '../api/route/account.dart';
@@ -224,14 +223,16 @@ class _AddAccountPageState extends State<AddAccountPage> {
     super.dispose();
   }
 
-  void _onSubmitted(BuildContext context) async {
+  void _onSubmitted(BuildContext context) async{
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final globalStore =  GlobalStoreWidget.of(context);
+
     final url = _parseResult.url;
     final error = _parseResult.error;
     if (error != null) {
       showErrorDialog(context: context,
-        title: zulipLocalizations.errorLoginInvalidInputTitle,
-        message: error.message(zulipLocalizations));
+          title: zulipLocalizations.errorLoginInvalidInputTitle,
+          message: error.message(zulipLocalizations));
       return;
     }
     assert(url != null);
@@ -242,29 +243,32 @@ class _AddAccountPageState extends State<AddAccountPage> {
     setState(() {
       _inProgress = true;
     });
+
     try {
-      final GetServerSettingsResult serverSettings;
-      try {
-        final globalStore = GlobalStoreWidget.of(context);
+      // Create a function that doesn't capture the BuildContext
+      Future<GetServerSettingsResult> getSettings() async {
         final connection = globalStore.apiConnection(realmUrl: url!, zulipFeatureLevel: null);
         try {
-          serverSettings = await getServerSettings(connection);
+          return await getServerSettings(connection);
         } finally {
           connection.close();
         }
+      }
+
+      // Now execute the async operation
+      final GetServerSettingsResult serverSettings;
+      try {
+        serverSettings = await getSettings();
       } catch (e) {
         if (!context.mounted) {
           return;
         }
-        // TODO(#105) give more helpful feedback; see `fetchServerSettings`
-        //   in zulip-mobile's src/message/fetchActions.js.
         showErrorDialog(context: context,
-          title: zulipLocalizations.errorCouldNotConnectTitle,
-          message: zulipLocalizations.errorLoginCouldNotConnect(url.toString()));
+            title: zulipLocalizations.errorCouldNotConnectTitle,
+            message: zulipLocalizations.errorLoginCouldNotConnect(url.toString()));
         return;
       }
-      // https://github.com/dart-lang/linter/issues/4007
-      // ignore: use_build_context_synchronously
+
       if (!context.mounted) {
         return;
       }
@@ -272,9 +276,12 @@ class _AddAccountPageState extends State<AddAccountPage> {
       // Refresh the URL history after successful submission
       await _loadUrlHistory();
 
+      if (!context.mounted) {
+        return;
+      }
 
       unawaited(Navigator.push(context,
-        LoginPage.buildRoute(serverSettings: serverSettings)));
+          LoginPage.buildRoute(serverSettings: serverSettings)));
     } finally {
       setState(() {
         _inProgress = false;
@@ -390,7 +397,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                                     tooltip: zulipLocalizations.dialogContinue,
                                   ),
                                 );
-                              }).toList(),
+                              }),
                               // Clear history button
                               Container(
                                 decoration: BoxDecoration(
