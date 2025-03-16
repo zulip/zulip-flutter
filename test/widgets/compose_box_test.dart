@@ -301,20 +301,20 @@ void main() {
 
       testWidgets('too-long topic is rejected', (tester) async {
         await prepareWithTopic(tester,
-          makeStringWithCodePoints(kMaxTopicLengthCodePoints + 1));
+          makeStringWithCodePoints(store.maxTopicLength + 1));
         await tapSendButton(tester);
         await checkErrorResponse(tester);
       });
 
       testWidgets('max-length topic not rejected', (tester) async {
         await prepareWithTopic(tester,
-          makeStringWithCodePoints(kMaxTopicLengthCodePoints));
+          makeStringWithCodePoints(store.maxTopicLength));
         await tapSendButton(tester);
         checkNoErrorDialog(tester);
       });
 
       testWidgets('code points not counted unnecessarily', (tester) async {
-        await prepareWithTopic(tester, 'a' * kMaxTopicLengthCodePoints);
+        await prepareWithTopic(tester, 'a' * store.maxTopicLength);
         check((controller as StreamComposeBoxController)
           .topic.debugLengthUnicodeCodePointsIfLong).isNull();
       });
