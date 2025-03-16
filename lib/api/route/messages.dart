@@ -155,8 +155,6 @@ class GetMessagesResult {
   Map<String, dynamic> toJson() => _$GetMessagesResultToJson(this);
 }
 
-// https://zulip.com/api/send-message#parameter-topic
-const int kMaxTopicLengthCodePoints = 60;
 
 // https://zulip.com/api/send-message#parameter-content
 const int kMaxMessageLengthCodePoints = 10000;

@@ -143,6 +143,7 @@ enum TopicValidationError {
 
 class ComposeTopicController extends ComposeController<TopicValidationError> {
   ComposeTopicController({required this.store}) {
+    maxLengthUnicodeCodePoints = store.maxTopicLength;
     _update();
   }
 
@@ -151,8 +152,7 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   // TODO(#668): listen to [PerAccountStore] once we subscribe to this value
   bool get mandatory => store.realmMandatoryTopics;
 
-  // TODO(#307) use `max_topic_length` instead of hardcoded limit
-  @override final maxLengthUnicodeCodePoints = kMaxTopicLengthCodePoints;
+  @override late int maxLengthUnicodeCodePoints;
 
   @override
   String _computeTextNormalized() {
