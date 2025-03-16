@@ -1,10 +1,10 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../api/exception.dart';
 import '../api/model/web_auth.dart';
 import '../api/route/account.dart';
@@ -108,6 +108,43 @@ class ServerUrlTextEditingController extends TextEditingController {
   }
 }
 
+/// Helper class to manage server URL history using SharedPreferences
+class ServerUrlHistory {
+  static const String _prefsKey = 'server_url_history';
+  static const int _maxHistoryItems = 3;
+
+  /// Save a URL to history
+  static Future<void> saveUrl(String url) async {
+    final prefs = await SharedPreferences.getInstance();
+    final history = await getHistory();
+
+    // Remove the URL if it exists (to avoid duplicates)
+    history.removeWhere((item) => item == url);
+
+    // Add the new URL at the beginning
+    history.insert(0, url);
+
+    // Keep only the most recent URLs up to the maximum limit
+    if (history.length > _maxHistoryItems) {
+      history.removeRange(_maxHistoryItems, history.length);
+    }
+
+    await prefs.setStringList(_prefsKey, history);
+  }
+
+  /// Get the URL history list
+  static Future<List<String>> getHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList(_prefsKey) ?? [];
+  }
+
+  /// Clear all items from history
+  static Future<void> clearHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_prefsKey);
+  }
+}
+
 class AddAccountPage extends StatefulWidget {
   const AddAccountPage({super.key});
 
@@ -134,7 +171,11 @@ class AddAccountPage extends StatefulWidget {
 }
 
 class _AddAccountPageState extends State<AddAccountPage> {
+
   bool _inProgress = false;
+  List<String> _urlHistory = [];// list of histores
+  final FocusNode _urlFocusNode = FocusNode();
+  bool _showSuggestions = false;
 
   final ServerUrlTextEditingController _controller = ServerUrlTextEditingController();
   late ServerUrlParseResult _parseResult;
@@ -150,11 +191,36 @@ class _AddAccountPageState extends State<AddAccountPage> {
     super.initState();
     _parseResult = _controller.tryParse();
     _controller.addListener(_serverUrlChanged);
+    _loadUrlHistory();
+
+    _urlFocusNode.addListener(() {
+      setState(() {
+        _showSuggestions = _urlFocusNode.hasFocus && _urlHistory.isNotEmpty;
+      });
+    });
   }
+
+  Future<void> _loadUrlHistory() async {
+      final history = await ServerUrlHistory.getHistory();
+      setState(() {
+        _urlHistory = history;
+      });
+  }
+
+  Future<void> _clearHistory() async {
+      await ServerUrlHistory.clearHistory();
+      setState(() {
+        _urlHistory = [];
+        _showSuggestions = false;
+      });
+    }
+
+
 
   @override
   void dispose() {
     _controller.dispose();
+    _urlFocusNode.dispose();
     super.dispose();
   }
 
@@ -169,6 +235,9 @@ class _AddAccountPageState extends State<AddAccountPage> {
       return;
     }
     assert(url != null);
+
+    // Save the URL to history
+    await ServerUrlHistory.saveUrl(url.toString());
 
     setState(() {
       _inProgress = true;
@@ -200,6 +269,10 @@ class _AddAccountPageState extends State<AddAccountPage> {
         return;
       }
 
+      // Refresh the URL history after successful submission
+      await _loadUrlHistory();
+
+
       unawaited(Navigator.push(context,
         LoginPage.buildRoute(serverSettings: serverSettings)));
     } finally {
@@ -207,6 +280,16 @@ class _AddAccountPageState extends State<AddAccountPage> {
         _inProgress = false;
       });
     }
+  }
+
+  void _selectSuggestion(String suggestion) {
+    _controller.text = suggestion;
+    _controller.selection = TextSelection.fromPosition(
+      TextPosition(offset: suggestion.length),
+    );
+    setState(() {
+      _showSuggestions = false;
+    });
   }
 
   @override
@@ -232,28 +315,114 @@ class _AddAccountPageState extends State<AddAccountPage> {
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               // TODO(#109) Link to doc about what a "server URL" is and how to find it
               // TODO(#111) Perhaps give tappable realm URL suggestions based on text typed so far
-              TextField(
-                controller: _controller,
-                onSubmitted: (value) => _onSubmitted(context),
-                keyboardType: TextInputType.url,
-                autocorrect: false,
-                textInputAction: TextInputAction.go,
-                onEditingComplete: () {
-                  // Repeat default implementation by clearing IME compose session…
-                  _controller.clearComposing();
-                  // …but leave out unfocusing the input in case more editing is needed.
-                },
-                decoration: InputDecoration(
-                  labelText: zulipLocalizations.loginServerUrlLabel,
-                  errorText: errorText,
-                  helperText: kLayoutPinningHelperText,
-                  hintText: AddAccountPage._serverUrlHint)),
+
+              // URL input field with suggestions dropdown
+              // Replace the existing TextField and Positioned widget combo with this implementation
+              Column(
+                children: [
+                  TextField(
+                    controller: _controller,
+                    focusNode: _urlFocusNode,
+                    onSubmitted: (value) => _onSubmitted(context),
+                    keyboardType: TextInputType.url,
+                    autocorrect: false,
+                    textInputAction: TextInputAction.go,
+                    onEditingComplete: () {
+                      // Repeat default implementation by clearing IME compose session…
+                      _controller.clearComposing();
+                      // …but leave out unfocusing the input in case more editing is needed.
+                    },
+                    decoration: InputDecoration(
+                      labelText: zulipLocalizations.loginServerUrlLabel,
+                      errorText: errorText,
+                      helperText: kLayoutPinningHelperText,
+                      hintText: AddAccountPage._serverUrlHint,
+                      suffixIcon: _urlHistory.isNotEmpty ? IconButton(
+                        icon: const Icon(Icons.history),
+                        onPressed: () {
+                          setState(() {
+                            _showSuggestions = !_showSuggestions;
+
+                            // Add a short delay before hiding to ensure clean animation
+                            if (!_showSuggestions) {
+                              Future.delayed(Duration(milliseconds: 100), () {
+                                if (mounted) {
+                                  setState(() {
+                                    // Ensure dropdown is fully hidden
+                                  });
+                                }
+                              });
+                            }
+                          });
+                        },
+                        tooltip: 'Show history',
+                      ) : null,
+                    ),
+                  ),
+                  // Add a SizedBox to create space between TextField and dropdown
+                  SizedBox(height: 2),
+                  // Use AnimatedContainer for smooth appearance/disappearance
+                  AnimatedContainer(
+                    duration: Duration(milliseconds: 200),
+                    height: _showSuggestions ? null : 0,
+                    child: AnimatedOpacity(
+                      duration: Duration(milliseconds: 200),
+                      opacity: _showSuggestions ? 1.0 : 0.0,
+                      child: _showSuggestions ? Material(
+                        elevation: 4.0,
+                        borderRadius: BorderRadius.circular(4.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(4.0),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ..._urlHistory.map((suggestion) {
+                                return ListTile(
+                                  title: Text(suggestion),
+                                  dense: true,
+                                  onTap: () => _selectSuggestion(suggestion),
+                                  trailing: IconButton(
+                                    icon: const Icon(Icons.north_west, size: 16),
+                                    onPressed: () => _selectSuggestion(suggestion),
+                                    tooltip: zulipLocalizations.dialogContinue,
+                                  ),
+                                );
+                              }).toList(),
+                              // Clear history button
+                              Container(
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    top: BorderSide(color: Colors.grey.shade300),
+                                  ),
+                                ),
+                                child: TextButton.icon(
+                                  icon: const Icon(Icons.delete_outline),
+                                  label: Text('Clear history'),
+                                  onPressed: _clearHistory,
+                                  style: TextButton.styleFrom(
+                                    minimumSize: const Size.fromHeight(40),
+                                    alignment: Alignment.center,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ) : SizedBox.shrink(),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
               ElevatedButton(
-                onPressed: !_inProgress && errorText == null
-                  ? () => _onSubmitted(context)
-                  : null,
-                child: Text(zulipLocalizations.dialogContinue)),
+                  onPressed: !_inProgress && errorText == null
+                      ? () => _onSubmitted(context)
+                      : null,
+                  child: Text(zulipLocalizations.dialogContinue)),
             ])))));
   }
 }
@@ -333,12 +502,11 @@ class _LoginPageState extends State<LoginPage> {
       });
     }
   }
-
   Future<void> _beginWebAuth(ExternalAuthenticationMethod method) async {
     __otp = generateOtp();
     try {
       final url = widget.serverSettings.realmUrl.resolve(method.loginUrl)
-        .replace(queryParameters: {'mobile_flow_otp': _otp!});
+          .replace(queryParameters: {'mobile_flow_otp': _otp!});
 
       // Could set [_inProgress]… but we'd need to unset it if the web-auth
       // attempt is aborted (by the user closing the browser, for example),
@@ -348,8 +516,8 @@ class _LoginPageState extends State<LoginPage> {
       assert(debugLog(e.toString()));
 
       if (e is PlatformException
-        && defaultTargetPlatform == TargetPlatform.iOS
-        && e.message != null && e.message!.startsWith('Error while launching')) {
+          && defaultTargetPlatform == TargetPlatform.iOS
+          && e.message != null && e.message!.startsWith('Error while launching')) {
         // Ignore; I've seen this on my iPhone even when auth succeeds.
         // Specifically, Apple web auth…which on iOS should be replaced by
         // Apple native auth; that's #462.
@@ -368,10 +536,11 @@ class _LoginPageState extends State<LoginPage> {
         message = e.message!;
       }
       showErrorDialog(context: context,
-        title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
-        message: message);
+          title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
+          message: message);
     }
   }
+
 
   Future<void> _tryInsertAccountAndNavigate({
     required String email,
