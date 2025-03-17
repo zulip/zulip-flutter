@@ -1203,6 +1203,18 @@ abstract class ZulipLocalizations {
   /// **'This poll has no options yet.'**
   String get pollWidgetOptionsMissing;
 
+  /// Title of settings page for experimental, in-development features
+  ///
+  /// In en, this message translates to:
+  /// **'Experimental features'**
+  String get experimentalFeatureSettingsPageTitle;
+
+  /// Warning text on settings page for experimental, in-development features
+  ///
+  /// In en, this message translates to:
+  /// **'These options enable features which are still under development and not ready. They may not work, and may cause issues in other areas of the app.\n\nThe purpose of these settings is for experimentation by people working on developing Zulip.'**
+  String get experimentalFeatureSettingsWarning;
+
   /// Error title when notification opening fails
   ///
   /// In en, this message translates to:

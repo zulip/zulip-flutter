@@ -58,6 +58,27 @@ enum GlobalSettingType {
   /// (so that it stands ready to accept a future feature flag),
   /// we give it a placeholder value which isn't a real setting.
   placeholder,
+
+  /// Describes a setting which enables an in-progress feature of the app.
+  ///
+  /// Sometimes when building a complex feature it's useful to merge PRs that
+  /// make partial progress, and then to have the feature's logic gated behind
+  /// a setting that serves as a "feature flag".
+  /// This enables those working on the feature to enable the flag in order to
+  /// see the current incomplete behavior, while for everyone else it remains
+  /// disabled and so (barring bugs in the use of the flag itself) has no effect.
+  ///
+  /// These settings are primarily meant for people developing Zulip to use,
+  /// and so appear in an out-of-the-way part of the settings UI.
+  ///
+  /// Settings of this kind are costly to the health of the codebase if
+  /// allowed to accumulate.  Most features don't need one, even features that
+  /// take two or three PRs to implement.  See discussion at:
+  ///   https://github.com/zulip/zulip-flutter/issues/1409#issuecomment-2725793787
+  /// When a feature flag is introduced, take care to drive the project to
+  /// completion, either by merge or removal, so that the flag can be retired
+  /// within a period of a few weeks or months.
+  experimentalFeatureFlag,
   ;
 }
 
@@ -83,6 +104,10 @@ enum GlobalSettingType {
 /// finish an experimental feature.)
 enum BoolGlobalSetting {
   /// A non-setting to ensure this enum has at least one value.
+  ///
+  /// Leave this in place even when there are experimental feature flags too.
+  /// That way when we remove those, this is already here.
+  /// (Having one stable value in this enum is also handy for tests.)
   placeholderIgnore(GlobalSettingType.placeholder, false),
 
   // Former settings which might exist in the database,
@@ -116,6 +141,10 @@ class GlobalSettingsStore extends ChangeNotifier {
     required GlobalSettingsData data,
     required Map<BoolGlobalSetting, bool> boolData,
   }) : _backend = backend, _data = data, _boolData = boolData;
+
+  static final List<BoolGlobalSetting> experimentalFeatureFlags =
+    BoolGlobalSetting.values.where((setting) =>
+      setting.type == GlobalSettingType.experimentalFeatureFlag).toList();
 
   final GlobalStoreBackend _backend;
 
