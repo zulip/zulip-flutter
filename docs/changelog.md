@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 0.0.27 (2025-03-17)
+
 ### Highlights for users
 
 * Handle website previews in messages. (#1016)
