@@ -110,6 +110,8 @@ enum BoolGlobalSetting {
   /// (Having one stable value in this enum is also handy for tests.)
   placeholderIgnore(GlobalSettingType.placeholder, false),
 
+  renderKatex(GlobalSettingType.experimentalFeatureFlag, false),
+
   // Former settings which might exist in the database,
   // whose names should therefore not be reused:
   // (this list is empty so far)
