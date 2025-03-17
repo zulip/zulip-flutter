@@ -823,6 +823,14 @@
   "@pollWidgetOptionsMissing": {
     "description": "Text to display for a poll when it has no options"
   },
+  "experimentalFeatureSettingsPageTitle": "Experimental features",
+  "@experimentalFeatureSettingsPageTitle": {
+    "description": "Title of settings page for experimental, in-development features"
+  },
+  "experimentalFeatureSettingsWarning": "These options enable features which are still under development and not ready. They may not work, and may cause issues in other areas of the app.\n\nThe purpose of these settings is for experimentation by people working on developing Zulip.",
+  "@experimentalFeatureSettingsWarning": {
+    "description": "Warning text on settings page for experimental, in-development features"
+  },
   "errorNotificationOpenTitle": "Failed to open notification",
   "@errorNotificationOpenTitle": {
     "description": "Error title when notification opening fails"
