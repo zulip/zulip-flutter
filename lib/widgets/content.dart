@@ -830,10 +830,11 @@ class MathBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final contentTheme = ContentTheme.of(context);
     return _CodeBlockContainer(
-      borderColor: ContentTheme.of(context).colorMathBlockBorder,
+      borderColor: contentTheme.colorMathBlockBorder,
       child: Text.rich(TextSpan(
-        style: ContentTheme.of(context).codeBlockTextStyles.plain,
+        style: contentTheme.codeBlockTextStyles.plain,
         children: [TextSpan(text: node.texSource)])));
   }
 }
