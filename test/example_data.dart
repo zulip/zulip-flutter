@@ -11,6 +11,7 @@ import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 
 import 'model/test_store.dart';
@@ -875,9 +876,14 @@ ChannelUpdateEvent channelUpdateEvent(
 
 TestGlobalStore globalStore({
   GlobalSettingsData? globalSettings,
+  Map<BoolGlobalSetting, bool>? boolGlobalSettings,
   List<Account> accounts = const [],
 }) {
-  return TestGlobalStore(globalSettings: globalSettings, accounts: accounts);
+  return TestGlobalStore(
+    globalSettings: globalSettings,
+    boolGlobalSettings: boolGlobalSettings,
+    accounts: accounts,
+  );
 }
 const _globalStore = globalStore;
 

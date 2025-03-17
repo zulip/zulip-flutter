@@ -45,6 +45,67 @@ enum BrowserPreference {
   external,
 }
 
+/// A general category of account-independent setting the user might set.
+///
+/// Different kinds of settings call for different treatment in the UI,
+/// and different expected lifecycles as the app evolves.
+enum GlobalSettingType {
+  /// Describes a non-setting which exists to avoid an empty enum.
+  ///
+  /// A Dart enum must have at least one value.
+  /// But in steady state we expect to have no experimental feature flags.
+  /// To allow [BoolGlobalSetting] to continue to exist in that situation
+  /// (so that it stands ready to accept a future feature flag),
+  /// we give it a placeholder value which isn't a real setting.
+  placeholder,
+  ;
+}
+
+/// A bool-valued, account-independent setting the user might set.
+///
+/// These are recorded in the table [BoolGlobalSettings].
+/// To read the value of one of these settings, use [GlobalSettingsStore.getBool];
+/// to set the value, use [GlobalSettingsStore.setBool].
+///
+/// To introduce a new setting, add a value to this enum.
+/// Avoid re-using any old names found in the "former settings" list.
+///
+/// To remove a setting, comment it out and move to the "former settings" list.
+/// Tracking the names of settings that formerly existed is important because
+/// they may still appear in users' databases, which means that if we were to
+/// accidentally reuse one for an unrelated new setting then users would
+/// unwittingly get those values applied to the new setting,
+/// which could cause very confusing buggy behavior.
+///
+/// (If the list of former settings gets long, we could do a migration to clear
+/// them from existing installs, and then drop the list.  We don't do that
+/// eagerly each time, to avoid creating a new schema version each time we
+/// finish an experimental feature.)
+enum BoolGlobalSetting {
+  /// A non-setting to ensure this enum has at least one value.
+  placeholderIgnore(GlobalSettingType.placeholder, false),
+
+  // Former settings which might exist in the database,
+  // whose names should therefore not be reused:
+  // (this list is empty so far)
+  ;
+
+  const BoolGlobalSetting(this.type, this.default_);
+
+  /// The general category of setting that this setting belongs to.
+  final GlobalSettingType type;
+
+  /// The value the setting effectively has if the user hasn't chosen a value.
+  final bool default_;
+
+  static BoolGlobalSetting? byName(String name) => _byName[name];
+
+  static final Map<String, BoolGlobalSetting> _byName = {
+    for (final v in values)
+      v.name: v,
+  };
+}
+
 /// Store for the user's account-independent settings.
 ///
 /// From UI code, use [GlobalStoreWidget.settingsOf] to get hold of
@@ -53,7 +114,8 @@ class GlobalSettingsStore extends ChangeNotifier {
   GlobalSettingsStore({
     required GlobalStoreBackend backend,
     required GlobalSettingsData data,
-  }) : _backend = backend, _data = data;
+    required Map<BoolGlobalSetting, bool> boolData,
+  }) : _backend = backend, _data = data, _boolData = boolData;
 
   final GlobalStoreBackend _backend;
 
@@ -128,5 +190,32 @@ class GlobalSettingsStore extends ChangeNotifier {
       case BrowserPreference.external:
         return UrlLaunchMode.externalApplication;
     }
+  }
+
+  /// The user's choice of the given bool-valued setting, or our default for it.
+  ///
+  /// See also [setBool].
+  bool getBool(BoolGlobalSetting setting) {
+    return _boolData[setting] ?? setting.default_;
+  }
+
+  /// A cache of the [BoolGlobalSettings] table in the underlying data store.
+  final Map<BoolGlobalSetting, bool> _boolData;
+
+  /// Set or unset the given bool-valued setting,
+  /// persistently for future runs of the app.
+  ///
+  /// A value of null means the setting will revert to following
+  /// the app's default.
+  ///
+  /// See also [getBool].
+  Future<void> setBool(BoolGlobalSetting setting, bool? value) async {
+    await _backend.doSetBoolGlobalSetting(setting, value);
+    if (value == null) {
+      _boolData.remove(setting);
+    } else {
+      _boolData[setting] = value;
+    }
+    notifyListeners();
   }
 }

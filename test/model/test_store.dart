@@ -4,6 +4,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/events.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/database.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/store.dart';
@@ -65,6 +66,11 @@ mixin _ApiConnectionsMixin on GlobalStore {
 class _TestGlobalStoreBackend implements GlobalStoreBackend {
   @override
   Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data) async {
+    // Nothing to do.
+  }
+
+  @override
+  Future<void> doSetBoolGlobalSetting(BoolGlobalSetting setting, bool? value) async {
     // Nothing to do.
   }
 }
@@ -139,9 +145,12 @@ mixin _DatabaseMixin on GlobalStore {
 class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMixin {
   TestGlobalStore({
     GlobalSettingsData? globalSettings,
+    Map<BoolGlobalSetting, bool>? boolGlobalSettings,
     required super.accounts,
   }) : super(backend: _TestGlobalStoreBackend(),
-         globalSettings: globalSettings ?? GlobalSettingsData());
+         globalSettings: globalSettings ?? GlobalSettingsData(),
+         boolGlobalSettings: boolGlobalSettings ?? {},
+       );
 
   final Map<int, InitialSnapshot> _initialSnapshots = {};
 
@@ -204,9 +213,12 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
 class UpdateMachineTestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMixin {
   UpdateMachineTestGlobalStore({
     GlobalSettingsData? globalSettings,
+    Map<BoolGlobalSetting, bool>? boolGlobalSettings,
     required super.accounts,
   }) : super(backend: _TestGlobalStoreBackend(),
-         globalSettings: globalSettings ?? GlobalSettingsData());
+         globalSettings: globalSettings ?? GlobalSettingsData(),
+         boolGlobalSettings: boolGlobalSettings ?? {},
+       );
 
   // [doLoadPerAccount] depends on the cache to prepare the API responses.
   // Calling [clearCachedApiConnections] is permitted, though.
