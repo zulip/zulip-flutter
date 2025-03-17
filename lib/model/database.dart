@@ -23,6 +23,44 @@ class GlobalSettings extends Table {
 
   Column<String> get browserPreference => textEnum<BrowserPreference>()
     .nullable()();
+
+  // If adding a new column to this table, consider whether [BoolGlobalSettings]
+  // can do the job instead (by adding a value to the [BoolGlobalSetting] enum).
+  // That way is more convenient, when it works, because
+  // it avoids a migration and therefore several added copies of our schema
+  // in the Drift generated files.
+}
+
+/// The table of the user's bool-valued, account-independent settings.
+///
+/// These apply across all the user's accounts on this client
+/// (i.e. on this install of the app on this device).
+///
+/// Each row is a [BoolGlobalSettingRow],
+/// referring to a possible setting from [BoolGlobalSetting].
+/// For settings in [BoolGlobalSetting] without a row in this table,
+/// the setting's value is that of [BoolGlobalSetting.default_].
+@DataClassName('BoolGlobalSettingRow')
+class BoolGlobalSettings extends Table {
+  /// The setting's name, a possible name from [BoolGlobalSetting].
+  ///
+  /// The table may have rows where [name] is not the name of any
+  /// enum value in [BoolGlobalSetting].
+  /// This happens if the app has previously run at a future or modified
+  /// version which had additional values in that enum,
+  /// and the user set one of those additional settings.
+  /// The app ignores any such unknown rows.
+  Column<String> get name => text()();
+
+  /// The user's chosen value for the setting.
+  ///
+  /// This is non-nullable; if the user wants to revert to
+  /// following the app's default for the setting,
+  /// that can be expressed by deleting the row.
+  Column<bool> get value => boolean()();
+
+  @override
+  Set<Column<Object>>? get primaryKey => {name};
 }
 
 /// The table of [Account] records in the app's database.
@@ -68,7 +106,7 @@ class UriConverter extends TypeConverter<Uri, String> {
   @override Uri fromSql(String fromDb) => Uri.parse(fromDb);
 }
 
-@DriftDatabase(tables: [GlobalSettings, Accounts])
+@DriftDatabase(tables: [GlobalSettings, BoolGlobalSettings, Accounts])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
@@ -81,7 +119,7 @@ class AppDatabase extends _$AppDatabase {
   //    information on using the build_runner.
   //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 5; // See note.
+  static const int latestSchemaVersion = 6; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -133,6 +171,9 @@ class AppDatabase extends _$AppDatabase {
           RawValuesInsertable({}));
       }
     },
+    from5To6: (m, schema) async {
+      await m.createTable(schema.boolGlobalSettings);
+    },
   );
 
   Future<void> _createLatestSchema(Migrator m) async {
@@ -171,6 +212,17 @@ class AppDatabase extends _$AppDatabase {
   Future<GlobalSettingsData> getGlobalSettings() async {
     // The migrations ensure there is a row.
     return await (select(globalSettings)..limit(1)).getSingle();
+  }
+
+  Future<Map<BoolGlobalSetting, bool>> getBoolGlobalSettings() async {
+    final result = <BoolGlobalSetting, bool>{};
+    final rows = await select(boolGlobalSettings).get();
+    for (final row in rows) {
+      final setting = BoolGlobalSetting.byName(row.name);
+      if (setting == null) continue;
+      result[setting] = row.value;
+    }
+    return result;
   }
 
   Future<int> createAccount(AccountsCompanion values) async {

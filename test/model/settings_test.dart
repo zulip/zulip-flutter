@@ -73,4 +73,48 @@ void main() {
 
     // TODO integration tests with sqlite
   });
+
+  group('getBool/setBool', () {
+    test('get from default', () {
+      final globalSettings = eg.globalStore(boolGlobalSettings: {}).settings;
+      check(globalSettings).getBool(BoolGlobalSetting.placeholderIgnore)
+        .isFalse();
+      assert(!BoolGlobalSetting.placeholderIgnore.default_);
+    });
+
+    test('get from initial load', () {
+      final globalSettings = eg.globalStore(boolGlobalSettings: {
+        BoolGlobalSetting.placeholderIgnore: true,
+      }).settings;
+      check(globalSettings).getBool(BoolGlobalSetting.placeholderIgnore)
+        .isTrue();
+    });
+
+    test('set, get', () async {
+      final globalSettings = eg.globalStore(boolGlobalSettings: {}).settings;
+      check(globalSettings).getBool(BoolGlobalSetting.placeholderIgnore)
+        .isFalse();
+
+      await globalSettings.setBool(BoolGlobalSetting.placeholderIgnore, true);
+      check(globalSettings).getBool(BoolGlobalSetting.placeholderIgnore)
+        .isTrue();
+
+      await globalSettings.setBool(BoolGlobalSetting.placeholderIgnore, false);
+      check(globalSettings).getBool(BoolGlobalSetting.placeholderIgnore)
+        .isFalse();
+    });
+
+    test('set to null -> revert to default', () async {
+      final globalSettings = eg.globalStore(boolGlobalSettings: {
+        BoolGlobalSetting.placeholderIgnore: true,
+      }).settings;
+      check(globalSettings).getBool(BoolGlobalSetting.placeholderIgnore)
+        .isTrue();
+
+      await globalSettings.setBool(BoolGlobalSetting.placeholderIgnore, null);
+      check(globalSettings).getBool(BoolGlobalSetting.placeholderIgnore)
+        .isFalse();
+      assert(!BoolGlobalSetting.placeholderIgnore.default_);
+    });
+  });
 }
