@@ -408,7 +408,15 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get loginErrorMissingUsername => 'Prosím zadajte prihlasovacie meno.';
 
   @override
-  String get topicValidationErrorTooLong => 'Topic length shouldn\'t be greater than 60 characters.';
+  String topicValidationErrorTooLong(int num) {
+    String _temp0 = intl.Intl.pluralLogic(
+      num,
+      locale: localeName,
+      other: '$num characters',
+      one: '1 character',
+    );
+    return 'Topic length shouldn\'t be greater than $_temp0.';
+  }
 
   @override
   String get topicValidationErrorMandatoryButEmpty => 'Topics are required in this organization.';
