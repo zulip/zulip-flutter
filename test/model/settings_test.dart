@@ -51,4 +51,26 @@ void main() {
         UrlLaunchMode.externalApplication);
     });
   });
+
+  group('setThemeSetting', () {
+    test('smoke', () async {
+      final globalSettings = eg.globalStore().settings;
+      check(globalSettings).themeSetting.equals(null);
+
+      await globalSettings.setThemeSetting(ThemeSetting.dark);
+      check(globalSettings).themeSetting.equals(ThemeSetting.dark);
+    });
+
+    test('should notify listeners', () async {
+      int notifyCount = 0;
+      final globalSettings = eg.globalStore().settings;
+      globalSettings.addListener(() => notifyCount++);
+      check(notifyCount).equals(0);
+
+      await globalSettings.setThemeSetting(ThemeSetting.light);
+      check(notifyCount).equals(1);
+    });
+
+    // TODO integration tests with sqlite
+  });
 }
