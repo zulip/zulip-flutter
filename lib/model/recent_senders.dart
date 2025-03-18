@@ -137,6 +137,7 @@ class MessageIdTracker {
   ///
   /// [newIds] should be sorted ascending.
   void addAll(QueueList<int> newIds) {
+    assert(isSortedWithoutDuplicates(newIds));
     if (ids.isEmpty) {
       ids = newIds;
       return;
@@ -144,7 +145,11 @@ class MessageIdTracker {
     ids = setUnion(ids, newIds);
   }
 
+  /// Remove message IDs found in [idsToRemove] from the tracker list.
+  ///
+  /// [idsToRemove] should be sorted ascending.
   void removeAll(List<int> idsToRemove) {
+    assert(isSortedWithoutDuplicates(idsToRemove));
     ids.removeWhere((id) => binarySearch(idsToRemove, id) != -1);
   }
 
