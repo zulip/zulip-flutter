@@ -10,6 +10,11 @@ import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/unreads.dart';
 
+extension GlobalSettingsDataChecks on Subject<GlobalSettingsData> {
+  Subject<ThemeSetting?> get themeSetting => has((x) => x.themeSetting, 'themeSetting');
+  Subject<BrowserPreference?> get browserPreference => has((x) => x.browserPreference, 'browserPreference');
+}
+
 extension AccountChecks on Subject<Account> {
   Subject<int> get id => has((x) => x.id, 'id');
   Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
@@ -22,19 +27,19 @@ extension AccountChecks on Subject<Account> {
   Subject<String?> get ackedPushToken => has((x) => x.ackedPushToken, 'ackedPushToken');
 }
 
-extension GlobalStoreChecks on Subject<GlobalStore> {
-  Subject<GlobalSettingsData> get globalSettings => has((x) => x.globalSettings, 'globalSettings');
-  Subject<Iterable<Account>> get accounts => has((x) => x.accounts, 'accounts');
-  Subject<Iterable<int>> get accountIds => has((x) => x.accountIds, 'accountIds');
-  Subject<Iterable<({ int accountId, Account account })>> get accountEntries => has((x) => x.accountEntries, 'accountEntries');
-  Subject<Account?> getAccount(int id) => has((x) => x.getAccount(id), 'getAccount($id)');
-}
-
-extension GlobalSettingsDataChecks on Subject<GlobalSettingsData> {
+extension GlobalSettingsStoreChecks on Subject<GlobalSettingsStore> {
   Subject<ThemeSetting?> get themeSetting => has((x) => x.themeSetting, 'themeSetting');
   Subject<BrowserPreference?> get browserPreference => has((x) => x.browserPreference, 'browserPreference');
   Subject<BrowserPreference> get effectiveBrowserPreference => has((x) => x.effectiveBrowserPreference, 'effectiveBrowserPreference');
   Subject<UrlLaunchMode> getUrlLaunchMode(Uri url) => has((x) => x.getUrlLaunchMode(url), 'getUrlLaunchMode');
+}
+
+extension GlobalStoreChecks on Subject<GlobalStore> {
+  Subject<GlobalSettingsStore> get settings => has((x) => x.settings, 'settings');
+  Subject<Iterable<Account>> get accounts => has((x) => x.accounts, 'accounts');
+  Subject<Iterable<int>> get accountIds => has((x) => x.accountIds, 'accountIds');
+  Subject<Iterable<({ int accountId, Account account })>> get accountEntries => has((x) => x.accountEntries, 'accountEntries');
+  Subject<Account?> getAccount(int id) => has((x) => x.getAccount(id), 'getAccount($id)');
 }
 
 extension PerAccountStoreChecks on Subject<PerAccountStore> {

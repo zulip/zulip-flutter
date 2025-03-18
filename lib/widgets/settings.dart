@@ -1,8 +1,6 @@
-import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
-import '../model/database.dart';
 import '../model/settings.dart';
 import 'app_bar.dart';
 import 'page.dart';
@@ -33,14 +31,14 @@ class _ThemeSetting extends StatelessWidget {
   const _ThemeSetting();
 
   void _handleChange(BuildContext context, ThemeSetting? newThemeSetting) {
-    GlobalStoreWidget.of(context).updateGlobalSettings(
-      GlobalSettingsCompanion(themeSetting: Value(newThemeSetting)));
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    globalSettings.setThemeSetting(newThemeSetting);
   }
 
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final globalStore = GlobalStoreWidget.of(context);
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
     return Column(
       children: [
         ListTile(title: Text(zulipLocalizations.themeSettingTitle)),
@@ -50,7 +48,7 @@ class _ThemeSetting extends StatelessWidget {
               themeSetting: themeSettingOption,
               zulipLocalizations: zulipLocalizations)),
             value: themeSettingOption,
-            groupValue: globalStore.globalSettings.themeSetting,
+            groupValue: globalSettings.themeSetting,
             onChanged: (newValue) => _handleChange(context, newValue)),
       ]);
   }
@@ -60,18 +58,18 @@ class _BrowserPreferenceSetting extends StatelessWidget {
   const _BrowserPreferenceSetting();
 
   void _handleChange(BuildContext context, bool newOpenLinksWithInAppBrowser) {
-    GlobalStoreWidget.of(context).updateGlobalSettings(
-      GlobalSettingsCompanion(browserPreference: Value(
-        newOpenLinksWithInAppBrowser ? BrowserPreference.inApp
-                                     : BrowserPreference.external)));
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    globalSettings.setBrowserPreference(
+      newOpenLinksWithInAppBrowser ? BrowserPreference.inApp
+                                   : BrowserPreference.external);
   }
 
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
     final openLinksWithInAppBrowser =
-      GlobalStoreWidget.of(context).globalSettings.effectiveBrowserPreference
-      == BrowserPreference.inApp;
+      globalSettings.effectiveBrowserPreference == BrowserPreference.inApp;
     return SwitchListTile.adaptive(
       title: Text(zulipLocalizations.openLinksWithInAppBrowser),
       value: openLinksWithInAppBrowser,

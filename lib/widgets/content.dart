@@ -15,7 +15,6 @@ import '../model/avatar_url.dart';
 import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
-import '../model/settings.dart';
 import 'code_block.dart';
 import 'dialog.dart';
 import 'icons.dart';
@@ -1439,7 +1438,7 @@ void _launchUrl(BuildContext context, String urlString) async {
     return;
   }
 
-  final globalSettings = GlobalStoreWidget.of(context).globalSettings;
+  final globalSettings = GlobalStoreWidget.settingsOf(context);
   bool launched = false;
   String? errorMessage;
   try {

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import 'binding.dart';
 import 'database.dart';
+import 'store.dart';
 
 /// The user's choice of visual theme for the app.
 ///
@@ -44,7 +45,39 @@ enum BrowserPreference {
   external,
 }
 
-extension GlobalSettingsHelpers on GlobalSettingsData {
+/// Store for the user's account-independent settings.
+///
+/// From UI code, use [GlobalStoreWidget.settingsOf] to get hold of
+/// an appropriate instance of this class.
+class GlobalSettingsStore extends ChangeNotifier {
+  GlobalSettingsStore({
+    required GlobalStoreBackend backend,
+    required GlobalSettingsData data,
+  }) : _backend = backend, _data = data;
+
+  final GlobalStoreBackend _backend;
+
+  /// A cache of the [GlobalSettingsData] singleton in the underlying data store.
+  GlobalSettingsData _data;
+
+  /// The user's choice of [ThemeSetting];
+  /// null means the device-level choice of theme.
+  ///
+  /// See also [setThemeSetting].
+  ThemeSetting? get themeSetting => _data.themeSetting;
+
+  /// The user's choice of [BrowserPreference];
+  /// null means use our default choice.
+  ///
+  /// Consider using [effectiveBrowserPreference] or [getUrlLaunchMode].
+  ///
+  /// See also [setBrowserPreference].
+  BrowserPreference? get browserPreference => _data.browserPreference;
+
+  /// The value of [BrowserPreference] to use:
+  /// the user's choice [browserPreference] if any, else our default.
+  ///
+  /// See also [getUrlLaunchMode].
   BrowserPreference get effectiveBrowserPreference {
     if (browserPreference != null) return browserPreference!;
     return switch (defaultTargetPlatform) {
@@ -61,6 +94,8 @@ extension GlobalSettingsHelpers on GlobalSettingsData {
     };
   }
 
+  /// The launch mode to use with `url_launcher`,
+  /// based on the user's choice in [browserPreference].
   UrlLaunchMode getUrlLaunchMode(Uri url) {
     switch (effectiveBrowserPreference) {
       case BrowserPreference.inApp:
@@ -77,5 +112,21 @@ extension GlobalSettingsHelpers on GlobalSettingsData {
       case BrowserPreference.external:
         return UrlLaunchMode.externalApplication;
     }
+  }
+
+  Future<void> _update(GlobalSettingsCompanion data) async {
+    await _backend.doUpdateGlobalSettings(data);
+    _data = _data.copyWithCompanion(data);
+    notifyListeners();
+  }
+
+  /// Set [themeSetting], persistently for future runs of the app.
+  Future<void> setThemeSetting(ThemeSetting? value) async {
+    await _update(GlobalSettingsCompanion(themeSetting: Value(value)));
+  }
+
+  /// Set [browserPreference], persistently for future runs of the app.
+  Future<void> setBrowserPreference(BrowserPreference? value) async {
+    await _update(GlobalSettingsCompanion(browserPreference: Value(value)));
   }
 }

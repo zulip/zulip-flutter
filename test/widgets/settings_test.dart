@@ -44,14 +44,13 @@ void main() {
             .checked.equals(title == expectedCheckedTitle);
       }
       check(testBinding.globalStore)
-        .globalSettings.themeSetting.equals(expectedThemeSetting);
+        .settings.themeSetting.equals(expectedThemeSetting);
     }
 
     testWidgets('smoke', (tester) async {
       debugBrightnessOverride = Brightness.light;
 
-      await testBinding.globalStore.updateGlobalSettings(
-        eg.globalSettings(themeSetting: ThemeSetting.light).toCompanion(false));
+      await testBinding.globalStore.settings.setThemeSetting(ThemeSetting.light);
       await prepare(tester);
       final element = tester.element(find.byType(SettingsPage));
       check(Theme.of(element)).brightness.equals(Brightness.light);
@@ -96,13 +95,12 @@ void main() {
       check(tester.widget<SwitchListTile>(useInAppBrowserSwitchFinder))
         .value.equals(checked);
       check(testBinding.globalStore)
-        .globalSettings.browserPreference.equals(expectedBrowserPreference);
+        .settings.browserPreference.equals(expectedBrowserPreference);
     }
 
     testWidgets('smoke', (tester) async {
-      await testBinding.globalStore.updateGlobalSettings(
-        eg.globalSettings(
-          browserPreference: BrowserPreference.external).toCompanion(false));
+      await testBinding.globalStore.settings
+        .setBrowserPreference(BrowserPreference.external);
       await prepare(tester);
       checkSwitchAndGlobalSettings(tester,
         checked: false, expectedBrowserPreference: BrowserPreference.external);
