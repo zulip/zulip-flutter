@@ -810,8 +810,8 @@ abstract class ZulipLocalizations {
   /// Topic validation error when topic is too long.
   ///
   /// In en, this message translates to:
-  /// **'Topic length shouldn\'t be greater than 60 characters.'**
-  String get topicValidationErrorTooLong;
+  /// **'Topic length shouldn\'t be greater than {num, plural, =1{1 character} other{{num} characters}}.'**
+  String topicValidationErrorTooLong(int num);
 
   /// Topic validation error when topic is required but was empty.
   ///
