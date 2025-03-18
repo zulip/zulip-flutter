@@ -15,7 +15,6 @@ import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/log.dart';
 import 'package:zulip/model/actions.dart';
-import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
 
@@ -30,28 +29,6 @@ import 'test_store.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
-
-  group('GlobalStore.updateGlobalSettings', () {
-    test('smoke', () async {
-      final globalSettings = eg.globalStore().settings;
-      check(globalSettings).themeSetting.equals(null);
-
-      await globalSettings.setThemeSetting(ThemeSetting.dark);
-      check(globalSettings).themeSetting.equals(ThemeSetting.dark);
-    });
-
-    test('should notify listeners', () async {
-      int notifyCount = 0;
-      final globalSettings = eg.globalStore().settings;
-      globalSettings.addListener(() => notifyCount++);
-      check(notifyCount).equals(0);
-
-      await globalSettings.setThemeSetting(ThemeSetting.light);
-      check(notifyCount).equals(1);
-    });
-
-    // TODO integration tests with sqlite
-  });
 
   final account1 = eg.selfAccount.copyWith(id: 1);
   final account2 = eg.otherAccount.copyWith(id: 2);
