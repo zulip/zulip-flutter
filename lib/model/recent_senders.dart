@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide binarySearch;
 
 import '../api/model/events.dart';
 import '../api/model/model.dart';
@@ -145,10 +145,7 @@ class MessageIdTracker {
   }
 
   void removeAll(List<int> idsToRemove) {
-    ids.removeWhere((id) {
-      final i = lowerBound(idsToRemove, id);
-      return i < idsToRemove.length && idsToRemove[i] == id;
-    });
+    ids.removeWhere((id) => binarySearch(idsToRemove, id) != -1);
   }
 
   @override
