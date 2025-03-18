@@ -16,36 +16,34 @@ import 'store_checks.dart';
 
 void main() {
   group('non-migration tests', () {
-    late AppDatabase database;
+    late AppDatabase db;
 
     setUp(() {
-      database = AppDatabase(NativeDatabase.memory());
+      db = AppDatabase(NativeDatabase.memory());
     });
     tearDown(() async {
-      await database.close();
+      await db.close();
     });
 
     test('initialize GlobalSettings with defaults', () async {
-      check(await database.getGlobalSettings()).themeSetting.isNull();
+      check(await db.getGlobalSettings()).themeSetting.isNull();
     });
 
     test('does not crash if multiple global settings rows', () async {
-      await database.into(database.globalSettings)
+      await db.into(db.globalSettings)
         .insert(const GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.dark)));
 
-      check(await database.select(database.globalSettings).get()).length.equals(2);
-      check(await database.getGlobalSettings()).themeSetting.isNull();
+      check(await db.select(db.globalSettings).get()).length.equals(2);
+      check(await db.getGlobalSettings()).themeSetting.isNull();
     });
 
     test('GlobalSettings updates work', () async {
-      check(await database.getGlobalSettings())
-        .themeSetting.isNull();
+      check(await db.getGlobalSettings()).themeSetting.isNull();
 
       // As in doUpdateGlobalSettings.
-      await database.update(database.globalSettings)
+      await db.update(db.globalSettings)
         .write(GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.dark)));
-      check(await database.getGlobalSettings())
-        .themeSetting.equals(ThemeSetting.dark);
+      check(await db.getGlobalSettings()).themeSetting.equals(ThemeSetting.dark);
     });
 
     test('create account', () async {
@@ -58,8 +56,8 @@ void main() {
         zulipMergeBase: const Value('6.0'),
         zulipFeatureLevel: 42,
       );
-      final accountId = await database.createAccount(accountData);
-      final account = await (database.select(database.accounts)
+      final accountId = await db.createAccount(accountData);
+      final account = await (db.select(db.accounts)
             ..where((a) => a.id.equals(accountId)))
           .watchSingle()
           .first;
@@ -89,8 +87,8 @@ void main() {
         zulipMergeBase: const Value('6.0'),
         zulipFeatureLevel: 42,
       );
-      await database.createAccount(accountData);
-      await check(database.createAccount(accountDataWithSameUserId))
+      await db.createAccount(accountData);
+      await check(db.createAccount(accountDataWithSameUserId))
         .throws<AccountAlreadyExistsException>();
     });
 
@@ -113,8 +111,8 @@ void main() {
         zulipMergeBase: const Value('6.0'),
         zulipFeatureLevel: 42,
       );
-      await database.createAccount(accountData);
-      await check(database.createAccount(accountDataWithSameEmail))
+      await db.createAccount(accountData);
+      await check(db.createAccount(accountDataWithSameEmail))
         .throws<AccountAlreadyExistsException>();
     });
   });
