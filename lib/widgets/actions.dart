@@ -283,7 +283,6 @@ abstract final class PlatformActions {
   }
 
   /// Opens a URL with [ZulipBinding.launchUrl], with an error dialog on failure.
-  // TODO widget tests
   static Future<void> launchUrl(BuildContext context, Uri url) async {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
 
