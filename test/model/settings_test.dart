@@ -15,39 +15,39 @@ void main() {
 
   group('getUrlLaunchMode', () {
     testAndroidIos('globalSettings.browserPreference is null; use our per-platform defaults for HTTP links', () {
-      final globalStore = eg.globalStore(globalSettings: GlobalSettingsData(
-        browserPreference: null));
-      check(globalStore).settings.getUrlLaunchMode(httpLink).equals(
+      final globalSettings = eg.globalStore(globalSettings: GlobalSettingsData(
+        browserPreference: null)).settings;
+      check(globalSettings).getUrlLaunchMode(httpLink).equals(
         defaultTargetPlatform == TargetPlatform.android
           ? UrlLaunchMode.inAppBrowserView : UrlLaunchMode.externalApplication);
     });
 
     testAndroidIos('globalSettings.browserPreference is null; use our per-platform defaults for non-HTTP links', () {
-      final globalStore = eg.globalStore(globalSettings: GlobalSettingsData(
-        browserPreference: null));
-      check(globalStore).settings.getUrlLaunchMode(nonHttpLink).equals(
+      final globalSettings = eg.globalStore(globalSettings: GlobalSettingsData(
+        browserPreference: null)).settings;
+      check(globalSettings).getUrlLaunchMode(nonHttpLink).equals(
         defaultTargetPlatform == TargetPlatform.android
           ? UrlLaunchMode.platformDefault : UrlLaunchMode.externalApplication);
     });
 
     testAndroidIos('globalSettings.browserPreference is inApp; follow the user preference for http links', () {
-      final globalStore = eg.globalStore(globalSettings: GlobalSettingsData(
-        browserPreference: BrowserPreference.inApp));
-      check(globalStore).settings.getUrlLaunchMode(httpLink).equals(
+      final globalSettings = eg.globalStore(globalSettings: GlobalSettingsData(
+        browserPreference: BrowserPreference.inApp)).settings;
+      check(globalSettings).getUrlLaunchMode(httpLink).equals(
         UrlLaunchMode.inAppBrowserView);
     });
 
     testAndroidIos('globalSettings.browserPreference is inApp; use platform default for non-http links', () {
-      final globalStore = eg.globalStore(globalSettings: GlobalSettingsData(
-        browserPreference: BrowserPreference.inApp));
-      check(globalStore).settings.getUrlLaunchMode(nonHttpLink).equals(
+      final globalSettings = eg.globalStore(globalSettings: GlobalSettingsData(
+        browserPreference: BrowserPreference.inApp)).settings;
+      check(globalSettings).getUrlLaunchMode(nonHttpLink).equals(
         UrlLaunchMode.platformDefault);
     });
 
     testAndroidIos('globalSettings.browserPreference is external; follow the user preference', () {
-      final globalStore = eg.globalStore(globalSettings: GlobalSettingsData(
-        browserPreference: BrowserPreference.external));
-      check(globalStore).settings.getUrlLaunchMode(httpLink).equals(
+      final globalSettings = eg.globalStore(globalSettings: GlobalSettingsData(
+        browserPreference: BrowserPreference.external)).settings;
+      check(globalSettings).getUrlLaunchMode(httpLink).equals(
         UrlLaunchMode.externalApplication);
     });
   });

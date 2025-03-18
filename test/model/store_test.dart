@@ -33,20 +33,20 @@ void main() {
 
   group('GlobalStore.updateGlobalSettings', () {
     test('smoke', () async {
-      final globalStore = eg.globalStore();
-      check(globalStore).settings.themeSetting.equals(null);
+      final globalSettings = eg.globalStore().settings;
+      check(globalSettings).themeSetting.equals(null);
 
-      await globalStore.settings.setThemeSetting(ThemeSetting.dark);
-      check(globalStore).settings.themeSetting.equals(ThemeSetting.dark);
+      await globalSettings.setThemeSetting(ThemeSetting.dark);
+      check(globalSettings).themeSetting.equals(ThemeSetting.dark);
     });
 
     test('should notify listeners', () async {
       int notifyCount = 0;
-      final globalStore = eg.globalStore();
-      globalStore.settings.addListener(() => notifyCount++);
+      final globalSettings = eg.globalStore().settings;
+      globalSettings.addListener(() => notifyCount++);
       check(notifyCount).equals(0);
 
-      await globalStore.settings.setThemeSetting(ThemeSetting.light);
+      await globalSettings.setThemeSetting(ThemeSetting.light);
       check(notifyCount).equals(1);
     });
 
