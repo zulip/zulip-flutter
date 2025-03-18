@@ -31,7 +31,7 @@ import 'test_store.dart';
 void main() {
   TestZulipBinding.ensureInitialized();
 
-  group('GlobalStore.updateGlobalSettings', () {
+  group('GlobalStore update settings', () {
     test('smoke', () async {
       final globalStore = eg.globalStore();
       check(globalStore).settings.themeSetting.equals(null);
