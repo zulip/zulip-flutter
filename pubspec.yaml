@@ -8,7 +8,7 @@ description: A Zulip client for Android and iOS
 publish_to: 'none'
 
 # Keep the last two numbers equal; see docs/release.md.
-version: 0.0.27+27
+version: 0.0.26+26
 
 environment:
   # We use a recent version of Flutter from its main channel, and
@@ -21,6 +21,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  shared_preferences: ^2.2.2
+  flutter_native_splash: ^2.3.5
+
   flutter_localizations:
     sdk: flutter
 
@@ -66,6 +69,29 @@ dependencies:
     path: ./packages/zulip_plugin
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
 
+
+flutter_native_splash:
+  color: "#ADD8E6"  # Light blue background color
+  # Alternatively, use a gradient:
+  # background_image: "assets/background.png"  # can create a gradient background image
+
+  image: assets/app-icons/zulip-combined_.png  # Zulip custom screen image
+  fullscreen: true
+  # The following are optional parameters
+  # branding: assets/branding.png
+  # branding_mode: bottom
+
+  # Customize the splash screen for different platforms
+  android_12:
+    image: assets/app-icons/zulip-combined_.png #Zulip custom screen image
+    icon_background_color: "#ADD8E6"
+
+  web: false  # Set to true if you want splash screen on web
+
+  # For a gradient effect on iOS, use a background image instead of color
+  # ios_content_mode: center
+
+
 dependency_overrides:
   # TODO(#918) remove this and `flutter_color_models` when `flutter_color_models` accommodates
   #   wide-gamut adjustments to Flutter's `Color`. A PR to `flutter_color_models` is already open:
@@ -95,13 +121,14 @@ dev_dependencies:
   checks: ^0.3.0
   clock: ^1.1.1
   drift_dev: ^2.5.2
+  sqlite3_flutter_libs: ^0.5.0
   fake_async: ^1.3.1
   flutter_checks: ^0.1.1
   flutter_lints: ^5.0.0
   ini: ^2.1.0
   json_serializable: ^6.5.4
   legacy_checks: ^0.1.0
-  pigeon: ^24.2.1
+  pigeon: 22.7.2
   plugin_platform_interface: ^2.1.8
   stack_trace: ^1.11.1
   test: ^1.23.1
