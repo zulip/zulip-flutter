@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +13,7 @@ import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/actions.dart';
 
@@ -413,6 +415,96 @@ void main() {
         await checkClipboardText('asdf');
         await checkSnackBar(tester, expected: true);
       });
+    });
+
+    group('launchUrl', () {
+      Future<void> call(WidgetTester tester, {required Uri url}) async {
+        await tester.pumpWidget(TestZulipApp(
+          child: Builder(builder: (context) => Center(
+            child: ElevatedButton(
+              onPressed: () async {
+                await PlatformActions.launchUrl(context, url);
+              },
+              child: const Text('link'))))));
+        await tester.pump();
+        await tester.tap(find.text('link'));
+        await tester.pump(Duration.zero);
+      }
+
+      final httpUrl = Uri.parse('https://chat.example');
+      final nonHttpUrl = Uri.parse('mailto:chat@example');
+
+      Future<void> runAndCheckSuccess(WidgetTester tester, {
+        required Uri url,
+        required UrlLaunchMode expectedModeAndroid,
+        required UrlLaunchMode expectedModeIos,
+      }) async {
+        await call(tester, url: url);
+
+        final expectedMode = switch (defaultTargetPlatform) {
+          TargetPlatform.android => expectedModeAndroid,
+          TargetPlatform.iOS =>     expectedModeIos,
+          _ => throw StateError('attempted to test with $defaultTargetPlatform'),
+        };
+        check(testBinding.takeLaunchUrlCalls()).single
+          .equals((url: url, mode: expectedMode));
+      }
+
+      final androidIosVariant = TargetPlatformVariant({TargetPlatform.iOS, TargetPlatform.android});
+
+      testWidgets('globalSettings.browserPreference is null; use our per-platform defaults for HTTP links', (tester) async {
+        await testBinding.globalStore.settings.setBrowserPreference(null);
+        await runAndCheckSuccess(tester,
+          url: httpUrl,
+          expectedModeAndroid: UrlLaunchMode.inAppBrowserView,
+          expectedModeIos: UrlLaunchMode.externalApplication);
+      }, variant: androidIosVariant);
+
+      testWidgets('globalSettings.browserPreference is null; use our per-platform defaults for non-HTTP links', (tester) async {
+        await testBinding.globalStore.settings.setBrowserPreference(null);
+        await runAndCheckSuccess(tester,
+          url: nonHttpUrl,
+          expectedModeAndroid: UrlLaunchMode.platformDefault,
+          expectedModeIos: UrlLaunchMode.externalApplication);
+      }, variant: androidIosVariant);
+
+      testWidgets('globalSettings.browserPreference is inApp; follow the user preference for http links', (tester) async {
+        await testBinding.globalStore.settings.setBrowserPreference(BrowserPreference.inApp);
+        await runAndCheckSuccess(tester,
+          url: httpUrl,
+          expectedModeAndroid: UrlLaunchMode.inAppBrowserView,
+          expectedModeIos: UrlLaunchMode.inAppBrowserView);
+      }, variant: androidIosVariant);
+
+      testWidgets('globalSettings.browserPreference is inApp; use platform default for non-http links', (tester) async {
+        await testBinding.globalStore.settings.setBrowserPreference(BrowserPreference.inApp);
+        await runAndCheckSuccess(tester,
+          url: nonHttpUrl,
+          expectedModeAndroid: UrlLaunchMode.platformDefault,
+          expectedModeIos: UrlLaunchMode.platformDefault);
+      }, variant: androidIosVariant);
+
+      testWidgets('globalSettings.browserPreference is external; follow the user preference', (tester) async {
+        await testBinding.globalStore.settings.setBrowserPreference(BrowserPreference.external);
+        await runAndCheckSuccess(tester,
+          url: httpUrl,
+          expectedModeAndroid: UrlLaunchMode.externalApplication,
+          expectedModeIos: UrlLaunchMode.externalApplication);
+      }, variant: androidIosVariant);
+
+      testWidgets('ZulipBinding.launchUrl returns false', (tester) async {
+        testBinding.launchUrlResult = false;
+        await call(tester, url: httpUrl);
+        checkErrorDialog(tester, expectedTitle: 'Unable to open link');
+      }, variant: androidIosVariant);
+
+      testWidgets('ZulipBinding.launchUrl throws PlatformException', (tester) async {
+        testBinding.launchUrlException = PlatformException(code: 'code', message: 'error message');
+        await call(tester, url: httpUrl);
+        checkErrorDialog(tester,
+          expectedTitle: 'Unable to open link',
+          expectedMessage: 'Link could not be opened: ${httpUrl.toString()}\n\nerror message');
+      }, variant: androidIosVariant);
     });
   });
 }
