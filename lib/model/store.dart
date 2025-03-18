@@ -996,8 +996,9 @@ class UpdateMachine {
     final stopwatch = Stopwatch()..start();
     final initialSnapshot = await _registerQueueWithRetry(connection,
       stopAndThrowIfNoAccount: stopAndThrowIfNoAccount);
-    final t = (stopwatch..stop()).elapsed;
-    assert(debugLog("initial fetch time: ${t.inMilliseconds}ms"));
+    if (kProfileMode) {
+      profilePrint("initial fetch time: ${stopwatch.elapsed.inMilliseconds}ms");
+    }
 
     if (initialSnapshot.zulipVersion != account.zulipVersion
         || initialSnapshot.zulipMergeBase != account.zulipMergeBase
