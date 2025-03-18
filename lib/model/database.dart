@@ -9,11 +9,13 @@ import 'settings.dart';
 
 part 'database.g.dart';
 
-/// The table of the user's chosen settings independent of account, on this
-/// client.
+/// The table of one [GlobalSettingsData] record, the user's chosen settings
+/// on this client that are independent of account.
 ///
 /// These apply across all the user's accounts on this client (i.e. on this
 /// install of the app on this device).
+///
+/// This table should always have exactly one row (it's created by a migration).
 @DataClassName('GlobalSettingsData')
 class GlobalSettings extends Table {
   Column<String> get themeSetting => textEnum<ThemeSetting>()
@@ -78,6 +80,8 @@ VersionedSchema _getSchema({
       return Schema3(database: database);
     case 4:
       return Schema4(database: database);
+    case 5:
+      return Schema5(database: database);
     default:
       throw Exception('unknown schema version: $schemaVersion');
   }
@@ -95,12 +99,12 @@ class AppDatabase extends _$AppDatabase {
   //    See ../../README.md#generated-files for more
   //    information on using the build_runner.
   //  * Update [_getSchema] to handle the new schemaVersion.
-  //  * Write a migration in `onUpgrade` below.
+  //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
   @override
-  int get schemaVersion => 4; // See note.
+  int get schemaVersion => 5; // See note.
 
-  Future<void> _dropAndCreateAll(Migrator m, {
+  static Future<void> _dropAndCreateAll(Migrator m, {
     required int schemaVersion,
   }) async {
     await m.database.transaction(() async {
@@ -125,11 +129,42 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  static final MigrationStepWithVersion _migrationSteps = migrationSteps(
+    from1To2: (m, schema) async {
+      await m.addColumn(schema.accounts, schema.accounts.ackedPushToken);
+    },
+    from2To3: (m, schema) async {
+      await m.createTable(schema.globalSettings);
+    },
+    from3To4: (m, schema) async {
+      await m.addColumn(
+        schema.globalSettings, schema.globalSettings.browserPreference);
+    },
+    from4To5: (m, schema) async {
+      // Corresponds to the `into(globalSettings).insert` in `onCreate`.
+      // This migration ensures there is a row in GlobalSettings.
+      // (If the app already ran at schema 3 or 4, there will be;
+      // if not, there won't be before this point.)
+      await m.database.transaction(() async {
+        final rows = await m.database.select(schema.globalSettings).get();
+        if (rows.isEmpty) {
+          await m.database.into(schema.globalSettings).insert(
+            // No field values; just use the defaults for both fields.
+            // (This is like `GlobalSettingsCompanion.insert()`, but
+            // without dependence on the current schema.)
+            RawValuesInsertable({}));
+        }
+      });
+    },
+  );
+
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
+        // Corresponds to `from4to5` above.
+        await into(globalSettings).insert(GlobalSettingsCompanion());
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from > to) {
@@ -142,39 +177,13 @@ class AppDatabase extends _$AppDatabase {
         }
         assert(1 <= from && from <= to && to <= schemaVersion);
 
-        await m.runMigrationSteps(from: from, to: to,
-          steps: migrationSteps(
-            from1To2: (m, schema) async {
-              await m.addColumn(schema.accounts, schema.accounts.ackedPushToken);
-            },
-            from2To3: (m, schema) async {
-              await m.createTable(schema.globalSettings);
-            },
-            from3To4: (m, schema) async {
-              await m.addColumn(
-                schema.globalSettings, schema.globalSettings.browserPreference);
-            },
-          ));
+        await m.runMigrationSteps(from: from, to: to, steps: _migrationSteps);
       });
   }
 
-  Future<GlobalSettingsData> ensureGlobalSettings() async {
-    final settings = await select(globalSettings).get();
-    // TODO(db): Enforce the singleton constraint more robustly.
-    if (settings.isNotEmpty) {
-      if (settings.length > 1) {
-        assert(debugLog('Expected one globalSettings, got multiple: $settings'));
-      }
-      return settings.first;
-    }
-
-    final rowsAffected = await into(globalSettings).insert(GlobalSettingsCompanion.insert());
-    assert(rowsAffected == 1);
-    final result = await select(globalSettings).get();
-    if (result.length > 1) {
-      assert(debugLog('Expected one globalSettings, got multiple: $result'));
-    }
-    return result.first;
+  Future<GlobalSettingsData> getGlobalSettings() async {
+    // The migrations ensure there is a row.
+    return await (select(globalSettings)..limit(1)).getSingle();
   }
 
   Future<int> createAccount(AccountsCompanion values) async {

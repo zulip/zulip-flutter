@@ -800,9 +800,8 @@ void main() {
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('follow browser preference setting to open URL', (tester) async {
-      await testBinding.globalStore.updateGlobalSettings(
-        eg.globalSettings(
-          browserPreference: BrowserPreference.inApp).toCompanion(false));
+      await testBinding.globalStore.settings
+        .setBrowserPreference(BrowserPreference.inApp);
       await prepare(tester,
         '<p><a href="https://example/">hello</a></p>');
 
@@ -872,7 +871,18 @@ void main() {
         .single.equals((url: Uri.parse('https://a/'), mode: LaunchMode.inAppBrowserView));
     });
 
-    testWidgets('error dialog if invalid link', (tester) async {
+    testWidgets('error dialog if invalid URL', (tester) async {
+      await prepare(tester,
+        '<p><a href="::invalid::">word</a></p>');
+      await tapText(tester, find.text('word'));
+      await tester.pump();
+      check(testBinding.takeLaunchUrlCalls()).isEmpty();
+      checkErrorDialog(tester,
+        expectedTitle: 'Unable to open link',
+        expectedMessage: 'Link could not be opened: ::invalid::');
+    });
+
+    testWidgets('error dialog if platform cannot open link', (tester) async {
       await prepare(tester,
         '<p><a href="file:///etc/bad">word</a></p>');
       testBinding.launchUrlResult = false;
