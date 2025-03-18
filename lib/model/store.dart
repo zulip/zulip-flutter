@@ -882,9 +882,27 @@ class LiveGlobalStore extends GlobalStore {
   // We keep the API simple and synchronous for the bulk of the app's code
   // by doing this loading up front before constructing a [GlobalStore].
   static Future<GlobalStore> load() async {
+    // Loading this data takes roughly 80-100ms (measured on a Pixel 8).
+    // That's only a small increment on the time spent loading server data,
+    // so we don't worry about optimizing it further.
+    // In a future where we keep server data locally between runs (#477) --
+    // which will also mean having much more data to load from the database --
+    // we'd invest in this area more.  For example we'd try doing these
+    // in parallel, or deferring some to be concurrent with loading server data.
+    final stopwatch = Stopwatch()..start();
     final db = AppDatabase(NativeDatabase.createInBackground(await _dbFile()));
+    final t1 = stopwatch.elapsed;
     final globalSettings = await db.getGlobalSettings();
+    final t2 = stopwatch.elapsed;
     final accounts = await db.select(db.accounts).get();
+    final t3 = stopwatch.elapsed;
+    if (kProfileMode) {
+      String format(Duration d) =>
+        "${(d.inMicroseconds / 1000.0).toStringAsFixed(1)}ms";
+      profilePrint("db load time ${format(t3)} total: ${format(t1)} init, "
+        "${format(t2 - t1)} settings, ${format(t3 - t2)} accounts");
+    }
+
     return LiveGlobalStore._(
       backend: LiveGlobalStoreBackend._(db: db),
       globalSettings: globalSettings,
