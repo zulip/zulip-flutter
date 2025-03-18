@@ -1,4 +1,6 @@
 
+import 'package:flutter/foundation.dart';
+
 /// Whether [debugLog] should do anything.
 ///
 /// This has an effect only in a debug build.
@@ -29,6 +31,30 @@ bool debugLog(String message) {
     return true;
   }());
   return true;
+}
+
+/// Print a piece of profiling data.
+///
+/// This should be called only in profile mode:
+///  * In debug mode, any profiling results will be misleading.
+///  * In release mode, we should avoid doing the computation to even produce
+///    the [message] argument.
+///
+/// As a reminder of that, this function will throw in debug mode.
+///
+/// Example usage:
+/// ```dart
+///   final stopwatch = Stopwatch()..start();
+///   final data = await someSlowOperation();
+///   if (kProfileMode) {
+///     final t = stopwatch.elapsed;
+///     profilePrint("some-operation time: ${t.inMilliseconds}ms");
+///   }
+/// ```
+void profilePrint(String message) {
+  assert(kProfileMode, 'Use profilePrint only within `if (kProfileMode)`.');
+  if (kReleaseMode) return;
+  print(message); // ignore: avoid_print
 }
 
 // This should only be used for error reporting functions that allow the error
