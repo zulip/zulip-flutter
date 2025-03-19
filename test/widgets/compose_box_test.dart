@@ -301,30 +301,30 @@ void main() {
           expectedMessage: 'Topic length shouldn\'t be greater than $maxTopicLength characters.')));
       }
 
-      final ValueVariant<int> variants = ValueVariant<int>({50, 60, 70});
+      final ValueVariant<int> maxTopicLengthVariants = ValueVariant<int>({50, 60, 70});
 
       testWidgets('too-long topic is rejected', (tester) async {
-        final maxTopicLength = variants.currentValue!;
+        final maxTopicLength = maxTopicLengthVariants.currentValue!;
         await prepareWithTopic(tester,
           makeStringWithCodePoints(maxTopicLength + 1), maxTopicLength);
         await tapSendButton(tester);
         await checkErrorResponse(tester, maxTopicLength: maxTopicLength);
-      }, variant: variants);
+      }, variant: maxTopicLengthVariants);
 
       testWidgets('max-length topic not rejected', (tester) async {
-        final maxTopicLength = variants.currentValue!;
+        final maxTopicLength = maxTopicLengthVariants.currentValue!;
         await prepareWithTopic(tester,
           makeStringWithCodePoints(maxTopicLength), maxTopicLength);
         await tapSendButton(tester);
         checkNoErrorDialog(tester);
-      }, variant: variants);
+      }, variant: maxTopicLengthVariants);
 
       testWidgets('code points not counted unnecessarily', (tester) async {
-        final maxTopicLength = variants.currentValue!;
+        final maxTopicLength = maxTopicLengthVariants.currentValue!;
         await prepareWithTopic(tester, 'a' * maxTopicLength, maxTopicLength);
         check((controller as StreamComposeBoxController)
           .topic.debugLengthUnicodeCodePointsIfLong).isNull();
-      }, variant: variants);
+      }, variant: maxTopicLengthVariants);
     });
   });
 
