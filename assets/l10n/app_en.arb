@@ -855,6 +855,14 @@
   "@scrollToBottomTooltip": {
     "description": "Tooltip for button to scroll to bottom."
   },
+  "noInboxMessages": "There are no unread messages in your Inbox.",
+  "@noInboxMessages": {
+    "description": "A message for the empty inbox screen"
+  },
+  "subscribeToMore": "You might want to subscribe to more",
+  "@subscribeToMore": {
+    "description": "A message for the empty inbox screen"
+  },
   "appVersionUnknownPlaceholder": "(…)",
   "@appVersionUnknownPlaceholder": {
     "description": "Placeholder to show in place of the app version when it is unknown."

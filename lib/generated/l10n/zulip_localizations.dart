@@ -1251,6 +1251,18 @@ abstract class ZulipLocalizations {
   /// **'Scroll to bottom'**
   String get scrollToBottomTooltip;
 
+  /// A message for the empty inbox screen
+  ///
+  /// In en, this message translates to:
+  /// **'There are no unread messages in your Inbox.'**
+  String get noInboxMessages;
+
+  /// A message for the empty inbox screen
+  ///
+  /// In en, this message translates to:
+  /// **'You might want to subscribe to more'**
+  String get subscribeToMore;
+
   /// Placeholder to show in place of the app version when it is unknown.
   ///
   /// In en, this message translates to:

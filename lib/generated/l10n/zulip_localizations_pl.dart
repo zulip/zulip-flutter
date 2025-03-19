@@ -668,6 +668,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get scrollToBottomTooltip => 'Przewiń do dołu';
 
   @override
+  String get noInboxMessages => 'There are no unread messages in your Inbox.';
+
+  @override
+  String get subscribeToMore => 'You might want to subscribe to more';
+
+  @override
   String get appVersionUnknownPlaceholder => '(…)';
 
   @override
