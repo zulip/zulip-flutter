@@ -21,7 +21,8 @@ class InboxPageBody extends StatefulWidget {
   State<InboxPageBody> createState() => _InboxPageState();
 }
 
-class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStateMixin<InboxPageBody> {
+class _InboxPageState extends State<InboxPageBody>
+    with PerAccountStoreAwareStateMixin<InboxPageBody> {
   Unreads? unreadsModel;
   RecentDmConversationsView? recentDmConversationsModel;
 
@@ -40,6 +41,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       _collapsedStreamIds.add(streamId);
     });
   }
+
   void uncollapseStream(int streamId) {
     setState(() {
       _collapsedStreamIds.remove(streamId);
@@ -52,8 +54,8 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
     unreadsModel?.removeListener(_modelChanged);
     unreadsModel = newStore.unreads..addListener(_modelChanged);
     recentDmConversationsModel?.removeListener(_modelChanged);
-    recentDmConversationsModel = newStore.recentDmConversationsView
-      ..addListener(_modelChanged);
+    recentDmConversationsModel =
+        newStore.recentDmConversationsView..addListener(_modelChanged);
   }
 
   @override
@@ -72,8 +74,9 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       // We also update some state that lives locally: we reset a collapsible
       // row's collapsed state when it's cleared of unreads.
       // TODO(perf) handle those updates efficiently
-      collapsedStreamIds.removeWhere((streamId) =>
-        !unreadsModel!.streams.containsKey(streamId));
+      collapsedStreamIds.removeWhere(
+        (streamId) => !unreadsModel!.streams.containsKey(streamId),
+      );
       if (unreadsModel!.dms.isEmpty) {
         allDmsCollapsed = false;
       }
@@ -100,7 +103,8 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         continue;
       }
       final hasMention = unreadsModel!.dms[dmNarrow]!.any(
-        (messageId) => unreadsModel!.mentions.contains(messageId));
+        (messageId) => unreadsModel!.mentions.contains(messageId),
+      );
       if (hasMention) allDmsHasMention = true;
       dmItems.add((dmNarrow, countInNarrow, hasMention));
       allDmsCount += countInNarrow;
@@ -109,28 +113,29 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       sections.add(_AllDmsSectionData(allDmsCount, allDmsHasMention, dmItems));
     }
 
-    final sortedUnreadStreams = unreadsModel!.streams.entries
-      // Filter out any straggling unreads in unsubscribed streams.
-      // There won't normally be any, but it happens with certain infrequent
-      // state changes, typically for less than a few hundred milliseconds.
-      // See [Unreads].
-      //
-      // Also, we want to depend on the subscription data for things like
-      // choosing the stream icon.
-      .where((entry) => subscriptions.containsKey(entry.key))
-      .toList()
-      ..sort((a, b) {
-        final subA = subscriptions[a.key]!;
-        final subB = subscriptions[b.key]!;
+    final sortedUnreadStreams =
+        unreadsModel!.streams.entries
+            // Filter out any straggling unreads in unsubscribed streams.
+            // There won't normally be any, but it happens with certain infrequent
+            // state changes, typically for less than a few hundred milliseconds.
+            // See [Unreads].
+            //
+            // Also, we want to depend on the subscription data for things like
+            // choosing the stream icon.
+            .where((entry) => subscriptions.containsKey(entry.key))
+            .toList()
+          ..sort((a, b) {
+            final subA = subscriptions[a.key]!;
+            final subB = subscriptions[b.key]!;
 
-        // TODO "pin" icon on the stream row? dividers in the list?
-        if (subA.pinToTop != subB.pinToTop) {
-          return subA.pinToTop ? -1 : 1;
-        }
+            // TODO "pin" icon on the stream row? dividers in the list?
+            if (subA.pinToTop != subB.pinToTop) {
+              return subA.pinToTop ? -1 : 1;
+            }
 
-        // TODO(i18n) something like JS's String.prototype.localeCompare
-        return subA.name.toLowerCase().compareTo(subB.name.toLowerCase());
-      });
+            // TODO(i18n) something like JS's String.prototype.localeCompare
+            return subA.name.toLowerCase().compareTo(subB.name.toLowerCase());
+          });
 
     for (final MapEntry(key: streamId, value: topics) in sortedUnreadStreams) {
       final topicItems = <_StreamSectionTopicData>[];
@@ -139,14 +144,18 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
         if (!store.isTopicVisible(streamId, topic)) continue;
         final countInTopic = messageIds.length;
-        final hasMention = messageIds.any((messageId) => unreadsModel!.mentions.contains(messageId));
+        final hasMention = messageIds.any(
+          (messageId) => unreadsModel!.mentions.contains(messageId),
+        );
         if (hasMention) streamHasMention = true;
-        topicItems.add(_StreamSectionTopicData(
-          topic: topic,
-          count: countInTopic,
-          hasMention: hasMention,
-          lastUnreadId: messageIds.last,
-        ));
+        topicItems.add(
+          _StreamSectionTopicData(
+            topic: topic,
+            count: countInTopic,
+            hasMention: hasMention,
+            lastUnreadId: messageIds.last,
+          ),
+        );
         countInStream += countInTopic;
       }
       if (countInStream == 0) {
@@ -157,28 +166,44 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         final bLastUnreadId = b.lastUnreadId;
         return bLastUnreadId.compareTo(aLastUnreadId);
       });
-      sections.add(_StreamSectionData(streamId, countInStream, streamHasMention, topicItems));
+      sections.add(
+        _StreamSectionData(
+          streamId,
+          countInStream,
+          streamHasMention,
+          topicItems,
+        ),
+      );
     }
 
     return SafeArea(
       // Don't pad the bottom here; we want the list content to do that.
       bottom: false,
-      child: StickyHeaderListView.builder(
-        itemCount: sections.length,
-        itemBuilder: (context, index) {
-          final section = sections[index];
-          switch (section) {
-            case _AllDmsSectionData():
-              return _AllDmsSection(
-                data: section,
-                collapsed: allDmsCollapsed,
-                pageState: this,
-              );
-            case _StreamSectionData(:var streamId):
-              final collapsed = collapsedStreamIds.contains(streamId);
-              return _StreamSection(data: section, collapsed: collapsed, pageState: this);
-          }
-        }));
+      child:
+          sections.isEmpty
+              ? const _EmptyInbox()
+              : StickyHeaderListView.builder(
+                itemCount: sections.length,
+                itemBuilder: (context, index) {
+                  final section = sections[index];
+                  switch (section) {
+                    case _AllDmsSectionData():
+                      return _AllDmsSection(
+                        data: section,
+                        collapsed: allDmsCollapsed,
+                        pageState: this,
+                      );
+                    case _StreamSectionData(:var streamId):
+                      final collapsed = collapsedStreamIds.contains(streamId);
+                      return _StreamSection(
+                        data: section,
+                        collapsed: collapsed,
+                        pageState: this,
+                      );
+                  }
+                },
+              ),
+    );
   }
 }
 
@@ -200,7 +225,12 @@ class _StreamSectionData extends _InboxSectionData {
   final bool hasMention;
   final List<_StreamSectionTopicData> items;
 
-  const _StreamSectionData(this.streamId, this.count, this.hasMention, this.items);
+  const _StreamSectionData(
+    this.streamId,
+    this.count,
+    this.hasMention,
+    this.items,
+  );
 }
 
 class _StreamSectionTopicData {
@@ -261,9 +291,11 @@ abstract class _HeaderItem extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
     return Material(
-      color: collapsed
-        ? designVariables.background // TODO(design) check if this is the right variable
-        : uncollapsedBackgroundColor(context),
+      color:
+          collapsed
+              ? designVariables
+                  .background // TODO(design) check if this is the right variable
+              : uncollapsedBackgroundColor(context),
       child: InkWell(
         // TODO use onRowTap to handle taps that are not on the collapse button.
         //   Probably we should give the collapse button a 44px or 48px square
@@ -272,39 +304,60 @@ abstract class _HeaderItem extends StatelessWidget {
         //   But that's in tension with the Figma, which gives these header rows
         //   40px min height.
         onTap: onCollapseButtonTap,
-        onLongPress: this is _LongPressable
-          ? (this as _LongPressable).onLongPress
-          : null,
-        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Padding(padding: const EdgeInsets.all(10),
-            child: Icon(size: 20, color: designVariables.sectionCollapseIcon,
-              collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down)),
-          Icon(size: 18,
-            color: collapsed
-              ? collapsedIconColor(context)
-              : uncollapsedIconColor(context),
-            icon),
-          const SizedBox(width: 5),
-          Expanded(child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Text(
-              style: TextStyle(
-                fontSize: 17,
-                height: (20 / 17),
-                // TODO(design) check if this is the right variable
-                color: designVariables.labelMenuButton,
-              ).merge(weightVariableTextStyle(context, wght: 600)),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              title(zulipLocalizations)))),
-          const SizedBox(width: 12),
-          if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
-          Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-            child: UnreadCountBadge(
-              backgroundColor: unreadCountBadgeBackgroundColor(context),
-              bold: true,
-              count: count)),
-        ])));
+        onLongPress:
+            this is _LongPressable
+                ? (this as _LongPressable).onLongPress
+                : null,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Icon(
+                size: 20,
+                color: designVariables.sectionCollapseIcon,
+                collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down,
+              ),
+            ),
+            Icon(
+              size: 18,
+              color:
+                  collapsed
+                      ? collapsedIconColor(context)
+                      : uncollapsedIconColor(context),
+              icon,
+            ),
+            const SizedBox(width: 5),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(
+                  style: TextStyle(
+                    fontSize: 17,
+                    height: (20 / 17),
+                    // TODO(design) check if this is the right variable
+                    color: designVariables.labelMenuButton,
+                  ).merge(weightVariableTextStyle(context, wght: 600)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  title(zulipLocalizations),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 16),
+              child: UnreadCountBadge(
+                backgroundColor: unreadCountBadgeBackgroundColor(context),
+                bold: true,
+                count: count,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -317,22 +370,34 @@ class _AllDmsHeaderItem extends _HeaderItem {
     required super.sectionContext,
   });
 
-  @override String title(ZulipLocalizations zulipLocalizations) =>
-    zulipLocalizations.recentDmConversationsSectionHeader;
-  @override IconData get icon => ZulipIcons.user;
+  @override
+  String title(ZulipLocalizations zulipLocalizations) =>
+      zulipLocalizations.recentDmConversationsSectionHeader;
+  @override
+  IconData get icon => ZulipIcons.user;
 
   // TODO(design) check if this is the right variable for these
-  @override Color collapsedIconColor(context) => DesignVariables.of(context).labelMenuButton;
-  @override Color uncollapsedIconColor(context) => DesignVariables.of(context).labelMenuButton;
+  @override
+  Color collapsedIconColor(context) =>
+      DesignVariables.of(context).labelMenuButton;
+  @override
+  Color uncollapsedIconColor(context) =>
+      DesignVariables.of(context).labelMenuButton;
 
-  @override Color uncollapsedBackgroundColor(context) => DesignVariables.of(context).dmHeaderBg;
-  @override Color? unreadCountBadgeBackgroundColor(context) => null;
+  @override
+  Color uncollapsedBackgroundColor(context) =>
+      DesignVariables.of(context).dmHeaderBg;
+  @override
+  Color? unreadCountBadgeBackgroundColor(context) => null;
 
-  @override Future<void> onCollapseButtonTap() async {
+  @override
+  Future<void> onCollapseButtonTap() async {
     await super.onCollapseButtonTap();
     pageState.allDmsCollapsed = !collapsed;
   }
-  @override Future<void> onRowTap() => onCollapseButtonTap(); // TODO open all-DMs narrow?
+
+  @override
+  Future<void> onRowTap() => onCollapseButtonTap(); // TODO open all-DMs narrow?
 }
 
 class _AllDmsSection extends StatelessWidget {
@@ -357,17 +422,21 @@ class _AllDmsSection extends StatelessWidget {
     );
     return StickyHeaderItem(
       header: header,
-      child: Column(children: [
-        header,
-        if (!collapsed) ...data.items.map((item) {
-          final (narrow, count, hasMention) = item;
-          return _DmItem(
-            narrow: narrow,
-            count: count,
-            hasMention: hasMention,
-          );
-        }),
-      ]));
+      child: Column(
+        children: [
+          header,
+          if (!collapsed)
+            ...data.items.map((item) {
+              final (narrow, count, hasMention) = item;
+              return _DmItem(
+                narrow: narrow,
+                count: count,
+                hasMention: hasMention,
+              );
+            }),
+        ],
+      ),
+    );
   }
 }
 
@@ -387,7 +456,8 @@ class _DmItem extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
 
-    final title = switch (narrow.otherRecipientIds) { // TODO dedupe with [RecentDmConversationsItem]
+    final title = switch (narrow.otherRecipientIds) {
+      // TODO dedupe with [RecentDmConversationsItem]
       [] => store.selfUser.fullName,
       [var otherUserId] => store.userDisplayName(otherUserId),
 
@@ -398,33 +468,49 @@ class _DmItem extends StatelessWidget {
     };
 
     return Material(
-      color: designVariables.background, // TODO(design) check if this is the right variable
+      color:
+          designVariables
+              .background, // TODO(design) check if this is the right variable
       child: InkWell(
         onTap: () {
-          Navigator.push(context,
-            MessageListPage.buildRoute(context: context, narrow: narrow));
+          Navigator.push(
+            context,
+            MessageListPage.buildRoute(context: context, narrow: narrow),
+          );
         },
-        child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            const SizedBox(width: 63),
-            Expanded(child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                style: TextStyle(
-                  fontSize: 17,
-                  height: (20 / 17),
-                  // TODO(design) check if this is the right variable
-                  color: designVariables.labelMenuButton,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 34),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(width: 63),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                    style: TextStyle(
+                      fontSize: 17,
+                      height: (20 / 17),
+                      // TODO(design) check if this is the right variable
+                      color: designVariables.labelMenuButton,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    title,
+                  ),
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                title))),
-            const SizedBox(width: 12),
-            if (hasMention) const  _IconMarker(icon: ZulipIcons.at_sign),
-            Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-              child: UnreadCountBadge(backgroundColor: null,
-                count: count)),
-          ]))));
+              ),
+              const SizedBox(width: 12),
+              if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: 16),
+                child: UnreadCountBadge(backgroundColor: null, count: count),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -446,19 +532,25 @@ class _StreamHeaderItem extends _HeaderItem with _LongPressable {
     required super.sectionContext,
   });
 
-  @override String title(ZulipLocalizations zulipLocalizations) =>
-    subscription.name;
-  @override IconData get icon => iconDataForStream(subscription);
-  @override Color collapsedIconColor(context) =>
-    colorSwatchFor(context, subscription).iconOnPlainBackground;
-  @override Color uncollapsedIconColor(context) =>
-    colorSwatchFor(context, subscription).iconOnBarBackground;
-  @override Color uncollapsedBackgroundColor(context) =>
-    colorSwatchFor(context, subscription).barBackground;
-  @override Color? unreadCountBadgeBackgroundColor(context) =>
-    colorSwatchFor(context, subscription).unreadCountBadgeBackground;
+  @override
+  String title(ZulipLocalizations zulipLocalizations) => subscription.name;
+  @override
+  IconData get icon => iconDataForStream(subscription);
+  @override
+  Color collapsedIconColor(context) =>
+      colorSwatchFor(context, subscription).iconOnPlainBackground;
+  @override
+  Color uncollapsedIconColor(context) =>
+      colorSwatchFor(context, subscription).iconOnBarBackground;
+  @override
+  Color uncollapsedBackgroundColor(context) =>
+      colorSwatchFor(context, subscription).barBackground;
+  @override
+  Color? unreadCountBadgeBackgroundColor(context) =>
+      colorSwatchFor(context, subscription).unreadCountBadgeBackground;
 
-  @override Future<void> onCollapseButtonTap() async {
+  @override
+  Future<void> onCollapseButtonTap() async {
     await super.onCollapseButtonTap();
     if (collapsed) {
       pageState.uncollapseStream(subscription.streamId);
@@ -466,7 +558,9 @@ class _StreamHeaderItem extends _HeaderItem with _LongPressable {
       pageState.collapseStream(subscription.streamId);
     }
   }
-  @override Future<void> onRowTap() => onCollapseButtonTap(); // TODO open channel narrow
+
+  @override
+  Future<void> onRowTap() => onCollapseButtonTap(); // TODO open channel narrow
 
   @override
   Future<void> onLongPress() async {
@@ -487,7 +581,8 @@ class _StreamSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subscription = PerAccountStoreWidget.of(context).subscriptions[data.streamId]!;
+    final subscription =
+        PerAccountStoreWidget.of(context).subscriptions[data.streamId]!;
     final header = _StreamHeaderItem(
       subscription: subscription,
       count: data.count,
@@ -498,12 +593,16 @@ class _StreamSection extends StatelessWidget {
     );
     return StickyHeaderItem(
       header: header,
-      child: Column(children: [
-        header,
-        if (!collapsed) ...data.items.map((item) {
-          return _TopicItem(streamId: data.streamId, data: item);
-        }),
-      ]));
+      child: Column(
+        children: [
+          header,
+          if (!collapsed)
+            ...data.items.map((item) {
+              return _TopicItem(streamId: data.streamId, data: item);
+            }),
+        ],
+      ),
+    );
   }
 }
 
@@ -515,55 +614,78 @@ class _TopicItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _StreamSectionTopicData(
-      :topic, :count, :hasMention, :lastUnreadId) = data;
+    final _StreamSectionTopicData(:topic, :count, :hasMention, :lastUnreadId) =
+        data;
 
     final store = PerAccountStoreWidget.of(context);
     final subscription = store.subscriptions[streamId]!;
 
     final designVariables = DesignVariables.of(context);
     final visibilityIcon = iconDataForTopicVisibilityPolicy(
-      store.topicVisibilityPolicy(streamId, topic));
+      store.topicVisibilityPolicy(streamId, topic),
+    );
 
     return Material(
-      color: designVariables.background, // TODO(design) check if this is the right variable
+      color:
+          designVariables
+              .background, // TODO(design) check if this is the right variable
       child: InkWell(
         onTap: () {
           final narrow = TopicNarrow(streamId, topic);
-          Navigator.push(context,
-            MessageListPage.buildRoute(context: context, narrow: narrow));
+          Navigator.push(
+            context,
+            MessageListPage.buildRoute(context: context, narrow: narrow),
+          );
         },
-        onLongPress: () => showTopicActionSheet(context,
-          channelId: streamId,
-          topic: topic,
-          someMessageIdInTopic: lastUnreadId),
-        child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            const SizedBox(width: 63),
-            Expanded(child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                style: TextStyle(
-                  fontSize: 17,
-                  height: (20 / 17),
-                  // ignore: unnecessary_null_comparison // null topic names soon to be enabled
-                  fontStyle: topic.displayName == null ? FontStyle.italic : null,
-                  // TODO(design) check if this is the right variable
-                  color: designVariables.labelMenuButton,
+        onLongPress:
+            () => showTopicActionSheet(
+              context,
+              channelId: streamId,
+              topic: topic,
+              someMessageIdInTopic: lastUnreadId,
+            ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 34),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(width: 63),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                    style: TextStyle(
+                      fontSize: 17,
+                      height: (20 / 17),
+                      // ignore: unnecessary_null_comparison // null topic names soon to be enabled
+                      fontStyle:
+                          topic.displayName == null ? FontStyle.italic : null,
+                      // TODO(design) check if this is the right variable
+                      color: designVariables.labelMenuButton,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    // ignore: dead_null_aware_expression // null topic names soon to be enabled
+                    topic.displayName ?? store.realmEmptyTopicDisplayName,
+                  ),
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                // ignore: dead_null_aware_expression // null topic names soon to be enabled
-                topic.displayName ?? store.realmEmptyTopicDisplayName))),
-            const SizedBox(width: 12),
-            if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
-            // TODO(design) copies the "@" marker color; is there a better color?
-            if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
-            Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-              child: UnreadCountBadge(
-                backgroundColor: colorSwatchFor(context, subscription),
-                count: count)),
-          ]))));
+              ),
+              const SizedBox(width: 12),
+              if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
+              // TODO(design) copies the "@" marker color; is there a better color?
+              if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: 16),
+                child: UnreadCountBadge(
+                  backgroundColor: colorSwatchFor(context, subscription),
+                  count: count,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -581,6 +703,56 @@ class _IconMarker extends StatelessWidget {
       padding: const EdgeInsetsDirectional.only(end: 4),
       // This color comes from the Figma screen for the "@" marker, but not
       // the topic visibility markers.
-      child: Icon(icon, size: 14, color: designVariables.inboxItemIconMarker));
+      child: Icon(icon, size: 14, color: designVariables.inboxItemIconMarker),
+    );
+  }
+}
+
+class _EmptyInbox extends StatelessWidget {
+  const _EmptyInbox();
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 40, right: 24, left: 24, bottom: 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(ZulipIcons.inbox_done, size: 80, color: Colors.grey),
+          const SizedBox(height: 16),
+          Text(
+            zulipLocalizations.noInboxMessages,
+            style: textTheme.bodyLarge!.copyWith(color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                zulipLocalizations.subscribeToMore,
+                style: textTheme.bodyLarge!.copyWith(color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(width: 4),
+              Text(
+                zulipLocalizations.channelsPageTitle,
+                style: textTheme.bodyLarge!.copyWith(
+                  color: Color(0xFF066BD0),
+                  decoration: TextDecoration.underline,
+                  decorationColor: Color(0xFF066BD0),
+                  decorationThickness: 1.5,
+                  height: 1.3,
+                  textBaseline: TextBaseline.alphabetic,
+                ),
+
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
