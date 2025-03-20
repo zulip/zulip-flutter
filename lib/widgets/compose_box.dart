@@ -1384,6 +1384,18 @@ abstract class _Banner extends StatelessWidget {
   Color getLabelColor(DesignVariables designVariables);
   Color getBackgroundColor(DesignVariables designVariables);
 
+  /// A trailing element, with no outer padding for spacing/positioning.
+  ///
+  /// To control the element's distance from the end edge, override [padEnd].
+  Widget? buildTrailing(BuildContext context);
+
+  /// Whether to add 8px trailing padding.
+  ///
+  /// Subclasses can use `false` when the [buildTrailing] element
+  /// is meant to abut the edge of the screen
+  /// in the common case that there are no horizontal device insets.
+  bool get padEnd => true;
+
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
@@ -1393,6 +1405,7 @@ abstract class _Banner extends StatelessWidget {
       color: getLabelColor(designVariables),
     ).merge(weightVariableTextStyle(context, wght: 600));
 
+    final trailing = buildTrailing(context);
     return DecoratedBox(
       decoration: BoxDecoration(
         color: getBackgroundColor(designVariables)),
@@ -1409,9 +1422,11 @@ abstract class _Banner extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(style: labelTextStyle,
                     label))),
-              const SizedBox(width: 8),
-              // TODO(#720) "x" button for the error banner goes here.
-              //   24px square with 8px touchable padding in all directions?
+              if (trailing != null) ...[
+                const SizedBox(width: 8),
+                trailing,
+              ],
+              if (padEnd) const SizedBox(width: 8),
             ]))));
   }
 }
@@ -1426,6 +1441,15 @@ class _ErrorBanner extends _Banner {
   @override
   Color getBackgroundColor(DesignVariables designVariables) =>
     designVariables.bannerBgIntDanger;
+
+  @override
+  Widget? buildTrailing(context) {
+    // TODO(#720) "x" button goes here.
+    //   24px square with 8px touchable padding in all directions?
+    //   and `bool get padEnd => false`; see Figma:
+    //     https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=4031-17029&m=dev
+    return null;
+  }
 }
 
 /// The compose box.
