@@ -579,23 +579,31 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     super.dispose();
   }
 
+  /// The topic name to use in the hint text.
+  TopicName _hintTopic() {
+    return TopicName(widget.controller.topic.textNormalized);
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
+
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.unknownChannelName;
-    final topic = TopicName(widget.controller.topic.textNormalized);
+    final hintDestination =
+      // No i18n of this use of "#" and ">" string; those are part of how
+      // Zulip expresses channels and topics, not any normal English punctuation,
+      // so don't make sense to translate. See:
+      //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
+      '#$streamName > ${_hintTopic().displayName}';
+
     return _ContentInput(
       narrow: widget.narrow,
-      destination: TopicNarrow(widget.narrow.streamId, topic),
+      destination: TopicNarrow(widget.narrow.streamId,
+        TopicName(widget.controller.topic.textNormalized)),
       controller: widget.controller,
-      hintText: zulipLocalizations.composeBoxChannelContentHint(
-        // No i18n of this use of "#" and ">" string; those are part of how
-        // Zulip expresses channels and topics, not any normal English punctuation,
-        // so don't make sense to translate. See:
-        //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-        '#$streamName > ${topic.displayName}'));
+      hintText: zulipLocalizations.composeBoxChannelContentHint(hintDestination));
   }
 }
 
