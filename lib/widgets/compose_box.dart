@@ -579,8 +579,15 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     super.dispose();
   }
 
-  /// The topic name to use in the hint text.
-  TopicName _hintTopic() {
+  /// The topic name to show in the hint text, or null to show no topic.
+  TopicName? _hintTopic() {
+    if (widget.controller.topic.isTopicVacuous) {
+      if (widget.controller.topic.mandatory) {
+        // The chosen topic can't be sent to, so don't show it.
+        return null;
+      }
+    }
+
     return TopicName(widget.controller.topic.textNormalized);
   }
 
@@ -591,12 +598,13 @@ class _StreamContentInputState extends State<_StreamContentInput> {
 
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.unknownChannelName;
-    final hintDestination =
+    final hintTopic = _hintTopic();
+    final hintDestination = hintTopic == null ?
       // No i18n of this use of "#" and ">" string; those are part of how
       // Zulip expresses channels and topics, not any normal English punctuation,
       // so don't make sense to translate. See:
       //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-      '#$streamName > ${_hintTopic().displayName}';
+      '#$streamName' : '#$streamName > ${hintTopic.displayName}';
 
     return _ContentInput(
       narrow: widget.narrow,
