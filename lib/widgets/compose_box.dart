@@ -1465,7 +1465,8 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     super.dispose();
   }
 
-  Widget? _errorBanner(BuildContext context) {
+  /// An [_ErrorBanner] that replaces the compose box's text inputs.
+  Widget? _errorBannerComposingNotAllowed(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     switch (widget.narrow) {
       case ChannelNarrow(:final streamId):
@@ -1497,7 +1498,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   Widget build(BuildContext context) {
     final Widget? body;
 
-    final errorBanner = _errorBanner(context);
+    final errorBanner = _errorBannerComposingNotAllowed(context);
     if (errorBanner != null) {
       return _ComposeBoxContainer(body: null, errorBanner: errorBanner);
     }
