@@ -376,8 +376,34 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   }
 }
 
-class _ContentInput extends StatefulWidget {
-  const _ContentInput({
+abstract class _ContentInput extends StatefulWidget {
+  factory _ContentInput.withTypingNotifier({
+    required Narrow narrow,
+    required SendableNarrow destination,
+    required ComposeBoxController controller,
+    required String hintText,
+  }) => _ContentInputWithTypingNotifier._(
+    narrow: narrow,
+    destination: destination,
+    controller: controller,
+    hintText: hintText,
+  );
+
+  // We'll use this soon.
+  // ignore: unused_element
+  factory _ContentInput.noTypingNotifier({
+    required Narrow narrow,
+    required SendableNarrow destination,
+    required ComposeBoxController controller,
+    required String hintText,
+  }) => _ContentInputNoTypingNotifier._(
+    narrow: narrow,
+    destination: destination,
+    controller: controller,
+    hintText: hintText,
+  );
+
+  const _ContentInput._({
     required this.narrow,
     required this.destination,
     required this.controller,
@@ -388,12 +414,33 @@ class _ContentInput extends StatefulWidget {
   final SendableNarrow destination;
   final ComposeBoxController controller;
   final String hintText;
-
-  @override
-  State<_ContentInput> createState() => _ContentInputState();
 }
 
-class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserver, _TypingNotifierMixin {
+class _ContentInputWithTypingNotifier extends _ContentInput {
+  const _ContentInputWithTypingNotifier._({
+    required super.narrow,
+    required super.destination,
+    required super.controller,
+    required super.hintText,
+  }) : super._();
+
+  @override
+  State<_ContentInput> createState() => _ContentInputStateWithTypingNotifier();
+}
+
+class _ContentInputNoTypingNotifier extends _ContentInput {
+  const _ContentInputNoTypingNotifier._({
+    required super.narrow,
+    required super.destination,
+    required super.controller,
+    required super.hintText,
+  }) : super._();
+
+  @override
+  State<_ContentInput> createState() => _ContentInputStateNoTypingNotifier();
+}
+
+class _ContentInputStateBase extends State<_ContentInput> {
   static double maxHeight(BuildContext context) {
     final clampingTextScaler = MediaQuery.textScalerOf(context)
       .clamp(maxScaleFactor: 1.5);
@@ -467,6 +514,10 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
                   color: designVariables.textInput.withFadedAlpha(0.5))))))));
   }
 }
+
+
+class _ContentInputStateWithTypingNotifier extends _ContentInputStateBase with WidgetsBindingObserver, _TypingNotifierMixin {}
+class _ContentInputStateNoTypingNotifier extends _ContentInputStateBase {}
 
 mixin _TypingNotifierMixin on State<_ContentInput>, WidgetsBindingObserver {
   @override
@@ -588,7 +639,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.unknownChannelName;
     final topic = TopicName(widget.controller.topic.textNormalized);
-    return _ContentInput(
+    return _ContentInput.withTypingNotifier(
       narrow: widget.narrow,
       destination: TopicNarrow(widget.narrow.streamId, topic),
       controller: widget.controller,
@@ -678,7 +729,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ContentInput(
+    return _ContentInput.withTypingNotifier(
       narrow: narrow,
       destination: narrow,
       controller: controller,
