@@ -1389,7 +1389,7 @@ abstract class _Banner extends StatelessWidget {
   /// To control the element's distance from the end edge, override [padEnd].
   Widget? buildTrailing(BuildContext context);
 
-  /// Whether to add 8px trailing padding.
+  /// Whether to apply `end: 8` in [SafeArea.minimum].
   ///
   /// Subclasses can use `false` when the [buildTrailing] element
   /// is meant to abut the edge of the screen
@@ -1410,7 +1410,7 @@ abstract class _Banner extends StatelessWidget {
       decoration: BoxDecoration(
         color: getBackgroundColor(designVariables)),
       child: SafeArea(
-        minimum: const EdgeInsetsDirectional.only(start: 8)
+        minimum: EdgeInsetsDirectional.only(start: 8, end: padEnd ? 8 : 0)
           // (SafeArea.minimum doesn't take an EdgeInsetsDirectional)
           .resolve(Directionality.of(context)),
         child: Padding(
@@ -1426,7 +1426,6 @@ abstract class _Banner extends StatelessWidget {
                 const SizedBox(width: 8),
                 trailing,
               ],
-              if (padEnd) const SizedBox(width: 8),
             ]))));
   }
 }
