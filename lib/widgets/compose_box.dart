@@ -394,24 +394,22 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   }
 }
 
-class _ContentInput extends StatefulWidget {
-  const _ContentInput({
-    required this.narrow,
+class _TypingNotifier extends StatefulWidget {
+  const _TypingNotifier({
     required this.destination,
     required this.controller,
-    required this.hintText,
+    required this.child,
   });
 
-  final Narrow narrow;
   final SendableNarrow destination;
   final ComposeBoxController controller;
-  final String hintText;
+  final Widget child;
 
   @override
-  State<_ContentInput> createState() => _ContentInputState();
+  State<_TypingNotifier> createState() => _TypingNotifierState();
 }
 
-class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserver {
+class _TypingNotifierState extends State<_TypingNotifier> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -421,7 +419,7 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
   }
 
   @override
-  void didUpdateWidget(covariant _ContentInput oldWidget) {
+  void didUpdateWidget(covariant _TypingNotifier oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.controller != oldWidget.controller) {
       oldWidget.controller.content.removeListener(_contentChanged);
@@ -484,6 +482,26 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
     }
   }
 
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+class _ContentInput extends StatefulWidget {
+  const _ContentInput({
+    required this.narrow,
+    required this.controller,
+    required this.hintText,
+  });
+
+  final Narrow narrow;
+  final ComposeBoxController controller;
+  final String hintText;
+
+  @override
+  State<StatefulWidget> createState() => _ContentInputState();
+}
+
+class _ContentInputState<T extends _ContentInput> extends State<T> {
   static double maxHeight(BuildContext context) {
     final clampingTextScaler = MediaQuery.textScalerOf(context)
       .clamp(maxScaleFactor: 1.5);
@@ -645,12 +663,14 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       // ignore: dead_null_aware_expression // null topic names soon to be enabled
       : '#$streamName > ${hintTopic.displayName ?? store.realmEmptyTopicDisplayName}';
 
-    return _ContentInput(
-      narrow: widget.narrow,
+    return _TypingNotifier(
       destination: TopicNarrow(widget.narrow.streamId,
         TopicName(widget.controller.topic.textNormalized)),
       controller: widget.controller,
-      hintText: zulipLocalizations.composeBoxChannelContentHint(hintDestination));
+      child: _ContentInput(
+        narrow: widget.narrow,
+        controller: widget.controller,
+        hintText: zulipLocalizations.composeBoxChannelContentHint(hintDestination)));
   }
 }
 
@@ -732,11 +752,13 @@ class _FixedDestinationContentInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ContentInput(
-      narrow: narrow,
+    return _TypingNotifier(
       destination: narrow,
       controller: controller,
-      hintText: _hintText(context));
+      child: _ContentInput(
+        narrow: narrow,
+        controller: controller,
+        hintText: _hintText(context)));
   }
 }
 
