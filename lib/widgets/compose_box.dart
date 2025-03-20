@@ -1376,10 +1376,13 @@ class StreamComposeBoxController extends ComposeBoxController {
 
 class FixedDestinationComposeBoxController extends ComposeBoxController {}
 
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.label});
+abstract class _Banner extends StatelessWidget {
+  const _Banner({required this.label});
 
   final String label;
+
+  Color getLabelColor(DesignVariables designVariables);
+  Color getBackgroundColor(DesignVariables designVariables);
 
   @override
   Widget build(BuildContext context) {
@@ -1387,12 +1390,12 @@ class _ErrorBanner extends StatelessWidget {
     final labelTextStyle = TextStyle(
       fontSize: 17,
       height: 22 / 17,
-      color: designVariables.btnLabelAttMediumIntDanger,
+      color: getLabelColor(designVariables),
     ).merge(weightVariableTextStyle(context, wght: 600));
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: designVariables.bannerBgIntDanger),
+        color: getBackgroundColor(designVariables)),
       child: SafeArea(
         minimum: const EdgeInsetsDirectional.only(start: 8)
           // (SafeArea.minimum doesn't take an EdgeInsetsDirectional)
@@ -1405,10 +1408,22 @@ class _ErrorBanner extends StatelessWidget {
                 child: Text(style: labelTextStyle,
                   label))),
             const SizedBox(width: 8),
-            // TODO(#720) "x" button goes here.
+            // TODO(#720) "x" button for the error banner goes here.
             //   24px square with 8px touchable padding in all directions?
           ])));
   }
+}
+
+class _ErrorBanner extends _Banner {
+  const _ErrorBanner({required super.label});
+
+  @override
+  Color getLabelColor(DesignVariables designVariables) =>
+    designVariables.btnLabelAttMediumIntDanger;
+
+  @override
+  Color getBackgroundColor(DesignVariables designVariables) =>
+    designVariables.bannerBgIntDanger;
 }
 
 /// The compose box.
