@@ -562,6 +562,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final markAsUnreadSupported = store.zulipFeatureLevel >= 155; // TODO(server-6)
   final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
 
+  final isSenderMuted = store.isUserMuted(message.senderId);
+
   final optionButtons = [
     ReactionButtons(message: message, pageContext: pageContext),
     StarButton(message: message, pageContext: pageContext),
@@ -569,6 +571,9 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       QuoteAndReplyButton(message: message, pageContext: pageContext),
     if (showMarkAsUnreadButton)
       MarkAsUnreadButton(message: message, pageContext: pageContext),
+    if (isSenderMuted)
+      HideMutedMessageButton(message: message, pageContext: pageContext,
+        messageContext: context),
     CopyMessageTextButton(message: message, pageContext: pageContext),
     CopyMessageLinkButton(message: message, pageContext: pageContext),
     ShareButton(message: message, pageContext: pageContext),
@@ -880,6 +885,31 @@ class MarkAsUnreadButton extends MessageActionSheetMenuItemButton {
     final narrow = findMessageListPage().narrow;
     unawaited(ZulipAction.markNarrowAsUnreadFromMessage(pageContext,
       message, narrow));
+  }
+}
+
+class HideMutedMessageButton extends MessageActionSheetMenuItemButton {
+  HideMutedMessageButton({
+    super.key,
+    required super.message,
+    required super.pageContext,
+    required this.messageContext,
+  });
+
+  final BuildContext messageContext;
+
+  @override
+  IconData get icon => ZulipIcons.eye_off;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionHideMutedMessage;
+  }
+
+  @override
+  void onPressed() {
+    if (!messageContext.mounted) return;
+    PossibleMutedMessage.of(messageContext).changeMuteStatus(true);
   }
 }
 
