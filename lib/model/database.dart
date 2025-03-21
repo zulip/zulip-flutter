@@ -92,17 +92,19 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   // When updating the schema:
-  //  * Make the change in the table classes, and bump schemaVersion.
+  //  * Make the change in the table classes, and bump latestSchemaVersion.
   //  * Export the new schema and generate test migrations with drift:
   //    $ tools/check --fix drift
   //    and generate database code with build_runner.
   //    See ../../README.md#generated-files for more
   //    information on using the build_runner.
-  //  * Update [_getSchema] to handle the new schemaVersion.
+  //  * Update [_getSchema] to handle the new latestSchemaVersion.
   //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
+  static const int latestSchemaVersion = 5; // See note.
+
   @override
-  int get schemaVersion => 5; // See note.
+  int get schemaVersion => latestSchemaVersion;
 
   static Future<void> _dropAndCreateAll(Migrator m, {
     required int schemaVersion,
@@ -175,7 +177,7 @@ class AppDatabase extends _$AppDatabase {
           await _dropAndCreateAll(m, schemaVersion: to);
           return;
         }
-        assert(1 <= from && from <= to && to <= schemaVersion);
+        assert(1 <= from && from <= to && to <= latestSchemaVersion);
 
         await m.runMigrationSteps(from: from, to: to, steps: _migrationSteps);
       });
