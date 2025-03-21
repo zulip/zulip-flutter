@@ -12,6 +12,7 @@ import '../api/model/model.dart';
 import '../api/route/channels.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/binding.dart';
 import '../model/emoji.dart';
 import '../model/internal_link.dart';
 import '../model/narrow.dart';
@@ -546,7 +547,12 @@ class MarkTopicAsReadButton extends ActionSheetMenuItemButton {
 /// Show a sheet of actions you can take on a message in the message list.
 ///
 /// Must have a [MessageListPage] ancestor.
-void showMessageActionSheet({required BuildContext context, required Message message}) {
+void showMessageActionSheet({
+  required BuildContext context,
+  required Message message,
+  required bool messageListHasComposeBox,
+  required bool editMessageInProgress,
+}) {
   final pageContext = PageRoot.contextOf(context);
   final store = PerAccountStoreWidget.of(pageContext);
 
@@ -562,6 +568,18 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final markAsUnreadSupported = store.zulipFeatureLevel >= 155; // TODO(server-6)
   final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
 
+  final now = ZulipBinding.instance.utcNow().millisecondsSinceEpoch ~/ 1000;
+  final editLimit = store.realmMessageContentEditLimitSeconds;
+  final outsideEditLimit =
+    editLimit != null
+    && editLimit != 0 // TODO(server-6) remove (pre-FL 138, 0 represents no limit)
+    && now - message.timestamp > editLimit;
+  final showEditButton = message.senderId == store.selfUserId
+    && messageListHasComposeBox
+    && store.realmAllowMessageEditing
+    && !outsideEditLimit
+    && !editMessageInProgress;
+
   final optionButtons = [
     ReactionButtons(message: message, pageContext: pageContext),
     StarButton(message: message, pageContext: pageContext),
@@ -572,6 +590,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
     CopyMessageTextButton(message: message, pageContext: pageContext),
     CopyMessageLinkButton(message: message, pageContext: pageContext),
     ShareButton(message: message, pageContext: pageContext),
+    if (showEditButton)
+      EditButton(message: message, pageContext: pageContext),
   ];
 
   _showActionSheet(pageContext, optionButtons: optionButtons);
@@ -949,5 +969,39 @@ class ShareButton extends MessageActionSheetMenuItemButton {
       case ShareResultStatus.dismissed:
         // nothing to do
     }
+  }
+}
+
+class EditButton extends MessageActionSheetMenuItemButton {
+  EditButton({super.key, required super.message, required super.pageContext});
+
+  @override
+  IconData get icon => ZulipIcons.edit;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) =>
+    zulipLocalizations.actionSheetOptionEditMessage;
+
+  @override void onPressed() async {
+    final store = PerAccountStoreWidget.of(pageContext);
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
+
+    final composeBoxState = findMessageListPage().composeBoxState;
+    if (composeBoxState == null) {
+      throw StateError('Compose box unexpectedly absent when edit-message button pressed');
+    }
+    final editMessageErrorStatus = store.getEditMessageErrorStatus(message.id);
+    if (editMessageErrorStatus != null) {
+      throw StateError('Message edit already in progress when edit-message button pressed');
+    }
+
+    final rawContent = await ZulipAction.fetchRawContentWithFeedback(
+      context: pageContext,
+      messageId: message.id,
+      errorDialogTitle: zulipLocalizations.errorCouldNotEditMessageTitle,
+    );
+    if (rawContent == null) return;
+
+    composeBoxState.startEditInteraction(messageId: message.id, originalRawContent: rawContent);
   }
 }

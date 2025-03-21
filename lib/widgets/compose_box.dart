@@ -15,6 +15,7 @@ import '../model/compose.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
 import 'autocomplete.dart';
+import 'button.dart';
 import 'color.dart';
 import 'dialog.dart';
 import 'icons.dart';
@@ -226,9 +227,13 @@ enum ContentValidationError {
 }
 
 class ComposeContentController extends ComposeController<ContentValidationError> {
-  ComposeContentController() {
+  ComposeContentController({this.skipValidationErrorEmpty = false}) {
     _update();
   }
+
+  /// Whether to skip producing [ContentValidationError.empty],
+  /// which is desired for the edit-message compose box.
+  final bool skipValidationErrorEmpty;
 
   // TODO(#1237) use `max_message_length` instead of hardcoded limit
   @override final maxLengthUnicodeCodePoints = kMaxMessageLengthCodePoints;
@@ -376,7 +381,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   @override
   List<ContentValidationError> _computeValidationErrors() {
     return [
-      if (textNormalized.isEmpty)
+      if (!skipValidationErrorEmpty && textNormalized.isEmpty)
         ContentValidationError.empty,
 
       if (
@@ -865,6 +870,25 @@ class _FixedDestinationContentInput extends StatelessWidget {
         narrow: narrow,
         controller: controller,
         hintText: _hintText(context)));
+  }
+}
+
+class _EditMessageContentInput extends StatelessWidget {
+  const _EditMessageContentInput({
+    required this.narrow,
+    required this.controller,
+  });
+
+  final Narrow narrow;
+  final EditMessageComposeBoxController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return _ContentInput(
+      narrow: narrow,
+      controller: controller,
+      hintText: zulipLocalizations.composeBoxEditMessageHint);
   }
 }
 
@@ -1368,7 +1392,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 
   Widget? buildTopicInput();
   Widget buildContentInput();
-  Widget buildSendButton();
+  Widget? buildSendButton();
 
   @override
   Widget build(BuildContext context) {
@@ -1401,6 +1425,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
     ];
 
     final topicInput = buildTopicInput();
+    final sendButton = buildSendButton();
     return Column(children: [
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -1418,7 +1443,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(children: composeButtons),
-              buildSendButton(),
+              if (sendButton != null) sendButton,
             ]))),
     ]);
   }
@@ -1474,6 +1499,25 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
     controller: controller,
     getDestination: () => narrow.destination,
   );
+}
+
+/// A compose box for editing an already-sent message.
+class _EditMessageComposeBoxBody extends _ComposeBoxBody {
+  _EditMessageComposeBoxBody({required this.narrow, required this.controller});
+
+  @override
+  final Narrow narrow;
+
+  @override
+  final EditMessageComposeBoxController controller;
+
+  @override Widget? buildTopicInput() => null;
+
+  @override Widget buildContentInput() => _EditMessageContentInput(
+    narrow: narrow,
+    controller: controller);
+
+  @override Widget? buildSendButton() => null;
 }
 
 sealed class ComposeBoxController {
@@ -1553,6 +1597,30 @@ class StreamComposeBoxController extends ComposeBoxController {
 }
 
 class FixedDestinationComposeBoxController extends ComposeBoxController {}
+
+class EditMessageComposeBoxController extends ComposeBoxController {
+  EditMessageComposeBoxController._({
+    required this.messageId,
+    required this.originalRawContent,
+  });
+
+  factory EditMessageComposeBoxController.init({
+    required int messageId,
+    required String originalRawContent,
+  }) {
+    return EditMessageComposeBoxController._(
+      messageId: messageId,
+      originalRawContent: originalRawContent
+    )
+      ..content.value = TextEditingValue(text: originalRawContent);
+  }
+
+  @override ComposeContentController get content => _content;
+  final _content = ComposeContentController(skipValidationErrorEmpty: true);
+
+  final int messageId;
+  final String originalRawContent;
+}
 
 abstract class _Banner extends StatelessWidget {
   const _Banner();
@@ -1644,6 +1712,60 @@ class _ErrorBanner extends _Banner {
   }
 }
 
+class _EditMessageBanner extends _Banner {
+  const _EditMessageBanner({required this.composeBoxState});
+
+  final ComposeBoxState composeBoxState;
+
+  @override
+  String getLabel(ZulipLocalizations zulipLocalizations) =>
+    zulipLocalizations.composeBoxBannerLabelEditMessage;
+
+  @override
+  Color getLabelColor(DesignVariables designVariables) =>
+    designVariables.bannerTextIntInfo;
+
+  @override
+  Color getBackgroundColor(DesignVariables designVariables) =>
+    designVariables.bannerBgIntInfo;
+
+  @override
+  Widget? buildTrailing(context) {
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return Row(mainAxisSize: MainAxisSize.min, spacing: 8, children: [
+      ZulipWebUiKitButton(label: zulipLocalizations.composeBoxBannerButtonCancel,
+        onPressed: () {
+          composeBoxState.endEditInteraction();
+        }),
+      // TODO(#1481) disabled appearance when there are validation errors
+      ZulipWebUiKitButton(label: zulipLocalizations.composeBoxBannerButtonSave,
+        attention: ZulipWebUiKitButtonAttention.high,
+        onPressed: () {
+          final controller = composeBoxState.controller;
+          if (controller is! EditMessageComposeBoxController) return; // TODO(log)
+          final zulipLocalizations = ZulipLocalizations.of(context);
+
+          if (controller.content.hasValidationErrors.value) {
+            List<String> validationErrorMessages =
+              controller.content.validationErrors.map((error) =>
+                error.message(zulipLocalizations)).toList();
+            showErrorDialog(context: context,
+              title: zulipLocalizations.errorMessageEditNotSaved,
+              message: validationErrorMessages.join('\n\n'));
+            return;
+          }
+
+          store.editMessage(
+            messageId: controller.messageId,
+            originalRawContent: controller.originalRawContent,
+            newContent: controller.content.textNormalized);
+          composeBoxState.endEditInteraction();
+        }),
+    ]);
+  }
+}
+
 /// The compose box.
 ///
 /// Takes the full screen width, covering the horizontal insets with its surface.
@@ -1675,11 +1797,56 @@ class ComposeBox extends StatefulWidget {
 /// The interface for the state of a [ComposeBox].
 abstract class ComposeBoxState extends State<ComposeBox> {
   ComposeBoxController get controller;
+
+  void startEditInteraction({
+    required int messageId,
+    required String originalRawContent,
+  });
+
+  void endEditInteraction();
 }
 
 class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateMixin<ComposeBox> implements ComposeBoxState {
   @override ComposeBoxController get controller => _controller!;
   ComposeBoxController? _controller;
+
+  @override
+  void startEditInteraction({
+    required int messageId,
+    required String originalRawContent,
+  }) async {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    switch (_controller) {
+      case EditMessageComposeBoxController():
+        throw StateError('startEditInteraction called during message-edit interaction');
+      case StreamComposeBoxController():
+      case FixedDestinationComposeBoxController():
+        if (_controller!.content.textNormalized.isNotEmpty) {
+          final dialog = showSuggestedActionDialog(context: context,
+            title: zulipLocalizations.discardDraftConfirmationDialogTitle,
+            message: zulipLocalizations.discardDraftConfirmationDialogMessage,
+            // TODO(#1032) "destructive" style for action button
+            actionButtonText: zulipLocalizations.discardDraftConfirmationDialogConfirmButton);
+          if (await dialog.result != true) return;
+          if (!context.mounted) return;
+        }
+      case null: // TODO(log)
+    }
+    setState(() {
+      _controller?.dispose();
+      _controller = EditMessageComposeBoxController.init(
+          messageId: messageId, originalRawContent: originalRawContent)
+        ..contentFocusNode.requestFocus();
+    });
+  }
+
+  @override
+  void endEditInteraction() {
+    final store = PerAccountStoreWidget.of(context);
+    setState(() {
+      _setNewController(store);
+    });
+  }
 
   @override
   void onNewStore() {
@@ -1695,6 +1862,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       case StreamComposeBoxController():
         controller.topic.store = newStore;
       case FixedDestinationComposeBoxController():
+      case EditMessageComposeBoxController():
         // no reference to the store that needs updating
     }
   }
@@ -1750,12 +1918,13 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   @override
   Widget build(BuildContext context) {
-    final Widget? body;
-
     final errorBanner = _errorBannerComposingNotAllowed(context);
     if (errorBanner != null) {
       return _ComposeBoxContainer(body: null, banner: errorBanner);
     }
+
+    final Widget? body;
+    Widget? banner;
 
     final controller = this.controller;
     final narrow = widget.narrow;
@@ -1768,6 +1937,10 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         narrow as SendableNarrow;
         body = _FixedDestinationComposeBoxBody(controller: controller, narrow: narrow);
       }
+      case EditMessageComposeBoxController(): {
+        body = _EditMessageComposeBoxBody(controller: controller, narrow: narrow);
+        banner = _EditMessageBanner(composeBoxState: this);
+      }
     }
 
     // TODO(#720) dismissable message-send error, maybe something like:
@@ -1775,6 +1948,6 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     //       errorBanner = _ErrorBanner(label:
     //         ZulipLocalizations.of(context).errorSendMessageTimeout);
     //     }
-    return _ComposeBoxContainer(body: body, banner: null);
+    return _ComposeBoxContainer(body: body, banner: banner);
   }
 }
