@@ -222,6 +222,7 @@ abstract class _HeaderItem extends StatelessWidget {
   final _InboxPageState pageState;
   final int count;
   final bool hasMention;
+  final bool isArchived;
 
   /// A build context within the [_StreamSection] or [_AllDmsSection].
   ///
@@ -236,6 +237,7 @@ abstract class _HeaderItem extends StatelessWidget {
     required this.count,
     required this.hasMention,
     required this.sectionContext,
+    this.isArchived = false,
   });
 
   String title(ZulipLocalizations zulipLocalizations);
@@ -287,16 +289,33 @@ abstract class _HeaderItem extends StatelessWidget {
           const SizedBox(width: 5),
           Expanded(child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Text(
-              style: TextStyle(
-                fontSize: 17,
-                height: (20 / 17),
-                // TODO(design) check if this is the right variable
-                color: designVariables.labelMenuButton,
-              ).merge(weightVariableTextStyle(context, wght: 600)),
+            child: RichText(
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              title(zulipLocalizations)))),
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: title(zulipLocalizations),
+                    style: TextStyle(
+                      fontSize: 17,
+                      height: 20 / 17,
+                      // TODO(design) check if this is the right variable
+                      color: designVariables.labelMenuButton,
+                    ).merge(weightVariableTextStyle(context, wght: 600))),
+                  if (isArchived)
+                    // TODO(#1285): Avoid concatenating translated strings
+                    WidgetSpan(
+                      child: Padding(
+                        padding: EdgeInsetsDirectional.only(start: 4),
+                        child: Text(
+                          zulipLocalizations.channelArchivedLabel,
+                          style: TextStyle(
+                            fontSize: 17,
+                            height: 20 / 17,
+                            // TODO(design) check if this is the right variable
+                            color: designVariables.labelMessageHeaderArchived,
+                            fontStyle: FontStyle.italic)))),
+                ])))),
           const SizedBox(width: 12),
           if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
           Padding(padding: const EdgeInsetsDirectional.only(end: 16),
@@ -444,6 +463,7 @@ class _StreamHeaderItem extends _HeaderItem with _LongPressable {
     required super.count,
     required super.hasMention,
     required super.sectionContext,
+    required super.isArchived,
   });
 
   @override String title(ZulipLocalizations zulipLocalizations) =>
@@ -495,6 +515,7 @@ class _StreamSection extends StatelessWidget {
       collapsed: collapsed,
       pageState: pageState,
       sectionContext: context,
+      isArchived: subscription.isArchived,
     );
     return StickyHeaderItem(
       header: header,

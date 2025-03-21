@@ -250,6 +250,7 @@ int _lastStreamId = 200;
 ZulipStream stream({
   int? streamId,
   String? name,
+  bool? isArchived,
   String? description,
   String? renderedDescription,
   int? dateCreated,
@@ -269,6 +270,7 @@ ZulipStream stream({
   return ZulipStream(
     streamId: effectiveStreamId,
     name: effectiveName,
+    isArchived: isArchived ?? false,
     description: effectiveDescription,
     renderedDescription: renderedDescription ?? '<p>$effectiveDescription</p>',
     dateCreated: dateCreated ?? 1686774898,
@@ -307,6 +309,7 @@ Subscription subscription(
   return Subscription(
     streamId: stream.streamId,
     name: stream.name,
+    isArchived: stream.isArchived,
     description: stream.description,
     renderedDescription: stream.renderedDescription,
     dateCreated: stream.dateCreated,
