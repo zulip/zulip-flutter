@@ -414,6 +414,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get topicValidationErrorMandatoryButEmpty => 'Wątki są wymagane przez tę organizację.';
 
   @override
+  String get errorContentNotInsertedTitle => 'Content not inserted';
+
+  @override
+  String get errorContentToInsertIsEmpty => 'The file to be inserted is empty or cannot be accessed.';
+
+  @override
   String errorInvalidApiKeyMessage(String url) {
     return 'Konto w ramach $url nie zostało przyjęte. Spróbuj ponownie lub skorzystaj z innego konta.';
   }
