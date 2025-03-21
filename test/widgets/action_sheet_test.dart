@@ -52,12 +52,16 @@ late FakeApiConnection connection;
 Future<void> setupToMessageActionSheet(WidgetTester tester, {
   required Message message,
   required Narrow narrow,
+  int? zulipFeatureLevel,
 }) async {
   addTearDown(testBinding.reset);
   assert(narrow.containsMessage(message));
 
-  await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-  store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+  final account = eg.account(user: eg.selfUser,
+    zulipFeatureLevel: zulipFeatureLevel);
+  await testBinding.globalStore.add(account, eg.initialSnapshot(
+    zulipFeatureLevel: zulipFeatureLevel));
+  store = await testBinding.globalStore.perAccount(account.id);
   await store.addUsers([
     eg.selfUser,
     eg.user(userId: message.senderId),
@@ -73,7 +77,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
 
   connection.prepare(json: eg.newestGetMessagesResult(
     foundOldest: true, messages: [message]).toJson());
-  await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+  await tester.pumpWidget(TestZulipApp(accountId: account.id,
     child: MessageListPage(initNarrow: narrow)));
 
   // global store, per-account store, and message list get loaded
@@ -353,24 +357,26 @@ void main() {
 
     Future<void> showFromAppBar(WidgetTester tester, {
       ZulipStream? channel,
-      String topic = someTopic,
+      TopicName? topic,
       List<StreamMessage>? messages,
     }) async {
       final effectiveChannel = channel ?? someChannel;
+      final effectiveTopic = topic ?? TopicName(someTopic);
       final effectiveMessages = messages ?? [someMessage];
-      assert(effectiveMessages.every((m) => m.topic.apiName == topic));
+      assert(effectiveMessages.every((m) => m.topic.apiName == effectiveTopic.apiName));
 
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true, messages: effectiveMessages).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
         child: MessageListPage(
-          initNarrow: eg.topicNarrow(effectiveChannel.streamId, topic))));
+          initNarrow: TopicNarrow(effectiveChannel.streamId, effectiveTopic))));
       // global store, per-account store, and message list get loaded
       await tester.pumpAndSettle();
 
       final topicRow = find.descendant(
         of: find.byType(ZulipAppBar),
-        matching: find.text(topic));
+        matching: find.text(
+          effectiveTopic.displayName ?? eg.defaultRealmEmptyTopicDisplayName));
       await tester.longPress(topicRow);
       // sheet appears onscreen; default duration of bottom-sheet enter animation
       await tester.pump(const Duration(milliseconds: 250));
@@ -390,7 +396,7 @@ void main() {
 
       await tester.longPress(find.descendant(
         of: find.byType(RecipientHeader),
-        matching: find.text(effectiveMessage.topic.displayName)));
+        matching: find.text(effectiveMessage.topic.displayName!)));
       // sheet appears onscreen; default duration of bottom-sheet enter animation
       await tester.pump(const Duration(milliseconds: 250));
     }
@@ -446,6 +452,16 @@ void main() {
         check(findButtonForLabel('Mark as unresolved')).findsNothing();
       });
 
+      testWidgets('show from app bar: resolve/unresolve not offered when topic is empty', (tester) async {
+        await prepare();
+        final message = eg.streamMessage(stream: someChannel, topic: '');
+        await showFromAppBar(tester,
+          topic: TopicName(''),
+          messages: [message]);
+        check(findButtonForLabel('Mark as resolved')).findsNothing();
+        check(findButtonForLabel('Mark as unresolved')).findsNothing();
+      });
+
       testWidgets('show from recipient header', (tester) async {
         await prepare();
         await showFromRecipientHeader(tester);
@@ -485,7 +501,7 @@ void main() {
         final message = eg.streamMessage(
           stream: someChannel, topic: topic, sender: eg.otherUser);
         await showFromAppBar(tester,
-          channel: someChannel, topic: topic, messages: [message]);
+          channel: someChannel, topic: TopicName(topic), messages: [message]);
       }
 
       void checkButtons(List<Finder> expectedButtonFinders) {
@@ -697,7 +713,8 @@ void main() {
       testWidgets('unresolve: happy path', (tester) async {
         final message = eg.streamMessage(stream: someChannel, topic: '✔ zulip');
         await prepare(topic: '✔ zulip');
-        await showFromAppBar(tester, topic: '✔ zulip', messages: [message]);
+        await showFromAppBar(tester,
+          topic: TopicName('✔ zulip'), messages: [message]);
         connection.takeRequests();
         connection.prepare(json: UpdateMessageResult().toJson());
         await tester.tap(findButtonForLabel('Mark as unresolved'));
@@ -710,7 +727,8 @@ void main() {
       testWidgets('unresolve: weird prefix', (tester) async {
         final message = eg.streamMessage(stream: someChannel, topic: '✔ ✔ zulip');
         await prepare(topic: '✔ ✔ zulip');
-        await showFromAppBar(tester, topic: '✔ ✔ zulip', messages: [message]);
+        await showFromAppBar(tester,
+          topic: TopicName('✔ ✔ zulip'), messages: [message]);
         connection.takeRequests();
         connection.prepare(json: UpdateMessageResult().toJson());
         await tester.tap(findButtonForLabel('Mark as unresolved'));
@@ -1140,6 +1158,31 @@ void main() {
         final message = eg.streamMessage(flags: [MessageFlag.starred]);
         await setupToMessageActionSheet(tester, message: message, narrow: const StarredMessagesNarrow());
         check(findQuoteAndReplyButton(tester)).isNull();
+      });
+
+      testWidgets('handle empty topic', (tester) async {
+        final message = eg.streamMessage();
+        await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message),
+          zulipFeatureLevel: 334);
+
+        prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
+        await tapQuoteAndReplyButton(tester);
+        check(connection.lastRequest).isA<http.Request>()
+          .url.queryParameters['allow_empty_topic_name'].equals('true');
+        await tester.pump(Duration.zero);
+      });
+
+      testWidgets('legacy: handle empty topic', (tester) async {
+        final message = eg.streamMessage();
+        await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message),
+          zulipFeatureLevel: 333);
+
+        prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
+        await tapQuoteAndReplyButton(tester);
+        check(connection.lastRequest).isA<http.Request>()
+          .url.queryParameters
+            .not((it) => it.containsKey('allow_empty_topic_name'));
+        await tester.pump(Duration.zero);
       });
     });
 

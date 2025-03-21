@@ -157,7 +157,12 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   @override
   String _computeTextNormalized() {
     String trimmed = text.trim();
-    return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    // TODO(server-10): simplify
+    if (store.zulipFeatureLevel < 334) {
+      return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    }
+
+    return trimmed;
   }
 
   /// Whether [textNormalized] would fail a mandatory-topics check
@@ -165,7 +170,20 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   ///
   /// The term "Vacuous" draws distinction from [String.isEmpty], in the sense
   /// that certain strings are not empty but also indicate the absence of a topic.
-  bool get isTopicVacuous => textNormalized == kNoTopicTopic;
+  ///
+  /// See also: https://zulip.com/api/send-message#parameter-topic
+  bool get isTopicVacuous {
+    if (textNormalized.isEmpty) return true;
+
+    if (textNormalized == kNoTopicTopic) return true;
+
+    // TODO(server-10): simplify
+    if (store.zulipFeatureLevel >= 334) {
+      return textNormalized == store.realmEmptyTopicDisplayName;
+    }
+
+    return false;
+  }
 
   @override
   List<TopicValidationError> _computeValidationErrors() {
@@ -182,7 +200,6 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   void setTopic(TopicName newTopic) {
-    // ignore: dead_null_aware_expression // null topic names soon to be enabled
     value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
@@ -558,10 +575,17 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     });
   }
 
+  void _contentFocusChanged() {
+    setState(() {
+      // The relevant state lives on widget.controller.contentFocusNode itself.
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     widget.controller.topic.addListener(_topicChanged);
+    widget.controller.contentFocusNode.addListener(_contentFocusChanged);
   }
 
   @override
@@ -571,31 +595,60 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       oldWidget.controller.topic.removeListener(_topicChanged);
       widget.controller.topic.addListener(_topicChanged);
     }
+    if (widget.controller.contentFocusNode != oldWidget.controller.contentFocusNode) {
+      oldWidget.controller.contentFocusNode.removeListener(_contentFocusChanged);
+      widget.controller.contentFocusNode.addListener(_contentFocusChanged);
+    }
   }
 
   @override
   void dispose() {
     widget.controller.topic.removeListener(_topicChanged);
+    widget.controller.contentFocusNode.removeListener(_contentFocusChanged);
     super.dispose();
+  }
+
+  /// The topic name to show in the hint text, or null to show no topic.
+  TopicName? _hintTopic() {
+    if (widget.controller.topic.isTopicVacuous) {
+      if (widget.controller.topic.mandatory) {
+        // The chosen topic can't be sent to, so don't show it.
+        return null;
+      }
+      if (!widget.controller.contentFocusNode.hasFocus) {
+        // Do not fall back to a vacuous topic unless the user explicitly chooses
+        // to do so (by skipping topic input and moving focus to content input),
+        // so that the user is not encouraged to use vacuous topic when they
+        // have not interacted with the inputs at all.
+        return null;
+      }
+    }
+
+    return TopicName(widget.controller.topic.textNormalized);
   }
 
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
+
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.unknownChannelName;
-    final topic = TopicName(widget.controller.topic.textNormalized);
+    final hintTopic = _hintTopic();
+    final hintDestination = hintTopic == null
+      // No i18n of this use of "#" and ">" string; those are part of how
+      // Zulip expresses channels and topics, not any normal English punctuation,
+      // so don't make sense to translate. See:
+      //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
+      ? '#$streamName'
+      : '#$streamName > ${hintTopic.displayName ?? store.realmEmptyTopicDisplayName}';
+
     return _ContentInput(
       narrow: widget.narrow,
-      destination: TopicNarrow(widget.narrow.streamId, topic),
+      destination: TopicNarrow(widget.narrow.streamId,
+        TopicName(widget.controller.topic.textNormalized)),
       controller: widget.controller,
-      hintText: zulipLocalizations.composeBoxChannelContentHint(
-        // No i18n of this use of "#" and ">" string; those are part of how
-        // Zulip expresses channels and topics, not any normal English punctuation,
-        // so don't make sense to translate. See:
-        //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-        '#$streamName > ${topic.displayName}'));
+      hintText: zulipLocalizations.composeBoxChannelContentHint(hintDestination));
   }
 }
 
@@ -658,7 +711,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
           // Zulip expresses channels and topics, not any normal English punctuation,
           // so don't make sense to translate. See:
           //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-          '#$streamName > ${topic.displayName}');
+          '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;
