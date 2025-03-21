@@ -1117,17 +1117,17 @@ class _SendButtonState extends State<_SendButton> {
 class _ComposeBoxContainer extends StatelessWidget {
   const _ComposeBoxContainer({
     required this.body,
-    this.errorBanner,
-  }) : assert(body != null || errorBanner != null);
+    this.banner,
+  }) : assert(body != null || banner != null);
 
   /// The text inputs, compose-button row, and send button.
   ///
   /// This widget does not need a [SafeArea] to consume any device insets.
   ///
-  /// Can be null, but only if [errorBanner] is non-null.
+  /// Can be null, but only if [banner] is non-null.
   final Widget? body;
 
-  /// An error bar that goes at the top.
+  /// A bar that goes at the top.
   ///
   /// This may be present on its own or with a [body].
   /// If [body] is null this must be present.
@@ -1135,7 +1135,7 @@ class _ComposeBoxContainer extends StatelessWidget {
   /// This widget should use a [SafeArea] to pad the left, right,
   /// and bottom device insets.
   /// (A bottom inset may occur if [body] is null.)
-  final Widget? errorBanner;
+  final Widget? banner;
 
   Widget _paddedBody() {
     assert(body != null);
@@ -1147,15 +1147,15 @@ class _ComposeBoxContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
-    final List<Widget> children = switch ((errorBanner, body)) {
+    final List<Widget> children = switch ((banner, body)) {
       (Widget(), Widget()) => [
         // _paddedBody() already pads the bottom inset,
-        // so make sure the error banner doesn't double-pad it.
+        // so make sure the banner doesn't double-pad it.
         MediaQuery.removePadding(context: context, removeBottom: true,
-          child: errorBanner!),
+          child: banner!),
         _paddedBody(),
       ],
-      (Widget(),     null) => [errorBanner!],
+      (Widget(),     null) => [banner!],
       (null,     Widget()) => [_paddedBody()],
       (null,         null) => throw UnimplementedError(), // not allowed, see dartdoc
     };
@@ -1500,7 +1500,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
     final errorBanner = _errorBannerComposingNotAllowed(context);
     if (errorBanner != null) {
-      return _ComposeBoxContainer(body: null, errorBanner: errorBanner);
+      return _ComposeBoxContainer(body: null, banner: errorBanner);
     }
 
     final controller = this.controller;
@@ -1521,6 +1521,6 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     //       errorBanner = _ErrorBanner(label:
     //         ZulipLocalizations.of(context).errorSendMessageTimeout);
     //     }
-    return _ComposeBoxContainer(body: body, errorBanner: null);
+    return _ComposeBoxContainer(body: body, banner: null);
   }
 }
