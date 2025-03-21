@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide binarySearch;
 
 import '../api/model/events.dart';
 import '../api/model/model.dart';
@@ -68,21 +68,61 @@ class RecentSenders {
       [senderId] ??= MessageIdTracker()).add(messageId);
   }
 
+  /// Handles channel/topic updates to the data resulted from a move.
+  ///
+  /// This is a no-op if no message move happened.
+  void handleUpdateMessageEvent(UpdateMessageEvent event, Map<int, Message> cachedMessages) {
+    if (event.moveData == null) {
+      return;
+    }
+    final UpdateMessageMoveData(
+      :origStreamId, :newStreamId, :origTopic, :newTopic) = event.moveData!;
+
+    final messagesBySender = _groupStreamMessageIdsBySender(event.messageIds, cachedMessages);
+    final sendersInChannel = streamSenders[origStreamId];
+    final topicsInChannel = topicSenders[origStreamId];
+    final sendersInTopic = topicsInChannel?[origTopic];
+    for (final MapEntry(key: senderId, value: messages) in messagesBySender.entries) {
+      // The later `popAll` calls require the message IDs to be sorted in
+      // ascending order.  Only sort as many as we need: the message IDs
+      // with the same sender, instead of all of them in `event.messageIds`.
+      messages.sort();
+
+      if (newStreamId != origStreamId) {
+        final streamTracker = sendersInChannel?[senderId];
+        final movedMessagesInStreamTracker = streamTracker?.popAll(messages);
+        if (streamTracker?.maxId == null) sendersInChannel?.remove(senderId);
+        if (movedMessagesInStreamTracker != null) {
+          ((streamSenders[newStreamId] ??= {})
+            [senderId] ??= MessageIdTracker()).addAll(movedMessagesInStreamTracker);
+        }
+      }
+
+      // This does not need a check like the stream trackers one above,
+      // because the conversation is guaranteed to have moved.  This is an
+      // invariant [UpdateMessageMoveData] offers.
+      final topicTracker = sendersInTopic?[senderId];
+      final movedMessagesInTopicTracker = topicTracker?.popAll(messages);
+      if (topicTracker?.maxId == null) sendersInTopic?.remove(senderId);
+      if (movedMessagesInTopicTracker != null) {
+        (((topicSenders[newStreamId] ??= {})[newTopic] ??= {})
+          [senderId] ??= MessageIdTracker()).addAll(movedMessagesInTopicTracker);
+      }
+    }
+    if (sendersInChannel?.isEmpty ?? false) streamSenders.remove(origStreamId);
+    if (sendersInTopic?.isEmpty ?? false) topicsInChannel?.remove(origTopic);
+    if (topicsInChannel?.isEmpty ?? false) topicSenders.remove(origStreamId);
+  }
+
   void handleDeleteMessageEvent(DeleteMessageEvent event, Map<int, Message> cachedMessages) {
     if (event.messageType != MessageType.stream) return;
 
-    final messagesByUser = <int, List<int>>{};
-    for (final id in event.messageIds) {
-      final message = cachedMessages[id] as StreamMessage?;
-      if (message == null) continue;
-      (messagesByUser[message.senderId] ??= []).add(id);
-    }
-
+    final messagesBySender = _groupStreamMessageIdsBySender(event.messageIds, cachedMessages);
     final DeleteMessageEvent(:streamId!, :topic!) = event;
     final sendersInStream = streamSenders[streamId];
     final topicsInStream = topicSenders[streamId];
     final sendersInTopic = topicsInStream?[topic];
-    for (final entry in messagesByUser.entries) {
+    for (final entry in messagesBySender.entries) {
       final MapEntry(key: senderId, value: messages) = entry;
 
       final streamTracker = sendersInStream?[senderId];
@@ -96,6 +136,19 @@ class RecentSenders {
     if (sendersInStream?.isEmpty ?? false) streamSenders.remove(streamId);
     if (sendersInTopic?.isEmpty ?? false) topicsInStream?.remove(topic);
     if (topicsInStream?.isEmpty ?? false) topicSenders.remove(streamId);
+  }
+
+  Map<int, List<int>> _groupStreamMessageIdsBySender(
+    Iterable<int> messageIds,
+    Map<int, Message> cachedMessages,
+  ) {
+    final messagesBySender = <int, List<int>>{};
+    for (final id in messageIds) {
+      final message = cachedMessages[id] as StreamMessage?;
+      if (message == null) continue;
+      (messagesBySender[message.senderId] ??= []).add(id);
+    }
+    return messagesBySender;
   }
 }
 
@@ -130,6 +183,7 @@ class MessageIdTracker {
   ///
   /// [newIds] should be sorted ascending.
   void addAll(QueueList<int> newIds) {
+    assert(isSortedWithoutDuplicates(newIds));
     if (ids.isEmpty) {
       ids = newIds;
       return;
@@ -137,11 +191,45 @@ class MessageIdTracker {
     ids = setUnion(ids, newIds);
   }
 
+  /// Remove message IDs found in [idsToRemove] from the tracker list.
+  ///
+  /// [idsToRemove] should be sorted ascending.
   void removeAll(List<int> idsToRemove) {
-    ids.removeWhere((id) {
-      final i = lowerBound(idsToRemove, id);
-      return i < idsToRemove.length && idsToRemove[i] == id;
-    });
+    assert(isSortedWithoutDuplicates(idsToRemove));
+    ids.removeWhere((id) => binarySearch(idsToRemove, id) != -1);
+  }
+
+  /// Remove message IDs found in [idsToRemove] from the tracker list.
+  ///
+  /// Returns the removed message IDs sorted in ascending order, or `null` if
+  /// nothing is removed.
+  ///
+  /// [idsToRemove] should be sorted ascending.
+  ///
+  /// Consider using [removeAll] if the returned message IDs are not needed.
+  // Part of this is adapted from [ListBase.removeWhere].
+  QueueList<int>? popAll(List<int> idsToRemove) {
+    assert(isSortedWithoutDuplicates(idsToRemove));
+    final retainedMessageIds =
+      ids.where((id) => binarySearch(idsToRemove, id) == -1).toList();
+
+    if (retainedMessageIds.isEmpty) {
+      // All message IDs in this tracker are removed; this is an optimization
+      // to clear all ids and return the removed ones without making a new copy.
+      final result = ids;
+      ids = QueueList();
+      return result;
+    }
+
+    QueueList<int>? poppedMessageIds;
+    if (retainedMessageIds.length != ids.length) {
+      poppedMessageIds = QueueList.from(
+        ids.where((id) => binarySearch(idsToRemove, id) != -1));
+      ids.setRange(0, retainedMessageIds.length, retainedMessageIds);
+      ids.length = retainedMessageIds.length;
+      assert(isSortedWithoutDuplicates(poppedMessageIds));
+    }
+    return poppedMessageIds;
   }
 
   @override
