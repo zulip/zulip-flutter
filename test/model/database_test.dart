@@ -153,15 +153,16 @@ void main() {
       const versions = GeneratedHelper.versions;
       final latestVersion = versions.last;
 
-      int fromVersion = versions.first;
+      int prev = versions.first;
       for (final toVersion in versions.skip(1)) {
+        final fromVersion = prev;
         test('from v$fromVersion to v$toVersion', () async {
           final connection = await verifier.startAt(fromVersion);
           final db = AppDatabase(connection);
           await verifier.migrateAndValidate(db, toVersion);
           await db.close();
         });
-        fromVersion = toVersion;
+        prev = toVersion;
       }
 
       for (final fromVersion in versions) {
