@@ -147,6 +147,8 @@ void main() {
       // does not have the extra tables and columns.
       final after = AppDatabase(schema.newConnection());
       await verifier.migrateAndValidate(after, toVersion, validateDropped: true);
+      // Check that a custom migration/setup step of ours got run too.
+      check(await after.getGlobalSettings()).themeSetting.isNull();
       await after.close();
     });
 

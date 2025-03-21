@@ -135,14 +135,16 @@ class AppDatabase extends _$AppDatabase {
     },
   );
 
+  Future<void> _createLatestSchema(Migrator m) async {
+    await m.createAll();
+    // Corresponds to `from4to5` above.
+    await into(globalSettings).insert(GlobalSettingsCompanion());
+  }
+
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
-      onCreate: (Migrator m) async {
-        await m.createAll();
-        // Corresponds to `from4to5` above.
-        await into(globalSettings).insert(GlobalSettingsCompanion());
-      },
+      onCreate: _createLatestSchema,
       onUpgrade: (Migrator m, int from, int to) async {
         if (from > to) {
           // This should only ever happen in dev.  As a dev convenience,
@@ -157,7 +159,7 @@ class AppDatabase extends _$AppDatabase {
           assert(to == latestSchemaVersion);
 
           await _dropAll(m);
-          await m.createAll();
+          await _createLatestSchema(m);
           return;
         }
         assert(1 <= from && from <= to && to <= latestSchemaVersion);
