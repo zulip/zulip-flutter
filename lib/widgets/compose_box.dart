@@ -1400,17 +1400,19 @@ abstract class _Banner extends StatelessWidget {
         minimum: const EdgeInsetsDirectional.only(start: 8)
           // (SafeArea.minimum doesn't take an EdgeInsetsDirectional)
           .resolve(Directionality.of(context)),
-        child: Row(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(8, 9, 0, 9),
-                child: Text(style: labelTextStyle,
-                  label))),
-            const SizedBox(width: 8),
-            // TODO(#720) "x" button for the error banner goes here.
-            //   24px square with 8px touchable padding in all directions?
-          ])));
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(8, 5, 0, 5),
+          child: Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(style: labelTextStyle,
+                    label))),
+              const SizedBox(width: 8),
+              // TODO(#720) "x" button for the error banner goes here.
+              //   24px square with 8px touchable padding in all directions?
+            ]))));
   }
 }
 
