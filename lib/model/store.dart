@@ -49,6 +49,11 @@ abstract class GlobalStoreBackend {
   /// This should only be called from [GlobalSettingsStore].
   Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data);
 
+  /// Set or unset the given bool-valued setting in the underlying data store.
+  ///
+  /// This should only be called from [GlobalSettingsStore].
+  Future<void> doSetBoolGlobalSetting(BoolGlobalSetting setting, bool? value);
+
   // TODO move here the similar methods for accounts;
   //   perhaps the rest of the GlobalStore abstract methods, too.
 }
@@ -73,9 +78,11 @@ abstract class GlobalStore extends ChangeNotifier {
   GlobalStore({
     required GlobalStoreBackend backend,
     required GlobalSettingsData globalSettings,
+    required Map<BoolGlobalSetting, bool> boolGlobalSettings,
     required Iterable<Account> accounts,
   })
-    : settings = GlobalSettingsStore(backend: backend, data: globalSettings),
+    : settings = GlobalSettingsStore(backend: backend,
+        data: globalSettings, boolData: boolGlobalSettings),
       _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
 
   /// The store for the user's account-independent settings.
@@ -853,6 +860,18 @@ class LiveGlobalStoreBackend implements GlobalStoreBackend {
     final rowsAffected = await _db.update(_db.globalSettings).write(data);
     assert(rowsAffected == 1);
   }
+
+  @override
+  Future<void> doSetBoolGlobalSetting(BoolGlobalSetting setting, bool? value) async {
+    if (value == null) {
+      final query = _db.delete(_db.boolGlobalSettings)
+        ..where((r) => r.name.equals(setting.name));
+      await query.go();
+    } else {
+      await _db.into(_db.boolGlobalSettings).insertOnConflictUpdate(
+        BoolGlobalSettingRow(name: setting.name, value: value));
+    }
+  }
 }
 
 /// A [GlobalStore] that uses a live server and live, persistent local database.
@@ -866,6 +885,7 @@ class LiveGlobalStore extends GlobalStore {
   LiveGlobalStore._({
     required LiveGlobalStoreBackend backend,
     required super.globalSettings,
+    required super.boolGlobalSettings,
     required super.accounts,
   }) : _backend = backend,
        super(backend: backend);
@@ -882,12 +902,34 @@ class LiveGlobalStore extends GlobalStore {
   // We keep the API simple and synchronous for the bulk of the app's code
   // by doing this loading up front before constructing a [GlobalStore].
   static Future<GlobalStore> load() async {
+    // Loading this data takes roughly 80-100ms (measured on a Pixel 8).
+    // That's only a small increment on the time spent loading server data,
+    // so we don't worry about optimizing it further.
+    // In a future where we keep server data locally between runs (#477) --
+    // which will also mean having much more data to load from the database --
+    // we'd invest in this area more.  For example we'd try doing these
+    // in parallel, or deferring some to be concurrent with loading server data.
+    final stopwatch = Stopwatch()..start();
     final db = AppDatabase(NativeDatabase.createInBackground(await _dbFile()));
+    final t1 = stopwatch.elapsed;
     final globalSettings = await db.getGlobalSettings();
+    final t2 = stopwatch.elapsed;
+    final boolGlobalSettings = await db.getBoolGlobalSettings();
+    final t3 = stopwatch.elapsed;
     final accounts = await db.select(db.accounts).get();
+    final t4 = stopwatch.elapsed;
+    if (kProfileMode) {
+      String format(Duration d) =>
+        "${(d.inMicroseconds / 1000.0).toStringAsFixed(1)}ms";
+      profilePrint("db load time ${format(t4)} total: ${format(t1)} init, "
+        "${format(t2 - t1)} settings, ${format(t3 - t2)} bool-settings, "
+        "${format(t4 - t3)} accounts");
+    }
+
     return LiveGlobalStore._(
       backend: LiveGlobalStoreBackend._(db: db),
       globalSettings: globalSettings,
+      boolGlobalSettings: boolGlobalSettings,
       accounts: accounts);
   }
 
@@ -996,8 +1038,9 @@ class UpdateMachine {
     final stopwatch = Stopwatch()..start();
     final initialSnapshot = await _registerQueueWithRetry(connection,
       stopAndThrowIfNoAccount: stopAndThrowIfNoAccount);
-    final t = (stopwatch..stop()).elapsed;
-    assert(debugLog("initial fetch time: ${t.inMilliseconds}ms"));
+    if (kProfileMode) {
+      profilePrint("initial fetch time: ${stopwatch.elapsed.inMilliseconds}ms");
+    }
 
     if (initialSnapshot.zulipVersion != account.zulipVersion
         || initialSnapshot.zulipMergeBase != account.zulipMergeBase

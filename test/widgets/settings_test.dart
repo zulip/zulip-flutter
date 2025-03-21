@@ -126,4 +126,11 @@ void main() {
           ? BrowserPreference.inApp : BrowserPreference.external);
     }, variant: TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
   });
+
+  // TODO maybe test GlobalSettingType.experimentalFeatureFlag settings
+  //   Or maybe not; after all, it's a developer-facing feature, so
+  //   should be low risk.
+  //   (The main ingredient in writing such tests would be to wire up
+  //   [GlobalSettingsStore.experimentalFeatureFlags] so that tests can
+  //   control making it empty, or non-empty, at will.)
 }

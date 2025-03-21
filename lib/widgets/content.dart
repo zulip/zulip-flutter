@@ -15,6 +15,7 @@ import '../model/avatar_url.dart';
 import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
+import '../model/settings.dart';
 import 'code_block.dart';
 import 'dialog.dart';
 import 'icons.dart';
@@ -830,11 +831,20 @@ class MathBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _CodeBlockContainer(
-      borderColor: ContentTheme.of(context).colorMathBlockBorder,
-      child: Text.rich(TextSpan(
-        style: ContentTheme.of(context).codeBlockTextStyles.plain,
-        children: [TextSpan(text: node.texSource)])));
+    final contentTheme = ContentTheme.of(context);
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+
+    final renderKatex = globalSettings.getBool(BoolGlobalSetting.renderKatex);
+    if (!renderKatex) {
+      return _CodeBlockContainer(
+        borderColor: contentTheme.colorMathBlockBorder,
+        child: Text.rich(TextSpan(
+          style: contentTheme.codeBlockTextStyles.plain,
+          children: [TextSpan(text: node.texSource)])));
+    }
+
+    return Text(style: contentTheme.textStyleError,
+      '(error: KaTeX unimplemented)'); // TODO(#1408)
   }
 }
 
@@ -1146,11 +1156,19 @@ class _InlineContentBuilder {
           child: MessageImageEmoji(node: node));
 
       case MathInlineNode():
-        return TextSpan(
-          style: widget.style
-            .merge(ContentTheme.of(_context!).textStyleInlineMath)
-            .apply(fontSizeFactor: kInlineCodeFontSizeFactor),
-          children: [TextSpan(text: node.texSource)]);
+        final contentTheme = ContentTheme.of(_context!);
+        final globalSettings = GlobalStoreWidget.settingsOf(_context!);
+        final renderKatex = globalSettings.getBool(BoolGlobalSetting.renderKatex);
+        if (!renderKatex) {
+          return TextSpan(
+            style: widget.style
+              .merge(ContentTheme.of(_context!).textStyleInlineMath)
+              .apply(fontSizeFactor: kInlineCodeFontSizeFactor),
+            children: [TextSpan(text: node.texSource)]);
+        }
+
+        return TextSpan(style: contentTheme.textStyleError,
+          text: '(error: KaTeX unimplemented)'); // TODO(#1408)
 
       case GlobalTimeNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,

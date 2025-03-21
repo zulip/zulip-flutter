@@ -45,6 +45,94 @@ enum BrowserPreference {
   external,
 }
 
+/// A general category of account-independent setting the user might set.
+///
+/// Different kinds of settings call for different treatment in the UI,
+/// and different expected lifecycles as the app evolves.
+enum GlobalSettingType {
+  /// Describes a non-setting which exists to avoid an empty enum.
+  ///
+  /// A Dart enum must have at least one value.
+  /// But in steady state we expect to have no experimental feature flags.
+  /// To allow [BoolGlobalSetting] to continue to exist in that situation
+  /// (so that it stands ready to accept a future feature flag),
+  /// we give it a placeholder value which isn't a real setting.
+  placeholder,
+
+  /// Describes a setting which enables an in-progress feature of the app.
+  ///
+  /// Sometimes when building a complex feature it's useful to merge PRs that
+  /// make partial progress, and then to have the feature's logic gated behind
+  /// a setting that serves as a "feature flag".
+  /// This enables those working on the feature to enable the flag in order to
+  /// see the current incomplete behavior, while for everyone else it remains
+  /// disabled and so (barring bugs in the use of the flag itself) has no effect.
+  ///
+  /// These settings are primarily meant for people developing Zulip to use,
+  /// and so appear in an out-of-the-way part of the settings UI.
+  ///
+  /// Settings of this kind are costly to the health of the codebase if
+  /// allowed to accumulate.  Most features don't need one, even features that
+  /// take two or three PRs to implement.  See discussion at:
+  ///   https://github.com/zulip/zulip-flutter/issues/1409#issuecomment-2725793787
+  /// When a feature flag is introduced, take care to drive the project to
+  /// completion, either by merge or removal, so that the flag can be retired
+  /// within a period of a few weeks or months.
+  experimentalFeatureFlag,
+  ;
+}
+
+/// A bool-valued, account-independent setting the user might set.
+///
+/// These are recorded in the table [BoolGlobalSettings].
+/// To read the value of one of these settings, use [GlobalSettingsStore.getBool];
+/// to set the value, use [GlobalSettingsStore.setBool].
+///
+/// To introduce a new setting, add a value to this enum.
+/// Avoid re-using any old names found in the "former settings" list.
+///
+/// To remove a setting, comment it out and move to the "former settings" list.
+/// Tracking the names of settings that formerly existed is important because
+/// they may still appear in users' databases, which means that if we were to
+/// accidentally reuse one for an unrelated new setting then users would
+/// unwittingly get those values applied to the new setting,
+/// which could cause very confusing buggy behavior.
+///
+/// (If the list of former settings gets long, we could do a migration to clear
+/// them from existing installs, and then drop the list.  We don't do that
+/// eagerly each time, to avoid creating a new schema version each time we
+/// finish an experimental feature.)
+enum BoolGlobalSetting {
+  /// A non-setting to ensure this enum has at least one value.
+  ///
+  /// Leave this in place even when there are experimental feature flags too.
+  /// That way when we remove those, this is already here.
+  /// (Having one stable value in this enum is also handy for tests.)
+  placeholderIgnore(GlobalSettingType.placeholder, false),
+
+  renderKatex(GlobalSettingType.experimentalFeatureFlag, false),
+
+  // Former settings which might exist in the database,
+  // whose names should therefore not be reused:
+  // (this list is empty so far)
+  ;
+
+  const BoolGlobalSetting(this.type, this.default_);
+
+  /// The general category of setting that this setting belongs to.
+  final GlobalSettingType type;
+
+  /// The value the setting effectively has if the user hasn't chosen a value.
+  final bool default_;
+
+  static BoolGlobalSetting? byName(String name) => _byName[name];
+
+  static final Map<String, BoolGlobalSetting> _byName = {
+    for (final v in values)
+      v.name: v,
+  };
+}
+
 /// Store for the user's account-independent settings.
 ///
 /// From UI code, use [GlobalStoreWidget.settingsOf] to get hold of
@@ -53,18 +141,34 @@ class GlobalSettingsStore extends ChangeNotifier {
   GlobalSettingsStore({
     required GlobalStoreBackend backend,
     required GlobalSettingsData data,
-  }) : _backend = backend, _data = data;
+    required Map<BoolGlobalSetting, bool> boolData,
+  }) : _backend = backend, _data = data, _boolData = boolData;
+
+  static final List<BoolGlobalSetting> experimentalFeatureFlags =
+    BoolGlobalSetting.values.where((setting) =>
+      setting.type == GlobalSettingType.experimentalFeatureFlag).toList();
 
   final GlobalStoreBackend _backend;
 
   /// A cache of the [GlobalSettingsData] singleton in the underlying data store.
   GlobalSettingsData _data;
 
+  Future<void> _update(GlobalSettingsCompanion data) async {
+    await _backend.doUpdateGlobalSettings(data);
+    _data = _data.copyWithCompanion(data);
+    notifyListeners();
+  }
+
   /// The user's choice of [ThemeSetting];
   /// null means the device-level choice of theme.
   ///
   /// See also [setThemeSetting].
   ThemeSetting? get themeSetting => _data.themeSetting;
+
+  /// Set [themeSetting], persistently for future runs of the app.
+  Future<void> setThemeSetting(ThemeSetting? value) async {
+    await _update(GlobalSettingsCompanion(themeSetting: Value(value)));
+  }
 
   /// The user's choice of [BrowserPreference];
   /// null means use our default choice.
@@ -73,6 +177,11 @@ class GlobalSettingsStore extends ChangeNotifier {
   ///
   /// See also [setBrowserPreference].
   BrowserPreference? get browserPreference => _data.browserPreference;
+
+  /// Set [browserPreference], persistently for future runs of the app.
+  Future<void> setBrowserPreference(BrowserPreference? value) async {
+    await _update(GlobalSettingsCompanion(browserPreference: Value(value)));
+  }
 
   /// The value of [BrowserPreference] to use:
   /// the user's choice [browserPreference] if any, else our default.
@@ -114,19 +223,30 @@ class GlobalSettingsStore extends ChangeNotifier {
     }
   }
 
-  Future<void> _update(GlobalSettingsCompanion data) async {
-    await _backend.doUpdateGlobalSettings(data);
-    _data = _data.copyWithCompanion(data);
+  /// The user's choice of the given bool-valued setting, or our default for it.
+  ///
+  /// See also [setBool].
+  bool getBool(BoolGlobalSetting setting) {
+    return _boolData[setting] ?? setting.default_;
+  }
+
+  /// A cache of the [BoolGlobalSettings] table in the underlying data store.
+  final Map<BoolGlobalSetting, bool> _boolData;
+
+  /// Set or unset the given bool-valued setting,
+  /// persistently for future runs of the app.
+  ///
+  /// A value of null means the setting will revert to following
+  /// the app's default.
+  ///
+  /// See also [getBool].
+  Future<void> setBool(BoolGlobalSetting setting, bool? value) async {
+    await _backend.doSetBoolGlobalSetting(setting, value);
+    if (value == null) {
+      _boolData.remove(setting);
+    } else {
+      _boolData[setting] = value;
+    }
     notifyListeners();
-  }
-
-  /// Set [themeSetting], persistently for future runs of the app.
-  Future<void> setThemeSetting(ThemeSetting? value) async {
-    await _update(GlobalSettingsCompanion(themeSetting: Value(value)));
-  }
-
-  /// Set [browserPreference], persistently for future runs of the app.
-  Future<void> setBrowserPreference(BrowserPreference? value) async {
-    await _update(GlobalSettingsCompanion(browserPreference: Value(value)));
   }
 }

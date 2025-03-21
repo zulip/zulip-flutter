@@ -32,6 +32,7 @@ extension GlobalSettingsStoreChecks on Subject<GlobalSettingsStore> {
   Subject<BrowserPreference?> get browserPreference => has((x) => x.browserPreference, 'browserPreference');
   Subject<BrowserPreference> get effectiveBrowserPreference => has((x) => x.effectiveBrowserPreference, 'effectiveBrowserPreference');
   Subject<UrlLaunchMode> getUrlLaunchMode(Uri url) => has((x) => x.getUrlLaunchMode(url), 'getUrlLaunchMode');
+  Subject<bool> getBool(BoolGlobalSetting setting) => has((x) => x.getBool(setting), 'getBool(${setting.name}');
 }
 
 extension GlobalStoreChecks on Subject<GlobalStore> {

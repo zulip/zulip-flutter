@@ -259,6 +259,235 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
   }
 }
 
+class $BoolGlobalSettingsTable extends BoolGlobalSettings
+    with TableInfo<$BoolGlobalSettingsTable, BoolGlobalSettingRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BoolGlobalSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<bool> value = GeneratedColumn<bool>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("value" IN (0, 1))',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [name, value];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'bool_global_settings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BoolGlobalSettingRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {name};
+  @override
+  BoolGlobalSettingRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BoolGlobalSettingRow(
+      name:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}name'],
+          )!,
+      value:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}value'],
+          )!,
+    );
+  }
+
+  @override
+  $BoolGlobalSettingsTable createAlias(String alias) {
+    return $BoolGlobalSettingsTable(attachedDatabase, alias);
+  }
+}
+
+class BoolGlobalSettingRow extends DataClass
+    implements Insertable<BoolGlobalSettingRow> {
+  /// The setting's name, a possible name from [BoolGlobalSetting].
+  ///
+  /// The table may have rows where [name] is not the name of any
+  /// enum value in [BoolGlobalSetting].
+  /// This happens if the app has previously run at a future or modified
+  /// version which had additional values in that enum,
+  /// and the user set one of those additional settings.
+  /// The app ignores any such unknown rows.
+  final String name;
+
+  /// The user's chosen value for the setting.
+  ///
+  /// This is non-nullable; if the user wants to revert to
+  /// following the app's default for the setting,
+  /// that can be expressed by deleting the row.
+  final bool value;
+  const BoolGlobalSettingRow({required this.name, required this.value});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['name'] = Variable<String>(name);
+    map['value'] = Variable<bool>(value);
+    return map;
+  }
+
+  BoolGlobalSettingsCompanion toCompanion(bool nullToAbsent) {
+    return BoolGlobalSettingsCompanion(name: Value(name), value: Value(value));
+  }
+
+  factory BoolGlobalSettingRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BoolGlobalSettingRow(
+      name: serializer.fromJson<String>(json['name']),
+      value: serializer.fromJson<bool>(json['value']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'name': serializer.toJson<String>(name),
+      'value': serializer.toJson<bool>(value),
+    };
+  }
+
+  BoolGlobalSettingRow copyWith({String? name, bool? value}) =>
+      BoolGlobalSettingRow(name: name ?? this.name, value: value ?? this.value);
+  BoolGlobalSettingRow copyWithCompanion(BoolGlobalSettingsCompanion data) {
+    return BoolGlobalSettingRow(
+      name: data.name.present ? data.name.value : this.name,
+      value: data.value.present ? data.value.value : this.value,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BoolGlobalSettingRow(')
+          ..write('name: $name, ')
+          ..write('value: $value')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(name, value);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BoolGlobalSettingRow &&
+          other.name == this.name &&
+          other.value == this.value);
+}
+
+class BoolGlobalSettingsCompanion
+    extends UpdateCompanion<BoolGlobalSettingRow> {
+  final Value<String> name;
+  final Value<bool> value;
+  final Value<int> rowid;
+  const BoolGlobalSettingsCompanion({
+    this.name = const Value.absent(),
+    this.value = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BoolGlobalSettingsCompanion.insert({
+    required String name,
+    required bool value,
+    this.rowid = const Value.absent(),
+  }) : name = Value(name),
+       value = Value(value);
+  static Insertable<BoolGlobalSettingRow> custom({
+    Expression<String>? name,
+    Expression<bool>? value,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (name != null) 'name': name,
+      if (value != null) 'value': value,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BoolGlobalSettingsCompanion copyWith({
+    Value<String>? name,
+    Value<bool>? value,
+    Value<int>? rowid,
+  }) {
+    return BoolGlobalSettingsCompanion(
+      name: name ?? this.name,
+      value: value ?? this.value,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<bool>(value.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BoolGlobalSettingsCompanion(')
+          ..write('name: $name, ')
+          ..write('value: $value, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -862,6 +1091,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $GlobalSettingsTable globalSettings = $GlobalSettingsTable(this);
+  late final $BoolGlobalSettingsTable boolGlobalSettings =
+      $BoolGlobalSettingsTable(this);
   late final $AccountsTable accounts = $AccountsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -869,6 +1100,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     globalSettings,
+    boolGlobalSettings,
     accounts,
   ];
 }
@@ -1041,6 +1273,175 @@ typedef $$GlobalSettingsTableProcessedTableManager =
         BaseReferences<_$AppDatabase, $GlobalSettingsTable, GlobalSettingsData>,
       ),
       GlobalSettingsData,
+      PrefetchHooks Function()
+    >;
+typedef $$BoolGlobalSettingsTableCreateCompanionBuilder =
+    BoolGlobalSettingsCompanion Function({
+      required String name,
+      required bool value,
+      Value<int> rowid,
+    });
+typedef $$BoolGlobalSettingsTableUpdateCompanionBuilder =
+    BoolGlobalSettingsCompanion Function({
+      Value<String> name,
+      Value<bool> value,
+      Value<int> rowid,
+    });
+
+class $$BoolGlobalSettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $BoolGlobalSettingsTable> {
+  $$BoolGlobalSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$BoolGlobalSettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $BoolGlobalSettingsTable> {
+  $$BoolGlobalSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$BoolGlobalSettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BoolGlobalSettingsTable> {
+  $$BoolGlobalSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<bool> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+}
+
+class $$BoolGlobalSettingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $BoolGlobalSettingsTable,
+          BoolGlobalSettingRow,
+          $$BoolGlobalSettingsTableFilterComposer,
+          $$BoolGlobalSettingsTableOrderingComposer,
+          $$BoolGlobalSettingsTableAnnotationComposer,
+          $$BoolGlobalSettingsTableCreateCompanionBuilder,
+          $$BoolGlobalSettingsTableUpdateCompanionBuilder,
+          (
+            BoolGlobalSettingRow,
+            BaseReferences<
+              _$AppDatabase,
+              $BoolGlobalSettingsTable,
+              BoolGlobalSettingRow
+            >,
+          ),
+          BoolGlobalSettingRow,
+          PrefetchHooks Function()
+        > {
+  $$BoolGlobalSettingsTableTableManager(
+    _$AppDatabase db,
+    $BoolGlobalSettingsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$BoolGlobalSettingsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer:
+              () => $$BoolGlobalSettingsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer:
+              () => $$BoolGlobalSettingsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> name = const Value.absent(),
+                Value<bool> value = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BoolGlobalSettingsCompanion(
+                name: name,
+                value: value,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String name,
+                required bool value,
+                Value<int> rowid = const Value.absent(),
+              }) => BoolGlobalSettingsCompanion.insert(
+                name: name,
+                value: value,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$BoolGlobalSettingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $BoolGlobalSettingsTable,
+      BoolGlobalSettingRow,
+      $$BoolGlobalSettingsTableFilterComposer,
+      $$BoolGlobalSettingsTableOrderingComposer,
+      $$BoolGlobalSettingsTableAnnotationComposer,
+      $$BoolGlobalSettingsTableCreateCompanionBuilder,
+      $$BoolGlobalSettingsTableUpdateCompanionBuilder,
+      (
+        BoolGlobalSettingRow,
+        BaseReferences<
+          _$AppDatabase,
+          $BoolGlobalSettingsTable,
+          BoolGlobalSettingRow
+        >,
+      ),
+      BoolGlobalSettingRow,
       PrefetchHooks Function()
     >;
 typedef $$AccountsTableCreateCompanionBuilder =
@@ -1329,6 +1730,8 @@ class $AppDatabaseManager {
   $AppDatabaseManager(this._db);
   $$GlobalSettingsTableTableManager get globalSettings =>
       $$GlobalSettingsTableTableManager(_db, _db.globalSettings);
+  $$BoolGlobalSettingsTableTableManager get boolGlobalSettings =>
+      $$BoolGlobalSettingsTableTableManager(_db, _db.boolGlobalSettings);
   $$AccountsTableTableManager get accounts =>
       $$AccountsTableTableManager(_db, _db.accounts);
 }
