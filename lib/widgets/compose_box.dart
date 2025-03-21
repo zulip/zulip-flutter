@@ -1377,10 +1377,9 @@ class StreamComposeBoxController extends ComposeBoxController {
 class FixedDestinationComposeBoxController extends ComposeBoxController {}
 
 abstract class _Banner extends StatelessWidget {
-  const _Banner({required this.label});
+  const _Banner();
 
-  final String label;
-
+  String getLabel(ZulipLocalizations zulipLocalizations);
   Color getLabelColor(DesignVariables designVariables);
   Color getBackgroundColor(DesignVariables designVariables);
 
@@ -1398,6 +1397,7 @@ abstract class _Banner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
     final labelTextStyle = TextStyle(
       fontSize: 17,
@@ -1421,7 +1421,7 @@ abstract class _Banner extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(style: labelTextStyle,
-                    label))),
+                    getLabel(zulipLocalizations)))),
               if (trailing != null) ...[
                 const SizedBox(width: 8),
                 trailing,
@@ -1431,7 +1431,14 @@ abstract class _Banner extends StatelessWidget {
 }
 
 class _ErrorBanner extends _Banner {
-  const _ErrorBanner({required super.label});
+  const _ErrorBanner({
+    required String Function(ZulipLocalizations) getLabel,
+  }) : _getLabel = getLabel;
+
+  @override
+  String getLabel(ZulipLocalizations zulipLocalizations) =>
+    _getLabel(zulipLocalizations);
+  final String Function(ZulipLocalizations) _getLabel;
 
   @override
   Color getLabelColor(DesignVariables designVariables) =>
@@ -1522,16 +1529,16 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         final channel = store.streams[streamId];
         if (channel == null || !store.hasPostingPermission(inChannel: channel,
             user: store.selfUser, byDate: DateTime.now())) {
-          return _ErrorBanner(label:
-            ZulipLocalizations.of(context).errorBannerCannotPostInChannelLabel);
+          return _ErrorBanner(getLabel: (zulipLocalizations) =>
+            zulipLocalizations.errorBannerCannotPostInChannelLabel);
         }
 
       case DmNarrow(:final otherRecipientIds):
         final hasDeactivatedUser = otherRecipientIds.any((id) =>
           !(store.getUser(id)?.isActive ?? true));
         if (hasDeactivatedUser) {
-          return _ErrorBanner(label:
-            ZulipLocalizations.of(context).errorBannerDeactivatedDmLabel);
+          return _ErrorBanner(getLabel: (zulipLocalizations) =>
+            zulipLocalizations.errorBannerDeactivatedDmLabel);
         }
 
       case CombinedFeedNarrow():
