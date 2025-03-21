@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:zulip/api/core.dart';
 import 'package:zulip/api/exception.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
@@ -76,6 +77,7 @@ Uri get _realmUrl => realmUrl;
 const String recentZulipVersion = '9.0';
 const int recentZulipFeatureLevel = 278;
 const int futureZulipFeatureLevel = 9999;
+const int ancientZulipFeatureLevel = kMinSupportedZulipFeatureLevel - 1;
 
 GetServerSettingsResult serverSettings({
   Map<String, bool>? authenticationMethods,

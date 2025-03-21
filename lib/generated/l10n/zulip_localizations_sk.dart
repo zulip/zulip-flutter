@@ -349,6 +349,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get dialogClose => 'Zavrieť';
 
   @override
+  String get errorDialogLearnMore => 'Learn more';
+
+  @override
   String get errorDialogContinue => 'OK';
 
   @override
@@ -412,6 +415,11 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
 
   @override
   String get topicValidationErrorMandatoryButEmpty => 'Topics are required in this organization.';
+
+  @override
+  String errorServerVersionUnsupportedMessage(String url, String zulipVersion, String minSupportedZulipVersion) {
+    return '$url is running Zulip Server $zulipVersion, which is unsupported. The minimum supported version is Zulip Server $minSupportedZulipVersion.';
+  }
 
   @override
   String errorInvalidApiKeyMessage(String url) {

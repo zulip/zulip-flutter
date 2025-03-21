@@ -693,6 +693,12 @@ abstract class ZulipLocalizations {
   /// **'Close'**
   String get dialogClose;
 
+  /// Button label in error dialogs to open a web page with more information.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn more'**
+  String get errorDialogLearnMore;
+
   /// Button label in error dialogs to acknowledge the error and close the dialog.
   ///
   /// In en, this message translates to:
@@ -818,6 +824,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Topics are required in this organization.'**
   String get topicValidationErrorMandatoryButEmpty;
+
+  /// Error message in the dialog for when the Zulip Server version is unsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'{url} is running Zulip Server {zulipVersion}, which is unsupported. The minimum supported version is Zulip Server {minSupportedZulipVersion}.'**
+  String errorServerVersionUnsupportedMessage(String url, String zulipVersion, String minSupportedZulipVersion);
 
   /// Error message in the dialog for invalid API key.
   ///
