@@ -63,6 +63,18 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
     assert(removed);
   }
 
+  void _notifyMessageListViewsForOneMessage(int messageId) {
+    for (final view in _messageListViews) {
+      view.notifyListenersIfMessagePresent(messageId);
+    }
+  }
+
+  void _notifyMessageListViews(Iterable<int> messageIds) {
+    for (final view in _messageListViews) {
+      view.notifyListenersIfAnyMessagePresent(messageIds);
+    }
+  }
+
   void reassemble() {
     for (final view in _messageListViews) {
       view.reassemble();
@@ -142,9 +154,7 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
     _handleUpdateMessageEventTimestamp(event);
     _handleUpdateMessageEventContent(event);
     _handleUpdateMessageEventMove(event);
-    for (final view in _messageListViews) {
-      view.notifyListenersIfAnyMessagePresent(event.messageIds);
-    }
+    _notifyMessageListViews(event.messageIds);
   }
 
   void _handleUpdateMessageEventTimestamp(UpdateMessageEvent event) {
@@ -268,17 +278,15 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
           : message.flags.remove(event.flag);
       }
       if (anyMessageFound) {
-        for (final view in _messageListViews) {
-          view.notifyListenersIfAnyMessagePresent(event.messages);
-          // TODO(#818): Support MentionsNarrow live-updates when handling
-          //   @-mention flags.
+        // TODO(#818): Support MentionsNarrow live-updates when handling
+        //   @-mention flags.
 
-          // To make it easier to re-star a message, we opt-out from supporting
-          // live-updates when starred flag is removed.
-          //
-          // TODO: Support StarredMessagesNarrow live-updates when starred flag
-          //   is added.
-        }
+        // To make it easier to re-star a message, we opt-out from supporting
+        // live-updates when starred flag is removed.
+        //
+        // TODO: Support StarredMessagesNarrow live-updates when starred flag
+        //   is added.
+        _notifyMessageListViews(event.messages);
       }
     }
   }
@@ -305,10 +313,7 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
           userId: event.userId,
         );
     }
-
-    for (final view in _messageListViews) {
-      view.notifyListenersIfMessagePresent(event.messageId);
-    }
+    _notifyMessageListViewsForOneMessage(event.messageId);
   }
 
   void handleSubmessageEvent(SubmessageEvent event) {
