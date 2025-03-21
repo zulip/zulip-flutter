@@ -138,8 +138,15 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgTopBar: const Color(0xfff5f5f5),
     borderBar: Colors.black.withValues(alpha: 0.2),
     borderMenuButtonSelected: Colors.black.withValues(alpha: 0.2),
+    btnBgAttHighIntInfoActive: const Color(0xff1e41d3),
+    btnBgAttHighIntInfoNormal: const Color(0xff3c6bff),
+    btnBgAttMediumIntInfoActive: const Color(0xff3c6bff).withValues(alpha: 0.22),
+    btnBgAttMediumIntInfoNormal: const Color(0xff3c6bff).withValues(alpha: 0.12),
+    btnLabelAttHigh: const Color(0xffffffff),
     btnLabelAttLowIntDanger: const Color(0xffc0070a),
     btnLabelAttMediumIntDanger: const Color(0xffac0508),
+    btnLabelAttMediumIntInfo: const Color(0xff1027a6),
+    btnShadowAttMed: const Color(0xff000000).withValues(alpha: 0.20),
     composeBoxBg: const Color(0xffffffff),
     contextMenuCancelText: const Color(0xff222222),
     contextMenuItemBg: const Color(0xff6159e1),
@@ -188,8 +195,15 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgTopBar: const Color(0xff242424),
     borderBar: const Color(0xffffffff).withValues(alpha: 0.1),
     borderMenuButtonSelected: Colors.white.withValues(alpha: 0.1),
+    btnBgAttHighIntInfoActive: const Color(0xff1e41d3),
+    btnBgAttHighIntInfoNormal: const Color(0xff1e41d3),
+    btnBgAttMediumIntInfoActive: const Color(0xff97b6fe).withValues(alpha: 0.12),
+    btnBgAttMediumIntInfoNormal: const Color(0xff97b6fe).withValues(alpha: 0.12),
+    btnLabelAttHigh: const Color(0xffffffff).withValues(alpha: 0.85),
     btnLabelAttLowIntDanger: const Color(0xffff8b7c),
     btnLabelAttMediumIntDanger: const Color(0xffff8b7c),
+    btnLabelAttMediumIntInfo: const Color(0xff97b6fe),
+    btnShadowAttMed: const Color(0xffffffff).withValues(alpha: 0.21),
     composeBoxBg: const Color(0xff0f0f0f),
     contextMenuCancelText: const Color(0xffffffff).withValues(alpha: 0.75),
     contextMenuItemBg: const Color(0xff7977fe),
@@ -246,8 +260,15 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.bgTopBar,
     required this.borderBar,
     required this.borderMenuButtonSelected,
+    required this.btnBgAttHighIntInfoActive,
+    required this.btnBgAttHighIntInfoNormal,
+    required this.btnBgAttMediumIntInfoActive,
+    required this.btnBgAttMediumIntInfoNormal,
+    required this.btnLabelAttHigh,
     required this.btnLabelAttLowIntDanger,
     required this.btnLabelAttMediumIntDanger,
+    required this.btnLabelAttMediumIntInfo,
+    required this.btnShadowAttMed,
     required this.composeBoxBg,
     required this.contextMenuCancelText,
     required this.contextMenuItemBg,
@@ -305,8 +326,15 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color bgTopBar;
   final Color borderBar;
   final Color borderMenuButtonSelected;
+  final Color btnBgAttHighIntInfoActive;
+  final Color btnBgAttHighIntInfoNormal;
+  final Color btnBgAttMediumIntInfoActive;
+  final Color btnBgAttMediumIntInfoNormal;
+  final Color btnLabelAttHigh;
   final Color btnLabelAttLowIntDanger;
   final Color btnLabelAttMediumIntDanger;
+  final Color btnLabelAttMediumIntInfo;
+  final Color btnShadowAttMed;
   final Color composeBoxBg;
   final Color contextMenuCancelText;
   final Color contextMenuItemBg;
@@ -359,8 +387,15 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? bgTopBar,
     Color? borderBar,
     Color? borderMenuButtonSelected,
+    Color? btnBgAttHighIntInfoActive,
+    Color? btnBgAttHighIntInfoNormal,
+    Color? btnBgAttMediumIntInfoActive,
+    Color? btnBgAttMediumIntInfoNormal,
+    Color? btnLabelAttHigh,
     Color? btnLabelAttLowIntDanger,
     Color? btnLabelAttMediumIntDanger,
+    Color? btnLabelAttMediumIntInfo,
+    Color? btnShadowAttMed,
     Color? composeBoxBg,
     Color? contextMenuCancelText,
     Color? contextMenuItemBg,
@@ -408,8 +443,15 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgTopBar: bgTopBar ?? this.bgTopBar,
       borderBar: borderBar ?? this.borderBar,
       borderMenuButtonSelected: borderMenuButtonSelected ?? this.borderMenuButtonSelected,
+      btnBgAttHighIntInfoActive: btnBgAttHighIntInfoActive ?? this.btnBgAttHighIntInfoActive,
+      btnBgAttHighIntInfoNormal: btnBgAttHighIntInfoNormal ?? this.btnBgAttHighIntInfoNormal,
+      btnBgAttMediumIntInfoActive: btnBgAttMediumIntInfoActive ?? this.btnBgAttMediumIntInfoActive,
+      btnBgAttMediumIntInfoNormal: btnBgAttMediumIntInfoNormal ?? this.btnBgAttMediumIntInfoNormal,
+      btnLabelAttHigh: btnLabelAttHigh ?? this.btnLabelAttHigh,
       btnLabelAttLowIntDanger: btnLabelAttLowIntDanger ?? this.btnLabelAttLowIntDanger,
       btnLabelAttMediumIntDanger: btnLabelAttMediumIntDanger ?? this.btnLabelAttMediumIntDanger,
+      btnLabelAttMediumIntInfo: btnLabelAttMediumIntInfo ?? this.btnLabelAttMediumIntInfo,
+      btnShadowAttMed: btnShadowAttMed ?? this.btnShadowAttMed,
       composeBoxBg: composeBoxBg ?? this.composeBoxBg,
       contextMenuCancelText: contextMenuCancelText ?? this.contextMenuCancelText,
       contextMenuItemBg: contextMenuItemBg ?? this.contextMenuItemBg,
@@ -464,8 +506,15 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgTopBar: Color.lerp(bgTopBar, other.bgTopBar, t)!,
       borderBar: Color.lerp(borderBar, other.borderBar, t)!,
       borderMenuButtonSelected: Color.lerp(borderMenuButtonSelected, other.borderMenuButtonSelected, t)!,
+      btnBgAttHighIntInfoActive: Color.lerp(btnBgAttHighIntInfoActive, other.btnBgAttHighIntInfoActive, t)!,
+      btnBgAttHighIntInfoNormal: Color.lerp(btnBgAttHighIntInfoNormal, other.btnBgAttHighIntInfoNormal, t)!,
+      btnBgAttMediumIntInfoActive: Color.lerp(btnBgAttMediumIntInfoActive, other.btnBgAttMediumIntInfoActive, t)!,
+      btnBgAttMediumIntInfoNormal: Color.lerp(btnBgAttMediumIntInfoNormal, other.btnBgAttMediumIntInfoNormal, t)!,
+      btnLabelAttHigh: Color.lerp(btnLabelAttHigh, other.btnLabelAttHigh, t)!,
       btnLabelAttLowIntDanger: Color.lerp(btnLabelAttLowIntDanger, other.btnLabelAttLowIntDanger, t)!,
       btnLabelAttMediumIntDanger: Color.lerp(btnLabelAttMediumIntDanger, other.btnLabelAttMediumIntDanger, t)!,
+      btnLabelAttMediumIntInfo: Color.lerp(btnLabelAttMediumIntInfo, other.btnLabelAttMediumIntInfo, t)!,
+      btnShadowAttMed: Color.lerp(btnShadowAttMed, other.btnShadowAttMed, t)!,
       composeBoxBg: Color.lerp(composeBoxBg, other.composeBoxBg, t)!,
       contextMenuCancelText: Color.lerp(contextMenuCancelText, other.contextMenuCancelText, t)!,
       contextMenuItemBg: Color.lerp(contextMenuItemBg, other.contextMenuItemBg, t)!,
