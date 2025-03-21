@@ -263,6 +263,8 @@ class _UserWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final localizations = ZulipLocalizations.of(context);
+    final isMuted = store.isUserMuted(userId);
     return InkWell(
       onTap: () => Navigator.push(context,
         ProfilePage.buildRoute(context: context,
@@ -271,10 +273,12 @@ class _UserWidget extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         child: Row(children: [
           // TODO(#196) render active status
-          Avatar(userId: userId, size: 32, borderRadius: 32 / 8),
+          Avatar(userId: userId, size: 32, borderRadius: 32 / 8,
+            showAsMuted: isMuted),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(store.userDisplayName(userId),
+            child: Text(
+              isMuted ? localizations.mutedUser : store.userDisplayName(userId),
               style: _TextStyles.customProfileFieldText)),
         ])));
   }
