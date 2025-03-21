@@ -975,7 +975,7 @@ InitialSnapshot initialSnapshot({
     realmMandatoryTopics: realmMandatoryTopics ?? true,
     realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
     realmAllowMessageEditing: realmAllowMessageEditing ?? true,
-    realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds ?? 600,
+    realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
     serverEmojiDataUrl: serverEmojiDataUrl

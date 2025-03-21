@@ -124,6 +124,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get actionSheetOptionUnstarMessage => 'Odhviezdičkovať správu';
 
   @override
+  String get actionSheetOptionEditMessage => 'Edit message';
+
+  @override
   String get actionSheetOptionMarkTopicAsRead => 'Mark topic as read';
 
   @override
@@ -191,6 +194,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
 
   @override
   String get errorMessageNotSent => 'Správa nebola odoslaná';
+
+  @override
+  String get errorMessageEditNotSaved => 'Message not saved';
 
   @override
   String errorLoginCouldNotConnect(String url) {
@@ -263,6 +269,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get errorUnstarMessageFailedTitle => 'Failed to unstar message';
 
   @override
+  String get errorCouldNotEditMessageTitle => 'Could not edit message';
+
+  @override
   String get successLinkCopied => 'Link copied';
 
   @override
@@ -278,6 +287,32 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   @override
   String get errorBannerCannotPostInChannelLabel =>
       'You do not have permission to post in this channel.';
+
+  @override
+  String get composeBoxBannerLabelEditMessage => 'Edit message';
+
+  @override
+  String get composeBoxBannerButtonCancel => 'Cancel';
+
+  @override
+  String get composeBoxBannerButtonSave => 'Save';
+
+  @override
+  String get savingMessageEditLabel => 'SAVING EDIT…';
+
+  @override
+  String get savingMessageEditFailedLabel => 'EDIT NOT SAVED';
+
+  @override
+  String get discardDraftConfirmationDialogTitle =>
+      'Discard the message you’re writing?';
+
+  @override
+  String get discardDraftConfirmationDialogMessage =>
+      'When you edit a message, the content that was previously in the compose box is discarded.';
+
+  @override
+  String get discardDraftConfirmationDialogConfirmButton => 'Discard';
 
   @override
   String get composeBoxAttachFilesTooltip => 'Attach files';
@@ -306,6 +341,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String composeBoxChannelContentHint(String destination) {
     return 'Message $destination';
   }
+
+  @override
+  String get composeBoxEditMessageHint => 'Message content';
 
   @override
   String get composeBoxSendTooltip => 'Send';
