@@ -174,6 +174,13 @@ class AppDatabase extends _$AppDatabase {
           // drop everything from the database and start over.
           // TODO(log): log schema downgrade as an error
           assert(debugLog('Downgrading schema from v$from to v$to.'));
+
+          // In the actual app, the target schema version is always
+          // the latest version as of the code that's being run.
+          // Migrating to earlier versions is useful only for isolating steps
+          // in migration tests; we can forego that for testing downgrades.
+          assert(to == latestSchemaVersion);
+
           await _dropAndCreateAll(m, schemaVersion: to);
           return;
         }
