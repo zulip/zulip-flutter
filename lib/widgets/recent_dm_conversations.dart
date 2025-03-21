@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
@@ -79,6 +80,7 @@ class RecentDmConversationsItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final localizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
 
     final String title;
@@ -97,7 +99,10 @@ class RecentDmConversationsItem extends StatelessWidget {
         // TODO(i18n): List formatting, like you can do in JavaScript:
         //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
         //   // 'Chris、Greg、Alya'
-        title = narrow.otherRecipientIds.map(store.userDisplayName)
+        title = narrow.otherRecipientIds.map((id) =>
+          store.isUserMuted(id)
+            ? localizations.mutedUser
+            : store.userDisplayName(id))
           .join(', ');
         avatar = ColoredBox(color: designVariables.groupDmConversationIconBg,
           child: Center(
