@@ -86,7 +86,12 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => latestSchemaVersion;
 
-  static Future<void> _dropAndCreateAll(Migrator m) async {
+  /// Drop all tables, indexes, etc., in the database.
+  ///
+  /// This includes tables that aren't known to the schema, for example because
+  /// they were defined by a future (perhaps experimental) version of the app
+  /// before switching back to the version currently running.
+  static Future<void> _dropAll(Migrator m) async {
     final query = m.database.customSelect(
       "SELECT name FROM sqlite_master WHERE type='table'");
     for (final row in await query.get()) {
@@ -101,7 +106,6 @@ class AppDatabase extends _$AppDatabase {
       // that should be affected by user data.
       await m.database.customStatement('DROP TABLE $tableName');
     }
-    await m.createAll();
   }
 
   static final MigrationStepWithVersion _migrationSteps = migrationSteps(
@@ -152,7 +156,8 @@ class AppDatabase extends _$AppDatabase {
           // in migration tests; we can forego that for testing downgrades.
           assert(to == latestSchemaVersion);
 
-          await _dropAndCreateAll(m);
+          await _dropAll(m);
+          await m.createAll();
           return;
         }
         assert(1 <= from && from <= to && to <= latestSchemaVersion);
