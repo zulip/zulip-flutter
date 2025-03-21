@@ -87,23 +87,21 @@ class AppDatabase extends _$AppDatabase {
   int get schemaVersion => latestSchemaVersion;
 
   static Future<void> _dropAndCreateAll(Migrator m) async {
-    await m.database.transaction(() async {
-      final query = m.database.customSelect(
-        "SELECT name FROM sqlite_master WHERE type='table'");
-      for (final row in await query.get()) {
-        final data = row.data;
-        final tableName = data['name'] as String;
-        // Skip sqlite-internal tables.  See for comparison:
-        //   https://www.sqlite.org/fileformat2.html#intschema
-        //   https://github.com/simolus3/drift/blob/0901c984a/drift_dev/lib/src/services/schema/verifier_common.dart#L9-L22
-        if (tableName.startsWith('sqlite_')) continue;
-        // No need to worry about SQL injection; this table name
-        // was already a table name in the database, not something
-        // that should be affected by user data.
-        await m.database.customStatement('DROP TABLE $tableName');
-      }
-      await m.createAll();
-    });
+    final query = m.database.customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table'");
+    for (final row in await query.get()) {
+      final data = row.data;
+      final tableName = data['name'] as String;
+      // Skip sqlite-internal tables.  See for comparison:
+      //   https://www.sqlite.org/fileformat2.html#intschema
+      //   https://github.com/simolus3/drift/blob/0901c984a/drift_dev/lib/src/services/schema/verifier_common.dart#L9-L22
+      if (tableName.startsWith('sqlite_')) continue;
+      // No need to worry about SQL injection; this table name
+      // was already a table name in the database, not something
+      // that should be affected by user data.
+      await m.database.customStatement('DROP TABLE $tableName');
+    }
+    await m.createAll();
   }
 
   static final MigrationStepWithVersion _migrationSteps = migrationSteps(
@@ -122,16 +120,14 @@ class AppDatabase extends _$AppDatabase {
       // This migration ensures there is a row in GlobalSettings.
       // (If the app already ran at schema 3 or 4, there will be;
       // if not, there won't be before this point.)
-      await m.database.transaction(() async {
-        final rows = await m.database.select(schema.globalSettings).get();
-        if (rows.isEmpty) {
-          await m.database.into(schema.globalSettings).insert(
-            // No field values; just use the defaults for both fields.
-            // (This is like `GlobalSettingsCompanion.insert()`, but
-            // without dependence on the current schema.)
-            RawValuesInsertable({}));
-        }
-      });
+      final rows = await m.database.select(schema.globalSettings).get();
+      if (rows.isEmpty) {
+        await m.database.into(schema.globalSettings).insert(
+          // No field values; just use the defaults for both fields.
+          // (This is like `GlobalSettingsCompanion.insert()`, but
+          // without dependence on the current schema.)
+          RawValuesInsertable({}));
+      }
     },
   );
 
