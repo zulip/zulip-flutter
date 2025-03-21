@@ -404,9 +404,12 @@ void main() {
   });
 
   group('MentionAutocompleteQuery.testUser', () {
+    final store = eg.store(initialSnapshot: eg.initialSnapshot(
+      mutedUsers: [MutedUserItem(id: 1)]));
+
     void doCheck(String rawQuery, User user, bool expected) {
       final result = MentionAutocompleteQuery(rawQuery)
-        .testUser(user, AutocompleteDataCache());
+        .testUser(user, AutocompleteDataCache(), store);
       expected ? check(result).isTrue() : check(result).isFalse();
     }
 
@@ -414,6 +417,12 @@ void main() {
       doCheck('Full Name', eg.user(fullName: 'Full Name', isActive: false), false);
       // When active then other criteria will be checked
       doCheck('Full Name', eg.user(fullName: 'Full Name', isActive: true), true);
+    });
+
+    test('user is always excluded when muted, regardless of other criteria', () {
+      doCheck('Full Name', eg.user(userId: 1, fullName: 'Full Name'), false);
+      // When not muted, then other criteria will be checked
+      doCheck('Full Name', eg.user(userId: 2, fullName: 'Full Name'), true);
     });
 
     test('user is included if fullname words match the query', () {
