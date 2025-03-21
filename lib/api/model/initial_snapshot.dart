@@ -24,6 +24,8 @@ class InitialSnapshot {
 
   final List<CustomProfileField> customProfileFields;
 
+  final int maxTopicLength;
+
   /// The realm-level policy, on pre-FL 163 servers, for visibility of real email addresses.
   ///
   /// Search for "email_address_visibility" in https://zulip.com/api/register-queue.
@@ -123,6 +125,7 @@ class InitialSnapshot {
     required this.zulipMergeBase,
     required this.alertWords,
     required this.customProfileFields,
+    required this.maxTopicLength,
     required this.emailAddressVisibility,
     required this.serverTypingStartedExpiryPeriodMilliseconds,
     required this.serverTypingStoppedWaitPeriodMilliseconds,
