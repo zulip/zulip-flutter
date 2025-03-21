@@ -68,25 +68,6 @@ class UriConverter extends TypeConverter<Uri, String> {
   @override Uri fromSql(String fromDb) => Uri.parse(fromDb);
 }
 
-// TODO(drift): generate this
-VersionedSchema _getSchema({
-  required DatabaseConnectionUser database,
-  required int schemaVersion,
-}) {
-  switch (schemaVersion) {
-    case 2:
-      return Schema2(database: database);
-    case 3:
-      return Schema3(database: database);
-    case 4:
-      return Schema4(database: database);
-    case 5:
-      return Schema5(database: database);
-    default:
-      throw Exception('unknown schema version: $schemaVersion');
-  }
-}
-
 @DriftDatabase(tables: [GlobalSettings, Accounts])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
@@ -98,7 +79,6 @@ class AppDatabase extends _$AppDatabase {
   //    and generate database code with build_runner.
   //    See ../../README.md#generated-files for more
   //    information on using the build_runner.
-  //  * Update [_getSchema] to handle the new latestSchemaVersion.
   //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
   static const int latestSchemaVersion = 5; // See note.
@@ -106,9 +86,7 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => latestSchemaVersion;
 
-  static Future<void> _dropAndCreateAll(Migrator m, {
-    required int schemaVersion,
-  }) async {
+  static Future<void> _dropAndCreateAll(Migrator m) async {
     await m.database.transaction(() async {
       final query = m.database.customSelect(
         "SELECT name FROM sqlite_master WHERE type='table'");
@@ -124,10 +102,7 @@ class AppDatabase extends _$AppDatabase {
         // that should be affected by user data.
         await m.database.customStatement('DROP TABLE $tableName');
       }
-      final schema = _getSchema(database: m.database, schemaVersion: schemaVersion);
-      for (final entity in schema.entities) {
-        await m.create(entity);
-      }
+      await m.createAll();
     });
   }
 
@@ -181,7 +156,7 @@ class AppDatabase extends _$AppDatabase {
           // in migration tests; we can forego that for testing downgrades.
           assert(to == latestSchemaVersion);
 
-          await _dropAndCreateAll(m, schemaVersion: to);
+          await _dropAndCreateAll(m);
           return;
         }
         assert(1 <= from && from <= to && to <= latestSchemaVersion);
