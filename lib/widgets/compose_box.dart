@@ -1117,17 +1117,17 @@ class _SendButtonState extends State<_SendButton> {
 class _ComposeBoxContainer extends StatelessWidget {
   const _ComposeBoxContainer({
     required this.body,
-    this.errorBanner,
-  }) : assert(body != null || errorBanner != null);
+    this.banner,
+  }) : assert(body != null || banner != null);
 
   /// The text inputs, compose-button row, and send button.
   ///
   /// This widget does not need a [SafeArea] to consume any device insets.
   ///
-  /// Can be null, but only if [errorBanner] is non-null.
+  /// Can be null, but only if [banner] is non-null.
   final Widget? body;
 
-  /// An error bar that goes at the top.
+  /// A bar that goes at the top.
   ///
   /// This may be present on its own or with a [body].
   /// If [body] is null this must be present.
@@ -1135,7 +1135,7 @@ class _ComposeBoxContainer extends StatelessWidget {
   /// This widget should use a [SafeArea] to pad the left, right,
   /// and bottom device insets.
   /// (A bottom inset may occur if [body] is null.)
-  final Widget? errorBanner;
+  final Widget? banner;
 
   Widget _paddedBody() {
     assert(body != null);
@@ -1147,15 +1147,15 @@ class _ComposeBoxContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
-    final List<Widget> children = switch ((errorBanner, body)) {
+    final List<Widget> children = switch ((banner, body)) {
       (Widget(), Widget()) => [
         // _paddedBody() already pads the bottom inset,
-        // so make sure the error banner doesn't double-pad it.
+        // so make sure the banner doesn't double-pad it.
         MediaQuery.removePadding(context: context, removeBottom: true,
-          child: errorBanner!),
+          child: banner!),
         _paddedBody(),
       ],
-      (Widget(),     null) => [errorBanner!],
+      (Widget(),     null) => [banner!],
       (null,     Widget()) => [_paddedBody()],
       (null,         null) => throw UnimplementedError(), // not allowed, see dartdoc
     };
@@ -1320,38 +1320,85 @@ class StreamComposeBoxController extends ComposeBoxController {
 
 class FixedDestinationComposeBoxController extends ComposeBoxController {}
 
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.label});
+abstract class _Banner extends StatelessWidget {
+  const _Banner();
 
-  final String label;
+  String getLabel(ZulipLocalizations zulipLocalizations);
+  Color getLabelColor(DesignVariables designVariables);
+  Color getBackgroundColor(DesignVariables designVariables);
+
+  /// A trailing element, with no outer padding for spacing/positioning.
+  ///
+  /// To control the element's distance from the end edge, override [padEnd].
+  Widget? buildTrailing(BuildContext context);
+
+  /// Whether to apply `end: 8` in [SafeArea.minimum].
+  ///
+  /// Subclasses can use `false` when the [buildTrailing] element
+  /// is meant to abut the edge of the screen
+  /// in the common case that there are no horizontal device insets.
+  bool get padEnd => true;
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
     final labelTextStyle = TextStyle(
       fontSize: 17,
       height: 22 / 17,
-      color: designVariables.btnLabelAttMediumIntDanger,
+      color: getLabelColor(designVariables),
     ).merge(weightVariableTextStyle(context, wght: 600));
 
+    final trailing = buildTrailing(context);
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: designVariables.bannerBgIntDanger),
+        color: getBackgroundColor(designVariables)),
       child: SafeArea(
-        minimum: const EdgeInsetsDirectional.only(start: 8)
+        minimum: EdgeInsetsDirectional.only(start: 8, end: padEnd ? 8 : 0)
           // (SafeArea.minimum doesn't take an EdgeInsetsDirectional)
           .resolve(Directionality.of(context)),
-        child: Row(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(8, 9, 0, 9),
-                child: Text(style: labelTextStyle,
-                  label))),
-            const SizedBox(width: 8),
-            // TODO(#720) "x" button goes here.
-            //   24px square with 8px touchable padding in all directions?
-          ])));
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(8, 5, 0, 5),
+          child: Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(style: labelTextStyle,
+                    getLabel(zulipLocalizations)))),
+              if (trailing != null) ...[
+                const SizedBox(width: 8),
+                trailing,
+              ],
+            ]))));
+  }
+}
+
+class _ErrorBanner extends _Banner {
+  const _ErrorBanner({
+    required String Function(ZulipLocalizations) getLabel,
+  }) : _getLabel = getLabel;
+
+  @override
+  String getLabel(ZulipLocalizations zulipLocalizations) =>
+    _getLabel(zulipLocalizations);
+  final String Function(ZulipLocalizations) _getLabel;
+
+  @override
+  Color getLabelColor(DesignVariables designVariables) =>
+    designVariables.btnLabelAttMediumIntDanger;
+
+  @override
+  Color getBackgroundColor(DesignVariables designVariables) =>
+    designVariables.bannerBgIntDanger;
+
+  @override
+  Widget? buildTrailing(context) {
+    // TODO(#720) "x" button goes here.
+    //   24px square with 8px touchable padding in all directions?
+    //   and `bool get padEnd => false`; see Figma:
+    //     https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=4031-17029&m=dev
+    return null;
   }
 }
 
@@ -1418,7 +1465,8 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     super.dispose();
   }
 
-  Widget? _errorBanner(BuildContext context) {
+  /// An [_ErrorBanner] that replaces the compose box's text inputs.
+  Widget? _errorBannerComposingNotAllowed(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     switch (widget.narrow) {
       case ChannelNarrow(:final streamId):
@@ -1426,16 +1474,16 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         final channel = store.streams[streamId];
         if (channel == null || !store.hasPostingPermission(inChannel: channel,
             user: store.selfUser, byDate: DateTime.now())) {
-          return _ErrorBanner(label:
-            ZulipLocalizations.of(context).errorBannerCannotPostInChannelLabel);
+          return _ErrorBanner(getLabel: (zulipLocalizations) =>
+            zulipLocalizations.errorBannerCannotPostInChannelLabel);
         }
 
       case DmNarrow(:final otherRecipientIds):
         final hasDeactivatedUser = otherRecipientIds.any((id) =>
           !(store.getUser(id)?.isActive ?? true));
         if (hasDeactivatedUser) {
-          return _ErrorBanner(label:
-            ZulipLocalizations.of(context).errorBannerDeactivatedDmLabel);
+          return _ErrorBanner(getLabel: (zulipLocalizations) =>
+            zulipLocalizations.errorBannerDeactivatedDmLabel);
         }
 
       case CombinedFeedNarrow():
@@ -1450,9 +1498,9 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   Widget build(BuildContext context) {
     final Widget? body;
 
-    final errorBanner = _errorBanner(context);
+    final errorBanner = _errorBannerComposingNotAllowed(context);
     if (errorBanner != null) {
-      return _ComposeBoxContainer(body: null, errorBanner: errorBanner);
+      return _ComposeBoxContainer(body: null, banner: errorBanner);
     }
 
     final controller = this.controller;
@@ -1473,6 +1521,6 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     //       errorBanner = _ErrorBanner(label:
     //         ZulipLocalizations.of(context).errorSendMessageTimeout);
     //     }
-    return _ComposeBoxContainer(body: body, errorBanner: null);
+    return _ComposeBoxContainer(body: body, banner: null);
   }
 }
