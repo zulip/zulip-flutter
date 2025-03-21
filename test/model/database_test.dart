@@ -127,7 +127,8 @@ void main() {
     });
 
     test('downgrading', () async {
-      final schema = await verifier.schemaAt(2);
+      final toVersion = AppDatabase.latestSchemaVersion;
+      final schema = await verifier.schemaAt(toVersion);
 
       // This simulates the scenario during development when running the app
       // with a future schema version that has additional tables and columns.
@@ -135,17 +136,19 @@ void main() {
       await before.customStatement('CREATE TABLE test_extra (num int)');
       await before.customStatement('ALTER TABLE accounts ADD extra_column int');
       await check(verifier.migrateAndValidate(
-        before, 2, validateDropped: true)).throws<SchemaMismatch>();
+        before, toVersion, validateDropped: true)).throws<SchemaMismatch>();
       // Override the schema version by modifying the underlying value
       // drift internally keeps track of in the database.
       // TODO(drift): Expose a better interface for testing this.
-      await before.customStatement('PRAGMA user_version = 999;');
+      await before.customStatement('PRAGMA user_version = ${toVersion + 1};');
       await before.close();
 
       // Simulate starting up the app, with an older schema version that
       // does not have the extra tables and columns.
       final after = AppDatabase(schema.newConnection());
-      await verifier.migrateAndValidate(after, 2, validateDropped: true);
+      await verifier.migrateAndValidate(after, toVersion, validateDropped: true);
+      // Check that a custom migration/setup step of ours got run too.
+      check(await after.getGlobalSettings()).themeSetting.isNull();
       await after.close();
     });
 
@@ -153,15 +156,16 @@ void main() {
       const versions = GeneratedHelper.versions;
       final latestVersion = versions.last;
 
-      int fromVersion = versions.first;
+      int prev = versions.first;
       for (final toVersion in versions.skip(1)) {
+        final fromVersion = prev;
         test('from v$fromVersion to v$toVersion', () async {
           final connection = await verifier.startAt(fromVersion);
           final db = AppDatabase(connection);
           await verifier.migrateAndValidate(db, toVersion);
           await db.close();
         });
-        fromVersion = toVersion;
+        prev = toVersion;
       }
 
       for (final fromVersion in versions) {

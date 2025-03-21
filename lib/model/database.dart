@@ -68,65 +68,44 @@ class UriConverter extends TypeConverter<Uri, String> {
   @override Uri fromSql(String fromDb) => Uri.parse(fromDb);
 }
 
-// TODO(drift): generate this
-VersionedSchema _getSchema({
-  required DatabaseConnectionUser database,
-  required int schemaVersion,
-}) {
-  switch (schemaVersion) {
-    case 2:
-      return Schema2(database: database);
-    case 3:
-      return Schema3(database: database);
-    case 4:
-      return Schema4(database: database);
-    case 5:
-      return Schema5(database: database);
-    default:
-      throw Exception('unknown schema version: $schemaVersion');
-  }
-}
-
 @DriftDatabase(tables: [GlobalSettings, Accounts])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   // When updating the schema:
-  //  * Make the change in the table classes, and bump schemaVersion.
+  //  * Make the change in the table classes, and bump latestSchemaVersion.
   //  * Export the new schema and generate test migrations with drift:
   //    $ tools/check --fix drift
   //    and generate database code with build_runner.
   //    See ../../README.md#generated-files for more
   //    information on using the build_runner.
-  //  * Update [_getSchema] to handle the new schemaVersion.
   //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
-  @override
-  int get schemaVersion => 5; // See note.
+  static const int latestSchemaVersion = 5; // See note.
 
-  static Future<void> _dropAndCreateAll(Migrator m, {
-    required int schemaVersion,
-  }) async {
-    await m.database.transaction(() async {
-      final query = m.database.customSelect(
-        "SELECT name FROM sqlite_master WHERE type='table'");
-      for (final row in await query.get()) {
-        final data = row.data;
-        final tableName = data['name'] as String;
-        // Skip sqlite-internal tables.  See for comparison:
-        //   https://www.sqlite.org/fileformat2.html#intschema
-        //   https://github.com/simolus3/drift/blob/0901c984a/drift_dev/lib/src/services/schema/verifier_common.dart#L9-L22
-        if (tableName.startsWith('sqlite_')) continue;
-        // No need to worry about SQL injection; this table name
-        // was already a table name in the database, not something
-        // that should be affected by user data.
-        await m.database.customStatement('DROP TABLE $tableName');
-      }
-      final schema = _getSchema(database: m.database, schemaVersion: schemaVersion);
-      for (final entity in schema.entities) {
-        await m.create(entity);
-      }
-    });
+  @override
+  int get schemaVersion => latestSchemaVersion;
+
+  /// Drop all tables, indexes, etc., in the database.
+  ///
+  /// This includes tables that aren't known to the schema, for example because
+  /// they were defined by a future (perhaps experimental) version of the app
+  /// before switching back to the version currently running.
+  static Future<void> _dropAll(Migrator m) async {
+    final query = m.database.customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table'");
+    for (final row in await query.get()) {
+      final data = row.data;
+      final tableName = data['name'] as String;
+      // Skip sqlite-internal tables.  See for comparison:
+      //   https://www.sqlite.org/fileformat2.html#intschema
+      //   https://github.com/simolus3/drift/blob/0901c984a/drift_dev/lib/src/services/schema/verifier_common.dart#L9-L22
+      if (tableName.startsWith('sqlite_')) continue;
+      // No need to worry about SQL injection; this table name
+      // was already a table name in the database, not something
+      // that should be affected by user data.
+      await m.database.customStatement('DROP TABLE $tableName');
+    }
   }
 
   static final MigrationStepWithVersion _migrationSteps = migrationSteps(
@@ -145,37 +124,45 @@ class AppDatabase extends _$AppDatabase {
       // This migration ensures there is a row in GlobalSettings.
       // (If the app already ran at schema 3 or 4, there will be;
       // if not, there won't be before this point.)
-      await m.database.transaction(() async {
-        final rows = await m.database.select(schema.globalSettings).get();
-        if (rows.isEmpty) {
-          await m.database.into(schema.globalSettings).insert(
-            // No field values; just use the defaults for both fields.
-            // (This is like `GlobalSettingsCompanion.insert()`, but
-            // without dependence on the current schema.)
-            RawValuesInsertable({}));
-        }
-      });
+      final rows = await m.database.select(schema.globalSettings).get();
+      if (rows.isEmpty) {
+        await m.database.into(schema.globalSettings).insert(
+          // No field values; just use the defaults for both fields.
+          // (This is like `GlobalSettingsCompanion.insert()`, but
+          // without dependence on the current schema.)
+          RawValuesInsertable({}));
+      }
     },
   );
+
+  Future<void> _createLatestSchema(Migrator m) async {
+    await m.createAll();
+    // Corresponds to `from4to5` above.
+    await into(globalSettings).insert(GlobalSettingsCompanion());
+  }
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
-      onCreate: (Migrator m) async {
-        await m.createAll();
-        // Corresponds to `from4to5` above.
-        await into(globalSettings).insert(GlobalSettingsCompanion());
-      },
+      onCreate: _createLatestSchema,
       onUpgrade: (Migrator m, int from, int to) async {
         if (from > to) {
           // This should only ever happen in dev.  As a dev convenience,
           // drop everything from the database and start over.
           // TODO(log): log schema downgrade as an error
           assert(debugLog('Downgrading schema from v$from to v$to.'));
-          await _dropAndCreateAll(m, schemaVersion: to);
+
+          // In the actual app, the target schema version is always
+          // the latest version as of the code that's being run.
+          // Migrating to earlier versions is useful only for isolating steps
+          // in migration tests; we can forego that for testing downgrades.
+          assert(to == latestSchemaVersion);
+
+          await _dropAll(m);
+          await _createLatestSchema(m);
           return;
         }
-        assert(1 <= from && from <= to && to <= schemaVersion);
+        assert(1 <= from && from <= to && to <= latestSchemaVersion);
 
         await m.runMigrationSteps(from: from, to: to, steps: _migrationSteps);
       });
