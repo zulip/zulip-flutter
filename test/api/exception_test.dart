@@ -25,4 +25,6 @@ void main() {
   });
 
   // NetworkException.toString: see "API network errors" test in core_test.dart
+
+  // MalformedServerResponseException: see "malformed API success responses: exception preserves details" test in core_test.dart
 }
