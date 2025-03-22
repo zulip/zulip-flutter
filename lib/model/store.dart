@@ -327,6 +327,24 @@ abstract class GlobalStore extends ChangeNotifier {
 
 class AccountNotFoundException implements Exception {}
 
+/// A bundle of items that are useful to [PerAccountStore] and its substores.
+class CorePerAccountStore {
+  CorePerAccountStore({required this.connection});
+
+  final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
+}
+
+/// A base class for [PerAccountStore] and its substores,
+/// with getters providing the items in [CorePerAccountStore].
+abstract class PerAccountStoreBase {
+  PerAccountStoreBase({required CorePerAccountStore core})
+    : _core = core;
+
+  final CorePerAccountStore _core;
+
+  ApiConnection get connection => _core.connection;
+}
+
 /// Store for the user's data for a given Zulip account.
 ///
 /// This should always have a consistent snapshot of the state on the server,
@@ -335,7 +353,7 @@ class AccountNotFoundException implements Exception {}
 /// This class does not attempt to poll an event queue
 /// to keep the data up to date.  For that behavior, see
 /// [UpdateMachine].
-class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, ChannelStore, MessageStore {
+class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStore, UserStore, ChannelStore, MessageStore {
   /// Construct a store for the user's data, starting from the given snapshot.
   ///
   /// The global store must already have been updated with
@@ -368,10 +386,11 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
     }
 
     final realmUrl = account.realmUrl;
+    final core = CorePerAccountStore(connection: connection);
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       globalStore: globalStore,
-      connection: connection,
+      core: core,
       queueId: queueId,
       realmUrl: realmUrl,
       realmWildcardMentionPolicy: initialSnapshot.realmWildcardMentionPolicy,
@@ -401,7 +420,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
         typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
       ),
       channels: channels,
-      messages: MessageStoreImpl(connection: connection),
+      messages: MessageStoreImpl(core: core),
       unreads: Unreads(
         initial: initialSnapshot.unreadMsgs,
         selfUserId: account.userId,
@@ -415,7 +434,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
 
   PerAccountStore._({
     required GlobalStore globalStore,
-    required this.connection,
+    required super.core,
     required this.queueId,
     required this.realmUrl,
     required this.realmWildcardMentionPolicy,
@@ -438,7 +457,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
     required this.recentDmConversationsView,
     required this.recentSenders,
   }) : assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
-       assert(realmUrl == connection.realmUrl),
+       assert(realmUrl == core.connection.realmUrl),
        assert(emoji.realmUrl == realmUrl),
        _globalStore = globalStore,
        _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
@@ -454,7 +473,6 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
   // Where data comes from in the first place.
 
   final GlobalStore _globalStore;
-  final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
 
   final String queueId;
   UpdateMachine? get updateMachine => _updateMachine;

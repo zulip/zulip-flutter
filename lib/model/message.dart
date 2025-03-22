@@ -1,11 +1,11 @@
 import 'dart:convert';
 
-import '../api/core.dart';
 import '../api/model/events.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../log.dart';
 import 'message_list.dart';
+import 'store.dart';
 
 const _apiSendMessage = sendMessage; // Bit ugly; for alternatives, see: https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20PerAccountStore.20methods/near/1545809
 
@@ -37,13 +37,11 @@ mixin MessageStore {
   void reconcileMessages(List<Message> messages);
 }
 
-class MessageStoreImpl with MessageStore {
-  MessageStoreImpl({required this.connection})
+class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
+  MessageStoreImpl({required super.core})
     // There are no messages in InitialSnapshot, so we don't have
     // a use case for initializing MessageStore with nonempty [messages].
     : messages = {};
-
-  final ApiConnection connection;
 
   @override
   final Map<int, Message> messages;
