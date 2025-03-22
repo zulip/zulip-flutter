@@ -286,6 +286,31 @@ void main() {
       debugNetworkImageHttpClientProvider = null;
     });
 
+    testWidgets('download button triggers download', (tester) async {
+      prepareBoringImageHttpClient();
+      final message = eg.streamMessage(sender: eg.otherUser);
+      await setupPage(tester, message: message, thumbnailUrl: null);
+
+      final downloadButton = find.byIcon(Icons.download);
+
+      expect(downloadButton, findsOneWidget);
+      await tester.tap(downloadButton);
+      await tester.pump();
+
+      final snackbar = find.byType(SnackBar);
+      expect(snackbar, findsOneWidget);
+
+      final downloadHost = TestZulipBinding.instance.androidDownloadHost;
+      final fileName = "lightbox-image.png";
+      final downloadResult = await downloadHost.downloadFile(
+        'https://chat.example/lightbox-image.png',
+        fileName,
+        '');
+      expect(downloadResult, contains("Download started for: $fileName"));
+      expect(downloadHost.getDownloadedFiles(), contains(fileName));
+      debugNetworkImageHttpClientProvider = null;
+    });
+
     // TODO test _CopyLinkButton
     // TODO test thumbnail gets shown, then gets replaced when main image loads
     // TODO test image is scaled down to fit, but not up
