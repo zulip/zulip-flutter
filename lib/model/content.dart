@@ -5,7 +5,9 @@ import 'package:html/parser.dart';
 
 import '../api/model/model.dart';
 import '../api/model/submessage.dart';
+import '../log.dart';
 import 'code_block.dart';
+import 'katex.dart';
 
 /// A node in a parse tree for Zulip message-style content.
 ///
@@ -340,23 +342,82 @@ class CodeBlockSpanNode extends ContentNode {
   }
 }
 
-class MathBlockNode extends BlockContentNode {
-  const MathBlockNode({super.debugHtmlNode, required this.texSource});
+sealed class BaseKatexSpan extends ContentNode {
+  const BaseKatexSpan({super.debugHtmlNode});
+}
 
-  final String texSource;
+class KatexNegativeRightMarginSpans extends BaseKatexSpan {
+  const KatexNegativeRightMarginSpans({
+    required this.marginRightEm,
+    this.spans = const [],
+    super.debugHtmlNode,
+  });
+
+  final double marginRightEm;
+  final List<KatexSpan> spans;
 
   @override
-  bool operator ==(Object other) {
-    return other is MathBlockNode && other.texSource == texSource;
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return spans.map((node) => node.toDiagnosticsNode()).toList();
+  }
+}
+
+class KatexSpan extends BaseKatexSpan {
+  const KatexSpan({
+    required this.text,
+    required this.styles,
+
+    required this.classes,
+    required this.ancestorClasses,
+
+    required this.spans,
+
+    super.debugHtmlNode,
+  });
+
+  final String? text;
+  final KatexSpanStyles styles;
+
+  final List<String> classes;
+  final List<List<String>> ancestorClasses;
+
+  final List<BaseKatexSpan> spans;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('text', text));
+    properties.add(KatexSpanStylesProperty('styles', styles));
+    properties.add(StringProperty('classes', classes.join(', ')));
+    properties.add(StringProperty('ancestorClasses', ancestorClasses.map(
+      (e) => '[${e.join(', ')}]').join(', ')));
   }
 
   @override
-  int get hashCode => Object.hash('MathBlockNode', texSource);
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return spans.map((node) => node.toDiagnosticsNode()).toList();
+  }
+}
+
+class MathBlockNode extends BlockContentNode {
+  const MathBlockNode({
+    super.debugHtmlNode,
+    required this.texSource,
+    required this.spans,
+  });
+
+  final String texSource;
+  final List<BaseKatexSpan>? spans;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(StringProperty('texSource', texSource));
+  }
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return spans?.map((node) => node.toDiagnosticsNode()).toList() ?? const [];
   }
 }
 
@@ -1626,8 +1687,15 @@ class _ZulipContentParser {
     final firstChild = nodes.first as dom.Element;
     final texSource = _parseMath(firstChild, block: true);
     if (texSource != null) {
+      List<BaseKatexSpan>? katexSpans;
+      try {
+        katexSpans = KatexParser().parseKatexBlock(firstChild);
+      } on KatexHtmlParseError catch (e, st) {
+        assert(debugLog('$e\n$st'));
+      }
       result.add(MathBlockNode(
         texSource: texSource,
+        spans: katexSpans,
         debugHtmlNode: kDebugMode ? firstChild : null));
     } else {
       result.add(UnimplementedBlockContentNode(htmlNode: firstChild));
@@ -1661,8 +1729,15 @@ class _ZulipContentParser {
       if (child case dom.Element(localName: 'span', className: 'katex-display')) {
         final texSource = _parseMath(child, block: true);
         if (texSource != null) {
+          List<BaseKatexSpan>? katexSpans;
+          try {
+            katexSpans = KatexParser().parseKatexBlock(child);
+          } on KatexHtmlParseError catch (e, st) {
+            assert(debugLog('$e\n$st'));
+          }
           result.add(MathBlockNode(
             texSource: texSource,
+            spans: katexSpans,
             debugHtmlNode: debugHtmlNode));
           continue;
         }
