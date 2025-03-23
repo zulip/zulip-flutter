@@ -26,6 +26,7 @@ import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/channel_colors.dart';
+import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -1343,6 +1344,68 @@ void main() {
       checkUser(users[2], isBot: false);
 
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    group('background-color tint', () {
+      late Message message;
+
+      setUp(() {
+        message = eg.streamMessage();
+      });
+
+      Color? getBackgroundColor(WidgetTester tester) {
+        final decoratedBox = tester.widget<DecoratedBox>(
+          find.descendant(
+            of: find.byType(MessageWithPossibleSender),
+            matching: find.byType(DecoratedBox)));
+        return (decoratedBox.decoration as BoxDecoration).color;
+      }
+
+      testWidgets('long-press opens action sheet', (tester) async {
+        await setupMessageListPage(tester, messages: [message]);
+
+        check(getBackgroundColor(tester)).equals(Colors.transparent);
+
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(MessageWithPossibleSender)));
+        await tester.pump(const Duration(milliseconds: 300));
+
+        final expectedTint = DesignVariables.of(tester.element(find.byType(MessageWithPossibleSender)))
+          .pressedTint;
+
+        check(getBackgroundColor(tester)).equals(expectedTint);
+
+        await tester.pump(const Duration(milliseconds: 300));
+
+        await gesture.up();
+        await tester.pump();
+        check(getBackgroundColor(tester)).equals(expectedTint);
+
+        await tester.pump(const Duration(milliseconds: 250));
+
+        await tester.tapAt(const Offset(0, 0));
+        await tester.pumpAndSettle();
+        check(getBackgroundColor(tester)).equals(Colors.transparent);
+      });
+
+      testWidgets('long-press canceled', (tester) async {
+        await setupMessageListPage(tester, messages: [message]);
+
+        check(getBackgroundColor(tester)).equals(Colors.transparent);
+
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(MessageWithPossibleSender)));
+        await tester.pump();
+
+        final expectedTint = DesignVariables.of(tester.element(find.byType(MessageWithPossibleSender)))
+          .pressedTint;
+
+        check(getBackgroundColor(tester)).equals(expectedTint);
+
+        await gesture.moveBy(const Offset(0, 50));
+        await tester.pump();
+
+        check(getBackgroundColor(tester)).equals(Colors.transparent);
+        await gesture.up();
+      });
     });
   });
 

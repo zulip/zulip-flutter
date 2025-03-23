@@ -16,26 +16,28 @@ Widget _dialogActionText(String text) {
   );
 }
 
-/// Tracks the status of a dialog, in being still open or already closed.
+/// Tracks the status of a modal dialog or modal bottom sheet,
+/// in being still open or already closed.
 ///
 /// See also:
-///  * [showDialog], whose return value this class is intended to wrap.
-class DialogStatus {
-  const DialogStatus(this.closed);
+///  * [showDialog] and [showModalBottomSheet], whose return values
+///    this class is intended to wrap.
+class ModalStatus {
+  const ModalStatus(this.closed);
 
-  /// Resolves when the dialog is closed.
+  /// Resolves when the dialog or bottom sheet is closed.
   final Future<void> closed;
 }
 
 /// Displays an [AlertDialog] with a dismiss button.
 ///
-/// The [DialogStatus.closed] field of the return value can be used
+/// The [ModalStatus.closed] field of the return value can be used
 /// for waiting for the dialog to be closed.
 // This API is inspired by [ScaffoldManager.showSnackBar].  We wrap
-// [showDialog]'s return value, a [Future], inside [DialogStatus]
+// [showDialog]'s return value, a [Future], inside [ModalStatus]
 // whose documentation can be accessed.  This helps avoid confusion when
 // intepreting the meaning of the [Future].
-DialogStatus showErrorDialog({
+ModalStatus showErrorDialog({
   required BuildContext context,
   required String title,
   String? message,
@@ -51,7 +53,7 @@ DialogStatus showErrorDialog({
           onPressed: () => Navigator.pop(context),
           child: _dialogActionText(zulipLocalizations.errorDialogContinue)),
       ]));
-  return DialogStatus(future);
+  return ModalStatus(future);
 }
 
 void showSuggestedActionDialog({
