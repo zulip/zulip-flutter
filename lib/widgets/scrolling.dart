@@ -248,6 +248,43 @@ class RenderCustomPaintOrderViewport extends RenderViewport {
   }
 }
 
+/// A version of [ScrollPosition] adapted for the Zulip message list,
+/// used by [MessageListScrollController].
+class MessageListScrollPosition extends ScrollPositionWithSingleContext {
+  MessageListScrollPosition({
+    required super.physics,
+    required super.context,
+    super.initialPixels,
+    super.keepScrollOffset,
+    super.oldPosition,
+    super.debugLabel,
+  });
+}
+
+/// A version of [ScrollController] adapted for the Zulip message list.
+class MessageListScrollController extends ScrollController {
+  MessageListScrollController({
+    super.initialScrollOffset,
+    super.keepScrollOffset,
+    super.debugLabel,
+    super.onAttach,
+    super.onDetach,
+  });
+
+  @override
+  ScrollPosition createScrollPosition(ScrollPhysics physics,
+      ScrollContext context, ScrollPosition? oldPosition) {
+    return MessageListScrollPosition(
+      physics: physics,
+      context: context,
+      initialPixels: initialScrollOffset,
+      keepScrollOffset: keepScrollOffset,
+      oldPosition: oldPosition,
+      debugLabel: debugLabel,
+    );
+  }
+}
+
 /// A version of [CustomScrollView] adapted for the Zulip message list.
 ///
 /// This lets us customize behavior in ways that aren't currently supported
