@@ -947,6 +947,10 @@
   "@revealButtonLabel": {
     "description": "Label for the button revealing hidden message from a muted sender in message list."
   },
+  "mutedUser": "Muted user",
+  "@mutedUser": {
+    "description": "Name for a muted user to display all over the app."
+  },
   "scrollToBottomTooltip": "Scroll to bottom",
   "@scrollToBottomTooltip": {
     "description": "Tooltip for button to scroll to bottom."

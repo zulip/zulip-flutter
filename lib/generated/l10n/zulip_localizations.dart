@@ -1397,6 +1397,12 @@ abstract class ZulipLocalizations {
   /// **'Reveal message for muted sender'**
   String get revealButtonLabel;
 
+  /// Name for a muted user to display all over the app.
+  ///
+  /// In en, this message translates to:
+  /// **'Muted user'**
+  String get mutedUser;
+
   /// Tooltip for button to scroll to bottom.
   ///
   /// In en, this message translates to:
