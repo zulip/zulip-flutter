@@ -631,7 +631,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       sliver = SliverSafeArea(sliver: sliver);
     }
 
-    return CustomPaintOrderScrollView(
+    return MessageListScrollView(
       // TODO: Offer `ScrollViewKeyboardDismissBehavior.interactive` (or
       //   similar) if that is ever offered:
       //     https://github.com/flutter/flutter/issues/57609#issuecomment-1355340849
