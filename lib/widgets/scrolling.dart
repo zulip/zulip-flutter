@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -322,6 +325,8 @@ class MessageListViewport extends CustomPaintOrderViewport {
 
 /// The version of [RenderViewport] that underlies [MessageListViewport]
 /// and [MessageListScrollView].
+// TODO(upstream): Devise upstream APIs to obviate the duplicated code here;
+//   use `git log -L` to see what edits we've made locally.
 class RenderMessageListViewport extends RenderCustomPaintOrderViewport {
   RenderMessageListViewport({
     super.axisDirection,
@@ -335,4 +340,211 @@ class RenderMessageListViewport extends RenderCustomPaintOrderViewport {
     super.clipBehavior,
     required super.paintOrder_,
   });
+
+  double? _calculatedCacheExtent;
+
+  @override
+  Rect describeSemanticsClip(RenderSliver? child) {
+    if (_calculatedCacheExtent == null) {
+      return semanticBounds;
+    }
+
+    switch (axis) {
+      case Axis.vertical:
+        return Rect.fromLTRB(
+          semanticBounds.left,
+          semanticBounds.top - _calculatedCacheExtent!,
+          semanticBounds.right,
+          semanticBounds.bottom + _calculatedCacheExtent!,
+        );
+      case Axis.horizontal:
+        return Rect.fromLTRB(
+          semanticBounds.left - _calculatedCacheExtent!,
+          semanticBounds.top,
+          semanticBounds.right + _calculatedCacheExtent!,
+          semanticBounds.bottom,
+        );
+    }
+  }
+
+  static const int _maxLayoutCyclesPerChild = 10;
+
+  // Out-of-band data computed during layout.
+  late double _minScrollExtent;
+  late double _maxScrollExtent;
+  bool _hasVisualOverflow = false;
+
+  @override
+  void performLayout() {
+    // Ignore the return value of applyViewportDimension because we are
+    // doing a layout regardless.
+    switch (axis) {
+      case Axis.vertical:
+        offset.applyViewportDimension(size.height);
+      case Axis.horizontal:
+        offset.applyViewportDimension(size.width);
+    }
+
+    if (center == null) {
+      assert(firstChild == null);
+      _minScrollExtent = 0.0;
+      _maxScrollExtent = 0.0;
+      _hasVisualOverflow = false;
+      offset.applyContentDimensions(0.0, 0.0);
+      return;
+    }
+    assert(center!.parent == this);
+
+    final (double mainAxisExtent, double crossAxisExtent) = switch (axis) {
+      Axis.vertical => (size.height, size.width),
+      Axis.horizontal => (size.width, size.height),
+    };
+
+    final double centerOffsetAdjustment = center!.centerOffsetAdjustment;
+    final int maxLayoutCycles = _maxLayoutCyclesPerChild * childCount;
+
+    double correction;
+    int count = 0;
+    do {
+      correction = _attemptLayout(
+        mainAxisExtent,
+        crossAxisExtent,
+        offset.pixels + centerOffsetAdjustment,
+      );
+      if (correction != 0.0) {
+        offset.correctBy(correction);
+      } else {
+        if (offset.applyContentDimensions(
+          math.min(0.0, _minScrollExtent + mainAxisExtent * anchor),
+          math.max(0.0, _maxScrollExtent - mainAxisExtent * (1.0 - anchor)),
+        )) {
+          break;
+        }
+      }
+      count += 1;
+    } while (count < maxLayoutCycles);
+    assert(() {
+      if (count >= maxLayoutCycles) {
+        assert(count != 1);
+        throw FlutterError(
+          'A RenderViewport exceeded its maximum number of layout cycles.\n'
+          'RenderViewport render objects, during layout, can retry if either their '
+          'slivers or their ViewportOffset decide that the offset should be corrected '
+          'to take into account information collected during that layout.\n'
+          'In the case of this RenderViewport object, however, this happened $count '
+          'times and still there was no consensus on the scroll offset. This usually '
+          'indicates a bug. Specifically, it means that one of the following three '
+          'problems is being experienced by the RenderViewport object:\n'
+          ' * One of the RenderSliver children or the ViewportOffset have a bug such'
+          ' that they always think that they need to correct the offset regardless.\n'
+          ' * Some combination of the RenderSliver children and the ViewportOffset'
+          ' have a bad interaction such that one applies a correction then another'
+          ' applies a reverse correction, leading to an infinite loop of corrections.\n'
+          ' * There is a pathological case that would eventually resolve, but it is'
+          ' so complicated that it cannot be resolved in any reasonable number of'
+          ' layout passes.',
+        );
+      }
+      return true;
+    }());
+  }
+
+  double _attemptLayout(double mainAxisExtent, double crossAxisExtent, double correctedOffset) {
+    assert(!mainAxisExtent.isNaN);
+    assert(mainAxisExtent >= 0.0);
+    assert(crossAxisExtent.isFinite);
+    assert(crossAxisExtent >= 0.0);
+    assert(correctedOffset.isFinite);
+    _minScrollExtent = 0.0;
+    _maxScrollExtent = 0.0;
+    _hasVisualOverflow = false;
+
+    // centerOffset is the offset from the leading edge of the RenderViewport
+    // to the zero scroll offset (the line between the forward slivers and the
+    // reverse slivers).
+    final double centerOffset = mainAxisExtent * anchor - correctedOffset;
+    final double reverseDirectionRemainingPaintExtent = clampDouble(
+      centerOffset,
+      0.0,
+      mainAxisExtent,
+    );
+    final double forwardDirectionRemainingPaintExtent = clampDouble(
+      mainAxisExtent - centerOffset,
+      0.0,
+      mainAxisExtent,
+    );
+
+    _calculatedCacheExtent = switch (cacheExtentStyle) {
+      CacheExtentStyle.pixel => cacheExtent,
+      CacheExtentStyle.viewport => mainAxisExtent * cacheExtent!,
+    };
+
+    final double fullCacheExtent = mainAxisExtent + 2 * _calculatedCacheExtent!;
+    final double centerCacheOffset = centerOffset + _calculatedCacheExtent!;
+    final double reverseDirectionRemainingCacheExtent = clampDouble(
+      centerCacheOffset,
+      0.0,
+      fullCacheExtent,
+    );
+    final double forwardDirectionRemainingCacheExtent = clampDouble(
+      fullCacheExtent - centerCacheOffset,
+      0.0,
+      fullCacheExtent,
+    );
+
+    final RenderSliver? leadingNegativeChild = childBefore(center!);
+
+    if (leadingNegativeChild != null) {
+      // negative scroll offsets
+      final double result = layoutChildSequence(
+        child: leadingNegativeChild,
+        scrollOffset: math.max(mainAxisExtent, centerOffset) - mainAxisExtent,
+        overlap: 0.0,
+        layoutOffset: forwardDirectionRemainingPaintExtent,
+        remainingPaintExtent: reverseDirectionRemainingPaintExtent,
+        mainAxisExtent: mainAxisExtent,
+        crossAxisExtent: crossAxisExtent,
+        growthDirection: GrowthDirection.reverse,
+        advance: childBefore,
+        remainingCacheExtent: reverseDirectionRemainingCacheExtent,
+        cacheOrigin: clampDouble(mainAxisExtent - centerOffset, -_calculatedCacheExtent!, 0.0),
+      );
+      if (result != 0.0) {
+        return -result;
+      }
+    }
+
+    // positive scroll offsets
+    return layoutChildSequence(
+      child: center,
+      scrollOffset: math.max(0.0, -centerOffset),
+      overlap: leadingNegativeChild == null ? math.min(0.0, -centerOffset) : 0.0,
+      layoutOffset:
+          centerOffset >= mainAxisExtent ? centerOffset : reverseDirectionRemainingPaintExtent,
+      remainingPaintExtent: forwardDirectionRemainingPaintExtent,
+      mainAxisExtent: mainAxisExtent,
+      crossAxisExtent: crossAxisExtent,
+      growthDirection: GrowthDirection.forward,
+      advance: childAfter,
+      remainingCacheExtent: forwardDirectionRemainingCacheExtent,
+      cacheOrigin: clampDouble(centerOffset, -_calculatedCacheExtent!, 0.0),
+    );
+  }
+
+  @override
+  bool get hasVisualOverflow => _hasVisualOverflow;
+
+  @override
+  void updateOutOfBandData(GrowthDirection growthDirection, SliverGeometry childLayoutGeometry) {
+    switch (growthDirection) {
+      case GrowthDirection.forward:
+        _maxScrollExtent += childLayoutGeometry.scrollExtent;
+      case GrowthDirection.reverse:
+        _minScrollExtent -= childLayoutGeometry.scrollExtent;
+    }
+    if (childLayoutGeometry.hasVisualOverflow) {
+      _hasVisualOverflow = true;
+    }
+  }
+
 }
