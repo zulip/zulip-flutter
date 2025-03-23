@@ -808,13 +808,10 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get noEarlierMessages => 'Brak historii';
 
   @override
-  String get mutedSender => 'Muted sender';
-
-  @override
-  String get revealButtonLabel => 'Reveal message for muted sender';
-
-  @override
   String get mutedUser => 'Muted user';
+
+  @override
+  String get revealButtonLabel => 'Reveal message';
 
   @override
   String get scrollToBottomTooltip => 'Przewiń do dołu';

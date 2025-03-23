@@ -1659,18 +1659,48 @@ class Avatar extends StatelessWidget {
     required this.userId,
     required this.size,
     required this.borderRadius,
+    this.showAsMuted = false,
   });
 
   final int userId;
   final double size;
   final double borderRadius;
+  final bool showAsMuted;
 
   @override
   Widget build(BuildContext context) {
     return AvatarShape(
       size: size,
       borderRadius: borderRadius,
-      child: AvatarImage(userId: userId, size: size));
+      child: showAsMuted
+        ? AvatarPlaceholder(size: size)
+        : AvatarImage(userId: userId, size: size));
+  }
+}
+
+/// A placeholder avatar for muted users.
+///
+/// Wrap this with [AvatarShape].
+class AvatarPlaceholder extends StatelessWidget {
+  const AvatarPlaceholder({super.key, required this.size});
+
+  /// The size of the placeholder box.
+  ///
+  /// This should match the `size` passed to the wrapping [AvatarShape].
+  /// The placeholder's icon will be scaled proportionally to this.
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: designVariables.avatarPlaceholderBg),
+      child: Icon(ZulipIcons.person,
+        // Where the avatar placeholder appears in the Figma,
+        // this is how the icon is sized proportionally to its box.
+        size: size * 20 / 32,
+        color: designVariables.avatarPlaceholderIcon));
   }
 }
 

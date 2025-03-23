@@ -24,6 +24,7 @@ import 'package:zulip/widgets/autocomplete.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/emoji_reaction.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
@@ -48,6 +49,34 @@ import 'message_list_checks.dart';
 import 'page_checks.dart';
 import 'test_app.dart';
 
+final localizations = GlobalLocalizations.zulipLocalizations;
+
+void checkMessage(Message message,
+    {required bool isMuted, required PerAccountStore store}) {
+  final placeholderAvatarFinder = find.descendant(
+    of: find.byType(AvatarShape),
+    matching: find.byIcon(ZulipIcons.person));
+  final imageAvatarFinder = find.descendant(
+    of: find.byType(AvatarShape),
+    matching: find.byType(RealmContentNetworkImage));
+
+  final mutedLabelFinder = find.text(localizations.mutedUser);
+  final nameFinder = find.text(store.senderDisplayName(message));
+
+  final revealButtonFinder = find.text(localizations.revealButtonLabel);
+  final contentFinder = find.byType(MessageContent);
+  final reactionsFinder = find.byType(ReactionChipsList);
+
+  check(placeholderAvatarFinder.evaluate().length).equals(isMuted ? 1 : 0);
+  check(mutedLabelFinder.evaluate().length).equals(isMuted ? 1 : 0);
+  check(revealButtonFinder.evaluate().length).equals(isMuted ? 1 : 0);
+
+  check(imageAvatarFinder.evaluate().length).equals(isMuted ? 0 : 1);
+  check(nameFinder.evaluate().length).equals(isMuted ? 0 : 1);
+  check(contentFinder.evaluate().length).equals(isMuted ? 0 : 1);
+  check(reactionsFinder.evaluate().length).equals(isMuted ? 0 : 1);
+}
+
 void main() {
   TestZulipBinding.ensureInitialized();
 
@@ -61,6 +90,7 @@ void main() {
     List<Message>? messages,
     List<ZulipStream>? streams,
     List<User>? users,
+    List<int>? mutedUserIds,
     List<Subscription>? subscriptions,
     UnreadMessagesSnapshot? unreadMsgs,
     int? zulipFeatureLevel,
@@ -83,6 +113,7 @@ void main() {
     // prepare message list data
     await store.addUser(eg.selfUser);
     await store.addUsers(users ?? []);
+    await store.muteUsers(mutedUserIds ?? []);
     assert((messageCount == null) != (messages == null));
     messages ??= List.generate(messageCount!, (index) {
       return eg.streamMessage(sender: eg.selfUser);
@@ -1548,6 +1579,55 @@ void main() {
       checkUser(users[2], isBot: false);
 
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    group('Muted sender', () {
+      final user = eg.user(userId: 1, fullName: 'User', avatarUrl: '/foo.png');
+      final message =eg.streamMessage(sender: user,
+        content: '<p>A message</p>', reactions: [eg.unicodeEmojiReaction]);
+
+      testWidgets('Sender muted -> Message muted', (tester) async {
+        prepareBoringImageHttpClient();
+
+        await setupMessageListPage(tester,
+          users: [user],
+          mutedUserIds: [user.userId],
+          messages: [message],
+        );
+        checkMessage(message, isMuted: true, store: store);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('Sender not muted -> Message not muted', (tester) async {
+        prepareBoringImageHttpClient();
+
+        await setupMessageListPage(tester,
+          users: [user],
+          mutedUserIds: [],
+          messages: [message],
+        );
+        checkMessage(message, isMuted: false, store: store);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('Tapping reveal button on muted message reveals the message',
+          (tester) async {
+        prepareBoringImageHttpClient();
+
+        await setupMessageListPage(tester,
+          users: [user],
+          mutedUserIds: [user.userId],
+          messages: [message],
+        );
+        checkMessage(message, isMuted: true, store: store);
+        await tester.tap(find.text(localizations.revealButtonLabel));
+        await tester.pump();
+        checkMessage(message, isMuted: false, store: store);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
     });
   });
 
