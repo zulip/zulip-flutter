@@ -128,6 +128,10 @@
   "@actionSheetOptionMarkAsUnread":  {
     "description": "Label for mark as unread button on action sheet."
   },
+  "actionSheetOptionHideMutedMessage": "Hide muted message again",
+  "@actionSheetOptionHideMutedMessage":  {
+    "description": "Label for hide muted message again button on action sheet."
+  },
   "actionSheetOptionShare": "Share",
   "@actionSheetOptionShare":  {
     "description": "Label for share button on action sheet."
@@ -934,6 +938,14 @@
   "noEarlierMessages": "No earlier messages",
   "@noEarlierMessages": {
     "description": "Text to show at the start of a message list if there are no earlier messages."
+  },
+  "mutedSender": "Muted sender",
+  "@mutedSender": {
+    "description": "Name for a muted user to display in message list."
+  },
+  "revealButtonLabel": "Reveal message for muted sender",
+  "@revealButtonLabel": {
+    "description": "Label for the button revealing hidden message from a muted sender in message list."
   },
   "scrollToBottomTooltip": "Scroll to bottom",
   "@scrollToBottomTooltip": {

@@ -305,6 +305,12 @@ abstract class ZulipLocalizations {
   /// **'Mark as unread from here'**
   String get actionSheetOptionMarkAsUnread;
 
+  /// Label for hide muted message again button on action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide muted message again'**
+  String get actionSheetOptionHideMutedMessage;
+
   /// Label for share button on action sheet.
   ///
   /// In en, this message translates to:
@@ -1378,6 +1384,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'No earlier messages'**
   String get noEarlierMessages;
+
+  /// Name for a muted user to display in message list.
+  ///
+  /// In en, this message translates to:
+  /// **'Muted sender'**
+  String get mutedSender;
+
+  /// Label for the button revealing hidden message from a muted sender in message list.
+  ///
+  /// In en, this message translates to:
+  /// **'Reveal message for muted sender'**
+  String get revealButtonLabel;
 
   /// Tooltip for button to scroll to bottom.
   ///

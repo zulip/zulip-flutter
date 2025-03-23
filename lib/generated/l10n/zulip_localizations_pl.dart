@@ -116,6 +116,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Odtąd oznacz jako nieprzeczytane';
 
   @override
+  String get actionSheetOptionHideMutedMessage => 'Hide muted message again';
+
+  @override
   String get actionSheetOptionShare => 'Udostępnij';
 
   @override
@@ -769,6 +772,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get noEarlierMessages => 'Brak historii';
+
+  @override
+  String get mutedSender => 'Muted sender';
+
+  @override
+  String get revealButtonLabel => 'Reveal message for muted sender';
 
   @override
   String get scrollToBottomTooltip => 'Przewiń do dołu';
