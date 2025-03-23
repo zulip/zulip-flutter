@@ -733,6 +733,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get revealButtonLabel => 'Reveal message for muted sender';
 
   @override
+  String get mutedUser => 'Muted user';
+
+  @override
   String get scrollToBottomTooltip => 'Прокрутити вниз';
 
   @override
