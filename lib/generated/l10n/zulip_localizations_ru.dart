@@ -107,6 +107,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get actionSheetOptionMarkAsUnread => 'Отметить как непрочитанные начиная отсюда';
 
   @override
+  String get actionSheetOptionHideMutedMessage => 'Hide muted message again';
+
+  @override
   String get actionSheetOptionShare => 'Поделиться';
 
   @override
@@ -663,6 +666,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get noEarlierMessages => 'No earlier messages';
+
+  @override
+  String get mutedSender => 'Muted sender';
+
+  @override
+  String get revealButtonLabel => 'Reveal message for muted sender';
 
   @override
   String get scrollToBottomTooltip => 'Scroll to bottom';
