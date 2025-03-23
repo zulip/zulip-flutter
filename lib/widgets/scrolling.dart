@@ -244,3 +244,95 @@ class RenderCustomPaintOrderViewport extends RenderViewport {
     };
   }
 }
+
+/// A version of [CustomScrollView] adapted for the Zulip message list.
+///
+/// This lets us customize behavior in ways that aren't currently supported
+/// by the fields of [CustomScrollView] itself.
+class MessageListScrollView extends CustomPaintOrderScrollView {
+  const MessageListScrollView({
+    super.key,
+    super.scrollDirection,
+    super.reverse,
+    super.controller,
+    super.primary,
+    super.physics,
+    super.scrollBehavior,
+    // super.shrinkWrap, // omitted, always false
+    super.center,
+    super.anchor,
+    super.cacheExtent,
+    super.slivers,
+    super.semanticChildCount,
+    super.dragStartBehavior,
+    super.keyboardDismissBehavior,
+    super.restorationId,
+    super.clipBehavior,
+    super.hitTestBehavior,
+    super.paintOrder,
+  });
+
+  @override
+  Widget buildViewport(BuildContext context, ViewportOffset offset,
+      AxisDirection axisDirection, List<Widget> slivers) {
+    return MessageListViewport(
+      axisDirection: axisDirection,
+      offset: offset,
+      slivers: slivers,
+      cacheExtent: cacheExtent,
+      center: center,
+      anchor: anchor,
+      clipBehavior: clipBehavior,
+      paintOrder_: paintOrder_,
+    );
+  }
+}
+
+/// The version of [Viewport] that underlies [MessageListScrollView].
+class MessageListViewport extends CustomPaintOrderViewport {
+  MessageListViewport({
+    super.key,
+    super.axisDirection,
+    super.crossAxisDirection,
+    super.anchor,
+    required super.offset,
+    super.center,
+    super.cacheExtent,
+    super.cacheExtentStyle,
+    super.slivers,
+    super.clipBehavior,
+    required super.paintOrder_,
+  });
+
+  @override
+  RenderViewport createRenderObject(BuildContext context) {
+    return RenderMessageListViewport(
+      axisDirection: axisDirection,
+      crossAxisDirection: crossAxisDirection
+        ?? Viewport.getDefaultCrossAxisDirection(context, axisDirection),
+      anchor: anchor,
+      offset: offset,
+      cacheExtent: cacheExtent,
+      cacheExtentStyle: cacheExtentStyle,
+      clipBehavior: clipBehavior,
+      paintOrder_: paintOrder_,
+    );
+  }
+}
+
+/// The version of [RenderViewport] that underlies [MessageListViewport]
+/// and [MessageListScrollView].
+class RenderMessageListViewport extends RenderCustomPaintOrderViewport {
+  RenderMessageListViewport({
+    super.axisDirection,
+    required super.crossAxisDirection,
+    required super.offset,
+    super.anchor,
+    super.children,
+    super.center,
+    super.cacheExtent,
+    super.cacheExtentStyle,
+    super.clipBehavior,
+    required super.paintOrder_,
+  });
+}
