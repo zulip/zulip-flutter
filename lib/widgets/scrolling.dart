@@ -281,9 +281,42 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
   /// 0.0 and 60.0, or -10.0 and 10.0, or -40.0 and 0.0, or other values,
   /// depending on the value of [Viewport.anchor].
   bool applyContentDimensionsRaw(double wholeMinScrollExtent, double wholeMaxScrollExtent) {
-    // This makes the simplifying assumption that `anchor` is 1.0.
-    final effectiveMin = math.min(0.0, wholeMinScrollExtent + viewportDimension);
+    // The origin point of these scroll coordinates, scroll extent 0.0,
+    // is that the boundary between slivers is the bottom edge of the viewport.
+    // (That's expressed by setting `anchor` to 1.0, consulted in
+    // `_attemptLayout` below.)
+
+    // The farthest the list can scroll down (moving the content up)
+    // is to the point where the bottom end of the list
+    // touches the bottom edge of the viewport.
     final effectiveMax = wholeMaxScrollExtent;
+
+    // The farthest the list can scroll up (moving the content down)
+    // is either:
+    //   * the same as the farthest it can scroll down,
+    //   * or the point where the top end of the list
+    //     touches the top edge of the viewport,
+    // whichever is farther up.
+    final effectiveMin = math.min(effectiveMax,
+      wholeMinScrollExtent + viewportDimension);
+
+    // The first point comes into effect when the list is short,
+    // so the whole thing fits into the viewport.  In that case,
+    // the only scroll position allowed is with the bottom end of the list
+    // at the bottom edge of the viewport.
+
+    // The upstream answer (with no `applyContentDimensionsRaw`) would
+    // effectively say:
+    //   final effectiveMin = math.min(0.0,
+    //     wholeMinScrollExtent + viewportDimension);
+    //
+    // In other words, the farthest the list can scroll up might be farther up
+    // than the answer here: it could always scroll up to 0.0, meaning that the
+    // boundary between slivers is at the bottom edge of the viewport.
+    // Whenever the top sliver is shorter than the viewport (and the bottom
+    // sliver isn't empty), this would mean one can scroll up past
+    // the top of the list, even though that scrolls other content offscreen.
+
     return applyContentDimensions(effectiveMin, effectiveMax);
   }
 
@@ -297,6 +330,8 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
     if (!_hasEverCompletedLayout) {
       // The list is being laid out for the first time (its first performLayout).
       // Start out scrolled to the end.
+      // This also brings [pixels] within bounds, which
+      // the initial value of 0.0 might not have been.
       final target = maxScrollExtent;
       if (!hasPixels || pixels != target) {
         correctPixels(target);
@@ -304,6 +339,12 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
       }
     }
 
+    // This step must come after the first-time correction above.
+    // Otherwise, if the initial [pixels] value of 0.0 was out of bounds
+    // (which happens if the top slivers are shorter than the viewport),
+    // then the base implementation of [applyContentDimensions] would
+    // bring it in bounds via a scrolling animation, which isn't right when
+    // starting from the meaningless initial 0.0 value.
     if (!super.applyContentDimensions(minScrollExtent, maxScrollExtent)) {
       changed = true;
     }
