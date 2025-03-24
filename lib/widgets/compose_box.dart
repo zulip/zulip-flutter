@@ -576,16 +576,26 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     });
   }
 
+  void _hasChosenTopicChanged() {
+    setState(() {
+      // The relevant state lives on widget.controller.hasChosenTopic itself.
+    });
+  }
+
   void _contentFocusChanged() {
     setState(() {
       // The relevant state lives on widget.controller.contentFocusNode itself.
     });
+    if (widget.controller.contentFocusNode.hasFocus){
+      widget.controller.hasChosenTopic.value = true;
+    }
   }
 
   @override
   void initState() {
     super.initState();
     widget.controller.topic.addListener(_topicChanged);
+    widget.controller.hasChosenTopic.addListener(_hasChosenTopicChanged);
     widget.controller.contentFocusNode.addListener(_contentFocusChanged);
   }
 
@@ -596,6 +606,10 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       oldWidget.controller.topic.removeListener(_topicChanged);
       widget.controller.topic.addListener(_topicChanged);
     }
+    if (widget.controller.hasChosenTopic != oldWidget.controller.hasChosenTopic) {
+      oldWidget.controller.hasChosenTopic.removeListener(_hasChosenTopicChanged);
+      widget.controller.hasChosenTopic.addListener(_hasChosenTopicChanged);
+    }
     if (widget.controller.contentFocusNode != oldWidget.controller.contentFocusNode) {
       oldWidget.controller.contentFocusNode.removeListener(_contentFocusChanged);
       widget.controller.contentFocusNode.addListener(_contentFocusChanged);
@@ -605,6 +619,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   @override
   void dispose() {
     widget.controller.topic.removeListener(_topicChanged);
+    widget.controller.hasChosenTopic.removeListener(_hasChosenTopicChanged);
     widget.controller.contentFocusNode.removeListener(_contentFocusChanged);
     super.dispose();
   }
@@ -616,7 +631,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
         // The chosen topic can't be sent to, so don't show it.
         return null;
       }
-      if (!widget.controller.contentFocusNode.hasFocus) {
+      if (!widget.controller.hasChosenTopic.value) {
         // Do not fall back to a vacuous topic unless the user explicitly chooses
         // to do so (by skipping topic input and moving focus to content input),
         // so that the user is not encouraged to use vacuous topic when they
@@ -656,11 +671,46 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   }
 }
 
-class _TopicInput extends StatelessWidget {
+class _TopicInput extends StatefulWidget {
   const _TopicInput({required this.streamId, required this.controller});
 
   final int streamId;
   final StreamComposeBoxController controller;
+
+  @override
+  State<_TopicInput> createState() => _TopicInputState();
+}
+
+class _TopicInputState extends State<_TopicInput> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.topicFocusNode.addListener(_topicFocusChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _TopicInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller.topicFocusNode != oldWidget.controller.topicFocusNode) {
+      oldWidget.controller.topicFocusNode.removeListener(_topicFocusChanged);
+      widget.controller.topicFocusNode.addListener(_topicFocusChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.topicFocusNode.removeListener(_topicFocusChanged);
+    super.dispose();
+  }
+
+  void _topicFocusChanged() {
+    setState(() {
+      // The relevant state lives on widget.controller.topicFocusNode itself.
+    });
+    if (widget.controller.topicFocusNode.hasFocus) {
+      widget.controller.hasChosenTopic.value = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -673,18 +723,18 @@ class _TopicInput extends StatelessWidget {
     ).merge(weightVariableTextStyle(context, wght: 600));
 
     return TopicAutocomplete(
-      streamId: streamId,
-      controller: controller.topic,
-      focusNode: controller.topicFocusNode,
-      contentFocusNode: controller.contentFocusNode,
+      streamId: widget.streamId,
+      controller: widget.controller.topic,
+      focusNode: widget.controller.topicFocusNode,
+      contentFocusNode: widget.controller.contentFocusNode,
       fieldViewBuilder: (context) => Container(
         padding: const EdgeInsets.only(top: 10, bottom: 9),
         decoration: BoxDecoration(border: Border(bottom: BorderSide(
           width: 1,
           color: designVariables.foreground.withFadedAlpha(0.2)))),
         child: TextField(
-          controller: controller.topic,
-          focusNode: controller.topicFocusNode,
+          controller: widget.controller.topic,
+          focusNode: widget.controller.topicFocusNode,
           textInputAction: TextInputAction.next,
           style: topicTextStyle,
           decoration: InputDecoration(
@@ -1368,10 +1418,18 @@ class StreamComposeBoxController extends ComposeBoxController {
   final ComposeTopicController topic;
   final topicFocusNode = FocusNode();
 
+  /// Whether the user has made up their mind choosing a topic.
+  ///
+  /// Empirically, this should be set to `false` whenever the user focuses on
+  /// the topic input, and set to `true` whenever the user focuses on the
+  /// content input.
+  ValueNotifier<bool> hasChosenTopic = ValueNotifier(false);
+
   @override
   void dispose() {
     topic.dispose();
     topicFocusNode.dispose();
+    hasChosenTopic.dispose();
     super.dispose();
   }
 }

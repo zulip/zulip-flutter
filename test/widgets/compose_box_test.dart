@@ -390,6 +390,37 @@ void main() {
           contentHintText: 'Message #${channel.name}');
       });
 
+      testWidgets('with empty topic, topic input has focus, then content input gains focus', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await enterTopic(tester, narrow: narrow, topic: '');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name}');
+
+        await enterContent(tester, '');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name} > '
+                           '${eg.defaultRealmEmptyTopicDisplayName}');
+      });
+
+      testWidgets('with empty topic, topic input has focus, then loses it', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await enterTopic(tester, narrow: narrow, topic: '');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name}');
+
+        FocusManager.instance.primaryFocus!.unfocus();
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name}');
+      });
+
       testWidgets('with empty topic, content input has focus', (tester) async {
         await prepare(tester, narrow: narrow, mandatoryTopics: false);
         await enterContent(tester, '');
@@ -408,6 +439,39 @@ void main() {
         checkComposeBoxHintTexts(tester,
           topicHintText: 'Topic',
           contentHintText: 'Message #${channel.name} > (no topic)');
+      });
+
+      testWidgets('with empty topic, content input has focus, then topic input gains focus', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await enterContent(tester, '');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name} > '
+                           '${eg.defaultRealmEmptyTopicDisplayName}');
+
+        await enterTopic(tester, narrow: narrow, topic: '');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name}');
+      });
+
+      testWidgets('with empty topic, content input has focus, then loses it', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await enterContent(tester, '');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name} > '
+                           '${eg.defaultRealmEmptyTopicDisplayName}');
+
+        FocusManager.instance.primaryFocus!.unfocus();
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name} > '
+                           '${eg.defaultRealmEmptyTopicDisplayName}');
       });
 
       testWidgets('with non-empty topic', (tester) async {
