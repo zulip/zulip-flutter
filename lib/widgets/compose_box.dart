@@ -411,25 +411,21 @@ abstract class _ContentInput extends StatefulWidget {
   // ignore: unused_element
   factory _ContentInput.noTypingNotifier({
     required Narrow narrow,
-    required SendableNarrow destination,
     required ComposeBoxController controller,
     required String hintText,
   }) => _ContentInputNoTypingNotifier._(
     narrow: narrow,
-    destination: destination,
     controller: controller,
     hintText: hintText,
   );
 
   const _ContentInput._({
     required this.narrow,
-    required this.destination,
     required this.controller,
     required this.hintText,
   });
 
   final Narrow narrow;
-  final SendableNarrow destination;
   final ComposeBoxController controller;
   final String hintText;
 }
@@ -437,10 +433,12 @@ abstract class _ContentInput extends StatefulWidget {
 class _ContentInputWithTypingNotifier extends _ContentInput {
   const _ContentInputWithTypingNotifier._({
     required super.narrow,
-    required super.destination,
+    required this.destination,
     required super.controller,
     required super.hintText,
   }) : super._();
+
+  final SendableNarrow destination;
 
   @override
   State<_ContentInput> createState() => _ContentInputStateWithTypingNotifier();
@@ -449,7 +447,6 @@ class _ContentInputWithTypingNotifier extends _ContentInput {
 class _ContentInputNoTypingNotifier extends _ContentInput {
   const _ContentInputNoTypingNotifier._({
     required super.narrow,
-    required super.destination,
     required super.controller,
     required super.hintText,
   }) : super._();
