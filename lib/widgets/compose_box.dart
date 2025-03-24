@@ -458,7 +458,7 @@ class _ContentInputNoTypingNotifier extends _ContentInput {
   State<_ContentInput> createState() => _ContentInputStateNoTypingNotifier();
 }
 
-class _ContentInputStateBase extends State<_ContentInput> {
+class _ContentInputStateBase<T extends _ContentInput> extends State<T> {
   static double maxHeight(BuildContext context) {
     final clampingTextScaler = MediaQuery.textScalerOf(context)
       .clamp(maxScaleFactor: 1.5);
@@ -534,10 +534,7 @@ class _ContentInputStateBase extends State<_ContentInput> {
 }
 
 
-class _ContentInputStateWithTypingNotifier extends _ContentInputStateBase with WidgetsBindingObserver, _TypingNotifierMixin {}
-class _ContentInputStateNoTypingNotifier extends _ContentInputStateBase {}
-
-mixin _TypingNotifierMixin on State<_ContentInput>, WidgetsBindingObserver {
+class _ContentInputStateWithTypingNotifier extends _ContentInputStateBase<_ContentInputWithTypingNotifier> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -547,7 +544,7 @@ mixin _TypingNotifierMixin on State<_ContentInput>, WidgetsBindingObserver {
   }
 
   @override
-  void didUpdateWidget(covariant _ContentInput oldWidget) {
+  void didUpdateWidget(covariant _ContentInputWithTypingNotifier oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.controller != oldWidget.controller) {
       oldWidget.controller.content.removeListener(_contentChanged);
@@ -610,6 +607,8 @@ mixin _TypingNotifierMixin on State<_ContentInput>, WidgetsBindingObserver {
     }
   }
 }
+
+class _ContentInputStateNoTypingNotifier extends _ContentInputStateBase<_ContentInputNoTypingNotifier> {}
 
 /// The content input for _StreamComposeBox.
 class _StreamContentInput extends StatefulWidget {
