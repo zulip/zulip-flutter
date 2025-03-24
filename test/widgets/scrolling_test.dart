@@ -160,7 +160,7 @@ void main() {
     final findTop = find.text('top', skipOffstage: false);
     final findBottom = find.text('bottom', skipOffstage: false);
 
-    testWidgets('short/short -> starts scrolled to bottom', (tester) async {
+    testWidgets('short/short -> pinned at bottom', (tester) async {
       // Starts out with items at bottom of viewport.
       await prepare(tester, topHeight: 100, bottomHeight: 100);
       check(tester.getRect(findBottom)).bottom.equals(600);
@@ -169,9 +169,14 @@ void main() {
       await tester.drag(findTop, Offset(0, -100));
       await tester.pump();
       check(tester.getRect(findBottom)).bottom.equals(600);
+
+      // Try scrolling up (by dragging down); doesn't move.
+      await tester.drag(findTop, Offset(0, 100));
+      await tester.pump();
+      check(tester.getRect(findBottom)).bottom.equals(600);
     });
 
-    testWidgets('short/long -> starts scrolled to bottom', (tester) async {
+    testWidgets('short/long -> scrolls to ends and no farther', (tester) async {
       // Starts out scrolled to bottom.
       await prepare(tester, topHeight: 100, bottomHeight: 800);
       check(tester.getRect(findBottom)).bottom.equals(600);
@@ -180,6 +185,34 @@ void main() {
       await tester.drag(findBottom, Offset(0, -100));
       await tester.pump();
       check(tester.getRect(findBottom)).bottom.equals(600);
+
+      // Try scrolling up (by dragging down); moves only as far as top of list.
+      await tester.drag(findBottom, Offset(0, 400));
+      await tester.pump();
+      check(tester.getRect(findBottom)).bottom.equals(900);
+      check(tester.getRect(findTop)).top.equals(0);
+    });
+
+    testWidgets('short/short -> starts at bottom, immediately without animation', (tester) async {
+      await prepare(tester, topHeight: 100, bottomHeight: 100);
+
+      final ys = <double>[];
+      for (int i = 0; i < 10; i++) {
+        ys.add(tester.getRect(findBottom).bottom - 600);
+        await tester.pump(Duration(milliseconds: 15));
+      }
+      check(ys).deepEquals(List.generate(10, (_) => 0.0));
+    });
+
+    testWidgets('short/long -> starts at bottom, immediately without animation', (tester) async {
+      await prepare(tester, topHeight: 100, bottomHeight: 800);
+
+      final ys = <double>[];
+      for (int i = 0; i < 10; i++) {
+        ys.add(tester.getRect(findBottom).bottom - 600);
+        await tester.pump(Duration(milliseconds: 15));
+      }
+      check(ys).deepEquals(List.generate(10, (_) => 0.0));
     });
 
     testWidgets('starts at bottom, even when bottom underestimated at first', (tester) async {
