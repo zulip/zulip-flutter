@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart';
 
 /// A [SingleChildScrollView] that always shows a Material [Scrollbar].
@@ -320,6 +321,9 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
     return applyContentDimensions(effectiveMin, effectiveMax);
   }
 
+  bool _nearEqual(double a, double b) =>
+    nearEqual(a, b, Tolerance.defaultTolerance.distance);
+
   bool _hasEverCompletedLayout = false;
 
   @override
@@ -337,6 +341,13 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
         correctPixels(target);
         changed = true;
       }
+    } else if (_nearEqual(pixels, this.maxScrollExtent)
+        && !_nearEqual(pixels, maxScrollExtent)) {
+      // The list was scrolled to the end before this layout round.
+      // Make sure it stays at the end.
+      // (For example, show the new message that just arrived.)
+      correctPixels(maxScrollExtent);
+      changed = true;
     }
 
     // This step must come after the first-time correction above.
@@ -345,6 +356,11 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
     // then the base implementation of [applyContentDimensions] would
     // bring it in bounds via a scrolling animation, which isn't right when
     // starting from the meaningless initial 0.0 value.
+    //
+    // For the "stays at the end" correction, it's not clear if the order
+    // matters in practice.  But the doc on [applyNewDimensions], called by
+    // the base [applyContentDimensions], says it should come after any
+    // calls to [correctPixels]; so OK, do this after the [correctPixels].
     if (!super.applyContentDimensions(minScrollExtent, maxScrollExtent)) {
       changed = true;
     }

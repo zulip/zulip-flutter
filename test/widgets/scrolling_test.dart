@@ -243,6 +243,35 @@ void main() {
         .bottom.equals(600);
     });
 
+    testWidgets('stick to end of list when it grows', (tester) async {
+      final controller = MessageListScrollController();
+      await prepare(tester, controller: controller,
+        topHeight: 400, bottomHeight: 400);
+      check(tester.getRect(findBottom))..top.equals(200)..bottom.equals(600);
+
+      // Bottom sliver grows; remain scrolled to (new) bottom.
+      await prepare(tester, controller: controller,
+        topHeight: 400, bottomHeight: 500);
+      check(tester.getRect(findBottom))..top.equals(100)..bottom.equals(600);
+    });
+
+    testWidgets('when not at end, let it grow without following', (tester) async {
+      final controller = MessageListScrollController();
+      await prepare(tester, controller: controller,
+        topHeight: 400, bottomHeight: 400);
+      check(tester.getRect(findBottom))..top.equals(200)..bottom.equals(600);
+
+      // Scroll up (by dragging down) to detach from end of list.
+      await tester.drag(findBottom, Offset(0, 100));
+      await tester.pump();
+      check(tester.getRect(findBottom))..top.equals(300)..bottom.equals(700);
+
+      // Bottom sliver grows; remain at existing position, now farther from end.
+      await prepare(tester, controller: controller,
+        topHeight: 400, bottomHeight: 500);
+      check(tester.getRect(findBottom))..top.equals(300)..bottom.equals(800);
+    });
+
     testWidgets('position preserved when scrollable rebuilds', (tester) async {
       // Tests that [MessageListScrollPosition.absorb] does its job.
       //
