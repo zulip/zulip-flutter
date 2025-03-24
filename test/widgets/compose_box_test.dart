@@ -404,7 +404,7 @@ void main() {
           topicHintText: 'Topic',
           contentHintText: 'Message #${channel.name} > '
                            '${eg.defaultRealmEmptyTopicDisplayName}');
-      }, skip: true); // null topic names soon to be enabled
+      });
 
       testWidgets('legacy: with empty topic, content input has focus', (tester) async {
         await prepare(tester, narrow: narrow, mandatoryTopics: false,

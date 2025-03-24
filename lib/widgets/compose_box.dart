@@ -624,7 +624,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   }
 
   /// The topic name to show in the hint text, or null to show no topic.
-  TopicName? _hintTopic() {
+  String? _hintTopicStr() {
     if (widget.controller.topic.isTopicVacuous) {
       if (widget.controller.topic.mandatory) {
         // The chosen topic can't be sent to, so don't show it.
@@ -639,7 +639,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       }
     }
 
-    return TopicName(widget.controller.topic.textNormalized);
+    return widget.controller.topic.textNormalized;
   }
 
   @override
@@ -649,15 +649,15 @@ class _StreamContentInputState extends State<_StreamContentInput> {
 
     final streamName = store.streams[widget.narrow.streamId]?.name
       ?? zulipLocalizations.unknownChannelName;
-    final hintTopic = _hintTopic();
-    final hintDestination = hintTopic == null
+    final hintTopicStr = _hintTopicStr();
+    final hintDestination = hintTopicStr == null
       // No i18n of this use of "#" and ">" string; those are part of how
       // Zulip expresses channels and topics, not any normal English punctuation,
       // so don't make sense to translate. See:
       //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
       ? '#$streamName'
-      // ignore: dead_null_aware_expression // null topic names soon to be enabled
-      : '#$streamName > ${hintTopic.displayName ?? store.realmEmptyTopicDisplayName}';
+      : '#$streamName > '
+        '${hintTopicStr.isEmpty ? store.realmEmptyTopicDisplayName : hintTopicStr}';
 
     return _TypingNotifier(
       destination: TopicNarrow(widget.narrow.streamId,
