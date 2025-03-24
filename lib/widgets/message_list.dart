@@ -645,7 +645,6 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
       controller: scrollController,
       semanticChildCount: length + 2,
-      anchor: 1.0,
       center: centerSliverKey,
       paintOrder: SliverPaintOrder.firstIsTop,
 
