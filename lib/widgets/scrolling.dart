@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart';
 
 /// A [SingleChildScrollView] that always shows a Material [Scrollbar].
@@ -310,6 +311,39 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
     // the top of the list, even though that scrolls other content offscreen.
 
     return applyContentDimensions(effectiveMin, effectiveMax);
+  }
+
+  bool get _isAtEnd => nearEqual(pixels, maxScrollExtent,
+    Tolerance.defaultTolerance.distance);
+
+  @override
+  bool applyContentDimensions(double minScrollExtent, double maxScrollExtent) {
+    // Inspired by _TabBarScrollPosition.applyContentDimensions upstream.
+    bool changed = false;
+
+    final initial = !hasContentDimensions;
+    final wasAtEnd = hasContentDimensions && _isAtEnd;
+
+    if (!super.applyContentDimensions(minScrollExtent, maxScrollExtent)) {
+      changed = true;
+    }
+
+    if (initial) {
+      // The list is being laid out for the first time.
+      // Start out scrolled to the end.
+      // TODO what if the next _attemptLayout iteration finds more items below
+      //   and makes maxScrollExtent bigger?
+      correctPixels(this.maxScrollExtent);
+      changed = true;
+    } else if (wasAtEnd && !_isAtEnd) {
+      // The list was scrolled to the end before this layout round.
+      // Make sure it stays at the end.
+      // (For example, show the new message that just arrived.)
+      correctPixels(this.maxScrollExtent);
+      changed = true;
+    }
+
+    return !changed;
   }
 }
 
