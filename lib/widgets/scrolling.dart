@@ -259,6 +259,25 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
     super.oldPosition,
     super.debugLabel,
   });
+
+  /// Like [applyContentDimensions], but called without adjusting
+  /// the arguments to subtract the viewport dimension.
+  ///
+  /// For instance, if there is 100.0 pixels of scrollable content
+  /// of which 40.0 pixels is in the reverse-growing slivers and
+  /// 60.0 pixels in the forward-growing slivers, then the arguments
+  /// will be -40.0 and 60.0, regardless of the viewport dimension.
+  ///
+  /// By contrast in a call to [applyContentDimensions], in this example and
+  /// if the viewport dimension is 80.0, then the arguments might be
+  /// 0.0 and 60.0, or -10.0 and 10.0, or -40.0 and 0.0, or other values,
+  /// depending on the value of [Viewport.anchor].
+  bool applyContentDimensionsRaw(double wholeMinScrollExtent, double wholeMaxScrollExtent) {
+    // This makes the simplifying assumption that `anchor` is 1.0.
+    final effectiveMin = math.min(0.0, wholeMinScrollExtent + viewportDimension);
+    final effectiveMax = wholeMaxScrollExtent;
+    return applyContentDimensions(effectiveMin, effectiveMax);
+  }
 }
 
 /// A version of [ScrollController] adapted for the Zulip message list.
@@ -449,10 +468,12 @@ class RenderMessageListViewport extends RenderCustomPaintOrderViewport {
       if (correction != 0.0) {
         offset.correctBy(correction);
       } else {
-        if (offset.applyContentDimensions(
-          math.min(0.0, _minScrollExtent + mainAxisExtent * anchor),
-          math.max(0.0, _maxScrollExtent - mainAxisExtent * (1.0 - anchor)),
-        )) {
+        // TODO(upstream): Move applyContentDimensionsRaw to ViewportOffset
+        //   (possibly with an API change to tell it [anchor]?);
+        //   give it a default implementation calling applyContentDimensions;
+        //   have RenderViewport.performLayout call it.
+        if ((offset as MessageListScrollPosition)
+            .applyContentDimensionsRaw(_minScrollExtent, _maxScrollExtent)) {
           break;
         }
       }
