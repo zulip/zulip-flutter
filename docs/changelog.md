@@ -3,6 +3,35 @@
 ## Unreleased
 
 
+## 0.0.27 (2025-03-17)
+
+### Highlights for users
+
+* Handle website previews in messages. (#1016)
+* Settings for dark vs. light theme, or opening links
+  in a browser within or outside the app. (#1216, #1228)
+* Better handle moved or resolved topics: follow topic permalinks
+  (#1028), and update inbox (#901).
+* Design updates including dark-theme contrast (#973), autocomplete
+  results (#913), and app icons (#1254, #415, (Android: #1402, #1401)).
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* We now have a GitHub action making a weekly PR to update
+  translations from Weblate. (#276)
+
+* All user-facing strings are now wired up for translation, or else
+  have a comment saying why translation wouldn't be appropriate or
+  is currently difficult. (#277)
+
+* Resolved: #277, part of #1210, #1319, #1358, #1130, #1247, #737,
+  #1246, #1172, #1028, #1016, PR #1380, #1178, #59, #1356, #973,
+  PR #1315, #913, #1225, #1357, #1226, #1216, #1354, #1254, #415,
+  #1402, #1401, #1228, part of #901
+
+
 ## 0.0.26 (2025-02-07)
 
 ### Highlights for users

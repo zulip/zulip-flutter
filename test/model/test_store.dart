@@ -62,12 +62,14 @@ mixin _ApiConnectionsMixin on GlobalStore {
   }
 }
 
-mixin _DatabaseMixin on GlobalStore {
+class _TestGlobalStoreBackend implements GlobalStoreBackend {
   @override
   Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data) async {
     // Nothing to do.
   }
+}
 
+mixin _DatabaseMixin on GlobalStore {
   int _nextAccountId = 1;
 
   @override
@@ -138,7 +140,8 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
   TestGlobalStore({
     GlobalSettingsData? globalSettings,
     required super.accounts,
-  }) : super(globalSettings: globalSettings ?? eg.globalSettings());
+  }) : super(backend: _TestGlobalStoreBackend(),
+         globalSettings: globalSettings ?? GlobalSettingsData());
 
   final Map<int, InitialSnapshot> _initialSnapshots = {};
 
@@ -202,7 +205,8 @@ class UpdateMachineTestGlobalStore extends GlobalStore with _ApiConnectionsMixin
   UpdateMachineTestGlobalStore({
     GlobalSettingsData? globalSettings,
     required super.accounts,
-  }) : super(globalSettings: globalSettings ?? eg.globalSettings());
+  }) : super(backend: _TestGlobalStoreBackend(),
+         globalSettings: globalSettings ?? GlobalSettingsData());
 
   // [doLoadPerAccount] depends on the cache to prepare the API responses.
   // Calling [clearCachedApiConnections] is permitted, though.

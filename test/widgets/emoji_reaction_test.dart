@@ -9,6 +9,7 @@ import 'package:flutter_checks/flutter_checks.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:legacy_checks/legacy_checks.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/realm.dart';
@@ -141,8 +142,8 @@ void main() {
                 await setupChipsInBox(tester, reactions: reactions);
 
                 final reactionChipsList = tester.element(find.byType(ReactionChipsList));
-                check(MediaQuery.of(reactionChipsList))
-                  .textScaler.equals(TextScaler.linear(textScaleFactor));
+                check(MediaQuery.of(reactionChipsList).textScaler).legacyMatcher(
+                  isSystemTextScaler(withScaleFactor: textScaleFactor));
                 check(Directionality.of(reactionChipsList)).equals(textDirection);
 
                 // TODO(upstream) Do these in an addTearDown, once we can:
