@@ -300,7 +300,6 @@ class MessageListScrollView extends CustomPaintOrderScrollView {
     super.scrollBehavior,
     // super.shrinkWrap, // omitted, always false
     super.center,
-    super.anchor,
     super.cacheExtent,
     super.slivers,
     super.semanticChildCount,
@@ -321,7 +320,6 @@ class MessageListScrollView extends CustomPaintOrderScrollView {
       slivers: slivers,
       cacheExtent: cacheExtent,
       center: center,
-      anchor: anchor,
       clipBehavior: clipBehavior,
       paintOrder_: paintOrder_,
     );
@@ -334,7 +332,6 @@ class MessageListViewport extends CustomPaintOrderViewport {
     super.key,
     super.axisDirection,
     super.crossAxisDirection,
-    super.anchor,
     required super.offset,
     super.center,
     super.cacheExtent,
@@ -350,7 +347,6 @@ class MessageListViewport extends CustomPaintOrderViewport {
       axisDirection: axisDirection,
       crossAxisDirection: crossAxisDirection
         ?? Viewport.getDefaultCrossAxisDirection(context, axisDirection),
-      anchor: anchor,
       offset: offset,
       cacheExtent: cacheExtent,
       cacheExtentStyle: cacheExtentStyle,
@@ -369,7 +365,6 @@ class RenderMessageListViewport extends RenderCustomPaintOrderViewport {
     super.axisDirection,
     required super.crossAxisDirection,
     required super.offset,
-    super.anchor,
     super.children,
     super.center,
     super.cacheExtent,
@@ -377,6 +372,9 @@ class RenderMessageListViewport extends RenderCustomPaintOrderViewport {
     super.clipBehavior,
     required super.paintOrder_,
   });
+
+  @override
+  double get anchor => 1.0;
 
   double? _calculatedCacheExtent;
 
@@ -499,6 +497,7 @@ class RenderMessageListViewport extends RenderCustomPaintOrderViewport {
     // centerOffset is the offset from the leading edge of the RenderViewport
     // to the zero scroll offset (the line between the forward slivers and the
     // reverse slivers).
+    assert(anchor == 1.0);
     final double centerOffset = mainAxisExtent * anchor - correctedOffset;
     final double reverseDirectionRemainingPaintExtent = clampDouble(
       centerOffset,
