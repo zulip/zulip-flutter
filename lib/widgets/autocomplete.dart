@@ -273,12 +273,16 @@ class _MentionAutocompleteItem extends StatelessWidget {
     Widget avatar;
     String label;
     String? sublabel;
+    String? pronouns;
     switch (option) {
       case UserMentionAutocompleteResult(:var userId):
         final user = store.getUser(userId)!; // must exist because UserMentionAutocompleteResult
         avatar = Avatar(userId: userId, size: 36, borderRadius: 4);
         label = user.fullName;
         sublabel = store.userDisplayEmail(user);
+        if(user.profileData !=null){
+        pronouns = user.profileData![19]?.value;
+        }
       case WildcardMentionAutocompleteResult(:var wildcardOption):
         avatar = SizedBox.square(dimension: 36,
           child: const Icon(ZulipIcons.three_person, size: 24));
@@ -306,6 +310,14 @@ class _MentionAutocompleteItem extends StatelessWidget {
       overflow: TextOverflow.ellipsis,
       maxLines: 1);
 
+    final pronounWidget = pronouns == null ? null : Text(
+      pronouns,
+      style: TextStyle(
+        fontSize: 14,
+        height: 16 / 14,
+        color: designVariables.contextMenuItemMeta),);
+
+
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(4, 4, 8, 4),
       child: Row(children: [
@@ -318,6 +330,7 @@ class _MentionAutocompleteItem extends StatelessWidget {
             labelWidget,
             if (sublabelWidget != null) sublabelWidget,
           ])),
+          if(pronounWidget != null) pronounWidget,
       ]));
   }
 }
