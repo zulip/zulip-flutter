@@ -8,11 +8,118 @@ import '../log.dart';
 import 'message_list.dart';
 
 const _apiSendMessage = sendMessage; // Bit ugly; for alternatives, see: https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20PerAccountStore.20methods/near/1545809
+const kLocalEchoDebounceDuration = Duration(milliseconds: 300);
+
+/// States outlining where an [OutboxMessage] is, in its lifecycle.
+///
+/// ```
+///                                                Event received,
+///               Send                             or we abandoned
+///            immediately.            200.        the queue.
+///  (create) ──────────────► sending ──────► sent ────────────────► (delete)
+///                               │                                     ▲
+///                               │ 4xx or                     User     │
+///                               │ other error.               cancels. │
+///                               └────────► failed ────────────────────┘
+/// ```
+enum OutboxMessageLifecycle {
+  sending,
+  sent,
+  failed,
+}
+
+/// A locally echoed message sent by the self-user.
+sealed class OutboxMessage<T extends MessageDestination> implements DisplayableMessage<T> {
+  /// Construct a new [OutboxMessage] with a unique [localMessageId].
+  OutboxMessage({
+    required int selfUserId,
+    required this.content,
+  }) : senderId = selfUserId,
+       timestamp = (DateTime.timestamp().millisecondsSinceEpoch / 1000).toInt(),
+       localMessageId = _nextLocalMessageId++,
+       _state = OutboxMessageLifecycle.sending;
+
+  static OutboxMessage fromDestination(MessageDestination destination, {
+    required int selfUserId,
+    required String content,
+  }) {
+    return switch (destination) {
+      StreamDestination() => StreamOutboxMessage(
+        selfUserId: selfUserId, destination: destination, content: content),
+      DmDestination() => DmOutboxMessage(
+        selfUserId: selfUserId, destination: destination, content: content),
+    };
+  }
+
+  @override
+  int? get id => null;
+
+  @override
+  final int senderId;
+  @override
+  final int timestamp;
+  final String content;
+
+  /// The next fresh local message ID from a strictly increasing sequence.
+  static int _nextLocalMessageId = 1;
+  /// ID corresponding to [MessageEvent.localMessageId], which identifies
+  /// locally echoed message.
+  final int localMessageId;
+
+  OutboxMessageLifecycle get state => _state;
+  OutboxMessageLifecycle _state;
+  set state(OutboxMessageLifecycle value) {
+    // See [OutboxMessageLifecycle] for valid state transitions.
+    switch (value) {
+      case OutboxMessageLifecycle.sending:
+        assert(false);
+      case OutboxMessageLifecycle.sent:
+      case OutboxMessageLifecycle.failed:
+        assert(_state == OutboxMessageLifecycle.sending);
+    }
+    _state = value;
+  }
+
+  /// Whether the OutboxMessage will be hidden to [MessageListView] or not.
+  ///
+  /// When set to false with [unhide], this cannot be toggle back to true again.
+  bool get hidden => _hidden;
+  bool _hidden = true;
+  void unhide() {
+    assert(_hidden);
+    _hidden = false;
+  }
+}
+
+class StreamOutboxMessage extends OutboxMessage<StreamDestination> {
+  StreamOutboxMessage({
+    required super.selfUserId,
+    required this.destination,
+    required super.content,
+  });
+
+  @override
+  final StreamDestination destination;
+}
+
+class DmOutboxMessage extends OutboxMessage<DmDestination> {
+  DmOutboxMessage({
+    required super.selfUserId,
+    required this.destination,
+    required super.content,
+  });
+
+  @override
+  final DmDestination destination;
+}
 
 /// The portion of [PerAccountStore] for messages and message lists.
 mixin MessageStore {
   /// All known messages, indexed by [Message.id].
   Map<int, Message> get messages;
+
+  /// Messages sent by the user, indexed by [OutboxMessage.localMessageId].
+  Map<int, OutboxMessage> get outboxMessages;
 
   Set<MessageListView> get debugMessageListViews;
 
@@ -41,12 +148,16 @@ class MessageStoreImpl with MessageStore {
   MessageStoreImpl({required this.connection})
     // There are no messages in InitialSnapshot, so we don't have
     // a use case for initializing MessageStore with nonempty [messages].
-    : messages = {};
+    : messages = {},
+      outboxMessages = {};
 
   final ApiConnection connection;
 
   @override
   final Map<int, Message> messages;
+
+  @override
+  final Map<int, OutboxMessage> outboxMessages;
 
   final Set<MessageListView> _messageListViews = {};
 

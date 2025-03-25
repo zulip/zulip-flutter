@@ -639,6 +639,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
   @override
   Map<int, Message> get messages => _messages.messages;
   @override
+  Map<int, OutboxMessage> get outboxMessages => _messages.outboxMessages;
+  @override
   void registerMessageList(MessageListView view) =>
     _messages.registerMessageList(view);
   @override
