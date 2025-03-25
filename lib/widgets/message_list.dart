@@ -622,7 +622,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           if (i == 2) return TypingStatusWidget(narrow: widget.narrow);
 
           final data = model!.items[length - 1 - (i - 3)];
-          return _buildItem(zulipLocalizations, data, i);
+          return _buildItem(zulipLocalizations, data);
         }));
 
     if (!ComposeBox.hasComposeBox(widget.narrow)) {
@@ -659,7 +659,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       ]);
   }
 
-  Widget _buildItem(ZulipLocalizations zulipLocalizations, MessageListItem data, int i) {
+  Widget _buildItem(ZulipLocalizations zulipLocalizations, MessageListItem data) {
     switch (data) {
       case MessageListHistoryStartItem():
         return Center(
@@ -685,7 +685,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         return MessageItem(
           key: ValueKey(data.message.id),
           header: header,
-          trailingWhitespace: i == 1 ? 8 : 11,
+          trailingWhitespace: 11,
           item: data);
     }
   }
