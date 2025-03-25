@@ -2,38 +2,37 @@
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/model/message.dart';
 import 'package:zulip/model/narrow.dart';
 
 import '../example_data.dart' as eg;
 import 'narrow_checks.dart';
 
-/// A [MessageBase] subclass for testing.
-// TODO(#1441): switch to outbox-messages instead
-sealed class _TestMessage<T extends Conversation> extends MessageBase<T> {
-  @override
-  final int? id = null;
-
-  _TestMessage() : super(senderId: eg.selfUser.userId, timestamp: 123456789);
-}
-
-class _TestStreamMessage extends _TestMessage<StreamConversation> {
-  @override
-  final StreamConversation conversation;
-
-  _TestStreamMessage({required ZulipStream stream, required String topic})
-    : conversation = StreamConversation(
-        stream.streamId, TopicName(topic), displayRecipient: null);
-}
-
-class _TestDmMessage extends _TestMessage<DmConversation> {
-  @override
-  final DmConversation conversation;
-
-  _TestDmMessage({required List<int> allRecipientIds})
-    : conversation = DmConversation(allRecipientIds: allRecipientIds);
-}
-
 void main() {
+  int nextLocalMessageId = 1;
+
+  StreamOutboxMessage streamOutboxMessage({
+    required ZulipStream stream,
+    required String topic,
+  }) {
+    return StreamOutboxMessage(
+      localMessageId: nextLocalMessageId++,
+      selfUserId: eg.selfUser.userId,
+      timestamp: 123456789,
+      conversation: StreamConversation(
+        stream.streamId, TopicName(topic), displayRecipient: null),
+      content: 'content');
+  }
+
+  DmOutboxMessage dmOutboxMessage({required List<int> allRecipientIds}) {
+    return DmOutboxMessage(
+      localMessageId: nextLocalMessageId++,
+      selfUserId: allRecipientIds[0],
+      timestamp: 123456789,
+      conversation: DmConversation(allRecipientIds: allRecipientIds),
+      content: 'content');
+  }
+
   group('SendableNarrow', () {
     test('ofMessage: stream message', () {
       final message = eg.streamMessage();
@@ -61,11 +60,11 @@ void main() {
         eg.streamMessage(stream: stream,      topic: 'topic'))).isTrue();
 
       check(narrow.containsMessage(
-        _TestDmMessage(allRecipientIds: [1]))).isFalse();
+        dmOutboxMessage(allRecipientIds: [1]))).isFalse();
       check(narrow.containsMessage(
-        _TestStreamMessage(stream: otherStream, topic: 'topic'))).isFalse();
+        streamOutboxMessage(stream: otherStream, topic: 'topic'))).isFalse();
       check(narrow.containsMessage(
-        _TestStreamMessage(stream: stream,      topic: 'topic'))).isTrue();
+        streamOutboxMessage(stream: stream,      topic: 'topic'))).isTrue();
     });
   });
 
@@ -91,13 +90,13 @@ void main() {
         eg.streamMessage(stream: stream,      topic: 'topic'))).isTrue();
 
       check(narrow.containsMessage(
-        _TestDmMessage(allRecipientIds: [1]))).isFalse();
+        dmOutboxMessage(allRecipientIds: [1]))).isFalse();
       check(narrow.containsMessage(
-        _TestStreamMessage(stream: otherStream, topic: 'topic'))).isFalse();
+        streamOutboxMessage(stream: otherStream, topic: 'topic'))).isFalse();
       check(narrow.containsMessage(
-        _TestStreamMessage(stream: stream,      topic: 'topic2'))).isFalse();
+        streamOutboxMessage(stream: stream,      topic: 'topic2'))).isFalse();
       check(narrow.containsMessage(
-        _TestStreamMessage(stream: stream,      topic: 'topic'))).isTrue();
+        streamOutboxMessage(stream: stream,      topic: 'topic'))).isTrue();
     });
   });
 
@@ -223,13 +222,13 @@ void main() {
       final narrow = DmNarrow(allRecipientIds: [1, 2], selfUserId: 2);
 
       check(narrow.containsMessage(
-        _TestStreamMessage(stream: eg.stream(), topic: 'topic'))).isFalse();
+        streamOutboxMessage(stream: eg.stream(), topic: 'topic'))).isFalse();
       check(narrow.containsMessage(
-        _TestDmMessage(allRecipientIds: [2]))).isFalse();
+        dmOutboxMessage(allRecipientIds: [2]))).isFalse();
       check(narrow.containsMessage(
-        _TestDmMessage(allRecipientIds: [2, 3]))).isFalse();
+        dmOutboxMessage(allRecipientIds: [2, 3]))).isFalse();
       check(narrow.containsMessage(
-        _TestDmMessage(allRecipientIds: [1, 2]))).isTrue();
+        dmOutboxMessage(allRecipientIds: [1, 2]))).isTrue();
     });
   });
 
@@ -245,9 +244,9 @@ void main() {
         eg.streamMessage(flags: [MessageFlag.wildcardMentioned]))).isTrue();
 
       check(narrow.containsMessage(
-        _TestStreamMessage(stream: eg.stream(), topic: 'topic'))).isFalse();
+        streamOutboxMessage(stream: eg.stream(), topic: 'topic'))).isFalse();
       check(narrow.containsMessage(
-        _TestDmMessage(allRecipientIds: [eg.selfUser.userId]))).isFalse();
+        dmOutboxMessage(allRecipientIds: [eg.selfUser.userId]))).isFalse();
     });
   });
 
@@ -261,9 +260,9 @@ void main() {
         eg.streamMessage(flags:[MessageFlag.starred]))).isTrue();
 
       check(narrow.containsMessage(
-        _TestStreamMessage(stream: eg.stream(), topic: 'topic'))).isFalse();
+        streamOutboxMessage(stream: eg.stream(), topic: 'topic'))).isFalse();
       check(narrow.containsMessage(
-        _TestDmMessage(allRecipientIds: [eg.selfUser.userId]))).isFalse();
+        dmOutboxMessage(allRecipientIds: [eg.selfUser.userId]))).isFalse();
     });
   });
 }
