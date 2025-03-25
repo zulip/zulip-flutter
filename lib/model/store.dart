@@ -393,7 +393,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
         typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
       ),
       channels: channels,
-      messages: MessageStoreImpl(),
+      messages: MessageStoreImpl(connection: connection),
       unreads: Unreads(
         initial: initialSnapshot.unreadMsgs,
         selfUserId: account.userId,
@@ -829,16 +829,10 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
     }
   }
 
+  @override
   Future<void> sendMessage({required MessageDestination destination, required String content}) {
     assert(!_disposed);
-
-    // TODO implement outbox; see design at
-    //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/.23M3881.20Sending.20outbox.20messages.20is.20fraught.20with.20issues/near/1405739
-    return _apiSendMessage(connection,
-      destination: destination,
-      content: content,
-      readBySender: true,
-    );
+    return _messages.sendMessage(destination: destination, content: content);
   }
 
   static List<CustomProfileField> _sortCustomProfileFields(List<CustomProfileField> initialCustomProfileFields) {
@@ -860,7 +854,6 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
   String toString() => '${objectRuntimeType(this, 'PerAccountStore')}#${shortHash(this)}';
 }
 
-const _apiSendMessage = sendMessage; // Bit ugly; for alternatives, see: https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20PerAccountStore.20methods/near/1545809
 const _tryResolveUrl = tryResolveUrl;
 
 /// Like [Uri.resolve], but on failure return null instead of throwing.

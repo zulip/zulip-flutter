@@ -1,9 +1,13 @@
 import 'dart:convert';
 
+import '../api/core.dart';
 import '../api/model/events.dart';
 import '../api/model/model.dart';
+import '../api/route/messages.dart';
 import '../log.dart';
 import 'message_list.dart';
+
+const _apiSendMessage = sendMessage; // Bit ugly; for alternatives, see: https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20PerAccountStore.20methods/near/1545809
 
 /// The portion of [PerAccountStore] for messages and message lists.
 mixin MessageStore {
@@ -14,6 +18,11 @@ mixin MessageStore {
 
   void registerMessageList(MessageListView view);
   void unregisterMessageList(MessageListView view);
+
+  Future<void> sendMessage({
+    required MessageDestination destination,
+    required String content,
+  });
 
   /// Reconcile a batch of just-fetched messages with the store,
   /// mutating the list.
@@ -29,10 +38,12 @@ mixin MessageStore {
 }
 
 class MessageStoreImpl with MessageStore {
-  MessageStoreImpl()
+  MessageStoreImpl({required this.connection})
     // There are no messages in InitialSnapshot, so we don't have
     // a use case for initializing MessageStore with nonempty [messages].
     : messages = {};
+
+  final ApiConnection connection;
 
   @override
   final Map<int, Message> messages;
@@ -75,6 +86,17 @@ class MessageStoreImpl with MessageStore {
     //   [InheritedNotifier] to rebuild in the next frame) before the owner's
     //   `dispose` or `onNewStore` is called.  Discussion:
     //     https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/MessageListView.20lifecycle/near/2086893
+  }
+
+  @override
+  Future<void> sendMessage({required MessageDestination destination, required String content}) {
+    // TODO implement outbox; see design at
+    //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/.23M3881.20Sending.20outbox.20messages.20is.20fraught.20with.20issues/near/1405739
+    return _apiSendMessage(connection,
+      destination: destination,
+      content: content,
+      readBySender: true,
+    );
   }
 
   @override
