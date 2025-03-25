@@ -64,20 +64,58 @@ void main() {
     });
 
     testWidgets('short/long -> scrolls to ends and no farther', (tester) async {
-      // Starts out scrolled to bottom.
+      // Starts out scrolled to top (to show top of the bottom sliver).
       await prepare(tester, topHeight: 100, bottomHeight: 800);
-      check(tester.getRect(findBottom)).bottom.equals(600);
+      check(tester.getRect(findTop)).top.equals(0);
+      check(tester.getRect(findBottom)).bottom.equals(900);
 
-      // Try scrolling down (by dragging up); doesn't move.
-      await tester.drag(findBottom, Offset(0, -100));
-      await tester.pump();
-      check(tester.getRect(findBottom)).bottom.equals(600);
-
-      // Try scrolling up (by dragging down); moves only as far as top of list.
-      await tester.drag(findBottom, Offset(0, 400));
+      // Try scrolling up (by dragging down); doesn't move.
+      await tester.drag(findBottom, Offset(0, 100));
       await tester.pump();
       check(tester.getRect(findBottom)).bottom.equals(900);
+
+      // Try scrolling down (by dragging up); moves only as far as bottom of list.
+      await tester.drag(findBottom, Offset(0, -400));
+      await tester.pump();
+      check(tester.getRect(findBottom)).bottom.equals(600);
+    });
+
+    testWidgets('starts by showing top of bottom sliver, long/long', (tester) async {
+      // Both slivers are long; the bottom sliver gets 75% of the viewport.
+      await prepare(tester, topHeight: 1000, bottomHeight: 3000);
+      check(tester.getRect(findBottom)).top.equals(150);
+    });
+
+    testWidgets('starts by showing top of bottom sliver, short/long', (tester) async {
+      // The top sliver is shorter than 25% of the viewport.
+      // It's shown in full, and the bottom sliver gets the rest (so >75%).
+      await prepare(tester, topHeight: 50, bottomHeight: 3000);
       check(tester.getRect(findTop)).top.equals(0);
+      check(tester.getRect(findBottom)).top.equals(50);
+    });
+
+    testWidgets('starts by showing top of bottom sliver, short/medium', (tester) async {
+      // The whole list fits in the viewport.  It's pinned to the bottom,
+      // even when that gives the bottom sliver more than 75%.
+      await prepare(tester, topHeight: 50, bottomHeight: 500);
+      check(tester.getRect(findTop))..top.equals(50)..bottom.equals(100);
+      check(tester.getRect(findBottom)).bottom.equals(600);
+    });
+
+    testWidgets('starts by showing top of bottom sliver, medium/short', (tester) async {
+      // The whole list fits in the viewport.  It's pinned to the bottom,
+      // even when that gives the top sliver more than 25%.
+      await prepare(tester, topHeight: 300, bottomHeight: 100);
+      check(tester.getRect(findTop))..top.equals(200)..bottom.equals(500);
+      check(tester.getRect(findBottom)).bottom.equals(600);
+    });
+
+    testWidgets('starts by showing top of bottom sliver, long/short', (tester) async {
+      // The bottom sliver is shorter than 75% of the viewport.
+      // It's shown in full, and the top sliver gets the rest (so >25%).
+      await prepare(tester, topHeight: 1000, bottomHeight: 300);
+      check(tester.getRect(findTop)).bottom.equals(300);
+      check(tester.getRect(findBottom)).bottom.equals(600);
     });
 
     testWidgets('short/short -> starts at bottom, immediately without animation', (tester) async {
@@ -91,20 +129,20 @@ void main() {
       check(ys).deepEquals(List.generate(10, (_) => 0.0));
     });
 
-    testWidgets('short/long -> starts at bottom, immediately without animation', (tester) async {
+    testWidgets('short/long -> starts at desired start, immediately without animation', (tester) async {
       await prepare(tester, topHeight: 100, bottomHeight: 800);
 
       final ys = <double>[];
       for (int i = 0; i < 10; i++) {
-        ys.add(tester.getRect(findBottom).bottom - 600);
+        ys.add(tester.getRect(findTop).top);
         await tester.pump(Duration(milliseconds: 15));
       }
       check(ys).deepEquals(List.generate(10, (_) => 0.0));
     });
 
-    testWidgets('starts at bottom, even when bottom underestimated at first', (tester) async {
+    testWidgets('starts at desired start, even when bottom underestimated at first', (tester) async {
       const numItems = 10;
-      const itemHeight = 300.0;
+      const itemHeight = 20.0;
 
       // A list where the bottom sliver takes several rounds of layout
       // to see how long it really is.
@@ -112,22 +150,25 @@ void main() {
       await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr,
         child: MessageListScrollView(
           controller: controller,
+          // The tiny cacheExtent causes each layout round to only reach
+          // the first item it expects will go beyond the viewport.
+          cacheExtent: 1.0, // in (logical) pixels!
           center: const ValueKey('center'),
           slivers: [
             SliverToBoxAdapter(
-              child: SizedBox(height: 100, child: Text('top'))),
+              child: SizedBox(height: 300, child: Text('top'))),
             SliverList.list(key: const ValueKey('center'),
               children: List.generate(numItems, (i) =>
                 SizedBox(height: (i+1) * itemHeight, child: Text('item $i')))),
           ])));
       await tester.pump();
 
-      // Starts out scrolled all the way to the bottom,
-      // even though it must have taken several rounds of layout to find that.
-      check(controller.position)
-        .pixels.equals(itemHeight * numItems * (numItems + 1)/2);
-      check(tester.getRect(find.text('item ${numItems-1}', skipOffstage: false)))
-        .bottom.equals(600);
+      // Starts out with the bottom sliver occupying 75% of the viewport…
+      check(controller.position).pixels.equals(450);
+      // … even though it has more height than that.
+      check(tester.getRect(find.text('item 6'))).bottom.isGreaterThan(600);
+      // (And even though on the first round of layout, it would have looked
+      // much shorter so that the view would have tried to scroll to its end.)
     });
 
     testWidgets('stick to end of list when it grows', (tester) async {

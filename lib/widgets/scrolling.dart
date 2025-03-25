@@ -245,10 +245,13 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
 
     if (!_hasEverCompletedLayout) {
       // The list is being laid out for the first time (its first performLayout).
-      // Start out scrolled to the end.
+      // Start out scrolled down so the bottom sliver (the new messages)
+      // occupies 75% of the viewport,
+      // or at the in-range scroll position closest to that.
       // This also brings [pixels] within bounds, which
       // the initial value of 0.0 might not have been.
-      final target = maxScrollExtent;
+      final target = clampDouble(0.75 * viewportDimension,
+        minScrollExtent, maxScrollExtent);
       if (!hasPixels || pixels != target) {
         correctPixels(target);
         changed = true;
