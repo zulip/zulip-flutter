@@ -70,7 +70,7 @@ void main() {
 
     for (final message in unreadMessages) {
       assert(!message.flags.contains(MessageFlag.read));
-      await store.handleEvent(MessageEvent(id: 1, message: message));
+      await store.handleEvent(eg.messageEvent(message));
     }
 
     await tester.pumpWidget(TestZulipApp(

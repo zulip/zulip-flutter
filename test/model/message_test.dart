@@ -72,7 +72,7 @@ void main() {
 
   Future<void> addMessages(Iterable<Message> messages) async {
     for (final m in messages) {
-      await store.handleEvent(MessageEvent(id: 0, message: m));
+      await store.handleEvent(eg.messageEvent(m));
     }
     checkNotified(count: messageList.fetched ? messages.length : 0);
   }
@@ -131,7 +131,7 @@ void main() {
       check(store.messages).isEmpty();
 
       final newMessage = eg.streamMessage();
-      await store.handleEvent(MessageEvent(id: 1, message: newMessage));
+      await store.handleEvent(eg.messageEvent(newMessage));
       check(store.messages).deepEquals({
         newMessage.id: newMessage,
       });
@@ -150,7 +150,7 @@ void main() {
       });
 
       final newMessage = eg.streamMessage();
-      await store.handleEvent(MessageEvent(id: 1, message: newMessage));
+      await store.handleEvent(eg.messageEvent(newMessage));
       check(store.messages).deepEquals({
         for (final m in messages) m.id: m,
         newMessage.id: newMessage,
@@ -164,7 +164,7 @@ void main() {
       check(store.messages).deepEquals({1: message});
 
       final newMessage = eg.streamMessage(id: 1, content: '<p>bar</p>');
-      await store.handleEvent(MessageEvent(id: 1, message: newMessage));
+      await store.handleEvent(eg.messageEvent(newMessage));
       check(store.messages).deepEquals({1: newMessage});
     });
   });
@@ -861,7 +861,7 @@ void main() {
         ]);
 
         await prepare();
-        await store.handleEvent(MessageEvent(id: 0, message: message));
+        await store.handleEvent(eg.messageEvent(message));
       }
 
       test('smoke', () async {
@@ -932,7 +932,7 @@ void main() {
           ),
         ]);
         await prepare();
-        await store.handleEvent(MessageEvent(id: 0, message: message));
+        await store.handleEvent(eg.messageEvent(message));
         check(store.messages[message.id]).isNotNull().poll.isNull();
       });
     });
