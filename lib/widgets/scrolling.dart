@@ -330,10 +330,11 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
 
     if (initial) {
       // The list is being laid out for the first time.
-      // Start out scrolled to the end.
+      // Start out scrolled down so the bottom sliver (the new messages)
+      // occupies 75% of the viewport, or to the end if it's shorter than that.
       // TODO what if the next _attemptLayout iteration finds more items below
       //   and makes maxScrollExtent bigger?
-      correctPixels(this.maxScrollExtent);
+      correctPixels(math.min(0.75 * viewportDimension, this.maxScrollExtent));
       changed = true;
     } else if (wasAtEnd && !_isAtEnd) {
       // The list was scrolled to the end before this layout round.
