@@ -14,6 +14,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/localizations.dart';
+import 'package:zulip/model/message.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
@@ -258,6 +259,8 @@ void main() {
       Future<void> prepareWithContent(WidgetTester tester, String content) async {
         TypingNotifier.debugEnable = false;
         addTearDown(TypingNotifier.debugReset);
+        MessageStoreImpl.debugOutboxEnable = false;
+        addTearDown(MessageStoreImpl.debugReset);
 
         final narrow = ChannelNarrow(channel.streamId);
         await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
@@ -295,6 +298,8 @@ void main() {
       Future<void> prepareWithTopic(WidgetTester tester, String topic) async {
         TypingNotifier.debugEnable = false;
         addTearDown(TypingNotifier.debugReset);
+        MessageStoreImpl.debugOutboxEnable = false;
+        addTearDown(MessageStoreImpl.debugReset);
 
         final narrow = ChannelNarrow(channel.streamId);
         await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
@@ -686,6 +691,8 @@ void main() {
     });
 
     testWidgets('hitting send button sends a "typing stopped" notice', (tester) async {
+      MessageStoreImpl.debugOutboxEnable = false;
+      addTearDown(MessageStoreImpl.debugReset);
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
 
       await checkStartTyping(tester, narrow);
@@ -792,6 +799,8 @@ void main() {
     }) async {
       TypingNotifier.debugEnable = false;
       addTearDown(TypingNotifier.debugReset);
+      MessageStoreImpl.debugOutboxEnable = false;
+      addTearDown(MessageStoreImpl.debugReset);
 
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       await prepareComposeBox(tester, narrow: eg.topicNarrow(123, 'some topic'),
@@ -846,6 +855,8 @@ void main() {
     }) async {
       TypingNotifier.debugEnable = false;
       addTearDown(TypingNotifier.debugReset);
+      MessageStoreImpl.debugOutboxEnable = false;
+      addTearDown(MessageStoreImpl.debugReset);
 
       channel = eg.stream();
       final narrow = ChannelNarrow(channel.streamId);
