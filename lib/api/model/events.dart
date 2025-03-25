@@ -665,8 +665,7 @@ class UserTopicEvent extends Event {
 }
 
 /// A Zulip event of type `message`: https://zulip.com/api/get-events#message
-// TODO use [JsonSerializable] here too, using its customization features,
-//   in order to skip the boilerplate in [fromJson] and [toJson].
+@JsonSerializable(fieldRename: FieldRename.snake)
 class MessageEvent extends Event {
   @override
   @JsonKey(includeToJson: true)
@@ -680,24 +679,23 @@ class MessageEvent extends Event {
   // events and in the get-messages results is that `matchContent` and
   // `matchTopic` are absent here.  Already [Message.matchContent] and
   // [Message.matchTopic] are optional, so no action is needed on that.
+  @JsonKey(readValue: _readMessageValue, includeToJson: false)
   final Message message;
 
   MessageEvent({required super.id, required this.message});
 
-  factory MessageEvent.fromJson(Map<String, dynamic> json) => MessageEvent(
-    id: json['id'] as int,
-    message: Message.fromJson({
-      ...json['message'] as Map<String, dynamic>,
-      'flags': (json['flags'] as List<dynamic>).map((e) => e as String).toList(),
-    }),
-  );
+  static Map<String, dynamic> _readMessageValue(Map<dynamic, dynamic> json, String key) =>
+    {...json['message'] as Map<String, dynamic>, 'flags': json['flags']};
+
+  factory MessageEvent.fromJson(Map<String, dynamic> json) =>
+    _$MessageEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() {
     final messageJson = message.toJson();
     final flags = messageJson['flags'];
     messageJson.remove('flags');
-    return {'id': id, 'type': type, 'message': messageJson, 'flags': flags};
+    return {..._$MessageEventToJson(this), 'message': messageJson, 'flags': flags};
   }
 }
 
