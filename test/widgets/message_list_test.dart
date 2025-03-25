@@ -1481,7 +1481,7 @@ void main() {
 
       // introduce new message
       final newMessage = eg.streamMessage(flags:[MessageFlag.read]);
-      await store.handleEvent(MessageEvent(id: 0, message: newMessage));
+      await store.handleEvent(eg.messageEvent(newMessage));
       await tester.pump(); // process handleEvent
       check(find.byType(MessageItem).evaluate()).length.equals(2);
       check(getAnimation(tester, message.id))

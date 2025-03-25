@@ -622,6 +622,9 @@ UserTopicEvent userTopicEvent(
   );
 }
 
+MessageEvent messageEvent(Message message) =>
+  MessageEvent(id: 0, message: message);
+
 DeleteMessageEvent deleteMessageEvent(List<StreamMessage> messages) {
   assert(messages.isNotEmpty);
   final streamId = messages.first.streamId;

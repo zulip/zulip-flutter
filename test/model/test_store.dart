@@ -288,7 +288,7 @@ extension PerAccountStoreTestExtension on PerAccountStore {
   }
 
   Future<void> addMessage(Message message) async {
-    await handleEvent(MessageEvent(id: 1, message: message));
+    await handleEvent(eg.messageEvent(message));
   }
 
   Future<void> addMessages(Iterable<Message> messages) async {

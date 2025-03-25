@@ -49,7 +49,7 @@ void main() {
 
   void fillWithMessages(Iterable<Message> messages) {
     for (final message in messages) {
-      model.handleMessageEvent(MessageEvent(id: 0, message: message));
+      model.handleMessageEvent(eg.messageEvent(message));
     }
     notifiedCount = 0;
   }
@@ -318,7 +318,7 @@ void main() {
         final message = isStream
           ? eg.streamMessage(flags: flags)
           : eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: flags);
-        model.handleMessageEvent(MessageEvent(id: 0, message: message));
+        model.handleMessageEvent(eg.messageEvent(message));
         if (isUnread) {
           checkNotifiedOnce();
         }
@@ -346,7 +346,7 @@ void main() {
 
             prepare();
             fillWithMessages([oldMessage]);
-            model.handleMessageEvent(MessageEvent(id: 0, message: newMessage));
+            model.handleMessageEvent(eg.messageEvent(newMessage));
             checkNotifiedOnce();
             checkMatchesMessages([oldMessage, newMessage]);
           });
@@ -369,7 +369,7 @@ void main() {
             final message = eg.dmMessage(from: from, to: to, flags: []);
 
             prepare();
-            model.handleMessageEvent(MessageEvent(id: 0, message: message));
+            model.handleMessageEvent(eg.messageEvent(message));
             checkNotifiedOnce();
             checkMatchesMessages([message]);
           });
@@ -387,7 +387,7 @@ void main() {
             test('existing in $oldDesc narrow; new in ${oldNarrow == newNarrow ? 'same narrow' : 'different narrow ($newDesc)'}', () {
               prepare();
               fillWithMessages([oldMessage]);
-              model.handleMessageEvent(MessageEvent(id: 0, message: newMessage));
+              model.handleMessageEvent(eg.messageEvent(newMessage));
               checkNotifiedOnce();
               checkMatchesMessages([oldMessage, newMessage]);
             });
