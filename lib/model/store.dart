@@ -725,6 +725,8 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   @override
   Map<int, Message> get messages => _messages.messages;
   @override
+  Map<int, OutboxMessage> get outboxMessages => _messages.outboxMessages;
+  @override
   void registerMessageList(MessageListView view) =>
     _messages.registerMessageList(view);
   @override
@@ -903,6 +905,9 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     assert(!_disposed);
     return _messages.sendMessage(destination: destination, content: content);
   }
+
+  @override
+  void removeOutboxMessage(int localMessageId) => _messages.removeOutboxMessage(localMessageId);
 
   static List<CustomProfileField> _sortCustomProfileFields(List<CustomProfileField> initialCustomProfileFields) {
     // TODO(server): The realm-wide field objects have an `order` property,
