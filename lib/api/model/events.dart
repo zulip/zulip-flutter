@@ -682,10 +682,25 @@ class MessageEvent extends Event {
   @JsonKey(readValue: _readMessageValue, includeToJson: false)
   final Message message;
 
-  MessageEvent({required super.id, required this.message});
+  // The format of this is documented to be chosen freely by the client.
+  //
+  // When present, this corresponds to the JSON-encoded int, "local_id",
+  // from a previous [sendMessage] call by us.
+  @JsonKey(fromJson: _localMessageIdFromJson, toJson: _localMessageIdToJson)
+  final int? localMessageId;
+
+  MessageEvent({required super.id, required this.message, required this.localMessageId});
 
   static Map<String, dynamic> _readMessageValue(Map<dynamic, dynamic> json, String key) =>
     {...json['message'] as Map<String, dynamic>, 'flags': json['flags']};
+
+  static int? _localMessageIdFromJson(Object? val) {
+    return val == null ? null : int.parse(val as String);
+  }
+
+  static String? _localMessageIdToJson(int? val) {
+    return val?.toString();
+  }
 
   factory MessageEvent.fromJson(Map<String, dynamic> json) =>
     _$MessageEventFromJson(json);

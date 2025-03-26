@@ -39,6 +39,7 @@ extension SubscriptionUpdateEventChecks on Subject<SubscriptionUpdateEvent> {
 
 extension MessageEventChecks on Subject<MessageEvent> {
   Subject<Message> get message => has((e) => e.message, 'message');
+  Subject<int?> get localMessageId => has((e) => e.localMessageId, 'localMessageId');
 }
 
 extension UpdateMessageEventChecks on Subject<UpdateMessageEvent> {

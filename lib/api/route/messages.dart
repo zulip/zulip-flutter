@@ -176,7 +176,7 @@ Future<SendMessageResult> sendMessage(
   required MessageDestination destination,
   required String content,
   String? queueId,
-  String? localId,
+  int? localId,
   bool? readBySender,
 }) {
   final supportsTypeDirect = connection.zulipFeatureLevel! >= 174; // TODO(server-7)
@@ -194,7 +194,11 @@ Future<SendMessageResult> sendMessage(
       }}),
     'content': RawParameter(content),
     if (queueId != null) 'queue_id': RawParameter(queueId),
-    if (localId != null) 'local_id': localId, // TODO should this use RawParameter?
+    // This is documented to be an optional String whose format is chosen freely
+    // by the client.  Use a JSON-encoded int consistently, so that we know how
+    // to decode it when we receive the corresponding "message" event.
+    // See also: [MessageEvent.localMessageId]
+    if (localId != null) 'local_id': localId,
     if (readBySender != null) 'read_by_sender': readBySender,
   },
   overrideUserAgent: switch ((supportsReadBySender, readBySender)) {
