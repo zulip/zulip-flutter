@@ -215,11 +215,27 @@ class MessageStoreImpl with MessageStore {
       destination, selfUserId: selfUserId, content: content);
     final localMessageId = outboxMessage.localMessageId;
     assert(!outboxMessages.containsKey(localMessageId));
-    // TODO debounce new outbox messages
     outboxMessages[localMessageId] = outboxMessage;
-    for (final view in _messageListViews) {
-      view.handleOutboxMessage(outboxMessage);
-    }
+
+    // The outbox message only become visible to views after
+    // [kLocalEchoDebounceDuration].
+    Future<void>.delayed(kLocalEchoDebounceDuration, () {
+      if (!outboxMessages.containsKey(outboxMessage.localMessageId)) {
+        // The outbox message was deleted, one such reason can be that the
+        // corresponding "message" event arrived quickly.
+        return;
+      }
+      if (!outboxMessage.hidden) {
+        // The outbox message was unhidden due to an error from the
+        // send-message request.
+        assert(outboxMessage.state == OutboxMessageLifecycle.failed);
+        return;
+      }
+      outboxMessage.unhide();
+      for (final view in _messageListViews) {
+        view.handleOutboxMessage(outboxMessage);
+      }
+    });
 
     try {
       await _apiSendMessage(connection,
@@ -231,6 +247,10 @@ class MessageStoreImpl with MessageStore {
       _updateOutboxMessage(
         localMessageId: localMessageId, newState: OutboxMessageLifecycle.sent);
     } on ApiRequestException {
+      outboxMessage.unhide();
+      for (final view in _messageListViews) {
+        view.handleOutboxMessage(outboxMessage);
+      }
       _updateOutboxMessage(
         localMessageId: localMessageId, newState: OutboxMessageLifecycle.failed);
       rethrow;

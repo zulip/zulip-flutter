@@ -93,14 +93,18 @@ void main() {
         delay: Duration.zero);
       final future = store.sendMessage(destination: destination, content: 'content');
       final outboxMessage = store.outboxMessages.values.single;
-      check(outboxMessage).state.equals(OutboxMessageLifecycle.sending);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sending)
+        ..hidden.isTrue();
       checkNotNotified();
       check(connection.lastRequest).isA<http.Request>()
         ..bodyFields['queue_id'].equals(store.queueId)
         ..bodyFields['local_id'].equals('${outboxMessage.localMessageId}');
 
       await future;
-      check(outboxMessage).state.equals(OutboxMessageLifecycle.sent);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sent)
+        ..hidden.isTrue();
       checkNotifiedOnce();
 
       await store.handleEvent(eg.messageEvent(
@@ -116,11 +120,15 @@ void main() {
       connection.prepare(json: SendMessageResult(id: 1).toJson());
       await store.sendMessage(destination: destination, content: 'content');
       final outboxMessage = store.outboxMessages.values.single;
-      check(outboxMessage).state.equals(OutboxMessageLifecycle.sent);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sent)
+        ..hidden.isTrue();
       checkNotifiedOnce();
 
       async.elapse(kLocalEchoDebounceDuration);
-      check(outboxMessage).state.equals(OutboxMessageLifecycle.sent);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sent)
+        ..hidden.isFalse();
 
       await store.handleEvent(eg.messageEvent(
         eg.streamMessage(), localMessageId: outboxMessage.localMessageId));
@@ -136,11 +144,15 @@ void main() {
         delay: Duration.zero);
       final future = store.sendMessage(destination: destination, content: 'content');
       final outboxMessage = store.outboxMessages.values.single;
-      check(outboxMessage).state.equals(OutboxMessageLifecycle.sending);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sending)
+        ..hidden.isTrue();
       checkNotNotified();
 
       await check(future).throws();
-      check(outboxMessage).state.equals(OutboxMessageLifecycle.failed);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.failed)
+        ..hidden.isFalse();
       checkNotifiedOnce();
     });
   });
