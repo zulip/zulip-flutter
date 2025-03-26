@@ -193,8 +193,8 @@ Future<SendMessageResult> sendMessage(
         'to': destination.userIds,
       }}),
     'content': RawParameter(content),
-    if (queueId != null) 'queue_id': queueId, // TODO should this use RawParameter?
-    if (localId != null) 'local_id': localId, // TODO should this use RawParameter?
+    if (queueId != null) 'queue_id': RawParameter(queueId),
+    if (localId != null) 'local_id': RawParameter(localId),
     if (readBySender != null) 'read_by_sender': readBySender,
   },
   overrideUserAgent: switch ((supportsReadBySender, readBySender)) {
