@@ -374,7 +374,11 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
         typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
       ),
       channels: channels,
-      messages: MessageStoreImpl(connection: connection),
+      messages: MessageStoreImpl(
+        connection: connection,
+        queueId: queueId,
+        selfUserId: account.userId,
+      ),
       unreads: Unreads(
         initial: initialSnapshot.unreadMsgs,
         selfUserId: account.userId,

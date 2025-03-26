@@ -1,10 +1,13 @@
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
+import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/submessage.dart';
+import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/model/message.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -13,7 +16,9 @@ import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
 import '../api/model/submessage_checks.dart';
 import '../example_data.dart' as eg;
+import '../fake_async.dart';
 import '../stdlib_checks.dart';
+import 'message_checks.dart';
 import 'message_list_test.dart';
 import 'store_checks.dart';
 import 'test_store.dart';
@@ -76,6 +81,69 @@ void main() {
     }
     checkNotified(count: messageList.fetched ? messages.length : 0);
   }
+
+  group('sendMessage', () {
+    const destination =
+      StreamDestination(eg.defaultStreamMessageStreamId, TopicName('some topic'));
+
+    test('message sent successfully, message event arrives on time', () async {
+      await prepare();
+
+      connection.prepare(json: SendMessageResult(id: 1).toJson(),
+        delay: Duration.zero);
+      final future = store.sendMessage(destination: destination, content: 'content');
+      final outboxMessage = store.outboxMessages.values.single;
+      check(outboxMessage).state.equals(OutboxMessageLifecycle.sending);
+      checkNotNotified();
+      check(connection.lastRequest).isA<http.Request>()
+        ..bodyFields['queue_id'].equals(store.queueId)
+        ..bodyFields['local_id'].equals('${outboxMessage.localMessageId}');
+
+      await future;
+      check(outboxMessage).state.equals(OutboxMessageLifecycle.sent);
+      checkNotifiedOnce();
+
+      await store.handleEvent(eg.messageEvent(
+        eg.streamMessage(), localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      // TODO uncomment once message list support is added
+      // checkNotifiedOnce();
+    });
+
+    test('message sent successfully, message event arrives after debounce timeout', () => awaitFakeAsync((async) async {
+      await prepare();
+
+      connection.prepare(json: SendMessageResult(id: 1).toJson());
+      await store.sendMessage(destination: destination, content: 'content');
+      final outboxMessage = store.outboxMessages.values.single;
+      check(outboxMessage).state.equals(OutboxMessageLifecycle.sent);
+      checkNotifiedOnce();
+
+      async.elapse(kLocalEchoDebounceDuration);
+      check(outboxMessage).state.equals(OutboxMessageLifecycle.sent);
+
+      await store.handleEvent(eg.messageEvent(
+        eg.streamMessage(), localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      // TODO uncomment once message list support is added
+      // checkNotifiedOnce();
+    }));
+
+    test('message failed to send', () async {
+      await prepare();
+
+      connection.prepare(apiException: eg.apiBadRequest(),
+        delay: Duration.zero);
+      final future = store.sendMessage(destination: destination, content: 'content');
+      final outboxMessage = store.outboxMessages.values.single;
+      check(outboxMessage).state.equals(OutboxMessageLifecycle.sending);
+      checkNotNotified();
+
+      await check(future).throws();
+      check(outboxMessage).state.equals(OutboxMessageLifecycle.failed);
+      checkNotifiedOnce();
+    });
+  });
 
   group('reconcileMessages', () {
     test('from empty', () async {

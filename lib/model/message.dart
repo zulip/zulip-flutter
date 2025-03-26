@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../api/core.dart';
+import '../api/exception.dart';
 import '../api/model/events.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
@@ -145,13 +146,22 @@ mixin MessageStore {
 }
 
 class MessageStoreImpl with MessageStore {
-  MessageStoreImpl({required this.connection})
+  MessageStoreImpl({
+    required this.connection,
+    required this.queueId,
+    required this.selfUserId,
+  })
     // There are no messages in InitialSnapshot, so we don't have
     // a use case for initializing MessageStore with nonempty [messages].
     : messages = {},
       outboxMessages = {};
 
   final ApiConnection connection;
+
+  /// The event queue ID, for local-echoing, as in [InitialSnapshot.queueId].
+  final String queueId;
+
+  final int selfUserId;
 
   @override
   final Map<int, Message> messages;
@@ -200,14 +210,46 @@ class MessageStoreImpl with MessageStore {
   }
 
   @override
-  Future<void> sendMessage({required MessageDestination destination, required String content}) {
-    // TODO implement outbox; see design at
-    //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/.23M3881.20Sending.20outbox.20messages.20is.20fraught.20with.20issues/near/1405739
-    return _apiSendMessage(connection,
-      destination: destination,
-      content: content,
-      readBySender: true,
-    );
+  Future<void> sendMessage({required MessageDestination destination, required String content}) async {
+    final outboxMessage = OutboxMessage.fromDestination(
+      destination, selfUserId: selfUserId, content: content);
+    final localMessageId = outboxMessage.localMessageId;
+    assert(!outboxMessages.containsKey(localMessageId));
+    // TODO debounce new outbox messages
+    outboxMessages[localMessageId] = outboxMessage;
+    for (final view in _messageListViews) {
+      view.handleOutboxMessage(outboxMessage);
+    }
+
+    try {
+      await _apiSendMessage(connection,
+        destination: destination,
+        content: content,
+        readBySender: true,
+        queueId: queueId,
+        localId: localMessageId);
+      _updateOutboxMessage(
+        localMessageId: localMessageId, newState: OutboxMessageLifecycle.sent);
+    } on ApiRequestException {
+      _updateOutboxMessage(
+        localMessageId: localMessageId, newState: OutboxMessageLifecycle.failed);
+      rethrow;
+    }
+  }
+
+  void _updateOutboxMessage({
+    required int localMessageId,
+    required OutboxMessageLifecycle newState,
+  }) {
+    final outboxMessage = outboxMessages[localMessageId];
+    assert(outboxMessage != null);
+    if (outboxMessage == null) {
+      return;
+    }
+    outboxMessage.state = newState;
+    for (final view in _messageListViews) {
+      view.handleUpdateOutboxMessage(localMessageId);
+    }
   }
 
   @override
@@ -244,6 +286,8 @@ class MessageStoreImpl with MessageStore {
     // clobber it with the one from the event system.
     // See [fetchedMessages] for reasoning.
     messages[event.message.id] = event.message;
+
+    outboxMessages.remove(event.localMessageId);
 
     for (final view in _messageListViews) {
       view.handleMessageEvent(event);
