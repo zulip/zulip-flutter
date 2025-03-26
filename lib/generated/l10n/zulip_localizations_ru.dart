@@ -24,7 +24,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get chooseAccountPageTitle => 'Выберите учетную запись';
 
   @override
-  String get settingsPageTitle => 'Settings';
+  String get settingsPageTitle => 'Настройки';
 
   @override
   String get switchAccountButton => 'Сменить учетную запись';
@@ -56,7 +56,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'Отправить личное сообщение';
 
   @override
-  String get errorCouldNotShowUserProfile => 'Could not show user profile.';
+  String get errorCouldNotShowUserProfile => 'Не удалось показать профиль пользователя.';
 
   @override
   String get permissionsNeededTitle => 'Требуются разрешения';
@@ -71,7 +71,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get permissionsDeniedReadExternalStorage => 'Для загрузки файлов, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.';
 
   @override
-  String get actionSheetOptionMarkChannelAsRead => 'Mark channel as read';
+  String get actionSheetOptionMarkChannelAsRead => 'Отметить канал как прочитанный';
 
   @override
   String get actionSheetOptionMuteTopic => 'Отключить тему';
@@ -86,16 +86,16 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get actionSheetOptionUnfollowTopic => 'Не отслеживать тему';
 
   @override
-  String get actionSheetOptionResolveTopic => 'Mark as resolved';
+  String get actionSheetOptionResolveTopic => 'Поставить отметку \"решено\"';
 
   @override
-  String get actionSheetOptionUnresolveTopic => 'Mark as unresolved';
+  String get actionSheetOptionUnresolveTopic => 'Снять отметку \"решено\"';
 
   @override
-  String get errorResolveTopicFailedTitle => 'Failed to mark topic as resolved';
+  String get errorResolveTopicFailedTitle => 'Не удалось отметить тему как решенную';
 
   @override
-  String get errorUnresolveTopicFailedTitle => 'Failed to mark topic as unresolved';
+  String get errorUnresolveTopicFailedTitle => 'Не удалось отметить тему как нерешенную';
 
   @override
   String get actionSheetOptionCopyMessageText => 'Скопировать текст сообщения';
@@ -119,7 +119,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get actionSheetOptionUnstarMessage => 'Снять отметку с сообщения';
 
   @override
-  String get actionSheetOptionMarkTopicAsRead => 'Mark topic as read';
+  String get actionSheetOptionMarkTopicAsRead => 'Отметить тему как прочитанную';
 
   @override
   String get errorWebAuthOperationalErrorTitle => 'Что-то пошло не так';
@@ -148,7 +148,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String filenameAndSizeInMiB(String filename, String size) {
-    return '$filename: $size MiB';
+    return '$filename: $size МиБ';
   }
 
   @override
@@ -188,7 +188,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   }
 
   @override
-  String get errorCouldNotConnectTitle => 'Could not connect';
+  String get errorCouldNotConnectTitle => 'Нет связи с сервером';
 
   @override
   String get errorMessageDoesNotSeemToExist => 'Это сообщение, похоже, отсутствует.';
@@ -218,11 +218,11 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   }
 
   @override
-  String get errorCouldNotOpenLinkTitle => 'Unable to open link';
+  String get errorCouldNotOpenLinkTitle => 'Не удалось открыть ссылку';
 
   @override
   String errorCouldNotOpenLink(String url) {
-    return 'Link could not be opened: $url';
+    return 'Не удалось открыть ссылку: $url';
   }
 
   @override
@@ -286,14 +286,14 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String composeBoxChannelContentHint(String destination) {
-    return 'Message $destination';
+    return 'Сообщение для $destination';
   }
 
   @override
   String get composeBoxSendTooltip => 'Отправить';
 
   @override
-  String get unknownChannelName => '(unknown channel)';
+  String get unknownChannelName => '(неизвестный канал)';
 
   @override
   String get composeBoxTopicHintText => 'Тема';
@@ -305,14 +305,14 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String composeBoxLoadingMessage(int messageId) {
-    return '(loading message $messageId)';
+    return '(загрузка сообщения $messageId)';
   }
 
   @override
   String get unknownUserName => '(неизвестный пользователь)';
 
   @override
-  String get dmsWithYourselfPageTitle => 'DMs with yourself';
+  String get dmsWithYourselfPageTitle => 'ЛС с собой';
 
   @override
   String messageListGroupYouAndOthers(String others) {
@@ -321,11 +321,11 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String dmsWithOthersPageTitle(String others) {
-    return 'DMs with $others';
+    return 'ЛС с $others';
   }
 
   @override
-  String get messageListGroupYouWithYourself => 'Вы с собой';
+  String get messageListGroupYouWithYourself => 'Сообщения с собой';
 
   @override
   String get contentValidationErrorTooLong => 'Длина сообщения не должна превышать 10000 символов.';
@@ -361,10 +361,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get lightboxCopyLinkTooltip => 'Скопировать ссылку';
 
   @override
-  String get lightboxVideoCurrentPosition => 'Current position';
+  String get lightboxVideoCurrentPosition => 'Место воспроизведения';
 
   @override
-  String get lightboxVideoDuration => 'Video duration';
+  String get lightboxVideoDuration => 'Длительность видео';
 
   @override
   String get loginPageTitle => 'Вход в систему';
@@ -415,7 +415,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String errorInvalidApiKeyMessage(String url) {
-    return 'Your account at $url could not be authenticated. Please try logging in again or use another account.';
+    return 'Не удалось войти в вашу учетную запись $url. Попробуйте еще раз или используйте другую учетную запись.';
   }
 
   @override
@@ -525,7 +525,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get recentDmConversationsPageTitle => 'Личные сообщения';
 
   @override
-  String get recentDmConversationsSectionHeader => 'Direct messages';
+  String get recentDmConversationsSectionHeader => 'Личные сообщения';
 
   @override
   String get combinedFeedPageTitle => 'Объединенная лента';
@@ -557,19 +557,19 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   }
 
   @override
-  String get pinnedSubscriptionsLabel => 'Pinned';
+  String get pinnedSubscriptionsLabel => 'Закреплены';
 
   @override
-  String get unpinnedSubscriptionsLabel => 'Unpinned';
+  String get unpinnedSubscriptionsLabel => 'Откреплены';
 
   @override
-  String get subscriptionListNoChannels => 'No channels found';
+  String get subscriptionListNoChannels => 'Каналы не найдены';
 
   @override
   String get notifSelfUser => 'Вы';
 
   @override
-  String get reactedEmojiSelfUser => 'You';
+  String get reactedEmojiSelfUser => 'Вы';
 
   @override
   String onePersonTyping(String typist) {
@@ -585,31 +585,31 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get manyPeopleTyping => 'Несколько человек набирают сообщения…';
 
   @override
-  String get wildcardMentionAll => 'all';
+  String get wildcardMentionAll => 'все';
 
   @override
-  String get wildcardMentionEveryone => 'everyone';
+  String get wildcardMentionEveryone => 'каждый';
 
   @override
-  String get wildcardMentionChannel => 'channel';
+  String get wildcardMentionChannel => 'канал';
 
   @override
-  String get wildcardMentionStream => 'stream';
+  String get wildcardMentionStream => 'канал';
 
   @override
-  String get wildcardMentionTopic => 'topic';
+  String get wildcardMentionTopic => 'тема';
 
   @override
-  String get wildcardMentionChannelDescription => 'Notify channel';
+  String get wildcardMentionChannelDescription => 'Оповестить канал';
 
   @override
-  String get wildcardMentionStreamDescription => 'Notify stream';
+  String get wildcardMentionStreamDescription => 'Оповестить канал';
 
   @override
-  String get wildcardMentionAllDmDescription => 'Notify recipients';
+  String get wildcardMentionAllDmDescription => 'Оповестить получателей';
 
   @override
-  String get wildcardMentionTopicDescription => 'Notify topic';
+  String get wildcardMentionTopicDescription => 'Оповестить тему';
 
   @override
   String get messageIsEditedLabel => 'ИЗМЕНЕНО';
@@ -623,19 +623,19 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   }
 
   @override
-  String get themeSettingTitle => 'THEME';
+  String get themeSettingTitle => 'РЕЖИМ';
 
   @override
-  String get themeSettingDark => 'Dark';
+  String get themeSettingDark => 'Темный';
 
   @override
-  String get themeSettingLight => 'Light';
+  String get themeSettingLight => 'Светлый';
 
   @override
-  String get themeSettingSystem => 'System';
+  String get themeSettingSystem => 'Системный';
 
   @override
-  String get openLinksWithInAppBrowser => 'Open links with in-app browser';
+  String get openLinksWithInAppBrowser => 'Открывать ссылки внутри приложения';
 
   @override
   String get pollWidgetQuestionMissing => 'Нет вопроса.';
@@ -668,10 +668,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get emojiPickerSearchEmoji => 'Поиск эмодзи';
 
   @override
-  String get noEarlierMessages => 'No earlier messages';
+  String get noEarlierMessages => 'Предшествующих сообщений нет';
 
   @override
-  String get scrollToBottomTooltip => 'Scroll to bottom';
+  String get scrollToBottomTooltip => 'Пролистать вниз';
 
   @override
   String get appVersionUnknownPlaceholder => '(…)';
