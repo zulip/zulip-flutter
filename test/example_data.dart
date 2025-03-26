@@ -623,7 +623,7 @@ UserTopicEvent userTopicEvent(
 }
 
 MessageEvent messageEvent(Message message) =>
-  MessageEvent(id: 0, message: message);
+  MessageEvent(id: 0, message: message, localMessageId: null);
 
 DeleteMessageEvent deleteMessageEvent(List<StreamMessage> messages) {
   assert(messages.isNotEmpty);

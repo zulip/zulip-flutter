@@ -433,10 +433,15 @@ MessageEvent _$MessageEventFromJson(Map<String, dynamic> json) => MessageEvent(
   message: Message.fromJson(
     MessageEvent._readMessageValue(json, 'message') as Map<String, dynamic>,
   ),
+  localMessageId: json['local_message_id'] as String?,
 );
 
 Map<String, dynamic> _$MessageEventToJson(MessageEvent instance) =>
-    <String, dynamic>{'id': instance.id, 'type': instance.type};
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'local_message_id': instance.localMessageId,
+    };
 
 UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
     UpdateMessageEvent(

@@ -682,7 +682,14 @@ class MessageEvent extends Event {
   @JsonKey(readValue: _readMessageValue, includeToJson: false)
   final Message message;
 
-  MessageEvent({required super.id, required this.message});
+  // When present, this equals the "local_id" parameter
+  // from a previous [sendMessage] call by us.
+  //
+  // This is not yet fully documented.  See CZO discussion for reference:
+  //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/local_id.2C.20queue_id.2Fsender_queue_id/near/2135340
+  final String? localMessageId;
+
+  MessageEvent({required super.id, required this.message, required this.localMessageId});
 
   static Map<String, dynamic> _readMessageValue(Map<dynamic, dynamic> json, String key) =>
     {...json['message'] as Map<String, dynamic>, 'flags': json['flags']};
