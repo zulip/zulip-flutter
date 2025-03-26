@@ -362,7 +362,7 @@ void main() {
             'to': streamId.toString(),
             'topic': topic,
             'content': content,
-            'queue_id': '"abc:123"',
+            'queue_id': 'abc:123',
             'local_id': '"456"',
             'read_by_sender': 'true',
           });
