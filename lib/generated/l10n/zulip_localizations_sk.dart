@@ -653,7 +653,7 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get errorNotificationOpenTitle => 'Nepodarilo sa otvoriť oznámenie';
 
   @override
-  String get errorNotificationOpenAccountMissing => 'The account associated with this notification no longer exists.';
+  String get errorNotificationOpenAccountLoggedOut => 'The account associated with this notification was logged out.';
 
   @override
   String get errorReactionAddingFailedTitle => 'Nepodarilo sa pridať reakciu';
