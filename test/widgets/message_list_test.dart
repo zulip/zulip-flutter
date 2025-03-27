@@ -14,6 +14,7 @@ import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/localizations.dart';
+import 'package:zulip/model/message.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -1452,6 +1453,47 @@ void main() {
       checkUser(users[2], isBot: false);
 
       debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
+  group('OutboxMessageWithPossibleSender', () {
+    final stream = eg.stream();
+    final topic = 'topic';
+    final topicNarrow = eg.topicNarrow(stream.streamId, topic);
+    const content = 'outbox message content';
+
+    final contentInputFinder = find.byWidgetPredicate(
+      (widget) => widget is TextField && widget.controller is ComposeContentController);
+
+    Finder outboxMessageFinder = find.widgetWithText(
+      OutboxMessageWithPossibleSender, content, skipOffstage: true);
+
+    Finder loadingIndicatorFinder = find.descendant(
+      of: find.byType(OutboxMessageWithPossibleSender),
+      matching: find.byType(LinearProgressIndicator)).hitTestable();
+
+    Future<void> sendMessageAndSucceed(WidgetTester tester, {
+      Duration delay = Duration.zero,
+    }) async {
+      connection.prepare(json: SendMessageResult(id: 1).toJson(), delay: delay);
+      await tester.enterText(contentInputFinder, content);
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump(Duration.zero);
+    }
+
+    // State transitions are tested more thoroughly in
+    // test/model/message_test.dart .
+
+    testWidgets('hidden -> waiting, outbox message appear', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: topicNarrow, streams: [stream],
+        messages: []);
+      await sendMessageAndSucceed(tester);
+      check(outboxMessageFinder).findsNothing();
+
+      await tester.pump(kLocalEchoDebounceDuration);
+      check(outboxMessageFinder).findsOne();
+      check(loadingIndicatorFinder).findsOne();
     });
   });
 
