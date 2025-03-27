@@ -99,6 +99,7 @@ extension TextStyleChecks on Subject<TextStyle> {
   Subject<bool> get inherit => has((t) => t.inherit, 'inherit');
   Subject<Color?> get color => has((t) => t.color, 'color');
   Subject<double?> get fontSize => has((t) => t.fontSize, 'fontSize');
+  Subject<FontStyle?> get fontStyle => has((t) => t.fontStyle, 'fontStyle');
   Subject<FontWeight?> get fontWeight => has((t) => t.fontWeight, 'fontWeight');
   Subject<double?> get letterSpacing => has((t) => t.letterSpacing, 'letterSpacing');
   Subject<List<FontVariation>?> get fontVariations => has((t) => t.fontVariations, 'fontVariations');
@@ -170,6 +171,7 @@ extension MaterialChecks on Subject<Material> {
 
 extension InputDecorationChecks on Subject<InputDecoration> {
   Subject<String?> get hintText => has((x) => x.hintText, 'hintText');
+  Subject<TextStyle?> get hintStyle => has((x) => x.hintStyle, 'hintStyle');
 }
 
 extension RadioListTileChecks<T> on Subject<RadioListTile<T>> {

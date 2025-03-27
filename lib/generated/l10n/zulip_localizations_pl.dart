@@ -299,6 +299,11 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get composeBoxTopicHintText => 'Wątek';
 
   @override
+  String composeBoxEnterTopicOrSkipHintText(String defaultTopicName) {
+    return 'Enter a topic (skip for “$defaultTopicName”)';
+  }
+
+  @override
   String composeBoxUploadingFilename(String filename) {
     return 'Przekazywanie $filename…';
   }
