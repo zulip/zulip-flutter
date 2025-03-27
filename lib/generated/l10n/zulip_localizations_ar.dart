@@ -653,7 +653,7 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get errorNotificationOpenTitle => 'Failed to open notification';
 
   @override
-  String get errorNotificationOpenAccountMissing => 'The account associated with this notification no longer exists.';
+  String get errorNotificationOpenAccountLoggedOut => 'The account associated with this notification was logged out.';
 
   @override
   String get errorReactionAddingFailedTitle => 'Adding reaction failed';

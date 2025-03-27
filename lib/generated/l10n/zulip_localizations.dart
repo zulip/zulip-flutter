@@ -1221,11 +1221,11 @@ abstract class ZulipLocalizations {
   /// **'Failed to open notification'**
   String get errorNotificationOpenTitle;
 
-  /// Error message when the account associated with the notification is not found
+  /// Error message when the account associated with the notification is not logged in
   ///
   /// In en, this message translates to:
-  /// **'The account associated with this notification no longer exists.'**
-  String get errorNotificationOpenAccountMissing;
+  /// **'The account associated with this notification was logged out.'**
+  String get errorNotificationOpenAccountLoggedOut;
 
   /// Error title when adding a message reaction fails
   ///

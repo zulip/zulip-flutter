@@ -1059,7 +1059,7 @@ void main() {
       check(pushedRoutes.single).isA<DialogRoute<void>>();
       await tester.tap(find.byWidget(checkErrorDialog(tester,
         expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
-        expectedMessage: zulipLocalizations.errorNotificationOpenAccountMissing)));
+        expectedMessage: zulipLocalizations.errorNotificationOpenAccountLoggedOut)));
     });
 
     testWidgets('mismatching account', (tester) async {
@@ -1071,7 +1071,7 @@ void main() {
       check(pushedRoutes.single).isA<DialogRoute<void>>();
       await tester.tap(find.byWidget(checkErrorDialog(tester,
         expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
-        expectedMessage: zulipLocalizations.errorNotificationOpenAccountMissing)));
+        expectedMessage: zulipLocalizations.errorNotificationOpenAccountLoggedOut)));
     });
 
     testWidgets('find account among several', (tester) async {

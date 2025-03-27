@@ -835,9 +835,9 @@
   "@errorNotificationOpenTitle": {
     "description": "Error title when notification opening fails"
   },
-  "errorNotificationOpenAccountMissing": "The account associated with this notification no longer exists.",
-  "@errorNotificationOpenAccountMissing": {
-    "description": "Error message when the account associated with the notification is not found"
+  "errorNotificationOpenAccountLoggedOut": "The account associated with this notification was logged out.",
+  "@errorNotificationOpenAccountLoggedOut": {
+    "description": "Error message when the account associated with the notification is not logged in"
   },
   "errorReactionAddingFailedTitle": "Adding reaction failed",
   "@errorReactionAddingFailedTitle": {

@@ -477,7 +477,7 @@ class NotificationDisplayManager {
       final zulipLocalizations = ZulipLocalizations.of(context);
       showErrorDialog(context: context,
         title: zulipLocalizations.errorNotificationOpenTitle,
-        message: zulipLocalizations.errorNotificationOpenAccountMissing);
+        message: zulipLocalizations.errorNotificationOpenAccountLoggedOut);
       return null;
     }
 
