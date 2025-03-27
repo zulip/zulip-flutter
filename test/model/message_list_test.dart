@@ -1994,11 +1994,11 @@ void checkInvariants(MessageListView model) {
 }
 
 extension MessageListRecipientHeaderItemChecks on Subject<MessageListRecipientHeaderItem> {
-  Subject<Message> get message => has((x) => x.message, 'message');
+  Subject<MessageBase> get message => has((x) => x.message, 'message');
 }
 
 extension MessageListDateSeparatorItemChecks on Subject<MessageListDateSeparatorItem> {
-  Subject<Message> get message => has((x) => x.message, 'message');
+  Subject<MessageBase> get message => has((x) => x.message, 'message');
 }
 
 extension MessageListMessageItemChecks on Subject<MessageListMessageItem> {

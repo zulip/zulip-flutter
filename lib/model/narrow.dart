@@ -94,8 +94,8 @@ class ChannelNarrow extends Narrow {
 class TopicNarrow extends Narrow implements SendableNarrow {
   const TopicNarrow(this.streamId, this.topic, {this.with_});
 
-  factory TopicNarrow.ofMessage(StreamMessage message) {
-    return TopicNarrow(message.streamId, message.topic);
+  factory TopicNarrow.ofMessage(MessageBase<StreamConversation> message) {
+    return TopicNarrow(message.conversation.streamId, message.conversation.topic);
   }
 
   final int streamId;
@@ -194,9 +194,11 @@ class DmNarrow extends Narrow implements SendableNarrow {
     );
   }
 
-  factory DmNarrow.ofMessage(DmMessage message, {required int selfUserId}) {
+  factory DmNarrow.ofMessage(MessageBase<DmConversation> message, {
+    required int selfUserId,
+  }) {
     return DmNarrow(
-      allRecipientIds: List.unmodifiable(message.allRecipientIds),
+      allRecipientIds: List.unmodifiable(message.conversation.allRecipientIds),
       selfUserId: selfUserId,
     );
   }

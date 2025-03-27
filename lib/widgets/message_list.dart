@@ -901,15 +901,19 @@ class _MarkAsReadAnimationState extends State<MarkAsReadAnimation> {
 class RecipientHeader extends StatelessWidget {
   const RecipientHeader({super.key, required this.message, required this.narrow});
 
-  final Message message;
+  final MessageBase message;
   final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
     final message = this.message;
     return switch (message) {
-      StreamMessage() => StreamMessageRecipientHeader(message: message, narrow: narrow),
-      DmMessage() => DmRecipientHeader(message: message, narrow: narrow),
+      MessageBase<StreamConversation>() =>
+        StreamMessageRecipientHeader(message: message, narrow: narrow),
+      MessageBase<DmConversation>() =>
+        DmRecipientHeader(message: message, narrow: narrow),
+      MessageBase<Conversation>() =>
+        throw StateError('Bad concrete subclass of MessageBase'),
     };
   }
 }
@@ -917,7 +921,7 @@ class RecipientHeader extends StatelessWidget {
 class DateSeparator extends StatelessWidget {
   const DateSeparator({super.key, required this.message});
 
-  final Message message;
+  final MessageBase message;
 
   @override
   Widget build(BuildContext context) {
@@ -1027,7 +1031,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     required this.narrow,
   });
 
-  final StreamMessage message;
+  final MessageBase<StreamConversation> message;
   final Narrow narrow;
 
   static bool _containsDifferentChannels(Narrow narrow) {
@@ -1053,11 +1057,12 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final topic = message.topic;
+    final streamId = message.conversation.streamId;
+    final topic = message.conversation.topic;
 
     final messageListTheme = MessageListTheme.of(context);
 
-    final subscription = store.subscriptions[message.streamId];
+    final subscription = store.subscriptions[streamId];
     final Color backgroundColor;
     final Color iconColor;
     if (subscription != null) {
@@ -1073,16 +1078,16 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     if (!_containsDifferentChannels(narrow)) {
       streamWidget = const SizedBox(width: 16);
     } else {
-      final stream = store.streams[message.streamId];
+      final stream = store.streams[streamId];
       final streamName = stream?.name
-        ?? message.displayRecipient
+        ?? message.conversation.displayRecipient
         ?? zulipLocalizations.unknownChannelName; // TODO(log)
 
       streamWidget = GestureDetector(
         onTap: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
-            narrow: ChannelNarrow(message.streamId))),
-        onLongPress: () => showChannelActionSheet(context, channelId: message.streamId),
+            narrow: ChannelNarrow(streamId))),
+        onLongPress: () => showChannelActionSheet(context, channelId: streamId),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -1130,7 +1135,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
           Icon(size: 14, color: designVariables.title.withFadedAlpha(0.5),
             // A null [Icon.icon] makes a blank space.
             iconDataForTopicVisibilityPolicy(
-              store.topicVisibilityPolicy(message.streamId, topic))),
+              store.topicVisibilityPolicy(streamId, topic))),
         ]));
 
     return GestureDetector(
@@ -1143,7 +1148,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
             MessageListPage.buildRoute(context: context,
               narrow: TopicNarrow.ofMessage(message))),
       onLongPress: () => showTopicActionSheet(context,
-        channelId: message.streamId,
+        channelId: streamId,
         topic: topic,
         someMessageIdInTopic: message.id),
       child: ColoredBox(
@@ -1168,7 +1173,7 @@ class DmRecipientHeader extends StatelessWidget {
     required this.narrow,
   });
 
-  final DmMessage message;
+  final MessageBase<DmConversation> message;
   final Narrow narrow;
 
   @override
@@ -1176,12 +1181,13 @@ class DmRecipientHeader extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
     final String title;
-    if (message.allRecipientIds.length > 1) {
-      title = zulipLocalizations.messageListGroupYouAndOthers(message.allRecipientIds
-        .where((id) => id != store.selfUserId)
-        .map(store.userDisplayName)
-        .sorted()
-        .join(", "));
+    if (message.conversation.allRecipientIds.length > 1) {
+      title = zulipLocalizations.messageListGroupYouAndOthers(
+        message.conversation.allRecipientIds
+          .where((id) => id != store.selfUserId)
+          .map(store.userDisplayName)
+          .sorted()
+          .join(", "));
     } else {
       title = zulipLocalizations.messageListGroupYouWithYourself;
     }
@@ -1233,7 +1239,7 @@ TextStyle recipientHeaderTextStyle(BuildContext context, {FontStyle? fontStyle})
 class RecipientHeaderDate extends StatelessWidget {
   const RecipientHeaderDate({super.key, required this.message});
 
-  final Message message;
+  final MessageBase message;
 
   @override
   Widget build(BuildContext context) {
