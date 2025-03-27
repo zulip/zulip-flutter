@@ -254,6 +254,12 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'color': instance.color,
     };
 
+StreamRecipient _$StreamRecipientFromJson(Map<String, dynamic> json) =>
+    StreamRecipient(
+      (json['stream_id'] as num).toInt(),
+      TopicName.fromJson(json['subject'] as String),
+    );
+
 StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) {
   $checkKeys(
     json,
@@ -281,8 +287,9 @@ StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) {
     matchContent: json['match_content'] as String?,
     matchTopic: json['match_subject'] as String?,
     displayRecipient: json['display_recipient'] as String?,
-    streamId: (json['stream_id'] as num).toInt(),
-    topic: TopicName.fromJson(json['subject'] as String),
+    recipient: StreamRecipient.fromJson(
+      StreamMessage._readRecipient(json, 'recipient') as Map<String, dynamic>,
+    ),
   )..poll = Poll.fromJson(Message._readPoll(json, 'submessages'));
 }
 
@@ -339,9 +346,7 @@ DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
   flags: Message._flagsFromJson(json['flags']),
   matchContent: json['match_content'] as String?,
   matchTopic: json['match_subject'] as String?,
-  allRecipientIds: DmMessage._allRecipientIdsFromJson(
-    json['display_recipient'],
-  ),
+  recipient: DmMessage._recipientFromJson(json['display_recipient'] as List),
 )..poll = Poll.fromJson(Message._readPoll(json, 'submessages'));
 
 Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
