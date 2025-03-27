@@ -84,7 +84,7 @@ void main() {
       final message1 = eg.streamMessage();
       final message2 = eg.streamMessage();
       final message3 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-      final messages = [message1, message2, message3];
+      final messages = <Message>[message1, message2, message3];
       store.reconcileMessages(messages);
       check(messages).deepEquals(
         [message1, message2, message3]
@@ -99,7 +99,7 @@ void main() {
       final message1 = eg.streamMessage();
       final message2 = eg.streamMessage();
       final message3 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-      final messages = [message1, message2, message3];
+      final messages = <Message>[message1, message2, message3];
       await addMessages(messages);
       final newMessage = eg.streamMessage();
       store.reconcileMessages([newMessage]);
@@ -139,7 +139,7 @@ void main() {
 
     test('from not-empty', () async {
       await prepare();
-      final messages = [
+      final messages = <Message>[
         eg.streamMessage(),
         eg.streamMessage(),
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),

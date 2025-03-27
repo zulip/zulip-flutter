@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/submessage.dart';
+import 'package:zulip/api/route/messages.dart';
 
 extension UserChecks on Subject<User> {
   Subject<int> get userId => has((x) => x.userId, 'userId');
@@ -24,6 +25,13 @@ extension UserChecks on Subject<User> {
 extension ZulipStreamChecks on Subject<ZulipStream> {
 }
 
+extension DisplayableMessageChecks<T extends MessageDestination> on Subject<DisplayableMessage<T>> {
+  Subject<int?> get id => has((e) => e.id, 'id');
+  Subject<int> get senderId => has((e) => e.senderId, 'senderId');
+  Subject<int> get timestamp => has((e) => e.timestamp, 'timestamp');
+  Subject<T> get destination => has((e) => e.destination, 'destination');
+}
+
 extension MessageChecks on Subject<Message> {
   Subject<String> get client => has((e) => e.client, 'client');
   Subject<String> get content => has((e) => e.content, 'content');
@@ -36,10 +44,8 @@ extension MessageChecks on Subject<Message> {
   Subject<int> get recipientId => has((e) => e.recipientId, 'recipientId');
   Subject<String> get senderEmail => has((e) => e.senderEmail, 'senderEmail');
   Subject<String> get senderFullName => has((e) => e.senderFullName, 'senderFullName');
-  Subject<int> get senderId => has((e) => e.senderId, 'senderId');
   Subject<String> get senderRealmStr => has((e) => e.senderRealmStr, 'senderRealmStr');
   Subject<Poll?> get poll => has((e) => e.poll, 'poll');
-  Subject<int> get timestamp => has((e) => e.timestamp, 'timestamp');
   Subject<String> get type => has((e) => e.type, 'type');
   Subject<List<MessageFlag>> get flags => has((e) => e.flags, 'flags');
   Subject<String?> get matchContent => has((e) => e.matchContent, 'matchContent');
