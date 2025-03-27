@@ -31,10 +31,13 @@ class DialogStatus {
 ///
 /// The [DialogStatus.closed] field of the return value can be used
 /// for waiting for the dialog to be closed.
+///
+/// The context argument is used to look up [ZulipLocalizations],
+/// the [Navigator] and [Theme] for the dialog.
 // This API is inspired by [ScaffoldManager.showSnackBar].  We wrap
 // [showDialog]'s return value, a [Future], inside [DialogStatus]
 // whose documentation can be accessed.  This helps avoid confusion when
-// intepreting the meaning of the [Future].
+// interpreting the meaning of the [Future].
 DialogStatus showErrorDialog({
   required BuildContext context,
   required String title,
