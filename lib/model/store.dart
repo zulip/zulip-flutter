@@ -360,11 +360,19 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
     connection ??= globalStore.apiConnectionFromAccount(account);
     assert(connection.zulipFeatureLevel == account.zulipFeatureLevel);
 
+    final queueId = initialSnapshot.queueId;
+    if (queueId == null) {
+      // The queueId is optional in the type, but should only be missing in the
+      // case of unauthenticated access to a web-public realm.  We authenticated.
+      throw Exception("bad initial snapshot: missing queueId");
+    }
+
     final realmUrl = account.realmUrl;
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       globalStore: globalStore,
       connection: connection,
+      queueId: queueId,
       realmUrl: realmUrl,
       realmWildcardMentionPolicy: initialSnapshot.realmWildcardMentionPolicy,
       realmMandatoryTopics: initialSnapshot.realmMandatoryTopics,
@@ -408,6 +416,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
   PerAccountStore._({
     required GlobalStore globalStore,
     required this.connection,
+    required this.queueId,
     required this.realmUrl,
     required this.realmWildcardMentionPolicy,
     required this.realmMandatoryTopics,
@@ -447,6 +456,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
   final GlobalStore _globalStore;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
 
+  final String queueId;
   UpdateMachine? get updateMachine => _updateMachine;
   UpdateMachine? _updateMachine;
   set updateMachine(UpdateMachine? value) {
@@ -1024,12 +1034,7 @@ class UpdateMachine {
   UpdateMachine.fromInitialSnapshot({
     required this.store,
     required InitialSnapshot initialSnapshot,
-  }) : queueId = initialSnapshot.queueId ?? (() {
-         // The queueId is optional in the type, but should only be missing in the
-         // case of unauthenticated access to a web-public realm.  We authenticated.
-         throw Exception("bad initial snapshot: missing queueId");
-       })(),
-       lastEventId = initialSnapshot.lastEventId {
+  }) : lastEventId = initialSnapshot.lastEventId {
     store.updateMachine = this;
   }
 
@@ -1103,7 +1108,6 @@ class UpdateMachine {
   }
 
   final PerAccountStore store;
-  final String queueId;
   int lastEventId;
 
   bool _disposed = false;
@@ -1253,7 +1257,7 @@ class UpdateMachine {
         final GetEventsResult result;
         try {
           result = await getEvents(store.connection,
-            queueId: queueId, lastEventId: lastEventId);
+            queueId: store.queueId, lastEventId: lastEventId);
           if (_disposed) return;
         } catch (e, stackTrace) {
           if (_disposed) return;

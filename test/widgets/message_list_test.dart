@@ -161,7 +161,7 @@ void main() {
       updateMachine.poll();
 
       updateMachine.debugPrepareLoopError(
-        eg.apiExceptionBadEventQueueId(queueId: updateMachine.queueId));
+        eg.apiExceptionBadEventQueueId(queueId: store.queueId));
       updateMachine.debugAdvanceLoop();
       await tester.pump();
       // Event queue has been replaced; but the [MessageList] hasn't been

@@ -782,7 +782,7 @@ void main() {
         ..method.equals('GET')
         ..url.path.equals('/api/v1/events')
         ..url.queryParameters.deepEquals({
-          'queue_id': updateMachine.queueId,
+          'queue_id': store.queueId,
           'last_event_id': lastEventId.toString(),
         });
     }
@@ -947,7 +947,7 @@ void main() {
 
     void prepareExpiredEventQueue() {
       connection.prepare(apiException: eg.apiExceptionBadEventQueueId(
-        queueId: updateMachine.queueId));
+        queueId: store.queueId));
     }
 
     Future<void> prepareHandleEventError() async {
