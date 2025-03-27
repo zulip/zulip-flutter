@@ -532,6 +532,65 @@ String? tryParseEmojiCodeToUnicode(String emojiCode) {
   }
 }
 
+/// The name of a Zulip topic.
+// TODO(dart): Can we forbid calling Object members on this extension type?
+//   (The lack of "implements Object" ought to do that, but doesn't.)
+//   In particular an interpolation "foo > $topic" is a bug we'd like to catch.
+// TODO(dart): Can we forbid using this extension type as a key in a Map?
+//   (The lack of "implements Object" arguably should do that, but doesn't.)
+//   Using as a Map key is almost certainly a bug because it won't case-fold;
+//   see for example #739, #980, #1205.
+extension type const TopicName(String _value) {
+  /// The canonical form of the resolved-topic prefix.
+  // This is RESOLVED_TOPIC_PREFIX in web:
+  //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts
+  static const resolvedTopicPrefix = '✔ ';
+
+  /// Pattern for an arbitrary resolved-topic prefix.
+  ///
+  /// These always begin with [resolvedTopicPrefix]
+  /// but can be weird and go on longer, like "✔ ✔✔ ".
+  // This is RESOLVED_TOPIC_PREFIX_RE in web:
+  //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts#L4-L12
+  static final resolvedTopicPrefixRegexp = RegExp(r'^✔ [ ✔]*');
+
+  /// The string this topic is identified by in the Zulip API.
+  ///
+  /// This should be used in constructing HTTP requests to the server,
+  /// but rarely for other purposes.  See [displayName] and [canonicalize].
+  String get apiName => _value;
+
+  /// The string this topic is displayed as to the user in our UI.
+  ///
+  /// At the moment this always equals [apiName].
+  /// In the future this will become null for the "general chat" topic (#1250),
+  /// so that UI code can identify when it needs to represent the topic
+  /// specially in the way prescribed for "general chat".
+  // TODO(#1250) carry out that plan
+  String get displayName => _value;
+
+  /// The key to use for "same topic as" comparisons.
+  String canonicalize() => apiName.toLowerCase();
+
+  /// Whether the topic starts with [resolvedTopicPrefix].
+  bool get isResolved => _value.startsWith(resolvedTopicPrefix);
+
+  /// This [TopicName] plus the [resolvedTopicPrefix] prefix.
+  TopicName resolve() => TopicName(resolvedTopicPrefix + _value);
+
+  /// A [TopicName] with [resolvedTopicPrefixRegexp] stripped if present.
+  TopicName unresolve() =>
+    TopicName(_value.replaceFirst(resolvedTopicPrefixRegexp, ''));
+
+  /// Whether [this] and [other] have the same canonical form,
+  /// using [canonicalize].
+  bool isSameAs(TopicName other) => canonicalize() == other.canonicalize();
+
+  TopicName.fromJson(this._value);
+
+  String toJson() => apiName;
+}
+
 /// As in [StreamMessage.conversation] and [DmMessage.conversation].
 ///
 /// Different from [MessageDestination], this information comes from
@@ -700,65 +759,6 @@ enum MessageFlag {
   static final _byRawString = _$MessageFlagEnumMap.map((key, value) => MapEntry(value, key));
 
   String toJson() => _$MessageFlagEnumMap[this]!;
-}
-
-/// The name of a Zulip topic.
-// TODO(dart): Can we forbid calling Object members on this extension type?
-//   (The lack of "implements Object" ought to do that, but doesn't.)
-//   In particular an interpolation "foo > $topic" is a bug we'd like to catch.
-// TODO(dart): Can we forbid using this extension type as a key in a Map?
-//   (The lack of "implements Object" arguably should do that, but doesn't.)
-//   Using as a Map key is almost certainly a bug because it won't case-fold;
-//   see for example #739, #980, #1205.
-extension type const TopicName(String _value) {
-  /// The canonical form of the resolved-topic prefix.
-  // This is RESOLVED_TOPIC_PREFIX in web:
-  //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts
-  static const resolvedTopicPrefix = '✔ ';
-
-  /// Pattern for an arbitrary resolved-topic prefix.
-  ///
-  /// These always begin with [resolvedTopicPrefix]
-  /// but can be weird and go on longer, like "✔ ✔✔ ".
-  // This is RESOLVED_TOPIC_PREFIX_RE in web:
-  //   https://github.com/zulip/zulip/blob/1fac99733/web/shared/src/resolved_topic.ts#L4-L12
-  static final resolvedTopicPrefixRegexp = RegExp(r'^✔ [ ✔]*');
-
-  /// The string this topic is identified by in the Zulip API.
-  ///
-  /// This should be used in constructing HTTP requests to the server,
-  /// but rarely for other purposes.  See [displayName] and [canonicalize].
-  String get apiName => _value;
-
-  /// The string this topic is displayed as to the user in our UI.
-  ///
-  /// At the moment this always equals [apiName].
-  /// In the future this will become null for the "general chat" topic (#1250),
-  /// so that UI code can identify when it needs to represent the topic
-  /// specially in the way prescribed for "general chat".
-  // TODO(#1250) carry out that plan
-  String get displayName => _value;
-
-  /// The key to use for "same topic as" comparisons.
-  String canonicalize() => apiName.toLowerCase();
-
-  /// Whether the topic starts with [resolvedTopicPrefix].
-  bool get isResolved => _value.startsWith(resolvedTopicPrefix);
-
-  /// This [TopicName] plus the [resolvedTopicPrefix] prefix.
-  TopicName resolve() => TopicName(resolvedTopicPrefix + _value);
-
-  /// A [TopicName] with [resolvedTopicPrefixRegexp] stripped if present.
-  TopicName unresolve() =>
-    TopicName(_value.replaceFirst(resolvedTopicPrefixRegexp, ''));
-
-  /// Whether [this] and [other] have the same canonical form,
-  /// using [canonicalize].
-  bool isSameAs(TopicName other) => canonicalize() == other.canonicalize();
-
-  TopicName.fromJson(this._value);
-
-  String toJson() => apiName;
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
