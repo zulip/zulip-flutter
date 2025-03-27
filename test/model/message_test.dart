@@ -140,6 +140,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.sending)
         ..hidden.isTrue();
+      checkNotNotified();
 
       // Handle the message event before `future` completes, i.e. while the
       // message is being sent.
@@ -149,6 +150,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.sending)
         ..hidden.isTrue();
+      checkNotifiedOnce();
 
       // Complete the send request. The outbox message should no longer get
       // updated because it is not in the store any more.
@@ -156,6 +158,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.sending)
         ..hidden.isTrue();
+      checkNotNotified();
     });
 
     test('while message is being sent, message event arrives, then the send fails', () async {
@@ -170,6 +173,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.sending)
         ..hidden.isTrue();
+      checkNotNotified();
 
       // Handle the message event before `future` completes, i.e. while the
       // message is being sent.
@@ -179,6 +183,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.sending)
         ..hidden.isTrue();
+      checkNotifiedOnce();
 
       // Complete the send request with an error.  The outbox message should no
       // longer get updated because it is not in the store any more.
@@ -186,6 +191,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.sending)
         ..hidden.isTrue();
+      checkNotNotified();
     });
 
     test('message is sent successfully, message event arrives before debounce timeout', () async {
@@ -199,10 +205,13 @@ void main() {
       check(connection.lastRequest).isA<http.Request>()
         ..bodyFields['queue_id'].equals(store.queueId)
         ..bodyFields['local_id'].equals('${outboxMessage.localMessageId}');
+      checkNotNotified();
+
       check(store.outboxMessages).values.single.identicalTo(outboxMessage);
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.sent)
         ..hidden.isTrue();
+      checkNotNotified();
 
       // Handle the event after the message is sent but before the debounce
       // timeout.  The outbox message should remain hidden since the send
@@ -213,6 +222,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.sent)
         ..hidden.isTrue();
+      checkNotifiedOnce();
     });
 
     test('message is sent successfully, message event arrives after debounce timeout', () => awaitFakeAsync((async) async {
@@ -226,6 +236,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.sent)
         ..hidden.isTrue();
+      checkNotNotified();
 
       // Pass enough time without handling the message event, to expire
       // the debounce timer.
@@ -234,6 +245,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.sent)
         ..hidden.isFalse();
+      checkNotifiedOnce();
 
       // Handle the event when the outbox message is unhidden.
       // The outbox message should be removed without errors.
@@ -243,6 +255,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.sent)
         ..hidden.isFalse();
+      checkNotifiedOnce();
     }));
 
     test('message failed to send before debounce timeout', () => awaitFakeAsync((async) async {
@@ -257,6 +270,7 @@ void main() {
         ..state.equals(OutboxMessageLifecycle.sending)
         ..hidden.isTrue();
       check(async.pendingTimers).first.duration.equals(kLocalEchoDebounceDuration);
+      checkNotNotified();
 
       // Complete the send request with an error. The outbox message should be
       // unhidden, and the debounce timer should be cancelled.
@@ -266,6 +280,7 @@ void main() {
         ..state.equals(OutboxMessageLifecycle.failed)
         ..hidden.isFalse();
       check(async.pendingTimers).isEmpty();
+      checkNotifiedOnce();
     }));
 
     test('message failed to send after debounce timeout', () => awaitFakeAsync((async) async {
@@ -280,6 +295,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.sending)
         ..hidden.isTrue();
+      checkNotNotified();
 
       // Wait for just enough time for the debounce timer to expire, but not
       // for the send request to complete.  The outbox message should be unhidden.
@@ -288,6 +304,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.sending)
         ..hidden.isFalse();
+      checkNotifiedOnce();
 
       // Complete the send request.  The now unhidden outbox message's state
       // should be updated without errors.
@@ -296,6 +313,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.failed)
         ..hidden.isFalse();
+      checkNotifiedOnce();
     }));
 
     test('message failed to send, message event arrives', () async {
@@ -310,6 +328,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.failed)
         ..hidden.isFalse();
+      checkNotifiedOnce();
 
       // Handle the event when the outbox message is unhidden.
       // The outbox message should be removed without errors.
@@ -319,6 +338,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.failed)
         ..hidden.isFalse();
+      checkNotifiedOnce();
     });
 
     test('send request pending until after kSendMessageTimeLimit, completes successfully, then message event arrives', () => awaitFakeAsync((async) async {
@@ -335,6 +355,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.sending)
         ..hidden.isFalse();
+      checkNotifiedOnce();
 
       // Wait till we reach [kSendMessageTimeLimit] after the send request
       // was initiated, but before it actually completes.
@@ -343,6 +364,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.failed)
         ..hidden.isFalse();
+      checkNotifiedOnce();
 
       // Wait till the send request completes successfully.  The outbox
       // message should stay in the failed state and remain in the store.
@@ -351,12 +373,14 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.failed)
         ..hidden.isFalse();
+      checkNotNotified();
 
       // Handle the message event.  The outbox message should get removed
       // without errors.
       await store.handleEvent(eg.messageEvent(message,
         localMessageId: outboxMessage.localMessageId));
       check(store.outboxMessages).isEmpty();
+      checkNotifiedOnce();
     }));
 
     test('send request pending until after kSendMessageTimeLimit, then fails', () => awaitFakeAsync((async) async {
@@ -373,6 +397,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.sending)
         ..hidden.isFalse();
+      checkNotifiedOnce();
 
       // Wait till we reach [kSendMessageTimeLimit] after the send request
       // was initiated, but before it fails.
@@ -381,6 +406,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.failed)
         ..hidden.isFalse();
+      checkNotifiedOnce();
 
       // Wait till the send request fails.  The outbox message should stay in the
       // failed state and remain in the store.
@@ -389,6 +415,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.failed)
         ..hidden.isFalse();
+      checkNotNotified();
     }));
 
     test('send request completes, message event does not arrive after kSendMessageTimeLimit', () => awaitFakeAsync((async) async {
@@ -403,6 +430,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.sent)
         ..hidden.isFalse();
+      checkNotifiedOnce();
 
       // Wait till we reach [kSendMessageTimeLimit] after the send request
       // was initiated.
@@ -411,6 +439,7 @@ void main() {
       check(outboxMessage)
         ..state.equals(OutboxMessageLifecycle.failed)
         ..hidden.isFalse();
+      checkNotifiedOnce();
     }));
   });
 
@@ -424,8 +453,10 @@ void main() {
       destination: StreamDestination(stream.streamId, eg.t('topic')),
       content: 'content')).throws();
     final localMessageId = store.outboxMessages.keys.single;
+    checkNotifiedOnce();
 
     store.removeOutboxMessage(localMessageId);
+    checkNotifiedOnce();
   });
 
   group('reconcileMessages', () {
