@@ -211,14 +211,14 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
       }
 
       if (newStreamId != origStreamId) {
-        message.streamId = newStreamId;
+        message.conversation.streamId = newStreamId;
         // See [StreamMessage.displayRecipient] on why the invalidation is
         // needed.
         message.displayRecipient = null;
       }
 
       if (newTopic != origTopic) {
-        message.topic = newTopic;
+        message.conversation.topic = newTopic;
       }
 
       if (!wasResolveOrUnresolve
