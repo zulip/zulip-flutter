@@ -1984,6 +1984,7 @@ void checkInvariants(MessageListView model) {
       ..isLastInBlock.equals(
         i == model.items.length || switch (model.items[i]) {
           MessageListMessageItem()
+          || MessageListOutboxMessageItem()
           || MessageListDateSeparatorItem() => false,
           MessageListRecipientHeaderItem()
           || MessageListHistoryStartItem()
