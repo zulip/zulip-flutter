@@ -1323,14 +1323,14 @@ String formatHeaderDate(
   }
 }
 
-/// A Zulip message, showing the sender's name and avatar if specified.
-// Design referenced from:
-//   - https://github.com/zulip/zulip-mobile/issues/5511
-//   - https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
-class MessageWithPossibleSender extends StatelessWidget {
-  const MessageWithPossibleSender({super.key, required this.item});
+// TODO(i18n): web seems to ignore locale in formatting time, but we could do better
+final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
 
-  final MessageListMessageItem item;
+class _SenderRow extends StatelessWidget {
+  const _SenderRow({required this.message, required this.showTimestamp});
+
+  final Message message;
+  final bool showTimestamp;
 
   @override
   Widget build(BuildContext context) {
@@ -1338,14 +1338,12 @@ class MessageWithPossibleSender extends StatelessWidget {
     final messageListTheme = MessageListTheme.of(context);
     final designVariables = DesignVariables.of(context);
 
-    final message = item.message;
     final sender = store.getUser(message.senderId);
-
-    Widget? senderRow;
-    if (item.showSender) {
-      final time = _kMessageTimestampFormat
-        .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
-      senderRow = Row(
+    final time = _kMessageTimestampFormat
+      .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: localizedTextBaseline(context),
@@ -1377,16 +1375,33 @@ class MessageWithPossibleSender extends StatelessWidget {
                     ),
                   ],
                 ]))),
-          const SizedBox(width: 4),
-          Text(time,
-            style: TextStyle(
-              color: messageListTheme.labelTime,
-              fontSize: 16,
-              height: (18 / 16),
-              fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
-            ).merge(weightVariableTextStyle(context))),
-        ]);
-    }
+          if (showTimestamp) ...[
+            const SizedBox(width: 4),
+            Text(time,
+              style: TextStyle(
+                color: messageListTheme.labelTime,
+                fontSize: 16,
+                height: (18 / 16),
+                fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
+              ).merge(weightVariableTextStyle(context))),
+          ]
+        ]));
+  }
+}
+
+/// A Zulip message, showing the sender's name and avatar if specified.
+// Design referenced from:
+//   - https://github.com/zulip/zulip-mobile/issues/5511
+//   - https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
+class MessageWithPossibleSender extends StatelessWidget {
+  const MessageWithPossibleSender({super.key, required this.item});
+
+  final MessageListMessageItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final message = item.message;
 
     final localizations = ZulipLocalizations.of(context);
     String? editStateText;
@@ -1415,9 +1430,7 @@ class MessageWithPossibleSender extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Column(children: [
-          if (senderRow != null)
-            Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
-              child: senderRow),
+          if (item.showSender) _SenderRow(message: message, showTimestamp: true),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: localizedTextBaseline(context),
@@ -1445,6 +1458,3 @@ class MessageWithPossibleSender extends StatelessWidget {
         ])));
   }
 }
-
-// TODO(i18n): web seems to ignore locale in formatting time, but we could do better
-final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
