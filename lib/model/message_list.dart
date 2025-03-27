@@ -24,13 +24,13 @@ sealed class MessageListItem {
 }
 
 class MessageListRecipientHeaderItem extends MessageListItem {
-  final Message message;
+  final DisplayableMessage message;
 
   MessageListRecipientHeaderItem(this.message);
 }
 
 class MessageListDateSeparatorItem extends MessageListItem {
-  final Message message;
+  final DisplayableMessage message;
 
   MessageListDateSeparatorItem(this.message);
 }
@@ -155,7 +155,7 @@ mixin _MessageSequence {
         }
       case MessageListRecipientHeaderItem(:var message):
       case MessageListDateSeparatorItem(:var message):
-        return (message.id <= messageId) ? -1 : 1;
+        return message.id != null && message.id! <= messageId ? -1 : 1;
       case MessageListMessageItem(:var message): return message.id.compareTo(messageId);
     }
   }

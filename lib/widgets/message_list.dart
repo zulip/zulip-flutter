@@ -6,6 +6,7 @@ import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 import '../api/model/model.dart';
+import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
@@ -898,23 +899,28 @@ class _MarkAsReadAnimationState extends State<MarkAsReadAnimation> {
 class RecipientHeader extends StatelessWidget {
   const RecipientHeader({super.key, required this.message, required this.narrow});
 
-  final Message message;
+  final DisplayableMessage message;
   final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
     final message = this.message;
-    return switch (message) {
-      StreamMessage() => StreamMessageRecipientHeader(message: message, narrow: narrow),
-      DmMessage() => DmRecipientHeader(message: message, narrow: narrow),
-    };
+    switch (message) {
+      case DisplayableMessage<StreamDestination>():
+        return StreamMessageRecipientHeader(message: message, narrow: narrow);
+      case DisplayableMessage<DmDestination>():
+        return DmRecipientHeader(message: message, narrow: narrow);
+      case DisplayableMessage<MessageDestination>():
+        assert(false, 'Unexpected concrete subclass of DisplayableMessage<MessageDestination>');
+        return SizedBox.shrink();
+    }
   }
 }
 
 class DateSeparator extends StatelessWidget {
   const DateSeparator({super.key, required this.message});
 
-  final Message message;
+  final DisplayableMessage message;
 
   @override
   Widget build(BuildContext context) {
@@ -1024,7 +1030,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     required this.narrow,
   });
 
-  final StreamMessage message;
+  final DisplayableMessage<StreamDestination> message;
   final Narrow narrow;
 
   static bool _containsDifferentChannels(Narrow narrow) {
@@ -1050,11 +1056,11 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final topic = message.topic;
+    final StreamDestination(:streamId, :topic) = message.destination;
 
     final messageListTheme = MessageListTheme.of(context);
 
-    final subscription = store.subscriptions[message.streamId];
+    final subscription = store.subscriptions[streamId];
     final Color backgroundColor;
     final Color iconColor;
     if (subscription != null) {
@@ -1070,16 +1076,17 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     if (!_containsDifferentChannels(narrow)) {
       streamWidget = const SizedBox(width: 16);
     } else {
-      final stream = store.streams[message.streamId];
+      final stream = store.streams[streamId];
+      final message = this.message;
       final streamName = stream?.name
-        ?? message.displayRecipient
+        ?? (message is StreamMessage ? message.displayRecipient : null)
         ?? zulipLocalizations.unknownChannelName; // TODO(log)
 
       streamWidget = GestureDetector(
         onTap: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
-            narrow: ChannelNarrow(message.streamId))),
-        onLongPress: () => showChannelActionSheet(context, channelId: message.streamId),
+            narrow: ChannelNarrow(streamId))),
+        onLongPress: () => showChannelActionSheet(context, channelId: streamId),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -1127,7 +1134,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
           Icon(size: 14, color: designVariables.title.withFadedAlpha(0.5),
             // A null [Icon.icon] makes a blank space.
             iconDataForTopicVisibilityPolicy(
-              store.topicVisibilityPolicy(message.streamId, topic))),
+              store.topicVisibilityPolicy(streamId, topic))),
         ]));
 
     return GestureDetector(
@@ -1138,9 +1145,9 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       onTap: narrow is TopicNarrow ? null
         : () => Navigator.push(context,
             MessageListPage.buildRoute(context: context,
-              narrow: TopicNarrow.ofMessage(message))),
+              narrow: TopicNarrow(streamId, topic))),
       onLongPress: () => showTopicActionSheet(context,
-        channelId: message.streamId,
+        channelId: streamId,
         topic: topic,
         someMessageIdInTopic: message.id),
       child: ColoredBox(
@@ -1165,7 +1172,7 @@ class DmRecipientHeader extends StatelessWidget {
     required this.narrow,
   });
 
-  final DmMessage message;
+  final DisplayableMessage<DmDestination> message;
   final Narrow narrow;
 
   @override
@@ -1173,8 +1180,9 @@ class DmRecipientHeader extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
     final String title;
-    if (message.allRecipientIds.length > 1) {
-      title = zulipLocalizations.messageListGroupYouAndOthers(message.allRecipientIds
+    final allRecipientIds = message.destination.userIds;
+    if (allRecipientIds.length > 1) {
+      title = zulipLocalizations.messageListGroupYouAndOthers(allRecipientIds
         .where((id) => id != store.selfUserId)
         .map(store.userDisplayName)
         .sorted()
@@ -1194,7 +1202,8 @@ class DmRecipientHeader extends StatelessWidget {
       onTap: narrow is DmNarrow ? null
         : () => Navigator.push(context,
             MessageListPage.buildRoute(context: context,
-              narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
+              narrow: DmNarrow.withUsers(
+                allRecipientIds, selfUserId: store.selfUserId))),
       child: ColoredBox(
         color: messageListTheme.dmRecipientHeaderBg,
         child: Padding(
@@ -1230,7 +1239,7 @@ TextStyle recipientHeaderTextStyle(BuildContext context, {FontStyle? fontStyle})
 class RecipientHeaderDate extends StatelessWidget {
   const RecipientHeaderDate({super.key, required this.message});
 
-  final Message message;
+  final DisplayableMessage message;
 
   @override
   Widget build(BuildContext context) {
