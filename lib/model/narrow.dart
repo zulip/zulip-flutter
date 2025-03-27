@@ -235,6 +235,7 @@ class DmNarrow extends Narrow implements SendableNarrow {
   /// See also:
   /// * [otherRecipientIds], an alternate way of identifying the conversation.
   /// * [DmMessage.allRecipientIds], which provides this same format.
+  /// * [DmConversation.allRecipientIds], which also provides this same format.
   final List<int> allRecipientIds;
 
   /// The user ID of the self-user.

@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../model/algorithms.dart';
 import 'events.dart';
 import 'initial_snapshot.dart';
 import 'reaction.dart';
@@ -531,6 +532,52 @@ String? tryParseEmojiCodeToUnicode(String emojiCode) {
   }
 }
 
+/// As in [StreamMessage.conversation] and [DmMessage.conversation].
+///
+/// Different from [MessageDestination], this information comes from
+/// [getMessages] or [getEvents], identifying the conversation that contains a
+/// message.
+sealed class Conversation {}
+
+/// The conversation a stream message is in.
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class StreamConversation extends Conversation {
+  int streamId;
+
+  @JsonKey(name: 'subject')
+  TopicName topic;
+
+  /// The name of the channel with ID [streamId] when the message was sent.
+  ///
+  /// The primary reference for the name of the channel is
+  /// the client's data structures about channels, at [streamId].
+  /// This value may be used as a fallback when the channel is unknown.
+  ///
+  /// This is non-null when found in a [StreamMessage] object in the API,
+  /// but may become null in the client's data structures,
+  /// e.g. if the message gets moved between channels.
+  @JsonKey(required: true, disallowNullValue: true)
+  String? displayRecipient;
+
+  StreamConversation(this.streamId, this.topic, {required this.displayRecipient});
+
+  factory StreamConversation.fromJson(Map<String, dynamic> json) =>
+    _$StreamConversationFromJson(json);
+}
+
+/// The conversation a DM message is in.
+class DmConversation extends Conversation {
+  /// The user IDs of all users in the conversation, sorted numerically.
+  ///
+  /// This lists the sender as well as all (other) recipients, and it
+  /// lists each user just once.  In particular the self-user is always
+  /// included.
+  final List<int> allRecipientIds;
+
+  DmConversation({required this.allRecipientIds})
+    : assert(isSortedWithoutDuplicates(allRecipientIds.toList()));
+}
+
 /// As in the get-messages response.
 ///
 /// https://zulip.com/api/get-messages#response
@@ -720,20 +767,25 @@ class StreamMessage extends Message {
   @JsonKey(includeToJson: true)
   String get type => 'stream';
 
-  // This is not nullable API-wise, but if the message moves across channels,
-  // [displayRecipient] still refers to the original channel and it has to be
-  // invalidated.
-  @JsonKey(required: true, disallowNullValue: true)
-  String? displayRecipient;
-
-  int streamId;
+  @JsonKey(includeToJson: true)
+  int get streamId => conversation.streamId;
 
   // The topic/subject is documented to be present on DMs too, just empty.
   // We ignore it on DMs; if a future server introduces distinct topics in DMs,
   // that will need new UI that we'll design then as part of that feature,
   // and ignoring the topics seems as good a fallback behavior as any.
-  @JsonKey(name: 'subject')
-  TopicName topic;
+  @JsonKey(name: 'subject', includeToJson: true)
+  TopicName get topic => conversation.topic;
+
+  @JsonKey(includeToJson: true)
+  String? get displayRecipient => conversation.displayRecipient;
+
+  @JsonKey(readValue: _readConversation, includeToJson: false)
+  StreamConversation conversation;
+
+  static Map<String, dynamic> _readConversation(Map<dynamic, dynamic> json, String key) {
+    return json as Map<String, dynamic>;
+  }
 
   StreamMessage({
     required super.client,
@@ -753,9 +805,7 @@ class StreamMessage extends Message {
     required super.flags,
     required super.matchContent,
     required super.matchTopic,
-    required this.displayRecipient,
-    required this.streamId,
-    required this.topic,
+    required this.conversation,
   });
 
   factory StreamMessage.fromJson(Map<String, dynamic> json) =>
@@ -781,18 +831,21 @@ class DmMessage extends Message {
   /// included.
   // TODO(server): Document that it's all users.  That statement is based on
   //   reverse-engineering notes in zulip-mobile:src/api/modelTypes.js at PmMessage.
-  @JsonKey(name: 'display_recipient', fromJson: _allRecipientIdsFromJson, toJson: _allRecipientIdsToJson)
-  final List<int> allRecipientIds;
+  @JsonKey(name: 'display_recipient', toJson: _allRecipientIdsToJson, includeToJson: true)
+  List<int> get allRecipientIds => conversation.allRecipientIds;
 
-  static List<int> _allRecipientIdsFromJson(Object? json) {
-    return (json as List<dynamic>).map(
-      (element) => ((element as Map<String, dynamic>)['id'] as num).toInt()
-    ).toList(growable: false)
-      ..sort();
-  }
+  @JsonKey(name: 'display_recipient', fromJson: _conversationFromJson, includeToJson: false)
+  final DmConversation conversation;
 
   static List<Map<String, dynamic>> _allRecipientIdsToJson(List<int> allRecipientIds) {
     return allRecipientIds.map((element) => {'id': element}).toList();
+  }
+
+  static DmConversation _conversationFromJson(List<dynamic> json) {
+    return DmConversation(allRecipientIds: json.map(
+      (element) => ((element as Map<String, dynamic>)['id'] as num).toInt()
+    ).toList(growable: false)
+     ..sort());
   }
 
   DmMessage({
@@ -813,7 +866,7 @@ class DmMessage extends Message {
     required super.flags,
     required super.matchContent,
     required super.matchTopic,
-    required this.allRecipientIds,
+    required this.conversation,
   });
 
   factory DmMessage.fromJson(Map<String, dynamic> json) =>

@@ -24,6 +24,10 @@ extension UserChecks on Subject<User> {
 extension ZulipStreamChecks on Subject<ZulipStream> {
 }
 
+extension StreamConversationChecks on Subject<StreamConversation> {
+  Subject<String?> get displayRecipient => has((x) => x.displayRecipient, 'displayRecipient');
+}
+
 extension MessageChecks on Subject<Message> {
   Subject<String> get client => has((e) => e.client, 'client');
   Subject<String> get content => has((e) => e.content, 'content');
@@ -52,9 +56,10 @@ extension TopicNameChecks on Subject<TopicName> {
 }
 
 extension StreamMessageChecks on Subject<StreamMessage> {
-  Subject<String?> get displayRecipient => has((e) => e.displayRecipient, 'displayRecipient');
   Subject<int> get streamId => has((e) => e.streamId, 'streamId');
   Subject<TopicName> get topic => has((e) => e.topic, 'topic');
+  Subject<String?> get displayRecipient => has((e) => e.displayRecipient, 'displayRecipient');
+  Subject<StreamConversation> get conversation => has((e) => e.conversation, 'conversation');
 }
 
 extension ReactionsChecks on Subject<Reactions> {
