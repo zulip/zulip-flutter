@@ -591,7 +591,7 @@ extension type const TopicName(String _value) {
   String toJson() => apiName;
 }
 
-/// As in [StreamMessage.conversation] and [DmMessage.conversation].
+/// As in [MessageBase.conversation].
 ///
 /// Different from [MessageDestination], this information comes from
 /// [getMessages] or [getEvents], identifying the conversation that contains a
@@ -625,10 +625,39 @@ class DmConversation extends Conversation {
   final List<int> allRecipientIds;
 }
 
+/// A message or message-like object, for showing in a message list.
+///
+/// Other than [Message], we use this for "outbox messages",
+/// representing outstanding [sendMessage] requests.
+abstract class MessageBase<T extends Conversation> {
+  const MessageBase({
+    required this.senderId,
+    required this.timestamp,
+    required this.conversation,
+  });
+
+  /// The Zulip message ID.
+  ///
+  /// If null, the message doesn't have an ID acknowledged by the server
+  /// (e.g.: a locally-echoed message).
+  int? get id;
+
+  final int senderId;
+  final int timestamp;
+
+  /// The conversation that contains this message.
+  ///
+  /// When implementing this, the return type should be either
+  /// [StreamConversation] or [DmConversation]; it should never be
+  /// [Conversation], because we expect a concrete subclass of [MessageBase]
+  /// to represent either a channel message or a DM message, not both.
+  final T conversation;
+}
+
 /// As in the get-messages response.
 ///
 /// https://zulip.com/api/get-messages#response
-sealed class Message {
+sealed class Message<T extends Conversation> implements MessageBase<T> {
   // final String? avatarUrl; // Use [User.avatarUrl] instead; will live-update
   final String client;
   String content;
@@ -638,6 +667,7 @@ sealed class Message {
   @JsonKey(readValue: MessageEditState._readFromMessage, fromJson: Message._messageEditStateFromJson)
   MessageEditState editState;
 
+  @override
   final int id;
   bool isMeMessage;
   int? lastEditTimestamp;
@@ -648,6 +678,7 @@ sealed class Message {
   final int recipientId;
   final String senderEmail;
   final String senderFullName;
+  @override
   final int senderId;
   final String senderRealmStr;
 
@@ -655,6 +686,7 @@ sealed class Message {
   @JsonKey(name: 'submessages', readValue: _readPoll, fromJson: Poll.fromJson, toJson: Poll.toJson)
   Poll? poll;
 
+  @override
   final int timestamp;
   String get type;
 
@@ -713,6 +745,8 @@ sealed class Message {
     required this.matchTopic,
   });
 
+  // TODO(dart): This has to be a static method, because factories/constructors
+  //   do not support type parameters: https://github.com/dart-lang/language/issues/647
   static Message fromJson(Map<String, dynamic> json) {
     final type = json['type'] as String;
     if (type == 'stream') return StreamMessage.fromJson(json);
@@ -750,7 +784,7 @@ enum MessageFlag {
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-class StreamMessage extends Message {
+class StreamMessage extends Message<StreamConversation> {
   @override
   @JsonKey(includeToJson: true)
   String get type => 'stream';
@@ -771,6 +805,7 @@ class StreamMessage extends Message {
   @JsonKey(name: 'subject', includeToJson: true)
   TopicName get topic => conversation.topic;
 
+  @override
   @JsonKey(readValue: _readConversation, includeToJson: false)
   StreamConversation conversation;
 
@@ -808,7 +843,7 @@ class StreamMessage extends Message {
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-class DmMessage extends Message {
+class DmMessage extends Message<DmConversation> {
   @override
   @JsonKey(includeToJson: true)
   String get type => 'private';
@@ -826,6 +861,7 @@ class DmMessage extends Message {
   @JsonKey(name: 'display_recipient', toJson: _allRecipientIdsToJson, includeToJson: true)
   List<int> get allRecipientIds => conversation.allRecipientIds;
 
+  @override
   @JsonKey(name: 'display_recipient', fromJson: _conversationFromJson, includeToJson: false)
   final DmConversation conversation;
 
