@@ -168,13 +168,13 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos
 
 SPEC CHECKSUMS:
-  app_settings: cd21e176b56f8172043640ade81322a98896bff4
-  device_info_plus: 4fb280989f669696856f8b129e4a5e3cd6c48f76
-  file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
-  file_selector_macos: 6280b52b459ae6c590af5d78fc35c7267a3c4b31
+  app_settings: 140be3a9c0fc1f681e44afe9f549ab037b3aa3a2
+  device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
+  file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
+  file_selector_macos: cc3858c981fe6889f364731200d6232dac1d812d
   Firebase: 973c28133496aab0223e9ea99f0abafb9f91ad58
-  firebase_core: 3dcdf8453dfb144a023ee70f49e0463b97177f71
-  firebase_messaging: 96fe41b2f8b5bee4e0f21df8d716cb8c9293448c
+  firebase_core: 1b573eac37729348cdc472516991dd7e269ae37e
+  firebase_messaging: 0620038ea399ceae2218c9087fca00a28f576209
   FirebaseCore: 99fe0c4b44a39f37d99e6404e02009d2db5d718d
   FirebaseCoreInternal: df24ce5af28864660ecbd13596fc8dd3a8c34629
   FirebaseInstallations: 6c963bd2a86aca0481eef4f48f5a4df783ae5917
@@ -183,15 +183,15 @@ SPEC CHECKSUMS:
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 26a3abef001b6533cf678d3eb38fd3f614b7872d
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  package_info_plus: f0052d280d17aa382b932f399edf32507174e870
-  path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
+  package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
+  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  share_plus: 510bf0af1a42cd602274b4629920c9649c52f4cc
+  share_plus: 1fa619de8392a4398bfaf176d441853922614e89
   sqlite3: fc1400008a9b3525f5914ed715a5d1af0b8f4983
-  sqlite3_flutter_libs: f8fc13346870e73fe35ebf6dbb997fbcd156b241
-  url_launcher_macos: 0fba8ddabfc33ce0a9afe7c5fef5aab3d8d2d673
-  video_player_avfoundation: 2cef49524dd1f16c5300b9cd6efd9611ce03639b
-  wakelock_plus: 21ddc249ac4b8d018838dbdabd65c5976c308497
+  sqlite3_flutter_libs: cc304edcb8e1d8c595d1b08c7aeb46a47691d9db
+  url_launcher_macos: c82c93949963e55b228a30115bd219499a6fe404
+  video_player_avfoundation: 7c6c11d8470e1675df7397027218274b6d2360b3
+  wakelock_plus: 4783562c9a43d209c458cb9b30692134af456269
 
 PODFILE CHECKSUM: bd6842df0dd91920553fbfacd50c921f7e63a62f
 
