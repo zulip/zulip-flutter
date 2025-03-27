@@ -287,10 +287,6 @@
   "@errorNotificationOpenTitle": {
     "description": "Error title when notification opening fails"
   },
-  "errorNotificationOpenAccountMissing": "Учетной записи, связанной с этим оповещением, больше нет.",
-  "@errorNotificationOpenAccountMissing": {
-    "description": "Error message when the account associated with the notification is not found"
-  },
   "switchAccountButton": "Сменить учетную запись",
   "@switchAccountButton": {
     "description": "Label for main-menu button leading to the choose-account page."
