@@ -160,32 +160,40 @@ void main() {
       await prepareSendMessageToSucceed(destination: DmDestination(
         userIds: [eg.selfUser.userId, eg.otherUser.userId]));
       check(outboxMessage).state.equals(OutboxMessageState.hidden);
+      checkNotNotified();
 
       async.elapse(kLocalEchoDebounceDuration);
       check(outboxMessage).state.equals(OutboxMessageState.waiting);
+      checkNotifiedOnce();
 
       async.elapse(kSendMessageOfferRestoreWaitPeriod - kLocalEchoDebounceDuration);
       check(outboxMessage).state.equals(OutboxMessageState.waitPeriodExpired);
+      checkNotifiedOnce();
 
       await store.handleEvent(eg.messageEvent(
         eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]),
         localMessageId: outboxMessage.localMessageId));
       check(store.outboxMessages).isEmpty();
+      checkNotifiedOnce();
     }));
 
     test('smoke stream message: hidden -> waiting -> waitPeriodExpired -> (delete)', () => awaitFakeAsync((async) async {
       await prepareSendMessageToSucceed();
       check(outboxMessage).state.equals(OutboxMessageState.hidden);
+      checkNotNotified();
 
       async.elapse(kLocalEchoDebounceDuration);
       check(outboxMessage).state.equals(OutboxMessageState.waiting);
+      checkNotifiedOnce();
 
       async.elapse(kSendMessageOfferRestoreWaitPeriod - kLocalEchoDebounceDuration);
       check(outboxMessage).state.equals(OutboxMessageState.waitPeriodExpired);
+      checkNotifiedOnce();
 
       await store.handleEvent(eg.messageEvent(message,
         localMessageId: outboxMessage.localMessageId));
       check(store.outboxMessages).isEmpty();
+      checkNotifiedOnce();
     }));
 
     group('… -> failed', () {
@@ -193,6 +201,7 @@ void main() {
         await prepareSendMessageToFail();
         await check(failToSendMessageFuture).throws();
         check(outboxMessage).state.equals(OutboxMessageState.failed);
+        checkNotifiedOnce();
 
         // Wait till we reach at least [kSendMessageOfferRestoreWaitPeriod] after
         // the send request was initiated.
@@ -201,6 +210,7 @@ void main() {
         // The outbox message should stay in the failed state;
         // it should not transition to waiting or waitPeriodExpired.
         check(outboxMessage).state.equals(OutboxMessageState.failed);
+        checkNotNotified();
       }));
 
       test('waiting -> failed', () => awaitFakeAsync((async) async {
@@ -208,10 +218,12 @@ void main() {
           delay: kLocalEchoDebounceDuration + Duration(seconds: 1));
         async.elapse(kLocalEchoDebounceDuration);
         check(outboxMessage).state.equals(OutboxMessageState.waiting);
+        checkNotifiedOnce();
 
         await check(failToSendMessageFuture).throws();
         async.elapse(Duration(seconds: 1));
         check(outboxMessage).state.equals(OutboxMessageState.failed);
+        checkNotifiedOnce();
       }));
 
       test('waitPeriodExpired -> failed', () => awaitFakeAsync((async) async {
@@ -219,10 +231,12 @@ void main() {
           delay: kSendMessageOfferRestoreWaitPeriod + Duration(seconds: 1));
         async.elapse(kSendMessageOfferRestoreWaitPeriod);
         check(outboxMessage).state.equals(OutboxMessageState.waitPeriodExpired);
+        checkNotified(count: 2);
 
         await check(failToSendMessageFuture).throws();
         async.elapse(Duration(seconds: 1));
         check(outboxMessage).state.equals(OutboxMessageState.failed);
+        checkNotifiedOnce();
       }));
     });
 
@@ -230,10 +244,12 @@ void main() {
       test('hidden -> (delete) because event received', () => awaitFakeAsync((async) async {
         await prepareSendMessageToSucceed();
         check(outboxMessage).state.equals(OutboxMessageState.hidden);
+        checkNotNotified();
 
         await store.handleEvent(eg.messageEvent(message,
           localMessageId: outboxMessage.localMessageId));
         check(store.outboxMessages).isEmpty();
+        checkNotifiedOnce();
       }));
 
       test('hidden -> (delete) when event arrives before send request fails', () => awaitFakeAsync((async) async {
@@ -241,27 +257,32 @@ void main() {
         // the message event to arrive.
         await prepareSendMessageToFail(delay: const Duration(seconds: 1));
         check(outboxMessage).state.equals(OutboxMessageState.hidden);
+        checkNotNotified();
 
         // Handle the message event while the message is being sent.
         await store.handleEvent(eg.messageEvent(message,
           localMessageId: outboxMessage.localMessageId));
         check(store.outboxMessages).isEmpty();
+        checkNotifiedOnce();
 
         // Complete the send request.  There should be no error despite
         // the send request failure, because the outbox message is not
         // in the store any more.
         await check(failToSendMessageFuture).completes();
         async.elapse(const Duration(seconds: 1));
+        checkNotNotified();
       }));
 
       test('waiting -> (delete) because event received', () => awaitFakeAsync((async) async {
         await prepareSendMessageToSucceed();
         async.elapse(kLocalEchoDebounceDuration);
         check(outboxMessage).state.equals(OutboxMessageState.waiting);
+        checkNotifiedOnce();
 
         await store.handleEvent(eg.messageEvent(message,
           localMessageId: outboxMessage.localMessageId));
         check(store.outboxMessages).isEmpty();
+        checkNotifiedOnce();
       }));
 
       test('waiting -> (delete) when event arrives before send request fails', () => awaitFakeAsync((async) async {
@@ -271,26 +292,31 @@ void main() {
           delay: kLocalEchoDebounceDuration + Duration(seconds: 1));
         async.elapse(kLocalEchoDebounceDuration);
         check(outboxMessage).state.equals(OutboxMessageState.waiting);
+        checkNotifiedOnce();
 
         // Handle the message event while the message is being sent.
         await store.handleEvent(eg.messageEvent(message,
           localMessageId: outboxMessage.localMessageId));
         check(store.outboxMessages).isEmpty();
+        checkNotifiedOnce();
 
         // Complete the send request.  There should be no error despite
         // the send request failure, because the outbox message is not
         // in the store any more.
         await check(failToSendMessageFuture).completes();
+        checkNotNotified();
       }));
 
       test('waitPeriodExpired -> (delete) because event received', () => awaitFakeAsync((async) async {
         await prepareSendMessageToSucceed();
         async.elapse(kSendMessageOfferRestoreWaitPeriod);
         check(outboxMessage).state.equals(OutboxMessageState.waitPeriodExpired);
+        checkNotified(count: 2);
 
         await store.handleEvent(eg.messageEvent(message,
           localMessageId: outboxMessage.localMessageId));
         check(store.outboxMessages).isEmpty();
+        checkNotifiedOnce();
       }));
 
       test('waitPeriodExpired -> (delete) when event arrives before send request fails', () => awaitFakeAsync((async) async {
@@ -300,44 +326,53 @@ void main() {
           delay: kSendMessageOfferRestoreWaitPeriod + Duration(seconds: 1));
         async.elapse(kSendMessageOfferRestoreWaitPeriod);
         check(outboxMessage).state.equals(OutboxMessageState.waitPeriodExpired);
+        checkNotified(count: 2);
 
         // Handle the message event while the message is being sent.
         await store.handleEvent(eg.messageEvent(message,
           localMessageId: outboxMessage.localMessageId));
         check(store.outboxMessages).isEmpty();
+        checkNotifiedOnce();
 
         // Complete the send request.  There should be no error despite
         // the send request failure, because the outbox message is not
         // in the store any more.
         await check(failToSendMessageFuture).completes();
+        checkNotNotified();
       }));
 
       test('waitPeriodExpired -> (delete) because outbox message was taken', () => awaitFakeAsync((async) async {
         await prepareSendMessageToSucceed();
         async.elapse(kSendMessageOfferRestoreWaitPeriod);
         check(outboxMessage).state.equals(OutboxMessageState.waitPeriodExpired);
+        checkNotified(count: 2);
 
         store.takeOutboxMessage(outboxMessage.localMessageId);
         check(store.outboxMessages).isEmpty();
+        checkNotifiedOnce();
       }));
 
       test('failed -> (delete) because event received', () => awaitFakeAsync((async) async {
         await prepareSendMessageToFail();
         await check(failToSendMessageFuture).throws();
         check(outboxMessage).state.equals(OutboxMessageState.failed);
+        checkNotifiedOnce();
 
         await store.handleEvent(eg.messageEvent(message,
           localMessageId: outboxMessage.localMessageId));
         check(store.outboxMessages).isEmpty();
+        checkNotifiedOnce();
       }));
 
       test('failed -> (delete) because outbox message was taken', () => awaitFakeAsync((async) async {
         await prepareSendMessageToFail();
         await check(failToSendMessageFuture).throws();
         check(outboxMessage).state.equals(OutboxMessageState.failed);
+        checkNotifiedOnce();
 
         store.takeOutboxMessage(outboxMessage.localMessageId);
         check(store.outboxMessages).isEmpty();
+        checkNotifiedOnce();
       }));
     });
 
@@ -378,11 +413,13 @@ void main() {
       await check(store.sendMessage(
         destination: StreamDestination(stream.streamId, eg.t('topic')),
         content: 'content')).throws();
+      checkNotifiedOnce();
     }
 
     final localMessageIds = store.outboxMessages.keys.toList();
     store.takeOutboxMessage(localMessageIds.removeAt(5));
     check(store.outboxMessages.keys).deepEquals(localMessageIds);
+    checkNotifiedOnce();
   });
 
   group('reconcileMessages', () {

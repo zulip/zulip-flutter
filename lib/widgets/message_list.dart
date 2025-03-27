@@ -720,6 +720,11 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           key: ValueKey(data.message.id),
           header: header,
           item: data);
+      case MessageListOutboxMessageItem():
+        final header = RecipientHeader(message: data.message, narrow: widget.narrow);
+        return MessageItem(
+          header: header,
+          item: data);
     }
   }
 }
@@ -1032,6 +1037,7 @@ class MessageItem extends StatelessWidget {
       child: Column(children: [
         switch (item) {
           MessageListMessageItem() => MessageWithPossibleSender(item: item),
+          MessageListOutboxMessageItem() => OutboxMessageWithPossibleSender(item: item),
         },
       ]));
     if (item case MessageListMessageItem(:final message)) {
@@ -1374,7 +1380,7 @@ final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
 class _SenderRow extends StatelessWidget {
   const _SenderRow({required this.message, required this.showTimestamp});
 
-  final Message message;
+  final MessageBase message;
   final bool showTimestamp;
 
   @override
@@ -1404,7 +1410,9 @@ class _SenderRow extends StatelessWidget {
                     userId: message.senderId),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text(message.senderFullName, // TODO(#716): use `store.senderDisplayName`
+                    child: Text(message is Message
+                        ? store.senderDisplayName(message as Message)
+                        : store.userDisplayName(message.senderId),
                       style: TextStyle(
                         fontSize: 18,
                         height: (22 / 18),
@@ -1596,5 +1604,33 @@ class _RestoreEditMessageGestureDetector extends StatelessWidget {
         composeBoxState.startEditInteraction(messageId);
       },
       child: child);
+  }
+}
+
+/// A placeholder for Zulip message sent by the self-user.
+///
+/// See also [OutboxMessage].
+class OutboxMessageWithPossibleSender extends StatelessWidget {
+  const OutboxMessageWithPossibleSender({super.key, required this.item});
+
+  final MessageListOutboxMessageItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final message = item.message;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(children: [
+        if (item.showSender)
+          _SenderRow(message: message, showTimestamp: false),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          // This is adapated from [MessageContent].
+          // TODO(#576): Offer InheritedMessage ancestor once we are ready
+          //   to support local echoing images and lightbox.
+          child: DefaultTextStyle(
+            style: ContentTheme.of(context).textStylePlainParagraph,
+            child: BlockContentList(nodes: item.content.nodes))),
+      ]));
   }
 }
