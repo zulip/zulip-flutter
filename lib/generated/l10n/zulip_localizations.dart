@@ -1274,6 +1274,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Zulip'**
   String get zulipAppTitle;
+
+  /// Tooltip for the button to attach a global time to the compose box.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach a global time'**
+  String get composeBoxAttachGlobalTimeTooltip;
 }
 
 class _ZulipLocalizationsDelegate extends LocalizationsDelegate<ZulipLocalizations> {
