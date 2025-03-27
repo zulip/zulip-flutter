@@ -247,7 +247,7 @@ void main() {
     final unreadChannelMessage = eg.streamMessage(flags: []);
     final readChannelMessage = eg.streamMessage(flags: [MessageFlag.read]);
 
-    final allMessages = [
+    final allMessages = <Message>[
       unreadDmMessage, unreadChannelMessage,
       readDmMessage,   readChannelMessage,
     ];
@@ -314,7 +314,7 @@ void main() {
           if (isDirectMentioned)   MessageFlag.mentioned,
           if (isWildcardMentioned) MessageFlag.wildcardMentioned,
         ];
-        final message = isStream
+        final Message message = isStream
           ? eg.streamMessage(flags: flags)
           : eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: flags);
         model.handleMessageEvent(eg.messageEvent(message));
@@ -401,7 +401,7 @@ void main() {
       for (final isKnownToModel in [true, false]) {
         for (final isRead in [false, true]) {
           final baseFlags = [if (isRead) MessageFlag.read];
-          for (final (messageDesc, message) in [
+          for (final (messageDesc, message) in <(String, Message)>[
             ('stream', eg.streamMessage(flags: baseFlags)),
             ('1:1 dm', eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: baseFlags)),
           ]) {
@@ -661,7 +661,7 @@ void main() {
     final message13 = eg.streamMessage(id: 13, stream: stream2, topic: 'b', flags: []);
     final message14 = eg.streamMessage(id: 14, stream: stream2, topic: 'b', flags: [MessageFlag.mentioned]);
 
-    final messages = [
+    final messages = <Message>[
       message1, message2, message3, message4, message5,
       message6, message7, message8, message9, message10,
       message11, message12, message13, message14,
@@ -848,7 +848,7 @@ void main() {
       // That case is indistinguishable from an unread that's unknown to
       // the model, so we get coverage for that case too.
       test('add flag: ${mentionFlag.name}', () {
-        final messages = [
+        final messages = <Message>[
           eg.streamMessage(flags: []),
           eg.streamMessage(flags: [MessageFlag.read]),
           eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: []),
@@ -885,7 +885,7 @@ void main() {
       // That case is indistinguishable from an unread that's unknown to
       // the model, so we get coverage for that case too.
       test('remove flag: ${mentionFlag.name}', () {
-        final messages = [
+        final messages = <Message>[
           eg.streamMessage(flags: [mentionFlag]),
           eg.streamMessage(flags: [mentionFlag, MessageFlag.read]),
           eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [mentionFlag]),
@@ -924,7 +924,7 @@ void main() {
       final message2 = eg.streamMessage(id: 2, flags: [MessageFlag.mentioned]);
       final message3 = eg.dmMessage(id: 3, from: eg.otherUser, to: [eg.selfUser], flags: []);
       final message4 = eg.dmMessage(id: 4, from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.wildcardMentioned]);
-      final messages = [message1, message2, message3, message4];
+      final messages = <Message>[message1, message2, message3, message4];
 
       prepare();
       fillWithMessages([message1, message2, message3, message4]);
@@ -973,7 +973,7 @@ void main() {
         final message13 = eg.streamMessage(id: 13, stream: stream2, topic: 'b', flags: []);
         final message14 = eg.streamMessage(id: 14, stream: stream2, topic: 'b', flags: [MessageFlag.mentioned]);
 
-        final messages = [
+        final messages = <Message>[
           message1, message2, message3, message4, message5,
           message6, message7, message8, message9, message10,
           message11, message12, message13, message14,
@@ -1085,7 +1085,7 @@ void main() {
         final message13 = eg.streamMessage(id: 13, stream: stream2, topic: 'b', flags: [MessageFlag.read]);
         final message14 = eg.streamMessage(id: 14, stream: stream2, topic: 'b', flags: [MessageFlag.mentioned, MessageFlag.read]);
 
-        final messages = [
+        final messages = <Message>[
           message1, message2, message3, message4, message5,
           message6, message7, message8, message9, message10,
           message11, message12, message13, message14,

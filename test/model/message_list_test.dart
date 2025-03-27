@@ -526,7 +526,7 @@ void main() {
     test('unmute a topic -> refetch from scratch', () => awaitFakeAsync((async) async {
       await prepare(narrow: const CombinedFeedNarrow());
       await prepareMutes(true);
-      final messages = [
+      final messages = <Message>[
         eg.dmMessage(id: 1, from: eg.otherUser, to: [eg.selfUser]),
         eg.streamMessage(id: 2, stream: stream, topic: topic),
       ];

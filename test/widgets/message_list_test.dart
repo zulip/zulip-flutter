@@ -538,7 +538,7 @@ void main() {
     final streamMessage = eg.streamMessage();
     final topicNarrow = TopicNarrow.ofMessage(streamMessage);
 
-    for (final (description, message, narrow) in [
+    for (final (description, message, narrow) in <(String, Message, SendableNarrow)>[
       ('typing in dm',    dmMessage,      dmNarrow),
       ('typing in topic', streamMessage,  topicNarrow),
     ]) {
