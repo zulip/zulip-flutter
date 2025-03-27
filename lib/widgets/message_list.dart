@@ -1342,9 +1342,10 @@ String formatHeaderDate(
 final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
 
 class _SenderRow extends StatelessWidget {
-  const _SenderRow({required this.message});
+  const _SenderRow({required this.message, required this.showTimestamp});
 
   final Message message;
+  final bool showTimestamp;
 
   @override
   Widget build(BuildContext context) {
@@ -1389,14 +1390,16 @@ class _SenderRow extends StatelessWidget {
                     ),
                   ],
                 ]))),
-          const SizedBox(width: 4),
-          Text(time,
-            style: TextStyle(
-              color: messageListTheme.labelTime,
-              fontSize: 16,
-              height: (18 / 16),
-              fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
-            ).merge(weightVariableTextStyle(context))),
+          if (showTimestamp) ...[
+            const SizedBox(width: 4),
+            Text(time,
+              style: TextStyle(
+                color: messageListTheme.labelTime,
+                fontSize: 16,
+                height: (18 / 16),
+                fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
+              ).merge(weightVariableTextStyle(context))),
+          ],
         ]));
   }
 }
@@ -1443,7 +1446,7 @@ class MessageWithPossibleSender extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Column(children: [
           if (item.showSender)
-            _SenderRow(message: message),
+            _SenderRow(message: message, showTimestamp: true),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: localizedTextBaseline(context),
