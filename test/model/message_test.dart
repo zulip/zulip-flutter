@@ -173,7 +173,7 @@ void main() {
 
       async.elapse(kLocalEchoDebounceDuration);
       checkState().equals(OutboxMessageState.waiting);
-      checkNotNotified(); // TODO once (it appears)
+      checkNotifiedOnce();
 
       await receiveMessage(eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]));
       check(store.outboxMessages).isEmpty();
@@ -188,7 +188,7 @@ void main() {
 
       async.elapse(kLocalEchoDebounceDuration);
       checkState().equals(OutboxMessageState.waiting);
-      checkNotNotified(); // TODO once (it appears)
+      checkNotifiedOnce();
 
       await receiveMessage(eg.streamMessage(stream: stream, topic: 'foo'));
       check(store.outboxMessages).isEmpty();
@@ -202,7 +202,7 @@ void main() {
 
       async.elapse(kLocalEchoDebounceDuration);
       checkState().equals(OutboxMessageState.waiting);
-      checkNotNotified(); // TODO once (it appears)
+      checkNotifiedOnce();
 
       // Wait till we reach at least [kSendMessageOfferRestoreWaitPeriod] after
       // the send request was initiated.
@@ -220,11 +220,11 @@ void main() {
         kSendMessageOfferRestoreWaitPeriod + Duration(seconds: 1));
       async.elapse(kLocalEchoDebounceDuration);
       checkState().equals(OutboxMessageState.waiting);
-      checkNotNotified(); // TODO once (it appears)
+      checkNotifiedOnce();
 
       async.elapse(kSendMessageOfferRestoreWaitPeriod - kLocalEchoDebounceDuration);
       checkState().equals(OutboxMessageState.waitPeriodExpired);
-      checkNotNotified(); // TODO once (it offers restore)
+      checkNotifiedOnce();
 
       await check(outboxMessageFailFuture).throws();
     }));
@@ -242,12 +242,12 @@ void main() {
         destination: streamDestination, content: 'content');
       async.elapse(kSendMessageOfferRestoreWaitPeriod);
       checkState().equals(OutboxMessageState.waitPeriodExpired);
-      checkNotNotified(); // TODO twice (it appears; it offers restore)
+      checkNotified(count: 2);
 
       // Wait till the [sendMessage] request succeeds.
       await future;
       checkState().equals(OutboxMessageState.waiting);
-      checkNotNotified(); // TODO once (it un-offers restore)
+      checkNotifiedOnce();
 
       // Wait till we reach at least [kSendMessageOfferRestoreWaitPeriod] after
       // returning to the waiting state.
@@ -267,7 +267,7 @@ void main() {
 
         await check(outboxMessageFailFuture).throws();
         checkState().equals(OutboxMessageState.failed);
-        checkNotNotified(); // TODO once (it appears, offering restore)
+        checkNotifiedOnce();
 
         // Wait till we reach at least [kSendMessageOfferRestoreWaitPeriod] after
         // the send request was initiated.
@@ -284,11 +284,11 @@ void main() {
           kLocalEchoDebounceDuration + Duration(seconds: 1));
         async.elapse(kLocalEchoDebounceDuration);
         checkState().equals(OutboxMessageState.waiting);
-        checkNotNotified(); // TODO once (it appears)
+        checkNotifiedOnce();
 
         await check(outboxMessageFailFuture).throws();
         checkState().equals(OutboxMessageState.failed);
-        checkNotNotified(); // TODO once (it offers restore)
+        checkNotifiedOnce();
       }));
 
       test('waitPeriodExpired -> failed', () => awaitFakeAsync((async) async {
@@ -296,11 +296,11 @@ void main() {
           kSendMessageOfferRestoreWaitPeriod + Duration(seconds: 1));
         async.elapse(kSendMessageOfferRestoreWaitPeriod);
         checkState().equals(OutboxMessageState.waitPeriodExpired);
-        checkNotNotified(); // TODO twice (it appears; it offers restore)
+        checkNotified(count: 2);
 
         await check(outboxMessageFailFuture).throws();
         checkState().equals(OutboxMessageState.failed);
-        checkNotNotified(); // TODO once (it shows failure text)
+        checkNotifiedOnce();
       }));
     });
 
@@ -339,7 +339,7 @@ void main() {
         await prepareOutboxMessage();
         async.elapse(kLocalEchoDebounceDuration);
         checkState().equals(OutboxMessageState.waiting);
-        checkNotNotified(); // TODO once (it appears)
+        checkNotifiedOnce();
 
         await receiveMessage();
         check(store.outboxMessages).isEmpty();
@@ -353,7 +353,7 @@ void main() {
           kLocalEchoDebounceDuration + Duration(seconds: 1));
         async.elapse(kLocalEchoDebounceDuration);
         checkState().equals(OutboxMessageState.waiting);
-        checkNotNotified(); // TODO once (it appears)
+        checkNotifiedOnce();
 
         // Received the message event while the message is being sent.
         await receiveMessage();
@@ -374,7 +374,7 @@ void main() {
           kSendMessageOfferRestoreWaitPeriod + Duration(seconds: 1));
         async.elapse(kSendMessageOfferRestoreWaitPeriod);
         checkState().equals(OutboxMessageState.waitPeriodExpired);
-        checkNotNotified(); // TODO twice (it appears; it offers restore)
+        checkNotified(count: 2);
 
         // Received the message event while the message is being sent.
         await receiveMessage();
@@ -395,18 +395,18 @@ void main() {
           kSendMessageOfferRestoreWaitPeriod + Duration(seconds: 1));
         async.elapse(kSendMessageOfferRestoreWaitPeriod);
         checkState().equals(OutboxMessageState.waitPeriodExpired);
-        checkNotNotified(); // TODO twice (it appears; it offers restore)
+        checkNotified(count: 2);
 
         store.takeOutboxMessage(store.outboxMessages.keys.single);
         check(store.outboxMessages).isEmpty();
-        checkNotNotified(); // TODO once (it disappears)
+        checkNotifiedOnce();
       }));
 
       test('failed -> (delete) because event received', () => awaitFakeAsync((async) async {
         await prepareOutboxMessageToFailAfterDelay(Duration.zero);
         await check(outboxMessageFailFuture).throws();
         checkState().equals(OutboxMessageState.failed);
-        checkNotNotified(); // TODO once (it appears, offering restore)
+        checkNotifiedOnce();
 
         await receiveMessage();
         check(store.outboxMessages).isEmpty();
@@ -417,11 +417,11 @@ void main() {
         await prepareOutboxMessageToFailAfterDelay(Duration.zero);
         await check(outboxMessageFailFuture).throws();
         checkState().equals(OutboxMessageState.failed);
-        checkNotNotified(); // TODO once (it appears, offering restore)
+        checkNotifiedOnce();
 
         store.takeOutboxMessage(store.outboxMessages.keys.single);
         check(store.outboxMessages).isEmpty();
-        checkNotNotified(); // TODO once (it disappears)
+        checkNotifiedOnce();
       }));
     });
 
@@ -463,13 +463,13 @@ void main() {
       await check(store.sendMessage(
         destination: StreamDestination(stream.streamId, eg.t('topic')),
         content: 'content')).throws();
-      checkNotNotified(); // TODO once (it appears, offering restore)
+      checkNotifiedOnce();
     }
 
     final localMessageIds = store.outboxMessages.keys.toList();
     store.takeOutboxMessage(localMessageIds.removeAt(5));
     check(store.outboxMessages).keys.deepEquals(localMessageIds);
-    checkNotNotified(); // TODO once (it disappears)
+    checkNotifiedOnce();
   });
 
   group('reconcileMessages', () {
