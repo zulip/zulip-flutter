@@ -653,7 +653,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get errorNotificationOpenTitle => 'Otwieranie powiadomienia bez powodzenia';
 
   @override
-  String get errorNotificationOpenAccountMissing => 'Konto związane z tym powiadomieniem już nie istnieje.';
+  String get errorNotificationOpenAccountNotFound => 'The account associated with this notification could not be found.';
 
   @override
   String get errorReactionAddingFailedTitle => 'Dodanie reakcji bez powodzenia';
