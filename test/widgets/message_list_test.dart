@@ -14,12 +14,14 @@ import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/localizations.dart';
+import 'package:zulip/model/message.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/autocomplete.dart';
 import 'package:zulip/widgets/color.dart';
+import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
@@ -1410,6 +1412,37 @@ void main() {
       checkUser(users[2], isBot: false);
 
       debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
+  group('OutboxMessageWithPossibleSender', () {
+    final stream = eg.stream();
+    const content = 'outbox message content';
+
+    final contentInputFinder = find.byWidgetPredicate(
+      (widget) => widget is TextField && widget.controller is ComposeContentController);
+
+    Finder outboxMessageFinder = find.descendant(
+      of: find.byType(MessageItem),
+      matching: find.text(content, findRichText: true)).hitTestable();
+
+    testWidgets('sent message appear in message list after debounce timeout', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: eg.topicNarrow(stream.streamId, 'topic'), streams: [stream],
+        messages: []);
+
+      connection.prepare(json: SendMessageResult(id: 1).toJson());
+      await tester.enterText(contentInputFinder, content);
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump(Duration.zero);
+      check(outboxMessageFinder).findsNothing();
+
+      await tester.pump(kLocalEchoDebounceDuration);
+      check(outboxMessageFinder).findsOne();
+
+      await store.handleEvent(eg.messageEvent(
+        eg.streamMessage(stream: stream, topic: 'topic'),
+        localMessageId: store.outboxMessages.keys.single));
     });
   });
 

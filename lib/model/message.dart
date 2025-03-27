@@ -635,6 +635,8 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore, _OutboxMes
       }
     }
 
+    // TODO predict outbox message moves using propagateMode
+
     for (final view in _messageListViews) {
       view.messagesMoved(messageMove: messageMove, messageIds: event.messageIds);
     }
