@@ -394,96 +394,68 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   }
 }
 
-class _ContentInput extends StatefulWidget {
-  const _ContentInput({
+abstract class _ContentInput extends StatefulWidget {
+  factory _ContentInput.withTypingNotifier({
+    required Narrow narrow,
+    required SendableNarrow destination,
+    required ComposeBoxController controller,
+    required String hintText,
+  }) => _ContentInputWithTypingNotifier._(
+    narrow: narrow,
+    destination: destination,
+    controller: controller,
+    hintText: hintText,
+  );
+
+  // We'll use this soon.
+  // ignore: unused_element
+  factory _ContentInput.noTypingNotifier({
+    required Narrow narrow,
+    required ComposeBoxController controller,
+    required String hintText,
+  }) => _ContentInputNoTypingNotifier._(
+    narrow: narrow,
+    controller: controller,
+    hintText: hintText,
+  );
+
+  const _ContentInput._({
     required this.narrow,
-    required this.destination,
     required this.controller,
     required this.hintText,
   });
 
   final Narrow narrow;
-  final SendableNarrow destination;
   final ComposeBoxController controller;
   final String hintText;
-
-  @override
-  State<_ContentInput> createState() => _ContentInputState();
 }
 
-class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserver {
-  @override
-  void initState() {
-    super.initState();
-    widget.controller.content.addListener(_contentChanged);
-    widget.controller.contentFocusNode.addListener(_focusChanged);
-    WidgetsBinding.instance.addObserver(this);
-  }
+class _ContentInputWithTypingNotifier extends _ContentInput {
+  const _ContentInputWithTypingNotifier._({
+    required super.narrow,
+    required this.destination,
+    required super.controller,
+    required super.hintText,
+  }) : super._();
+
+  final SendableNarrow destination;
 
   @override
-  void didUpdateWidget(covariant _ContentInput oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.controller != oldWidget.controller) {
-      oldWidget.controller.content.removeListener(_contentChanged);
-      widget.controller.content.addListener(_contentChanged);
-      oldWidget.controller.contentFocusNode.removeListener(_focusChanged);
-      widget.controller.contentFocusNode.addListener(_focusChanged);
-    }
-  }
+  State<_ContentInput> createState() => _ContentInputStateWithTypingNotifier();
+}
+
+class _ContentInputNoTypingNotifier extends _ContentInput {
+  const _ContentInputNoTypingNotifier._({
+    required super.narrow,
+    required super.controller,
+    required super.hintText,
+  }) : super._();
 
   @override
-  void dispose() {
-    widget.controller.content.removeListener(_contentChanged);
-    widget.controller.contentFocusNode.removeListener(_focusChanged);
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
+  State<_ContentInput> createState() => _ContentInputStateNoTypingNotifier();
+}
 
-  void _contentChanged() {
-    final store = PerAccountStoreWidget.of(context);
-    (widget.controller.content.text.isEmpty)
-      ? store.typingNotifier.stoppedComposing()
-      : store.typingNotifier.keystroke(widget.destination);
-  }
-
-  void _focusChanged() {
-    if (widget.controller.contentFocusNode.hasFocus) {
-      // Content input getting focus doesn't necessarily mean that
-      // the user started typing, so do nothing.
-      return;
-    }
-    final store = PerAccountStoreWidget.of(context);
-    store.typingNotifier.stoppedComposing();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    switch (state) {
-      case AppLifecycleState.hidden:
-      case AppLifecycleState.paused:
-      case AppLifecycleState.detached:
-        // Transition to either [hidden] or [paused] signals that
-        // > [the] application is not currently visible to the user, and not
-        // > responding to user input.
-        //
-        // When transitioning to [detached], the compose box can't exist:
-        // > The application defaults to this state before it initializes, and
-        // > can be in this state (applicable on Android, iOS, and web) after
-        // > all views have been detached.
-        //
-        // For all these states, we can conclude that the user is not
-        // composing a message.
-        final store = PerAccountStoreWidget.of(context);
-        store.typingNotifier.stoppedComposing();
-      case AppLifecycleState.inactive:
-        // > At least one view of the application is visible, but none have
-        // > input focus. The application is otherwise running normally.
-        // For example, we expect this state when the user is selecting a file
-        // to upload.
-      case AppLifecycleState.resumed:
-    }
-  }
-
+class _ContentInputStateBase<T extends _ContentInput> extends State<T> {
   static double maxHeight(BuildContext context) {
     final clampingTextScaler = MediaQuery.textScalerOf(context)
       .clamp(maxScaleFactor: 1.5);
@@ -557,6 +529,83 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
                   color: designVariables.textInput.withFadedAlpha(0.5))))))));
   }
 }
+
+
+class _ContentInputStateWithTypingNotifier extends _ContentInputStateBase<_ContentInputWithTypingNotifier> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.content.addListener(_contentChanged);
+    widget.controller.contentFocusNode.addListener(_focusChanged);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ContentInputWithTypingNotifier oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      oldWidget.controller.content.removeListener(_contentChanged);
+      widget.controller.content.addListener(_contentChanged);
+      oldWidget.controller.contentFocusNode.removeListener(_focusChanged);
+      widget.controller.contentFocusNode.addListener(_focusChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.content.removeListener(_contentChanged);
+    widget.controller.contentFocusNode.removeListener(_focusChanged);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void _contentChanged() {
+    final store = PerAccountStoreWidget.of(context);
+    (widget.controller.content.text.isEmpty)
+      ? store.typingNotifier.stoppedComposing()
+      : store.typingNotifier.keystroke(widget.destination);
+  }
+
+  void _focusChanged() {
+    if (widget.controller.contentFocusNode.hasFocus) {
+      // Content input getting focus doesn't necessarily mean that
+      // the user started typing, so do nothing.
+      return;
+    }
+    final store = PerAccountStoreWidget.of(context);
+    store.typingNotifier.stoppedComposing();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        // Transition to either [hidden] or [paused] signals that
+        // > [the] application is not currently visible to the user, and not
+        // > responding to user input.
+        //
+        // When transitioning to [detached], the compose box can't exist:
+        // > The application defaults to this state before it initializes, and
+        // > can be in this state (applicable on Android, iOS, and web) after
+        // > all views have been detached.
+        //
+        // For all these states, we can conclude that the user is not
+        // composing a message.
+        final store = PerAccountStoreWidget.of(context);
+        store.typingNotifier.stoppedComposing();
+      case AppLifecycleState.inactive:
+        // > At least one view of the application is visible, but none have
+        // > input focus. The application is otherwise running normally.
+        // For example, we expect this state when the user is selecting a file
+        // to upload.
+      case AppLifecycleState.resumed:
+    }
+  }
+}
+
+class _ContentInputStateNoTypingNotifier extends _ContentInputStateBase<_ContentInputNoTypingNotifier> {}
 
 /// The content input for _StreamComposeBox.
 class _StreamContentInput extends StatefulWidget {
@@ -645,7 +694,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       // ignore: dead_null_aware_expression // null topic names soon to be enabled
       : '#$streamName > ${hintTopic.displayName ?? store.realmEmptyTopicDisplayName}';
 
-    return _ContentInput(
+    return _ContentInput.withTypingNotifier(
       narrow: widget.narrow,
       destination: TopicNarrow(widget.narrow.streamId,
         TopicName(widget.controller.topic.textNormalized)),
@@ -732,7 +781,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ContentInput(
+    return _ContentInput.withTypingNotifier(
       narrow: narrow,
       destination: narrow,
       controller: controller,
