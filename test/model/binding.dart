@@ -281,12 +281,10 @@ class TestZulipBinding extends ZulipBinding {
     _androidNotificationHostApi = null;
   }
 
-  FakeAndroidNotificationHostApi? _androidNotificationHostApi;
-
   @override
-  FakeAndroidNotificationHostApi get androidNotificationHost {
-    return (_androidNotificationHostApi ??= FakeAndroidNotificationHostApi());
-  }
+  FakeAndroidNotificationHostApi get androidNotificationHost =>
+    (_androidNotificationHostApi ??= FakeAndroidNotificationHostApi());
+  FakeAndroidNotificationHostApi? _androidNotificationHostApi;
 
   /// The value that `ZulipBinding.instance.pickFiles()` should return.
   ///
