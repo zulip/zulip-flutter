@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import '../model/binding.dart';
-import '../model/database.dart';
 import '../model/settings.dart';
 import '../model/store.dart';
 import 'page.dart';
@@ -15,15 +13,14 @@ import 'page.dart';
 ///  * [GlobalStoreWidget.of], to get access to the data.
 ///  * [PerAccountStoreWidget], for the user's data associated with a
 ///    particular Zulip account.
-class GlobalStoreWidget extends StatefulWidget {
-  const GlobalStoreWidget({
+class GlobalStoreWidget extends InheritedNotifier<GlobalStore> {
+  GlobalStoreWidget({
     super.key,
-    this.placeholder = const LoadingPlaceholder(),
-    required this.child,
-  });
-
-  final Widget placeholder;
-  final Widget child;
+    required GlobalStore store,
+    required Widget child,
+  }) : super(notifier: store,
+         child: _GlobalSettingsStoreInheritedWidget(
+           store: store.settings, child: child));
 
   /// The app's global data store.
   ///
@@ -48,7 +45,7 @@ class GlobalStoreWidget extends StatefulWidget {
   ///  * [PerAccountStoreWidget.of], for the user's data associated with a
   ///    particular Zulip account.
   static GlobalStore of(BuildContext context) {
-    final widget = context.dependOnInheritedWidgetOfExactType<_GlobalStoreInheritedWidget>();
+    final widget = context.dependOnInheritedWidgetOfExactType<GlobalStoreWidget>();
     assert(widget != null, 'No GlobalStoreWidget ancestor');
     return widget!.store;
   }
@@ -74,43 +71,6 @@ class GlobalStoreWidget extends StatefulWidget {
     assert(widget != null, 'No GlobalStoreWidget ancestor');
     return widget!.store;
   }
-
-  @override
-  State<GlobalStoreWidget> createState() => _GlobalStoreWidgetState();
-}
-
-class _GlobalStoreWidgetState extends State<GlobalStoreWidget> {
-  GlobalStore? store;
-
-  @override
-  void initState() {
-    super.initState();
-    (() async {
-      final store = await ZulipBinding.instance.getGlobalStoreUniquely();
-      setState(() {
-        this.store = store;
-      });
-    })();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final store = this.store;
-    if (store == null) return widget.placeholder;
-    return _GlobalStoreInheritedWidget(store: store, child: widget.child);
-  }
-}
-
-// This is separate from [GlobalStoreWidget] only because we need
-// a [StatefulWidget] to get hold of the store, and an [InheritedWidget] to
-// provide it to descendants, and one widget can't be both of those.
-class _GlobalStoreInheritedWidget extends InheritedNotifier<GlobalStore> {
-  _GlobalStoreInheritedWidget({
-    required GlobalStore store,
-    required Widget child,
-  }) : super(notifier: store,
-         child: _GlobalSettingsStoreInheritedWidget(
-           store: store.settings, child: child));
 
   GlobalStore get store => notifier!;
 }
