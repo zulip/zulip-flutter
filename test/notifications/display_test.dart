@@ -18,6 +18,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/display.dart';
+import 'package:zulip/notifications/open.dart';
 import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/color.dart';
@@ -118,6 +119,7 @@ void main() {
     addTearDown(testBinding.reset);
     testBinding.firebaseMessagingInitialToken = '012abc';
     addTearDown(NotificationService.debugReset);
+    addTearDown(NotificationOpenManager.debugReset);
     NotificationService.debugBackgroundIsolateIsLive = false;
     await NotificationService.instance.start();
   }
@@ -1059,7 +1061,7 @@ void main() {
       check(pushedRoutes.single).isA<DialogRoute<void>>();
       await tester.tap(find.byWidget(checkErrorDialog(tester,
         expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
-        expectedMessage: zulipLocalizations.errorNotificationOpenAccountMissing)));
+        expectedMessage: zulipLocalizations.errorNotificationOpenAccountLoggedOut)));
     });
 
     testWidgets('mismatching account', (tester) async {
@@ -1071,7 +1073,7 @@ void main() {
       check(pushedRoutes.single).isA<DialogRoute<void>>();
       await tester.tap(find.byWidget(checkErrorDialog(tester,
         expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
-        expectedMessage: zulipLocalizations.errorNotificationOpenAccountMissing)));
+        expectedMessage: zulipLocalizations.errorNotificationOpenAccountLoggedOut)));
     });
 
     testWidgets('find account among several', (tester) async {
