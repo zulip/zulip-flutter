@@ -17,6 +17,7 @@ import '../model/narrow.dart';
 import '../widgets/app.dart';
 import '../widgets/color.dart';
 import '../widgets/dialog.dart';
+import '../widgets/home.dart';
 import '../widgets/message_list.dart';
 import '../widgets/page.dart';
 import '../widgets/store.dart';
@@ -502,7 +503,19 @@ class NotificationDisplayManager {
     final route = routeForNotification(context: context, url: url);
     if (route == null) return; // TODO(log)
 
-    // TODO(nav): Better interact with existing nav stack on notif open
+    int? currentAccountId;
+    navigator.popUntil((r) {
+      if (r is AccountRoute) {
+        currentAccountId = r.accountId;
+      }
+      return true;
+    });
+
+    if (currentAccountId != route.accountId) {
+      HomePage.navigate(context, accountId: route.accountId);
+      navigator = await ZulipApp.navigator;
+    }
+
     unawaited(navigator.push(route));
   }
 
