@@ -10,6 +10,7 @@ import 'package:zulip/api/model/submessage.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/api/route/channels.dart';
+import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/settings.dart';
@@ -993,4 +994,16 @@ UpdateMachine updateMachine({
     account: account, initialSnapshot: initialSnapshot);
   return UpdateMachine.fromInitialSnapshot(
     store: store, initialSnapshot: initialSnapshot);
+}
+
+PackageInfo packageInfo({
+  String? version,
+  String? buildNumber,
+  String? packageName,
+}) {
+  return PackageInfo(
+    version: version ?? '1.0.0',
+    buildNumber: buildNumber ?? '1',
+    packageName: packageName ?? 'com.example.app',
+  );
 }

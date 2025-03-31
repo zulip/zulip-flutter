@@ -460,7 +460,7 @@ void main() {
       });
     }
 
-    const packageInfo = PackageInfo(version: '0.0.1', buildNumber: '1');
+    final packageInfo = eg.packageInfo(version: '0.0.1', buildNumber: '1');
 
     const testCases = [
       ('ZulipFlutter/0.0.1+1 (Android 14)',             AndroidDeviceInfo(release: '14', sdkInt: 34),                      ),

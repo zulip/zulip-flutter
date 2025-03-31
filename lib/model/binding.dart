@@ -310,10 +310,12 @@ class LinuxDeviceInfo implements BaseDeviceInfo {
 class PackageInfo {
   final String version;
   final String buildNumber;
+  final String packageName;
 
   const PackageInfo({
     required this.version,
     required this.buildNumber,
+    required this.packageName,
   });
 }
 
@@ -427,6 +429,7 @@ class LiveZulipBinding extends ZulipBinding {
       _syncPackageInfo = PackageInfo(
         version: info.version,
         buildNumber: info.buildNumber,
+        packageName: info.packageName,
       );
     } catch (e, st) {
       assert(debugLog('Failed to prefetch package info: $e\n$st')); // TODO(log)

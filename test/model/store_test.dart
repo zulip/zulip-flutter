@@ -1291,6 +1291,7 @@ void main() {
       addTearDown(testBinding.reset);
       testBinding.firebaseMessagingInitialToken = '012abc';
       addTearDown(NotificationService.debugReset);
+      testBinding.packageInfoResult = eg.packageInfo(packageName: 'com.zulip.flutter');
       await NotificationService.instance.start();
 
       // On store startup, send the token.
@@ -1318,6 +1319,7 @@ void main() {
       addTearDown(testBinding.reset);
       testBinding.firebaseMessagingInitialToken = '012abc';
       addTearDown(NotificationService.debugReset);
+      testBinding.packageInfoResult = eg.packageInfo(packageName: 'com.zulip.flutter');
       final startFuture = NotificationService.instance.start();
 
       // TODO this test is a bit brittle in its interaction with asynchrony;
@@ -1336,6 +1338,7 @@ void main() {
       // When the token later appears, send it.
       connection.prepare(json: {});
       await startFuture;
+      async.flushMicrotasks();
       if (defaultTargetPlatform == TargetPlatform.android) {
         checkLastRequestFcm(token: '012abc');
       } else {
@@ -1349,6 +1352,22 @@ void main() {
         async.flushMicrotasks();
         checkLastRequestFcm(token: '456def');
       }
+    }));
+
+    test('on iOS, use provided app ID from packageInfo', () => awaitFakeAsync((async) async {
+      final origTargetPlatform = debugDefaultTargetPlatformOverride;
+      addTearDown(() => debugDefaultTargetPlatformOverride = origTargetPlatform);
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(testBinding.reset);
+      testBinding.firebaseMessagingInitialToken = '012abc';
+      testBinding.packageInfoResult = eg.packageInfo(packageName: 'com.example.test');
+      addTearDown(NotificationService.debugReset);
+      await NotificationService.instance.start();
+
+      prepareStore();
+      connection.prepare(json: {});
+      await updateMachine.registerNotificationToken();
+      checkLastRequestApns(token: '012abc', appid: 'com.example.test');
     }));
   });
 

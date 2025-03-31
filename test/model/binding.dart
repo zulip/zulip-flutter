@@ -260,7 +260,7 @@ class TestZulipBinding extends ZulipBinding {
 
   /// The value that `ZulipBinding.instance.packageInfo` should return.
   PackageInfo packageInfoResult = _defaultPackageInfo;
-  static const _defaultPackageInfo = PackageInfo(version: '0.0.1', buildNumber: '1');
+  static final _defaultPackageInfo = eg.packageInfo();
 
   void _resetPackageInfo() {
     packageInfoResult = _defaultPackageInfo;
