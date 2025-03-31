@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -57,10 +59,14 @@ void main() {
     // IconButton can't have text; skip
 
     doCheck('MenuItemButton',
-      button: MenuItemButton(onPressed: () {}, child: const Text(buttonText)));
+      button: Semantics(
+        role: SemanticsRole.menu,
+        child: MenuItemButton(onPressed: () {}, child: const Text(buttonText))));
 
     doCheck('SubmenuButton',
-      button: const SubmenuButton(menuChildren: [], child: Text(buttonText)));
+      button: Semantics(
+        role: SemanticsRole.menu,
+        child: const SubmenuButton(menuChildren: [], child: Text(buttonText))));
 
     doCheck('OutlinedButton',
       button: OutlinedButton(onPressed: () {}, child: const Text(buttonText)));

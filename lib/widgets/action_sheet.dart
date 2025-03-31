@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
@@ -42,26 +43,28 @@ void _showActionSheet(
     useSafeArea: true,
     isScrollControlled: true,
     builder: (BuildContext _) {
-      return SafeArea(
-        minimum: const EdgeInsets.only(bottom: 16),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // TODO(#217): show message text
-              Flexible(child: InsetShadowBox(
-                top: 8, bottom: 8,
-                color: DesignVariables.of(context).bgContextMenu,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(top: 16, bottom: 8),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(7),
-                    child: Column(spacing: 1,
-                      children: optionButtons))))),
-              const ActionSheetCancelButton(),
-            ])));
+      return Semantics(
+        role: SemanticsRole.menu,
+        child: SafeArea(
+          minimum: const EdgeInsets.only(bottom: 16),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // TODO(#217): show message text
+                Flexible(child: InsetShadowBox(
+                  top: 8, bottom: 8,
+                  color: DesignVariables.of(context).bgContextMenu,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.only(top: 16, bottom: 8),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(7),
+                      child: Column(spacing: 1,
+                        children: optionButtons))))),
+                const ActionSheetCancelButton(),
+              ]))));
     });
 }
 

@@ -1,7 +1,8 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+// ignore: undefined_hidden_name // anticipates https://github.com/flutter/flutter/pull/164818
+import 'package:flutter/material.dart' hide SliverPaintOrder;
 import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
@@ -21,6 +22,7 @@ import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'page.dart';
 import 'profile.dart';
+import 'scrolling.dart';
 import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
@@ -629,7 +631,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       sliver = SliverSafeArea(sliver: sliver);
     }
 
-    return CustomScrollView(
+    return CustomPaintOrderScrollView(
       // TODO: Offer `ScrollViewKeyboardDismissBehavior.interactive` (or
       //   similar) if that is ever offered:
       //     https://github.com/flutter/flutter/issues/57609#issuecomment-1355340849
@@ -645,6 +647,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       semanticChildCount: length + 2,
       anchor: 1.0,
       center: centerSliverKey,
+      paintOrder: SliverPaintOrder.firstIsTop,
 
       slivers: [
         sliver,
