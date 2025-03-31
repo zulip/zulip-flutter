@@ -5,6 +5,7 @@ import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/route/realm.dart';
+import '../generated/l10n/zulip_localizations.dart';
 import 'algorithms.dart';
 import 'autocomplete.dart';
 import 'narrow.dart';
@@ -280,7 +281,7 @@ class EmojiStoreImpl with EmojiStore {
     //   https://github.com/zulip/zulip/blob/0f59e2e78/web/src/emoji.ts#L232-L278
     //
     // Behavior differences we might copy or change, TODO:
-    //  * Web has a particular ordering of Unicode emoji;
+    //  * TODO(#1201) Web has a particular ordering of Unicode emoji;
     //    a data file groups them by category and orders within each of those,
     //    and the code has a list of categories.
     //    This seems useful; it'll call for expanding the server emoji data API.
@@ -465,7 +466,11 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
   }
 
   @override
-  EmojiAutocompleteView initViewModel(PerAccountStore store, Narrow narrow) {
+  EmojiAutocompleteView initViewModel({
+    required PerAccountStore store,
+    required ZulipLocalizations localizations,
+    required Narrow narrow,
+  }) {
     return EmojiAutocompleteView.init(store: store, query: this);
   }
 

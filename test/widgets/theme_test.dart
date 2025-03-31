@@ -1,7 +1,10 @@
+import 'dart:ui';
+
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/text.dart';
 import 'package:zulip/widgets/theme.dart';
@@ -9,6 +12,7 @@ import 'package:zulip/widgets/theme.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/store_checks.dart';
 import 'colors_checks.dart';
 import 'test_app.dart';
 
@@ -55,10 +59,14 @@ void main() {
     // IconButton can't have text; skip
 
     doCheck('MenuItemButton',
-      button: MenuItemButton(onPressed: () {}, child: const Text(buttonText)));
+      button: Semantics(
+        role: SemanticsRole.menu,
+        child: MenuItemButton(onPressed: () {}, child: const Text(buttonText))));
 
     doCheck('SubmenuButton',
-      button: const SubmenuButton(menuChildren: [], child: Text(buttonText)));
+      button: Semantics(
+        role: SemanticsRole.menu,
+        child: const SubmenuButton(menuChildren: [], child: Text(buttonText))));
 
     doCheck('OutlinedButton',
       button: OutlinedButton(onPressed: () {}, child: const Text(buttonText)));
@@ -74,29 +82,67 @@ void main() {
   group('DesignVariables', () {
     group('lerp', () {
       testWidgets('light -> light', (tester) async {
-        final a = DesignVariables.light();
-        final b = DesignVariables.light();
+        final a = DesignVariables.light;
+        final b = DesignVariables.light;
         check(() => a.lerp(b, 0.5)).returnsNormally();
       });
 
       testWidgets('light -> dark', (tester) async {
-        final a = DesignVariables.light();
-        final b = DesignVariables.dark();
+        final a = DesignVariables.light;
+        final b = DesignVariables.dark;
         check(() => a.lerp(b, 0.5)).returnsNormally();
       });
 
       testWidgets('dark -> light', (tester) async {
-        final a = DesignVariables.dark();
-        final b = DesignVariables.light();
+        final a = DesignVariables.dark;
+        final b = DesignVariables.light;
         check(() => a.lerp(b, 0.5)).returnsNormally();
       });
 
       testWidgets('dark -> dark', (tester) async {
-        final a = DesignVariables.dark();
-        final b = DesignVariables.dark();
+        final a = DesignVariables.dark;
+        final b = DesignVariables.dark;
         check(() => a.lerp(b, 0.5)).returnsNormally();
       });
     });
+  });
+
+  testWidgets('when globalSettings.themeSetting is null, follow system setting', (tester) async {
+    addTearDown(testBinding.reset);
+
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+    await tester.pumpWidget(const TestZulipApp(child: Placeholder()));
+    await tester.pump();
+    check(testBinding.globalStore).settings.themeSetting.isNull();
+
+    final element = tester.element(find.byType(Placeholder));
+    check(zulipThemeData(element)).brightness.equals(Brightness.light);
+
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+    await tester.pump();
+    check(zulipThemeData(element)).brightness.equals(Brightness.dark);
+  });
+
+  testWidgets('when globalSettings.themeSetting is non-null, override system setting', (tester) async {
+    addTearDown(testBinding.reset);
+
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+    await tester.pumpWidget(const TestZulipApp(child: Placeholder()));
+    await tester.pump();
+    check(testBinding.globalStore).settings.themeSetting.isNull();
+
+    final element = tester.element(find.byType(Placeholder));
+    check(zulipThemeData(element)).brightness.equals(Brightness.light);
+
+    await testBinding.globalStore.settings.setThemeSetting(ThemeSetting.dark);
+    check(zulipThemeData(element)).brightness.equals(Brightness.dark);
+
+    await testBinding.globalStore.settings.setThemeSetting(null);
+    check(zulipThemeData(element)).brightness.equals(Brightness.light);
   });
 
   group('colorSwatchFor', () {

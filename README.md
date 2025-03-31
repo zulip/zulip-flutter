@@ -27,10 +27,10 @@ You can also [try out this beta app][beta].
 Contributions to this app are welcome.
 
 If you're looking to participate in Google Summer of Code with Zulip,
-this is one of the projects we're [accepting GSoC 2024 applications][]
+this is one of the projects we intend to accept [GSoC 2025 applications][gsoc]
 for.
 
-[accepting GSoC 2024 applications]: https://zulip.readthedocs.io/en/latest/outreach/gsoc.html#mobile-app
+[gsoc]: https://zulip.readthedocs.io/en/latest/outreach/gsoc.html#mobile-app
 
 
 ### Picking an issue to work on

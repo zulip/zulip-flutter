@@ -115,6 +115,20 @@ class AddAccountPage extends StatefulWidget {
     return _LoginSequenceRoute(page: const AddAccountPage());
   }
 
+  /// The hint text to show in the "Zulip server URL" input.
+  ///
+  /// If this contains an example value, it must be one that has been reserved
+  /// so that it cannot point to a real Zulip realm (nor any unknown other site).
+  /// The realm name `your-org` under zulipchat.com is reserved for this reason.
+  /// See discussion:
+  ///   https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/flutter.3A.20login.20URL/near/1570347
+  // TODO(i18n): In principle this should be translated, because it's trying to
+  //   convey to the user the English phrase "your org".  But doing that is
+  //   tricky because of the need to have the example name reserved.
+  //   Realistically that probably means we'll only ever translate this for
+  //   at most a handful of languages, most likely none.
+  static const _serverUrlHint = 'your-org.zulipchat.com';
+
   @override
   State<AddAccountPage> createState() => _AddAccountPageState();
 }
@@ -176,7 +190,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
         // TODO(#105) give more helpful feedback; see `fetchServerSettings`
         //   in zulip-mobile's src/message/fetchActions.js.
         showErrorDialog(context: context,
-          title: zulipLocalizations.errorLoginCouldNotConnectTitle,
+          title: zulipLocalizations.errorCouldNotConnectTitle,
           message: zulipLocalizations.errorLoginCouldNotConnect(url.toString()));
         return;
       }
@@ -230,10 +244,10 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   // …but leave out unfocusing the input in case more editing is needed.
                 },
                 decoration: InputDecoration(
-                  labelText: zulipLocalizations.loginServerUrlInputLabel,
+                  labelText: zulipLocalizations.loginServerUrlLabel,
                   errorText: errorText,
                   helperText: kLayoutPinningHelperText,
-                  hintText: 'your-org.zulipchat.com')),
+                  hintText: AddAccountPage._serverUrlHint)),
               const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: !_inProgress && errorText == null

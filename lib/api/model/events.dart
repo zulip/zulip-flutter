@@ -645,7 +645,7 @@ class UserTopicEvent extends Event {
   String get type => 'user_topic';
 
   final int streamId;
-  final String topicName;
+  final TopicName topicName;
   final int lastUpdated;
   final UserTopicVisibilityPolicy visibilityPolicy;
 
@@ -718,16 +718,8 @@ class UpdateMessageEvent extends Event {
 
   // final String? streamName; // ignore
 
-  @JsonKey(name: 'stream_id')
-  final int? origStreamId;
-  final int? newStreamId;
-
-  final PropagateMode? propagateMode;
-
-  @JsonKey(name: 'orig_subject')
-  final String? origTopic;
-  @JsonKey(name: 'subject')
-  final String? newTopic;
+  @JsonKey(readValue: _readMoveData, fromJson: UpdateMessageMoveData.tryParseFromJson, includeToJson: false)
+  final UpdateMessageMoveData? moveData;
 
   // final List<TopicLink> topicLinks; // TODO handle
 
@@ -747,17 +739,19 @@ class UpdateMessageEvent extends Event {
     required this.messageIds,
     required this.flags,
     required this.editTimestamp,
-    required this.origStreamId,
-    required this.newStreamId,
-    required this.propagateMode,
-    required this.origTopic,
-    required this.newTopic,
+    required this.moveData,
     required this.origContent,
     required this.origRenderedContent,
     required this.content,
     required this.renderedContent,
     required this.isMeMessage,
   });
+
+  static Map<String, dynamic> _readMoveData(Map<dynamic, dynamic> json, String key) {
+    // Parsing [UpdateMessageMoveData] requires `json`, not the default `json[key]`.
+    assert(json is Map<String, dynamic>); // value came through `fromJson` with this type
+    return json as Map<String, dynamic>;
+  }
 
   factory UpdateMessageEvent.fromJson(Map<String, dynamic> json) =>
     _$UpdateMessageEventFromJson(json);
@@ -766,12 +760,70 @@ class UpdateMessageEvent extends Event {
   Map<String, dynamic> toJson() => _$UpdateMessageEventToJson(this);
 }
 
-/// As in [UpdateMessageEvent.propagateMode].
-@JsonEnum(fieldRename: FieldRename.snake)
-enum PropagateMode {
-  changeOne,
-  changeLater,
-  changeAll;
+/// Data structure representing a message move.
+class UpdateMessageMoveData {
+  final int origStreamId;
+  final int newStreamId;
+  final TopicName origTopic;
+  final TopicName newTopic;
+  final PropagateMode propagateMode;
+
+  UpdateMessageMoveData({
+    required this.origStreamId,
+    required this.newStreamId,
+    required this.origTopic,
+    required this.newTopic,
+    required this.propagateMode,
+  }) : assert(newStreamId != origStreamId || newTopic != origTopic);
+
+  /// Try to extract [UpdateMessageMoveData] from the JSON object for an
+  /// [UpdateMessageEvent].
+  ///
+  /// Returns `null` if there was no message move.
+  ///
+  /// Throws an error if the data is malformed.
+  // When parsing this, 'stream_id', which is also present when there was only
+  // a content edit, cannot be recovered if this ends up returning `null`.
+  // This may matter if we ever need 'stream_id' when no message move occurred.
+  static UpdateMessageMoveData? tryParseFromJson(Map<String, Object?> json) {
+    final origStreamId = (json['stream_id'] as num?)?.toInt();
+    final newStreamIdRaw = (json['new_stream_id'] as num?)?.toInt();
+    final newStreamId = newStreamIdRaw ?? origStreamId;
+
+    final origTopic = json['orig_subject'] == null ? null
+      : TopicName.fromJson(json['orig_subject'] as String);
+    final newTopicRaw = json['subject'] == null ? null
+      : TopicName.fromJson(json['subject'] as String);
+    final newTopic = newTopicRaw ?? origTopic;
+
+    final propagateModeString = json['propagate_mode'] as String?;
+    final propagateMode = propagateModeString == null ? null
+      : PropagateMode.fromRawString(propagateModeString);
+
+    if (newStreamId == origStreamId && newTopic == origTopic) {
+      if (propagateMode != null) {
+        throw FormatException(
+          'Malformed UpdateMessageEvent: incoherent message-move fields; '
+          'propagate_mode present but no new channel or topic');
+      }
+      return null;
+    }
+
+    return UpdateMessageMoveData(
+      // The `stream_id` field (aka origStreamId) is documented to be present on moves;
+      // newStreamId should not be null either because it falls back to origStreamId.
+      origStreamId: origStreamId!,
+      newStreamId: newStreamId!,
+
+      // The `orig_subject` field (aka origTopic) is documented to be present on moves;
+      // newTopic should not be null either because it falls back to origTopic.
+      origTopic: origTopic!,
+      newTopic: newTopic!,
+
+      // The `propagate_mode` field (aka propagateMode) is documented to be present on moves.
+      propagateMode: propagateMode!,
+    );
+  }
 }
 
 /// A Zulip event of type `delete_message`: https://zulip.com/api/get-events#delete_message
@@ -788,7 +840,7 @@ class DeleteMessageEvent extends Event {
   @MessageTypeConverter()
   final MessageType messageType;
   final int? streamId;
-  final String? topic;
+  final TopicName? topic;
 
   DeleteMessageEvent({
     required super.id,
@@ -924,7 +976,7 @@ class UpdateMessageFlagsMessageDetail {
   final bool? mentioned;
   final List<int>? userIds;
   final int? streamId;
-  final String? topic;
+  final TopicName? topic;
 
   UpdateMessageFlagsMessageDetail({
     required this.type,
@@ -1002,7 +1054,7 @@ class TypingEvent extends Event {
   @JsonKey(name: 'recipients', fromJson: _recipientIdsFromJson)
   final List<int>? recipientIds;
   final int? streamId;
-  final String? topic;
+  final TopicName? topic;
 
   TypingEvent({
     required super.id,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
+import 'about_zulip.dart';
 import 'action_sheet.dart';
 import 'app.dart';
 import 'app_bar.dart';
@@ -16,6 +17,7 @@ import 'message_list.dart';
 import 'page.dart';
 import 'profile.dart';
 import 'recent_dm_conversations.dart';
+import 'settings.dart';
 import 'store.dart';
 import 'subscription_list.dart';
 import 'text.dart';
@@ -30,7 +32,7 @@ enum _HomePageTab {
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
-  static Route<void> buildRoute({required int accountId}) {
+  static AccountRoute<void> buildRoute({required int accountId}) {
     return MaterialAccountWidgetRoute(accountId: accountId,
       loadingPlaceholderPage: _LoadingPlaceholderPage(accountId: accountId),
       page: const HomePage());
@@ -150,6 +152,11 @@ const kTryAnotherAccountWaitPeriod = Duration(seconds: 5);
 class _LoadingPlaceholderPage extends StatefulWidget {
   const _LoadingPlaceholderPage({required this.accountId});
 
+  /// The relevant account for this page.
+  ///
+  /// The account is not guaranteed to exist in the global store. This can
+  /// happen briefly when the account is removed from the database for logout,
+  /// but before [PerAccountStoreWidget.routeToRemoveOnLogout] is processed.
   final int accountId;
 
   @override
@@ -179,8 +186,15 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final realmUrl = GlobalStoreWidget.of(context)
-      .getAccount(widget.accountId)!.realmUrl;
+    final account = GlobalStoreWidget.of(context).getAccount(widget.accountId);
+
+    if (account == null) {
+      // We should only reach this state very briefly.
+      // See [_LoadingPlaceholderPage.accountId].
+      return Scaffold(
+        appBar: AppBar(),
+        body: const SizedBox.shrink());
+    }
 
     return Scaffold(
       appBar: AppBar(),
@@ -199,7 +213,8 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
                 child: Column(
                   children: [
                     const SizedBox(height: 16),
-                    Text(zulipLocalizations.tryAnotherAccountMessage(realmUrl.toString())),
+                    Text(textAlign: TextAlign.center,
+                      zulipLocalizations.tryAnotherAccountMessage(account.realmUrl.toString())),
                     const SizedBox(height: 8),
                     ElevatedButton(
                       onPressed: () => Navigator.push(context,
@@ -266,9 +281,10 @@ void _showMainMenu(BuildContext context, {
     const _SwitchAccountButton(),
     // TODO(#198): Set my status
     // const SizedBox(height: 8),
-    // TODO(#97): Settings
+    const _SettingsButton(),
     // TODO(#661): Notifications
     // const SizedBox(height: 8),
+    const _AboutZulipButton(),
     // TODO(#1095): VersionInfo
   ];
 
@@ -539,11 +555,7 @@ class _SwitchAccountButton extends _MenuButton {
   const _SwitchAccountButton();
 
   @override
-  // TODO(design): choose an icon
-  IconData? get icon => null;
-
-  @override
-  Widget buildLeading(BuildContext context) => const SizedBox.shrink();
+  IconData? get icon => ZulipIcons.arrow_left_right;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
@@ -553,6 +565,40 @@ class _SwitchAccountButton extends _MenuButton {
   @override
   void onPressed(BuildContext context) {
     Navigator.of(context).push(MaterialWidgetRoute(page: const ChooseAccountPage()));
+  }
+}
+
+class _SettingsButton extends _MenuButton {
+  const _SettingsButton();
+
+  @override
+  IconData get icon => ZulipIcons.settings;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.settingsPageTitle;
+  }
+
+  @override
+  void onPressed(BuildContext context) {
+    Navigator.of(context).push(SettingsPage.buildRoute(context: context));
+  }
+}
+
+class _AboutZulipButton extends _MenuButton {
+  const _AboutZulipButton();
+
+  @override
+  IconData get icon => ZulipIcons.info;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.aboutPageTitle;
+  }
+
+  @override
+  void onPressed(BuildContext context) {
+    Navigator.of(context).push(AboutZulipPage.buildRoute(context));
   }
 }
 

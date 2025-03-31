@@ -9,11 +9,14 @@ part of 'submessage.dart';
 // **************************************************************************
 
 Submessage _$SubmessageFromJson(Map<String, dynamic> json) => Submessage(
-      senderId: (json['sender_id'] as num).toInt(),
-      msgType: $enumDecode(_$SubmessageTypeEnumMap, json['msg_type'],
-          unknownValue: SubmessageType.unknown),
-      content: json['content'] as String,
-    );
+  senderId: (json['sender_id'] as num).toInt(),
+  msgType: $enumDecode(
+    _$SubmessageTypeEnumMap,
+    json['msg_type'],
+    unknownValue: SubmessageType.unknown,
+  ),
+  content: json['content'] as String,
+);
 
 Map<String, dynamic> _$SubmessageToJson(Submessage instance) =>
     <String, dynamic>{
@@ -30,7 +33,8 @@ const _$SubmessageTypeEnumMap = {
 PollWidgetData _$PollWidgetDataFromJson(Map<String, dynamic> json) =>
     PollWidgetData(
       extraData: PollWidgetExtraData.fromJson(
-          json['extra_data'] as Map<String, dynamic>),
+        json['extra_data'] as Map<String, dynamic>,
+      ),
     );
 
 Map<String, dynamic> _$PollWidgetDataToJson(PollWidgetData instance) =>
@@ -47,33 +51,34 @@ const _$WidgetTypeEnumMap = {
 PollWidgetExtraData _$PollWidgetExtraDataFromJson(Map<String, dynamic> json) =>
     PollWidgetExtraData(
       question: json['question'] as String? ?? '',
-      options: (json['options'] as List<dynamic>?)
+      options:
+          (json['options'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           [],
     );
 
 Map<String, dynamic> _$PollWidgetExtraDataToJson(
-        PollWidgetExtraData instance) =>
-    <String, dynamic>{
-      'question': instance.question,
-      'options': instance.options,
-    };
+  PollWidgetExtraData instance,
+) => <String, dynamic>{
+  'question': instance.question,
+  'options': instance.options,
+};
 
 PollNewOptionEventSubmessage _$PollNewOptionEventSubmessageFromJson(
-        Map<String, dynamic> json) =>
-    PollNewOptionEventSubmessage(
-      option: json['option'] as String,
-      idx: (json['idx'] as num).toInt(),
-    );
+  Map<String, dynamic> json,
+) => PollNewOptionEventSubmessage(
+  option: json['option'] as String,
+  idx: (json['idx'] as num).toInt(),
+);
 
 Map<String, dynamic> _$PollNewOptionEventSubmessageToJson(
-        PollNewOptionEventSubmessage instance) =>
-    <String, dynamic>{
-      'type': _$PollEventSubmessageTypeEnumMap[instance.type]!,
-      'option': instance.option,
-      'idx': instance.idx,
-    };
+  PollNewOptionEventSubmessage instance,
+) => <String, dynamic>{
+  'type': _$PollEventSubmessageTypeEnumMap[instance.type]!,
+  'option': instance.option,
+  'idx': instance.idx,
+};
 
 const _$PollEventSubmessageTypeEnumMap = {
   PollEventSubmessageType.newOption: 'new_option',
@@ -83,33 +88,34 @@ const _$PollEventSubmessageTypeEnumMap = {
 };
 
 PollQuestionEventSubmessage _$PollQuestionEventSubmessageFromJson(
-        Map<String, dynamic> json) =>
-    PollQuestionEventSubmessage(
-      question: json['question'] as String,
-    );
+  Map<String, dynamic> json,
+) => PollQuestionEventSubmessage(question: json['question'] as String);
 
 Map<String, dynamic> _$PollQuestionEventSubmessageToJson(
-        PollQuestionEventSubmessage instance) =>
-    <String, dynamic>{
-      'type': _$PollEventSubmessageTypeEnumMap[instance.type]!,
-      'question': instance.question,
-    };
+  PollQuestionEventSubmessage instance,
+) => <String, dynamic>{
+  'type': _$PollEventSubmessageTypeEnumMap[instance.type]!,
+  'question': instance.question,
+};
 
 PollVoteEventSubmessage _$PollVoteEventSubmessageFromJson(
-        Map<String, dynamic> json) =>
-    PollVoteEventSubmessage(
-      key: json['key'] as String,
-      op: $enumDecode(_$PollVoteOpEnumMap, json['vote'],
-          unknownValue: PollVoteOp.unknown),
-    );
+  Map<String, dynamic> json,
+) => PollVoteEventSubmessage(
+  key: json['key'] as String,
+  op: $enumDecode(
+    _$PollVoteOpEnumMap,
+    json['vote'],
+    unknownValue: PollVoteOp.unknown,
+  ),
+);
 
 Map<String, dynamic> _$PollVoteEventSubmessageToJson(
-        PollVoteEventSubmessage instance) =>
-    <String, dynamic>{
-      'type': _$PollEventSubmessageTypeEnumMap[instance.type]!,
-      'key': instance.key,
-      'vote': instance.op,
-    };
+  PollVoteEventSubmessage instance,
+) => <String, dynamic>{
+  'type': _$PollEventSubmessageTypeEnumMap[instance.type]!,
+  'key': instance.key,
+  'vote': instance.op,
+};
 
 const _$PollVoteOpEnumMap = {
   PollVoteOp.add: 1,

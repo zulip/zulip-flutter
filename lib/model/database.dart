@@ -1,13 +1,67 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
+import 'package:drift/internal/versioned_schema.dart';
 import 'package:drift/remote.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/common.dart';
 
+import '../log.dart';
+import 'schema_versions.g.dart';
+import 'settings.dart';
+
 part 'database.g.dart';
+
+/// The table of one [GlobalSettingsData] record, the user's chosen settings
+/// on this client that are independent of account.
+///
+/// These apply across all the user's accounts on this client (i.e. on this
+/// install of the app on this device).
+///
+/// This table should always have exactly one row (it's created by a migration).
+@DataClassName('GlobalSettingsData')
+class GlobalSettings extends Table {
+  Column<String> get themeSetting => textEnum<ThemeSetting>()
+    .nullable()();
+
+  Column<String> get browserPreference => textEnum<BrowserPreference>()
+    .nullable()();
+
+  // If adding a new column to this table, consider whether [BoolGlobalSettings]
+  // can do the job instead (by adding a value to the [BoolGlobalSetting] enum).
+  // That way is more convenient, when it works, because
+  // it avoids a migration and therefore several added copies of our schema
+  // in the Drift generated files.
+}
+
+/// The table of the user's bool-valued, account-independent settings.
+///
+/// These apply across all the user's accounts on this client
+/// (i.e. on this install of the app on this device).
+///
+/// Each row is a [BoolGlobalSettingRow],
+/// referring to a possible setting from [BoolGlobalSetting].
+/// For settings in [BoolGlobalSetting] without a row in this table,
+/// the setting's value is that of [BoolGlobalSetting.default_].
+@DataClassName('BoolGlobalSettingRow')
+class BoolGlobalSettings extends Table {
+  /// The setting's name, a possible name from [BoolGlobalSetting].
+  ///
+  /// The table may have rows where [name] is not the name of any
+  /// enum value in [BoolGlobalSetting].
+  /// This happens if the app has previously run at a future or modified
+  /// version which had additional values in that enum,
+  /// and the user set one of those additional settings.
+  /// The app ignores any such unknown rows.
+  Column<String> get name => text()();
+
+  /// The user's chosen value for the setting.
+  ///
+  /// This is non-nullable; if the user wants to revert to
+  /// following the app's default for the setting,
+  /// that can be expressed by deleting the row.
+  Column<bool> get value => boolean()();
+
+  @override
+  Set<Column<Object>>? get primaryKey => {name};
+}
 
 /// The table of [Account] records in the app's database.
 class Accounts extends Table {
@@ -52,57 +106,123 @@ class UriConverter extends TypeConverter<Uri, String> {
   @override Uri fromSql(String fromDb) => Uri.parse(fromDb);
 }
 
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    // TODO decide if this path is the right one to use
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(path.join(dbFolder.path, 'db.sqlite'));
-    return NativeDatabase.createInBackground(file);
-  });
-}
-
-@DriftDatabase(tables: [Accounts])
+@DriftDatabase(tables: [GlobalSettings, BoolGlobalSettings, Accounts])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
-  AppDatabase.live() : this(_openConnection());
-
   // When updating the schema:
-  //  * Make the change in the table classes, and bump schemaVersion.
-  //  * Export the new schema and generate test migrations:
+  //  * Make the change in the table classes, and bump latestSchemaVersion.
+  //  * Export the new schema and generate test migrations with drift:
   //    $ tools/check --fix drift
-  //  * Write a migration in `onUpgrade` below.
+  //    and generate database code with build_runner.
+  //    See ../../README.md#generated-files for more
+  //    information on using the build_runner.
+  //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
+  static const int latestSchemaVersion = 6; // See note.
+
   @override
-  int get schemaVersion => 2; // See note.
+  int get schemaVersion => latestSchemaVersion;
+
+  /// Drop all tables, indexes, etc., in the database.
+  ///
+  /// This includes tables that aren't known to the schema, for example because
+  /// they were defined by a future (perhaps experimental) version of the app
+  /// before switching back to the version currently running.
+  static Future<void> _dropAll(Migrator m) async {
+    final query = m.database.customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table'");
+    for (final row in await query.get()) {
+      final data = row.data;
+      final tableName = data['name'] as String;
+      // Skip sqlite-internal tables.  See for comparison:
+      //   https://www.sqlite.org/fileformat2.html#intschema
+      //   https://github.com/simolus3/drift/blob/0901c984a/drift_dev/lib/src/services/schema/verifier_common.dart#L9-L22
+      if (tableName.startsWith('sqlite_')) continue;
+      // No need to worry about SQL injection; this table name
+      // was already a table name in the database, not something
+      // that should be affected by user data.
+      await m.database.customStatement('DROP TABLE $tableName');
+    }
+  }
+
+  static final MigrationStepWithVersion _migrationSteps = migrationSteps(
+    from1To2: (m, schema) async {
+      await m.addColumn(schema.accounts, schema.accounts.ackedPushToken);
+    },
+    from2To3: (m, schema) async {
+      await m.createTable(schema.globalSettings);
+    },
+    from3To4: (m, schema) async {
+      await m.addColumn(
+        schema.globalSettings, schema.globalSettings.browserPreference);
+    },
+    from4To5: (m, schema) async {
+      // Corresponds to the `into(globalSettings).insert` in `onCreate`.
+      // This migration ensures there is a row in GlobalSettings.
+      // (If the app already ran at schema 3 or 4, there will be;
+      // if not, there won't be before this point.)
+      final rows = await m.database.select(schema.globalSettings).get();
+      if (rows.isEmpty) {
+        await m.database.into(schema.globalSettings).insert(
+          // No field values; just use the defaults for both fields.
+          // (This is like `GlobalSettingsCompanion.insert()`, but
+          // without dependence on the current schema.)
+          RawValuesInsertable({}));
+      }
+    },
+    from5To6: (m, schema) async {
+      await m.createTable(schema.boolGlobalSettings);
+    },
+  );
+
+  Future<void> _createLatestSchema(Migrator m) async {
+    await m.createAll();
+    // Corresponds to `from4to5` above.
+    await into(globalSettings).insert(GlobalSettingsCompanion());
+  }
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
-      onCreate: (Migrator m) async {
-        await m.createAll();
-      },
+      onCreate: _createLatestSchema,
       onUpgrade: (Migrator m, int from, int to) async {
         if (from > to) {
-          // TODO(log): log schema downgrade as an error
           // This should only ever happen in dev.  As a dev convenience,
           // drop everything from the database and start over.
-          for (final entity in allSchemaEntities) {
-            // This will miss any entire tables (or indexes, etc.) that
-            // don't exist at this version.  For a dev-only feature, that's OK.
-            await m.drop(entity);
-          }
-          await m.createAll();
+          // TODO(log): log schema downgrade as an error
+          assert(debugLog('Downgrading schema from v$from to v$to.'));
+
+          // In the actual app, the target schema version is always
+          // the latest version as of the code that's being run.
+          // Migrating to earlier versions is useful only for isolating steps
+          // in migration tests; we can forego that for testing downgrades.
+          assert(to == latestSchemaVersion);
+
+          await _dropAll(m);
+          await _createLatestSchema(m);
           return;
         }
-        assert(1 <= from && from <= to && to <= schemaVersion);
+        assert(1 <= from && from <= to && to <= latestSchemaVersion);
 
-        if (from < 2 && 2 <= to) {
-          await m.addColumn(accounts, accounts.ackedPushToken);
-        }
-        // New migrations go here.
-      }
-    );
+        await m.runMigrationSteps(from: from, to: to, steps: _migrationSteps);
+      });
+  }
+
+  Future<GlobalSettingsData> getGlobalSettings() async {
+    // The migrations ensure there is a row.
+    return await (select(globalSettings)..limit(1)).getSingle();
+  }
+
+  Future<Map<BoolGlobalSetting, bool>> getBoolGlobalSettings() async {
+    final result = <BoolGlobalSetting, bool>{};
+    final rows = await select(boolGlobalSettings).get();
+    for (final row in rows) {
+      final setting = BoolGlobalSetting.byName(row.name);
+      if (setting == null) continue;
+      result[setting] = row.value;
+    }
+    return result;
   }
 
   Future<int> createAccount(AccountsCompanion values) async {

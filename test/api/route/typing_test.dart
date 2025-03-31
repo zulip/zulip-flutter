@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:checks/checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/typing.dart';
 
@@ -31,7 +32,7 @@ void main() {
   Future<void> checkSetTypingStatusForTopic(TypingOp op, String expectedOp) {
     return FakeApiConnection.with_((connection) {
       return checkSetTypingStatus(connection, op,
-        destination: const StreamDestination(streamId, topic),
+        destination: const StreamDestination(streamId, TopicName(topic)),
         expectedBodyFields: {
           'op': expectedOp,
           'type': 'channel',
@@ -64,7 +65,7 @@ void main() {
   test('legacy: use "stream" instead of "channel"', () {
     return FakeApiConnection.with_(zulipFeatureLevel: 247, (connection) {
       return checkSetTypingStatus(connection, TypingOp.start,
-        destination: const StreamDestination(streamId, topic),
+        destination: const StreamDestination(streamId, TopicName(topic)),
         expectedBodyFields: {
           'op': 'start',
           'type': 'stream',
@@ -77,7 +78,7 @@ void main() {
   test('legacy: use to=[streamId] instead of stream_id=streamId', () {
     return FakeApiConnection.with_(zulipFeatureLevel: 214, (connection) {
       return checkSetTypingStatus(connection, TypingOp.start,
-        destination: const StreamDestination(streamId, topic),
+        destination: const StreamDestination(streamId, TopicName(topic)),
         expectedBodyFields: {
           'op': 'start',
           'type': 'stream',

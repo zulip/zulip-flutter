@@ -4,6 +4,7 @@ import 'package:clock/clock.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:test/fake.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:zulip/host/android_notifications.dart';
@@ -11,6 +12,7 @@ import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
 
+import '../example_data.dart' as eg;
 import 'test_store.dart';
 
 /// The binding instance used in tests.
@@ -29,7 +31,7 @@ TestZulipBinding get testBinding => TestZulipBinding.instance;
 /// and [TestGlobalStore.add] to set up test data there.  Such test functions
 /// must also call [reset] to clean up the global store.
 ///
-/// The global store returned by [loadGlobalStore], and consequently by
+/// The global store returned by [getGlobalStore], and consequently by
 /// [GlobalStoreWidget.of] in application code, will be a [TestGlobalStore].
 class TestZulipBinding extends ZulipBinding {
   /// Initialize the binding if necessary, and ensure it is a [TestZulipBinding].
@@ -85,7 +87,7 @@ class TestZulipBinding extends ZulipBinding {
   ///
   /// Tests that access this getter, or that mount a [GlobalStoreWidget],
   /// should clean up by calling [reset].
-  TestGlobalStore get globalStore => _globalStore ??= TestGlobalStore(accounts: []);
+  TestGlobalStore get globalStore => _globalStore ??= eg.globalStore();
   TestGlobalStore? _globalStore;
 
   bool _debugAlreadyLoadedStore = false;
@@ -398,6 +400,7 @@ class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
     timeSensitive: AppleNotificationSetting.disabled,
     criticalAlert: AppleNotificationSetting.disabled,
     sound: AppleNotificationSetting.enabled,
+    providesAppNotificationSettings: AppleNotificationSetting.disabled,
   );
 
   List<FirebaseMessagingRequestPermissionCall> takeRequestPermissionCalls() {
@@ -416,6 +419,7 @@ class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
     bool criticalAlert = false,
     bool provisional = false,
     bool sound = true,
+    bool providesAppNotificationSettings = false,
   }) async {
     _requestPermissionCalls.add((
       alert: alert,
@@ -425,6 +429,7 @@ class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
       criticalAlert: criticalAlert,
       provisional: provisional,
       sound: sound,
+      providesAppNotificationSettings: providesAppNotificationSettings,
     ));
     return requestPermissionResult;
   }
@@ -505,9 +510,24 @@ typedef FirebaseMessagingRequestPermissionCall = ({
   bool criticalAlert,
   bool provisional,
   bool sound,
+  bool providesAppNotificationSettings,
 });
 
 class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
+  // TODO(?): Find a better way to handle this. This member is exported from
+  //   the Pigeon generated class but are not used for this fake class,
+  //   so return the default value.
+  @override
+  // ignore: non_constant_identifier_names
+  final BinaryMessenger? pigeonVar_binaryMessenger = null;
+
+  // TODO(?): Find a better way to handle this. This member is exported from
+  //   the Pigeon generated class but are not used for this fake class,
+  //   so return the default value.
+  @override
+  // ignore: non_constant_identifier_names
+  final String pigeonVar_messageChannelSuffix = '';
+
   /// Lists currently active channels, result is aggregated from calls made to
   /// [createNotificationChannel] and [deleteNotificationChannel],
   /// order of creation is preserved.
@@ -532,7 +552,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   }
 
   @override
-  Future<List<NotificationChannel?>> getNotificationChannels() async {
+  Future<List<NotificationChannel>> getNotificationChannels() async {
     return _activeChannels.values.toList(growable: false);
   }
 
@@ -567,7 +587,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   }
 
   @override
-  Future<List<StoredNotificationSound?>> listStoredSoundsInNotificationsDirectory() async {
+  Future<List<StoredNotificationSound>> listStoredSoundsInNotificationsDirectory() async {
     return _storedNotificationSounds.toList(growable: false);
   }
 
@@ -631,7 +651,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     PendingIntent? contentIntent,
     String? contentText,
     String? contentTitle,
-    Map<String?, String?>? extras,
+    Map<String, String>? extras,
     String? groupKey,
     InboxStyle? inboxStyle,
     bool? isGroupSummary,
@@ -671,7 +691,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
             isGroupConversation: messagingStyle.isGroupConversation,
             messages: messagingStyle.messages.map((message) =>
               MessagingStyleMessage(
-                text: message!.text,
+                text: message.text,
                 timestampMs: message.timestampMs,
                 person: Person(
                   key: message.person.key,
@@ -686,14 +706,14 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     _activeNotificationsMessagingStyle[tag];
 
   @override
-  Future<List<StatusBarNotification?>> getActiveNotifications({required List<String?> desiredExtras}) async {
+  Future<List<StatusBarNotification>> getActiveNotifications({required List<String> desiredExtras}) async {
     return _activeNotifications.values.map((statusNotif) {
       final notificationExtras = statusNotif.notification.extras;
-      statusNotif.notification.extras = Map.fromEntries(
-        desiredExtras
-          .map((key) => MapEntry(key, notificationExtras[key]))
-          .where((entry) => entry.value != null)
-      );
+      statusNotif.notification.extras = {
+        for (final key in desiredExtras)
+          if (notificationExtras[key] != null)
+            key: notificationExtras[key]!,
+      };
       return statusNotif;
     }).toList(growable: false);
   }

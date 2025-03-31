@@ -206,6 +206,8 @@ void main() {
     // TODO test that tapping a conversation row opens the message list
     //   for the conversation
 
+    // Tests for the topic action sheet are in test/widgets/action_sheet_test.dart.
+
     group('muting', () { // aka topic visibility
       testWidgets('baseline', (tester) async {
         final stream = eg.stream();
@@ -304,6 +306,15 @@ void main() {
         check(hasAtSign(tester, findRowByLabel(tester, eg.otherUser.fullName))).isFalse();
       });
     });
+
+    testWidgets('empty topic', (tester) async {
+      final channel = eg.stream();
+      await setupPage(tester,
+        streams: [channel],
+        subscriptions: [(eg.subscription(channel))],
+        unreadMessages: [eg.streamMessage(stream: channel, topic: '')]);
+      check(find.text(eg.defaultRealmEmptyTopicDisplayName)).findsOne();
+    }, skip: true); // null topic names soon to be enabled
 
     group('topic visibility', () {
       final channel = eg.stream();

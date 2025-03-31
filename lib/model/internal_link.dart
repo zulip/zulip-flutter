@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../api/model/model.dart';
 import '../api/model/narrow.dart';
 import 'narrow.dart';
 import 'store.dart';
@@ -58,8 +59,8 @@ String? decodeHashComponent(String str) {
 // you do so by passing the `anchor` param.
 Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
   // TODO(server-7)
-  final apiNarrow = resolveDmElements(
-    narrow.apiEncode(), store.connection.zulipFeatureLevel!);
+  final apiNarrow = resolveApiNarrowForServer(
+    narrow.apiEncode(), store.zulipFeatureLevel);
   final fragment = StringBuffer('narrow');
   for (ApiNarrowElement element in apiNarrow) {
     fragment.write('/');
@@ -76,7 +77,7 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
         final slugifiedName = _encodeHashComponent(name.replaceAll(' ', '-'));
         fragment.write('$streamId-$slugifiedName');
       case ApiNarrowTopic():
-        fragment.write(_encodeHashComponent(element.operand));
+        fragment.write(_encodeHashComponent(element.operand.apiName));
       case ApiNarrowDmModern():
         final suffix = element.operand.length >= 3 ? 'group' : 'dm';
         fragment.write('${element.operand.join(',')}-$suffix');
@@ -85,6 +86,8 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
         fragment.write('${element.operand.join(',')}-$suffix');
       case ApiNarrowDm():
         assert(false, 'ApiNarrowDm should have been resolved');
+      case ApiNarrowWith():
+        fragment.write(element.operand.toString());
       case ApiNarrowIs():
         fragment.write(element.operand.toString());
       case ApiNarrowMessageId():
@@ -159,6 +162,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
   ApiNarrowStream? streamElement;
   ApiNarrowTopic? topicElement;
   ApiNarrowDm? dmElement;
+  ApiNarrowWith? withElement;
   Set<IsOperand> isElementOperands = {};
 
   for (var i = 0; i < segments.length; i += 2) {
@@ -178,7 +182,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
         if (topicElement != null) return null;
         final String? topic = decodeHashComponent(operand);
         if (topic == null) return null;
-        topicElement = ApiNarrowTopic(topic, negated: negated);
+        topicElement = ApiNarrowTopic(TopicName(topic), negated: negated);
 
       case _NarrowOperator.dm:
       case _NarrowOperator.pmWith:
@@ -187,12 +191,17 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
         if (dmIds == null) return null;
         dmElement = ApiNarrowDm(dmIds, negated: negated);
 
+      case _NarrowOperator.with_:
+        if (withElement != null) return null;
+        final messageId = int.tryParse(operand, radix: 10);
+        if (messageId == null) return null;
+        withElement = ApiNarrowWith(messageId);
+
       case _NarrowOperator.is_:
         // It is fine to have duplicates of the same [IsOperand].
         isElementOperands.add(IsOperand.fromRawString(operand));
 
       case _NarrowOperator.near: // TODO(#82): support for near
-      case _NarrowOperator.with_: // TODO(#683): support for with
         continue;
 
       case _NarrowOperator.unknown:
@@ -201,7 +210,9 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
   }
 
   if (isElementOperands.isNotEmpty) {
-    if (streamElement != null || topicElement != null || dmElement != null) return null;
+    if (streamElement != null || topicElement != null || dmElement != null || withElement != null) {
+      return null;
+    }
     if (isElementOperands.length > 1) return null;
     switch (isElementOperands.single) {
       case IsOperand.mentioned:
@@ -218,13 +229,14 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
         return null;
     }
   } else if (dmElement != null) {
-    if (streamElement != null || topicElement != null) return null;
+    if (streamElement != null || topicElement != null || withElement != null) return null;
     return DmNarrow.withUsers(dmElement.operand, selfUserId: store.selfUserId);
   } else if (streamElement != null) {
     final streamId = streamElement.operand;
     if (topicElement != null) {
-      return TopicNarrow(streamId, topicElement.operand);
+      return TopicNarrow(streamId, topicElement.operand, with_: withElement?.operand);
     } else {
+      if (withElement != null) return null;
       return ChannelNarrow(streamId);
     }
   }

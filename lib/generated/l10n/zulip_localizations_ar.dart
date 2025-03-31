@@ -24,6 +24,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get chooseAccountPageTitle => 'Choose account';
 
   @override
+  String get settingsPageTitle => 'Settings';
+
+  @override
   String get switchAccountButton => 'Switch account';
 
   @override
@@ -53,6 +56,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'Send direct message';
 
   @override
+  String get errorCouldNotShowUserProfile => 'Could not show user profile.';
+
+  @override
   String get permissionsNeededTitle => 'Permissions needed';
 
   @override
@@ -65,6 +71,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get permissionsDeniedReadExternalStorage => 'To upload files, please grant Zulip additional permissions in Settings.';
 
   @override
+  String get actionSheetOptionMarkChannelAsRead => 'Mark channel as read';
+
+  @override
   String get actionSheetOptionMuteTopic => 'Mute topic';
 
   @override
@@ -75,6 +84,18 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
 
   @override
   String get actionSheetOptionUnfollowTopic => 'Unfollow topic';
+
+  @override
+  String get actionSheetOptionResolveTopic => 'Mark as resolved';
+
+  @override
+  String get actionSheetOptionUnresolveTopic => 'Mark as unresolved';
+
+  @override
+  String get errorResolveTopicFailedTitle => 'Failed to mark topic as resolved';
+
+  @override
+  String get errorUnresolveTopicFailedTitle => 'Failed to mark topic as unresolved';
 
   @override
   String get actionSheetOptionCopyMessageText => 'Copy message text';
@@ -96,6 +117,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
 
   @override
   String get actionSheetOptionUnstarMessage => 'Unstar message';
+
+  @override
+  String get actionSheetOptionMarkTopicAsRead => 'Mark topic as read';
 
   @override
   String get errorWebAuthOperationalErrorTitle => 'Something went wrong';
@@ -120,6 +144,11 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   @override
   String errorFailedToUploadFileTitle(String filename) {
     return 'Failed to upload file: $filename';
+  }
+
+  @override
+  String filenameAndSizeInMiB(String filename, String size) {
+    return '$filename: $size MiB';
   }
 
   @override
@@ -159,7 +188,7 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   }
 
   @override
-  String get errorLoginCouldNotConnectTitle => 'Could not connect';
+  String get errorCouldNotConnectTitle => 'Could not connect';
 
   @override
   String get errorMessageDoesNotSeemToExist => 'That message does not seem to exist.';
@@ -186,6 +215,14 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   @override
   String errorHandlingEventDetails(String serverUrl, String error, String event) {
     return 'Error handling a Zulip event from $serverUrl; will retry.\n\nError: $error\n\nEvent: $event';
+  }
+
+  @override
+  String get errorCouldNotOpenLinkTitle => 'Unable to open link';
+
+  @override
+  String errorCouldNotOpenLink(String url) {
+    return 'Link could not be opened: $url';
   }
 
   @override
@@ -248,15 +285,15 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get composeBoxSelfDmContentHint => 'Jot down something';
 
   @override
-  String composeBoxChannelContentHint(String channel, String topic) {
-    return 'Message #$channel > $topic';
+  String composeBoxChannelContentHint(String destination) {
+    return 'Message $destination';
   }
 
   @override
   String get composeBoxSendTooltip => 'Send';
 
   @override
-  String get composeBoxUnknownChannelName => '(unknown channel)';
+  String get unknownChannelName => '(unknown channel)';
 
   @override
   String get composeBoxTopicHintText => 'Topic';
@@ -267,7 +304,15 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   }
 
   @override
+  String composeBoxLoadingMessage(int messageId) {
+    return '(loading message $messageId)';
+  }
+
+  @override
   String get unknownUserName => '(unknown user)';
+
+  @override
+  String get dmsWithYourselfPageTitle => 'DMs with yourself';
 
   @override
   String messageListGroupYouAndOthers(String others) {
@@ -275,7 +320,12 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   }
 
   @override
-  String get messageListGroupYouWithYourself => 'You with yourself';
+  String dmsWithOthersPageTitle(String others) {
+    return 'DMs with $others';
+  }
+
+  @override
+  String get messageListGroupYouWithYourself => 'Messages with yourself';
 
   @override
   String get contentValidationErrorTooLong => 'Message length shouldn\'t be greater than 10000 characters.';
@@ -311,6 +361,12 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get lightboxCopyLinkTooltip => 'Copy link';
 
   @override
+  String get lightboxVideoCurrentPosition => 'Current position';
+
+  @override
+  String get lightboxVideoDuration => 'Video duration';
+
+  @override
   String get loginPageTitle => 'Log in';
 
   @override
@@ -328,7 +384,7 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'Add an account';
 
   @override
-  String get loginServerUrlInputLabel => 'Your Zulip server URL';
+  String get loginServerUrlLabel => 'Your Zulip server URL';
 
   @override
   String get loginHidePassword => 'Hide password';
@@ -356,6 +412,11 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
 
   @override
   String get topicValidationErrorMandatoryButEmpty => 'Topics are required in this organization.';
+
+  @override
+  String errorInvalidApiKeyMessage(String url) {
+    return 'Your account at $url could not be authenticated. Please try logging in again or use another account.';
+  }
 
   @override
   String get errorInvalidResponse => 'The server sent an invalid response';
@@ -464,6 +525,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get recentDmConversationsPageTitle => 'Direct messages';
 
   @override
+  String get recentDmConversationsSectionHeader => 'Direct messages';
+
+  @override
   String get combinedFeedPageTitle => 'Combined feed';
 
   @override
@@ -493,7 +557,19 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   }
 
   @override
+  String get pinnedSubscriptionsLabel => 'Pinned';
+
+  @override
+  String get unpinnedSubscriptionsLabel => 'Unpinned';
+
+  @override
+  String get subscriptionListNoChannels => 'No channels found';
+
+  @override
   String get notifSelfUser => 'You';
+
+  @override
+  String get reactedEmojiSelfUser => 'You';
 
   @override
   String onePersonTyping(String typist) {
@@ -509,16 +585,69 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get manyPeopleTyping => 'Several people are typing…';
 
   @override
+  String get wildcardMentionAll => 'الجميع';
+
+  @override
+  String get wildcardMentionEveryone => 'الكل';
+
+  @override
+  String get wildcardMentionChannel => 'القناة';
+
+  @override
+  String get wildcardMentionStream => 'الدفق';
+
+  @override
+  String get wildcardMentionTopic => 'الموضوع';
+
+  @override
+  String get wildcardMentionChannelDescription => 'إخطار القناة';
+
+  @override
+  String get wildcardMentionStreamDescription => 'إخطار الدفق';
+
+  @override
+  String get wildcardMentionAllDmDescription => 'إخطار المستلمين';
+
+  @override
+  String get wildcardMentionTopicDescription => 'إخطار الموضوع';
+
+  @override
   String get messageIsEditedLabel => 'EDITED';
 
   @override
   String get messageIsMovedLabel => 'MOVED';
 
   @override
+  String pollVoterNames(String voterNames) {
+    return '($voterNames)';
+  }
+
+  @override
+  String get themeSettingTitle => 'THEME';
+
+  @override
+  String get themeSettingDark => 'Dark';
+
+  @override
+  String get themeSettingLight => 'Light';
+
+  @override
+  String get themeSettingSystem => 'System';
+
+  @override
+  String get openLinksWithInAppBrowser => 'Open links with in-app browser';
+
+  @override
   String get pollWidgetQuestionMissing => 'No question.';
 
   @override
   String get pollWidgetOptionsMissing => 'This poll has no options yet.';
+
+  @override
+  String get experimentalFeatureSettingsPageTitle => 'Experimental features';
+
+  @override
+  String get experimentalFeatureSettingsWarning => 'These options enable features which are still under development and not ready. They may not work, and may cause issues in other areas of the app.\n\nThe purpose of these settings is for experimentation by people working on developing Zulip.';
 
   @override
   String get errorNotificationOpenTitle => 'Failed to open notification';
@@ -537,4 +666,16 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
 
   @override
   String get emojiPickerSearchEmoji => 'Search emoji';
+
+  @override
+  String get noEarlierMessages => 'No earlier messages';
+
+  @override
+  String get scrollToBottomTooltip => 'Scroll to bottom';
+
+  @override
+  String get appVersionUnknownPlaceholder => '(…)';
+
+  @override
+  String get zulipAppTitle => 'Zulip';
 }

@@ -65,12 +65,8 @@ void main() {
     test('modern; message not found', () {
       return FakeApiConnection.with_((connection) async {
         final message = eg.streamMessage();
-        final fakeResponseJson = {
-          'code': 'BAD_REQUEST',
-          'msg': 'Invalid message(s)',
-          'result': 'error',
-        };
-        connection.prepare(httpStatus: 400, json: fakeResponseJson);
+        connection.prepare(
+          apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
         final result = await checkGetMessageCompat(connection,
           expectLegacy: false,
           messageId: message.id,
@@ -173,21 +169,13 @@ void main() {
     });
   });
 
-  test('Narrow.toJson', () {
+  test('ApiNarrow.toJson', () {
     return FakeApiConnection.with_((connection) async {
       void checkNarrow(ApiNarrow narrow, String expected) {
-        narrow = resolveDmElements(narrow, connection.zulipFeatureLevel!);
+        narrow = resolveApiNarrowForServer(narrow, connection.zulipFeatureLevel!);
         check(jsonEncode(narrow)).equals(expected);
       }
 
-      checkNarrow(const CombinedFeedNarrow().apiEncode(), jsonEncode([]));
-      checkNarrow(const ChannelNarrow(12).apiEncode(), jsonEncode([
-        {'operator': 'stream', 'operand': 12},
-      ]));
-      checkNarrow(const TopicNarrow(12, 'stuff').apiEncode(), jsonEncode([
-        {'operator': 'stream', 'operand': 12},
-        {'operator': 'topic', 'operand': 'stuff'},
-      ]));
       checkNarrow(const MentionsNarrow().apiEncode(), jsonEncode([
         {'operator': 'is', 'operand': 'mentioned'},
       ]));
@@ -195,14 +183,51 @@ void main() {
         {'operator': 'is', 'operand': 'starred'},
       ]));
 
+      checkNarrow(const CombinedFeedNarrow().apiEncode(), jsonEncode([]));
+      checkNarrow(const ChannelNarrow(12).apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+      ]));
+      checkNarrow(eg.topicNarrow(12, 'stuff').apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+        {'operator': 'topic', 'operand': 'stuff'},
+      ]));
+      checkNarrow(eg.topicNarrow(12, 'stuff', with_: 1).apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+        {'operator': 'topic', 'operand': 'stuff'},
+        {'operator': 'with', 'operand': 1},
+      ]));
       checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
+        {'operator': 'dm', 'operand': [123, 234]},
+      ]));
+      checkNarrow([ApiNarrowDm([123, 234]), ApiNarrowWith(1)], jsonEncode([
+        {'operator': 'dm', 'operand': [123, 234]},
+        {'operator': 'with', 'operand': 1},
+      ]));
+
+      connection.zulipFeatureLevel = 270;
+      checkNarrow(eg.topicNarrow(12, 'stuff', with_: 1).apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+        {'operator': 'topic', 'operand': 'stuff'},
+      ]));
+      checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
+        {'operator': 'dm', 'operand': [123, 234]},
+      ]));
+      checkNarrow([ApiNarrowDm([123, 234]), ApiNarrowWith(1)], jsonEncode([
         {'operator': 'dm', 'operand': [123, 234]},
       ]));
 
       connection.zulipFeatureLevel = 176;
+      checkNarrow(eg.topicNarrow(12, 'stuff', with_: 1).apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+        {'operator': 'topic', 'operand': 'stuff'},
+      ]));
       checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
         {'operator': 'pm-with', 'operand': [123, 234]},
       ]));
+      checkNarrow([ApiNarrowDm([123, 234]), ApiNarrowWith(1)], jsonEncode([
+        {'operator': 'pm-with', 'operand': [123, 234]},
+      ]));
+
       connection.zulipFeatureLevel = eg.futureZulipFeatureLevel;
     });
   });
@@ -263,7 +288,7 @@ void main() {
       });
     });
 
-    test('narrow uses resolveDmElements to encode', () {
+    test('narrow uses resolveApiNarrowForServer to encode', () {
       return FakeApiConnection.with_(zulipFeatureLevel: 176, (connection) async {
         connection.prepare(json: fakeResult.toJson());
         await checkGetMessages(connection,
@@ -328,7 +353,7 @@ void main() {
     test('smoke', () {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
-          destination: const StreamDestination(streamId, topic), content: content,
+          destination: StreamDestination(streamId, eg.t(topic)), content: content,
           queueId: 'abc:123',
           localId: '456',
           readBySender: true,
@@ -347,7 +372,7 @@ void main() {
     test('to stream', () {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
-          destination: const StreamDestination(streamId, topic), content: content,
+          destination: StreamDestination(streamId, eg.t(topic)), content: content,
           readBySender: true,
           expectedBodyFields: {
             'type': 'stream',
@@ -391,7 +416,7 @@ void main() {
     test('when readBySender is null, sends a User-Agent we know the server will recognize', () {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
-          destination: const StreamDestination(streamId, topic), content: content,
+          destination: StreamDestination(streamId, eg.t(topic)), content: content,
           readBySender: null,
           expectedBodyFields: {
             'type': 'stream',
@@ -406,7 +431,7 @@ void main() {
     test('legacy: when server does not support readBySender, sends a User-Agent the server will recognize', () {
       return FakeApiConnection.with_(zulipFeatureLevel: 235, (connection) async {
         await checkSendMessage(connection,
-          destination: const StreamDestination(streamId, topic), content: content,
+          destination: StreamDestination(streamId, eg.t(topic)), content: content,
           readBySender: true,
           expectedBodyFields: {
             'type': 'stream',
@@ -416,6 +441,67 @@ void main() {
             'read_by_sender': 'true',
           },
           expectedUserAgent: 'ZulipMobile/flutter');
+      });
+    });
+  });
+
+  group('updateMessage', () {
+    Future<UpdateMessageResult> checkUpdateMessage(
+      FakeApiConnection connection, {
+      required int messageId,
+      TopicName? topic,
+      PropagateMode? propagateMode,
+      bool? sendNotificationToOldThread,
+      bool? sendNotificationToNewThread,
+      String? content,
+      int? streamId,
+      required Map<String, String> expected,
+    }) async {
+      final result = await updateMessage(connection,
+        messageId: messageId,
+        topic: topic,
+        propagateMode: propagateMode,
+        sendNotificationToOldThread: sendNotificationToOldThread,
+        sendNotificationToNewThread: sendNotificationToNewThread,
+        content: content,
+        streamId: streamId,
+      );
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('PATCH')
+        ..url.path.equals('/api/v1/messages/$messageId')
+        ..bodyFields.deepEquals(expected);
+      return result;
+    }
+
+    test('topic/content change', () {
+      // A separate test exercises `streamId`;
+      // the API doesn't allow changing channel and content at the same time.
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: UpdateMessageResult().toJson());
+        await checkUpdateMessage(connection,
+          messageId: eg.streamMessage().id,
+          topic: eg.t('new topic'),
+          propagateMode: PropagateMode.changeAll,
+          sendNotificationToOldThread: true,
+          sendNotificationToNewThread: true,
+          content: 'asdf',
+          expected: {
+            'topic': 'new topic',
+            'propagate_mode': 'change_all',
+            'send_notification_to_old_thread': 'true',
+            'send_notification_to_new_thread': 'true',
+            'content': 'asdf',
+          });
+      });
+    });
+
+    test('channel change', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: UpdateMessageResult().toJson());
+        await checkUpdateMessage(connection,
+          messageId: eg.streamMessage().id,
+          streamId: 1,
+          expected: {'stream_id': '1'});
       });
     });
   });
@@ -650,7 +736,7 @@ void main() {
       });
     });
 
-    test('narrow uses resolveDmElements to encode', () {
+    test('narrow uses resolveApiNarrowForServer to encode', () {
       return FakeApiConnection.with_(zulipFeatureLevel: 176, (connection) async {
         connection.prepare(json: mkResult(foundOldest: true).toJson());
         await checkUpdateMessageFlagsForNarrow(connection,
@@ -743,7 +829,7 @@ void main() {
     }) async {
       connection.prepare(json: {});
       await markTopicAsRead(connection,
-        streamId: streamId, topicName: topicName);
+        streamId: streamId, topicName: eg.t(topicName));
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/mark_topic_as_read')

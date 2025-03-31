@@ -37,103 +37,101 @@ PODS:
   - file_picker (0.0.1):
     - DKImagePickerController/PhotoGallery
     - Flutter
-  - Firebase/CoreOnly (10.29.0):
-    - FirebaseCore (= 10.29.0)
-  - Firebase/Messaging (10.29.0):
+  - Firebase/CoreOnly (11.8.0):
+    - FirebaseCore (~> 11.8.0)
+  - Firebase/Messaging (11.8.0):
     - Firebase/CoreOnly
-    - FirebaseMessaging (~> 10.29.0)
-  - firebase_core (3.3.0):
-    - Firebase/CoreOnly (= 10.29.0)
+    - FirebaseMessaging (~> 11.8.0)
+  - firebase_core (3.12.1):
+    - Firebase/CoreOnly (= 11.8.0)
     - Flutter
-  - firebase_messaging (15.0.4):
-    - Firebase/Messaging (= 10.29.0)
+  - firebase_messaging (15.2.4):
+    - Firebase/Messaging (= 11.8.0)
     - firebase_core
     - Flutter
-  - FirebaseCore (10.29.0):
-    - FirebaseCoreInternal (~> 10.0)
-    - GoogleUtilities/Environment (~> 7.12)
-    - GoogleUtilities/Logger (~> 7.12)
-  - FirebaseCoreInternal (10.29.0):
-    - "GoogleUtilities/NSData+zlib (~> 7.8)"
-  - FirebaseInstallations (10.29.0):
-    - FirebaseCore (~> 10.0)
-    - GoogleUtilities/Environment (~> 7.8)
-    - GoogleUtilities/UserDefaults (~> 7.8)
-    - PromisesObjC (~> 2.1)
-  - FirebaseMessaging (10.29.0):
-    - FirebaseCore (~> 10.0)
-    - FirebaseInstallations (~> 10.0)
-    - GoogleDataTransport (~> 9.3)
-    - GoogleUtilities/AppDelegateSwizzler (~> 7.8)
-    - GoogleUtilities/Environment (~> 7.8)
-    - GoogleUtilities/Reachability (~> 7.8)
-    - GoogleUtilities/UserDefaults (~> 7.8)
-    - nanopb (< 2.30911.0, >= 2.30908.0)
+  - FirebaseCore (11.8.1):
+    - FirebaseCoreInternal (~> 11.8.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/Logger (~> 8.0)
+  - FirebaseCoreInternal (11.8.0):
+    - "GoogleUtilities/NSData+zlib (~> 8.0)"
+  - FirebaseInstallations (11.8.0):
+    - FirebaseCore (~> 11.8.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - PromisesObjC (~> 2.4)
+  - FirebaseMessaging (11.8.0):
+    - FirebaseCore (~> 11.8.0)
+    - FirebaseInstallations (~> 11.0)
+    - GoogleDataTransport (~> 10.0)
+    - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/Reachability (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - nanopb (~> 3.30910.0)
   - Flutter (1.0.0)
-  - GoogleDataTransport (9.4.1):
-    - GoogleUtilities/Environment (~> 7.7)
-    - nanopb (< 2.30911.0, >= 2.30908.0)
-    - PromisesObjC (< 3.0, >= 1.2)
-  - GoogleUtilities/AppDelegateSwizzler (7.13.3):
+  - GoogleDataTransport (10.1.0):
+    - nanopb (~> 3.30910.0)
+    - PromisesObjC (~> 2.4)
+  - GoogleUtilities/AppDelegateSwizzler (8.0.2):
     - GoogleUtilities/Environment
     - GoogleUtilities/Logger
     - GoogleUtilities/Network
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Environment (7.13.3):
+  - GoogleUtilities/Environment (8.0.2):
     - GoogleUtilities/Privacy
-    - PromisesObjC (< 3.0, >= 1.2)
-  - GoogleUtilities/Logger (7.13.3):
+  - GoogleUtilities/Logger (8.0.2):
     - GoogleUtilities/Environment
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Network (7.13.3):
+  - GoogleUtilities/Network (8.0.2):
     - GoogleUtilities/Logger
     - "GoogleUtilities/NSData+zlib"
     - GoogleUtilities/Privacy
     - GoogleUtilities/Reachability
-  - "GoogleUtilities/NSData+zlib (7.13.3)":
+  - "GoogleUtilities/NSData+zlib (8.0.2)":
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Privacy (7.13.3)
-  - GoogleUtilities/Reachability (7.13.3):
+  - GoogleUtilities/Privacy (8.0.2)
+  - GoogleUtilities/Reachability (8.0.2):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
-  - GoogleUtilities/UserDefaults (7.13.3):
+  - GoogleUtilities/UserDefaults (8.0.2):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
   - image_picker_ios (0.0.1):
     - Flutter
   - integration_test (0.0.1):
     - Flutter
-  - nanopb (2.30910.0):
-    - nanopb/decode (= 2.30910.0)
-    - nanopb/encode (= 2.30910.0)
-  - nanopb/decode (2.30910.0)
-  - nanopb/encode (2.30910.0)
+  - nanopb (3.30910.0):
+    - nanopb/decode (= 3.30910.0)
+    - nanopb/encode (= 3.30910.0)
+  - nanopb/decode (3.30910.0)
+  - nanopb/encode (3.30910.0)
   - package_info_plus (0.4.5):
     - Flutter
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
   - PromisesObjC (2.4.0)
-  - SDWebImage (5.20.0):
-    - SDWebImage/Core (= 5.20.0)
-  - SDWebImage/Core (5.20.0)
+  - SDWebImage (5.21.0):
+    - SDWebImage/Core (= 5.21.0)
+  - SDWebImage/Core (5.21.0)
   - share_plus (0.0.1):
     - Flutter
-  - sqlite3 (3.47.1):
-    - sqlite3/common (= 3.47.1)
-  - sqlite3/common (3.47.1)
-  - sqlite3/dbstatvtab (3.47.1):
+  - sqlite3 (3.49.1):
+    - sqlite3/common (= 3.49.1)
+  - sqlite3/common (3.49.1)
+  - sqlite3/dbstatvtab (3.49.1):
     - sqlite3/common
-  - sqlite3/fts5 (3.47.1):
+  - sqlite3/fts5 (3.49.1):
     - sqlite3/common
-  - sqlite3/perf-threadsafe (3.47.1):
+  - sqlite3/perf-threadsafe (3.49.1):
     - sqlite3/common
-  - sqlite3/rtree (3.47.1):
+  - sqlite3/rtree (3.49.1):
     - sqlite3/common
   - sqlite3_flutter_libs (0.0.1):
     - Flutter
     - FlutterMacOS
-    - sqlite3 (~> 3.47.1)
+    - sqlite3 (~> 3.49.1)
     - sqlite3/dbstatvtab
     - sqlite3/fts5
     - sqlite3/perf-threadsafe
@@ -214,35 +212,35 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/wakelock_plus/ios"
 
 SPEC CHECKSUMS:
-  app_settings: 017320c6a680cdc94c799949d95b84cb69389ebc
-  device_info_plus: 97af1d7e84681a90d0693e63169a5d50e0839a0d
+  app_settings: 58017cd26b604ae98c3e65acbdd8ba173703cc82
+  device_info_plus: bf2e3232933866d73fe290f2942f2156cdd10342
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
-  file_picker: 09aa5ec1ab24135ccd7a1621c46c84134bfd6655
-  Firebase: cec914dab6fd7b1bd8ab56ea07ce4e03dd251c2d
-  firebase_core: 57aeb91680e5d5e6df6b888064be7c785f146efb
-  firebase_messaging: c862b3d2b973ecc769194dc8de09bd22c77ae757
-  FirebaseCore: 30e9c1cbe3d38f5f5e75f48bfcea87d7c358ec16
-  FirebaseCoreInternal: df84dd300b561c27d5571684f389bf60b0a5c934
-  FirebaseInstallations: 913cf60d0400ebd5d6b63a28b290372ab44590dd
-  FirebaseMessaging: 7b5d8033e183ab59eb5b852a53201559e976d366
+  file_picker: b159e0c068aef54932bb15dc9fd1571818edaf49
+  Firebase: d80354ed7f6df5f9aca55e9eb47cc4b634735eaf
+  firebase_core: ac395f994af4e28f6a38b59e05a88ca57abeb874
+  firebase_messaging: 7e223f4ee7ca053bf4ce43748e84a6d774ec9728
+  FirebaseCore: 99fe0c4b44a39f37d99e6404e02009d2db5d718d
+  FirebaseCoreInternal: df24ce5af28864660ecbd13596fc8dd3a8c34629
+  FirebaseInstallations: 6c963bd2a86aca0481eef4f48f5a4df783ae5917
+  FirebaseMessaging: 487b634ccdf6f7b7ff180fdcb2a9935490f764e8
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
-  GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
+  GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
+  GoogleUtilities: 26a3abef001b6533cf678d3eb38fd3f614b7872d
   image_picker_ios: c560581cceedb403a6ff17f2f816d7fea1421fc1
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
-  nanopb: 438bc412db1928dac798aa6fd75726007be04262
+  nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  SDWebImage: 73c6079366fea25fa4bb9640d5fb58f0893facd8
-  share_plus: 8875f4f2500512ea181eef553c3e27dba5135aad
-  sqlite3: 1e522f0938463e44b7faf50393b40bdc1e1e456d
-  sqlite3_flutter_libs: 1b4e98da20ebd4e9b1240269b78cdcf492dbe9f3
+  SDWebImage: f84b0feeb08d2d11e6a9b843cb06d75ebf5b8868
+  share_plus: 8b6f8b3447e494cca5317c8c3073de39b3600d1f
+  sqlite3: fc1400008a9b3525f5914ed715a5d1af0b8f4983
+  sqlite3_flutter_libs: cc304edcb8e1d8c595d1b08c7aeb46a47691d9db
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
   video_player_avfoundation: 7c6c11d8470e1675df7397027218274b6d2360b3
-  wakelock_plus: 78ec7c5b202cab7761af8e2b2b3d0671be6c4ae1
+  wakelock_plus: 373cfe59b235a6dd5837d0fb88791d2f13a90d56
 
 PODFILE CHECKSUM: 7ed5116924b3be7e8fb75f7aada61e057028f5c7
 

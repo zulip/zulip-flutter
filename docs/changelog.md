@@ -3,6 +3,72 @@
 ## Unreleased
 
 
+## 0.0.27 (2025-03-17)
+
+### Highlights for users
+
+* Handle website previews in messages. (#1016)
+* Settings for dark vs. light theme, or opening links
+  in a browser within or outside the app. (#1216, #1228)
+* Better handle moved or resolved topics: follow topic permalinks
+  (#1028), and update inbox (#901).
+* Design updates including dark-theme contrast (#973), autocomplete
+  results (#913), and app icons (#1254, #415, (Android: #1402, #1401)).
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* We now have a GitHub action making a weekly PR to update
+  translations from Weblate. (#276)
+
+* All user-facing strings are now wired up for translation, or else
+  have a comment saying why translation wouldn't be appropriate or
+  is currently difficult. (#277)
+
+* Resolved: #277, part of #1210, #1319, #1358, #1130, #1247, #737,
+  #1246, #1172, #1028, #1016, PR #1380, #1178, #59, #1356, #973,
+  PR #1315, #913, #1225, #1357, #1226, #1216, #1354, #1254, #415,
+  #1402, #1401, #1228, part of #901
+
+
+## 0.0.26 (2025-02-07)
+
+### Highlights for users
+
+* Resolve or unresolve a topic, from the menu after you
+  press and hold the topic. (#744)
+* Autocomplete now offers `@all`, `@topic`, and other
+  wildcards. (#234)
+* Channel names starting with emoji go at the start of the
+  list. (#1202)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* Resolved: #1205, #1289, #942, #1238, #1202, #1219, #1204, #1171,
+  PR #1296, #234, #1207, #1330, #1309, #725, #744
+
+
+## 0.0.25 (2025-01-13)
+
+### Highlights for users
+
+* The combined feed is now conveniently accessible from the app's main
+  navigation bar. (#1164)
+* Messages with @-topic mentions now show them properly. (#892)
+* The lightbox now shows the sender's avatar. (#41)
+* The About Zulip screen is now available from the main menu. (#1128)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* Resolved in main: #892, #1177, #1164, #1177, #1128, #1189, #1116,
+  #739, #41
+
+
 ## 0.0.24 (2024-12-11)
 
 This is a preview beta, including some experimental changes

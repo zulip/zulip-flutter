@@ -5,6 +5,7 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/api/exception.dart';
 
 import '../fake_async.dart';
+import '../stdlib_checks.dart';
 import 'exception_checks.dart';
 import 'fake_api.dart';
 
@@ -23,6 +24,40 @@ void main() {
       .throws((it) => it.isA<NetworkException>()
         ..asString.contains('no response was prepared')
         ..asString.contains('FakeApiConnection.prepare'));
+  });
+
+  test('prepare HTTP exception -> get NetworkException', () async {
+    final connection = FakeApiConnection();
+    final exception = Exception('oops');
+    connection.prepare(httpException: exception);
+    await check(connection.get('aRoute', (json) => json, '/', null))
+      .throws((it) => it.isA<NetworkException>()
+        ..cause.identicalTo(exception));
+  });
+
+  test('error message on prepare API exception as "HTTP exception"', () async {
+    final connection = FakeApiConnection();
+    final exception = ZulipApiException(routeName: 'someRoute',
+      httpStatus: 456, code: 'SOME_ERROR',
+      data: {'foo': ['bar']}, message: 'Something failed');
+    check(() => connection.prepare(httpException: exception))
+      .throws<Error>().asString.contains('apiException');
+  });
+
+  test('prepare API exception', () async {
+    final connection = FakeApiConnection();
+    final exception = ZulipApiException(routeName: 'someRoute',
+      httpStatus: 456, code: 'SOME_ERROR',
+      data: {'foo': ['bar']}, message: 'Something failed');
+    connection.prepare(apiException: exception);
+    await check(connection.get('aRoute', (json) => json, '/', null))
+      .throws((it) => it.isA<ZulipApiException>()
+        ..routeName.equals('aRoute') // actual route, not the prepared one
+        ..routeName.not((it) => it.equals(exception.routeName))
+        ..httpStatus.equals(exception.httpStatus)
+        ..code.equals(exception.code)
+        ..data.deepEquals(exception.data)
+        ..message.equals(exception.message));
   });
 
   test('delay success', () => awaitFakeAsync((async) async {
@@ -44,7 +79,7 @@ void main() {
   test('delay exception', () => awaitFakeAsync((async) async {
     final connection = FakeApiConnection();
     connection.prepare(delay: const Duration(seconds: 2),
-      exception: Exception("oops"));
+      httpException: Exception("oops"));
 
     Object? error;
     unawaited(connection.get('aRoute', (json) => null, '/', null)

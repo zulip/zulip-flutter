@@ -16,38 +16,36 @@ import 'theme.dart';
 
 /// Emoji-reaction styles that differ between light and dark themes.
 class EmojiReactionTheme extends ThemeExtension<EmojiReactionTheme> {
-  EmojiReactionTheme.light() :
-    this._(
-      bgSelected: Colors.white,
+  static final light = EmojiReactionTheme._(
+    bgSelected: Colors.white,
 
-      // TODO shadow effect, following web, which uses `box-shadow: inset`:
-      //   https://developer.mozilla.org/en-US/docs/Web/CSS/box-shadow#inset
-      //   Needs Flutter support for something like that:
-      //     https://github.com/flutter/flutter/issues/18636
-      //     https://github.com/flutter/flutter/issues/52999
-      //   Until then use a solid color; a much-lightened version of the shadow color.
-      //   Also adapt by making [borderUnselected] more transparent, so we'll
-      //   want to check that against web when implementing the shadow.
-      bgUnselected: const HSLColor.fromAHSL(0.08, 210, 0.50, 0.875).toColor(),
+    // TODO shadow effect, following web, which uses `box-shadow: inset`:
+    //   https://developer.mozilla.org/en-US/docs/Web/CSS/box-shadow#inset
+    //   Needs Flutter support for something like that:
+    //     https://github.com/flutter/flutter/issues/18636
+    //     https://github.com/flutter/flutter/issues/52999
+    //   Until then use a solid color; a much-lightened version of the shadow color.
+    //   Also adapt by making [borderUnselected] more transparent, so we'll
+    //   want to check that against web when implementing the shadow.
+    bgUnselected: const HSLColor.fromAHSL(0.08, 210, 0.50, 0.875).toColor(),
 
-      borderSelected: Colors.black.withValues(alpha: 0.45),
+    borderSelected: Colors.black.withValues(alpha: 0.45),
 
-      // TODO see TODO on [bgUnselected] about shadow effect
-      borderUnselected: Colors.black.withValues(alpha: 0.05),
+    // TODO see TODO on [bgUnselected] about shadow effect
+    borderUnselected: Colors.black.withValues(alpha: 0.05),
 
-      textSelected: const HSLColor.fromAHSL(1, 210, 0.20, 0.20).toColor(),
-      textUnselected: const HSLColor.fromAHSL(1, 210, 0.20, 0.25).toColor(),
-    );
+    textSelected: const HSLColor.fromAHSL(1, 210, 0.20, 0.20).toColor(),
+    textUnselected: const HSLColor.fromAHSL(1, 210, 0.20, 0.25).toColor(),
+  );
 
-  EmojiReactionTheme.dark() :
-    this._(
-      bgSelected: Colors.black.withValues(alpha: 0.8),
-      bgUnselected: Colors.black.withValues(alpha: 0.3),
-      borderSelected: Colors.white.withValues(alpha: 0.75),
-      borderUnselected: Colors.white.withValues(alpha: 0.15),
-      textSelected: Colors.white.withValues(alpha: 0.85),
-      textUnselected: Colors.white.withValues(alpha: 0.75),
-    );
+  static final dark = EmojiReactionTheme._(
+    bgSelected: Colors.black.withValues(alpha: 0.8),
+    bgUnselected: Colors.black.withValues(alpha: 0.3),
+    borderSelected: Colors.white.withValues(alpha: 0.75),
+    borderUnselected: Colors.white.withValues(alpha: 0.15),
+    textSelected: Colors.white.withValues(alpha: 0.85),
+    textUnselected: Colors.white.withValues(alpha: 0.75),
+  );
 
   EmojiReactionTheme._({
     required this.bgSelected,
@@ -149,6 +147,7 @@ class ReactionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     final reactionType = reactionWithVotes.reactionType;
     final emojiCode = reactionWithVotes.emojiCode;
@@ -162,8 +161,8 @@ class ReactionChip extends StatelessWidget {
       //   // 'Chris、Greg、Alya、Shu'
       ? userIds.map((id) {
           return id == store.selfUserId
-            ? 'You'
-            : store.users[id]?.fullName ?? '(unknown user)'; // TODO(i18n)
+            ? zulipLocalizations.reactedEmojiSelfUser
+            : store.userDisplayName(id);
         }).join(', ')
       : userIds.length.toString();
 
@@ -418,20 +417,21 @@ void showEmojiPickerSheet({
     // on my iPhone 13 Pro but is marked as "much slower":
     //   https://api.flutter.dev/flutter/dart-ui/Clip.html
     clipBehavior: Clip.antiAlias,
+    // The bottom inset is left for [builder] to handle;
+    // see [EmojiPicker] and its [CustomScrollView] for how we do that.
     useSafeArea: true,
     isScrollControlled: true,
     builder: (BuildContext context) {
-      return SafeArea(
-        child: Padding(
-          // By default, when software keyboard is opened, the ListView
-          // expands behind the software keyboard — resulting in some
-          // list entries being covered by the keyboard. Add explicit
-          // bottom padding the size of the keyboard, which fixes this.
-          padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-          // For _EmojiPickerItem, and RealmContentNetworkImage used in ImageEmojiWidget.
-          child: PerAccountStoreWidget(
-            accountId: store.accountId,
-            child: EmojiPicker(pageContext: pageContext, message: message))));
+      return Padding(
+        // By default, when software keyboard is opened, the ListView
+        // expands behind the software keyboard — resulting in some
+        // list entries being covered by the keyboard. Add explicit
+        // bottom padding the size of the keyboard, which fixes this.
+        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        // For _EmojiPickerItem, and RealmContentNetworkImage used in ImageEmojiWidget.
+        child: PerAccountStoreWidget(
+          accountId: store.accountId,
+          child: EmojiPicker(pageContext: pageContext, message: message)));
     });
 }
 
@@ -530,15 +530,21 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
               style: const TextStyle(fontSize: 20, height: 30 / 20))),
         ])),
       Expanded(child: InsetShadowBox(
-        top: 8, bottom: 8,
+        top: 8,
         color: designVariables.bgContextMenu,
-        child: ListView.builder(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          itemCount: _resultsToDisplay.length,
-          itemBuilder: (context, i) => EmojiPickerListEntry(
-            pageContext: widget.pageContext,
-            emoji: _resultsToDisplay[i].candidate,
-            message: widget.message)))),
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.only(top: 8),
+              sliver: SliverSafeArea(
+                minimum: EdgeInsets.only(bottom: 8),
+                sliver: SliverList.builder(
+                  itemCount: _resultsToDisplay.length,
+                  itemBuilder: (context, i) => EmojiPickerListEntry(
+                    pageContext: widget.pageContext,
+                    emoji: _resultsToDisplay[i].candidate,
+                    message: widget.message)))),
+          ]))),
     ]);
   }
 }

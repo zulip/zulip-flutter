@@ -43,7 +43,8 @@ class _AboutZulipPageState extends State<AboutZulipPage> {
               child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 ListTile(
                   title: Text(zulipLocalizations.aboutPageAppVersion),
-                  subtitle: Text(_packageInfo?.version ?? '(…)')),
+                  subtitle: Text(_packageInfo?.version
+                    ?? zulipLocalizations.appVersionUnknownPlaceholder)),
                 ListTile(
                   title: Text(zulipLocalizations.aboutPageOpenSourceLicenses),
                   subtitle: Text(zulipLocalizations.aboutPageTapToView),

@@ -22,15 +22,89 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 
+/// Compose-box styles that differ between light and dark theme.
+///
+/// These styles will animate on theme changes (with help from [lerp]).
+class ComposeBoxTheme extends ThemeExtension<ComposeBoxTheme> {
+  static final light = ComposeBoxTheme._(
+    boxShadow: null,
+  );
+
+  static final dark = ComposeBoxTheme._(
+    boxShadow: [BoxShadow(
+      color: DesignVariables.dark.bgTopBar,
+      offset: const Offset(0, -4),
+      blurRadius: 16,
+      spreadRadius: 0,
+    )],
+  );
+
+  ComposeBoxTheme._({
+    required this.boxShadow,
+  });
+
+  /// The [ComposeBoxTheme] from the context's active theme.
+  ///
+  /// The [ThemeData] must include [ComposeBoxTheme] in [ThemeData.extensions].
+  static ComposeBoxTheme of(BuildContext context) {
+    final theme = Theme.of(context);
+    final extension = theme.extension<ComposeBoxTheme>();
+    assert(extension != null);
+    return extension!;
+  }
+
+  final List<BoxShadow>? boxShadow;
+
+  @override
+  ComposeBoxTheme copyWith({
+    List<BoxShadow>? boxShadow,
+  }) {
+    return ComposeBoxTheme._(
+      boxShadow: boxShadow ?? this.boxShadow,
+    );
+  }
+
+  @override
+  ComposeBoxTheme lerp(ComposeBoxTheme other, double t) {
+    if (identical(this, other)) {
+      return this;
+    }
+    return ComposeBoxTheme._(
+      boxShadow: BoxShadow.lerpList(boxShadow, other.boxShadow, t)!,
+    );
+  }
+}
+
 const double _composeButtonSize = 44;
 
 /// A [TextEditingController] for use in the compose box.
 ///
 /// Subclasses must ensure that [_update] is called in all exposed constructors.
 abstract class ComposeController<ErrorT> extends TextEditingController {
+  int get maxLengthUnicodeCodePoints;
+
   String get textNormalized => _textNormalized;
   late String _textNormalized;
   String _computeTextNormalized();
+
+  /// Length of [textNormalized] in Unicode code points
+  /// if it might exceed [maxLengthUnicodeCodePoints], else null.
+  ///
+  /// Use this instead of [String.length]
+  /// to enforce a max length expressed in code points.
+  /// [String.length] is conservative and may cut the user off too short.
+  ///
+  /// Counting code points ([String.runes])
+  /// is more expensive than getting the number of UTF-16 code units
+  /// ([String.length]), so we avoid it when the result definitely won't exceed
+  /// [maxLengthUnicodeCodePoints].
+  late int? _lengthUnicodeCodePointsIfLong;
+  @visibleForTesting
+  int? get debugLengthUnicodeCodePointsIfLong => _lengthUnicodeCodePointsIfLong;
+  int? _computeLengthUnicodeCodePointsIfLong() =>
+    _textNormalized.length > maxLengthUnicodeCodePoints
+      ? _textNormalized.runes.length
+      : null;
 
   List<ErrorT> get validationErrors => _validationErrors;
   late List<ErrorT> _validationErrors;
@@ -40,6 +114,8 @@ abstract class ComposeController<ErrorT> extends TextEditingController {
 
   void _update() {
     _textNormalized = _computeTextNormalized();
+    // uses _textNormalized, so comes after _computeTextNormalized()
+    _lengthUnicodeCodePointsIfLong = _computeLengthUnicodeCodePointsIfLong();
     _validationErrors = _computeValidationErrors();
     hasValidationErrors.value = _validationErrors.isNotEmpty;
   }
@@ -66,28 +142,66 @@ enum TopicValidationError {
 }
 
 class ComposeTopicController extends ComposeController<TopicValidationError> {
-  ComposeTopicController() {
+  ComposeTopicController({required this.store}) {
     _update();
   }
 
-  // TODO: subscribe to this value:
-  //   https://zulip.com/help/require-topics
-  final mandatory = true;
+  PerAccountStore store;
+
+  // TODO(#668): listen to [PerAccountStore] once we subscribe to this value
+  bool get mandatory => store.realmMandatoryTopics;
+
+  // TODO(#307) use `max_topic_length` instead of hardcoded limit
+  @override final maxLengthUnicodeCodePoints = kMaxTopicLengthCodePoints;
 
   @override
   String _computeTextNormalized() {
     String trimmed = text.trim();
-    return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    // TODO(server-10): simplify
+    if (store.zulipFeatureLevel < 334) {
+      return trimmed.isEmpty ? kNoTopicTopic : trimmed;
+    }
+
+    return trimmed;
+  }
+
+  /// Whether [textNormalized] would fail a mandatory-topics check
+  /// (see [mandatory]).
+  ///
+  /// The term "Vacuous" draws distinction from [String.isEmpty], in the sense
+  /// that certain strings are not empty but also indicate the absence of a topic.
+  ///
+  /// See also: https://zulip.com/api/send-message#parameter-topic
+  bool get isTopicVacuous {
+    if (textNormalized.isEmpty) return true;
+
+    if (textNormalized == kNoTopicTopic) return true;
+
+    // TODO(server-10): simplify
+    if (store.zulipFeatureLevel >= 334) {
+      return textNormalized == store.realmEmptyTopicDisplayName;
+    }
+
+    return false;
   }
 
   @override
   List<TopicValidationError> _computeValidationErrors() {
     return [
-      if (mandatory && textNormalized == kNoTopicTopic)
+      if (mandatory && isTopicVacuous)
         TopicValidationError.mandatoryButEmpty,
-      if (textNormalized.length > kMaxTopicLength)
+
+      if (
+        _lengthUnicodeCodePointsIfLong != null
+        && _lengthUnicodeCodePointsIfLong! > maxLengthUnicodeCodePoints
+      )
         TopicValidationError.tooLong,
     ];
+  }
+
+  void setTopic(TopicName newTopic) {
+    // ignore: dead_null_aware_expression // null topic names soon to be enabled
+    value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
 
@@ -115,6 +229,9 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   ComposeContentController() {
     _update();
   }
+
+  // TODO(#1237) use `max_message_length` instead of hardcoded limit
+  @override final maxLengthUnicodeCodePoints = kMaxMessageLengthCodePoints;
 
   int _nextQuoteAndReplyTag = 0;
   int _nextUploadTag = 0;
@@ -175,10 +292,15 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   ///
   /// Returns an int "tag" that should be passed to registerQuoteAndReplyEnd on
   /// success or failure
-  int registerQuoteAndReplyStart(PerAccountStore store, {required Message message}) {
+  int registerQuoteAndReplyStart(
+    ZulipLocalizations zulipLocalizations,
+    PerAccountStore store, {
+      required Message message,
+    }) {
     final tag = _nextQuoteAndReplyTag;
     _nextQuoteAndReplyTag += 1;
-    final placeholder = quoteAndReplyPlaceholder(store, message: message);
+    final placeholder = quoteAndReplyPlaceholder(
+      zulipLocalizations, store, message: message);
     _quoteAndReplies[tag] = (messageId: message.id, placeholder: placeholder);
     notifyListeners(); // _quoteAndReplies change could affect validationErrors
     insertPadded(placeholder);
@@ -257,10 +379,10 @@ class ComposeContentController extends ComposeController<ContentValidationError>
       if (textNormalized.isEmpty)
         ContentValidationError.empty,
 
-      // normalized.length is the number of UTF-16 code units, while the server
-      // API expresses the max in Unicode code points. So this comparison will
-      // be conservative and may cut the user off shorter than necessary.
-      if (textNormalized.length > kMaxMessageLengthCodePoints)
+      if (
+        _lengthUnicodeCodePointsIfLong != null
+        && _lengthUnicodeCodePointsIfLong! > maxLengthUnicodeCodePoints
+      )
         ContentValidationError.tooLong,
 
       if (_quoteAndReplies.isNotEmpty)
@@ -448,19 +570,23 @@ class _StreamContentInput extends StatefulWidget {
 }
 
 class _StreamContentInputState extends State<_StreamContentInput> {
-  late String _topicTextNormalized;
-
   void _topicChanged() {
     setState(() {
-      _topicTextNormalized = widget.controller.topic.textNormalized;
+      // The relevant state lives on widget.controller.topic itself.
+    });
+  }
+
+  void _contentFocusChanged() {
+    setState(() {
+      // The relevant state lives on widget.controller.contentFocusNode itself.
     });
   }
 
   @override
   void initState() {
     super.initState();
-    _topicTextNormalized = widget.controller.topic.textNormalized;
     widget.controller.topic.addListener(_topicChanged);
+    widget.controller.contentFocusNode.addListener(_contentFocusChanged);
   }
 
   @override
@@ -470,25 +596,61 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       oldWidget.controller.topic.removeListener(_topicChanged);
       widget.controller.topic.addListener(_topicChanged);
     }
+    if (widget.controller.contentFocusNode != oldWidget.controller.contentFocusNode) {
+      oldWidget.controller.contentFocusNode.removeListener(_contentFocusChanged);
+      widget.controller.contentFocusNode.addListener(_contentFocusChanged);
+    }
   }
 
   @override
   void dispose() {
     widget.controller.topic.removeListener(_topicChanged);
+    widget.controller.contentFocusNode.removeListener(_contentFocusChanged);
     super.dispose();
+  }
+
+  /// The topic name to show in the hint text, or null to show no topic.
+  TopicName? _hintTopic() {
+    if (widget.controller.topic.isTopicVacuous) {
+      if (widget.controller.topic.mandatory) {
+        // The chosen topic can't be sent to, so don't show it.
+        return null;
+      }
+      if (!widget.controller.contentFocusNode.hasFocus) {
+        // Do not fall back to a vacuous topic unless the user explicitly chooses
+        // to do so (by skipping topic input and moving focus to content input),
+        // so that the user is not encouraged to use vacuous topic when they
+        // have not interacted with the inputs at all.
+        return null;
+      }
+    }
+
+    return TopicName(widget.controller.topic.textNormalized);
   }
 
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
+
     final streamName = store.streams[widget.narrow.streamId]?.name
-      ?? zulipLocalizations.composeBoxUnknownChannelName;
+      ?? zulipLocalizations.unknownChannelName;
+    final hintTopic = _hintTopic();
+    final hintDestination = hintTopic == null
+      // No i18n of this use of "#" and ">" string; those are part of how
+      // Zulip expresses channels and topics, not any normal English punctuation,
+      // so don't make sense to translate. See:
+      //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
+      ? '#$streamName'
+      // ignore: dead_null_aware_expression // null topic names soon to be enabled
+      : '#$streamName > ${hintTopic.displayName ?? store.realmEmptyTopicDisplayName}';
+
     return _ContentInput(
       narrow: widget.narrow,
-      destination: TopicNarrow(widget.narrow.streamId, _topicTextNormalized),
+      destination: TopicNarrow(widget.narrow.streamId,
+        TopicName(widget.controller.topic.textNormalized)),
       controller: widget.controller,
-      hintText: zulipLocalizations.composeBoxChannelContentHint(streamName, _topicTextNormalized));
+      hintText: zulipLocalizations.composeBoxChannelContentHint(hintDestination));
   }
 }
 
@@ -545,15 +707,21 @@ class _FixedDestinationContentInput extends StatelessWidget {
       case TopicNarrow(:final streamId, :final topic):
         final store = PerAccountStoreWidget.of(context);
         final streamName = store.streams[streamId]?.name
-          ?? zulipLocalizations.composeBoxUnknownChannelName;
-        return zulipLocalizations.composeBoxChannelContentHint(streamName, topic);
+          ?? zulipLocalizations.unknownChannelName;
+        return zulipLocalizations.composeBoxChannelContentHint(
+          // No i18n of this use of "#" and ">" string; those are part of how
+          // Zulip expresses channels and topics, not any normal English punctuation,
+          // so don't make sense to translate. See:
+          //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
+          // ignore: dead_null_aware_expression // null topic names soon to be enabled
+          '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;
 
       case DmNarrow(otherRecipientIds: [final otherUserId]):
         final store = PerAccountStoreWidget.of(context);
-        final fullName = store.users[otherUserId]?.fullName;
+        final fullName = store.getUser(otherUserId)?.fullName;
         if (fullName == null) return zulipLocalizations.composeBoxGenericContentHint;
         return zulipLocalizations.composeBoxDmContentHint(fullName);
 
@@ -612,7 +780,8 @@ Future<void> _uploadFiles({
 
   if (tooLargeFiles.isNotEmpty) {
     final listMessage = tooLargeFiles
-      .map((file) => '${file.filename}: ${(file.length / (1 << 20)).toStringAsFixed(1)} MiB')
+      .map((file) => zulipLocalizations.filenameAndSizeInMiB(
+        file.filename, (file.length / (1 << 20)).toStringAsFixed(1)))
       .join('\n');
     showErrorDialog(
       context: context,
@@ -1004,17 +1173,17 @@ class _SendButtonState extends State<_SendButton> {
 class _ComposeBoxContainer extends StatelessWidget {
   const _ComposeBoxContainer({
     required this.body,
-    this.errorBanner,
-  }) : assert(body != null || errorBanner != null);
+    this.banner,
+  }) : assert(body != null || banner != null);
 
   /// The text inputs, compose-button row, and send button.
   ///
   /// This widget does not need a [SafeArea] to consume any device insets.
   ///
-  /// Can be null, but only if [errorBanner] is non-null.
+  /// Can be null, but only if [banner] is non-null.
   final Widget? body;
 
-  /// An error bar that goes at the top.
+  /// A bar that goes at the top.
   ///
   /// This may be present on its own or with a [body].
   /// If [body] is null this must be present.
@@ -1022,7 +1191,7 @@ class _ComposeBoxContainer extends StatelessWidget {
   /// This widget should use a [SafeArea] to pad the left, right,
   /// and bottom device insets.
   /// (A bottom inset may occur if [body] is null.)
-  final Widget? errorBanner;
+  final Widget? banner;
 
   Widget _paddedBody() {
     assert(body != null);
@@ -1034,24 +1203,26 @@ class _ComposeBoxContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
-    final List<Widget> children = switch ((errorBanner, body)) {
+    final List<Widget> children = switch ((banner, body)) {
       (Widget(), Widget()) => [
         // _paddedBody() already pads the bottom inset,
-        // so make sure the error banner doesn't double-pad it.
+        // so make sure the banner doesn't double-pad it.
         MediaQuery.removePadding(context: context, removeBottom: true,
-          child: errorBanner!),
+          child: banner!),
         _paddedBody(),
       ],
-      (Widget(),     null) => [errorBanner!],
+      (Widget(),     null) => [banner!],
       (null,     Widget()) => [_paddedBody()],
       (null,         null) => throw UnimplementedError(), // not allowed, see dartdoc
     };
 
     // TODO(design): Maybe put a max width on the compose box, like we do on
-    //   the message list itself
+    //   the message list itself; if so, remember to update ComposeBox's dartdoc.
     return Container(width: double.infinity,
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: designVariables.borderBar))),
+        border: Border(top: BorderSide(color: designVariables.borderBar)),
+        boxShadow: ComposeBoxTheme.of(context).boxShadow,
+      ),
       // TODO(#720) try a Stack for the overlaid linear progress indicator
       child: Material(
         color: designVariables.composeBoxBg,
@@ -1151,7 +1322,7 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   @override Widget buildSendButton() => _SendButton(
     controller: controller,
     getDestination: () => StreamDestination(
-      narrow.streamId, controller.topic.textNormalized),
+      narrow.streamId, TopicName(controller.topic.textNormalized)),
   );
 }
 
@@ -1189,7 +1360,10 @@ sealed class ComposeBoxController {
 }
 
 class StreamComposeBoxController extends ComposeBoxController {
-  final topic = ComposeTopicController();
+  StreamComposeBoxController({required PerAccountStore store})
+    : topic = ComposeTopicController(store: store);
+
+  final ComposeTopicController topic;
   final topicFocusNode = FocusNode();
 
   @override
@@ -1202,41 +1376,92 @@ class StreamComposeBoxController extends ComposeBoxController {
 
 class FixedDestinationComposeBoxController extends ComposeBoxController {}
 
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.label});
+abstract class _Banner extends StatelessWidget {
+  const _Banner();
 
-  final String label;
+  String getLabel(ZulipLocalizations zulipLocalizations);
+  Color getLabelColor(DesignVariables designVariables);
+  Color getBackgroundColor(DesignVariables designVariables);
+
+  /// A trailing element, with no outer padding for spacing/positioning.
+  ///
+  /// To control the element's distance from the end edge, override [padEnd].
+  Widget? buildTrailing(BuildContext context);
+
+  /// Whether to apply `end: 8` in [SafeArea.minimum].
+  ///
+  /// Subclasses can use `false` when the [buildTrailing] element
+  /// is meant to abut the edge of the screen
+  /// in the common case that there are no horizontal device insets.
+  bool get padEnd => true;
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
     final labelTextStyle = TextStyle(
       fontSize: 17,
       height: 22 / 17,
-      color: designVariables.btnLabelAttMediumIntDanger,
+      color: getLabelColor(designVariables),
     ).merge(weightVariableTextStyle(context, wght: 600));
 
+    final trailing = buildTrailing(context);
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: designVariables.bannerBgIntDanger),
+        color: getBackgroundColor(designVariables)),
       child: SafeArea(
-        minimum: const EdgeInsetsDirectional.only(start: 8)
+        minimum: EdgeInsetsDirectional.only(start: 8, end: padEnd ? 8 : 0)
           // (SafeArea.minimum doesn't take an EdgeInsetsDirectional)
           .resolve(Directionality.of(context)),
-        child: Row(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(8, 9, 0, 9),
-                child: Text(style: labelTextStyle,
-                  label))),
-            const SizedBox(width: 8),
-            // TODO(#720) "x" button goes here.
-            //   24px square with 8px touchable padding in all directions?
-          ])));
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(8, 5, 0, 5),
+          child: Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(style: labelTextStyle,
+                    getLabel(zulipLocalizations)))),
+              if (trailing != null) ...[
+                const SizedBox(width: 8),
+                trailing,
+              ],
+            ]))));
   }
 }
 
+class _ErrorBanner extends _Banner {
+  const _ErrorBanner({
+    required String Function(ZulipLocalizations) getLabel,
+  }) : _getLabel = getLabel;
+
+  @override
+  String getLabel(ZulipLocalizations zulipLocalizations) =>
+    _getLabel(zulipLocalizations);
+  final String Function(ZulipLocalizations) _getLabel;
+
+  @override
+  Color getLabelColor(DesignVariables designVariables) =>
+    designVariables.btnLabelAttMediumIntDanger;
+
+  @override
+  Color getBackgroundColor(DesignVariables designVariables) =>
+    designVariables.bannerBgIntDanger;
+
+  @override
+  Widget? buildTrailing(context) {
+    // TODO(#720) "x" button goes here.
+    //   24px square with 8px touchable padding in all directions?
+    //   and `bool get padEnd => false`; see Figma:
+    //     https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=4031-17029&m=dev
+    return null;
+  }
+}
+
+/// The compose box.
+///
+/// Takes the full screen width, covering the horizontal insets with its surface.
+/// Also covers the bottom inset with its surface.
 class ComposeBox extends StatefulWidget {
   ComposeBox({super.key, required this.narrow})
     : assert(ComposeBox.hasComposeBox(narrow));
@@ -1266,16 +1491,20 @@ abstract class ComposeBoxState extends State<ComposeBox> {
   ComposeBoxController get controller;
 }
 
-class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
-  @override ComposeBoxController get controller => _controller;
-  late final ComposeBoxController _controller;
+class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateMixin<ComposeBox> implements ComposeBoxState {
+  @override ComposeBoxController get controller => _controller!;
+  ComposeBoxController? _controller;
 
   @override
-  void initState() {
-    super.initState();
+  void onNewStore() {
     switch (widget.narrow) {
       case ChannelNarrow():
-        _controller = StreamComposeBoxController();
+        final store = PerAccountStoreWidget.of(context);
+        if (_controller == null) {
+          _controller = StreamComposeBoxController(store: store);
+        } else {
+          (controller as StreamComposeBoxController).topic.store = store;
+        }
       case TopicNarrow():
       case DmNarrow():
         _controller = FixedDestinationComposeBoxController();
@@ -1288,29 +1517,31 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
 
   @override
   void dispose() {
-    _controller.dispose();
+    controller.dispose();
     super.dispose();
   }
 
-  Widget? _errorBanner(BuildContext context) {
+  /// An [_ErrorBanner] that replaces the compose box's text inputs.
+  Widget? _errorBannerComposingNotAllowed(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final selfUser = store.users[store.selfUserId]!;
     switch (widget.narrow) {
       case ChannelNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         final channel = store.streams[streamId];
         if (channel == null || !store.hasPostingPermission(inChannel: channel,
-            user: selfUser, byDate: DateTime.now())) {
-          return _ErrorBanner(label:
-            ZulipLocalizations.of(context).errorBannerCannotPostInChannelLabel);
+            user: store.selfUser, byDate: DateTime.now())) {
+          return _ErrorBanner(getLabel: (zulipLocalizations) =>
+            zulipLocalizations.errorBannerCannotPostInChannelLabel);
         }
+
       case DmNarrow(:final otherRecipientIds):
         final hasDeactivatedUser = otherRecipientIds.any((id) =>
-          !(store.users[id]?.isActive ?? true));
+          !(store.getUser(id)?.isActive ?? true));
         if (hasDeactivatedUser) {
-          return _ErrorBanner(label:
-            ZulipLocalizations.of(context).errorBannerDeactivatedDmLabel);
+          return _ErrorBanner(getLabel: (zulipLocalizations) =>
+            zulipLocalizations.errorBannerDeactivatedDmLabel);
         }
+
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
@@ -1323,20 +1554,21 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
   Widget build(BuildContext context) {
     final Widget? body;
 
-    final errorBanner = _errorBanner(context);
+    final errorBanner = _errorBannerComposingNotAllowed(context);
     if (errorBanner != null) {
-      return _ComposeBoxContainer(body: null, errorBanner: errorBanner);
+      return _ComposeBoxContainer(body: null, banner: errorBanner);
     }
 
+    final controller = this.controller;
     final narrow = widget.narrow;
-    switch (_controller) {
+    switch (controller) {
       case StreamComposeBoxController(): {
         narrow as ChannelNarrow;
-        body = _StreamComposeBoxBody(controller: _controller, narrow: narrow);
+        body = _StreamComposeBoxBody(controller: controller, narrow: narrow);
       }
       case FixedDestinationComposeBoxController(): {
         narrow as SendableNarrow;
-        body = _FixedDestinationComposeBoxBody(controller: _controller, narrow: narrow);
+        body = _FixedDestinationComposeBoxBody(controller: controller, narrow: narrow);
       }
     }
 
@@ -1345,6 +1577,6 @@ class _ComposeBoxState extends State<ComposeBox> implements ComposeBoxState {
     //       errorBanner = _ErrorBanner(label:
     //         ZulipLocalizations.of(context).errorSendMessageTimeout);
     //     }
-    return _ComposeBoxContainer(body: body, errorBanner: null);
+    return _ComposeBoxContainer(body: body, banner: null);
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:checks/checks.dart';
 import 'package:file_picker/file_picker.dart';
@@ -40,15 +41,13 @@ void main() {
   late FakeApiConnection connection;
   late ComposeBoxController? controller;
 
-  final contentInputFinder = find.byWidgetPredicate(
-    (widget) => widget is TextField && widget.controller is ComposeContentController);
-
   Future<void> prepareComposeBox(WidgetTester tester, {
     required Narrow narrow,
     User? selfUser,
-    int? realmWaitingPeriodThreshold,
-    List<User> users = const [],
+    List<User> otherUsers = const [],
     List<ZulipStream> streams = const [],
+    bool? mandatoryTopics,
+    int? zulipFeatureLevel,
   }) async {
     if (narrow case ChannelNarrow(:var streamId) || TopicNarrow(: var streamId)) {
       assert(streams.any((stream) => stream.streamId == streamId),
@@ -56,13 +55,16 @@ void main() {
     }
     addTearDown(testBinding.reset);
     selfUser ??= eg.selfUser;
-    final selfAccount = eg.account(user: selfUser);
+    zulipFeatureLevel ??= eg.futureZulipFeatureLevel;
+    final selfAccount = eg.account(user: selfUser, zulipFeatureLevel: zulipFeatureLevel);
     await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
-      realmWaitingPeriodThreshold: realmWaitingPeriodThreshold));
+      zulipFeatureLevel: zulipFeatureLevel,
+      realmMandatoryTopics: mandatoryTopics,
+    ));
 
     store = await testBinding.globalStore.perAccount(selfAccount.id);
 
-    await store.addUsers([selfUser, ...users]);
+    await store.addUsers([selfUser, ...otherUsers]);
     await store.addStreams(streams);
     connection = store.connection as FakeApiConnection;
 
@@ -79,13 +81,17 @@ void main() {
     controller = tester.state<ComposeBoxState>(find.byType(ComposeBox)).controller;
   }
 
+  /// A [Finder] for the topic input.
+  ///
+  /// To enter some text, use [enterTopic].
+  final topicInputFinder = find.byWidgetPredicate(
+    (widget) => widget is TextField && widget.controller is ComposeTopicController);
+
+  /// Set the topic input's text to [topic], using [WidgetTester.enterText].
   Future<void> enterTopic(WidgetTester tester, {
     required ChannelNarrow narrow,
     required String topic,
   }) async {
-    final topicInputFinder = find.byWidgetPredicate(
-      (widget) => widget is TextField && widget.controller is ComposeTopicController);
-
     connection.prepare(body:
       jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
     await tester.enterText(topicInputFinder, topic);
@@ -93,6 +99,32 @@ void main() {
       ..method.equals('GET')
       ..url.path.equals('/api/v1/users/me/${narrow.streamId}/topics');
   }
+
+  /// A [Finder] for the content input.
+  ///
+  /// To enter some text, use [enterContent].
+  final contentInputFinder = find.byWidgetPredicate(
+    (widget) => widget is TextField && widget.controller is ComposeContentController);
+
+  /// Set the content input's text to [content], using [WidgetTester.enterText].
+  Future<void> enterContent(WidgetTester tester, String content) async {
+    await tester.enterText(contentInputFinder, content);
+  }
+
+  Future<void> tapSendButton(WidgetTester tester) async {
+    connection.prepare(json: SendMessageResult(id: 123).toJson());
+    await tester.tap(find.byIcon(ZulipIcons.send));
+    await tester.pump(Duration.zero);
+  }
+
+  group('ComposeBoxTheme', () {
+    test('lerp light to dark, no crash', () {
+      final a = ComposeBoxTheme.light;
+      final b = ComposeBoxTheme.dark;
+
+      check(() => a.lerp(b, 0.5)).returnsNormally();
+    });
+  });
 
   group('ComposeContentController', () {
     group('insertPadded', () {
@@ -196,6 +228,287 @@ void main() {
     });
   });
 
+  group('length validation', () {
+    final channel = eg.stream();
+
+    /// String where there are [n] Unicode code points,
+    /// >[n] UTF-16 code units, and <[n] "characters" a.k.a. grapheme clusters.
+    String makeStringWithCodePoints(int n) {
+      assert(n >= 5);
+      const graphemeCluster = '👨‍👩‍👦';
+      assert(graphemeCluster.runes.length == 5);
+      assert(graphemeCluster.length == 8);
+      assert(graphemeCluster.characters.length == 1);
+
+      final result =
+        graphemeCluster * (n ~/ 5)
+        + 'a' * (n % 5);
+      assert(result.runes.length == n);
+
+      return result;
+    }
+
+    group('content', () {
+      Future<void> prepareWithContent(WidgetTester tester, String content) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
+        final narrow = ChannelNarrow(channel.streamId);
+        await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+        await enterTopic(tester, narrow: narrow, topic: 'some topic');
+        await enterContent(tester, content);
+      }
+
+      Future<void> checkErrorResponse(WidgetTester tester) async {
+        await tester.tap(find.byWidget(checkErrorDialog(tester,
+          expectedTitle: 'Message not sent',
+          expectedMessage: 'Message length shouldn\'t be greater than 10000 characters.')));
+      }
+
+      testWidgets('too-long content is rejected', (tester) async {
+        await prepareWithContent(tester,
+          makeStringWithCodePoints(kMaxMessageLengthCodePoints + 1));
+        await tapSendButton(tester);
+        await checkErrorResponse(tester);
+      });
+
+      testWidgets('max-length content not rejected', (tester) async {
+        await prepareWithContent(tester,
+          makeStringWithCodePoints(kMaxMessageLengthCodePoints));
+        await tapSendButton(tester);
+        checkNoErrorDialog(tester);
+      });
+
+      testWidgets('code points not counted unnecessarily', (tester) async {
+        await prepareWithContent(tester, 'a' * kMaxMessageLengthCodePoints);
+        check(controller!.content.debugLengthUnicodeCodePointsIfLong).isNull();
+      });
+    });
+
+    group('topic', () {
+      Future<void> prepareWithTopic(WidgetTester tester, String topic) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
+        final narrow = ChannelNarrow(channel.streamId);
+        await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+        await enterTopic(tester, narrow: narrow, topic: topic);
+        await enterContent(tester, 'some content');
+      }
+
+      Future<void> checkErrorResponse(WidgetTester tester) async {
+        await tester.tap(find.byWidget(checkErrorDialog(tester,
+          expectedTitle: 'Message not sent',
+          expectedMessage: 'Topic length shouldn\'t be greater than 60 characters.')));
+      }
+
+      testWidgets('too-long topic is rejected', (tester) async {
+        await prepareWithTopic(tester,
+          makeStringWithCodePoints(kMaxTopicLengthCodePoints + 1));
+        await tapSendButton(tester);
+        await checkErrorResponse(tester);
+      });
+
+      testWidgets('max-length topic not rejected', (tester) async {
+        await prepareWithTopic(tester,
+          makeStringWithCodePoints(kMaxTopicLengthCodePoints));
+        await tapSendButton(tester);
+        checkNoErrorDialog(tester);
+      });
+
+      testWidgets('code points not counted unnecessarily', (tester) async {
+        await prepareWithTopic(tester, 'a' * kMaxTopicLengthCodePoints);
+        check((controller as StreamComposeBoxController)
+          .topic.debugLengthUnicodeCodePointsIfLong).isNull();
+      });
+    });
+  });
+
+  group('ComposeBox hintText', () {
+    final channel = eg.stream();
+
+    Future<void> prepare(WidgetTester tester, {
+      required Narrow narrow,
+      bool? mandatoryTopics,
+      int? zulipFeatureLevel,
+    }) async {
+      await prepareComposeBox(tester,
+        narrow: narrow,
+        otherUsers: [eg.otherUser, eg.thirdUser],
+        streams: [channel],
+        mandatoryTopics: mandatoryTopics,
+        zulipFeatureLevel: zulipFeatureLevel);
+    }
+
+    /// This checks the input's configured hint text without regard to whether
+    /// it's currently visible, as it won't be if the user has entered some text.
+    ///
+    /// If `topicHintText` is `null`, check that the topic input is not present.
+    void checkComposeBoxHintTexts(WidgetTester tester, {
+      String? topicHintText,
+      required String contentHintText,
+    }) {
+      if (topicHintText != null) {
+        check(tester.widget<TextField>(topicInputFinder))
+          .decoration.isNotNull().hintText.equals(topicHintText);
+      } else {
+        check(topicInputFinder).findsNothing();
+      }
+      check(tester.widget<TextField>(contentInputFinder))
+        .decoration.isNotNull().hintText.equals(contentHintText);
+    }
+
+    group('to ChannelNarrow, topics not mandatory', () {
+      final narrow = ChannelNarrow(channel.streamId);
+
+      testWidgets('with empty topic, topic input has focus', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await enterTopic(tester, narrow: narrow, topic: '');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name}');
+      });
+
+      testWidgets('legacy: with empty topic, topic input has focus', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: false,
+          zulipFeatureLevel: 333); // TODO(server-10)
+        await enterTopic(tester, narrow: narrow, topic: '');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name}');
+      });
+
+      testWidgets('with non-empty but vacuous topic, topic input has focus', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await enterTopic(tester, narrow: narrow,
+          topic: eg.defaultRealmEmptyTopicDisplayName);
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name}');
+      });
+
+      testWidgets('with empty topic, content input has focus', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await enterContent(tester, '');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name} > '
+                           '${eg.defaultRealmEmptyTopicDisplayName}');
+      }, skip: true); // null topic names soon to be enabled
+
+      testWidgets('legacy: with empty topic, content input has focus', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: false,
+          zulipFeatureLevel: 333);
+        await enterContent(tester, '');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name} > (no topic)');
+      });
+
+      testWidgets('with non-empty topic', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await enterTopic(tester, narrow: narrow, topic: 'new topic');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name} > new topic');
+      });
+    });
+
+    group('to ChannelNarrow, mandatory topics', () {
+      final narrow = ChannelNarrow(channel.streamId);
+
+      testWidgets('with empty topic', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: true);
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name}');
+      });
+
+      testWidgets('legacy: with empty topic', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: true,
+          zulipFeatureLevel: 333); // TODO(server-10)
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name}');
+      });
+
+      group('with non-empty but vacuous topics', () {
+        testWidgets('realm_empty_topic_display_name', (tester) async {
+          await prepare(tester, narrow: narrow, mandatoryTopics: true);
+          await enterTopic(tester, narrow: narrow,
+            topic: eg.defaultRealmEmptyTopicDisplayName);
+          await tester.pump();
+          checkComposeBoxHintTexts(tester,
+            topicHintText: 'Topic',
+            contentHintText: 'Message #${channel.name}');
+        });
+
+        testWidgets('"(no topic)"', (tester) async {
+          await prepare(tester, narrow: narrow, mandatoryTopics: true);
+          await enterTopic(tester, narrow: narrow,
+            topic: '(no topic)');
+          await tester.pump();
+          checkComposeBoxHintTexts(tester,
+            topicHintText: 'Topic',
+            contentHintText: 'Message #${channel.name}');
+        });
+      });
+
+      testWidgets('with non-empty topic', (tester) async {
+        await prepare(tester, narrow: narrow, mandatoryTopics: true);
+        await enterTopic(tester, narrow: narrow, topic: 'new topic');
+        await tester.pump();
+        checkComposeBoxHintTexts(tester,
+          topicHintText: 'Topic',
+          contentHintText: 'Message #${channel.name} > new topic');
+      });
+    });
+
+    group('to TopicNarrow', () {
+      testWidgets('with non-empty topic', (tester) async {
+        await prepare(tester,
+          narrow: TopicNarrow(channel.streamId, TopicName('topic')));
+        checkComposeBoxHintTexts(tester,
+          contentHintText: 'Message #${channel.name} > topic');
+      });
+
+      testWidgets('with empty topic', (tester) async {
+        await prepare(tester,
+          narrow: TopicNarrow(channel.streamId, TopicName('')));
+        checkComposeBoxHintTexts(tester, contentHintText:
+          'Message #${channel.name} > ${eg.defaultRealmEmptyTopicDisplayName}');
+      }, skip: true); // null topic names soon to be enabled
+    });
+
+    testWidgets('to DmNarrow with self', (tester) async {
+      await prepare(tester, narrow: DmNarrow.withUser(
+        eg.selfUser.userId, selfUserId: eg.selfUser.userId));
+      checkComposeBoxHintTexts(tester,
+        contentHintText: 'Jot down something');
+    });
+
+    testWidgets('to 1:1 DmNarrow', (tester) async {
+      await prepare(tester, narrow: DmNarrow.withUser(
+        eg.otherUser.userId, selfUserId: eg.selfUser.userId));
+      checkComposeBoxHintTexts(tester,
+        contentHintText: 'Message @${eg.otherUser.fullName}');
+    });
+
+    testWidgets('to group DmNarrow', (tester) async {
+      await prepare(tester, narrow: DmNarrow.withOtherUsers(
+        [eg.otherUser.userId, eg.thirdUser.userId],
+        selfUserId: eg.selfUser.userId));
+      checkComposeBoxHintTexts(tester,
+        contentHintText: 'Message group');
+    });
+  });
+
   group('ComposeBox textCapitalization', () {
     void checkComposeBoxTextFields(WidgetTester tester, {
       required bool expectTopicTextField,
@@ -229,21 +542,21 @@ void main() {
     testWidgets('_FixedDestinationComposeBox', (tester) async {
       final channel = eg.stream();
       await prepareComposeBox(tester,
-        narrow: TopicNarrow(channel.streamId, 'topic'), streams: [channel]);
+        narrow: eg.topicNarrow(channel.streamId, 'topic'), streams: [channel]);
       checkComposeBoxTextFields(tester, expectTopicTextField: false);
     });
   });
 
   group('ComposeBox typing notices', () {
     final channel = eg.stream();
-    final narrow = TopicNarrow(channel.streamId, 'some topic');
+    final narrow = eg.topicNarrow(channel.streamId, 'some topic');
 
     void checkTypingRequest(TypingOp op, SendableNarrow narrow) =>
       checkSetTypingStatusRequests(connection.takeRequests(), [(op, narrow)]);
 
     Future<void> checkStartTyping(WidgetTester tester, SendableNarrow narrow) async {
       connection.prepare(json: {});
-      await tester.enterText(contentInputFinder, 'hello world');
+      await enterContent(tester, 'hello world');
       checkTypingRequest(TypingOp.start, narrow);
     }
 
@@ -271,9 +584,9 @@ void main() {
 
     testWidgets('smoke ChannelNarrow', (tester) async {
       final narrow = ChannelNarrow(channel.streamId);
-      final destinationNarrow = TopicNarrow(narrow.streamId, 'test topic');
+      final destinationNarrow = eg.topicNarrow(narrow.streamId, 'test topic');
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
-      await enterTopic(tester, narrow: narrow, topic: destinationNarrow.topic);
+      await enterTopic(tester, narrow: narrow, topic: 'test topic');
 
       await checkStartTyping(tester, destinationNarrow);
 
@@ -288,7 +601,7 @@ void main() {
       await checkStartTyping(tester, narrow);
 
       connection.prepare(json: {});
-      await tester.enterText(contentInputFinder, '');
+      await enterContent(tester, '');
       checkTypingRequest(TypingOp.stop, narrow);
     });
 
@@ -338,9 +651,9 @@ void main() {
 
     testWidgets('for content input, unfocusing sends a "typing stopped" notice', (tester) async {
       final narrow = ChannelNarrow(channel.streamId);
-      final destinationNarrow = TopicNarrow(narrow.streamId, 'test topic');
+      final destinationNarrow = eg.topicNarrow(narrow.streamId, 'test topic');
       await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
-      await enterTopic(tester, narrow: narrow, topic: destinationNarrow.topic);
+      await enterTopic(tester, narrow: narrow, topic: 'test topic');
 
       await checkStartTyping(tester, destinationNarrow);
 
@@ -401,10 +714,10 @@ void main() {
       addTearDown(TypingNotifier.debugReset);
 
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      await prepareComposeBox(tester, narrow: const TopicNarrow(123, 'some topic'),
+      await prepareComposeBox(tester, narrow: eg.topicNarrow(123, 'some topic'),
         streams: [eg.stream(streamId: 123)]);
 
-      await tester.enterText(contentInputFinder, 'hello world');
+      await enterContent(tester, 'hello world');
 
       prepareResponse(456);
       await tester.tap(find.byTooltip(zulipLocalizations.composeBoxSendTooltip));
@@ -426,19 +739,13 @@ void main() {
       await setupAndTapSend(tester, prepareResponse: (int messageId) {
         connection.prepare(json: SendMessageResult(id: messageId).toJson());
       });
-      final errorDialogs = tester.widgetList(find.byType(AlertDialog));
-      check(errorDialogs).isEmpty();
+      checkNoErrorDialog(tester);
     });
 
     testWidgets('ZulipApiException', (tester) async {
       await setupAndTapSend(tester, prepareResponse: (message) {
-        connection.prepare(
-          httpStatus: 400,
-          json: {
-            'result': 'error',
-            'code': 'BAD_REQUEST',
-            'msg': 'You do not have permission to initiate direct message conversations.',
-          });
+        connection.prepare(apiException: eg.apiBadRequest(
+          message: 'You do not have permission to initiate direct message conversations.'));
       });
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       await tester.tap(find.byWidget(checkErrorDialog(tester,
@@ -446,6 +753,80 @@ void main() {
         expectedMessage: zulipLocalizations.errorServerMessage(
           'You do not have permission to initiate direct message conversations.'),
       )));
+    });
+  });
+
+  group('sending to empty topic', () {
+    late ZulipStream channel;
+
+    Future<void> setupAndTapSend(WidgetTester tester, {
+      required String topicInputText,
+      required bool mandatoryTopics,
+      int? zulipFeatureLevel,
+    }) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
+      channel = eg.stream();
+      final narrow = ChannelNarrow(channel.streamId);
+      await prepareComposeBox(tester,
+        narrow: narrow, streams: [channel],
+        mandatoryTopics: mandatoryTopics,
+        zulipFeatureLevel: zulipFeatureLevel);
+
+      await enterTopic(tester, narrow: narrow, topic: topicInputText);
+      await tester.enterText(contentInputFinder, 'test content');
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump();
+    }
+
+    void checkMessageNotSent(WidgetTester tester) {
+      check(connection.takeRequests()).isEmpty();
+      checkErrorDialog(tester,
+        expectedTitle: 'Message not sent',
+        expectedMessage: 'Topics are required in this organization.');
+    }
+
+    testWidgets('empty topic -> ""', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '',
+        mandatoryTopics: false);
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields['topic'].equals('');
+    });
+
+    testWidgets('legacy: empty topic -> "(no topic)"', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '',
+        mandatoryTopics: false,
+        zulipFeatureLevel: 333);
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields['topic'].equals('(no topic)');
+    });
+
+    testWidgets('if topics are mandatory, reject empty topic', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '',
+        mandatoryTopics: true);
+      checkMessageNotSent(tester);
+    });
+
+    testWidgets('if topics are mandatory, reject `realmEmptyTopicDisplayName`', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: eg.defaultRealmEmptyTopicDisplayName,
+        mandatoryTopics: true);
+      checkMessageNotSent(tester);
+    });
+
+    testWidgets('if topics are mandatory, reject "(no topic)"', (tester) async {
+      await setupAndTapSend(tester,
+        topicInputText: '(no topic)',
+        mandatoryTopics: true);
+      checkMessageNotSent(tester);
     });
   });
 
@@ -496,8 +877,7 @@ void main() {
         check(call.allowMultiple).equals(true);
         check(call.type).equals(FileType.media);
 
-        final errorDialogs = tester.widgetList(find.byType(AlertDialog));
-        check(errorDialogs).isEmpty();
+        checkNoErrorDialog(tester);
 
         check(controller!.content.text)
           .equals('see image: [Uploading image.jpg…]()\n\n');
@@ -556,8 +936,7 @@ void main() {
         check(call.source).equals(ImageSource.camera);
         check(call.requestFullMetadata).equals(false);
 
-        final errorDialogs = tester.widgetList(find.byType(AlertDialog));
-        check(errorDialogs).isEmpty();
+        checkNoErrorDialog(tester);
 
         check(controller!.content.text)
           .equals('see image: [Uploading image.jpg…]()\n\n');
@@ -581,7 +960,13 @@ void main() {
       });
 
       // TODO test what happens when capturing/uploading fails
-    });
+    },
+    // This test fails on Windows because [XFile.name] splits on
+    // [Platform.pathSeparator], corresponding to the actual host platform
+    // the test is running on, instead of the path separator for the
+    // target platform the test is simulating.
+    // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
+    skip: Platform.isWindows);
   });
 
   group('error banner', () {
@@ -633,7 +1018,7 @@ void main() {
         testWidgets('compose box replaced with a banner', (tester) async {
           final deactivatedUser = eg.user(isActive: false);
           await prepareComposeBox(tester, narrow: dmNarrowWith(deactivatedUser),
-            users: [deactivatedUser]);
+            otherUsers: [deactivatedUser]);
           checkComposeBox(isShown: false);
         });
 
@@ -641,7 +1026,7 @@ void main() {
             'compose box is replaced with a banner', (tester) async {
           final activeUser = eg.user(isActive: true);
           await prepareComposeBox(tester, narrow: dmNarrowWith(activeUser),
-            users: [activeUser]);
+            otherUsers: [activeUser]);
           checkComposeBox(isShown: true);
 
           await changeUserStatus(tester, user: activeUser, isActive: false);
@@ -652,7 +1037,7 @@ void main() {
             'banner is replaced with the compose box', (tester) async {
           final deactivatedUser = eg.user(isActive: false);
           await prepareComposeBox(tester, narrow: dmNarrowWith(deactivatedUser),
-            users: [deactivatedUser]);
+            otherUsers: [deactivatedUser]);
           checkComposeBox(isShown: false);
 
           await changeUserStatus(tester, user: deactivatedUser, isActive: true);
@@ -664,7 +1049,7 @@ void main() {
         testWidgets('compose box replaced with a banner', (tester) async {
           final deactivatedUsers = [eg.user(isActive: false), eg.user(isActive: false)];
           await prepareComposeBox(tester, narrow: groupDmNarrowWith(deactivatedUsers),
-            users: deactivatedUsers);
+            otherUsers: deactivatedUsers);
           checkComposeBox(isShown: false);
         });
 
@@ -672,7 +1057,7 @@ void main() {
             'compose box is replaced with a banner', (tester) async {
           final activeUsers = [eg.user(isActive: true), eg.user(isActive: true)];
           await prepareComposeBox(tester, narrow: groupDmNarrowWith(activeUsers),
-            users: activeUsers);
+            otherUsers: activeUsers);
           checkComposeBox(isShown: true);
 
           await changeUserStatus(tester, user: activeUsers[0], isActive: false);
@@ -683,7 +1068,7 @@ void main() {
             'banner is replaced with the compose box', (tester) async {
           final deactivatedUsers = [eg.user(isActive: false), eg.user(isActive: false)];
           await prepareComposeBox(tester, narrow: groupDmNarrowWith(deactivatedUsers),
-            users: deactivatedUsers);
+            otherUsers: deactivatedUsers);
           checkComposeBox(isShown: false);
 
           await changeUserStatus(tester, user: deactivatedUsers[0], isActive: true);
@@ -701,7 +1086,7 @@ void main() {
 
       final narrowTestCases = [
         ('channel', const ChannelNarrow(1)),
-        ('topic',   const TopicNarrow(1, 'topic')),
+        ('topic',   eg.topicNarrow(1, 'topic')),
       ];
 
       for (final (String narrowType, Narrow narrow) in narrowTestCases) {
@@ -795,7 +1180,7 @@ void main() {
   group('ComposeBox content input scaling', () {
     const verticalPadding = 8;
     final stream = eg.stream();
-    final narrow = TopicNarrow(stream.streamId, 'foo');
+    final narrow = eg.topicNarrow(stream.streamId, 'foo');
 
     Future<void> checkContentInputMaxHeight(WidgetTester tester, {
       required double maxHeight,
@@ -809,7 +1194,7 @@ void main() {
       double? height;
       for (numLines = 2; numLines <= 1000; numLines++) {
         final content = List.generate(numLines, (_) => 'foo').join('\n');
-        await tester.enterText(contentInputFinder, content);
+        await enterContent(tester, content);
         await tester.pump();
         final newHeight = tester.getRect(contentInputFinder).height;
         if (newHeight == height) {

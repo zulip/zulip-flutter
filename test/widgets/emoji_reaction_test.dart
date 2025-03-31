@@ -9,6 +9,7 @@ import 'package:flutter_checks/flutter_checks.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:legacy_checks/legacy_checks.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/realm.dart';
@@ -141,8 +142,8 @@ void main() {
                 await setupChipsInBox(tester, reactions: reactions);
 
                 final reactionChipsList = tester.element(find.byType(ReactionChipsList));
-                check(MediaQuery.of(reactionChipsList))
-                  .textScaler.equals(TextScaler.linear(textScaleFactor));
+                check(MediaQuery.of(reactionChipsList).textScaler).legacyMatcher(
+                  isSystemTextScaler(withScaleFactor: textScaleFactor));
                 check(Directionality.of(reactionChipsList)).equals(textDirection);
 
                 // TODO(upstream) Do these in an addTearDown, once we can:
@@ -251,15 +252,15 @@ void main() {
     }
 
     check(backgroundColor('smile')).isNotNull()
-      .isSameColorAs(EmojiReactionTheme.light().bgSelected);
+      .isSameColorAs(EmojiReactionTheme.light.bgSelected);
     check(backgroundColor('tada')).isNotNull()
-      .isSameColorAs(EmojiReactionTheme.light().bgUnselected);
+      .isSameColorAs(EmojiReactionTheme.light.bgUnselected);
 
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
     await tester.pump();
 
     await tester.pump(kThemeAnimationDuration * 0.4);
-    final expectedLerped = EmojiReactionTheme.light().lerp(EmojiReactionTheme.dark(), 0.4);
+    final expectedLerped = EmojiReactionTheme.light.lerp(EmojiReactionTheme.dark, 0.4);
     check(backgroundColor('smile')).isNotNull()
       .isSameColorAs(expectedLerped.bgSelected);
     check(backgroundColor('tada')).isNotNull()
@@ -267,9 +268,9 @@ void main() {
 
     await tester.pump(kThemeAnimationDuration * 0.6);
     check(backgroundColor('smile')).isNotNull()
-      .isSameColorAs(EmojiReactionTheme.dark().bgSelected);
+      .isSameColorAs(EmojiReactionTheme.dark.bgSelected);
     check(backgroundColor('tada')).isNotNull()
-      .isSameColorAs(EmojiReactionTheme.dark().bgUnselected);
+      .isSameColorAs(EmojiReactionTheme.dark.bgUnselected);
   });
 
   testWidgets('use emoji font', (tester) async {
@@ -351,6 +352,9 @@ void main() {
 
     final searchFieldFinder = find.widgetWithText(TextField, 'Search emoji');
 
+    Finder findInPicker(Finder finder) =>
+      find.descendant(of: find.byType(EmojiPicker), matching: finder);
+
     Condition<Object?> conditionEmojiListEntry({
       required ReactionType emojiType,
       required String emojiCode,
@@ -429,9 +433,7 @@ void main() {
       await setupEmojiPicker(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
       connection.prepare(json: {});
-      await tester.tap(find.descendant(
-        of: find.byType(BottomSheet),
-        matching: find.text('\u{1f4a4}'))); // 'zzz' emoji
+      await tester.tap(findInPicker(find.text('\u{1f4a4}'))); // 'zzz' emoji
       await tester.pump(Duration.zero);
 
       check(connection.lastRequest).isA<http.Request>()
@@ -452,15 +454,9 @@ void main() {
 
       connection.prepare(
         delay: const Duration(seconds: 2),
-        httpStatus: 400, json: {
-          'code': 'BAD_REQUEST',
-          'msg': 'Invalid message(s)',
-          'result': 'error',
-        });
+        apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
 
-      await tester.tap(find.descendant(
-        of: find.byType(BottomSheet),
-        matching: find.text('\u{1f4a4}'))); // 'zzz' emoji
+      await tester.tap(findInPicker(find.text('\u{1f4a4}'))); // 'zzz' emoji
       await tester.pump(); // register tap
       await tester.pump(const Duration(seconds: 1)); // emoji picker animates away
       await tester.pump(const Duration(seconds: 1)); // error arrives; error dialog shows
@@ -470,6 +466,92 @@ void main() {
         expectedMessage: 'Invalid message(s)')));
 
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    group('handle view paddings', () {
+      const screenHeight = 400.0;
+
+      late Rect scrollViewRect;
+      final scrollViewFinder = findInPicker(find.bySubtype<ScrollView>());
+
+      Rect getListEntriesRect(WidgetTester tester) =>
+        tester.getRect(find.byType(EmojiPickerListEntry).first)
+          .expandToInclude(tester.getRect(find.byType(EmojiPickerListEntry).last));
+
+      Future<void> prepare(WidgetTester tester, {
+        required FakeViewPadding viewPadding,
+      }) async {
+        addTearDown(tester.view.reset);
+        tester.view.physicalSize = Size(640, screenHeight);
+        // This makes it easier to convert between device pixels used for
+        // [FakeViewPadding] and logical pixels used in tests.
+        // If needed, there is a clearer way to implement this generally.
+        // See comment: https://github.com/zulip/zulip-flutter/pull/1315/files#r1962703436
+        tester.view.devicePixelRatio = 1.0;
+
+        tester.view.viewPadding = viewPadding;
+        tester.view.padding = viewPadding;
+
+        final message = eg.streamMessage();
+        await setupEmojiPicker(tester,
+          message: message, narrow: TopicNarrow.ofMessage(message));
+
+        scrollViewRect = tester.getRect(scrollViewFinder);
+        // The scroll view should expand all the way to the bottom of the
+        // screen, even if there is device bottom padding.
+        check(scrollViewRect)
+          ..bottom.equals(screenHeight)
+          // There should always be enough entries to overflow the scroll view.
+          ..height.isLessThan(getListEntriesRect(tester).height);
+      }
+
+      testWidgets('no view padding', (tester) async {
+        await prepare(tester, viewPadding: FakeViewPadding.zero);
+
+        // The top edge of the list entries is padded by 8px from the top edge
+        // of the scroll view; the bottom edge is out of view.
+        Rect listEntriesRect = getListEntriesRect(tester);
+        check(scrollViewRect)
+          ..top.equals(listEntriesRect.top - 8)
+          ..bottom.isLessThan(listEntriesRect.bottom);
+
+        // Scroll to the very bottom of the list with a large offset.
+        await tester.drag(scrollViewFinder, Offset(0, -500));
+        await tester.pump();
+        // The top edge of the list entries is out of view;
+        // the bottom is padded by 8px, the minimum padding, from the bottom
+        // edge of the scroll view.
+        listEntriesRect = getListEntriesRect(tester);
+        check(scrollViewRect)
+          ..top.isGreaterThan(listEntriesRect.top)
+          ..bottom.equals(listEntriesRect.bottom + 8);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('with bottom view padding', (tester) async {
+        await prepare(tester, viewPadding: FakeViewPadding(bottom: 10));
+
+        // The top edge of the list entries is padded by 8px from the top edge
+        // of the scroll view; the bottom edge is out of view.
+        Rect listEntriesRect = getListEntriesRect(tester);
+        check(scrollViewRect)
+          ..top.equals(listEntriesRect.top - 8)
+          ..bottom.isLessThan(listEntriesRect.bottom);
+
+        // Scroll to the very bottom of the list with a large offset.
+        await tester.drag(scrollViewFinder, Offset(0, -500));
+        await tester.pump();
+        // The top edge of the list entries is out of view;
+        // the bottom edge is padded by 10px from the bottom edge of the scroll
+        // view, because the view bottom padding is larger than the minimum 8px.
+        listEntriesRect = getListEntriesRect(tester);
+        check(scrollViewRect)
+          ..top.isGreaterThan(listEntriesRect.top)
+          ..bottom.equals(listEntriesRect.bottom + 10);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
     });
   });
 }

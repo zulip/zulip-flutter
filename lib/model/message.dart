@@ -61,12 +61,20 @@ class MessageStoreImpl with MessageStore {
   }
 
   void dispose() {
-    // When a MessageListView is disposed, it removes itself from the Set
-    // `MessageStoreImpl._messageListViews`. Instead of iterating on that Set,
-    // iterate on a copy, to avoid concurrent modifications.
-    for (final view in _messageListViews.toList()) {
-      view.dispose();
-    }
+    // Not disposing the [MessageListView]s here, because they are owned by
+    // (i.e., they get [dispose]d by) the [_MessageListState], including in the
+    // case where the [PerAccountStore] is replaced.
+    //
+    // TODO: Add assertions that the [MessageListView]s are indeed disposed, by
+    //   first ensuring that [PerAccountStore] is only disposed after those with
+    //   references to it are disposed, then reinstating this `dispose` method.
+    //
+    //   We can't add the assertions as-is because the sequence of events
+    //   guarantees that `PerAccountStore` is disposed (when that happens,
+    //   [GlobalStore] notifies its listeners, causing widgets dependent on the
+    //   [InheritedNotifier] to rebuild in the next frame) before the owner's
+    //   `dispose` or `onNewStore` is called.  Discussion:
+    //     https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/MessageListView.20lifecycle/near/2086893
   }
 
   @override
@@ -161,48 +169,17 @@ class MessageStoreImpl with MessageStore {
   }
 
   void _handleUpdateMessageEventMove(UpdateMessageEvent event) {
-    // The interaction between the fields of these events are a bit tricky.
-    // For reference, see: https://zulip.com/api/get-events#update_message
-
-    final origStreamId = event.origStreamId;
-    final newStreamId = event.newStreamId; // null if topic-only move
-    final origTopic = event.origTopic;
-    final newTopic = event.newTopic;
-    final propagateMode = event.propagateMode;
-
-    if (origTopic == null) {
+    final messageMove = event.moveData;
+    if (messageMove == null) {
       // There was no move.
-      assert(() {
-        if (newStreamId != null && origStreamId != null
-            && newStreamId != origStreamId) {
-          // This should be impossible; `orig_subject` (aka origTopic) is
-          // documented to be present when either the stream or topic changed.
-          debugLog('Malformed UpdateMessageEvent: stream move but no origTopic'); // TODO(log)
-        }
-        return true;
-      }());
       return;
     }
 
-    if (newStreamId == null && newTopic == null) {
-      // If neither the channel nor topic name changed, nothing moved.
-      // In that case `orig_subject` (aka origTopic) should have been null.
-      assert(debugLog('Malformed UpdateMessageEvent: move but no newStreamId or newTopic')); // TODO(log)
-      return;
-    }
-    if (origStreamId == null) {
-      // The `stream_id` field (aka origStreamId) is documented to be present on moves.
-      assert(debugLog('Malformed UpdateMessageEvent: move but no origStreamId')); // TODO(log)
-      return;
-    }
-    if (propagateMode == null) {
-      // The `propagate_mode` field (aka propagateMode) is documented to be present on moves.
-      assert(debugLog('Malformed UpdateMessageEvent: move but no propagateMode')); // TODO(log)
-      return;
-    }
+    final UpdateMessageMoveData(
+      :origStreamId, :newStreamId, :origTopic, :newTopic) = messageMove;
 
-    final wasResolveOrUnresolve = (newStreamId == null
-      && MessageEditState.topicMoveWasResolveOrUnresolve(origTopic, newTopic!));
+    final wasResolveOrUnresolve = newStreamId == origStreamId
+      && MessageEditState.topicMoveWasResolveOrUnresolve(origTopic, newTopic);
 
     for (final messageId in event.messageIds) {
       final message = messages[messageId];
@@ -213,14 +190,14 @@ class MessageStoreImpl with MessageStore {
         continue;
       }
 
-      if (newStreamId != null) {
+      if (newStreamId != origStreamId) {
         message.streamId = newStreamId;
         // See [StreamMessage.displayRecipient] on why the invalidation is
         // needed.
         message.displayRecipient = null;
       }
 
-      if (newTopic != null) {
+      if (newTopic != origTopic) {
         message.topic = newTopic;
       }
 
@@ -231,14 +208,7 @@ class MessageStoreImpl with MessageStore {
     }
 
     for (final view in _messageListViews) {
-      view.messagesMoved(
-        origStreamId: origStreamId,
-        newStreamId: newStreamId ?? origStreamId,
-        origTopic: origTopic,
-        newTopic: newTopic ?? origTopic,
-        messageIds: event.messageIds,
-        propagateMode: propagateMode,
-      );
+      view.messagesMoved(messageMove: messageMove, messageIds: event.messageIds);
     }
   }
 

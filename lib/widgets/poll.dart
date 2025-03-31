@@ -80,8 +80,7 @@ class _PollWidgetState extends State<PollWidget> {
       //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Zixuan'])
       //   // 'Chris、Greg、Alya、Zixuan'
       final voterNames = option.voters
-        .map((userId) =>
-          store.users[userId]?.fullName ?? zulipLocalizations.unknownUserName)
+        .map(store.userDisplayName)
         .join(', ');
 
       return Row(
@@ -126,8 +125,8 @@ class _PollWidgetState extends State<PollWidget> {
                 children: [
                   Text(option.text, style: textStyleBold.copyWith(fontSize: 16)),
                   if (option.voters.isNotEmpty)
-                    // TODO(i18n): Localize parenthesis characters.
-                    Text('($voterNames)', style: textStyleVoterNames),
+                    Text(zulipLocalizations.pollVoterNames(voterNames),
+                      style: textStyleVoterNames),
                 ]))),
         ]);
     }

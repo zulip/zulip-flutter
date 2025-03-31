@@ -17,7 +17,7 @@ Future<void> setTypingStatus(ApiConnection connection, {
         'type':  RawParameter(supportsTypeChannel ? 'channel' : 'stream'),
         if (supportsStreamId) 'stream_id': destination.streamId
         else                  'to': [destination.streamId],
-        'topic': RawParameter(destination.topic),
+        'topic': RawParameter(destination.topic.apiName),
       });
     case DmDestination():
       final supportsDirect = connection.zulipFeatureLevel! >= 174; // TODO(server-7)

@@ -1,5 +1,6 @@
 
 import 'package:checks/checks.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/model/narrow.dart';
 
@@ -14,5 +15,6 @@ extension DmNarrowChecks on Subject<DmNarrow> {
 
 extension TopicNarrowChecks on Subject<TopicNarrow> {
   Subject<int> get streamId => has((x) => x.streamId, 'streamId');
-  Subject<String> get topic => has((x) => x.topic, 'topic');
+  Subject<TopicName> get topic => has((x) => x.topic, 'topic');
+  Subject<int?> get with_ => has((x) => x.with_, 'with_');
 }

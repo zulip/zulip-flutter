@@ -19,6 +19,7 @@ import '../api/backoff.dart';
 import '../api/route/realm.dart';
 import '../log.dart';
 import '../notifications/receive.dart';
+import 'actions.dart';
 import 'autocomplete.dart';
 import 'database.dart';
 import 'emoji.dart';
@@ -28,11 +29,34 @@ import 'message_list.dart';
 import 'recent_dm_conversations.dart';
 import 'recent_senders.dart';
 import 'channel.dart';
+import 'settings.dart';
 import 'typing_status.dart';
 import 'unreads.dart';
+import 'user.dart';
 
 export 'package:drift/drift.dart' show Value;
 export 'database.dart' show Account, AccountsCompanion, AccountAlreadyExistsException;
+
+/// An underlying data store that can support a [GlobalStore],
+/// possibly storing the data to persist between runs of the app.
+///
+/// In the real app, the implementation used is [LiveGlobalStoreBackend],
+/// which stores data persistently in a database on the user's device.
+/// This interface enables tests to use a different implementation.
+abstract class GlobalStoreBackend {
+  /// Update the global settings in the underlying data store.
+  ///
+  /// This should only be called from [GlobalSettingsStore].
+  Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data);
+
+  /// Set or unset the given bool-valued setting in the underlying data store.
+  ///
+  /// This should only be called from [GlobalSettingsStore].
+  Future<void> doSetBoolGlobalSetting(BoolGlobalSetting setting, bool? value);
+
+  // TODO move here the similar methods for accounts;
+  //   perhaps the rest of the GlobalStore abstract methods, too.
+}
 
 /// Store for all the user's data.
 ///
@@ -51,13 +75,27 @@ export 'database.dart' show Account, AccountsCompanion, AccountAlreadyExistsExce
 ///  * [LiveGlobalStore], the implementation of this class that
 ///    we use outside of tests.
 abstract class GlobalStore extends ChangeNotifier {
-  GlobalStore({required Iterable<Account> accounts})
-    : _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
+  GlobalStore({
+    required GlobalStoreBackend backend,
+    required GlobalSettingsData globalSettings,
+    required Map<BoolGlobalSetting, bool> boolGlobalSettings,
+    required Iterable<Account> accounts,
+  })
+    : settings = GlobalSettingsStore(backend: backend,
+        data: globalSettings, boolData: boolGlobalSettings),
+      _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
+
+  /// The store for the user's account-independent settings.
+  ///
+  /// When the settings data changes, the [GlobalSettingsStore] will notify
+  /// its listeners, but the [GlobalStore] will not notify its own listeners.
+  /// Consider using [GlobalStoreWidget.settingsOf], which automatically
+  /// subscribes to changes in the [GlobalSettingsStore].
+  final GlobalSettingsStore settings;
 
   /// A cache of the [Accounts] table in the underlying data store.
   final Map<int, Account> _accounts;
 
-  // TODO settings (those that are per-device rather than per-account)
   // TODO push token, and other data corresponding to GlobalSessionState
 
   /// Construct a new [ApiConnection], real or fake as appropriate.
@@ -122,13 +160,17 @@ abstract class GlobalStore extends ChangeNotifier {
     // It's up to us.  Start loading.
     future = loadPerAccount(accountId);
     _perAccountStoresLoading[accountId] = future;
-    store = await future;
-    _setPerAccount(accountId, store);
-    unawaited(_perAccountStoresLoading.remove(accountId));
-    return store;
+    try {
+      store = await future;
+      _setPerAccount(accountId, store);
+      return store;
+    } finally {
+      unawaited(_perAccountStoresLoading.remove(accountId));
+    }
   }
 
   Future<void> _reloadPerAccount(int accountId) async {
+    assert(_accounts.containsKey(accountId));
     assert(_perAccountStores.containsKey(accountId));
     assert(!_perAccountStoresLoading.containsKey(accountId));
     final store = await loadPerAccount(accountId);
@@ -144,21 +186,48 @@ abstract class GlobalStore extends ChangeNotifier {
 
   /// Load per-account data for the given account, unconditionally.
   ///
+  /// The account for `accountId` must exist.
+  ///
+  /// Throws [AccountNotFoundException] if after any async gap
+  /// the account has been removed.
+  ///
   /// This method should be called only by the implementation of [perAccount].
   /// Other callers interested in per-account data should use [perAccount]
   /// and/or [perAccountSync].
   Future<PerAccountStore> loadPerAccount(int accountId) async {
     assert(_accounts.containsKey(accountId));
-    final store = await doLoadPerAccount(accountId);
-    if (!_accounts.containsKey(accountId)) {
-      // [removeAccount] was called during [doLoadPerAccount].
-      store.dispose();
-      throw AccountNotFoundException();
+    final PerAccountStore store;
+    try {
+      store = await doLoadPerAccount(accountId);
+    } catch (e) {
+      switch (e) {
+        case HttpException(httpStatus: 401):
+          // The API key is invalid and the store can never be loaded
+          // unless the user retries manually.
+          final account = getAccount(accountId);
+          assert(account != null); // doLoadPerAccount would have thrown AccountNotFoundException
+          final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+          reportErrorToUserModally(
+            zulipLocalizations.errorCouldNotConnectTitle,
+            message: zulipLocalizations.errorInvalidApiKeyMessage(
+              account!.realmUrl.toString()));
+          await logOutAccount(this, accountId);
+          throw AccountNotFoundException();
+        default:
+          rethrow;
+      }
     }
+    // doLoadPerAccount would have thrown AccountNotFoundException
+    assert(_accounts.containsKey(accountId));
     return store;
   }
 
   /// Load per-account data for the given account, unconditionally.
+  ///
+  /// The account for `accountId` must exist.
+  ///
+  /// Throws [AccountNotFoundException] if after any async gap
+  /// the account has been removed.
   ///
   /// This method should be called only by [loadPerAccount].
   Future<PerAccountStore> doLoadPerAccount(int accountId);
@@ -210,6 +279,8 @@ abstract class GlobalStore extends ChangeNotifier {
   Future<void> doUpdateAccount(int accountId, AccountsCompanion data);
 
   /// Remove an account from the store.
+  ///
+  /// The account for `accountId` must exist.
   Future<void> removeAccount(int accountId) async {
     assert(_accounts.containsKey(accountId));
     await doRemoveAccount(accountId);
@@ -237,7 +308,7 @@ class AccountNotFoundException implements Exception {}
 /// This class does not attempt to poll an event queue
 /// to keep the data up to date.  For that behavior, see
 /// [UpdateMachine].
-class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, MessageStore {
+class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, ChannelStore, MessageStore {
   /// Construct a store for the user's data, starting from the given snapshot.
   ///
   /// The global store must already have been updated with
@@ -268,15 +339,17 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
       globalStore: globalStore,
       connection: connection,
       realmUrl: realmUrl,
+      realmWildcardMentionPolicy: initialSnapshot.realmWildcardMentionPolicy,
+      realmMandatoryTopics: initialSnapshot.realmMandatoryTopics,
       realmWaitingPeriodThreshold: initialSnapshot.realmWaitingPeriodThreshold,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
+      realmEmptyTopicDisplayName: initialSnapshot.realmEmptyTopicDisplayName,
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
       emailAddressVisibility: initialSnapshot.emailAddressVisibility,
       emoji: EmojiStoreImpl(
         realmUrl: realmUrl, allRealmEmoji: initialSnapshot.realmEmoji),
       accountId: accountId,
-      selfUserId: account.userId,
       userSettings: initialSnapshot.userSettings,
       typingNotifier: TypingNotifier(
         connection: connection,
@@ -285,11 +358,9 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
         typingStartedWaitPeriod: Duration(
           milliseconds: initialSnapshot.serverTypingStartedWaitPeriodMilliseconds),
       ),
-      users: Map.fromEntries(
-        initialSnapshot.realmUsers
-        .followedBy(initialSnapshot.realmNonActiveUsers)
-        .followedBy(initialSnapshot.crossRealmBots)
-        .map((user) => MapEntry(user.userId, user))),
+      users: UserStoreImpl(
+        selfUserId: account.userId,
+        initialSnapshot: initialSnapshot),
       typingStatus: TypingStatus(
         selfUserId: account.userId,
         typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
@@ -311,29 +382,32 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     required GlobalStore globalStore,
     required this.connection,
     required this.realmUrl,
+    required this.realmWildcardMentionPolicy,
+    required this.realmMandatoryTopics,
     required this.realmWaitingPeriodThreshold,
     required this.maxFileUploadSizeMib,
+    required String? realmEmptyTopicDisplayName,
     required this.realmDefaultExternalAccounts,
     required this.customProfileFields,
     required this.emailAddressVisibility,
     required EmojiStoreImpl emoji,
     required this.accountId,
-    required this.selfUserId,
     required this.userSettings,
     required this.typingNotifier,
-    required this.users,
+    required UserStoreImpl users,
     required this.typingStatus,
     required ChannelStoreImpl channels,
     required MessageStoreImpl messages,
     required this.unreads,
     required this.recentDmConversationsView,
     required this.recentSenders,
-  }) : assert(selfUserId == globalStore.getAccount(accountId)!.userId),
-       assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
+  }) : assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
        assert(realmUrl == connection.realmUrl),
        assert(emoji.realmUrl == realmUrl),
        _globalStore = globalStore,
+       _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
        _emoji = emoji,
+       _users = users,
        _channels = channels,
        _messages = messages;
 
@@ -374,10 +448,28 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   /// This returns null if [reference] fails to parse as a URL.
   Uri? tryResolveUrl(String reference) => _tryResolveUrl(realmUrl, reference);
 
+  /// Always equal to `connection.zulipFeatureLevel`
+  /// and `account.zulipFeatureLevel`.
+  int get zulipFeatureLevel => connection.zulipFeatureLevel!;
+
   String get zulipVersion => account.zulipVersion;
+  final RealmWildcardMentionPolicy realmWildcardMentionPolicy; // TODO(#668): update this realm setting
+  final bool realmMandatoryTopics;  // TODO(#668): update this realm setting
   /// For docs, please see [InitialSnapshot.realmWaitingPeriodThreshold].
   final int realmWaitingPeriodThreshold;  // TODO(#668): update this realm setting
   final int maxFileUploadSizeMib; // No event for this.
+
+  /// The display name to use for empty topics.
+  ///
+  /// This should only be accessed when FL >= 334, since topics cannot
+  /// be empty otherwise.
+  // TODO(server-10) simplify this
+  String get realmEmptyTopicDisplayName {
+    assert(_realmEmptyTopicDisplayName != null); // TODO(log)
+    return _realmEmptyTopicDisplayName ?? 'general chat';
+  }
+  final String? _realmEmptyTopicDisplayName; // TODO(#668): update this realm setting
+
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
   List<CustomProfileField> customProfileFields;
   /// For docs, please see [InitialSnapshot.emailAddressVisibility].
@@ -420,9 +512,6 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   /// Will throw if called after [dispose] has been called.
   Account get account => _globalStore.getAccount(accountId)!;
 
-  /// Always equal to `account.userId`.
-  final int selfUserId;
-
   final UserSettings? userSettings; // TODO(server-5)
 
   final TypingNotifier typingNotifier;
@@ -430,7 +519,16 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   ////////////////////////////////
   // Users and data about them.
 
-  final Map<int, User> users;
+  @override
+  int get selfUserId => _users.selfUserId;
+
+  @override
+  User? getUser(int userId) => _users.getUser(userId);
+
+  @override
+  Iterable<User> get allUsers => _users.allUsers;
+
+  final UserStoreImpl _users;
 
   final TypingStatus typingStatus;
 
@@ -456,6 +554,33 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
     return byDate.difference(dateJoined).inDays >= realmWaitingPeriodThreshold;
   }
 
+  /// The given user's real email address, if known, for displaying in the UI.
+  ///
+  /// Returns null if self-user isn't able to see [user]'s real email address.
+  String? userDisplayEmail(User user) {
+    if (zulipFeatureLevel >= 163) { // TODO(server-7)
+      // A non-null value means self-user has access to [user]'s real email,
+      // while a null value means it doesn't have access to the email.
+      // Search for "delivery_email" in https://zulip.com/api/register-queue.
+      return user.deliveryEmail;
+    } else {
+      if (user.deliveryEmail != null) {
+        // A non-null value means self-user has access to [user]'s real email,
+        // while a null value doesn't necessarily mean it doesn't have access
+        // to the email, ....
+        return user.deliveryEmail;
+      } else if (emailAddressVisibility == EmailAddressVisibility.everyone) {
+        // ... we have to also check for [PerAccountStore.emailAddressVisibility].
+        // See:
+        //   * https://github.com/zulip/zulip-mobile/pull/5515#discussion_r997731727
+        //   * https://chat.zulip.org/#narrow/stream/378-api-design/topic/email.20address.20visibility/near/1296133
+        return user.email;
+      } else {
+        return null;
+      }
+    }
+  }
+
   ////////////////////////////////
   // Streams, topics, and stuff about them.
 
@@ -466,10 +591,10 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
   @override
   Map<int, Subscription> get subscriptions => _channels.subscriptions;
   @override
-  UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, String topic) =>
+  UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic) =>
     _channels.topicVisibilityPolicy(streamId, topic);
   @override
-  Map<int, Map<String, UserTopicVisibilityPolicy>> get debugTopicVisibility =>
+  Map<int, Map<TopicName, UserTopicVisibilityPolicy>> get debugTopicVisibility =>
     _channels.debugTopicVisibility;
 
   final ChannelStoreImpl _channels;
@@ -599,44 +724,18 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, ChannelStore, Mess
 
       case RealmUserAddEvent():
         assert(debugLog("server event: realm_user/add"));
-        users[event.person.userId] = event.person;
+        _users.handleRealmUserEvent(event);
         notifyListeners();
 
       case RealmUserRemoveEvent():
         assert(debugLog("server event: realm_user/remove"));
-        users.remove(event.userId);
+        _users.handleRealmUserEvent(event);
         autocompleteViewManager.handleRealmUserRemoveEvent(event);
         notifyListeners();
 
       case RealmUserUpdateEvent():
         assert(debugLog("server event: realm_user/update"));
-        final user = users[event.userId];
-        if (user == null) {
-          return; // TODO log
-        }
-        if (event.fullName != null)       user.fullName       = event.fullName!;
-        if (event.avatarUrl != null)      user.avatarUrl      = event.avatarUrl!;
-        if (event.avatarVersion != null)  user.avatarVersion  = event.avatarVersion!;
-        if (event.timezone != null)       user.timezone       = event.timezone!;
-        if (event.botOwnerId != null)     user.botOwnerId     = event.botOwnerId!;
-        if (event.role != null)           user.role           = event.role!;
-        if (event.isBillingAdmin != null) user.isBillingAdmin = event.isBillingAdmin!;
-        if (event.deliveryEmail != null)  user.deliveryEmail  = event.deliveryEmail!.value;
-        if (event.newEmail != null)       user.email          = event.newEmail!;
-        if (event.isActive != null)       user.isActive       = event.isActive!;
-        if (event.customProfileField != null) {
-          final profileData = (user.profileData ??= {});
-          final update = event.customProfileField!;
-          if (update.value != null) {
-            profileData[update.id] = ProfileFieldUserData(value: update.value!, renderedValue: update.renderedValue);
-          } else {
-            profileData.remove(update.id);
-          }
-          if (profileData.isEmpty) {
-            // null is equivalent to `{}` for efficiency; see [User._readProfileData].
-            user.profileData = null;
-          }
-        }
+        _users.handleRealmUserEvent(event);
         autocompleteViewManager.handleRealmUserUpdateEvent(event);
         notifyListeners();
 
@@ -746,6 +845,35 @@ Uri? tryResolveUrl(Uri baseUrl, String reference) {
   }
 }
 
+/// A [GlobalStoreBackend] that uses a live, persistent local database.
+///
+/// Used as part of a [LiveGlobalStore].
+/// The underlying data store is an [AppDatabase] corresponding to a
+/// SQLite database file in the app's persistent storage on the device.
+class LiveGlobalStoreBackend implements GlobalStoreBackend {
+  LiveGlobalStoreBackend._({required AppDatabase db}) : _db = db;
+
+  final AppDatabase _db;
+
+  @override
+  Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data) async {
+    final rowsAffected = await _db.update(_db.globalSettings).write(data);
+    assert(rowsAffected == 1);
+  }
+
+  @override
+  Future<void> doSetBoolGlobalSetting(BoolGlobalSetting setting, bool? value) async {
+    if (value == null) {
+      final query = _db.delete(_db.boolGlobalSettings)
+        ..where((r) => r.name.equals(setting.name));
+      await query.go();
+    } else {
+      await _db.into(_db.boolGlobalSettings).insertOnConflictUpdate(
+        BoolGlobalSettingRow(name: setting.name, value: value));
+    }
+  }
+}
+
 /// A [GlobalStore] that uses a live server and live, persistent local database.
 ///
 /// The underlying data store is an [AppDatabase] corresponding to a SQLite
@@ -755,9 +883,12 @@ Uri? tryResolveUrl(Uri baseUrl, String reference) {
 /// and will have an associated [UpdateMachine].
 class LiveGlobalStore extends GlobalStore {
   LiveGlobalStore._({
-    required AppDatabase db,
+    required LiveGlobalStoreBackend backend,
+    required super.globalSettings,
+    required super.boolGlobalSettings,
     required super.accounts,
-  }) : _db = db;
+  }) : _backend = backend,
+       super(backend: backend);
 
   @override
   ApiConnection apiConnection({
@@ -771,9 +902,35 @@ class LiveGlobalStore extends GlobalStore {
   // We keep the API simple and synchronous for the bulk of the app's code
   // by doing this loading up front before constructing a [GlobalStore].
   static Future<GlobalStore> load() async {
+    // Loading this data takes roughly 80-100ms (measured on a Pixel 8).
+    // That's only a small increment on the time spent loading server data,
+    // so we don't worry about optimizing it further.
+    // In a future where we keep server data locally between runs (#477) --
+    // which will also mean having much more data to load from the database --
+    // we'd invest in this area more.  For example we'd try doing these
+    // in parallel, or deferring some to be concurrent with loading server data.
+    final stopwatch = Stopwatch()..start();
     final db = AppDatabase(NativeDatabase.createInBackground(await _dbFile()));
+    final t1 = stopwatch.elapsed;
+    final globalSettings = await db.getGlobalSettings();
+    final t2 = stopwatch.elapsed;
+    final boolGlobalSettings = await db.getBoolGlobalSettings();
+    final t3 = stopwatch.elapsed;
     final accounts = await db.select(db.accounts).get();
-    return LiveGlobalStore._(db: db, accounts: accounts);
+    final t4 = stopwatch.elapsed;
+    if (kProfileMode) {
+      String format(Duration d) =>
+        "${(d.inMicroseconds / 1000.0).toStringAsFixed(1)}ms";
+      profilePrint("db load time ${format(t4)} total: ${format(t1)} init, "
+        "${format(t2 - t1)} settings, ${format(t3 - t2)} bool-settings, "
+        "${format(t4 - t3)} accounts");
+    }
+
+    return LiveGlobalStore._(
+      backend: LiveGlobalStoreBackend._(db: db),
+      globalSettings: globalSettings,
+      boolGlobalSettings: boolGlobalSettings,
+      accounts: accounts);
   }
 
   /// The file path to use for the app database.
@@ -795,7 +952,13 @@ class LiveGlobalStore extends GlobalStore {
     return File(p.join(dir.path, 'zulip.db'));
   }
 
-  final AppDatabase _db;
+  final LiveGlobalStoreBackend _backend;
+
+  // The methods that use this should probably all move to [GlobalStoreBackend]
+  // and [LiveGlobalStoreBackend] anyway (see comment on the former);
+  // so let the latter be the canonical home of the [AppDatabase].
+  // This getter just simplifies the transition.
+  AppDatabase get _db => _backend._db;
 
   @override
   Future<PerAccountStore> doLoadPerAccount(int accountId) async {
@@ -850,17 +1013,34 @@ class UpdateMachine {
     store.updateMachine = this;
   }
 
-  /// Load the user's data from the server, and start an event queue going.
+  /// Load data for the given account from the server,
+  /// and start an event queue going.
+  ///
+  /// The account for `accountId` must exist.
+  ///
+  /// Throws [AccountNotFoundException] if after any async gap
+  /// the account has been removed.
   ///
   /// In the future this might load an old snapshot from local storage first.
   static Future<UpdateMachine> load(GlobalStore globalStore, int accountId) async {
     Account account = globalStore.getAccount(accountId)!;
     final connection = globalStore.apiConnectionFromAccount(account);
 
+    void stopAndThrowIfNoAccount() {
+      final account = globalStore.getAccount(accountId);
+      if (account == null) {
+        assert(debugLog('Account logged out during UpdateMachine.load'));
+        connection.close();
+        throw AccountNotFoundException();
+      }
+    }
+
     final stopwatch = Stopwatch()..start();
-    final initialSnapshot = await _registerQueueWithRetry(connection);
-    final t = (stopwatch..stop()).elapsed;
-    assert(debugLog("initial fetch time: ${t.inMilliseconds}ms"));
+    final initialSnapshot = await _registerQueueWithRetry(connection,
+      stopAndThrowIfNoAccount: stopAndThrowIfNoAccount);
+    if (kProfileMode) {
+      profilePrint("initial fetch time: ${stopwatch.elapsed.inMilliseconds}ms");
+    }
 
     if (initialSnapshot.zulipVersion != account.zulipVersion
         || initialSnapshot.zulipMergeBase != account.zulipMergeBase
@@ -900,21 +1080,40 @@ class UpdateMachine {
 
   bool _disposed = false;
 
+  /// Make the register-queue request, with retries.
+  ///
+  /// After each async gap, calls [stopAndThrowIfNoAccount].
   static Future<InitialSnapshot> _registerQueueWithRetry(
-      ApiConnection connection) async {
+    ApiConnection connection, {
+    required void Function() stopAndThrowIfNoAccount,
+  }) async {
     BackoffMachine? backoffMachine;
     while (true) {
+      InitialSnapshot? result;
       try {
-        return await registerQueue(connection);
+        result = await registerQueue(connection);
       } catch (e, s) {
-        assert(debugLog('Error fetching initial snapshot: $e'));
-        // Print stack trace in its own log entry; log entries are truncated
-        // at 1 kiB (at least on Android), and stack can be longer than that.
-        assert(debugLog('Stack:\n$s'));
+        stopAndThrowIfNoAccount();
+        // TODO(#890): tell user if initial-fetch errors persist, or look non-transient
+        switch (e) {
+          case HttpException(httpStatus: 401):
+            // We cannot recover from this error through retrying.
+            // Leave it to [GlobalStore.loadPerAccount].
+            rethrow;
+          default:
+            assert(debugLog('Error fetching initial snapshot: $e'));
+            // Print stack trace in its own log entry; log entries are truncated
+            // at 1 kiB (at least on Android), and stack can be longer than that.
+            assert(debugLog('Stack:\n$s'));
+        }
         assert(debugLog('Backing off, then will retry…'));
-        // TODO tell user if initial-fetch errors persist, or look non-transient
         await (backoffMachine ??= BackoffMachine()).wait();
+        stopAndThrowIfNoAccount();
         assert(debugLog('… Backoff wait complete, retrying initial fetch.'));
+      }
+      if (result != null) {
+        stopAndThrowIfNoAccount();
+        return result;
       }
     }
   }
@@ -996,48 +1195,22 @@ class UpdateMachine {
     }());
   }
 
-  // This is static so that it persists through new UpdateMachine instances
-  // as we attempt to fix things by reloading data from scratch.  In principle
-  // it could also be per-account (or per-realm or per-server); but currently
-  // we skip that complication, as well as attempting to reset backoff on
-  // later success.  After all, these unexpected errors should be uncommon;
-  // ideally they'd never happen.
-  static BackoffMachine get _unexpectedErrorBackoffMachine {
-    return __unexpectedErrorBackoffMachine
-      ??= BackoffMachine(maxBound: const Duration(seconds: 60));
+  Future<void> _debugLoopWait() async {
+    await _debugLoopSignal!.future;
+    if (_disposed) return;
+    assert(() {
+      _debugLoopSignal = Completer();
+      return true;
+    }());
   }
-  static BackoffMachine? __unexpectedErrorBackoffMachine;
-
-  /// This controls when we start to report transient errors to the user when
-  /// polling.
-  ///
-  /// At the 6th failure, the expected time elapsed since the first failure
-  /// will be 1.55 seocnds.
-  static const transientFailureCountNotifyThreshold = 5;
 
   void poll() async {
     assert(!_disposed);
     try {
-      BackoffMachine? backoffMachine;
-      int accumulatedTransientFailureCount = 0;
-
-      /// This only reports transient errors after reaching
-      /// a pre-defined threshold of retries.
-      void maybeReportToUserTransientError(Object error) {
-        accumulatedTransientFailureCount++;
-        if (accumulatedTransientFailureCount > transientFailureCountNotifyThreshold) {
-          _reportToUserErrorConnectingToServer(error);
-        }
-      }
-
       while (true) {
         if (_debugLoopSignal != null) {
-          await _debugLoopSignal!.future;
+          await _debugLoopWait();
           if (_disposed) return;
-          assert(() {
-            _debugLoopSignal = Completer();
-            return true;
-          }());
         }
 
         final GetEventsResult result;
@@ -1045,76 +1218,13 @@ class UpdateMachine {
           result = await getEvents(store.connection,
             queueId: queueId, lastEventId: lastEventId);
           if (_disposed) return;
-        } catch (e) {
+        } catch (e, stackTrace) {
           if (_disposed) return;
-          store.isLoading = true;
-
-          if (e is! ApiRequestException) {
-            // Some unexpected error, outside even making the HTTP request.
-            // Definitely a bug in our code.
-            rethrow;
-          }
-
-          bool shouldReportToUser;
-          switch (e) {
-            case NetworkException(cause: SocketException()):
-              // A [SocketException] is common when the app returns from sleep.
-              shouldReportToUser = false;
-
-            case NetworkException():
-            case Server5xxException():
-              shouldReportToUser = true;
-
-            case ServerException(httpStatus: 429):
-            case ZulipApiException(httpStatus: 429):
-            case ZulipApiException(code: 'RATE_LIMIT_HIT'):
-              // TODO(#946) handle rate-limit errors more generally, in ApiConnection
-              shouldReportToUser = true;
-
-            case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
-              rethrow;
-
-            case ZulipApiException():
-            case MalformedServerResponseException():
-              // Either a 4xx we didn't expect, or a malformed response;
-              // in either case, a mismatch of the client's expectations to the
-              // server's behavior, and therefore a bug in one or the other.
-              // TODO(#1054) handle auth failures specifically
-              rethrow;
-          }
-
-          assert(debugLog('Transient error polling event queue for $store: $e\n'
-              'Backing off, then will retry…'));
-          if (shouldReportToUser) {
-            maybeReportToUserTransientError(e);
-          }
-          await (backoffMachine ??= BackoffMachine()).wait();
+          await _handlePollRequestError(e, stackTrace); // may rethrow
           if (_disposed) return;
-          assert(debugLog('… Backoff wait complete, retrying poll.'));
           continue;
         }
-
-        // After one successful request, we reset backoff to its initial state.
-        // That way if the user is off the network and comes back on, the app
-        // doesn't wind up in a state where it's slow to recover the next time
-        // one request fails.
-        //
-        // This does mean that if the server is having trouble and handling some
-        // but not all of its requests, we'll end up doing a lot more retries than
-        // if we stayed at the max backoff interval; partway toward what would
-        // happen if we weren't backing off at all.
-        //
-        // But at least for [getEvents] requests, as here, it should be OK,
-        // because this is a long-poll.  That means a typical successful request
-        // takes a long time to come back; in fact longer than our max backoff
-        // duration (which is 10 seconds).  So if we're getting a mix of successes
-        // and failures, the successes themselves should space out the requests.
-        backoffMachine = null;
-
-        store.isLoading = false;
-        // Dismiss existing errors, if any.
-        reportErrorToUserBriefly(null);
-        accumulatedTransientFailureCount = 0;
+        _clearPollErrors();
 
         final events = result.events;
         for (final event in events) {
@@ -1133,61 +1243,192 @@ class UpdateMachine {
       }
     } catch (e) {
       if (_disposed) return;
-
-      // An error occurred, other than the transient request errors we retry on.
-      // This means either a lost/expired event queue on the server (which is
-      // normal after the app is offline for a period like 10 minutes),
-      // or an unexpected exception representing a bug in our code or the server.
-      // Either way, the show must go on.  So reload server data from scratch.
-
-      // First, log what happened.
-      store.isLoading = true;
-      bool isUnexpected;
-      switch (e) {
-        case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
-          assert(debugLog('Lost event queue for $store.  Replacing…'));
-          // The old event queue is gone, so we need a new one.  This is normal.
-          isUnexpected = false;
-
-        case _EventHandlingException(:final cause, :final event):
-          assert(debugLog('BUG: Error handling an event: $cause\n' // TODO(log)
-            '  event: $event\n'
-            'Replacing event queue…'));
-          reportErrorToUserBriefly(
-            GlobalLocalizations.zulipLocalizations.errorHandlingEventTitle,
-            details: GlobalLocalizations.zulipLocalizations.errorHandlingEventDetails(
-              store.realmUrl.toString(), cause.toString(), event.toString()));
-          // We can't just continue with the next event, because our state
-          // may be garbled due to failing to apply this one (and worse,
-          // any invariants that were left in a broken state from where
-          // the exception was thrown).  So reload from scratch.
-          // Hopefully (probably?) the bug only affects our implementation of
-          // the *change* in state represented by the event, and when we get the
-          // new state in a fresh InitialSnapshot we'll handle that just fine.
-          isUnexpected = true;
-
-        default:
-          assert(debugLog('BUG: Unexpected error in event polling: $e\n' // TODO(log)
-            'Replacing event queue…'));
-          _reportToUserErrorConnectingToServer(e);
-          // Similar story to the _EventHandlingException case;
-          // separate only so that that other case can print more context.
-          // The bug here could be in the server if it's an ApiRequestException,
-          // but our remedy is the same either way.
-          isUnexpected = true;
-      }
-
-      if (isUnexpected) {
-        // We don't know the cause of the failure; it might well keep happening.
-        // Avoid creating a retry storm.
-        await _unexpectedErrorBackoffMachine.wait();
-        if (_disposed) return;
-      }
-
-      // This disposes the store, which disposes this update machine.
-      await store._globalStore._reloadPerAccount(store.accountId);
-      assert(debugLog('… Event queue replaced.'));
+      await _handlePollError(e);
+      assert(_disposed);
       return;
+    }
+  }
+
+  // This is static so that it persists through new UpdateMachine instances
+  // as we attempt to fix things by reloading data from scratch.  In principle
+  // it could also be per-account (or per-realm or per-server); but currently
+  // we skip that complication, as well as attempting to reset backoff on
+  // later success.  After all, these unexpected errors should be uncommon;
+  // ideally they'd never happen.
+  static BackoffMachine get _unexpectedErrorBackoffMachine {
+    return __unexpectedErrorBackoffMachine
+      ??= BackoffMachine(maxBound: const Duration(seconds: 60));
+  }
+  static BackoffMachine? __unexpectedErrorBackoffMachine;
+
+  BackoffMachine? _pollBackoffMachine;
+
+  /// This controls when we start to report transient errors to the user when
+  /// polling.
+  ///
+  /// At the 6th failure, the expected time elapsed since the first failure
+  /// will be 1.55 seocnds.
+  static const transientFailureCountNotifyThreshold = 5;
+
+  int _accumulatedTransientFailureCount = 0;
+
+  void _clearPollErrors() {
+    // After one successful request, we reset backoff to its initial state.
+    // That way if the user is off the network and comes back on, the app
+    // doesn't wind up in a state where it's slow to recover the next time
+    // one request fails.
+    //
+    // This does mean that if the server is having trouble and handling some
+    // but not all of its requests, we'll end up doing a lot more retries than
+    // if we stayed at the max backoff interval; partway toward what would
+    // happen if we weren't backing off at all.
+    //
+    // But at least for [getEvents] requests, as here, it should be OK,
+    // because this is a long-poll.  That means a typical successful request
+    // takes a long time to come back; in fact longer than our max backoff
+    // duration (which is 10 seconds).  So if we're getting a mix of successes
+    // and failures, the successes themselves should space out the requests.
+    _pollBackoffMachine = null;
+
+    store.isLoading = false;
+    _accumulatedTransientFailureCount = 0;
+    reportErrorToUserBriefly(null);
+  }
+
+  /// Sort out an error from the network request in [poll]:
+  /// either wait for a backoff duration (and possibly report the error),
+  /// or rethrow.
+  ///
+  /// If the request should be retried, this method uses [_pollBackoffMachine]
+  /// to wait an appropriate backoff duration for that retry,
+  /// after reporting the error if appropriate to the user and/or developer.
+  ///
+  /// Otherwise this method rethrows the error, with no other side effects.
+  ///
+  /// See also:
+  ///  * [_handlePollError], which handles errors from the rest of [poll]
+  ///    and errors this method rethrows.
+  Future<void> _handlePollRequestError(Object error, StackTrace stackTrace) async {
+    store.isLoading = true;
+
+    if (error is! ApiRequestException) {
+      // Some unexpected error, outside even making the HTTP request.
+      // Definitely a bug in our code.
+      Error.throwWithStackTrace(error, stackTrace);
+    }
+
+    bool shouldReportToUser;
+    switch (error) {
+      case NetworkException(cause: SocketException()):
+        // A [SocketException] is common when the app returns from sleep.
+        shouldReportToUser = false;
+
+      case NetworkException():
+      case Server5xxException():
+        shouldReportToUser = true;
+
+      case HttpException(httpStatus: 429):
+      case ZulipApiException(code: 'RATE_LIMIT_HIT'):
+        // TODO(#946) handle rate-limit errors more generally, in ApiConnection
+        shouldReportToUser = true;
+
+      case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
+        Error.throwWithStackTrace(error, stackTrace);
+
+      case ZulipApiException():
+      case MalformedServerResponseException():
+        // Either a 4xx we didn't expect, or a malformed response;
+        // in either case, a mismatch of the client's expectations to the
+        // server's behavior, and therefore a bug in one or the other.
+        // TODO(#1054) handle auth failures specifically
+        Error.throwWithStackTrace(error, stackTrace);
+    }
+
+    assert(debugLog('Transient error polling event queue for $store: $error\n'
+        'Backing off, then will retry…'));
+    if (shouldReportToUser) {
+      _maybeReportToUserTransientError(error);
+    }
+    await (_pollBackoffMachine ??= BackoffMachine()).wait();
+    if (_disposed) return;
+    assert(debugLog('… Backoff wait complete, retrying poll.'));
+  }
+
+  /// Deal with an error in [poll]: reload server data to replace the store,
+  /// after reporting the error as appropriate to the user and/or developer.
+  ///
+  /// See also:
+  ///  * [_handlePollRequestError], which handles certain errors
+  ///    and causes them not to reach this method.
+  Future<void> _handlePollError(Object error) async {
+    // An error occurred, other than the transient request errors we retry on.
+    // This means either a lost/expired event queue on the server (which is
+    // normal after the app is offline for a period like 10 minutes),
+    // or an unexpected exception representing a bug in our code or the server.
+    // Either way, the show must go on.  So reload server data from scratch.
+
+    store.isLoading = true;
+
+    bool isUnexpected;
+    // TODO(#1054): handle auth failure
+    switch (error) {
+      case ZulipApiException(code: 'BAD_EVENT_QUEUE_ID'):
+        assert(debugLog('Lost event queue for $store.  Replacing…'));
+        // The old event queue is gone, so we need a new one.  This is normal.
+        isUnexpected = false;
+
+      case _EventHandlingException(:final cause, :final event):
+        assert(debugLog('BUG: Error handling an event: $cause\n' // TODO(log)
+          '  event: $event\n'
+          'Replacing event queue…'));
+        reportErrorToUserBriefly(
+          GlobalLocalizations.zulipLocalizations.errorHandlingEventTitle,
+          details: GlobalLocalizations.zulipLocalizations.errorHandlingEventDetails(
+            store.realmUrl.toString(), cause.toString(), event.toString()));
+        // We can't just continue with the next event, because our state
+        // may be garbled due to failing to apply this one (and worse,
+        // any invariants that were left in a broken state from where
+        // the exception was thrown).  So reload from scratch.
+        // Hopefully (probably?) the bug only affects our implementation of
+        // the *change* in state represented by the event, and when we get the
+        // new state in a fresh InitialSnapshot we'll handle that just fine.
+        isUnexpected = true;
+
+      default:
+        assert(debugLog('BUG: Unexpected error in event polling: $error\n' // TODO(log)
+          'Replacing event queue…'));
+        _reportToUserErrorConnectingToServer(error);
+        // Similar story to the _EventHandlingException case;
+        // separate only so that that other case can print more context.
+        // The bug here could be in the server if it's an ApiRequestException,
+        // but our remedy is the same either way.
+        isUnexpected = true;
+    }
+
+    if (isUnexpected) {
+      // We don't know the cause of the failure; it might well keep happening.
+      // Avoid creating a retry storm.
+      await _unexpectedErrorBackoffMachine.wait();
+      if (_disposed) return;
+    }
+
+    try {
+      await store._globalStore._reloadPerAccount(store.accountId);
+    } on AccountNotFoundException {
+      assert(debugLog('… Event queue not replaced; account was logged out.'));
+      return;
+    } finally {
+      assert(_disposed);
+    }
+    assert(debugLog('… Event queue replaced.'));
+  }
+
+  /// This only reports transient errors after reaching
+  /// a pre-defined threshold of retries.
+  void _maybeReportToUserTransientError(Object error) {
+    _accumulatedTransientFailureCount++;
+    if (_accumulatedTransientFailureCount > transientFailureCountNotifyThreshold) {
+      _reportToUserErrorConnectingToServer(error);
     }
   }
 

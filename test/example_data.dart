@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:zulip/api/exception.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -8,7 +9,9 @@ import 'package:zulip/api/model/submessage.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/api/route/channels.dart';
+import 'package:zulip/model/database.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 
 import 'model/test_store.dart';
@@ -18,8 +21,50 @@ void _checkPositive(int? value, String description) {
   assert(value == null || value > 0, '$description should be positive');
 }
 
+////////////////////////////////////////////////////////////////
+// Error objects.
+//
+
 Object nullCheckError() {
   try { null!; } catch (e) { return e; } // ignore: null_check_always_fails
+}
+
+/// A Zulip API error with the generic "BAD_REQUEST" error code.
+///
+/// The server returns this error code for a wide range of error conditions;
+/// it's the default within the server code when no more-specific code is chosen.
+ZulipApiException apiBadRequest({
+    String routeName = 'someRoute', String message = 'Something failed'}) {
+  return ZulipApiException(
+    routeName: routeName,
+    httpStatus: 400, code: 'BAD_REQUEST',
+    data: {}, message: message);
+}
+
+/// The error for the "events" route when the target event queue has been
+/// garbage collected.
+///
+/// https://zulip.com/api/get-events#bad_event_queue_id-errors
+ZulipApiException apiExceptionBadEventQueueId({
+  String queueId = 'fb67bf8a-c031-47cc-84cf-ed80accacda8',
+}) {
+  return ZulipApiException(
+    routeName: 'events', httpStatus: 400, code: 'BAD_EVENT_QUEUE_ID',
+    data: {'queue_id': queueId}, message: 'Bad event queue ID: $queueId');
+}
+
+/// The error the server gives when the client's credentials
+/// (API key together with email and realm URL) are no longer valid.
+///
+/// This isn't really documented, but comes from experiment and from
+/// reading the server implementation.  See:
+///   https://github.com/zulip/zulip-flutter/pull/1183#discussion_r1945865983
+///   https://chat.zulip.org/#narrow/channel/378-api-design/topic/general.20handling.20HTTP.20status.20code.20401/near/2090024
+ZulipApiException apiExceptionUnauthorized({String routeName = 'someRoute'}) {
+  return ZulipApiException(
+    routeName: routeName,
+    httpStatus: 401, code: 'UNAUTHORIZED',
+    data: {}, message: 'Invalid API key');
 }
 
 ////////////////////////////////////////////////////////////////
@@ -241,7 +286,8 @@ const _stream = stream;
 
 GetStreamTopicsEntry getStreamTopicsEntry({int? maxId, String? name}) {
   maxId ??= 123;
-  return GetStreamTopicsEntry(maxId: maxId, name: name ?? 'Test Topic #$maxId');
+  return GetStreamTopicsEntry(maxId: maxId,
+    name: TopicName(name ?? 'Test Topic #$maxId'));
 }
 
 /// Construct an example subscription from a stream.
@@ -283,11 +329,20 @@ Subscription subscription(
   );
 }
 
+/// The [TopicName] constructor, but shorter.
+///
+/// Useful in test code that mentions a lot of topics in a compact format.
+TopicName t(String apiName) => TopicName(apiName);
+
+TopicNarrow topicNarrow(int channelId, String topicName, {int? with_}) {
+  return TopicNarrow(channelId, TopicName(topicName), with_: with_);
+}
+
 UserTopicItem userTopicItem(
     ZulipStream stream, String topic, UserTopicVisibilityPolicy policy) {
   return UserTopicItem(
     streamId: stream.streamId,
-    topicName: topic,
+    topicName: TopicName(topic),
     lastUpdated: 1234567890,
     visibilityPolicy: policy,
   );
@@ -519,6 +574,18 @@ Submessage submessage({
 // Aggregate data structures.
 //
 
+UnreadChannelSnapshot unreadChannelMsgs({
+  required String topic,
+  required int streamId,
+  required List<int> unreadMessageIds,
+}) {
+  return UnreadChannelSnapshot(
+    topic: TopicName(topic),
+    streamId: streamId,
+    unreadMessageIds: unreadMessageIds,
+  );
+}
+
 UnreadMessagesSnapshot unreadMsgs({
   int? count,
   List<UnreadDmSnapshot>? dms,
@@ -547,7 +614,7 @@ UserTopicEvent userTopicEvent(
   return UserTopicEvent(
     id: 1,
     streamId: streamId,
-    topicName: topic,
+    topicName: TopicName(topic),
     lastUpdated: 1234567890,
     visibilityPolicy: visibilityPolicy,
   );
@@ -588,11 +655,7 @@ UpdateMessageEvent updateMessageEditEvent(
     messageIds: [messageId],
     flags: flags ?? origMessage.flags,
     editTimestamp: editTimestamp ?? 1234567890, // TODO generate timestamp
-    origStreamId: origMessage is StreamMessage ? origMessage.streamId : null,
-    newStreamId: null,
-    propagateMode: null,
-    origTopic: null,
-    newTopic: null,
+    moveData: null,
     origContent: 'some probably-mismatched old Markdown',
     origRenderedContent: origMessage.content,
     content: 'some probably-mismatched new Markdown',
@@ -605,8 +668,8 @@ UpdateMessageEvent _updateMessageMoveEvent(
   List<int> messageIds, {
   required int origStreamId,
   int? newStreamId,
-  required String origTopic,
-  String? newTopic,
+  required TopicName origTopic,
+  TopicName? newTopic,
   String? origContent,
   String? newContent,
   required List<MessageFlag> flags,
@@ -614,8 +677,6 @@ UpdateMessageEvent _updateMessageMoveEvent(
 }) {
   _checkPositive(origStreamId, 'stream ID');
   _checkPositive(newStreamId, 'stream ID');
-  assert(newTopic != origTopic
-         || (newStreamId != null && newStreamId != origStreamId));
   assert(messageIds.isNotEmpty);
   return UpdateMessageEvent(
     id: 0,
@@ -625,11 +686,13 @@ UpdateMessageEvent _updateMessageMoveEvent(
     messageIds: messageIds,
     flags: flags,
     editTimestamp: 1234567890, // TODO generate timestamp
-    origStreamId: origStreamId,
-    newStreamId: newStreamId,
-    propagateMode: propagateMode,
-    origTopic: origTopic,
-    newTopic: newTopic,
+    moveData: UpdateMessageMoveData(
+      origStreamId: origStreamId,
+      newStreamId: newStreamId ?? origStreamId,
+      origTopic: origTopic,
+      newTopic: newTopic ?? origTopic,
+      propagateMode: propagateMode,
+    ),
     origContent: origContent,
     origRenderedContent: origContent,
     content: newContent,
@@ -642,12 +705,15 @@ UpdateMessageEvent _updateMessageMoveEvent(
 UpdateMessageEvent updateMessageEventMoveFrom({
   required List<StreamMessage> origMessages,
   int? newStreamId,
-  String? newTopic,
+  TopicName? newTopic,
+  String? newTopicStr,
   String? newContent,
   PropagateMode propagateMode = PropagateMode.changeOne,
 }) {
   _checkPositive(newStreamId, 'stream ID');
   assert(origMessages.isNotEmpty);
+  assert(newTopic == null || newTopicStr == null);
+  newTopic ??= newTopicStr == null ? null : TopicName(newTopicStr);
   final origMessage = origMessages.first;
   // Only present on content change.
   final origContent = (newContent != null) ? origMessage.content : null;
@@ -667,12 +733,15 @@ UpdateMessageEvent updateMessageEventMoveFrom({
 UpdateMessageEvent updateMessageEventMoveTo({
   required List<StreamMessage> newMessages,
   int? origStreamId,
-  String? origTopic,
+  TopicName? origTopic,
+  String? origTopicStr,
   String? origContent,
   PropagateMode propagateMode = PropagateMode.changeOne,
 }) {
   _checkPositive(origStreamId, 'stream ID');
   assert(newMessages.isNotEmpty);
+  assert(origTopic == null || origTopicStr == null);
+  origTopic ??= origTopicStr == null ? null : TopicName(origTopicStr);
   final newMessage = newMessages.first;
   // Only present on topic move.
   final newTopic = (origTopic != null) ? newMessage.topic : null;
@@ -805,9 +874,20 @@ ChannelUpdateEvent channelUpdateEvent(
 // The entire per-account or global state.
 //
 
-TestGlobalStore globalStore({List<Account> accounts = const []}) {
-  return TestGlobalStore(accounts: accounts);
+TestGlobalStore globalStore({
+  GlobalSettingsData? globalSettings,
+  Map<BoolGlobalSetting, bool>? boolGlobalSettings,
+  List<Account> accounts = const [],
+}) {
+  return TestGlobalStore(
+    globalSettings: globalSettings,
+    boolGlobalSettings: boolGlobalSettings,
+    accounts: accounts,
+  );
 }
+const _globalStore = globalStore;
+
+const String defaultRealmEmptyTopicDisplayName = 'test general chat';
 
 InitialSnapshot initialSnapshot({
   String? queueId,
@@ -828,10 +908,13 @@ InitialSnapshot initialSnapshot({
   List<ZulipStream>? streams,
   UserSettings? userSettings,
   List<UserTopicItem>? userTopics,
+  RealmWildcardMentionPolicy? realmWildcardMentionPolicy,
+  bool? realmMandatoryTopics,
   int? realmWaitingPeriodThreshold,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   int? maxFileUploadSizeMib,
   Uri? serverEmojiDataUrl,
+  String? realmEmptyTopicDisplayName,
   List<User>? realmUsers,
   List<User>? realmNonActiveUsers,
   List<User>? crossRealmBots,
@@ -862,11 +945,14 @@ InitialSnapshot initialSnapshot({
       emojiset: Emojiset.google,
     ),
     userTopics: userTopics,
+    realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? RealmWildcardMentionPolicy.everyone,
+    realmMandatoryTopics: realmMandatoryTopics ?? true,
     realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
     serverEmojiDataUrl: serverEmojiDataUrl
       ?? realmUrl.replace(path: '/static/emoji.json'),
+    realmEmptyTopicDisplayName: realmEmptyTopicDisplayName ?? defaultRealmEmptyTopicDisplayName,
     realmUsers: realmUsers ?? [],
     realmNonActiveUsers: realmNonActiveUsers ?? [],
     crossRealmBots: crossRealmBots ?? [],
@@ -874,19 +960,28 @@ InitialSnapshot initialSnapshot({
 }
 const _initialSnapshot = initialSnapshot;
 
-PerAccountStore store({Account? account, InitialSnapshot? initialSnapshot}) {
+PerAccountStore store({
+  GlobalStore? globalStore,
+  Account? account,
+  InitialSnapshot? initialSnapshot,
+}) {
   final effectiveAccount = account ?? selfAccount;
   return PerAccountStore.fromInitialSnapshot(
-    globalStore: globalStore(accounts: [effectiveAccount]),
+    globalStore: globalStore ?? _globalStore(accounts: [effectiveAccount]),
     accountId: effectiveAccount.id,
     initialSnapshot: initialSnapshot ?? _initialSnapshot(),
   );
 }
 const _store = store;
 
-UpdateMachine updateMachine({Account? account, InitialSnapshot? initialSnapshot}) {
+UpdateMachine updateMachine({
+  GlobalStore? globalStore,
+  Account? account,
+  InitialSnapshot? initialSnapshot,
+}) {
   initialSnapshot ??= _initialSnapshot();
-  final store = _store(account: account, initialSnapshot: initialSnapshot);
+  final store = _store(globalStore: globalStore,
+    account: account, initialSnapshot: initialSnapshot);
   return UpdateMachine.fromInitialSnapshot(
     store: store, initialSnapshot: initialSnapshot);
 }

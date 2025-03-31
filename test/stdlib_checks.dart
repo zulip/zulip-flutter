@@ -5,6 +5,7 @@
 /// part of the Dart standard library.
 library;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
@@ -23,6 +24,10 @@ extension NullableMapChecks<K, V> on Subject<Map<K, V>?> {
       return isNotNull().deepEquals(expected);
     }
   }
+}
+
+extension ErrorChecks on Subject<Error> {
+  Subject<String> get asString => has((x) => x.toString(), 'toString'); // TODO(checks): what's a good convention for this?
 }
 
 /// Convert [object] to a pure JSON-like value.
@@ -68,6 +73,10 @@ Object? deepToJson(Object? object) {
       return (null, false);
   }
   return (result, true);
+}
+
+extension CompleterChecks<T> on Subject<Completer<T>> {
+  Subject<bool> get isCompleted => has((x) => x.isCompleted, 'isCompleted');
 }
 
 extension JsonChecks on Subject<Object?> {

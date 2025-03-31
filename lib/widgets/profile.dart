@@ -2,12 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
-import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/content.dart';
 import '../model/narrow.dart';
-import '../model/store.dart';
 import 'app_bar.dart';
 import 'content.dart';
 import 'message_list.dart';
@@ -30,49 +28,23 @@ class ProfilePage extends StatelessWidget {
 
   final int userId;
 
-  static Route<void> buildRoute({int? accountId, BuildContext? context,
+  static AccountRoute<void> buildRoute({int? accountId, BuildContext? context,
       required int userId}) {
     return MaterialAccountWidgetRoute(accountId: accountId, context: context,
       page: ProfilePage(userId: userId));
   }
 
-  /// The given user's real email address, if known, for displaying in the UI.
-  ///
-  /// Returns null if self-user isn't able to see [user]'s real email address.
-  String? _getDisplayEmailFor(User user, {required PerAccountStore store}) {
-    if (store.account.zulipFeatureLevel >= 163) { // TODO(server-7)
-      // A non-null value means self-user has access to [user]'s real email,
-      // while a null value means it doesn't have access to the email.
-      // Search for "delivery_email" in https://zulip.com/api/register-queue.
-      return user.deliveryEmail;
-    } else {
-      if (user.deliveryEmail != null) {
-        // A non-null value means self-user has access to [user]'s real email,
-        // while a null value doesn't necessarily mean it doesn't have access
-        // to the email, ....
-        return user.deliveryEmail;
-      } else if (store.emailAddressVisibility == EmailAddressVisibility.everyone) {
-        // ... we have to also check for [PerAccountStore.emailAddressVisibility].
-        // See:
-        //   * https://github.com/zulip/zulip-mobile/pull/5515#discussion_r997731727
-        //   * https://chat.zulip.org/#narrow/stream/378-api-design/topic/email.20address.20visibility/near/1296133
-        return user.email;
-      } else {
-        return null;
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
-    final user = store.users[userId];
+    final user = store.getUser(userId);
     if (user == null) {
       return const _ProfileErrorPage();
     }
 
-    final displayEmail = _getDisplayEmailFor(user, store: store);
+    final displayEmail = store.userDisplayEmail(user);
     final items = [
       Center(
         child: Avatar(userId: userId, size: 200, borderRadius: 200 / 8)),
@@ -121,17 +93,18 @@ class _ProfileErrorPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     return Scaffold(
-      appBar: ZulipAppBar(title: const Text('Error')),
-      body: const SingleChildScrollView(
+      appBar: ZulipAppBar(title: Text(zulipLocalizations.errorDialogTitle)),
+      body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error),
-              SizedBox(width: 4),
-              Text('Could not show user profile.'),
+              const Icon(Icons.error),
+              const SizedBox(width: 4),
+              Text(zulipLocalizations.errorCouldNotShowUserProfile),
             ]))));
   }
 }
@@ -199,7 +172,7 @@ class _ProfileDataTable extends StatelessWidget {
         // TODO(server): The value's format is undocumented, but empirically
         //   it's a date in ISO format, like 2000-01-01.
         // That's readable as is, but:
-        // TODO format this date using user's locale.
+        // TODO(i18n) format this date using user's locale.
         return _TextWidget(text: value);
 
       case CustomProfileFieldType.shortText:
@@ -290,8 +263,6 @@ class _UserWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final user = store.users[userId];
-    final fullName = user?.fullName ?? '(unknown user)';
     return InkWell(
       onTap: () => Navigator.push(context,
         ProfilePage.buildRoute(context: context,
@@ -299,9 +270,12 @@ class _UserWidget extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: Row(children: [
+          // TODO(#196) render active status
           Avatar(userId: userId, size: 32, borderRadius: 32 / 8),
           const SizedBox(width: 8),
-          Expanded(child: Text(fullName, style: _TextStyles.customProfileFieldText)), // TODO(#196) render active status
+          Expanded(
+            child: Text(store.userDisplayName(userId),
+              style: _TextStyles.customProfileFieldText)),
         ])));
   }
 }

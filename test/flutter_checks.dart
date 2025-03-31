@@ -4,16 +4,25 @@ library;
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 extension PaintChecks on Subject<Paint> {
   Subject<Shader?> get shader => has((x) => x.shader, 'shader');
 }
 
-extension RectChecks on Subject<Rect> {
-  Subject<double> get top => has((d) => d.top, 'top');
-  Subject<double> get bottom => has((d) => d.bottom, 'bottom');
+extension OffsetChecks on Subject<Offset> {
+  Subject<double> get dx => has((x) => x.dx, 'dx');
+  Subject<double> get dy => has((x) => x.dy, 'dy');
+}
 
+extension RectChecks on Subject<Rect> {
+  Subject<double> get left => has((d) => d.left, 'left');
+  Subject<double> get top => has((d) => d.top, 'top');
+  Subject<double> get right => has((d) => d.right, 'right');
+  Subject<double> get bottom => has((d) => d.bottom, 'bottom');
+  Subject<double> get width => has((d) => d.width, 'width');
+  Subject<double> get height => has((d) => d.height, 'height');
   // TODO others
 }
 
@@ -34,6 +43,10 @@ extension GlobalKeyChecks<T extends State<StatefulWidget>> on Subject<GlobalKey<
   Subject<BuildContext?> get currentContext => has((k) => k.currentContext, 'currentContext');
   Subject<Widget?> get currentWidget => has((k) => k.currentWidget, 'currentWidget');
   Subject<T?> get currentState => has((k) => k.currentState, 'currentState');
+}
+
+extension RenderBoxChecks on Subject<RenderBox> {
+  Subject<Size> get size => has((x) => x.size, 'size');
 }
 
 extension IconChecks on Subject<Icon> {
@@ -64,6 +77,12 @@ extension ValueListenableChecks<T> on Subject<ValueListenable<T>> {
 extension TextChecks on Subject<Text> {
   Subject<String?> get data => has((t) => t.data, 'data');
   Subject<TextStyle?> get style => has((t) => t.style, 'style');
+}
+
+extension TextEditingValueChecks on Subject<TextEditingValue> {
+  Subject<String> get text => has((x) => x.text, 'text');
+  Subject<TextSelection> get selection => has((x) => x.selection, 'selection');
+  Subject<TextRange> get composing => has((x) => x.composing, 'composing');
 }
 
 extension TextEditingControllerChecks on Subject<TextEditingController> {
@@ -124,6 +143,11 @@ extension InlineSpanChecks on Subject<InlineSpan> {
   Subject<TextStyle?> get style => has((x) => x.style, 'style');
 }
 
+extension RenderParagraphChecks on Subject<RenderParagraph> {
+  Subject<InlineSpan> get text => has((x) => x.text, 'text');
+  Subject<bool> get didExceedMaxLines => has((x) => x.didExceedMaxLines, 'didExceedMaxLines');
+}
+
 extension SizeChecks on Subject<Size> {
   Subject<double> get width => has((x) => x.width, 'width');
   Subject<double> get height => has((x) => x.height, 'height');
@@ -146,6 +170,18 @@ extension MaterialChecks on Subject<Material> {
 
 extension InputDecorationChecks on Subject<InputDecoration> {
   Subject<String?> get hintText => has((x) => x.hintText, 'hintText');
+}
+
+extension RadioListTileChecks<T> on Subject<RadioListTile<T>> {
+  Subject<bool> get checked => has((x) => x.checked, 'checked');
+}
+
+extension SwitchListTileChecks<T> on Subject<SwitchListTile> {
+  Subject<bool> get value => has((x) => x.value, 'value');
+}
+
+extension ThemeDataChecks on Subject<ThemeData> {
+  Subject<Brightness> get brightness => has((x) => x.brightness, 'brightness');
 }
 
 extension BoxDecorationChecks on Subject<BoxDecoration> {

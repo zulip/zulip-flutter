@@ -77,18 +77,6 @@ void main() {
     checkNotified(count: messageList.fetched ? messages.length : 0);
   }
 
-  test('disposing multiple registered MessageListView instances', () async {
-    // Regression test for: https://github.com/zulip/zulip-flutter/issues/810
-    await prepare(narrow: const MentionsNarrow());
-    MessageListView.init(store: store, narrow: const StarredMessagesNarrow());
-    check(store.debugMessageListViews).length.equals(2);
-
-    // When disposing, the [MessageListView]s are expected to unregister
-    // themselves from the message store.
-    store.dispose();
-    check(store.debugMessageListViews).isEmpty();
-  });
-
   group('reconcileMessages', () {
     test('from empty', () async {
       await prepare();
@@ -320,7 +308,7 @@ void main() {
         final originalDisplayRecipient = origMessages[0].displayRecipient!;
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: origMessages,
-          newTopic:  'new topic'));
+          newTopicStr: 'new topic'));
         checkNotified(count: 2);
         check(store).messages.values.every(((message) =>
           message.isA<StreamMessage>()
@@ -332,7 +320,7 @@ void main() {
         await prepareOrigMessages(origTopic: 'new topic');
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: origMessages,
-          newTopic:  '✔ new topic'));
+          newTopicStr: '✔ new topic'));
         checkNotified(count: 2);
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.none)));
       });
@@ -341,7 +329,7 @@ void main() {
         await prepareOrigMessages(origTopic: '✔ new topic');
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: origMessages,
-          newTopic:  'new topic'));
+          newTopicStr: 'new topic'));
         checkNotified(count: 2);
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.none)));
       });
@@ -350,7 +338,7 @@ void main() {
         await prepareOrigMessages(origTopic: 'new topic');
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: origMessages,
-          newTopic:  '✔ new topic 2'));
+          newTopicStr: '✔ new topic 2'));
         checkNotified(count: 2);
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
       });
@@ -359,7 +347,7 @@ void main() {
         await prepareOrigMessages(origTopic: '✔ new topic');
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: origMessages,
-          newTopic:  'new topic 2'));
+          newTopicStr: 'new topic 2'));
         checkNotified(count: 2);
         check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
       });
