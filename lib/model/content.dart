@@ -345,10 +345,12 @@ class CodeBlockSpanNode extends ContentNode {
 class MathBlockNode extends BlockContentNode {
   const MathBlockNode({
     super.debugHtmlNode,
+    this.debugHasError = false,
     required this.texSource,
     required this.nodes,
   });
 
+  final bool debugHasError;
   final String texSource;
   final List<KatexNode>? nodes;
 
@@ -366,10 +368,13 @@ class MathBlockNode extends BlockContentNode {
 
 class KatexNode extends ContentNode {
   const KatexNode({
+    required this.styles,
     required this.text,
     required this.nodes,
     super.debugHtmlNode,
   }) : assert((text != null) ^ (nodes != null));
+
+  final KatexSpanStyles styles;
 
   /// The text or a single character this KaTeX span contains, generally
   /// observed to be the leaf node in the KaTeX HTML tree.
@@ -383,6 +388,7 @@ class KatexNode extends ContentNode {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
+    properties.add(KatexSpanStylesProperty('styles', styles));
     properties.add(StringProperty('text', text));
   }
 
@@ -856,10 +862,12 @@ class ImageEmojiNode extends EmojiNode {
 class MathInlineNode extends InlineContentNode {
   const MathInlineNode({
     super.debugHtmlNode,
+    this.debugHasError = false,
     required this.texSource,
     required this.nodes,
   });
 
+  final bool debugHasError;
   final String texSource;
   final List<KatexNode>? nodes;
 
@@ -898,7 +906,7 @@ class GlobalTimeNode extends InlineContentNode {
 
 ////////////////////////////////////////////////////////////////
 
-({List<KatexNode>? spans, String texSource})? _parseMath(
+({List<KatexNode>? spans, bool debugHasError, String texSource})? _parseMath(
   dom.Element element, {
   required bool block,
 }) {
@@ -949,13 +957,18 @@ class GlobalTimeNode extends InlineContentNode {
     }
 
     List<KatexNode>? spans;
+    final parser = KatexParser();
     try {
-      spans = KatexParser().parseKatexHTML(katexHtmlElement);
+      spans = parser.parseKatexHTML(katexHtmlElement);
     } on KatexHtmlParseError catch (e, st) {
       assert(debugLog('$e\n$st'));
     }
 
-    return (spans: spans, texSource: texSource);
+    return (
+      spans: spans,
+      debugHasError: parser.debugHasError,
+      texSource: texSource,
+    );
   } else {
     return null;
   }
@@ -976,6 +989,7 @@ class _ZulipInlineContentParser {
     return MathInlineNode(
       texSource: parsed.texSource,
       nodes: parsed.spans,
+      debugHasError: parsed.debugHasError,
       debugHtmlNode: debugHtmlNode);
   }
 
@@ -1683,6 +1697,7 @@ class _ZulipContentParser {
       result.add(MathBlockNode(
         texSource: parsed.texSource,
         nodes: parsed.spans,
+        debugHasError: parsed.debugHasError,
         debugHtmlNode: kDebugMode ? firstChild : null));
     } else {
       result.add(UnimplementedBlockContentNode(htmlNode: firstChild));
