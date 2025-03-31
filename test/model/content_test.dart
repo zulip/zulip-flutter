@@ -6,7 +6,9 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/code_block.dart';
 import 'package:zulip/model/content.dart';
+import 'package:zulip/model/settings.dart';
 
+import 'binding.dart';
 import 'content_checks.dart';
 
 /// An example of Zulip content for test cases.
@@ -514,7 +516,12 @@ class ContentExample {
       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
         '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></p>',
-    const MathInlineNode(texSource: r'\lambda'));
+    const MathInlineNode(texSource: r'\lambda', nodes: [
+      KatexNode(text: null, nodes: [
+        KatexNode(text: null, nodes: []),
+        KatexNode(text: 'λ', nodes: null),
+      ]),
+    ]));
 
   static const mathBlock = ContentExample(
     'math block',
@@ -524,7 +531,12 @@ class ContentExample {
       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
         '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
-    [MathBlockNode(texSource: r'\lambda')]);
+    [MathBlockNode(texSource: r'\lambda', nodes: [
+      KatexNode(text: null, nodes: [
+        KatexNode(text: null, nodes: []),
+        KatexNode(text: 'λ', nodes: null),
+      ]),
+    ])]);
 
   static const mathBlocksMultipleInParagraph = ContentExample(
     'math blocks, multiple in paragraph',
@@ -539,8 +551,18 @@ class ContentExample {
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>b</mi></mrow>'
           '<annotation encoding="application/x-tex">b</annotation></semantics></math></span>'
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span></p>', [
-      MathBlockNode(texSource: 'a'),
-      MathBlockNode(texSource: 'b'),
+      MathBlockNode(texSource: 'a', nodes: [
+        KatexNode(text: null, nodes: [
+          KatexNode(text: null, nodes: []),
+          KatexNode(text: 'a', nodes: null),
+        ]),
+      ]),
+      MathBlockNode(texSource: 'b', nodes: [
+        KatexNode(text: null, nodes: [
+          KatexNode(text: null, nodes: []),
+          KatexNode(text: 'b', nodes: null),
+        ]),
+      ]),
     ]);
 
   static const mathBlockInQuote = ContentExample(
@@ -557,7 +579,14 @@ class ContentExample {
           '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span>'
       '<br>\n</p>\n</blockquote>',
-    [QuotationNode([MathBlockNode(texSource: r'\lambda')])]);
+    [QuotationNode([
+      MathBlockNode(texSource: r'\lambda', nodes: [
+        KatexNode(text: null, nodes: [
+          KatexNode(text: null, nodes: []),
+          KatexNode(text: 'λ', nodes: null),
+        ]),
+      ]),
+    ])]);
 
   static const mathBlocksMultipleInQuote = ContentExample(
     'math blocks, multiple in quote',
@@ -575,8 +604,18 @@ class ContentExample {
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span>'
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([
-      MathBlockNode(texSource: 'a'),
-      MathBlockNode(texSource: 'b'),
+      MathBlockNode(texSource: 'a', nodes: [
+        KatexNode(text: null, nodes: [
+          KatexNode(text: null, nodes: []),
+          KatexNode(text: 'a', nodes: null),
+        ]),
+      ]),
+      MathBlockNode(texSource: 'b', nodes: [
+        KatexNode(text: null, nodes: [
+          KatexNode(text: null, nodes: []),
+          KatexNode(text: 'b', nodes: null),
+        ]),
+      ]),
     ])]);
 
   static const mathBlockBetweenImages = ContentExample(
@@ -604,7 +643,12 @@ class ContentExample {
           originalWidth: null,
           originalHeight: null),
       ]),
-      MathBlockNode(texSource: 'a'),
+      MathBlockNode(texSource: 'a', nodes: [
+        KatexNode(text: null, nodes: [
+          KatexNode(text: null, nodes: []),
+          KatexNode(text: 'a', nodes: null),
+        ]),
+      ]),
       ImageNodeList([
         ImageNode(
           srcUrl: '/external_content/58b0ef9a06d7bb24faec2b11df2f57f476e6f6bb/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f7468756d622f372f37312f5a616164706c75697a656e5f76616e5f65656e5f436c656d617469735f746578656e7369735f2532375072696e636573735f4469616e612532372e5f31382d30372d323032335f2532386163746d2e2532395f30322e6a70672f3132383070782d5a616164706c75697a656e5f76616e5f65656e5f436c656d617469735f746578656e7369735f2532375072696e636573735f4469616e612532372e5f31382d30372d323032335f2532386163746d2e2532395f30322e6a7067',
@@ -1375,7 +1419,7 @@ void testParseExample(ContentExample example) {
   testParse('parse ${example.description}', example.html, example.expectedNodes);
 }
 
-void main() {
+void main() async {
   // When writing test cases in this file:
   //
   //  * Prefer to add a [ContentExample] static and use [testParseExample].
@@ -1383,6 +1427,12 @@ void main() {
   //    calling `testContentSmoke`, for a widgets test on the same example.
   //
   //  * To write the example, see comment at top of [ContentExample].
+
+  TestZulipBinding.ensureInitialized();
+
+  // We need this to be able to test the currently experimental KaTeX code.
+  await testBinding.globalStore.settings.setBool(
+    BoolGlobalSetting.renderKatex, true);
 
   //
   // Inline content.
