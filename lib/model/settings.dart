@@ -113,6 +113,10 @@ enum BoolGlobalSetting {
   /// An experimental flag to toggle rendering KaTeX content in messages.
   renderKatex(GlobalSettingType.experimentalFeatureFlag, false),
 
+  /// An experimental flag to enable rendering KaTeX even when some
+  /// errors are encountered.
+  forceRenderKatex(GlobalSettingType.experimentalFeatureFlag, false),
+
   // Former settings which might exist in the database,
   // whose names should therefore not be reused:
   // (this list is empty so far)

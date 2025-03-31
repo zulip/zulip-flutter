@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -13,6 +14,7 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../model/avatar_url.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
+import '../model/katex.dart';
 import 'actions.dart';
 import 'code_block.dart';
 import 'dialog.dart';
@@ -818,6 +820,13 @@ class MathBlock extends StatelessWidget {
   }
 }
 
+// Base text style from .katex class in katex.scss :
+//   https://github.com/KaTeX/KaTeX/blob/613c3da8/src/styles/katex.scss#L13-L15
+const kBaseKatexTextStyle = TextStyle(
+  fontSize: kBaseFontSize * 1.21,
+  fontFamily: 'KaTeX_Main',
+  height: 1.2);
+
 class _Katex extends StatelessWidget {
   const _Katex({
     required this.inline,
@@ -826,13 +835,6 @@ class _Katex extends StatelessWidget {
 
   final bool inline;
   final List<KatexNode> nodes;
-
-  // Base text style from .katex class in katex.scss :
-  //   https://github.com/KaTeX/KaTeX/blob/613c3da8/src/styles/katex.scss#L13-L15
-  static const _baseKatexTextStyle = TextStyle(
-    fontSize: kBaseFontSize * 1.21,
-    fontFamily: 'KaTeX_Main',
-    height: 1.2);
 
   @override
   Widget build(BuildContext context) {
@@ -854,7 +856,7 @@ class _Katex extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.ltr,
       child: DefaultTextStyle(
-        style: _baseKatexTextStyle.copyWith(
+        style: kBaseKatexTextStyle.copyWith(
           color: ContentTheme.of(context).textStylePlainParagraph.color),
         child: widget));
   }
@@ -867,6 +869,8 @@ class _KatexSpan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
     Widget widget = const SizedBox.shrink();
     if (span.text != null) {
       widget = Text(span.text!);
@@ -878,6 +882,57 @@ class _KatexSpan extends StatelessWidget {
             baseline: TextBaseline.alphabetic,
             child: _KatexSpan(e));
         }))));
+    }
+
+    final styles = span.styles;
+
+    final fontFamily = styles.fontFamily;
+    final fontSize = switch (styles.fontSizeEm) {
+      double fontSizeEm => fontSizeEm * em,
+      null => null,
+    };
+    final fontWeight = switch (styles.fontWeight) {
+      KatexSpanFontWeight.bold => FontWeight.bold,
+      null => null,
+    };
+    var fontStyle = switch (styles.fontStyle) {
+      KatexSpanFontStyle.normal => FontStyle.normal,
+      KatexSpanFontStyle.italic => FontStyle.italic,
+      null => null,
+    };
+
+    TextStyle? textStyle;
+    if (fontFamily != null ||
+        fontSize != null ||
+        fontWeight != null ||
+        fontStyle != null) {
+      // TODO(upstream) remove this workaround when upstream fixes the broken
+      //   rendering of KaTeX_Math font with italic font style on Android:
+      //     https://github.com/flutter/flutter/issues/167474
+      if (defaultTargetPlatform == TargetPlatform.android &&
+          fontFamily == 'KaTeX_Math') {
+        fontStyle = FontStyle.normal;
+      }
+
+      textStyle = TextStyle(
+        fontFamily: fontFamily,
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        fontStyle: fontStyle,
+      );
+    }
+    final textAlign = switch (styles.textAlign) {
+      KatexSpanTextAlign.left => TextAlign.left,
+      KatexSpanTextAlign.center => TextAlign.center,
+      KatexSpanTextAlign.right => TextAlign.right,
+      null => null,
+    };
+
+    if (textStyle != null || textAlign != null) {
+      widget = DefaultTextStyle.merge(
+        style: textStyle,
+        textAlign: textAlign,
+        child: widget);
     }
     return widget;
   }

@@ -371,10 +371,13 @@ class MathBlockNode extends BlockContentNode {
 
 class KatexNode extends ContentNode {
   const KatexNode({
+    required this.styles,
     required this.text,
     required this.nodes,
     super.debugHtmlNode,
   }) : assert((text != null) ^ (nodes != null));
+
+  final KatexSpanStyles styles;
 
   /// The text this KaTeX node contains.
   ///
@@ -389,6 +392,7 @@ class KatexNode extends ContentNode {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<KatexSpanStyles>('styles', styles));
     properties.add(StringProperty('text', text));
   }
 
