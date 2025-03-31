@@ -13,7 +13,7 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../model/avatar_url.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
-import '../model/settings.dart';
+import '../model/katex.dart';
 import 'actions.dart';
 import 'code_block.dart';
 import 'dialog.dart';
@@ -868,6 +868,8 @@ class _KatexSpan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
     Widget widget = const SizedBox.shrink();
     if (span.text != null) widget = Text(span.text!);
     if (span.nodes != null && span.nodes!.isNotEmpty) {
@@ -878,6 +880,46 @@ class _KatexSpan extends StatelessWidget {
             baseline: TextBaseline.alphabetic,
             child: _KatexSpan(e));
         }))));
+    }
+
+    final styles = span.styles;
+    TextStyle? textStyle;
+    TextAlign? textAlign;
+
+    if (styles.fontFamily != null) {
+      textStyle ??= TextStyle();
+      textStyle = textStyle.copyWith(fontFamily: styles.fontFamily);
+    }
+    if (styles.fontSizeEm != null) {
+      textStyle ??= TextStyle();
+      textStyle = textStyle.copyWith(fontSize: styles.fontSizeEm! * em);
+    }
+    if (styles.fontStyle != null) {
+      textStyle ??= TextStyle();
+      textStyle = textStyle.copyWith(fontStyle: switch (styles.fontStyle!) {
+        KatexSpanFontStyle.normal => FontStyle.normal,
+        KatexSpanFontStyle.italic => FontStyle.italic,
+      });
+    }
+    if (styles.fontWeight != null) {
+      textStyle ??= TextStyle();
+      textStyle = textStyle.copyWith(fontWeight: switch (styles.fontWeight!) {
+        KatexSpanFontWeight.bold => FontWeight.bold,
+      });
+    }
+    if (styles.textAlign != null) {
+      textAlign = switch (styles.textAlign!) {
+        KatexSpanTextAlign.left => TextAlign.left,
+        KatexSpanTextAlign.center => TextAlign.center,
+        KatexSpanTextAlign.right => TextAlign.right,
+      };
+    }
+
+    if (textStyle != null || textAlign != null) {
+      widget = DefaultTextStyle.merge(
+        style: textStyle,
+        textAlign: textAlign,
+        child: widget);
     }
     return widget;
   }
@@ -1191,11 +1233,8 @@ class _InlineContentBuilder {
           child: MessageImageEmoji(node: node));
 
       case MathInlineNode():
-        final globalSettings = GlobalStoreWidget.settingsOf(_context!);
         final nodes = node.nodes;
-        final renderKatex =
-          globalSettings.getBool(BoolGlobalSetting.renderKatex);
-        return !renderKatex || nodes == null
+        return nodes == null
           ? TextSpan(
               style: widget.style
                 .merge(ContentTheme.of(_context!).textStyleInlineMath)

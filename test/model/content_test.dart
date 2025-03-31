@@ -7,6 +7,7 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/model/code_block.dart';
 import 'package:zulip/model/content.dart';
 import 'package:zulip/model/settings.dart';
+import 'package:zulip/model/katex.dart';
 
 import 'binding.dart';
 import 'content_checks.dart';
@@ -516,14 +517,19 @@ class ContentExample {
       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
         '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></p>',
-    const MathInlineNode(texSource: r'\lambda', nodes: [
-      KatexNode(text: null, nodes: [
-        KatexNode(text: null, nodes: []),
-        KatexNode(text: 'λ', nodes: null),
+    MathInlineNode(texSource: r'\lambda', nodes: [
+      KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
+        KatexNode(styles: KatexSpanStyles(), text: null, nodes: []),
+        KatexNode(
+          styles: KatexSpanStyles(
+            fontFamily: 'KaTeX_Math',
+            fontStyle: KatexSpanFontStyle.italic),
+          text: 'λ',
+          nodes: null),
       ]),
     ]));
 
-  static const mathBlock = ContentExample(
+  static final mathBlock = ContentExample(
     'math block',
     "```math\n\\lambda\n```",
     expectedText: r'\lambda',
@@ -532,13 +538,18 @@ class ContentExample {
         '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
     [MathBlockNode(texSource: r'\lambda', nodes: [
-      KatexNode(text: null, nodes: [
-        KatexNode(text: null, nodes: []),
-        KatexNode(text: 'λ', nodes: null),
+      KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
+        KatexNode(styles: KatexSpanStyles(), text: null, nodes: []),
+        KatexNode(
+          styles: KatexSpanStyles(
+            fontFamily: 'KaTeX_Math',
+            fontStyle: KatexSpanFontStyle.italic),
+          text: 'λ',
+          nodes: null),
       ]),
     ])]);
 
-  static const mathBlocksMultipleInParagraph = ContentExample(
+  static final mathBlocksMultipleInParagraph = ContentExample(
     'math blocks, multiple in paragraph',
     '```math\na\n\nb\n```',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/.E2.9C.94.20Rajesh/near/2001490
@@ -552,20 +563,30 @@ class ContentExample {
           '<annotation encoding="application/x-tex">b</annotation></semantics></math></span>'
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span></p>', [
       MathBlockNode(texSource: 'a', nodes: [
-        KatexNode(text: null, nodes: [
-          KatexNode(text: null, nodes: []),
-          KatexNode(text: 'a', nodes: null),
+        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexNode(styles: KatexSpanStyles(), text: null, nodes: []),
+          KatexNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'a',
+            nodes: null),
         ]),
       ]),
       MathBlockNode(texSource: 'b', nodes: [
-        KatexNode(text: null, nodes: [
-          KatexNode(text: null, nodes: []),
-          KatexNode(text: 'b', nodes: null),
+        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexNode(styles: KatexSpanStyles(), text: null, nodes: []),
+          KatexNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'b',
+            nodes: null),
         ]),
       ]),
     ]);
 
-  static const mathBlockInQuote = ContentExample(
+  static final mathBlockInQuote = ContentExample(
     'math block in quote',
     // There's sometimes a quirky extra `<br>\n` at the end of the `<p>` that
     // encloses the math block.  In particular this happens when the math block
@@ -581,14 +602,19 @@ class ContentExample {
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([
       MathBlockNode(texSource: r'\lambda', nodes: [
-        KatexNode(text: null, nodes: [
-          KatexNode(text: null, nodes: []),
-          KatexNode(text: 'λ', nodes: null),
+        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexNode(styles: KatexSpanStyles(), text: null, nodes: []),
+          KatexNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'λ',
+            nodes: null),
         ]),
       ]),
     ])]);
 
-  static const mathBlocksMultipleInQuote = ContentExample(
+  static final mathBlocksMultipleInQuote = ContentExample(
     'math blocks, multiple in quote',
     "````quote\n```math\na\n\nb\n```\n````",
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/.E2.9C.94.20Rajesh/near/2029236
@@ -605,20 +631,30 @@ class ContentExample {
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([
       MathBlockNode(texSource: 'a', nodes: [
-        KatexNode(text: null, nodes: [
-          KatexNode(text: null, nodes: []),
-          KatexNode(text: 'a', nodes: null),
+        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexNode(styles: KatexSpanStyles(), text: null, nodes: []),
+          KatexNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'a',
+            nodes: null),
         ]),
       ]),
       MathBlockNode(texSource: 'b', nodes: [
-        KatexNode(text: null, nodes: [
-          KatexNode(text: null, nodes: []),
-          KatexNode(text: 'b', nodes: null),
+        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexNode(styles: KatexSpanStyles(), text: null, nodes: []),
+          KatexNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'b',
+            nodes: null),
         ]),
       ]),
     ])]);
 
-  static const mathBlockBetweenImages = ContentExample(
+  static final mathBlockBetweenImages = ContentExample(
     'math block between images',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Greg/near/2035891
     'https://upload.wikimedia.org/wikipedia/commons/7/78/Verregende_bloem_van_een_Helenium_%27El_Dorado%27._22-07-2023._%28d.j.b%29.jpg\n```math\na\n```\nhttps://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Zaadpluizen_van_een_Clematis_texensis_%27Princess_Diana%27._18-07-2023_%28actm.%29_02.jpg/1280px-Zaadpluizen_van_een_Clematis_texensis_%27Princess_Diana%27._18-07-2023_%28actm.%29_02.jpg',
@@ -644,9 +680,13 @@ class ContentExample {
           originalHeight: null),
       ]),
       MathBlockNode(texSource: 'a', nodes: [
-        KatexNode(text: null, nodes: [
-          KatexNode(text: null, nodes: []),
-          KatexNode(text: 'a', nodes: null),
+        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexNode(styles: KatexSpanStyles(),text: null, nodes: []),
+          KatexNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'a', nodes: null),
         ]),
       ]),
       ImageNodeList([
@@ -657,6 +697,231 @@ class ContentExample {
           originalWidth: null,
           originalHeight: null),
       ]),
+    ]);
+
+  // The font sizes can be compared using the katex.css generated
+  // from katex.scss :
+  //   https://unpkg.com/katex@0.16.21/dist/katex.css
+  static final mathBlockKatexSizing = ContentExample(
+    'math block; KaTeX different sizing',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2147558
+    "```math\n\\tiny {\\lambda \\Huge \\lambda}\n\n\\Huge \\lambda\n\\huge \\lambda\n\\LARGE \\lambda\n\\Large \\lambda\n\\large \\lambda\n\\normalsize \\lambda\n\\small \\lambda\n\\footnotesize \\lambda\n\\scriptsize \\lambda\n\\tiny \\lambda\n```",
+    '<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mstyle mathsize="0.5em"><mrow><mi>λ</mi><mstyle mathsize="2.488em"><mi>λ</mi></mstyle></mrow></mstyle></mrow>'
+          '<annotation encoding="application/x-tex">\\tiny {\\lambda \\Huge \\lambda}</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base">'
+            '<span class="strut" style="height:1.7278em;"></span>'
+            '<span class="mord sizing reset-size6 size1">'
+              '<span class="mord mathnormal">λ</span>'
+              '<span class="mord mathnormal sizing reset-size1 size11">λ</span></span></span></span></span></span>\n\n'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mstyle mathsize="2.488em"><mi>λ</mi><mstyle mathsize="2.074em"><mi>λ</mi><mstyle mathsize="1.728em"><mi>λ</mi><mstyle mathsize="1.44em"><mi>λ</mi><mstyle mathsize="1.2em"><mi>λ</mi><mstyle mathsize="1em"><mi>λ</mi><mstyle mathsize="0.9em"><mi>λ</mi><mstyle mathsize="0.8em"><mi>λ</mi><mstyle mathsize="0.7em"><mi>λ</mi><mstyle mathsize="0.5em"><mi>λ</mi></mstyle></mstyle></mstyle></mstyle></mstyle></mstyle></mstyle></mstyle></mstyle></mstyle></mrow>'
+          '<annotation encoding="application/x-tex">\\Huge \\lambda\n\\huge \\lambda\n\\LARGE \\lambda\n\\Large \\lambda\n\\large \\lambda\n\\normalsize \\lambda\n\\small \\lambda\n\\footnotesize \\lambda\n\\scriptsize \\lambda\n\\tiny \\lambda</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base">'
+            '<span class="strut" style="height:1.7278em;"></span>'
+            '<span class="mord mathnormal sizing reset-size6 size11">λ</span>'
+            '<span class="mord mathnormal sizing reset-size6 size10">λ</span>'
+            '<span class="mord mathnormal sizing reset-size6 size9">λ</span>'
+            '<span class="mord mathnormal sizing reset-size6 size8">λ</span>'
+            '<span class="mord mathnormal sizing reset-size6 size7">λ</span>'
+            '<span class="mord mathnormal sizing reset-size6 size6">λ</span>'
+            '<span class="mord mathnormal sizing reset-size6 size5">λ</span>'
+            '<span class="mord mathnormal sizing reset-size6 size4">λ</span>'
+            '<span class="mord mathnormal sizing reset-size6 size3">λ</span>'
+            '<span class="mord mathnormal sizing reset-size6 size1">λ</span></span></span></span></span></p>',
+    [
+      MathBlockNode(
+        texSource: "\\tiny {\\lambda \\Huge \\lambda}",
+        nodes: [
+          KatexNode(
+            styles: KatexSpanStyles(),
+            text: null,
+            nodes: [
+              KatexNode(
+                styles: KatexSpanStyles(),
+                text: null,
+                nodes: []),
+              KatexNode(
+                styles: KatexSpanStyles(fontSizeEm: 0.5),
+                text: null,
+                nodes: [
+                  KatexNode(
+                    styles: KatexSpanStyles(
+                      fontFamily: 'KaTeX_Math',
+                      fontStyle: KatexSpanFontStyle.italic),
+                    text: 'λ',
+                    nodes: null),
+                  KatexNode(
+                    styles: KatexSpanStyles(
+                      fontFamily: 'KaTeX_Math',
+                      fontSizeEm: 4.976, // .reset-size1.size11
+                      fontStyle: KatexSpanFontStyle.italic),
+                    text: 'λ',
+                    nodes: null),
+                ]),
+            ]),
+        ]),
+      MathBlockNode(
+        texSource: "\\Huge \\lambda\n\\huge \\lambda\n\\LARGE \\lambda\n\\Large \\lambda\n\\large \\lambda\n\\normalsize \\lambda\n\\small \\lambda\n\\footnotesize \\lambda\n\\scriptsize \\lambda\n\\tiny \\lambda",
+        nodes: [
+          KatexNode(
+            styles: KatexSpanStyles(),
+            text: null,
+            nodes: [
+              KatexNode(
+                styles: KatexSpanStyles(),
+                text: null,
+                nodes: []),
+              KatexNode(
+                styles: KatexSpanStyles(
+                  fontFamily: 'KaTeX_Math',
+                  fontSizeEm: 2.488, // .reset-size6.size11
+                  fontStyle: KatexSpanFontStyle.italic),
+                text: 'λ',
+                nodes: null),
+              KatexNode(
+                styles: KatexSpanStyles(
+                  fontFamily: 'KaTeX_Math',
+                  fontSizeEm: 2.074, // .reset-size6.size10
+                  fontStyle: KatexSpanFontStyle.italic),
+                text: 'λ',
+                nodes: null),
+              KatexNode(
+                styles: KatexSpanStyles(
+                  fontFamily: 'KaTeX_Math',
+                  fontSizeEm: 1.728, // .reset-size6.size9
+                  fontStyle: KatexSpanFontStyle.italic),
+                text: 'λ',
+                nodes: null),
+              KatexNode(
+                styles: KatexSpanStyles(
+                  fontFamily: 'KaTeX_Math',
+                  fontSizeEm: 1.44, // .reset-size6.size8
+                  fontStyle: KatexSpanFontStyle.italic),
+                text: 'λ',
+                nodes: null),
+              KatexNode(
+                styles: KatexSpanStyles(
+                  fontFamily: 'KaTeX_Math',
+                  fontSizeEm: 1.2, // .reset-size6.size7
+                  fontStyle: KatexSpanFontStyle.italic),
+                text: 'λ',
+                nodes: null),
+              KatexNode(
+                styles: KatexSpanStyles(
+                  fontFamily: 'KaTeX_Math',
+                  fontSizeEm: 1.0, // .reset-size6.size6
+                  fontStyle: KatexSpanFontStyle.italic),
+                text: 'λ',
+                nodes: null),
+              KatexNode(
+                styles: KatexSpanStyles(
+                  fontFamily: 'KaTeX_Math',
+                  fontSizeEm: 0.9, // .reset-size6.size5
+                  fontStyle: KatexSpanFontStyle.italic),
+                text: 'λ',
+                nodes: null),
+              KatexNode(
+                styles: KatexSpanStyles(
+                  fontFamily: 'KaTeX_Math',
+                  fontSizeEm: 0.8, // .reset-size6.size4
+                  fontStyle: KatexSpanFontStyle.italic),
+                text: 'λ',
+                nodes: null),
+              KatexNode(
+                styles: KatexSpanStyles(
+                  fontFamily: 'KaTeX_Math',
+                  fontSizeEm: 0.7, // .reset-size6.size3
+                  fontStyle: KatexSpanFontStyle.italic),
+                text: 'λ',
+                nodes: null),
+              KatexNode(
+                styles: KatexSpanStyles(
+                  fontFamily: 'KaTeX_Math',
+                  fontSizeEm: 0.5, // .reset-size6.size1
+                  fontStyle: KatexSpanFontStyle.italic),
+                text: 'λ',
+                nodes: null),
+            ]),
+        ]),
+    ]);
+
+  static final mathBlockKatexDelimSizing = ContentExample(
+    'math block; KaTeX delimiter sizing',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2147135
+    '```math\n( \\big( \\Big( \\bigg( \\Bigg(\n```',
+    '<p><span class="katex-display"><span class="katex">'
+      '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">(</mo><mo fence="false" stretchy="true" minsize="2.4em" maxsize="2.4em">(</mo><mo fence="false" stretchy="true" minsize="3em" maxsize="3em">(</mo></mrow>'
+        '<annotation encoding="application/x-tex">( \\big( \\Big( \\bigg( \\Bigg(</annotation></semantics></math></span>'
+      '<span class="katex-html" aria-hidden="true">'
+        '<span class="base">'
+          '<span class="strut" style="height:3em;vertical-align:-1.25em;"></span>'
+          '<span class="mopen">(</span>'
+          '<span class="mord">'
+            '<span class="delimsizing size1">(</span></span>'
+          '<span class="mord">'
+            '<span class="delimsizing size2">(</span></span>'
+          '<span class="mord">'
+            '<span class="delimsizing size3">(</span></span>'
+          '<span class="mord">'
+            '<span class="delimsizing size4">(</span></span></span></span></span></span></p>',
+    [
+      MathBlockNode(
+        texSource: '( \\big( \\Big( \\bigg( \\Bigg(',
+        nodes: [
+          KatexNode(
+            styles: KatexSpanStyles(),
+            text: null,
+            nodes: [
+              KatexNode(
+                styles: KatexSpanStyles(),
+                text: null,
+                nodes: []),
+              KatexNode(
+                styles: KatexSpanStyles(),
+                text: '(',
+                nodes: null),
+              KatexNode(
+                styles: KatexSpanStyles(),
+                text: null,
+                nodes: [
+                  KatexNode(
+                    styles: KatexSpanStyles(fontFamily: 'KaTeX_Size1'),
+                    text: '(',
+                    nodes: null),
+                ]),
+              KatexNode(
+                styles: KatexSpanStyles(),
+                text: null,
+                nodes: [
+                  KatexNode(
+                    styles: KatexSpanStyles(fontFamily: 'KaTeX_Size2'),
+                    text: '(',
+                    nodes: null),
+                ]),
+              KatexNode(
+                styles: KatexSpanStyles(),
+                text: null,
+                nodes: [
+                  KatexNode(
+                    styles: KatexSpanStyles(fontFamily: 'KaTeX_Size3'),
+                    text: '(',
+                    nodes: null),
+                ]),
+              KatexNode(
+                styles: KatexSpanStyles(),
+                text: null,
+                nodes: [
+                  KatexNode(
+                    styles: KatexSpanStyles(fontFamily: 'KaTeX_Size4'),
+                    text: '(',
+                    nodes: null),
+                ]),
+            ]),
+        ]),
     ]);
 
   static const imageSingle = ContentExample(
@@ -1724,6 +1989,8 @@ void main() async {
   testParseExample(ContentExample.mathBlockInQuote);
   testParseExample(ContentExample.mathBlocksMultipleInQuote);
   testParseExample(ContentExample.mathBlockBetweenImages);
+  testParseExample(ContentExample.mathBlockKatexSizing);
+  testParseExample(ContentExample.mathBlockKatexDelimSizing);
 
   testParseExample(ContentExample.imageSingle);
   testParseExample(ContentExample.imageSingleNoDimensions);

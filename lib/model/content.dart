@@ -365,10 +365,13 @@ class MathBlockNode extends BlockContentNode {
 
 class KatexNode extends ContentNode {
   const KatexNode({
+    required this.styles,
     required this.text,
     required this.nodes,
     super.debugHtmlNode,
   }) : assert((text != null) ^ (nodes != null));
+
+  final KatexSpanStyles styles;
 
   /// The text or a single character this KaTeX node contains, generally
   /// observed to be the leaf node in the KaTeX HTML tree.
@@ -382,6 +385,7 @@ class KatexNode extends ContentNode {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
+    properties.add(KatexSpanStylesProperty('styles', styles));
     properties.add(StringProperty('text', text));
   }
 
