@@ -79,14 +79,20 @@ void main() {
       final globalSettings = eg.globalStore(boolGlobalSettings: {}).settings;
       check(globalSettings).getBool(BoolGlobalSetting.placeholderIgnore)
         .isFalse();
+      check(globalSettings).getBool(BoolGlobalSetting.renderKatex)
+        .isFalse();
       assert(!BoolGlobalSetting.placeholderIgnore.default_);
+      assert(!BoolGlobalSetting.renderKatex.default_);
     });
 
     test('get from initial load', () {
       final globalSettings = eg.globalStore(boolGlobalSettings: {
         BoolGlobalSetting.placeholderIgnore: true,
+        BoolGlobalSetting.renderKatex: true,
       }).settings;
       check(globalSettings).getBool(BoolGlobalSetting.placeholderIgnore)
+        .isTrue();
+      check(globalSettings).getBool(BoolGlobalSetting.renderKatex)
         .isTrue();
     });
 
@@ -94,27 +100,42 @@ void main() {
       final globalSettings = eg.globalStore(boolGlobalSettings: {}).settings;
       check(globalSettings).getBool(BoolGlobalSetting.placeholderIgnore)
         .isFalse();
+      check(globalSettings).getBool(BoolGlobalSetting.renderKatex)
+        .isFalse();
 
       await globalSettings.setBool(BoolGlobalSetting.placeholderIgnore, true);
+      await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
       check(globalSettings).getBool(BoolGlobalSetting.placeholderIgnore)
+        .isTrue();
+      check(globalSettings).getBool(BoolGlobalSetting.renderKatex)
         .isTrue();
 
       await globalSettings.setBool(BoolGlobalSetting.placeholderIgnore, false);
+      await globalSettings.setBool(BoolGlobalSetting.renderKatex, false);
       check(globalSettings).getBool(BoolGlobalSetting.placeholderIgnore)
+        .isFalse();
+      check(globalSettings).getBool(BoolGlobalSetting.renderKatex)
         .isFalse();
     });
 
     test('set to null -> revert to default', () async {
       final globalSettings = eg.globalStore(boolGlobalSettings: {
         BoolGlobalSetting.placeholderIgnore: true,
+        BoolGlobalSetting.renderKatex: true,
       }).settings;
       check(globalSettings).getBool(BoolGlobalSetting.placeholderIgnore)
         .isTrue();
+      check(globalSettings).getBool(BoolGlobalSetting.renderKatex)
+        .isTrue();
 
       await globalSettings.setBool(BoolGlobalSetting.placeholderIgnore, null);
+      await globalSettings.setBool(BoolGlobalSetting.renderKatex, null);
       check(globalSettings).getBool(BoolGlobalSetting.placeholderIgnore)
         .isFalse();
+      check(globalSettings).getBool(BoolGlobalSetting.renderKatex)
+        .isFalse();
       assert(!BoolGlobalSetting.placeholderIgnore.default_);
+      assert(!BoolGlobalSetting.renderKatex.default_);
     });
   });
 }
