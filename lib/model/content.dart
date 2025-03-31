@@ -5,7 +5,9 @@ import 'package:html/parser.dart';
 
 import '../api/model/model.dart';
 import '../api/model/submessage.dart';
+import '../log.dart';
 import 'code_block.dart';
+import 'katex.dart';
 
 /// A node in a parse tree for Zulip message-style content.
 ///
@@ -341,22 +343,52 @@ class CodeBlockSpanNode extends ContentNode {
 }
 
 class MathBlockNode extends BlockContentNode {
-  const MathBlockNode({super.debugHtmlNode, required this.texSource});
+  const MathBlockNode({
+    super.debugHtmlNode,
+    required this.texSource,
+    required this.nodes,
+  });
 
   final String texSource;
-
-  @override
-  bool operator ==(Object other) {
-    return other is MathBlockNode && other.texSource == texSource;
-  }
-
-  @override
-  int get hashCode => Object.hash('MathBlockNode', texSource);
+  final List<KatexNode>? nodes;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(StringProperty('texSource', texSource));
+  }
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return nodes?.map((node) => node.toDiagnosticsNode()).toList() ?? const [];
+  }
+}
+
+class KatexNode extends ContentNode {
+  const KatexNode({
+    required this.text,
+    required this.nodes,
+    super.debugHtmlNode,
+  }) : assert((text != null) ^ (nodes != null));
+
+  /// The text or a single character this KaTeX span contains, generally
+  /// observed to be the leaf node in the KaTeX HTML tree.
+  /// It will be null if this span has child nodes.
+  final String? text;
+
+  /// The child nodes of this span in the KaTeX HTML tree.
+  /// It will be null if this span is a text node.
+  final List<KatexNode>? nodes;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('text', text));
+  }
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return nodes?.map((node) => node.toDiagnosticsNode()).toList() ?? const [];
   }
 }
 
@@ -822,22 +854,24 @@ class ImageEmojiNode extends EmojiNode {
 }
 
 class MathInlineNode extends InlineContentNode {
-  const MathInlineNode({super.debugHtmlNode, required this.texSource});
+  const MathInlineNode({
+    super.debugHtmlNode,
+    required this.texSource,
+    required this.nodes,
+  });
 
   final String texSource;
-
-  @override
-  bool operator ==(Object other) {
-    return other is MathInlineNode && other.texSource == texSource;
-  }
-
-  @override
-  int get hashCode => Object.hash('MathInlineNode', texSource);
+  final List<KatexNode>? nodes;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(StringProperty('texSource', texSource));
+  }
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return nodes?.map((node) => node.toDiagnosticsNode()).toList() ?? const [];
   }
 }
 
@@ -864,7 +898,10 @@ class GlobalTimeNode extends InlineContentNode {
 
 ////////////////////////////////////////////////////////////////
 
-String? _parseMath(dom.Element element, {required bool block}) {
+({List<KatexNode>? spans, String texSource})? _parseMath(
+  dom.Element element, {
+  required bool block,
+}) {
   final dom.Element katexElement;
   if (!block) {
     assert(element.localName == 'span' && element.className == 'katex');
@@ -882,8 +919,6 @@ String? _parseMath(dom.Element element, {required bool block}) {
     }
   }
 
-  // Expect two children span.katex-mathml, span.katex-html .
-  // For now we only care about the .katex-mathml .
   if (katexElement.nodes case [
     dom.Element(localName: 'span', className: 'katex-mathml', nodes: [
       dom.Element(
@@ -891,7 +926,8 @@ String? _parseMath(dom.Element element, {required bool block}) {
         namespaceUri: 'http://www.w3.org/1998/Math/MathML')
           && final mathElement,
     ]),
-    ...
+    dom.Element(localName: 'span', className: 'katex-html', nodes: [...])
+      && final katexHtmlElement,
   ]) {
     if (mathElement.attributes['display'] != (block ? 'block' : null)) {
       return null;
@@ -911,7 +947,15 @@ String? _parseMath(dom.Element element, {required bool block}) {
     } else {
       return null;
     }
-    return texSource;
+
+    List<KatexNode>? spans;
+    try {
+      spans = KatexParser().parseKatexHTML(katexHtmlElement);
+    } on KatexHtmlParseError catch (e, st) {
+      assert(debugLog('$e\n$st'));
+    }
+
+    return (spans: spans, texSource: texSource);
   } else {
     return null;
   }
@@ -927,9 +971,12 @@ String? _parseMath(dom.Element element, {required bool block}) {
 class _ZulipInlineContentParser {
   InlineContentNode? parseInlineMath(dom.Element element) {
     final debugHtmlNode = kDebugMode ? element : null;
-    final texSource = _parseMath(element, block: false);
-    if (texSource == null) return null;
-    return MathInlineNode(texSource: texSource, debugHtmlNode: debugHtmlNode);
+    final parsed = _parseMath(element, block: false);
+    if (parsed == null) return null;
+    return MathInlineNode(
+      texSource: parsed.texSource,
+      nodes: parsed.spans,
+      debugHtmlNode: debugHtmlNode);
   }
 
   UserMentionNode? parseUserMention(dom.Element element) {
@@ -1631,10 +1678,11 @@ class _ZulipContentParser {
     })());
 
     final firstChild = nodes.first as dom.Element;
-    final texSource = _parseMath(firstChild, block: true);
-    if (texSource != null) {
+    final parsed = _parseMath(firstChild, block: true);
+    if (parsed != null) {
       result.add(MathBlockNode(
-        texSource: texSource,
+        texSource: parsed.texSource,
+        nodes: parsed.spans,
         debugHtmlNode: kDebugMode ? firstChild : null));
     } else {
       result.add(UnimplementedBlockContentNode(htmlNode: firstChild));
@@ -1666,10 +1714,11 @@ class _ZulipContentParser {
       if (child case dom.Text(text: '\n\n')) continue;
 
       if (child case dom.Element(localName: 'span', className: 'katex-display')) {
-        final texSource = _parseMath(child, block: true);
-        if (texSource != null) {
+        final parsed = _parseMath(child, block: true);
+        if (parsed != null) {
           result.add(MathBlockNode(
-            texSource: texSource,
+            texSource: parsed.texSource,
+            nodes: parsed.spans,
             debugHtmlNode: debugHtmlNode));
           continue;
         }
