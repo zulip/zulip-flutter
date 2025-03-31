@@ -6,6 +6,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/code_block.dart';
 import 'package:zulip/model/content.dart';
+import 'package:zulip/model/katex.dart';
 
 import 'content_checks.dart';
 
@@ -514,14 +515,19 @@ class ContentExample {
       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
         '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></p>',
-    const MathInlineNode(texSource: r'\lambda', nodes: [
-      KatexSpanNode(text: null, nodes: [
-        KatexSpanNode(text: null, nodes: []),
-        KatexSpanNode(text: 'λ', nodes: []),
+    MathInlineNode(texSource: r'\lambda', nodes: [
+      KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: []),
+        KatexSpanNode(
+          styles: KatexSpanStyles(
+            fontFamily: 'KaTeX_Math',
+            fontStyle: KatexSpanFontStyle.italic),
+          text: 'λ',
+          nodes: []),
       ]),
     ]));
 
-  static const mathBlock = ContentExample(
+  static final mathBlock = ContentExample(
     'math block',
     "```math\n\\lambda\n```",
     expectedText: r'\lambda',
@@ -530,13 +536,18 @@ class ContentExample {
         '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
     [MathBlockNode(texSource: r'\lambda', nodes: [
-      KatexSpanNode(text: null, nodes: [
-        KatexSpanNode(text: null, nodes: []),
-        KatexSpanNode(text: 'λ', nodes: []),
+      KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: []),
+        KatexSpanNode(
+          styles: KatexSpanStyles(
+            fontFamily: 'KaTeX_Math',
+            fontStyle: KatexSpanFontStyle.italic),
+          text: 'λ',
+          nodes: []),
       ]),
     ])]);
 
-  static const mathBlocksMultipleInParagraph = ContentExample(
+  static final mathBlocksMultipleInParagraph = ContentExample(
     'math blocks, multiple in paragraph',
     '```math\na\n\nb\n```',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/.E2.9C.94.20Rajesh/near/2001490
@@ -550,20 +561,30 @@ class ContentExample {
           '<annotation encoding="application/x-tex">b</annotation></semantics></math></span>'
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span></p>', [
       MathBlockNode(texSource: 'a', nodes: [
-        KatexSpanNode(text: null, nodes: [
-          KatexSpanNode(text: null, nodes: []),
-          KatexSpanNode(text: 'a', nodes: []),
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: []),
+          KatexSpanNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'a',
+            nodes: []),
         ]),
       ]),
       MathBlockNode(texSource: 'b', nodes: [
-        KatexSpanNode(text: null, nodes: [
-          KatexSpanNode(text: null, nodes: []),
-          KatexSpanNode(text: 'b', nodes: []),
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: []),
+          KatexSpanNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'b',
+            nodes: []),
         ]),
       ]),
     ]);
 
-  static const mathBlockInQuote = ContentExample(
+  static final mathBlockInQuote = ContentExample(
     'math block in quote',
     // There's sometimes a quirky extra `<br>\n` at the end of the `<p>` that
     // encloses the math block.  In particular this happens when the math block
@@ -579,14 +600,19 @@ class ContentExample {
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([
       MathBlockNode(texSource: r'\lambda', nodes: [
-        KatexSpanNode(text: null, nodes: [
-          KatexSpanNode(text: null, nodes: []),
-          KatexSpanNode(text: 'λ', nodes: []),
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: []),
+          KatexSpanNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'λ',
+            nodes: []),
         ]),
       ]),
     ])]);
 
-  static const mathBlocksMultipleInQuote = ContentExample(
+  static final mathBlocksMultipleInQuote = ContentExample(
     'math blocks, multiple in quote',
     "````quote\n```math\na\n\nb\n```\n````",
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/.E2.9C.94.20Rajesh/near/2029236
@@ -603,20 +629,29 @@ class ContentExample {
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([
       MathBlockNode(texSource: 'a', nodes: [
-        KatexSpanNode(text: null, nodes: [
-          KatexSpanNode(text: null, nodes: []),
-          KatexSpanNode(text: 'a', nodes: []),
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: []),
+          KatexSpanNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'a',
+            nodes: []),
         ]),
       ]),
       MathBlockNode(texSource: 'b', nodes: [
-        KatexSpanNode(text: null, nodes: [
-          KatexSpanNode(text: null, nodes: []),
-          KatexSpanNode(text: 'b', nodes: []),
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: []),
+          KatexSpanNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'b', nodes: []),
         ]),
       ]),
     ])]);
 
-  static const mathBlockBetweenImages = ContentExample(
+  static final mathBlockBetweenImages = ContentExample(
     'math block between images',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Greg/near/2035891
     'https://upload.wikimedia.org/wikipedia/commons/7/78/Verregende_bloem_van_een_Helenium_%27El_Dorado%27._22-07-2023._%28d.j.b%29.jpg\n```math\na\n```\nhttps://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Zaadpluizen_van_een_Clematis_texensis_%27Princess_Diana%27._18-07-2023_%28actm.%29_02.jpg/1280px-Zaadpluizen_van_een_Clematis_texensis_%27Princess_Diana%27._18-07-2023_%28actm.%29_02.jpg',
@@ -642,9 +677,13 @@ class ContentExample {
           originalHeight: null),
       ]),
       MathBlockNode(texSource: 'a', nodes: [
-        KatexSpanNode(text: null, nodes: [
-          KatexSpanNode(text: null, nodes: []),
-          KatexSpanNode(text: 'a', nodes: []),
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexSpanNode(styles: KatexSpanStyles(),text: null, nodes: []),
+          KatexSpanNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'a', nodes: []),
         ]),
       ]),
       ImageNodeList([

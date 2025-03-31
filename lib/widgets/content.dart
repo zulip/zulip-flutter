@@ -15,6 +15,7 @@ import '../model/avatar_url.dart';
 import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
+import '../model/katex.dart';
 import '../model/settings.dart';
 import 'code_block.dart';
 import 'dialog.dart';
@@ -853,6 +854,7 @@ class _Katex extends StatelessWidget {
       textDirection: TextDirection.ltr,
       child: DefaultTextStyle(
         style: TextStyle(
+          color: ContentTheme.of(context).textStylePlainParagraph.color,
           fontSize: kBaseFontSize * 1.21,
           fontFamily: 'KaTeX_Main',
           height: 1.2),
@@ -867,6 +869,8 @@ class _KatexSpan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
     Widget widget = const SizedBox.shrink();
     if (span.text != null) widget = Text(span.text!);
     if (span.nodes.isNotEmpty) {
@@ -878,6 +882,46 @@ class _KatexSpan extends StatelessWidget {
               baseline: TextBaseline.alphabetic,
               child: _KatexSpan(e));
           }))));
+    }
+
+    final styles = span.styles;
+    TextStyle? textStyle;
+    TextAlign? textAlign;
+
+    if (styles.fontFamily != null) {
+      textStyle ??= TextStyle();
+      textStyle = textStyle.copyWith(fontFamily: styles.fontFamily);
+    }
+    if (styles.fontSizeEm != null) {
+      textStyle ??= TextStyle();
+      textStyle = textStyle.copyWith(fontSize: styles.fontSizeEm! * em);
+    }
+    if (styles.fontStyle != null) {
+      textStyle ??= TextStyle();
+      textStyle = textStyle.copyWith(fontStyle: switch (styles.fontStyle!) {
+        KatexSpanFontStyle.normal => FontStyle.normal,
+        KatexSpanFontStyle.italic => FontStyle.italic,
+      });
+    }
+    if (styles.fontWeight != null) {
+      textStyle ??= TextStyle();
+      textStyle = textStyle.copyWith(fontWeight: switch (styles.fontWeight!) {
+        KatexSpanFontWeight.bold => FontWeight.bold,
+      });
+    }
+    if (styles.textAlign != null) {
+      textAlign = switch (styles.textAlign!) {
+        KatexSpanTextAlign.left => TextAlign.left,
+        KatexSpanTextAlign.center => TextAlign.center,
+        KatexSpanTextAlign.right => TextAlign.right,
+      };
+    }
+
+    if (textStyle != null || textAlign != null) {
+      widget = DefaultTextStyle.merge(
+        style: textStyle,
+        textAlign: textAlign,
+        child: widget);
     }
     return widget;
   }

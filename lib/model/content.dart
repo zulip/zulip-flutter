@@ -366,17 +366,20 @@ class MathBlockNode extends BlockContentNode {
 
 class KatexSpanNode extends ContentNode {
   const KatexSpanNode({
+    required this.styles,
     required this.text,
     required this.nodes,
     super.debugHtmlNode,
   });
 
+  final KatexSpanStyles styles;
   final String? text;
   final List<KatexSpanNode> nodes;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
+    properties.add(KatexSpanStylesProperty('styles', styles));
     properties.add(StringProperty('text', text));
   }
 
