@@ -1365,6 +1365,9 @@ void main() {
       of: find.byType(MessageItem),
       matching: find.text(content, findRichText: true)).hitTestable();
 
+    Finder messageIsntSentErrorFinder = find.text(
+      'MESSAGE ISN\'T SENT. CHECK YOUR CONNECTION.').hitTestable();
+
     testWidgets('sent message appear in message list after debounce timeout', (tester) async {
       await setupMessageListPage(tester,
         narrow: eg.topicNarrow(stream.streamId, 'topic'), streams: [stream],
@@ -1374,10 +1377,131 @@ void main() {
       await tester.enterText(contentInputFinder, content);
       await tester.tap(find.byIcon(ZulipIcons.send));
       await tester.pump(Duration.zero);
-      check(findTextInMessages(content)).findsNothing();
+      check(outboxMessageFinder).findsNothing();
 
       await tester.pump(kLocalEchoDebounceDuration);
-      check(findTextInMessages(content)).findsOne();
+      check(outboxMessageFinder).findsOne();
+      check(find.descendant(
+        of: find.byType(MessageItem),
+        matching: find.byType(LinearProgressIndicator))).findsOne();
+    });
+
+    testWidgets('failed to send message, retrieve the content to compose box', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: eg.topicNarrow(stream.streamId, 'topic'), streams: [stream],
+        messages: []);
+
+      // Send a message and fail.  Dismiss the error dialog as it pops up.
+      connection.prepare(apiException: eg.apiBadRequest());
+      await tester.enterText(contentInputFinder, content);
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump(Duration.zero);
+      await tester.tap(find.byWidget(
+        checkErrorDialog(tester, expectedTitle: 'Message not sent')));
+      await tester.pump();
+      check(outboxMessageFinder).findsOne();
+      check(messageIsntSentErrorFinder).findsOne();
+
+      final controller = tester.state<ComposeBoxState>(find.byType(ComposeBox)).controller;
+      check(controller.content).text.isNotNull().isEmpty();
+
+      // Tap the message.  This should put its content back into the compose box
+      // and remove it.
+      await tester.tap(outboxMessageFinder);
+      await tester.pump();
+      check(outboxMessageFinder).findsNothing();
+      check(controller.content).text.equals('$content\n\n');
+
+      await tester.pump(kLocalEchoDebounceDuration);
+    });
+
+    testWidgets('tapping does nothing if compose box is not offered', (tester) async {
+      final messages = [eg.streamMessage(stream: stream, topic: 'some topic')];
+      await setupMessageListPage(tester,
+        narrow: const CombinedFeedNarrow(), streams: [stream], subscriptions: [eg.subscription(stream)],
+        messages: messages);
+
+      // Navigate to a message list page in a topic narrow,
+      // which has a compose box.
+      connection.prepare(json:
+        eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson());
+      await tester.tap(find.text('some topic'));
+      await tester.pump(); // handle tap
+      await tester.pump(); // wait for navigation
+
+      // Send a message and fail.  Dismiss the error dialog as it pops up.
+      connection.prepare(apiException: eg.apiBadRequest());
+      await tester.enterText(contentInputFinder, content);
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump(Duration.zero);
+      await tester.tap(find.byWidget(
+        checkErrorDialog(tester, expectedTitle: 'Message not sent')));
+      await tester.pump(); // handle tap
+      check(outboxMessageFinder).findsOne();
+      check(messageIsntSentErrorFinder).findsOne();
+
+      // Navigate back to the message list page without a compose box,
+      // where the failed to send message should still be visible.
+      await tester.pageBack();
+      await tester.pump(); // handle tap
+      await tester.pump(); // wait for navigation
+      check(contentInputFinder).findsNothing();
+      check(outboxMessageFinder).findsOne();
+      check(messageIsntSentErrorFinder).findsOne();
+
+      // Tap the failed to send message.
+      // This should not remove it from the message list.
+      await tester.tap(outboxMessageFinder);
+      await tester.pump();
+      check(outboxMessageFinder).findsOne();
+    });
+
+    testWidgets('tapping does nothing if message was successfully sent', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: eg.topicNarrow(stream.streamId, 'topic'), streams: [stream],
+        messages: []);
+      final controller = tester.state<ComposeBoxState>(find.byType(ComposeBox)).controller;
+
+      // Send a message and wait until the debounce timer expires.
+      connection.prepare(json: SendMessageResult(id: 1).toJson());
+      await tester.enterText(contentInputFinder, content);
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump(Duration.zero);
+      await tester.pump(kLocalEchoDebounceDuration);
+      check(controller.content).text.isNotNull().isEmpty();
+
+      await tester.tap(outboxMessageFinder);
+      await tester.pump();
+      check(outboxMessageFinder).findsOne();
+      check(controller.content).text.isNotNull().isEmpty();
+    });
+
+    testWidgets('tapping does nothing if message is still being sent', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: eg.topicNarrow(stream.streamId, 'topic'), streams: [stream],
+        messages: []);
+      final controller = tester.state<ComposeBoxState>(find.byType(ComposeBox)).controller;
+
+      // Send a message and wait until the debounce timer expires but before
+      // the message is successfully sent.
+      connection.prepare(json: SendMessageResult(id: 1).toJson(),
+        delay: kLocalEchoDebounceDuration + Duration(seconds: 1));
+      await tester.enterText(contentInputFinder, content);
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump(Duration.zero);
+      await tester.pump(kLocalEchoDebounceDuration);
+      check(controller.content).text.isNotNull().isEmpty();
+
+      await tester.tap(outboxMessageFinder);
+      await tester.pump();
+      check(outboxMessageFinder).findsOne();
+      check(controller.content).text.isNotNull().isEmpty();
+
+      // Wait till the send request completes.  The outbox message should
+      // remain visible because the message event didn't arrive.
+      await tester.pump(Duration(seconds: 1));
+      check(outboxMessageFinder).findsOne();
+      check(controller.content).text.isNotNull().isEmpty();
     });
   });
 

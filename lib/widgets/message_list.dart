@@ -9,6 +9,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/message.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
@@ -1483,21 +1484,67 @@ class OutboxMessageWithPossibleSender extends StatelessWidget {
 
   final MessageListOutboxMessageItem item;
 
+  // TODO should we restore the topic as well?
+  void _handlePress(BuildContext context) {
+    final content = item.message.content.endsWith('\n')
+      ? item.message.content : '${item.message.content}\n';
+
+    final composeBoxController =
+      MessageListPage.ancestorOf(context).composeBoxController;
+    composeBoxController!.content.insertPadded(content);
+    if (!composeBoxController.contentFocusNode.hasFocus) {
+      composeBoxController.contentFocusNode.requestFocus();
+    }
+
+    final store = PerAccountStoreWidget.of(context);
+    assert(store.outboxMessages.containsKey(item.message.localMessageId));
+    store.removeOutboxMessage(item.message.localMessageId);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final message = item.message;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Column(children: [
-        if (item.showSender) _SenderRow(message: message),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          // This is adapated from [MessageContent].
-          // TODO(#576): Offer InheritedMessage ancestor once we are ready
-          //   to support local echoing images and lightbox.
-          child: DefaultTextStyle(
-            style: ContentTheme.of(context).textStylePlainParagraph,
-            child: BlockContentList(nodes: item.content.nodes))),
-      ]));
+    final opacity = message.state == OutboxMessageLifecycle.failed ? 0.6 : 1.0;
+
+    final isComposeBoxOffered =
+      MessageListPage.ancestorOf(context).composeBoxController != null;
+
+    return GestureDetector(
+      onTap: isComposeBoxOffered && message.state == OutboxMessageLifecycle.failed
+        ? () => _handlePress(context) : null,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(children: [
+          if (item.showSender) Opacity(opacity: opacity, child: _SenderRow(message: message)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Opacity(opacity: opacity,
+                  // This is adapated from [MessageContent].
+                  // TODO(#576): Offer InheritedMessage ancestor once we are ready
+                  //   to support local echoing images and lightbox.
+                  child: DefaultTextStyle(
+                    style: ContentTheme.of(context).textStylePlainParagraph,
+                    child: BlockContentList(nodes: item.content.nodes))),
+
+                if (message.state == OutboxMessageLifecycle.failed)
+                  Text(zulipLocalizations.messageIsntSentLabel,
+                    textAlign: TextAlign.end,
+                    style: TextStyle(
+                      color: designVariables.btnLabelAttLowIntDanger,
+                      fontSize: 12,
+                      height: 12 / 12,
+                      letterSpacing: proportionalLetterSpacing(
+                        context, 0.006, baseFontSize: 12),
+                    ).merge(weightVariableTextStyle(context, wght: 400)))
+                else LinearProgressIndicator(minHeight: 2,
+                  color: designVariables.foreground.withFadedAlpha(0.5),
+                  backgroundColor: designVariables.foreground.withFadedAlpha(0.2)),
+              ])),
+        ])));
   }
 }
