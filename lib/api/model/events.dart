@@ -665,8 +665,7 @@ class UserTopicEvent extends Event {
 }
 
 /// A Zulip event of type `message`: https://zulip.com/api/get-events#message
-// TODO use [JsonSerializable] here too, using its customization features,
-//   in order to skip the boilerplate in [fromJson] and [toJson].
+@JsonSerializable(fieldRename: FieldRename.snake)
 class MessageEvent extends Event {
   @override
   @JsonKey(includeToJson: true)
@@ -680,24 +679,38 @@ class MessageEvent extends Event {
   // events and in the get-messages results is that `matchContent` and
   // `matchTopic` are absent here.  Already [Message.matchContent] and
   // [Message.matchTopic] are optional, so no action is needed on that.
+  @JsonKey(readValue: _readMessageValue, includeToJson: false)
   final Message message;
 
-  MessageEvent({required super.id, required this.message});
+  // The format of this is documented to be chosen freely by the client.
+  //
+  // When present, this corresponds to the JSON-encoded int, "local_id",
+  // from a previous [sendMessage] call by us.
+  @JsonKey(fromJson: _localMessageIdFromJson, toJson: _localMessageIdToJson)
+  final int? localMessageId;
 
-  factory MessageEvent.fromJson(Map<String, dynamic> json) => MessageEvent(
-    id: json['id'] as int,
-    message: Message.fromJson({
-      ...json['message'] as Map<String, dynamic>,
-      'flags': (json['flags'] as List<dynamic>).map((e) => e as String).toList(),
-    }),
-  );
+  MessageEvent({required super.id, required this.message, required this.localMessageId});
+
+  static Map<String, dynamic> _readMessageValue(Map<dynamic, dynamic> json, String key) =>
+    {...json['message'] as Map<String, dynamic>, 'flags': json['flags']};
+
+  static int? _localMessageIdFromJson(Object? val) {
+    return val == null ? null : int.parse(val as String);
+  }
+
+  static String? _localMessageIdToJson(int? val) {
+    return val?.toString();
+  }
+
+  factory MessageEvent.fromJson(Map<String, dynamic> json) =>
+    _$MessageEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() {
     final messageJson = message.toJson();
     final flags = messageJson['flags'];
     messageJson.remove('flags');
-    return {'id': id, 'type': type, 'message': messageJson, 'flags': flags};
+    return {..._$MessageEventToJson(this), 'message': messageJson, 'flags': flags};
   }
 }
 

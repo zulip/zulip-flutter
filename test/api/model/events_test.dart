@@ -88,6 +88,21 @@ void main() {
     check(mkEvent([MessageFlag.read])).message.flags.deepEquals([MessageFlag.read]);
   });
 
+  test('message: parsing local_message_id', () {
+    final message = eg.streamMessage(flags: []);
+    final event = Event.fromJson({
+      'type': 'message',
+      'id': 1,
+      'message': deepToJson(message) as Map<String, dynamic>,
+      'flags': <MessageFlag>[],
+      'local_message_id': '1234',
+    });
+    check(event).isA<MessageEvent>().localMessageId.equals(1234);
+    check(
+      Event.fromJson(deepToJson(event) as Map<String, dynamic>)
+    ).isA<MessageEvent>().localMessageId.equals(1234);
+  });
+
   group('update_message', () {
     final message = eg.streamMessage();
     final baseJson = {

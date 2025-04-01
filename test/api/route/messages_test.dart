@@ -333,7 +333,7 @@ void main() {
       required MessageDestination destination,
       required String content,
       String? queueId,
-      String? localId,
+      int? localId,
       bool? readBySender,
       required Map<String, String> expectedBodyFields,
       String? expectedUserAgent,
@@ -355,15 +355,15 @@ void main() {
         await checkSendMessage(connection,
           destination: StreamDestination(streamId, eg.t(topic)), content: content,
           queueId: 'abc:123',
-          localId: '456',
+          localId: 456,
           readBySender: true,
           expectedBodyFields: {
             'type': 'stream',
             'to': streamId.toString(),
             'topic': topic,
             'content': content,
-            'queue_id': '"abc:123"',
-            'local_id': '"456"',
+            'queue_id': 'abc:123',
+            'local_id': '456',
             'read_by_sender': 'true',
           });
       });
