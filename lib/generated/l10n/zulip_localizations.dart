@@ -1274,6 +1274,12 @@ abstract class ZulipLocalizations {
   /// **'MOVED'**
   String get messageIsMovedLabel;
 
+  /// Label for a message that isn't sent. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)
+  ///
+  /// In en, this message translates to:
+  /// **'MESSAGE ISN\'T SENT. CHECK YOUR CONNECTION.'**
+  String get messageIsntSentLabel;
+
   /// The list of people who voted for a poll option, wrapped in parentheses.
   ///
   /// In en, this message translates to:
