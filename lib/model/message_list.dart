@@ -282,34 +282,40 @@ mixin _MessageSequence {
     _reprocessAll();
   }
 
-  /// Append to [items] based on the index-th message and its content.
+  /// Prepare [items] before a [MessageListMessageItem] can be appended.
   ///
-  /// The previous messages in the list must already have been processed.
-  /// This message must already have been parsed and reflected in [contents].
-  void _processMessage(int index) {
-    // This will get more complicated to handle the ways that messages interact
-    // with the display of neighboring messages: sender headings #175
-    // and date separators #173.
-    final message = messages[index];
-    final content = contents[index];
-    bool canShareSender;
-    if (index == 0 || !haveSameRecipient(messages[index - 1], message)) {
+  /// Returns whether the sender can be shared between the items for both
+  /// messages, as in the negation of [MessageListMessageItem.showSender].
+  bool _prepareTailForMessage(Message message, {required Message? prevMessage}) {
+    if (prevMessage == null || !haveSameRecipient(prevMessage, message)) {
       items.add(MessageListRecipientHeaderItem(message));
-      canShareSender = false;
+      return false;
     } else {
       assert(items.last is MessageListMessageItem);
       final prevMessageItem = items.last as MessageListMessageItem;
-      assert(identical(prevMessageItem.message, messages[index - 1]));
+      assert(identical(prevMessageItem.message, prevMessage));
       assert(prevMessageItem.isLastInBlock);
       prevMessageItem.isLastInBlock = false;
 
       if (!messagesSameDay(prevMessageItem.message, message)) {
         items.add(MessageListDateSeparatorItem(message));
-        canShareSender = false;
+        return false;
       } else {
-        canShareSender = (prevMessageItem.message.senderId == message.senderId);
+        return prevMessageItem.message.senderId == message.senderId;
       }
     }
+  }
+
+  /// Append to [items] based on the index-th message and its content.
+  ///
+  /// The previous messages in the list must already have been processed.
+  /// This message must already have been parsed and reflected in [contents].
+  void _processMessage(int index) {
+    final prevMessage = index == 0 ? null : messages[index - 1];
+    final message = messages[index];
+    final content = contents[index];
+
+    final canShareSender = _prepareTailForMessage(message, prevMessage: prevMessage);
     items.add(MessageListMessageItem(message, content,
       showSender: !canShareSender, isLastInBlock: true));
   }
