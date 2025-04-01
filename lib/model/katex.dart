@@ -1,3 +1,5 @@
+import 'package:csslib/parser.dart' as css_parser;
+import 'package:csslib/visitor.dart' as css_visitor;
 import 'package:flutter/foundation.dart';
 import 'package:html/dom.dart' as dom;
 
@@ -292,10 +294,71 @@ class KatexParser {
     }
     if (text == null && spans == null) throw KatexHtmlParseError();
 
+    final inlineStyles = _parseSpanInlineStyles(element);
+
     return KatexNode(
       text: text,
-      styles: styles,
+      styles: inlineStyles != null
+        ? styles.merge(inlineStyles)
+        : styles,
       nodes: spans);
+  }
+
+  KatexSpanStyles? _parseSpanInlineStyles(dom.Element element) {
+    if (element.attributes case {'style': final styleStr}) {
+      final stylesheet = css_parser.parse('*{$styleStr}');
+      final topLevels = stylesheet.topLevels;
+      if (topLevels.length != 1) throw KatexHtmlParseError();
+      final topLevel = topLevels.single;
+      if (topLevel is! css_visitor.RuleSet) throw KatexHtmlParseError();
+      final rule = topLevel;
+
+      double? marginLeftEm;
+      double? marginRightEm;
+      double? paddingLeftEm;
+
+      for (final declaration in rule.declarationGroup.declarations) {
+        if (declaration is! css_visitor.Declaration) throw KatexHtmlParseError();
+        final property = declaration.property;
+
+        final expressions = declaration.expression;
+        if (expressions is! css_visitor.Expressions) throw KatexHtmlParseError();
+        if (expressions.expressions.length != 1) throw KatexHtmlParseError();
+        final expression = expressions.expressions.single;
+
+        switch (property) {
+          case 'margin-left':
+            marginLeftEm = _getEm(expression);
+            if (marginLeftEm != null) continue;
+
+          case 'margin-right':
+            marginRightEm = _getEm(expression);
+            if (marginRightEm != null) continue;
+
+          case 'padding-left':
+            paddingLeftEm = _getEm(expression);
+            if (paddingLeftEm != null) continue;
+
+          default:
+            // TODO handle more CSS properties
+            assert(debugLog('Unsupported CSS property: $property of type ${expression.runtimeType}'));
+        }
+      }
+
+      return KatexSpanStyles(
+        marginLeftEm: marginLeftEm,
+        marginRightEm: marginRightEm,
+        paddingLeftEm: paddingLeftEm,
+      );
+    }
+    return null;
+  }
+
+  double? _getEm(css_visitor.Expression expression) {
+    if (expression is css_visitor.EmTerm && expression.value is num) {
+      return (expression.value as num).toDouble();
+    }
+    return null;
   }
 }
 
@@ -315,6 +378,11 @@ enum KatexSpanTextAlign {
 }
 
 class KatexSpanStyles {
+  double? heightEm;
+  double? marginLeftEm;
+  double? marginRightEm;
+  double? paddingLeftEm;
+
   String? fontFamily;
   double? fontSizeEm;
   KatexSpanFontStyle? fontStyle;
@@ -322,6 +390,10 @@ class KatexSpanStyles {
   KatexSpanTextAlign? textAlign;
 
   KatexSpanStyles({
+    this.heightEm,
+    this.marginLeftEm,
+    this.marginRightEm,
+    this.paddingLeftEm,
     this.fontFamily,
     this.fontSizeEm,
     this.fontStyle,
@@ -332,6 +404,10 @@ class KatexSpanStyles {
   @override
   int get hashCode => Object.hash(
     'KatexSpanStyles',
+    heightEm,
+    marginLeftEm,
+    marginRightEm,
+    paddingLeftEm,
     fontFamily,
     fontSizeEm,
     fontStyle,
@@ -342,6 +418,10 @@ class KatexSpanStyles {
   @override
   bool operator ==(Object other) {
     return other is KatexSpanStyles &&
+      other.heightEm == heightEm &&
+      other.marginLeftEm == marginLeftEm &&
+      other.marginRightEm == marginRightEm &&
+      other.paddingLeftEm == paddingLeftEm &&
       other.fontFamily == fontFamily &&
       other.fontSizeEm == fontSizeEm &&
       other.fontStyle == fontStyle &&
@@ -356,12 +436,30 @@ class KatexSpanStyles {
     if (this == _zero) return '${objectRuntimeType(this, 'KatexSpanStyles')}()';
 
     final args = <String>[];
+    if (heightEm != null) args.add('heightEm: $heightEm');
+    if (marginLeftEm != null) args.add('marginLeftEm: $marginLeftEm');
+    if (marginRightEm != null) args.add('marginRightEm: $marginRightEm');
+    if (paddingLeftEm != null) args.add('paddingLeftEm: $paddingLeftEm');
     if (fontFamily != null) args.add('fontFamily: $fontFamily');
     if (fontSizeEm != null) args.add('fontSizeEm: $fontSizeEm');
     if (fontStyle != null) args.add('fontStyle: $fontStyle');
     if (fontWeight != null) args.add('fontWeight: $fontWeight');
     if (textAlign != null) args.add('textAlign: $textAlign');
     return '${objectRuntimeType(this, 'KatexSpanStyles')}(${args.join(', ')})';
+  }
+
+  KatexSpanStyles merge(KatexSpanStyles other) {
+    return KatexSpanStyles(
+      heightEm: other.heightEm ?? heightEm,
+      marginLeftEm: other.marginLeftEm ?? marginLeftEm,
+      marginRightEm: other.marginRightEm ?? marginRightEm,
+      paddingLeftEm: other.paddingLeftEm ?? paddingLeftEm,
+      fontFamily: other.fontFamily ?? fontFamily,
+      fontSizeEm: other.fontSizeEm ?? fontSizeEm,
+      fontStyle: other.fontStyle ?? fontStyle,
+      fontWeight: other.fontWeight ?? fontWeight,
+      textAlign: other.textAlign ?? textAlign,
+    );
   }
 }
 

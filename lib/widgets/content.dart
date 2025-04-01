@@ -925,13 +925,33 @@ class _KatexSpan extends StatelessWidget {
       };
     }
 
+    var margin = EdgeInsets.zero;
+    final marginRightEm = styles.marginRightEm;
+    final marginLeftEm = styles.marginLeftEm;
+    if (marginRightEm != null && !marginRightEm.isNegative) {
+      margin += EdgeInsets.only(right: marginRightEm * em);
+    }
+    if (marginLeftEm != null && !marginLeftEm.isNegative) {
+      margin += EdgeInsets.only(left: marginLeftEm * em);
+    }
+
+    var padding = EdgeInsets.zero;
+    final paddingLeftEm = styles.paddingLeftEm;
+    if (paddingLeftEm != null && !paddingLeftEm.isNegative) {
+      padding += EdgeInsets.only(right: paddingLeftEm * em);
+    }
+
     if (textStyle != null || textAlign != null) {
       widget = DefaultTextStyle.merge(
         style: textStyle,
         textAlign: textAlign,
         child: widget);
     }
-    return widget;
+    return Container(
+      margin: margin != EdgeInsets.zero ? margin : null,
+      padding: padding != EdgeInsets.zero ? padding : null,
+      child: widget,
+    );
   }
 }
 
