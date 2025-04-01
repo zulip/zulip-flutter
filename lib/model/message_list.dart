@@ -322,24 +322,31 @@ mixin _MessageSequence {
     _reprocessAll();
   }
 
-  /// Append to [items] based on the index-th message and its content.
+  /// Append to [items] based on [message] and [prevMessage].
   ///
-  /// The previous messages in the list must already have been processed.
-  /// This message must already have been parsed and reflected in [contents].
-  void _processMessage(int index) {
-    // This will get more complicated to handle the ways that messages interact
-    // with the display of neighboring messages: sender headings #175
-    // and date separators #173.
-    final message = messages[index];
-    final content = contents[index];
-    bool canShareSender;
-    if (index == 0 || !haveSameRecipient(messages[index - 1], message)) {
+  /// This appends a recipient header or a date separator to [items],
+  /// depending on how [prevMessage] relates to [message],
+  /// and then the result of [buildItem], updating [middleItem] if desired.
+  ///
+  /// See [middleItem] to determine the value of [shouldSetMiddleItem].
+  ///
+  /// [prevMessage] should be the message that visually appears before [message].
+  ///
+  /// The caller must ensure that [prevMessage] and all messages before it
+  /// have been processed.
+  void _addItemsForMessage(MessageBase message, {
+    required bool shouldSetMiddleItem,
+    required MessageBase? prevMessage,
+    required MessageListMessageBaseItem Function(bool canShareSender) buildItem,
+  }) {
+    final bool canShareSender;
+    if (prevMessage == null || !haveSameRecipient(prevMessage, message)) {
       items.add(MessageListRecipientHeaderItem(message));
       canShareSender = false;
     } else {
-      assert(items.last is MessageListMessageItem);
-      final prevMessageItem = items.last as MessageListMessageItem;
-      assert(identical(prevMessageItem.message, messages[index - 1]));
+      assert(items.last is MessageListMessageBaseItem);
+      final prevMessageItem = items.last as MessageListMessageBaseItem;
+      assert(identical(prevMessageItem.message, prevMessage));
       assert(prevMessageItem.isLastInBlock);
       prevMessageItem.isLastInBlock = false;
 
@@ -347,12 +354,34 @@ mixin _MessageSequence {
         items.add(MessageListDateSeparatorItem(message));
         canShareSender = false;
       } else {
-        canShareSender = (prevMessageItem.message.senderId == message.senderId);
+        canShareSender = prevMessageItem.message.senderId == message.senderId;
       }
     }
-    if (index == middleMessage) middleItem = items.length;
-    items.add(MessageListMessageItem(message, content,
-      showSender: !canShareSender, isLastInBlock: true));
+    final item = buildItem(canShareSender);
+    assert(identical(item.message, message));
+    assert(item.showSender == !canShareSender);
+    assert(item.isLastInBlock);
+    if (shouldSetMiddleItem) {
+      assert(item is MessageListMessageItem);
+      middleItem = items.length;
+    }
+    items.add(item);
+  }
+
+  /// Append to [items] based on the index-th message and its content.
+  ///
+  /// The previous messages in the list must already have been processed.
+  /// This message must already have been parsed and reflected in [contents].
+  void _processMessage(int index) {
+    final prevMessage = index == 0 ? null : messages[index - 1];
+    final message = messages[index];
+    final content = contents[index];
+
+    _addItemsForMessage(message,
+      shouldSetMiddleItem: index == middleMessage,
+      prevMessage: prevMessage,
+      buildItem: (bool canShareSender) => MessageListMessageItem(
+        message, content, showSender: !canShareSender, isLastInBlock: true));
   }
 
   /// Recompute [items] from scratch, based on [messages], [contents], and flags.
