@@ -20,6 +20,7 @@ import 'code_block.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
+import 'katex.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
@@ -884,6 +885,7 @@ class _KatexNodeList extends StatelessWidget {
           child: switch (e) {
             KatexSpanNode() => _KatexSpan(e),
             KatexVlistNode() => _KatexVlist(e),
+            KatexNegativeMarginNode() => _KatexNegativeMargin(e),
           });
       }))));
   }
@@ -966,7 +968,10 @@ class _KatexSpan extends StatelessWidget {
         child: const Text(''));
     }
 
-    return SizedBox(
+    return Container(
+      margin: styles.marginRightEm != null && styles.marginRightEm! > 0
+        ? EdgeInsets.only(right: styles.marginRightEm! * em)
+        : null,
       height: styles.heightEm != null
         ? styles.heightEm! * em
         : null,
@@ -989,6 +994,21 @@ class _KatexVlist extends StatelessWidget {
         offset: Offset(0, row.verticalOffsetEm * em),
         child: _KatexNodeList(nodes: row.nodes));
     })));
+  }
+}
+
+class _KatexNegativeMargin extends StatelessWidget {
+  const _KatexNegativeMargin(this.node);
+
+  final KatexNegativeMarginNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    return NegativeLeftOffset(
+      leftOffset: node.marginRightEm * em,
+      child: _KatexNodeList(nodes: node.nodes));
   }
 }
 

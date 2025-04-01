@@ -672,6 +672,29 @@ void main() {
           fontHeight: baseTextStyle.height!);
       }
     });
+
+    testWidgets('displays KaTeX contetnt with vertical and horizontal offsets', (tester) async {
+      addTearDown(testBinding.reset);
+      final globalSettings = testBinding.globalStore.settings;
+      await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
+      check(globalSettings).getBool(BoolGlobalSetting.renderKatex).isTrue();
+
+      final content = ContentExample.mathBlockKatexVerticalHorizontalOffsets;
+      await prepareContent(tester, plainContent(content.html));
+
+      const testCases = [
+        ('K', Rect.fromLTRB(357.95, 0.64, 378.52, 25.64)),
+        ('A', Rect.fromLTRB(375.02, 1.32, 389.42, 18.32)),
+        ('T', Rect.fromLTRB(386.33, 0.64, 406.90, 25.64)),
+        ('E', Rect.fromLTRB(403.47, 5.43, 424.04, 30.43)),
+        ('X', Rect.fromLTRB(421.47, 1.0,  442.04, 26.0)),
+      ];
+
+      for (final testCase in testCases) {
+        check(tester.getRect(find.text(testCase.$1)))
+          .within(distance: 0.01, from: testCase.$2);
+      }
+    });
   });
 
   /// Make a [TargetFontSizeFinder] to pass to [checkFontSizeRatio],
