@@ -23,10 +23,7 @@ GetMessagesResult _$GetMessagesResultFromJson(Map<String, dynamic> json) =>
       foundOldest: json['found_oldest'] as bool,
       foundAnchor: json['found_anchor'] as bool,
       historyLimited: json['history_limited'] as bool,
-      messages:
-          (json['messages'] as List<dynamic>)
-              .map((e) => Message.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      messages: GetMessagesResult._messagesFromJson(json['messages'] as Object),
     );
 
 Map<String, dynamic> _$GetMessagesResultToJson(GetMessagesResult instance) =>
