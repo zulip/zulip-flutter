@@ -44,6 +44,8 @@ class InitialSnapshot {
 
   // final List<…> mutedTopics; // TODO(#422) we ignore this feature on older servers
 
+  final List<MutedUserItem> mutedUsers;
+
   final Map<String, RealmEmojiItem> realmEmoji;
 
   final List<RecentDmConversation> recentPrivateConversations;
@@ -127,6 +129,7 @@ class InitialSnapshot {
     required this.serverTypingStartedExpiryPeriodMilliseconds,
     required this.serverTypingStoppedWaitPeriodMilliseconds,
     required this.serverTypingStartedWaitPeriodMilliseconds,
+    required this.mutedUsers,
     required this.realmEmoji,
     required this.recentPrivateConversations,
     required this.subscriptions,
@@ -158,6 +161,23 @@ enum EmailAddressVisibility {
   @JsonValue(3) admins,
   @JsonValue(4) nobody,
   @JsonValue(5) moderators,
+}
+
+/// An item in the `muted_users` snapshot.
+///
+/// For docs, search for "muted_users:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class MutedUserItem {
+  final int id;
+  final int timestamp;
+
+  const MutedUserItem({required this.id, required this.timestamp});
+
+  factory MutedUserItem.fromJson(Map<String, dynamic> json) =>
+    _$MutedUserItemFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MutedUserItemToJson(this);
 }
 
 @JsonEnum(valueField: 'apiValue')
