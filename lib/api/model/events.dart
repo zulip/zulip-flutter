@@ -679,7 +679,7 @@ class MessageEvent extends Event {
   // events and in the get-messages results is that `matchContent` and
   // `matchTopic` are absent here.  Already [Message.matchContent] and
   // [Message.matchTopic] are optional, so no action is needed on that.
-  @JsonKey(readValue: _readMessageValue, includeToJson: false)
+  @JsonKey(readValue: _readMessageValue, fromJson: Message.fromJson, includeToJson: false)
   final Message message;
 
   // When present, this equals the "local_id" parameter

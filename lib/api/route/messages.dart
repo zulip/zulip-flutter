@@ -67,6 +67,7 @@ Future<GetMessageResult> getMessage(ApiConnection connection, {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class GetMessageResult {
   // final String rawContent; // deprecated; ignore
+  @JsonKey(fromJson: Message.fromJson)
   final Message message;
 
   GetMessageResult({
@@ -138,6 +139,7 @@ class GetMessagesResult {
   final bool foundOldest;
   final bool foundAnchor;
   final bool historyLimited;
+  @JsonKey(fromJson: _messagesFromJson)
   final List<Message> messages;
 
   GetMessagesResult({
@@ -148,6 +150,12 @@ class GetMessagesResult {
     required this.historyLimited,
     required this.messages,
   });
+
+  static List<Message> _messagesFromJson(Object json) {
+    return (json as List<dynamic>)
+      .map((e) => Message.fromJson(e as Map<String, dynamic>))
+      .toList();
+  }
 
   factory GetMessagesResult.fromJson(Map<String, dynamic> json) =>
       _$GetMessagesResultFromJson(json);
