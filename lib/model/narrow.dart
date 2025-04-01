@@ -19,7 +19,7 @@ sealed class Narrow {
   /// This does not necessarily mean the message list would show this message
   /// when navigated to this narrow; in particular it does not address the
   /// question of whether the stream or topic, or the sending user, is muted.
-  bool containsMessage(Message message);
+  bool containsMessage(MessageBase message);
 
   /// This narrow, expressed as an [ApiNarrow].
   ApiNarrow apiEncode();
@@ -47,7 +47,7 @@ class CombinedFeedNarrow extends Narrow {
   const CombinedFeedNarrow();
 
   @override
-  bool containsMessage(Message message) {
+  bool containsMessage(MessageBase message) {
     return true;
   }
 
@@ -71,8 +71,9 @@ class ChannelNarrow extends Narrow {
   final int streamId;
 
   @override
-  bool containsMessage(Message message) {
-    return message is StreamMessage && message.streamId == streamId;
+  bool containsMessage(MessageBase message) {
+    final conversation = message.conversation;
+    return conversation is StreamConversation && conversation.streamId == streamId;
   }
 
   @override
@@ -105,9 +106,10 @@ class TopicNarrow extends Narrow implements SendableNarrow {
   TopicNarrow sansWith() => TopicNarrow(streamId, topic);
 
   @override
-  bool containsMessage(Message message) {
-    return (message is StreamMessage
-      && message.streamId == streamId && message.topic == topic);
+  bool containsMessage(MessageBase message) {
+    final conversation = message.conversation;
+    return conversation is StreamConversation
+      && conversation.streamId == streamId && conversation.topic == topic;
   }
 
   @override
@@ -263,11 +265,12 @@ class DmNarrow extends Narrow implements SendableNarrow {
   late final String _key = otherRecipientIds.join(',');
 
   @override
-  bool containsMessage(Message message) {
-    if (message is! DmMessage) return false;
-    if (message.allRecipientIds.length != allRecipientIds.length) return false;
+  bool containsMessage(MessageBase message) {
+    final conversation = message.conversation;
+    if (conversation is! DmConversation) return false;
+    if (conversation.allRecipientIds.length != allRecipientIds.length) return false;
     int i = 0;
-    for (final userId in message.allRecipientIds) {
+    for (final userId in conversation.allRecipientIds) {
       if (userId != allRecipientIds[i]) return false;
       i++;
     }
@@ -307,7 +310,8 @@ class MentionsNarrow extends Narrow {
   const MentionsNarrow();
 
   @override
-  bool containsMessage(Message message) {
+  bool containsMessage(MessageBase message) {
+    if (message is! Message) return false;
     return message.flags.any((flag) {
       switch (flag) {
         case MessageFlag.mentioned:
@@ -346,7 +350,8 @@ class StarredMessagesNarrow extends Narrow {
   ApiNarrow apiEncode() => [ApiNarrowIs(IsOperand.starred)];
 
   @override
-  bool containsMessage(Message message) {
+  bool containsMessage(MessageBase message) {
+    if (message is! Message) return false;
     return message.flags.contains(MessageFlag.starred);
   }
 
