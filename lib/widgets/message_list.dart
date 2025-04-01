@@ -5,6 +5,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/message.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
@@ -1515,22 +1516,86 @@ class OutboxMessageWithPossibleSender extends StatelessWidget {
 
   final MessageListOutboxMessageItem item;
 
+  // TODO should we restore the topic as well?
+  void _handlePress(BuildContext context) {
+    final content = item.message.content.endsWith('\n')
+      ? item.message.content : '${item.message.content}\n';
+
+    final composeBoxController =
+      MessageListPage.ancestorOf(context).composeBoxState!.controller;
+    composeBoxController.content.insertPadded(content);
+    if (!composeBoxController.contentFocusNode.hasFocus) {
+      composeBoxController.contentFocusNode.requestFocus();
+    }
+
+    final store = PerAccountStoreWidget.of(context);
+    assert(store.outboxMessages.containsKey(item.message.localMessageId));
+    store.removeOutboxMessage(item.message.localMessageId);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final message = item.message;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Column(children: [
-        if (item.showSender)
-          _SenderRow(message: message, showTimestamp: false),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          // This is adapated from [MessageContent].
-          // TODO(#576): Offer InheritedMessage ancestor once we are ready
-          //   to support local echoing images and lightbox.
-          child: DefaultTextStyle(
-            style: ContentTheme.of(context).textStylePlainParagraph,
-            child: BlockContentList(nodes: item.content.nodes))),
-      ]));
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final isComposeBoxOffered =
+      MessageListPage.ancestorOf(context).composeBoxState != null;
+
+    final GestureTapCallback? handleTap;
+    final double opacity;
+    final Widget bottom;
+    switch (item.message.state) {
+      case OutboxMessageState.hidden:
+        assert(false,
+          'Hidden OutboxMessage messages should not appear in message lists');
+        handleTap = null;
+        opacity = 1.0;
+        bottom = SizedBox.shrink();
+
+      case OutboxMessageState.waiting:
+        handleTap = null;
+        opacity = 1.0;
+        bottom = LinearProgressIndicator(
+          minHeight: 2,
+          color: designVariables.foreground.withFadedAlpha(0.5),
+          backgroundColor: designVariables.foreground.withFadedAlpha(0.2));
+
+      case OutboxMessageState.failed:
+      case OutboxMessageState.waitPeriodExpired:
+        handleTap = isComposeBoxOffered ? () => _handlePress(context) : null;
+        opacity = 0.6;
+        bottom = Text(
+          zulipLocalizations.messageIsntSentLabel,
+          textAlign: TextAlign.end,
+          style: TextStyle(
+            color: designVariables.btnLabelAttLowIntDanger,
+            fontSize: 12,
+            height: 12 / 12,
+            letterSpacing: proportionalLetterSpacing(
+              context, 0.006, baseFontSize: 12),
+          ).merge(weightVariableTextStyle(context, wght: 400)));
+    }
+
+    return GestureDetector(
+      onTap: handleTap,
+      behavior: HitTestBehavior.opaque,
+      child: Opacity(opacity: opacity, child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(children: [
+          if (item.showSender)
+            _SenderRow(message: item.message, showTimestamp: false),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // This is adapated from [MessageContent].
+                // TODO(#576): Offer InheritedMessage ancestor once we are ready
+                //   to support local echoing images and lightbox.
+                DefaultTextStyle(
+                  style: ContentTheme.of(context).textStylePlainParagraph,
+                  child: BlockContentList(nodes: item.content.nodes)),
+
+                bottom,
+              ])),
+        ]))));
   }
 }
