@@ -138,6 +138,110 @@ class _KatexParser {
   KatexNode _parseSpan(dom.Element element) {
     // TODO maybe check if the sequence of ancestors matter for spans.
 
+    final spanClasses = List<String>.unmodifiable(element.className.split(' '));
+
+    if (element case dom.Element(localName: 'span', :final className)
+        when className.startsWith('vlist')) {
+      switch (element) {
+        case dom.Element(
+          localName: 'span',
+          className: 'vlist-t',
+          attributes: final attributesVlistT,
+          nodes: [
+            dom.Element(
+              localName: 'span',
+              className: 'vlist-r',
+              attributes: final attributesVlistR,
+              nodes: [
+                dom.Element(
+                  localName: 'span',
+                  className: 'vlist',
+                  nodes: [
+                    dom.Element(
+                      localName: 'span',
+                      className: '',
+                      nodes: [
+                        dom.Element(localName: 'span', className: 'pstrut')
+                          && final pstrutSpan,
+                        ...,
+                      ]) && final innerSpan,
+                  ]),
+              ]),
+          ])
+        when !attributesVlistT.containsKey('style') &&
+            !attributesVlistR.containsKey('style'):
+          // TODO vlist element should only have `height` style, which we ignore.
+
+          var styles = _parseSpanInlineStyles(innerSpan)!;
+          final topEm = styles.topEm ?? 0;
+
+          final pstrutStyles = _parseSpanInlineStyles(pstrutSpan)!;
+          final pstrutHeight = pstrutStyles.heightEm ?? 0;
+
+          // TODO handle negative right-margin inline style on row nodes.
+          return KatexVlistNode(rows: [
+            KatexVlistRowNode(
+              verticalOffsetEm: topEm + pstrutHeight,
+              nodes: _parseChildSpans(innerSpan)),
+          ]);
+
+        case dom.Element(
+          localName: 'span',
+          className: 'vlist-t vlist-t2',
+          attributes: final attributesVlistT,
+          nodes: [
+            dom.Element(
+              localName: 'span',
+              className: 'vlist-r',
+              attributes: final attributesVlistR,
+              nodes: [
+                dom.Element(
+                  localName: 'span',
+                  className: 'vlist',
+                  nodes: [...]) && final vlist1,
+                dom.Element(localName: 'span', className: 'vlist-s'),
+              ]),
+            dom.Element(localName: 'span', className: 'vlist-r', nodes: [
+              dom.Element(localName: 'span', className: 'vlist', nodes: [
+                dom.Element(localName: 'span', className: '', nodes: []),
+              ])
+            ]),
+          ])
+        when !attributesVlistT.containsKey('style') &&
+            !attributesVlistR.containsKey('style'):
+          // TODO Ensure both should only have a `height` style.
+
+          final rows = <KatexVlistRowNode>[];
+
+          for (final innerSpan in vlist1.nodes) {
+            if (innerSpan case dom.Element(
+              localName: 'span',
+              className: '',
+              nodes: [
+                dom.Element(localName: 'span', className: 'pstrut') &&
+                    final pstrutSpan,
+                ...,
+              ])) {
+              final styles = _parseSpanInlineStyles(innerSpan)!;
+              final topEm = styles.topEm ?? 0;
+
+              final pstrutStyles = _parseSpanInlineStyles(pstrutSpan)!;
+              final pstrutHeight = pstrutStyles.heightEm ?? 0;
+
+              // TODO handle negative right-margin inline style on row nodes.
+              rows.add(KatexVlistRowNode(
+                verticalOffsetEm: topEm + pstrutHeight,
+                nodes: _parseChildSpans(innerSpan)));
+            }
+          }
+
+          return KatexVlistNode(rows: rows);
+
+        default:
+          throw KatexHtmlParseError();
+      }
+    }
+
     // Aggregate the CSS styles that apply, in the same order as the CSS
     // classes specified for this span, mimicking the behaviour on web.
     //
@@ -146,7 +250,6 @@ class _KatexParser {
     //   https://github.com/KaTeX/KaTeX/blob/2fe1941b/src/styles/katex.scss
     // A copy of class definition (where possible) is accompanied in a comment
     // with each case statement to keep track of updates.
-    final spanClasses = List<String>.unmodifiable(element.className.split(' '));
     String? fontFamily;
     double? fontSizeEm;
     KatexSpanFontWeight? fontWeight;
@@ -374,6 +477,7 @@ class _KatexParser {
       final stylesheet = css_parser.parse('*{$styleStr}');
       if (stylesheet.topLevels case [css_visitor.RuleSet() && final rule]) {
         double? heightEm;
+        double? topEm;
         double? verticalAlignEm;
 
         for (final declaration in rule.declarationGroup.declarations) {
@@ -386,6 +490,10 @@ class _KatexParser {
               case 'height':
                 heightEm = _getEm(expression);
                 if (heightEm != null) continue;
+
+              case 'top':
+                topEm = _getEm(expression);
+                if (topEm != null) continue;
 
               case 'vertical-align':
                 verticalAlignEm = _getEm(expression);
@@ -402,6 +510,7 @@ class _KatexParser {
 
         return KatexSpanStyles(
           heightEm: heightEm,
+          topEm: topEm,
           verticalAlignEm: verticalAlignEm,
         );
       } else {
@@ -437,6 +546,7 @@ enum KatexSpanTextAlign {
 @immutable
 class KatexSpanStyles {
   final double? heightEm;
+  final double? topEm;
   final double? verticalAlignEm;
 
   final String? fontFamily;
@@ -447,6 +557,7 @@ class KatexSpanStyles {
 
   const KatexSpanStyles({
     this.heightEm,
+    this.topEm,
     this.verticalAlignEm,
     this.fontFamily,
     this.fontSizeEm,
@@ -459,6 +570,7 @@ class KatexSpanStyles {
   int get hashCode => Object.hash(
     'KatexSpanStyles',
     heightEm,
+    topEm,
     verticalAlignEm,
     fontFamily,
     fontSizeEm,
@@ -471,6 +583,7 @@ class KatexSpanStyles {
   bool operator ==(Object other) {
     return other is KatexSpanStyles &&
       other.heightEm == heightEm &&
+      other.topEm == topEm &&
       other.verticalAlignEm == verticalAlignEm &&
       other.fontFamily == fontFamily &&
       other.fontSizeEm == fontSizeEm &&
@@ -483,6 +596,7 @@ class KatexSpanStyles {
   String toString() {
     final args = <String>[];
     if (heightEm != null) args.add('heightEm: $heightEm');
+    if (topEm != null) args.add('topEm: $topEm');
     if (verticalAlignEm != null) args.add('verticalAlignEm: $verticalAlignEm');
     if (fontFamily != null) args.add('fontFamily: $fontFamily');
     if (fontSizeEm != null) args.add('fontSizeEm: $fontSizeEm');
@@ -495,6 +609,7 @@ class KatexSpanStyles {
   KatexSpanStyles merge(KatexSpanStyles other) {
     return KatexSpanStyles(
       heightEm: other.heightEm ?? heightEm,
+      topEm: other.topEm ?? topEm,
       verticalAlignEm: other.verticalAlignEm ?? verticalAlignEm,
       fontFamily: other.fontFamily ?? fontFamily,
       fontSizeEm: other.fontSizeEm ?? fontSizeEm,
