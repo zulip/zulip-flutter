@@ -821,7 +821,7 @@ class MathBlock extends StatelessWidget {
     return Center(
       child: SingleChildScrollViewWithScrollbar(
         scrollDirection: Axis.horizontal,
-        child: _Katex(
+        child: Katex(
           textStyle: ContentTheme.of(context).textStylePlainParagraph,
           nodes: nodes)));
   }
@@ -842,8 +842,9 @@ TextStyle mkBaseKatexTextStyle(TextStyle style) {
     fontStyle: FontStyle.normal);
 }
 
-class _Katex extends StatelessWidget {
-  const _Katex({
+class Katex extends StatelessWidget {
+  const Katex({
+    super.key,
     required this.textStyle,
     required this.nodes,
   });
@@ -880,6 +881,7 @@ class _KatexNodeList extends StatelessWidget {
             child: switch (e) {
               KatexSpanNode() => _KatexSpan(e),
               KatexStrutNode() => _KatexStrut(e),
+              KatexVlistNode() => _KatexVlist(e),
             }));
       }))));
   }
@@ -1008,6 +1010,23 @@ class _KatexStrut extends StatelessWidget {
         baselineType: TextBaseline.alphabetic,
         child: const Text('')),
     );
+  }
+}
+
+class _KatexVlist extends StatelessWidget {
+  const _KatexVlist(this.node);
+
+  final KatexVlistNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    return Stack(children: List.unmodifiable(node.rows.map((row) {
+      return Transform.translate(
+        offset: Offset(0, row.verticalOffsetEm * em),
+        child: _KatexSpan(row.node));
+    })));
   }
 }
 
@@ -1329,7 +1348,7 @@ class _InlineContentBuilder {
           : WidgetSpan(
               alignment: PlaceholderAlignment.baseline,
               baseline: TextBaseline.alphabetic,
-              child: _Katex(textStyle: widget.style, nodes: nodes));
+              child: Katex(textStyle: widget.style, nodes: nodes));
 
       case GlobalTimeNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
