@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:csslib/parser.dart' as css_parser;
 import 'package:csslib/visitor.dart' as css_visitor;
 import 'package:flutter/foundation.dart';
@@ -118,13 +119,39 @@ class _KatexParser {
   }
 
   List<KatexNode> _parseChildSpans(List<dom.Node> nodes) {
-    return List.unmodifiable(nodes.map((node) {
-      if (node case dom.Element(localName: 'span')) {
-        return _parseSpan(node);
-      } else {
+    var resultSpans = QueueList<KatexNode>();
+    for (final node in nodes.reversed) {
+      if (node is! dom.Element || node.localName != 'span') {
         throw KatexHtmlParseError();
       }
-    }));
+
+      final span = _parseSpan(node);
+
+      if (span is KatexSpanNode) {
+        final marginRightEm = span.styles.marginRightEm;
+        if (marginRightEm != null && marginRightEm.isNegative) {
+          final previousSpans = resultSpans;
+          resultSpans = QueueList<KatexNode>();
+          resultSpans.addFirst(KatexNegativeMarginNode(
+            leftOffsetEm: marginRightEm,
+            nodes: previousSpans));
+        }
+      }
+
+      resultSpans.addFirst(span);
+
+      if (span is KatexSpanNode) {
+        final marginLeftEm = span.styles.marginLeftEm;
+        if (marginLeftEm != null && marginLeftEm.isNegative) {
+          final previousSpans = resultSpans;
+          resultSpans = QueueList<KatexNode>();
+          resultSpans.addFirst(KatexNegativeMarginNode(
+            leftOffsetEm: marginLeftEm,
+            nodes: previousSpans));
+        }
+      }
+    }
+    return resultSpans;
   }
 
   static final _resetSizeClassRegExp = RegExp(r'^reset-size(\d\d?)$');
@@ -210,13 +237,31 @@ class _KatexParser {
                 final pstrutStyles = _parseSpanInlineStyles(pstrutSpan)!;
                 final pstrutHeight = pstrutStyles.heightEm ?? 0;
 
+                KatexSpanNode innerSpanNode = KatexSpanNode(
+                  styles: styles,
+                  text: null,
+                  nodes: _parseChildSpans(otherSpans));
+
+                final marginRightEm = styles.marginRightEm;
+                final marginLeftEm = styles.marginLeftEm;
+                if (marginRightEm != null && marginRightEm.isNegative) {
+                  throw KatexHtmlParseError();
+                }
+                if (marginLeftEm != null && marginLeftEm.isNegative) {
+                  innerSpanNode = KatexSpanNode(
+                    styles: KatexSpanStyles(),
+                    text: null,
+                    nodes: [
+                      KatexNegativeMarginNode(
+                        leftOffsetEm: marginLeftEm,
+                        nodes: [innerSpanNode]),
+                    ]);
+                }
+
                 rows.add(KatexVlistRowNode(
                   verticalOffsetEm: topEm + pstrutHeight,
                   debugHtmlNode: kDebugMode ? innerSpan : null,
-                  node: KatexSpanNode(
-                    styles: styles,
-                    text: null,
-                    nodes: _parseChildSpans(otherSpans))));
+                  node: innerSpanNode));
               } else {
                 throw KatexHtmlParseError();
               }
@@ -532,17 +577,11 @@ class _KatexParser {
 
               case 'margin-right':
                 marginRightEm = _getEm(expression);
-                if (marginRightEm != null) {
-                  if (marginRightEm < 0) throw KatexHtmlParseError();
-                  continue;
-                }
+                if (marginRightEm != null) continue;
 
               case 'margin-left':
                 marginLeftEm = _getEm(expression);
-                if (marginLeftEm != null) {
-                  if (marginLeftEm < 0) throw KatexHtmlParseError();
-                  continue;
-                }
+                if (marginLeftEm != null) continue;
             }
 
             // TODO handle more CSS properties

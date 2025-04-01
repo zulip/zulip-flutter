@@ -455,6 +455,28 @@ class KatexVlistRowNode extends ContentNode {
   }
 }
 
+class KatexNegativeMarginNode extends KatexNode {
+  const KatexNegativeMarginNode({
+    required this.leftOffsetEm,
+    required this.nodes,
+    super.debugHtmlNode,
+  }) : assert(leftOffsetEm < 0);
+
+  final double leftOffsetEm;
+  final List<KatexNode> nodes;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DoubleProperty('leftOffsetEm', leftOffsetEm));
+  }
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return nodes.map((node) => node.toDiagnosticsNode()).toList();
+  }
+}
+
 class MathBlockNode extends MathNode implements BlockContentNode {
   const MathBlockNode({
     super.debugHtmlNode,

@@ -1265,6 +1265,141 @@ class ContentExample {
         ]),
     ]);
 
+  static const mathBlockKatexNegativeMargins = ContentExample(
+    'math block katex negative margins',
+    '```math\n\\KaTeX\n```',
+    '<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>KaTeX</mtext></mrow>'
+          '<annotation encoding="application/x-tex">\\KaTeX</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base">'
+            '<span class="strut" style="height:0.8988em;vertical-align:-0.2155em;"></span>'
+            '<span class="mord text">'
+              '<span class="mord textrm">K</span>'
+              '<span class="mspace" style="margin-right:-0.17em;"></span>'
+              '<span class="vlist-t"><span class="vlist-r">'
+                '<span class="vlist" style="height:0.6833em;">'
+                  '<span style="top:-2.905em;">'
+                    '<span class="pstrut" style="height:2.7em;"></span>'
+                    '<span class="mord">'
+                      '<span class="mord textrm mtight sizing reset-size6 size3">A</span></span></span></span></span></span>'
+              '<span class="mspace" style="margin-right:-0.15em;"></span>'
+              '<span class="mord text">'
+                '<span class="mord textrm">T</span>'
+                '<span class="mspace" style="margin-right:-0.1667em;"></span>'
+                '<span class="vlist-t vlist-t2">'
+                  '<span class="vlist-r">'
+                    '<span class="vlist" style="height:0.4678em;">'
+                      '<span style="top:-2.7845em;">'
+                        '<span class="pstrut" style="height:3em;"></span>'
+                        '<span class="mord">'
+                          '<span class="mord textrm">E</span></span></span></span>'
+                    '<span class="vlist-s">​</span></span>'
+                  '<span class="vlist-r">'
+                    '<span class="vlist" style="height:0.2155em;"><span></span></span></span></span>'
+                '<span class="mspace" style="margin-right:-0.125em;"></span>'
+                '<span class="mord textrm">X</span></span></span></span></span></span></span></p>',
+    [
+      MathBlockNode(
+        texSource: '\\KaTeX',
+        nodes: [
+          KatexSpanNode(
+            styles: KatexSpanStyles(),
+            text: null,
+            nodes: [
+              KatexStrutNode(heightEm: 0.8988, verticalAlignEm: -0.2155),
+              KatexSpanNode(
+                styles: KatexSpanStyles(),
+                text: null,
+                nodes: [
+                  KatexSpanNode(
+                    styles: KatexSpanStyles(fontFamily: 'KaTeX_Main'),
+                    text: 'K',
+                    nodes: null),
+                  KatexSpanNode(
+                    styles: KatexSpanStyles(marginRightEm: -0.17),
+                    text: null,
+                    nodes: []),
+                  KatexNegativeMarginNode(
+                    leftOffsetEm: -0.17,
+                    nodes: [
+                      KatexVlistNode(
+                        rows: [
+                          KatexVlistRowNode(
+                            verticalOffsetEm: -2.905 + 2.7,
+                            node: KatexSpanNode(
+                              styles: KatexSpanStyles(),
+                              text: null,
+                              nodes: [
+                                KatexSpanNode(
+                                  styles: KatexSpanStyles(
+                                    fontFamily: 'KaTeX_Main',
+                                    fontSizeEm: 0.7),
+                                  text: 'A',
+                                  nodes: null),
+                              ])),
+                        ]),
+                      KatexSpanNode(
+                        styles: KatexSpanStyles(marginRightEm: -0.15),
+                        text: null,
+                        nodes: []),
+                      KatexNegativeMarginNode(
+                        leftOffsetEm: -0.15,
+                        nodes: [
+                          KatexSpanNode(
+                            styles: KatexSpanStyles(),
+                            text: null,
+                            nodes: [
+                              KatexSpanNode(
+                                styles: KatexSpanStyles(
+                                  fontFamily: 'KaTeX_Main'),
+                                text: 'T',
+                                nodes: null),
+                              KatexSpanNode(
+                                styles: KatexSpanStyles(marginRightEm: -0.1667),
+                                text: null,
+                                nodes: []),
+                              KatexNegativeMarginNode(
+                                leftOffsetEm: -0.1667,
+                                nodes: [
+                                  KatexVlistNode(
+                                    rows: [
+                                      KatexVlistRowNode(
+                                        verticalOffsetEm: -2.7845 + 3,
+                                        node: KatexSpanNode(
+                                          styles: KatexSpanStyles(),
+                                          text: null,
+                                          nodes: [
+                                            KatexSpanNode(
+                                              styles: KatexSpanStyles(
+                                                fontFamily: 'KaTeX_Main'),
+                                              text: 'E',
+                                              nodes: null),
+                                          ])),
+                                    ]),
+                                  KatexSpanNode(
+                                    styles: KatexSpanStyles(marginRightEm: -0.125),
+                                    text: null,
+                                    nodes: []),
+                                  KatexNegativeMarginNode(
+                                    leftOffsetEm: -0.125,
+                                    nodes: [
+                                      KatexSpanNode(
+                                        styles: KatexSpanStyles(
+                                          fontFamily: 'KaTeX_Main'),
+                                        text: 'X',
+                                        nodes: null),
+                                    ]),
+                                ]),
+                            ]),
+                        ]),
+                    ]),
+                ]),
+            ]),
+        ]),
+    ]);
+
   static const imageSingle = ContentExample(
     'single image',
     // https://chat.zulip.org/#narrow/stream/7-test-here/topic/Thumbnails/near/1900103
@@ -2341,6 +2476,7 @@ void main() async {
   testParseExample(ContentExample.mathBlockKatexVertical3);
   testParseExample(ContentExample.mathBlockKatexVertical4);
   testParseExample(ContentExample.mathBlockKatexVertical5);
+  testParseExample(ContentExample.mathBlockKatexNegativeMargins);
 
   testParseExample(ContentExample.imageSingle);
   testParseExample(ContentExample.imageSingleNoDimensions);
