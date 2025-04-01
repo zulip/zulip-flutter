@@ -1,10 +1,14 @@
 import 'package:checks/checks.dart';
+import 'package:file/file.dart';
+import 'package:file/local.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/core.dart';
 import 'package:zulip/model/content.dart';
@@ -670,6 +674,59 @@ void main() {
           fontFamily: fontFamily,
           fontSize: baseTextStyle.fontSize!,
           fontHeight: baseTextStyle.height!);
+      }
+    });
+
+    group('characters render at specific offsets with specific size: ', () {
+      final testCases = [
+        (ContentExample.mathBlockKatexVertical1, [
+          ('a', Offset(0.0, 5.28), Size(10.88, 25.0)),
+          ('′', Offset(10.88, 1.12), Size(3.95, 17.0)),
+        ]),
+        (ContentExample.mathBlockKatexVertical2, [
+          ('x', Offset(0.0, 5.28), Size(11.76, 25.0)),
+          ('n', Offset(11.76, 13.65), Size(8.63, 17.0)),
+        ]),
+        (ContentExample.mathBlockKatexVertical3, [
+          ('e', Offset(0.0, 5.28), Size(9.58, 25.0)),
+          ('x', Offset(9.58, 2.07), Size(8.23, 17.0)),
+        ]),
+        (ContentExample.mathBlockKatexVertical4, [
+          ('u', Offset(0.0, 15.64), Size(8.23, 17.0)),
+          ('o', Offset(0.0, 2.07), Size(6.98, 17.0)),
+        ]),
+        (ContentExample.mathBlockKatexVertical5, [
+          ('a', Offset(0.0, 4.16), Size(10.88, 25.0)),
+          ('b', Offset(10.88, -0.65), Size(8.82, 25.0)),
+          ('c', Offset(19.70, 4.16), Size(8.90, 25.0)),
+        ]),
+      ];
+
+      for (final testCase in testCases) {
+        testWidgets(testCase.$1.description, (tester) async {
+          await _loadKatexFonts();
+
+          addTearDown(testBinding.reset);
+          final globalSettings = testBinding.globalStore.settings;
+          await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
+          check(globalSettings).getBool(BoolGlobalSetting.renderKatex).isTrue();
+
+          await prepareContent(tester, plainContent(testCase.$1.html));
+
+          final baseRect = tester.getRect(find.byType(Katex));
+
+          for (final characterData in testCase.$2) {
+            final character = characterData.$1;
+            final topLeftOffset = characterData.$2;
+            final size = characterData.$3;
+
+            final rect = tester.getRect(find.text(character));
+            check(rect.topLeft - baseRect.topLeft)
+              .within(distance: 0.01, from: topLeftOffset);
+            check(rect.size)
+              .within(distance: 0.01, from: size);
+          }
+        });
       }
     });
   });
@@ -1417,4 +1474,22 @@ void main() {
       check(linkText.textAlign).equals(TextAlign.center);
     });
   });
+}
+
+Future<void> _loadKatexFonts() async {
+  const fs = LocalFileSystem();
+  final katexFontsDir = fs.currentDirectory.childDirectory(
+    fs.path.join('assets', 'KaTeX'));
+  assert(katexFontsDir.existsSync());
+
+  for (final fontFile in katexFontsDir.listSync()) {
+    if (fontFile is! File) continue;
+    if (p.extension(fontFile.path) != '.ttf') continue;
+
+    final [fontName, ...] = p.withoutExtension(fontFile.basename).split('-');
+
+    final bytes =
+      Future.value(fontFile.readAsBytesSync().buffer.asByteData());
+    await (FontLoader(fontName)..addFont(bytes)).load();
+  }
 }
