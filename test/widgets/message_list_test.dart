@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
@@ -1468,6 +1469,9 @@ void main() {
     Finder outboxMessageFinder = find.widgetWithText(
       OutboxMessageWithPossibleSender, content, skipOffstage: true);
 
+    Finder messageNotSentFinder = find.descendant(
+      of: find.byType(OutboxMessageWithPossibleSender),
+      matching: find.text('MESSAGE NOT SENT')).hitTestable();
     Finder loadingIndicatorFinder = find.descendant(
       of: find.byType(OutboxMessageWithPossibleSender),
       matching: find.byType(LinearProgressIndicator)).hitTestable();
@@ -1479,6 +1483,48 @@ void main() {
       await tester.enterText(contentInputFinder, content);
       await tester.tap(find.byIcon(ZulipIcons.send));
       await tester.pump(Duration.zero);
+    }
+
+    Future<void> sendMessageAndFail(WidgetTester tester, {
+      Duration delay = Duration.zero,
+    }) async {
+      connection.prepare(httpException: SocketException('error'), delay: delay);
+      await tester.enterText(contentInputFinder, content);
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump(Duration.zero);
+    }
+
+    Future<void> dismissErrorDialog(WidgetTester tester) async {
+      await tester.tap(find.byWidget(
+        checkErrorDialog(tester, expectedTitle: 'Message not sent')));
+      await tester.pump(Duration(milliseconds: 250));
+    }
+
+    Future<void> checkTapRestoreMessage(WidgetTester tester) async {
+      final state = tester.state<ComposeBoxState>(find.byType(ComposeBox));
+      check(store.outboxMessages).values.single;
+      check(outboxMessageFinder).findsOne();
+      check(messageNotSentFinder).findsOne();
+      check(state).controller.content.text.isNotNull().isEmpty();
+
+      // Tap the message.  This should put its content back into the compose box
+      // and remove it.
+      await tester.tap(outboxMessageFinder);
+      await tester.pump();
+      check(store.outboxMessages).isEmpty();
+      check(outboxMessageFinder).findsNothing();
+      check(state).controller.content.text.equals(content);
+    }
+
+    Future<void> checkTapNotRestoreMessage(WidgetTester tester) async {
+      check(store.outboxMessages).values.single;
+      check(outboxMessageFinder).findsOne();
+
+      // the message should ignore the pointer event
+      await tester.tap(outboxMessageFinder, warnIfMissed: false);
+      await tester.pump();
+      check(store.outboxMessages).values.single;
+      check(outboxMessageFinder).findsOne();
     }
 
     // State transitions are tested more thoroughly in
@@ -1494,6 +1540,87 @@ void main() {
       await tester.pump(kLocalEchoDebounceDuration);
       check(outboxMessageFinder).findsOne();
       check(loadingIndicatorFinder).findsOne();
+    });
+
+    testWidgets('hidden -> waiting, tapping does nothing', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: topicNarrow, streams: [stream],
+        messages: []);
+
+      // Send a message and wait until the debounce timer expires..
+      await sendMessageAndSucceed(tester);
+      await tester.pump(kLocalEchoDebounceDuration);
+      check(loadingIndicatorFinder).findsOne();
+
+      // The outbox message is still in waiting state;
+      // tapping does not restore it.
+      await checkTapNotRestoreMessage(tester);
+    });
+
+    testWidgets('hidden -> failed, tapping does nothing if compose box is not offered', (tester) async {
+      final messages = [eg.streamMessage(
+        stream: stream, topic: topic, content: content)];
+      await setupMessageListPage(tester,
+        narrow: const CombinedFeedNarrow(),
+        streams: [stream], subscriptions: [eg.subscription(stream)],
+        messages: messages);
+
+      // Navigate to a message list page in a topic narrow,
+      // which has a compose box.
+      connection.prepare(json:
+        eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson());
+      await tester.tap(find.text(topic));
+      await tester.pump(); // handle tap
+      await tester.pump(); // wait for navigation
+      check(contentInputFinder).findsOne();
+
+      await sendMessageAndFail(tester);
+      await dismissErrorDialog(tester);
+      // Navigate back to the message list page without a compose box,
+      // where the failed to send message should be visible.
+      await tester.pageBack();
+      await tester.pump(); // handle tap
+      await tester.pump(const Duration(milliseconds: 500)); // wait for navigation
+      check(contentInputFinder).findsNothing();
+      check(messageNotSentFinder).findsOne();
+
+      // Tap the failed to send message.
+      // This should not remove it from the message list.
+      await checkTapNotRestoreMessage(tester);
+    });
+
+    testWidgets('hidden -> failed, tap to restore message', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: topicNarrow, streams: [stream],
+        messages: []);
+      // Send a message and fail.  Dismiss the error dialog as it pops up.
+      await sendMessageAndFail(tester);
+      await dismissErrorDialog(tester);
+      check(messageNotSentFinder).findsOne();
+
+      await checkTapRestoreMessage(tester);
+    });
+
+    testWidgets('waiting -> waitPeriodExpired, tap to restore message', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: topicNarrow, streams: [stream],
+        messages: []);
+      await sendMessageAndFail(tester,
+        delay: kSendMessageOfferRestoreWaitPeriod + const Duration(seconds: 1));
+      await tester.pump(kSendMessageOfferRestoreWaitPeriod);
+      final localMessageId = store.outboxMessages.keys.single;
+      check(messageNotSentFinder).findsOne();
+
+      await checkTapRestoreMessage(tester);
+
+      // While `localMessageId` is no longer in store, there should be no error
+      // when a message event refers to it.
+      await store.handleEvent(eg.messageEvent(
+        eg.streamMessage(stream: stream, topic: 'topic'),
+        localMessageId: localMessageId));
+
+      // The [sendMessage] request fails; there is no outbox message affected.
+      await tester.pump(Duration(seconds: 1));
     });
   });
 

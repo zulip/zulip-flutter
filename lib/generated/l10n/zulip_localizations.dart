@@ -631,6 +631,12 @@ abstract class ZulipLocalizations {
   /// **'When you edit a message, the content that was previously in the compose box is discarded.'**
   String get discardDraftForEditConfirmationDialogMessage;
 
+  /// Message for a confirmation dialog when restoring a message not sent, for discarding message text that was typed into the compose box.
+  ///
+  /// In en, this message translates to:
+  /// **'When you restore a message not sent, the content that was previously in the compose box is discarded.'**
+  String get discardDraftForMessageNotSentConfirmationDialogMessage;
+
   /// Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box.
   ///
   /// In en, this message translates to:
@@ -1276,6 +1282,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'MOVED'**
   String get messageIsMovedLabel;
+
+  /// Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)
+  ///
+  /// In en, this message translates to:
+  /// **'MESSAGE NOT SENT'**
+  String get messageNotSentLabel;
 
   /// The list of people who voted for a poll option, wrapped in parentheses.
   ///

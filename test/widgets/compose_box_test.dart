@@ -1458,6 +1458,133 @@ void main() {
     }
   }
 
+  group('restoreMessageNotSent', () {
+    final channel = eg.stream();
+    final topic = 'topic';
+    final topicNarrow = eg.topicNarrow(channel.streamId, topic);
+
+    final failedMessageContent = 'failed message';
+    final failedMessageFinder = find.widgetWithText(
+      OutboxMessageWithPossibleSender, failedMessageContent, skipOffstage: true);
+
+    Future<void> prepareMessageNotSent(WidgetTester tester, {
+      required Narrow narrow,
+      List<User> otherUsers = const [],
+    }) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+      await prepareComposeBox(tester,
+        narrow: narrow, streams: [channel], otherUsers: otherUsers);
+
+      if (narrow is ChannelNarrow) {
+        connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+        await enterTopic(tester, narrow: narrow, topic: topic);
+      }
+      await enterContent(tester, failedMessageContent);
+      connection.prepare(httpException: SocketException('error'));
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump(Duration.zero);
+
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: 'Message not sent')));
+      await tester.pump(Duration(milliseconds: 250));
+      check(failedMessageFinder).findsOne();
+    }
+
+    testWidgets('restore content in DM narrow', (tester) async {
+      final dmNarrow = DmNarrow.withUser(
+        eg.otherUser.userId, selfUserId: eg.selfUser.userId);
+      await prepareMessageNotSent(tester, narrow: dmNarrow, otherUsers: [eg.otherUser]);
+
+      await tester.tap(failedMessageFinder);
+      await tester.pump();
+      check(state).controller.content.text.equals(failedMessageContent);
+    });
+
+    testWidgets('restore content in topic narrow', (tester) async {
+      await prepareMessageNotSent(tester, narrow: topicNarrow);
+
+      await tester.tap(failedMessageFinder);
+      await tester.pump();
+      check(state).controller.content.text.equals(failedMessageContent);
+    });
+
+    testWidgets('restore content and topic in channel narrow', (tester) async {
+      final channelNarrow = ChannelNarrow(channel.streamId);
+      await prepareMessageNotSent(tester, narrow: channelNarrow);
+
+      await tester.enterText(topicInputFinder, 'topic before restoring');
+      check(state).controller.isA<StreamComposeBoxController>()
+        ..topic.text.equals('topic before restoring')
+        ..content.text.isNotNull().isEmpty();
+
+      await tester.tap(failedMessageFinder);
+      await tester.pump();
+      check(state).controller.isA<StreamComposeBoxController>()
+        ..topic.text.equals(topic)
+        ..content.text.equals(failedMessageContent);
+    });
+
+    Future<void> expectAndHandleDiscardForMessageNotSentConfirmation(
+      WidgetTester tester, {
+      required bool shouldContinue,
+    }) {
+      return expectAndHandleDiscardConfirmation(tester,
+        expectedMessage: 'When you restore a message not sent, the content that was previously in the compose box is discarded.',
+        shouldContinue: shouldContinue);
+    }
+
+    testWidgets('restore content, if discard draft when interrupting new-message compose', (tester) async {
+      await prepareMessageNotSent(tester, narrow: topicNarrow);
+      await enterContent(tester, 'composing something');
+
+      await tester.tap(failedMessageFinder);
+      await tester.pump();
+      check(state).controller.content.text.equals('composing something');
+
+      await expectAndHandleDiscardForMessageNotSentConfirmation(tester,
+        shouldContinue: true);
+      await tester.pump();
+      check(state).controller.content.text.equals(failedMessageContent);
+    });
+
+    testWidgets('do not restore content, if cancel when interrupting new-message compose', (tester) async {
+      await prepareMessageNotSent(tester, narrow: topicNarrow);
+      await enterContent(tester, 'composing something');
+
+      await tester.tap(failedMessageFinder);
+      await tester.pump();
+      check(state).controller.content.text.equals('composing something');
+
+      await expectAndHandleDiscardForMessageNotSentConfirmation(tester,
+        shouldContinue: false);
+      await tester.pump();
+      check(state).controller.content.text.equals('composing something');
+    });
+
+    testWidgets('do not restore content in editing mode', (tester) async {
+      await prepareMessageNotSent(tester, narrow: topicNarrow);
+
+      final messageToEdit = eg.streamMessage(
+        sender: eg.selfUser, stream: channel, topic: topic,
+        content: 'message to edit');
+      await store.addMessage(messageToEdit);
+      await tester.pump();
+
+      await startEditInteractionFromActionSheet(tester, messageId: messageToEdit.id,
+        originalRawContent: 'message to edit',
+        delay: Duration.zero);
+      await tester.pump(const Duration(milliseconds: 250)); // bottom-sheet animation
+
+      await tester.tap(failedMessageFinder);
+      await tester.pump();
+      // Since restoring message not sent is not allowed in editing mode,
+      // there should be no discard draft confirmation dialog either.
+      checkNoErrorDialog(tester);
+      check(state).controller.content.text.equals('message to edit');
+    });
+  });
+
   group('edit message', () {
     final channel = eg.stream();
     final topic = 'topic';

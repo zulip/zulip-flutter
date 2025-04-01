@@ -1618,22 +1618,96 @@ class OutboxMessageWithPossibleSender extends StatelessWidget {
 
   final MessageListOutboxMessageItem item;
 
+  void _handleTap(BuildContext context) {
+    MessageListPage.ancestorOf(context).composeBoxState!
+      .restoreMessageNotSent(item.message.localMessageId);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final message = item.message;
+    final GestureTapCallback? handleTap;
+    final double opacity;
+    switch (item.message.state) {
+      case OutboxMessageState.hidden:
+        assert(false,
+          'Hidden OutboxMessage messages should not appear in message lists');
+        handleTap = null;
+        opacity = 1.0;
+
+      case OutboxMessageState.waiting:
+        handleTap = null;
+        opacity = 1.0;
+
+      case OutboxMessageState.failed:
+      case OutboxMessageState.waitPeriodExpired:
+        final isComposeBoxOffered =
+          MessageListPage.ancestorOf(context).composeBoxState != null;
+        handleTap = isComposeBoxOffered ? () => _handleTap(context) : null;
+        opacity = 0.6;
+    }
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.only(top: 4),
       child: Column(children: [
         if (item.showSender)
-          _SenderRow(message: message, showTimestamp: false),
+          _SenderRow(message: item.message, showTimestamp: false),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          // This is adapted from [MessageContent].
-          // TODO(#576): Offer InheritedMessage ancestor once we are ready
-          //   to support local echoing images and lightbox.
-          child: DefaultTextStyle(
-            style: ContentTheme.of(context).textStylePlainParagraph,
-            child: BlockContentList(nodes: item.content.nodes))),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // This is adapted from [MessageContent].
+              // TODO(#576): Offer InheritedMessage ancestor once we are ready
+              //   to support local echoing images and lightbox.
+              Opacity(opacity: opacity, child: DefaultTextStyle(
+                style: ContentTheme.of(context).textStylePlainParagraph,
+                child: GestureDetector(
+                  onTap: handleTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: BlockContentList(nodes: item.content.nodes)))),
+
+              _OutboxMessageStatusRow(outboxMessageState: item.message.state),
+            ])),
       ]));
+  }
+}
+
+class _OutboxMessageStatusRow extends StatelessWidget {
+  const _OutboxMessageStatusRow({required this.outboxMessageState});
+
+  final OutboxMessageState outboxMessageState;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (outboxMessageState) {
+      case OutboxMessageState.hidden:
+        assert(false,
+          'Hidden OutboxMessage messages should not appear in message lists');
+        return SizedBox.shrink();
+
+      case OutboxMessageState.waiting:
+        final designVariables = DesignVariables.of(context);
+        return Padding(
+          padding: const EdgeInsetsGeometry.only(bottom: 2),
+          child: LinearProgressIndicator(
+            minHeight: 2,
+            color: designVariables.foreground.withFadedAlpha(0.5),
+            backgroundColor: designVariables.foreground.withFadedAlpha(0.2)));
+
+      case OutboxMessageState.failed:
+      case OutboxMessageState.waitPeriodExpired:
+        final designVariables = DesignVariables.of(context);
+        final zulipLocalizations = ZulipLocalizations.of(context);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text(
+            zulipLocalizations.messageNotSentLabel,
+            textAlign: TextAlign.end,
+            style: TextStyle(
+              color: designVariables.btnLabelAttLowIntDanger,
+              fontSize: 12,
+              height: 12 / 12,
+              letterSpacing: proportionalLetterSpacing(
+                context, 0.05, baseFontSize: 12))));
+    }
   }
 }

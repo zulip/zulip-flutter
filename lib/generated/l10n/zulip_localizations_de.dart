@@ -319,6 +319,10 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'When you edit a message, the content that was previously in the compose box is discarded.';
 
   @override
+  String get discardDraftForMessageNotSentConfirmationDialogMessage =>
+      'When you restore a message not sent, the content that was previously in the compose box is discarded.';
+
+  @override
   String get discardDraftConfirmationDialogConfirmButton => 'Discard';
 
   @override
@@ -703,6 +707,9 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get messageIsMovedLabel => 'MOVED';
+
+  @override
+  String get messageNotSentLabel => 'MESSAGE NOT SENT';
 
   @override
   String pollVoterNames(String voterNames) {
