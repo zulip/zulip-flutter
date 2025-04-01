@@ -1,3 +1,5 @@
+import 'package:csslib/parser.dart' as css_parser;
+import 'package:csslib/visitor.dart' as css_visitor;
 import 'package:flutter/foundation.dart';
 import 'package:html/dom.dart' as dom;
 
@@ -132,6 +134,8 @@ class _KatexParser {
     // TODO maybe check if the sequence of ancestors matter for spans.
 
     final debugHtmlNode = kDebugMode ? element : null;
+
+    final inlineStyles = _parseSpanInlineStyles(element);
 
     // Aggregate the CSS styles that apply, in the same order as the CSS
     // classes specified for this span, mimicking the behaviour on web.
@@ -353,10 +357,61 @@ class _KatexParser {
     if (text == null && spans == null) throw KatexHtmlParseError();
 
     return KatexNode(
-      styles: styles,
+      styles: inlineStyles != null
+        ? styles.merge(inlineStyles)
+        : styles,
       text: text,
       nodes: spans,
       debugHtmlNode: debugHtmlNode);
+  }
+
+  KatexSpanStyles? _parseSpanInlineStyles(dom.Element element) {
+    if (element.attributes case {'style': final styleStr}) {
+      // `package:csslib` doesn't seem to have a way to parse inline styles:
+      //   https://github.com/dart-lang/tools/issues/1173
+      // So, workaround that by wrapping it in a universal declaration.
+      final stylesheet = css_parser.parse('*{$styleStr}');
+      if (stylesheet.topLevels case [css_visitor.RuleSet() && final rule]) {
+        double? heightEm;
+
+        for (final declaration in rule.declarationGroup.declarations) {
+          if (declaration case css_visitor.Declaration(
+            :final property,
+            expression: css_visitor.Expressions(
+              expressions: [css_visitor.Expression() && final expression]),
+          )) {
+            switch (property) {
+              case 'height':
+                heightEm = _getEm(expression);
+                if (heightEm != null) continue;
+            }
+
+            // TODO handle more CSS properties
+            assert(debugLog('KaTeX: Unsupported CSS expression:'
+              ' ${expression.toDebugString()}'));
+            _hasError = true;
+          } else {
+            throw KatexHtmlParseError();
+          }
+        }
+
+        return KatexSpanStyles(
+          heightEm: heightEm,
+        );
+      } else {
+        throw KatexHtmlParseError();
+      }
+    }
+    return null;
+  }
+
+  /// Returns the CSS `em` unit value if the given [expression] is actually an
+  /// `em` unit expression, else returns null.
+  double? _getEm(css_visitor.Expression expression) {
+    if (expression is css_visitor.EmTerm && expression.value is num) {
+      return (expression.value as num).toDouble();
+    }
+    return null;
   }
 }
 
@@ -377,6 +432,8 @@ enum KatexSpanTextAlign {
 
 @immutable
 class KatexSpanStyles {
+  final double? heightEm;
+
   final String? fontFamily;
   final double? fontSizeEm;
   final KatexSpanFontWeight? fontWeight;
@@ -384,6 +441,7 @@ class KatexSpanStyles {
   final KatexSpanTextAlign? textAlign;
 
   const KatexSpanStyles({
+    this.heightEm,
     this.fontFamily,
     this.fontSizeEm,
     this.fontWeight,
@@ -394,6 +452,7 @@ class KatexSpanStyles {
   @override
   int get hashCode => Object.hash(
     'KatexSpanStyles',
+    heightEm,
     fontFamily,
     fontSizeEm,
     fontWeight,
@@ -404,6 +463,7 @@ class KatexSpanStyles {
   @override
   bool operator ==(Object other) {
     return other is KatexSpanStyles &&
+      other.heightEm == heightEm &&
       other.fontFamily == fontFamily &&
       other.fontSizeEm == fontSizeEm &&
       other.fontWeight == fontWeight &&
@@ -414,12 +474,24 @@ class KatexSpanStyles {
   @override
   String toString() {
     final args = <String>[];
+    if (heightEm != null) args.add('heightEm: $heightEm');
     if (fontFamily != null) args.add('fontFamily: $fontFamily');
     if (fontSizeEm != null) args.add('fontSizeEm: $fontSizeEm');
     if (fontWeight != null) args.add('fontWeight: $fontWeight');
     if (fontStyle != null) args.add('fontStyle: $fontStyle');
     if (textAlign != null) args.add('textAlign: $textAlign');
     return '${objectRuntimeType(this, 'KatexSpanStyles')}(${args.join(', ')})';
+  }
+
+  KatexSpanStyles merge(KatexSpanStyles other) {
+    return KatexSpanStyles(
+      heightEm: other.heightEm ?? heightEm,
+      fontFamily: other.fontFamily ?? fontFamily,
+      fontSizeEm: other.fontSizeEm ?? fontSizeEm,
+      fontStyle: other.fontStyle ?? fontStyle,
+      fontWeight: other.fontWeight ?? fontWeight,
+      textAlign: other.textAlign ?? textAlign,
+    );
   }
 }
 
