@@ -895,7 +895,9 @@ class _KatexSpan extends StatelessWidget {
   Widget build(BuildContext context) {
     final em = DefaultTextStyle.of(context).style.fontSize!;
 
-    Widget widget = const SizedBox.shrink();
+    const defaultWidget = SizedBox.shrink();
+
+    Widget widget = defaultWidget;
     if (node.text != null) {
       widget = Text(node.text!);
     } else if (node.nodes != null && node.nodes!.isNotEmpty) {
@@ -952,7 +954,21 @@ class _KatexSpan extends StatelessWidget {
         textAlign: textAlign,
         child: widget);
     }
-    return widget;
+
+    if (styles.verticalAlignEm != null && styles.heightEm != null) {
+      assert(widget == defaultWidget);
+      widget = Baseline(
+        baseline: (styles.verticalAlignEm! + styles.heightEm!) * em,
+        baselineType: TextBaseline.alphabetic,
+        child: const Text(''));
+    }
+
+    return SizedBox(
+      height: styles.heightEm != null
+        ? styles.heightEm! * em
+        : null,
+      child: widget,
+    );
   }
 }
 
