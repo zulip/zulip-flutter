@@ -1113,10 +1113,6 @@
   "@messageNotSentLabel": {
     "description": "Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
-  "discardDraftForMessageNotSentConfirmationDialogMessage": "Odzyskanie wiadomości, która nie została wysłana, skutkuje wyczyszczeniem zawartości pola dodania wpisu.",
-  "@discardDraftForMessageNotSentConfirmationDialogMessage": {
-    "description": "Message for a confirmation dialog when restoring a message not sent, for discarding message text that was typed into the compose box."
-  },
   "errorNotificationOpenAccountNotFound": "Nie odnaleziono konta powiązanego z tym powiadomieniem.",
   "@errorNotificationOpenAccountNotFound": {
     "description": "Error message when the account associated with the notification could not be found"

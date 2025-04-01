@@ -881,9 +881,8 @@ mixin _OutboxMessageStore on PerAccountStoreBase {
   void _handleMessageEventOutbox(MessageEvent event) {
     if (event.localMessageId != null) {
       final localMessageId = int.parse(event.localMessageId!, radix: 10);
-      // The outbox message can be missing if the user removes it (to be
-      // implemented in #1441) before the event arrives.
-      // Nothing to do in that case.
+      // The outbox message can be missing if the user removes it before the
+      // event arrives.  Nothing to do in that case.
       _outboxMessages.remove(localMessageId);
       _outboxMessageDebounceTimers.remove(localMessageId)?.cancel();
       _outboxMessageWaitPeriodTimers.remove(localMessageId)?.cancel();

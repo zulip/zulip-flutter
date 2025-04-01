@@ -13,6 +13,7 @@ import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
 import '../model/compose.dart';
+import '../model/message.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
 import 'actions.dart';
@@ -1840,6 +1841,16 @@ class ComposeBox extends StatefulWidget {
 abstract class ComposeBoxState extends State<ComposeBox> {
   ComposeBoxController get controller;
 
+  /// Fills the compose box with the content of an [OutboxMessage]
+  /// for a failed [sendMessage] request.
+  ///
+  /// If there is already text in the compose box, gives a confirmation dialog
+  /// to confirm that it is OK to discard that text.
+  ///
+  /// [localMessageId], as in [OutboxMessage.localMessageId], must be present
+  /// in the message store.
+  void restoreMessageNotSent(int localMessageId);
+
   /// Switch the compose box to editing mode.
   ///
   /// If there is already text in the compose box, gives a confirmation dialog
@@ -1860,6 +1871,29 @@ abstract class ComposeBoxState extends State<ComposeBox> {
 class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateMixin<ComposeBox> implements ComposeBoxState {
   @override ComposeBoxController get controller => _controller!;
   ComposeBoxController? _controller;
+
+  @override
+  void restoreMessageNotSent(int localMessageId) async {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final abort = await _abortBecauseContentInputNotEmpty(
+      dialogMessage: zulipLocalizations.discardDraftForOutboxConfirmationDialogMessage);
+    if (abort || !mounted) return;
+
+    final store = PerAccountStoreWidget.of(context);
+    final outboxMessage = store.takeOutboxMessage(localMessageId);
+    setState(() {
+      _setNewController(store);
+      final controller = this.controller;
+      controller
+        ..content.value = TextEditingValue(text: outboxMessage.contentMarkdown)
+        ..contentFocusNode.requestFocus();
+      if (controller is StreamComposeBoxController) {
+        controller.topic.setTopic(
+          (outboxMessage.conversation as StreamConversation).topic);
+      }
+    });
+  }
 
   @override
   void startEditInteraction(int messageId) async {
@@ -1942,7 +1976,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     if (!mounted) return;
     if (!identical(controller, emptyEditController)) {
       // During the fetch-raw-content request, the user tapped Cancel
-      // or tapped a failed message edit to restore.
+      // or tapped a failed message edit or failed outbox message to restore.
       // TODO in this case we don't want the error dialog caused by
       //   ZulipAction.fetchRawContentWithFeedback; suppress that
       return;

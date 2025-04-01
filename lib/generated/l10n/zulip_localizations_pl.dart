@@ -333,8 +333,8 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Miej na uwadze, że przechodząc do zmiany wiadomości wyczyścisz okno nowej wiadomości.';
 
   @override
-  String get discardDraftForMessageNotSentConfirmationDialogMessage =>
-      'Odzyskanie wiadomości, która nie została wysłana, skutkuje wyczyszczeniem zawartości pola dodania wpisu.';
+  String get discardDraftForOutboxConfirmationDialogMessage =>
+      'When you restore an unsent message, the content that was previously in the compose box is discarded.';
 
   @override
   String get discardDraftConfirmationDialogConfirmButton => 'Odrzuć';

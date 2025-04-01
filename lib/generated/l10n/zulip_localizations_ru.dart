@@ -334,8 +334,8 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'При изменении сообщения текст из поля для редактирования удаляется.';
 
   @override
-  String get discardDraftForMessageNotSentConfirmationDialogMessage =>
-      'При восстановлении неотправленного сообщения текст в поле ввода текста будет утрачен.';
+  String get discardDraftForOutboxConfirmationDialogMessage =>
+      'When you restore an unsent message, the content that was previously in the compose box is discarded.';
 
   @override
   String get discardDraftConfirmationDialogConfirmButton => 'Сбросить';

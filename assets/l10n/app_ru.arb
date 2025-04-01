@@ -1105,10 +1105,6 @@
   "@newDmFabButtonLabel": {
     "description": "Label for the floating action button (FAB) that opens the new DM sheet."
   },
-  "discardDraftForMessageNotSentConfirmationDialogMessage": "При восстановлении неотправленного сообщения текст в поле ввода текста будет утрачен.",
-  "@discardDraftForMessageNotSentConfirmationDialogMessage": {
-    "description": "Message for a confirmation dialog when restoring a message not sent, for discarding message text that was typed into the compose box."
-  },
   "newDmSheetScreenTitle": "Новое ЛС",
   "@newDmSheetScreenTitle": {
     "description": "Title displayed at the top of the new DM screen."
