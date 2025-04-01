@@ -881,6 +881,7 @@ class _KatexNodeList extends StatelessWidget {
           child: switch (e) {
             KatexSpanNode() => _KatexSpan(e),
             KatexVlistNode() => _KatexVlist(e),
+            KatexNegativeMarginNode() => _KatexNegativeMargin(e),
           });
       }))));
   }
@@ -960,7 +961,10 @@ class _KatexSpan extends StatelessWidget {
         child: widget);
     }
 
-    return SizedBox(
+    return Container(
+      margin: styles.marginRightEm != null && !styles.marginRightEm!.isNegative
+        ? EdgeInsets.only(right: styles.marginRightEm! * em)
+        : null,
       height: styles.heightEm != null
         ? styles.heightEm! * em
         : null,
@@ -989,9 +993,35 @@ class _KatexVlist extends StatelessWidget {
               child: switch (e) {
                 KatexSpanNode() => _KatexSpan(e),
                 KatexVlistNode() => _KatexVlist(e),
+                KatexNegativeMarginNode() => _KatexNegativeMargin(e),
               });
           })))));
     })));
+  }
+}
+
+class _KatexNegativeMargin extends StatelessWidget {
+  const _KatexNegativeMargin(this.node);
+
+  final KatexNegativeMarginNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    return Transform.translate(
+      offset: Offset(node.marginRightEm * em, 0),
+      child: Text.rich(TextSpan(
+        children: List.unmodifiable(node.nodes.map((e) {
+          return WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: switch (e) {
+              KatexSpanNode() => _KatexSpan(e),
+              KatexVlistNode() => _KatexVlist(e),
+              KatexNegativeMarginNode() => _KatexNegativeMargin(e),
+            });
+        })))));
   }
 }
 

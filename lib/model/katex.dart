@@ -123,13 +123,29 @@ class _KatexParser {
   }
 
   List<KatexNode> _parseChildSpans(dom.Element element) {
-    return List.unmodifiable(element.nodes.map((node) {
-      if (node case dom.Element(localName: 'span')) {
-        return _parseSpan(node);
-      } else {
+    var resultSpans = <KatexNode>[];
+    for (final node in element.nodes.reversed) {
+      if (node is! dom.Element || node.localName != 'span') {
         throw KatexHtmlParseError();
       }
-    }));
+
+      final span = _parseSpan(node);
+      resultSpans.add(span);
+
+      if (span is KatexSpanNode) {
+        final marginRightEm = span.styles.marginRightEm;
+        if (marginRightEm != null && marginRightEm.isNegative) {
+          final previousSpansReversed =
+            resultSpans.reversed.toList(growable: false);
+          resultSpans = [];
+          resultSpans.add(KatexNegativeMarginNode(
+            marginRightEm: marginRightEm,
+            nodes: previousSpansReversed));
+        }
+      }
+    }
+
+    return resultSpans.reversed.toList(growable: false);
   }
 
   static final _resetSizeClassRegExp = RegExp(r'^reset-size(\d\d?)$');
@@ -477,6 +493,7 @@ class _KatexParser {
       final stylesheet = css_parser.parse('*{$styleStr}');
       if (stylesheet.topLevels case [css_visitor.RuleSet() && final rule]) {
         double? heightEm;
+        double? marginRightEm;
         double? topEm;
         double? verticalAlignEm;
 
@@ -490,6 +507,10 @@ class _KatexParser {
               case 'height':
                 heightEm = _getEm(expression);
                 if (heightEm != null) continue;
+
+              case 'margin-right':
+                marginRightEm = _getEm(expression);
+                if (marginRightEm != null) continue;
 
               case 'top':
                 topEm = _getEm(expression);
@@ -510,6 +531,7 @@ class _KatexParser {
 
         return KatexSpanStyles(
           heightEm: heightEm,
+          marginRightEm: marginRightEm,
           topEm: topEm,
           verticalAlignEm: verticalAlignEm,
         );
@@ -546,6 +568,7 @@ enum KatexSpanTextAlign {
 @immutable
 class KatexSpanStyles {
   final double? heightEm;
+  final double? marginRightEm;
   final double? topEm;
   final double? verticalAlignEm;
 
@@ -557,6 +580,7 @@ class KatexSpanStyles {
 
   const KatexSpanStyles({
     this.heightEm,
+    this.marginRightEm,
     this.topEm,
     this.verticalAlignEm,
     this.fontFamily,
@@ -570,6 +594,7 @@ class KatexSpanStyles {
   int get hashCode => Object.hash(
     'KatexSpanStyles',
     heightEm,
+    marginRightEm,
     topEm,
     verticalAlignEm,
     fontFamily,
@@ -583,6 +608,7 @@ class KatexSpanStyles {
   bool operator ==(Object other) {
     return other is KatexSpanStyles &&
       other.heightEm == heightEm &&
+      other.marginRightEm == marginRightEm &&
       other.topEm == topEm &&
       other.verticalAlignEm == verticalAlignEm &&
       other.fontFamily == fontFamily &&
@@ -596,6 +622,7 @@ class KatexSpanStyles {
   String toString() {
     final args = <String>[];
     if (heightEm != null) args.add('heightEm: $heightEm');
+    if (marginRightEm != null) args.add('marginRightEm: $marginRightEm');
     if (topEm != null) args.add('topEm: $topEm');
     if (verticalAlignEm != null) args.add('verticalAlignEm: $verticalAlignEm');
     if (fontFamily != null) args.add('fontFamily: $fontFamily');
@@ -609,6 +636,7 @@ class KatexSpanStyles {
   KatexSpanStyles merge(KatexSpanStyles other) {
     return KatexSpanStyles(
       heightEm: other.heightEm ?? heightEm,
+      marginRightEm: other.marginRightEm ?? marginRightEm,
       topEm: other.topEm ?? topEm,
       verticalAlignEm: other.verticalAlignEm ?? verticalAlignEm,
       fontFamily: other.fontFamily ?? fontFamily,
