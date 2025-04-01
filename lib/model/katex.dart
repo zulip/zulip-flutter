@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:csslib/parser.dart' as css_parser;
 import 'package:csslib/visitor.dart' as css_visitor;
 import 'package:flutter/foundation.dart';
@@ -167,16 +168,56 @@ class _KatexParser {
   }
 
   List<KatexNode> _parseChildSpans(List<dom.Node> nodes) {
-    return List.unmodifiable(nodes.map((node) {
-      if (node case dom.Element(localName: 'span')) {
-        return _parseSpan(node);
-      } else {
+    var resultSpans = QueueList<KatexNode>();
+    for (final node in nodes.reversed) {
+      if (node is! dom.Element || node.localName != 'span') {
         throw _KatexHtmlParseError(
           node is dom.Element
             ? 'unsupported html node: ${node.localName}'
             : 'unsupported html node');
       }
-    }));
+
+      var span = _parseSpan(node);
+      final negativeRightMarginEm = switch (span) {
+        KatexSpanNode(styles: KatexSpanStyles(:final marginRightEm?))
+          when marginRightEm.isNegative => marginRightEm,
+        _ => null,
+      };
+      final negativeLeftMarginEm = switch (span) {
+        KatexSpanNode(styles: KatexSpanStyles(:final marginLeftEm?))
+          when marginLeftEm.isNegative => marginLeftEm,
+        _ => null,
+      };
+      if (span is KatexSpanNode) {
+        if (negativeRightMarginEm != null || negativeLeftMarginEm != null) {
+          span = KatexSpanNode(
+            styles: span.styles.filter(
+              marginRightEm: negativeRightMarginEm == null,
+              marginLeftEm: negativeLeftMarginEm == null),
+            text: span.text,
+            nodes: span.nodes);
+        }
+      }
+
+      if (negativeRightMarginEm != null) {
+        final previousSpans = resultSpans;
+        resultSpans = QueueList<KatexNode>();
+        resultSpans.addFirst(KatexNegativeMarginNode(
+          leftOffsetEm: negativeRightMarginEm,
+          nodes: previousSpans));
+      }
+
+      resultSpans.addFirst(span);
+
+      if (negativeLeftMarginEm != null) {
+        final previousSpans = resultSpans;
+        resultSpans = QueueList<KatexNode>();
+        resultSpans.addFirst(KatexNegativeMarginNode(
+          leftOffsetEm: negativeLeftMarginEm,
+          nodes: previousSpans));
+      }
+    }
+    return resultSpans;
   }
 
   static final _resetSizeClassRegExp = RegExp(r'^reset-size(\d\d?)$');
@@ -291,13 +332,31 @@ class _KatexParser {
               }
               final pstrutHeight = pstrutStyles.heightEm ?? 0;
 
+              KatexSpanNode innerSpanNode = KatexSpanNode(
+                styles: styles,
+                text: null,
+                nodes: _parseChildSpans(otherSpans));
+
+              final marginRightEm = styles.marginRightEm;
+              final marginLeftEm = styles.marginLeftEm;
+              if (marginRightEm != null && marginRightEm.isNegative) {
+                throw _KatexHtmlParseError();
+              }
+              if (marginLeftEm != null && marginLeftEm.isNegative) {
+                innerSpanNode = KatexSpanNode(
+                  styles: KatexSpanStyles(),
+                  text: null,
+                  nodes: [
+                    KatexNegativeMarginNode(
+                      leftOffsetEm: marginLeftEm,
+                      nodes: [innerSpanNode]),
+                  ]);
+              }
+
               rows.add(KatexVlistRowNode(
                 verticalOffsetEm: topEm + pstrutHeight,
                 debugHtmlNode: kDebugMode ? innerSpan : null,
-                node: KatexSpanNode(
-                  styles: styles,
-                  text: null,
-                  nodes: _parseChildSpans(otherSpans))));
+                node: innerSpanNode));
             } else {
               throw _KatexHtmlParseError();
             }
@@ -630,17 +689,11 @@ class _KatexParser {
 
               case 'margin-right':
                 marginRightEm = _getEm(expression);
-                if (marginRightEm != null) {
-                  if (marginRightEm < 0) throw _KatexHtmlParseError();
-                  continue;
-                }
+                if (marginRightEm != null) continue;
 
               case 'margin-left':
                 marginLeftEm = _getEm(expression);
-                if (marginLeftEm != null) {
-                  if (marginLeftEm < 0) throw _KatexHtmlParseError();
-                  continue;
-                }
+                if (marginLeftEm != null) continue;
             }
 
             // TODO handle more CSS properties
