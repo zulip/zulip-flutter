@@ -843,6 +843,7 @@ class _Katex extends StatelessWidget {
             child: switch (e) {
               KatexSpanNode() => _KatexSpan(e),
               KatexNegativeMarginNode() => _KatexNegativeMargin(e),
+              KatexVlistNode() => _KatexVlist(e),
             });
         }))));
 
@@ -886,6 +887,7 @@ class _KatexSpan extends StatelessWidget {
               child: switch (e) {
                 KatexSpanNode() => _KatexSpan(e),
                 KatexNegativeMarginNode() => _KatexNegativeMargin(e),
+                KatexVlistNode() => _KatexVlist(e),
               });
           }))));
     }
@@ -939,6 +941,11 @@ class _KatexSpan extends StatelessWidget {
       padding += EdgeInsets.only(right: paddingLeftEm * em);
     }
 
+    var offset = Offset.zero;
+    if (styles.topEm != null) {
+      offset += Offset(0, styles.topEm! * em);
+    }
+
     if (textStyle != null || textAlign != null) {
       widget = DefaultTextStyle.merge(
         style: textStyle,
@@ -948,6 +955,15 @@ class _KatexSpan extends StatelessWidget {
     return Container(
       margin: margin != EdgeInsets.zero ? margin : null,
       padding: padding != EdgeInsets.zero ? padding : null,
+      transform: offset != Offset.zero
+        ? Matrix4.translationValues(offset.dx, offset.dy, 0)
+        : null,
+      height: styles.heightEm != null
+        ? styles.heightEm! * em
+        : null,
+      width: styles.widthEm != null
+        ? styles.widthEm! * em
+        : null,
       child: widget,
     );
   }
@@ -972,6 +988,7 @@ class _KatexNegativeMargin extends StatelessWidget {
             child: switch (e) {
               KatexSpanNode() => _KatexSpan(e),
               KatexNegativeMarginNode() => _KatexNegativeMargin(e),
+              KatexVlistNode() => _KatexVlist(e),
             });
           }))));
 
@@ -981,6 +998,34 @@ class _KatexNegativeMargin extends StatelessWidget {
     return offset == Offset.zero
       ? widget
       : Transform.translate(offset: offset, child: widget);
+  }
+}
+
+class _KatexVlist extends StatelessWidget {
+  const _KatexVlist(this.node);
+
+  final KatexVlistNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    return Stack(
+      children: List.unmodifiable(node.rows.map((row) {
+        return Transform.translate(
+          offset: Offset(0, row.verticalOffsetEm * em),
+          child: RichText(text: TextSpan(
+            children: List.unmodifiable(row.nodes.map((e) {
+              return WidgetSpan(
+                alignment: PlaceholderAlignment.baseline,
+                baseline: TextBaseline.alphabetic,
+                child: switch (e) {
+                  KatexSpanNode() => _KatexSpan(e),
+                  KatexNegativeMarginNode() => _KatexNegativeMargin(e),
+                  KatexVlistNode() => _KatexVlist(e),
+                });
+            })))));
+      })));
   }
 }
 
