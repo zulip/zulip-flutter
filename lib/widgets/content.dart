@@ -938,7 +938,13 @@ class _KatexSpan extends StatelessWidget {
         textAlign: textAlign,
         child: widget);
     }
-    return widget;
+
+    return SizedBox(
+      height: styles.heightEm != null
+        ? styles.heightEm! * em
+        : null,
+      child: widget,
+    );
   }
 }
 
