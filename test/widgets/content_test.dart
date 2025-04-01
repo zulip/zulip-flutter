@@ -697,6 +697,13 @@ void main() {
           ('b', Offset(10.88, -0.66), Size(8.82, 25.0)),
           ('c', Offset(19.70, 4.16), Size(8.90, 25.0)),
         ]),
+        (ContentExample.mathBlockKatexNegativeMargins, [
+          ('K', Offset(0.0, 8.64), Size(16.0, 25.0)),
+          ('A', Offset(12.50, 10.85), Size(10.79, 17.0)),
+          ('T', Offset(20.21, 9.36), Size(14.85, 25.0)),
+          ('E', Offset(31.63, 14.52), Size(14.0, 25.0)),
+          ('X', Offset(43.06, 9.85), Size(15.42, 25.0)),
+        ]),
       ];
 
       for (final testCase in testCases) {
