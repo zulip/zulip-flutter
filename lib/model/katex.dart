@@ -208,6 +208,87 @@ class _KatexParser {
       }
     }
 
+    if (element.className.startsWith('vlist')) {
+      if (element case dom.Element(
+        localName: 'span',
+        className: 'vlist-t' || 'vlist-t vlist-t2',
+        nodes: [...],
+      ) && final vlistT) {
+        if (vlistT.attributes.containsKey('style')) throw _KatexHtmlParseError();
+
+        final hasTwoVlistR = vlistT.className == 'vlist-t vlist-t2';
+        if (!hasTwoVlistR && vlistT.nodes.length != 1) throw _KatexHtmlParseError();
+
+        if (hasTwoVlistR) {
+          if (vlistT.nodes case [
+            _,
+            dom.Element(localName: 'span', className: 'vlist-r', nodes: [
+              dom.Element(localName: 'span', className: 'vlist', nodes: [
+                dom.Element(localName: 'span', className: '', nodes: []),
+              ]),
+            ]),
+          ]) {
+            // Do nothing.
+          } else {
+            throw _KatexHtmlParseError();
+          }
+        }
+
+        if (vlistT.nodes.first
+            case dom.Element(localName: 'span', className: 'vlist-r') &&
+                final vlistR) {
+          if (vlistR.attributes.containsKey('style')) throw _KatexHtmlParseError();
+
+          if (vlistR.nodes.first
+              case dom.Element(localName: 'span', className: 'vlist') &&
+                  final vlist) {
+            final rows = <KatexVlistRowNode>[];
+
+            for (final innerSpan in vlist.nodes) {
+              if (innerSpan case dom.Element(
+                localName: 'span',
+                className: '',
+                nodes: [
+                  dom.Element(localName: 'span', className: 'pstrut') &&
+                      final pstrutSpan,
+                  ...final otherSpans,
+                ],
+              )) {
+                var styles = _parseSpanInlineStyles(innerSpan)!;
+                final topEm = styles.topEm ?? 0;
+
+                styles = styles.filter(topEm: false);
+
+                final pstrutStyles = _parseSpanInlineStyles(pstrutSpan)!;
+                final pstrutHeight = pstrutStyles.heightEm ?? 0;
+
+                rows.add(KatexVlistRowNode(
+                  verticalOffsetEm: topEm + pstrutHeight,
+                  debugHtmlNode: kDebugMode ? innerSpan : null,
+                  node: KatexSpanNode(
+                    styles: styles,
+                    text: null,
+                    nodes: _parseChildSpans(otherSpans))));
+              } else {
+                throw _KatexHtmlParseError();
+              }
+            }
+
+            return KatexVlistNode(
+              rows: rows,
+              debugHtmlNode: kDebugMode ? vlistT : null,
+            );
+          } else {
+            throw _KatexHtmlParseError();
+          }
+        } else {
+          throw _KatexHtmlParseError();
+        }
+      } else {
+        throw _KatexHtmlParseError();
+      }
+    }
+
     final debugHtmlNode = kDebugMode ? element : null;
 
     final inlineStyles = _parseSpanInlineStyles(element);
@@ -225,7 +306,9 @@ class _KatexParser {
     //   https://github.com/KaTeX/KaTeX/blob/2fe1941b/src/styles/katex.scss
     // A copy of class definition (where possible) is accompanied in a comment
     // with each case statement to keep track of updates.
-    final spanClasses = List<String>.unmodifiable(element.className.split(' '));
+    final spanClasses = element.className != ''
+      ? List<String>.unmodifiable(element.className.split(' '))
+      : const <String>[];
     String? fontFamily;
     double? fontSizeEm;
     KatexSpanFontWeight? fontWeight;
