@@ -940,7 +940,20 @@ class _KatexSpan extends StatelessWidget {
         textAlign: textAlign,
         child: widget);
     }
-    return widget;
+
+    if (styles.verticalAlignEm != null) {
+      widget = Baseline(
+        baseline: styles.verticalAlignEm! * em,
+        baselineType: TextBaseline.alphabetic,
+        child: widget);
+    }
+
+    return SizedBox(
+      height: styles.heightEm != null
+        ? styles.heightEm! * em
+        : null,
+      child: widget,
+    );
   }
 }
 
