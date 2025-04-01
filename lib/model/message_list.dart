@@ -284,36 +284,45 @@ mixin _MessageSequence {
     _reprocessAll();
   }
 
-  /// Append to [items] based on the index-th message and its content.
+  /// Append to [items] an auxillary item like a date separator and update
+  /// properties of the previous message item, if necessary.
   ///
-  /// The previous messages in the list must already have been processed.
-  /// This message must already have been parsed and reflected in [contents].
-  void _processMessage(int index) {
-    // This will get more complicated to handle the ways that messages interact
-    // with the display of neighboring messages: sender headings #175
-    // and date separators #173.
-    final message = messages[index];
-    final content = contents[index];
-    bool canShareSender;
-    if (index == 0 || !haveSameRecipient(messages[index - 1], message)) {
+  /// Returns whether an item has been appended or not.
+  ///
+  /// The caller must append a [MessageListMessageItem] after this.
+  bool _maybeAppendAuxillaryItem(Message message, {required Message? prevMessage}) {
+    if (prevMessage == null || !haveSameRecipient(prevMessage, message)) {
       items.add(MessageListRecipientHeaderItem(message));
-      canShareSender = false;
+      return true;
     } else {
       assert(items.last is MessageListMessageItem);
       final prevMessageItem = items.last as MessageListMessageItem;
-      assert(identical(prevMessageItem.message, messages[index - 1]));
+      assert(identical(prevMessageItem.message, prevMessage));
       assert(prevMessageItem.isLastInBlock);
       prevMessageItem.isLastInBlock = false;
 
       if (!messagesSameDay(prevMessageItem.message, message)) {
         items.add(MessageListDateSeparatorItem(message));
-        canShareSender = false;
+        return true;
       } else {
-        canShareSender = (prevMessageItem.message.senderId == message.senderId);
+        return false;
       }
     }
+  }
+
+  /// Append to [items] based on the index-th message and its content.
+  ///
+  /// The previous messages in the list must already have been processed.
+  /// This message must already have been parsed and reflected in [contents].
+  void _processMessage(int index) {
+    final prevMessage = index == 0 ? null : messages[index - 1];
+    final message = messages[index];
+    final content = contents[index];
+
+    final appended = _maybeAppendAuxillaryItem(message, prevMessage: prevMessage);
     items.add(MessageListMessageItem(message, content,
-      showSender: !canShareSender, isLastInBlock: true));
+      showSender: appended || prevMessage?.senderId != message.senderId,
+      isLastInBlock: true));
   }
 
   /// Update [items] to include markers at start and end as appropriate.
