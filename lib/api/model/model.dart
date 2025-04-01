@@ -619,7 +619,7 @@ sealed class Message {
     required this.matchTopic,
   });
 
-  factory Message.fromJson(Map<String, dynamic> json) {
+  static Message fromJson(Map<String, dynamic> json) {
     final type = json['type'] as String;
     if (type == 'stream') return StreamMessage.fromJson(json);
     if (type == 'private') return DmMessage.fromJson(json);
