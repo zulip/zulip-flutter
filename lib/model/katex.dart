@@ -7,17 +7,31 @@ import '../log.dart';
 import 'content.dart';
 
 class KatexParser {
-  List<KatexSpanNode> parseKatexHTML(dom.Element element) {
+  List<KatexNode> parseKatexHTML(dom.Element element) {
     assert(element.localName == 'span');
     assert(element.className == 'katex-html');
     return _parseChildSpans(element);
   }
 
-  List<KatexSpanNode> _parseChildSpans(dom.Element element) {
-    return List.unmodifiable(element.nodes.map((node) {
+  List<KatexNode> _parseChildSpans(dom.Element element) {
+    var resultSpans = <KatexNode>[];
+    for (final node in element.nodes.reversed) {
       if (node is! dom.Element) throw KatexHtmlParseError();
-      return _parseSpan(node);
-    }));
+      final span = _parseSpan(node);
+      resultSpans.add(span);
+
+      final marginRightEm = span.styles.marginRightEm;
+      if (marginRightEm != null && marginRightEm.isNegative) {
+        final previousSpansReversed =
+          resultSpans.reversed.toList(growable: false);
+        resultSpans = [];
+        resultSpans.add(KatexNegativeMarginNode(
+          marginRightEm: marginRightEm,
+          nodes: previousSpansReversed));
+      }
+    }
+
+    return resultSpans.reversed.toList(growable: false);
   }
 
   static final _resetSizeClassRegExp = RegExp(r'^reset-size(\d\d?)$');
@@ -220,7 +234,7 @@ class KatexParser {
     }
 
     String? text;
-    List<KatexSpanNode>? spans;
+    List<KatexNode>? spans;
     if (element.nodes case [dom.Text(data: final data)]) {
       text = data;
     } else {

@@ -350,7 +350,7 @@ class MathBlockNode extends BlockContentNode {
   });
 
   final String texSource;
-  final List<KatexSpanNode>? nodes;
+  final List<KatexNode>? nodes;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -364,7 +364,11 @@ class MathBlockNode extends BlockContentNode {
   }
 }
 
-class KatexSpanNode extends ContentNode {
+sealed class KatexNode extends ContentNode {
+  const KatexNode({super.debugHtmlNode});
+}
+
+class KatexSpanNode extends KatexNode {
   const KatexSpanNode({
     required this.styles,
     required this.text,
@@ -374,13 +378,35 @@ class KatexSpanNode extends ContentNode {
 
   final KatexSpanStyles styles;
   final String? text;
-  final List<KatexSpanNode> nodes;
+  final List<KatexNode> nodes;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(KatexSpanStylesProperty('styles', styles));
     properties.add(StringProperty('text', text));
+  }
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return nodes.map((node) => node.toDiagnosticsNode()).toList();
+  }
+}
+
+class KatexNegativeMarginNode extends KatexNode {
+  const KatexNegativeMarginNode({
+    this.marginRightEm,
+    this.nodes = const [],
+    super.debugHtmlNode,
+  });
+
+  final double? marginRightEm;
+  final List<KatexNode> nodes;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('marginRightEm', '$marginRightEm'));
   }
 
   @override
@@ -858,7 +884,7 @@ class MathInlineNode extends InlineContentNode {
   });
 
   final String texSource;
-  final List<KatexSpanNode>? nodes;
+  final List<KatexNode>? nodes;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -895,7 +921,7 @@ class GlobalTimeNode extends InlineContentNode {
 
 ////////////////////////////////////////////////////////////////
 
-({List<KatexSpanNode>? spans, String texSource})? _parseMath(
+({List<KatexNode>? spans, String texSource})? _parseMath(
   dom.Element element, {
   required bool block,
 }) {
@@ -945,7 +971,7 @@ class GlobalTimeNode extends InlineContentNode {
       return null;
     }
 
-    List<KatexSpanNode>? spans;
+    List<KatexNode>? spans;
     try {
       spans = KatexParser().parseKatexHTML(katexHtmlElement);
     } on KatexHtmlParseError catch (e, st) {

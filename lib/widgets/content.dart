@@ -830,7 +830,7 @@ class _Katex extends StatelessWidget {
   });
 
   final bool inline;
-  final List<KatexSpanNode> nodes;
+  final List<KatexNode> nodes;
 
   @override
   Widget build(BuildContext context) {
@@ -840,7 +840,10 @@ class _Katex extends StatelessWidget {
           return WidgetSpan(
             alignment: PlaceholderAlignment.baseline,
             baseline: TextBaseline.alphabetic,
-            child: _KatexSpan(e));
+            child: switch (e) {
+              KatexSpanNode() => _KatexSpan(e),
+              KatexNegativeMarginNode() => _KatexNegativeMargin(e),
+            });
         }))));
 
     if (!inline) {
@@ -880,7 +883,10 @@ class _KatexSpan extends StatelessWidget {
             return WidgetSpan(
               alignment: PlaceholderAlignment.baseline,
               baseline: TextBaseline.alphabetic,
-              child: _KatexSpan(e));
+              child: switch (e) {
+                KatexSpanNode() => _KatexSpan(e),
+                KatexNegativeMarginNode() => _KatexNegativeMargin(e),
+              });
           }))));
     }
 
@@ -944,6 +950,37 @@ class _KatexSpan extends StatelessWidget {
       padding: padding != EdgeInsets.zero ? padding : null,
       child: widget,
     );
+  }
+}
+
+class _KatexNegativeMargin extends StatelessWidget {
+  const _KatexNegativeMargin(this.node);
+
+  final KatexNegativeMarginNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    final widget = RichText(
+      text: TextSpan(
+        children: List.unmodifiable(
+          node.nodes.map((e) {
+            return WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: switch (e) {
+              KatexSpanNode() => _KatexSpan(e),
+              KatexNegativeMarginNode() => _KatexNegativeMargin(e),
+            });
+          }))));
+
+    var offset = Offset.zero;
+    final marginRightEm = node.marginRightEm;
+    if (marginRightEm != null) offset += Offset(marginRightEm * em, 0);
+    return offset == Offset.zero
+      ? widget
+      : Transform.translate(offset: offset, child: widget);
   }
 }
 
