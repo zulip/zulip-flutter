@@ -38,9 +38,7 @@ Future<void> setupPage(WidgetTester tester, {
     await store.addUser(user);
   }
 
-  for (final dmMessage in dmMessages) {
-    await store.handleEvent(MessageEvent(id: 1, message: dmMessage));
-  }
+  await store.addMessages(dmMessages);
 
   if (newNameForSelfUser != null) {
     await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: eg.selfUser.userId,

@@ -367,8 +367,7 @@ void main() {
       List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
     check(model).messages.length.equals(30);
-    await store.handleEvent(MessageEvent(id: 0,
-      message: eg.streamMessage(stream: stream)));
+    await store.addMessage(eg.streamMessage(stream: stream));
     checkNotifiedOnce();
     check(model).messages.length.equals(31);
   });
@@ -381,8 +380,7 @@ void main() {
 
     check(model).messages.length.equals(30);
     final otherStream = eg.stream();
-    await store.handleEvent(MessageEvent(id: 0,
-      message: eg.streamMessage(stream: otherStream)));
+    await store.addMessage(eg.streamMessage(stream: otherStream));
     checkNotNotified();
     check(model).messages.length.equals(30);
   });
@@ -390,8 +388,7 @@ void main() {
   test('MessageEvent, before fetch', () async {
     final stream = eg.stream();
     await prepare(narrow: ChannelNarrow(stream.streamId));
-    await store.handleEvent(MessageEvent(id: 0,
-      message: eg.streamMessage(stream: stream)));
+    await store.addMessage(eg.streamMessage(stream: stream));
     checkNotNotified();
     check(model).fetched.isFalse();
   });
@@ -1314,7 +1311,7 @@ void main() {
       }
 
       final message = eg.streamMessage(stream: stream, topic: 'hello');
-      await store.handleEvent(MessageEvent(id: 0, message: message));
+      await store.addMessage(message);
 
       await store.handleEvent(
         eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.add, message.id));
@@ -1396,8 +1393,7 @@ void main() {
     await prepare(narrow: ChannelNarrow(stream.streamId));
     await prepareMessages(foundOldest: true, messages:
       List.generate(30, (i) => eg.streamMessage(stream: stream)));
-    await store.handleEvent(MessageEvent(id: 0,
-      message: eg.streamMessage(stream: stream)));
+    await store.addMessage(eg.streamMessage(stream: stream));
     checkNotifiedOnce();
     check(model).messages.length.equals(31);
 
@@ -1644,8 +1640,7 @@ void main() {
       await prepare(narrow: ChannelNarrow(stream.streamId));
       await prepareMessages(foundOldest: true, messages: []);
 
-      await store.handleEvent(MessageEvent(id: 0,
-        message: eg.streamMessage(stream: stream)));
+      await store.addMessage(eg.streamMessage(stream: stream));
       // Each [checkNotifiedOnce] call ensures there's been a [checkInvariants]
       // call, where the [ContentNode] gets checked.  The additional checks to
       // make this test explicit.
@@ -1659,13 +1654,13 @@ void main() {
       await prepare(narrow: ChannelNarrow(stream.streamId));
       await prepareMessages(foundOldest: true, messages: []);
 
-      await store.handleEvent(MessageEvent(id: 0, message: eg.streamMessage(
+      await store.addMessage(eg.streamMessage(
         stream: stream,
         sender: eg.selfUser,
         submessages: [
           eg.submessage(senderId: eg.selfUser.userId,
             content: eg.pollWidgetData(question: 'question', options: ['A'])),
-        ])));
+        ]));
       // Each [checkNotifiedOnce] call ensures there's been a [checkInvariants]
       // call, where the value of the [Poll] gets checked.  The additional
       // checks make this test explicit.

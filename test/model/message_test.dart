@@ -71,9 +71,7 @@ void main() {
   }
 
   Future<void> addMessages(Iterable<Message> messages) async {
-    for (final m in messages) {
-      await store.handleEvent(MessageEvent(id: 0, message: m));
-    }
+    await store.addMessages(messages);
     checkNotified(count: messageList.fetched ? messages.length : 0);
   }
 

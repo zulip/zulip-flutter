@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/submessage.dart';
 import 'package:zulip/model/store.dart';
@@ -40,7 +39,7 @@ void main() {
     message = eg.streamMessage(
       sender: eg.selfUser,
       submessages: [eg.submessage(content: submessageContent)]);
-    await store.handleEvent(MessageEvent(id: 0, message: message));
+    await store.addMessage(message);
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
       child: PollWidget(messageId: message.id, poll: message.poll!)));
     await tester.pump();
