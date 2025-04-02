@@ -486,7 +486,7 @@ class _TypingNotifierState extends State<_TypingNotifier> with WidgetsBindingObs
   Widget build(BuildContext context) => widget.child;
 }
 
-class _ContentInput extends StatefulWidget {
+class _ContentInput extends StatelessWidget {
   const _ContentInput({
     required this.narrow,
     required this.controller,
@@ -497,11 +497,6 @@ class _ContentInput extends StatefulWidget {
   final ComposeBoxController controller;
   final String hintText;
 
-  @override
-  State<StatefulWidget> createState() => _ContentInputState();
-}
-
-class _ContentInputState<T extends _ContentInput> extends State<T> {
   static double maxHeight(BuildContext context) {
     final clampingTextScaler = MediaQuery.textScalerOf(context)
       .clamp(maxScaleFactor: 1.5);
@@ -532,9 +527,9 @@ class _ContentInputState<T extends _ContentInput> extends State<T> {
     final designVariables = DesignVariables.of(context);
 
     return ComposeAutocomplete(
-      narrow: widget.narrow,
-      controller: widget.controller.content,
-      focusNode: widget.controller.contentFocusNode,
+      narrow: narrow,
+      controller: controller.content,
+      focusNode: controller.contentFocusNode,
       fieldViewBuilder: (context) => ConstrainedBox(
         constraints: BoxConstraints(maxHeight: maxHeight(context)),
         // This [ClipRect] replaces the [TextField] clipping we disable below.
@@ -543,8 +538,8 @@ class _ContentInputState<T extends _ContentInput> extends State<T> {
             top: _verticalPadding, bottom: _verticalPadding,
             color: designVariables.composeBoxBg,
             child: TextField(
-              controller: widget.controller.content,
-              focusNode: widget.controller.contentFocusNode,
+              controller: controller.content,
+              focusNode: controller.contentFocusNode,
               // Let the content show through the `contentPadding` so that
               // our [InsetShadowBox] can fade it smoothly there.
               clipBehavior: Clip.none,
@@ -570,7 +565,7 @@ class _ContentInputState<T extends _ContentInput> extends State<T> {
                 // that 54px distance while also making the scrolling work like
                 // this and offering two lines of touchable area.
                 contentPadding: const EdgeInsets.symmetric(vertical: _verticalPadding),
-                hintText: widget.hintText,
+                hintText: hintText,
                 hintStyle: TextStyle(
                   color: designVariables.textInput.withFadedAlpha(0.5))))))));
   }
