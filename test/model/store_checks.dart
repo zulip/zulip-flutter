@@ -64,3 +64,9 @@ extension PerAccountStoreChecks on Subject<PerAccountStore> {
   Subject<RecentDmConversationsView> get recentDmConversationsView => has((x) => x.recentDmConversationsView, 'recentDmConversationsView');
   Subject<AutocompleteViewManager> get autocompleteViewManager => has((x) => x.autocompleteViewManager, 'autocompleteViewManager');
 }
+
+extension ZulipVersionDataChecks on Subject<ZulipVersionData> {
+  Subject<String> get zulipVersion => has((x) => x.zulipVersion, 'zulipVersion');
+  Subject<String?> get zulipMergeBase => has((x) => x.zulipMergeBase, 'zulipMergeBase');
+  Subject<int> get zulipFeatureLevel => has((x) => x.zulipFeatureLevel, 'zulipFeatureLevel');
+}

@@ -161,11 +161,21 @@ class TestZulipBinding extends ZulipBinding {
 
   /// The value that `ZulipBinding.instance.launchUrl()` should return.
   ///
-  /// See also [takeLaunchUrlCalls].
+  /// See also:
+  ///   * [launchUrlException]
+  ///   * [takeLaunchUrlCalls]
   bool launchUrlResult = true;
+
+  /// The [PlatformException] that `ZulipBinding.instance.launchUrl()` should throw.
+  ///
+  /// See also:
+  ///   * [launchUrlResult]
+  ///   * [takeLaunchUrlCalls]
+  PlatformException? launchUrlException;
 
   void _resetLaunchUrl() {
     launchUrlResult = true;
+    launchUrlException = null;
     _launchUrlCalls = null;
   }
 
@@ -189,6 +199,22 @@ class TestZulipBinding extends ZulipBinding {
     url_launcher.LaunchMode mode = url_launcher.LaunchMode.platformDefault,
   }) async {
     (_launchUrlCalls ??= []).add((url: url, mode: mode));
+
+    if (!launchUrlResult && launchUrlException != null) {
+      throw FlutterError.fromParts([
+        ErrorSummary(
+          'TestZulipBinding.launchUrl called '
+          'with launchUrlResult: false and non-null launchUrlException'),
+        ErrorHint(
+          'Tests should either set launchUrlResult or launchUrlException, '
+          'but not both.'),
+      ]);
+    }
+
+    if (launchUrlException != null) {
+      throw launchUrlException!;
+    }
+
     return launchUrlResult;
   }
 

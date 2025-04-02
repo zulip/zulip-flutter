@@ -14,6 +14,9 @@ void main() {
   final nonHttpLink = Uri.parse('mailto:chat@zulip.org');
 
   group('getUrlLaunchMode', () {
+    // See also test/widgets/actions_test.dart, where we test that the setting
+    // is actually used when we open links, with PlatformActions.launchUrl.
+
     testAndroidIos('globalSettings.browserPreference is null; use our per-platform defaults for HTTP links', () {
       final globalSettings = eg.globalStore(globalSettings: GlobalSettingsData(
         browserPreference: null)).settings;

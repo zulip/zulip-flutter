@@ -16,7 +16,6 @@ import '../model/emoji.dart';
 import '../model/internal_link.dart';
 import '../model/narrow.dart';
 import 'actions.dart';
-import 'clipboard.dart';
 import 'color.dart';
 import 'compose_box.dart';
 import 'dialog.dart';
@@ -917,7 +916,7 @@ class CopyMessageTextButton extends MessageActionSheetMenuItemButton {
 
     if (!pageContext.mounted) return;
 
-    copyWithPopup(context: pageContext,
+    PlatformActions.copyWithPopup(context: pageContext,
       successContent: Text(zulipLocalizations.successMessageTextCopied),
       data: ClipboardData(text: rawContent));
   }
@@ -943,7 +942,7 @@ class CopyMessageLinkButton extends MessageActionSheetMenuItemButton {
       nearMessageId: message.id,
     );
 
-    copyWithPopup(context: pageContext,
+    PlatformActions.copyWithPopup(context: pageContext,
       successContent: Text(zulipLocalizations.successMessageLinkCopied),
       data: ClipboardData(text: messageLink.toString()));
   }

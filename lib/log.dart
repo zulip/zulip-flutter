@@ -62,7 +62,11 @@ void profilePrint(String message) {
 // `null` for the `message` parameter and promptly dismiss the reported errors.
 typedef ReportErrorCancellablyCallback = void Function(String? message, {String? details});
 
-typedef ReportErrorCallback = void Function(String title, {String? message});
+typedef ReportErrorCallback = void Function(
+  String title, {
+  String? message,
+  Uri? learnMoreButtonUrl,
+});
 
 /// Show the user an error message, without requiring them to interact with it.
 ///
@@ -96,7 +100,11 @@ void defaultReportErrorToUserBriefly(String? message, {String? details}) {
   _reportErrorToConsole(message, details);
 }
 
-void defaultReportErrorToUserModally(String title, {String? message}) {
+void defaultReportErrorToUserModally(
+  String title, {
+  String? message,
+  Uri? learnMoreButtonUrl,
+}) {
   _reportErrorToConsole(title, message);
 }
 
