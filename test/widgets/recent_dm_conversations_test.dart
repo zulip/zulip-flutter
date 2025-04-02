@@ -39,7 +39,7 @@ Future<void> setupPage(WidgetTester tester, {
   }
 
   for (final dmMessage in dmMessages) {
-    await store.handleEvent(MessageEvent(id: 1, message: dmMessage));
+    await store.handleEvent(eg.messageEvent(dmMessage));
   }
 
   if (newNameForSelfUser != null) {

@@ -360,11 +360,19 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
     connection ??= globalStore.apiConnectionFromAccount(account);
     assert(connection.zulipFeatureLevel == account.zulipFeatureLevel);
 
+    final queueId = initialSnapshot.queueId;
+    if (queueId == null) {
+      // The queueId is optional in the type, but should only be missing in the
+      // case of unauthenticated access to a web-public realm.  We authenticated.
+      throw Exception("bad initial snapshot: missing queueId");
+    }
+
     final realmUrl = account.realmUrl;
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       globalStore: globalStore,
       connection: connection,
+      queueId: queueId,
       realmUrl: realmUrl,
       realmWildcardMentionPolicy: initialSnapshot.realmWildcardMentionPolicy,
       realmMandatoryTopics: initialSnapshot.realmMandatoryTopics,
@@ -393,7 +401,11 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
         typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
       ),
       channels: channels,
-      messages: MessageStoreImpl(),
+      messages: MessageStoreImpl(
+        connection: connection,
+        queueId: queueId,
+        selfUserId: account.userId,
+      ),
       unreads: Unreads(
         initial: initialSnapshot.unreadMsgs,
         selfUserId: account.userId,
@@ -408,6 +420,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
   PerAccountStore._({
     required GlobalStore globalStore,
     required this.connection,
+    required this.queueId,
     required this.realmUrl,
     required this.realmWildcardMentionPolicy,
     required this.realmMandatoryTopics,
@@ -447,6 +460,7 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
   final GlobalStore _globalStore;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
 
+  String queueId;
   UpdateMachine? get updateMachine => _updateMachine;
   UpdateMachine? _updateMachine;
   set updateMachine(UpdateMachine? value) {
@@ -656,6 +670,8 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
   @override
   Map<int, Message> get messages => _messages.messages;
   @override
+  Map<int, OutboxMessage> get outboxMessages => _messages.outboxMessages;
+  @override
   void registerMessageList(MessageListView view) =>
     _messages.registerMessageList(view);
   @override
@@ -829,16 +845,10 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
     }
   }
 
+  @override
   Future<void> sendMessage({required MessageDestination destination, required String content}) {
     assert(!_disposed);
-
-    // TODO implement outbox; see design at
-    //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/.23M3881.20Sending.20outbox.20messages.20is.20fraught.20with.20issues/near/1405739
-    return _apiSendMessage(connection,
-      destination: destination,
-      content: content,
-      readBySender: true,
-    );
+    return _messages.sendMessage(destination: destination, content: content);
   }
 
   static List<CustomProfileField> _sortCustomProfileFields(List<CustomProfileField> initialCustomProfileFields) {
@@ -860,7 +870,6 @@ class PerAccountStore extends ChangeNotifier with EmojiStore, UserStore, Channel
   String toString() => '${objectRuntimeType(this, 'PerAccountStore')}#${shortHash(this)}';
 }
 
-const _apiSendMessage = sendMessage; // Bit ugly; for alternatives, see: https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20PerAccountStore.20methods/near/1545809
 const _tryResolveUrl = tryResolveUrl;
 
 /// Like [Uri.resolve], but on failure return null instead of throwing.
@@ -1031,12 +1040,7 @@ class UpdateMachine {
   UpdateMachine.fromInitialSnapshot({
     required this.store,
     required InitialSnapshot initialSnapshot,
-  }) : queueId = initialSnapshot.queueId ?? (() {
-         // The queueId is optional in the type, but should only be missing in the
-         // case of unauthenticated access to a web-public realm.  We authenticated.
-         throw Exception("bad initial snapshot: missing queueId");
-       })(),
-       lastEventId = initialSnapshot.lastEventId {
+  }) : lastEventId = initialSnapshot.lastEventId {
     store.updateMachine = this;
   }
 
@@ -1110,7 +1114,7 @@ class UpdateMachine {
   }
 
   final PerAccountStore store;
-  final String queueId;
+  String get queueId => store.queueId;
   int lastEventId;
 
   bool _disposed = false;

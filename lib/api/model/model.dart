@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../route/messages.dart';
 import 'events.dart';
 import 'initial_snapshot.dart';
 import 'reaction.dart';
@@ -531,10 +532,29 @@ String? tryParseEmojiCodeToUnicode(String emojiCode) {
   }
 }
 
+/// A common class for messages that can appear in a [MessageList].
+abstract class DisplayableMessage<T extends MessageDestination> {
+  /// The Zulip message ID.
+  ///
+  /// If null, the message doesn't have an ID acknowledged by the server
+  /// (e.g.: a locally-echoed message).
+  int? get id;
+
+  int get senderId;
+  int get timestamp;
+
+  /// The destination this message was sent to.
+  // When implementing this, the return type should be either [StreamDestination]
+  // or [DmDestination]; it should never be [MessageDestination], because we
+  // expect a concrete subclass of [DisplayableMessage] to represent either
+  // channel messages or DM messages, not both.
+  T get destination;
+}
+
 /// As in the get-messages response.
 ///
 /// https://zulip.com/api/get-messages#response
-sealed class Message {
+sealed class Message<T extends MessageDestination> implements DisplayableMessage<T> {
   // final String? avatarUrl; // Use [User.avatarUrl] instead; will live-update
   final String client;
   String content;
@@ -544,6 +564,7 @@ sealed class Message {
   @JsonKey(readValue: MessageEditState._readFromMessage, fromJson: Message._messageEditStateFromJson)
   MessageEditState editState;
 
+  @override
   final int id;
   bool isMeMessage;
   int? lastEditTimestamp;
@@ -554,6 +575,7 @@ sealed class Message {
   final int recipientId;
   final String senderEmail;
   final String senderFullName;
+  @override
   final int senderId;
   final String senderRealmStr;
 
@@ -561,6 +583,7 @@ sealed class Message {
   @JsonKey(name: 'submessages', readValue: _readPoll, fromJson: Poll.fromJson, toJson: Poll.toJson)
   Poll? poll;
 
+  @override
   final int timestamp;
   String get type;
 
@@ -619,7 +642,9 @@ sealed class Message {
     required this.matchTopic,
   });
 
-  factory Message.fromJson(Map<String, dynamic> json) {
+  // TODO(dart): This has to be a static method, because factories/constructors
+  //   do not support type parameters: https://github.com/dart-lang/language/issues/647
+  static Message fromJson(Map<String, dynamic> json) {
     final type = json['type'] as String;
     if (type == 'stream') return StreamMessage.fromJson(json);
     if (type == 'private') return DmMessage.fromJson(json);
@@ -715,7 +740,7 @@ extension type const TopicName(String _value) {
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-class StreamMessage extends Message {
+class StreamMessage extends Message<StreamDestination> {
   @override
   @JsonKey(includeToJson: true)
   String get type => 'stream';
@@ -734,6 +759,9 @@ class StreamMessage extends Message {
   // and ignoring the topics seems as good a fallback behavior as any.
   @JsonKey(name: 'subject')
   TopicName topic;
+
+  @override
+  StreamDestination get destination => StreamDestination(streamId, topic);
 
   StreamMessage({
     required super.client,
@@ -809,7 +837,7 @@ class DmRecipientListConverter extends JsonConverter<List<DmRecipient>, List<dyn
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-class DmMessage extends Message {
+class DmMessage extends Message<DmDestination> {
   @override
   @JsonKey(includeToJson: true)
   String get type => 'private';
@@ -837,6 +865,9 @@ class DmMessage extends Message {
   ///
   /// This is a result of [List.map], so it has an efficient `length`.
   Iterable<int> get allRecipientIds => displayRecipient.map((e) => e.id);
+
+  @override
+  DmDestination get destination => DmDestination(userIds: allRecipientIds.toList());
 
   DmMessage({
     required super.client,

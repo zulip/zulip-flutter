@@ -1,10 +1,13 @@
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
+import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/submessage.dart';
+import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/model/message.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -13,7 +16,9 @@ import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
 import '../api/model/submessage_checks.dart';
 import '../example_data.dart' as eg;
+import '../fake_async.dart';
 import '../stdlib_checks.dart';
+import 'message_checks.dart';
 import 'message_list_test.dart';
 import 'store_checks.dart';
 import 'test_store.dart';
@@ -72,10 +77,85 @@ void main() {
 
   Future<void> addMessages(Iterable<Message> messages) async {
     for (final m in messages) {
-      await store.handleEvent(MessageEvent(id: 0, message: m));
+      await store.handleEvent(eg.messageEvent(m));
     }
     checkNotified(count: messageList.fetched ? messages.length : 0);
   }
+
+  group('sendMessage', () {
+    const destination =
+      StreamDestination(eg.defaultStreamMessageStreamId, TopicName('some topic'));
+
+    test('message sent successfully, message event arrives on time', () async {
+      await prepare();
+
+      connection.prepare(json: SendMessageResult(id: 1).toJson(),
+        delay: Duration.zero);
+      final future = store.sendMessage(destination: destination, content: 'content');
+      final outboxMessage = store.outboxMessages.values.single;
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sending)
+        ..hidden.isTrue();
+      checkNotNotified();
+      check(connection.lastRequest).isA<http.Request>()
+        ..bodyFields['queue_id'].equals(store.queueId)
+        ..bodyFields['local_id'].equals('${outboxMessage.localMessageId}');
+
+      await future;
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sent)
+        ..hidden.isTrue();
+      checkNotifiedOnce();
+
+      await store.handleEvent(eg.messageEvent(
+        eg.streamMessage(), localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      // TODO uncomment once message list support is added
+      // checkNotifiedOnce();
+    });
+
+    test('message sent successfully, message event arrives after debounce timeout', () => awaitFakeAsync((async) async {
+      await prepare();
+
+      connection.prepare(json: SendMessageResult(id: 1).toJson());
+      await store.sendMessage(destination: destination, content: 'content');
+      final outboxMessage = store.outboxMessages.values.single;
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sent)
+        ..hidden.isTrue();
+      checkNotifiedOnce();
+
+      async.elapse(kLocalEchoDebounceDuration);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sent)
+        ..hidden.isFalse();
+
+      await store.handleEvent(eg.messageEvent(
+        eg.streamMessage(), localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      // TODO uncomment once message list support is added
+      // checkNotifiedOnce();
+    }));
+
+    test('message failed to send', () async {
+      await prepare();
+
+      connection.prepare(apiException: eg.apiBadRequest(),
+        delay: Duration.zero);
+      final future = store.sendMessage(destination: destination, content: 'content');
+      final outboxMessage = store.outboxMessages.values.single;
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sending)
+        ..hidden.isTrue();
+      checkNotNotified();
+
+      await check(future).throws();
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.failed)
+        ..hidden.isFalse();
+      checkNotifiedOnce();
+    });
+  });
 
   group('reconcileMessages', () {
     test('from empty', () async {
@@ -84,7 +164,7 @@ void main() {
       final message1 = eg.streamMessage();
       final message2 = eg.streamMessage();
       final message3 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-      final messages = [message1, message2, message3];
+      final messages = <Message>[message1, message2, message3];
       store.reconcileMessages(messages);
       check(messages).deepEquals(
         [message1, message2, message3]
@@ -99,7 +179,7 @@ void main() {
       final message1 = eg.streamMessage();
       final message2 = eg.streamMessage();
       final message3 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-      final messages = [message1, message2, message3];
+      final messages = <Message>[message1, message2, message3];
       await addMessages(messages);
       final newMessage = eg.streamMessage();
       store.reconcileMessages([newMessage]);
@@ -131,7 +211,7 @@ void main() {
       check(store.messages).isEmpty();
 
       final newMessage = eg.streamMessage();
-      await store.handleEvent(MessageEvent(id: 1, message: newMessage));
+      await store.handleEvent(eg.messageEvent(newMessage));
       check(store.messages).deepEquals({
         newMessage.id: newMessage,
       });
@@ -139,7 +219,7 @@ void main() {
 
     test('from not-empty', () async {
       await prepare();
-      final messages = [
+      final messages = <Message>[
         eg.streamMessage(),
         eg.streamMessage(),
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
@@ -150,7 +230,7 @@ void main() {
       });
 
       final newMessage = eg.streamMessage();
-      await store.handleEvent(MessageEvent(id: 1, message: newMessage));
+      await store.handleEvent(eg.messageEvent(newMessage));
       check(store.messages).deepEquals({
         for (final m in messages) m.id: m,
         newMessage.id: newMessage,
@@ -164,7 +244,7 @@ void main() {
       check(store.messages).deepEquals({1: message});
 
       final newMessage = eg.streamMessage(id: 1, content: '<p>bar</p>');
-      await store.handleEvent(MessageEvent(id: 1, message: newMessage));
+      await store.handleEvent(eg.messageEvent(newMessage));
       check(store.messages).deepEquals({1: newMessage});
     });
   });
@@ -861,7 +941,7 @@ void main() {
         ]);
 
         await prepare();
-        await store.handleEvent(MessageEvent(id: 0, message: message));
+        await store.handleEvent(eg.messageEvent(message));
       }
 
       test('smoke', () async {
@@ -932,7 +1012,7 @@ void main() {
           ),
         ]);
         await prepare();
-        await store.handleEvent(MessageEvent(id: 0, message: message));
+        await store.handleEvent(eg.messageEvent(message));
         check(store.messages[message.id]).isNotNull().poll.isNull();
       });
     });

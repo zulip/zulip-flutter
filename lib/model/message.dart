@@ -1,19 +1,136 @@
 import 'dart:convert';
 
+import '../api/core.dart';
+import '../api/exception.dart';
 import '../api/model/events.dart';
 import '../api/model/model.dart';
+import '../api/route/messages.dart';
 import '../log.dart';
 import 'message_list.dart';
+
+const _apiSendMessage = sendMessage; // Bit ugly; for alternatives, see: https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20PerAccountStore.20methods/near/1545809
+const kLocalEchoDebounceDuration = Duration(milliseconds: 300);
+
+/// States outlining where an [OutboxMessage] is, in its lifecycle.
+///
+/// ```
+///                                                Event received,
+///               Send                             or we abandoned
+///            immediately.            200.        the queue.
+///  (create) ──────────────► sending ──────► sent ────────────────► (delete)
+///                               │                                     ▲
+///                               │ 4xx or                     User     │
+///                               │ other error.               cancels. │
+///                               └────────► failed ────────────────────┘
+/// ```
+enum OutboxMessageLifecycle {
+  sending,
+  sent,
+  failed,
+}
+
+/// A locally echoed message sent by the self-user.
+sealed class OutboxMessage<T extends MessageDestination> implements DisplayableMessage<T> {
+  /// Construct a new [OutboxMessage] with a unique [localMessageId].
+  OutboxMessage({
+    required int selfUserId,
+    required this.content,
+  }) : senderId = selfUserId,
+       timestamp = (DateTime.timestamp().millisecondsSinceEpoch / 1000).toInt(),
+       localMessageId = _nextLocalMessageId++,
+       _state = OutboxMessageLifecycle.sending;
+
+  static OutboxMessage fromDestination(MessageDestination destination, {
+    required int selfUserId,
+    required String content,
+  }) {
+    return switch (destination) {
+      StreamDestination() => StreamOutboxMessage(
+        selfUserId: selfUserId, destination: destination, content: content),
+      DmDestination() => DmOutboxMessage(
+        selfUserId: selfUserId, destination: destination, content: content),
+    };
+  }
+
+  @override
+  int? get id => null;
+
+  @override
+  final int senderId;
+  @override
+  final int timestamp;
+  final String content;
+
+  /// The next fresh local message ID from a strictly increasing sequence.
+  static int _nextLocalMessageId = 1;
+  /// ID corresponding to [MessageEvent.localMessageId], which identifies
+  /// locally echoed message.
+  final int localMessageId;
+
+  OutboxMessageLifecycle get state => _state;
+  OutboxMessageLifecycle _state;
+  set state(OutboxMessageLifecycle value) {
+    // See [OutboxMessageLifecycle] for valid state transitions.
+    switch (value) {
+      case OutboxMessageLifecycle.sending:
+        assert(false);
+      case OutboxMessageLifecycle.sent:
+      case OutboxMessageLifecycle.failed:
+        assert(_state == OutboxMessageLifecycle.sending);
+    }
+    _state = value;
+  }
+
+  /// Whether the OutboxMessage will be hidden to [MessageListView] or not.
+  ///
+  /// When set to false with [unhide], this cannot be toggle back to true again.
+  bool get hidden => _hidden;
+  bool _hidden = true;
+  void unhide() {
+    assert(_hidden);
+    _hidden = false;
+  }
+}
+
+class StreamOutboxMessage extends OutboxMessage<StreamDestination> {
+  StreamOutboxMessage({
+    required super.selfUserId,
+    required this.destination,
+    required super.content,
+  });
+
+  @override
+  final StreamDestination destination;
+}
+
+class DmOutboxMessage extends OutboxMessage<DmDestination> {
+  DmOutboxMessage({
+    required super.selfUserId,
+    required this.destination,
+    required super.content,
+  });
+
+  @override
+  final DmDestination destination;
+}
 
 /// The portion of [PerAccountStore] for messages and message lists.
 mixin MessageStore {
   /// All known messages, indexed by [Message.id].
   Map<int, Message> get messages;
 
+  /// Messages sent by the user, indexed by [OutboxMessage.localMessageId].
+  Map<int, OutboxMessage> get outboxMessages;
+
   Set<MessageListView> get debugMessageListViews;
 
   void registerMessageList(MessageListView view);
   void unregisterMessageList(MessageListView view);
+
+  Future<void> sendMessage({
+    required MessageDestination destination,
+    required String content,
+  });
 
   /// Reconcile a batch of just-fetched messages with the store,
   /// mutating the list.
@@ -29,13 +146,28 @@ mixin MessageStore {
 }
 
 class MessageStoreImpl with MessageStore {
-  MessageStoreImpl()
+  MessageStoreImpl({
+    required this.connection,
+    required this.queueId,
+    required this.selfUserId,
+  })
     // There are no messages in InitialSnapshot, so we don't have
     // a use case for initializing MessageStore with nonempty [messages].
-    : messages = {};
+    : messages = {},
+      outboxMessages = {};
+
+  final ApiConnection connection;
+
+  /// The event queue ID, for local-echoing, as in [InitialSnapshot.queueId].
+  final String queueId;
+
+  final int selfUserId;
 
   @override
   final Map<int, Message> messages;
+
+  @override
+  final Map<int, OutboxMessage> outboxMessages;
 
   final Set<MessageListView> _messageListViews = {};
 
@@ -78,6 +210,69 @@ class MessageStoreImpl with MessageStore {
   }
 
   @override
+  Future<void> sendMessage({required MessageDestination destination, required String content}) async {
+    final outboxMessage = OutboxMessage.fromDestination(
+      destination, selfUserId: selfUserId, content: content);
+    final localMessageId = outboxMessage.localMessageId;
+    assert(!outboxMessages.containsKey(localMessageId));
+    outboxMessages[localMessageId] = outboxMessage;
+
+    // The outbox message only become visible to views after
+    // [kLocalEchoDebounceDuration].
+    Future<void>.delayed(kLocalEchoDebounceDuration, () {
+      if (!outboxMessages.containsKey(outboxMessage.localMessageId)) {
+        // The outbox message was deleted, one such reason can be that the
+        // corresponding "message" event arrived quickly.
+        return;
+      }
+      if (!outboxMessage.hidden) {
+        // The outbox message was unhidden due to an error from the
+        // send-message request.
+        assert(outboxMessage.state == OutboxMessageLifecycle.failed);
+        return;
+      }
+      outboxMessage.unhide();
+      for (final view in _messageListViews) {
+        view.handleOutboxMessage(outboxMessage);
+      }
+    });
+
+    try {
+      await _apiSendMessage(connection,
+        destination: destination,
+        content: content,
+        readBySender: true,
+        queueId: queueId,
+        localId: localMessageId);
+      _updateOutboxMessage(
+        localMessageId: localMessageId, newState: OutboxMessageLifecycle.sent);
+    } on ApiRequestException {
+      outboxMessage.unhide();
+      for (final view in _messageListViews) {
+        view.handleOutboxMessage(outboxMessage);
+      }
+      _updateOutboxMessage(
+        localMessageId: localMessageId, newState: OutboxMessageLifecycle.failed);
+      rethrow;
+    }
+  }
+
+  void _updateOutboxMessage({
+    required int localMessageId,
+    required OutboxMessageLifecycle newState,
+  }) {
+    final outboxMessage = outboxMessages[localMessageId];
+    assert(outboxMessage != null);
+    if (outboxMessage == null) {
+      return;
+    }
+    outboxMessage.state = newState;
+    for (final view in _messageListViews) {
+      view.handleUpdateOutboxMessage(localMessageId);
+    }
+  }
+
+  @override
   void reconcileMessages(List<Message> messages) {
     // What to do when some of the just-fetched messages are already known?
     // This is common and normal: in particular it happens when one message list
@@ -111,6 +306,8 @@ class MessageStoreImpl with MessageStore {
     // clobber it with the one from the event system.
     // See [fetchedMessages] for reasoning.
     messages[event.message.id] = event.message;
+
+    outboxMessages.remove(event.localMessageId);
 
     for (final view in _messageListViews) {
       view.handleMessageEvent(event);
