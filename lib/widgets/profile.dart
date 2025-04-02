@@ -1,7 +1,5 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/content.dart';
@@ -15,10 +13,11 @@ import 'text.dart';
 
 class _TextStyles {
   static const primaryFieldText = TextStyle(fontSize: 20);
+  static const secondaryFieldText = TextStyle(fontSize: 16, color: Colors.black87);
 
   static TextStyle customProfileFieldLabel(BuildContext context) =>
-    const TextStyle(fontSize: 15)
-      .merge(weightVariableTextStyle(context, wght: 700));
+    const TextStyle(fontSize: 15, color: Colors.black54)
+      .merge(weightVariableTextStyle(context, wght: 600));
 
   static const customProfileFieldText = TextStyle(fontSize: 15);
 }
@@ -34,7 +33,6 @@ class ProfilePage extends StatelessWidget {
       page: ProfilePage(userId: userId));
   }
 
-
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -45,46 +43,185 @@ class ProfilePage extends StatelessWidget {
     }
 
     final displayEmail = store.userDisplayEmail(user);
-    final items = [
-      Center(
-        child: Avatar(userId: userId, size: 200, borderRadius: 200 / 8)),
-      const SizedBox(height: 16),
-      Text(user.fullName,
-        textAlign: TextAlign.center,
-        style: _TextStyles.primaryFieldText
-          .merge(weightVariableTextStyle(context, wght: 700))),
-      if (displayEmail != null)
-        Text(displayEmail,
-          textAlign: TextAlign.center,
-          style: _TextStyles.primaryFieldText),
-      Text(roleToLabel(user.role, zulipLocalizations),
-        textAlign: TextAlign.center,
-        style: _TextStyles.primaryFieldText),
-      // TODO(#197) render user status
-      // TODO(#196) render active status
-      // TODO(#292) render user local time
-
-      _ProfileDataTable(profileData: user.profileData),
-      const SizedBox(height: 16),
-      FilledButton.icon(
-        onPressed: () => Navigator.push(context,
-          MessageListPage.buildRoute(context: context,
-            narrow: DmNarrow.withUser(userId, selfUserId: store.selfUserId))),
-        icon: const Icon(Icons.email),
-        label: Text(zulipLocalizations.profileButtonSendDirectMessage)),
-    ];
-
+    final theme = Theme.of(context);
+    
     return Scaffold(
-      appBar: ZulipAppBar(title: Text(user.fullName)),
+      appBar: ZulipAppBar(
+        title: Text(user.fullName),
+      ),
       body: SingleChildScrollView(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 760),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Header with background color
+            Container(
+              color: theme.primaryColor.withOpacity(0.1),
+              width: double.infinity,
+              padding: const EdgeInsets.only(bottom: 24),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: items))))));
+                children: [
+                  const SizedBox(height: 16),
+                  _ProfileAvatar(userId: userId),
+                  const SizedBox(height: 16),
+                  Text(
+                    user.fullName,
+                    textAlign: TextAlign.center,
+                    style: _TextStyles.primaryFieldText
+                      .merge(weightVariableTextStyle(context, wght: 700))
+                  ),
+                  if (displayEmail != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                      child: Text(
+                        displayEmail,
+                        textAlign: TextAlign.center,
+                        style: _TextStyles.secondaryFieldText,
+                      ),
+                    ),
+                  _RoleBadge(role: user.role),
+                ],
+              ),
+            ),
+            
+            // Action buttons
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _ActionButton(
+                    onPressed: () => Navigator.push(context,
+                      MessageListPage.buildRoute(context: context,
+                        narrow: DmNarrow.withUser(userId, selfUserId: store.selfUserId))),
+                    icon: Icons.email,
+                    label: zulipLocalizations.profileButtonSendDirectMessage,
+                  ),
+                  const SizedBox(width: 16),
+                  _ActionButton(
+                    onPressed: () {
+                      // TODO: Implement mention functionality
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Mention feature coming soon'))
+                      );
+                    },
+                    icon: Icons.alternate_email,
+                    label: 'Mention',
+                  ),
+                ],
+              ),
+            ),
+            
+            // Divider
+            const Divider(),
+            
+            // Profile data
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: _ProfileDataTable(profileData: user.profileData),
+            ),
+            
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileAvatar extends StatelessWidget {
+  const _ProfileAvatar({required this.userId});
+  
+  final int userId;
+  
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: Avatar(
+          userId: userId, 
+          size: 120, 
+          borderRadius: 120 / 2,
+        ),
+      ),
+    );
+  }
+}
+
+class _RoleBadge extends StatelessWidget {
+  const _RoleBadge({required this.role});
+  
+  final UserRole role;
+  
+  Color _getRoleColor() {
+    return switch (role) {
+      UserRole.owner => Colors.purple,
+      UserRole.administrator => Colors.red,
+      UserRole.moderator => Colors.orange,
+      UserRole.member => Colors.blue,
+      UserRole.guest => Colors.teal,
+      UserRole.unknown => Colors.grey,
+    };
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        decoration: BoxDecoration(
+          color: _getRoleColor().withOpacity(0.2),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _getRoleColor(), width: 1),
+        ),
+        child: Text(
+          roleToLabel(role, zulipLocalizations),
+          style: TextStyle(
+            fontSize: 14,
+            color: _getRoleColor(),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({
+    required this.onPressed,
+    required this.icon,
+    required this.label,
+  });
+  
+  final VoidCallback onPressed;
+  final IconData icon;
+  final String label;
+  
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(label),
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
   }
 }
 
@@ -96,16 +233,27 @@ class _ProfileErrorPage extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return Scaffold(
       appBar: ZulipAppBar(title: Text(zulipLocalizations.errorDialogTitle)),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error),
-              const SizedBox(width: 4),
-              Text(zulipLocalizations.errorCouldNotShowUserProfile),
-            ]))));
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              zulipLocalizations.errorCouldNotShowUserProfile,
+              style: const TextStyle(fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.arrow_back),
+              label: Text(zulipLocalizations.back ?? 'Back'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -158,28 +306,21 @@ class _ProfileDataTable extends StatelessWidget {
         return _LinkWidget(url: url, text: value);
 
       case CustomProfileFieldType.user:
-        // TODO(server): This is completely undocumented.  The key to
-        //   reverse-engineering it was:
-        //   https://github.com/zulip/zulip/blob/18230fcd9/static/js/settings_account.js#L247
         final userIds = _tryDecode((List<dynamic> json) {
           return json.map((e) => e as int).toList();
         }, value);
         if (userIds == null) return null;
         return Column(
-          children: userIds.map((userId) => _UserWidget(userId: userId)).toList());
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: userIds.map((userId) => _UserWidget(userId: userId)).toList(),
+        );
 
       case CustomProfileFieldType.date:
-        // TODO(server): The value's format is undocumented, but empirically
-        //   it's a date in ISO format, like 2000-01-01.
-        // That's readable as is, but:
-        // TODO(i18n) format this date using user's locale.
         return _TextWidget(text: value);
 
       case CustomProfileFieldType.shortText:
       case CustomProfileFieldType.longText:
       case CustomProfileFieldType.pronouns:
-        // The web client appears to treat `longText` identically to `shortText`;
-        // `pronouns` is explicitly meant to display the same as `shortText`.
         return _TextWidget(text: value);
 
       case CustomProfileFieldType.unknown:
@@ -190,35 +331,92 @@ class _ProfileDataTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    if (profileData == null) return const SizedBox.shrink();
+    if (profileData == null || store.customProfileFields.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-    List<Widget> items = [];
+    final List<Widget> items = [];
+    final theme = Theme.of(context);
 
     for (final realmField in store.customProfileFields) {
       final profileField = profileData![realmField.id];
       if (profileField == null) continue;
       final widget = _buildCustomProfileFieldValue(context, profileField.value, realmField);
-      if (widget == null) continue; // TODO(log)
+      if (widget == null) continue;
 
-      items.add(Row(
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: localizedTextBaseline(context),
-        children: [
-          SizedBox(width: 100,
-            child: Text(style: _TextStyles.customProfileFieldLabel(context),
-              realmField.name)),
-          const SizedBox(width: 8),
-          Flexible(child: widget),
-        ]));
-      items.add(const SizedBox(height: 8));
+      items.add(
+        Card(
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          elevation: 0,
+          color: theme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(color: theme.dividerColor.withOpacity(0.5)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  _getFieldIcon(realmField.type),
+                  size: 20,
+                  color: theme.primaryColor,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        realmField.name,
+                        style: _TextStyles.customProfileFieldLabel(context),
+                      ),
+                      const SizedBox(height: 4),
+                      widget,
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
     }
 
     if (items.isEmpty) return const SizedBox.shrink();
 
-    return Column(children: [
-      const SizedBox(height: 16),
-      ...items
-    ]);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Text(
+            'Profile Information',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: theme.primaryColor,
+            ),
+          ),
+        ),
+        ...items
+      ],
+    );
+  }
+  
+  IconData _getFieldIcon(CustomProfileFieldType type) {
+    return switch (type) {
+      CustomProfileFieldType.link => Icons.link,
+      CustomProfileFieldType.choice => Icons.list,
+      CustomProfileFieldType.externalAccount => Icons.account_circle,
+      CustomProfileFieldType.user => Icons.person,
+      CustomProfileFieldType.date => Icons.calendar_today,
+      CustomProfileFieldType.shortText => Icons.short_text,
+      CustomProfileFieldType.longText => Icons.notes,
+      CustomProfileFieldType.pronouns => Icons.person_pin,
+      CustomProfileFieldType.unknown => Icons.help_outline,
+    };
   }
 }
 
@@ -231,14 +429,31 @@ class _LinkWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final linkNode = LinkNode(url: url, nodes: [TextNode(text)]);
-    final paragraph = DefaultTextStyle(
-      style: ContentTheme.of(context).textStylePlainParagraph,
-      child: Paragraph(node: ParagraphNode(nodes: [linkNode], links: [linkNode])));
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: paragraph));
+    final theme = Theme.of(context);
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      decoration: BoxDecoration(
+        color: theme.primaryColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.open_in_new, size: 14, color: theme.primaryColor),
+          const SizedBox(width: 6),
+          Flexible(
+            child: DefaultTextStyle(
+              style: ContentTheme.of(context).textStylePlainParagraph
+                .copyWith(color: theme.primaryColor),
+              child: Paragraph(
+                node: ParagraphNode(nodes: [linkNode], links: [linkNode]),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -250,8 +465,12 @@ class _TextWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Text(text, style: _TextStyles.customProfileFieldText));
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Text(
+        text, 
+        style: _TextStyles.customProfileFieldText,
+      ),
+    );
   }
 }
 
@@ -263,19 +482,43 @@ class _UserWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    return InkWell(
-      onTap: () => Navigator.push(context,
-        ProfilePage.buildRoute(context: context,
-          userId: userId)),
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Row(children: [
-          // TODO(#196) render active status
-          Avatar(userId: userId, size: 32, borderRadius: 32 / 8),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(store.userDisplayName(userId),
-              style: _TextStyles.customProfileFieldText)),
-        ])));
+    final theme = Theme.of(context);
+    
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      elevation: 0,
+      color: theme.cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: theme.dividerColor.withOpacity(0.3)),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => Navigator.push(context,
+          ProfilePage.buildRoute(context: context, userId: userId)),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Row(
+            children: [
+              Avatar(userId: userId, size: 32, borderRadius: 32 / 8),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  store.userDisplayName(userId),
+                  style: _TextStyles.customProfileFieldText.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: theme.primaryColor,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
