@@ -377,7 +377,7 @@
   "@composeBoxTopicHintText": {
     "description": "Hint text for topic input widget in compose box."
   },
-  "messageListGroupYouWithYourself": "Вы с собой",
+  "messageListGroupYouWithYourself": "Сообщения с собой",
   "@messageListGroupYouWithYourself": {
     "description": "Message list recipient header for a DM group that only includes yourself."
   },
@@ -754,5 +754,257 @@
   "errorMessageNotSent": "Сообщение не отправлено",
   "@errorMessageNotSent": {
     "description": "Error message for compose box when a message could not be sent."
+  },
+  "openLinksWithInAppBrowser": "Открывать ссылки внутри приложения",
+  "@openLinksWithInAppBrowser": {
+    "description": "Label for toggling setting to open links with in-app browser"
+  },
+  "errorCouldNotShowUserProfile": "Не удалось показать профиль пользователя.",
+  "@errorCouldNotShowUserProfile": {
+    "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
+  "errorCouldNotOpenLinkTitle": "Не удалось открыть ссылку",
+  "@errorCouldNotOpenLinkTitle": {
+    "description": "Error title when opening a link failed."
+  },
+  "composeBoxLoadingMessage": "(загрузка сообщения {messageId})",
+  "@composeBoxLoadingMessage": {
+    "description": "Placeholder in compose box showing the quoted message is currently loading.",
+    "placeholders": {
+      "messageId": {
+        "type": "int",
+        "example": "1234"
+      }
+    }
+  },
+  "dmsWithYourselfPageTitle": "ЛС с собой",
+  "@dmsWithYourselfPageTitle": {
+    "description": "Message list page title for a DM group that only includes yourself."
+  },
+  "dmsWithOthersPageTitle": "ЛС с {others}",
+  "@dmsWithOthersPageTitle": {
+    "description": "Message list page title for a DM group with others.",
+    "placeholders": {
+      "others": {
+        "type": "String",
+        "example": "Alice, Bob"
+      }
+    }
+  },
+  "lightboxVideoDuration": "Длительность видео",
+  "@lightboxVideoDuration": {
+    "description": "The total duration of the video playing in the lightbox."
+  },
+  "pinnedSubscriptionsLabel": "Закреплены",
+  "@pinnedSubscriptionsLabel": {
+    "description": "Label for the list of pinned subscribed channels."
+  },
+  "unpinnedSubscriptionsLabel": "Откреплены",
+  "@unpinnedSubscriptionsLabel": {
+    "description": "Label for the list of unpinned subscribed channels."
+  },
+  "subscriptionListNoChannels": "Каналы не найдены",
+  "@subscriptionListNoChannels": {
+    "description": "Text to display on subscribed-channels page when there are no subscribed channels."
+  },
+  "wildcardMentionAll": "все",
+  "@wildcardMentionAll": {
+    "description": "Text for \"@all\" wildcard-mention autocomplete option when writing a channel or DM message."
+  },
+  "noEarlierMessages": "Предшествующих сообщений нет",
+  "@noEarlierMessages": {
+    "description": "Text to show at the start of a message list if there are no earlier messages."
+  },
+  "actionSheetOptionMarkChannelAsRead": "Отметить канал как прочитанный",
+  "@actionSheetOptionMarkChannelAsRead": {
+    "description": "Label for marking a channel as read."
+  },
+  "actionSheetOptionMarkTopicAsRead": "Отметить тему как прочитанную",
+  "@actionSheetOptionMarkTopicAsRead": {
+    "description": "Option to mark a specific topic as read in the action sheet."
+  },
+  "reactedEmojiSelfUser": "Вы",
+  "@reactedEmojiSelfUser": {
+    "description": "Display name for the user themself, to show on an emoji reaction added by the user."
+  },
+  "wildcardMentionEveryone": "каждый",
+  "@wildcardMentionEveryone": {
+    "description": "Text for \"@everyone\" wildcard-mention autocomplete option when writing a channel or DM message."
+  },
+  "zulipAppTitle": "Zulip",
+  "@zulipAppTitle": {
+    "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
+  },
+  "actionSheetOptionResolveTopic": "Поставить отметку \"решено\"",
+  "@actionSheetOptionResolveTopic": {
+    "description": "Label for the 'Mark as resolved' button on the topic action sheet."
+  },
+  "filenameAndSizeInMiB": "{filename}: {size} МиБ",
+  "@filenameAndSizeInMiB": {
+    "description": "The name of a file, and its size in mebibytes.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "foo.txt"
+      },
+      "size": {
+        "type": "String",
+        "example": "20.2"
+      }
+    }
+  },
+  "errorCouldNotOpenLink": "Не удалось открыть ссылку: {url}",
+  "@errorCouldNotOpenLink": {
+    "description": "Error message when opening a link failed.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "https://chat.example.com"
+      }
+    }
+  },
+  "composeBoxChannelContentHint": "Сообщение для {destination}",
+  "@composeBoxChannelContentHint": {
+    "description": "Hint text for content input when sending a message to a channel.",
+    "placeholders": {
+      "destination": {
+        "type": "String",
+        "example": "#channel name > topic name"
+      }
+    }
+  },
+  "unknownChannelName": "(неизвестный канал)",
+  "@unknownChannelName": {
+    "description": "Replacement name for channel when it cannot be found in the store."
+  },
+  "recentDmConversationsSectionHeader": "Личные сообщения",
+  "@recentDmConversationsSectionHeader": {
+    "description": "Heading for direct messages section on the 'Inbox' message view."
+  },
+  "pollVoterNames": "({voterNames})",
+  "@pollVoterNames": {
+    "description": "The list of people who voted for a poll option, wrapped in parentheses.",
+    "placeholders": {
+      "voterNames": {
+        "type": "String",
+        "example": "Alice, Bob, Chad"
+      }
+    }
+  },
+  "settingsPageTitle": "Настройки",
+  "@settingsPageTitle": {
+    "description": "Title for the settings page."
+  },
+  "actionSheetOptionUnresolveTopic": "Снять отметку \"решено\"",
+  "@actionSheetOptionUnresolveTopic": {
+    "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
+  },
+  "errorResolveTopicFailedTitle": "Не удалось отметить тему как решенную",
+  "@errorResolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as resolved failed."
+  },
+  "errorUnresolveTopicFailedTitle": "Не удалось отметить тему как нерешенную",
+  "@errorUnresolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as unresolved failed."
+  },
+  "lightboxVideoCurrentPosition": "Место воспроизведения",
+  "@lightboxVideoCurrentPosition": {
+    "description": "The current playback position of the video playing in the lightbox."
+  },
+  "wildcardMentionChannel": "канал",
+  "@wildcardMentionChannel": {
+    "description": "Text for \"@channel\" wildcard-mention autocomplete option when writing a channel message."
+  },
+  "wildcardMentionStreamDescription": "Оповестить канал",
+  "@wildcardMentionStreamDescription": {
+    "description": "Description for \"@all\", \"@everyone\", and \"@stream\" wildcard-mention autocomplete options when writing a channel message in older servers."
+  },
+  "themeSettingTitle": "РЕЖИМ",
+  "@themeSettingTitle": {
+    "description": "Title for theme setting. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "themeSettingDark": "Темный",
+  "@themeSettingDark": {
+    "description": "Label for dark theme setting."
+  },
+  "themeSettingLight": "Светлый",
+  "@themeSettingLight": {
+    "description": "Label for light theme setting."
+  },
+  "themeSettingSystem": "Системный",
+  "@themeSettingSystem": {
+    "description": "Label for system theme setting."
+  },
+  "scrollToBottomTooltip": "Пролистать вниз",
+  "@scrollToBottomTooltip": {
+    "description": "Tooltip for button to scroll to bottom."
+  },
+  "errorCouldNotConnectTitle": "Нет связи с сервером",
+  "@errorCouldNotConnectTitle": {
+    "description": "Error title when the app could not connect to the server."
+  },
+  "errorInvalidApiKeyMessage": "Не удалось войти в вашу учетную запись {url}. Попробуйте еще раз или используйте другую учетную запись.",
+  "@errorInvalidApiKeyMessage": {
+    "description": "Error message in the dialog for invalid API key.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "http://chat.example.com/"
+      }
+    }
+  },
+  "appVersionUnknownPlaceholder": "(…)",
+  "@appVersionUnknownPlaceholder": {
+    "description": "Placeholder to show in place of the app version when it is unknown."
+  },
+  "wildcardMentionChannelDescription": "Оповестить канал",
+  "@wildcardMentionChannelDescription": {
+    "description": "Description for \"@all\", \"@everyone\", \"@channel\", and \"@stream\" wildcard-mention autocomplete options when writing a channel message."
+  },
+  "wildcardMentionTopicDescription": "Оповестить тему",
+  "@wildcardMentionTopicDescription": {
+    "description": "Description for \"@topic\" wildcard-mention autocomplete options when writing a channel message."
+  },
+  "wildcardMentionStream": "канал",
+  "@wildcardMentionStream": {
+    "description": "Text for \"@stream\" wildcard-mention autocomplete option when writing a channel message in older servers."
+  },
+  "wildcardMentionTopic": "тема",
+  "@wildcardMentionTopic": {
+    "description": "Text for \"@topic\" wildcard-mention autocomplete option when writing a channel message."
+  },
+  "wildcardMentionAllDmDescription": "Оповестить получателей",
+  "@wildcardMentionAllDmDescription": {
+    "description": "Description for \"@all\" and \"@everyone\" wildcard-mention autocomplete options when writing a DM message."
+  },
+  "errorServerVersionUnsupportedMessage": "{url} использует Zulip Server {zulipVersion}, который не поддерживается. Минимальная поддерживаемая версия — Zulip Server {minSupportedZulipVersion}.",
+  "@errorServerVersionUnsupportedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "http://chat.example.com/"
+      },
+      "zulipVersion": {
+        "type": "String",
+        "example": "3.2"
+      },
+      "minSupportedZulipVersion": {
+        "type": "String",
+        "example": "4.0"
+      }
+    }
+  },
+  "errorDialogLearnMore": "Узнать больше",
+  "@errorDialogLearnMore": {
+    "description": "Button label in error dialogs to open a web page with more information."
+  },
+  "experimentalFeatureSettingsPageTitle": "Экспериментальные функции",
+  "@experimentalFeatureSettingsPageTitle": {
+    "description": "Title of settings page for experimental, in-development features"
+  },
+  "experimentalFeatureSettingsWarning": "Эти параметры включают функции, которые все еще находятся в стадии разработки и не готовы. Они могут не работать и вызывать проблемы в других местах приложения.\n\nЦель этих настроек — экспериментирование людьми, работающими над разработкой Zulip.",
+  "@experimentalFeatureSettingsWarning": {
+    "description": "Warning text on settings page for experimental, in-development features"
   }
 }
