@@ -976,5 +976,35 @@
   "openLinksWithInAppBrowser": "Otwieraj odnośniki w aplikacji",
   "@openLinksWithInAppBrowser": {
     "description": "Label for toggling setting to open links with in-app browser"
+  },
+  "experimentalFeatureSettingsPageTitle": "Funkcje eksperymentalne",
+  "@experimentalFeatureSettingsPageTitle": {
+    "description": "Title of settings page for experimental, in-development features"
+  },
+  "experimentalFeatureSettingsWarning": "W ten sposób aktywujesz funkcje, które są w fazie testów. Mogą one nie działać lub powodować problemy z tym co bez nich działa poprawnie.\n\nTo ustawienie przewidziane jest dla tych, którzy pracują nad ulepszeniem aplikacji Zulip.",
+  "@experimentalFeatureSettingsWarning": {
+    "description": "Warning text on settings page for experimental, in-development features"
+  },
+  "errorDialogLearnMore": "Dowiedz się więcej",
+  "@errorDialogLearnMore": {
+    "description": "Button label in error dialogs to open a web page with more information."
+  },
+  "errorServerVersionUnsupportedMessage": "{url} uruchamia Zulip Server {zulipVersion}, który nie jest obsługiwany. Minimalna obsługiwana wersja to Zulip Server {minSupportedZulipVersion}.",
+  "@errorServerVersionUnsupportedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "http://chat.example.com/"
+      },
+      "zulipVersion": {
+        "type": "String",
+        "example": "3.2"
+      },
+      "minSupportedZulipVersion": {
+        "type": "String",
+        "example": "4.0"
+      }
+    }
   }
 }
