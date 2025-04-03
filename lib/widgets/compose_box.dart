@@ -4,7 +4,7 @@ import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mime/mime.dart';
-
+import 'package:path_provider/path_provider.dart';
 import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
@@ -21,7 +21,6 @@ import 'inset_shadow.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
-
 /// Compose-box styles that differ between light and dark theme.
 ///
 /// These styles will animate on theme changes (with help from [lerp]).
@@ -1596,4 +1595,16 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     //     }
     return _ComposeBoxContainer(body: body, banner: null);
   }
+}
+Future<File> compressImage(File imageFile) async {
+  final int maxSize = 10 * 1024 * 1024; // 10MB
+  if (imageFile.lengthSync() > maxSize) {
+    img.Image? image = img.decodeImage(imageFile.readAsBytesSync());
+    if (image != null) {
+      List<int> compressedBytes = img.encodeJpg(image, quality: 80);
+      File compressedFile = File(imageFile.path)..writeAsBytesSync(compressedBytes);
+      return compressedFile;
+    }
+  }
+  return imageFile;
 }

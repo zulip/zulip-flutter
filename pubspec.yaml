@@ -48,6 +48,7 @@ dependencies:
   html: ^0.15.1
   http: ^1.0.0
   http_parser: ^4.0.2
+  image: ^4.5.4
   image_picker: ^1.0.0
   json_annotation: ^4.9.0
   mime: ^2.0.0
@@ -64,6 +65,7 @@ dependencies:
   wakelock_plus: ^1.2.8
   zulip_plugin:
     path: ./packages/zulip_plugin
+
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
 
 dependency_overrides:
