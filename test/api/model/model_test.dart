@@ -172,9 +172,9 @@ void main() {
       return DmMessage.fromJson({ ...baseJson, ...specialJson });
     }
 
-    Iterable<DmRecipient> asRecipients(Iterable<User> users) {
+    List<Map<String, dynamic>> asRecipients(Iterable<User> users) {
       return users.map((u) =>
-        DmRecipient(id: u.userId, email: u.email, fullName: u.fullName));
+        {'id': u.userId, 'email': u.email, 'full_name': u.fullName}).toList();
     }
 
     Map<String, dynamic> withRecipients(Iterable<User> recipients) {
@@ -183,30 +183,13 @@ void main() {
         'sender_id': from.userId,
         'sender_email': from.email,
         'sender_full_name': from.fullName,
-        'display_recipient': asRecipients(recipients).map((r) => r.toJson()).toList(),
+        'display_recipient': asRecipients(recipients),
       };
     }
 
     User user2 = eg.user(userId: 2);
     User user3 = eg.user(userId: 3);
     User user11 = eg.user(userId: 11);
-
-    test('displayRecipient', () {
-      check(parse(withRecipients([user2])).displayRecipient)
-        .deepEquals(asRecipients([user2]));
-
-      check(parse(withRecipients([user2, user3])).displayRecipient)
-        .deepEquals(asRecipients([user2, user3]));
-      check(parse(withRecipients([user3, user2])).displayRecipient)
-        .deepEquals(asRecipients([user2, user3]));
-
-      check(parse(withRecipients([user2, user3, user11])).displayRecipient)
-        .deepEquals(asRecipients([user2, user3, user11]));
-      check(parse(withRecipients([user3, user11, user2])).displayRecipient)
-        .deepEquals(asRecipients([user2, user3, user11]));
-      check(parse(withRecipients([user11, user2, user3])).displayRecipient)
-        .deepEquals(asRecipients([user2, user3, user11]));
-    });
 
     test('allRecipientIds', () {
       check(parse(withRecipients([user2])).allRecipientIds)
