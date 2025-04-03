@@ -47,6 +47,14 @@ class ZulipApp extends StatefulWidget {
     return completer.future;
   }
 
+  static Locale? currentLocale;
+  static final ValueNotifier<Locale?> _localeNotifier = ValueNotifier(currentLocale);
+
+  static void setLocale(Locale? locale) {
+    currentLocale = locale;
+    _localeNotifier.value = locale;
+  }
+
   /// A key for the navigator for the whole app.
   ///
   /// For code that exists entirely outside the widget tree and has no natural
@@ -160,12 +168,18 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    ZulipApp._localeNotifier.addListener(_handleLocaleChange);
   }
 
   @override
   void dispose() {
+    ZulipApp._localeNotifier.removeListener(_handleLocaleChange);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  void _handleLocaleChange() {
+    if (mounted) setState(() {});
   }
 
   List<Route<dynamic>> _handleGenerateInitialRoutes(String initialRoute) {
