@@ -143,6 +143,13 @@ class SettingsPage extends StatelessWidget {
   }
 }
 
+class LanguageSelectionScreen extends StatefulWidget {
+  const LanguageSelectionScreen({super.key});
+
+  @override
+  State<LanguageSelectionScreen> createState() => _LanguageSelectionScreenState();
+}
+
 class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<LanguageOption> _filteredLanguages = [];
