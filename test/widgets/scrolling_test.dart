@@ -6,6 +6,8 @@ import 'package:flutter/widgets.dart' hide SliverPaintOrder;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/widgets/scrolling.dart';
 
+import '../flutter_checks.dart';
+
 void main() {
   group('CustomPaintOrderScrollView paint order', () {
     final paintLog = <int>[];
@@ -123,6 +125,126 @@ void main() {
                    //   in favor of CustomScrollView; this test was checking that
                    //   the former matched the latter's old default behavior.
     );
+  });
+
+  group('MessageListScrollView', () {
+    Widget buildList({
+      MessageListScrollController? controller,
+      required double topHeight,
+      required double bottomHeight,
+    }) {
+      return MessageListScrollView(
+        controller: controller ?? MessageListScrollController(),
+        center: const ValueKey('center'),
+        slivers: [
+          SliverToBoxAdapter(
+            child: SizedBox(height: topHeight, child: Text('top'))),
+          SliverToBoxAdapter(key: const ValueKey('center'),
+            child: SizedBox(height: bottomHeight, child: Text('bottom'))),
+        ]);
+    }
+
+    Future<void> prepare(WidgetTester tester, {
+      MessageListScrollController? controller,
+      required double topHeight,
+      required double bottomHeight,
+    }) async {
+      await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr,
+        child: buildList(controller: controller,
+          topHeight: topHeight, bottomHeight: bottomHeight)));
+      await tester.pump();
+    }
+
+    // The `skipOffstage: false` produces more informative output
+    // when a test fails because one of the slivers is just offscreen.
+    final findTop = find.text('top', skipOffstage: false);
+    final findBottom = find.text('bottom', skipOffstage: false);
+
+    testWidgets('short/short -> starts scrolled to bottom', (tester) async {
+      // Starts out with items at bottom of viewport.
+      await prepare(tester, topHeight: 100, bottomHeight: 100);
+      check(tester.getRect(findBottom)).bottom.equals(600);
+
+      // Try scrolling down (by dragging up); doesn't move.
+      await tester.drag(findTop, Offset(0, -100));
+      await tester.pump();
+      check(tester.getRect(findBottom)).bottom.equals(600);
+    });
+
+    testWidgets('short/long -> starts scrolled to bottom', (tester) async {
+      // Starts out scrolled to bottom.
+      await prepare(tester, topHeight: 100, bottomHeight: 800);
+      check(tester.getRect(findBottom)).bottom.equals(600);
+
+      // Try scrolling down (by dragging up); doesn't move.
+      await tester.drag(findBottom, Offset(0, -100));
+      await tester.pump();
+      check(tester.getRect(findBottom)).bottom.equals(600);
+    });
+
+    testWidgets('starts at bottom, even when bottom underestimated at first', (tester) async {
+      const numItems = 10;
+      const itemHeight = 300.0;
+
+      // A list where the bottom sliver takes several rounds of layout
+      // to see how long it really is.
+      final controller = MessageListScrollController();
+      await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr,
+        child: MessageListScrollView(
+          controller: controller,
+          center: const ValueKey('center'),
+          slivers: [
+            SliverToBoxAdapter(
+              child: SizedBox(height: 100, child: Text('top'))),
+            SliverList.list(key: const ValueKey('center'),
+              children: List.generate(numItems, (i) =>
+                SizedBox(height: (i+1) * itemHeight, child: Text('item $i')))),
+          ])));
+      await tester.pump();
+
+      // Starts out scrolled all the way to the bottom,
+      // even though it must have taken several rounds of layout to find that.
+      check(controller.position.pixels)
+        .equals(itemHeight * numItems * (numItems + 1)/2);
+      check(tester.getRect(find.text('item ${numItems-1}', skipOffstage: false)))
+        .bottom.equals(600);
+    });
+
+    testWidgets('position preserved when scrollable rebuilds', (tester) async {
+      // Tests that [MessageListScrollPosition.absorb] does its job.
+      //
+      // In the app, this situation can be triggered by changing the device's
+      // theme between light and dark.  For this simplified example for a test,
+      // go for devicePixelRatio (which ScrollableState directly depends on).
+
+      final controller = MessageListScrollController();
+      final widget = Directionality(textDirection: TextDirection.ltr,
+        child: buildList(controller: controller,
+          topHeight: 400, bottomHeight: 400));
+      await tester.pumpWidget(
+        MediaQuery(data: MediaQueryData(devicePixelRatio: 1.0),
+          child: widget));
+      check(tester.getRect(findTop)).bottom.equals(200);
+      final position = controller.position;
+      check(position).isA<MessageListScrollPosition>();
+
+      // Drag away from the initial scroll position.
+      await tester.drag(findBottom, Offset(0, 200));
+      await tester.pump();
+      check(tester.getRect(findTop)).bottom.equals(400);
+      check(controller.position).identicalTo(position);
+
+      // Then cause the ScrollableState to have didChangeDependencies called…
+      await tester.pumpWidget(
+        MediaQuery(data: MediaQueryData(devicePixelRatio: 2.0),
+          child: widget));
+      // … so that it constructs a new MessageListScrollPosition…
+      check(controller.position)
+        ..not((it) => it.identicalTo(position))
+        ..isA<MessageListScrollPosition>();
+      // … and check the scroll position is preserved, not reset to initial.
+      check(tester.getRect(findTop)).bottom.equals(400);
+    });
   });
 }
 
