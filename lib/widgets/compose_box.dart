@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mime/mime.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:image/image.dart' as img;
 import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
@@ -965,18 +966,22 @@ class _AttachMediaButton extends _AttachUploadsButton {
   const _AttachMediaButton({required super.controller});
 
   @override
-  IconData get icon => ZulipIcons.image;
-
-  @override
-  String tooltip(ZulipLocalizations zulipLocalizations) =>
-    zulipLocalizations.composeBoxAttachMediaTooltip;
-
-  @override
   Future<Iterable<_File>> getFiles(BuildContext context) async {
-    // TODO(#114): This doesn't give quite the right UI on Android.
-    return _getFilePickerFiles(context, FileType.media);
+    final files = await _getFilePickerFiles(context, FileType.media);
+
+    // Compress each image file before returning
+    return Future.wait(files.map((file) async {
+      File selectedFile = File(file.path);
+
+      // Compress the image
+      File compressedFile = await compressImage(selectedFile);
+
+      // Create a new _File object with the compressed file path
+      return _File(path: compressedFile.path, name: file.name, size: compressedFile.lengthSync());
+    }));
   }
 }
+
 
 class _AttachFromCameraButton extends _AttachUploadsButton {
   const _AttachFromCameraButton({required super.controller});
@@ -999,8 +1004,17 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
       // so just stick with images for now. We could add another button for
       // videos, but we don't want too many buttons.
       result = await ZulipBinding.instance.pickImage(
-        source: ImageSource.camera, requestFullMetadata: false);
-    } catch (e) {
+    source: ImageSource.camera, requestFullMetadata: false);
+
+if (result != null && result.path != null) {
+  File selectedFile = File(result.path);
+
+  // Compress the image before using it
+  File compressedFile = await compressImage(selectedFile);
+
+  // Use compressedFile instead of selectedFile
+  uploadImage(compressedFile);
+} catch (e) {
       if (!context.mounted) return [];
       if (e is PlatformException && e.code == 'camera_access_denied') {
         // iOS has a quirk where it will only request the native
@@ -1049,7 +1063,7 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
     )];
   }
 }
-
+}
 class _SendButton extends StatefulWidget {
   const _SendButton({required this.controller, required this.getDestination});
 
