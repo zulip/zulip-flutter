@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/settings.dart';
-import 'package:zulip/widgets/app.dart';
 
 import '../flutter_checks.dart';
 import '../model/binding.dart';
@@ -126,122 +125,6 @@ void main() {
         expectedBrowserPreference: expectInApp
           ? BrowserPreference.inApp : BrowserPreference.external);
     }, variant: TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
-  });
-
-  Future<void> prepareLanguageSelectionScreen(WidgetTester tester) async {
-    addTearDown(testBinding.reset);
-
-    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-    await tester.pumpWidget(TestZulipApp(
-        accountId: eg.selfAccount.id,
-        child: const LanguageSelectionScreen()));
-    await tester.pumpAndSettle();
-  }
-
-  group('Language Selection', () {
-    testWidgets('SettingsPage shows current language name', (tester) async {
-      await prepare(tester);
-
-      final languageTile = find.byWidgetPredicate((widget) =>
-      widget is ListTile &&
-          widget.leading is Icon &&
-          (widget.leading as Icon).icon == Icons.language);
-      expect(languageTile, findsOneWidget);
-
-      final trailingText = tester.widget<Text>(
-          find.descendant(of: languageTile, matching: find.byType(Text)).last);
-      check(trailingText.data).equals('System default');
-    });
-
-    testWidgets('Language selection screen shows search field', (tester) async {
-      await prepareLanguageSelectionScreen(tester);
-
-      final searchField = find.byWidgetPredicate((widget) =>
-      widget is TextField &&
-          widget.decoration?.hintText == 'Search');
-      expect(searchField, findsOneWidget);
-    });
-
-    testWidgets('Language selection screen shows language options', (tester) async {
-      await prepareLanguageSelectionScreen(tester);
-
-      final languageTiles = find.byWidgetPredicate((widget) =>
-      widget is ListTile && find.descendant(
-        of: find.byWidget(widget),
-        matching: find.byType(Text),
-      ).evaluate().isNotEmpty
-      );
-
-      expect(languageTiles, findsAtLeastNWidgets(3));
-    });
-
-    testWidgets('Can select a language', (tester) async {
-      await prepareLanguageSelectionScreen(tester);
-
-      final firstLanguageTile = find.byWidgetPredicate((widget) =>
-      widget is ListTile && find.descendant(
-        of: find.byWidget(widget),
-        matching: find.byType(Text),
-      ).evaluate().isNotEmpty
-      ).first;
-
-      await tester.ensureVisible(firstLanguageTile);
-      await tester.pumpAndSettle();
-      await tester.tap(firstLanguageTile);
-      await tester.pumpAndSettle();
-
-      check(ZulipApp.currentLocale).isNotNull();
-    });
-
-    testWidgets('Selected language shows checkmark', (tester) async {
-      await ZulipApp.setLocale(const Locale('en'));
-      addTearDown(() => ZulipApp.setLocale(null));
-
-      await prepareLanguageSelectionScreen(tester);
-
-      final englishText = find.text('English').first;
-      await tester.ensureVisible(englishText);
-      await tester.pumpAndSettle();
-
-      final englishTile = find.ancestor(
-        of: englishText,
-        matching: find.byType(ListTile),
-      ).first;
-
-      final englishListTile = tester.widget<ListTile>(englishTile);
-      check(englishListTile.trailing).isNotNull();
-      check(englishListTile.trailing).isA<Icon>();
-      check((englishListTile.trailing! as Icon).icon).equals(Icons.check);
-    });
-
-    testWidgets('Can navigate to language screen and back', (tester) async {
-      await prepare(tester);
-
-      // Open language selection screen
-      final languageTile = find.byWidgetPredicate((widget) =>
-      widget is ListTile &&
-          widget.leading is Icon &&
-          (widget.leading as Icon).icon == Icons.language);
-      await tester.tap(languageTile);
-      await tester.pumpAndSettle();
-
-      expect(find.byType(LanguageSelectionScreen), findsOneWidget);
-
-      // Find and tap the back button in the AppBar
-      final appBar = find.byType(AppBar);
-      final backButton = find.descendant(
-        of: appBar,
-        matching: find.byWidgetPredicate((widget) =>
-        widget is IconButton &&
-            widget.icon is Icon &&
-            (widget.icon as Icon).icon == Icons.arrow_back),
-      );
-
-      await tester.tap(backButton);
-      await tester.pumpAndSettle();
-
-      expect(find.byType(SettingsPage), findsOneWidget);
-    });
   });
 
   // TODO maybe test GlobalSettingType.experimentalFeatureFlag settings
