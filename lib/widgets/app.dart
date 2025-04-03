@@ -234,6 +234,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     return GlobalStoreWidget(
       child: Builder(builder: (context) {
         return MaterialApp(
+          locale: ZulipApp.currentLocale,
           onGenerateTitle: (BuildContext context) {
             return ZulipLocalizations.of(context).zulipAppTitle;
           },
