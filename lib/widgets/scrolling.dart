@@ -260,6 +260,14 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
     super.debugLabel,
   });
 
+  // TODO(upstream): is the lack of [absorb] a bug in [_TabBarScrollPosition]?
+  @override
+  void absorb(ScrollPosition other) {
+    super.absorb(other);
+    if (other is! MessageListScrollPosition) return;
+    _hasEverCompletedLayout = other._hasEverCompletedLayout;
+  }
+
   /// Like [applyContentDimensions], but called without adjusting
   /// the arguments to subtract the viewport dimension.
   ///
@@ -277,6 +285,36 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
     final effectiveMin = math.min(0.0, wholeMinScrollExtent + viewportDimension);
     final effectiveMax = wholeMaxScrollExtent;
     return applyContentDimensions(effectiveMin, effectiveMax);
+  }
+
+  bool _hasEverCompletedLayout = false;
+
+  @override
+  bool applyContentDimensions(double minScrollExtent, double maxScrollExtent) {
+    // Inspired by _TabBarScrollPosition.applyContentDimensions upstream.
+    bool changed = false;
+
+    if (!_hasEverCompletedLayout) {
+      // The list is being laid out for the first time (its first performLayout).
+      // Start out scrolled to the end.
+      final target = maxScrollExtent;
+      if (!hasPixels || pixels != target) {
+        correctPixels(target);
+        changed = true;
+      }
+    }
+
+    if (!super.applyContentDimensions(minScrollExtent, maxScrollExtent)) {
+      changed = true;
+    }
+
+    if (!changed) {
+      // Because this method is about to return true,
+      // this will be the last round of this layout.
+      _hasEverCompletedLayout = true;
+    }
+
+    return !changed;
   }
 }
 
