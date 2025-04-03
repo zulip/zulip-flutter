@@ -883,5 +883,13 @@
   "zulipAppTitle": "Zulip",
   "@zulipAppTitle": {
     "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
+  },
+  "languageSettingsTitle": "Language",
+  "@languageSettingsTitle": {
+    "description": "Title for the language settings section in the app settings."
+  },
+  "systemDefaultLanguage": "System default",
+  "@systemDefaultLanguage": {
+    "description": "Option to use the system default language setting."
   }
 }
