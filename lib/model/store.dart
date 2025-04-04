@@ -339,7 +339,8 @@ class CorePerAccountStore {
     required GlobalStore globalStore,
     required this.connection,
     required this.accountId,
-  }) : _globalStore = globalStore;
+  }) : _globalStore = globalStore,
+       assert(connection.realmUrl == globalStore.getAccount(accountId)!.realmUrl);
 
   final GlobalStore _globalStore;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
@@ -422,7 +423,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     );
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
-      globalStore: globalStore,
       core: core,
       queueId: queueId,
       realmUrl: realmUrl,
@@ -465,7 +465,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   }
 
   PerAccountStore._({
-    required GlobalStore globalStore,
     required super.core,
     required this.queueId,
     required this.realmUrl,
@@ -487,8 +486,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     required this.unreads,
     required this.recentDmConversationsView,
     required this.recentSenders,
-  }) : assert(realmUrl == globalStore.getAccount(core.accountId)!.realmUrl),
-       assert(realmUrl == core.connection.realmUrl),
+  }) : assert(realmUrl == core.connection.realmUrl),
        assert(emoji.realmUrl == realmUrl),
        _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
        _emoji = emoji,
