@@ -16,7 +16,7 @@ void main() {
   // These variables are the common state operated on by each test.
   // Each test case calls [prepare] to initialize them.
   late Unreads model;
-  late PerAccountStore channelStore; // TODO reduce this to ChannelStore
+  late PerAccountStore store;
   late int notifiedCount;
 
   void checkNotified({required int count}) {
@@ -37,9 +37,7 @@ void main() {
       oldUnreadsMissing: false,
     ),
   }) {
-    final store = eg.store(
-      initialSnapshot: eg.initialSnapshot(unreadMsgs: initial));
-    channelStore = store;
+    store = eg.store(initialSnapshot: eg.initialSnapshot(unreadMsgs: initial));
     notifiedCount = 0;
     model = store.unreads
       ..addListener(() {
@@ -158,11 +156,11 @@ void main() {
       final stream2 = eg.stream();
       final stream3 = eg.stream();
       prepare();
-      await channelStore.addStreams([stream1, stream2, stream3]);
-      await channelStore.addSubscription(eg.subscription(stream1));
-      await channelStore.addSubscription(eg.subscription(stream2));
-      await channelStore.addSubscription(eg.subscription(stream3, isMuted: true));
-      await channelStore.addUserTopic(stream1, 'a', UserTopicVisibilityPolicy.muted);
+      await store.addStreams([stream1, stream2, stream3]);
+      await store.addSubscription(eg.subscription(stream1));
+      await store.addSubscription(eg.subscription(stream2));
+      await store.addSubscription(eg.subscription(stream3, isMuted: true));
+      await store.addUserTopic(stream1, 'a', UserTopicVisibilityPolicy.muted);
       fillWithMessages([
         eg.streamMessage(stream: stream1, topic: 'a', flags: []),
         eg.streamMessage(stream: stream1, topic: 'b', flags: []),
@@ -178,10 +176,10 @@ void main() {
     test('countInChannel/Narrow', () async {
       final stream = eg.stream();
       prepare();
-      await channelStore.addStream(stream);
-      await channelStore.addSubscription(eg.subscription(stream));
-      await channelStore.addUserTopic(stream, 'a', UserTopicVisibilityPolicy.unmuted);
-      await channelStore.addUserTopic(stream, 'c', UserTopicVisibilityPolicy.muted);
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await store.addUserTopic(stream, 'a', UserTopicVisibilityPolicy.unmuted);
+      await store.addUserTopic(stream, 'c', UserTopicVisibilityPolicy.muted);
       fillWithMessages([
         eg.streamMessage(stream: stream, topic: 'a', flags: []),
         eg.streamMessage(stream: stream, topic: 'a', flags: []),
@@ -193,7 +191,7 @@ void main() {
       check(model.countInChannel      (stream.streamId)).equals(5);
       check(model.countInChannelNarrow(stream.streamId)).equals(5);
 
-      await channelStore.handleEvent(SubscriptionUpdateEvent(id: 1,
+      await store.handleEvent(SubscriptionUpdateEvent(id: 1,
         streamId: stream.streamId,
         property: SubscriptionProperty.isMuted, value: true));
       check(model.countInChannel      (stream.streamId)).equals(2);
@@ -220,7 +218,7 @@ void main() {
     test('countInMentionsNarrow', () async {
       final stream = eg.stream();
       prepare();
-      await channelStore.addStream(stream);
+      await store.addStream(stream);
       fillWithMessages([
         eg.streamMessage(stream: stream, flags: []),
         eg.streamMessage(stream: stream, flags: [MessageFlag.mentioned]),
@@ -232,7 +230,7 @@ void main() {
     test('countInStarredMessagesNarrow', () async {
       final stream = eg.stream();
       prepare();
-      await channelStore.addStream(stream);
+      await store.addStream(stream);
       fillWithMessages([
         eg.streamMessage(stream: stream, flags: []),
         eg.streamMessage(stream: stream, flags: [MessageFlag.starred]),
@@ -481,8 +479,8 @@ void main() {
 
       Future<void> prepareStore() async {
         prepare();
-        await channelStore.addStream(origChannel);
-        await channelStore.addSubscription(eg.subscription(origChannel));
+        await store.addStream(origChannel);
+        await store.addSubscription(eg.subscription(origChannel));
         readMessages  = List<StreamMessage>.generate(10,
           (_) => eg.streamMessage(stream: origChannel, topic: origTopic,
                    flags: [MessageFlag.read]));
@@ -505,8 +503,8 @@ void main() {
       test('moved messages = unread messages', () async {
         await prepareStore();
         final newChannel = eg.stream();
-        await channelStore.addStream(newChannel);
-        await channelStore.addSubscription(eg.subscription(newChannel));
+        await store.addStream(newChannel);
+        await store.addSubscription(eg.subscription(newChannel));
         fillWithMessages(unreadMessages);
         final originalMessageIds =
           model.streams[origChannel.streamId]![TopicName(origTopic)]!;
@@ -587,8 +585,8 @@ void main() {
       test('moving to unsubscribed channels drops the unreads', () async {
         await prepareStore();
         final unsubscribedChannel = eg.stream();
-        await channelStore.addStream(unsubscribedChannel);
-        assert(!channelStore.subscriptions.containsKey(
+        await store.addStream(unsubscribedChannel);
+        assert(!store.subscriptions.containsKey(
           unsubscribedChannel.streamId));
         fillWithMessages(unreadMessages);
 
@@ -618,7 +616,7 @@ void main() {
         fillWithMessages(unreadMessages);
 
         final unknownChannel = eg.stream();
-        assert(!channelStore.streams.containsKey(unknownChannel.streamId));
+        assert(!store.streams.containsKey(unknownChannel.streamId));
         final unknownUnreadMessage = eg.streamMessage(
           stream: unknownChannel, topic: origTopic);
 
