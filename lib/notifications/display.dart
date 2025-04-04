@@ -17,6 +17,7 @@ import '../model/narrow.dart';
 import '../widgets/app.dart';
 import '../widgets/color.dart';
 import '../widgets/dialog.dart';
+import '../widgets/home.dart';
 import '../widgets/message_list.dart';
 import '../widgets/page.dart';
 import '../widgets/store.dart';
@@ -214,8 +215,34 @@ class NotificationChannelManager {
   }
 }
 
+/// Tracks the currently active account in the navigation stack
+class AccountNavigationObserver extends NavigatorObserver {
+  int? _activeAccountId;
+  int? get activeAccountId => _activeAccountId;
+
+  @override
+  void didPush(Route<dynamic> route, Route<void>? previousRoute) {
+    _updateActiveAccount(route);
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<void>? oldRoute}) {
+    if (newRoute != null) {
+      _updateActiveAccount(newRoute);
+    }
+  }
+
+  void _updateActiveAccount(Route<void> route) {
+    if (route is AccountRoute) {
+      _activeAccountId = route.accountId;
+    }
+  }
+}
+
 /// Service for managing the notifications shown to the user.
 class NotificationDisplayManager {
+  static final accountObserver = AccountNavigationObserver();
+
   static Future<void> init() async {
     await NotificationChannelManager.ensureChannel();
   }
@@ -502,7 +529,14 @@ class NotificationDisplayManager {
     final route = routeForNotification(context: context, url: url);
     if (route == null) return; // TODO(log)
 
-    // TODO(nav): Better interact with existing nav stack on notif open
+    final currentAccountId = accountObserver.activeAccountId;
+
+    if (currentAccountId != route.accountId) {
+      navigator.popUntil((r) => r.isFirst);
+      HomePage.navigate(context, accountId: route.accountId);
+      navigator = await ZulipApp.navigator;
+    }
+
     unawaited(navigator.push(route));
   }
 
