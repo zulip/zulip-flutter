@@ -6,6 +6,7 @@ import 'package:zulip/model/recent_dm_conversations.dart';
 
 import '../example_data.dart' as eg;
 import 'recent_dm_conversations_checks.dart';
+import 'store_checks.dart';
 
 void main() {
   group('RecentDmConversationsView', () {
@@ -18,18 +19,19 @@ void main() {
     }
 
     test('construct from initial data', () {
-      check(RecentDmConversationsView(selfUserId: eg.selfUser.userId,
-        initial: []))
+      check(eg.store(initialSnapshot: eg.initialSnapshot(
+        recentPrivateConversations: [],
+      ))).recentDmConversationsView
           ..map.isEmpty()
           ..sorted.isEmpty()
           ..latestMessagesByRecipient.isEmpty();
 
-      check(RecentDmConversationsView(selfUserId: eg.selfUser.userId,
-        initial: [
+      check(eg.store(initialSnapshot: eg.initialSnapshot(
+        recentPrivateConversations: [
           RecentDmConversation(userIds: [],     maxMessageId: 200),
           RecentDmConversation(userIds: [1],    maxMessageId: 100),
           RecentDmConversation(userIds: [2, 1], maxMessageId: 300), // userIds out of order
-        ]))
+        ]))).recentDmConversationsView
           ..map.deepEquals({
             key([1, 2]): 300,
             key([]):     200,
@@ -41,11 +43,11 @@ void main() {
 
     group('message event (new message)', () {
       RecentDmConversationsView setupView() {
-        return RecentDmConversationsView(selfUserId: eg.selfUser.userId,
-          initial: [
+        return eg.store(initialSnapshot: eg.initialSnapshot(
+          recentPrivateConversations: [
             RecentDmConversation(userIds: [1],    maxMessageId: 200),
             RecentDmConversation(userIds: [1, 2], maxMessageId: 100),
-          ]);
+          ])).recentDmConversationsView;
       }
 
       test('(check base state)', () {

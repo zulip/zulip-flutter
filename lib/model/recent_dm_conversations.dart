@@ -7,18 +7,19 @@ import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/model/events.dart';
 import 'narrow.dart';
+import 'store.dart';
 
 /// A view-model for the recent-DM-conversations UI.
 ///
 /// This maintains the list of recent DM conversations,
 /// plus additional data in order to efficiently maintain the list.
-class RecentDmConversationsView extends ChangeNotifier {
+class RecentDmConversationsView extends PerAccountStoreBase with ChangeNotifier {
   factory RecentDmConversationsView({
+    required CorePerAccountStore core,
     required List<RecentDmConversation> initial,
-    required int selfUserId,
   }) {
     final entries = initial.map((conversation) => MapEntry(
-        DmNarrow.ofRecentDmConversation(conversation, selfUserId: selfUserId),
+        DmNarrow.ofRecentDmConversation(conversation, selfUserId: core.selfUserId),
         conversation.maxMessageId,
       )).toList()..sort((a, b) => -a.value.compareTo(b.value));
 
@@ -33,18 +34,18 @@ class RecentDmConversationsView extends ChangeNotifier {
     }
 
     return RecentDmConversationsView._(
+      core: core,
       map: Map.fromEntries(entries),
       sorted: QueueList.from(entries.map((e) => e.key)),
       latestMessagesByRecipient: latestMessagesByRecipient,
-      selfUserId: selfUserId,
     );
   }
 
   RecentDmConversationsView._({
+    required super.core,
     required this.map,
     required this.sorted,
     required this.latestMessagesByRecipient,
-    required this.selfUserId,
   });
 
   /// The latest message ID in each conversation.
@@ -61,8 +62,6 @@ class RecentDmConversationsView extends ChangeNotifier {
   /// (The identified message was not necessarily sent by the identified user;
   /// it might have been sent by anyone in its conversation.)
   final Map<int, int> latestMessagesByRecipient;
-
-  final int selfUserId;
 
   /// Insert the key at the proper place in [sorted].
   ///

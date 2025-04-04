@@ -77,9 +77,11 @@ void main() {
     int? selfUserId,
     Map<SendableNarrow, List<User>> typistsByNarrow = const {},
   }) {
-    model = TypingStatus(
-      selfUserId: selfUserId ?? eg.selfUser.userId,
-      typingStartedExpiryPeriod: const Duration(milliseconds: 15000));
+    final store = eg.store(
+      account: eg.selfAccount.copyWith(id: selfUserId),
+      initialSnapshot: eg.initialSnapshot(
+        serverTypingStartedExpiryPeriodMilliseconds: 15000));
+    model = store.typingStatus;
     check(model.debugActiveNarrows).isEmpty();
     notifiedCount = 0;
     model.addListener(() => notifiedCount += 1);

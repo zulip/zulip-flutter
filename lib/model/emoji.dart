@@ -137,14 +137,11 @@ mixin EmojiStore {
 /// Generally the only code that should need this class is [PerAccountStore]
 /// itself.  Other code accesses this functionality through [PerAccountStore],
 /// or through the mixin [EmojiStore] which describes its interface.
-class EmojiStoreImpl with EmojiStore {
+class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
   EmojiStoreImpl({
-    required this.realmUrl,
+    required super.core,
     required this.allRealmEmoji,
   }) : _serverEmojiData = null; // TODO(#974) maybe start from a hard-coded baseline
-
-  /// The same as [PerAccountStore.realmUrl].
-  final Uri realmUrl;
 
   /// The realm's custom emoji, indexed by their [RealmEmojiItem.emojiCode],
   /// including deactivated emoji not available for new uses.
@@ -195,19 +192,19 @@ class EmojiStoreImpl with EmojiStore {
     required String? stillUrl,
     required String emojiName,
   }) {
-    final source = Uri.tryParse(sourceUrl);
-    if (source == null) return TextEmojiDisplay(emojiName: emojiName);
+    final resolvedUrl = this.tryResolveUrl(sourceUrl);
+    if (resolvedUrl == null) return TextEmojiDisplay(emojiName: emojiName);
 
-    Uri? still;
+    Uri? resolvedStillUrl;
     if (stillUrl != null) {
-      still = Uri.tryParse(stillUrl);
-      if (still == null) return TextEmojiDisplay(emojiName: emojiName);
+      resolvedStillUrl = this.tryResolveUrl(stillUrl);
+      if (resolvedStillUrl == null) return TextEmojiDisplay(emojiName: emojiName);
     }
 
     return ImageEmojiDisplay(
       emojiName: emojiName,
-      resolvedUrl: realmUrl.resolveUri(source),
-      resolvedStillUrl: still == null ? null : realmUrl.resolveUri(still),
+      resolvedUrl: resolvedUrl,
+      resolvedStillUrl: resolvedStillUrl,
     );
   }
 
