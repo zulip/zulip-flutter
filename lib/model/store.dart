@@ -338,6 +338,7 @@ class CorePerAccountStore {
   CorePerAccountStore._({
     required GlobalStore globalStore,
     required this.connection,
+    required this.queueId,
     required this.accountId,
     required this.selfUserId,
   }) : _globalStore = globalStore,
@@ -345,6 +346,7 @@ class CorePerAccountStore {
 
   final GlobalStore _globalStore;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
+  final String queueId;
   final int accountId;
 
   // This isn't strictly needed as a field; it could be a getter
@@ -369,6 +371,8 @@ abstract class PerAccountStoreBase {
   GlobalStore get _globalStore => _core._globalStore;
 
   ApiConnection get connection => _core.connection;
+
+  String get queueId => _core.queueId;
 
   ////////////////////////////////
   // Data attached to the realm or the server.
@@ -456,13 +460,13 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     final core = CorePerAccountStore._(
       globalStore: globalStore,
       connection: connection,
+      queueId: queueId,
       accountId: accountId,
       selfUserId: account.userId,
     );
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       core: core,
-      queueId: queueId,
       realmWildcardMentionPolicy: initialSnapshot.realmWildcardMentionPolicy,
       realmMandatoryTopics: initialSnapshot.realmMandatoryTopics,
       realmWaitingPeriodThreshold: initialSnapshot.realmWaitingPeriodThreshold,
@@ -500,7 +504,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
 
   PerAccountStore._({
     required super.core,
-    required this.queueId,
     required this.realmWildcardMentionPolicy,
     required this.realmMandatoryTopics,
     required this.realmWaitingPeriodThreshold,
@@ -531,7 +534,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   ////////////////////////////////
   // Where data comes from in the first place.
 
-  final String queueId;
   UpdateMachine? get updateMachine => _updateMachine;
   UpdateMachine? _updateMachine;
   set updateMachine(UpdateMachine? value) {
