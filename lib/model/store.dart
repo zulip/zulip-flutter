@@ -421,7 +421,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       throw Exception("bad initial snapshot: missing queueId");
     }
 
-    final realmUrl = account.realmUrl;
     final core = CorePerAccountStore._(
       globalStore: globalStore,
       connection: connection,
@@ -440,7 +439,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
       emailAddressVisibility: initialSnapshot.emailAddressVisibility,
       emoji: EmojiStoreImpl(
-        realmUrl: realmUrl, allRealmEmoji: initialSnapshot.realmEmoji),
+        core: core, allRealmEmoji: initialSnapshot.realmEmoji),
       userSettings: initialSnapshot.userSettings,
       typingNotifier: TypingNotifier(
         core: core,
@@ -490,8 +489,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     required this.unreads,
     required this.recentDmConversationsView,
     required this.recentSenders,
-  }) : assert(emoji.realmUrl == core.connection.realmUrl),
-       _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
+  }) : _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
        _emoji = emoji,
        _users = users,
        _channels = channels,
