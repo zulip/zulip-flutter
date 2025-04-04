@@ -2001,11 +2001,15 @@ extension MessageListDateSeparatorItemChecks on Subject<MessageListDateSeparator
   Subject<MessageBase> get message => has((x) => x.message, 'message');
 }
 
-extension MessageListMessageItemChecks on Subject<MessageListMessageItem> {
-  Subject<Message> get message => has((x) => x.message, 'message');
+extension MessageListMessageBaseItemChecks on Subject<MessageListMessageBaseItem> {
+  Subject<MessageBase> get message => has((x) => x.message, 'message');
   Subject<ZulipMessageContent> get content => has((x) => x.content, 'content');
   Subject<bool> get showSender => has((x) => x.showSender, 'showSender');
   Subject<bool> get isLastInBlock => has((x) => x.isLastInBlock, 'isLastInBlock');
+}
+
+extension MessageListMessageItemChecks on Subject<MessageListMessageItem> {
+  Subject<Message> get message => has((x) => x.message, 'message');
 }
 
 extension MessageListViewChecks on Subject<MessageListView> {
