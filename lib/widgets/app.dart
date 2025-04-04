@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
@@ -47,14 +50,63 @@ class ZulipApp extends StatefulWidget {
     return completer.future;
   }
 
+  // static Locale? currentLocale;
+  // static final ValueNotifier<Locale?> _localeNotifier = ValueNotifier(currentLocale);
+  //
+  // static void setLocale(Locale? locale) {
+  //   currentLocale = locale;
+  //   _localeNotifier.value = locale;
+  // }
+
   static Locale? currentLocale;
   static final ValueNotifier<Locale?> _localeNotifier = ValueNotifier(currentLocale);
+  static File? _prefsFile;
 
-  static void setLocale(Locale? locale) {
-    currentLocale = locale;
-    _localeNotifier.value = locale;
+  static Future<File> _getPrefsFile() async {
+    if (_prefsFile == null) {
+      final dir = await getApplicationDocumentsDirectory();
+      _prefsFile = File('${dir.path}/language_prefs.json');
+      if (!await _prefsFile!.exists()) {
+        await _prefsFile!.create();
+      }
+    }
+    return _prefsFile!;
   }
 
+  static Future<void> setLocale(Locale? locale) async {
+    currentLocale = locale;
+    _localeNotifier.value = locale;
+
+    try {
+      final file = await _getPrefsFile();
+      await file.writeAsString(
+        jsonEncode({'locale': locale?.toString()}),
+        flush: true,
+      );
+    } catch (e) {
+      debugPrint('Error saving locale: $e');
+    }
+  }
+
+  static Future<void> loadSavedLocale() async {
+    try {
+      final file = await _getPrefsFile();
+      final content = await file.readAsString();
+      if (content.isNotEmpty) {
+        final data = jsonDecode(content) as Map<String, dynamic>;
+        final localeString = data['locale'] as String?;
+        if (localeString != null && localeString.isNotEmpty) {
+          final parts = localeString.split('_');
+          currentLocale = parts.length == 2
+              ? Locale(parts[0], parts[1])
+              : Locale(parts[0]);
+          _localeNotifier.value = currentLocale;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading locale: $e');
+    }
+  }
   /// A key for the navigator for the whole app.
   ///
   /// For code that exists entirely outside the widget tree and has no natural
@@ -168,6 +220,12 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    ZulipApp._localeNotifier.addListener(_handleLocaleChange);
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    await ZulipApp.loadSavedLocale(); // Load saved locale first
     ZulipApp._localeNotifier.addListener(_handleLocaleChange);
   }
 

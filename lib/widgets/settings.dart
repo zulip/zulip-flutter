@@ -97,12 +97,13 @@ class SettingsPage extends StatelessWidget {
       context: context, page: const SettingsPage());
   }
 
-  String _getCurrentLanguageName() {
-    final currentLocale = ZulipApp.currentLocale;
-    if (currentLocale == null) return 'System default';
+  Future<String> _getCurrentLanguageName() async {
+    await ZulipApp.loadSavedLocale(); // Ensure fresh load
+    final locale = ZulipApp.currentLocale;
+    if (locale == null) return 'System default';
 
     final option = _languageOptions.firstWhere(
-          (opt) => opt.locale.languageCode == currentLocale.languageCode,
+          (opt) => opt.locale.languageCode == locale.languageCode,
       orElse: () => const LanguageOption('English', 'English', Locale('en')),
     );
 
@@ -119,21 +120,24 @@ class SettingsPage extends StatelessWidget {
         const _ThemeSetting(),
         const _BrowserPreferenceSetting(),
         ListTile(
-            leading: const Icon(Icons.language),
-            title: const Text('Language'),
-            trailing: Text(
-              _getCurrentLanguageName(),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).hintColor,
-              ),
-            ),
-            onTap: () => Navigator.push<void>(  // Explicitly specify return type
-              context,
-              MaterialPageRoute<void>(  // Explicit type parameter
-                builder: (context) => const LanguageSelectionScreen(),
-              ),
+          leading: const Icon(Icons.language),
+          title: const Text('Language'),
+          subtitle: FutureBuilder<String>(
+            future: _getCurrentLanguageName(),
+            builder: (context, snapshot) {
+              return Text(
+                snapshot.data ?? 'System default',
+                style: Theme.of(context).textTheme.bodySmall,
+              );
+            },
+          ),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute<void>( // Explicit type parameter
+              builder: (context) => const LanguageSelectionScreen(),
             ),
           ),
+        ),
         if (GlobalSettingsStore.experimentalFeatureFlags.isNotEmpty)
           ListTile(
             title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
