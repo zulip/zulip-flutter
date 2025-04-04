@@ -137,14 +137,11 @@ mixin EmojiStore {
 /// Generally the only code that should need this class is [PerAccountStore]
 /// itself.  Other code accesses this functionality through [PerAccountStore],
 /// or through the mixin [EmojiStore] which describes its interface.
-class EmojiStoreImpl with EmojiStore {
+class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
   EmojiStoreImpl({
-    required this.realmUrl,
+    required super.core,
     required this.allRealmEmoji,
   }) : _serverEmojiData = null; // TODO(#974) maybe start from a hard-coded baseline
-
-  /// The same as [PerAccountStore.realmUrl].
-  final Uri realmUrl;
 
   /// The realm's custom emoji, indexed by their [RealmEmojiItem.emojiCode],
   /// including deactivated emoji not available for new uses.
