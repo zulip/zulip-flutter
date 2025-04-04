@@ -1,5 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../model/algorithms.dart';
+import '../route/messages.dart';
 import 'events.dart';
 import 'initial_snapshot.dart';
 import 'reaction.dart';
@@ -531,10 +533,68 @@ String? tryParseEmojiCodeToUnicode(String emojiCode) {
   }
 }
 
+/// As in [MessageBase.recipient].
+///
+/// Different from [MessageDestination], this information comes from
+/// [getMessages] or [getEvents], identifying the conversation that contains a
+/// message.
+sealed class Recipient {}
+
+/// The recipient of a stream message.
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class StreamRecipient extends Recipient {
+  StreamRecipient(this.streamId, this.topic);
+
+  int streamId;
+
+  @JsonKey(name: 'subject')
+  TopicName topic;
+
+  factory StreamRecipient.fromJson(Map<String, dynamic> json) =>
+    _$StreamRecipientFromJson(json);
+}
+
+/// The recipient of a DM message.
+class DmRecipient extends Recipient {
+  DmRecipient({required this.allRecipientIds})
+    : assert(isSortedWithoutDuplicates(allRecipientIds.toList()));
+
+  /// The user IDs of all users in the thread, sorted numerically.
+  ///
+  /// This lists the sender as well as all (other) recipients, and it
+  /// lists each user just once.  In particular the self-user is always
+  /// included.
+  ///
+  /// This is required to have an efficient `length`.
+  final List<int> allRecipientIds;
+}
+
+/// A message or message-like object, for showing in a message list.
+///
+/// Other than [Message], we use this for "outbox messages",
+/// representing outstanding [sendMessage] requests.
+abstract class MessageBase<T extends Recipient> {
+  /// The Zulip message ID.
+  ///
+  /// If null, the message doesn't have an ID acknowledged by the server
+  /// (e.g.: a locally-echoed message).
+  int? get id;
+
+  int get senderId;
+  int get timestamp;
+
+  /// The recipient of this message.
+  // When implementing this, the return type should be either [StreamRecipient]
+  // or [DmRecipient]; it should never be [Recipient], because we
+  // expect a concrete subclass of [MessageBase] to represent either
+  // a channel message or a DM message, not both.
+  T get recipient;
+}
+
 /// As in the get-messages response.
 ///
 /// https://zulip.com/api/get-messages#response
-sealed class Message {
+sealed class Message<T extends Recipient> implements MessageBase<T> {
   // final String? avatarUrl; // Use [User.avatarUrl] instead; will live-update
   final String client;
   String content;
@@ -544,6 +604,7 @@ sealed class Message {
   @JsonKey(readValue: MessageEditState._readFromMessage, fromJson: Message._messageEditStateFromJson)
   MessageEditState editState;
 
+  @override
   final int id;
   bool isMeMessage;
   int? lastEditTimestamp;
@@ -554,6 +615,7 @@ sealed class Message {
   final int recipientId;
   final String senderEmail;
   final String senderFullName;
+  @override
   final int senderId;
   final String senderRealmStr;
 
@@ -561,6 +623,7 @@ sealed class Message {
   @JsonKey(name: 'submessages', readValue: _readPoll, fromJson: Poll.fromJson, toJson: Poll.toJson)
   Poll? poll;
 
+  @override
   final int timestamp;
   String get type;
 
@@ -619,7 +682,9 @@ sealed class Message {
     required this.matchTopic,
   });
 
-  factory Message.fromJson(Map<String, dynamic> json) {
+  // TODO(dart): This has to be a static method, because factories/constructors
+  //   do not support type parameters: https://github.com/dart-lang/language/issues/647
+  static Message fromJson(Map<String, dynamic> json) {
     final type = json['type'] as String;
     if (type == 'stream') return StreamMessage.fromJson(json);
     if (type == 'private') return DmMessage.fromJson(json);
@@ -715,7 +780,7 @@ extension type const TopicName(String _value) {
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-class StreamMessage extends Message {
+class StreamMessage extends Message<StreamRecipient> {
   @override
   @JsonKey(includeToJson: true)
   String get type => 'stream';
@@ -726,14 +791,23 @@ class StreamMessage extends Message {
   @JsonKey(required: true, disallowNullValue: true)
   String? displayRecipient;
 
-  int streamId;
+  @JsonKey(includeToJson: true)
+  int get streamId => recipient.streamId;
 
   // The topic/subject is documented to be present on DMs too, just empty.
   // We ignore it on DMs; if a future server introduces distinct topics in DMs,
   // that will need new UI that we'll design then as part of that feature,
   // and ignoring the topics seems as good a fallback behavior as any.
-  @JsonKey(name: 'subject')
-  TopicName topic;
+  @JsonKey(name: 'subject', includeToJson: true)
+  TopicName get topic => recipient.topic;
+
+  @override
+  @JsonKey(readValue: _readRecipient, includeToJson: false)
+  StreamRecipient recipient;
+
+  static Map<String, dynamic> _readRecipient(Map<dynamic, dynamic> json, String key) {
+    return {'stream_id': json['stream_id'], 'subject': json['subject']};
+  }
 
   StreamMessage({
     required super.client,
@@ -754,8 +828,7 @@ class StreamMessage extends Message {
     required super.matchContent,
     required super.matchTopic,
     required this.displayRecipient,
-    required this.streamId,
-    required this.topic,
+    required this.recipient,
   });
 
   factory StreamMessage.fromJson(Map<String, dynamic> json) =>
@@ -766,77 +839,38 @@ class StreamMessage extends Message {
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-class DmRecipient {
-  final int id;
-  final String email;
-  final String fullName;
-
-  // final String? shortName; // obsolete, ignore
-  // final bool? isMirrorDummy; // obsolete, ignore
-
-  DmRecipient({required this.id, required this.email, required this.fullName});
-
-  factory DmRecipient.fromJson(Map<String, dynamic> json) =>
-    _$DmRecipientFromJson(json);
-
-  Map<String, dynamic> toJson() => _$DmRecipientToJson(this);
-
-  @override
-  String toString() => 'DmRecipient(id: $id, email: $email, fullName: $fullName)';
-
-  @override
-  bool operator ==(Object other) {
-    if (other is! DmRecipient) return false;
-    return other.id == id && other.email == email && other.fullName == fullName;
-  }
-
-  @override
-  int get hashCode => Object.hash('DmRecipient', id, email, fullName);
-}
-
-class DmRecipientListConverter extends JsonConverter<List<DmRecipient>, List<dynamic>> {
-  const DmRecipientListConverter();
-
-  @override
-  List<DmRecipient> fromJson(List<dynamic> json) {
-    return json.map((e) => DmRecipient.fromJson(e as Map<String, dynamic>))
-      .toList(growable: false)
-      ..sort((a, b) => a.id.compareTo(b.id));
-  }
-
-  @override
-  List<dynamic> toJson(List<DmRecipient> object) => object;
-}
-
-@JsonSerializable(fieldRename: FieldRename.snake)
-class DmMessage extends Message {
+class DmMessage extends Message<DmRecipient> {
   @override
   @JsonKey(includeToJson: true)
   String get type => 'private';
 
-  /// The `display_recipient` from the server, sorted by user ID numerically.
+  /// The user IDs of all users in the thread, sorted numerically, as in
+  /// the `display_recipient from the server.
+  ///
+  /// The other fields on `display_recipient` are ignored and won't roundtrip.
   ///
   /// This lists the sender as well as all (other) recipients, and it
   /// lists each user just once.  In particular the self-user is always
   /// included.
-  ///
-  /// Note the data here is not updated on changes to the users, so everything
-  /// other than the user IDs may be stale.
-  /// Consider using [allRecipientIds] instead, and getting user details
-  /// from the store.
   // TODO(server): Document that it's all users.  That statement is based on
   //   reverse-engineering notes in zulip-mobile:src/api/modelTypes.js at PmMessage.
-  @DmRecipientListConverter()
-  final List<DmRecipient> displayRecipient;
+  @JsonKey(name: 'display_recipient', toJson: _allRecipientIdsToJson, includeToJson: true)
+  List<int> get allRecipientIds => recipient.allRecipientIds;
 
-  /// The user IDs of all users in the thread, sorted numerically.
-  ///
-  /// This lists the sender as well as all (other) recipients, and it
-  /// lists each user just once.  In particular the self-user is always
-  /// included.
-  ///
-  /// This is a result of [List.map], so it has an efficient `length`.
-  Iterable<int> get allRecipientIds => displayRecipient.map((e) => e.id);
+  @override
+  @JsonKey(name: 'display_recipient', fromJson: _recipientFromJson, includeToJson: false)
+  final DmRecipient recipient;
+
+  static List<Map<String, dynamic>> _allRecipientIdsToJson(List<int> allRecipientIds) {
+    return allRecipientIds.map((element) => {'id': element}).toList();
+  }
+
+  static DmRecipient _recipientFromJson(List<dynamic> json) {
+    return DmRecipient(allRecipientIds: json.map(
+      (element) => ((element as Map<String, dynamic>)['id'] as num).toInt()
+    ).toList(growable: false)
+      ..sort());
+  }
 
   DmMessage({
     required super.client,
@@ -856,7 +890,7 @@ class DmMessage extends Message {
     required super.flags,
     required super.matchContent,
     required super.matchTopic,
-    required this.displayRecipient,
+    required this.recipient,
   });
 
   factory DmMessage.fromJson(Map<String, dynamic> json) =>

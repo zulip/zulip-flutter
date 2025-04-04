@@ -254,6 +254,12 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'color': instance.color,
     };
 
+StreamRecipient _$StreamRecipientFromJson(Map<String, dynamic> json) =>
+    StreamRecipient(
+      (json['stream_id'] as num).toInt(),
+      TopicName.fromJson(json['subject'] as String),
+    );
+
 StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) {
   $checkKeys(
     json,
@@ -281,8 +287,9 @@ StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) {
     matchContent: json['match_content'] as String?,
     matchTopic: json['match_subject'] as String?,
     displayRecipient: json['display_recipient'] as String?,
-    streamId: (json['stream_id'] as num).toInt(),
-    topic: TopicName.fromJson(json['subject'] as String),
+    recipient: StreamRecipient.fromJson(
+      StreamMessage._readRecipient(json, 'recipient') as Map<String, dynamic>,
+    ),
   )..poll = Poll.fromJson(Message._readPoll(json, 'submessages'));
 }
 
@@ -319,19 +326,6 @@ const _$MessageEditStateEnumMap = {
   MessageEditState.moved: 'moved',
 };
 
-DmRecipient _$DmRecipientFromJson(Map<String, dynamic> json) => DmRecipient(
-  id: (json['id'] as num).toInt(),
-  email: json['email'] as String,
-  fullName: json['full_name'] as String,
-);
-
-Map<String, dynamic> _$DmRecipientToJson(DmRecipient instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'email': instance.email,
-      'full_name': instance.fullName,
-    };
-
 DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
   client: json['client'] as String,
   content: json['content'] as String,
@@ -352,9 +346,7 @@ DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
   flags: Message._flagsFromJson(json['flags']),
   matchContent: json['match_content'] as String?,
   matchTopic: json['match_subject'] as String?,
-  displayRecipient: const DmRecipientListConverter().fromJson(
-    json['display_recipient'] as List,
-  ),
+  recipient: DmMessage._recipientFromJson(json['display_recipient'] as List),
 )..poll = Poll.fromJson(Message._readPoll(json, 'submessages'));
 
 Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
@@ -377,8 +369,8 @@ Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
   'match_content': instance.matchContent,
   'match_subject': instance.matchTopic,
   'type': instance.type,
-  'display_recipient': const DmRecipientListConverter().toJson(
-    instance.displayRecipient,
+  'display_recipient': DmMessage._allRecipientIdsToJson(
+    instance.allRecipientIds,
   ),
 };
 

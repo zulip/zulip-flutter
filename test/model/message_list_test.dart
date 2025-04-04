@@ -526,7 +526,7 @@ void main() {
     test('unmute a topic -> refetch from scratch', () => awaitFakeAsync((async) async {
       await prepare(narrow: const CombinedFeedNarrow());
       await prepareMutes(true);
-      final messages = [
+      final messages = <Message>[
         eg.dmMessage(id: 1, from: eg.otherUser, to: [eg.selfUser]),
         eg.streamMessage(id: 2, stream: stream, topic: topic),
       ];
@@ -1994,11 +1994,11 @@ void checkInvariants(MessageListView model) {
 }
 
 extension MessageListRecipientHeaderItemChecks on Subject<MessageListRecipientHeaderItem> {
-  Subject<Message> get message => has((x) => x.message, 'message');
+  Subject<MessageBase> get message => has((x) => x.message, 'message');
 }
 
 extension MessageListDateSeparatorItemChecks on Subject<MessageListDateSeparatorItem> {
-  Subject<Message> get message => has((x) => x.message, 'message');
+  Subject<MessageBase> get message => has((x) => x.message, 'message');
 }
 
 extension MessageListMessageItemChecks on Subject<MessageListMessageItem> {
