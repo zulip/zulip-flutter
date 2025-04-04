@@ -22,7 +22,6 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: colorScheme.background.withOpacity(0.95),
       appBar: ZulipAppBar(
-        elevation: 0,
         centerTitle: true,
         title: Text(
           zulipLocalizations.settingsPageTitle,
@@ -370,7 +369,6 @@ class ExperimentalFeaturesPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: colorScheme.background.withOpacity(0.95),
       appBar: AppBar(
-        elevation: 0,
         centerTitle: true,
         backgroundColor: colorScheme.surface,
         title: Text(
