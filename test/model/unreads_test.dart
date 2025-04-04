@@ -37,10 +37,11 @@ void main() {
       oldUnreadsMissing: false,
     ),
   }) {
-    channelStore = eg.store();
+    final store = eg.store(
+      initialSnapshot: eg.initialSnapshot(unreadMsgs: initial));
+    channelStore = store;
     notifiedCount = 0;
-    model = Unreads(initial: initial,
-        selfUserId: eg.selfUser.userId, channelStore: channelStore)
+    model = store.unreads
       ..addListener(() {
         notifiedCount++;
       });

@@ -11,13 +11,12 @@ import 'store.dart';
 /// The model for tracking the typing status organized by narrows.
 ///
 /// Listeners are notified when a typist is added or removed from any narrow.
-class TypingStatus extends ChangeNotifier {
+class TypingStatus extends PerAccountStoreBase with ChangeNotifier {
   TypingStatus({
-    required this.selfUserId,
+    required super.core,
     required this.typingStartedExpiryPeriod,
   });
 
-  final int selfUserId;
   final Duration typingStartedExpiryPeriod;
 
   Iterable<SendableNarrow> get debugActiveNarrows => _timerMapsByNarrow.keys;
