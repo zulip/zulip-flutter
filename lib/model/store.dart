@@ -339,12 +339,20 @@ class CorePerAccountStore {
     required GlobalStore globalStore,
     required this.connection,
     required this.accountId,
+    required this.selfUserId,
   }) : _globalStore = globalStore,
        assert(connection.realmUrl == globalStore.getAccount(accountId)!.realmUrl);
 
   final GlobalStore _globalStore;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
   final int accountId;
+
+  // This isn't strictly needed as a field; it could be a getter
+  // that uses `_globalStore.getAccount(accountId)`.
+  // But we denormalize it here to save a hash-table lookup every time
+  // the self-user ID is needed, which can be often.
+  // It never changes on the account; see [GlobalStore.updateAccount].
+  final int selfUserId;
 }
 
 /// A base class for [PerAccountStore] and its substores,
@@ -384,6 +392,14 @@ abstract class PerAccountStoreBase {
   /// which is possible only if [PerAccountStore.dispose] has been called
   /// on this store.
   Account get account => _globalStore.getAccount(accountId)!;
+
+  /// The user ID of the "self-user",
+  /// i.e. the account the person using this app is logged into.
+  ///
+  /// This always equals the [Account.userId] on [account].
+  ///
+  /// For the corresponding [User] object, see [UserStore.selfUser].
+  int get selfUserId => _core.selfUserId;
 }
 
 const _tryResolveUrl = tryResolveUrl;
@@ -441,6 +457,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       globalStore: globalStore,
       connection: connection,
       accountId: accountId,
+      selfUserId: account.userId,
     );
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
@@ -464,9 +481,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         typingStartedWaitPeriod: Duration(
           milliseconds: initialSnapshot.serverTypingStartedWaitPeriodMilliseconds),
       ),
-      users: UserStoreImpl(
-        selfUserId: account.userId,
-        initialSnapshot: initialSnapshot),
+      users: UserStoreImpl(core: core, initialSnapshot: initialSnapshot),
       typingStatus: TypingStatus(
         selfUserId: account.userId,
         typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
@@ -601,9 +616,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
 
   ////////////////////////////////
   // Users and data about them.
-
-  @override
-  int get selfUserId => _users.selfUserId;
 
   @override
   User? getUser(int userId) => _users.getUser(userId);

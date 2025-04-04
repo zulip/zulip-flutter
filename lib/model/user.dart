@@ -2,17 +2,10 @@ import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import 'localizations.dart';
+import 'store.dart';
 
 /// The portion of [PerAccountStore] describing the users in the realm.
-mixin UserStore {
-  /// The user ID of the "self-user",
-  /// i.e. the account the person using this app is logged into.
-  ///
-  /// This always equals the [Account.userId] on [PerAccountStore.account].
-  ///
-  /// For the corresponding [User] object, see [selfUser].
-  int get selfUserId;
-
+mixin UserStore on PerAccountStoreBase {
   /// The user with the given ID, if that user is known.
   ///
   /// There may be other users that are perfectly real but are
@@ -80,18 +73,15 @@ mixin UserStore {
 /// Generally the only code that should need this class is [PerAccountStore]
 /// itself.  Other code accesses this functionality through [PerAccountStore],
 /// or through the mixin [UserStore] which describes its interface.
-class UserStoreImpl with UserStore {
+class UserStoreImpl extends PerAccountStoreBase with UserStore {
   UserStoreImpl({
-    required this.selfUserId,
+    required super.core,
     required InitialSnapshot initialSnapshot,
   }) : _users = Map.fromEntries(
          initialSnapshot.realmUsers
          .followedBy(initialSnapshot.realmNonActiveUsers)
          .followedBy(initialSnapshot.crossRealmBots)
          .map((user) => MapEntry(user.userId, user)));
-
-  @override
-  final int selfUserId;
 
   final Map<int, User> _users;
 
