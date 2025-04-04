@@ -328,8 +328,14 @@ abstract class GlobalStore extends ChangeNotifier {
 class AccountNotFoundException implements Exception {}
 
 /// A bundle of items that are useful to [PerAccountStore] and its substores.
+///
+/// Each instance of this class is constructed as part of constructing a
+/// [PerAccountStore] instance,
+/// and is shared by that [PerAccountStore] and its substores.
+/// Calling [PerAccountStore.dispose] also disposes the [CorePerAccountStore]
+/// (for example, it calls [ApiConnection.dispose] on [connection]).
 class CorePerAccountStore {
-  CorePerAccountStore({required this.connection});
+  CorePerAccountStore._({required this.connection});
 
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
 }
@@ -386,7 +392,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     }
 
     final realmUrl = account.realmUrl;
-    final core = CorePerAccountStore(connection: connection);
+    final core = CorePerAccountStore._(connection: connection);
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       globalStore: globalStore,
