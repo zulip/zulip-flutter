@@ -338,10 +338,12 @@ class CorePerAccountStore {
   CorePerAccountStore._({
     required GlobalStore globalStore,
     required this.connection,
+    required this.accountId,
   }) : _globalStore = globalStore;
 
   final GlobalStore _globalStore;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
+  final int accountId;
 }
 
 /// A base class for [PerAccountStore] and its substores,
@@ -352,9 +354,17 @@ abstract class PerAccountStoreBase {
 
   final CorePerAccountStore _core;
 
+  ////////////////////////////////
+  // Where data comes from in the first place.
+
   GlobalStore get _globalStore => _core._globalStore;
 
   ApiConnection get connection => _core.connection;
+
+  ////////////////////////////////
+  // Data attached to the self-account on the realm.
+
+  int get accountId => _core.accountId;
 }
 
 /// Store for the user's data for a given Zulip account.
@@ -401,6 +411,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     final core = CorePerAccountStore._(
       globalStore: globalStore,
       connection: connection,
+      accountId: accountId,
     );
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
@@ -418,7 +429,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       emailAddressVisibility: initialSnapshot.emailAddressVisibility,
       emoji: EmojiStoreImpl(
         realmUrl: realmUrl, allRealmEmoji: initialSnapshot.realmEmoji),
-      accountId: accountId,
       userSettings: initialSnapshot.userSettings,
       typingNotifier: TypingNotifier(
         core: core,
@@ -461,7 +471,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     required this.customProfileFields,
     required this.emailAddressVisibility,
     required EmojiStoreImpl emoji,
-    required this.accountId,
     required this.userSettings,
     required this.typingNotifier,
     required UserStoreImpl users,
@@ -471,7 +480,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     required this.unreads,
     required this.recentDmConversationsView,
     required this.recentSenders,
-  }) : assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
+  }) : assert(realmUrl == globalStore.getAccount(core.accountId)!.realmUrl),
        assert(realmUrl == core.connection.realmUrl),
        assert(emoji.realmUrl == realmUrl),
        _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
@@ -571,8 +580,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
 
   ////////////////////////////////
   // Data attached to the self-account on the realm.
-
-  final int accountId;
 
   /// The [Account] this store belongs to.
   ///
