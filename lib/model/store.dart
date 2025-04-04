@@ -442,7 +442,7 @@ class PerAccountStore extends PerAccountStoreBase with
     EmojiStore, ProxyEmojiStore,
     SavedSnippetStore,
     UserStore, ProxyUserStore,
-    ChannelStore,
+    ChannelStore, ProxyChannelStore,
     MessageStore {
   /// Construct a store for the user's data, starting from the given snapshot.
   ///
@@ -609,19 +609,9 @@ class PerAccountStore extends PerAccountStoreBase with
   //|//////////////////////////////
   // Streams, topics, and stuff about them.
 
+  @protected
   @override
-  Map<int, ZulipStream> get streams => _channels.streams;
-  @override
-  Map<String, ZulipStream> get streamsByName => _channels.streamsByName;
-  @override
-  Map<int, Subscription> get subscriptions => _channels.subscriptions;
-  @override
-  UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic) =>
-    _channels.topicVisibilityPolicy(streamId, topic);
-  @override
-  Map<int, Map<TopicName, UserTopicVisibilityPolicy>> get debugTopicVisibility =>
-    _channels.debugTopicVisibility;
-
+  ChannelStore get channelStore => _channels;
   final ChannelStoreImpl _channels;
 
   //|//////////////////////////////

@@ -186,6 +186,28 @@ enum UserTopicVisibilityEffect {
   }
 }
 
+mixin ProxyChannelStore on ChannelStore {
+  @protected
+  ChannelStore get channelStore;
+
+  @override
+  Map<int, ZulipStream> get streams => channelStore.streams;
+
+  @override
+  Map<String, ZulipStream> get streamsByName => channelStore.streamsByName;
+
+  @override
+  Map<int, Subscription> get subscriptions => channelStore.subscriptions;
+
+  @override
+  UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic) =>
+    channelStore.topicVisibilityPolicy(streamId, topic);
+
+  @override
+  Map<int, Map<TopicName, UserTopicVisibilityPolicy>> get debugTopicVisibility =>
+    channelStore.debugTopicVisibility;
+}
+
 /// The implementation of [ChannelStore] that does the work.
 ///
 /// Generally the only code that should need this class is [PerAccountStore]
