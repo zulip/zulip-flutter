@@ -194,7 +194,7 @@ void main() {
     });
 
     testWidgets('Selected language shows checkmark', (tester) async {
-      ZulipApp.setLocale(const Locale('en'));
+      await ZulipApp.setLocale(const Locale('en'));
       addTearDown(() => ZulipApp.setLocale(null));
 
       await prepareLanguageSelectionScreen(tester);
