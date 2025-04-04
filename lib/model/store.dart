@@ -363,6 +363,12 @@ abstract class PerAccountStoreBase {
   ApiConnection get connection => _core.connection;
 
   ////////////////////////////////
+  // Data attached to the realm or the server.
+
+  /// Always equal to `account.realmUrl` and `connection.realmUrl`.
+  Uri get realmUrl => connection.realmUrl;
+
+  ////////////////////////////////
   // Data attached to the self-account on the realm.
 
   int get accountId => _core.accountId;
@@ -425,7 +431,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     return PerAccountStore._(
       core: core,
       queueId: queueId,
-      realmUrl: realmUrl,
       realmWildcardMentionPolicy: initialSnapshot.realmWildcardMentionPolicy,
       realmMandatoryTopics: initialSnapshot.realmMandatoryTopics,
       realmWaitingPeriodThreshold: initialSnapshot.realmWaitingPeriodThreshold,
@@ -467,7 +472,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   PerAccountStore._({
     required super.core,
     required this.queueId,
-    required this.realmUrl,
     required this.realmWildcardMentionPolicy,
     required this.realmMandatoryTopics,
     required this.realmWaitingPeriodThreshold,
@@ -486,8 +490,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     required this.unreads,
     required this.recentDmConversationsView,
     required this.recentSenders,
-  }) : assert(realmUrl == core.connection.realmUrl),
-       assert(emoji.realmUrl == realmUrl),
+  }) : assert(emoji.realmUrl == core.connection.realmUrl),
        _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
        _emoji = emoji,
        _users = users,
@@ -520,9 +523,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
 
   ////////////////////////////////
   // Data attached to the realm or the server.
-
-  /// Always equal to `account.realmUrl` and `connection.realmUrl`.
-  final Uri realmUrl;
 
   /// Resolve [reference] as a URL relative to [realmUrl].
   ///
