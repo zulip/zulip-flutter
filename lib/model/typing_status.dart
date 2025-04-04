@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import '../api/core.dart';
 import '../api/model/events.dart';
 import '../api/route/typing.dart';
 import 'binding.dart';
 import 'narrow.dart';
+import 'store.dart';
 
 /// The model for tracking the typing status organized by narrows.
 ///
@@ -93,14 +93,13 @@ class TypingStatus extends ChangeNotifier {
 /// See also:
 ///  * https://github.com/zulip/zulip/blob/52a9846cdf4abfbe937a94559690d508e95f4065/web/shared/src/typing_status.ts
 ///  * https://zulip.readthedocs.io/en/latest/subsystems/typing-indicators.html
-class TypingNotifier {
+class TypingNotifier extends PerAccountStoreBase {
   TypingNotifier({
-    required this.connection,
+    required super.core,
     required this.typingStoppedWaitPeriod,
     required this.typingStartedWaitPeriod,
   });
 
-  final ApiConnection connection;
   final Duration typingStoppedWaitPeriod;
   final Duration typingStartedWaitPeriod;
 
