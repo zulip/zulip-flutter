@@ -365,6 +365,13 @@ abstract class PerAccountStoreBase {
   // Data attached to the self-account on the realm.
 
   int get accountId => _core.accountId;
+
+  /// The [Account] this store belongs to.
+  ///
+  /// Will throw if the account has been removed from the global store,
+  /// which is possible only if [PerAccountStore.dispose] has been called
+  /// on this store.
+  Account get account => _globalStore.getAccount(accountId)!;
 }
 
 /// Store for the user's data for a given Zulip account.
@@ -580,12 +587,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
 
   ////////////////////////////////
   // Data attached to the self-account on the realm.
-
-  /// The [Account] this store belongs to.
-  ///
-  /// Will throw if the account has been removed from the global store,
-  /// which is possible only if [dispose] has been called on this store.
-  Account get account => _globalStore.getAccount(accountId)!;
 
   final UserSettings? userSettings; // TODO(server-5)
 
