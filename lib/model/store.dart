@@ -412,7 +412,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       accountId: accountId,
       userSettings: initialSnapshot.userSettings,
       typingNotifier: TypingNotifier(
-        connection: connection,
+        core: core,
         typingStoppedWaitPeriod: Duration(
           milliseconds: initialSnapshot.serverTypingStoppedWaitPeriodMilliseconds),
         typingStartedWaitPeriod: Duration(
