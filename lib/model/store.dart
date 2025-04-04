@@ -335,8 +335,12 @@ class AccountNotFoundException implements Exception {}
 /// Calling [PerAccountStore.dispose] also disposes the [CorePerAccountStore]
 /// (for example, it calls [ApiConnection.dispose] on [connection]).
 class CorePerAccountStore {
-  CorePerAccountStore._({required this.connection});
+  CorePerAccountStore._({
+    required GlobalStore globalStore,
+    required this.connection,
+  }) : _globalStore = globalStore;
 
+  final GlobalStore _globalStore;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
 }
 
@@ -347,6 +351,8 @@ abstract class PerAccountStoreBase {
     : _core = core;
 
   final CorePerAccountStore _core;
+
+  GlobalStore get _globalStore => _core._globalStore;
 
   ApiConnection get connection => _core.connection;
 }
@@ -392,7 +398,10 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     }
 
     final realmUrl = account.realmUrl;
-    final core = CorePerAccountStore._(connection: connection);
+    final core = CorePerAccountStore._(
+      globalStore: globalStore,
+      connection: connection,
+    );
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       globalStore: globalStore,
@@ -465,7 +474,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   }) : assert(realmUrl == globalStore.getAccount(accountId)!.realmUrl),
        assert(realmUrl == core.connection.realmUrl),
        assert(emoji.realmUrl == realmUrl),
-       _globalStore = globalStore,
        _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
        _emoji = emoji,
        _users = users,
@@ -477,8 +485,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
 
   ////////////////////////////////
   // Where data comes from in the first place.
-
-  final GlobalStore _globalStore;
 
   final String queueId;
   UpdateMachine? get updateMachine => _updateMachine;
