@@ -10,6 +10,7 @@ import '../log.dart';
 import 'algorithms.dart';
 import 'narrow.dart';
 import 'channel.dart';
+import 'store.dart';
 
 /// The view-model for unread messages.
 ///
@@ -34,10 +35,10 @@ import 'channel.dart';
 //   sync to those unreads, because the user has shown an interest in them.
 // TODO When loading a message list with stream messages, check all the stream
 //   messages and refresh [mentions] (see [mentions] dartdoc).
-class Unreads extends ChangeNotifier {
+class Unreads extends PerAccountStoreBase with ChangeNotifier {
   factory Unreads({
     required UnreadMessagesSnapshot initial,
-    required int selfUserId,
+    required CorePerAccountStore core,
     required ChannelStore channelStore,
   }) {
     final streams = <int, Map<TopicName, QueueList<int>>>{};
@@ -52,32 +53,33 @@ class Unreads extends ChangeNotifier {
 
     for (final unreadDmSnapshot in initial.dms) {
       final otherUserId = unreadDmSnapshot.otherUserId;
-      final narrow = DmNarrow.withUser(otherUserId, selfUserId: selfUserId);
+      final narrow = DmNarrow.withUser(otherUserId, selfUserId: core.selfUserId);
       dms[narrow] = QueueList.from(unreadDmSnapshot.unreadMessageIds);
     }
 
     for (final unreadHuddleSnapshot in initial.huddles) {
-      final narrow = DmNarrow.ofUnreadHuddleSnapshot(unreadHuddleSnapshot, selfUserId: selfUserId);
+      final narrow = DmNarrow.ofUnreadHuddleSnapshot(unreadHuddleSnapshot,
+          selfUserId: core.selfUserId);
       dms[narrow] = QueueList.from(unreadHuddleSnapshot.unreadMessageIds);
     }
 
     return Unreads._(
+      core: core,
       channelStore: channelStore,
       streams: streams,
       dms: dms,
       mentions: mentions,
       oldUnreadsMissing: initial.oldUnreadsMissing,
-      selfUserId: selfUserId,
     );
   }
 
   Unreads._({
+    required super.core,
     required this.channelStore,
     required this.streams,
     required this.dms,
     required this.mentions,
     required this.oldUnreadsMissing,
-    required this.selfUserId,
   });
 
   final ChannelStore channelStore;
@@ -124,8 +126,6 @@ class Unreads extends ChangeNotifier {
   /// Initialized to the value of [UnreadMessagesSnapshot.oldUnreadsMissing].
   /// Is set to false when the user clears out all unreads.
   bool oldUnreadsMissing;
-
-  final int selfUserId;
 
   // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
   int countInCombinedFeedNarrow() {

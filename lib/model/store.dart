@@ -482,19 +482,18 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
           milliseconds: initialSnapshot.serverTypingStartedWaitPeriodMilliseconds),
       ),
       users: UserStoreImpl(core: core, initialSnapshot: initialSnapshot),
-      typingStatus: TypingStatus(
-        selfUserId: account.userId,
+      typingStatus: TypingStatus(core: core,
         typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
       ),
       channels: channels,
       messages: MessageStoreImpl(core: core),
       unreads: Unreads(
         initial: initialSnapshot.unreadMsgs,
-        selfUserId: account.userId,
+        core: core,
         channelStore: channels,
       ),
-      recentDmConversationsView: RecentDmConversationsView(
-        initial: initialSnapshot.recentPrivateConversations, selfUserId: account.userId),
+      recentDmConversationsView: RecentDmConversationsView(core: core,
+        initial: initialSnapshot.recentPrivateConversations),
       recentSenders: RecentSenders(),
     );
   }
