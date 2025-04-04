@@ -36,17 +36,29 @@ class MessageListDateSeparatorItem extends MessageListItem {
 }
 
 /// A message to show in the message list.
-class MessageListMessageItem extends MessageListItem {
-  final Message message;
-  ZulipMessageContent content;
+sealed class MessageListMessageBaseItem extends MessageListItem {
+  MessageBase get message;
+  ZulipMessageContent get content;
   bool showSender;
   bool isLastInBlock;
+
+  MessageListMessageBaseItem({
+    required this.showSender,
+    required this.isLastInBlock,
+  });
+}
+
+class MessageListMessageItem extends MessageListMessageBaseItem {
+  @override
+  final Message message;
+  @override
+  ZulipMessageContent content;
 
   MessageListMessageItem(
     this.message,
     this.content, {
-    required this.showSender,
-    required this.isLastInBlock,
+    required super.showSender,
+    required super.isLastInBlock,
   });
 }
 
@@ -288,14 +300,15 @@ mixin _MessageSequence {
   ///
   /// Returns whether an item has been appended or not.
   ///
-  /// The caller must append a [MessageListMessageItem] after this.
-  bool _maybeAppendAuxillaryItem(Message message, {required Message? prevMessage}) {
+  /// The caller must append a [MessageListMessageBaseItem] after this.
+  bool _maybeAppendAuxillaryItem(MessageBase message, {
+    required MessageBase? prevMessage,
+  }) {
     if (prevMessage == null || !haveSameRecipient(prevMessage, message)) {
       items.add(MessageListRecipientHeaderItem(message));
       return true;
     } else {
-      assert(items.last is MessageListMessageItem);
-      final prevMessageItem = items.last as MessageListMessageItem;
+      final prevMessageItem = items.last as MessageListMessageBaseItem;
       assert(identical(prevMessageItem.message, prevMessage));
       assert(prevMessageItem.isLastInBlock);
       prevMessageItem.isLastInBlock = false;
@@ -359,12 +372,14 @@ mixin _MessageSequence {
 }
 
 @visibleForTesting
-bool haveSameRecipient(Message prevMessage, Message message) {
-  if (prevMessage is StreamMessage && message is StreamMessage) {
-    if (prevMessage.streamId != message.streamId) return false;
-    if (prevMessage.topic.canonicalize() != message.topic.canonicalize()) return false;
-  } else if (prevMessage is DmMessage && message is DmMessage) {
-    if (!_equalIdSequences(prevMessage.allRecipientIds, message.allRecipientIds)) {
+bool haveSameRecipient(MessageBase prevMessage, MessageBase message) {
+  final prevConversation = prevMessage.conversation;
+  final conversation = message.conversation;
+  if (prevConversation is StreamConversation && conversation is StreamConversation) {
+    if (prevConversation.streamId != conversation.streamId) return false;
+    if (prevConversation.topic.canonicalize() != conversation.topic.canonicalize()) return false;
+  } else if (prevConversation is DmConversation && conversation is DmConversation) {
+    if (!_equalIdSequences(prevConversation.allRecipientIds, conversation.allRecipientIds)) {
       return false;
     }
   } else {
@@ -383,7 +398,7 @@ bool haveSameRecipient(Message prevMessage, Message message) {
 }
 
 @visibleForTesting
-bool messagesSameDay(Message prevMessage, Message message) {
+bool messagesSameDay(MessageBase prevMessage, MessageBase message) {
   // TODO memoize [DateTime]s... also use memoized for showing date/time in msglist
   final prevTime = DateTime.fromMillisecondsSinceEpoch(prevMessage.timestamp * 1000);
   final time = DateTime.fromMillisecondsSinceEpoch(message.timestamp * 1000);
@@ -448,19 +463,20 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// one way or another.
   ///
   /// See also [_allMessagesVisible].
-  bool _messageVisible(Message message) {
+  bool _messageVisible(MessageBase message) {
     switch (narrow) {
       case CombinedFeedNarrow():
-        return switch (message) {
-          StreamMessage() =>
-            store.isTopicVisible(message.streamId, message.topic),
-          DmMessage() => true,
+        return switch (message.conversation) {
+          StreamConversation(:final streamId, :final topic) =>
+            store.isTopicVisible(streamId, topic),
+          DmConversation() => true,
         };
 
       case ChannelNarrow(:final streamId):
-        assert(message is StreamMessage && message.streamId == streamId);
-        if (message is! StreamMessage) return false;
-        return store.isTopicVisibleInStream(streamId, message.topic);
+        assert(message is MessageBase<StreamConversation>
+               && message.conversation.streamId == streamId);
+        if (message is! MessageBase<StreamConversation>) return false;
+        return store.isTopicVisibleInStream(streamId, message.conversation.topic);
 
       case TopicNarrow():
       case DmNarrow():
