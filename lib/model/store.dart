@@ -570,7 +570,8 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
 
   /// The [Account] this store belongs to.
   ///
-  /// Will throw if called after [dispose] has been called.
+  /// Will throw if the account has been removed from the global store,
+  /// which is possible only if [dispose] has been called on this store.
   Account get account => _globalStore.getAccount(accountId)!;
 
   final UserSettings? userSettings; // TODO(server-5)
