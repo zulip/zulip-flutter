@@ -368,6 +368,11 @@ abstract class PerAccountStoreBase {
   /// Always equal to `account.realmUrl` and `connection.realmUrl`.
   Uri get realmUrl => connection.realmUrl;
 
+  /// Resolve [reference] as a URL relative to [realmUrl].
+  ///
+  /// This returns null if [reference] fails to parse as a URL.
+  Uri? tryResolveUrl(String reference) => _tryResolveUrl(realmUrl, reference);
+
   ////////////////////////////////
   // Data attached to the self-account on the realm.
 
@@ -379,6 +384,17 @@ abstract class PerAccountStoreBase {
   /// which is possible only if [PerAccountStore.dispose] has been called
   /// on this store.
   Account get account => _globalStore.getAccount(accountId)!;
+}
+
+const _tryResolveUrl = tryResolveUrl;
+
+/// Like [Uri.resolve], but on failure return null instead of throwing.
+Uri? tryResolveUrl(Uri baseUrl, String reference) {
+  try {
+    return baseUrl.resolve(reference);
+  } on FormatException {
+    return null;
+  }
 }
 
 /// Store for the user's data for a given Zulip account.
@@ -521,11 +537,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
 
   ////////////////////////////////
   // Data attached to the realm or the server.
-
-  /// Resolve [reference] as a URL relative to [realmUrl].
-  ///
-  /// This returns null if [reference] fails to parse as a URL.
-  Uri? tryResolveUrl(String reference) => _tryResolveUrl(realmUrl, reference);
 
   /// Always equal to `connection.zulipFeatureLevel`
   /// and `account.zulipFeatureLevel`.
@@ -897,17 +908,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
 
   @override
   String toString() => '${objectRuntimeType(this, 'PerAccountStore')}#${shortHash(this)}';
-}
-
-const _tryResolveUrl = tryResolveUrl;
-
-/// Like [Uri.resolve], but on failure return null instead of throwing.
-Uri? tryResolveUrl(Uri baseUrl, String reference) {
-  try {
-    return baseUrl.resolve(reference);
-  } on FormatException {
-    return null;
-  }
 }
 
 /// A [GlobalStoreBackend] that uses a live, persistent local database.
