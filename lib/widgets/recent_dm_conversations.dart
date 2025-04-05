@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'content.dart';
 import 'icons.dart';
 import 'message_list.dart';
+import 'new_dm_sheet.dart';
 import 'store.dart';
+import 'text.dart';
 import 'theme.dart';
 import 'unread_count_badge.dart';
 
@@ -48,19 +51,54 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
 
   @override
   Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final sorted = model!.sorted;
-    return SafeArea(
-      // Don't pad the bottom here; we want the list content to do that.
-      bottom: false,
-      child: ListView.builder(
-        itemCount: sorted.length,
-        itemBuilder: (context, index) {
-          final narrow = sorted[index];
-          return RecentDmConversationsItem(
-            narrow: narrow,
-            unreadCount: unreadsModel!.countInDmNarrow(narrow),
-          );
-        }));
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      clipBehavior: Clip.none,
+      children:[
+          SafeArea(
+          // Don't pad the bottom here; we want the list content to do that.
+            bottom: false,
+            child: ListView.builder(
+              itemCount: sorted.length,
+              itemBuilder: (context, index) {
+                final narrow = sorted[index];
+                return RecentDmConversationsItem(
+                  narrow: narrow,
+                  unreadCount: unreadsModel!.countInDmNarrow(narrow),
+                );
+              })),
+          Positioned(
+            bottom: 16,
+            child: InkWell(
+              onTap: () => showNewDmSheet(context),
+              borderRadius: BorderRadius.circular(28),
+              child: Container(
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 20, 12),
+                decoration: BoxDecoration(
+                  color: designVariables.fabBg,
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0x662B0E8A),
+                      blurRadius: 16,
+                      spreadRadius: 0,
+                      offset: const Offset(0, 4)),
+                  ]),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add, size: 24, color: designVariables.fabLabel),
+                    const SizedBox(width: 8),
+                    Text(
+                      zulipLocalizations.newDmFabButtonLabel,
+                      style: const TextStyle(fontSize: 20, height: 24 / 20)
+                          .merge(weightVariableTextStyle(context, wght: 500))
+                          .copyWith(color: designVariables.fabLabel)),
+                  ])))),
+      ]);
   }
 }
 
