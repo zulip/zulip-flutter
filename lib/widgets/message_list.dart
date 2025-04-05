@@ -695,12 +695,12 @@ class ScrollToBottomButton extends StatelessWidget {
   final ValueNotifier<bool> visible;
   final ScrollController scrollController;
 
-  Future<void> _scrollToBottom() {
+  void _scrollToBottom() {
     final target = 0.0;
     final distance = target - scrollController.position.pixels;
     final durationMsAtSpeedLimit = (1000 * distance / 8000).ceil();
     final durationMs = max(300, durationMsAtSpeedLimit);
-    return scrollController.animateTo(
+    scrollController.animateTo(
       target,
       duration: Duration(milliseconds: durationMs),
       curve: Curves.linear);
