@@ -18,6 +18,7 @@ import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.IconCompat
+import androidx.core.os.bundleOf
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 
 private const val TAG = "ZulipPlugin"
@@ -204,6 +205,10 @@ private class AndroidNotificationHost(val context: Context)
                         MainActivity::class.java
                     ).apply {
                         flags = intent.flags.toInt()
+                        putExtra(
+                            "data",
+                            bundleOf(*intent.extrasData.toList().toTypedArray())
+                        )
                     } },
                     it.flags.toInt())
             ) }
