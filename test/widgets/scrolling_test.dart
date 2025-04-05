@@ -334,6 +334,38 @@ void main() {
 
         debugDefaultTargetPlatformOverride = null;
       });
+
+      testWidgets('keep going even if content turns out longer', (tester) async {
+        await prepare(tester, topHeight: 1000, bottomHeight: 3000);
+
+        // Scroll up…
+        position.jumpTo(0);
+        await tester.pump();
+        check(position.extentAfter).equals(3000);
+
+        // … then invoke `scrollToEnd`…
+        position.scrollToEnd();
+        await tester.pump();
+
+        // … but have the bottom sliver turn out to be longer than it was.
+        await prepare(tester, topHeight: 1000, bottomHeight: 6000,
+          reuseController: true);
+        check(position.extentAfter).equals(6000);
+
+        // Let the scrolling animation go until it stops.
+        int steps = 0;
+        double prevRemaining;
+        double remaining = position.extentAfter;
+        do {
+          prevRemaining = remaining;
+          check(++steps).isLessThan(100);
+          await tester.pump(Duration(milliseconds: 10));
+          remaining = position.extentAfter;
+        } while (remaining < prevRemaining);
+
+        // The scroll position should be all the way at the end.
+        check(remaining).equals(0);
+      });
     });
   });
 }

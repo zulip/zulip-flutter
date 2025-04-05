@@ -43,19 +43,91 @@ class _SingleChildScrollViewWithScrollbarState
   }
 }
 
+/// A simulation of motion at a constant velocity.
+///
+/// Models a particle that follows Newton's law of inertia,
+/// with no forces acting on the particle, and no end to the motion.
+///
+/// See also [GravitySimulation], which adds a constant acceleration
+/// and a stopping point.
+class InertialSimulation extends Simulation { // TODO(upstream)
+  InertialSimulation(double initialPosition, double velocity)
+   : _x0 = initialPosition, _v = velocity;
+
+  final double _x0;
+  final double _v;
+
+  @override
+  double x(double time) => _x0 + _v * time;
+
+  @override
+  double dx(double time) => _v;
+
+  @override
+  bool isDone(double time) => false;
+
+  @override
+  String toString() => '${objectRuntimeType(this, 'InertialSimulation')}('
+    'x₀: ${_x0.toStringAsFixed(1)}, dx₀: ${_v.toStringAsFixed(1)})';
+}
+
+/// A simulation of the user impatiently scrolling to the end of a list.
+///
+/// The position [x] is in logical pixels, and time is in seconds.
+///
+/// The motion is meant to resemble the user scrolling the list down
+/// (by dragging up and flinging), and if the list is long then
+/// fling-scrolling again and again to keep it moving quickly.
+///
+/// In that scenario taken literally, the motion would repeatedly slow down,
+/// then speed up again with a fresh drag and fling.  But doing that in
+/// response to a simulated drag, as opposed to when the user is actually
+/// dragging with their own finger, would feel jerky and not a good UX.
+/// Instead this takes a smoothed-out approximation of such a trajectory.
+class ScrollToEndSimulation extends InertialSimulation {
+  factory ScrollToEndSimulation(ScrollPosition position) {
+    final startPosition = position.pixels;
+    final estimatedEndPosition = position.maxScrollExtent;
+    final velocityForMinDuration = (estimatedEndPosition - startPosition)
+      / (minDuration.inMilliseconds / 1000.0);
+    assert(velocityForMinDuration > 0);
+    final velocity = clampDouble(velocityForMinDuration, 0, topSpeed);
+    return ScrollToEndSimulation._(startPosition, velocity);
+  }
+
+  ScrollToEndSimulation._(super.initialPosition, super.velocity);
+
+  /// The top speed to move at, in logical pixels per second.
+  ///
+  /// This will be the speed whenever the estimated distance to be traveled
+  /// is long enough to take at least [minDuration] at this speed.
+  ///
+  /// This is chosen to equal the top speed that can be produced
+  /// by a fling gesture in a Flutter [ScrollView],
+  /// which in turn was chosen to equal the top speed of
+  /// an (initial) fling gesture in a native Android scroll view.
+  static const double topSpeed = 8000;
+
+  /// The desired duration of the animation when traveling short distances.
+  ///
+  /// The speed will be chosen so that traveling the estimated distance
+  /// will take this long, whenever that distance is short enough
+  /// that that means a speed of at most [topSpeed].
+  static const minDuration = Duration(milliseconds: 300);
+}
+
 /// An activity that animates a scroll view smoothly to its end.
 ///
 /// In particular this drives the "scroll to bottom" button
 /// in the Zulip message list.
 class ScrollToEndActivity extends DrivenScrollActivity {
-  ScrollToEndActivity(
-    super.delegate, {
-    required super.from,
-    required super.to,
-    required super.duration,
-    required super.curve,
-    required super.vsync,
-  });
+  /// Create an activity that animates a scroll view smoothly to its end.
+  ///
+  /// The [delegate] is required to also implement [ScrollPosition].
+  ScrollToEndActivity(ScrollActivityDelegate delegate)
+    : super.simulation(delegate,
+        vsync: (delegate as ScrollPosition).context.vsync,
+        ScrollToEndSimulation(delegate as ScrollPosition));
 
   ScrollPosition get _position => delegate as ScrollPosition;
 
@@ -210,20 +282,20 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
 
   /// Scroll the position smoothly to the end of the scrollable content.
   ///
-  /// This method only works well if [maxScrollExtent] is accurate
-  /// and does not change during the animation.
-  /// (For example, this works if there is no content in forward slivers,
-  /// so that [maxScrollExtent] is always zero.)
-  /// The animation will attempt to travel to the value [maxScrollExtent] had
-  /// at the start of the animation, even if that ends up being more or less far
-  /// than the actual extent of the content.
+  /// This is similar to calling [animateTo] with a target of [maxScrollExtent],
+  /// except that if [maxScrollExtent] changes over the course of the animation
+  /// (for example due to more content being added at the end,
+  /// or due to the estimated length of the content changing as
+  /// different items scroll into the viewport),
+  /// this animation will carry on until it reaches the updated value
+  /// of [maxScrollExtent], not the value it had at the start of the animation.
+  ///
+  /// The animation is typically handled by a [ScrollToEndActivity].
   void scrollToEnd() {
-    final target = maxScrollExtent;
-
     final tolerance = physics.toleranceFor(this);
-    if (nearEqual(pixels, target, tolerance.distance)) {
+    if (nearEqual(pixels, maxScrollExtent, tolerance.distance)) {
       // Skip the animation; jump right to the target, which is already close.
-      jumpTo(target);
+      jumpTo(maxScrollExtent);
       return;
     }
 
@@ -235,30 +307,7 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
       return;
     }
 
-    /// The top speed to move at, in logical pixels per second.
-    ///
-    /// This will be the speed whenever the distance to be traveled
-    /// is long enough to take at least [minDuration] at this speed.
-    ///
-    /// This is chosen to equal the top speed that can be produced
-    /// by a fling gesture in a Flutter [ScrollView],
-    /// which in turn was chosen to equal the top speed of
-    /// an (initial) fling gesture in a native Android scroll view.
-    const double topSpeed = 8000;
-
-    /// The desired duration of the animation when traveling short distances.
-    ///
-    /// The speed will be chosen so that traveling the distance
-    /// will take this long, whenever that distance is short enough
-    /// that that means a speed of at most [topSpeed].
-    const minDuration = Duration(milliseconds: 300);
-
-    final durationSecAtSpeedLimit = (target - pixels) / topSpeed;
-    final durationSec = math.max(durationSecAtSpeedLimit,
-      minDuration.inMilliseconds / 1000.0);
-    final duration = Duration(milliseconds: (durationSec * 1000.0).ceil());
-    beginActivity(ScrollToEndActivity(this, vsync: context.vsync,
-      from: pixels, to: target, duration: duration, curve: Curves.linear));
+    beginActivity(ScrollToEndActivity(this));
   }
 }
 
