@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:checks/checks.dart';
 import 'package:clock/clock.dart';
@@ -10,12 +11,18 @@ import 'package:video_player_platform_interface/video_player_platform_interface.
 import 'package:video_player/video_player.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/localizations.dart';
+import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/lightbox.dart';
+import 'package:zulip/widgets/message_list.dart';
 
+import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
+import '../model/content_test.dart';
+import '../model/test_store.dart';
 import '../test_images.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
@@ -197,6 +204,128 @@ class FakeVideoPlayerPlatform extends Fake
 void main() {
   TestZulipBinding.ensureInitialized();
 
+  group('LightboxHero', () {
+    late PerAccountStore store;
+    late FakeApiConnection connection;
+
+    final channel = eg.stream();
+    final imageSrcUrlStr = 'https://chat.example/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp';
+    final imageSrcUrl = Uri.parse(imageSrcUrlStr);
+    final message = eg.streamMessage(stream: channel,
+      topic: 'test topic', contentMarkdown: ContentExample.imageSingle.html);
+
+    Future<void> setupMessageListPage(WidgetTester tester) async {
+      addTearDown(testBinding.reset);
+      final subscription = eg.subscription(channel);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+        streams: [channel], subscriptions: [subscription]));
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      connection = store.connection as FakeApiConnection;
+      await store.addUser(eg.selfUser);
+
+      connection.prepare(json:
+        eg.newestGetMessagesResult(foundOldest: true, messages: [message]).toJson());
+
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: MessageListPage(initNarrow: const CombinedFeedNarrow())));
+
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Hero animation occurs smoothly when opening lightbox from message list', (tester) async {
+      prepareBoringImageHttpClient();
+
+      await setupMessageListPage(tester);
+
+      final messageContentFinder = find.byWidgetPredicate((widget) =>
+        widget is MessageContent && widget.message.id == message.id
+      );
+      final messageListImageFinder = find.descendant(
+        of: messageContentFinder,
+        matching: find.byType(RealmContentNetworkImage)
+      );
+      final initialImagePosition = tester.getRect(messageListImageFinder);
+      await tester.tap(messageListImageFinder);
+      await tester.pump();
+      // pump to start hero animation
+      await tester.pump();
+
+      final heroAnimationDuration = Duration(milliseconds: 300);
+      final steps = 150;
+      final stepDuration = heroAnimationDuration ~/ steps;
+      List<Rect> animatedPositions = [];
+      for (int i = 1; i <= steps; i++) {
+        await tester.pump(stepDuration);
+
+        final animatedFlightImageFinder = find.byWidgetPredicate((widget) =>
+          widget is RealmContentNetworkImage && widget.src == imageSrcUrl
+        );
+        animatedPositions.add(tester.getRect(animatedFlightImageFinder));
+      }
+
+      final totalDistance = sqrt(
+        pow(initialImagePosition.top - animatedPositions.last.top, 2) +
+        pow(initialImagePosition.left - animatedPositions.last.left, 2));
+
+      Rect previousPosition = initialImagePosition;
+      double maxStepDistance = 0.0;
+      for (final position in animatedPositions) {
+        final stepDistance = sqrt(
+          pow(position.top - previousPosition.top, 2) +
+          pow(position.left - previousPosition.left, 2));
+        maxStepDistance = max(maxStepDistance, stepDistance);
+        check(position).not((pos) => pos.equals(previousPosition));
+
+        previousPosition = position;
+      }
+      check(maxStepDistance).isLessThan(0.03 * totalDistance);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('no hero animation occurs between different message list pages for same image', (tester) async {
+      prepareBoringImageHttpClient();
+
+      await setupMessageListPage(tester);
+
+      final imageFinder = find.byWidgetPredicate((widget) =>
+        widget is RealmContentNetworkImage && widget.src == imageSrcUrl
+      );
+      final firstImagePosition = tester.getRect(imageFinder);
+      final firstElement = imageFinder.evaluate().single;
+
+      connection.prepare(json:
+        eg.newestGetMessagesResult(foundOldest: true, messages: [message]).toJson());
+      await tester.tap(find.descendant(
+        of: find.byType(StreamMessageRecipientHeader),
+        matching: find.text('test topic')));
+      await tester.pumpAndSettle();
+
+      final secondImagePosition = tester.getRect(imageFinder);
+      final secondElement = imageFinder.evaluate().single;
+
+      await tester.tap(find.byType(BackButton));
+      await tester.pump();
+
+      final heroAnimationDuration = Duration(milliseconds: 300);
+      final steps = 150;
+      final stepDuration = heroAnimationDuration ~/ steps;
+      for (int i = 0; i < steps; i++) {
+        await tester.pump(stepDuration);
+
+        final currentImages = imageFinder.evaluate();
+        check(currentImages).unorderedEquals([firstElement, secondElement]);
+
+        check(tester.getRect(
+          find.byElementPredicate((e) => e == firstElement))).equals(firstImagePosition);
+        check(tester.getRect(
+          find.byElementPredicate((e) => e == secondElement))).equals(secondImagePosition);
+      }
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
   group('_ImageLightboxPage', () {
     final src = Uri.parse('https://chat.example/lightbox-image.png');
 
@@ -216,6 +345,7 @@ void main() {
       unawaited(navigator.push(getImageLightboxRoute(
         accountId: eg.selfAccount.id,
         message: message ?? eg.streamMessage(),
+        messageImageContext: navigator.context,
         src: src,
         thumbnailUrl: thumbnailUrl,
         originalHeight: null,
