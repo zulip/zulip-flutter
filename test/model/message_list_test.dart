@@ -49,7 +49,10 @@ void main() {
   Future<void> prepare({Narrow narrow = const CombinedFeedNarrow()}) async {
     final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
     subscription = eg.subscription(stream);
-    store = eg.store();
+    final account = eg.account(user: eg.selfUser,
+      zulipFeatureLevel: eg.futureZulipFeatureLevel);
+    store = eg.store(account: account, initialSnapshot: eg.initialSnapshot(
+      zulipFeatureLevel: eg.futureZulipFeatureLevel));
     await store.addStream(stream);
     await store.addSubscription(subscription);
     connection = store.connection as FakeApiConnection;
@@ -82,6 +85,7 @@ void main() {
     bool? includeAnchor,
     required int numBefore,
     required int numAfter,
+    bool? allowEmptyTopicName,
   }) {
     check(connection.lastRequest).isA<http.Request>()
       ..method.equals('GET')
@@ -92,6 +96,8 @@ void main() {
         if (includeAnchor != null) 'include_anchor': includeAnchor.toString(),
         'num_before': numBefore.toString(),
         'num_after': numAfter.toString(),
+        if (allowEmptyTopicName != null)
+          'allow_empty_topic_name': allowEmptyTopicName.toString(),
       });
   }
 
@@ -126,6 +132,7 @@ void main() {
           anchor: 'newest',
           numBefore: kMessageListFetchBatchSize,
           numAfter: 0,
+          allowEmptyTopicName: true,
         );
       }
 
@@ -238,6 +245,7 @@ void main() {
         includeAnchor: false,
         numBefore: kMessageListFetchBatchSize,
         numAfter: 0,
+        allowEmptyTopicName: true,
       );
     });
 
