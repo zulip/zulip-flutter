@@ -649,6 +649,7 @@ class MessageImage extends StatelessWidget {
         Navigator.of(context).push(getImageLightboxRoute(
           context: context,
           message: message,
+          messageImageContext: context,
           src: resolvedSrcUrl,
           thumbnailUrl: resolvedThumbnailUrl,
           originalWidth: node.originalWidth,
@@ -657,7 +658,7 @@ class MessageImage extends StatelessWidget {
       child: node.loading
         ? const CupertinoActivityIndicator()
         : resolvedSrcUrl == null ? null : LightboxHero(
-            message: message,
+            messageImageContext: context,
             src: resolvedSrcUrl,
             child: RealmContentNetworkImage(
               resolvedThumbnailUrl ?? resolvedSrcUrl,
