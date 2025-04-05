@@ -465,7 +465,7 @@ class MessageList extends StatefulWidget {
 
 class _MessageListState extends State<MessageList> with PerAccountStoreAwareStateMixin<MessageList> {
   MessageListView? model;
-  final ScrollController scrollController = MessageListScrollController();
+  final MessageListScrollController scrollController = MessageListScrollController();
   final ValueNotifier<bool> _scrollToBottomVisible = ValueNotifier<bool>(false);
 
   @override
@@ -693,7 +693,7 @@ class ScrollToBottomButton extends StatelessWidget {
   const ScrollToBottomButton({super.key, required this.scrollController, required this.visible});
 
   final ValueNotifier<bool> visible;
-  final ScrollController scrollController;
+  final MessageListScrollController scrollController;
 
   void _scrollToBottom() {
     final target = 0.0;
