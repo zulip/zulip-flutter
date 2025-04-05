@@ -1,8 +1,14 @@
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:io';
+import 'dart:async';
 
 import '../api/core.dart';
 import '../api/model/model.dart';
@@ -88,6 +94,94 @@ class _CopyLinkButton extends StatelessWidget {
       });
   }
 }
+
+class _DownloadImageButton extends StatelessWidget {
+  _DownloadImageButton({required this.url});
+
+  final downloader = ZulipBinding.instance.androidDownloadHost;
+  final Uri url;
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return IconButton(
+      tooltip: zulipLocalizations.lightboxDownloadImageTooltip,
+      icon: const Icon(Icons.download),
+      onPressed: () async {
+        final scaffoldMessenger = ScaffoldMessenger.of(context);
+        String message = zulipLocalizations.lightboxDownloadImageFailed;
+        try {
+          // fetching image a without to prevent errors.
+          final response = await http.get(
+            url,
+            headers: {
+                if (url.origin == store.account.realmUrl.origin) ...authHeader(
+                  email: store.account.email,
+                  apiKey: store.account.apiKey,
+                ),
+                ...userAgentHeader()
+              }
+            ).timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              throw TimeoutException("timed out");
+            },
+          );
+
+          // Creating headers for the download manager for private images.
+          Map<String, String> headers = {};
+          if (url.origin == store.account.realmUrl.origin) {
+            headers.addAll(authHeader(
+              email: store.account.email,
+              apiKey: store.account.apiKey,
+            ));
+          }
+          headers.addAll(userAgentHeader());
+          String headersJson = json.encode(headers);
+
+          await requestStoragePermission();
+          if (response.statusCode == 200) {
+            if (Platform.isAndroid) {
+                final fileName = url.pathSegments.last.trim();
+                await downloader.downloadFile(url.toString(), fileName, headersJson);
+                message = zulipLocalizations.lightboxDownloadImageSuccess;
+              } else {
+                message = zulipLocalizations.lightboxDownloadImageError;
+              }
+
+          } else {
+            message = zulipLocalizations.lightboxDownloadImageFailed;
+          }
+        } catch (e) {
+          if (e is TimeoutException || e is SocketException) {
+            message = zulipLocalizations.lightboxDownloadImageError;
+          } else {
+            message = zulipLocalizations.lightboxDownloadImageError;
+          }
+        }
+
+        // show snackbar notification for the status.
+        scaffoldMessenger.showSnackBar(
+          SnackBar(behavior: SnackBarBehavior.floating, content: Text(message)),
+        );
+      }
+    );
+  }
+
+  Future<void> requestStoragePermission() async {
+    if (Platform.isAndroid) {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+
+      // Check Android version (SDK version) and request permission for Android 10 and below
+      if (androidInfo.version.sdkInt <= 29) {
+        if (await Permission.storage.isDenied) {
+          await Permission.storage.request();
+        }
+      }
+    }
+  }
+}
+
 
 class _LightboxPageLayout extends StatefulWidget {
   const _LightboxPageLayout({
@@ -261,8 +355,8 @@ class _ImageLightboxPageState extends State<_ImageLightboxPage> {
       elevation: elevation,
       child: Row(children: [
         _CopyLinkButton(url: widget.src),
+        _DownloadImageButton(url: widget.src)
         // TODO(#43): Share image
-        // TODO(#42): Download image
       ]),
     );
   }
