@@ -180,7 +180,10 @@ class MessageListScrollController extends ScrollController {
   });
 
   @override
-  ScrollPosition createScrollPosition(ScrollPhysics physics,
+  MessageListScrollPosition get position => super.position as MessageListScrollPosition;
+
+  @override
+  MessageListScrollPosition createScrollPosition(ScrollPhysics physics,
       ScrollContext context, ScrollPosition? oldPosition) {
     return MessageListScrollPosition(
       physics: physics,
