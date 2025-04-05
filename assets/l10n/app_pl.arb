@@ -976,5 +976,13 @@
   "openLinksWithInAppBrowser": "Otwieraj odnośniki w aplikacji",
   "@openLinksWithInAppBrowser": {
     "description": "Label for toggling setting to open links with in-app browser"
+  },
+  "experimentalFeatureSettingsPageTitle": "Funkcje eksperymentalne",
+  "@experimentalFeatureSettingsPageTitle": {
+    "description": "Title of settings page for experimental, in-development features"
+  },
+  "experimentalFeatureSettingsWarning": "W ten sposób aktywujesz funkcje, które są w fazie testów. Mogą one nie działać lub powodować problemy z tym co bez nich działa poprawnie.\n\nTo ustawienie przewidziane jest dla tych, którzy pracują nad ulepszeniem aplikacji Zulip.",
+  "@experimentalFeatureSettingsWarning": {
+    "description": "Warning text on settings page for experimental, in-development features"
   }
 }
