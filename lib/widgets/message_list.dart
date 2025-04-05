@@ -466,7 +466,7 @@ class MessageList extends StatefulWidget {
 class _MessageListState extends State<MessageList> with PerAccountStoreAwareStateMixin<MessageList> {
   MessageListView? model;
   final ScrollController scrollController = MessageListScrollController();
-  final ValueNotifier<bool> _scrollToBottomVisibleValue = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _scrollToBottomVisible = ValueNotifier<bool>(false);
 
   @override
   void initState() {
@@ -484,7 +484,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   void dispose() {
     model?.dispose();
     scrollController.dispose();
-    _scrollToBottomVisibleValue.dispose();
+    _scrollToBottomVisible.dispose();
     super.dispose();
   }
 
@@ -511,9 +511,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   void _handleScrollMetrics(ScrollMetrics scrollMetrics) {
     if (scrollMetrics.extentAfter == 0) {
-      _scrollToBottomVisibleValue.value = false;
+      _scrollToBottomVisible.value = false;
     } else {
-      _scrollToBottomVisibleValue.value = true;
+      _scrollToBottomVisible.value = true;
     }
 
     if (scrollMetrics.extentBefore < kFetchMessagesBufferPixels) {
@@ -577,7 +577,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
                   child: SafeArea(
                     child: ScrollToBottomButton(
                       scrollController: scrollController,
-                      visibleValue: _scrollToBottomVisibleValue))),
+                      visible: _scrollToBottomVisible))),
               ])))));
   }
 
@@ -690,9 +690,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 }
 
 class ScrollToBottomButton extends StatelessWidget {
-  const ScrollToBottomButton({super.key, required this.scrollController, required this.visibleValue});
+  const ScrollToBottomButton({super.key, required this.scrollController, required this.visible});
 
-  final ValueNotifier<bool> visibleValue;
+  final ValueNotifier<bool> visible;
   final ScrollController scrollController;
 
   Future<void> _navigateToBottom() {
@@ -709,7 +709,7 @@ class ScrollToBottomButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return ValueListenableBuilder<bool>(
-      valueListenable: visibleValue,
+      valueListenable: visible,
       builder: (BuildContext context, bool value, Widget? child) {
         return (value && child != null) ? child : const SizedBox.shrink();
       },
