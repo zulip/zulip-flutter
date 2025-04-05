@@ -6,6 +6,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/code_block.dart';
 import 'package:zulip/model/content.dart';
+import 'package:zulip/model/katex.dart';
 
 import 'content_checks.dart';
 
@@ -514,9 +515,19 @@ class ContentExample {
       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
         '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></p>',
-    const MathInlineNode(texSource: r'\lambda'));
+    MathInlineNode(texSource: r'\lambda', nodes: [
+      KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
+        KatexNode(styles: KatexSpanStyles(), text: null, nodes: []),
+        KatexNode(
+          styles: KatexSpanStyles(
+            fontFamily: 'KaTeX_Math',
+            fontStyle: KatexSpanFontStyle.italic),
+          text: 'λ',
+          nodes: null),
+      ]),
+    ]));
 
-  static const mathBlock = ContentExample(
+  static final mathBlock = ContentExample(
     'math block',
     "```math\n\\lambda\n```",
     expectedText: r'\lambda',
@@ -524,9 +535,19 @@ class ContentExample {
       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
         '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
-    [MathBlockNode(texSource: r'\lambda')]);
+    [MathBlockNode(texSource: r'\lambda', nodes: [
+      KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
+        KatexNode(styles: KatexSpanStyles(), text: null, nodes: []),
+        KatexNode(
+          styles: KatexSpanStyles(
+            fontFamily: 'KaTeX_Math',
+            fontStyle: KatexSpanFontStyle.italic),
+          text: 'λ',
+          nodes: null),
+      ]),
+    ])]);
 
-  static const mathBlocksMultipleInParagraph = ContentExample(
+  static final mathBlocksMultipleInParagraph = ContentExample(
     'math blocks, multiple in paragraph',
     '```math\na\n\nb\n```',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/.E2.9C.94.20Rajesh/near/2001490
@@ -539,11 +560,31 @@ class ContentExample {
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>b</mi></mrow>'
           '<annotation encoding="application/x-tex">b</annotation></semantics></math></span>'
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span></p>', [
-      MathBlockNode(texSource: 'a'),
-      MathBlockNode(texSource: 'b'),
+      MathBlockNode(texSource: 'a', nodes: [
+        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexNode(styles: KatexSpanStyles(), text: null, nodes: []),
+          KatexNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'a',
+            nodes: null),
+        ]),
+      ]),
+      MathBlockNode(texSource: 'b', nodes: [
+        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexNode(styles: KatexSpanStyles(), text: null, nodes: []),
+          KatexNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'b',
+            nodes: null),
+        ]),
+      ]),
     ]);
 
-  static const mathBlockInQuote = ContentExample(
+  static final mathBlockInQuote = ContentExample(
     'math block in quote',
     // There's sometimes a quirky extra `<br>\n` at the end of the `<p>` that
     // encloses the math block.  In particular this happens when the math block
@@ -557,9 +598,21 @@ class ContentExample {
           '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span>'
       '<br>\n</p>\n</blockquote>',
-    [QuotationNode([MathBlockNode(texSource: r'\lambda')])]);
+    [QuotationNode([
+      MathBlockNode(texSource: r'\lambda', nodes: [
+        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexNode(styles: KatexSpanStyles(), text: null, nodes: []),
+          KatexNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'λ',
+            nodes: null),
+        ]),
+      ]),
+    ])]);
 
-  static const mathBlocksMultipleInQuote = ContentExample(
+  static final mathBlocksMultipleInQuote = ContentExample(
     'math blocks, multiple in quote',
     "````quote\n```math\na\n\nb\n```\n````",
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/.E2.9C.94.20Rajesh/near/2029236
@@ -575,11 +628,31 @@ class ContentExample {
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span>'
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([
-      MathBlockNode(texSource: 'a'),
-      MathBlockNode(texSource: 'b'),
+      MathBlockNode(texSource: 'a', nodes: [
+        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexNode(styles: KatexSpanStyles(), text: null, nodes: []),
+          KatexNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'a',
+            nodes: null),
+        ]),
+      ]),
+      MathBlockNode(texSource: 'b', nodes: [
+        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexNode(styles: KatexSpanStyles(), text: null, nodes: []),
+          KatexNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'b',
+            nodes: null),
+        ]),
+      ]),
     ])]);
 
-  static const mathBlockBetweenImages = ContentExample(
+  static final mathBlockBetweenImages = ContentExample(
     'math block between images',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Greg/near/2035891
     'https://upload.wikimedia.org/wikipedia/commons/7/78/Verregende_bloem_van_een_Helenium_%27El_Dorado%27._22-07-2023._%28d.j.b%29.jpg\n```math\na\n```\nhttps://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Zaadpluizen_van_een_Clematis_texensis_%27Princess_Diana%27._18-07-2023_%28actm.%29_02.jpg/1280px-Zaadpluizen_van_een_Clematis_texensis_%27Princess_Diana%27._18-07-2023_%28actm.%29_02.jpg',
@@ -604,7 +677,16 @@ class ContentExample {
           originalWidth: null,
           originalHeight: null),
       ]),
-      MathBlockNode(texSource: 'a'),
+      MathBlockNode(texSource: 'a', nodes: [
+        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexNode(styles: KatexSpanStyles(),text: null, nodes: []),
+          KatexNode(
+            styles: KatexSpanStyles(
+              fontFamily: 'KaTeX_Math',
+              fontStyle: KatexSpanFontStyle.italic),
+            text: 'a', nodes: null),
+        ]),
+      ]),
       ImageNodeList([
         ImageNode(
           srcUrl: '/external_content/58b0ef9a06d7bb24faec2b11df2f57f476e6f6bb/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f7468756d622f372f37312f5a616164706c75697a656e5f76616e5f65656e5f436c656d617469735f746578656e7369735f2532375072696e636573735f4469616e612532372e5f31382d30372d323032335f2532386163746d2e2532395f30322e6a70672f3132383070782d5a616164706c75697a656e5f76616e5f65656e5f436c656d617469735f746578656e7369735f2532375072696e636573735f4469616e612532372e5f31382d30372d323032335f2532386163746d2e2532395f30322e6a7067',

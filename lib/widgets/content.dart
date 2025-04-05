@@ -5,7 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:html/dom.dart' as dom;
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' as intl;
 
 import '../api/core.dart';
 import '../api/model/model.dart';
@@ -13,6 +13,8 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../model/avatar_url.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
+import '../model/katex.dart';
+import '../model/settings.dart';
 import 'actions.dart';
 import 'code_block.dart';
 import 'dialog.dart';
@@ -804,11 +806,152 @@ class MathBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final contentTheme = ContentTheme.of(context);
-    return _CodeBlockContainer(
-      borderColor: contentTheme.colorMathBlockBorder,
-      child: Text.rich(TextSpan(
-        style: contentTheme.codeBlockTextStyles.plain,
-        children: [TextSpan(text: node.texSource)])));
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    final flagRenderKatex =
+      globalSettings.getBool(BoolGlobalSetting.renderKatex);
+    final flagForceRenderKatex =
+      globalSettings.getBool(BoolGlobalSetting.forceRenderKatex);
+
+    final renderKatex =
+      switch ((flagRenderKatex, flagForceRenderKatex, node.debugHasError)) {
+        (true, true, _) => true,
+        (true, false, false) => true,
+        (_, _, _) => false,
+      };
+    final nodes = node.nodes;
+    if (!renderKatex || nodes == null) {
+      return _CodeBlockContainer(
+        borderColor: contentTheme.colorMathBlockBorder,
+        child: Text.rich(TextSpan(
+          style: contentTheme.codeBlockTextStyles.plain,
+          children: [TextSpan(text: node.texSource)])));
+    }
+
+    return _Katex(inline: false, nodes: nodes);
+  }
+}
+
+class _Katex extends StatelessWidget {
+  const _Katex({
+    required this.inline,
+    required this.nodes,
+  });
+
+  final bool inline;
+  final List<KatexNode> nodes;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget widget = RichText(
+      text: TextSpan(
+        children: List.unmodifiable(nodes.map((e) {
+          return WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: _KatexSpan(e));
+        }))));
+
+    if (!inline) {
+      widget = Center(
+        child: SingleChildScrollViewWithScrollbar(
+          scrollDirection: Axis.horizontal,
+          child: widget));
+    }
+
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: DefaultTextStyle(
+        style: TextStyle(
+          color: ContentTheme.of(context).textStylePlainParagraph.color,
+          fontSize: kBaseFontSize * 1.21,
+          fontFamily: 'KaTeX_Main',
+          height: 1.2),
+        child: widget));
+  }
+}
+
+class _KatexSpan extends StatelessWidget {
+  const _KatexSpan(this.span);
+
+  final KatexNode span;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    Widget widget = const SizedBox.shrink();
+    if (span.text != null) widget = Text(span.text!);
+    if (span.nodes != null && span.nodes!.isNotEmpty) {
+      widget = RichText(
+        text: TextSpan(
+          children: List.unmodifiable(span.nodes!.map((e) {
+            return WidgetSpan(
+              alignment: PlaceholderAlignment.baseline,
+              baseline: TextBaseline.alphabetic,
+              child: _KatexSpan(e));
+          }))));
+    }
+
+    final styles = span.styles;
+    TextStyle? textStyle;
+    TextAlign? textAlign;
+
+    if (styles.fontFamily != null) {
+      textStyle ??= TextStyle();
+      textStyle = textStyle.copyWith(fontFamily: styles.fontFamily);
+    }
+    if (styles.fontSizeEm != null) {
+      textStyle ??= TextStyle();
+      textStyle = textStyle.copyWith(fontSize: styles.fontSizeEm! * em);
+    }
+    if (styles.fontStyle != null) {
+      textStyle ??= TextStyle();
+      textStyle = textStyle.copyWith(fontStyle: switch (styles.fontStyle!) {
+        KatexSpanFontStyle.normal => FontStyle.normal,
+        KatexSpanFontStyle.italic => FontStyle.italic,
+      });
+    }
+    if (styles.fontWeight != null) {
+      textStyle ??= TextStyle();
+      textStyle = textStyle.copyWith(fontWeight: switch (styles.fontWeight!) {
+        KatexSpanFontWeight.bold => FontWeight.bold,
+      });
+    }
+    if (styles.textAlign != null) {
+      textAlign = switch (styles.textAlign!) {
+        KatexSpanTextAlign.left => TextAlign.left,
+        KatexSpanTextAlign.center => TextAlign.center,
+        KatexSpanTextAlign.right => TextAlign.right,
+      };
+    }
+
+    var margin = EdgeInsets.zero;
+    final marginRightEm = styles.marginRightEm;
+    final marginLeftEm = styles.marginLeftEm;
+    if (marginRightEm != null && !marginRightEm.isNegative) {
+      margin += EdgeInsets.only(right: marginRightEm * em);
+    }
+    if (marginLeftEm != null && !marginLeftEm.isNegative) {
+      margin += EdgeInsets.only(left: marginLeftEm * em);
+    }
+
+    var padding = EdgeInsets.zero;
+    final paddingLeftEm = styles.paddingLeftEm;
+    if (paddingLeftEm != null && !paddingLeftEm.isNegative) {
+      padding += EdgeInsets.only(right: paddingLeftEm * em);
+    }
+
+    if (textStyle != null || textAlign != null) {
+      widget = DefaultTextStyle.merge(
+        style: textStyle,
+        textAlign: textAlign,
+        child: widget);
+    }
+    return Container(
+      margin: margin != EdgeInsets.zero ? margin : null,
+      padding: padding != EdgeInsets.zero ? padding : null,
+      child: widget,
+    );
   }
 }
 
@@ -1120,11 +1263,29 @@ class _InlineContentBuilder {
           child: MessageImageEmoji(node: node));
 
       case MathInlineNode():
-        return TextSpan(
-          style: widget.style
-            .merge(ContentTheme.of(_context!).textStyleInlineMath)
-            .apply(fontSizeFactor: kInlineCodeFontSizeFactor),
-          children: [TextSpan(text: node.texSource)]);
+        final globalSettings = GlobalStoreWidget.settingsOf(_context!);
+        final nodes = node.nodes;
+        final flagRenderKatex =
+          globalSettings.getBool(BoolGlobalSetting.renderKatex);
+        final flagForceRenderKatex =
+          globalSettings.getBool(BoolGlobalSetting.forceRenderKatex);
+
+        final renderKatex =
+          switch ((flagRenderKatex, flagForceRenderKatex, node.debugHasError)) {
+            (true, true, _) => true,
+            (true, false, false) => true,
+            (_, _, _) => false,
+          };
+        return !renderKatex || nodes == null
+          ? TextSpan(
+              style: widget.style
+                .merge(ContentTheme.of(_context!).textStyleInlineMath)
+                .apply(fontSizeFactor: kInlineCodeFontSizeFactor),
+              children: [TextSpan(text: node.texSource)])
+          : WidgetSpan(
+              alignment: PlaceholderAlignment.baseline,
+              baseline: TextBaseline.alphabetic,
+              child: _Katex(inline: true, nodes: nodes));
 
       case GlobalTimeNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
@@ -1283,7 +1444,7 @@ class GlobalTime extends StatelessWidget {
   final GlobalTimeNode node;
   final TextStyle ambientTextStyle;
 
-  static final _dateFormat = DateFormat('EEE, MMM d, y, h:mm a'); // TODO(i18n): localize date
+  static final _dateFormat = intl.DateFormat('EEE, MMM d, y, h:mm a'); // TODO(i18n): localize date
 
   @override
   Widget build(BuildContext context) {
