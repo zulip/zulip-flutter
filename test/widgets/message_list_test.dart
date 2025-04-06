@@ -510,6 +510,40 @@ void main() {
       // … and for good measure confirm the button disappeared.
       check(isButtonVisible(tester)).equals(false);
     });
+
+    testWidgets('scrolls at reasonable speed', (tester) async {
+      const referenceSpeed = 8000.0;
+      const distance = 40000.0;
+      await setupMessageListPage(tester, messageCount: 1000);
+      final controller = findMessageListScrollController(tester)!;
+
+      // Scroll a long distance up, many screenfuls.
+      controller.jumpTo(-distance);
+      await tester.pump();
+      check(controller.position.pixels).equals(-distance);
+
+      // Tap button.
+      await tester.tap(find.byType(ScrollToBottomButton));
+      await tester.pump();
+
+      // Measure speed.
+      final log = <double>[];
+      double pos = controller.position.pixels;
+      while (pos < 0) {
+        check(log.length).isLessThan(30);
+        await tester.pump(const Duration(seconds: 1));
+        final lastPos = pos;
+        pos = controller.position.pixels;
+        log.add(pos - lastPos);
+      }
+      // Check the main question: the speed stayed in range throughout.
+      const maxSpeed = 2 * referenceSpeed;
+      check(log).every((it) => it..isGreaterThan(0)..isLessThan(maxSpeed));
+      // Also check the test's assumptions: the scroll reached the end…
+      check(pos).equals(0);
+      // … and scrolled far enough to effectively test the max speed.
+      check(log.sum).isGreaterThan(2 * maxSpeed);
+    });
   });
 
   group('TypingStatusWidget', () {
