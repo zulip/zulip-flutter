@@ -178,6 +178,15 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
   /// at the start of the animation, even if that ends up being more or less far
   /// than the actual extent of the content.
   void scrollToEnd() {
+    final target = maxScrollExtent;
+
+    final tolerance = physics.toleranceFor(this);
+    if (nearEqual(pixels, target, tolerance.distance)) {
+      // Skip the animation; jump right to the target, which is already close.
+      jumpTo(target);
+      return;
+    }
+
     /// The top speed to move at, in logical pixels per second.
     ///
     /// This will be the speed whenever the distance to be traveled
@@ -196,12 +205,12 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
     /// that that means a speed of at most [topSpeed].
     const minDuration = Duration(milliseconds: 300);
 
-    final target = maxScrollExtent;
     final durationSecAtSpeedLimit = (target - pixels) / topSpeed;
     final durationSec = math.max(durationSecAtSpeedLimit,
       minDuration.inMilliseconds / 1000.0);
     final duration = Duration(milliseconds: (durationSec * 1000.0).ceil());
-    animateTo(target, duration: duration, curve: Curves.linear);
+    beginActivity(DrivenScrollActivity(this, vsync: context.vsync,
+      from: pixels, to: target, duration: duration, curve: Curves.linear));
   }
 }
 
