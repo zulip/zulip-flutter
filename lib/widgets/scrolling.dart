@@ -167,6 +167,26 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
 
     return !changed;
   }
+
+  /// Scroll the position smoothly to the end of the scrollable content.
+  ///
+  /// This method only works well if [maxScrollExtent] is accurate
+  /// and does not change during the animation.
+  /// (For example, this works if there is no content in forward slivers,
+  /// so that [maxScrollExtent] is always zero.)
+  /// The animation will attempt to travel to the value [maxScrollExtent] had
+  /// at the start of the animation, even if that ends up being more or less far
+  /// than the actual extent of the content.
+  void scrollToEnd() {
+    final target = maxScrollExtent;
+    final distance = target - pixels;
+    final durationMsAtSpeedLimit = (1000 * distance / 8000).ceil();
+    final durationMs = math.max(300, durationMsAtSpeedLimit);
+    animateTo(
+      target,
+      duration: Duration(milliseconds: durationMs),
+      curve: Curves.linear);
+  }
 }
 
 /// A version of [ScrollController] adapted for the Zulip message list.
