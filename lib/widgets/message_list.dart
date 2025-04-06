@@ -695,7 +695,7 @@ class ScrollToBottomButton extends StatelessWidget {
   final ValueNotifier<bool> visible;
   final ScrollController scrollController;
 
-  Future<void> _navigateToBottom() {
+  Future<void> _scrollToBottom() {
     final distance = scrollController.position.pixels;
     final durationMsAtSpeedLimit = (1000 * distance / 8000).ceil();
     final durationMs = max(300, durationMsAtSpeedLimit);
@@ -720,7 +720,7 @@ class ScrollToBottomButton extends StatelessWidget {
         iconSize: 40,
         // Web has the same color in light and dark mode.
         color: const HSLColor.fromAHSL(0.5, 240, 0.96, 0.68).toColor(),
-        onPressed: _navigateToBottom));
+        onPressed: _scrollToBottom));
   }
 }
 
