@@ -86,12 +86,18 @@ class InertialSimulation extends Simulation { // TODO(upstream)
 /// Instead this takes a smoothed-out approximation of such a trajectory.
 class ScrollToEndSimulation extends InertialSimulation {
   factory ScrollToEndSimulation(ScrollPosition position) {
+    final tolerance = position.physics.toleranceFor(position);
     final startPosition = position.pixels;
     final estimatedEndPosition = position.maxScrollExtent;
     final velocityForMinDuration = (estimatedEndPosition - startPosition)
       / (minDuration.inMilliseconds / 1000.0);
-    assert(velocityForMinDuration > 0);
-    final velocity = clampDouble(velocityForMinDuration, 0, topSpeed);
+    final velocity = clampDouble(velocityForMinDuration,
+      // If the starting position is beyond the estimated end
+      // (i.e. `velocityForMinDuration < 0`), or very close to it,
+      // then move forward at a small positive velocity.
+      // Let the overscroll handling bring the position to exactly the end.
+      2 * tolerance.velocity,
+      topSpeed);
     return ScrollToEndSimulation._(startPosition, velocity);
   }
 

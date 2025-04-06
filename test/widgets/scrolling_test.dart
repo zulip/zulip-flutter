@@ -297,6 +297,27 @@ void main() {
         debugDefaultTargetPlatformOverride = null;
       });
 
+      testWidgets('starting very near end, apply min speed', (tester) async {
+        await prepare(tester, topHeight: 400, bottomHeight: 400);
+        // Verify the assumption used for constructing the example numbers below.
+        check(position.physics.toleranceFor(position).velocity)
+          .isCloseTo(20/3, .01);
+
+        position.jumpTo(398);
+        await tester.pump();
+        check(position.extentAfter).equals(2);
+
+        position.scrollToEnd();
+        await tester.pump();
+        check(position.extentAfter).equals(2);
+
+        // Reach the end in just 150ms, not 300ms.
+        await tester.pump(Duration(milliseconds: 75));
+        check(position.extentAfter).equals(1);
+        await tester.pump(Duration(milliseconds: 75));
+        check(position.extentAfter).equals(0);
+      });
+
       testWidgets('on overscroll, stop', (tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
         await prepare(tester, topHeight: 400, bottomHeight: 1000);
