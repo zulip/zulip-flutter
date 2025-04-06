@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
@@ -696,14 +694,7 @@ class ScrollToBottomButton extends StatelessWidget {
   final MessageListScrollController scrollController;
 
   void _scrollToBottom() {
-    final target = 0.0;
-    final distance = target - scrollController.position.pixels;
-    final durationMsAtSpeedLimit = (1000 * distance / 8000).ceil();
-    final durationMs = max(300, durationMsAtSpeedLimit);
-    scrollController.animateTo(
-      target,
-      duration: Duration(milliseconds: durationMs),
-      curve: Curves.linear);
+    scrollController.position.scrollToEnd();
   }
 
   @override
