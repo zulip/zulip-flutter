@@ -178,10 +178,28 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
   /// at the start of the animation, even if that ends up being more or less far
   /// than the actual extent of the content.
   void scrollToEnd() {
+    /// The top speed to move at, in logical pixels per second.
+    ///
+    /// This will be the speed whenever the distance to be traveled
+    /// is long enough to take at least [minDuration] at this speed.
+    ///
+    /// This is chosen to equal the top speed that can be produced
+    /// by a fling gesture in a Flutter [ScrollView],
+    /// which in turn was chosen to equal the top speed of
+    /// an (initial) fling gesture in a native Android scroll view.
+    const double topSpeed = 8000;
+
+    /// The desired duration of the animation when traveling short distances.
+    ///
+    /// The speed will be chosen so that traveling the distance
+    /// will take this long, whenever that distance is short enough
+    /// that that means a speed of at most [topSpeed].
+    const minDuration = Duration(milliseconds: 300);
+
     final target = maxScrollExtent;
     final distance = target - pixels;
-    final durationMsAtSpeedLimit = (1000 * distance / 8000).ceil();
-    final durationMs = math.max(300, durationMsAtSpeedLimit);
+    final durationMsAtSpeedLimit = (1000 * distance / topSpeed).ceil();
+    final durationMs = math.max(minDuration.inMilliseconds, durationMsAtSpeedLimit);
     animateTo(
       target,
       duration: Duration(milliseconds: durationMs),
