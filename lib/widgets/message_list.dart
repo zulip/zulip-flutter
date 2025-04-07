@@ -992,25 +992,32 @@ class MessageItem extends StatelessWidget {
     this.trailingWhitespace,
   });
 
-  final MessageListMessageItem item;
+  final MessageListMessageBaseItem item;
   final Widget header;
   final double? trailingWhitespace;
 
   @override
   Widget build(BuildContext context) {
-    final message = item.message;
     final messageListTheme = MessageListTheme.of(context);
+
+    final item = this.item;
+    Widget child = ColoredBox(
+      color: messageListTheme.bgMessageRegular,
+      child: Column(children: [
+        switch (item) {
+          MessageListMessageItem() => MessageWithPossibleSender(item: item),
+        },
+        if (trailingWhitespace != null && item.isLastInBlock) SizedBox(height: trailingWhitespace!),
+      ]));
+    if (item case MessageListMessageItem(:final message)) {
+      child = _UnreadMarker(
+        isRead: message.flags.contains(MessageFlag.read),
+        child: child);
+    }
     return StickyHeaderItem(
       allowOverflow: !item.isLastInBlock,
       header: header,
-      child: _UnreadMarker(
-        isRead: message.flags.contains(MessageFlag.read),
-        child: ColoredBox(
-          color: messageListTheme.bgMessageRegular,
-          child: Column(children: [
-            MessageWithPossibleSender(item: item),
-            if (trailingWhitespace != null && item.isLastInBlock) SizedBox(height: trailingWhitespace!),
-          ]))));
+      child: child);
   }
 }
 
