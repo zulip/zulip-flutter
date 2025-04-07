@@ -83,6 +83,13 @@ abstract class ZulipBinding {
   /// a widget tree may not exist.
   Future<GlobalStore> getGlobalStore();
 
+  /// Get the app's singleton [GlobalStore] if already loaded, else null.
+  ///
+  /// Where possible, use [GlobalStoreWidget.of] to get access to a [GlobalStore].
+  /// Use this method only in contexts where getting access to a [BuildContext]
+  /// is inconvenient.
+  GlobalStore? getGlobalStoreSync();
+
   /// Like [getGlobalStore], but assert this method was not previously called.
   ///
   /// This is used by the implementation of [GlobalStoreWidget],
@@ -333,8 +340,17 @@ class LiveZulipBinding extends ZulipBinding {
   }
 
   @override
-  Future<GlobalStore> getGlobalStore() => _globalStore ??= LiveGlobalStore.load();
-  Future<GlobalStore>? _globalStore;
+  Future<GlobalStore> getGlobalStore() {
+    return _globalStoreFuture ??= LiveGlobalStore.load().then((store) {
+      return _globalStore = store;
+    });
+  }
+
+  @override
+  GlobalStore? getGlobalStoreSync() => _globalStore;
+
+  Future<GlobalStore>? _globalStoreFuture;
+  GlobalStore? _globalStore;
 
   @override
   Future<GlobalStore> getGlobalStoreUniquely() {
