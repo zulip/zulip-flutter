@@ -686,4 +686,10 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
 
   @override
   String get zulipAppTitle => 'Zulip';
+
+  @override
+  String get languageSettingsTitle => 'Language';
+
+  @override
+  String get systemDefaultLanguage => 'System default';
 }
