@@ -470,6 +470,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       realmEmptyTopicDisplayName: initialSnapshot.realmEmptyTopicDisplayName,
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
+      maxTopicLength: initialSnapshot.maxTopicLength,
       emailAddressVisibility: initialSnapshot.emailAddressVisibility,
       emoji: EmojiStoreImpl(
         core: core, allRealmEmoji: initialSnapshot.realmEmoji),
@@ -508,6 +509,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     required String? realmEmptyTopicDisplayName,
     required this.realmDefaultExternalAccounts,
     required this.customProfileFields,
+    required this.maxTopicLength,
     required this.emailAddressVisibility,
     required EmojiStoreImpl emoji,
     required this.userSettings,
@@ -573,6 +575,8 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     return _realmEmptyTopicDisplayName ?? 'general chat';
   }
   final String? _realmEmptyTopicDisplayName; // TODO(#668): update this realm setting
+
+  final int maxTopicLength;
 
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
   List<CustomProfileField> customProfileFields;
