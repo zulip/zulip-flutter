@@ -8,6 +8,7 @@ import '../firebase_options.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import 'display.dart';
+import 'open.dart';
 
 @pragma('vm:entry-point')
 class NotificationService {
@@ -53,6 +54,8 @@ class NotificationService {
   Future<void> start() async {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
+        await NotificationOpenManager.instance.init();
+
         await ZulipBinding.instance.firebaseInitializeApp(
           options: kFirebaseOptionsAndroid);
 
@@ -77,6 +80,8 @@ class NotificationService {
         await _getFcmToken();
 
       case TargetPlatform.iOS: // TODO(#324): defer requesting notif permission
+        await NotificationOpenManager.instance.init();
+
         await ZulipBinding.instance.firebaseInitializeApp(
           options: kFirebaseOptionsIos);
 
