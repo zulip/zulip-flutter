@@ -108,6 +108,10 @@
   "@actionSheetOptionUnresolveTopic": {
     "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
   },
+  "actionSheetOptionTopicList": "Topic list",
+  "@actionSheetOptionTopicList": {
+    "description": "Label for a button in the channel action sheet that opens the list of topics in the channel"
+  },
   "errorResolveTopicFailedTitle": "Failed to mark topic as resolved",
   "@errorResolveTopicFailedTitle": {
     "description": "Error title when marking a topic as resolved failed."
@@ -710,6 +714,10 @@
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
   },
+  "topicListButtonTooltip": "Topic list",
+  "@topicListButtonTooltip": {
+    "description": "Tooltip for button to navigate to topic list page."
+  },
   "notifGroupDmConversationLabel": "{senderFullName} to you and {numOthers, plural, =1{1 other} other{{numOthers} others}}",
   "@notifGroupDmConversationLabel": {
     "description": "Label for a group DM conversation notification.",
@@ -867,6 +875,14 @@
   "emojiPickerSearchEmoji": "Search emoji",
   "@emojiPickerSearchEmoji": {
     "description": "Hint text for the emoji picker search text field."
+  },
+  "errorFetchingTopics": "Error fetching topics",
+  "@errorFetchingTopics": {
+    "description": "Error title when fetching the topics failed."
+  },
+  "noTopicsInChannel": "No topics in the channel",
+  "@noTopicsInChannel": {
+    "description": "Text to show when a channel has no topics."
   },
   "noEarlierMessages": "No earlier messages",
   "@noEarlierMessages": {
