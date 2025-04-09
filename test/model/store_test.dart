@@ -1336,6 +1336,9 @@ void main() {
       // When the token later appears, send it.
       connection.prepare(json: {});
       await startFuture;
+      // This delay is needed to allow the listener callback to `store._registerNotificationToken()`
+      // that occurs as a side effect of `startFuture` setting the token value to complete.
+      await Future<void>.delayed(Duration.zero);
       if (defaultTargetPlatform == TargetPlatform.android) {
         checkLastRequestFcm(token: '012abc');
       } else {
@@ -1348,6 +1351,20 @@ void main() {
         connection.prepare(json: {});
         async.flushMicrotasks();
         checkLastRequestFcm(token: '456def');
+      }
+    }));
+
+    testAndroidIos('use default appId if packageInfo is missing', () => awaitFakeAsync((async) async {
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        addTearDown(testBinding.reset);
+        testBinding.firebaseMessagingInitialToken = '012abc';
+        testBinding.packageInfoResult = null;
+        addTearDown(NotificationService.debugReset);
+        await NotificationService.instance.start();
+        prepareStore();
+        connection.prepare(json: {});
+        await updateMachine.registerNotificationToken();
+        checkLastRequestApns(token: '012abc', appid: 'com.zulip.flutter');
       }
     }));
   });

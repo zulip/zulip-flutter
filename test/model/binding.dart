@@ -256,8 +256,9 @@ class TestZulipBinding extends ZulipBinding {
   BaseDeviceInfo? get syncDeviceInfo => deviceInfoResult;
 
   /// The value that `ZulipBinding.instance.packageInfo` should return.
-  PackageInfo packageInfoResult = _defaultPackageInfo;
-  static const _defaultPackageInfo = PackageInfo(version: '0.0.1', buildNumber: '1');
+  PackageInfo? packageInfoResult = _defaultPackageInfo;
+  static const _defaultPackageInfo = PackageInfo(version: '0.0.1',
+      buildNumber: '1', packageName: 'com.zulip.flutter');
 
   void _resetPackageInfo() {
     packageInfoResult = _defaultPackageInfo;
