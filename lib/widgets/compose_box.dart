@@ -1437,7 +1437,9 @@ abstract class _Banner extends StatelessWidget {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(style: labelTextStyle,
+                  child: Text(
+                    style: labelTextStyle,
+                    textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
                     getLabel(zulipLocalizations)))),
               if (trailing != null) ...[
                 const SizedBox(width: 8),
