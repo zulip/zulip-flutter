@@ -308,16 +308,17 @@ class ChooseAccountPage extends StatelessWidget {
         trailing: MenuAnchor(
           menuChildren: [
             MenuItemButton(
-              onPressed: () {
-                showSuggestedActionDialog(context: context,
+              onPressed: () async {
+                final dialog = showSuggestedActionDialog(context: context,
                   title: zulipLocalizations.logOutConfirmationDialogTitle,
                   message: zulipLocalizations.logOutConfirmationDialogMessage,
                   // TODO(#1032) "destructive" style for action button
-                  actionButtonText: zulipLocalizations.logOutConfirmationDialogConfirmButton,
-                  onActionButtonPress: () {
-                    // TODO error handling if db write fails?
-                    logOutAccount(GlobalStoreWidget.of(context), accountId);
-                  });
+                  actionButtonText: zulipLocalizations.logOutConfirmationDialogConfirmButton);
+                if (await dialog.result == true) {
+                  if (!context.mounted) return;
+                  // TODO error handling if db write fails?
+                  unawaited(logOutAccount(GlobalStoreWidget.of(context), accountId));
+                }
               },
               child: Text(zulipLocalizations.chooseAccountPageLogOutButton)),
           ],

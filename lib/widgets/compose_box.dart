@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:app_settings/app_settings.dart';
@@ -907,13 +908,13 @@ Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type)
       // If the user hasn't checked "Don't ask again", they can always dismiss
       // our prompt and retry, and the permissions request will reappear,
       // letting them grant permissions and complete the upload.
-      showSuggestedActionDialog(context: context,
+      final dialog = showSuggestedActionDialog(context: context,
         title: zulipLocalizations.permissionsNeededTitle,
         message: zulipLocalizations.permissionsDeniedReadExternalStorage,
-        actionButtonText: zulipLocalizations.permissionsNeededOpenSettings,
-        onActionButtonPress: () {
-          AppSettings.openAppSettings();
-        });
+        actionButtonText: zulipLocalizations.permissionsNeededOpenSettings);
+      if (await dialog.result == true) {
+        unawaited(AppSettings.openAppSettings());
+      }
     } else {
       showErrorDialog(context: context,
         title: zulipLocalizations.errorDialogTitle,
@@ -1008,13 +1009,13 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
         // permission-request alert once, the first time the app wants to
         // use a protected resource. After that, the only way the user can
         // grant it is in Settings.
-        showSuggestedActionDialog(context: context,
+        final dialog = showSuggestedActionDialog(context: context,
           title: zulipLocalizations.permissionsNeededTitle,
           message: zulipLocalizations.permissionsDeniedCameraAccess,
-          actionButtonText: zulipLocalizations.permissionsNeededOpenSettings,
-          onActionButtonPress: () {
-            AppSettings.openAppSettings();
-          });
+          actionButtonText: zulipLocalizations.permissionsNeededOpenSettings);
+        if (await dialog.result == true) {
+          unawaited(AppSettings.openAppSettings());
+        }
       } else {
         showErrorDialog(context: context,
           title: zulipLocalizations.errorDialogTitle,
