@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Notification;
+import 'package:http/http.dart' as http;
 
 import '../api/model/model.dart';
 import '../api/notifications.dart';
@@ -217,10 +217,12 @@ class NotificationChannelManager {
 /// Service for managing the notifications shown to the user.
 class NotificationDisplayManager {
   static Future<void> init() async {
+    assert(defaultTargetPlatform == TargetPlatform.android);
     await NotificationChannelManager.ensureChannel();
   }
 
   static void onFcmMessage(FcmMessage data, Map<String, dynamic> dataJson) {
+    assert(defaultTargetPlatform == TargetPlatform.android);
     switch (data) {
       case MessageFcmMessage(): _onMessageFcmMessage(data, dataJson);
       case RemoveFcmMessage(): _onRemoveFcmMessage(data);
@@ -231,8 +233,20 @@ class NotificationDisplayManager {
   static Future<void> _onMessageFcmMessage(MessageFcmMessage data, Map<String, dynamic> dataJson) async {
     assert(debugLog('notif message content: ${data.content}'));
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-    final groupKey = _groupKey(data);
+    final groupKey = _groupKey(data.realmUrl, data.userId);
     final conversationKey = _conversationKey(data, groupKey);
+
+    final globalStore = await ZulipBinding.instance.getGlobalStore();
+    final account = globalStore.accounts.firstWhereOrNull((account) =>
+      account.realmUrl.origin == data.realmUrl.origin && account.userId == data.userId);
+
+    // Skip showing notifications for a logged-out account. This can occur if
+    // the unregisterToken request failed previously. It would be annoying
+    // to the user if notifications keep showing up after they've logged out.
+    // (Also alarming: it suggests the logout didn't fully work.)
+    if (account == null) {
+      return;
+    }
 
     final oldMessagingStyle = await _androidHost
       .getActiveNotificationMessagingStyleByTag(conversationKey);
@@ -365,7 +379,7 @@ class NotificationDisplayManager {
     // There may be a lot of messages mentioned here, across a lot of
     // conversations.  But they'll all be for one account, so they'll
     // fall under one notification group.
-    final groupKey = _groupKey(data);
+    final groupKey = _groupKey(data.realmUrl, data.userId);
 
     // Find any conversations we can cancel the notification for.
     // The API doesn't lend itself to removing individual messages as
@@ -421,6 +435,20 @@ class NotificationDisplayManager {
     }
   }
 
+  static Future<void> removeNotificationsForAccount(Uri realmUrl, int userId) async {
+    assert(defaultTargetPlatform == TargetPlatform.android);
+
+    final groupKey = _groupKey(realmUrl, userId);
+    final activeNotifications = await _androidHost.getActiveNotifications(
+      desiredExtras: []);
+    for (final statusBarNotification in activeNotifications) {
+      if (statusBarNotification.notification.group == groupKey) {
+        await _androidHost.cancel(
+          tag: statusBarNotification.tag, id: statusBarNotification.id);
+      }
+    }
+  }
+
   /// The constant numeric "ID" we use for all non-test notifications,
   /// along with unique tags.
   ///
@@ -445,10 +473,10 @@ class NotificationDisplayManager {
     return '$groupKey|$conversation';
   }
 
-  static String _groupKey(FcmMessageWithIdentity data) {
+  static String _groupKey(Uri realmUrl, int userId) {
     // The realm URL can't contain a `|`, because `|` is not a URL code point:
     //   https://url.spec.whatwg.org/#url-code-points
-    return "${data.realmUrl}|${data.userId}";
+    return "$realmUrl|$userId";
   }
 
   static String _personKey(Uri realmUrl, int userId) => "$realmUrl|$userId";
@@ -464,6 +492,8 @@ class NotificationDisplayManager {
     required BuildContext context,
     required Uri url,
   }) {
+    assert(defaultTargetPlatform == TargetPlatform.android);
+
     final globalStore = GlobalStoreWidget.of(context);
 
     assert(debugLog('got notif: url: $url'));
@@ -492,6 +522,7 @@ class NotificationDisplayManager {
   /// generated with [NotificationOpenPayload.buildUrl] while creating
   /// the notification.
   static Future<void> navigateForNotification(Uri url) async {
+    assert(defaultTargetPlatform == TargetPlatform.android);
     assert(debugLog('opened notif: url: $url'));
 
     NavigatorState navigator = await ZulipApp.navigator;
