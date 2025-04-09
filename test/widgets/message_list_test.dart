@@ -26,6 +26,7 @@ import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/channel_colors.dart';
+import 'package:zulip/widgets/topic_list.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -224,6 +225,32 @@ void main() {
       check(pushedRoutes).single.isA<WidgetRoute>()
         .page.isA<MessageListPage>().initNarrow
           .equals(ChannelNarrow(channel.streamId));
+    });
+
+    testWidgets('has topic list button for topic list page', (tester) async {
+      final pushedRoutes = <Route<void>>[];
+      final navObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      final channel = eg.stream();
+      final message = eg.streamMessage(stream: channel);
+      await setupMessageListPage(tester, narrow: ChannelNarrow(channel.streamId),
+        navObservers: [navObserver],
+        streams: [channel],
+        messages: [message]);
+
+      assert(pushedRoutes.length == 1);
+      pushedRoutes.clear();
+
+      await tester.tap(find.text('TOPICS'));
+      await tester.pumpAndSettle();
+
+      final topicListRoute = pushedRoutes
+        .whereType<MaterialAccountWidgetRoute<void>>()
+        .single;
+      check(topicListRoute)
+        .page.isA<TopicListPage>()
+        .has((page) => page.streamId, 'streamId')
+        .equals(channel.streamId);
     });
 
     testWidgets('show topic visibility policy for topic narrows', (tester) async {

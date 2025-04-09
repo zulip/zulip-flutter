@@ -92,6 +92,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get actionSheetOptionUnresolveTopic => 'Mark as unresolved';
 
   @override
+  String get actionSheetOptionTopicList => 'Topic list';
+
+  @override
   String get errorResolveTopicFailedTitle => 'Failed to mark topic as resolved';
 
   @override
@@ -554,6 +557,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get channelFeedButtonTooltip => 'Channel feed';
 
   @override
+  String get topicListButtonTooltip => 'Topic list';
+
+  @override
   String notifGroupDmConversationLabel(String senderFullName, int numOthers) {
     String _temp0 = intl.Intl.pluralLogic(
       numOthers,
@@ -674,6 +680,12 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get emojiPickerSearchEmoji => 'Search emoji';
+
+  @override
+  String get errorFetchingTopics => 'Error fetching topics';
+
+  @override
+  String get noTopicsInChannel => 'No topics in the channel';
 
   @override
   String get noEarlierMessages => 'No earlier messages';
