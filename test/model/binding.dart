@@ -105,6 +105,9 @@ class TestZulipBinding extends ZulipBinding {
   Future<GlobalStore> getGlobalStore() => Future.value(globalStore);
 
   @override
+  GlobalStore? getGlobalStoreSync() => globalStore;
+
+  @override
   Future<GlobalStore> getGlobalStoreUniquely() {
     assert(() {
       if (_debugAlreadyLoadedStore) {
