@@ -472,6 +472,8 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       realmWaitingPeriodThreshold: initialSnapshot.realmWaitingPeriodThreshold,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
       realmEmptyTopicDisplayName: initialSnapshot.realmEmptyTopicDisplayName,
+      realmAllowMessageEditing: initialSnapshot.realmAllowMessageEditing,
+      realmMessageContentEditLimitSeconds: initialSnapshot.realmMessageContentEditLimitSeconds,
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
       emailAddressVisibility: initialSnapshot.emailAddressVisibility,
@@ -509,6 +511,8 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     required this.realmWaitingPeriodThreshold,
     required this.maxFileUploadSizeMib,
     required String? realmEmptyTopicDisplayName,
+    required this.realmAllowMessageEditing,
+    required this.realmMessageContentEditLimitSeconds,
     required this.realmDefaultExternalAccounts,
     required this.customProfileFields,
     required this.emailAddressVisibility,
@@ -563,6 +567,8 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   final bool realmMandatoryTopics;  // TODO(#668): update this realm setting
   /// For docs, please see [InitialSnapshot.realmWaitingPeriodThreshold].
   final int realmWaitingPeriodThreshold;  // TODO(#668): update this realm setting
+  final bool realmAllowMessageEditing; // TODO(#668): update this realm setting
+  final int? realmMessageContentEditLimitSeconds; // TODO(#668): update this realm setting
   final int maxFileUploadSizeMib; // No event for this.
 
   /// The display name to use for empty topics.
