@@ -73,6 +73,9 @@ InitialSnapshot _$InitialSnapshotFromJson(
   realmMandatoryTopics: json['realm_mandatory_topics'] as bool,
   realmWaitingPeriodThreshold:
       (json['realm_waiting_period_threshold'] as num).toInt(),
+  realmAllowMessageEditing: json['realm_allow_message_editing'] as bool,
+  realmMessageContentEditLimitSeconds:
+      (json['realm_message_content_edit_limit_seconds'] as num?)?.toInt(),
   realmDefaultExternalAccounts:
       (json['realm_default_external_accounts'] as Map<String, dynamic>).map(
         (k, e) => MapEntry(
@@ -133,6 +136,9 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'realm_wildcard_mention_policy': instance.realmWildcardMentionPolicy,
       'realm_mandatory_topics': instance.realmMandatoryTopics,
       'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
+      'realm_allow_message_editing': instance.realmAllowMessageEditing,
+      'realm_message_content_edit_limit_seconds':
+          instance.realmMessageContentEditLimitSeconds,
       'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
       'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
       'server_emoji_data_url': instance.serverEmojiDataUrl?.toString(),
