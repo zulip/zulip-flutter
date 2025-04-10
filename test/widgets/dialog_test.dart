@@ -26,4 +26,36 @@ void main() {
         mode: LaunchMode.inAppBrowserView));
     });
   });
+
+  group('showSuggestedActionDialog', () {
+    testWidgets('tap action button', (tester) async {
+      addTearDown(testBinding.reset);
+      await tester.pumpWidget(TestZulipApp());
+      await tester.pump();
+      final element = tester.element(find.byType(Placeholder));
+
+      final dialog = showSuggestedActionDialog(context: element,
+        title: 'Continue?',
+        message: 'Do the thing?',
+        actionButtonText: 'Sure',);
+      await tester.pump();
+      await tester.tap(find.text('Sure'));
+      await check(dialog.closed).completes((it) => it.equals(SuggestedActionDialogResult.doAction));
+    });
+
+    testWidgets('tap cancel', (tester) async {
+      addTearDown(testBinding.reset);
+      await tester.pumpWidget(TestZulipApp());
+      await tester.pump();
+      final element = tester.element(find.byType(Placeholder));
+
+      final dialog = showSuggestedActionDialog(context: element,
+        title: 'Continue?',
+        message: 'Do the thing?',
+        actionButtonText: 'Sure',);
+      await tester.pump();
+      await tester.tap(find.text('Cancel'));
+      await check(dialog.closed).completes((it) => it.equals(SuggestedActionDialogResult.cancel));
+    });
+  });
 }

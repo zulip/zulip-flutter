@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:app_settings/app_settings.dart';
@@ -907,13 +908,13 @@ Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type)
       // If the user hasn't checked "Don't ask again", they can always dismiss
       // our prompt and retry, and the permissions request will reappear,
       // letting them grant permissions and complete the upload.
-      showSuggestedActionDialog(context: context,
+      final dialog = showSuggestedActionDialog(context: context,
         title: zulipLocalizations.permissionsNeededTitle,
         message: zulipLocalizations.permissionsDeniedReadExternalStorage,
-        actionButtonText: zulipLocalizations.permissionsNeededOpenSettings,
-        onActionButtonPress: () {
-          AppSettings.openAppSettings();
-        });
+        actionButtonText: zulipLocalizations.permissionsNeededOpenSettings);
+      if (await dialog.closed == SuggestedActionDialogResult.doAction) {
+        unawaited(AppSettings.openAppSettings());
+      }
     } else {
       showErrorDialog(context: context,
         title: zulipLocalizations.errorDialogTitle,
@@ -1008,13 +1009,13 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
         // permission-request alert once, the first time the app wants to
         // use a protected resource. After that, the only way the user can
         // grant it is in Settings.
-        showSuggestedActionDialog(context: context,
+        final dialog = showSuggestedActionDialog(context: context,
           title: zulipLocalizations.permissionsNeededTitle,
           message: zulipLocalizations.permissionsDeniedCameraAccess,
-          actionButtonText: zulipLocalizations.permissionsNeededOpenSettings,
-          onActionButtonPress: () {
-            AppSettings.openAppSettings();
-          });
+          actionButtonText: zulipLocalizations.permissionsNeededOpenSettings);
+        if (await dialog.closed == SuggestedActionDialogResult.doAction) {
+          unawaited(AppSettings.openAppSettings());
+        }
       } else {
         showErrorDialog(context: context,
           title: zulipLocalizations.errorDialogTitle,
@@ -1400,7 +1401,13 @@ abstract class _Banner extends StatelessWidget {
   Color getLabelColor(DesignVariables designVariables);
   Color getBackgroundColor(DesignVariables designVariables);
 
-  /// A trailing element, with no outer padding for spacing/positioning.
+  /// A trailing element, with vertical but not horizontal outer padding
+  /// for spacing/positioning.
+  ///
+  /// An interactive element's touchable area should have height at least 44px,
+  /// with some of that as "slop" vertical outer padding above and below
+  /// what gets painted:
+  ///   https://github.com/zulip/zulip-flutter/pull/1432#discussion_r2023907300
   ///
   /// To control the element's distance from the end edge, override [padEnd].
   Widget? buildTrailing(BuildContext context);
@@ -1431,13 +1438,15 @@ abstract class _Banner extends StatelessWidget {
           // (SafeArea.minimum doesn't take an EdgeInsetsDirectional)
           .resolve(Directionality.of(context)),
         child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(8, 5, 0, 5),
+          padding: const EdgeInsetsDirectional.only(start: 8),
           child: Row(
             children: [
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(style: labelTextStyle,
+                  padding: const EdgeInsets.symmetric(vertical: 9),
+                  child: Text(
+                    style: labelTextStyle,
+                    textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
                     getLabel(zulipLocalizations)))),
               if (trailing != null) ...[
                 const SizedBox(width: 8),

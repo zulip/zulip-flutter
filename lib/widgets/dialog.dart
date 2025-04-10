@@ -21,11 +21,11 @@ Widget _dialogActionText(String text) {
 ///
 /// See also:
 ///  * [showDialog], whose return value this class is intended to wrap.
-class DialogStatus {
+class DialogStatus<T> {
   const DialogStatus(this.closed);
 
   /// Resolves when the dialog is closed.
-  final Future<void> closed;
+  final Future<T?> closed;
 }
 
 /// Displays an [AlertDialog] with a dismiss button
@@ -37,7 +37,7 @@ class DialogStatus {
 // [showDialog]'s return value, a [Future], inside [DialogStatus]
 // whose documentation can be accessed.  This helps avoid confusion when
 // intepreting the meaning of the [Future].
-DialogStatus showErrorDialog({
+DialogStatus<void> showErrorDialog({
   required BuildContext context,
   required String title,
   String? message,
@@ -61,28 +61,32 @@ DialogStatus showErrorDialog({
   return DialogStatus(future);
 }
 
-void showSuggestedActionDialog({
+DialogStatus<SuggestedActionDialogResult> showSuggestedActionDialog({
   required BuildContext context,
   required String title,
   required String message,
   required String? actionButtonText,
-  required VoidCallback onActionButtonPress,
 }) {
   final zulipLocalizations = ZulipLocalizations.of(context);
-  showDialog<void>(
+  final future = showDialog<SuggestedActionDialogResult>(
     context: context,
     builder: (BuildContext context) => AlertDialog(
       title: Text(title),
       content: SingleChildScrollView(child: Text(message)),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop<SuggestedActionDialogResult>(context,
+            SuggestedActionDialogResult.cancel),
           child: _dialogActionText(zulipLocalizations.dialogCancel)),
         TextButton(
-          onPressed: () {
-            onActionButtonPress();
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop<SuggestedActionDialogResult>(context,
+            SuggestedActionDialogResult.doAction),
           child: _dialogActionText(actionButtonText ?? zulipLocalizations.dialogContinue)),
       ]));
+  return DialogStatus(future);
+}
+
+enum SuggestedActionDialogResult {
+  cancel,
+  doAction,
 }
