@@ -172,6 +172,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     groupDmConversationIcon: Colors.black.withValues(alpha: 0.5),
     groupDmConversationIconBg: const Color(0x33808080),
     inboxItemIconMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
+    labelMessageHeaderArchived: const HSLColor.fromAHSL(0.5, 0, 0, 0.5).toColor(),
     loginOrDivider: const Color(0xffdedede),
     loginOrDividerText: const Color(0xff575757),
     modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.3),
@@ -232,6 +233,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
     groupDmConversationIconBg: const Color(0x33cccccc),
     inboxItemIconMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
+    labelMessageHeaderArchived: const HSLColor.fromAHSL(0.5, 0, 0, 0.5).toColor(),
     loginOrDivider: const Color(0xff424242),
     loginOrDividerText: const Color(0xffa8a8a8),
     modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.5),
@@ -294,6 +296,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.groupDmConversationIcon,
     required this.groupDmConversationIconBg,
     required this.inboxItemIconMarker,
+    required this.labelMessageHeaderArchived,
     required this.loginOrDivider,
     required this.loginOrDividerText,
     required this.modalBarrierColor,
@@ -364,6 +367,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color groupDmConversationIcon;
   final Color groupDmConversationIconBg;
   final Color inboxItemIconMarker;
+  final Color labelMessageHeaderArchived;
   final Color loginOrDivider; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
   final Color loginOrDividerText; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
   final Color modalBarrierColor;
@@ -421,6 +425,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? groupDmConversationIcon,
     Color? groupDmConversationIconBg,
     Color? inboxItemIconMarker,
+    Color? labelMessageHeaderArchived,
     Color? loginOrDivider,
     Color? loginOrDividerText,
     Color? modalBarrierColor,
@@ -477,6 +482,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       groupDmConversationIcon: groupDmConversationIcon ?? this.groupDmConversationIcon,
       groupDmConversationIconBg: groupDmConversationIconBg ?? this.groupDmConversationIconBg,
       inboxItemIconMarker: inboxItemIconMarker ?? this.inboxItemIconMarker,
+      labelMessageHeaderArchived: labelMessageHeaderArchived ?? this.labelMessageHeaderArchived,
       loginOrDivider: loginOrDivider ?? this.loginOrDivider,
       loginOrDividerText: loginOrDividerText ?? this.loginOrDividerText,
       modalBarrierColor: modalBarrierColor ?? this.modalBarrierColor,
@@ -540,6 +546,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       groupDmConversationIcon: Color.lerp(groupDmConversationIcon, other.groupDmConversationIcon, t)!,
       groupDmConversationIconBg: Color.lerp(groupDmConversationIconBg, other.groupDmConversationIconBg, t)!,
       inboxItemIconMarker: Color.lerp(inboxItemIconMarker, other.inboxItemIconMarker, t)!,
+      labelMessageHeaderArchived: Color.lerp(labelMessageHeaderArchived, other.labelMessageHeaderArchived, t)!,
       loginOrDivider: Color.lerp(loginOrDivider, other.loginOrDivider, t)!,
       loginOrDividerText: Color.lerp(loginOrDividerText, other.loginOrDividerText, t)!,
       modalBarrierColor: Color.lerp(modalBarrierColor, other.modalBarrierColor, t)!,
