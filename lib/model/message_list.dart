@@ -10,6 +10,7 @@ import '../api/route/messages.dart';
 import 'algorithms.dart';
 import 'channel.dart';
 import 'content.dart';
+import 'message.dart';
 import 'narrow.dart';
 import 'store.dart';
 
@@ -24,13 +25,13 @@ sealed class MessageListItem {
 }
 
 class MessageListRecipientHeaderItem extends MessageListItem {
-  final Message message;
+  final MessageBase message;
 
   MessageListRecipientHeaderItem(this.message);
 }
 
 class MessageListDateSeparatorItem extends MessageListItem {
-  final Message message;
+  final MessageBase message;
 
   MessageListDateSeparatorItem(this.message);
 }
@@ -155,7 +156,7 @@ mixin _MessageSequence {
         }
       case MessageListRecipientHeaderItem(:var message):
       case MessageListDateSeparatorItem(:var message):
-        return (message.id <= messageId) ? -1 : 1;
+        return message.id != null && message.id! <= messageId ? -1 : 1;
       case MessageListMessageItem(:var message): return message.id.compareTo(messageId);
     }
   }
@@ -625,6 +626,17 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
+  void handleOutboxMessage(OutboxMessage outboxMessage) {
+    // TODO: implement this
+  }
+
+  /// Remove the [outboxMessage] from the view.
+  ///
+  /// This is a no-op if the message is not found.
+  void removeOutboxMessageIfExists(OutboxMessage outboxMessage) {
+    // TODO: implement this
+  }
+
   void handleUserTopicEvent(UserTopicEvent event) {
     switch (_canAffectVisibility(event)) {
       case VisibilityEffect.none:
@@ -784,6 +796,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     if (isAnyPresent) {
       notifyListeners();
     }
+  }
+
+  /// Notify listeners if the given outbox message is present in this view.
+  void notifyListenersIfOutboxMessagePresent(int localMessageId) {
+    // TODO: implement this
   }
 
   /// Called when the app is reassembled during debugging, e.g. for hot reload.

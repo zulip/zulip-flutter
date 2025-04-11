@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../model/algorithms.dart';
 import 'events.dart';
 import 'initial_snapshot.dart';
 import 'reaction.dart';
@@ -531,130 +532,6 @@ String? tryParseEmojiCodeToUnicode(String emojiCode) {
   }
 }
 
-/// As in the get-messages response.
-///
-/// https://zulip.com/api/get-messages#response
-sealed class Message {
-  // final String? avatarUrl; // Use [User.avatarUrl] instead; will live-update
-  final String client;
-  String content;
-  final String contentType;
-
-  // final List<MessageEditHistory> editHistory; // TODO handle
-  @JsonKey(readValue: MessageEditState._readFromMessage, fromJson: Message._messageEditStateFromJson)
-  MessageEditState editState;
-
-  final int id;
-  bool isMeMessage;
-  int? lastEditTimestamp;
-
-  @JsonKey(fromJson: _reactionsFromJson, toJson: _reactionsToJson)
-  Reactions? reactions; // null is equivalent to an empty [Reactions]
-
-  final int recipientId;
-  final String senderEmail;
-  final String senderFullName;
-  final int senderId;
-  final String senderRealmStr;
-
-  /// Poll data if "submessages" describe a poll, `null` otherwise.
-  @JsonKey(name: 'submessages', readValue: _readPoll, fromJson: Poll.fromJson, toJson: Poll.toJson)
-  Poll? poll;
-
-  final int timestamp;
-  String get type;
-
-  // final List<TopicLink> topicLinks; // TODO handle
-  // final string type; // handled by runtime type of object
-  @JsonKey(fromJson: _flagsFromJson)
-  List<MessageFlag> flags; // Unrecognized flags won't roundtrip through {to,from}Json.
-  final String? matchContent;
-  @JsonKey(name: 'match_subject')
-  final String? matchTopic;
-
-  static MessageEditState _messageEditStateFromJson(Object? json) {
-    // This is a no-op so that [MessageEditState._readFromMessage]
-    // can return the enum value directly.
-    return json as MessageEditState;
-  }
-
-  static Reactions? _reactionsFromJson(Object? json) {
-    final list = (json as List<Object?>);
-    return list.isNotEmpty ? Reactions.fromJson(list) : null;
-  }
-
-  static Object _reactionsToJson(Reactions? value) {
-    return value ?? [];
-  }
-
-  static List<MessageFlag> _flagsFromJson(Object? json) {
-    final list = json as List<Object?>;
-    return list.map((raw) => MessageFlag.fromRawString(raw as String)).toList();
-  }
-
-  static Poll? _readPoll(Map<Object?, Object?> json, String key) {
-    return Submessage.parseSubmessagesJson(
-      json['submessages'] as List<Object?>? ?? [],
-      messageSenderId: (json['sender_id'] as num).toInt(),
-    );
-  }
-
-  Message({
-    required this.client,
-    required this.content,
-    required this.contentType,
-    required this.editState,
-    required this.id,
-    required this.isMeMessage,
-    required this.lastEditTimestamp,
-    required this.reactions,
-    required this.recipientId,
-    required this.senderEmail,
-    required this.senderFullName,
-    required this.senderId,
-    required this.senderRealmStr,
-    required this.timestamp,
-    required this.flags,
-    required this.matchContent,
-    required this.matchTopic,
-  });
-
-  factory Message.fromJson(Map<String, dynamic> json) {
-    final type = json['type'] as String;
-    if (type == 'stream') return StreamMessage.fromJson(json);
-    if (type == 'private') return DmMessage.fromJson(json);
-    throw Exception("Message.fromJson: unexpected message type $type");
-  }
-
-  Map<String, dynamic> toJson();
-}
-
-/// https://zulip.com/api/update-message-flags#available-flags
-@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
-enum MessageFlag {
-  read,
-  starred,
-  collapsed,
-  mentioned,
-  wildcardMentioned,
-  hasAlertWord,
-  historical,
-  unknown;
-
-  /// Get a [MessageFlag] from a raw, snake-case string.
-  ///
-  /// Will be [MessageFlag.unknown] if we don't recognize the string.
-  ///
-  /// Example:
-  ///   'wildcard_mentioned' -> Flag.wildcardMentioned
-  static MessageFlag fromRawString(String raw) => _byRawString[raw] ?? unknown;
-
-  // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
-  static final _byRawString = _$MessageFlagEnumMap.map((key, value) => MapEntry(value, key));
-
-  String toJson() => _$MessageFlagEnumMap[this]!;
-}
-
 /// The name of a Zulip topic.
 // TODO(dart): Can we forbid calling Object members on this extension type?
 //   (The lack of "implements Object" ought to do that, but doesn't.)
@@ -714,8 +591,200 @@ extension type const TopicName(String _value) {
   String toJson() => apiName;
 }
 
+/// As in [MessageBase.conversation].
+///
+/// Different from [MessageDestination], this information comes from
+/// [getMessages] or [getEvents], identifying the conversation that contains a
+/// message.
+sealed class Conversation {}
+
+/// The conversation a stream message is in.
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class StreamConversation extends Conversation {
+  StreamConversation(this.streamId, this.topic);
+
+  int streamId;
+
+  @JsonKey(name: 'subject')
+  TopicName topic;
+
+  factory StreamConversation.fromJson(Map<String, dynamic> json) =>
+    _$StreamConversationFromJson(json);
+}
+
+/// The conversation a DM message is in.
+class DmConversation extends Conversation {
+  DmConversation({required this.allRecipientIds})
+    : assert(isSortedWithoutDuplicates(allRecipientIds.toList()));
+
+  /// The user IDs of all users in the conversation, sorted numerically.
+  ///
+  /// This lists the sender as well as all (other) participants, and it
+  /// lists each user just once.  In particular the self-user is always
+  /// included.
+  final List<int> allRecipientIds;
+}
+
+/// A message or message-like object, for showing in a message list.
+///
+/// Other than [Message], we use this for "outbox messages",
+/// representing outstanding [sendMessage] requests.
+abstract class MessageBase<T extends Conversation> {
+  const MessageBase({
+    required this.senderId,
+    required this.timestamp,
+    required this.conversation,
+  });
+
+  /// The Zulip message ID.
+  ///
+  /// If null, the message doesn't have an ID acknowledged by the server
+  /// (e.g.: a locally-echoed message).
+  int? get id;
+
+  final int senderId;
+  final int timestamp;
+
+  /// The conversation that contains this message.
+  ///
+  /// When implementing this, the return type should be either
+  /// [StreamConversation] or [DmConversation]; it should never be
+  /// [Conversation], because we expect a concrete subclass of [MessageBase]
+  /// to represent either a channel message or a DM message, not both.
+  final T conversation;
+}
+
+/// As in the get-messages response.
+///
+/// https://zulip.com/api/get-messages#response
+sealed class Message<T extends Conversation> implements MessageBase<T> {
+  // final String? avatarUrl; // Use [User.avatarUrl] instead; will live-update
+  final String client;
+  String content;
+  final String contentType;
+
+  // final List<MessageEditHistory> editHistory; // TODO handle
+  @JsonKey(readValue: MessageEditState._readFromMessage, fromJson: Message._messageEditStateFromJson)
+  MessageEditState editState;
+
+  @override
+  final int id;
+  bool isMeMessage;
+  int? lastEditTimestamp;
+
+  @JsonKey(fromJson: _reactionsFromJson, toJson: _reactionsToJson)
+  Reactions? reactions; // null is equivalent to an empty [Reactions]
+
+  final int recipientId;
+  final String senderEmail;
+  final String senderFullName;
+  @override
+  final int senderId;
+  final String senderRealmStr;
+
+  /// Poll data if "submessages" describe a poll, `null` otherwise.
+  @JsonKey(name: 'submessages', readValue: _readPoll, fromJson: Poll.fromJson, toJson: Poll.toJson)
+  Poll? poll;
+
+  @override
+  final int timestamp;
+  String get type;
+
+  // final List<TopicLink> topicLinks; // TODO handle
+  // final string type; // handled by runtime type of object
+  @JsonKey(fromJson: _flagsFromJson)
+  List<MessageFlag> flags; // Unrecognized flags won't roundtrip through {to,from}Json.
+  final String? matchContent;
+  @JsonKey(name: 'match_subject')
+  final String? matchTopic;
+
+  static MessageEditState _messageEditStateFromJson(Object? json) {
+    // This is a no-op so that [MessageEditState._readFromMessage]
+    // can return the enum value directly.
+    return json as MessageEditState;
+  }
+
+  static Reactions? _reactionsFromJson(Object? json) {
+    final list = (json as List<Object?>);
+    return list.isNotEmpty ? Reactions.fromJson(list) : null;
+  }
+
+  static Object _reactionsToJson(Reactions? value) {
+    return value ?? [];
+  }
+
+  static List<MessageFlag> _flagsFromJson(Object? json) {
+    final list = json as List<Object?>;
+    return list.map((raw) => MessageFlag.fromRawString(raw as String)).toList();
+  }
+
+  static Poll? _readPoll(Map<Object?, Object?> json, String key) {
+    return Submessage.parseSubmessagesJson(
+      json['submessages'] as List<Object?>? ?? [],
+      messageSenderId: (json['sender_id'] as num).toInt(),
+    );
+  }
+
+  Message({
+    required this.client,
+    required this.content,
+    required this.contentType,
+    required this.editState,
+    required this.id,
+    required this.isMeMessage,
+    required this.lastEditTimestamp,
+    required this.reactions,
+    required this.recipientId,
+    required this.senderEmail,
+    required this.senderFullName,
+    required this.senderId,
+    required this.senderRealmStr,
+    required this.timestamp,
+    required this.flags,
+    required this.matchContent,
+    required this.matchTopic,
+  });
+
+  // TODO(dart): This has to be a static method, because factories/constructors
+  //   do not support type parameters: https://github.com/dart-lang/language/issues/647
+  static Message fromJson(Map<String, dynamic> json) {
+    final type = json['type'] as String;
+    if (type == 'stream') return StreamMessage.fromJson(json);
+    if (type == 'private') return DmMessage.fromJson(json);
+    throw Exception("Message.fromJson: unexpected message type $type");
+  }
+
+  Map<String, dynamic> toJson();
+}
+
+/// https://zulip.com/api/update-message-flags#available-flags
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum MessageFlag {
+  read,
+  starred,
+  collapsed,
+  mentioned,
+  wildcardMentioned,
+  hasAlertWord,
+  historical,
+  unknown;
+
+  /// Get a [MessageFlag] from a raw, snake-case string.
+  ///
+  /// Will be [MessageFlag.unknown] if we don't recognize the string.
+  ///
+  /// Example:
+  ///   'wildcard_mentioned' -> Flag.wildcardMentioned
+  static MessageFlag fromRawString(String raw) => _byRawString[raw] ?? unknown;
+
+  // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
+  static final _byRawString = _$MessageFlagEnumMap.map((key, value) => MapEntry(value, key));
+
+  String toJson() => _$MessageFlagEnumMap[this]!;
+}
+
 @JsonSerializable(fieldRename: FieldRename.snake)
-class StreamMessage extends Message {
+class StreamMessage extends Message<StreamConversation> {
   @override
   @JsonKey(includeToJson: true)
   String get type => 'stream';
@@ -726,14 +795,23 @@ class StreamMessage extends Message {
   @JsonKey(required: true, disallowNullValue: true)
   String? displayRecipient;
 
-  int streamId;
+  @JsonKey(includeToJson: true)
+  int get streamId => conversation.streamId;
 
   // The topic/subject is documented to be present on DMs too, just empty.
   // We ignore it on DMs; if a future server introduces distinct topics in DMs,
   // that will need new UI that we'll design then as part of that feature,
   // and ignoring the topics seems as good a fallback behavior as any.
-  @JsonKey(name: 'subject')
-  TopicName topic;
+  @JsonKey(name: 'subject', includeToJson: true)
+  TopicName get topic => conversation.topic;
+
+  @override
+  @JsonKey(readValue: _readConversation, includeToJson: false)
+  StreamConversation conversation;
+
+  static Map<String, dynamic> _readConversation(Map<dynamic, dynamic> json, String key) {
+    return json as Map<String, dynamic>;
+  }
 
   StreamMessage({
     required super.client,
@@ -754,8 +832,7 @@ class StreamMessage extends Message {
     required super.matchContent,
     required super.matchTopic,
     required this.displayRecipient,
-    required this.streamId,
-    required this.topic,
+    required this.conversation,
   });
 
   factory StreamMessage.fromJson(Map<String, dynamic> json) =>
@@ -766,77 +843,38 @@ class StreamMessage extends Message {
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-class DmRecipient {
-  final int id;
-  final String email;
-  final String fullName;
-
-  // final String? shortName; // obsolete, ignore
-  // final bool? isMirrorDummy; // obsolete, ignore
-
-  DmRecipient({required this.id, required this.email, required this.fullName});
-
-  factory DmRecipient.fromJson(Map<String, dynamic> json) =>
-    _$DmRecipientFromJson(json);
-
-  Map<String, dynamic> toJson() => _$DmRecipientToJson(this);
-
-  @override
-  String toString() => 'DmRecipient(id: $id, email: $email, fullName: $fullName)';
-
-  @override
-  bool operator ==(Object other) {
-    if (other is! DmRecipient) return false;
-    return other.id == id && other.email == email && other.fullName == fullName;
-  }
-
-  @override
-  int get hashCode => Object.hash('DmRecipient', id, email, fullName);
-}
-
-class DmRecipientListConverter extends JsonConverter<List<DmRecipient>, List<dynamic>> {
-  const DmRecipientListConverter();
-
-  @override
-  List<DmRecipient> fromJson(List<dynamic> json) {
-    return json.map((e) => DmRecipient.fromJson(e as Map<String, dynamic>))
-      .toList(growable: false)
-      ..sort((a, b) => a.id.compareTo(b.id));
-  }
-
-  @override
-  List<dynamic> toJson(List<DmRecipient> object) => object;
-}
-
-@JsonSerializable(fieldRename: FieldRename.snake)
-class DmMessage extends Message {
+class DmMessage extends Message<DmConversation> {
   @override
   @JsonKey(includeToJson: true)
   String get type => 'private';
 
-  /// The `display_recipient` from the server, sorted by user ID numerically.
+  /// The user IDs of all users in the thread, sorted numerically, as in
+  /// `display_recipient` from the server.
+  ///
+  /// The other fields on `display_recipient` are ignored and won't roundtrip.
   ///
   /// This lists the sender as well as all (other) recipients, and it
   /// lists each user just once.  In particular the self-user is always
   /// included.
-  ///
-  /// Note the data here is not updated on changes to the users, so everything
-  /// other than the user IDs may be stale.
-  /// Consider using [allRecipientIds] instead, and getting user details
-  /// from the store.
   // TODO(server): Document that it's all users.  That statement is based on
   //   reverse-engineering notes in zulip-mobile:src/api/modelTypes.js at PmMessage.
-  @DmRecipientListConverter()
-  final List<DmRecipient> displayRecipient;
+  @JsonKey(name: 'display_recipient', toJson: _allRecipientIdsToJson, includeToJson: true)
+  List<int> get allRecipientIds => conversation.allRecipientIds;
 
-  /// The user IDs of all users in the thread, sorted numerically.
-  ///
-  /// This lists the sender as well as all (other) recipients, and it
-  /// lists each user just once.  In particular the self-user is always
-  /// included.
-  ///
-  /// This is a result of [List.map], so it has an efficient `length`.
-  Iterable<int> get allRecipientIds => displayRecipient.map((e) => e.id);
+  @override
+  @JsonKey(name: 'display_recipient', fromJson: _conversationFromJson, includeToJson: false)
+  final DmConversation conversation;
+
+  static List<Map<String, dynamic>> _allRecipientIdsToJson(List<int> allRecipientIds) {
+    return allRecipientIds.map((element) => {'id': element}).toList();
+  }
+
+  static DmConversation _conversationFromJson(List<dynamic> json) {
+    return DmConversation(allRecipientIds: json.map(
+      (element) => ((element as Map<String, dynamic>)['id'] as num).toInt()
+    ).toList(growable: false)
+     ..sort());
+  }
 
   DmMessage({
     required super.client,
@@ -856,7 +894,7 @@ class DmMessage extends Message {
     required super.flags,
     required super.matchContent,
     required super.matchTopic,
-    required this.displayRecipient,
+    required this.conversation,
   });
 
   factory DmMessage.fromJson(Map<String, dynamic> json) =>

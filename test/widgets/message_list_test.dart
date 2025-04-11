@@ -538,7 +538,7 @@ void main() {
     final streamMessage = eg.streamMessage();
     final topicNarrow = TopicNarrow.ofMessage(streamMessage);
 
-    for (final (description, message, narrow) in [
+    for (final (description, message, narrow) in <(String, Message, SendableNarrow)>[
       ('typing in dm',    dmMessage,      dmNarrow),
       ('typing in topic', streamMessage,  topicNarrow),
     ]) {
@@ -841,7 +841,8 @@ void main() {
 
       connection.prepare(json: SendMessageResult(id: 1).toJson());
       await tester.tap(find.byIcon(ZulipIcons.send));
-      await tester.pump();
+      await tester.pump(Duration.zero);
+      final localMessageId = store.outboxMessages.keys.single;
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
@@ -850,8 +851,12 @@ void main() {
           'to': '${otherChannel.streamId}',
           'topic': 'new topic',
           'content': 'Some text',
-          'read_by_sender': 'true'});
-      await tester.pumpAndSettle();
+          'read_by_sender': 'true',
+          'queue_id': store.queueId,
+          'local_id': localMessageId.toString()});
+      // Remove the outbox message and its timers created when sending message.
+      await store.handleEvent(
+        eg.messageEvent(message, localMessageId: localMessageId));
     });
 
     testWidgets('Move to narrow with existing messages', (tester) async {
