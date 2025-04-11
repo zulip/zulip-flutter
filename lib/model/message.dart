@@ -40,20 +40,14 @@ sealed class OutboxMessage<T extends Conversation> implements MessageBase<T> {
     required this.localMessageId,
     required int selfUserId,
     required this.content,
-    required this.onDebounceTimeout,
-    required this.onSendTimeLimitTimeout,
   }) : senderId = selfUserId,
        timestamp = (DateTime.timestamp().millisecondsSinceEpoch / 1000).toInt(),
-       _state = OutboxMessageLifecycle.sending,
-       _debounceTimer = Timer(kLocalEchoDebounceDuration, onDebounceTimeout),
-       _sendTimeLimitTimer = Timer(kSendMessageTimeLimit, onSendTimeLimitTimeout);
+       _state = OutboxMessageLifecycle.sending;
 
   static OutboxMessage fromDestination(MessageDestination destination, {
     required int localMessageId,
     required int selfUserId,
     required String content,
-    required VoidCallback onDebounceTimeout,
-    required VoidCallback onSendTimeLimitTimeout,
   }) {
     if (destination case DmDestination(:final userIds)) {
       assert(userIds.contains(selfUserId));
@@ -64,16 +58,12 @@ sealed class OutboxMessage<T extends Conversation> implements MessageBase<T> {
         selfUserId: selfUserId,
         conversation: StreamConversation(destination.streamId, destination.topic),
         content: content,
-        onDebounceTimeout: onDebounceTimeout,
-        onSendTimeLimitTimeout: onSendTimeLimitTimeout,
       ),
       DmDestination() => DmOutboxMessage(
         localMessageId: localMessageId,
         selfUserId: selfUserId,
         conversation: DmConversation(allRecipientIds: destination.userIds),
         content: content,
-        onDebounceTimeout: onDebounceTimeout,
-        onSendTimeLimitTimeout: onSendTimeLimitTimeout,
       ),
     };
   }
@@ -91,25 +81,9 @@ sealed class OutboxMessage<T extends Conversation> implements MessageBase<T> {
   final int timestamp;
   final String content;
 
-  /// Called after [kLocalEchoDebounceDuration] if the outbox message is still
-  /// [hidden].
-  ///
-  /// If [hidden] gets set to false before the timeout, this will not get called.
-  final VoidCallback onDebounceTimeout;
-  final Timer _debounceTimer;
-
-  /// Called after the time limit ([kSendMessageTimeLimit]) for the message
-  /// event to arrive.
-  ///
-  /// If the [state] is [OutboxMessageLifecycle.failed] prior to the time limit
-  /// this will not get called.
-  final VoidCallback onSendTimeLimitTimeout;
-  final Timer _sendTimeLimitTimer;
-
   OutboxMessageLifecycle get state => _state;
   OutboxMessageLifecycle _state;
   set state(OutboxMessageLifecycle value) {
-    assert(!_disposed);
     // See [OutboxMessageLifecycle] for valid state transitions.
     assert(_state != value);
     switch (value) {
@@ -119,7 +93,6 @@ sealed class OutboxMessage<T extends Conversation> implements MessageBase<T> {
         assert(_state == OutboxMessageLifecycle.sending);
       case OutboxMessageLifecycle.failed:
         assert(_state == OutboxMessageLifecycle.sending || _state == OutboxMessageLifecycle.sent);
-        _sendTimeLimitTimer.cancel();
     }
     _state = value;
   }
@@ -130,21 +103,8 @@ sealed class OutboxMessage<T extends Conversation> implements MessageBase<T> {
   bool get hidden => _hidden;
   bool _hidden = true;
   void unhide() {
-    assert(!_disposed);
     assert(_hidden);
-    _debounceTimer.cancel();
     _hidden = false;
-  }
-
-  bool _disposed = false;
-  /// Clean up all pending timers to prepare for abandoning this instance.
-  ///
-  /// This must be called whenever the outbox message is removed from the store.
-  void dispose() {
-    assert(!_disposed);
-    _disposed = true;
-    _debounceTimer.cancel();
-    _sendTimeLimitTimer.cancel();
   }
 }
 
@@ -154,8 +114,6 @@ class StreamOutboxMessage extends OutboxMessage<StreamConversation> {
     required super.selfUserId,
     required this.conversation,
     required super.content,
-    required super.onDebounceTimeout,
-    required super.onSendTimeLimitTimeout,
   });
 
   @override
@@ -168,8 +126,6 @@ class DmOutboxMessage extends OutboxMessage<DmConversation> {
     required super.selfUserId,
     required this.conversation,
     required super.content,
-    required super.onDebounceTimeout,
-    required super.onSendTimeLimitTimeout,
   });
 
   @override
@@ -217,7 +173,9 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
     // There are no messages in InitialSnapshot, so we don't have
     // a use case for initializing MessageStore with nonempty [messages].
     : messages = {},
-      _outboxMessages = {};
+      _outboxMessages = {},
+      _outboxMessageDebounceTimers = {},
+      _outboxMessageSendTimeLimitTimers = {};
 
   /// A fresh ID to use for [OutboxMessage.localMessageId],
   /// unique within the [PerAccountStore] instance.
@@ -230,6 +188,21 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
   late final UnmodifiableMapView<int, OutboxMessage> outboxMessages =
     UnmodifiableMapView(_outboxMessages);
   final Map<int, OutboxMessage> _outboxMessages;
+
+  /// A map of timers to unhide outbox messages after a delay,
+  /// indexed by [OutboxMessage.localMessageId].
+  ///
+  /// If the outbox message was unhidden prior to the timeout,
+  /// its timer gets removed and cancelled.
+  final Map<int, Timer> _outboxMessageDebounceTimers;
+
+  /// A map of timers to update outbox messages state to
+  /// [OutboxMessageLifecycle.failed] after a delay,
+  /// indexed by [OutboxMessage.localMessageId].
+  ///
+  /// If the outbox message's state is set to [OutboxMessageLifecycle.failed]
+  /// within to the time limit, its timer gets removed and cancelled.
+  final Map<int, Timer> _outboxMessageSendTimeLimitTimers;
 
   final Set<MessageListView> _messageListViews = {};
 
@@ -270,8 +243,9 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
     //   `dispose` or `onNewStore` is called.  Discussion:
     //     https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/MessageListView.20lifecycle/near/2086893
 
-    for (final outboxMessage in outboxMessages.values) {
-      outboxMessage.dispose();
+    for (final localMessageId in outboxMessages.keys) {
+      _outboxMessageDebounceTimers.remove(localMessageId)?.cancel();
+      _outboxMessageSendTimeLimitTimers.remove(localMessageId)?.cancel();
     }
     _outboxMessages.clear();
   }
@@ -291,19 +265,20 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
     _outboxMessages[localMessageId] = OutboxMessage.fromDestination(destination,
       localMessageId: localMessageId,
       selfUserId: selfUserId,
-      content: content,
-      onDebounceTimeout: () {
-        assert(outboxMessages.containsKey(localMessageId));
-        _unhideOutboxMessage(localMessageId);
-      },
-      onSendTimeLimitTimeout: () {
-        assert(outboxMessages.containsKey(localMessageId));
-        // This should be called before `_unhideOutboxMessage(localMessageId)`
-        // to avoid unnecessarily notifying the listeners twice.
-        _updateOutboxMessage(localMessageId, newState: OutboxMessageLifecycle.failed);
-        _unhideOutboxMessage(localMessageId);
-      },
-    );
+      content: content);
+    _outboxMessageDebounceTimers[localMessageId] = Timer(kLocalEchoDebounceDuration, () {
+      assert(outboxMessages.containsKey(localMessageId));
+      _outboxMessageDebounceTimers.remove(localMessageId);
+      _unhideOutboxMessage(localMessageId);
+    });
+    _outboxMessageSendTimeLimitTimers[localMessageId] = Timer(kSendMessageTimeLimit, () {
+      assert(outboxMessages.containsKey(localMessageId));
+      _outboxMessageSendTimeLimitTimers.remove(localMessageId);
+      // This should be called before `_unhideOutboxMessage(localMessageId)`
+      // to avoid unnecessarily notifying the listeners twice.
+      _updateOutboxMessage(localMessageId, newState: OutboxMessageLifecycle.failed);
+      _unhideOutboxMessage(localMessageId);
+    });
 
     try {
       await _apiSendMessage(connection,
@@ -336,6 +311,7 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
     if (outboxMessage == null || !outboxMessage.hidden) {
       return;
     }
+    _outboxMessageDebounceTimers.remove(localMessageId)?.cancel();
     outboxMessage.unhide();
     for (final view in _messageListViews) {
       view.handleOutboxMessage(outboxMessage);
@@ -354,6 +330,9 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
     if (outboxMessage == null || outboxMessage.state == newState) {
       return;
     }
+    if (newState == OutboxMessageLifecycle.failed) {
+      _outboxMessageSendTimeLimitTimers.remove(localMessageId)?.cancel();
+    }
     outboxMessage.state = newState;
     if (outboxMessage.hidden) {
       return;
@@ -366,7 +345,9 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
 
   @override
   void removeOutboxMessage(int localMessageId) {
-    final removed = _outboxMessages.remove(localMessageId)?..dispose();
+    final removed = _outboxMessages.remove(localMessageId);
+    _outboxMessageDebounceTimers.remove(localMessageId)?.cancel();
+    _outboxMessageSendTimeLimitTimers.remove(localMessageId)?.cancel();
     if (removed == null) {
       assert(false, 'Removing unknown outbox message with localMessageId: $localMessageId');
       return;
@@ -413,7 +394,9 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
 
     if (event.localMessageId != null) {
       final localMessageId = int.parse(event.localMessageId!, radix: 10);
-      _outboxMessages.remove(localMessageId)?.dispose();
+      _outboxMessages.remove(localMessageId);
+      _outboxMessageDebounceTimers.remove(localMessageId)?.cancel();
+      _outboxMessageSendTimeLimitTimers.remove(localMessageId)?.cancel();
     }
 
     for (final view in _messageListViews) {
