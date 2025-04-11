@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 // ignore: undefined_hidden_name // anticipates https://github.com/flutter/flutter/pull/164818
 import 'package:flutter/material.dart' hide SliverPaintOrder;
 import 'package:flutter_color_models/flutter_color_models.dart';
@@ -8,6 +9,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/message.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
@@ -687,6 +689,12 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           header: header,
           trailingWhitespace: i == 1 ? 8 : 11,
           item: data);
+      case MessageListOutboxMessageItem():
+        final header = RecipientHeader(message: data.message, narrow: widget.narrow);
+        return MessageItem(
+          header: header,
+          trailingWhitespace: 11,
+          item: data);
     }
   }
 }
@@ -901,23 +909,29 @@ class _MarkAsReadAnimationState extends State<MarkAsReadAnimation> {
 class RecipientHeader extends StatelessWidget {
   const RecipientHeader({super.key, required this.message, required this.narrow});
 
-  final Message message;
+  final MessageBase message;
   final Narrow narrow;
 
   @override
   Widget build(BuildContext context) {
     final message = this.message;
-    return switch (message) {
-      StreamMessage() => StreamMessageRecipientHeader(message: message, narrow: narrow),
-      DmMessage() => DmRecipientHeader(message: message, narrow: narrow),
-    };
+    switch (message) {
+      case MessageBase<StreamConversation>():
+        return StreamMessageRecipientHeader(message: message, narrow: narrow);
+      case MessageBase<DmConversation>():
+        return DmRecipientHeader(message: message, narrow: narrow);
+      case MessageBase<Conversation>():
+        assert(false, 'Unexpected concrete subclass of MessageBase<Conversation>:'
+                      ' ${objectRuntimeType(message, 'MessageBase<Conversation>')}');
+        return SizedBox.shrink();
+    }
   }
 }
 
 class DateSeparator extends StatelessWidget {
   const DateSeparator({super.key, required this.message});
 
-  final Message message;
+  final MessageBase message;
 
   @override
   Widget build(BuildContext context) {
@@ -964,25 +978,33 @@ class MessageItem extends StatelessWidget {
     this.trailingWhitespace,
   });
 
-  final MessageListMessageItem item;
+  final MessageListMessageBaseItem item;
   final Widget header;
   final double? trailingWhitespace;
 
   @override
   Widget build(BuildContext context) {
-    final message = item.message;
     final messageListTheme = MessageListTheme.of(context);
+
+    final item = this.item;
+    Widget child = ColoredBox(
+      color: messageListTheme.bgMessageRegular,
+      child: Column(children: [
+        switch (item) {
+          MessageListMessageItem() => MessageWithPossibleSender(item: item),
+          MessageListOutboxMessageItem() => OutboxMessageWithPossibleSender(item: item),
+        },
+        if (trailingWhitespace != null && item.isLastInBlock) SizedBox(height: trailingWhitespace!),
+      ]));
+    if (item case MessageListMessageItem(:final message)) {
+      child = _UnreadMarker(
+        isRead: message.flags.contains(MessageFlag.read),
+        child: child);
+    }
     return StickyHeaderItem(
       allowOverflow: !item.isLastInBlock,
       header: header,
-      child: _UnreadMarker(
-        isRead: message.flags.contains(MessageFlag.read),
-        child: ColoredBox(
-          color: messageListTheme.bgMessageRegular,
-          child: Column(children: [
-            MessageWithPossibleSender(item: item),
-            if (trailingWhitespace != null && item.isLastInBlock) SizedBox(height: trailingWhitespace!),
-          ]))));
+      child: child);
   }
 }
 
@@ -1027,7 +1049,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     required this.narrow,
   });
 
-  final StreamMessage message;
+  final MessageBase<StreamConversation> message;
   final Narrow narrow;
 
   static bool _containsDifferentChannels(Narrow narrow) {
@@ -1053,11 +1075,11 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final topic = message.topic;
+    final StreamConversation(:streamId, :topic) = message.conversation;
 
     final messageListTheme = MessageListTheme.of(context);
 
-    final subscription = store.subscriptions[message.streamId];
+    final subscription = store.subscriptions[streamId];
     final Color backgroundColor;
     final Color iconColor;
     if (subscription != null) {
@@ -1073,16 +1095,17 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     if (!_containsDifferentChannels(narrow)) {
       streamWidget = const SizedBox(width: 16);
     } else {
-      final stream = store.streams[message.streamId];
+      final stream = store.streams[streamId];
+      final message = this.message;
       final streamName = stream?.name
-        ?? message.displayRecipient
+        ?? (message is StreamMessage ? message.displayRecipient : null)
         ?? zulipLocalizations.unknownChannelName; // TODO(log)
 
       streamWidget = GestureDetector(
         onTap: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
-            narrow: ChannelNarrow(message.streamId))),
-        onLongPress: () => showChannelActionSheet(context, channelId: message.streamId),
+            narrow: ChannelNarrow(streamId))),
+        onLongPress: () => showChannelActionSheet(context, channelId: streamId),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -1130,7 +1153,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
           Icon(size: 14, color: designVariables.title.withFadedAlpha(0.5),
             // A null [Icon.icon] makes a blank space.
             iconDataForTopicVisibilityPolicy(
-              store.topicVisibilityPolicy(message.streamId, topic))),
+              store.topicVisibilityPolicy(streamId, topic))),
         ]));
 
     return GestureDetector(
@@ -1143,7 +1166,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
             MessageListPage.buildRoute(context: context,
               narrow: TopicNarrow.ofMessage(message))),
       onLongPress: () => showTopicActionSheet(context,
-        channelId: message.streamId,
+        channelId: streamId,
         topic: topic,
         someMessageIdInTopic: message.id),
       child: ColoredBox(
@@ -1168,7 +1191,7 @@ class DmRecipientHeader extends StatelessWidget {
     required this.narrow,
   });
 
-  final DmMessage message;
+  final MessageBase<DmConversation> message;
   final Narrow narrow;
 
   @override
@@ -1176,12 +1199,13 @@ class DmRecipientHeader extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
     final String title;
-    if (message.allRecipientIds.length > 1) {
-      title = zulipLocalizations.messageListGroupYouAndOthers(message.allRecipientIds
-        .where((id) => id != store.selfUserId)
-        .map(store.userDisplayName)
-        .sorted()
-        .join(", "));
+    if (message.conversation.allRecipientIds.length > 1) {
+      title = zulipLocalizations.messageListGroupYouAndOthers(
+        message.conversation.allRecipientIds
+          .where((id) => id != store.selfUserId)
+          .map(store.userDisplayName)
+          .sorted()
+          .join(", "));
     } else {
       title = zulipLocalizations.messageListGroupYouWithYourself;
     }
@@ -1233,7 +1257,7 @@ TextStyle recipientHeaderTextStyle(BuildContext context, {FontStyle? fontStyle})
 class RecipientHeaderDate extends StatelessWidget {
   const RecipientHeaderDate({super.key, required this.message});
 
-  final Message message;
+  final MessageBase message;
 
   @override
   Widget build(BuildContext context) {
@@ -1317,14 +1341,13 @@ String formatHeaderDate(
   }
 }
 
-/// A Zulip message, showing the sender's name and avatar if specified.
-// Design referenced from:
-//   - https://github.com/zulip/zulip-mobile/issues/5511
-//   - https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
-class MessageWithPossibleSender extends StatelessWidget {
-  const MessageWithPossibleSender({super.key, required this.item});
+// TODO(i18n): web seems to ignore locale in formatting time, but we could do better
+final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
 
-  final MessageListMessageItem item;
+class _SenderRow extends StatelessWidget {
+  const _SenderRow({required this.message});
+
+  final MessageBase message;
 
   @override
   Widget build(BuildContext context) {
@@ -1332,14 +1355,12 @@ class MessageWithPossibleSender extends StatelessWidget {
     final messageListTheme = MessageListTheme.of(context);
     final designVariables = DesignVariables.of(context);
 
-    final message = item.message;
     final sender = store.getUser(message.senderId);
-
-    Widget? senderRow;
-    if (item.showSender) {
-      final time = _kMessageTimestampFormat
-        .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
-      senderRow = Row(
+    final time = _kMessageTimestampFormat
+      .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: localizedTextBaseline(context),
@@ -1355,7 +1376,9 @@ class MessageWithPossibleSender extends StatelessWidget {
                     userId: message.senderId),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text(message.senderFullName, // TODO(#716): use `store.senderDisplayName`
+                    child: Text(message is Message
+                        ? store.senderDisplayName(message as Message)
+                        : store.userDisplayName(message.senderId),
                       style: TextStyle(
                         fontSize: 18,
                         height: (22 / 18),
@@ -1379,8 +1402,23 @@ class MessageWithPossibleSender extends StatelessWidget {
               height: (18 / 16),
               fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
             ).merge(weightVariableTextStyle(context))),
-        ]);
-    }
+        ]));
+  }
+}
+
+/// A Zulip message, showing the sender's name and avatar if specified.
+// Design referenced from:
+//   - https://github.com/zulip/zulip-mobile/issues/5511
+//   - https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
+class MessageWithPossibleSender extends StatelessWidget {
+  const MessageWithPossibleSender({super.key, required this.item});
+
+  final MessageListMessageItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final message = item.message;
 
     final localizations = ZulipLocalizations.of(context);
     String? editStateText;
@@ -1409,9 +1447,7 @@ class MessageWithPossibleSender extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Column(children: [
-          if (senderRow != null)
-            Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
-              child: senderRow),
+          if (item.showSender) _SenderRow(message: message),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: localizedTextBaseline(context),
@@ -1440,5 +1476,75 @@ class MessageWithPossibleSender extends StatelessWidget {
   }
 }
 
-// TODO(i18n): web seems to ignore locale in formatting time, but we could do better
-final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
+/// A placeholder for Zulip message sent by the self-user.
+///
+/// See also [OutboxMessage].
+class OutboxMessageWithPossibleSender extends StatelessWidget {
+  const OutboxMessageWithPossibleSender({super.key, required this.item});
+
+  final MessageListOutboxMessageItem item;
+
+  // TODO should we restore the topic as well?
+  void _handlePress(BuildContext context) {
+    final content = item.message.content.endsWith('\n')
+      ? item.message.content : '${item.message.content}\n';
+
+    final composeBoxController =
+      MessageListPage.ancestorOf(context).composeBoxController;
+    composeBoxController!.content.insertPadded(content);
+    if (!composeBoxController.contentFocusNode.hasFocus) {
+      composeBoxController.contentFocusNode.requestFocus();
+    }
+
+    final store = PerAccountStoreWidget.of(context);
+    assert(store.outboxMessages.containsKey(item.message.localMessageId));
+    store.removeOutboxMessage(item.message.localMessageId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final message = item.message;
+    final opacity = message.state == OutboxMessageLifecycle.failed ? 0.6 : 1.0;
+
+    final isComposeBoxOffered =
+      MessageListPage.ancestorOf(context).composeBoxController != null;
+
+    return GestureDetector(
+      onTap: isComposeBoxOffered && message.state == OutboxMessageLifecycle.failed
+        ? () => _handlePress(context) : null,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(children: [
+          if (item.showSender) Opacity(opacity: opacity, child: _SenderRow(message: message)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Opacity(opacity: opacity,
+                  // This is adapated from [MessageContent].
+                  // TODO(#576): Offer InheritedMessage ancestor once we are ready
+                  //   to support local echoing images and lightbox.
+                  child: DefaultTextStyle(
+                    style: ContentTheme.of(context).textStylePlainParagraph,
+                    child: BlockContentList(nodes: item.content.nodes))),
+
+                if (message.state == OutboxMessageLifecycle.failed)
+                  Text(zulipLocalizations.messageIsntSentLabel,
+                    textAlign: TextAlign.end,
+                    style: TextStyle(
+                      color: designVariables.btnLabelAttLowIntDanger,
+                      fontSize: 12,
+                      height: 12 / 12,
+                      letterSpacing: proportionalLetterSpacing(
+                        context, 0.006, baseFontSize: 12),
+                    ).merge(weightVariableTextStyle(context, wght: 400)))
+                else LinearProgressIndicator(minHeight: 2,
+                  color: designVariables.foreground.withFadedAlpha(0.5),
+                  backgroundColor: designVariables.foreground.withFadedAlpha(0.2)),
+              ])),
+        ])));
+  }
+}

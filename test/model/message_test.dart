@@ -1,10 +1,14 @@
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
+import 'package:fake_async/fake_async.dart';
+import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/submessage.dart';
+import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/model/message.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -13,7 +17,10 @@ import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
 import '../api/model/submessage_checks.dart';
 import '../example_data.dart' as eg;
+import '../fake_async.dart';
+import '../fake_async_checks.dart';
 import '../stdlib_checks.dart';
+import 'message_checks.dart';
 import 'message_list_test.dart';
 import 'store_checks.dart';
 import 'test_store.dart';
@@ -37,8 +44,11 @@ void main() {
   void checkNotifiedOnce() => checkNotified(count: 1);
 
   /// Initialize [store] and the rest of the test state.
-  Future<void> prepare({Narrow narrow = const CombinedFeedNarrow()}) async {
-    final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
+  Future<void> prepare({
+    Narrow narrow = const CombinedFeedNarrow(),
+    ZulipStream? stream,
+  }) async {
+    stream ??= eg.stream(streamId: eg.defaultStreamMessageStreamId);
     subscription = eg.subscription(stream);
     store = eg.store();
     await store.addStream(stream);
@@ -49,8 +59,12 @@ void main() {
       ..addListener(() {
         notifiedCount++;
       });
+    addTearDown(messageList.dispose);
     check(messageList).fetched.isFalse();
     checkNotNotified();
+
+    // This cleans up possibly pending timers from [MessageStoreImpl].
+    addTearDown(store.dispose);
   }
 
   /// Perform the initial message fetch for [messageList].
@@ -75,6 +89,376 @@ void main() {
     checkNotified(count: messageList.fetched ? messages.length : 0);
   }
 
+  test('dispose cancels pending timers', () => awaitFakeAsync((async) async {
+    final stream = eg.stream();
+    final store = eg.store();
+    await store.addStream(stream);
+    await store.addSubscription(eg.subscription(stream));
+
+    (store.connection as FakeApiConnection).prepare(
+      json: SendMessageResult(id: 1).toJson());
+    await store.sendMessage(
+      destination: StreamDestination(stream.streamId, eg.t('topic')),
+      content: 'content');
+    check(async.pendingTimers).deepEquals(<Condition<Object?>>[
+      (it) => it.isA<FakeTimer>().duration.equals(kLocalEchoDebounceDuration),
+      (it) => it.isA<FakeTimer>().duration.equals(kSendMessageTimeLimit),
+    ]);
+
+    store.dispose();
+    check(async.pendingTimers).isEmpty();
+  }));
+
+  group('sendMessage', () {
+    final stream = eg.stream();
+    final message = eg.streamMessage(stream: stream);
+    final destination = StreamDestination(stream.streamId, eg.t('some topic'));
+
+    test('outbox messages get unique localMessageId', () async {
+      await prepare(stream: stream);
+      await prepareMessages([]);
+
+      for (int i = 0; i < 10; i++) {
+        connection.prepare(json: SendMessageResult(id: 1).toJson());
+        await store.sendMessage(destination: destination, content: 'content');
+      }
+      // [store.outboxMessages] has the same number of keys (localMessageId)
+      // as the number of sent messages, which are guaranteed to be distinct.
+      check(store.outboxMessages).keys.length.equals(10);
+    });
+
+    test('while message is being sent, message event arrives, then the send succeeds', () async {
+      await prepare(stream: stream);
+      await prepareMessages([]);
+
+      // Send message with a delay in response, leaving time for the message
+      // event to arrive.
+      connection.prepare(json: SendMessageResult(id: 1).toJson(),
+        delay: Duration(seconds: 1));
+      final future = store.sendMessage(destination: destination, content: 'content');
+      final outboxMessage = store.outboxMessages.values.single;
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sending)
+        ..hidden.isTrue();
+      checkNotNotified();
+
+      // Handle the message event before `future` completes, i.e. while the
+      // message is being sent.
+      await store.handleEvent(eg.messageEvent(message,
+        localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sending)
+        ..hidden.isTrue();
+      checkNotifiedOnce();
+
+      // Complete the send request. The outbox message should no longer get
+      // updated because it is not in the store any more.
+      await future;
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sending)
+        ..hidden.isTrue();
+      checkNotNotified();
+    });
+
+    test('while message is being sent, message event arrives, then the send fails', () async {
+      await prepare(stream: stream);
+      await prepareMessages([]);
+
+      // Set up an error to fail `sendMessage` with a delay, leaving time for
+      // the message event to arrive.
+      connection.prepare(apiException: eg.apiBadRequest());
+      final future = store.sendMessage(destination: destination, content: 'content');
+      final outboxMessage = store.outboxMessages.values.single;
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sending)
+        ..hidden.isTrue();
+      checkNotNotified();
+
+      // Handle the message event before `future` completes, i.e. while the
+      // message is being sent.
+      await store.handleEvent(eg.messageEvent(message,
+        localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sending)
+        ..hidden.isTrue();
+      checkNotifiedOnce();
+
+      // Complete the send request with an error.  The outbox message should no
+      // longer get updated because it is not in the store any more.
+      await check(future).throws();
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sending)
+        ..hidden.isTrue();
+      checkNotNotified();
+    });
+
+    test('message is sent successfully, message event arrives before debounce timeout', () async {
+      await prepare(stream: stream);
+      await prepareMessages([]);
+
+      // Set up to successfully send the message immediately.
+      connection.prepare(json: SendMessageResult(id: 1).toJson());
+      await store.sendMessage(destination: destination, content: 'content');
+      final outboxMessage = store.outboxMessages.values.single;
+      check(connection.lastRequest).isA<http.Request>()
+        ..bodyFields['queue_id'].equals(store.queueId)
+        ..bodyFields['local_id'].equals('${outboxMessage.localMessageId}');
+      checkNotNotified();
+
+      check(store.outboxMessages).values.single.identicalTo(outboxMessage);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sent)
+        ..hidden.isTrue();
+      checkNotNotified();
+
+      // Handle the event after the message is sent but before the debounce
+      // timeout.  The outbox message should remain hidden since the send
+      // request was sucessful.
+      await store.handleEvent(eg.messageEvent(message,
+        localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sent)
+        ..hidden.isTrue();
+      checkNotifiedOnce();
+    });
+
+    test('message is sent successfully, message event arrives after debounce timeout', () => awaitFakeAsync((async) async {
+      await prepare(stream: stream);
+      await prepareMessages([]);
+
+      // Set up to successfully send the message immediately.
+      connection.prepare(json: SendMessageResult(id: 1).toJson());
+      await store.sendMessage(destination: destination, content: 'content');
+      final outboxMessage = store.outboxMessages.values.single;
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sent)
+        ..hidden.isTrue();
+      checkNotNotified();
+
+      // Pass enough time without handling the message event, to expire
+      // the debounce timer.
+      async.elapse(kLocalEchoDebounceDuration);
+      check(store.outboxMessages).values.single.identicalTo(outboxMessage);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sent)
+        ..hidden.isFalse();
+      checkNotifiedOnce();
+
+      // Handle the event when the outbox message is unhidden.
+      // The outbox message should be removed without errors.
+      await store.handleEvent(eg.messageEvent(message,
+        localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sent)
+        ..hidden.isFalse();
+      checkNotifiedOnce();
+    }));
+
+    test('message failed to send before debounce timeout', () => awaitFakeAsync((async) async {
+      await prepare(stream: stream);
+      await prepareMessages([]);
+
+      // Set up to fail the send request.
+      connection.prepare(apiException: eg.apiBadRequest());
+      final future = store.sendMessage(destination: destination, content: 'content');
+      final outboxMessage = store.outboxMessages.values.single;
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sending)
+        ..hidden.isTrue();
+      check(async.pendingTimers).first.duration.equals(kLocalEchoDebounceDuration);
+      checkNotNotified();
+
+      // Complete the send request with an error. The outbox message should be
+      // unhidden, and the debounce timer should be cancelled.
+      await check(future).throws();
+      check(store.outboxMessages).values.single.identicalTo(outboxMessage);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.failed)
+        ..hidden.isFalse();
+      check(async.pendingTimers).isEmpty();
+      checkNotifiedOnce();
+    }));
+
+    test('message failed to send after debounce timeout', () => awaitFakeAsync((async) async {
+      await prepare(stream: stream);
+      await prepareMessages([]);
+
+      // Set up to fail the send request, but only after the debounce timeout.
+      connection.prepare(apiException: eg.apiBadRequest(),
+        delay: kLocalEchoDebounceDuration + Duration(milliseconds: 1));
+      final future = store.sendMessage(destination: destination, content: 'content');
+      final outboxMessage = store.outboxMessages.values.single;
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sending)
+        ..hidden.isTrue();
+      checkNotNotified();
+
+      // Wait for just enough time for the debounce timer to expire, but not
+      // for the send request to complete.  The outbox message should be unhidden.
+      async.elapse(kLocalEchoDebounceDuration);
+      check(store.outboxMessages).values.single.identicalTo(outboxMessage);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sending)
+        ..hidden.isFalse();
+      checkNotifiedOnce();
+
+      // Complete the send request.  The now unhidden outbox message's state
+      // should be updated without errors.
+      await check(future).throws();
+      check(store.outboxMessages).values.single.identicalTo(outboxMessage);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.failed)
+        ..hidden.isFalse();
+      checkNotifiedOnce();
+    }));
+
+    test('message failed to send, message event arrives', () async {
+      await prepare(stream: stream);
+      await prepareMessages([]);
+
+      // Set up to fail the send request immediately.
+      connection.prepare(apiException: eg.apiBadRequest());
+      await check(
+        store.sendMessage(destination: destination, content: 'content')).throws();
+      final outboxMessage = store.outboxMessages.values.single;
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.failed)
+        ..hidden.isFalse();
+      checkNotifiedOnce();
+
+      // Handle the event when the outbox message is unhidden.
+      // The outbox message should be removed without errors.
+      await store.handleEvent(eg.messageEvent(message,
+          localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.failed)
+        ..hidden.isFalse();
+      checkNotifiedOnce();
+    });
+
+    test('send request pending until after kSendMessageTimeLimit, completes successfully, then message event arrives', () => awaitFakeAsync((async) async {
+      await prepare(stream: stream);
+      await prepareMessages([]);
+
+      // Send a message, but keep it pending until after reaching
+      // [kSendMessageTimeLimit].
+      connection.prepare(json: SendMessageResult(id: 1).toJson(),
+        delay: kSendMessageTimeLimit + Duration(seconds: 1));
+      final future = store.sendMessage(destination: destination, content: 'content');
+      final outboxMessage = store.outboxMessages.values.single;
+      async.elapse(kLocalEchoDebounceDuration);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sending)
+        ..hidden.isFalse();
+      checkNotifiedOnce();
+
+      // Wait till we reach [kSendMessageTimeLimit] after the send request
+      // was initiated, but before it actually completes.
+      assert(kSendMessageTimeLimit > kLocalEchoDebounceDuration);
+      async.elapse(kSendMessageTimeLimit - kLocalEchoDebounceDuration);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.failed)
+        ..hidden.isFalse();
+      checkNotifiedOnce();
+
+      // Wait till the send request completes successfully.  The outbox
+      // message should stay in the failed state and remain in the store.
+      await future;
+      check(store.outboxMessages).values.single.identicalTo(outboxMessage);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.failed)
+        ..hidden.isFalse();
+      checkNotNotified();
+
+      // Handle the message event.  The outbox message should get removed
+      // without errors.
+      await store.handleEvent(eg.messageEvent(message,
+        localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      checkNotifiedOnce();
+    }));
+
+    test('send request pending until after kSendMessageTimeLimit, then fails', () => awaitFakeAsync((async) async {
+      await prepare(stream: stream);
+      await prepareMessages([]);
+
+      // Send a message, but keep it pending until after reaching
+      // [kSendMessageTimeLimit].
+      connection.prepare(apiException: eg.apiBadRequest(),
+        delay: kSendMessageTimeLimit + Duration(seconds: 1));
+      final future = store.sendMessage(destination: destination, content: 'content');
+      final outboxMessage = store.outboxMessages.values.single;
+      async.elapse(kLocalEchoDebounceDuration);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sending)
+        ..hidden.isFalse();
+      checkNotifiedOnce();
+
+      // Wait till we reach [kSendMessageTimeLimit] after the send request
+      // was initiated, but before it fails.
+      assert(kSendMessageTimeLimit > kLocalEchoDebounceDuration);
+      async.elapse(kSendMessageTimeLimit - kLocalEchoDebounceDuration);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.failed)
+        ..hidden.isFalse();
+      checkNotifiedOnce();
+
+      // Wait till the send request fails.  The outbox message should stay in the
+      // failed state and remain in the store.
+      await check(future).throws();
+      check(store.outboxMessages).values.single.identicalTo(outboxMessage);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.failed)
+        ..hidden.isFalse();
+      checkNotNotified();
+    }));
+
+    test('send request completes, message event does not arrive after kSendMessageTimeLimit', () => awaitFakeAsync((async) async {
+      await prepare(stream: stream);
+      await prepareMessages([]);
+
+      // Send a message and have it complete successfully without wait.
+      connection.prepare(json: SendMessageResult(id: 1).toJson());
+      await store.sendMessage(destination: destination, content: 'content');
+      final outboxMessage = store.outboxMessages.values.single;
+      async.elapse(kLocalEchoDebounceDuration);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.sent)
+        ..hidden.isFalse();
+      checkNotifiedOnce();
+
+      // Wait till we reach [kSendMessageTimeLimit] after the send request
+      // was initiated.
+      assert(kSendMessageTimeLimit > kLocalEchoDebounceDuration);
+      async.elapse(kSendMessageTimeLimit - kLocalEchoDebounceDuration);
+      check(outboxMessage)
+        ..state.equals(OutboxMessageLifecycle.failed)
+        ..hidden.isFalse();
+      checkNotifiedOnce();
+    }));
+  });
+
+  test('removeOutboxMessage', () async {
+    final stream = eg.stream();
+    await prepare(stream: stream);
+    await prepareMessages([]);
+
+    connection.prepare(apiException: eg.apiBadRequest());
+    await check(store.sendMessage(
+      destination: StreamDestination(stream.streamId, eg.t('topic')),
+      content: 'content')).throws();
+    final localMessageId = store.outboxMessages.keys.single;
+    checkNotifiedOnce();
+
+    store.removeOutboxMessage(localMessageId);
+    checkNotifiedOnce();
+  });
+
   group('reconcileMessages', () {
     test('from empty', () async {
       await prepare();
@@ -82,7 +466,7 @@ void main() {
       final message1 = eg.streamMessage();
       final message2 = eg.streamMessage();
       final message3 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-      final messages = [message1, message2, message3];
+      final messages = <Message>[message1, message2, message3];
       store.reconcileMessages(messages);
       check(messages).deepEquals(
         [message1, message2, message3]
@@ -97,7 +481,7 @@ void main() {
       final message1 = eg.streamMessage();
       final message2 = eg.streamMessage();
       final message3 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-      final messages = [message1, message2, message3];
+      final messages = <Message>[message1, message2, message3];
       await addMessages(messages);
       final newMessage = eg.streamMessage();
       store.reconcileMessages([newMessage]);
@@ -137,7 +521,7 @@ void main() {
 
     test('from not-empty', () async {
       await prepare();
-      final messages = [
+      final messages = <Message>[
         eg.streamMessage(),
         eg.streamMessage(),
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
