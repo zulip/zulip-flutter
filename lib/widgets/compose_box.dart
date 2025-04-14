@@ -596,11 +596,18 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     });
   }
 
+  void _topicInteractionStatusChanged() {
+    setState(() {
+      // The relevant state lives on widget.controller.topicInteractionStatus itself.
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     widget.controller.topic.addListener(_topicChanged);
     widget.controller.contentFocusNode.addListener(_contentFocusChanged);
+    widget.controller.topicInteractionStatus.addListener(_topicInteractionStatusChanged);
   }
 
   @override
@@ -614,12 +621,17 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       oldWidget.controller.contentFocusNode.removeListener(_contentFocusChanged);
       widget.controller.contentFocusNode.addListener(_contentFocusChanged);
     }
+    if (widget.controller.topicInteractionStatus != oldWidget.controller.topicInteractionStatus) {
+      oldWidget.controller.topicInteractionStatus.removeListener(_topicInteractionStatusChanged);
+      widget.controller.topicInteractionStatus.addListener(_topicInteractionStatusChanged);
+    }
   }
 
   @override
   void dispose() {
     widget.controller.topic.removeListener(_topicChanged);
     widget.controller.contentFocusNode.removeListener(_contentFocusChanged);
+    widget.controller.topicInteractionStatus.removeListener(_topicInteractionStatusChanged);
     super.dispose();
   }
 
@@ -630,11 +642,11 @@ class _StreamContentInputState extends State<_StreamContentInput> {
         // The chosen topic can't be sent to, so don't show it.
         return null;
       }
-      if (!widget.controller.contentFocusNode.hasFocus) {
-        // Do not fall back to a vacuous topic unless the user explicitly chooses
-        // to do so (by skipping topic input and moving focus to content input),
-        // so that the user is not encouraged to use vacuous topic when they
-        // have not interacted with the inputs at all.
+      if (widget.controller.topicInteractionStatus.value !=
+            ComposeTopicInteractionStatus.hasChosen) {
+        // Do not fall back to a vacuous topic unless the user explicitly
+        // chooses to do so, so that the user is not encouraged to use vacuous
+        // topic before they have interacted with the inputs at all.
         return null;
       }
     }
