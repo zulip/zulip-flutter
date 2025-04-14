@@ -622,6 +622,12 @@ abstract class ZulipLocalizations {
   /// **'Topic'**
   String get composeBoxTopicHintText;
 
+  /// Hint text for topic input widget in compose box when topics are optional.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a topic (skip for “{defaultTopicName}”)'**
+  String composeBoxEnterTopicOrSkipHintText(String defaultTopicName);
+
   /// Placeholder in compose box showing the specified file is currently uploading.
   ///
   /// In en, this message translates to:

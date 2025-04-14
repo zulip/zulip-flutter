@@ -379,6 +379,13 @@
   "@composeBoxTopicHintText":  {
     "description": "Hint text for topic input widget in compose box."
   },
+  "composeBoxEnterTopicOrSkipHintText": "Enter a topic (skip for “{defaultTopicName}”)",
+  "@composeBoxEnterTopicOrSkipHintText":  {
+    "description": "Hint text for topic input widget in compose box when topics are optional.",
+    "placeholders": {
+      "defaultTopicName": {"type": "String", "example": "general chat"}
+    }
+  },
   "composeBoxUploadingFilename": "Uploading {filename}…",
   "@composeBoxUploadingFilename": {
     "description": "Placeholder in compose box showing the specified file is currently uploading.",

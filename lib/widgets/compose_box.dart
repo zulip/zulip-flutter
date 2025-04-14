@@ -681,15 +681,114 @@ class _TopicInput extends StatefulWidget {
 }
 
 class _TopicInputState extends State<_TopicInput> {
+  void _topicOrContentFocusChanged() {
+    setState(() {
+      final status = widget.controller.topicInteractionStatus;
+      if (widget.controller.topicFocusNode.hasFocus) {
+        // topic input gains focus
+        status.value = ComposeTopicInteractionStatus.isEditing;
+      } else if (widget.controller.contentFocusNode.hasFocus) {
+        // content input gains focus
+        status.value = ComposeTopicInteractionStatus.hasChosen;
+      } else {
+        // neither input has focus, the new value of topicInteractionStatus
+        // depends on its previous value
+        if (status.value == ComposeTopicInteractionStatus.isEditing) {
+          // topic input loses focus
+          status.value = ComposeTopicInteractionStatus.notEditingNotChosen;
+        } else {
+          // content input loses focus; stay in hasChosen
+          assert(status.value == ComposeTopicInteractionStatus.hasChosen);
+        }
+      }
+    });
+  }
+
+  void _topicInteractionStatusChanged() {
+    setState(() {
+      // The actual state lives in widget.controller.topicInteractionStatus
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.topicFocusNode.addListener(_topicOrContentFocusChanged);
+    widget.controller.contentFocusNode.addListener(_topicOrContentFocusChanged);
+    widget.controller.topicInteractionStatus.addListener(_topicInteractionStatusChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _TopicInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.topicFocusNode.removeListener(_topicOrContentFocusChanged);
+      widget.controller.topicFocusNode.addListener(_topicOrContentFocusChanged);
+      oldWidget.controller.contentFocusNode.removeListener(_topicOrContentFocusChanged);
+      widget.controller.contentFocusNode.addListener(_topicOrContentFocusChanged);
+      oldWidget.controller.topicInteractionStatus.removeListener(_topicInteractionStatusChanged);
+      widget.controller.topicInteractionStatus.addListener(_topicInteractionStatusChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.topicFocusNode.removeListener(_topicOrContentFocusChanged);
+    widget.controller.contentFocusNode.removeListener(_topicOrContentFocusChanged);
+    widget.controller.topicInteractionStatus.removeListener(_topicInteractionStatusChanged);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
-    TextStyle topicTextStyle = TextStyle(
+    final store = PerAccountStoreWidget.of(context);
+
+    final topicTextStyle = TextStyle(
       fontSize: 20,
       height: 22 / 20,
       color: designVariables.textInput.withFadedAlpha(0.9),
     ).merge(weightVariableTextStyle(context, wght: 600));
+
+    // TODO(server-10) simplify away
+    final emptyTopicsSupported = store.zulipFeatureLevel >= 334;
+
+    final String hintText;
+    TextStyle hintStyle = topicTextStyle.copyWith(
+      color: designVariables.textInput.withFadedAlpha(0.5));
+
+    if (store.realmMandatoryTopics) {
+      // Something short and not distracting.
+      hintText = zulipLocalizations.composeBoxTopicHintText;
+    } else {
+      switch (widget.controller.topicInteractionStatus.value) {
+        case ComposeTopicInteractionStatus.notEditingNotChosen:
+          // Something short and not distracting.
+          hintText = zulipLocalizations.composeBoxTopicHintText;
+        case ComposeTopicInteractionStatus.isEditing:
+          // The user is actively interacting with the input.  Since topics are
+          // not mandatory, show a long hint text mentioning that they can be
+          // left empty.
+          hintText = zulipLocalizations.composeBoxEnterTopicOrSkipHintText(
+            emptyTopicsSupported
+              ? store.realmEmptyTopicDisplayName
+              : kNoTopicTopic);
+        case ComposeTopicInteractionStatus.hasChosen:
+          // The topic has likely been chosen.  Since topics are not mandatory,
+          // show the default topic display name as if the user has entered that
+          // when they left the input empty.
+          if (emptyTopicsSupported) {
+            hintText = store.realmEmptyTopicDisplayName;
+            hintStyle = topicTextStyle.copyWith(fontStyle: FontStyle.italic);
+          } else {
+            hintText = kNoTopicTopic;
+            hintStyle = topicTextStyle;
+          }
+      }
+    }
+
+    final decoration = InputDecoration(hintText: hintText, hintStyle: hintStyle);
 
     return TopicAutocomplete(
       streamId: widget.streamId,
@@ -706,10 +805,7 @@ class _TopicInputState extends State<_TopicInput> {
           focusNode: widget.controller.topicFocusNode,
           textInputAction: TextInputAction.next,
           style: topicTextStyle,
-          decoration: InputDecoration(
-            hintText: zulipLocalizations.composeBoxTopicHintText,
-            hintStyle: topicTextStyle.copyWith(
-              color: designVariables.textInput.withFadedAlpha(0.5))))));
+          decoration: decoration)));
   }
 }
 
@@ -1382,17 +1478,67 @@ sealed class ComposeBoxController {
   }
 }
 
+/// Represent how a user has interacted with topic and content inputs.
+///
+/// State-transition diagram:
+///
+/// ```
+///                       (default)
+///    Topic input            │          Content input
+///    lost focus.            ▼          gained focus.
+///   ┌────────────► notEditingNotChosen ────────────┐
+///   │                                 │            │
+///   │         Topic input             │            │
+///   │         gained focus.           │            │
+///   │       ◄─────────────────────────┘            ▼
+/// isEditing ◄───────────────────────────── hasChosen
+///   │         Focus moved from             ▲ │     ▲
+///   │         content to topic.            │ │     │
+///   │                                      │ │     │
+///   └──────────────────────────────────────┘ └─────┘
+///    Focus moved from                        Content input loses focus
+///    topic to content.                       without topic input gaining it.
+/// ```
+///
+/// This state machine offers the following invariants:
+/// - When topic input has focus, the status must be [isEditing].
+/// - When content input has focus, the status must be [hasChosen].
+/// - When neither input has focus, and content input was the last
+///   input among the two to be focused, the status must be [hasChosen].
+/// - Otherwise, the status must be [notEditingNotChosen].
+enum ComposeTopicInteractionStatus {
+  /// The topic has likely not been chosen if left empty,
+  /// and is not being actively edited.
+  ///
+  /// When in this status neither the topic input nor the content input has focus.
+  notEditingNotChosen,
+
+  /// The topic is being actively edited.
+  ///
+  /// When in this status, the topic input must have focus.
+  isEditing,
+
+  /// The topic has likely been chosen, even if it is left empty.
+  ///
+  /// When in this status, the topic input must have no focus;
+  /// the content input might have focus.
+  hasChosen,
+}
+
 class StreamComposeBoxController extends ComposeBoxController {
   StreamComposeBoxController({required PerAccountStore store})
     : topic = ComposeTopicController(store: store);
 
   final ComposeTopicController topic;
   final topicFocusNode = FocusNode();
+  final ValueNotifier<ComposeTopicInteractionStatus> topicInteractionStatus =
+    ValueNotifier(ComposeTopicInteractionStatus.notEditingNotChosen);
 
   @override
   void dispose() {
     topic.dispose();
     topicFocusNode.dispose();
+    topicInteractionStatus.dispose();
     super.dispose();
   }
 }
