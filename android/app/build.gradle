@@ -77,6 +77,7 @@ android {
         //   https://developer.android.com/reference/tools/gradle-api/8.5/com/android/build/api/dsl/Lint
         checkAllWarnings = true
         warningsAsErrors = true
+        baseline = file("lint-baseline.xml")
     }
 }
 
