@@ -550,6 +550,15 @@ String? tryParseEmojiCodeToUnicode(String emojiCode) {
   }
 }
 
+/// The topic servers understand to mean "there is no topic".
+///
+/// This should match
+///   https://github.com/zulip/zulip/blob/6.0/zerver/actions/message_edit.py#L940
+/// or similar logic at the latest `main`.
+// This is hardcoded in the server, and therefore untranslated; that's
+// zulip/zulip#3639.
+const String kNoTopicTopic = '(no topic)';
+
 /// The name of a Zulip topic.
 // TODO(dart): Can we forbid calling Object members on this extension type?
 //   (The lack of "implements Object" ought to do that, but doesn't.)
@@ -603,6 +612,33 @@ extension type const TopicName(String _value) {
   /// Whether [this] and [other] have the same canonical form,
   /// using [canonicalize].
   bool isSameAs(TopicName other) => canonicalize() == other.canonicalize();
+
+  /// Convert this topic to match how it would appear on a message object from
+  /// the server, assuming the topic is originally for a send-message request.
+  ///
+  /// For a client that does not support empty topics,
+  /// a modern server (FL>=334) would convert "(no topic)" and empty topics to
+  /// `store.realmEmptyTopicDisplayName`.
+  ///
+  /// See also: https://zulip.com/api/send-message#parameter-topic
+  TopicName interpretAsServer({
+    required int zulipFeatureLevel,
+    required String? realmEmptyTopicDisplayName,
+  }) {
+    assert(_value.trim() == _value);
+    // TODO(server-10) simplify this away
+    if (zulipFeatureLevel < 334) {
+      assert(_value.isNotEmpty);
+      return this;
+    }
+
+    if (_value == kNoTopicTopic || _value.isEmpty) {
+      // TODO(#1250): this assumes that the 'support_empty_topics'
+      //   client_capability is false; update this when we set it to true
+      return TopicName(realmEmptyTopicDisplayName!);
+    }
+    return TopicName(_value);
+  }
 
   TopicName.fromJson(this._value);
 
