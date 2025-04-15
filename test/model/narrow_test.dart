@@ -22,12 +22,40 @@ void main() {
     });
   });
 
+  group('ChannelNarrow', () {
+    test('containsMessage', () {
+      final stream = eg.stream();
+      final otherStream = eg.stream();
+      final narrow = ChannelNarrow(stream.streamId);
+      check(narrow.containsMessage(
+        eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamMessage(stream: otherStream, topic: 'topic'))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamMessage(stream: stream,      topic: 'topic'))).isTrue();
+    });
+  });
+
   group('TopicNarrow', () {
     test('ofMessage', () {
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
       final actual = TopicNarrow.ofMessage(message);
       check(actual).equals(TopicNarrow(stream.streamId, message.topic));
+    });
+
+    test('containsMessage', () {
+      final stream = eg.stream();
+      final otherStream = eg.stream();
+      final narrow = eg.topicNarrow(stream.streamId, 'topic');
+      check(narrow.containsMessage(
+        eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamMessage(stream: otherStream, topic: 'topic'))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamMessage(stream: stream,      topic: 'topic2'))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamMessage(stream: stream,      topic: 'topic'))).isTrue();
     });
   });
 
