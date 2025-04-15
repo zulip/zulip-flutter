@@ -411,10 +411,10 @@ packages:
     dependency: "direct dev"
     description:
       name: flutter_checks
-      sha256: b0a40b15d38436b7c08b83353e74b0569c1ec687bd81c9556091fbb8807c1b99
+      sha256: "800acdd6973e1306f65ef3b2287d91c0e45c8e64b696d593297c0c1c1e2740bc"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.1"
+    version: "0.1.2"
   flutter_color_models:
     dependency: "direct main"
     description:
@@ -666,10 +666,10 @@ packages:
     dependency: "direct dev"
     description:
       name: legacy_checks
-      sha256: b22e5b1ff55a14e8bd91acafbabff909e14829b73ca492dcdaf0fbbb70476079
+      sha256: "1322d6f15e27c214b225d32c9802cd8d312a0373a45efccf48e5e2bb42c7611b"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.0"
+    version: "0.1.1"
   lints:
     dependency: transitive
     description:

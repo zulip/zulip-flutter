@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 
 import 'channel_colors_checks.dart';
-import 'colors_checks.dart';
 
 void main() {
   group('ChannelColorSwatches', () {
