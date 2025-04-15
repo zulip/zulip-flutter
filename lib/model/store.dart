@@ -385,6 +385,12 @@ abstract class PerAccountStoreBase {
   /// This returns null if [reference] fails to parse as a URL.
   Uri? tryResolveUrl(String reference) => _tryResolveUrl(realmUrl, reference);
 
+  /// Always equal to `connection.zulipFeatureLevel`
+  /// and `account.zulipFeatureLevel`.
+  int get zulipFeatureLevel => connection.zulipFeatureLevel!;
+
+  String get zulipVersion => account.zulipVersion;
+
   ////////////////////////////////
   // Data attached to the self-account on the realm.
 
@@ -558,11 +564,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   ////////////////////////////////
   // Data attached to the realm or the server.
 
-  /// Always equal to `connection.zulipFeatureLevel`
-  /// and `account.zulipFeatureLevel`.
-  int get zulipFeatureLevel => connection.zulipFeatureLevel!;
-
-  String get zulipVersion => account.zulipVersion;
   final RealmWildcardMentionPolicy realmWildcardMentionPolicy; // TODO(#668): update this realm setting
   final bool realmMandatoryTopics;  // TODO(#668): update this realm setting
   /// For docs, please see [InitialSnapshot.realmWaitingPeriodThreshold].
