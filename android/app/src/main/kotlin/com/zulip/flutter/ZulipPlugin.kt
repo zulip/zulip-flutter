@@ -19,6 +19,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import androidx.core.net.toUri
 
 private const val TAG = "ZulipPlugin"
 
@@ -64,7 +65,7 @@ private class AndroidNotificationHost(val context: Context)
                 channel.name?.let { setName(it) }
                 channel.lightsEnabled?.let { setLightsEnabled(it) }
                 channel.soundUrl?.let {
-                    setSound(Uri.parse(it),
+                    setSound(it.toUri(),
                         AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).build())
                 }
                 channel.vibrationPattern?.let { setVibrationPattern(it) }
@@ -199,7 +200,7 @@ private class AndroidNotificationHost(val context: Context)
                     it.requestCode.toInt(),
                     it.intent.let { intent -> Intent(
                         intent.action,
-                        Uri.parse(intent.dataUrl),
+                        intent.dataUrl.toUri(),
                         context,
                         MainActivity::class.java
                     ).apply {
