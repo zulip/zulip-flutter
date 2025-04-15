@@ -1484,7 +1484,6 @@ class OutboxMessageWithPossibleSender extends StatelessWidget {
 
   final MessageListOutboxMessageItem item;
 
-  // TODO should we restore the topic as well?
   void _handlePress(BuildContext context) {
     final content = item.message.content.endsWith('\n')
       ? item.message.content : '${item.message.content}\n';
@@ -1494,6 +1493,13 @@ class OutboxMessageWithPossibleSender extends StatelessWidget {
     composeBoxController!.content.insertPadded(content);
     if (!composeBoxController.contentFocusNode.hasFocus) {
       composeBoxController.contentFocusNode.requestFocus();
+    }
+
+    if (composeBoxController case StreamComposeBoxController(:final topic)) {
+      final conversation = item.message.conversation;
+      if (conversation is StreamConversation) {
+        topic.setTopic(conversation.topic);
+      }
     }
 
     final store = PerAccountStoreWidget.of(context);
