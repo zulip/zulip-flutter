@@ -178,15 +178,6 @@ const int kMaxTopicLengthCodePoints = 60;
 // https://zulip.com/api/send-message#parameter-content
 const int kMaxMessageLengthCodePoints = 10000;
 
-/// The topic servers understand to mean "there is no topic".
-///
-/// This should match
-///   https://github.com/zulip/zulip/blob/6.0/zerver/actions/message_edit.py#L940
-/// or similar logic at the latest `main`.
-// This is hardcoded in the server, and therefore untranslated; that's
-// zulip/zulip#3639.
-const String kNoTopicTopic = '(no topic)';
-
 /// https://zulip.com/api/send-message
 Future<SendMessageResult> sendMessage(
   ApiConnection connection, {
