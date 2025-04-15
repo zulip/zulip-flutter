@@ -11,6 +11,7 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
+import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/localizations.dart';
@@ -1422,6 +1423,8 @@ void main() {
     final stream = eg.stream();
     const content = 'outbox message content';
 
+    final topicInputFinder = find.byWidgetPredicate(
+      (widget) => widget is TextField && widget.controller is ComposeTopicController);
     final contentInputFinder = find.byWidgetPredicate(
       (widget) => widget is TextField && widget.controller is ComposeContentController);
 
@@ -1472,7 +1475,32 @@ void main() {
         localMessageId: store.outboxMessages.keys.single));
     });
 
-    testWidgets('failed to send message, retrieve the content to compose box', (tester) async {
+    testWidgets('in channel narrow, failed to send message, retrieve both topic and content to compose box', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: ChannelNarrow(stream.streamId), streams: [stream],
+        messages: []);
+
+      connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+      await tester.enterText(topicInputFinder, 'test topic');
+      await sendMessageAndFail(tester);
+
+      final controller = tester.state<ComposeBoxState>(find.byType(ComposeBox)).controller;
+      controller as StreamComposeBoxController;
+      await tester.enterText(topicInputFinder, 'different topic');
+      check(controller.content).text.isNotNull().isEmpty();
+
+      // Tap the message.  This should put its content back into the compose box
+      // and remove it.
+      await tester.tap(outboxMessageFinder);
+      await tester.pump();
+      check(outboxMessageFinder).findsNothing();
+      check(controller.topic).text.equals('test topic');
+      check(controller.content).text.equals('$content\n\n');
+
+      await tester.pump(kLocalEchoDebounceDuration);
+    });
+
+    testWidgets('in topic narrow, failed to send message, retrieve the content to compose box', (tester) async {
       await setupMessageListPage(tester,
         narrow: eg.topicNarrow(stream.streamId, 'topic'), streams: [stream],
         messages: []);

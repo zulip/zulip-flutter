@@ -1616,7 +1616,6 @@ class OutboxMessageWithPossibleSender extends StatelessWidget {
 
   final MessageListOutboxMessageItem item;
 
-  // TODO restore the topic too
   void _handlePress(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     assert(store.outboxMessages.containsKey(item.message.localMessageId));
@@ -1630,6 +1629,13 @@ class OutboxMessageWithPossibleSender extends StatelessWidget {
     composeBoxController.content.insertPadded(content);
     if (!composeBoxController.contentFocusNode.hasFocus) {
       composeBoxController.contentFocusNode.requestFocus();
+    }
+
+    if (composeBoxController case StreamComposeBoxController(:final topic)) {
+      final conversation = message.conversation;
+      if (conversation is StreamConversation) {
+        topic.setTopic(conversation.topic);
+      }
     }
   }
 
