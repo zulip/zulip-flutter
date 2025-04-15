@@ -30,6 +30,10 @@ extension ErrorChecks on Subject<Error> {
   Subject<String> get asString => has((x) => x.toString(), 'toString'); // TODO(checks): what's a good convention for this?
 }
 
+extension StackTraceChecks on Subject<StackTrace> {
+  Subject<String> get asString => has((x) => x.toString(), 'toString'); 
+}
+
 /// Convert [object] to a pure JSON-like value.
 ///
 /// The result is similar to `jsonDecode(jsonEncode(object))`, but without
