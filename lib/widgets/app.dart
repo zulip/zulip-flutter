@@ -10,6 +10,7 @@ import '../model/actions.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
 import '../notifications/display.dart';
+import '../notifications/open.dart';
 import 'about_zulip.dart';
 import 'dialog.dart';
 import 'home.dart';
@@ -202,6 +203,31 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     ];
   }
 
+  List<Route<dynamic>> _handleGenerateInitialRoutesIos(_) {
+    // The `_ZulipAppState.context` lacks the required ancestors. Instead
+    // we use the Navigator which should be available when this callback is
+    // called and its context should have the required ancestors.
+    final context = ZulipApp.navigatorKey.currentContext!;
+
+    final route = NotificationOpenManager.instance.routeForNotificationFromLaunch(context: context);
+    if (route != null) {
+      return [
+        HomePage.buildRoute(accountId: route.accountId),
+        route,
+      ];
+    }
+
+    final globalStore = GlobalStoreWidget.of(context);
+    // TODO(#524) choose initial account as last one used
+    final initialAccountId = globalStore.accounts.firstOrNull?.id;
+    return [
+      if (initialAccountId == null)
+        MaterialWidgetRoute(page: const ChooseAccountPage())
+      else
+        HomePage.buildRoute(accountId: initialAccountId),
+    ];
+  }
+
   @override
   Future<bool> didPushRouteInformation(routeInformation) async {
     switch (routeInformation.uri) {
@@ -218,6 +244,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return GlobalStoreWidget(
+      blockingFuture: NotificationOpenManager.instance.initializationFuture,
       child: Builder(builder: (context) {
         return MaterialApp(
           onGenerateTitle: (BuildContext context) {
@@ -252,8 +279,10 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
           // handles startup, and then we always push whole routes with methods
           // like [Navigator.push], never mere names as with [Navigator.pushNamed].
           onGenerateRoute: (_) => null,
-
-          onGenerateInitialRoutes: _handleGenerateInitialRoutes);
+          // TODO migrate Android's handling to the new Pigeon API.
+          onGenerateInitialRoutes: defaultTargetPlatform == TargetPlatform.iOS
+            ? _handleGenerateInitialRoutesIos
+            : _handleGenerateInitialRoutes);
       }));
   }
 }
