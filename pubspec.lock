@@ -33,6 +33,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.2.0"
+  archive:
+    dependency: "direct main"
+    description:
+      name: archive
+      sha256: "7dcbd0f87fe5f61cb28da39a1a8b70dbc106e2fe0516f7836eb7bb2948481a12"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.5"
   args:
     dependency: "direct dev"
     description:
@@ -854,6 +862,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.1"
+  posix:
+    dependency: transitive
+    description:
+      name: posix
+      sha256: a0117dc2167805aa9125b82eee515cc891819bac2f538c83646d355b16f58b9a
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.1"
   powers:
     dependency: transitive
     description:
