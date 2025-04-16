@@ -22,6 +22,7 @@ import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/content_test.dart';
+import '../model/store_checks.dart';
 import '../model/test_store.dart';
 import '../stdlib_checks.dart';
 import '../test_images.dart';
@@ -553,7 +554,27 @@ void main() {
       styleFinder: (tester) => mergedStyleOf(tester, 'A')!);
   });
 
-  testContentSmoke(ContentExample.mathBlock);
+  group('MathBlock', () {
+    testContentSmoke(ContentExample.mathBlock);
+
+    testWidgets('displays TeX source; experimental flag default', (tester) async {
+      final globalSettings = testBinding.globalStore.settings;
+      await globalSettings.setBool(BoolGlobalSetting.renderKatex, null);
+      check(globalSettings).getBool(BoolGlobalSetting.renderKatex).isFalse();
+
+      await prepareContent(tester, plainContent(ContentExample.mathBlock.html));
+      tester.widget(find.text(r'\lambda', findRichText: true));
+    });
+
+    testWidgets('displays TeX source; experimental flag enabled', (tester) async {
+      final globalSettings = testBinding.globalStore.settings;
+      await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
+      check(globalSettings).getBool(BoolGlobalSetting.renderKatex).isTrue();
+
+      await prepareContent(tester, plainContent(ContentExample.mathBlock.html));
+      tester.widget(find.text('λ', findRichText: true));
+    });
+  });
 
   /// Make a [TargetFontSizeFinder] to pass to [checkFontSizeRatio],
   /// from a target [Pattern] (such as a string).
@@ -968,6 +989,24 @@ void main() {
       await checkFontSizeRatio(tester,
         targetHtml: html,
         targetFontSizeFinder: mkTargetFontSizeFinderFromPattern(r'\lambda'));
+    });
+
+    testWidgets('displays TeX source; experimental flag default', (tester) async {
+      final globalSettings = testBinding.globalStore.settings;
+      await globalSettings.setBool(BoolGlobalSetting.renderKatex, null);
+      check(globalSettings.getBool(BoolGlobalSetting.renderKatex)).isFalse();
+
+      await prepareContent(tester, plainContent(ContentExample.mathInline.html));
+      tester.widget(find.text(r'\lambda', findRichText: true));
+    });
+
+    testWidgets('displays TeX source; experimental flag enabled', (tester) async {
+      final globalSettings = testBinding.globalStore.settings;
+      await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
+      check(globalSettings.getBool(BoolGlobalSetting.renderKatex)).isTrue();
+
+      await prepareContent(tester, plainContent(ContentExample.mathInline.html));
+      tester.widget(find.text('λ', findRichText: true));
     });
   });
 

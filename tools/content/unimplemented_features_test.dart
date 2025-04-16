@@ -12,6 +12,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/model/content.dart';
 
+import '../../test/model/binding.dart';
 import 'model.dart';
 
 /// Check if there are unimplemented features from the given corpora of HTML
@@ -33,6 +34,11 @@ import 'model.dart';
 /// * lib/model/content.dart, which implements of the content parser.
 /// * tools/content/fetch_messages.dart, which produces the corpora.
 void main() async {
+  // Parsing the HTML content depends on `ZulipBinding` being initialized,
+  // specifically KaTeX content parser retrieves the `GlobalSettings` to
+  // for the experimental flag.
+  TestZulipBinding.ensureInitialized();
+
   Future<void> checkForUnimplementedFeaturesInFile(File file) async {
     final messageIdsByFeature = <String, Set<int>>{};
     final contentsByFeature = <String, List<String>>{};
