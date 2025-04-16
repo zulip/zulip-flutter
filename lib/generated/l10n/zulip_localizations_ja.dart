@@ -686,4 +686,7 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get zulipAppTitle => 'Zulip';
+
+  @override
+  String get composeBoxAttachGlobalTimeTooltip => 'Attach a global time';
 }
