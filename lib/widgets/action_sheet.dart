@@ -765,54 +765,6 @@ class StarButton extends MessageActionSheetMenuItemButton {
   }
 }
 
-/// Fetch and return the raw Markdown content for [messageId],
-/// showing an error dialog on failure.
-Future<String?> fetchRawContentWithFeedback({
-  required BuildContext context,
-  required int messageId,
-  required String errorDialogTitle,
-}) async {
-    Message? fetchedMessage;
-    String? errorMessage;
-    // TODO, supported by reusable code:
-    // - (?) Retry with backoff on plausibly transient errors.
-    // - If request(s) take(s) a long time, show snackbar with cancel
-    //   button, like "Still working on quote-and-reply…".
-    //   On final failure or success, auto-dismiss the snackbar.
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    try {
-      fetchedMessage = await getMessageCompat(PerAccountStoreWidget.of(context).connection,
-        messageId: messageId,
-        applyMarkdown: false,
-      );
-      if (fetchedMessage == null) {
-        errorMessage = zulipLocalizations.errorMessageDoesNotSeemToExist;
-      }
-    } catch (e) {
-      switch (e) {
-        case ZulipApiException():
-          errorMessage = e.message;
-        // TODO specific messages for common errors, like network errors
-        //   (support with reusable code)
-        default:
-          errorMessage = zulipLocalizations.errorCouldNotFetchMessageSource;
-      }
-    }
-
-    if (!context.mounted) return null;
-
-    if (fetchedMessage == null) {
-      assert(errorMessage != null);
-      // TODO(?) give no feedback on error conditions we expect to
-      //   flag centrally in event polling, like invalid auth,
-      //   user/realm deactivated. (Support with reusable code.)
-      showErrorDialog(context: context,
-        title: errorDialogTitle, message: errorMessage);
-    }
-
-    return fetchedMessage?.content;
-}
-
 class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
   QuoteAndReplyButton({super.key, required super.message, required super.pageContext});
 
@@ -849,7 +801,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
         message: message,
       );
 
-    final rawContent = await fetchRawContentWithFeedback(
+    final rawContent = await ZulipAction.fetchRawContentWithFeedback(
       context: pageContext,
       messageId: message.id,
       errorDialogTitle: zulipLocalizations.errorQuotationFailed,
@@ -901,12 +853,13 @@ class CopyMessageTextButton extends MessageActionSheetMenuItemButton {
 
   @override void onPressed() async {
     // This action doesn't show request progress.
-    // But hopefully it won't take long at all; and
-    // fetchRawContentWithFeedback has a TODO for giving feedback if it does.
+    // But hopefully it won't take long at all,
+    // and [ZulipAction.fetchRawContentWithFeedback] has a TODO
+    // for giving feedback if it does.
 
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
 
-    final rawContent = await fetchRawContentWithFeedback(
+    final rawContent = await ZulipAction.fetchRawContentWithFeedback(
       context: pageContext,
       messageId: message.id,
       errorDialogTitle: zulipLocalizations.errorCopyingFailed,
@@ -973,7 +926,7 @@ class ShareButton extends MessageActionSheetMenuItemButton {
 
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
 
-    final rawContent = await fetchRawContentWithFeedback(
+    final rawContent = await ZulipAction.fetchRawContentWithFeedback(
       context: pageContext,
       messageId: message.id,
       errorDialogTitle: zulipLocalizations.errorSharingFailed,

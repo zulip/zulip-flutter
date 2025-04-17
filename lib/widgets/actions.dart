@@ -240,6 +240,54 @@ abstract final class ZulipAction {
         return;
     }
   }
+
+  /// Fetch and return the raw Markdown content for [messageId],
+  /// showing an error dialog on failure.
+  static Future<String?> fetchRawContentWithFeedback({
+    required BuildContext context,
+    required int messageId,
+    required String errorDialogTitle,
+  }) async {
+    Message? fetchedMessage;
+    String? errorMessage;
+    // TODO, supported by reusable code:
+    // - (?) Retry with backoff on plausibly transient errors.
+    // - If request(s) take(s) a long time, show snackbar with cancel
+    //   button, like "Still working on quote-and-reply…".
+    //   On final failure or success, auto-dismiss the snackbar.
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    try {
+      fetchedMessage = await getMessageCompat(PerAccountStoreWidget.of(context).connection,
+        messageId: messageId,
+        applyMarkdown: false,
+      );
+      if (fetchedMessage == null) {
+        errorMessage = zulipLocalizations.errorMessageDoesNotSeemToExist;
+      }
+    } catch (e) {
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+        // TODO specific messages for common errors, like network errors
+        //   (support with reusable code)
+        default:
+          errorMessage = zulipLocalizations.errorCouldNotFetchMessageSource;
+      }
+    }
+
+    if (!context.mounted) return null;
+
+    if (fetchedMessage == null) {
+      assert(errorMessage != null);
+      // TODO(?) give no feedback on error conditions we expect to
+      //   flag centrally in event polling, like invalid auth,
+      //   user/realm deactivated. (Support with reusable code.)
+      showErrorDialog(context: context,
+        title: errorDialogTitle, message: errorMessage);
+    }
+
+    return fetchedMessage?.content;
+  }
 }
 
 /// Methods that act through platform APIs and show feedback in the UI.
