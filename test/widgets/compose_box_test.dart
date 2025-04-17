@@ -28,6 +28,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/store_checks.dart';
 import '../model/test_store.dart';
 import '../model/typing_status_test.dart';
 import '../stdlib_checks.dart';
@@ -58,14 +59,14 @@ void main() {
     zulipFeatureLevel ??= eg.futureZulipFeatureLevel;
     final selfAccount = eg.account(user: selfUser, zulipFeatureLevel: zulipFeatureLevel);
     await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
+      realmUsers: [selfUser, ...otherUsers],
+      streams: streams,
       zulipFeatureLevel: zulipFeatureLevel,
       realmMandatoryTopics: mandatoryTopics,
     ));
 
     store = await testBinding.globalStore.perAccount(selfAccount.id);
 
-    await store.addUsers([selfUser, ...otherUsers]);
-    await store.addStreams(streams);
     connection = store.connection as FakeApiConnection;
 
     await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
@@ -109,6 +110,11 @@ void main() {
   /// Set the content input's text to [content], using [WidgetTester.enterText].
   Future<void> enterContent(WidgetTester tester, String content) async {
     await tester.enterText(contentInputFinder, content);
+  }
+
+  void checkContentInputValue(WidgetTester tester, String expected) {
+    check(tester.widget<TextField>(contentInputFinder))
+      .controller.isNotNull().value.text.equals(expected);
   }
 
   Future<void> tapSendButton(WidgetTester tester) async {
@@ -1237,6 +1243,41 @@ void main() {
       await prepareComposeBox(tester, narrow: narrow, streams: [stream]);
       await checkContentInputMaxHeight(tester,
         maxHeight: verticalPadding + 170 * 1.5, maxVisibleLines: 6);
+    });
+  });
+
+  group('ComposeBoxState new-event-queue transition', () {
+    testWidgets('content input not cleared when store changes', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/1470
+
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
+      final channel = eg.stream();
+      await prepareComposeBox(tester,
+        narrow: eg.topicNarrow(channel.streamId, 'topic'), streams: [channel]);
+
+      await enterContent(tester, 'some content');
+      checkContentInputValue(tester, 'some content');
+
+      store.updateMachine!
+        ..debugPauseLoop()
+        ..poll()
+        ..debugPrepareLoopError(
+            eg.apiExceptionBadEventQueueId(queueId: store.queueId))
+        ..debugAdvanceLoop();
+      await tester.pump();
+
+      final newStore = testBinding.globalStore.perAccountSync(store.accountId)!;
+      check(newStore)
+        // a new store has replaced the old one
+        ..not((it) => it.identicalTo(store))
+        // new store has the same boring data, in order to present a compose box
+        // that allows composing, instead of a no-posting-permission banner
+        ..accountId.equals(store.accountId)
+        ..streams.containsKey(channel.streamId);
+
+      checkContentInputValue(tester, 'some content');
     });
   });
 }

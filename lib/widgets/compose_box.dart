@@ -1523,14 +1523,26 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   @override
   void onNewStore() {
+    final newStore = PerAccountStoreWidget.of(context);
+
+    final controller = _controller;
+    if (controller == null) {
+      _setNewController(newStore);
+      return;
+    }
+
+    switch (controller) {
+      case StreamComposeBoxController():
+        controller.topic.store = newStore;
+      case FixedDestinationComposeBoxController():
+        // no reference to the store that needs updating
+    }
+  }
+
+  void _setNewController(PerAccountStore store) {
     switch (widget.narrow) {
       case ChannelNarrow():
-        final store = PerAccountStoreWidget.of(context);
-        if (_controller == null) {
-          _controller = StreamComposeBoxController(store: store);
-        } else {
-          (controller as StreamComposeBoxController).topic.store = store;
-        }
+        _controller = StreamComposeBoxController(store: store);
       case TopicNarrow():
       case DmNarrow():
         _controller = FixedDestinationComposeBoxController();
