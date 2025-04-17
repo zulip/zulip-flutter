@@ -360,37 +360,39 @@ void main() {
     });
   });
 
-  test('MessageEvent', () async {
-    final stream = eg.stream();
-    await prepare(narrow: ChannelNarrow(stream.streamId));
-    await prepareMessages(foundOldest: true, messages:
-      List.generate(30, (i) => eg.streamMessage(stream: stream)));
+  group('MessageEvent', () {
+    test('in narrow', () async {
+      final stream = eg.stream();
+      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepareMessages(foundOldest: true, messages:
+        List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
-    check(model).messages.length.equals(30);
-    await store.addMessage(eg.streamMessage(stream: stream));
-    checkNotifiedOnce();
-    check(model).messages.length.equals(31);
-  });
+      check(model).messages.length.equals(30);
+      await store.addMessage(eg.streamMessage(stream: stream));
+      checkNotifiedOnce();
+      check(model).messages.length.equals(31);
+    });
 
-  test('MessageEvent, not in narrow', () async {
-    final stream = eg.stream();
-    await prepare(narrow: ChannelNarrow(stream.streamId));
-    await prepareMessages(foundOldest: true, messages:
-      List.generate(30, (i) => eg.streamMessage(stream: stream)));
+    test('not in narrow', () async {
+      final stream = eg.stream();
+      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepareMessages(foundOldest: true, messages:
+        List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
-    check(model).messages.length.equals(30);
-    final otherStream = eg.stream();
-    await store.addMessage(eg.streamMessage(stream: otherStream));
-    checkNotNotified();
-    check(model).messages.length.equals(30);
-  });
+      check(model).messages.length.equals(30);
+      final otherStream = eg.stream();
+      await store.addMessage(eg.streamMessage(stream: otherStream));
+      checkNotNotified();
+      check(model).messages.length.equals(30);
+    });
 
-  test('MessageEvent, before fetch', () async {
-    final stream = eg.stream();
-    await prepare(narrow: ChannelNarrow(stream.streamId));
-    await store.addMessage(eg.streamMessage(stream: stream));
-    checkNotNotified();
-    check(model).fetched.isFalse();
+    test('before fetch', () async {
+      final stream = eg.stream();
+      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await store.addMessage(eg.streamMessage(stream: stream));
+      checkNotNotified();
+      check(model).fetched.isFalse();
+    });
   });
 
   group('UserTopicEvent', () {
@@ -2001,11 +2003,15 @@ extension MessageListDateSeparatorItemChecks on Subject<MessageListDateSeparator
   Subject<MessageBase> get message => has((x) => x.message, 'message');
 }
 
-extension MessageListMessageItemChecks on Subject<MessageListMessageItem> {
-  Subject<Message> get message => has((x) => x.message, 'message');
+extension MessageListMessageBaseItemChecks on Subject<MessageListMessageBaseItem> {
+  Subject<MessageBase> get message => has((x) => x.message, 'message');
   Subject<ZulipMessageContent> get content => has((x) => x.content, 'content');
   Subject<bool> get showSender => has((x) => x.showSender, 'showSender');
   Subject<bool> get isLastInBlock => has((x) => x.isLastInBlock, 'isLastInBlock');
+}
+
+extension MessageListMessageItemChecks on Subject<MessageListMessageItem> {
+  Subject<Message> get message => has((x) => x.message, 'message');
 }
 
 extension MessageListViewChecks on Subject<MessageListView> {
