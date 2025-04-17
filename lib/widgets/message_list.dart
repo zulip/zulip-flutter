@@ -149,10 +149,10 @@ abstract class MessageListPageState {
   /// The narrow for this page's message list.
   Narrow get narrow;
 
-  /// The controller for this [MessageListPage]'s compose box,
+  /// The [ComposeBoxState] for this [MessageListPage]'s compose box,
   /// if this [MessageListPage] offers a compose box and it has mounted,
   /// else null.
-  ComposeBoxController? get composeBoxController;
+  ComposeBoxState? get composeBoxState;
 
   /// The active [MessageListView].
   ///
@@ -192,7 +192,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
   late Narrow narrow;
 
   @override
-  ComposeBoxController? get composeBoxController => _composeBoxKey.currentState?.controller;
+  ComposeBoxState? get composeBoxState => _composeBoxKey.currentState;
   final GlobalKey<ComposeBoxState> _composeBoxKey = GlobalKey();
 
   @override

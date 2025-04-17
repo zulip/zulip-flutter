@@ -136,20 +136,20 @@ void main() {
       check(state.narrow).equals(ChannelNarrow(stream.streamId));
     });
 
-    testWidgets('composeBoxController finds compose box', (tester) async {
+    testWidgets('composeBoxState finds compose box', (tester) async {
       final stream = eg.stream();
       await setupMessageListPage(tester, narrow: ChannelNarrow(stream.streamId),
         streams: [stream],
         messages: [eg.streamMessage(stream: stream, content: "<p>a message</p>")]);
       final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
-      check(state.composeBoxController).isNotNull();
+      check(state.composeBoxState).isNotNull();
     });
 
-    testWidgets('composeBoxController null when no compose box', (tester) async {
+    testWidgets('composeBoxState null when no compose box', (tester) async {
       await setupMessageListPage(tester, narrow: const CombinedFeedNarrow(),
         messages: [eg.streamMessage(content: "<p>a message</p>")]);
       final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
-      check(state.composeBoxController).isNull();
+      check(state.composeBoxState).isNull();
     });
 
     testWidgets('dispose MessageListView when event queue expired', (tester) async {
@@ -256,7 +256,7 @@ void main() {
       // Verify this message list lacks a compose box.
       // (The original bug wouldn't reproduce with a compose box present.)
       final state = MessageListPage.ancestorOf(tester.element(find.text("verb\natim")));
-      check(state.composeBoxController).isNull();
+      check(state.composeBoxState).isNull();
 
       final element = tester.element(find.byType(CodeBlock));
       final padding = MediaQuery.of(element).padding;

@@ -562,7 +562,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   // So we rely on the fact that isComposeBoxOffered for any given message list
   // will be constant through the page's life.
   final messageListPage = MessageListPage.ancestorOf(pageContext);
-  final isComposeBoxOffered = messageListPage.composeBoxController != null;
+  final isComposeBoxOffered = messageListPage.composeBoxState != null;
 
   final isMessageRead = message.flags.contains(MessageFlag.read);
   final markAsUnreadSupported = store.zulipFeatureLevel >= 155; // TODO(server-6)
@@ -827,7 +827,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
     final message = this.message;
 
-    var composeBoxController = findMessageListPage().composeBoxController;
+    var composeBoxController = findMessageListPage().composeBoxState?.controller;
     // The compose box doesn't null out its controller; it's either always null
     // (e.g. in Combined Feed) or always non-null; it can't have been nulled out
     // after the action sheet opened.
@@ -857,7 +857,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
 
     if (!pageContext.mounted) return;
 
-    composeBoxController = findMessageListPage().composeBoxController;
+    composeBoxController = findMessageListPage().composeBoxState?.controller;
     // The compose box doesn't null out its controller; it's either always null
     // (e.g. in Combined Feed) or always non-null; it can't have been nulled out
     // during the raw-content request.
