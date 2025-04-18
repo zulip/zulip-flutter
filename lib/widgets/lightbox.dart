@@ -484,7 +484,7 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
         context: context,
         title: zulipLocalizations.errorDialogTitle,
         message: zulipLocalizations.errorVideoPlayerFailed);
-      await dialog.closed;
+      await dialog.result;
       if (!mounted) return;
       Navigator.pop(context); // Pops the lightbox
     }

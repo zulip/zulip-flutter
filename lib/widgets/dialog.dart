@@ -22,16 +22,16 @@ Widget _dialogActionText(String text) {
 /// See also:
 ///  * [showDialog], whose return value this class is intended to wrap.
 class DialogStatus {
-  const DialogStatus(this.closed);
+  const DialogStatus(this.result);
 
   /// Resolves when the dialog is closed.
-  final Future<void> closed;
+  final Future<void> result;
 }
 
 /// Displays an [AlertDialog] with a dismiss button
 /// and optional "Learn more" button.
 ///
-/// The [DialogStatus.closed] field of the return value can be used
+/// The [DialogStatus.result] field of the return value can be used
 /// for waiting for the dialog to be closed.
 // This API is inspired by [ScaffoldManager.showSnackBar].  We wrap
 // [showDialog]'s return value, a [Future], inside [DialogStatus]
