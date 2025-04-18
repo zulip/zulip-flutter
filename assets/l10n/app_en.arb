@@ -375,6 +375,10 @@
   "@unknownChannelName": {
     "description": "Replacement name for channel when it cannot be found in the store."
   },
+  "channelArchivedLabel": "(archived)",
+  "@channelArchivedLabel": {
+    "description": "Label shown next to an archived channel's name in headers."
+  },
   "composeBoxTopicHintText": "Topic",
   "@composeBoxTopicHintText":  {
     "description": "Hint text for topic input widget in compose box."
