@@ -703,7 +703,7 @@ class ScrollToBottomButton extends StatelessWidget {
     return scrollController.animateTo(
       target,
       duration: Duration(milliseconds: durationMs),
-      curve: Curves.ease);
+      curve: Curves.linear);
   }
 
   @override
