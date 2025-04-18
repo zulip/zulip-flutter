@@ -511,8 +511,8 @@ void main() {
       check(isButtonVisible(tester)).equals(false);
     });
 
-    testWidgets('scrolls at reasonable speed', (tester) async {
-      const referenceSpeed = 8000.0;
+    testWidgets('scrolls at reasonable, constant speed', (tester) async {
+      const maxSpeed = 8000.0;
       const distance = 40000.0;
       await setupMessageListPage(tester, messageCount: 1000);
       final controller = findMessageListScrollController(tester)!;
@@ -536,9 +536,10 @@ void main() {
         pos = controller.position.pixels;
         log.add(pos - lastPos);
       }
-      // Check the main question: the speed stayed in range throughout.
-      const maxSpeed = 2 * referenceSpeed;
-      check(log).every((it) => it..isGreaterThan(0)..isLessThan(maxSpeed));
+      // Check the main question: the speed was as expected throughout.
+      check(log.slice(0, log.length-1)).every((it) => it.equals(maxSpeed));
+      check(log).last..isGreaterThan(0)..isLessOrEqual(maxSpeed);
+
       // Also check the test's assumptions: the scroll reached the end…
       check(pos).equals(0);
       // … and scrolled far enough to effectively test the max speed.
