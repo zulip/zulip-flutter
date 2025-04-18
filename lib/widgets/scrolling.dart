@@ -43,6 +43,21 @@ class _SingleChildScrollViewWithScrollbarState
   }
 }
 
+/// An activity that animates a scroll view smoothly to its end.
+///
+/// In particular this drives the "scroll to bottom" button
+/// in the Zulip message list.
+class ScrollToEndActivity extends DrivenScrollActivity {
+  ScrollToEndActivity(
+    super.delegate, {
+    required super.from,
+    required super.to,
+    required super.duration,
+    required super.curve,
+    required super.vsync,
+  });
+}
+
 /// A version of [ScrollPosition] adapted for the Zulip message list,
 /// used by [MessageListScrollController].
 class MessageListScrollPosition extends ScrollPositionWithSingleContext {
@@ -217,7 +232,7 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
     final durationSec = math.max(durationSecAtSpeedLimit,
       minDuration.inMilliseconds / 1000.0);
     final duration = Duration(milliseconds: (durationSec * 1000.0).ceil());
-    beginActivity(DrivenScrollActivity(this, vsync: context.vsync,
+    beginActivity(ScrollToEndActivity(this, vsync: context.vsync,
       from: pixels, to: target, duration: duration, curve: Curves.linear));
   }
 }

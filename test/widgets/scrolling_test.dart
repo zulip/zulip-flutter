@@ -204,7 +204,7 @@ void main() {
         position.scrollToEnd();
         await tester.pump();
         check(position.extentAfter).equals(300);
-        check(position.activity).isA<DrivenScrollActivity>();
+        check(position.activity).isA<ScrollToEndActivity>();
 
         // The scrolling moves at a stately pace; …
         await tester.pump(Duration(milliseconds: 100));
@@ -236,7 +236,7 @@ void main() {
         // Start scrolling to end.
         position.scrollToEnd();
         await tester.pump();
-        check(position.activity).isA<DrivenScrollActivity>();
+        check(position.activity).isA<ScrollToEndActivity>();
 
         // Let it scroll, plotting the trajectory.
         final log = <double>[];
