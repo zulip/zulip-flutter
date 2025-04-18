@@ -466,7 +466,7 @@ class MessageList extends StatefulWidget {
 
 class _MessageListState extends State<MessageList> with PerAccountStoreAwareStateMixin<MessageList> {
   MessageListView? model;
-  final ScrollController scrollController = ScrollController();
+  final ScrollController scrollController = MessageListScrollController();
   final ValueNotifier<bool> _scrollToBottomVisibleValue = ValueNotifier<bool>(false);
 
   @override
@@ -622,7 +622,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           if (i == 2) return TypingStatusWidget(narrow: widget.narrow);
 
           final data = model!.items[length - 1 - (i - 3)];
-          return _buildItem(zulipLocalizations, data, i);
+          return _buildItem(zulipLocalizations, data);
         }));
 
     if (!ComposeBox.hasComposeBox(widget.narrow)) {
@@ -631,7 +631,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       sliver = SliverSafeArea(sliver: sliver);
     }
 
-    return CustomPaintOrderScrollView(
+    return MessageListScrollView(
       // TODO: Offer `ScrollViewKeyboardDismissBehavior.interactive` (or
       //   similar) if that is ever offered:
       //     https://github.com/flutter/flutter/issues/57609#issuecomment-1355340849
@@ -645,7 +645,6 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
       controller: scrollController,
       semanticChildCount: length + 2,
-      anchor: 1.0,
       center: centerSliverKey,
       paintOrder: SliverPaintOrder.firstIsTop,
 
@@ -659,7 +658,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       ]);
   }
 
-  Widget _buildItem(ZulipLocalizations zulipLocalizations, MessageListItem data, int i) {
+  Widget _buildItem(ZulipLocalizations zulipLocalizations, MessageListItem data) {
     switch (data) {
       case MessageListHistoryStartItem():
         return Center(
@@ -685,7 +684,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         return MessageItem(
           key: ValueKey(data.message.id),
           header: header,
-          trailingWhitespace: i == 1 ? 8 : 11,
+          trailingWhitespace: 11,
           item: data);
     }
   }
