@@ -296,6 +296,44 @@ void main() {
 
         debugDefaultTargetPlatformOverride = null;
       });
+
+      testWidgets('on overscroll, stop', (tester) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        await prepare(tester, topHeight: 400, bottomHeight: 1000);
+
+        // Scroll up…
+        position.jumpTo(400);
+        await tester.pump();
+        check(position.extentAfter).equals(600);
+
+        // … then invoke `scrollToEnd`…
+        position.scrollToEnd();
+        await tester.pump();
+
+        // … but have the bottom sliver turn out to be shorter than it was.
+        await prepare(tester, topHeight: 400, bottomHeight: 600,
+          reuseController: true);
+        check(position.extentAfter).equals(200);
+
+        // Let the scrolling animation proceed until it hits the end.
+        int steps = 0;
+        while (position.extentAfter > 0) {
+          check(++steps).isLessThan(100);
+          await tester.pump(Duration(milliseconds: 11));
+        }
+
+        // This is the very first frame where the position reached the end.
+        // It's at exactly the end, no farther…
+        check(position.pixels - position.maxScrollExtent).equals(0);
+
+        // … and the animation is done.  Nothing further happens.
+        check(position.activity).isA<IdleScrollActivity>();
+        await tester.pump(Duration(milliseconds: 11));
+        check(position.pixels - position.maxScrollExtent).equals(0);
+        check(position.activity).isA<IdleScrollActivity>();
+
+        debugDefaultTargetPlatformOverride = null;
+      });
     });
   });
 }
