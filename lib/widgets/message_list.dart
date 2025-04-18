@@ -466,7 +466,7 @@ class MessageList extends StatefulWidget {
 
 class _MessageListState extends State<MessageList> with PerAccountStoreAwareStateMixin<MessageList> {
   MessageListView? model;
-  final ScrollController scrollController = ScrollController();
+  final ScrollController scrollController = MessageListScrollController();
   final ValueNotifier<bool> _scrollToBottomVisibleValue = ValueNotifier<bool>(false);
 
   @override
@@ -583,11 +583,18 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   Widget _buildListView(BuildContext context) {
+    const bottomSize = 1;
     final length = model!.items.length;
+    final bottomLength = length <= bottomSize ? length : bottomSize;
+    final topLength = length - bottomLength;
     const centerSliverKey = ValueKey('center sliver');
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    Widget sliver = SliverStickyHeaderList(
+    // TODO(#311) If we have a bottom nav, it will pad the bottom inset,
+    //   and this can be removed; also remove mention in MessageList dartdoc
+    final needSafeArea = !ComposeBox.hasComposeBox(widget.narrow);
+
+    final topSliver = SliverStickyHeaderList(
       headerPlacement: HeaderPlacement.scrollingStart,
       delegate: SliverChildBuilderDelegate(
         // To preserve state across rebuilds for individual [MessageItem]
@@ -609,29 +616,63 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           final valueKey = key as ValueKey<int>;
           final index = model!.findItemWithMessageId(valueKey.value);
           if (index == -1) return null;
-          return length - 1 - (index - 3);
+          final i = length - 1 - (index + bottomLength);
+          if (i < 0) return null;
+          return i;
         },
-        childCount: length + 3,
+        childCount: topLength,
+        (context, i) {
+          final data = model!.items[length - 1 - (i + bottomLength)];
+          final item = _buildItem(zulipLocalizations, data);
+          return item;
+        }));
+
+    Widget bottomSliver = SliverStickyHeaderList(
+      key: needSafeArea ? null : centerSliverKey,
+      headerPlacement: HeaderPlacement.scrollingStart,
+      delegate: SliverChildBuilderDelegate(
+        // To preserve state across rebuilds for individual [MessageItem]
+        // widgets as the size of [MessageListView.items] changes we need
+        // to match old widgets by their key to their new position in
+        // the list.
+        //
+        // The keys are of type [ValueKey] with a value of [Message.id]
+        // and here we use a O(log n) binary search method. This could
+        // be improved but for now it only triggers for materialized
+        // widgets. As a simple test, flinging through All Messages in
+        // CZO on a Pixel 5, this only runs about 10 times per rebuild
+        // and the timing for each call is <100 microseconds.
+        //
+        // Non-message items (e.g., start and end markers) that do not
+        // have state that needs to be preserved have not been given keys
+        // and will not trigger this callback.
+        findChildIndexCallback: (Key key) {
+          final valueKey = key as ValueKey<int>;
+          final index = model!.findItemWithMessageId(valueKey.value);
+          if (index == -1) return null;
+          final i = index - topLength;
+          if (i < 0) return null;
+          return i;
+        },
+        childCount: bottomLength + 3,
         (context, i) {
           // To reinforce that the end of the feed has been reached:
           //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
-          if (i == 0) return const SizedBox(height: 36);
+          if (i == bottomLength + 2) return const SizedBox(height: 36);
 
-          if (i == 1) return MarkAsReadWidget(narrow: widget.narrow);
+          if (i == bottomLength + 1) return MarkAsReadWidget(narrow: widget.narrow);
 
-          if (i == 2) return TypingStatusWidget(narrow: widget.narrow);
+          if (i == bottomLength) return TypingStatusWidget(narrow: widget.narrow);
 
-          final data = model!.items[length - 1 - (i - 3)];
-          return _buildItem(zulipLocalizations, data, i);
+          final data = model!.items[topLength + i];
+          return _buildItem(zulipLocalizations, data);
         }));
 
-    if (!ComposeBox.hasComposeBox(widget.narrow)) {
-      // TODO(#311) If we have a bottom nav, it will pad the bottom inset,
-      //   and this can be removed; also remove mention in MessageList dartdoc
-      sliver = SliverSafeArea(sliver: sliver);
+    if (needSafeArea) {
+      bottomSliver = SliverSafeArea(key: centerSliverKey, sliver: bottomSliver);
     }
 
-    return CustomPaintOrderScrollView(
+    return MessageListScrollView(
       // TODO: Offer `ScrollViewKeyboardDismissBehavior.interactive` (or
       //   similar) if that is ever offered:
       //     https://github.com/flutter/flutter/issues/57609#issuecomment-1355340849
@@ -645,21 +686,16 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
       controller: scrollController,
       semanticChildCount: length + 2,
-      anchor: 1.0,
       center: centerSliverKey,
       paintOrder: SliverPaintOrder.firstIsTop,
 
       slivers: [
-        sliver,
-
-        // This is a trivial placeholder that occupies no space.  Its purpose is
-        // to have the key that's passed to [ScrollView.center], and so to cause
-        // the above [SliverStickyHeaderList] to run from bottom to top.
-        const SliverToBoxAdapter(key: centerSliverKey),
+        topSliver,
+        bottomSliver,
       ]);
   }
 
-  Widget _buildItem(ZulipLocalizations zulipLocalizations, MessageListItem data, int i) {
+  Widget _buildItem(ZulipLocalizations zulipLocalizations, MessageListItem data) {
     switch (data) {
       case MessageListHistoryStartItem():
         return Center(
@@ -685,7 +721,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         return MessageItem(
           key: ValueKey(data.message.id),
           header: header,
-          trailingWhitespace: i == 1 ? 8 : 11,
+          trailingWhitespace: 11,
           item: data);
     }
   }
