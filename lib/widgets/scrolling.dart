@@ -56,6 +56,31 @@ class ScrollToEndActivity extends DrivenScrollActivity {
     required super.curve,
     required super.vsync,
   });
+
+  ScrollPosition get _position => delegate as ScrollPosition;
+
+  @override
+  bool applyMoveTo(double value) {
+    bool done = false;
+    if (value > _position.maxScrollExtent) {
+      // The activity has reached the end.
+      // Stop at exactly the end, rather than causing overscroll.
+      // Possibly some overscroll would actually be desirable, but:
+      // TODO(upstream) stretch-overscroll seems busted, inverted:
+      //   Is this formula (from [_StretchController.absorbImpact] really right?
+      //     _stretchSizeTween.end =
+      //       math.min(_stretchIntensity + (_flingFriction / velocity), 1.0);
+      //   Seems to take low velocity to the largest stretch, and high velocity
+      //   to the smallest stretch.
+      //   Specifically, a very slow fling produces a very large stretch,
+      //   while other flings produce small stretches that vary little
+      //   between modest speed (~300 px/s) and top speed (8000 px/s).
+      value = _position.maxScrollExtent;
+      done = true;
+    }
+    if (!super.applyMoveTo(value)) return false;
+    return !done;
+  }
 }
 
 /// A version of [ScrollPosition] adapted for the Zulip message list,
