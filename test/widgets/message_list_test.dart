@@ -201,7 +201,8 @@ void main() {
       await setupMessageListPage(tester,
         narrow: eg.topicNarrow(channel.streamId, ''),
         streams: [channel],
-        messageCount: 1);
+        messageCount: 1,
+        zulipFeatureLevel: 334);
       checkAppBarChannelTopic(
         channel.name, eg.defaultRealmEmptyTopicDisplayName);
     }, skip: true); // null topic names soon to be enabled
@@ -951,7 +952,8 @@ void main() {
       testWidgets('show general chat for empty topics with channel name', (tester) async {
         await setupMessageListPage(tester,
           narrow: const CombinedFeedNarrow(),
-          messages: [messageEmptyTopic], subscriptions: [eg.subscription(stream)]);
+          messages: [messageEmptyTopic], subscriptions: [eg.subscription(stream)],
+          zulipFeatureLevel: 334);
         await tester.pump();
         check(findInMessageList('stream name')).single;
         check(findInMessageList(eg.defaultRealmEmptyTopicDisplayName)).single;
@@ -960,7 +962,8 @@ void main() {
       testWidgets('show general chat for empty topics without channel name', (tester) async {
         await setupMessageListPage(tester,
           narrow: TopicNarrow.ofMessage(messageEmptyTopic),
-          messages: [messageEmptyTopic]);
+          messages: [messageEmptyTopic],
+          zulipFeatureLevel: 334);
         await tester.pump();
         check(findInMessageList('stream name')).isEmpty();
         check(findInMessageList(eg.defaultRealmEmptyTopicDisplayName)).single;

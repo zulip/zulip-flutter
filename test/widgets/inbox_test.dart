@@ -58,11 +58,14 @@ void main() {
     List<Subscription>? subscriptions,
     List<User>? users,
     required List<Message> unreadMessages,
+    int? zulipFeatureLevel,
     NavigatorObserver? navigatorObserver,
   }) async {
     addTearDown(testBinding.reset);
-    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-    store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+    final account = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
+    await testBinding.globalStore.add(account, eg.initialSnapshot(
+      zulipFeatureLevel: zulipFeatureLevel));
+    store = await testBinding.globalStore.perAccount(account.id);
 
     await store.addStreams(streams ?? []);
     await store.addSubscriptions(subscriptions ?? []);
@@ -74,7 +77,7 @@ void main() {
     }
 
     await tester.pumpWidget(TestZulipApp(
-      accountId: eg.selfAccount.id,
+      accountId: account.id,
       navigatorObservers: [if (navigatorObserver != null) navigatorObserver],
       child: const HomePage(),
     ));
@@ -312,7 +315,8 @@ void main() {
       await setupPage(tester,
         streams: [channel],
         subscriptions: [(eg.subscription(channel))],
-        unreadMessages: [eg.streamMessage(stream: channel, topic: '')]);
+        unreadMessages: [eg.streamMessage(stream: channel, topic: '')],
+        zulipFeatureLevel: 334);
       check(find.text(eg.defaultRealmEmptyTopicDisplayName)).findsOne();
     }, skip: true); // null topic names soon to be enabled
 

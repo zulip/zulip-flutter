@@ -450,7 +450,7 @@ void main() {
       });
 
       testWidgets('show from app bar: resolve/unresolve not offered when topic is empty', (tester) async {
-        await prepare();
+        await prepare(zulipFeatureLevel: 334);
         final message = eg.streamMessage(stream: someChannel, topic: '');
         await showFromAppBar(tester,
           topic: TopicName(''),

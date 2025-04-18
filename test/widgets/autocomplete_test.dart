@@ -100,11 +100,14 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
 Future<Finder> setupToTopicInput(WidgetTester tester, {
   required List<GetStreamTopicsEntry> topics,
   String? realmEmptyTopicDisplayName,
+  int? zulipFeatureLevel,
 }) async {
   addTearDown(testBinding.reset);
-  await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+  final account = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
+  await testBinding.globalStore.add(account, eg.initialSnapshot(
+    zulipFeatureLevel: zulipFeatureLevel,
     realmEmptyTopicDisplayName: realmEmptyTopicDisplayName));
-  final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+  final store = await testBinding.globalStore.perAccount(account.id);
   await store.addUser(eg.selfUser);
   final connection = store.connection as FakeApiConnection;
 
@@ -121,7 +124,7 @@ Future<Finder> setupToTopicInput(WidgetTester tester, {
     messages: [message],
   ).toJson());
 
-  await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+  await tester.pumpWidget(TestZulipApp(accountId: account.id,
     child: MessageListPage(initNarrow: ChannelNarrow(stream.streamId))));
   await tester.pumpAndSettle();
 
@@ -465,7 +468,8 @@ void main() {
     testWidgets('display realmEmptyTopicDisplayName for empty topic', (tester) async {
       final topic = eg.getStreamTopicsEntry(name: '');
       final topicInputFinder = await setupToTopicInput(tester, topics: [topic],
-        realmEmptyTopicDisplayName: 'some display name');
+        realmEmptyTopicDisplayName: 'some display name',
+        zulipFeatureLevel: 334);
 
       // TODO(#226): Remove this extra edit when this bug is fixed.
       await tester.enterText(topicInputFinder, ' ');
@@ -478,7 +482,8 @@ void main() {
     testWidgets('match realmEmptyTopicDisplayName in autocomplete', (tester) async {
       final topic = eg.getStreamTopicsEntry(name: '');
       final topicInputFinder = await setupToTopicInput(tester, topics: [topic],
-        realmEmptyTopicDisplayName: 'general chat');
+        realmEmptyTopicDisplayName: 'general chat',
+        zulipFeatureLevel: 334);
 
       // TODO(#226): Remove this extra edit when this bug is fixed.
       await tester.enterText(topicInputFinder, 'general ch');
@@ -491,7 +496,8 @@ void main() {
     testWidgets('autocomplete to realmEmptyTopicDisplayName sets topic to empty string', (tester) async {
       final topic = eg.getStreamTopicsEntry(name: '');
       final topicInputFinder = await setupToTopicInput(tester, topics: [topic],
-        realmEmptyTopicDisplayName: 'general chat');
+        realmEmptyTopicDisplayName: 'general chat',
+        zulipFeatureLevel: 334);
       final controller = tester.widget<TextField>(topicInputFinder).controller!;
 
       // TODO(#226): Remove this extra edit when this bug is fixed.
