@@ -462,10 +462,7 @@ void main() {
 
     testWidgets('scrolling changes visibility', (tester) async {
       await setupMessageListPage(tester, messageCount: 10);
-
       final scrollController = findMessageListScrollController(tester)!;
-
-      // Initial state should be not visible, as the message list renders with latest message in view
       check(isButtonVisible(tester)).equals(false);
 
       scrollController.jumpTo(-600);
@@ -480,41 +477,38 @@ void main() {
     testWidgets('dimension updates changes visibility', (tester) async {
       await setupMessageListPage(tester, messageCount: 100);
 
+      // Scroll up, to hide the button.
       final scrollController = findMessageListScrollController(tester)!;
-
-      // Initial state should be not visible, as the message list renders with latest message in view
-      check(isButtonVisible(tester)).equals(false);
-
       scrollController.jumpTo(-600);
       await tester.pump();
       check(isButtonVisible(tester)).equals(true);
 
+      // Make the view taller, so that the bottom of the list is back in view.
       addTearDown(tester.view.resetPhysicalSize);
       tester.view.physicalSize = const Size(2000, 40000);
       await tester.pump();
-      // Dimension changes use NotificationListener<ScrollMetricsNotification
-      // which has a one frame lag. If that ever gets resolved this extra pump
-      // would ideally be removed
+      // (Dimension changes use NotificationListener<ScrollMetricsNotification>
+      // which has a one-frame lag.  If that ever gets resolved,
+      // this extra pump would ideally be removed.)
       await tester.pump();
+      // Check the button duly disappears again.
       check(isButtonVisible(tester)).equals(false);
     });
 
-    testWidgets('button functionality', (tester) async {
+    testWidgets('button works', (tester) async {
       await setupMessageListPage(tester, messageCount: 10);
-
       final scrollController = findMessageListScrollController(tester)!;
-
-      // Initial state should be not visible, as the message list renders with latest message in view
-      check(isButtonVisible(tester)).equals(false);
-
       scrollController.jumpTo(-600);
       await tester.pump();
-      check(isButtonVisible(tester)).equals(true);
+      check(scrollController.position.pixels).equals(-600);
 
+      // Tap button.
       await tester.tap(find.byType(ScrollToBottomButton));
+      // The list scrolls to the end…
       await tester.pumpAndSettle();
-      check(isButtonVisible(tester)).equals(false);
       check(scrollController.position.pixels).equals(0);
+      // … and for good measure confirm the button disappeared.
+      check(isButtonVisible(tester)).equals(false);
     });
   });
 
