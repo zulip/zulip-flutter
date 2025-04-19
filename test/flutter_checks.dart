@@ -11,13 +11,14 @@ import 'package:flutter/services.dart';
 // From the Flutter engine, i.e. from dart:ui.
 //
 
-extension PaintChecks on Subject<Paint> {
-  Subject<Shader?> get shader => has((x) => x.shader, 'shader');
-}
-
 extension OffsetChecks on Subject<Offset> {
   Subject<double> get dx => has((x) => x.dx, 'dx');
   Subject<double> get dy => has((x) => x.dy, 'dy');
+}
+
+extension SizeChecks on Subject<Size> {
+  Subject<double> get width => has((x) => x.width, 'width');
+  Subject<double> get height => has((x) => x.height, 'height');
 }
 
 extension RectChecks on Subject<Rect> {
@@ -30,14 +31,13 @@ extension RectChecks on Subject<Rect> {
   // TODO others
 }
 
+extension PaintChecks on Subject<Paint> {
+  Subject<Shader?> get shader => has((x) => x.shader, 'shader');
+}
+
 extension FontVariationChecks on Subject<FontVariation> {
   Subject<String> get axis => has((x) => x.axis, 'axis');
   Subject<double> get value => has((x) => x.value, 'value');
-}
-
-extension SizeChecks on Subject<Size> {
-  Subject<double> get width => has((x) => x.width, 'width');
-  Subject<double> get height => has((x) => x.height, 'height');
 }
 
 ////////////////////////////////////////////////////////////////
@@ -75,6 +75,10 @@ extension AnimationChecks<T> on Subject<Animation<T>> {
 // From 'package:flutter/painting.dart'.
 //
 
+extension BoxDecorationChecks on Subject<BoxDecoration> {
+  Subject<Color?> get color => has((x) => x.color, 'color');
+}
+
 extension TextStyleChecks on Subject<TextStyle> {
   Subject<bool> get inherit => has((t) => t.inherit, 'inherit');
   Subject<Color?> get color => has((t) => t.color, 'color');
@@ -90,10 +94,6 @@ extension TextStyleChecks on Subject<TextStyle> {
 
 extension InlineSpanChecks on Subject<InlineSpan> {
   Subject<TextStyle?> get style => has((x) => x.style, 'style');
-}
-
-extension BoxDecorationChecks on Subject<BoxDecoration> {
-  Subject<Color?> get color => has((x) => x.color, 'color');
 }
 
 ////////////////////////////////////////////////////////////////
@@ -113,44 +113,10 @@ extension RenderParagraphChecks on Subject<RenderParagraph> {
 // From 'package:flutter/widgets.dart'.
 //
 
-extension ColoredBoxChecks on Subject<ColoredBox> {
-  Subject<Color?> get color => has((d) => d.color, 'color');
-}
-
 extension GlobalKeyChecks<T extends State<StatefulWidget>> on Subject<GlobalKey<T>> {
   Subject<BuildContext?> get currentContext => has((k) => k.currentContext, 'currentContext');
   Subject<Widget?> get currentWidget => has((k) => k.currentWidget, 'currentWidget');
   Subject<T?> get currentState => has((k) => k.currentState, 'currentState');
-}
-
-extension IconChecks on Subject<Icon> {
-  Subject<IconData?> get icon => has((i) => i.icon, 'icon');
-  Subject<Color?> get color => has((i) => i.color, 'color');
-
-  // TODO others
-}
-
-extension RouteChecks<T> on Subject<Route<T>> {
-  Subject<bool> get isFirst => has((r) => r.isFirst, 'isFirst');
-  Subject<RouteSettings> get settings => has((r) => r.settings, 'settings');
-}
-
-extension PageRouteChecks<T> on Subject<PageRoute<T>> {
-  Subject<bool> get fullscreenDialog => has((x) => x.fullscreenDialog, 'fullscreenDialog');
-}
-
-extension RouteSettingsChecks<T> on Subject<RouteSettings> {
-  Subject<String?> get name => has((s) => s.name, 'name');
-  Subject<Object?> get arguments => has((s) => s.arguments, 'arguments');
-}
-
-extension TextChecks on Subject<Text> {
-  Subject<String?> get data => has((t) => t.data, 'data');
-  Subject<TextStyle?> get style => has((t) => t.style, 'style');
-}
-
-extension TextEditingControllerChecks on Subject<TextEditingController> {
-  Subject<String?> get text => has((t) => t.text, 'text');
 }
 
 extension ElementChecks on Subject<Element> {
@@ -163,6 +129,26 @@ extension MediaQueryDataChecks on Subject<MediaQueryData> {
   // TODO more
 }
 
+extension ColoredBoxChecks on Subject<ColoredBox> {
+  Subject<Color?> get color => has((d) => d.color, 'color');
+}
+
+extension TextChecks on Subject<Text> {
+  Subject<String?> get data => has((t) => t.data, 'data');
+  Subject<TextStyle?> get style => has((t) => t.style, 'style');
+}
+
+extension TextEditingControllerChecks on Subject<TextEditingController> {
+  Subject<String?> get text => has((t) => t.text, 'text');
+}
+
+extension IconChecks on Subject<Icon> {
+  Subject<IconData?> get icon => has((i) => i.icon, 'icon');
+  Subject<Color?> get color => has((i) => i.color, 'color');
+
+  // TODO others
+}
+
 extension TableRowChecks on Subject<TableRow> {
   Subject<Decoration?> get decoration => has((x) => x.decoration, 'decoration');
 }
@@ -171,14 +157,27 @@ extension TableChecks on Subject<Table> {
   Subject<List<TableRow>> get children => has((x) => x.children, 'children');
 }
 
+extension RouteChecks<T> on Subject<Route<T>> {
+  Subject<bool> get isFirst => has((r) => r.isFirst, 'isFirst');
+  Subject<RouteSettings> get settings => has((r) => r.settings, 'settings');
+}
+
+extension RouteSettingsChecks<T> on Subject<RouteSettings> {
+  Subject<String?> get name => has((s) => s.name, 'name');
+  Subject<Object?> get arguments => has((s) => s.arguments, 'arguments');
+}
+
+extension PageRouteChecks<T> on Subject<PageRoute<T>> {
+  Subject<bool> get fullscreenDialog => has((x) => x.fullscreenDialog, 'fullscreenDialog');
+}
+
 ////////////////////////////////////////////////////////////////
 // From 'package:flutter/material.dart'.
 //
 
-extension TextFieldChecks on Subject<TextField> {
-  Subject<TextCapitalization?> get textCapitalization => has((t) => t.textCapitalization, 'textCapitalization');
-  Subject<InputDecoration?> get decoration => has((t) => t.decoration, 'decoration');
-  Subject<TextEditingController?> get controller => has((t) => t.controller, 'controller');
+extension MaterialChecks on Subject<Material> {
+  Subject<Color?> get color => has((x) => x.color, 'color');
+  // TODO more
 }
 
 extension TextThemeChecks on Subject<TextTheme> {
@@ -207,27 +206,28 @@ extension TypographyChecks on Subject<Typography> {
   Subject<TextTheme> get tall => has((t) => t.tall, 'tall');
 }
 
-extension MaterialChecks on Subject<Material> {
-  Subject<Color?> get color => has((x) => x.color, 'color');
-  // TODO more
+extension ThemeDataChecks on Subject<ThemeData> {
+  Subject<Brightness> get brightness => has((x) => x.brightness, 'brightness');
 }
 
 extension InputDecorationChecks on Subject<InputDecoration> {
   Subject<String?> get hintText => has((x) => x.hintText, 'hintText');
 }
 
-extension RadioListTileChecks<T> on Subject<RadioListTile<T>> {
-  Subject<bool> get checked => has((x) => x.checked, 'checked');
+extension TextFieldChecks on Subject<TextField> {
+  Subject<TextCapitalization?> get textCapitalization => has((t) => t.textCapitalization, 'textCapitalization');
+  Subject<InputDecoration?> get decoration => has((t) => t.decoration, 'decoration');
+  Subject<TextEditingController?> get controller => has((t) => t.controller, 'controller');
+}
+
+extension IconButtonChecks on Subject<IconButton> {
+  Subject<bool?> get isSelected => has((x) => x.isSelected, 'isSelected');
 }
 
 extension SwitchListTileChecks<T> on Subject<SwitchListTile> {
   Subject<bool> get value => has((x) => x.value, 'value');
 }
 
-extension ThemeDataChecks on Subject<ThemeData> {
-  Subject<Brightness> get brightness => has((x) => x.brightness, 'brightness');
-}
-
-extension IconButtonChecks on Subject<IconButton> {
-  Subject<bool?> get isSelected => has((x) => x.isSelected, 'isSelected');
+extension RadioListTileChecks<T> on Subject<RadioListTile<T>> {
+  Subject<bool> get checked => has((x) => x.checked, 'checked');
 }
