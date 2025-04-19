@@ -187,6 +187,14 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
       return;
     }
 
+    if (pixels > maxScrollExtent) {
+      // The position is already scrolled past the end.  Let overscroll handle it.
+      // (This situation shouldn't even arise; the UI only offers this option
+      // when `pixels < maxScrollExtent`.)
+      goBallistic(0.0);
+      return;
+    }
+
     /// The top speed to move at, in logical pixels per second.
     ///
     /// This will be the speed whenever the distance to be traveled

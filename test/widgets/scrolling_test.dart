@@ -1,4 +1,5 @@
 import 'package:checks/checks.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/widgets/scrolling.dart';
@@ -254,6 +255,46 @@ void main() {
         check(position.activity).isA<IdleScrollActivity>();
         // … without moving any farther.
         check(position.extentAfter).equals(0);
+      });
+
+      testWidgets('starting from overscroll, just drift', (tester) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        await prepare(tester, topHeight: 400, bottomHeight: 400);
+
+        // Drag into overscroll.
+        await tester.drag(findBottom, Offset(0, -100));
+        await tester.pump();
+        final offset1 = position.pixels - position.maxScrollExtent;
+        check(offset1).isGreaterThan(100 / 2);
+        check(position.activity).isA<BallisticScrollActivity>();
+
+        // Start drifting back into range.
+        await tester.pump(Duration(milliseconds: 10));
+        final offset2 = position.pixels - position.maxScrollExtent;
+        check(offset2)..isGreaterThan(0.0)..isLessThan(offset1);
+        check(position.activity).isA<BallisticScrollActivity>()
+          .velocity.isLessThan(0);
+
+        // Invoke `scrollToEnd`.  The motion should stop…
+        position.scrollToEnd();
+        await tester.pump();
+        check(position.pixels - position.maxScrollExtent).equals(offset2);
+        check(position.activity).isA<BallisticScrollActivity>()
+          .velocity.equals(0);
+
+        // … and resume drifting from there…
+        await tester.pump(Duration(milliseconds: 10));
+        final offset3 = position.pixels - position.maxScrollExtent;
+        check(offset3)..isGreaterThan(0.0)..isLessThan(offset2);
+        check(position.activity).isA<BallisticScrollActivity>()
+          .velocity.isLessThan(0);
+
+        // … to eventually return to being in range.
+        await tester.pump(Duration(seconds: 1));
+        check(position.pixels - position.maxScrollExtent).equals(0);
+        check(position.activity).isA<IdleScrollActivity>();
+
+        debugDefaultTargetPlatformOverride = null;
       });
     });
   });

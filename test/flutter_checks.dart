@@ -142,6 +142,10 @@ extension TextEditingControllerChecks on Subject<TextEditingController> {
   Subject<String?> get text => has((t) => t.text, 'text');
 }
 
+extension ScrollActivityChecks on Subject<ScrollActivity> {
+  Subject<double> get velocity => has((x) => x.velocity, 'velocity');
+}
+
 extension IconChecks on Subject<Icon> {
   Subject<IconData?> get icon => has((i) => i.icon, 'icon');
   Subject<Color?> get color => has((i) => i.color, 'color');
