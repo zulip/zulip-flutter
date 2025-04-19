@@ -24,6 +24,7 @@ void main() {
     }
 
     late MessageListScrollController controller;
+    late MessageListScrollPosition position;
 
     Future<void> prepare(WidgetTester tester, {
       bool reuseController = false,
@@ -37,6 +38,7 @@ void main() {
         child: buildList(controller: controller,
           topHeight: topHeight, bottomHeight: bottomHeight)));
       await tester.pump();
+      position = controller.position;
     }
 
     // The `skipOffstage: false` produces more informative output
@@ -188,6 +190,71 @@ void main() {
         ..isA<MessageListScrollPosition>();
       // … and check the scroll position is preserved, not reset to initial.
       check(tester.getRect(findTop)).bottom.equals(400);
+    });
+
+    group('scrollToEnd', () {
+      testWidgets('short -> slow', (tester) async {
+        await prepare(tester, topHeight: 300, bottomHeight: 600);
+        await tester.drag(findBottom, Offset(0, 300));
+        await tester.pump();
+        check(position.extentAfter).equals(300);
+
+        // Start scrolling to end, from just a short distance up.
+        position.scrollToEnd();
+        await tester.pump();
+        check(position.extentAfter).equals(300);
+        check(position.activity).isA<DrivenScrollActivity>();
+
+        // The scrolling moves at a stately pace; …
+        await tester.pump(Duration(milliseconds: 100));
+        check(position.extentAfter).equals(200);
+
+        await tester.pump(Duration(milliseconds: 100));
+        check(position.extentAfter).equals(100);
+
+        // … then upon reaching the end, …
+        await tester.pump(Duration(milliseconds: 100));
+        check(position.extentAfter).equals(0);
+
+        // … goes idle on the next frame, …
+        await tester.pump(Duration(milliseconds: 1));
+        check(position.activity).isA<IdleScrollActivity>();
+        // … without moving any farther.
+        check(position.extentAfter).equals(0);
+      });
+
+      testWidgets('long -> bounded speed', (tester) async {
+        const referenceSpeed = 8000.0;
+        const seconds = 10;
+        const distance = seconds * referenceSpeed;
+        await prepare(tester, topHeight: distance + 1000, bottomHeight: 300);
+        await tester.drag(findBottom, Offset(0, distance));
+        await tester.pump();
+        check(position.extentAfter).equals(distance);
+
+        // Start scrolling to end.
+        position.scrollToEnd();
+        await tester.pump();
+        check(position.activity).isA<DrivenScrollActivity>();
+
+        // Let it scroll, plotting the trajectory.
+        final log = <double>[];
+        for (int i = 0; i < seconds; i++) {
+          log.add(position.extentAfter);
+          await tester.pump(const Duration(seconds: 1));
+        }
+        log.add(position.extentAfter);
+        check(log).deepEquals(List.generate(seconds + 1,
+          (i) => distance - referenceSpeed * i));
+
+        // Having reached the end, …
+        check(position.extentAfter).equals(0);
+        // … it goes idle on the next frame, …
+        await tester.pump(Duration(milliseconds: 1));
+        check(position.activity).isA<IdleScrollActivity>();
+        // … without moving any farther.
+        check(position.extentAfter).equals(0);
+      });
     });
   });
 }
