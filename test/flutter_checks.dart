@@ -7,6 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
+////////////////////////////////////////////////////////////////
+// From the Flutter engine, i.e. from dart:ui.
+//
+
 extension PaintChecks on Subject<Paint> {
   Subject<Shader?> get shader => has((x) => x.shader, 'shader');
 }
@@ -26,14 +30,88 @@ extension RectChecks on Subject<Rect> {
   // TODO others
 }
 
+extension FontVariationChecks on Subject<FontVariation> {
+  Subject<String> get axis => has((x) => x.axis, 'axis');
+  Subject<double> get value => has((x) => x.value, 'value');
+}
+
+extension SizeChecks on Subject<Size> {
+  Subject<double> get width => has((x) => x.width, 'width');
+  Subject<double> get height => has((x) => x.height, 'height');
+}
+
+////////////////////////////////////////////////////////////////
+// From 'package:flutter/foundation.dart'.
+//
+
+extension ValueListenableChecks<T> on Subject<ValueListenable<T>> {
+  Subject<T> get value => has((c) => c.value, 'value');
+}
+
+////////////////////////////////////////////////////////////////
+// From 'package:flutter/services.dart'.
+//
+
+extension ClipboardDataChecks on Subject<ClipboardData> {
+  Subject<String?> get text => has((d) => d.text, 'text');
+}
+
+extension TextEditingValueChecks on Subject<TextEditingValue> {
+  Subject<String> get text => has((x) => x.text, 'text');
+  Subject<TextSelection> get selection => has((x) => x.selection, 'selection');
+  Subject<TextRange> get composing => has((x) => x.composing, 'composing');
+}
+
+////////////////////////////////////////////////////////////////
+// From 'package:flutter/animation.dart'.
+//
+
 extension AnimationChecks<T> on Subject<Animation<T>> {
   Subject<AnimationStatus> get status => has((d) => d.status, 'status');
   Subject<T> get value => has((d) => d.value, 'value');
 }
 
-extension ClipboardDataChecks on Subject<ClipboardData> {
-  Subject<String?> get text => has((d) => d.text, 'text');
+////////////////////////////////////////////////////////////////
+// From 'package:flutter/painting.dart'.
+//
+
+extension TextStyleChecks on Subject<TextStyle> {
+  Subject<bool> get inherit => has((t) => t.inherit, 'inherit');
+  Subject<Color?> get color => has((t) => t.color, 'color');
+  Subject<double?> get fontSize => has((t) => t.fontSize, 'fontSize');
+  Subject<FontWeight?> get fontWeight => has((t) => t.fontWeight, 'fontWeight');
+  Subject<double?> get letterSpacing => has((t) => t.letterSpacing, 'letterSpacing');
+  Subject<List<FontVariation>?> get fontVariations => has((t) => t.fontVariations, 'fontVariations');
+  Subject<String?> get fontFamily => has((t) => t.fontFamily, 'fontFamily');
+  Subject<List<String>?> get fontFamilyFallback => has((t) => t.fontFamilyFallback, 'fontFamilyFallback');
+
+  // TODO others
 }
+
+extension InlineSpanChecks on Subject<InlineSpan> {
+  Subject<TextStyle?> get style => has((x) => x.style, 'style');
+}
+
+extension BoxDecorationChecks on Subject<BoxDecoration> {
+  Subject<Color?> get color => has((x) => x.color, 'color');
+}
+
+////////////////////////////////////////////////////////////////
+// From 'package:flutter/rendering.dart'.
+//
+
+extension RenderBoxChecks on Subject<RenderBox> {
+  Subject<Size> get size => has((x) => x.size, 'size');
+}
+
+extension RenderParagraphChecks on Subject<RenderParagraph> {
+  Subject<InlineSpan> get text => has((x) => x.text, 'text');
+  Subject<bool> get didExceedMaxLines => has((x) => x.didExceedMaxLines, 'didExceedMaxLines');
+}
+
+////////////////////////////////////////////////////////////////
+// From 'package:flutter/widgets.dart'.
+//
 
 extension ColoredBoxChecks on Subject<ColoredBox> {
   Subject<Color?> get color => has((d) => d.color, 'color');
@@ -43,10 +121,6 @@ extension GlobalKeyChecks<T extends State<StatefulWidget>> on Subject<GlobalKey<
   Subject<BuildContext?> get currentContext => has((k) => k.currentContext, 'currentContext');
   Subject<Widget?> get currentWidget => has((k) => k.currentWidget, 'currentWidget');
   Subject<T?> get currentState => has((k) => k.currentState, 'currentState');
-}
-
-extension RenderBoxChecks on Subject<RenderBox> {
-  Subject<Size> get size => has((x) => x.size, 'size');
 }
 
 extension IconChecks on Subject<Icon> {
@@ -70,47 +144,41 @@ extension RouteSettingsChecks<T> on Subject<RouteSettings> {
   Subject<Object?> get arguments => has((s) => s.arguments, 'arguments');
 }
 
-extension ValueListenableChecks<T> on Subject<ValueListenable<T>> {
-  Subject<T> get value => has((c) => c.value, 'value');
-}
-
 extension TextChecks on Subject<Text> {
   Subject<String?> get data => has((t) => t.data, 'data');
   Subject<TextStyle?> get style => has((t) => t.style, 'style');
-}
-
-extension TextEditingValueChecks on Subject<TextEditingValue> {
-  Subject<String> get text => has((x) => x.text, 'text');
-  Subject<TextSelection> get selection => has((x) => x.selection, 'selection');
-  Subject<TextRange> get composing => has((x) => x.composing, 'composing');
 }
 
 extension TextEditingControllerChecks on Subject<TextEditingController> {
   Subject<String?> get text => has((t) => t.text, 'text');
 }
 
+extension ElementChecks on Subject<Element> {
+  Subject<Size?> get size => has((t) => t.size, 'size');
+  // TODO more
+}
+
+extension MediaQueryDataChecks on Subject<MediaQueryData> {
+  Subject<TextScaler> get textScaler => has((x) => x.textScaler, 'textScaler');
+  // TODO more
+}
+
+extension TableRowChecks on Subject<TableRow> {
+  Subject<Decoration?> get decoration => has((x) => x.decoration, 'decoration');
+}
+
+extension TableChecks on Subject<Table> {
+  Subject<List<TableRow>> get children => has((x) => x.children, 'children');
+}
+
+////////////////////////////////////////////////////////////////
+// From 'package:flutter/material.dart'.
+//
+
 extension TextFieldChecks on Subject<TextField> {
   Subject<TextCapitalization?> get textCapitalization => has((t) => t.textCapitalization, 'textCapitalization');
   Subject<InputDecoration?> get decoration => has((t) => t.decoration, 'decoration');
   Subject<TextEditingController?> get controller => has((t) => t.controller, 'controller');
-}
-
-extension TextStyleChecks on Subject<TextStyle> {
-  Subject<bool> get inherit => has((t) => t.inherit, 'inherit');
-  Subject<Color?> get color => has((t) => t.color, 'color');
-  Subject<double?> get fontSize => has((t) => t.fontSize, 'fontSize');
-  Subject<FontWeight?> get fontWeight => has((t) => t.fontWeight, 'fontWeight');
-  Subject<double?> get letterSpacing => has((t) => t.letterSpacing, 'letterSpacing');
-  Subject<List<FontVariation>?> get fontVariations => has((t) => t.fontVariations, 'fontVariations');
-  Subject<String?> get fontFamily => has((t) => t.fontFamily, 'fontFamily');
-  Subject<List<String>?> get fontFamilyFallback => has((t) => t.fontFamilyFallback, 'fontFamilyFallback');
-
-  // TODO others
-}
-
-extension FontVariationChecks on Subject<FontVariation> {
-  Subject<String> get axis => has((x) => x.axis, 'axis');
-  Subject<double> get value => has((x) => x.value, 'value');
 }
 
 extension TextThemeChecks on Subject<TextTheme> {
@@ -139,30 +207,6 @@ extension TypographyChecks on Subject<Typography> {
   Subject<TextTheme> get tall => has((t) => t.tall, 'tall');
 }
 
-extension InlineSpanChecks on Subject<InlineSpan> {
-  Subject<TextStyle?> get style => has((x) => x.style, 'style');
-}
-
-extension RenderParagraphChecks on Subject<RenderParagraph> {
-  Subject<InlineSpan> get text => has((x) => x.text, 'text');
-  Subject<bool> get didExceedMaxLines => has((x) => x.didExceedMaxLines, 'didExceedMaxLines');
-}
-
-extension SizeChecks on Subject<Size> {
-  Subject<double> get width => has((x) => x.width, 'width');
-  Subject<double> get height => has((x) => x.height, 'height');
-}
-
-extension ElementChecks on Subject<Element> {
-  Subject<Size?> get size => has((t) => t.size, 'size');
-  // TODO more
-}
-
-extension MediaQueryDataChecks on Subject<MediaQueryData> {
-  Subject<TextScaler> get textScaler => has((x) => x.textScaler, 'textScaler');
-  // TODO more
-}
-
 extension MaterialChecks on Subject<Material> {
   Subject<Color?> get color => has((x) => x.color, 'color');
   // TODO more
@@ -182,18 +226,6 @@ extension SwitchListTileChecks<T> on Subject<SwitchListTile> {
 
 extension ThemeDataChecks on Subject<ThemeData> {
   Subject<Brightness> get brightness => has((x) => x.brightness, 'brightness');
-}
-
-extension BoxDecorationChecks on Subject<BoxDecoration> {
-  Subject<Color?> get color => has((x) => x.color, 'color');
-}
-
-extension TableRowChecks on Subject<TableRow> {
-  Subject<Decoration?> get decoration => has((x) => x.decoration, 'decoration');
-}
-
-extension TableChecks on Subject<Table> {
-  Subject<List<TableRow>> get children => has((x) => x.children, 'children');
 }
 
 extension IconButtonChecks on Subject<IconButton> {
