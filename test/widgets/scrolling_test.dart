@@ -8,12 +8,12 @@ import '../flutter_checks.dart';
 void main() {
   group('MessageListScrollView', () {
     Widget buildList({
-      MessageListScrollController? controller,
+      required MessageListScrollController controller,
       required double topHeight,
       required double bottomHeight,
     }) {
       return MessageListScrollView(
-        controller: controller ?? MessageListScrollController(),
+        controller: controller,
         center: const ValueKey('center'),
         slivers: [
           SliverToBoxAdapter(
@@ -23,11 +23,16 @@ void main() {
         ]);
     }
 
+    late MessageListScrollController controller;
+
     Future<void> prepare(WidgetTester tester, {
-      MessageListScrollController? controller,
+      bool reuseController = false,
       required double topHeight,
       required double bottomHeight,
     }) async {
+      if (!reuseController) {
+        controller = MessageListScrollController();
+      }
       await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr,
         child: buildList(controller: controller,
           topHeight: topHeight, bottomHeight: bottomHeight)));
@@ -123,20 +128,18 @@ void main() {
     });
 
     testWidgets('stick to end of list when it grows', (tester) async {
-      final controller = MessageListScrollController();
-      await prepare(tester, controller: controller,
+      await prepare(tester,
         topHeight: 400, bottomHeight: 400);
       check(tester.getRect(findBottom))..top.equals(200)..bottom.equals(600);
 
       // Bottom sliver grows; remain scrolled to (new) bottom.
-      await prepare(tester, controller: controller,
+      await prepare(tester, reuseController: true,
         topHeight: 400, bottomHeight: 500);
       check(tester.getRect(findBottom))..top.equals(100)..bottom.equals(600);
     });
 
     testWidgets('when not at end, let it grow without following', (tester) async {
-      final controller = MessageListScrollController();
-      await prepare(tester, controller: controller,
+      await prepare(tester,
         topHeight: 400, bottomHeight: 400);
       check(tester.getRect(findBottom))..top.equals(200)..bottom.equals(600);
 
@@ -146,7 +149,7 @@ void main() {
       check(tester.getRect(findBottom))..top.equals(300)..bottom.equals(700);
 
       // Bottom sliver grows; remain at existing position, now farther from end.
-      await prepare(tester, controller: controller,
+      await prepare(tester, reuseController: true,
         topHeight: 400, bottomHeight: 500);
       check(tester.getRect(findBottom))..top.equals(300)..bottom.equals(800);
     });
