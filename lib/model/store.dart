@@ -577,6 +577,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   /// be empty otherwise.
   // TODO(server-10) simplify this
   String get realmEmptyTopicDisplayName {
+    assert(zulipFeatureLevel >= 334);
     assert(_realmEmptyTopicDisplayName != null); // TODO(log)
     return _realmEmptyTopicDisplayName ?? 'general chat';
   }
