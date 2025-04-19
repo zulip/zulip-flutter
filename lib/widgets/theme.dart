@@ -135,6 +135,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.15),
     bgMenuButtonActive: Colors.black.withValues(alpha: 0.05),
     bgMenuButtonSelected: Colors.white,
+    bgMessageRegular: const Color(0xffffffff),
     bgTopBar: const Color(0xfff5f5f5),
     borderBar: Colors.black.withValues(alpha: 0.2),
     borderMenuButtonSelected: Colors.black.withValues(alpha: 0.2),
@@ -192,6 +193,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
     bgMenuButtonActive: Colors.black.withValues(alpha: 0.2),
     bgMenuButtonSelected: Colors.black.withValues(alpha: 0.25),
+    bgMessageRegular: const Color(0xff1d1d1d),
     bgTopBar: const Color(0xff242424),
     borderBar: const Color(0xffffffff).withValues(alpha: 0.1),
     borderMenuButtonSelected: Colors.white.withValues(alpha: 0.1),
@@ -257,6 +259,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.bgCounterUnread,
     required this.bgMenuButtonActive,
     required this.bgMenuButtonSelected,
+    required this.bgMessageRegular,
     required this.bgTopBar,
     required this.borderBar,
     required this.borderMenuButtonSelected,
@@ -323,6 +326,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color bgCounterUnread;
   final Color bgMenuButtonActive;
   final Color bgMenuButtonSelected;
+  final Color bgMessageRegular;
   final Color bgTopBar;
   final Color borderBar;
   final Color borderMenuButtonSelected;
@@ -384,6 +388,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? bgCounterUnread,
     Color? bgMenuButtonActive,
     Color? bgMenuButtonSelected,
+    Color? bgMessageRegular,
     Color? bgTopBar,
     Color? borderBar,
     Color? borderMenuButtonSelected,
@@ -440,6 +445,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgCounterUnread: bgCounterUnread ?? this.bgCounterUnread,
       bgMenuButtonActive: bgMenuButtonActive ?? this.bgMenuButtonActive,
       bgMenuButtonSelected: bgMenuButtonSelected ?? this.bgMenuButtonSelected,
+      bgMessageRegular: bgMessageRegular ?? this.bgMessageRegular,
       bgTopBar: bgTopBar ?? this.bgTopBar,
       borderBar: borderBar ?? this.borderBar,
       borderMenuButtonSelected: borderMenuButtonSelected ?? this.borderMenuButtonSelected,
@@ -503,6 +509,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgCounterUnread: Color.lerp(bgCounterUnread, other.bgCounterUnread, t)!,
       bgMenuButtonActive: Color.lerp(bgMenuButtonActive, other.bgMenuButtonActive, t)!,
       bgMenuButtonSelected: Color.lerp(bgMenuButtonSelected, other.bgMenuButtonSelected, t)!,
+      bgMessageRegular: Color.lerp(bgMessageRegular, other.bgMessageRegular, t)!,
       bgTopBar: Color.lerp(bgTopBar, other.bgTopBar, t)!,
       borderBar: Color.lerp(borderBar, other.borderBar, t)!,
       borderMenuButtonSelected: Color.lerp(borderMenuButtonSelected, other.borderMenuButtonSelected, t)!,
