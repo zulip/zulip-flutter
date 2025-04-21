@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 0.0.28 (2025-04-21)
+
 ### Highlights for users
 
 * (Android) If you log out of a Zulip account, the app clears that
