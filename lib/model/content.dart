@@ -341,8 +341,8 @@ class CodeBlockSpanNode extends ContentNode {
   }
 }
 
-class MathBlockNode extends BlockContentNode {
-  const MathBlockNode({
+abstract class MathNode extends ContentNode {
+  const MathNode({
     super.debugHtmlNode,
     required this.texSource,
     required this.nodes,
@@ -400,6 +400,14 @@ class KatexNode extends ContentNode {
   List<DiagnosticsNode> debugDescribeChildren() {
     return nodes?.map((node) => node.toDiagnosticsNode()).toList() ?? const [];
   }
+}
+
+class MathBlockNode extends MathNode implements BlockContentNode {
+  const MathBlockNode({
+    super.debugHtmlNode,
+    required super.texSource,
+    required super.nodes,
+  });
 }
 
 class ImageNodeList extends BlockContentNode {
@@ -863,26 +871,12 @@ class ImageEmojiNode extends EmojiNode {
   }
 }
 
-class MathInlineNode extends InlineContentNode {
+class MathInlineNode extends MathNode implements InlineContentNode {
   const MathInlineNode({
     super.debugHtmlNode,
-    required this.texSource,
-    required this.nodes,
+    required super.texSource,
+    required super.nodes,
   });
-
-  final String texSource;
-  final List<KatexNode>? nodes;
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(StringProperty('texSource', texSource));
-  }
-
-  @override
-  List<DiagnosticsNode> debugDescribeChildren() {
-    return nodes?.map((node) => node.toDiagnosticsNode()).toList() ?? const [];
-  }
 }
 
 class GlobalTimeNode extends InlineContentNode {
