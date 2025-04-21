@@ -149,9 +149,9 @@ class _KatexParser {
     var styles = KatexSpanStyles();
     var index = 0;
     while (index < spanClasses.length) {
+      final spanClass = spanClasses[index++];
       var classFound = false;
 
-      final spanClass = spanClasses[index];
       switch (spanClass) {
         case 'base':
           // .base { ... }
@@ -306,9 +306,9 @@ class _KatexParser {
         case 'fontsize-ensurer':
           // .sizing,
           // .fontsize-ensurer { ... }
-          if (index + 2 < spanClasses.length) {
-            final resetSizeClass = spanClasses[index + 1];
-            final sizeClass = spanClasses[index + 2];
+          if (index + 1 < spanClasses.length) {
+            final resetSizeClass = spanClasses[index];
+            final sizeClass = spanClasses[index + 1];
 
             final resetSizeClassSuffix = _resetSizeClassRegExp.firstMatch(resetSizeClass)?.group(1);
             final sizeClassSuffix = _sizeClassRegExp.firstMatch(sizeClass)?.group(1);
@@ -322,7 +322,7 @@ class _KatexParser {
               // These indexes start at 1.
               if (resetSizeIdx <= sizes.length && sizeIdx <= sizes.length) {
                 styles.fontSizeEm = sizes[sizeIdx - 1] / sizes[resetSizeIdx - 1];
-                index += 3;
+                index += 2;
                 continue;
               }
             }
@@ -332,8 +332,8 @@ class _KatexParser {
 
         case 'delimsizing':
           // .delimsizing { ... }
-          if (index + 1 < spanClasses.length) {
-            final nextClass = spanClasses[index + 1];
+          if (index < spanClasses.length) {
+            final nextClass = spanClasses[index];
             switch (nextClass) {
               case 'size1':
                 styles.fontFamily = 'KaTeX_Size1';
@@ -351,7 +351,7 @@ class _KatexParser {
 
             if (styles.fontFamily == null) throw KatexHtmlParseError();
 
-            index += 2;
+            index += 1;
             continue;
           }
 
@@ -361,8 +361,8 @@ class _KatexParser {
 
         case 'op-symbol':
           // .op-symbol { ... }
-          if (index + 1 < spanClasses.length) {
-           final nextClass = spanClasses[index + 1];
+          if (index < spanClasses.length) {
+           final nextClass = spanClasses[index];
             switch (nextClass) {
               case 'small-op':
                 styles.fontFamily = 'KaTeX_Size1';
@@ -371,7 +371,7 @@ class _KatexParser {
             }
             if (styles.fontFamily == null) throw KatexHtmlParseError();
 
-            index += 2;
+            index += 1;
             continue;
           }
 
@@ -389,8 +389,6 @@ class _KatexParser {
       }
 
       if (!classFound) _logError('KaTeX: Unsupported CSS class: $spanClass');
-
-      index++;
     }
 
     String? text;
