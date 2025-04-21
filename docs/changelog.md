@@ -23,7 +23,7 @@
   database schema downgrade will fail.  See issue for workaround.
   (#1427)
 
-* Resolved: #F1427, #F1409, #F267, #F1264
+* Resolved: #1427, #1409, #267, #1264
 
 
 ## 0.0.27 (2025-03-17)
