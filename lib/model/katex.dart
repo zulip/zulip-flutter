@@ -141,7 +141,7 @@ class _KatexParser {
     // Aggregate the CSS styles that apply, in the same order as the CSS
     // classes specified for this span, mimicking the behaviour on web.
     //
-    // Each case in the switch blocks below is a separate CSS class definition
+    // Each case in the switch block below is a separate CSS class definition
     // in the same order as in katex.scss :
     //   https://github.com/KaTeX/KaTeX/blob/2fe1941b/src/styles/katex.scss
     // A copy of class definition (where possible) is accompanied in a comment
@@ -178,10 +178,10 @@ class _KatexParser {
           styles.fontFamily = 'KaTeX_Main';
           classFound = true;
 
-        case 'textsf':
-          // .textsf { font-family: KaTeX_SansSerif; }
-          styles.fontFamily = 'KaTeX_SansSerif';
-          classFound = true;
+        // case 'textsf':
+        //   // .textsf { font-family: KaTeX_SansSerif; }
+        // This CSS rule has no effect, because the other `.textsf` rule below
+        // has the exact same list of declarations.  Handle it there instead.
 
         case 'texttt':
           // .texttt { font-family: KaTeX_Typewriter; }
@@ -261,13 +261,7 @@ class _KatexParser {
           // .textscr { font-family: KaTeX_Script; }
           styles.fontFamily = 'KaTeX_Script';
           classFound = true;
-      }
 
-      // We can't add the case for the next class (.mathsf, .textsf) in the
-      // above switch block, because there is already a case for .textsf above.
-      // So start a new block, to keep the order of the cases here same as the
-      // CSS class definitions in katex.scss .
-      switch (spanClass) {
         case 'mathsf':
         case 'textsf':
           // .mathsf,
@@ -378,13 +372,11 @@ class _KatexParser {
           throw KatexHtmlParseError();
 
         // TODO handle more classes from katex.scss
-      }
 
-      // Ignore these classes because they don't have a CSS definition
-      // in katex.scss, but we encounter them in the generated HTML.
-      switch (spanClass) {
         case 'mord':
         case 'mopen':
+          // Ignore these classes because they don't have a CSS definition
+          // in katex.scss, but we encounter them in the generated HTML.
           classFound = true;
       }
 
