@@ -2,8 +2,10 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/events.dart';
+import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/database.dart';
+import 'package:zulip/model/message.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
@@ -294,6 +296,19 @@ extension PerAccountStoreTestExtension on PerAccountStore {
   Future<void> addMessages(Iterable<Message> messages) async {
     for (final message in messages) {
       await addMessage(message);
+    }
+  }
+
+  Future<void> addOutboxMessage(MessageDestination destination) async {
+    assert(MessageStoreImpl.debugOutboxEnable);
+    (connection as FakeApiConnection).prepare(
+      json: SendMessageResult(id: 1).toJson());
+    await this.sendMessage(destination: destination, content: 'content');
+  }
+
+  Future<void> addOutboxMessages(List<MessageDestination> destinations) async {
+    for (final destination in destinations) {
+      await addOutboxMessage(destination);
     }
   }
 }
