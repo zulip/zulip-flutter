@@ -283,22 +283,19 @@ class _KatexParser {
           final sizeClass = spanClasses[index++];
 
           final resetSizeClassSuffix = _resetSizeClassRegExp.firstMatch(resetSizeClass)?.group(1);
+          if (resetSizeClassSuffix == null) throw KatexHtmlParseError();
           final sizeClassSuffix = _sizeClassRegExp.firstMatch(sizeClass)?.group(1);
+          if (sizeClassSuffix == null) throw KatexHtmlParseError();
 
-          if (resetSizeClassSuffix != null && sizeClassSuffix != null) {
-            const sizes = <double>[0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.2, 1.44, 1.728, 2.074, 2.488];
+          const sizes = <double>[0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.2, 1.44, 1.728, 2.074, 2.488];
 
-            final resetSizeIdx = int.parse(resetSizeClassSuffix, radix: 10);
-            final sizeIdx = int.parse(sizeClassSuffix, radix: 10);
+          final resetSizeIdx = int.parse(resetSizeClassSuffix, radix: 10);
+          final sizeIdx = int.parse(sizeClassSuffix, radix: 10);
 
-            // These indexes start at 1.
-            if (resetSizeIdx <= sizes.length && sizeIdx <= sizes.length) {
-              styles.fontSizeEm = sizes[sizeIdx - 1] / sizes[resetSizeIdx - 1];
-              continue;
-            }
-          }
-
-          throw KatexHtmlParseError();
+          // These indexes start at 1.
+          if (resetSizeIdx > sizes.length) throw KatexHtmlParseError();
+          if (sizeIdx > sizes.length) throw KatexHtmlParseError();
+          styles.fontSizeEm = sizes[sizeIdx - 1] / sizes[resetSizeIdx - 1];
 
         case 'delimsizing':
           // .delimsizing { ... }
