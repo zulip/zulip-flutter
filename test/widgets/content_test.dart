@@ -595,16 +595,20 @@ void main() {
       final content = ContentExample.mathBlockKatexSizing;
       await prepareContent(tester, plainContent(content.html));
 
+      final context = tester.element(find.byType(MathBlock));
+      final baseTextStyle =
+        mkBaseKatexTextStyle(ContentTheme.of(context).textStylePlainParagraph);
+
       final mathBlockNode = content.expectedNodes.single as MathBlockNode;
       final baseNode = mathBlockNode.nodes!.single as KatexSpanNode;
       final nodes = baseNode.nodes!.skip(1); // Skip .strut node.
       for (var katexNode in nodes) {
         katexNode = katexNode as KatexSpanNode;
-        final fontSize = katexNode.styles.fontSizeEm! * kBaseKatexTextStyle.fontSize!;
+        final fontSize = katexNode.styles.fontSizeEm! * baseTextStyle.fontSize!;
         checkKatexText(tester, katexNode.text!,
           fontFamily: 'KaTeX_Main',
           fontSize: fontSize,
-          fontHeight: kBaseKatexTextStyle.height!);
+          fontHeight: baseTextStyle.height!);
       }
     });
 
@@ -617,17 +621,21 @@ void main() {
       final content = ContentExample.mathBlockKatexNestedSizing;
       await prepareContent(tester, plainContent(content.html));
 
-      var fontSize = 0.5 * kBaseKatexTextStyle.fontSize!;
+      final context = tester.element(find.byType(MathBlock));
+      final baseTextStyle =
+        mkBaseKatexTextStyle(ContentTheme.of(context).textStylePlainParagraph);
+
+      var fontSize = 0.5 * baseTextStyle.fontSize!;
       checkKatexText(tester, '1',
         fontFamily: 'KaTeX_Main',
         fontSize: fontSize,
-        fontHeight: kBaseKatexTextStyle.height!);
+        fontHeight: baseTextStyle.height!);
 
       fontSize = 4.976 * fontSize;
       checkKatexText(tester, '2',
         fontFamily: 'KaTeX_Main',
         fontSize: fontSize,
-        fontHeight: kBaseKatexTextStyle.height!);
+        fontHeight: baseTextStyle.height!);
     });
 
     testWidgets('displays KaTeX content with different delimiter sizing', (tester) async {
@@ -643,13 +651,15 @@ void main() {
       final baseNode = mathBlockNode.nodes!.single as KatexSpanNode;
       var nodes = baseNode.nodes!.skip(1); // Skip .strut node.
 
-      final fontSize = kBaseKatexTextStyle.fontSize!;
+      final context = tester.element(find.byType(MathBlock));
+      final baseTextStyle =
+        mkBaseKatexTextStyle(ContentTheme.of(context).textStylePlainParagraph);
 
       final firstNode = nodes.first as KatexSpanNode;
       checkKatexText(tester, firstNode.text!,
         fontFamily: 'KaTeX_Main',
-        fontSize: fontSize,
-        fontHeight: kBaseKatexTextStyle.height!);
+        fontSize: baseTextStyle.fontSize!,
+        fontHeight: baseTextStyle.height!);
       nodes = nodes.skip(1);
 
       for (var katexNode in nodes) {
@@ -658,8 +668,8 @@ void main() {
         final fontFamily = katexNode.styles.fontFamily!;
         checkKatexText(tester, katexNode.text!,
           fontFamily: fontFamily,
-          fontSize: fontSize,
-          fontHeight: kBaseKatexTextStyle.height!);
+          fontSize: baseTextStyle.fontSize!,
+          fontHeight: baseTextStyle.height!);
       }
     }, skip: true); // TODO: Re-enable this test after adding support for parsing
                     // `vertical-align` in inline styles. Currently it fails
