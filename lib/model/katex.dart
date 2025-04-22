@@ -136,8 +136,6 @@ class _KatexParser {
   KatexNode _parseSpan(dom.Element element) {
     // TODO maybe check if the sequence of ancestors matter for spans.
 
-    final spanClasses = List<String>.unmodifiable(element.className.split(' '));
-
     // Aggregate the CSS styles that apply, in the same order as the CSS
     // classes specified for this span, mimicking the behaviour on web.
     //
@@ -146,7 +144,12 @@ class _KatexParser {
     //   https://github.com/KaTeX/KaTeX/blob/2fe1941b/src/styles/katex.scss
     // A copy of class definition (where possible) is accompanied in a comment
     // with each case statement to keep track of updates.
-    var styles = KatexSpanStyles();
+    final spanClasses = List<String>.unmodifiable(element.className.split(' '));
+    String? fontFamily;
+    double? fontSizeEm;
+    KatexSpanFontWeight? fontWeight;
+    KatexSpanFontStyle? fontStyle;
+    KatexSpanTextAlign? textAlign;
     var index = 0;
     while (index < spanClasses.length) {
       final spanClass = spanClasses[index++];
@@ -163,15 +166,15 @@ class _KatexParser {
 
         case 'textbf':
           // .textbf { font-weight: bold; }
-          styles.fontWeight = KatexSpanFontWeight.bold;
+          fontWeight = KatexSpanFontWeight.bold;
 
         case 'textit':
           // .textit { font-style: italic; }
-          styles.fontStyle = KatexSpanFontStyle.italic;
+          fontStyle = KatexSpanFontStyle.italic;
 
         case 'textrm':
           // .textrm { font-family: KaTeX_Main; }
-          styles.fontFamily = 'KaTeX_Main';
+          fontFamily = 'KaTeX_Main';
 
         // case 'textsf':
         //   // .textsf { font-family: KaTeX_SansSerif; }
@@ -180,82 +183,82 @@ class _KatexParser {
 
         case 'texttt':
           // .texttt { font-family: KaTeX_Typewriter; }
-          styles.fontFamily = 'KaTeX_Typewriter';
+          fontFamily = 'KaTeX_Typewriter';
 
         case 'mathnormal':
           // .mathnormal { font-family: KaTeX_Math; font-style: italic; }
-          styles.fontFamily = 'KaTeX_Math';
-          styles.fontStyle = KatexSpanFontStyle.italic;
+          fontFamily = 'KaTeX_Math';
+          fontStyle = KatexSpanFontStyle.italic;
 
         case 'mathit':
           // .mathit { font-family: KaTeX_Main; font-style: italic; }
-          styles.fontFamily = 'KaTeX_Main';
-          styles.fontStyle = KatexSpanFontStyle.italic;
+          fontFamily = 'KaTeX_Main';
+          fontStyle = KatexSpanFontStyle.italic;
 
         case 'mathrm':
           // .mathrm { font-style: normal; }
-          styles.fontStyle = KatexSpanFontStyle.normal;
+          fontStyle = KatexSpanFontStyle.normal;
 
         case 'mathbf':
           // .mathbf { font-family: KaTeX_Main; font-weight: bold; }
-          styles.fontFamily = 'KaTeX_Main';
-          styles.fontWeight = KatexSpanFontWeight.bold;
+          fontFamily = 'KaTeX_Main';
+          fontWeight = KatexSpanFontWeight.bold;
 
         case 'boldsymbol':
           // .boldsymbol { font-family: KaTeX_Math; font-weight: bold; font-style: italic; }
-          styles.fontFamily = 'KaTeX_Math';
-          styles.fontWeight = KatexSpanFontWeight.bold;
-          styles.fontStyle = KatexSpanFontStyle.italic;
+          fontFamily = 'KaTeX_Math';
+          fontWeight = KatexSpanFontWeight.bold;
+          fontStyle = KatexSpanFontStyle.italic;
 
         case 'amsrm':
           // .amsrm { font-family: KaTeX_AMS; }
-          styles.fontFamily = 'KaTeX_AMS';
+          fontFamily = 'KaTeX_AMS';
 
         case 'mathbb':
         case 'textbb':
           // .mathbb,
           // .textbb { font-family: KaTeX_AMS; }
-          styles.fontFamily = 'KaTeX_AMS';
+          fontFamily = 'KaTeX_AMS';
 
         case 'mathcal':
           // .mathcal { font-family: KaTeX_Caligraphic; }
-          styles.fontFamily = 'KaTeX_Caligraphic';
+          fontFamily = 'KaTeX_Caligraphic';
 
         case 'mathfrak':
         case 'textfrak':
           // .mathfrak,
           // .textfrak { font-family: KaTeX_Fraktur; }
-          styles.fontFamily = 'KaTeX_Fraktur';
+          fontFamily = 'KaTeX_Fraktur';
 
         case 'mathboldfrak':
         case 'textboldfrak':
           // .mathboldfrak,
           // .textboldfrak { font-family: KaTeX_Fraktur; font-weight: bold; }
-          styles.fontFamily = 'KaTeX_Fraktur';
-          styles.fontWeight = KatexSpanFontWeight.bold;
+          fontFamily = 'KaTeX_Fraktur';
+          fontWeight = KatexSpanFontWeight.bold;
 
         case 'mathtt':
           // .mathtt { font-family: KaTeX_Typewriter; }
-          styles.fontFamily = 'KaTeX_Typewriter';
+          fontFamily = 'KaTeX_Typewriter';
 
         case 'mathscr':
         case 'textscr':
           // .mathscr,
           // .textscr { font-family: KaTeX_Script; }
-          styles.fontFamily = 'KaTeX_Script';
+          fontFamily = 'KaTeX_Script';
 
         case 'mathsf':
         case 'textsf':
           // .mathsf,
           // .textsf { font-family: KaTeX_SansSerif; }
-          styles.fontFamily = 'KaTeX_SansSerif';
+          fontFamily = 'KaTeX_SansSerif';
 
         case 'mathboldsf':
         case 'textboldsf':
           // .mathboldsf,
           // .textboldsf { font-family: KaTeX_SansSerif; font-weight: bold; }
-          styles.fontFamily = 'KaTeX_SansSerif';
-          styles.fontWeight = KatexSpanFontWeight.bold;
+          fontFamily = 'KaTeX_SansSerif';
+          fontWeight = KatexSpanFontWeight.bold;
 
         case 'mathsfit':
         case 'mathitsf':
@@ -263,13 +266,13 @@ class _KatexParser {
           // .mathsfit,
           // .mathitsf,
           // .textitsf { font-family: KaTeX_SansSerif; font-style: italic; }
-          styles.fontFamily = 'KaTeX_SansSerif';
-          styles.fontStyle = KatexSpanFontStyle.italic;
+          fontFamily = 'KaTeX_SansSerif';
+          fontStyle = KatexSpanFontStyle.italic;
 
         case 'mainrm':
           // .mainrm { font-family: KaTeX_Main; font-style: normal; }
-          styles.fontFamily = 'KaTeX_Main';
-          styles.fontStyle = KatexSpanFontStyle.normal;
+          fontFamily = 'KaTeX_Main';
+          fontStyle = KatexSpanFontStyle.normal;
 
         // TODO handle skipped class declarations between .mainrm and
         //   .sizing .
@@ -295,20 +298,20 @@ class _KatexParser {
           // These indexes start at 1.
           if (resetSizeIdx > sizes.length) throw KatexHtmlParseError();
           if (sizeIdx > sizes.length) throw KatexHtmlParseError();
-          styles.fontSizeEm = sizes[sizeIdx - 1] / sizes[resetSizeIdx - 1];
+          fontSizeEm = sizes[sizeIdx - 1] / sizes[resetSizeIdx - 1];
 
         case 'delimsizing':
           // .delimsizing { ... }
           if (index + 1 > spanClasses.length) throw KatexHtmlParseError();
           switch (spanClasses[index++]) {
             case 'size1':
-              styles.fontFamily = 'KaTeX_Size1';
+              fontFamily = 'KaTeX_Size1';
             case 'size2':
-              styles.fontFamily = 'KaTeX_Size2';
+              fontFamily = 'KaTeX_Size2';
             case 'size3':
-              styles.fontFamily = 'KaTeX_Size3';
+              fontFamily = 'KaTeX_Size3';
             case 'size4':
-              styles.fontFamily = 'KaTeX_Size4';
+              fontFamily = 'KaTeX_Size4';
 
             case 'mult':
               // TODO handle nested spans with `.delim-size{1,4}` class.
@@ -325,9 +328,9 @@ class _KatexParser {
           if (index + 1 > spanClasses.length) throw KatexHtmlParseError();
           switch (spanClasses[index++]) {
             case 'small-op':
-              styles.fontFamily = 'KaTeX_Size1';
+              fontFamily = 'KaTeX_Size1';
             case 'large-op':
-              styles.fontFamily = 'KaTeX_Size2';
+              fontFamily = 'KaTeX_Size2';
             default:
               throw KatexHtmlParseError();
           }
@@ -344,6 +347,13 @@ class _KatexParser {
           _logError('KaTeX: Unsupported CSS class: $spanClass');
       }
     }
+    final styles = KatexSpanStyles(
+      fontFamily: fontFamily,
+      fontSizeEm: fontSizeEm,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      textAlign: textAlign,
+    );
 
     String? text;
     List<KatexNode>? spans;
@@ -376,14 +386,15 @@ enum KatexSpanTextAlign {
   right,
 }
 
+@immutable
 class KatexSpanStyles {
-  String? fontFamily;
-  double? fontSizeEm;
-  KatexSpanFontWeight? fontWeight;
-  KatexSpanFontStyle? fontStyle;
-  KatexSpanTextAlign? textAlign;
+  final String? fontFamily;
+  final double? fontSizeEm;
+  final KatexSpanFontWeight? fontWeight;
+  final KatexSpanFontStyle? fontStyle;
+  final KatexSpanTextAlign? textAlign;
 
-  KatexSpanStyles({
+  const KatexSpanStyles({
     this.fontFamily,
     this.fontSizeEm,
     this.fontWeight,
