@@ -70,6 +70,20 @@ ZulipApiException apiExceptionUnauthorized({String routeName = 'someRoute'}) {
 }
 
 ////////////////////////////////////////////////////////////////
+// Time values.
+//
+
+final timeInPast = DateTime.utc(2025, 4, 1, 8, 30, 0);
+
+/// The UNIX timestamp, in UTC seconds.
+///
+/// This is the commonly used format in the Zulip API for timestamps.
+int utcTimestamp([DateTime? dateTime]) {
+  dateTime ??= timeInPast;
+  return dateTime.toUtc().millisecondsSinceEpoch ~/ 1000;
+}
+
+////////////////////////////////////////////////////////////////
 // Realm-wide (or server-wide) metadata.
 //
 
@@ -470,7 +484,7 @@ StreamMessage streamMessage({
     'last_edit_timestamp': lastEditTimestamp,
     'subject': topic ?? _defaultTopic,
     'submessages': submessages ?? [],
-    'timestamp': timestamp ?? 1678139636,
+    'timestamp': timestamp ?? utcTimestamp(),
     'type': 'stream',
   }) as Map<String, dynamic>);
 }
@@ -511,7 +525,7 @@ DmMessage dmMessage({
     'last_edit_timestamp': lastEditTimestamp,
     'subject': '',
     'submessages': submessages ?? [],
-    'timestamp': timestamp ?? 1678139636,
+    'timestamp': timestamp ?? utcTimestamp(),
     'type': 'private',
   }) as Map<String, dynamic>);
 }
@@ -660,7 +674,7 @@ UpdateMessageEvent updateMessageEditEvent(
     messageId: messageId,
     messageIds: [messageId],
     flags: flags ?? origMessage.flags,
-    editTimestamp: editTimestamp ?? 1234567890, // TODO generate timestamp
+    editTimestamp: editTimestamp ?? utcTimestamp(),
     moveData: null,
     origContent: 'some probably-mismatched old Markdown',
     origRenderedContent: origMessage.content,
@@ -691,7 +705,7 @@ UpdateMessageEvent _updateMessageMoveEvent(
     messageId: messageIds.first,
     messageIds: messageIds,
     flags: flags,
-    editTimestamp: 1234567890, // TODO generate timestamp
+    editTimestamp: utcTimestamp(),
     moveData: UpdateMessageMoveData(
       origStreamId: origStreamId,
       newStreamId: newStreamId ?? origStreamId,
