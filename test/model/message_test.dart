@@ -100,11 +100,8 @@ void main() {
     await store.addStream(stream);
     await store.addSubscription(eg.subscription(stream));
 
-    (store.connection as FakeApiConnection).prepare(
-      json: SendMessageResult(id: 1).toJson());
-    await store.sendMessage(
-      destination: StreamDestination(stream.streamId, eg.t('topic')),
-      content: 'content');
+    await store.addOutboxMessage(
+      StreamDestination(stream.streamId, eg.t('topic')));
     check(async.pendingTimers).deepEquals(<Condition<Object?>>[
       (it) => it.isA<FakeTimer>().duration.equals(kLocalEchoDebounceDuration),
       (it) => it.isA<FakeTimer>().duration.equals(kSendMessageOfferRestoreWaitPeriod),
@@ -123,10 +120,7 @@ void main() {
       await prepare(stream: stream);
       await prepareMessages([]);
 
-      for (int i = 0; i < 10; i++) {
-        connection.prepare(json: SendMessageResult(id: 1).toJson());
-        await store.sendMessage(destination: streamDestination, content: 'content');
-      }
+      await store.addOutboxMessages(List.generate(10, (_) => streamDestination));
       // [store.outboxMessages] has the same number of keys (localMessageId)
       // as the number of sent messages, which are guaranteed to be distinct.
       check(store.outboxMessages).keys.length.equals(10);
