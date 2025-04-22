@@ -300,8 +300,7 @@ class _KatexParser {
         case 'delimsizing':
           // .delimsizing { ... }
           if (index + 1 > spanClasses.length) throw KatexHtmlParseError();
-          final nextClass = spanClasses[index++];
-          switch (nextClass) {
+          switch (spanClasses[index++]) {
             case 'size1':
               styles.fontFamily = 'KaTeX_Size1';
             case 'size2':
@@ -313,24 +312,25 @@ class _KatexParser {
 
             case 'mult':
               // TODO handle nested spans with `.delim-size{1,4}` class.
-              break;
-          }
+              throw KatexHtmlParseError();
 
-          if (styles.fontFamily == null) throw KatexHtmlParseError();
+            default:
+              throw KatexHtmlParseError();
+          }
 
         // TODO handle .nulldelimiter and .delimcenter .
 
         case 'op-symbol':
           // .op-symbol { ... }
           if (index + 1 > spanClasses.length) throw KatexHtmlParseError();
-          final nextClass = spanClasses[index++];
-          switch (nextClass) {
+          switch (spanClasses[index++]) {
             case 'small-op':
               styles.fontFamily = 'KaTeX_Size1';
             case 'large-op':
               styles.fontFamily = 'KaTeX_Size2';
+            default:
+              throw KatexHtmlParseError();
           }
-          if (styles.fontFamily == null) throw KatexHtmlParseError();
 
         // TODO handle more classes from katex.scss
 
