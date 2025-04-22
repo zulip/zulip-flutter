@@ -817,24 +817,34 @@ class MathBlock extends StatelessWidget {
           children: [TextSpan(text: node.texSource)])));
     }
 
-    return _Katex(inline: false, nodes: nodes);
+    return _Katex(
+      inline: false,
+      textStyle: ContentTheme.of(context).textStylePlainParagraph,
+      nodes: nodes);
   }
 }
 
 // Base text style from .katex class in katex.scss :
 //   https://github.com/KaTeX/KaTeX/blob/613c3da8/src/styles/katex.scss#L13-L15
-const kBaseKatexTextStyle = TextStyle(
-  fontSize: kBaseFontSize * 1.21,
-  fontFamily: 'KaTeX_Main',
-  height: 1.2);
+TextStyle mkBaseKatexTextStyle(TextStyle style) {
+  assert(style.fontSize != null);
+  return style.copyWith(
+    fontSize: style.fontSize! * 1.21,
+    fontFamily: 'KaTeX_Main',
+    height: 1.2,
+    fontWeight: FontWeight.normal,
+    fontStyle: FontStyle.normal);
+}
 
 class _Katex extends StatelessWidget {
   const _Katex({
     required this.inline,
+    required this.textStyle,
     required this.nodes,
   });
 
   final bool inline;
+  final TextStyle textStyle;
   final List<KatexNode> nodes;
 
   @override
@@ -851,8 +861,7 @@ class _Katex extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.ltr,
       child: DefaultTextStyle(
-        style: kBaseKatexTextStyle.copyWith(
-          color: ContentTheme.of(context).textStylePlainParagraph.color),
+        style: mkBaseKatexTextStyle(textStyle),
         child: widget));
   }
 }
@@ -1275,7 +1284,7 @@ class _InlineContentBuilder {
           : WidgetSpan(
               alignment: PlaceholderAlignment.baseline,
               baseline: TextBaseline.alphabetic,
-              child: _Katex(inline: true, nodes: nodes));
+              child: _Katex(inline: true, textStyle: widget.style, nodes: nodes));
 
       case GlobalTimeNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
