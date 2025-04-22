@@ -838,13 +838,7 @@ class _Katex extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget widget = Text.rich(TextSpan(
-      children: List.unmodifiable(nodes.map((e) {
-        return WidgetSpan(
-          alignment: PlaceholderAlignment.baseline,
-          baseline: TextBaseline.alphabetic,
-          child: _KatexSpan(e));
-      }))));
+    Widget widget = _KatexNodeList(nodes: nodes);
 
     if (!inline) {
       widget = Center(
@@ -862,6 +856,23 @@ class _Katex extends StatelessWidget {
   }
 }
 
+class _KatexNodeList extends StatelessWidget {
+  const _KatexNodeList({required this.nodes});
+
+  final List<KatexNode> nodes;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text.rich(TextSpan(
+      children: List.unmodifiable(nodes.map((e) {
+        return WidgetSpan(
+          alignment: PlaceholderAlignment.baseline,
+          baseline: TextBaseline.alphabetic,
+          child: _KatexSpan(e));
+      }))));
+  }
+}
+
 class _KatexSpan extends StatelessWidget {
   const _KatexSpan(this.span);
 
@@ -875,13 +886,7 @@ class _KatexSpan extends StatelessWidget {
     if (span.text != null) {
       widget = Text(span.text!);
     } else if (span.nodes != null && span.nodes!.isNotEmpty) {
-      widget = Text.rich(TextSpan(
-        children: List.unmodifiable(span.nodes!.map((e) {
-          return WidgetSpan(
-            alignment: PlaceholderAlignment.baseline,
-            baseline: TextBaseline.alphabetic,
-            child: _KatexSpan(e));
-        }))));
+      widget = _KatexNodeList(nodes: span.nodes!);
     }
 
     final styles = span.styles;
