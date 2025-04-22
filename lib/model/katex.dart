@@ -303,37 +303,27 @@ class _KatexParser {
         case 'delimsizing':
           // .delimsizing { ... }
           if (index + 1 > spanClasses.length) throw KatexHtmlParseError();
-          switch (spanClasses[index++]) {
-            case 'size1':
-              fontFamily = 'KaTeX_Size1';
-            case 'size2':
-              fontFamily = 'KaTeX_Size2';
-            case 'size3':
-              fontFamily = 'KaTeX_Size3';
-            case 'size4':
-              fontFamily = 'KaTeX_Size4';
-
-            case 'mult':
+          fontFamily = switch (spanClasses[index++]) {
+            'size1' => 'KaTeX_Size1',
+            'size2' => 'KaTeX_Size2',
+            'size3' => 'KaTeX_Size3',
+            'size4' => 'KaTeX_Size4',
+            'mult' =>
               // TODO handle nested spans with `.delim-size{1,4}` class.
-              throw KatexHtmlParseError();
-
-            default:
-              throw KatexHtmlParseError();
-          }
+              throw KatexHtmlParseError(),
+            _ => throw KatexHtmlParseError(),
+          };
 
         // TODO handle .nulldelimiter and .delimcenter .
 
         case 'op-symbol':
           // .op-symbol { ... }
           if (index + 1 > spanClasses.length) throw KatexHtmlParseError();
-          switch (spanClasses[index++]) {
-            case 'small-op':
-              fontFamily = 'KaTeX_Size1';
-            case 'large-op':
-              fontFamily = 'KaTeX_Size2';
-            default:
-              throw KatexHtmlParseError();
-          }
+          fontFamily = switch (spanClasses[index++]) {
+            'small-op' => 'KaTeX_Size1',
+            'large-op' => 'KaTeX_Size2',
+            _ => throw KatexHtmlParseError(),
+          };
 
         // TODO handle more classes from katex.scss
 
