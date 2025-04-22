@@ -278,24 +278,23 @@ class _KatexParser {
         case 'fontsize-ensurer':
           // .sizing,
           // .fontsize-ensurer { ... }
-          if (index + 1 < spanClasses.length) {
-            final resetSizeClass = spanClasses[index++];
-            final sizeClass = spanClasses[index++];
+          if (index + 2 > spanClasses.length) throw KatexHtmlParseError();
+          final resetSizeClass = spanClasses[index++];
+          final sizeClass = spanClasses[index++];
 
-            final resetSizeClassSuffix = _resetSizeClassRegExp.firstMatch(resetSizeClass)?.group(1);
-            final sizeClassSuffix = _sizeClassRegExp.firstMatch(sizeClass)?.group(1);
+          final resetSizeClassSuffix = _resetSizeClassRegExp.firstMatch(resetSizeClass)?.group(1);
+          final sizeClassSuffix = _sizeClassRegExp.firstMatch(sizeClass)?.group(1);
 
-            if (resetSizeClassSuffix != null && sizeClassSuffix != null) {
-              const sizes = <double>[0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.2, 1.44, 1.728, 2.074, 2.488];
+          if (resetSizeClassSuffix != null && sizeClassSuffix != null) {
+            const sizes = <double>[0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.2, 1.44, 1.728, 2.074, 2.488];
 
-              final resetSizeIdx = int.parse(resetSizeClassSuffix, radix: 10);
-              final sizeIdx = int.parse(sizeClassSuffix, radix: 10);
+            final resetSizeIdx = int.parse(resetSizeClassSuffix, radix: 10);
+            final sizeIdx = int.parse(sizeClassSuffix, radix: 10);
 
-              // These indexes start at 1.
-              if (resetSizeIdx <= sizes.length && sizeIdx <= sizes.length) {
-                styles.fontSizeEm = sizes[sizeIdx - 1] / sizes[resetSizeIdx - 1];
-                continue;
-              }
+            // These indexes start at 1.
+            if (resetSizeIdx <= sizes.length && sizeIdx <= sizes.length) {
+              styles.fontSizeEm = sizes[sizeIdx - 1] / sizes[resetSizeIdx - 1];
+              continue;
             }
           }
 
@@ -303,48 +302,38 @@ class _KatexParser {
 
         case 'delimsizing':
           // .delimsizing { ... }
-          if (index < spanClasses.length) {
-            final nextClass = spanClasses[index++];
-            switch (nextClass) {
-              case 'size1':
-                styles.fontFamily = 'KaTeX_Size1';
-              case 'size2':
-                styles.fontFamily = 'KaTeX_Size2';
-              case 'size3':
-                styles.fontFamily = 'KaTeX_Size3';
-              case 'size4':
-                styles.fontFamily = 'KaTeX_Size4';
+          if (index + 1 > spanClasses.length) throw KatexHtmlParseError();
+          final nextClass = spanClasses[index++];
+          switch (nextClass) {
+            case 'size1':
+              styles.fontFamily = 'KaTeX_Size1';
+            case 'size2':
+              styles.fontFamily = 'KaTeX_Size2';
+            case 'size3':
+              styles.fontFamily = 'KaTeX_Size3';
+            case 'size4':
+              styles.fontFamily = 'KaTeX_Size4';
 
-              case 'mult':
-                // TODO handle nested spans with `.delim-size{1,4}` class.
-                break;
-            }
-
-            if (styles.fontFamily == null) throw KatexHtmlParseError();
-
-            continue;
+            case 'mult':
+              // TODO handle nested spans with `.delim-size{1,4}` class.
+              break;
           }
 
-          throw KatexHtmlParseError();
+          if (styles.fontFamily == null) throw KatexHtmlParseError();
 
         // TODO handle .nulldelimiter and .delimcenter .
 
         case 'op-symbol':
           // .op-symbol { ... }
-          if (index < spanClasses.length) {
-           final nextClass = spanClasses[index++];
-            switch (nextClass) {
-              case 'small-op':
-                styles.fontFamily = 'KaTeX_Size1';
-              case 'large-op':
-                styles.fontFamily = 'KaTeX_Size2';
-            }
-            if (styles.fontFamily == null) throw KatexHtmlParseError();
-
-            continue;
+          if (index + 1 > spanClasses.length) throw KatexHtmlParseError();
+          final nextClass = spanClasses[index++];
+          switch (nextClass) {
+            case 'small-op':
+              styles.fontFamily = 'KaTeX_Size1';
+            case 'large-op':
+              styles.fontFamily = 'KaTeX_Size2';
           }
-
-          throw KatexHtmlParseError();
+          if (styles.fontFamily == null) throw KatexHtmlParseError();
 
         // TODO handle more classes from katex.scss
 
