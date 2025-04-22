@@ -874,22 +874,22 @@ class _KatexNodeList extends StatelessWidget {
 }
 
 class _KatexSpan extends StatelessWidget {
-  const _KatexSpan(this.span);
+  const _KatexSpan(this.node);
 
-  final KatexNode span;
+  final KatexNode node;
 
   @override
   Widget build(BuildContext context) {
     final em = DefaultTextStyle.of(context).style.fontSize!;
 
     Widget widget = const SizedBox.shrink();
-    if (span.text != null) {
-      widget = Text(span.text!);
-    } else if (span.nodes != null && span.nodes!.isNotEmpty) {
-      widget = _KatexNodeList(nodes: span.nodes!);
+    if (node.text != null) {
+      widget = Text(node.text!);
+    } else if (node.nodes != null && node.nodes!.isNotEmpty) {
+      widget = _KatexNodeList(nodes: node.nodes!);
     }
 
-    final styles = span.styles;
+    final styles = node.styles;
 
     final fontFamily = styles.fontFamily;
     final fontSize = switch (styles.fontSizeEm) {
