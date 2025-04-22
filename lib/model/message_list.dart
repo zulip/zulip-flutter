@@ -351,26 +351,7 @@ mixin _MessageSequence {
 
 @visibleForTesting
 bool haveSameRecipient(Message prevMessage, Message message) {
-  if (prevMessage is StreamMessage && message is StreamMessage) {
-    if (prevMessage.streamId != message.streamId) return false;
-    if (prevMessage.topic.canonicalize() != message.topic.canonicalize()) return false;
-  } else if (prevMessage is DmMessage && message is DmMessage) {
-    if (!_equalIdSequences(prevMessage.allRecipientIds, message.allRecipientIds)) {
-      return false;
-    }
-  } else {
-    return false;
-  }
-  return true;
-
-  // switch ((prevMessage, message)) {
-  //   case (StreamMessage(), StreamMessage()):
-  //     // TODO(dart-3): this doesn't type-narrow prevMessage and message
-  //   case (DmMessage(), DmMessage()):
-  //     // …
-  //   default:
-  //     return false;
-  // }
+  return prevMessage.conversation.isSameAs(message.conversation);
 }
 
 @visibleForTesting
@@ -379,16 +360,6 @@ bool messagesSameDay(Message prevMessage, Message message) {
   final prevTime = DateTime.fromMillisecondsSinceEpoch(prevMessage.timestamp * 1000);
   final time = DateTime.fromMillisecondsSinceEpoch(message.timestamp * 1000);
   if (!_sameDay(prevTime, time)) return false;
-  return true;
-}
-
-// Intended for [Message.allRecipientIds].  Assumes efficient `length`.
-bool _equalIdSequences(Iterable<int> xs, Iterable<int> ys) {
-  if (xs.length != ys.length) return false;
-  final xs_ = xs.iterator; final ys_ = ys.iterator;
-  while (xs_.moveNext() && ys_.moveNext()) {
-    if (xs_.current != ys_.current) return false;
-  }
   return true;
 }
 

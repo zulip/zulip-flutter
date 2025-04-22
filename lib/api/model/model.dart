@@ -614,7 +614,10 @@ extension type const TopicName(String _value) {
 /// Different from [MessageDestination], this information comes from
 /// [getMessages] or [getEvents], identifying the conversation that contains a
 /// message.
-sealed class Conversation {}
+sealed class Conversation {
+  /// Whether [this] and [other] refer to the same Zulip conversation.
+  bool isSameAs(Conversation other);
+}
 
 /// The conversation a stream message is in.
 @JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
@@ -640,6 +643,13 @@ class StreamConversation extends Conversation {
 
   factory StreamConversation.fromJson(Map<String, dynamic> json) =>
     _$StreamConversationFromJson(json);
+
+  @override
+  bool isSameAs(Conversation other) {
+    return other is StreamConversation
+      && streamId == other.streamId
+      && topic.isSameAs(other.topic);
+  }
 }
 
 /// The conversation a DM message is in.
@@ -653,6 +663,21 @@ class DmConversation extends Conversation {
 
   DmConversation({required this.allRecipientIds})
     : assert(isSortedWithoutDuplicates(allRecipientIds.toList()));
+
+  bool _equalIdSequences(Iterable<int> xs, Iterable<int> ys) {
+    if (xs.length != ys.length) return false;
+    final xs_ = xs.iterator; final ys_ = ys.iterator;
+    while (xs_.moveNext() && ys_.moveNext()) {
+      if (xs_.current != ys_.current) return false;
+    }
+    return true;
+  }
+
+  @override
+  bool isSameAs(Conversation other) {
+    if (other is! DmConversation) return false;
+    return _equalIdSequences(allRecipientIds, other.allRecipientIds);
+  }
 }
 
 /// A message or message-like object, for showing in a message list.
