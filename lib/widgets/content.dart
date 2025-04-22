@@ -828,30 +828,39 @@ class MathBlock extends StatelessWidget {
         child: SingleChildScrollViewWithScrollbar(
           scrollDirection: Axis.horizontal,
           child: KatexWidget(
+            textStyle: ContentTheme.of(context).textStylePlainParagraph,
             nodes: nodes))));
   }
 }
 
-// Base text style from .katex class in katex.scss :
-//   https://github.com/KaTeX/KaTeX/blob/613c3da8/src/styles/katex.scss#L13-L15
-const kBaseKatexTextStyle = TextStyle(
-  fontSize: kBaseFontSize * 1.21,
-  fontFamily: 'KaTeX_Main',
-  height: 1.2,
-  fontWeight: FontWeight.normal,
-  fontStyle: FontStyle.normal,
-  textBaseline: TextBaseline.alphabetic,
-  leadingDistribution: TextLeadingDistribution.even,
-  decoration: TextDecoration.none,
-  fontFamilyFallback: []);
+/// Creates a base text style for rendering KaTeX content.
+///
+/// This applies the CSS styles defined in .katex class in katex.scss :
+///   https://github.com/KaTeX/KaTeX/blob/613c3da8/src/styles/katex.scss#L13-L15
+///
+/// Requires the [style.fontSize] to be non-null.
+TextStyle mkBaseKatexTextStyle(TextStyle style) {
+  return style.copyWith(
+    fontSize: style.fontSize! * 1.21,
+    fontFamily: 'KaTeX_Main',
+    height: 1.2,
+    fontWeight: FontWeight.normal,
+    fontStyle: FontStyle.normal,
+    textBaseline: TextBaseline.alphabetic,
+    leadingDistribution: TextLeadingDistribution.even,
+    decoration: TextDecoration.none,
+    fontFamilyFallback: const []);
+}
 
 @visibleForTesting
 class KatexWidget extends StatelessWidget {
   const KatexWidget({
     super.key,
+    required this.textStyle,
     required this.nodes,
   });
 
+  final TextStyle textStyle;
   final List<KatexNode> nodes;
 
   @override
@@ -861,7 +870,7 @@ class KatexWidget extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.ltr,
       child: DefaultTextStyle(
-        style: kBaseKatexTextStyle.copyWith(
+        style: mkBaseKatexTextStyle(textStyle).copyWith(
           color: ContentTheme.of(context).textStylePlainParagraph.color),
         child: widget));
   }
@@ -1285,7 +1294,7 @@ class _InlineContentBuilder {
           : WidgetSpan(
               alignment: PlaceholderAlignment.baseline,
               baseline: TextBaseline.alphabetic,
-              child: KatexWidget(nodes: nodes));
+              child: KatexWidget(textStyle: widget.style, nodes: nodes));
 
       case GlobalTimeNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,

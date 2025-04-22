@@ -1042,6 +1042,32 @@ void main() {
     testContentSmoke(ContentExample.mathInline);
 
     testWidgets('maintains font-size ratio with surrounding text', (tester) async {
+      addTearDown(testBinding.reset);
+      final globalSettings = testBinding.globalStore.settings;
+      await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
+      check(globalSettings.getBool(BoolGlobalSetting.renderKatex)).isTrue();
+
+      const html = '<span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
+          '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span>';
+      await checkFontSizeRatio(tester,
+        targetHtml: html,
+        targetFontSizeFinder: (rootSpan) {
+          late final double result;
+          rootSpan.visitChildren((span) {
+            if (span case WidgetSpan(child: KatexWidget() && var widget)) {
+              result = mergedStyleOf(tester,
+                findAncestor: find.byWidget(widget), r'λ')!.fontSize!;
+              return false;
+            }
+            return true;
+          });
+          return result;
+        });
+    });
+
+    testWidgets('maintains font-size ratio with surrounding text, when showing TeX source', (tester) async {
       const html = '<span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
           '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
