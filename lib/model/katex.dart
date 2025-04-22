@@ -279,8 +279,8 @@ class _KatexParser {
           // .sizing,
           // .fontsize-ensurer { ... }
           if (index + 1 < spanClasses.length) {
-            final resetSizeClass = spanClasses[index];
-            final sizeClass = spanClasses[index + 1];
+            final resetSizeClass = spanClasses[index++];
+            final sizeClass = spanClasses[index++];
 
             final resetSizeClassSuffix = _resetSizeClassRegExp.firstMatch(resetSizeClass)?.group(1);
             final sizeClassSuffix = _sizeClassRegExp.firstMatch(sizeClass)?.group(1);
@@ -294,7 +294,6 @@ class _KatexParser {
               // These indexes start at 1.
               if (resetSizeIdx <= sizes.length && sizeIdx <= sizes.length) {
                 styles.fontSizeEm = sizes[sizeIdx - 1] / sizes[resetSizeIdx - 1];
-                index += 2;
                 continue;
               }
             }
@@ -305,7 +304,7 @@ class _KatexParser {
         case 'delimsizing':
           // .delimsizing { ... }
           if (index < spanClasses.length) {
-            final nextClass = spanClasses[index];
+            final nextClass = spanClasses[index++];
             switch (nextClass) {
               case 'size1':
                 styles.fontFamily = 'KaTeX_Size1';
@@ -323,7 +322,6 @@ class _KatexParser {
 
             if (styles.fontFamily == null) throw KatexHtmlParseError();
 
-            index += 1;
             continue;
           }
 
@@ -334,7 +332,7 @@ class _KatexParser {
         case 'op-symbol':
           // .op-symbol { ... }
           if (index < spanClasses.length) {
-           final nextClass = spanClasses[index];
+           final nextClass = spanClasses[index++];
             switch (nextClass) {
               case 'small-op':
                 styles.fontFamily = 'KaTeX_Size1';
@@ -343,7 +341,6 @@ class _KatexParser {
             }
             if (styles.fontFamily == null) throw KatexHtmlParseError();
 
-            index += 1;
             continue;
           }
 
