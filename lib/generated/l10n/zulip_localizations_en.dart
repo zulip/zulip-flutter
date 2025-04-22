@@ -325,6 +325,16 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
   }
 
   @override
+  String guestUserDmWarningOne(String guestUser) {
+    return '$guestUser is a guest in this organization.';
+  }
+
+  @override
+  String guestUserDmWarningMany(String guestUsers) {
+    return '$guestUsers are guests in this organization.';
+  }
+
+  @override
   String get messageListGroupYouWithYourself => 'Messages with yourself';
 
   @override

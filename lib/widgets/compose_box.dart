@@ -1484,6 +1484,42 @@ class _ErrorBanner extends _Banner {
   }
 }
 
+class _WarningBanner extends _Banner {
+  const _WarningBanner({
+    required this.label,
+    required this.onDismiss,
+  });
+
+  final String label;
+  final VoidCallback? onDismiss;
+
+  @override
+  String getLabel(ZulipLocalizations zulipLocalizations) => label;
+
+  @override
+  Color getLabelColor(DesignVariables designVariables) =>
+    designVariables.btnLabelAttMediumIntWarning;
+
+  @override
+  Color getBackgroundColor(DesignVariables designVariables) =>
+    designVariables.bannerBgIntWarning;
+
+  @override
+  bool get padEnd => false;
+
+  @override
+  Widget? buildTrailing(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return InkWell(
+      splashFactory: NoSplash.splashFactory,
+      onTap: onDismiss,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Icon(ZulipIcons.remove,
+          size: 24, color: designVariables.btnLabelAttLowIntWarning)));
+  }
+}
+
 /// The compose box.
 ///
 /// Takes the full screen width, covering the horizontal insets with its surface.
@@ -1521,6 +1557,8 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   @override ComposeBoxController get controller => _controller!;
   ComposeBoxController? _controller;
 
+  bool _isWarningBannerDismissed = false;
+
   @override
   void onNewStore() {
     switch (widget.narrow) {
@@ -1545,6 +1583,12 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   void dispose() {
     controller.dispose();
     super.dispose();
+  }
+
+  void _dismissWarningBanner() {
+    setState(() {
+      _isWarningBannerDismissed = true;
+    });
   }
 
   /// An [_ErrorBanner] that replaces the compose box's text inputs.
@@ -1576,11 +1620,62 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     return null;
   }
 
+  /// A [_WarningBanner] that goes at the top of the compose box.
+  Widget? _warningBanner(BuildContext context) {
+    if (_isWarningBannerDismissed) return null;
+
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    if (store.connection.zulipFeatureLevel! < 348 ||
+        !store.realmEnableGuestUserDmWarning) {
+      return null;
+    }
+
+    switch (widget.narrow) {
+      case DmNarrow(:final otherRecipientIds):
+        final guestUsers = otherRecipientIds
+          .map((id) => store.getUser(id))
+          .where((user) => user?.role == UserRole.guest)
+          .toList();
+
+        if (guestUsers.isEmpty) return null;
+
+        final guestNames = guestUsers
+          .map((user) => user != null
+            ? store.userDisplayName(user.userId)
+            : zulipLocalizations.unknownUserName)
+          .toList();
+
+        final String formattedNames;
+        if (guestUsers.length == 1) {
+          formattedNames = guestNames[0];
+        } else {
+          final allButLast =
+            guestNames.sublist(0, guestNames.length - 1).join(', ');
+          formattedNames =
+            "$allButLast${guestUsers.length > 2 ? ',' : ''} and ${guestNames.last}";
+        }
+
+        final bannerText = guestUsers.length == 1
+          ? zulipLocalizations.guestUserDmWarningOne(guestNames.first)
+          : zulipLocalizations.guestUserDmWarningMany(formattedNames);
+
+        return _WarningBanner(label: bannerText,
+          onDismiss: _dismissWarningBanner);
+
+      default:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final Widget? body;
 
     final errorBanner = _errorBannerComposingNotAllowed(context);
+    final warningBanner = _warningBanner(context);
+
     if (errorBanner != null) {
       return _ComposeBoxContainer(body: null, banner: errorBanner);
     }
@@ -1603,6 +1698,6 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     //       errorBanner = _ErrorBanner(label:
     //         ZulipLocalizations.of(context).errorSendMessageTimeout);
     //     }
-    return _ComposeBoxContainer(body: body, banner: null);
+    return _ComposeBoxContainer(body: body, banner: warningBanner);
   }
 }

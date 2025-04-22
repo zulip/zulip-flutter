@@ -415,6 +415,21 @@
       "others": {"type": "String", "example": "Alice, Bob"}
     }
   },
+  "guestUserDmWarningOne": "{guestUser} is a guest in this organization.",
+  "@guestUserDmWarningOne": {
+    "description": "Warning shown when composing a DM to one guest user",
+    "placeholders": {
+      "guestUser": {"type": "String", "example": "Alice"}
+    }
+  },
+
+  "guestUserDmWarningMany": "{guestUsers} are guests in this organization.",
+  "@guestUserDmWarningMany": {
+    "description": "Warning shown when composing DMs to multiple guest users",
+    "placeholders": {
+      "guestUsers": {"type": "String", "example": "Alice, Bob, and Charlie"}
+    }
+  },
   "messageListGroupYouWithYourself": "Messages with yourself",
   "@messageListGroupYouWithYourself": {
     "description": "Message list recipient header for a DM group that only includes yourself."
