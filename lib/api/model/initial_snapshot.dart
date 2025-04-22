@@ -86,6 +86,9 @@ class InitialSnapshot {
 
   final int maxFileUploadSizeMib;
 
+  @JsonKey(defaultValue: false) // TODO(server-10): Remove default
+  final bool realmEnableGuestUserDmWarning;
+
   final Uri? serverEmojiDataUrl; // TODO(server-6)
 
   final String? realmEmptyTopicDisplayName; // TODO(server-10)
@@ -144,6 +147,7 @@ class InitialSnapshot {
     required this.realmMessageContentEditLimitSeconds,
     required this.realmDefaultExternalAccounts,
     required this.maxFileUploadSizeMib,
+    required this.realmEnableGuestUserDmWarning,
     required this.serverEmojiDataUrl,
     required this.realmEmptyTopicDisplayName,
     required this.realmUsers,

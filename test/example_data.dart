@@ -920,6 +920,7 @@ InitialSnapshot initialSnapshot({
   int? realmMessageContentEditLimitSeconds,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   int? maxFileUploadSizeMib,
+  bool? realmEnableGuestUserDmWarning,
   Uri? serverEmojiDataUrl,
   String? realmEmptyTopicDisplayName,
   List<User>? realmUsers,
@@ -959,6 +960,7 @@ InitialSnapshot initialSnapshot({
     realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds ?? 600,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
+    realmEnableGuestUserDmWarning: realmEnableGuestUserDmWarning ?? false,
     serverEmojiDataUrl: serverEmojiDataUrl
       ?? realmUrl.replace(path: '/static/emoji.json'),
     realmEmptyTopicDisplayName: realmEmptyTopicDisplayName ?? defaultRealmEmptyTopicDisplayName,

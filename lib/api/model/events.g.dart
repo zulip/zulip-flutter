@@ -704,6 +704,31 @@ const _$ReactionTypeEnumMap = {
   ReactionType.zulipExtraEmoji: 'zulip_extra_emoji',
 };
 
+RealmUpdateEvent _$RealmUpdateEventFromJson(Map<String, dynamic> json) =>
+    RealmUpdateEvent(
+      id: (json['id'] as num).toInt(),
+      property: $enumDecodeNullable(
+        _$RealmPropertyNameEnumMap,
+        json['property'],
+        unknownValue: JsonKey.nullForUndefinedEnumValue,
+      ),
+      value: json['value'],
+    );
+
+Map<String, dynamic> _$RealmUpdateEventToJson(RealmUpdateEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'op': instance.op,
+      'property': _$RealmPropertyNameEnumMap[instance.property],
+      'value': instance.value,
+    };
+
+const _$RealmPropertyNameEnumMap = {
+  RealmPropertyName.realmEnableGuestUserDmWarning:
+      'enable_guest_user_dm_warning',
+};
+
 HeartbeatEvent _$HeartbeatEventFromJson(Map<String, dynamic> json) =>
     HeartbeatEvent(id: (json['id'] as num).toInt());
 

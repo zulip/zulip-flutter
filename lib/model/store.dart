@@ -471,6 +471,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       realmMandatoryTopics: initialSnapshot.realmMandatoryTopics,
       realmWaitingPeriodThreshold: initialSnapshot.realmWaitingPeriodThreshold,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
+      realmEnableGuestUserDmWarning: initialSnapshot.realmEnableGuestUserDmWarning,
       realmEmptyTopicDisplayName: initialSnapshot.realmEmptyTopicDisplayName,
       realmAllowMessageEditing: initialSnapshot.realmAllowMessageEditing,
       realmMessageContentEditLimitSeconds: initialSnapshot.realmMessageContentEditLimitSeconds,
@@ -510,6 +511,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     required this.realmMandatoryTopics,
     required this.realmWaitingPeriodThreshold,
     required this.maxFileUploadSizeMib,
+    required this.realmEnableGuestUserDmWarning,
     required String? realmEmptyTopicDisplayName,
     required this.realmAllowMessageEditing,
     required this.realmMessageContentEditLimitSeconds,
@@ -570,6 +572,13 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   final bool realmAllowMessageEditing; // TODO(#668): update this realm setting
   final int? realmMessageContentEditLimitSeconds; // TODO(#668): update this realm setting
   final int maxFileUploadSizeMib; // No event for this.
+
+  /// Whether to show a warning when composing a DM to a guest user.
+  ///
+  /// See: https://zulip.com/api/get-events-types
+  /// Changes: Added in Zulip 10.0 (feature level 348).
+  // TODO(server-10): Remove default
+  bool realmEnableGuestUserDmWarning = false;
 
   /// The display name to use for empty topics.
   ///
@@ -899,6 +908,13 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         assert(debugLog("server event: reaction/${event.op}"));
         _messages.handleReactionEvent(event);
 
+      case RealmUpdateEvent():
+        assert(debugLog("server event: realm/${event.op}"));
+        if (event.property == RealmPropertyName.realmEnableGuestUserDmWarning) {
+          realmEnableGuestUserDmWarning = event.value as bool;
+          notifyListeners();
+        }
+        break;
       case UnexpectedEvent():
         assert(debugLog("server event: ${jsonEncode(event.toJson())}")); // TODO log better
     }
