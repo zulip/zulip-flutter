@@ -43,12 +43,6 @@ void main() {
       check(paintLog).deepEquals([0, 1, 2, 3, 4]);
     });
 
-    // This test will fail if a corresponding upstream PR lands:
-    //   https://github.com/flutter/flutter/pull/164818
-    // because that eliminates the quirky centerTopFirstBottom behavior.
-    // In that case, skip this test for a quick fix; or go ahead and
-    // rip out CustomPaintOrderScrollView in favor of CustomScrollView.
-    // (Greg has a draft commit ready which does the latter.)
     testWidgets('centerTopFirstBottom', (tester) async {
       addTearDown(paintLog.clear);
       await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr,
@@ -68,7 +62,10 @@ void main() {
           center: ValueKey(2), anchor: 0.5,
           slivers: List.generate(5, makeSliver))));
       check(paintLog).deepEquals(result);
-    });
+    }, skip: true, // TODO(upstream): once PR 164818 lands, cut our CustomPaintOrderScrollView
+                   //   in favor of CustomScrollView; this test was checking that
+                   //   the former matched the latter's old default behavior.
+    );
   });
 
   group('CustomPaintOrderScrollView hit-test order', () {
@@ -104,9 +101,6 @@ void main() {
       check(sliverIds(result.path)).deepEquals([4, 3, 2, 1, 0]);
     });
 
-    // This test will fail if the upstream PR 164818 lands.
-    // In that case the test is no longer needed and we'll take it out;
-    // see comment on other centerTopFirstBottom test above.
     testWidgets('centerTopFirstBottom', (tester) async {
       await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr,
         child: CustomPaintOrderScrollView(
@@ -125,7 +119,10 @@ void main() {
           slivers: List.generate(5, makeSliver))));
       check(sliverIds(tester.hitTestOnBinding(const Offset(400, 300)).path))
         .deepEquals(sliverIds(result.path));
-    });
+    }, skip: true, // TODO(upstream): once PR 164818 lands, cut our CustomPaintOrderScrollView
+                   //   in favor of CustomScrollView; this test was checking that
+                   //   the former matched the latter's old default behavior.
+    );
   });
 }
 
