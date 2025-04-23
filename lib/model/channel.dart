@@ -301,7 +301,16 @@ class ChannelStoreImpl with ChannelStore {
 
       case SubscriptionRemoveEvent():
         for (final streamId in event.streamIds) {
-          subscriptions.remove(streamId);
+          assert(streams.containsKey(streamId));
+          assert(streams[streamId] is Subscription);
+          assert(streamsByName.containsKey(streams[streamId]!.name));
+          assert(streamsByName[streams[streamId]!.name] is Subscription);
+          assert(subscriptions.containsKey(streamId));
+          final subscription = subscriptions.remove(streamId);
+          if (subscription == null) continue; // TODO(log)
+          final stream = ZulipStream.fromSubscription(subscription);
+          streams[streamId] = stream;
+          streamsByName[subscription.name] = stream;
         }
 
       case SubscriptionUpdateEvent():

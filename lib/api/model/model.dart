@@ -363,6 +363,24 @@ class ZulipStream {
     required this.streamWeeklyTraffic,
   });
 
+  /// Construct a plain [ZulipStream] from [subscription].
+  factory ZulipStream.fromSubscription(Subscription subscription) {
+    return ZulipStream(
+      streamId: subscription.streamId,
+      name: subscription.name,
+      description: subscription.description,
+      renderedDescription: subscription.renderedDescription,
+      dateCreated: subscription.dateCreated,
+      firstMessageId: subscription.firstMessageId,
+      inviteOnly: subscription.inviteOnly,
+      isWebPublic: subscription.isWebPublic,
+      historyPublicToSubscribers: subscription.historyPublicToSubscribers,
+      messageRetentionDays: subscription.messageRetentionDays,
+      channelPostPolicy: subscription.channelPostPolicy,
+      streamWeeklyTraffic: subscription.streamWeeklyTraffic,
+    );
+  }
+
   factory ZulipStream.fromJson(Map<String, dynamic> json) =>
     _$ZulipStreamFromJson(json);
 

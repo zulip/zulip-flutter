@@ -68,6 +68,23 @@ void main() {
       ));
       checkUnified(store);
     });
+
+    test('unsubscribed then subscribed by events', () async {
+      // Regression test for: https://chat.zulip.org/#narrow/channel/48-mobile/topic/Unsubscribe.20then.20resubscribe.20to.20channel/with/2160241
+      final stream = eg.stream();
+      final store = eg.store();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      checkUnified(store);
+
+      await store.handleEvent(SubscriptionRemoveEvent(id: 1,
+        streamIds: [stream.streamId]));
+      checkUnified(store);
+
+      await store.handleEvent(SubscriptionAddEvent(id: 1,
+        subscriptions: [eg.subscription(stream)]));
+      checkUnified(store);
+    });
   });
 
   group('SubscriptionEvent', () {
