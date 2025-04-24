@@ -747,6 +747,21 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     // TODO(#649) notify [unreads] of the just-fetched messages
     // TODO(#650) notify [recentDmConversationsView] of the just-fetched messages
   }
+  @override
+  bool? getEditMessageErrorStatus(int messageId) {
+    assert(!_disposed);
+    return _messages.getEditMessageErrorStatus(messageId);
+  }
+  @override
+  void editMessage({required int messageId, required String newContent}) {
+    assert(!_disposed);
+    return _messages.editMessage(messageId: messageId, newContent: newContent);
+  }
+  @override
+  String takeFailedMessageEdit(int messageId) {
+    assert(!_disposed);
+    return _messages.takeFailedMessageEdit(messageId);
+  }
 
   @override
   Set<MessageListView> get debugMessageListViews => _messages.debugMessageListViews;
