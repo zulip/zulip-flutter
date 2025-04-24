@@ -881,7 +881,9 @@ class _KatexNodeList extends StatelessWidget {
         return WidgetSpan(
           alignment: PlaceholderAlignment.baseline,
           baseline: TextBaseline.alphabetic,
-          child: _KatexSpan(e));
+          child: switch (e) {
+            KatexSpanNode() => _KatexSpan(e),
+          });
       }))));
   }
 }
@@ -889,7 +891,7 @@ class _KatexNodeList extends StatelessWidget {
 class _KatexSpan extends StatelessWidget {
   const _KatexSpan(this.node);
 
-  final KatexNode node;
+  final KatexSpanNode node;
 
   @override
   Widget build(BuildContext context) {
