@@ -354,7 +354,7 @@ class _KatexParser {
 
     final inlineStyles = _parseSpanInlineStyles(element);
 
-    return KatexNode(
+    return KatexSpanNode(
       styles: inlineStyles != null
         ? styles.merge(inlineStyles)
         : styles,
