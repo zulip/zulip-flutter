@@ -529,7 +529,7 @@ class ContentExample {
       ]),
     ]));
 
-  static final mathBlock = ContentExample(
+  static const mathBlock = ContentExample(
     'math block',
     "```math\n\\lambda\n```",
     expectedText: r'\lambda',
@@ -549,7 +549,7 @@ class ContentExample {
       ]),
     ])]);
 
-  static final mathBlocksMultipleInParagraph = ContentExample(
+  static const mathBlocksMultipleInParagraph = ContentExample(
     'math blocks, multiple in paragraph',
     '```math\na\n\nb\n```',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/.E2.9C.94.20Rajesh/near/2001490
@@ -586,7 +586,7 @@ class ContentExample {
       ]),
     ]);
 
-  static final mathBlockInQuote = ContentExample(
+  static const mathBlockInQuote = ContentExample(
     'math block in quote',
     // There's sometimes a quirky extra `<br>\n` at the end of the `<p>` that
     // encloses the math block.  In particular this happens when the math block
@@ -614,7 +614,7 @@ class ContentExample {
       ]),
     ])]);
 
-  static final mathBlocksMultipleInQuote = ContentExample(
+  static const mathBlocksMultipleInQuote = ContentExample(
     'math blocks, multiple in quote',
     "````quote\n```math\na\n\nb\n```\n````",
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/.E2.9C.94.20Rajesh/near/2029236
@@ -654,7 +654,7 @@ class ContentExample {
       ]),
     ])]);
 
-  static final mathBlockBetweenImages = ContentExample(
+  static const mathBlockBetweenImages = ContentExample(
     'math block between images',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Greg/near/2035891
     'https://upload.wikimedia.org/wikipedia/commons/7/78/Verregende_bloem_van_een_Helenium_%27El_Dorado%27._22-07-2023._%28d.j.b%29.jpg\n```math\na\n```\nhttps://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Zaadpluizen_van_een_Clematis_texensis_%27Princess_Diana%27._18-07-2023_%28actm.%29_02.jpg/1280px-Zaadpluizen_van_een_Clematis_texensis_%27Princess_Diana%27._18-07-2023_%28actm.%29_02.jpg',
@@ -702,7 +702,7 @@ class ContentExample {
   // The font sizes can be compared using the katex.css generated
   // from katex.scss :
   //   https://unpkg.com/katex@0.16.21/dist/katex.css
-  static final mathBlockKatexSizing = ContentExample(
+  static const mathBlockKatexSizing = ContentExample(
     'math block; KaTeX different sizing',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2155476
     '```math\n\\Huge 1\n\\huge 2\n\\LARGE 3\n\\Large 4\n\\large 5\n\\normalsize 6\n\\small 7\n\\footnotesize 8\n\\scriptsize 9\n\\tiny 0\n```',
@@ -779,7 +779,7 @@ class ContentExample {
         ]),
     ]);
 
-  static final mathBlockKatexNestedSizing = ContentExample(
+  static const mathBlockKatexNestedSizing = ContentExample(
     'math block; KaTeX nested sizing',
     '```math\n\\tiny {1 \\Huge 2}\n```',
     '<p>'
@@ -821,7 +821,7 @@ class ContentExample {
         ]),
     ]);
 
-  static final mathBlockKatexDelimSizing = ContentExample(
+  static const mathBlockKatexDelimSizing = ContentExample(
     'math block; KaTeX delimiter sizing',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2147135
     '```math\n⟨ \\big( \\Big[ \\bigg⌈ \\Bigg⌊\n```',
