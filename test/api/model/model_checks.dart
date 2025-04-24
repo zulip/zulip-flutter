@@ -30,6 +30,7 @@ extension TopicNameChecks on Subject<TopicName> {
 }
 
 extension StreamConversationChecks on Subject<StreamConversation> {
+  Subject<int> get streamId => has((x) => x.streamId, 'streamId');
   Subject<TopicName> get topic => has((x) => x.topic, 'topic');
   Subject<String?> get displayRecipient => has((x) => x.displayRecipient, 'displayRecipient');
 }
