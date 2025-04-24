@@ -2153,15 +2153,21 @@ void checkInvariants(MessageListView model) {
 
   for (final message in model.messages) {
     check(model.store.messages)[message.id].isNotNull().identicalTo(message);
+  }
+
+  final allMessages = <MessageBase<Conversation>>[...model.messages];
+
+  for (final message in allMessages) {
     check(model.narrow.containsMessage(message)).isTrue();
 
-    if (message is! StreamMessage) continue;
+    if (message is! MessageBase<StreamConversation>) continue;
+    final conversation = message.conversation;
     switch (model.narrow) {
       case CombinedFeedNarrow():
-        check(model.store.isTopicVisible(message.streamId, message.topic))
+        check(model.store.isTopicVisible(conversation.streamId, conversation.topic))
           .isTrue();
       case ChannelNarrow():
-        check(model.store.isTopicVisibleInStream(message.streamId, message.topic))
+        check(model.store.isTopicVisibleInStream(conversation.streamId, conversation.topic))
           .isTrue();
       case TopicNarrow():
       case DmNarrow():
@@ -2204,23 +2210,28 @@ void checkInvariants(MessageListView model) {
   }
 
   int i = 0;
-  for (int j = 0; j < model.messages.length; j++) {
+  for (int j = 0; j < allMessages.length; j++) {
     bool forcedShowSender = false;
     if (j == 0
-        || !haveSameRecipient(model.messages[j-1], model.messages[j])) {
+        || !haveSameRecipient(allMessages[j-1], allMessages[j])) {
       check(model.items[i++]).isA<MessageListRecipientHeaderItem>()
-        .message.identicalTo(model.messages[j]);
+        .message.identicalTo(allMessages[j]);
       forcedShowSender = true;
-    } else if (!messagesSameDay(model.messages[j-1], model.messages[j])) {
+    } else if (!messagesSameDay(allMessages[j-1], allMessages[j])) {
       check(model.items[i++]).isA<MessageListDateSeparatorItem>()
-        .message.identicalTo(model.messages[j]);
+        .message.identicalTo(allMessages[j]);
       forcedShowSender = true;
     }
-    check(model.items[i++]).isA<MessageListMessageItem>()
-      ..message.identicalTo(model.messages[j])
-      ..content.identicalTo(model.contents[j])
+    if (j < model.messages.length) {
+      check(model.items[i]).isA<MessageListMessageItem>()
+        ..message.identicalTo(model.messages[j])
+        ..content.identicalTo(model.contents[j]);
+    } else {
+      assert(false);
+    }
+    check(model.items[i++]).isA<MessageListMessageBaseItem>()
       ..showSender.equals(
-        forcedShowSender || model.messages[j].senderId != model.messages[j-1].senderId)
+        forcedShowSender || allMessages[j].senderId != allMessages[j-1].senderId)
       ..isLastInBlock.equals(
         i == model.items.length || switch (model.items[i]) {
           MessageListMessageItem()
