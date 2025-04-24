@@ -158,6 +158,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     contextMenuItemMeta: const Color(0xff626573),
     contextMenuItemText: const Color(0xff381da7),
     editorButtonPressedBg: Colors.black.withValues(alpha: 0.06),
+    fabBg: const Color(0xff6e69f3),
+    fabBgPressed: const Color(0xff6159e1),
+    fabLabel: const Color(0xfff1f3fe),
+    fabLabelPressed: const Color(0xffeceefc),
+    fabShadow: const Color(0xff2b0e8a).withValues(alpha: 0.4),
     foreground: const Color(0xff000000),
     icon: const Color(0xff6159e1),
     iconSelected: const Color(0xff222222),
@@ -166,6 +171,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelMenuButton: const Color(0xff222222),
     labelSearchPrompt: const Color(0xff000000).withValues(alpha: 0.5),
     mainBackground: const Color(0xfff0f0f0),
+    radioBorder: Color(0xffbbbdc8),
+    radioFillSelected: Color(0xff4370f0),
     textInput: const Color(0xff000000),
     title: const Color(0xff1a1a1a),
     bgSearchInput: const Color(0xffe3e3e3),
@@ -220,6 +227,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     contextMenuItemMeta: const Color(0xff9194a3),
     contextMenuItemText: const Color(0xff9398fd),
     editorButtonPressedBg: Colors.white.withValues(alpha: 0.06),
+    fabBg: const Color(0xff4f42c9),
+    fabBgPressed: const Color(0xff4331b8),
+    fabLabel: const Color(0xffeceefc),
+    fabLabelPressed: const Color(0xffeceefc),
+    fabShadow: const Color(0xff18171c),
     foreground: const Color(0xffffffff),
     icon: const Color(0xff7977fe),
     iconSelected: Colors.white.withValues(alpha: 0.8),
@@ -228,6 +240,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
     labelSearchPrompt: const Color(0xffffffff).withValues(alpha: 0.5),
     mainBackground: const Color(0xff1d1d1d),
+    radioBorder: Color(0xff626573),
+    radioFillSelected: Color(0xff4e7cfa),
     textInput: const Color(0xffffffff).withValues(alpha: 0.9),
     title: const Color(0xffffffff).withValues(alpha: 0.9),
     bgSearchInput: const Color(0xff313131),
@@ -291,6 +305,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.contextMenuItemText,
     required this.editorButtonPressedBg,
     required this.foreground,
+    required this.fabBg,
+    required this.fabBgPressed,
+    required this.fabLabel,
+    required this.fabLabelPressed,
+    required this.fabShadow,
     required this.icon,
     required this.iconSelected,
     required this.labelCounterUnread,
@@ -298,6 +317,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.labelMenuButton,
     required this.labelSearchPrompt,
     required this.mainBackground,
+    required this.radioBorder,
+    required this.radioFillSelected,
     required this.textInput,
     required this.title,
     required this.bgSearchInput,
@@ -361,6 +382,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color contextMenuItemMeta;
   final Color contextMenuItemText;
   final Color editorButtonPressedBg;
+  final Color fabBg;
+  final Color fabBgPressed;
+  final Color fabLabel;
+  final Color fabLabelPressed;
+  final Color fabShadow;
   final Color foreground;
   final Color icon;
   final Color iconSelected;
@@ -369,6 +395,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color labelMenuButton;
   final Color labelSearchPrompt;
   final Color mainBackground;
+  final Color radioBorder;
+  final Color radioFillSelected;
   final Color textInput;
   final Color title;
   final Color bgSearchInput;
@@ -427,6 +455,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? contextMenuItemMeta,
     Color? contextMenuItemText,
     Color? editorButtonPressedBg,
+    Color? fabBg,
+    Color? fabBgPressed,
+    Color? fabLabel,
+    Color? fabLabelPressed,
+    Color? fabShadow,
     Color? foreground,
     Color? icon,
     Color? iconSelected,
@@ -435,6 +468,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? labelMenuButton,
     Color? labelSearchPrompt,
     Color? mainBackground,
+    Color? radioBorder,
+    Color? radioFillSelected,
     Color? textInput,
     Color? title,
     Color? bgSearchInput,
@@ -489,6 +524,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       contextMenuItemText: contextMenuItemText ?? this.contextMenuItemText,
       editorButtonPressedBg: editorButtonPressedBg ?? this.editorButtonPressedBg,
       foreground: foreground ?? this.foreground,
+      fabBg: fabBg ?? this.fabBg,
+      fabBgPressed: fabBgPressed ?? this.fabBgPressed,
+      fabLabel: fabLabel ?? this.fabLabel,
+      fabLabelPressed: fabLabelPressed ?? this.fabLabelPressed,
+      fabShadow: fabShadow ?? this.fabShadow,
       icon: icon ?? this.icon,
       iconSelected: iconSelected ?? this.iconSelected,
       labelCounterUnread: labelCounterUnread ?? this.labelCounterUnread,
@@ -496,6 +536,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelMenuButton: labelMenuButton ?? this.labelMenuButton,
       labelSearchPrompt: labelSearchPrompt ?? this.labelSearchPrompt,
       mainBackground: mainBackground ?? this.mainBackground,
+      radioBorder: radioBorder ?? this.radioBorder,
+      radioFillSelected: radioFillSelected ?? this.radioFillSelected,
       textInput: textInput ?? this.textInput,
       title: title ?? this.title,
       bgSearchInput: bgSearchInput ?? this.bgSearchInput,
@@ -557,6 +599,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       contextMenuItemText: Color.lerp(contextMenuItemText, other.contextMenuItemText, t)!,
       editorButtonPressedBg: Color.lerp(editorButtonPressedBg, other.editorButtonPressedBg, t)!,
       foreground: Color.lerp(foreground, other.foreground, t)!,
+      fabBg: Color.lerp(fabBg, other.fabBg, t)!,
+      fabBgPressed: Color.lerp(fabBgPressed, other.fabBgPressed, t)!,
+      fabLabel: Color.lerp(fabLabel, other.fabLabel, t)!,
+      fabLabelPressed: Color.lerp(fabLabelPressed, other.fabLabelPressed, t)!,
+      fabShadow: Color.lerp(fabShadow, other.fabShadow, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
       iconSelected: Color.lerp(iconSelected, other.iconSelected, t)!,
       labelCounterUnread: Color.lerp(labelCounterUnread, other.labelCounterUnread, t)!,
@@ -564,6 +611,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelMenuButton: Color.lerp(labelMenuButton, other.labelMenuButton, t)!,
       labelSearchPrompt: Color.lerp(labelSearchPrompt, other.labelSearchPrompt, t)!,
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
+      radioBorder: Color.lerp(radioBorder, other.radioBorder, t)!,
+      radioFillSelected: Color.lerp(radioFillSelected, other.radioFillSelected, t)!,
       textInput: Color.lerp(textInput, other.textInput, t)!,
       title: Color.lerp(title, other.title, t)!,
       bgSearchInput: Color.lerp(bgSearchInput, other.bgSearchInput, t)!,

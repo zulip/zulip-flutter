@@ -352,10 +352,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get composeBoxGenericContentHint => 'Ввести сообщение';
 
   @override
-  String get newDmSheetBackButtonLabel => 'Back';
-
-  @override
-  String get newDmSheetNextButtonLabel => 'Next';
+  String get newDmSheetComposeButtonLabel => 'Compose';
 
   @override
   String get newDmSheetScreenTitle => 'New DM';
