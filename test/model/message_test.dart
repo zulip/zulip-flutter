@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:checks/checks.dart';
+import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/submessage.dart';
+import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -13,6 +16,7 @@ import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
 import '../api/model/submessage_checks.dart';
 import '../example_data.dart' as eg;
+import '../fake_async.dart';
 import '../stdlib_checks.dart';
 import 'message_list_test.dart';
 import 'store_checks.dart';
@@ -121,6 +125,271 @@ void main() {
       check(messages).single.identicalTo(message);
       check(store.messages).deepEquals({1: message});
     });
+  });
+
+  group('edit-message methods', () {
+    late StreamMessage message;
+    Future<void> prepareEditMessage() async {
+      await prepare();
+      message = eg.streamMessage();
+      await prepareMessages([message]);
+      check(connection.takeRequests()).length.equals(1); // message-list fetchInitial
+    }
+
+    void checkRequest(int messageId, String content) {
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('PATCH')
+        ..url.path.equals('/api/v1/messages/$messageId')
+        ..bodyFields.deepEquals({
+          'content': content,
+        });
+    }
+
+    test('smoke', () => awaitFakeAsync((async) async {
+      await prepareEditMessage();
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+
+      connection.prepare(
+        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+      store.editMessage(messageId: message.id, newContent: 'new content');
+      checkRequest(message.id, 'new content');
+      checkNotifiedOnce();
+
+      async.elapse(Duration(milliseconds: 500));
+      // Mid-request
+      check(store.getEditMessageErrorStatus(message.id)).isNotNull().isFalse();
+
+      async.elapse(Duration(milliseconds: 500));
+      // Request has succeeded; event hasn't arrived
+      check(store.getEditMessageErrorStatus(message.id)).isNotNull().isFalse();
+      checkNotNotified();
+
+      await store.handleEvent(eg.updateMessageEditEvent(message));
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+      checkNotifiedOnce();
+    }));
+
+    test('concurrent edits on different messages', () => awaitFakeAsync((async) async {
+      await prepareEditMessage();
+      final otherMessage = eg.streamMessage();
+      await store.addMessage(otherMessage);
+      checkNotifiedOnce();
+
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+
+      connection.prepare(
+        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+      store.editMessage(messageId: message.id, newContent: 'new content');
+      checkRequest(message.id, 'new content');
+      checkNotifiedOnce();
+
+      async.elapse(Duration(milliseconds: 500));
+      // Mid-first request
+      check(store.getEditMessageErrorStatus(message.id)).isNotNull().isFalse();
+      check(store.getEditMessageErrorStatus(otherMessage.id)).isNull();
+      connection.prepare(
+        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+      store.editMessage(messageId: otherMessage.id, newContent: 'other message new content');
+      checkRequest(otherMessage.id, 'other message new content');
+      checkNotifiedOnce();
+
+      async.elapse(Duration(milliseconds: 500));
+      // First request has succeeded; event hasn't arrived
+      // Mid-second request
+      check(store.getEditMessageErrorStatus(message.id)).isNotNull().isFalse();
+      check(store.getEditMessageErrorStatus(otherMessage.id)).isNotNull().isFalse();
+      checkNotNotified();
+
+      // First event arrives
+      await store.handleEvent(eg.updateMessageEditEvent(message));
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+      checkNotifiedOnce();
+
+      async.elapse(Duration(milliseconds: 500));
+      // Second request has succeeded; event hasn't arrived
+      check(store.getEditMessageErrorStatus(otherMessage.id)).isNotNull().isFalse();
+      checkNotNotified();
+
+      // Second event arrives
+      await store.handleEvent(eg.updateMessageEditEvent(otherMessage));
+      check(store.getEditMessageErrorStatus(otherMessage.id)).isNull();
+      checkNotifiedOnce();
+    }));
+
+    test('request fails', () => awaitFakeAsync((async) async {
+      await prepareEditMessage();
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+
+      connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
+      store.editMessage(messageId: message.id, newContent: 'new content');
+      checkNotifiedOnce();
+      async.elapse(Duration(seconds: 1));
+      check(store.getEditMessageErrorStatus(message.id)).isNotNull().isTrue();
+      checkNotifiedOnce();
+    }));
+
+    test('request fails; take failed edit', () => awaitFakeAsync((async) async {
+      await prepareEditMessage();
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+
+      connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
+      store.editMessage(messageId: message.id, newContent: 'new content');
+      checkNotifiedOnce();
+      async.elapse(Duration(seconds: 1));
+      check(store.getEditMessageErrorStatus(message.id)).isNotNull().isTrue();
+      checkNotifiedOnce();
+
+      check(store.takeFailedMessageEdit(message.id)).equals('new content');
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+      checkNotifiedOnce();
+    }));
+
+    test('takeFailedMessageEdit throws StateError when nothing to take', () => awaitFakeAsync((async) async {
+      await prepareEditMessage();
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+      check(() => store.takeFailedMessageEdit(message.id)).throws<StateError>();
+    }));
+
+    test('editMessage throws StateError if editMessage already in progress for same message', () => awaitFakeAsync((async) async {
+      await prepareEditMessage();
+
+      connection.prepare(
+        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+      store.editMessage(messageId: message.id, newContent: 'new content');
+      async.elapse(Duration(milliseconds: 500));
+      check(connection.takeRequests()).length.equals(1);
+      checkNotifiedOnce();
+
+      await check(store.editMessage(messageId: message.id, newContent: 'newer content'))
+        .isA<Future<void>>().throws<StateError>();
+      check(connection.takeRequests()).isEmpty();
+    }));
+
+    test('event arrives, then request fails', () => awaitFakeAsync((async) async {
+      // This can happen with network issues.
+
+      await prepareEditMessage();
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+
+      connection.prepare(
+        httpException: const SocketException('failed'), delay: Duration(seconds: 1));
+      store.editMessage(messageId: message.id, newContent: 'new content');
+      checkNotifiedOnce();
+
+      async.elapse(Duration(milliseconds: 500));
+      await store.handleEvent(eg.updateMessageEditEvent(message));
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+      checkNotifiedOnce();
+
+      async.flushTimers();
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+      checkNotNotified();
+    }));
+
+    test('request fails, then event arrives', () => awaitFakeAsync((async) async {
+      // This can happen with network issues.
+
+      await prepareEditMessage();
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+
+      connection.prepare(
+        httpException: const SocketException('failed'), delay: Duration(seconds: 1));
+      store.editMessage(messageId: message.id, newContent: 'new content');
+      checkNotifiedOnce();
+
+      async.elapse(Duration(seconds: 1));
+      check(store.getEditMessageErrorStatus(message.id)).isNotNull().isTrue();
+      checkNotifiedOnce();
+
+      await store.handleEvent(eg.updateMessageEditEvent(message));
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+      checkNotifiedOnce();
+    }));
+
+    test('request fails, then event arrives; take failed edit in between', () => awaitFakeAsync((async) async {
+      // This can happen with network issues.
+
+      await prepareEditMessage();
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+
+      connection.prepare(
+        httpException: const SocketException('failed'), delay: Duration(seconds: 1));
+      store.editMessage(messageId: message.id, newContent: 'new content');
+      checkNotifiedOnce();
+
+      async.elapse(Duration(seconds: 1));
+      check(store.getEditMessageErrorStatus(message.id)).isNotNull().isTrue();
+      checkNotifiedOnce();
+      check(store.takeFailedMessageEdit(message.id)).equals('new content');
+      checkNotifiedOnce();
+
+      await store.handleEvent(eg.updateMessageEditEvent(message)); // no error
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+      checkNotifiedOnce(); // content updated
+    }));
+
+    test('request fails, then message deleted', () => awaitFakeAsync((async) async {
+      await prepareEditMessage();
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+
+      connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
+      store.editMessage(messageId: message.id, newContent: 'new content');
+      checkNotifiedOnce();
+      async.elapse(Duration(seconds: 1));
+      check(store.getEditMessageErrorStatus(message.id)).isNotNull().isTrue();
+      checkNotifiedOnce();
+
+      await store.handleEvent(eg.deleteMessageEvent([message])); // no error
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+      checkNotifiedOnce();
+    }));
+
+    test('message deleted while request in progress; we get failure response', () => awaitFakeAsync((async) async {
+      await prepareEditMessage();
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+
+      connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
+      store.editMessage(messageId: message.id, newContent: 'new content');
+      checkNotifiedOnce();
+
+      async.elapse(Duration(milliseconds: 500));
+      // Mid-request
+      check(store.getEditMessageErrorStatus(message.id)).isNotNull().isFalse();
+      checkNotNotified();
+
+      await store.handleEvent(eg.deleteMessageEvent([message]));
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+      checkNotifiedOnce();
+
+      async.elapse(Duration(milliseconds: 500));
+      // Request failure, but status has already been cleared
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+      checkNotNotified();
+    }));
+
+    test('message deleted while request in progress but we get success response', () => awaitFakeAsync((async) async {
+      await prepareEditMessage();
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+
+      connection.prepare(
+        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+      store.editMessage(messageId: message.id, newContent: 'new content');
+      checkNotifiedOnce();
+
+      async.elapse(Duration(milliseconds: 500));
+      // Mid-request
+      check(store.getEditMessageErrorStatus(message.id)).isNotNull().isFalse();
+      checkNotNotified();
+
+      await store.handleEvent(eg.deleteMessageEvent([message]));
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+      checkNotifiedOnce();
+
+      async.elapse(Duration(milliseconds: 500));
+      // Request success
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+      checkNotNotified();
+    }));
   });
 
   group('handleMessageEvent', () {

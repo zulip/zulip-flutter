@@ -35,6 +35,36 @@ mixin MessageStore {
   /// All [Message] objects in the resulting list will be present in
   /// [this.messages].
   void reconcileMessages(List<Message> messages);
+
+  /// Whether the current edit request for the given message, if any, has failed.
+  ///
+  /// Will be null if there is no current edit request.
+  /// Will be false if the current request hasn't failed
+  /// and the update-message event hasn't arrived.
+  bool? getEditMessageErrorStatus(int messageId);
+
+  /// Edit a message's content, via a request to the server.
+  ///
+  /// Should only be called when there is no current edit request for [messageId],
+  /// i.e., [getEditMessageErrorStatus] returns null for [messageId].
+  ///
+  /// See also:
+  ///   * [getEditMessageErrorStatus]
+  ///   * [takeFailedMessageEdit]
+  void editMessage({required int messageId, required String newContent});
+
+  /// Forgets the failed edit request and returns the attempted new content.
+  ///
+  /// Should only be called when there is a failed request,
+  /// per [getEditMessageErrorStatus].
+  String takeFailedMessageEdit(int messageId);
+}
+
+class _EditMessageRequestStatus {
+  _EditMessageRequestStatus({required this.hasError, required this.newContent});
+
+  bool hasError;
+  final String newContent;
 }
 
 class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
@@ -132,6 +162,56 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
     }
   }
 
+  @override
+  bool? getEditMessageErrorStatus(int messageId) =>
+    _editMessageRequests[messageId]?.hasError;
+
+  final Map<int, _EditMessageRequestStatus> _editMessageRequests = {};
+
+  @override
+  void editMessage({
+    required int messageId,
+    required String newContent,
+  }) async {
+    if (_editMessageRequests.containsKey(messageId)) {
+      throw StateError('an edit request is already in progress');
+    }
+
+    _editMessageRequests[messageId] = _EditMessageRequestStatus(
+      hasError: false, newContent: newContent);
+    _notifyMessageListViewsForOneMessage(messageId);
+    try {
+      await updateMessage(connection, messageId: messageId, content: newContent);
+      // On success, we'll clear the status from _editMessageRequests
+      // when we get the event.
+    } catch (e) {
+      // TODO(log) if e is something unexpected
+
+      final status = _editMessageRequests[messageId];
+      if (status == null) {
+        // The event actually arrived before this request failed
+        // (can happen with network issues).
+        // Or, the message was deleted.
+        return;
+      }
+      status.hasError = true;
+      _notifyMessageListViewsForOneMessage(messageId);
+    }
+  }
+
+  @override
+  String takeFailedMessageEdit(int messageId) {
+    final status = _editMessageRequests.remove(messageId);
+    _notifyMessageListViewsForOneMessage(messageId);
+    if (status == null) {
+      throw StateError('called takeFailedMessageEdit, but no edit');
+    }
+    if (!status.hasError) {
+      throw StateError("called takeFailedMessageEdit, but edit hasn't failed");
+    }
+    return status.newContent;
+  }
+
   void handleUserTopicEvent(UserTopicEvent event) {
     for (final view in _messageListViews) {
       view.handleUserTopicEvent(event);
@@ -183,6 +263,12 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
       // The message is guaranteed to be edited.
       // See also: https://zulip.com/api/get-events#update_message
       message.editState = MessageEditState.edited;
+
+      // Clear the edit-message progress feedback.
+      // This makes a rare bug where we might clear the feedback too early,
+      // if the user raced with themself to edit the same message
+      // from multiple clients.
+      _editMessageRequests.remove(message.id);
     }
     if (event.renderedContent != null) {
       assert(message.contentType == 'text/html',
@@ -245,6 +331,7 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
   void handleDeleteMessageEvent(DeleteMessageEvent event) {
     for (final messageId in event.messageIds) {
       messages.remove(messageId);
+      _editMessageRequests.remove(messageId);
     }
     for (final view in _messageListViews) {
       view.handleDeleteMessageEvent(event);
