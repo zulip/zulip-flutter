@@ -352,7 +352,7 @@ class _KatexParser {
     }
     if (text == null && spans == null) throw KatexHtmlParseError();
 
-    return KatexNode(
+    return KatexSpanNode(
       styles: styles,
       text: text,
       nodes: spans,
