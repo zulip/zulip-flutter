@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
@@ -9,6 +10,7 @@ import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/new_dm_sheet.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/recent_dm_conversations.dart';
 
@@ -105,6 +107,24 @@ void main() {
         const Offset(0, -200), 4000);
       await tester.pumpAndSettle();
       check(tester.any(oldestConversationFinder)).isTrue(); // onscreen
+    });
+
+    testWidgets('opens new DM sheet on New DM button tap', (tester) async {
+      await setupPage(tester, users: [], dmMessages: []);
+      final newDmButton = find.ancestor(
+        of: find.text("New DM"),
+        matching: find.byType(InkWell));
+      check(newDmButton).findsOne();
+
+      await tester.tap(newDmButton);
+      await tester.pumpAndSettle();
+      check(find.descendant(
+        of: find.byType(NewDmPicker),
+        matching: find.text('New DM'))).findsOne();
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      check(find.byType(NewDmPicker)).findsNothing();
     });
   });
 
