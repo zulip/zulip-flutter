@@ -518,9 +518,9 @@ class ContentExample {
         '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></p>',
     MathInlineNode(texSource: r'\lambda', nodes: [
-      KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
-        KatexNode(styles: KatexSpanStyles(heightEm: 0.6944), text: null, nodes: []),
-        KatexNode(
+      KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+        KatexSpanNode(styles: KatexSpanStyles(heightEm: 0.6944), text: null, nodes: []),
+        KatexSpanNode(
           styles: KatexSpanStyles(
             fontFamily: 'KaTeX_Math',
             fontStyle: KatexSpanFontStyle.italic),
@@ -538,9 +538,9 @@ class ContentExample {
         '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
     [MathBlockNode(texSource: r'\lambda', nodes: [
-      KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
-        KatexNode(styles: KatexSpanStyles(heightEm: 0.6944), text: null, nodes: []),
-        KatexNode(
+      KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+        KatexSpanNode(styles: KatexSpanStyles(heightEm: 0.6944), text: null, nodes: []),
+        KatexSpanNode(
           styles: KatexSpanStyles(
             fontFamily: 'KaTeX_Math',
             fontStyle: KatexSpanFontStyle.italic),
@@ -563,9 +563,9 @@ class ContentExample {
           '<annotation encoding="application/x-tex">b</annotation></semantics></math></span>'
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span></p>', [
       MathBlockNode(texSource: 'a', nodes: [
-        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
-          KatexNode(styles: KatexSpanStyles(heightEm: 0.4306), text: null, nodes: []),
-          KatexNode(
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexSpanNode(styles: KatexSpanStyles(heightEm: 0.4306), text: null, nodes: []),
+          KatexSpanNode(
             styles: KatexSpanStyles(
               fontFamily: 'KaTeX_Math',
               fontStyle: KatexSpanFontStyle.italic),
@@ -574,9 +574,9 @@ class ContentExample {
         ]),
       ]),
       MathBlockNode(texSource: 'b', nodes: [
-        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
-          KatexNode(styles: KatexSpanStyles(heightEm: 0.6944), text: null, nodes: []),
-          KatexNode(
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexSpanNode(styles: KatexSpanStyles(heightEm: 0.6944), text: null, nodes: []),
+          KatexSpanNode(
             styles: KatexSpanStyles(
               fontFamily: 'KaTeX_Math',
               fontStyle: KatexSpanFontStyle.italic),
@@ -602,9 +602,9 @@ class ContentExample {
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([
       MathBlockNode(texSource: r'\lambda', nodes: [
-        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
-          KatexNode(styles: KatexSpanStyles(heightEm: 0.6944), text: null, nodes: []),
-          KatexNode(
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexSpanNode(styles: KatexSpanStyles(heightEm: 0.6944), text: null, nodes: []),
+          KatexSpanNode(
             styles: KatexSpanStyles(
               fontFamily: 'KaTeX_Math',
               fontStyle: KatexSpanFontStyle.italic),
@@ -631,9 +631,9 @@ class ContentExample {
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([
       MathBlockNode(texSource: 'a', nodes: [
-        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
-          KatexNode(styles: KatexSpanStyles(heightEm: 0.4306), text: null, nodes: []),
-          KatexNode(
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexSpanNode(styles: KatexSpanStyles(heightEm: 0.4306), text: null, nodes: []),
+          KatexSpanNode(
             styles: KatexSpanStyles(
               fontFamily: 'KaTeX_Math',
               fontStyle: KatexSpanFontStyle.italic),
@@ -642,9 +642,9 @@ class ContentExample {
         ]),
       ]),
       MathBlockNode(texSource: 'b', nodes: [
-        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
-          KatexNode(styles: KatexSpanStyles(heightEm: 0.6944), text: null, nodes: []),
-          KatexNode(
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexSpanNode(styles: KatexSpanStyles(heightEm: 0.6944), text: null, nodes: []),
+          KatexSpanNode(
             styles: KatexSpanStyles(
               fontFamily: 'KaTeX_Math',
               fontStyle: KatexSpanFontStyle.italic),
@@ -680,9 +680,9 @@ class ContentExample {
           originalHeight: null),
       ]),
       MathBlockNode(texSource: 'a', nodes: [
-        KatexNode(styles: KatexSpanStyles(), text: null, nodes: [
-          KatexNode(styles: KatexSpanStyles(heightEm: 0.4306),text: null, nodes: []),
-          KatexNode(
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexSpanNode(styles: KatexSpanStyles(heightEm: 0.4306),text: null, nodes: []),
+          KatexSpanNode(
             styles: KatexSpanStyles(
               fontFamily: 'KaTeX_Math',
               fontStyle: KatexSpanFontStyle.italic),
@@ -727,51 +727,51 @@ class ContentExample {
       MathBlockNode(
         texSource: "\\Huge 1\n\\huge 2\n\\LARGE 3\n\\Large 4\n\\large 5\n\\normalsize 6\n\\small 7\n\\footnotesize 8\n\\scriptsize 9\n\\tiny 0",
         nodes: [
-          KatexNode(
+          KatexSpanNode(
             styles: KatexSpanStyles(),
             text: null,
             nodes: [
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(heightEm: 1.6034),
                 text: null,
                 nodes: []),
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(fontSizeEm: 2.488), // .reset-size6.size11
                 text: '1',
                 nodes: null),
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(fontSizeEm: 2.074), // .reset-size6.size10
                 text: '2',
                 nodes: null),
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(fontSizeEm: 1.728), // .reset-size6.size9
                 text: '3',
                 nodes: null),
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(fontSizeEm: 1.44), // .reset-size6.size8
                 text: '4',
                 nodes: null),
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(fontSizeEm: 1.2), // .reset-size6.size7
                 text: '5',
                 nodes: null),
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(fontSizeEm: 1.0), // .reset-size6.size6
                 text: '6',
                 nodes: null),
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(fontSizeEm: 0.9), // .reset-size6.size5
                 text: '7',
                 nodes: null),
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(fontSizeEm: 0.8), // .reset-size6.size4
                 text: '8',
                 nodes: null),
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(fontSizeEm: 0.7), // .reset-size6.size3
                 text: '9',
                 nodes: null),
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(fontSizeEm: 0.5), // .reset-size6.size1
                 text: '0',
                 nodes: null),
@@ -796,23 +796,23 @@ class ContentExample {
       MathBlockNode(
         texSource: '\\tiny {1 \\Huge 2}',
         nodes: [
-          KatexNode(
+          KatexSpanNode(
             styles: KatexSpanStyles(),
             text: null,
             nodes: [
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(heightEm: 1.6034),
                 text: null,
                 nodes: []),
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(fontSizeEm: 0.5), // reset-size6 size1
                 text: null,
                 nodes: [
-                  KatexNode(
+                  KatexSpanNode(
                     styles: KatexSpanStyles(),
                     text: '1',
                     nodes: null),
-                  KatexNode(
+                  KatexSpanNode(
                     styles: KatexSpanStyles(fontSizeEm: 4.976), // reset-size1 size11
                     text: '2',
                     nodes: null),
@@ -841,50 +841,50 @@ class ContentExample {
       MathBlockNode(
         texSource: '⟨ \\big( \\Big[ \\bigg⌈ \\Bigg⌊',
         nodes: [
-          KatexNode(
+          KatexSpanNode(
             styles: KatexSpanStyles(),
             text: null,
             nodes: [
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(heightEm: 3.0),
                 text: null,
                 nodes: []),
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(),
                 text: '⟨',
                 nodes: null),
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(),
                 text: null,
                 nodes: [
-                  KatexNode(
+                  KatexSpanNode(
                     styles: KatexSpanStyles(fontFamily: 'KaTeX_Size1'),
                     text: '(',
                     nodes: null),
                 ]),
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(),
                 text: null,
                 nodes: [
-                  KatexNode(
+                  KatexSpanNode(
                     styles: KatexSpanStyles(fontFamily: 'KaTeX_Size2'),
                     text: '[',
                     nodes: null),
                 ]),
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(),
                 text: null,
                 nodes: [
-                  KatexNode(
+                  KatexSpanNode(
                     styles: KatexSpanStyles(fontFamily: 'KaTeX_Size3'),
                     text: '⌈',
                     nodes: null),
                 ]),
-              KatexNode(
+              KatexSpanNode(
                 styles: KatexSpanStyles(),
                 text: null,
                 nodes: [
-                  KatexNode(
+                  KatexSpanNode(
                     styles: KatexSpanStyles(fontFamily: 'KaTeX_Size4'),
                     text: '⌊',
                     nodes: null),
