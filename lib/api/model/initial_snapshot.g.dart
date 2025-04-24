@@ -84,6 +84,8 @@ InitialSnapshot _$InitialSnapshotFromJson(
         ),
       ),
   maxFileUploadSizeMib: (json['max_file_upload_size_mib'] as num).toInt(),
+  realmEnableGuestUserDmWarning:
+      json['realm_enable_guest_user_dm_warning'] as bool? ?? false,
   serverEmojiDataUrl:
       json['server_emoji_data_url'] == null
           ? null
@@ -109,44 +111,46 @@ InitialSnapshot _$InitialSnapshotFromJson(
           .toList(),
 );
 
-Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
-    <String, dynamic>{
-      'queue_id': instance.queueId,
-      'last_event_id': instance.lastEventId,
-      'zulip_feature_level': instance.zulipFeatureLevel,
-      'zulip_version': instance.zulipVersion,
-      'zulip_merge_base': instance.zulipMergeBase,
-      'alert_words': instance.alertWords,
-      'custom_profile_fields': instance.customProfileFields,
-      'email_address_visibility':
-          _$EmailAddressVisibilityEnumMap[instance.emailAddressVisibility],
-      'server_typing_started_expiry_period_milliseconds':
-          instance.serverTypingStartedExpiryPeriodMilliseconds,
-      'server_typing_stopped_wait_period_milliseconds':
-          instance.serverTypingStoppedWaitPeriodMilliseconds,
-      'server_typing_started_wait_period_milliseconds':
-          instance.serverTypingStartedWaitPeriodMilliseconds,
-      'realm_emoji': instance.realmEmoji,
-      'recent_private_conversations': instance.recentPrivateConversations,
-      'subscriptions': instance.subscriptions,
-      'unread_msgs': instance.unreadMsgs,
-      'streams': instance.streams,
-      'user_settings': instance.userSettings,
-      'user_topics': instance.userTopics,
-      'realm_wildcard_mention_policy': instance.realmWildcardMentionPolicy,
-      'realm_mandatory_topics': instance.realmMandatoryTopics,
-      'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
-      'realm_allow_message_editing': instance.realmAllowMessageEditing,
-      'realm_message_content_edit_limit_seconds':
-          instance.realmMessageContentEditLimitSeconds,
-      'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
-      'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
-      'server_emoji_data_url': instance.serverEmojiDataUrl?.toString(),
-      'realm_empty_topic_display_name': instance.realmEmptyTopicDisplayName,
-      'realm_users': instance.realmUsers,
-      'realm_non_active_users': instance.realmNonActiveUsers,
-      'cross_realm_bots': instance.crossRealmBots,
-    };
+Map<String, dynamic> _$InitialSnapshotToJson(
+  InitialSnapshot instance,
+) => <String, dynamic>{
+  'queue_id': instance.queueId,
+  'last_event_id': instance.lastEventId,
+  'zulip_feature_level': instance.zulipFeatureLevel,
+  'zulip_version': instance.zulipVersion,
+  'zulip_merge_base': instance.zulipMergeBase,
+  'alert_words': instance.alertWords,
+  'custom_profile_fields': instance.customProfileFields,
+  'email_address_visibility':
+      _$EmailAddressVisibilityEnumMap[instance.emailAddressVisibility],
+  'server_typing_started_expiry_period_milliseconds':
+      instance.serverTypingStartedExpiryPeriodMilliseconds,
+  'server_typing_stopped_wait_period_milliseconds':
+      instance.serverTypingStoppedWaitPeriodMilliseconds,
+  'server_typing_started_wait_period_milliseconds':
+      instance.serverTypingStartedWaitPeriodMilliseconds,
+  'realm_emoji': instance.realmEmoji,
+  'recent_private_conversations': instance.recentPrivateConversations,
+  'subscriptions': instance.subscriptions,
+  'unread_msgs': instance.unreadMsgs,
+  'streams': instance.streams,
+  'user_settings': instance.userSettings,
+  'user_topics': instance.userTopics,
+  'realm_wildcard_mention_policy': instance.realmWildcardMentionPolicy,
+  'realm_mandatory_topics': instance.realmMandatoryTopics,
+  'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
+  'realm_allow_message_editing': instance.realmAllowMessageEditing,
+  'realm_message_content_edit_limit_seconds':
+      instance.realmMessageContentEditLimitSeconds,
+  'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
+  'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
+  'realm_enable_guest_user_dm_warning': instance.realmEnableGuestUserDmWarning,
+  'server_emoji_data_url': instance.serverEmojiDataUrl?.toString(),
+  'realm_empty_topic_display_name': instance.realmEmptyTopicDisplayName,
+  'realm_users': instance.realmUsers,
+  'realm_non_active_users': instance.realmNonActiveUsers,
+  'cross_realm_bots': instance.crossRealmBots,
+};
 
 const _$EmailAddressVisibilityEnumMap = {
   EmailAddressVisibility.everyone: 1,

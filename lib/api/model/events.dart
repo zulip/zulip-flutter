@@ -67,6 +67,11 @@ sealed class Event {
       case 'submessage': return SubmessageEvent.fromJson(json);
       case 'typing': return TypingEvent.fromJson(json);
       case 'reaction': return ReactionEvent.fromJson(json);
+      case 'realm':
+        switch(json['op'] as String){
+          case 'update': return RealmUpdateEvent.fromJson(json);
+          default: return UnexpectedEvent.fromJson(json);
+        }
       case 'heartbeat': return HeartbeatEvent.fromJson(json);
       // TODO add many more event types
       default: return UnexpectedEvent.fromJson(json);
@@ -1149,6 +1154,46 @@ class ReactionEvent extends Event {
 enum ReactionOp {
   add,
   remove,
+}
+
+/// A Zulip event of type `realm`, with op `update`.
+///
+/// This is the simpler of two possible event types sent when realm configuration changes.
+/// It updates a single realm setting at a time.
+///
+/// See: https://zulip.com/api/get-events#realm-update
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmUpdateEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'realm';
+
+  @JsonKey(includeToJson: true)
+  String get op => 'update';
+
+  @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue)
+  final RealmPropertyName? property;
+
+  final dynamic value;
+
+  RealmUpdateEvent({
+    required super.id,
+    required this.property,
+    required this.value,
+  });
+
+  factory RealmUpdateEvent.fromJson(Map<String, dynamic> json) =>
+    _$RealmUpdateEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$RealmUpdateEventToJson(this);
+}
+
+/// As in [RealmUpdateEvent.property].
+@JsonEnum(fieldRename: FieldRename.snake)
+enum RealmPropertyName {
+  @JsonValue('enable_guest_user_dm_warning')
+  realmEnableGuestUserDmWarning,
 }
 
 /// A Zulip event of type `heartbeat`: https://zulip.com/api/get-events#heartbeat

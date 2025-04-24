@@ -647,6 +647,18 @@ abstract class ZulipLocalizations {
   /// **'DMs with {others}'**
   String dmsWithOthersPageTitle(String others);
 
+  /// Warning shown when composing a DM to one guest user
+  ///
+  /// In en, this message translates to:
+  /// **'{guestUser} is a guest in this organization.'**
+  String guestUserDmWarningOne(String guestUser);
+
+  /// Warning shown when composing DMs to multiple guest users
+  ///
+  /// In en, this message translates to:
+  /// **'{guestUsers} are guests in this organization.'**
+  String guestUserDmWarningMany(String guestUsers);
+
   /// Message list recipient header for a DM group that only includes yourself.
   ///
   /// In en, this message translates to:
