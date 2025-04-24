@@ -356,7 +356,7 @@ class _KatexParser {
     }
     if (text == null && spans == null) throw KatexHtmlParseError();
 
-    return KatexNode(
+    return KatexSpanNode(
       styles: inlineStyles != null
         ? styles.merge(inlineStyles)
         : styles,

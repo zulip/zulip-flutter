@@ -600,9 +600,10 @@ void main() {
         mkBaseKatexTextStyle(ContentTheme.of(context).textStylePlainParagraph);
 
       final mathBlockNode = content.expectedNodes.single as MathBlockNode;
-      final baseNode = mathBlockNode.nodes!.single;
+      final baseNode = mathBlockNode.nodes!.single as KatexSpanNode;
       final nodes = baseNode.nodes!.skip(1); // Skip .strut node.
-      for (final katexNode in nodes) {
+      for (var katexNode in nodes) {
+        katexNode = katexNode as KatexSpanNode;
         final fontSize = katexNode.styles.fontSizeEm! * baseTextStyle.fontSize!;
         checkKatexText(tester, katexNode.text!,
           fontFamily: 'KaTeX_Main',
@@ -637,10 +638,10 @@ void main() {
         fontHeight: baseTextStyle.height!);
     });
 
+
     // TODO: Re-enable this test after adding support for parsing
     //       `vertical-align` in inline styles. Currently it fails
     //       because `strut` span has `vertical-align`.
-    //
     // testWidgets('displays KaTeX content with different delimiter sizing', (tester) async {
     //   addTearDown(testBinding.reset);
     //   final globalSettings = testBinding.globalStore.settings;
@@ -651,14 +652,14 @@ void main() {
     //   await prepareContent(tester, plainContent(content.html));
 
     //   final mathBlockNode = content.expectedNodes.single as MathBlockNode;
-    //   final baseNode = mathBlockNode.nodes!.single;
+    //   final baseNode = mathBlockNode.nodes!.single as KatexSpanNode;
     //   var nodes = baseNode.nodes!.skip(1); // Skip .strut node.
 
     //   final context = tester.element(find.byType(MathBlock));
     //   final baseTextStyle =
     //     mkBaseKatexTextStyle(ContentTheme.of(context).textStylePlainParagraph);
 
-    //   final firstNode = nodes.first;
+    //   final firstNode = nodes.first as KatexSpanNode;
     //   checkKatexText(tester, firstNode.text!,
     //     fontFamily: 'KaTeX_Main',
     //     fontSize: baseTextStyle.fontSize!,
@@ -666,7 +667,8 @@ void main() {
     //   nodes = nodes.skip(1);
 
     //   for (var katexNode in nodes) {
-    //     katexNode = katexNode.nodes!.single; // Skip empty .mord parent.
+    //     katexNode = katexNode as KatexSpanNode;
+    //     katexNode = katexNode.nodes!.single as KatexSpanNode; // Skip empty .mord parent.
     //     final fontFamily = katexNode.styles.fontFamily!;
     //     checkKatexText(tester, katexNode.text!,
     //       fontFamily: fontFamily,

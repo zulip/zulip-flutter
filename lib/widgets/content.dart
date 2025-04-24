@@ -883,7 +883,9 @@ class _KatexNodeList extends StatelessWidget {
           baseline: TextBaseline.alphabetic,
           child: MediaQuery(
             data: MediaQueryData(textScaler: TextScaler.noScaling),
-            child: _KatexSpan(e)));
+            child: switch (e) {
+              KatexSpanNode() => _KatexSpan(e),
+            }));
       }))));
   }
 }
@@ -891,7 +893,7 @@ class _KatexNodeList extends StatelessWidget {
 class _KatexSpan extends StatelessWidget {
   const _KatexSpan(this.node);
 
-  final KatexNode node;
+  final KatexSpanNode node;
 
   @override
   Widget build(BuildContext context) {
