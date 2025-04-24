@@ -596,9 +596,10 @@ void main() {
       await prepareContent(tester, plainContent(content.html));
 
       final mathBlockNode = content.expectedNodes.single as MathBlockNode;
-      final baseNode = mathBlockNode.nodes!.single;
+      final baseNode = mathBlockNode.nodes!.single as KatexSpanNode;
       final nodes = baseNode.nodes!.skip(1); // Skip .strut node.
-      for (final katexNode in nodes) {
+      for (var katexNode in nodes) {
+        katexNode = katexNode as KatexSpanNode;
         final fontSize = katexNode.styles.fontSizeEm! * kBaseKatexTextStyle.fontSize!;
         checkKatexText(tester, katexNode.text!,
           fontFamily: 'KaTeX_Main',
@@ -639,12 +640,12 @@ void main() {
       await prepareContent(tester, plainContent(content.html));
 
       final mathBlockNode = content.expectedNodes.single as MathBlockNode;
-      final baseNode = mathBlockNode.nodes!.single;
+      final baseNode = mathBlockNode.nodes!.single as KatexSpanNode;
       var nodes = baseNode.nodes!.skip(1); // Skip .strut node.
 
       final fontSize = kBaseKatexTextStyle.fontSize!;
 
-      final firstNode = nodes.first;
+      final firstNode = nodes.first as KatexSpanNode;
       checkKatexText(tester, firstNode.text!,
         fontFamily: 'KaTeX_Main',
         fontSize: fontSize,
@@ -652,7 +653,8 @@ void main() {
       nodes = nodes.skip(1);
 
       for (var katexNode in nodes) {
-        katexNode = katexNode.nodes!.single; // Skip empty .mord parent.
+        katexNode = katexNode as KatexSpanNode;
+        katexNode = katexNode.nodes!.single as KatexSpanNode; // Skip empty .mord parent.
         final fontFamily = katexNode.styles.fontFamily!;
         checkKatexText(tester, katexNode.text!,
           fontFamily: fontFamily,
