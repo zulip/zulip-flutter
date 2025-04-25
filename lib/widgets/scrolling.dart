@@ -197,13 +197,11 @@ class MessageListScrollPosition extends ScrollPositionWithSingleContext {
     const minDuration = Duration(milliseconds: 300);
 
     final target = maxScrollExtent;
-    final distance = target - pixels;
-    final durationMsAtSpeedLimit = (1000 * distance / topSpeed).ceil();
-    final durationMs = math.max(minDuration.inMilliseconds, durationMsAtSpeedLimit);
-    animateTo(
-      target,
-      duration: Duration(milliseconds: durationMs),
-      curve: Curves.linear);
+    final durationSecAtSpeedLimit = (target - pixels) / topSpeed;
+    final durationSec = math.max(durationSecAtSpeedLimit,
+      minDuration.inMilliseconds / 1000.0);
+    final duration = Duration(milliseconds: (durationSec * 1000.0).ceil());
+    animateTo(target, duration: duration, curve: Curves.linear);
   }
 }
 
