@@ -403,7 +403,7 @@ class MessageListScrollController extends ScrollController {
 ///
 /// This lets us customize behavior in ways that aren't currently supported
 /// by the fields of [CustomScrollView] itself.
-class MessageListScrollView extends CustomPaintOrderScrollView {
+class MessageListScrollView extends CustomScrollView {
   const MessageListScrollView({
     super.key,
     super.scrollDirection,
@@ -435,13 +435,13 @@ class MessageListScrollView extends CustomPaintOrderScrollView {
       cacheExtent: cacheExtent,
       center: center,
       clipBehavior: clipBehavior,
-      paintOrder_: paintOrder_,
+      paintOrder: paintOrder,
     );
   }
 }
 
 /// The version of [Viewport] that underlies [MessageListScrollView].
-class MessageListViewport extends CustomPaintOrderViewport {
+class MessageListViewport extends Viewport {
   MessageListViewport({
     super.key,
     super.axisDirection,
@@ -452,7 +452,7 @@ class MessageListViewport extends CustomPaintOrderViewport {
     super.cacheExtentStyle,
     super.slivers,
     super.clipBehavior,
-    required super.paintOrder_,
+    required super.paintOrder,
   });
 
   @override
@@ -465,7 +465,7 @@ class MessageListViewport extends CustomPaintOrderViewport {
       cacheExtent: cacheExtent,
       cacheExtentStyle: cacheExtentStyle,
       clipBehavior: clipBehavior,
-      paintOrder_: paintOrder_,
+      paintOrder: paintOrder,
     );
   }
 }
@@ -474,7 +474,7 @@ class MessageListViewport extends CustomPaintOrderViewport {
 /// and [MessageListScrollView].
 // TODO(upstream): Devise upstream APIs to obviate the duplicated code here;
 //   use `git log -L` to see what edits we've made locally.
-class RenderMessageListViewport extends RenderCustomPaintOrderViewport {
+class RenderMessageListViewport extends RenderViewport {
   RenderMessageListViewport({
     super.axisDirection,
     required super.crossAxisDirection,
@@ -484,7 +484,7 @@ class RenderMessageListViewport extends RenderCustomPaintOrderViewport {
     super.cacheExtent,
     super.cacheExtentStyle,
     super.clipBehavior,
-    required super.paintOrder_,
+    required super.paintOrder,
   });
 
   @override

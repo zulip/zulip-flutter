@@ -4,12 +4,9 @@ import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-// ignore: undefined_hidden_name // anticipates https://github.com/flutter/flutter/pull/164818
-import 'package:flutter/rendering.dart' hide SliverPaintOrder;
-// ignore: undefined_hidden_name // anticipates https://github.com/flutter/flutter/pull/164818
-import 'package:flutter/widgets.dart' hide SliverPaintOrder;
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zulip/widgets/scrolling.dart';
 import 'package:zulip/widgets/sticky_header.dart';
 
 void main() {
@@ -236,7 +233,7 @@ void main() {
     const centerKey = ValueKey('center');
     final controller = ScrollController();
     await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr,
-      child: CustomPaintOrderScrollView(
+      child: CustomScrollView(
         controller: controller,
         anchor: 0.0,
         center: centerKey,
@@ -341,7 +338,7 @@ Future<void> _checkSequence(
     anchor = 0.0;
   }
 
-  SliverPaintOrder paintOrder = SliverPaintOrder.centerTopFirstBottom;
+  SliverPaintOrder paintOrder = SliverPaintOrder.firstIsTop;
   if (!allowOverflow || (sliverConfig == _SliverConfig.single)) {
     // The paint order doesn't matter.
   } else {
@@ -352,7 +349,7 @@ Future<void> _checkSequence(
   final controller = ScrollController();
   await tester.pumpWidget(Directionality(
     textDirection: textDirection ?? TextDirection.rtl,
-    child: CustomPaintOrderScrollView(
+    child: CustomScrollView(
       controller: controller,
       scrollDirection: axis,
       reverse: reverse,

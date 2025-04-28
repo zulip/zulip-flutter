@@ -1,8 +1,7 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
-// ignore: undefined_hidden_name // anticipates https://github.com/flutter/flutter/pull/164818
-import 'package:flutter/material.dart' hide SliverPaintOrder;
+import 'package:flutter/material.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
@@ -22,7 +21,7 @@ import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'page.dart';
 import 'profile.dart';
-import 'scrolling.dart';
+import 'scrolling.dart' hide SliverPaintOrder;
 import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';

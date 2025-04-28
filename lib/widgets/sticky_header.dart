@@ -329,9 +329,8 @@ enum _HeaderGrowthPlacement {
 /// then this [SliverStickyHeaderList] must paint after any slivers that appear
 /// to the right of this sliver.
 ///
-/// To control the viewport's paint order,
-/// consider using [CustomPaintOrderScrollView] instead of [CustomScrollView].
-/// Then [SliverPaintOrder.firstIsTop] for [HeaderPlacement.scrollingStart],
+/// To control the viewport's paint order, use [ScrollView.paintOrder].
+/// There [SliverPaintOrder.firstIsTop] for [HeaderPlacement.scrollingStart],
 /// or [SliverPaintOrder.lastIsTop] for [HeaderPlacement.scrollingEnd],
 /// suffices for meeting the needs above.
 class SliverStickyHeaderList extends RenderObjectWidget {
