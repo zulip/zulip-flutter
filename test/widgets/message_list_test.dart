@@ -462,14 +462,14 @@ void main() {
 
     testWidgets('scrolling changes visibility', (tester) async {
       await setupMessageListPage(tester, messageCount: 10);
-      final scrollController = findMessageListScrollController(tester)!;
+      final controller = findMessageListScrollController(tester)!;
       check(isButtonVisible(tester)).equals(false);
 
-      scrollController.jumpTo(-600);
+      controller.jumpTo(-600);
       await tester.pump();
       check(isButtonVisible(tester)).equals(true);
 
-      scrollController.jumpTo(0);
+      controller.jumpTo(0);
       await tester.pump();
       check(isButtonVisible(tester)).equals(false);
     });
@@ -478,8 +478,8 @@ void main() {
       await setupMessageListPage(tester, messageCount: 100);
 
       // Scroll up, to hide the button.
-      final scrollController = findMessageListScrollController(tester)!;
-      scrollController.jumpTo(-600);
+      final controller = findMessageListScrollController(tester)!;
+      controller.jumpTo(-600);
       await tester.pump();
       check(isButtonVisible(tester)).equals(true);
 
@@ -497,16 +497,16 @@ void main() {
 
     testWidgets('button works', (tester) async {
       await setupMessageListPage(tester, messageCount: 10);
-      final scrollController = findMessageListScrollController(tester)!;
-      scrollController.jumpTo(-600);
+      final controller = findMessageListScrollController(tester)!;
+      controller.jumpTo(-600);
       await tester.pump();
-      check(scrollController.position.pixels).equals(-600);
+      check(controller.position.pixels).equals(-600);
 
       // Tap button.
       await tester.tap(find.byType(ScrollToBottomButton));
       // The list scrolls to the end…
       await tester.pumpAndSettle();
-      check(scrollController.position.pixels).equals(0);
+      check(controller.position.pixels).equals(0);
       // … and for good measure confirm the button disappeared.
       check(isButtonVisible(tester)).equals(false);
     });
