@@ -21,7 +21,7 @@ import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'page.dart';
 import 'profile.dart';
-import 'scrolling.dart' hide SliverPaintOrder;
+import 'scrolling.dart';
 import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
