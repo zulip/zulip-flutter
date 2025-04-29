@@ -132,10 +132,10 @@ enum TopicValidationError {
   mandatoryButEmpty,
   tooLong;
 
-  String message(ZulipLocalizations zulipLocalizations) {
+  String message(ZulipLocalizations zulipLocalizations, {required int maxTopicLength}) {
     switch (this) {
       case tooLong:
-        return zulipLocalizations.topicValidationErrorTooLong;
+        return zulipLocalizations.topicValidationErrorTooLong(maxTopicLength);
       case mandatoryButEmpty:
         return zulipLocalizations.topicValidationErrorMandatoryButEmpty;
     }
@@ -144,6 +144,7 @@ enum TopicValidationError {
 
 class ComposeTopicController extends ComposeController<TopicValidationError> {
   ComposeTopicController({required this.store}) {
+    maxLengthUnicodeCodePoints = store.maxTopicLength;
     _update();
   }
 
@@ -152,8 +153,7 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   // TODO(#668): listen to [PerAccountStore] once we subscribe to this value
   bool get mandatory => store.realmMandatoryTopics;
 
-  // TODO(#307) use `max_topic_length` instead of hardcoded limit
-  @override final maxLengthUnicodeCodePoints = kMaxTopicLengthCodePoints;
+  @override late int maxLengthUnicodeCodePoints;
 
   @override
   String _computeTextNormalized() {
@@ -1123,10 +1123,9 @@ class _SendButtonState extends State<_SendButton> {
     if (_hasValidationErrors) {
       final zulipLocalizations = ZulipLocalizations.of(context);
       List<String> validationErrorMessages = [
-        for (final error in (controller is StreamComposeBoxController
-                              ? controller.topic.validationErrors
-                              : const <TopicValidationError>[]))
-          error.message(zulipLocalizations),
+        if (controller is StreamComposeBoxController)
+          for (final error in controller.topic.validationErrors)
+            error.message(zulipLocalizations, maxTopicLength: controller.topic.maxLengthUnicodeCodePoints),
         for (final error in controller.content.validationErrors)
           error.message(zulipLocalizations),
       ];

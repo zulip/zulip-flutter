@@ -22,6 +22,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
       (json['custom_profile_fields'] as List<dynamic>)
           .map((e) => CustomProfileField.fromJson(e as Map<String, dynamic>))
           .toList(),
+  maxTopicLength: (json['max_topic_length'] as num).toInt(),
   emailAddressVisibility: $enumDecodeNullable(
     _$EmailAddressVisibilityEnumMap,
     json['email_address_visibility'],
@@ -118,6 +119,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'zulip_merge_base': instance.zulipMergeBase,
       'alert_words': instance.alertWords,
       'custom_profile_fields': instance.customProfileFields,
+      'max_topic_length': instance.maxTopicLength,
       'email_address_visibility':
           _$EmailAddressVisibilityEnumMap[instance.emailAddressVisibility],
       'server_typing_started_expiry_period_milliseconds':
