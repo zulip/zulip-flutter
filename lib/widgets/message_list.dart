@@ -641,7 +641,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       },
 
       controller: scrollController,
-      semanticChildCount: length + 2,
+      semanticChildCount: length, // TODO(#537): what's the right value for this?
       center: centerSliverKey,
       paintOrder: SliverPaintOrder.firstIsTop,
 

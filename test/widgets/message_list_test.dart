@@ -375,7 +375,7 @@ void main() {
     testWidgets('basic', (tester) async {
       await setupMessageListPage(tester, foundOldest: false,
         messages: List.generate(300, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
-      check(itemCount(tester)).equals(303);
+      check(itemCount(tester)).equals(301);
 
       // Fling-scroll upward...
       await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
@@ -388,7 +388,7 @@ void main() {
       await tester.pump(Duration.zero); // Allow a frame for the response to arrive.
 
       // Now we have more messages.
-      check(itemCount(tester)).equals(403);
+      check(itemCount(tester)).equals(401);
     });
 
     testWidgets('observe double-fetch glitch', (tester) async {
@@ -429,7 +429,7 @@ void main() {
         ...List.generate(100, (i) => eg.streamMessage(id: 1302 + i)),
       ]);
       final lastRequest = connection.lastRequest;
-      check(itemCount(tester)).equals(404);
+      check(itemCount(tester)).equals(402);
 
       // Fling-scroll upward...
       await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
