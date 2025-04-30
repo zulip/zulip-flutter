@@ -44,7 +44,8 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get logOutConfirmationDialogTitle => 'Chcete sa odhlásiť?';
 
   @override
-  String get logOutConfirmationDialogMessage => 'To use this account in the future, you will have to re-enter the URL for your organization and your account information.';
+  String get logOutConfirmationDialogMessage =>
+      'To use this account in the future, you will have to re-enter the URL for your organization and your account information.';
 
   @override
   String get logOutConfirmationDialogConfirmButton => 'Odhlásiť sa';
@@ -65,10 +66,12 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get permissionsNeededOpenSettings => 'Otvoriť nastavenia';
 
   @override
-  String get permissionsDeniedCameraAccess => 'To upload an image, please grant Zulip additional permissions in Settings.';
+  String get permissionsDeniedCameraAccess =>
+      'To upload an image, please grant Zulip additional permissions in Settings.';
 
   @override
-  String get permissionsDeniedReadExternalStorage => 'To upload files, please grant Zulip additional permissions in Settings.';
+  String get permissionsDeniedReadExternalStorage =>
+      'To upload files, please grant Zulip additional permissions in Settings.';
 
   @override
   String get actionSheetOptionMarkChannelAsRead => 'Mark channel as read';
@@ -95,7 +98,8 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get errorResolveTopicFailedTitle => 'Failed to mark topic as resolved';
 
   @override
-  String get errorUnresolveTopicFailedTitle => 'Failed to mark topic as unresolved';
+  String get errorUnresolveTopicFailedTitle =>
+      'Failed to mark topic as unresolved';
 
   @override
   String get actionSheetOptionCopyMessageText => 'Skopírovať text správy';
@@ -104,7 +108,8 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get actionSheetOptionCopyMessageLink => 'Skopírovať odkaz do správy';
 
   @override
-  String get actionSheetOptionMarkAsUnread => 'Označiť ako neprečítané od tejto správy';
+  String get actionSheetOptionMarkAsUnread =>
+      'Označiť ako neprečítané od tejto správy';
 
   @override
   String get actionSheetOptionShare => 'Zdielať';
@@ -136,7 +141,8 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   }
 
   @override
-  String get errorCouldNotFetchMessageSource => 'Nepodarilo sa nahrať zdroj správy';
+  String get errorCouldNotFetchMessageSource =>
+      'Nepodarilo sa nahrať zdroj správy';
 
   @override
   String get errorCopyingFailed => 'Kopírovanie zlyhalo';
@@ -152,7 +158,11 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   }
 
   @override
-  String errorFilesTooLarge(int num, int maxFileUploadSizeMib, String listMessage) {
+  String errorFilesTooLarge(
+    int num,
+    int maxFileUploadSizeMib,
+    String listMessage,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
@@ -202,7 +212,8 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   }
 
   @override
-  String get errorConnectingToServerShort => 'Chyba pri pripájaní na Zulip. Skúšam znovu…';
+  String get errorConnectingToServerShort =>
+      'Chyba pri pripájaní na Zulip. Skúšam znovu…';
 
   @override
   String errorConnectingToServerDetails(String serverUrl, String error) {
@@ -210,10 +221,15 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   }
 
   @override
-  String get errorHandlingEventTitle => 'Chyba pri obsluhe Zulip udalosti. Pokúšam sa znovu…';
+  String get errorHandlingEventTitle =>
+      'Chyba pri obsluhe Zulip udalosti. Pokúšam sa znovu…';
 
   @override
-  String errorHandlingEventDetails(String serverUrl, String error, String event) {
+  String errorHandlingEventDetails(
+    String serverUrl,
+    String error,
+    String event,
+  ) {
     return 'Chyba obsluhy Zulip udalosti na serveri $serverUrl; skúsim znovu.\n\nChyba: $error\n\nUdalosť: $event';
   }
 
@@ -256,10 +272,12 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get successMessageLinkCopied => 'Message link copied';
 
   @override
-  String get errorBannerDeactivatedDmLabel => 'You cannot send messages to deactivated users.';
+  String get errorBannerDeactivatedDmLabel =>
+      'You cannot send messages to deactivated users.';
 
   @override
-  String get errorBannerCannotPostInChannelLabel => 'You do not have permission to post in this channel.';
+  String get errorBannerCannotPostInChannelLabel =>
+      'You do not have permission to post in this channel.';
 
   @override
   String get composeBoxAttachFilesTooltip => 'Attach files';
@@ -328,16 +346,19 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get messageListGroupYouWithYourself => 'Messages with yourself';
 
   @override
-  String get contentValidationErrorTooLong => 'Message length shouldn\'t be greater than 10000 characters.';
+  String get contentValidationErrorTooLong =>
+      'Message length shouldn\'t be greater than 10000 characters.';
 
   @override
   String get contentValidationErrorEmpty => 'You have nothing to send!';
 
   @override
-  String get contentValidationErrorQuoteAndReplyInProgress => 'Please wait for the quotation to complete.';
+  String get contentValidationErrorQuoteAndReplyInProgress =>
+      'Please wait for the quotation to complete.';
 
   @override
-  String get contentValidationErrorUploadInProgress => 'Please wait for the upload to complete.';
+  String get contentValidationErrorUploadInProgress =>
+      'Please wait for the upload to complete.';
 
   @override
   String get dialogCancel => 'Cancel';
@@ -411,13 +432,19 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get loginErrorMissingUsername => 'Prosím zadajte prihlasovacie meno.';
 
   @override
-  String get topicValidationErrorTooLong => 'Topic length shouldn\'t be greater than 60 characters.';
+  String get topicValidationErrorTooLong =>
+      'Topic length shouldn\'t be greater than 60 characters.';
 
   @override
-  String get topicValidationErrorMandatoryButEmpty => 'Topics are required in this organization.';
+  String get topicValidationErrorMandatoryButEmpty =>
+      'Topics are required in this organization.';
 
   @override
-  String errorServerVersionUnsupportedMessage(String url, String zulipVersion, String minSupportedZulipVersion) {
+  String errorServerVersionUnsupportedMessage(
+    String url,
+    String zulipVersion,
+    String minSupportedZulipVersion,
+  ) {
     return '$url is running Zulip Server $zulipVersion, which is unsupported. The minimum supported version is Zulip Server $minSupportedZulipVersion.';
   }
 
@@ -457,10 +484,12 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get serverUrlValidationErrorInvalidUrl => 'Vložte správnu adresu.';
 
   @override
-  String get serverUrlValidationErrorNoUseEmail => 'Vložte adresu servera, nie email.';
+  String get serverUrlValidationErrorNoUseEmail =>
+      'Vložte adresu servera, nie email.';
 
   @override
-  String get serverUrlValidationErrorUnsupportedScheme => 'Adresa servera musí začínať s http:// or https://.';
+  String get serverUrlValidationErrorUnsupportedScheme =>
+      'Adresa servera musí začínať s http:// or https://.';
 
   @override
   String get spoilerDefaultHeaderText => 'Vyzradenie';
@@ -483,7 +512,8 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get markAsReadInProgress => 'Označiť správy ako prečítané…';
 
   @override
-  String get errorMarkAsReadFailedTitle => 'Neodarilo sa označiť správy ako prečítané';
+  String get errorMarkAsReadFailedTitle =>
+      'Neodarilo sa označiť správy ako prečítané';
 
   @override
   String markAsUnreadComplete(int num) {
@@ -500,7 +530,8 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get markAsUnreadInProgress => 'Označiť správy ako neprečítané…';
 
   @override
-  String get errorMarkAsUnreadFailedTitle => 'Zlyhalo označenie správ za prečítané';
+  String get errorMarkAsUnreadFailedTitle =>
+      'Zlyhalo označenie správ za prečítané';
 
   @override
   String get today => 'Dnes';
@@ -655,13 +686,15 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get experimentalFeatureSettingsPageTitle => 'Experimental features';
 
   @override
-  String get experimentalFeatureSettingsWarning => 'These options enable features which are still under development and not ready. They may not work, and may cause issues in other areas of the app.\n\nThe purpose of these settings is for experimentation by people working on developing Zulip.';
+  String get experimentalFeatureSettingsWarning =>
+      'These options enable features which are still under development and not ready. They may not work, and may cause issues in other areas of the app.\n\nThe purpose of these settings is for experimentation by people working on developing Zulip.';
 
   @override
   String get errorNotificationOpenTitle => 'Nepodarilo sa otvoriť oznámenie';
 
   @override
-  String get errorNotificationOpenAccountMissing => 'The account associated with this notification no longer exists.';
+  String get errorNotificationOpenAccountMissing =>
+      'The account associated with this notification no longer exists.';
 
   @override
   String get errorReactionAddingFailedTitle => 'Nepodarilo sa pridať reakciu';
