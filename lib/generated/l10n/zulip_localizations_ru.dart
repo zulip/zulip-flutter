@@ -44,7 +44,8 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get logOutConfirmationDialogTitle => 'Выйти из системы?';
 
   @override
-  String get logOutConfirmationDialogMessage => 'Чтобы использовать эту учетную запись в будущем, вам придется заново ввести URL-адрес вашей организации и информацию о вашей учетной записи.';
+  String get logOutConfirmationDialogMessage =>
+      'Чтобы использовать эту учетную запись в будущем, вам придется заново ввести URL-адрес вашей организации и информацию о вашей учетной записи.';
 
   @override
   String get logOutConfirmationDialogConfirmButton => 'Выйти';
@@ -56,7 +57,8 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'Отправить личное сообщение';
 
   @override
-  String get errorCouldNotShowUserProfile => 'Не удалось показать профиль пользователя.';
+  String get errorCouldNotShowUserProfile =>
+      'Не удалось показать профиль пользователя.';
 
   @override
   String get permissionsNeededTitle => 'Требуются разрешения';
@@ -65,13 +67,16 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get permissionsNeededOpenSettings => 'Открыть настройки';
 
   @override
-  String get permissionsDeniedCameraAccess => 'Для загрузки изображения, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.';
+  String get permissionsDeniedCameraAccess =>
+      'Для загрузки изображения, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.';
 
   @override
-  String get permissionsDeniedReadExternalStorage => 'Для загрузки файлов, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.';
+  String get permissionsDeniedReadExternalStorage =>
+      'Для загрузки файлов, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.';
 
   @override
-  String get actionSheetOptionMarkChannelAsRead => 'Отметить канал как прочитанный';
+  String get actionSheetOptionMarkChannelAsRead =>
+      'Отметить канал как прочитанный';
 
   @override
   String get actionSheetOptionMuteTopic => 'Отключить тему';
@@ -92,19 +97,23 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get actionSheetOptionUnresolveTopic => 'Снять отметку \"решено\"';
 
   @override
-  String get errorResolveTopicFailedTitle => 'Не удалось отметить тему как решенную';
+  String get errorResolveTopicFailedTitle =>
+      'Не удалось отметить тему как решенную';
 
   @override
-  String get errorUnresolveTopicFailedTitle => 'Не удалось отметить тему как нерешенную';
+  String get errorUnresolveTopicFailedTitle =>
+      'Не удалось отметить тему как нерешенную';
 
   @override
   String get actionSheetOptionCopyMessageText => 'Скопировать текст сообщения';
 
   @override
-  String get actionSheetOptionCopyMessageLink => 'Скопировать ссылку на сообщение';
+  String get actionSheetOptionCopyMessageLink =>
+      'Скопировать ссылку на сообщение';
 
   @override
-  String get actionSheetOptionMarkAsUnread => 'Отметить как непрочитанные начиная отсюда';
+  String get actionSheetOptionMarkAsUnread =>
+      'Отметить как непрочитанные начиная отсюда';
 
   @override
   String get actionSheetOptionShare => 'Поделиться';
@@ -119,7 +128,8 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get actionSheetOptionUnstarMessage => 'Снять отметку с сообщения';
 
   @override
-  String get actionSheetOptionMarkTopicAsRead => 'Отметить тему как прочитанную';
+  String get actionSheetOptionMarkTopicAsRead =>
+      'Отметить тему как прочитанную';
 
   @override
   String get errorWebAuthOperationalErrorTitle => 'Что-то пошло не так';
@@ -136,7 +146,8 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   }
 
   @override
-  String get errorCouldNotFetchMessageSource => 'Не удалось извлечь источник сообщения';
+  String get errorCouldNotFetchMessageSource =>
+      'Не удалось извлечь источник сообщения';
 
   @override
   String get errorCopyingFailed => 'Сбой копирования';
@@ -152,7 +163,11 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   }
 
   @override
-  String errorFilesTooLarge(int num, int maxFileUploadSizeMib, String listMessage) {
+  String errorFilesTooLarge(
+    int num,
+    int maxFileUploadSizeMib,
+    String listMessage,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
@@ -191,7 +206,8 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get errorCouldNotConnectTitle => 'Нет связи с сервером';
 
   @override
-  String get errorMessageDoesNotSeemToExist => 'Это сообщение, похоже, отсутствует.';
+  String get errorMessageDoesNotSeemToExist =>
+      'Это сообщение, похоже, отсутствует.';
 
   @override
   String get errorQuotationFailed => 'Цитирование не удалось';
@@ -202,7 +218,8 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   }
 
   @override
-  String get errorConnectingToServerShort => 'Ошибка подключения к Zulip. Повторяем попытку…';
+  String get errorConnectingToServerShort =>
+      'Ошибка подключения к Zulip. Повторяем попытку…';
 
   @override
   String errorConnectingToServerDetails(String serverUrl, String error) {
@@ -210,10 +227,15 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   }
 
   @override
-  String get errorHandlingEventTitle => 'Ошибка обработки события Zulip. Повторная попытка соединения…';
+  String get errorHandlingEventTitle =>
+      'Ошибка обработки события Zulip. Повторная попытка соединения…';
 
   @override
-  String errorHandlingEventDetails(String serverUrl, String error, String event) {
+  String errorHandlingEventDetails(
+    String serverUrl,
+    String error,
+    String event,
+  ) {
     return 'Ошибка обработки события Zulip от $serverUrl; повторим попытку.\n\nОшибка: $error\n\nСобытие: $event';
   }
 
@@ -235,7 +257,8 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get errorFollowTopicFailed => 'Не удалось начать отслеживать тему';
 
   @override
-  String get errorUnfollowTopicFailed => 'Не удалось прекратить отслеживать тему';
+  String get errorUnfollowTopicFailed =>
+      'Не удалось прекратить отслеживать тему';
 
   @override
   String get errorSharingFailed => 'Не удалось поделиться';
@@ -244,7 +267,8 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get errorStarMessageFailedTitle => 'Не удалось отметить сообщение';
 
   @override
-  String get errorUnstarMessageFailedTitle => 'Не удалось снять отметку с сообщения';
+  String get errorUnstarMessageFailedTitle =>
+      'Не удалось снять отметку с сообщения';
 
   @override
   String get successLinkCopied => 'Ссылка скопирована';
@@ -256,10 +280,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get successMessageLinkCopied => 'Ссылка на сообщение скопирована';
 
   @override
-  String get errorBannerDeactivatedDmLabel => 'Нельзя отправить сообщение отключенным пользователям.';
+  String get errorBannerDeactivatedDmLabel =>
+      'Нельзя отправить сообщение отключенным пользователям.';
 
   @override
-  String get errorBannerCannotPostInChannelLabel => 'У вас нет права писать в этом канале.';
+  String get errorBannerCannotPostInChannelLabel =>
+      'У вас нет права писать в этом канале.';
 
   @override
   String get composeBoxAttachFilesTooltip => 'Прикрепить файлы';
@@ -328,16 +354,19 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get messageListGroupYouWithYourself => 'Сообщения с собой';
 
   @override
-  String get contentValidationErrorTooLong => 'Длина сообщения не должна превышать 10000 символов.';
+  String get contentValidationErrorTooLong =>
+      'Длина сообщения не должна превышать 10000 символов.';
 
   @override
   String get contentValidationErrorEmpty => 'Нечего отправлять!';
 
   @override
-  String get contentValidationErrorQuoteAndReplyInProgress => 'Пожалуйста, дождитесь завершения цитирования.';
+  String get contentValidationErrorQuoteAndReplyInProgress =>
+      'Пожалуйста, дождитесь завершения цитирования.';
 
   @override
-  String get contentValidationErrorUploadInProgress => 'Пожалуйста, дождитесь завершения загрузки.';
+  String get contentValidationErrorUploadInProgress =>
+      'Пожалуйста, дождитесь завершения загрузки.';
 
   @override
   String get dialogCancel => 'Отмена';
@@ -396,7 +425,8 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get loginEmailLabel => 'Адрес почты';
 
   @override
-  String get loginErrorMissingEmail => 'Пожалуйста, введите ваш адрес электронной почты.';
+  String get loginErrorMissingEmail =>
+      'Пожалуйста, введите ваш адрес электронной почты.';
 
   @override
   String get loginPasswordLabel => 'Пароль';
@@ -408,16 +438,23 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get loginUsernameLabel => 'Имя пользователя';
 
   @override
-  String get loginErrorMissingUsername => 'Пожалуйста, введите ваше имя пользователя.';
+  String get loginErrorMissingUsername =>
+      'Пожалуйста, введите ваше имя пользователя.';
 
   @override
-  String get topicValidationErrorTooLong => 'Длина темы не должна превышать 60 символов.';
+  String get topicValidationErrorTooLong =>
+      'Длина темы не должна превышать 60 символов.';
 
   @override
-  String get topicValidationErrorMandatoryButEmpty => 'Темы обязательны в этой организации.';
+  String get topicValidationErrorMandatoryButEmpty =>
+      'Темы обязательны в этой организации.';
 
   @override
-  String errorServerVersionUnsupportedMessage(String url, String zulipVersion, String minSupportedZulipVersion) {
+  String errorServerVersionUnsupportedMessage(
+    String url,
+    String zulipVersion,
+    String minSupportedZulipVersion,
+  ) {
     return '$url использует Zulip Server $zulipVersion, который не поддерживается. Минимальная поддерживаемая версия — Zulip Server $minSupportedZulipVersion.';
   }
 
@@ -454,13 +491,16 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get serverUrlValidationErrorEmpty => 'Пожалуйста, введите URL-адрес.';
 
   @override
-  String get serverUrlValidationErrorInvalidUrl => 'Пожалуйста, введите корректный URL-адрес.';
+  String get serverUrlValidationErrorInvalidUrl =>
+      'Пожалуйста, введите корректный URL-адрес.';
 
   @override
-  String get serverUrlValidationErrorNoUseEmail => 'Пожалуйста, введите URL-адрес сервера, а не свой email.';
+  String get serverUrlValidationErrorNoUseEmail =>
+      'Пожалуйста, введите URL-адрес сервера, а не свой email.';
 
   @override
-  String get serverUrlValidationErrorUnsupportedScheme => 'URL-адрес сервера должен начинаться с http:// или https://.';
+  String get serverUrlValidationErrorUnsupportedScheme =>
+      'URL-адрес сервера должен начинаться с http:// или https://.';
 
   @override
   String get spoilerDefaultHeaderText => 'Спойлер';
@@ -483,7 +523,8 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get markAsReadInProgress => 'Помечаем сообщения как прочитанные…';
 
   @override
-  String get errorMarkAsReadFailedTitle => 'Не удалось установить отметку прочтения';
+  String get errorMarkAsReadFailedTitle =>
+      'Не удалось установить отметку прочтения';
 
   @override
   String markAsUnreadComplete(int num) {
@@ -500,7 +541,8 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get markAsUnreadInProgress => 'Помечаем сообщения как непрочитанные…';
 
   @override
-  String get errorMarkAsUnreadFailedTitle => 'Не удалось снять отметку прочтения';
+  String get errorMarkAsUnreadFailedTitle =>
+      'Не удалось снять отметку прочтения';
 
   @override
   String get today => 'Сегодня';
@@ -652,16 +694,19 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get pollWidgetOptionsMissing => 'В опросе пока нет вариантов ответа.';
 
   @override
-  String get experimentalFeatureSettingsPageTitle => 'Экспериментальные функции';
+  String get experimentalFeatureSettingsPageTitle =>
+      'Экспериментальные функции';
 
   @override
-  String get experimentalFeatureSettingsWarning => 'Эти параметры включают функции, которые все еще находятся в стадии разработки и не готовы. Они могут не работать и вызывать проблемы в других местах приложения.\n\nЦель этих настроек — экспериментирование людьми, работающими над разработкой Zulip.';
+  String get experimentalFeatureSettingsWarning =>
+      'Эти параметры включают функции, которые все еще находятся в стадии разработки и не готовы. Они могут не работать и вызывать проблемы в других местах приложения.\n\nЦель этих настроек — экспериментирование людьми, работающими над разработкой Zulip.';
 
   @override
   String get errorNotificationOpenTitle => 'Не удалось открыть оповещения';
 
   @override
-  String get errorNotificationOpenAccountMissing => 'Учетной записи, связанной с этим оповещением, больше нет.';
+  String get errorNotificationOpenAccountMissing =>
+      'Учетной записи, связанной с этим оповещением, больше нет.';
 
   @override
   String get errorReactionAddingFailedTitle => 'Не удалось добавить реакцию';
