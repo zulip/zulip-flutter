@@ -24,6 +24,7 @@ import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'topic_list.dart';
 
 /// Message-list styles that differ between light and dark themes.
 class MessageListTheme extends ThemeExtension<MessageListTheme> {
@@ -220,14 +221,23 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
         removeAppBarBottomBorder = true;
     }
 
-    List<Widget>? actions;
-    if (narrow case TopicNarrow(:final streamId)) {
-      (actions ??= []).add(IconButton(
-        icon: const Icon(ZulipIcons.message_feed),
-        tooltip: zulipLocalizations.channelFeedButtonTooltip,
-        onPressed: () => Navigator.push(context,
-          MessageListPage.buildRoute(context: context,
-            narrow: ChannelNarrow(streamId)))));
+    List<Widget> actions = [];
+    switch (narrow) {
+      case CombinedFeedNarrow():
+      case MentionsNarrow():
+      case StarredMessagesNarrow():
+      case DmNarrow():
+        break;
+      case ChannelNarrow(:final streamId):
+        actions.add(_TopicListButton(streamId: streamId));
+      case TopicNarrow(:final streamId):
+        actions.add(IconButton(
+          icon: const Icon(ZulipIcons.message_feed),
+          tooltip: zulipLocalizations.channelFeedButtonTooltip,
+          onPressed: () => Navigator.push(context,
+            MessageListPage.buildRoute(context: context,
+              narrow: ChannelNarrow(streamId)))));
+        actions.add(_TopicListButton(streamId: streamId));
     }
 
     // Insert a PageRoot here, to provide a context that can be used for
@@ -274,6 +284,35 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
             if (ComposeBox.hasComposeBox(narrow))
               ComposeBox(key: _composeBoxKey, narrow: narrow)
           ]))));
+  }
+}
+
+class _TopicListButton extends StatelessWidget {
+  const _TopicListButton({required this.streamId});
+
+  final int streamId;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(TopicListPage.buildRoute(
+          context: context, streamId: streamId));
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: EdgeInsetsDirectional.fromSTEB(12, 8, 12, 8),
+        child: Center(child: Text(zulipLocalizations.topicsButtonLabel,
+          style: TextStyle(
+            color: designVariables.icon,
+            fontSize: 18,
+            height: 19 / 18,
+            // This is equivalent to css `all-small-caps`, see:
+            //   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps#all-small-caps
+            fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
+          ).merge(weightVariableTextStyle(context, wght: 600))))));
   }
 }
 
