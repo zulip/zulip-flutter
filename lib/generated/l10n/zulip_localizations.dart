@@ -1064,6 +1064,12 @@ abstract class ZulipLocalizations {
   /// **'My profile'**
   String get mainMenuMyProfile;
 
+  /// Label for message list button leading to topic-list page. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)
+  ///
+  /// In en, this message translates to:
+  /// **'TOPICS'**
+  String get topicsButtonLabel;
+
   /// Tooltip for button to navigate to a given channel's feed
   ///
   /// In en, this message translates to:
