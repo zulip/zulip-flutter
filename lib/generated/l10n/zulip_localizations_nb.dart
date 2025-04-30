@@ -585,6 +585,9 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get mainMenuMyProfile => 'My profile';
 
   @override
+  String get topicsButtonLabel => 'TOPICS';
+
+  @override
   String get channelFeedButtonTooltip => 'Channel feed';
 
   @override

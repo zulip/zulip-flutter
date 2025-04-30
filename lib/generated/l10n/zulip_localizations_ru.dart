@@ -598,6 +598,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get mainMenuMyProfile => 'Мой профиль';
 
   @override
+  String get topicsButtonLabel => 'TOPICS';
+
+  @override
   String get channelFeedButtonTooltip => 'Лента канала';
 
   @override
