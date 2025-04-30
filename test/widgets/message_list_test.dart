@@ -11,6 +11,7 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
+import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/localizations.dart';
@@ -27,6 +28,7 @@ import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/theme.dart';
+import 'package:zulip/widgets/topic_list.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -241,6 +243,25 @@ void main() {
       check(find.descendant(
         of: find.byType(MessageListAppBarTitle),
         matching: find.byIcon(ZulipIcons.mute))).findsOne();
+    });
+
+    testWidgets('has topic-list action for channel narrows', (tester) async {
+      final channel = eg.stream(name: 'channel foo');
+      await setupMessageListPage(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        streams: [channel],
+        messages: [eg.streamMessage(stream: channel, topic: 'topic foo')]);
+
+      connection.prepare(json: GetStreamTopicsResult(topics: [
+        eg.getStreamTopicsEntry(name: 'topic foo'),
+      ]).toJson());
+      await tester.tap(find.text('TOPICS'));
+      await tester.pump(); // tap the button
+      await tester.pump(Duration.zero); // wait for request
+      check(find.descendant(
+        of: find.byType(TopicListPage),
+        matching: find.text('channel foo')),
+      ).findsOne();
     });
   });
 
