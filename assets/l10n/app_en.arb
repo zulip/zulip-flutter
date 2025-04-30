@@ -769,6 +769,10 @@
   "@mainMenuMyProfile": {
     "description": "Label for main-menu button leading to the user's own profile."
   },
+  "topicsButtonLabel": "TOPICS",
+  "@topicsButtonLabel": {
+    "description": "Label for message list button leading to topic-list page. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
   "channelFeedButtonTooltip": "Channel feed",
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"

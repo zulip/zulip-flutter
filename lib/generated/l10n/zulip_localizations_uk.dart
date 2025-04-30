@@ -642,6 +642,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get mainMenuMyProfile => 'Мій профіль';
 
   @override
+  String get topicsButtonLabel => 'TOPICS';
+
+  @override
   String get channelFeedButtonTooltip => 'Стрічка каналу';
 
   @override
