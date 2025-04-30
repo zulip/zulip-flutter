@@ -554,10 +554,19 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   }
 }
 
+// This is taken from:
+//   https://github.com/zulip/zulip/blob/b248e2d93/web/src/stream_data.ts#L40
+const kDefaultChannelColorSwatchBaseColor = 0xffc2c2c2;
+
 /// The theme-appropriate [ChannelColorSwatch] based on [subscription.color].
 ///
+/// If [subscription] is null, [ChannelColorSwatch] will be based on
+/// [kDefaultChannelColorSwatchBaseColor].
+///
 /// For how this value is cached, see [ChannelColorSwatches.forBaseColor].
-ChannelColorSwatch colorSwatchFor(BuildContext context, Subscription subscription) {
+// TODO(#188) pick different colors for unsubscribed channels
+ChannelColorSwatch colorSwatchFor(BuildContext context, Subscription? subscription) {
   return DesignVariables.of(context)
-    .channelColorSwatches.forBaseColor(subscription.color);
+    .channelColorSwatches.forBaseColor(
+      subscription?.color ?? kDefaultChannelColorSwatchBaseColor);
 }

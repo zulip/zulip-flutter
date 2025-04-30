@@ -43,9 +43,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     unreadMarker: const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor(),
 
     unreadMarkerGap: Colors.white.withValues(alpha: 0.6),
-
-    // TODO(design) this seems ad-hoc; is there a better color?
-    unsubscribedStreamRecipientHeaderBg: const Color(0xfff5f5f5),
   );
 
   static final dark = MessageListTheme._(
@@ -63,9 +60,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     unreadMarker: const HSLColor.fromAHSL(0.75, 227, 0.78, 0.59).toColor(),
 
     unreadMarkerGap: Colors.transparent,
-
-    // TODO(design) this is ad-hoc and untested; is there a better color?
-    unsubscribedStreamRecipientHeaderBg: const Color(0xff0a0a0a),
   );
 
   MessageListTheme._({
@@ -76,7 +70,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     required this.streamRecipientHeaderChevronRight,
     required this.unreadMarker,
     required this.unreadMarkerGap,
-    required this.unsubscribedStreamRecipientHeaderBg,
   });
 
   /// The [MessageListTheme] from the context's active theme.
@@ -96,7 +89,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   final Color streamRecipientHeaderChevronRight;
   final Color unreadMarker;
   final Color unreadMarkerGap;
-  final Color unsubscribedStreamRecipientHeaderBg;
 
   @override
   MessageListTheme copyWith({
@@ -107,7 +99,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     Color? streamRecipientHeaderChevronRight,
     Color? unreadMarker,
     Color? unreadMarkerGap,
-    Color? unsubscribedStreamRecipientHeaderBg,
   }) {
     return MessageListTheme._(
       bgMessageRegular: bgMessageRegular ?? this.bgMessageRegular,
@@ -117,7 +108,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       streamRecipientHeaderChevronRight: streamRecipientHeaderChevronRight ?? this.streamRecipientHeaderChevronRight,
       unreadMarker: unreadMarker ?? this.unreadMarker,
       unreadMarkerGap: unreadMarkerGap ?? this.unreadMarkerGap,
-      unsubscribedStreamRecipientHeaderBg: unsubscribedStreamRecipientHeaderBg ?? this.unsubscribedStreamRecipientHeaderBg,
     );
   }
 
@@ -134,7 +124,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       streamRecipientHeaderChevronRight: Color.lerp(streamRecipientHeaderChevronRight, other.streamRecipientHeaderChevronRight, t)!,
       unreadMarker: Color.lerp(unreadMarker, other.unreadMarker, t)!,
       unreadMarkerGap: Color.lerp(unreadMarkerGap, other.unreadMarkerGap, t)!,
-      unsubscribedStreamRecipientHeaderBg: Color.lerp(unsubscribedStreamRecipientHeaderBg, other.unsubscribedStreamRecipientHeaderBg, t)!,
     );
   }
 }
@@ -225,9 +214,8 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
       case ChannelNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         final subscription = store.subscriptions[streamId];
-        appBarBackgroundColor = subscription != null
-          ? colorSwatchFor(context, subscription).barBackground
-          : messageListTheme.unsubscribedStreamRecipientHeaderBg;
+        appBarBackgroundColor =
+          colorSwatchFor(context, subscription).barBackground;
         // All recipient headers will match this color; remove distracting line
         // (but are recipient headers even needed for topic narrows?)
         removeAppBarBottomBorder = true;
@@ -1091,24 +1079,15 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     //   https://github.com/zulip/zulip-mobile/issues/5511
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
+    final messageListTheme = MessageListTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final streamId = message.conversation.streamId;
     final topic = message.conversation.topic;
 
-    final messageListTheme = MessageListTheme.of(context);
-
-    final subscription = store.subscriptions[streamId];
-    final Color backgroundColor;
-    final Color iconColor;
-    if (subscription != null) {
-      final swatch = colorSwatchFor(context, subscription);
-      backgroundColor = swatch.barBackground;
-      iconColor = swatch.iconOnBarBackground;
-    } else {
-      backgroundColor = messageListTheme.unsubscribedStreamRecipientHeaderBg;
-      iconColor = designVariables.title;
-    }
+    final swatch = colorSwatchFor(context, store.subscriptions[streamId]);
+    final backgroundColor = swatch.barBackground;
+    final iconColor = swatch.iconOnBarBackground;
 
     final Widget streamWidget;
     if (!_containsDifferentChannels(narrow)) {

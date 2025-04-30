@@ -178,5 +178,13 @@ void main() {
       check(colorSwatchFor(element, subscription))
         .isSameColorSwatchAs(ChannelColorSwatch.dark(baseColor));
     });
+
+    testWidgets('fallback to default base color when no subscription', (tester) async {
+      await tester.pumpWidget(const TestZulipApp());
+      await tester.pump();
+      final element = tester.element(find.byType(Placeholder));
+      check(colorSwatchFor(element, null)).isSameColorSwatchAs(
+        ChannelColorSwatch.light(kDefaultChannelColorSwatchBaseColor));
+    });
   });
 }
