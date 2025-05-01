@@ -70,7 +70,11 @@ mixin _MessageSequence {
   /// A sequence number for invalidating stale fetches.
   int generation = 0;
 
-  /// The messages.
+  /// The known messages in the list.
+  ///
+  /// This may or may not represent all the message history that
+  /// conceptually belongs in this message list.
+  /// That information is expressed in [fetched] and [haveOldest].
   ///
   /// See also [contents] and [items].
   final List<Message> messages = [];
