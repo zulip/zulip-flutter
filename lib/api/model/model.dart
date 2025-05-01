@@ -110,7 +110,7 @@ class CustomProfileFieldExternalAccountData {
   Map<String, dynamic> toJson() => _$CustomProfileFieldExternalAccountDataToJson(this);
 }
 
-/// An item in the [InitialSnapshot.mutedUsers].
+/// An item in the [InitialSnapshot.mutedUsers] or [MutedUsersEvent].
 ///
 /// For docs, search for "muted_users:"
 /// in <https://zulip.com/api/register-queue>.
