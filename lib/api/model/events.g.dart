@@ -468,6 +468,21 @@ const _$UserTopicVisibilityPolicyEnumMap = {
   UserTopicVisibilityPolicy.unknown: null,
 };
 
+MutedUsersEvent _$MutedUsersEventFromJson(Map<String, dynamic> json) =>
+    MutedUsersEvent(
+      id: (json['id'] as num).toInt(),
+      mutedUsers: (json['muted_users'] as List<dynamic>)
+          .map((e) => MutedUserItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$MutedUsersEventToJson(MutedUsersEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'muted_users': instance.mutedUsers,
+    };
+
 MessageEvent _$MessageEventFromJson(Map<String, dynamic> json) => MessageEvent(
   id: (json['id'] as num).toInt(),
   message: Message.fromJson(
