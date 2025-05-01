@@ -79,6 +79,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Oznacz kanał jako przeczytany';
 
   @override
+  String get actionSheetOptionTopicList => 'Topic list';
+
+  @override
   String get actionSheetOptionMuteTopic => 'Wycisz wątek';
 
   @override

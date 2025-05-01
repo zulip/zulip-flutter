@@ -237,6 +237,12 @@ class _TopicItem extends StatelessWidget {
     final visibilityIcon = iconDataForTopicVisibilityPolicy(
       store.topicVisibilityPolicy(streamId, topic));
 
+    final trailingWidgets = [
+      if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
+      if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
+      if (unreadCount > 0) _UnreadCountBadge(count: unreadCount),
+    ];
+
     return Material(
       color: designVariables.bgMessageRegular,
       child: InkWell(
@@ -252,8 +258,8 @@ class _TopicItem extends StatelessWidget {
         splashFactory: NoSplash.splashFactory,
         child: Padding(padding: EdgeInsetsDirectional.fromSTEB(28, 8, 12, 8),
           child: Row(
-            // In the Figma design, the text and icons on the topic item row
-            // are aligned to the start on the cross axis
+            // In the Figma design, the icons and text on the topic
+            // item row are aligned to the start on the cross axis
             // (i.e., `align-items: flex-start`).  The icons are padded down
             // 2px relative to the start, to visibly sit on the baseline.
             // To account for scaled text, we align everything on the row to
@@ -261,6 +267,7 @@ class _TopicItem extends StatelessWidget {
             // relative to the text baseline.
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: localizedTextBaseline(context),
+            spacing: 8,
             children: [
               if (!topic.isResolved)
                 SizedBox.square(dimension: 16)
@@ -268,25 +275,28 @@ class _TopicItem extends StatelessWidget {
                 _IconMarker(icon: ZulipIcons.check),
               Expanded(child: Opacity(
                 opacity: isTopicVisibleInStream ? 1 : 0.5,
-                child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    style: TextStyle(
-                      fontSize: 17,
-                      height: 20 / 17,
-                      // ignore: unnecessary_null_comparison // null topic names soon to be enabled
-                      fontStyle: topic.displayName == null ? FontStyle.italic : null,
-                      color: designVariables.textMessage,
-                    ),
-                    // ignore: dead_null_aware_expression // null topic names soon to be enabled
-                    topic.unresolve().displayName ?? store.realmEmptyTopicDisplayName)))),
+                child: Text(
+                  style: TextStyle(
+                    fontSize: 17,
+                    height: 20 / 17,
+                    // ignore: unnecessary_null_comparison // null topic names soon to be enabled
+                    fontStyle: topic.displayName == null ? FontStyle.italic : null,
+                    color: designVariables.textMessage,
+                  ),
+                  // ignore: dead_null_aware_expression // null topic names soon to be enabled
+                  topic.unresolve().displayName ?? store.realmEmptyTopicDisplayName))),
               Opacity(opacity: isTopicVisibleInStream ? 1 : 0.5, child: Row(
+                // Similarly, the trailing icons and unread marker are aligned
+                // to the text baseline.
+                // This causes layout shift when a topic is mark as read/unread.
+                // TODO find a way to address this
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: localizedTextBaseline(context),
                 spacing: 4,
                 children: [
-                  if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
-                  if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
-                  if (unreadCount > 0) _UnreadCountBadge(count: unreadCount),
+                  ...trailingWidgets,
+                  if (trailingWidgets.isEmpty)
+                    const SizedBox(width: 53),
                 ])),
             ]))));
   }

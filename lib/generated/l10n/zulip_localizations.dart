@@ -236,6 +236,12 @@ abstract class ZulipLocalizations {
   /// **'Mark channel as read'**
   String get actionSheetOptionMarkChannelAsRead;
 
+  /// Label for navigating to a channel's topic-list page.
+  ///
+  /// In en, this message translates to:
+  /// **'Topic list'**
+  String get actionSheetOptionTopicList;
+
   /// Label for muting a topic on action sheet.
   ///
   /// In en, this message translates to:

@@ -77,6 +77,9 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
   String get actionSheetOptionMarkChannelAsRead => 'Mark channel as read';
 
   @override
+  String get actionSheetOptionTopicList => 'Topic list';
+
+  @override
   String get actionSheetOptionMuteTopic => 'Mute topic';
 
   @override

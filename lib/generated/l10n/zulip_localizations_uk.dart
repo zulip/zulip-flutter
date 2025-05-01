@@ -80,6 +80,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Позначити канал як прочитаний';
 
   @override
+  String get actionSheetOptionTopicList => 'Topic list';
+
+  @override
   String get actionSheetOptionMuteTopic => 'Заглушити тему';
 
   @override
