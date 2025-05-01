@@ -454,6 +454,7 @@ void main() {
       bool? sendNotificationToOldThread,
       bool? sendNotificationToNewThread,
       String? content,
+      String? prevContentSha256,
       int? streamId,
       required Map<String, String> expected,
     }) async {
@@ -464,6 +465,7 @@ void main() {
         sendNotificationToOldThread: sendNotificationToOldThread,
         sendNotificationToNewThread: sendNotificationToNewThread,
         content: content,
+        prevContentSha256: prevContentSha256,
         streamId: streamId,
       );
       check(connection.lastRequest).isA<http.Request>()
@@ -472,6 +474,20 @@ void main() {
         ..bodyFields.deepEquals(expected);
       return result;
     }
+
+    test('pure content change', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: UpdateMessageResult().toJson());
+        await checkUpdateMessage(connection,
+          messageId: eg.streamMessage().id,
+          content: 'asdf',
+          prevContentSha256: '34a780ad578b997db55b260beb60b501f3e04d30ba1a51fcf43cd8dd1241780d',
+          expected: {
+            'content': 'asdf',
+            'prev_content_sha256': '34a780ad578b997db55b260beb60b501f3e04d30ba1a51fcf43cd8dd1241780d',
+          });
+      });
+    });
 
     test('topic/content change', () {
       // A separate test exercises `streamId`;

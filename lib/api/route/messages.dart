@@ -275,6 +275,7 @@ Future<UpdateMessageResult> updateMessage(
   bool? sendNotificationToOldThread,
   bool? sendNotificationToNewThread,
   String? content,
+  String? prevContentSha256,
   int? streamId,
 }) {
   return connection.patch('updateMessage', UpdateMessageResult.fromJson, 'messages/$messageId', {
@@ -283,6 +284,7 @@ Future<UpdateMessageResult> updateMessage(
     if (sendNotificationToOldThread != null) 'send_notification_to_old_thread': sendNotificationToOldThread,
     if (sendNotificationToNewThread != null) 'send_notification_to_new_thread': sendNotificationToNewThread,
     if (content != null) 'content': RawParameter(content),
+    if (prevContentSha256 != null) 'prev_content_sha256': RawParameter(prevContentSha256),
     if (streamId != null) 'stream_id': streamId,
   });
 }
