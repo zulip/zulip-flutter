@@ -886,6 +886,11 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         _channels.handleUserTopicEvent(event);
         notifyListeners();
 
+      case MutedUsersEvent():
+        assert(debugLog("server event: muted_users"));
+        _users.handleMutedUsersEvent(event);
+        notifyListeners();
+
       case MessageEvent():
         assert(debugLog("server event: message ${jsonEncode(event.message.toJson())}"));
         _messages.handleMessageEvent(event);

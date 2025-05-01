@@ -87,17 +87,16 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
          .followedBy(initialSnapshot.crossRealmBots)
          .map((user) => MapEntry(user.userId, user))),
        _mutedUsers = initialSnapshot.mutedUsers,
-       _mutedUsersSorted = initialSnapshot.mutedUsers
-         ..sort((a, b) => a.id.compareTo(b.id));
+       _mutedUsersSorted = _sortMutedUsers(initialSnapshot.mutedUsers);
 
   final Map<int, User> _users;
 
   // Currently we don't need this, but we would need it if we wanted to display
   // muted users in the order of server.
   // ignore: unused_field
-  final List<MutedUserItem> _mutedUsers;
+  List<MutedUserItem> _mutedUsers;
 
-  final List<MutedUserItem> _mutedUsersSorted;
+  List<MutedUserItem> _mutedUsersSorted;
 
   @override
   User? getUser(int userId) => _users[userId];
@@ -148,5 +147,14 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
           }
         }
     }
+  }
+
+  void handleMutedUsersEvent(MutedUsersEvent event) {
+    _mutedUsers = event.mutedUsers;
+    _mutedUsersSorted = _sortMutedUsers(event.mutedUsers);
+  }
+
+  static List<MutedUserItem> _sortMutedUsers(List<MutedUserItem> mutedUsers) {
+    return mutedUsers..sort((a, b) => a.id.compareTo(b.id));
   }
 }
