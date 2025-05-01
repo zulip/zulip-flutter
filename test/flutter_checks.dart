@@ -142,6 +142,18 @@ extension TextEditingControllerChecks on Subject<TextEditingController> {
   Subject<String?> get text => has((t) => t.text, 'text');
 }
 
+extension ScrollMetricsChecks on Subject<ScrollMetrics> {
+  Subject<double> get minScrollExtent => has((x) => x.minScrollExtent, 'minScrollExtent');
+  Subject<double> get maxScrollExtent => has((x) => x.maxScrollExtent, 'maxScrollExtent');
+  Subject<double> get pixels => has((x) => x.pixels, 'pixels');
+  Subject<double> get extentBefore => has((x) => x.extentBefore, 'extentBefore');
+  Subject<double> get extentAfter => has((x) => x.extentAfter, 'extentAfter');
+}
+
+extension ScrollPositionChecks on Subject<ScrollPosition> {
+  Subject<ScrollActivity?> get activity => has((x) => x.activity, 'activity');
+}
+
 extension ScrollActivityChecks on Subject<ScrollActivity> {
   Subject<double> get velocity => has((x) => x.velocity, 'velocity');
 }

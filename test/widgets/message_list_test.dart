@@ -500,13 +500,13 @@ void main() {
       final controller = findMessageListScrollController(tester)!;
       controller.jumpTo(-600);
       await tester.pump();
-      check(controller.position.pixels).equals(-600);
+      check(controller.position).pixels.equals(-600);
 
       // Tap button.
       await tester.tap(find.byType(ScrollToBottomButton));
       // The list scrolls to the end…
       await tester.pumpAndSettle();
-      check(controller.position.pixels).equals(0);
+      check(controller.position).pixels.equals(0);
       // … and for good measure confirm the button disappeared.
       check(isButtonVisible(tester)).equals(false);
     });
@@ -520,7 +520,7 @@ void main() {
       // Scroll a long distance up, many screenfuls.
       controller.jumpTo(-distance);
       await tester.pump();
-      check(controller.position.pixels).equals(-distance);
+      check(controller.position).pixels.equals(-distance);
 
       // Tap button.
       await tester.tap(find.byType(ScrollToBottomButton));

@@ -124,8 +124,8 @@ void main() {
 
       // Starts out scrolled all the way to the bottom,
       // even though it must have taken several rounds of layout to find that.
-      check(controller.position.pixels)
-        .equals(itemHeight * numItems * (numItems + 1)/2);
+      check(controller.position)
+        .pixels.equals(itemHeight * numItems * (numItems + 1)/2);
       check(tester.getRect(find.text('item ${numItems-1}', skipOffstage: false)))
         .bottom.equals(600);
     });
@@ -198,30 +198,30 @@ void main() {
         await prepare(tester, topHeight: 300, bottomHeight: 600);
         await tester.drag(findBottom, Offset(0, 300));
         await tester.pump();
-        check(position.extentAfter).equals(300);
+        check(position).extentAfter.equals(300);
 
         // Start scrolling to end, from just a short distance up.
         position.scrollToEnd();
         await tester.pump();
-        check(position.extentAfter).equals(300);
-        check(position.activity).isA<ScrollToEndActivity>();
+        check(position).extentAfter.equals(300);
+        check(position).activity.isA<ScrollToEndActivity>();
 
         // The scrolling moves at a stately pace; …
         await tester.pump(Duration(milliseconds: 100));
-        check(position.extentAfter).equals(200);
+        check(position).extentAfter.equals(200);
 
         await tester.pump(Duration(milliseconds: 100));
-        check(position.extentAfter).equals(100);
+        check(position).extentAfter.equals(100);
 
         // … then upon reaching the end, …
         await tester.pump(Duration(milliseconds: 100));
-        check(position.extentAfter).equals(0);
+        check(position).extentAfter.equals(0);
 
         // … goes idle on the next frame, …
         await tester.pump(Duration(milliseconds: 1));
-        check(position.activity).isA<IdleScrollActivity>();
+        check(position).activity.isA<IdleScrollActivity>();
         // … without moving any farther.
-        check(position.extentAfter).equals(0);
+        check(position).extentAfter.equals(0);
       });
 
       testWidgets('long -> bounded speed', (tester) async {
@@ -231,12 +231,12 @@ void main() {
         await prepare(tester, topHeight: distance + 1000, bottomHeight: 300);
         await tester.drag(findBottom, Offset(0, distance));
         await tester.pump();
-        check(position.extentAfter).equals(distance);
+        check(position).extentAfter.equals(distance);
 
         // Start scrolling to end.
         position.scrollToEnd();
         await tester.pump();
-        check(position.activity).isA<ScrollToEndActivity>();
+        check(position).activity.isA<ScrollToEndActivity>();
 
         // Let it scroll, plotting the trajectory.
         final log = <double>[];
@@ -249,12 +249,12 @@ void main() {
           (i) => distance - referenceSpeed * i));
 
         // Having reached the end, …
-        check(position.extentAfter).equals(0);
+        check(position).extentAfter.equals(0);
         // … it goes idle on the next frame, …
         await tester.pump(Duration(milliseconds: 1));
-        check(position.activity).isA<IdleScrollActivity>();
+        check(position).activity.isA<IdleScrollActivity>();
         // … without moving any farther.
-        check(position.extentAfter).equals(0);
+        check(position).extentAfter.equals(0);
       });
 
       testWidgets('starting from overscroll, just drift', (tester) async {
@@ -266,33 +266,33 @@ void main() {
         await tester.pump();
         final offset1 = position.pixels - position.maxScrollExtent;
         check(offset1).isGreaterThan(100 / 2);
-        check(position.activity).isA<BallisticScrollActivity>();
+        check(position).activity.isA<BallisticScrollActivity>();
 
         // Start drifting back into range.
         await tester.pump(Duration(milliseconds: 10));
         final offset2 = position.pixels - position.maxScrollExtent;
         check(offset2)..isGreaterThan(0.0)..isLessThan(offset1);
-        check(position.activity).isA<BallisticScrollActivity>()
+        check(position).activity.isA<BallisticScrollActivity>()
           .velocity.isLessThan(0);
 
         // Invoke `scrollToEnd`.  The motion should stop…
         position.scrollToEnd();
         await tester.pump();
         check(position.pixels - position.maxScrollExtent).equals(offset2);
-        check(position.activity).isA<BallisticScrollActivity>()
+        check(position).activity.isA<BallisticScrollActivity>()
           .velocity.equals(0);
 
         // … and resume drifting from there…
         await tester.pump(Duration(milliseconds: 10));
         final offset3 = position.pixels - position.maxScrollExtent;
         check(offset3)..isGreaterThan(0.0)..isLessThan(offset2);
-        check(position.activity).isA<BallisticScrollActivity>()
+        check(position).activity.isA<BallisticScrollActivity>()
           .velocity.isLessThan(0);
 
         // … to eventually return to being in range.
         await tester.pump(Duration(seconds: 1));
         check(position.pixels - position.maxScrollExtent).equals(0);
-        check(position.activity).isA<IdleScrollActivity>();
+        check(position).activity.isA<IdleScrollActivity>();
 
         debugDefaultTargetPlatformOverride = null;
       });
@@ -305,17 +305,17 @@ void main() {
 
         position.jumpTo(398);
         await tester.pump();
-        check(position.extentAfter).equals(2);
+        check(position).extentAfter.equals(2);
 
         position.scrollToEnd();
         await tester.pump();
-        check(position.extentAfter).equals(2);
+        check(position).extentAfter.equals(2);
 
         // Reach the end in just 150ms, not 300ms.
         await tester.pump(Duration(milliseconds: 75));
-        check(position.extentAfter).equals(1);
+        check(position).extentAfter.equals(1);
         await tester.pump(Duration(milliseconds: 75));
-        check(position.extentAfter).equals(0);
+        check(position).extentAfter.equals(0);
       });
 
       testWidgets('on overscroll, stop', (tester) async {
@@ -325,7 +325,7 @@ void main() {
         // Scroll up…
         position.jumpTo(400);
         await tester.pump();
-        check(position.extentAfter).equals(600);
+        check(position).extentAfter.equals(600);
 
         // … then invoke `scrollToEnd`…
         position.scrollToEnd();
@@ -334,7 +334,7 @@ void main() {
         // … but have the bottom sliver turn out to be shorter than it was.
         await prepare(tester, topHeight: 400, bottomHeight: 600,
           reuseController: true);
-        check(position.extentAfter).equals(200);
+        check(position).extentAfter.equals(200);
 
         // Let the scrolling animation proceed until it hits the end.
         int steps = 0;
@@ -348,10 +348,10 @@ void main() {
         check(position.pixels - position.maxScrollExtent).equals(0);
 
         // … and the animation is done.  Nothing further happens.
-        check(position.activity).isA<IdleScrollActivity>();
+        check(position).activity.isA<IdleScrollActivity>();
         await tester.pump(Duration(milliseconds: 11));
         check(position.pixels - position.maxScrollExtent).equals(0);
-        check(position.activity).isA<IdleScrollActivity>();
+        check(position).activity.isA<IdleScrollActivity>();
 
         debugDefaultTargetPlatformOverride = null;
       });
@@ -362,7 +362,7 @@ void main() {
         // Scroll up…
         position.jumpTo(0);
         await tester.pump();
-        check(position.extentAfter).equals(3000);
+        check(position).extentAfter.equals(3000);
 
         // … then invoke `scrollToEnd`…
         position.scrollToEnd();
@@ -371,7 +371,7 @@ void main() {
         // … but have the bottom sliver turn out to be longer than it was.
         await prepare(tester, topHeight: 1000, bottomHeight: 6000,
           reuseController: true);
-        check(position.extentAfter).equals(6000);
+        check(position).extentAfter.equals(6000);
 
         // Let the scrolling animation go until it stops.
         int steps = 0;
