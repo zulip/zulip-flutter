@@ -15,45 +15,55 @@ import 'dialog.dart';
 import 'page.dart';
 import 'store.dart';
 
-// TODO(#44): Add index of the image preview in the message, to not break if
-//   there are multiple image previews with the same URL in the same
-//   message. Maybe keep `src`, so that on exit the lightbox image doesn't
-//   fly to an image preview with a different URL, following a message edit
-//   while the lightbox was open.
 class _LightboxHeroTag {
-  _LightboxHeroTag({required this.messageId, required this.src});
+  _LightboxHeroTag({
+    required this.messageImageContext,
+    required this.src,
+  });
 
-  final int messageId;
+  /// The [BuildContext] of the image in the message list that's being expanded
+  /// into the lightbox. Used to coordinate the Hero animation between this specific
+  /// image and the lightbox view.
+  ///
+  /// This helps ensure the animation only happens between the correct image instances,
+  /// preventing unwanted animations between different message lists or between
+  /// different images that happen to have the same URL.
+  // TODO: write a regression test for #44, duplicate images within a message
+  final BuildContext messageImageContext;
+
+  /// The image source URL. Used to match the source and destination images
+  /// during the Hero animation, ensuring the animation only occurs between
+  /// images showing the same content.
   final Uri src;
 
   @override
   bool operator ==(Object other) {
     return other is _LightboxHeroTag &&
-      other.messageId == messageId &&
+      other.messageImageContext == messageImageContext &&
       other.src == src;
   }
 
   @override
-  int get hashCode => Object.hash('_LightboxHeroTag', messageId, src);
+  int get hashCode => Object.hash('_LightboxHeroTag', messageImageContext, src);
 }
 
 /// Builds a [Hero] from an image in the message list to the lightbox page.
 class LightboxHero extends StatelessWidget {
   const LightboxHero({
     super.key,
-    required this.message,
+    required this.messageImageContext,
     required this.src,
     required this.child,
   });
 
-  final Message message;
+  final BuildContext messageImageContext;
   final Uri src;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return Hero(
-      tag: _LightboxHeroTag(messageId: message.id, src: src),
+      tag: _LightboxHeroTag(messageImageContext: messageImageContext, src: src),
       flightShuttleBuilder: (
         BuildContext flightContext,
         Animation<double> animation,
@@ -226,6 +236,7 @@ class _ImageLightboxPage extends StatefulWidget {
   const _ImageLightboxPage({
     required this.routeEntranceAnimation,
     required this.message,
+    required this.messageImageContext,
     required this.src,
     required this.thumbnailUrl,
     required this.originalWidth,
@@ -234,6 +245,7 @@ class _ImageLightboxPage extends StatefulWidget {
 
   final Animation<double> routeEntranceAnimation;
   final Message message;
+  final BuildContext messageImageContext;
   final Uri src;
   final Uri? thumbnailUrl;
   final double? originalWidth;
@@ -317,7 +329,7 @@ class _ImageLightboxPageState extends State<_ImageLightboxPage> {
         child: InteractiveViewer(
           child: SafeArea(
             child: LightboxHero(
-              message: widget.message,
+              messageImageContext: widget.messageImageContext,
               src: widget.src,
               child: RealmContentNetworkImage(widget.src,
                 filterQuality: FilterQuality.medium,
@@ -599,6 +611,7 @@ Route<void> getImageLightboxRoute({
   int? accountId,
   BuildContext? context,
   required Message message,
+  required BuildContext messageImageContext,
   required Uri src,
   required Uri? thumbnailUrl,
   required double? originalWidth,
@@ -611,6 +624,7 @@ Route<void> getImageLightboxRoute({
       return _ImageLightboxPage(
         routeEntranceAnimation: animation,
         message: message,
+        messageImageContext: messageImageContext,
         src: src,
         thumbnailUrl: thumbnailUrl,
         originalWidth: originalWidth,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:checks/checks.dart';
 import 'package:clock/clock.dart';
@@ -10,12 +11,18 @@ import 'package:video_player_platform_interface/video_player_platform_interface.
 import 'package:video_player/video_player.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/localizations.dart';
+import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/lightbox.dart';
+import 'package:zulip/widgets/message_list.dart';
 
+import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
+import '../model/content_test.dart';
+import '../model/test_store.dart';
 import '../test_images.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
@@ -197,6 +204,113 @@ class FakeVideoPlayerPlatform extends Fake
 void main() {
   TestZulipBinding.ensureInitialized();
 
+  group('LightboxHero', () {
+    late PerAccountStore store;
+    late FakeApiConnection connection;
+
+    final channel = eg.stream();
+    final message = eg.streamMessage(stream: channel,
+      topic: 'test topic', contentMarkdown: ContentExample.imageSingle.html);
+
+    // From ContentExample.imageSingle.
+    final imageSrcUrlStr = 'https://chat.example/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp';
+    final imageSrcUrl = Uri.parse(imageSrcUrlStr);
+    final imageFinder = find.byWidgetPredicate(
+      (widget) => widget is RealmContentNetworkImage && widget.src == imageSrcUrl);
+
+    Future<void> setupMessageListPage(WidgetTester tester) async {
+      addTearDown(testBinding.reset);
+      final subscription = eg.subscription(channel);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+        streams: [channel], subscriptions: [subscription]));
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      connection = store.connection as FakeApiConnection;
+      await store.addUser(eg.selfUser);
+
+      connection.prepare(json:
+        eg.newestGetMessagesResult(foundOldest: true, messages: [message]).toJson());
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: MessageListPage(initNarrow: const CombinedFeedNarrow())));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Hero animation occurs smoothly when opening lightbox from message list', (tester) async {
+      double dist(Rect a, Rect b) =>
+        sqrt(pow(a.top - b.top, 2) + pow(a.left - b.left, 2));
+
+      prepareBoringImageHttpClient();
+
+      await setupMessageListPage(tester);
+
+      final initialImagePosition = tester.getRect(imageFinder);
+      await tester.tap(imageFinder);
+      await tester.pump();
+      // pump to start hero animation
+      await tester.pump();
+
+      const heroAnimationDuration = Duration(milliseconds: 300);
+      const steps = 150;
+      final stepDuration = heroAnimationDuration ~/ steps;
+      final animatedPositions = <Rect>[];
+      for (int i = 1; i <= steps; i++) {
+        await tester.pump(stepDuration);
+        animatedPositions.add(tester.getRect(imageFinder));
+      }
+
+      final totalDistance = dist(initialImagePosition, animatedPositions.last);
+      Rect previousPosition = initialImagePosition;
+      double maxStepDistance = 0.0;
+      for (final position in animatedPositions) {
+        final stepDistance = dist(previousPosition, position);
+        maxStepDistance = max(maxStepDistance, stepDistance);
+        check(position).not((pos) => pos.equals(previousPosition));
+
+        previousPosition = position;
+      }
+      check(maxStepDistance).isLessThan(0.03 * totalDistance);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('no hero animation occurs between different message list pages for same image', (tester) async {
+      Rect getElementRect(Element element) =>
+        tester.getRect(find.byElementPredicate((e) => e == element));
+
+      prepareBoringImageHttpClient();
+
+      await setupMessageListPage(tester);
+
+      final firstElement = tester.element(imageFinder);
+      final firstImagePosition = getElementRect(firstElement);
+
+      connection.prepare(json:
+        eg.newestGetMessagesResult(foundOldest: true, messages: [message]).toJson());
+      await tester.tap(find.descendant(
+        of: find.byType(StreamMessageRecipientHeader),
+        matching: find.text('test topic')));
+      await tester.pumpAndSettle();
+
+      final secondElement = tester.element(imageFinder);
+      final secondImagePosition = getElementRect(secondElement);
+
+      await tester.tap(find.byType(BackButton));
+      await tester.pump();
+
+      const heroAnimationDuration = Duration(milliseconds: 300);
+      const steps = 150;
+      final stepDuration = heroAnimationDuration ~/ steps;
+      for (int i = 0; i < steps; i++) {
+        await tester.pump(stepDuration);
+        check(tester.elementList(imageFinder))
+          .unorderedEquals([firstElement, secondElement]);
+        check(getElementRect(firstElement)).equals(firstImagePosition);
+        check(getElementRect(secondElement)).equals(secondImagePosition);
+      }
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
   group('_ImageLightboxPage', () {
     final src = Uri.parse('https://chat.example/lightbox-image.png');
 
@@ -216,6 +330,7 @@ void main() {
       unawaited(navigator.push(getImageLightboxRoute(
         accountId: eg.selfAccount.id,
         message: message ?? eg.streamMessage(),
+        messageImageContext: navigator.context,
         src: src,
         thumbnailUrl: thumbnailUrl,
         originalHeight: null,
