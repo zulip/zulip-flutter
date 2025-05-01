@@ -735,6 +735,11 @@ UserTopicEvent userTopicEvent(
   );
 }
 
+MutedUsersEvent mutedUsersEvent(List<int> userIds) {
+  return MutedUsersEvent(id: 1,
+    mutedUsers: userIds.map((id) => MutedUserItem(id: id)).toList());
+}
+
 MessageEvent messageEvent(Message message, {int? localMessageId}) =>
   MessageEvent(id: 0, message: message, localMessageId: localMessageId?.toString());
 
