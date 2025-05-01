@@ -737,6 +737,11 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   void unregisterMessageList(MessageListView view) =>
     _messages.unregisterMessageList(view);
   @override
+  Future<void> sendMessage({required MessageDestination destination, required String content}) {
+    assert(!_disposed);
+    return _messages.sendMessage(destination: destination, content: content);
+  }
+  @override
   void reconcileMessages(List<Message> messages) {
     _messages.reconcileMessages(messages);
     // TODO(#649) notify [unreads] of the just-fetched messages
@@ -902,12 +907,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       case UnexpectedEvent():
         assert(debugLog("server event: ${jsonEncode(event.toJson())}")); // TODO log better
     }
-  }
-
-  @override
-  Future<void> sendMessage({required MessageDestination destination, required String content}) {
-    assert(!_disposed);
-    return _messages.sendMessage(destination: destination, content: content);
   }
 
   static List<CustomProfileField> _sortCustomProfileFields(List<CustomProfileField> initialCustomProfileFields) {
