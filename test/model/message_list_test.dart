@@ -1997,6 +1997,10 @@ void checkInvariants(MessageListView model) {
         });
   }
   check(model.items).length.equals(i);
+
+  check(model).middleItem
+    ..isGreaterOrEqual(0)
+    ..isLessOrEqual(model.items.length);
 }
 
 extension MessageListRecipientHeaderItemChecks on Subject<MessageListRecipientHeaderItem> {
@@ -2024,6 +2028,7 @@ extension MessageListViewChecks on Subject<MessageListView> {
   Subject<List<Message>> get messages => has((x) => x.messages, 'messages');
   Subject<List<ZulipMessageContent>> get contents => has((x) => x.contents, 'contents');
   Subject<List<MessageListItem>> get items => has((x) => x.items, 'items');
+  Subject<int> get middleItem => has((x) => x.middleItem, 'middleItem');
   Subject<bool> get fetched => has((x) => x.fetched, 'fetched');
   Subject<bool> get haveOldest => has((x) => x.haveOldest, 'haveOldest');
   Subject<bool> get fetchingOlder => has((x) => x.fetchingOlder, 'fetchingOlder');
