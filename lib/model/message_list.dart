@@ -137,7 +137,16 @@ mixin _MessageSequence {
   /// This information is completely derived from [messages] and
   /// the flags [haveOldest], [fetchingOlder] and [fetchOlderCoolingDown].
   /// It exists as an optimization, to memoize that computation.
+  ///
+  /// See also [middleItem], an index which divides this list
+  /// into a top slice and a bottom slice.
   final QueueList<MessageListItem> items = QueueList();
+
+  /// An index into [items] dividing it into a top slice and a bottom slice.
+  ///
+  /// The indices 0 to before [middleItem] are the top slice of [items],
+  /// and the indices from [middleItem] to the end are the bottom slice.
+  int get middleItem => items.isEmpty ? 0 : items.length - 1;
 
   int _findMessageWithId(int messageId) {
     return binarySearchByKey(messages, messageId,
