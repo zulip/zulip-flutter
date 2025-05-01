@@ -943,6 +943,10 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         assert(debugLog("server event: reaction/${event.op}"));
         _messages.handleReactionEvent(event);
 
+      case MutedUsersEvent():
+        // TODO handle
+        break;
+
       case UnexpectedEvent():
         assert(debugLog("server event: ${jsonEncode(event.toJson())}")); // TODO log better
     }
