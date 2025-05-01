@@ -226,6 +226,7 @@ void main() {
     group('showChannelActionSheet', () {
       void checkButtons() {
         check(actionSheetFinder).findsOne();
+        checkButton('List of topics');
         checkButton('Mark channel as read');
       }
 
@@ -244,7 +245,7 @@ void main() {
       testWidgets('show with no unread messages', (tester) async {
         await prepare(hasUnreadMessages: false);
         await showFromSubscriptionList(tester);
-        check(actionSheetFinder).findsNothing();
+        check(findButtonForLabel('Mark channel as read')).findsNothing();
       });
 
       testWidgets('show from app bar in channel narrow', (tester) async {
@@ -266,6 +267,19 @@ void main() {
         await showFromRecipientHeader(tester, message: someMessage);
         checkButtons();
       });
+    });
+
+    testWidgets('TopicListButton', (tester) async {
+      await prepare();
+      await showFromAppBar(tester,
+        narrow: ChannelNarrow(someChannel.streamId));
+
+      connection.prepare(json: GetStreamTopicsResult(topics: [
+        eg.getStreamTopicsEntry(name: 'some topic foo'),
+      ]).toJson());
+      await tester.tap(findButtonForLabel('List of topics'));
+      await tester.pumpAndSettle();
+      check(find.text('some topic foo')).findsOne();
     });
 
     group('MarkChannelAsReadButton', () {

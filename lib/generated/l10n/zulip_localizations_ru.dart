@@ -79,6 +79,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Отметить канал как прочитанный';
 
   @override
+  String get actionSheetOptionListOfTopics => 'List of topics';
+
+  @override
   String get actionSheetOptionMuteTopic => 'Отключить тему';
 
   @override
