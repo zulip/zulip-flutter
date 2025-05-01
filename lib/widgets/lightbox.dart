@@ -15,25 +15,37 @@ import 'dialog.dart';
 import 'page.dart';
 import 'store.dart';
 
+/// Identifies which [LightboxHero]s should match up with each other
+/// to produce a hero animation.
+///
+/// See [Hero.tag], the field where we use instances of this class.
+///
+/// The intended behavior is that when the user acts on an image
+/// in the message list to have the app expand it in the lightbox,
+/// a hero animation goes from the original view of the image
+/// to the version in the lightbox,
+/// and back to the original upon exiting the lightbox.
 class _LightboxHeroTag {
   _LightboxHeroTag({
     required this.messageImageContext,
     required this.src,
   });
 
-  /// The [BuildContext] of the image in the message list that's being expanded
-  /// into the lightbox. Used to coordinate the Hero animation between this specific
-  /// image and the lightbox view.
+  /// The [BuildContext] for the [MessageImage] being expanded into the lightbox.
   ///
-  /// This helps ensure the animation only happens between the correct image instances,
-  /// preventing unwanted animations between different message lists or between
-  /// different images that happen to have the same URL.
+  /// In particular this prevents hero animations between
+  /// different message lists that happen to have the same message.
+  /// It also distinguishes different copies of the same image
+  /// in a given message list.
   // TODO: write a regression test for #44, duplicate images within a message
   final BuildContext messageImageContext;
 
-  /// The image source URL. Used to match the source and destination images
-  /// during the Hero animation, ensuring the animation only occurs between
-  /// images showing the same content.
+  /// The image source URL.
+  ///
+  /// This ensures the animation only occurs between matching images, even if
+  /// the message was edited before navigating back to the message list
+  /// so that the original [MessageImage] has been replaced in the tree
+  /// by a different image.
   final Uri src;
 
   @override
