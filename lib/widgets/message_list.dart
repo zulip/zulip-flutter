@@ -24,6 +24,7 @@ import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'topic_list.dart';
 
 /// Message-list styles that differ between light and dark themes.
 class MessageListTheme extends ThemeExtension<MessageListTheme> {
@@ -247,6 +248,29 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
         onPressed: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
             narrow: ChannelNarrow(streamId)))));
+    }
+
+    if (narrow case ChannelNarrow(:final streamId)) {
+      final designVariables = DesignVariables.of(context);
+      (actions ??= []).add(TextButton(
+        child: Text('TOPICS',
+          style: TextStyle(
+            color: designVariables.icon,
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+            height: 19/18,
+            letterSpacing: 0,
+            textBaseline: TextBaseline.alphabetic,
+            leadingDistribution: TextLeadingDistribution.even,
+          ),
+        ),
+        onPressed: () =>
+          Navigator.push(context,
+            TopicListPage.buildRoute(
+              context: context,
+              streamId: streamId,
+            ))
+      ));
     }
 
     // Insert a PageRoot here, to provide a context that can be used for

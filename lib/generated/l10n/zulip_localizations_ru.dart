@@ -97,6 +97,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get actionSheetOptionUnresolveTopic => 'Снять отметку \"решено\"';
 
   @override
+  String get actionSheetOptionTopicList => 'Topic list';
+
+  @override
   String get errorResolveTopicFailedTitle =>
       'Не удалось отметить тему как решенную';
 
@@ -596,6 +599,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get channelFeedButtonTooltip => 'Лента канала';
 
   @override
+  String get topicListButtonTooltip => 'Topic list';
+
+  @override
   String notifGroupDmConversationLabel(String senderFullName, int numOthers) {
     String _temp0 = intl.Intl.pluralLogic(
       numOthers,
@@ -719,6 +725,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get emojiPickerSearchEmoji => 'Поиск эмодзи';
+
+  @override
+  String get errorFetchingTopics => 'Error fetching topics';
+
+  @override
+  String get noTopicsInChannel => 'No topics in the channel';
 
   @override
   String get noEarlierMessages => 'Предшествующих сообщений нет';

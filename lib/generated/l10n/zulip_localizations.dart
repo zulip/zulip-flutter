@@ -272,6 +272,12 @@ abstract class ZulipLocalizations {
   /// **'Mark as unresolved'**
   String get actionSheetOptionUnresolveTopic;
 
+  /// Label for a button in the channel action sheet that opens the list of topics in the channel
+  ///
+  /// In en, this message translates to:
+  /// **'Topic list'**
+  String get actionSheetOptionTopicList;
+
   /// Error title when marking a topic as resolved failed.
   ///
   /// In en, this message translates to:
@@ -1064,6 +1070,12 @@ abstract class ZulipLocalizations {
   /// **'Channel feed'**
   String get channelFeedButtonTooltip;
 
+  /// Tooltip for button to navigate to topic list page.
+  ///
+  /// In en, this message translates to:
+  /// **'Topic list'**
+  String get topicListButtonTooltip;
+
   /// Label for a group DM conversation notification.
   ///
   /// In en, this message translates to:
@@ -1279,6 +1291,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Search emoji'**
   String get emojiPickerSearchEmoji;
+
+  /// Error title when fetching the topics failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Error fetching topics'**
+  String get errorFetchingTopics;
+
+  /// Text to show when a channel has no topics.
+  ///
+  /// In en, this message translates to:
+  /// **'No topics in the channel'**
+  String get noTopicsInChannel;
 
   /// Text to show at the start of a message list if there are no earlier messages.
   ///

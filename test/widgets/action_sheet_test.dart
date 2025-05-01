@@ -31,7 +31,9 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:share_plus_platform_interface/method_channel/method_channel_share.dart';
+import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/subscription_list.dart';
+import 'package:zulip/widgets/topic_list.dart';
 import '../api/fake_api.dart';
 
 import '../example_data.dart' as eg;
@@ -40,10 +42,13 @@ import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../stdlib_checks.dart';
 import '../test_clipboard.dart';
+import '../test_navigation.dart';
 import '../test_share_plus.dart';
 import 'compose_box_checks.dart';
 import 'dialog_checks.dart';
+import 'page_checks.dart';
 import 'test_app.dart';
+import 'topic_list_test.dart';
 
 late PerAccountStore store;
 late FakeApiConnection connection;
@@ -154,6 +159,7 @@ void main() {
       ZulipStream? channel,
       List<StreamMessage>? messages,
       required Narrow narrow,
+      List<NavigatorObserver>? navObservers,
     }) async {
       channel ??= someChannel;
       messages ??= [someMessage];
@@ -162,6 +168,7 @@ void main() {
         foundOldest: true, messages: messages).toJson());
       await tester.pumpWidget(TestZulipApp(
         accountId: eg.selfAccount.id,
+        navigatorObservers: navObservers ?? [],
         child: MessageListPage(
           initNarrow: narrow)));
       await tester.pumpAndSettle();
@@ -201,6 +208,7 @@ void main() {
       void checkButtons() {
         check(actionSheetFinder).findsOne();
         checkButton('Mark channel as read');
+        checkButton('Topic list');
       }
 
       testWidgets('show from inbox', (tester) async {
@@ -218,7 +226,7 @@ void main() {
       testWidgets('show with no unread messages', (tester) async {
         await prepare(hasUnreadMessages: false);
         await showFromSubscriptionList(tester);
-        check(actionSheetFinder).findsNothing();
+        check(findButtonForLabel('Mark channel as read')).findsNothing();
       });
 
       testWidgets('show from app bar in channel narrow', (tester) async {
@@ -285,6 +293,27 @@ void main() {
         checkRequest(someChannel.streamId);
         checkErrorDialog(tester,
           expectedTitle: "Mark as read failed");
+      });
+    });
+
+    group('TopicListButton', () {
+      testWidgets('navigates to topic list page', (tester) async {
+        final pushedRoutes = <Route<void>>[];
+        final navObserver = TestNavigatorObserver()
+          ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+        await prepare();
+        await showFromAppBar(tester,
+          narrow: ChannelNarrow(someChannel.streamId),
+          navObservers: [navObserver]);
+
+        pushedRoutes.clear();
+        await tester.tap(findButtonForLabel('Topic list'));
+        await tester.pumpAndSettle();
+
+        check(pushedRoutes.whereType<WidgetRoute>().single)
+          .isA<WidgetRoute>().page.isA<TopicListPage>()
+          .streamId.equals(someChannel.streamId);
       });
     });
   });

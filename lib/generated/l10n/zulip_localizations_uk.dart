@@ -98,6 +98,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get actionSheetOptionUnresolveTopic => 'Позначити як невирішене';
 
   @override
+  String get actionSheetOptionTopicList => 'Topic list';
+
+  @override
   String get errorResolveTopicFailedTitle =>
       'Не вдалося позначити тему як вирішену';
 
@@ -595,6 +598,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get channelFeedButtonTooltip => 'Стрічка каналу';
 
   @override
+  String get topicListButtonTooltip => 'Topic list';
+
+  @override
   String notifGroupDmConversationLabel(String senderFullName, int numOthers) {
     String _temp0 = intl.Intl.pluralLogic(
       numOthers,
@@ -719,6 +725,12 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
 
   @override
   String get emojiPickerSearchEmoji => 'Пошук емодзі';
+
+  @override
+  String get errorFetchingTopics => 'Error fetching topics';
+
+  @override
+  String get noTopicsInChannel => 'No topics in the channel';
 
   @override
   String get noEarlierMessages => 'Немає попередніх повідомлень';
