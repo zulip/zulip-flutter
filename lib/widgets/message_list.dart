@@ -580,7 +580,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   Widget _buildListView(BuildContext context) {
-    final length = model!.items.length;
+    final numItems = model!.items.length;
     const centerSliverKey = ValueKey('center sliver');
     final zulipLocalizations = ZulipLocalizations.of(context);
 
@@ -603,22 +603,24 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         // have state that needs to be preserved have not been given keys
         // and will not trigger this callback.
         findChildIndexCallback: (Key key) {
-          final valueKey = key as ValueKey<int>;
-          final index = model!.findItemWithMessageId(valueKey.value);
-          if (index == -1) return null;
-          return length - 1 - (index - 3);
+          final messageId = (key as ValueKey<int>).value;
+          final itemIndex = model!.findItemWithMessageId(messageId);
+          if (itemIndex == -1) return null;
+          final childIndex = numItems - 1 - (itemIndex - 3);
+          return childIndex;
         },
-        childCount: length + 3,
-        (context, i) {
+        childCount: numItems + 3,
+        (context, childIndex) {
           // To reinforce that the end of the feed has been reached:
           //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
-          if (i == 0) return const SizedBox(height: 36);
+          if (childIndex == 0) return const SizedBox(height: 36);
 
-          if (i == 1) return MarkAsReadWidget(narrow: widget.narrow);
+          if (childIndex == 1) return MarkAsReadWidget(narrow: widget.narrow);
 
-          if (i == 2) return TypingStatusWidget(narrow: widget.narrow);
+          if (childIndex == 2) return TypingStatusWidget(narrow: widget.narrow);
 
-          final data = model!.items[length - 1 - (i - 3)];
+          final itemIndex = numItems - 1 - (childIndex - 3);
+          final data = model!.items[itemIndex];
           return _buildItem(zulipLocalizations, data);
         }));
 
@@ -641,7 +643,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       },
 
       controller: scrollController,
-      semanticChildCount: length, // TODO(#537): what's the right value for this?
+      semanticChildCount: numItems, // TODO(#537): what's the right value for this?
       center: centerSliverKey,
       paintOrder: SliverPaintOrder.firstIsTop,
 
