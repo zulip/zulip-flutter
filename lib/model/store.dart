@@ -753,9 +753,14 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     return _messages.getEditMessageErrorStatus(messageId);
   }
   @override
-  void editMessage({required int messageId, required String newContent}) {
+  void editMessage({
+    required int messageId,
+    required String originalRawContent,
+    required String newContent,
+  }) {
     assert(!_disposed);
-    return _messages.editMessage(messageId: messageId, newContent: newContent);
+    return _messages.editMessage(messageId: messageId,
+      originalRawContent: originalRawContent, newContent: newContent);
   }
   @override
   String takeFailedMessageEdit(int messageId) {

@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
+
 import '../api/model/events.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
@@ -51,7 +53,11 @@ mixin MessageStore {
   /// See also:
   ///   * [getEditMessageErrorStatus]
   ///   * [takeFailedMessageEdit]
-  void editMessage({required int messageId, required String newContent});
+  void editMessage({
+    required int messageId,
+    required String originalRawContent,
+    required String newContent,
+  });
 
   /// Forgets the failed edit request and returns the attempted new content.
   ///
@@ -171,6 +177,7 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
   @override
   void editMessage({
     required int messageId,
+    required String originalRawContent,
     required String newContent,
   }) async {
     if (_editMessageRequests.containsKey(messageId)) {
@@ -181,7 +188,10 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
       hasError: false, newContent: newContent);
     _notifyMessageListViewsForOneMessage(messageId);
     try {
-      await updateMessage(connection, messageId: messageId, content: newContent);
+      await updateMessage(connection,
+        messageId: messageId,
+        content: newContent,
+        prevContentSha256: sha256.convert(utf8.encode(originalRawContent)).toString());
       // On success, we'll clear the status from _editMessageRequests
       // when we get the event.
     } catch (e) {
