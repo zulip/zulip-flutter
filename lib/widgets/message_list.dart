@@ -1473,6 +1473,8 @@ class MessageWithPossibleSender extends StatelessWidget {
         child: Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star));
     }
 
+    Widget content = MessageContent(message: message, content: item.content);
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onLongPress: () => showMessageActionSheet(context: context, message: message),
@@ -1489,7 +1491,7 @@ class MessageWithPossibleSender extends StatelessWidget {
               Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  MessageContent(message: message, content: item.content),
+                  content,
                   if ((message.reactions?.total ?? 0) > 0)
                     ReactionChipsList(messageId: message.id, reactions: message.reactions!),
                   if (editStateText != null)
