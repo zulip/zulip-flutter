@@ -12,6 +12,7 @@ import '../api/model/model.dart';
 import '../api/route/channels.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/binding.dart';
 import '../model/emoji.dart';
 import '../model/internal_link.dart';
 import '../model/narrow.dart';
@@ -576,6 +577,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
     CopyMessageTextButton(message: message, pageContext: pageContext),
     CopyMessageLinkButton(message: message, pageContext: pageContext),
     ShareButton(message: message, pageContext: pageContext),
+    if (_getShouldShowEditButton(pageContext, message))
+      EditButton(message: message, pageContext: pageContext),
   ];
 
   _showActionSheet(pageContext, optionButtons: optionButtons);
@@ -589,6 +592,36 @@ abstract class MessageActionSheetMenuItemButton extends ActionSheetMenuItemButto
   }) : assert(pageContext.findAncestorWidgetOfExactType<MessageListPage>() != null);
 
   final Message message;
+}
+
+bool _getShouldShowEditButton(BuildContext pageContext, Message message) {
+  final store = PerAccountStoreWidget.of(pageContext);
+
+  final messageListPage = MessageListPage.ancestorOf(pageContext);
+  final composeBoxState = messageListPage.composeBoxState;
+  final isComposeBoxOffered = composeBoxState != null;
+  final composeBoxController = composeBoxState?.controller;
+
+  final editMessageErrorStatus = store.getEditMessageErrorStatus(message.id);
+  final editMessageInProgress =
+    // The compose box is in edit-message mode, with Cancel/Save instead of Send.
+    composeBoxController is EditMessageComposeBoxController
+    // An edit request is in progress or the error state.
+    || editMessageErrorStatus != null;
+
+  final now = ZulipBinding.instance.utcNow().millisecondsSinceEpoch ~/ 1000;
+  final editLimit = store.realmMessageContentEditLimitSeconds;
+  final outsideEditLimit =
+    editLimit != null
+    && editLimit != 0 // TODO(server-6) remove (pre-FL 138, 0 represents no limit)
+    && now - message.timestamp > editLimit;
+
+  return message.senderId == store.selfUserId
+    && isComposeBoxOffered
+    && store.realmAllowMessageEditing
+    && !outsideEditLimit
+    && !editMessageInProgress
+    && message.poll == null; // messages with polls cannot be edited
 }
 
 class ReactionButtons extends StatelessWidget {
@@ -953,5 +986,24 @@ class ShareButton extends MessageActionSheetMenuItemButton {
       case ShareResultStatus.dismissed:
         // nothing to do
     }
+  }
+}
+
+class EditButton extends MessageActionSheetMenuItemButton {
+  EditButton({super.key, required super.message, required super.pageContext});
+
+  @override
+  IconData get icon => ZulipIcons.edit;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) =>
+    zulipLocalizations.actionSheetOptionEditMessage;
+
+  @override void onPressed() async {
+    final composeBoxState = findMessageListPage().composeBoxState;
+    if (composeBoxState == null) {
+      throw StateError('Compose box unexpectedly absent when edit-message button pressed');
+    }
+    composeBoxState.startEditInteraction(message.id);
   }
 }

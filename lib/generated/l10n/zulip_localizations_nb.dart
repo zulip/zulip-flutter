@@ -123,6 +123,9 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get actionSheetOptionUnstarMessage => 'Unstar message';
 
   @override
+  String get actionSheetOptionEditMessage => 'Edit message';
+
+  @override
   String get actionSheetOptionMarkTopicAsRead => 'Mark topic as read';
 
   @override
@@ -190,6 +193,9 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
 
   @override
   String get errorMessageNotSent => 'Message not sent';
+
+  @override
+  String get errorMessageEditNotSaved => 'Message not saved';
 
   @override
   String errorLoginCouldNotConnect(String url) {
@@ -263,6 +269,9 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get errorUnstarMessageFailedTitle => 'Failed to unstar message';
 
   @override
+  String get errorCouldNotEditMessageTitle => 'Could not edit message';
+
+  @override
   String get successLinkCopied => 'Link copied';
 
   @override
@@ -278,6 +287,39 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   @override
   String get errorBannerCannotPostInChannelLabel =>
       'You do not have permission to post in this channel.';
+
+  @override
+  String get composeBoxBannerLabelEditMessage => 'Edit message';
+
+  @override
+  String get composeBoxBannerButtonCancel => 'Cancel';
+
+  @override
+  String get composeBoxBannerButtonSave => 'Save';
+
+  @override
+  String get editAlreadyInProgressTitle => 'Cannot edit message';
+
+  @override
+  String get editAlreadyInProgressMessage =>
+      'An edit is already in progress. Please wait for it to complete.';
+
+  @override
+  String get savingMessageEditLabel => 'SAVING EDIT…';
+
+  @override
+  String get savingMessageEditFailedLabel => 'EDIT NOT SAVED';
+
+  @override
+  String get discardDraftConfirmationDialogTitle =>
+      'Discard the message you’re writing?';
+
+  @override
+  String get discardDraftConfirmationDialogMessage =>
+      'When you edit a message, the content that was previously in the compose box is discarded.';
+
+  @override
+  String get discardDraftConfirmationDialogConfirmButton => 'Discard';
 
   @override
   String get composeBoxAttachFilesTooltip => 'Attach files';
@@ -306,6 +348,9 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String composeBoxChannelContentHint(String destination) {
     return 'Message $destination';
   }
+
+  @override
+  String get preparingEditMessageContentInput => 'Preparing…';
 
   @override
   String get composeBoxSendTooltip => 'Send';

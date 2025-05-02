@@ -143,6 +143,10 @@ extension TextEditingControllerChecks on Subject<TextEditingController> {
   Subject<String?> get text => has((t) => t.text, 'text');
 }
 
+extension FocusNodeChecks on Subject<FocusNode> {
+  Subject<bool> get hasFocus => has((t) => t.hasFocus, 'hasFocus');
+}
+
 extension ScrollMetricsChecks on Subject<ScrollMetrics> {
   Subject<double> get minScrollExtent => has((x) => x.minScrollExtent, 'minScrollExtent');
   Subject<double> get maxScrollExtent => has((x) => x.maxScrollExtent, 'maxScrollExtent');

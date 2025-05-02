@@ -20,6 +20,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/autocomplete.dart';
 import 'package:zulip/widgets/color.dart';
+import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
@@ -36,6 +37,7 @@ import '../flutter_checks.dart';
 import '../stdlib_checks.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
+import 'compose_box_checks.dart';
 import 'content_checks.dart';
 import 'dialog_checks.dart';
 import 'message_list_checks.dart';
@@ -1424,7 +1426,7 @@ void main() {
     });
   });
 
-  group('edit state label', () {
+  group('EDITED/MOVED label and edit-message error status', () {
     void checkMarkersCount({required int edited, required int moved}) {
       check(find.text('EDITED').evaluate()).length.equals(edited);
       check(find.text('MOVED').evaluate()).length.equals(moved);
@@ -1454,6 +1456,81 @@ void main() {
       await store.handleEvent(eg.updateMessageEditEvent(message2, renderedContent: 'edited'));
       await tester.pump();
       checkMarkersCount(edited: 2, moved: 0);
+    });
+
+    void checkEditInProgress(WidgetTester tester) {
+      check(find.text('SAVING EDIT…')).findsOne();
+      check(find.byType(LinearProgressIndicator)).findsOne();
+      final opacityWidget = tester.widget<Opacity>(find.ancestor(
+        of: find.byType(MessageContent),
+        matching: find.byType(Opacity)));
+      check(opacityWidget.opacity).equals(0.6);
+      checkMarkersCount(edited: 0, moved: 0);
+    }
+
+    void checkEditNotInProgress(WidgetTester tester) {
+      check(find.text('SAVING EDIT…')).findsNothing();
+      check(find.byType(LinearProgressIndicator)).findsNothing();
+      check(find.ancestor(
+        of: find.byType(MessageContent),
+        matching: find.byType(Opacity))).findsNothing();
+    }
+
+    void checkEditFailed(WidgetTester tester) {
+      check(find.text('EDIT NOT SAVED')).findsOne();
+      final opacityWidget = tester.widget<Opacity>(find.ancestor(
+        of: find.byType(MessageContent),
+        matching: find.byType(Opacity)));
+      check(opacityWidget.opacity).equals(0.6);
+      checkMarkersCount(edited: 0, moved: 0);
+    }
+
+    testWidgets('successful edit', (tester) async {
+      final message = eg.streamMessage();
+      await setupMessageListPage(tester,
+        narrow: TopicNarrow.ofMessage(message),
+        messages: [message]);
+
+      connection.prepare(json: UpdateMessageResult().toJson());
+      store.editMessage(messageId: message.id,
+        originalRawContent: 'foo',
+        newContent: 'bar');
+      await tester.pump(Duration.zero);
+      checkEditInProgress(tester);
+      await store.handleEvent(eg.updateMessageEditEvent(message));
+      await tester.pump();
+      checkEditNotInProgress(tester);
+    });
+
+    testWidgets('failed edit', (tester) async {
+      final message = eg.streamMessage();
+      await setupMessageListPage(tester,
+        narrow: TopicNarrow.ofMessage(message),
+        messages: [message]);
+
+      connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
+      store.editMessage(messageId: message.id,
+        originalRawContent: 'foo',
+        newContent: 'bar');
+      await tester.pump(Duration.zero);
+      checkEditInProgress(tester);
+      await tester.pump(Duration(seconds: 1));
+      checkEditFailed(tester);
+
+      connection.prepare(json: GetMessageResult(
+        message: eg.streamMessage(content: 'foo')).toJson(), delay: Duration(milliseconds: 500));
+      await tester.tap(find.byType(MessageContent));
+      // We don't clear out the failed attempt, with the intended new content…
+      checkEditFailed(tester);
+      await tester.pump(Duration(milliseconds: 500));
+      // …until we have the current content, from a successful message fetch,
+      // for prevContentSha256.
+      checkEditNotInProgress(tester);
+
+      final state = MessageListPage.ancestorOf(tester.element(find.byType(MessageContent)));
+      check(state.composeBoxState).isNotNull().controller
+        .isA<EditMessageComposeBoxController>()
+        .content.value.text.equals('bar');
     });
   });
 

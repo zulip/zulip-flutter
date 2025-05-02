@@ -144,6 +144,10 @@
   "@actionSheetOptionUnstarMessage":  {
     "description": "Label for unstar button on action sheet."
   },
+  "actionSheetOptionEditMessage": "Edit message",
+  "@actionSheetOptionEditMessage": {
+    "description": "Label for the 'Edit message' button in the message action sheet."
+  },
   "actionSheetOptionMarkTopicAsRead": "Mark topic as read",
   "@actionSheetOptionMarkTopicAsRead": {
     "description": "Option to mark a specific topic as read in the action sheet."
@@ -218,6 +222,10 @@
   "errorMessageNotSent": "Message not sent",
   "@errorMessageNotSent": {
     "description": "Error message for compose box when a message could not be sent."
+  },
+  "errorMessageEditNotSaved": "Message not saved",
+  "@errorMessageEditNotSaved": {
+    "description": "Error message for compose box when a message edit could not be saved."
   },
   "errorLoginCouldNotConnect": "Failed to connect to server:\n{url}",
   "@errorLoginCouldNotConnect": {
@@ -309,6 +317,10 @@
   "@errorUnstarMessageFailedTitle": {
     "description": "Error title when unstarring a message failed."
   },
+  "errorCouldNotEditMessageTitle": "Could not edit message",
+  "@errorCouldNotEditMessageTitle": {
+    "description": "Error title when an exception prevented us from opening the compose box for editing a message."
+  },
   "successLinkCopied": "Link copied",
   "@successLinkCopied": {
     "description": "Success message after copy link action completed."
@@ -328,6 +340,46 @@
   "errorBannerCannotPostInChannelLabel": "You do not have permission to post in this channel.",
   "@errorBannerCannotPostInChannelLabel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "composeBoxBannerLabelEditMessage": "Edit message",
+  "@composeBoxBannerLabelEditMessage": {
+    "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "composeBoxBannerButtonCancel": "Cancel",
+  "@composeBoxBannerButtonCancel": {
+    "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
+  },
+  "composeBoxBannerButtonSave": "Save",
+  "@composeBoxBannerButtonSave": {
+    "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
+  },
+  "editAlreadyInProgressTitle": "Cannot edit message",
+  "@editAlreadyInProgressTitle": {
+    "description": "Error title when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "editAlreadyInProgressMessage": "An edit is already in progress. Please wait for it to complete.",
+  "@editAlreadyInProgressMessage": {
+    "description": "Error message when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "savingMessageEditLabel": "SAVING EDIT…",
+  "@savingMessageEditLabel": {
+    "description": "Text on a message in the message list saying that a message edit request is processing. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "savingMessageEditFailedLabel": "EDIT NOT SAVED",
+  "@savingMessageEditFailedLabel": {
+    "description": "Text on a message in the message list saying that a message edit request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "discardDraftConfirmationDialogTitle": "Discard the message you’re writing?",
+  "@discardDraftConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "discardDraftConfirmationDialogMessage": "When you edit a message, the content that was previously in the compose box is discarded.",
+  "@discardDraftConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "discardDraftConfirmationDialogConfirmButton": "Discard",
+  "@discardDraftConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
   },
   "composeBoxAttachFilesTooltip": "Attach files",
   "@composeBoxAttachFilesTooltip": {
@@ -366,6 +418,10 @@
     "placeholders": {
       "destination": {"type": "String", "example": "#channel name > topic name"}
     }
+  },
+  "preparingEditMessageContentInput": "Preparing…",
+  "@preparingEditMessageContentInput": {
+    "description": "Hint text for content input when the compose box is preparing to edit a message."
   },
   "composeBoxSendTooltip": "Send",
   "@composeBoxSendTooltip":  {
