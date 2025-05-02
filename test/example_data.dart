@@ -549,6 +549,26 @@ GetMessagesResult newestGetMessagesResult({
   );
 }
 
+/// A GetMessagesResult the server might return on an initial request
+/// when the anchor is in the middle of history (e.g., a /near/ link).
+GetMessagesResult nearGetMessagesResult({
+  required int anchor,
+  bool foundAnchor = true,
+  required bool foundOldest,
+  required bool foundNewest,
+  bool historyLimited = false,
+  required List<Message> messages,
+}) {
+  return GetMessagesResult(
+    anchor: anchor,
+    foundAnchor: foundAnchor,
+    foundOldest: foundOldest,
+    foundNewest: foundNewest,
+    historyLimited: historyLimited,
+    messages: messages,
+  );
+}
+
 /// A GetMessagesResult the server might return when we request older messages.
 GetMessagesResult olderGetMessagesResult({
   required int anchor,
