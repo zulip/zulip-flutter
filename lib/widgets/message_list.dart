@@ -691,13 +691,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     // in backoff from it; and even if the fetch is/was for the other direction.
     // The loading indicator really means "busy, working on it"; and that's the
     // right summary even if the fetch is internally queued behind other work.
-
-    // (This assertion is an invariant of [MessageListView].)
-    assert(!(model.fetchingOlder && model.fetchOlderCoolingDown));
-    final busyFetchingMore =
-      model.fetchingOlder || model.fetchOlderCoolingDown;
     return model.haveOldest ? const _MessageListHistoryStart()
-      : busyFetchingMore ? const _MessageListLoadingMore()
+      : model.busyFetchingMore ? const _MessageListLoadingMore()
       : const SizedBox.shrink();
   }
 

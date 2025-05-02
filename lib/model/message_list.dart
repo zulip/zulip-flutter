@@ -125,28 +125,18 @@ mixin _MessageSequence {
   bool get haveOldest => _haveOldest;
   bool _haveOldest = false;
 
-  /// Whether we are currently fetching the next batch of older messages.
+  /// Whether this message list is currently busy when it comes to
+  /// fetching more messages.
   ///
-  /// When this is true, [fetchOlder] is a no-op.
-  /// That method is called frequently by Flutter's scrolling logic,
-  /// and this field helps us avoid spamming the same request just to get
-  /// the same response each time.
-  ///
-  /// See also [fetchOlderCoolingDown].
-  bool get fetchingOlder => _status == FetchingStatus.fetchOlder;
-
-  /// Whether [fetchOlder] had a request error recently.
-  ///
-  /// When this is true, [fetchOlder] is a no-op.
-  /// That method is called frequently by Flutter's scrolling logic,
-  /// and this field mitigates spamming the same request and getting
-  /// the same error each time.
-  ///
-  /// "Recently" is decided by a [BackoffMachine] that resets
-  /// when a [fetchOlder] request succeeds.
-  ///
-  /// See also [fetchingOlder].
-  bool get fetchOlderCoolingDown => _status == FetchingStatus.fetchOlderCoolingDown;
+  /// Here "busy" means a new call to fetch more messages would do nothing,
+  /// rather than make any request to the server,
+  /// as a result of an existing recent request.
+  /// This is true both when the recent request is still outstanding,
+  /// and when it failed and the backoff from that is still in progress.
+  bool get busyFetchingMore => switch (_status) {
+    FetchingStatus.fetchOlder || FetchingStatus.fetchOlderCoolingDown => true,
+    _ => false,
+  };
 
   FetchingStatus _status = FetchingStatus.unstarted;
 
@@ -167,7 +157,7 @@ mixin _MessageSequence {
   /// before, between, or after the messages.
   ///
   /// This information is completely derived from [messages] and
-  /// the flags [haveOldest], [fetchingOlder] and [fetchOlderCoolingDown].
+  /// the flags [haveOldest] and [busyFetchingMore].
   /// It exists as an optimization, to memoize that computation.
   ///
   /// See also [middleItem], an index which divides this list
@@ -507,7 +497,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   Future<void> fetchInitial() async {
     // TODO(#80): fetch from anchor firstUnread, instead of newest
     // TODO(#82): fetch from a given message ID as anchor
-    assert(!fetched && !haveOldest && !fetchingOlder && !fetchOlderCoolingDown);
+    assert(!fetched && !haveOldest && !busyFetchingMore);
     assert(messages.isEmpty && contents.isEmpty);
     assert(_status == FetchingStatus.unstarted);
     _status = FetchingStatus.fetchInitial;
@@ -573,10 +563,16 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   }
 
   /// Fetch the next batch of older messages, if applicable.
+  ///
+  /// If there are no older messages to fetch (i.e. if [haveOldest]),
+  /// or if this message list is already busy fetching more messages
+  /// (i.e. if [busyFetchingMore], which includes backoff from failed requests),
+  /// then this method does nothing and immediately returns.
+  /// That makes this method suitable to call frequently, e.g. every frame,
+  /// whenever it looks likely to be useful to have more messages.
   Future<void> fetchOlder() async {
     if (haveOldest) return;
-    if (fetchingOlder) return;
-    if (fetchOlderCoolingDown) return;
+    if (busyFetchingMore) return;
     assert(fetched);
     assert(narrow is! TopicNarrow
       // We only intend to send "with" in [fetchInitial]; see there.
