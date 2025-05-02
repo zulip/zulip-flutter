@@ -557,6 +557,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       //   still not yet updated to account for the newly-added messages.
       model.fetchOlder();
     }
+    if (scrollMetrics.extentAfter < kFetchMessagesBufferPixels) {
+      model.fetchNewer();
+    }
   }
 
   void _scrollChanged() {
