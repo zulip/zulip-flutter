@@ -540,7 +540,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       // Now [middleMessage] is the last message (the one just added).
     }
     _haveOldest = result.foundOldest;
-    _haveNewest = true; // TODO(#82)
+    _haveNewest = result.foundNewest;
     _setStatus(FetchingStatus.idle, was: FetchingStatus.fetchInitial);
   }
 
