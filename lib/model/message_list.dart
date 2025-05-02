@@ -649,10 +649,39 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     if (haveOldest) return;
     if (busyFetchingMore) return;
     assert(fetched);
+    assert(messages.isNotEmpty);
+    await _fetchMore(
+      anchor: NumericAnchor(messages[0].id),
+      numBefore: kMessageListFetchBatchSize,
+      numAfter: 0,
+      processResult: (result) {
+        if (result.messages.isNotEmpty
+            && result.messages.last.id == messages[0].id) {
+          // TODO(server-6): includeAnchor should make this impossible
+          result.messages.removeLast();
+        }
+
+        store.reconcileMessages(result.messages);
+        store.recentSenders.handleMessages(result.messages); // TODO(#824)
+
+        final fetchedMessages = _allMessagesVisible
+          ? result.messages // Avoid unnecessarily copying the list.
+          : result.messages.where(_messageVisible);
+
+        _insertAllMessages(0, fetchedMessages);
+        _haveOldest = result.foundOldest;
+      });
+  }
+
+  Future<void> _fetchMore({
+    required Anchor anchor,
+    required int numBefore,
+    required int numAfter,
+    required void Function(GetMessagesResult) processResult,
+  }) async {
     assert(narrow is! TopicNarrow
       // We only intend to send "with" in [fetchInitial]; see there.
       || (narrow as TopicNarrow).with_ == null);
-    assert(messages.isNotEmpty);
     _setStatus(FetchingStatus.fetchingMore, was: FetchingStatus.idle);
     final generation = this.generation;
     bool hasFetchError = false;
@@ -661,10 +690,10 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       try {
         result = await getMessages(store.connection,
           narrow: narrow.apiEncode(),
-          anchor: NumericAnchor(messages[0].id),
+          anchor: anchor,
           includeAnchor: false,
-          numBefore: kMessageListFetchBatchSize,
-          numAfter: 0,
+          numBefore: numBefore,
+          numAfter: numAfter,
           allowEmptyTopicName: true,
         );
       } catch (e) {
@@ -673,21 +702,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       }
       if (this.generation > generation) return;
 
-      if (result.messages.isNotEmpty
-          && result.messages.last.id == messages[0].id) {
-        // TODO(server-6): includeAnchor should make this impossible
-        result.messages.removeLast();
-      }
-
-      store.reconcileMessages(result.messages);
-      store.recentSenders.handleMessages(result.messages); // TODO(#824)
-
-      final fetchedMessages = _allMessagesVisible
-        ? result.messages // Avoid unnecessarily copying the list.
-        : result.messages.where(_messageVisible);
-
-      _insertAllMessages(0, fetchedMessages);
-      _haveOldest = result.foundOldest;
+      processResult(result);
     } finally {
       if (this.generation == generation) {
         if (hasFetchError) {
