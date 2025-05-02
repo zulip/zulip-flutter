@@ -163,7 +163,7 @@ mixin _MessageSequence {
   /// Either the bottom slices of both [items] and [messages] are empty,
   /// or the first item in the bottom slice of [items] is a [MessageListMessageItem]
   /// for the first message in the bottom slice of [messages].
-  int get middleItem => items.isEmpty ? 0 : items.length - 1;
+  int middleItem = 0;
 
   int _findMessageWithId(int messageId) {
     return binarySearchByKey(messages, messageId,
@@ -295,6 +295,7 @@ mixin _MessageSequence {
     _fetchOlderCooldownBackoffMachine = null;
     contents.clear();
     items.clear();
+    middleItem = 0;
   }
 
   /// Redo all computations from scratch, based on [messages].
@@ -334,6 +335,7 @@ mixin _MessageSequence {
         canShareSender = (prevMessageItem.message.senderId == message.senderId);
       }
     }
+    if (index == middleMessage) middleItem = items.length;
     items.add(MessageListMessageItem(message, content,
       showSender: !canShareSender, isLastInBlock: true));
   }
@@ -344,6 +346,7 @@ mixin _MessageSequence {
     for (var i = 0; i < messages.length; i++) {
       _processMessage(i);
     }
+    if (middleMessage == messages.length) middleItem = items.length;
   }
 }
 
