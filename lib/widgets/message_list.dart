@@ -817,16 +817,16 @@ class _TypingStatusWidgetState extends State<TypingStatusWidget> with PerAccount
     if (narrow is! SendableNarrow) return const SizedBox();
 
     final store = PerAccountStoreWidget.of(context);
-    final localizations = ZulipLocalizations.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final typistIds = model!.typistIdsInNarrow(narrow);
     if (typistIds.isEmpty) return const SizedBox();
     final text = switch (typistIds.length) {
-      1 => localizations.onePersonTyping(
+      1 => zulipLocalizations.onePersonTyping(
              store.userDisplayName(typistIds.first)),
-      2 => localizations.twoPeopleTyping(
+      2 => zulipLocalizations.twoPeopleTyping(
              store.userDisplayName(typistIds.first),
              store.userDisplayName(typistIds.last)),
-      _ => localizations.manyPeopleTyping,
+      _ => zulipLocalizations.manyPeopleTyping,
     };
 
     return Padding(
@@ -1452,13 +1452,13 @@ class MessageWithPossibleSender extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     final message = item.message;
 
-    final localizations = ZulipLocalizations.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     String? editStateText;
     switch (message.editState) {
       case MessageEditState.edited:
-        editStateText = localizations.messageIsEditedLabel;
+        editStateText = zulipLocalizations.messageIsEditedLabel;
       case MessageEditState.moved:
-        editStateText = localizations.messageIsMovedLabel;
+        editStateText = zulipLocalizations.messageIsMovedLabel;
       case MessageEditState.none:
     }
 
