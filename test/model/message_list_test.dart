@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
@@ -1649,6 +1650,214 @@ void main() {
     });
   });
 
+  group('middleMessage maintained', () {
+    // In [checkInvariants] we verify that messages don't move from the
+    // top to the bottom slice or vice versa.
+    // Most of these test cases rely on that for all the checks they need.
+
+    test('on fetchInitial empty', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMessages(foundOldest: true, messages: []);
+      check(model)..messages.isEmpty()
+        ..middleMessage.equals(0);
+    });
+
+    test('on fetchInitial empty due to muting', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream, isMuted: true));
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(stream: stream),
+      ]);
+      check(model)..messages.isEmpty()
+        ..middleMessage.equals(0);
+    });
+
+    test('on fetchInitial not empty', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream1 = eg.stream();
+      final stream2 = eg.stream();
+      await store.addStreams([stream1, stream2]);
+      await store.addSubscription(eg.subscription(stream1));
+      await store.addSubscription(eg.subscription(stream2, isMuted: true));
+      final messages = [
+        eg.streamMessage(stream: stream1), eg.streamMessage(stream: stream2),
+        eg.streamMessage(stream: stream1), eg.streamMessage(stream: stream2),
+        eg.streamMessage(stream: stream1), eg.streamMessage(stream: stream2),
+        eg.streamMessage(stream: stream1), eg.streamMessage(stream: stream2),
+        eg.streamMessage(stream: stream1), eg.streamMessage(stream: stream2),
+      ];
+      await prepareMessages(foundOldest: true, messages: messages);
+      // The anchor message is the last visible message…
+      check(model)
+        ..messages.length.equals(5)
+        ..middleMessage.equals(model.messages.length - 1)
+        // … even though that's not the last message that was in the response.
+        ..messages[model.middleMessage].id
+            .equals(messages[messages.length - 2].id);
+    });
+
+    /// Like [prepareMessages], but arrange for the given top and bottom slices.
+    Future<void> prepareMessageSplit(List<Message> top, List<Message> bottom, {
+      bool foundOldest = true,
+    }) async {
+      assert(bottom.isNotEmpty); // could handle this too if necessary
+      await prepareMessages(foundOldest: foundOldest, messages: [
+        ...top,
+        bottom.first,
+      ]);
+      if (bottom.length > 1) {
+        await store.addMessages(bottom.skip(1));
+        checkNotifiedOnce();
+      }
+      check(model)
+        ..messages.length.equals(top.length + bottom.length)
+        ..middleMessage.equals(top.length);
+    }
+
+    test('on fetchOlder', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await prepareMessageSplit(foundOldest: false,
+        [eg.streamMessage(id: 100, stream: stream)],
+        [eg.streamMessage(id: 101, stream: stream)]);
+
+      connection.prepare(json: olderResult(anchor: 100, foundOldest: true,
+        messages: List.generate(5, (i) =>
+          eg.streamMessage(id: 95 + i, stream: stream))).toJson());
+      await model.fetchOlder();
+      checkNotified(count: 2);
+    });
+
+    test('on fetchOlder, from top empty', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await prepareMessageSplit(foundOldest: false,
+        [], [eg.streamMessage(id: 100, stream: stream)]);
+
+      connection.prepare(json: olderResult(anchor: 100, foundOldest: true,
+        messages: List.generate(5, (i) =>
+          eg.streamMessage(id: 95 + i, stream: stream))).toJson());
+      await model.fetchOlder();
+      checkNotified(count: 2);
+      // The messages from fetchOlder should go in the top sliver, always.
+      check(model).middleMessage.equals(5);
+    });
+
+    test('on MessageEvent', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await prepareMessageSplit(foundOldest: false,
+        [eg.streamMessage(stream: stream)],
+        [eg.streamMessage(stream: stream)]);
+
+      await store.addMessage(eg.streamMessage(stream: stream));
+      checkNotifiedOnce();
+    });
+
+    test('on messages muted, including anchor', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await prepareMessageSplit([
+        eg.streamMessage(stream: stream, topic: 'foo'),
+        eg.streamMessage(stream: stream, topic: 'bar'),
+      ], [
+        eg.streamMessage(stream: stream, topic: 'bar'),
+        eg.streamMessage(stream: stream, topic: 'foo'),
+      ]);
+
+      await store.handleEvent(eg.userTopicEvent(
+        stream.streamId, 'bar', UserTopicVisibilityPolicy.muted));
+      checkNotifiedOnce();
+    });
+
+    test('on messages muted, not including anchor', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await prepareMessageSplit([
+        eg.streamMessage(stream: stream, topic: 'foo'),
+        eg.streamMessage(stream: stream, topic: 'bar'),
+      ], [
+        eg.streamMessage(stream: stream, topic: 'foo'),
+      ]);
+
+      await store.handleEvent(eg.userTopicEvent(
+        stream.streamId, 'bar', UserTopicVisibilityPolicy.muted));
+      checkNotifiedOnce();
+    });
+
+    test('on messages muted, bottom empty', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await prepareMessageSplit([
+        eg.streamMessage(stream: stream, topic: 'foo'),
+        eg.streamMessage(stream: stream, topic: 'bar'),
+      ], [
+        eg.streamMessage(stream: stream, topic: 'third'),
+      ]);
+
+      await store.handleEvent(eg.deleteMessageEvent([
+        model.messages.last as StreamMessage]));
+      checkNotifiedOnce();
+      check(model).middleMessage.equals(model.messages.length);
+
+      await store.handleEvent(eg.userTopicEvent(
+        stream.streamId, 'bar', UserTopicVisibilityPolicy.muted));
+      checkNotifiedOnce();
+    });
+
+    test('on messages deleted', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      final messages = [
+        eg.streamMessage(id: 1, stream: stream),
+        eg.streamMessage(id: 2, stream: stream),
+        eg.streamMessage(id: 3, stream: stream),
+        eg.streamMessage(id: 4, stream: stream),
+      ];
+      await prepareMessageSplit(messages.sublist(0, 2), messages.sublist(2));
+
+      await store.handleEvent(eg.deleteMessageEvent(messages.sublist(1, 3)));
+      checkNotifiedOnce();
+    });
+
+    test('on messages deleted, bottom empty', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      final messages = [
+        eg.streamMessage(id: 1, stream: stream),
+        eg.streamMessage(id: 2, stream: stream),
+        eg.streamMessage(id: 3, stream: stream),
+        eg.streamMessage(id: 4, stream: stream),
+      ];
+      await prepareMessageSplit(messages.sublist(0, 3), messages.sublist(3));
+
+      await store.handleEvent(eg.deleteMessageEvent(messages.sublist(3)));
+      checkNotifiedOnce();
+      check(model).middleMessage.equals(model.messages.length);
+
+      await store.handleEvent(eg.deleteMessageEvent(messages.sublist(1, 2)));
+      checkNotifiedOnce();
+    });
+  });
+
   group('handle content parsing into subclasses of ZulipMessageContent', () {
     test('ZulipContent', () async {
       final stream = eg.stream();
@@ -1922,6 +2131,10 @@ void main() {
   });
 }
 
+MessageListView? _lastModel;
+List<Message>? _lastMessages;
+int? _lastMiddleMessage;
+
 void checkInvariants(MessageListView model) {
   if (!model.fetched) {
     check(model)
@@ -1963,6 +2176,21 @@ void checkInvariants(MessageListView model) {
   check(model).middleMessage
     ..isGreaterOrEqual(0)
     ..isLessOrEqual(model.messages.length);
+
+  if (identical(model, _lastModel)
+      && model.generation == _lastModel!.generation) {
+    // All messages that were present, and still are, should be on the same side
+    // of `middleMessage` (still top or bottom slice respectively) as they were.
+    _checkNoIntersection(ListSlice(model.messages, 0, model.middleMessage),
+      ListSlice(_lastMessages!, _lastMiddleMessage!, _lastMessages!.length),
+      because: 'messages moved from bottom slice to top slice');
+    _checkNoIntersection(ListSlice(_lastMessages!, 0, _lastMiddleMessage!),
+      ListSlice(model.messages, model.middleMessage, model.messages.length),
+      because: 'messages moved from top slice to bottom slice');
+  }
+  _lastModel = model;
+  _lastMessages = model.messages.toList();
+  _lastMiddleMessage = model.middleMessage;
 
   check(model).contents.length.equals(model.messages.length);
   for (int i = 0; i < model.contents.length; i++) {
@@ -2011,6 +2239,17 @@ void checkInvariants(MessageListView model) {
     check(model.items[model.middleItem]).isA<MessageListMessageItem>()
       .message.identicalTo(model.messages[model.middleMessage]);
   }
+}
+
+void _checkNoIntersection(List<Message> xs, List<Message> ys, {String? because}) {
+  // Both lists are sorted by ID.  As an optimization, bet on all or nearly all
+  // of the first list having smaller IDs than all or nearly all of the other.
+  if (xs.isEmpty || ys.isEmpty) return;
+  if (xs.last.id < ys.first.id) return;
+  final yCandidates = Set.of(ys.takeWhile((m) => m.id <= xs.last.id));
+  final intersection = xs.reversed.takeWhile((m) => ys.first.id <= m.id)
+    .where(yCandidates.contains);
+  check(intersection, because: because).isEmpty();
 }
 
 extension MessageListRecipientHeaderItemChecks on Subject<MessageListRecipientHeaderItem> {
