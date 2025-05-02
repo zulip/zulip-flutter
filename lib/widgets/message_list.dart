@@ -684,16 +684,21 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   Widget _buildStartCap() {
-    // These assertions are invariants of [MessageListView].
+    // If we're done fetching older messages, show that.
+    // Else if we're busy with fetching, then show a loading indicator.
+    //
+    // This applies even if the fetch is over, but failed, and we're still
+    // in backoff from it; and even if the fetch is/was for the other direction.
+    // The loading indicator really means "busy, working on it"; and that's the
+    // right summary even if the fetch is internally queued behind other work.
+
+    // (This assertion is an invariant of [MessageListView].)
     assert(!(model.fetchingOlder && model.fetchOlderCoolingDown));
-    final effectiveFetchingOlder =
+    final busyFetchingMore =
       model.fetchingOlder || model.fetchOlderCoolingDown;
-    assert(!(model.haveOldest && effectiveFetchingOlder));
-    return switch ((effectiveFetchingOlder, model.haveOldest)) {
-      (true, _) => const _MessageListLoadingMore(),
-      (_, true) => const _MessageListHistoryStart(),
-      (_,    _) => const SizedBox.shrink(),
-    };
+    return model.haveOldest ? const _MessageListHistoryStart()
+      : busyFetchingMore ? const _MessageListLoadingMore()
+      : const SizedBox.shrink();
   }
 
   Widget _buildEndCap() {
