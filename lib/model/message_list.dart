@@ -78,7 +78,7 @@ enum FetchingStatus {
   /// and has no outstanding requests or backoff.
   idle,
 
-  /// The model has an active `fetchOlder` request.
+  /// The model has an active `fetchOlder` or `fetchNewer` request.
   fetchingMore,
 
   /// The model is in a backoff period from a failed request.
@@ -673,6 +673,42 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       });
   }
 
+  /// Fetch the next batch of newer messages, if applicable.
+  ///
+  /// If there are no newer messages to fetch (i.e. if [haveNewest]),
+  /// or if this message list is already busy fetching more messages
+  /// (i.e. if [busyFetchingMore], which includes backoff from failed requests),
+  /// then this method does nothing and immediately returns.
+  /// That makes this method suitable to call frequently, e.g. every frame,
+  /// whenever it looks likely to be useful to have more messages.
+  Future<void> fetchNewer() async {
+    if (haveNewest) return;
+    if (busyFetchingMore) return;
+    assert(fetched);
+    assert(messages.isNotEmpty);
+    await _fetchMore(
+      anchor: NumericAnchor(messages.last.id),
+      numBefore: 0,
+      numAfter: kMessageListFetchBatchSize,
+      processResult: (result) {
+        if (result.messages.isNotEmpty
+            && result.messages.first.id == messages.last.id) {
+          // TODO(server-6): includeAnchor should make this impossible
+          result.messages.removeAt(0);
+        }
+
+        store.reconcileMessages(result.messages);
+        store.recentSenders.handleMessages(result.messages); // TODO(#824)
+
+        for (final message in result.messages) {
+          if (_messageVisible(message)) {
+            _addMessage(message);
+          }
+        }
+        _haveNewest = result.foundNewest;
+      });
+  }
+
   Future<void> _fetchMore({
     required Anchor anchor,
     required int numBefore,
@@ -775,7 +811,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       // This message list's [messages] doesn't yet reach the new end
       // of the narrow's message history.  (Either [fetchInitial] hasn't yet
       // completed, or if it has then it was in the middle of history and no
-      // subsequent fetch has reached the end.)
+      // subsequent [fetchNewer] has reached the end.)
       // So this still-newer message doesn't belong.
       // Leave it to be found by a subsequent fetch when appropriate.
       // TODO mitigate this fetch/event race: save message to add to list later,

@@ -687,6 +687,24 @@ GetMessagesResult olderGetMessagesResult({
   );
 }
 
+/// A GetMessagesResult the server might return when we request newer messages.
+GetMessagesResult newerGetMessagesResult({
+  required int anchor,
+  bool foundAnchor = false, // the value if the server understood includeAnchor false
+  required bool foundNewest,
+  bool historyLimited = false,
+  required List<Message> messages,
+}) {
+  return GetMessagesResult(
+    anchor: anchor,
+    foundAnchor: foundAnchor,
+    foundOldest: false,
+    foundNewest: foundNewest,
+    historyLimited: historyLimited,
+    messages: messages,
+  );
+}
+
 int _nextLocalMessageId = 1;
 
 StreamOutboxMessage streamOutboxMessage({
