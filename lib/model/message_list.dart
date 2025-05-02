@@ -697,7 +697,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     if (!narrow.containsMessage(message) || !_messageVisible(message)) {
       return;
     }
-    if (!_fetched) {
+    if (!fetched) {
       // TODO mitigate this fetch/event race: save message to add to list later
       return;
     }
