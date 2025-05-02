@@ -178,25 +178,7 @@ mixin _MessageSequence {
   /// Either the bottom slices of both [items] and [messages] are empty,
   /// or the first item in the bottom slice of [items] is a [MessageListMessageItem]
   /// for the first message in the bottom slice of [messages].
-  int get middleItem {
-    switch (items.lastOrNull) {
-      case null:
-        return 0;
-
-      case MessageListHistoryStartItem():
-        assert(items.length == 1);
-        return items.length;
-
-      case MessageListMessageItem():
-        return items.length - 1;
-
-      case MessageListLoadingItem(direction: MessageListDirection.older):
-      case MessageListRecipientHeaderItem():
-      case MessageListDateSeparatorItem():
-        assert(false, "unexpected type of last item");
-        return items.length - 1;
-    }
-  }
+  int middleItem = 0;
 
   int _findMessageWithId(int messageId) {
     return binarySearchByKey(messages, messageId,
@@ -333,6 +315,7 @@ mixin _MessageSequence {
     _fetchOlderCooldownBackoffMachine = null;
     contents.clear();
     items.clear();
+    middleItem = 0;
   }
 
   /// Redo all computations from scratch, based on [messages].
@@ -372,6 +355,7 @@ mixin _MessageSequence {
         canShareSender = (prevMessageItem.message.senderId == message.senderId);
       }
     }
+    if (index == middleMessage) middleItem = items.length;
     items.add(MessageListMessageItem(message, content,
       showSender: !canShareSender, isLastInBlock: true));
   }
@@ -394,8 +378,8 @@ mixin _MessageSequence {
     };
     switch ((startMarker != null, hasStartMarker)) {
       case (true, true): items[0] = startMarker!;
-      case (true, _   ): items.addFirst(startMarker!);
-      case (_,    true): items.removeFirst();
+      case (true, _   ): items.addFirst(startMarker!); middleItem++;
+      case (_,    true): items.removeFirst(); middleItem--;
       case (_,    _   ): break;
     }
   }
@@ -406,6 +390,7 @@ mixin _MessageSequence {
     for (var i = 0; i < messages.length; i++) {
       _processMessage(i);
     }
+    if (middleMessage == messages.length) middleItem = items.length;
     _updateEndMarkers();
   }
 }
