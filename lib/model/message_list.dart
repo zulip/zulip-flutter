@@ -493,14 +493,20 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
+  void _setStatus(FetchingStatus value, {FetchingStatus? was}) {
+    assert(was == null || _status == was);
+    _status = value;
+    if (!fetched) return;
+    notifyListeners();
+  }
+
   /// Fetch messages, starting from scratch.
   Future<void> fetchInitial() async {
     // TODO(#80): fetch from anchor firstUnread, instead of newest
     // TODO(#82): fetch from a given message ID as anchor
     assert(!fetched && !haveOldest && !busyFetchingMore);
     assert(messages.isEmpty && contents.isEmpty);
-    assert(_status == FetchingStatus.unstarted);
-    _status = FetchingStatus.fetchInitial;
+    _setStatus(FetchingStatus.fetchInitial, was: FetchingStatus.unstarted);
     // TODO schedule all this in another isolate
     final generation = this.generation;
     final result = await getMessages(store.connection,
@@ -524,10 +530,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       _addMessage(message);
       // Now [middleMessage] is the last message (the one just added).
     }
-    assert(_status == FetchingStatus.fetchInitial);
-    _status = FetchingStatus.idle;
     _haveOldest = result.foundOldest;
-    notifyListeners();
+    _setStatus(FetchingStatus.idle, was: FetchingStatus.fetchInitial);
   }
 
   /// Update [narrow] for the result of a "with" narrow (topic permalink) fetch.
@@ -578,9 +582,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       // We only intend to send "with" in [fetchInitial]; see there.
       || (narrow as TopicNarrow).with_ == null);
     assert(messages.isNotEmpty);
-    assert(_status == FetchingStatus.idle);
-    _status = FetchingStatus.fetchingMore;
-    notifyListeners();
+    _setStatus(FetchingStatus.fetchingMore, was: FetchingStatus.idle);
     final generation = this.generation;
     bool hasFetchError = false;
     try {
@@ -617,21 +619,17 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       _haveOldest = result.foundOldest;
     } finally {
       if (this.generation == generation) {
-        assert(_status == FetchingStatus.fetchingMore);
         if (hasFetchError) {
-          _status = FetchingStatus.backoff;
+          _setStatus(FetchingStatus.backoff, was: FetchingStatus.fetchingMore);
           unawaited((_fetchBackoffMachine ??= BackoffMachine())
             .wait().then((_) {
               if (this.generation != generation) return;
-              assert(_status == FetchingStatus.backoff);
-              _status = FetchingStatus.idle;
-              notifyListeners();
+              _setStatus(FetchingStatus.idle, was: FetchingStatus.backoff);
             }));
         } else {
-          _status = FetchingStatus.idle;
+          _setStatus(FetchingStatus.idle, was: FetchingStatus.fetchingMore);
           _fetchBackoffMachine = null;
         }
-        notifyListeners();
       }
     }
   }
