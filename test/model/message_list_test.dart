@@ -28,6 +28,7 @@ import 'test_store.dart';
 const newestResult = eg.newestGetMessagesResult;
 const nearResult = eg.nearGetMessagesResult;
 const olderResult = eg.olderGetMessagesResult;
+const newerResult = eg.newerGetMessagesResult;
 
 void main() {
   // Arrange for errors caught within the Flutter framework to be printed
@@ -291,8 +292,8 @@ void main() {
     });
   });
 
-  group('fetchOlder', () {
-    test('smoke', () async {
+  group('fetching more', () {
+    test('fetchOlder smoke', () async {
       const narrow = CombinedFeedNarrow();
       await prepare(narrow: narrow);
       await prepareMessages(foundOldest: false,
@@ -321,14 +322,43 @@ void main() {
       );
     });
 
-    test('nop when already fetching', () async {
-      await prepare();
-      await prepareMessages(foundOldest: false,
+    test('fetchNewer smoke', () async {
+      const narrow = CombinedFeedNarrow();
+      await prepare(narrow: narrow, anchor: NumericAnchor(1000));
+      await prepareMessages(foundOldest: true, foundNewest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
 
+      connection.prepare(json: newerResult(
+        anchor: 1099, foundNewest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 1100 + i)),
+      ).toJson());
+      final fetchFuture = model.fetchNewer();
+      checkNotifiedOnce();
+      check(model).busyFetchingMore.isTrue();
+
+      await fetchFuture;
+      checkNotifiedOnce();
+      check(model)
+        ..busyFetchingMore.isFalse()
+        ..messages.length.equals(200);
+      checkLastRequest(
+        narrow: narrow.apiEncode(),
+        anchor: '1099',
+        includeAnchor: false,
+        numBefore: 0,
+        numAfter: kMessageListFetchBatchSize,
+        allowEmptyTopicName: true,
+      );
+    });
+
+    test('nop when already fetching older', () async {
+      await prepare(anchor: NumericAnchor(1000));
+      await prepareMessages(foundOldest: false, foundNewest: false,
+        messages: List.generate(201, (i) => eg.streamMessage(id: 900 + i)));
+
       connection.prepare(json: olderResult(
-        anchor: 1000, foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 900 + i)),
+        anchor: 900, foundOldest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 800 + i)),
       ).toJson());
       final fetchFuture = model.fetchOlder();
       checkNotifiedOnce();
@@ -338,24 +368,56 @@ void main() {
       final fetchFuture2 = model.fetchOlder();
       checkNotNotified();
       check(model).busyFetchingMore.isTrue();
+      final fetchFuture3 = model.fetchNewer();
+      checkNotNotified();
+      check(model)..busyFetchingMore.isTrue()..messages.length.equals(201);
 
       await fetchFuture;
       await fetchFuture2;
+      await fetchFuture3;
       // We must not have made another request, because we didn't
       // prepare another response and didn't get an exception.
       checkNotifiedOnce();
-      check(model)
-        ..busyFetchingMore.isFalse()
-        ..messages.length.equals(200);
+      check(model)..busyFetchingMore.isFalse()..messages.length.equals(301);
     });
 
-    test('nop when already haveOldest true', () async {
-      await prepare();
-      await prepareMessages(foundOldest: true, messages:
-        List.generate(30, (i) => eg.streamMessage()));
+    test('nop when already fetching newer', () async {
+      await prepare(anchor: NumericAnchor(1000));
+      await prepareMessages(foundOldest: false, foundNewest: false,
+        messages: List.generate(201, (i) => eg.streamMessage(id: 900 + i)));
+
+      connection.prepare(json: newerResult(
+        anchor: 1100, foundNewest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 1101 + i)),
+      ).toJson());
+      final fetchFuture = model.fetchNewer();
+      checkNotifiedOnce();
+      check(model).busyFetchingMore.isTrue();
+
+      // Don't prepare another response.
+      final fetchFuture2 = model.fetchOlder();
+      checkNotNotified();
+      check(model).busyFetchingMore.isTrue();
+      final fetchFuture3 = model.fetchNewer();
+      checkNotNotified();
+      check(model)..busyFetchingMore.isTrue()..messages.length.equals(201);
+
+      await fetchFuture;
+      await fetchFuture2;
+      await fetchFuture3;
+      // We must not have made another request, because we didn't
+      // prepare another response and didn't get an exception.
+      checkNotifiedOnce();
+      check(model)..busyFetchingMore.isFalse()..messages.length.equals(301);
+    });
+
+    test('fetchOlder nop when already haveOldest true', () async {
+      await prepare(anchor: NumericAnchor(1000));
+      await prepareMessages(foundOldest: true, foundNewest: false, messages:
+        List.generate(151, (i) => eg.streamMessage(id: 950 + i)));
       check(model)
         ..haveOldest.isTrue()
-        ..messages.length.equals(30);
+        ..messages.length.equals(151);
 
       await model.fetchOlder();
       // We must not have made a request, because we didn't
@@ -363,14 +425,33 @@ void main() {
       checkNotNotified();
       check(model)
         ..haveOldest.isTrue()
-        ..messages.length.equals(30);
+        ..messages.length.equals(151);
+    });
+
+    test('fetchNewer nop when already haveNewest true', () async {
+      await prepare(anchor: NumericAnchor(1000));
+      await prepareMessages(foundOldest: false, foundNewest: true, messages:
+        List.generate(151, (i) => eg.streamMessage(id: 950 + i)));
+      check(model)
+        ..haveNewest.isTrue()
+        ..messages.length.equals(151);
+
+      await model.fetchNewer();
+      // We must not have made a request, because we didn't
+      // prepare a response and didn't get an exception.
+      checkNotNotified();
+      check(model)
+        ..haveNewest.isTrue()
+        ..messages.length.equals(151);
     });
 
     test('nop during backoff', () => awaitFakeAsync((async) async {
       final olderMessages = List.generate(5, (i) => eg.streamMessage());
       final initialMessages = List.generate(5, (i) => eg.streamMessage());
-      await prepare();
-      await prepareMessages(foundOldest: false, messages: initialMessages);
+      final newerMessages = List.generate(5, (i) => eg.streamMessage());
+      await prepare(anchor: NumericAnchor(initialMessages[2].id));
+      await prepareMessages(foundOldest: false, foundNewest: false,
+        messages: initialMessages);
       check(connection.takeRequests()).single;
 
       connection.prepare(apiException: eg.apiBadRequest());
@@ -385,20 +466,31 @@ void main() {
       check(model).busyFetchingMore.isTrue();
       check(connection.lastRequest).isNull();
 
+      await model.fetchNewer();
+      checkNotNotified();
+      check(model).busyFetchingMore.isTrue();
+      check(connection.lastRequest).isNull();
+
       // Wait long enough that a first backoff is sure to finish.
       async.elapse(const Duration(seconds: 1));
       check(model).busyFetchingMore.isFalse();
       checkNotifiedOnce();
       check(connection.lastRequest).isNull();
 
-      connection.prepare(json: olderResult(
-        anchor: 1000, foundOldest: false, messages: olderMessages).toJson());
+      connection.prepare(json: olderResult(anchor: initialMessages.first.id,
+        foundOldest: false, messages: olderMessages).toJson());
       await model.fetchOlder();
+      checkNotified(count: 2);
+      check(connection.takeRequests()).single;
+
+      connection.prepare(json: newerResult(anchor: initialMessages.last.id,
+        foundNewest: false, messages: newerMessages).toJson());
+      await model.fetchNewer();
       checkNotified(count: 2);
       check(connection.takeRequests()).single;
     }));
 
-    test('handles servers not understanding includeAnchor', () async {
+    test('fetchOlder handles servers not understanding includeAnchor', () async {
       await prepare();
       await prepareMessages(foundOldest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
@@ -415,8 +507,25 @@ void main() {
         ..messages.length.equals(200);
     });
 
+    test('fetchNewer handles servers not understanding includeAnchor', () async {
+      await prepare(anchor: NumericAnchor(1000));
+      await prepareMessages(foundOldest: true, foundNewest: false,
+        messages: List.generate(101, (i) => eg.streamMessage(id: 1000 + i)));
+
+      // The old behavior is to include the anchor message regardless of includeAnchor.
+      connection.prepare(json: newerResult(
+        anchor: 1100, foundNewest: false, foundAnchor: true,
+        messages: List.generate(101, (i) => eg.streamMessage(id: 1100 + i)),
+      ).toJson());
+      await model.fetchNewer();
+      checkNotified(count: 2);
+      check(model)
+        ..busyFetchingMore.isFalse()
+        ..messages.length.equals(201);
+    });
+
     // TODO(#824): move this test
-    test('recent senders track all the messages', () async {
+    test('fetchOlder recent senders track all the messages', () async {
       await prepare();
       final initialMessages = List.generate(10, (i) => eg.streamMessage(id: 100 + i));
       await prepareMessages(foundOldest: false, messages: initialMessages);
@@ -433,6 +542,27 @@ void main() {
       check(model).messages.length.equals(20);
       recent_senders_test.checkMatchesMessages(store.recentSenders,
         [...initialMessages, ...oldMessages]);
+    });
+
+    // TODO(#824): move this test
+    test('TODO fetchNewer recent senders track all the messages', () async {
+      await prepare(anchor: NumericAnchor(100));
+      final initialMessages = List.generate(10, (i) => eg.streamMessage(id: 100 + i));
+      await prepareMessages(foundOldest: true, foundNewest: false,
+        messages: initialMessages);
+
+      final newMessages = List.generate(10, (i) => eg.streamMessage(id: 110 + i))
+        // Not subscribed to the stream with id 10.
+        ..add(eg.streamMessage(id: 120, stream: eg.stream(streamId: 10)));
+      connection.prepare(json: newerResult(
+        anchor: 100, foundNewest: false,
+        messages: newMessages,
+      ).toJson());
+      await model.fetchNewer();
+
+      check(model).messages.length.equals(20);
+      recent_senders_test.checkMatchesMessages(store.recentSenders,
+        [...initialMessages, ...newMessages]);
     });
   });
 
