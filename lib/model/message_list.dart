@@ -93,7 +93,7 @@ mixin _MessageSequence {
   ///
   /// This may or may not represent all the message history that
   /// conceptually belongs in this message list.
-  /// That information is expressed in [fetched] and [haveOldest].
+  /// That information is expressed in [fetched], [haveOldest], [haveNewest].
   ///
   /// See also [middleMessage], an index which divides this list
   /// into a top slice and a bottom slice.
@@ -120,10 +120,18 @@ mixin _MessageSequence {
 
   /// Whether we know we have the oldest messages for this narrow.
   ///
-  /// (Currently we always have the newest messages for the narrow,
-  /// once [fetched] is true, because we start from the newest.)
+  /// See also [haveNewest].
   bool get haveOldest => _haveOldest;
   bool _haveOldest = false;
+
+  /// Whether we know we have the newest messages for this narrow.
+  ///
+  /// (Currently this is always true once [fetched] is true,
+  /// because we start from the newest.)
+  ///
+  /// See also [haveOldest].
+  bool get haveNewest => _haveNewest;
+  bool _haveNewest = false;
 
   /// Whether this message list is currently busy when it comes to
   /// fetching more messages.
@@ -157,7 +165,7 @@ mixin _MessageSequence {
   /// before, between, or after the messages.
   ///
   /// This information is completely derived from [messages] and
-  /// the flags [haveOldest] and [busyFetchingMore].
+  /// the flags [haveOldest], [haveNewest], and [busyFetchingMore].
   /// It exists as an optimization, to memoize that computation.
   ///
   /// See also [middleItem], an index which divides this list
@@ -314,6 +322,7 @@ mixin _MessageSequence {
     messages.clear();
     middleMessage = 0;
     _haveOldest = false;
+    _haveNewest = false;
     _status = FetchingStatus.unstarted;
     _fetchBackoffMachine = null;
     contents.clear();
@@ -504,7 +513,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   Future<void> fetchInitial() async {
     // TODO(#80): fetch from anchor firstUnread, instead of newest
     // TODO(#82): fetch from a given message ID as anchor
-    assert(!fetched && !haveOldest && !busyFetchingMore);
+    assert(!fetched && !haveOldest && !haveNewest && !busyFetchingMore);
     assert(messages.isEmpty && contents.isEmpty);
     _setStatus(FetchingStatus.fetchInitial, was: FetchingStatus.unstarted);
     // TODO schedule all this in another isolate
@@ -531,6 +540,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       // Now [middleMessage] is the last message (the one just added).
     }
     _haveOldest = result.foundOldest;
+    _haveNewest = true; // TODO(#82)
     _setStatus(FetchingStatus.idle, was: FetchingStatus.fetchInitial);
   }
 
