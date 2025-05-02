@@ -103,7 +103,7 @@ mixin _MessageSequence {
   /// and the indices from [middleMessage] to the end are the bottom slice.
   ///
   /// The corresponding item index is [middleItem].
-  int get middleMessage => messages.isEmpty ? 0 : messages.length - 1;
+  int middleMessage = 0;
 
   /// Whether [messages] and [items] represent the results of a fetch.
   ///
@@ -252,6 +252,7 @@ mixin _MessageSequence {
     candidate++;
     assert(contents.length == messages.length);
     while (candidate < messages.length) {
+      if (candidate == middleMessage) middleMessage = target;
       if (test(messages[candidate])) {
         candidate++;
         continue;
@@ -260,6 +261,7 @@ mixin _MessageSequence {
       contents[target] = contents[candidate];
       target++; candidate++;
     }
+    if (candidate == middleMessage) middleMessage = target;
     messages.length = target;
     contents.length = target;
     assert(contents.length == messages.length);
@@ -282,6 +284,13 @@ mixin _MessageSequence {
     }
     if (messagesToRemoveById.isEmpty) return false;
 
+    if (middleMessage == messages.length) {
+      middleMessage -= messagesToRemoveById.length;
+    } else {
+      final middleMessageId = messages[middleMessage].id;
+      middleMessage -= messagesToRemoveById
+        .where((id) => id < middleMessageId).length;
+    }
     assert(contents.length == messages.length);
     messages.removeWhere((message) => messagesToRemoveById.contains(message.id));
     contents.removeWhere((content) => contentToRemove.contains(content));
@@ -296,11 +305,15 @@ mixin _MessageSequence {
     //   On a Pixel 5, a batch of 100 messages takes ~15-20ms in _insertAllMessages.
     //   (Before that, ~2-5ms in jsonDecode and 0ms in fromJson,
     //   so skip worrying about those steps.)
+    final oldLength = messages.length;
     assert(contents.length == messages.length);
     messages.insertAll(index, toInsert);
     contents.insertAll(index, toInsert.map(
       (message) => _parseMessageContent(message)));
     assert(contents.length == messages.length);
+    if (index <= middleMessage) {
+      middleMessage += messages.length - oldLength;
+    }
     _reprocessAll();
   }
 
@@ -308,6 +321,7 @@ mixin _MessageSequence {
   void _reset() {
     generation += 1;
     messages.clear();
+    middleMessage = 0;
     _fetched = false;
     _haveOldest = false;
     _fetchingOlder = false;
@@ -530,13 +544,18 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       numAfter: 0,
     );
     if (this.generation > generation) return;
+
     _adjustNarrowForTopicPermalink(result.messages.firstOrNull);
+
     store.reconcileMessages(result.messages);
     store.recentSenders.handleMessages(result.messages); // TODO(#824)
+
+    // We'll make the bottom slice start at the last visible message, if any.
     for (final message in result.messages) {
-      if (_messageVisible(message)) {
-        _addMessage(message);
-      }
+      if (!_messageVisible(message)) continue;
+      middleMessage = messages.length;
+      _addMessage(message);
+      // Now [middleMessage] is the last message (the one just added).
     }
     _fetched = true;
     _haveOldest = result.foundOldest;
