@@ -445,6 +445,10 @@ void main() {
   });
 
   group('fetch older messages on scroll', () {
+    // TODO(#1569): test fetch newer messages on scroll, too;
+    //   in particular test it happens even when near top as well as bottom
+    //   (because may have haveOldest true but haveNewest false)
+
     int? itemCount(WidgetTester tester) =>
       findScrollView(tester).semanticChildCount;
 
