@@ -448,8 +448,11 @@ class MessageList extends StatefulWidget {
 }
 
 class _MessageListState extends State<MessageList> with PerAccountStoreAwareStateMixin<MessageList> {
-  MessageListView? model;
+  MessageListView get model => _model!;
+  MessageListView? _model;
+
   final MessageListScrollController scrollController = MessageListScrollController();
+
   final ValueNotifier<bool> _scrollToBottomVisible = ValueNotifier<bool>(false);
 
   @override
@@ -460,32 +463,32 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   @override
   void onNewStore() { // TODO(#464) try to keep using old model until new one gets messages
-    model?.dispose();
+    _model?.dispose();
     _initModel(PerAccountStoreWidget.of(context));
   }
 
   @override
   void dispose() {
-    model?.dispose();
+    _model?.dispose();
     scrollController.dispose();
     _scrollToBottomVisible.dispose();
     super.dispose();
   }
 
   void _initModel(PerAccountStore store) {
-    model = MessageListView.init(store: store, narrow: widget.narrow);
-    model!.addListener(_modelChanged);
-    model!.fetchInitial();
+    _model = MessageListView.init(store: store, narrow: widget.narrow);
+    model.addListener(_modelChanged);
+    model.fetchInitial();
   }
 
   void _modelChanged() {
-    if (model!.narrow != widget.narrow) {
+    if (model.narrow != widget.narrow) {
       // Either:
       // - A message move event occurred, where propagate mode is
       //   [PropagateMode.changeAll] or [PropagateMode.changeLater]. Or:
       // - We fetched a "with" / topic-permalink narrow, and the response
       //   redirected us to the new location of the operand message ID.
-      widget.onNarrowChanged(model!.narrow);
+      widget.onNarrowChanged(model.narrow);
     }
     setState(() {
       // The actual state lives in the [MessageListView] model.
@@ -507,7 +510,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       //   but makes things a bit more complicated to reason about.
       //   The cause seems to be that this gets called again with maxScrollExtent
       //   still not yet updated to account for the newly-added messages.
-      model!.fetchOlder();
+      model.fetchOlder();
     }
   }
 
@@ -528,8 +531,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   @override
   Widget build(BuildContext context) {
-    assert(model != null);
-    if (!model!.fetched) return const Center(child: CircularProgressIndicator());
+    if (!model.fetched) return const Center(child: CircularProgressIndicator());
 
     // Pad the left and right insets, for small devices in landscape.
     return SafeArea(
@@ -571,9 +573,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
     // The list has two slivers: a top sliver growing upward,
     // and a bottom sliver growing downward.
-    // Each sliver has some of the items from `model!.items`.
+    // Each sliver has some of the items from `model.items`.
     const maxBottomItems = 1;
-    final totalItems = model!.items.length;
+    final totalItems = model.items.length;
     final bottomItems = totalItems <= maxBottomItems ? totalItems : maxBottomItems;
     final topItems = totalItems - bottomItems;
 
@@ -599,7 +601,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         // and will not trigger this callback.
         findChildIndexCallback: (Key key) {
           final messageId = (key as ValueKey<int>).value;
-          final itemIndex = model!.findItemWithMessageId(messageId);
+          final itemIndex = model.findItemWithMessageId(messageId);
           if (itemIndex == -1) return null;
           final childIndex = totalItems - 1 - (itemIndex + bottomItems);
           if (childIndex < 0) return null;
@@ -608,7 +610,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         childCount: topItems,
         (context, childIndex) {
           final itemIndex = totalItems - 1 - (childIndex + bottomItems);
-          final data = model!.items[itemIndex];
+          final data = model.items[itemIndex];
           final item = _buildItem(zulipLocalizations, data);
           return item;
         }));
@@ -637,7 +639,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         // and will not trigger this callback.
         findChildIndexCallback: (Key key) {
           final messageId = (key as ValueKey<int>).value;
-          final itemIndex = model!.findItemWithMessageId(messageId);
+          final itemIndex = model.findItemWithMessageId(messageId);
           if (itemIndex == -1) return null;
           final childIndex = itemIndex - topItems;
           if (childIndex < 0) return null;
@@ -654,7 +656,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           if (childIndex == bottomItems) return TypingStatusWidget(narrow: widget.narrow);
 
           final itemIndex = topItems + childIndex;
-          final data = model!.items[itemIndex];
+          final data = model.items[itemIndex];
           return _buildItem(zulipLocalizations, data);
         }));
 
