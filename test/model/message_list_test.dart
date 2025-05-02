@@ -150,7 +150,8 @@ void main() {
         checkNotifiedOnce();
         check(model)
           ..messages.length.equals(kMessageListFetchBatchSize)
-          ..haveOldest.isFalse();
+          ..haveOldest.isFalse()
+          ..haveNewest.isTrue();
         checkLastRequest(
           narrow: narrow.apiEncode(),
           anchor: 'newest',
@@ -180,7 +181,8 @@ void main() {
       checkNotifiedOnce();
       check(model)
         ..messages.length.equals(30)
-        ..haveOldest.isTrue();
+        ..haveOldest.isTrue()
+        ..haveNewest.isTrue();
     });
 
     test('no messages found', () async {
@@ -194,7 +196,8 @@ void main() {
       check(model)
         ..fetched.isTrue()
         ..messages.isEmpty()
-        ..haveOldest.isTrue();
+        ..haveOldest.isTrue()
+        ..haveNewest.isTrue();
     });
 
     // TODO(#824): move this test
@@ -416,6 +419,10 @@ void main() {
       checkNotNotified();
       check(model).messages.length.equals(30);
     });
+
+    test('while in mid-history', () async {
+    }, skip: true, // TODO(#82): not yet possible to exercise this case
+    );
 
     test('before fetch', () async {
       final stream = eg.stream();
@@ -2139,9 +2146,10 @@ void checkInvariants(MessageListView model) {
     check(model)
       ..messages.isEmpty()
       ..haveOldest.isFalse()
+      ..haveNewest.isFalse()
       ..busyFetchingMore.isFalse();
   }
-  if (model.haveOldest) {
+  if (model.haveOldest && model.haveNewest) {
     check(model).busyFetchingMore.isFalse();
   }
 
@@ -2286,5 +2294,6 @@ extension MessageListViewChecks on Subject<MessageListView> {
   Subject<int> get middleItem => has((x) => x.middleItem, 'middleItem');
   Subject<bool> get fetched => has((x) => x.fetched, 'fetched');
   Subject<bool> get haveOldest => has((x) => x.haveOldest, 'haveOldest');
+  Subject<bool> get haveNewest => has((x) => x.haveNewest, 'haveNewest');
   Subject<bool> get busyFetchingMore => has((x) => x.busyFetchingMore, 'busyFetchingMore');
 }
