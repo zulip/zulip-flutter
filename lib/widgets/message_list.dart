@@ -507,7 +507,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       //   but makes things a bit more complicated to reason about.
       //   The cause seems to be that this gets called again with maxScrollExtent
       //   still not yet updated to account for the newly-added messages.
-      model?.fetchOlder();
+      model!.fetchOlder();
     }
   }
 
