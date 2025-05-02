@@ -26,6 +26,7 @@ import 'recent_senders_test.dart' as recent_senders_test;
 import 'test_store.dart';
 
 const newestResult = eg.newestGetMessagesResult;
+const nearResult = eg.nearGetMessagesResult;
 const olderResult = eg.olderGetMessagesResult;
 
 void main() {
@@ -183,6 +184,24 @@ void main() {
         ..messages.length.equals(30)
         ..haveOldest.isTrue()
         ..haveNewest.isTrue();
+    });
+
+    test('early in history', () async {
+      // For now, this gets a response that isn't realistic for the
+      // request it sends, to simulate when we start sending requests
+      // that would make this response realistic.
+      // TODO(#82): send appropriate fetch request
+      await prepare();
+      connection.prepare(json: nearResult(
+        anchor: 1000, foundOldest: true, foundNewest: false,
+        messages: List.generate(111, (i) => eg.streamMessage(id: 990 + i)),
+      ).toJson());
+      await model.fetchInitial();
+      checkNotifiedOnce();
+      check(model)
+        ..messages.length.equals(111)
+        ..haveOldest.isTrue()
+        ..haveNewest.isFalse();
     });
 
     test('no messages found', () async {
