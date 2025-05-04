@@ -66,9 +66,11 @@ class MessageListMessageItem extends MessageListMessageBaseItem {
 
 /// The status of outstanding or recent fetch requests from a [MessageListView].
 enum FetchingStatus {
-  /// The model hasn't successfully completed a `fetchInitial` request
-  /// (since its last reset, if any).
-  unfetched,
+  /// The model has not made any fetch requests (since its last reset, if any).
+  unstarted,
+
+  /// The model has made a `fetchInitial` request, which hasn't succeeded.
+  fetchInitial,
 
   /// The model made a successful `fetchInitial` request,
   /// and has no outstanding requests or backoff.
@@ -112,7 +114,10 @@ mixin _MessageSequence {
   ///
   /// This allows the UI to distinguish "still working on fetching messages"
   /// from "there are in fact no messages here".
-  bool get fetched => _status != FetchingStatus.unfetched;
+  bool get fetched => switch (_status) {
+    FetchingStatus.unstarted || FetchingStatus.fetchInitial => false,
+    _ => true,
+  };
 
   /// Whether we know we have the oldest messages for this narrow.
   ///
@@ -144,7 +149,7 @@ mixin _MessageSequence {
   /// See also [fetchingOlder].
   bool get fetchOlderCoolingDown => _status == FetchingStatus.fetchOlderCoolingDown;
 
-  FetchingStatus _status = FetchingStatus.unfetched;
+  FetchingStatus _status = FetchingStatus.unstarted;
 
   BackoffMachine? _fetchOlderCooldownBackoffMachine;
 
@@ -320,7 +325,7 @@ mixin _MessageSequence {
     messages.clear();
     middleMessage = 0;
     _haveOldest = false;
-    _status = FetchingStatus.unfetched;
+    _status = FetchingStatus.unstarted;
     _fetchOlderCooldownBackoffMachine = null;
     contents.clear();
     items.clear();
@@ -534,7 +539,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     // TODO(#82): fetch from a given message ID as anchor
     assert(!fetched && !haveOldest && !fetchingOlder && !fetchOlderCoolingDown);
     assert(messages.isEmpty && contents.isEmpty);
-    assert(_status == FetchingStatus.unfetched);
+    assert(_status == FetchingStatus.unstarted);
+    _status = FetchingStatus.fetchInitial;
     // TODO schedule all this in another isolate
     final generation = this.generation;
     final result = await getMessages(store.connection,
@@ -558,7 +564,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       _addMessage(message);
       // Now [middleMessage] is the last message (the one just added).
     }
-    assert(_status == FetchingStatus.unfetched);
+    assert(_status == FetchingStatus.fetchInitial);
     _status = FetchingStatus.idle;
     _haveOldest = result.foundOldest;
     notifyListeners();
