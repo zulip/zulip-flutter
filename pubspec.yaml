@@ -42,6 +42,7 @@ dependencies:
   csslib: ^1.0.2
   device_info_plus: ^11.2.0
   drift: ^2.23.0
+  diacritic: ^0.1.6
   file_picker: ^10.1.2
   firebase_core: ^3.3.0
   firebase_messaging: ^15.0.1
