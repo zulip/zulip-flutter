@@ -115,9 +115,11 @@ void main() {
       .controller.isNotNull().value.text.equals(expected);
   }
 
+  final sendButtonFinder = find.byIcon(ZulipIcons.send);
+
   Future<void> tapSendButton(WidgetTester tester) async {
     connection.prepare(json: SendMessageResult(id: 123).toJson());
-    await tester.tap(find.byIcon(ZulipIcons.send));
+    await tester.tap(sendButtonFinder);
     await tester.pump(Duration.zero);
   }
 
@@ -690,7 +692,7 @@ void main() {
 
       connection.prepare(json: {});
       connection.prepare(json: SendMessageResult(id: 123).toJson());
-      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.tap(sendButtonFinder);
       await tester.pump(Duration.zero);
       final requests = connection.takeRequests();
       checkSetTypingStatusRequests([requests.first], [(TypingOp.stop, narrow)]);
@@ -854,7 +856,7 @@ void main() {
 
       await enterTopic(tester, narrow: narrow, topic: topicInputText);
       await tester.enterText(contentInputFinder, 'test content');
-      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.tap(sendButtonFinder);
       await tester.pump();
     }
 
@@ -911,7 +913,7 @@ void main() {
   group('uploads', () {
     void checkAppearsLoading(WidgetTester tester, bool expected) {
       final sendButtonElement = tester.element(find.ancestor(
-        of: find.byIcon(ZulipIcons.send),
+        of: sendButtonFinder,
         matching: find.byType(IconButton)));
       final sendButtonWidget = sendButtonElement.widget as IconButton;
       final designVariables = DesignVariables.of(sendButtonElement);
