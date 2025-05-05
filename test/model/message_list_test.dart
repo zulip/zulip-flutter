@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/backoff.dart';
@@ -27,6 +28,24 @@ const newestResult = eg.newestGetMessagesResult;
 const olderResult = eg.olderGetMessagesResult;
 
 void main() {
+  // Arrange for errors caught within the Flutter framework to be printed
+  // unconditionally, rather than throttled as they normally are in an app.
+  //
+  // When using `testWidgets` from flutter_test, this is done automatically;
+  // compare the [FlutterError.dumpErrorToConsole] call sites,
+  // and [FlutterError.onError=] and [debugPrint=] call sites, in flutter_test.
+  //
+  // This test file is unusual in needing this manual arrangement; it's needed
+  // because these aren't widget tests, and yet do have some failures arise as
+  // exceptions that get caught by the framework: namely, when [checkInvariants]
+  // throws from within an `addListener` callback.  Those exceptions get caught
+  // by [ChangeNotifier.notifyListeners] and reported there through
+  // [FlutterError.reportError].
+  debugPrint = debugPrintSynchronously;
+  FlutterError.onError = (details) {
+    FlutterError.dumpErrorToConsole(details, forceReport: true);
+  };
+
   // These variables are the common state operated on by each test.
   // Each test case calls [prepare] to initialize them.
   late Subscription subscription;
