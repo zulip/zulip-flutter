@@ -122,11 +122,11 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get actionSheetOptionQuoteAndReply => 'Цитата і відповідь';
 
   @override
-  String get actionSheetOptionStarMessage => 'Позначити повідомлення зірочкою';
+  String get actionSheetOptionStarMessage => 'Вибрати повідомлення';
 
   @override
   String get actionSheetOptionUnstarMessage =>
-      'Зняти позначку зірочки з повідомлення';
+      'Зняти позначку зірки з повідомлення';
 
   @override
   String get actionSheetOptionMarkTopicAsRead => 'Позначити тему як прочитану';
@@ -264,11 +264,11 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
 
   @override
   String get errorStarMessageFailedTitle =>
-      'Не вдалося позначити повідомлення зірочкою';
+      'Не вдалося позначити повідомлення зіркою';
 
   @override
   String get errorUnstarMessageFailedTitle =>
-      'Не вдалося зняти позначку зірочки з повідомлення';
+      'Не вдалося зняти позначку зірки з повідомлення';
 
   @override
   String get successLinkCopied => 'Посилання скопійовано';
@@ -306,7 +306,7 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   }
 
   @override
-  String get composeBoxGroupDmContentHint => 'Група повідомлень';
+  String get composeBoxGroupDmContentHint => 'Написати групі';
 
   @override
   String get composeBoxSelfDmContentHint => 'Занотувати щось';
@@ -577,13 +577,13 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get recentDmConversationsSectionHeader => 'Особисті повідомлення';
 
   @override
-  String get combinedFeedPageTitle => 'Комбінована стрічка';
+  String get combinedFeedPageTitle => 'Об\'єднана стрічка';
 
   @override
   String get mentionsPageTitle => 'Згадки';
 
   @override
-  String get starredMessagesPageTitle => 'Повідомлення, позначені зірочкою';
+  String get starredMessagesPageTitle => 'Вибрані повідомлення';
 
   @override
   String get channelsPageTitle => 'Канали';
