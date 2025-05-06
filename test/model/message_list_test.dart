@@ -2006,6 +2006,9 @@ void checkInvariants(MessageListView model) {
   check(model).middleItem
     ..isGreaterOrEqual(0)
     ..isLessOrEqual(model.items.length);
+  if (model.middleItem < model.items.length) {
+    check(model.items[model.middleItem]).isA<MessageListMessageItem>();
+  }
 }
 
 extension MessageListRecipientHeaderItemChecks on Subject<MessageListRecipientHeaderItem> {

@@ -161,7 +161,28 @@ mixin _MessageSequence {
   ///
   /// The indices 0 to before [middleItem] are the top slice of [items],
   /// and the indices from [middleItem] to the end are the bottom slice.
-  int get middleItem => items.isEmpty ? 0 : items.length - 1;
+  ///
+  /// If the bottom slice is not empty,
+  /// then its first item is a [MessageListMessageItem].
+  int get middleItem {
+    switch (items.lastOrNull) {
+      case null:
+        return 0;
+
+      case MessageListHistoryStartItem():
+        assert(items.length == 1);
+        return items.length;
+
+      case MessageListMessageItem():
+        return items.length - 1;
+
+      case MessageListLoadingItem(direction: MessageListDirection.older):
+      case MessageListRecipientHeaderItem():
+      case MessageListDateSeparatorItem():
+        assert(false, "unexpected type of last item");
+        return items.length - 1;
+    }
+  }
 
   int _findMessageWithId(int messageId) {
     return binarySearchByKey(messages, messageId,
