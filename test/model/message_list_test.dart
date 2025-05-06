@@ -1960,6 +1960,10 @@ void checkInvariants(MessageListView model) {
   check(isSortedWithoutDuplicates(model.messages.map((m) => m.id).toList()))
     .isTrue();
 
+  check(model).middleMessage
+    ..isGreaterOrEqual(0)
+    ..isLessOrEqual(model.messages.length);
+
   check(model).contents.length.equals(model.messages.length);
   for (int i = 0; i < model.contents.length; i++) {
     final poll = model.messages[i].poll;
@@ -2001,6 +2005,12 @@ void checkInvariants(MessageListView model) {
   check(model).middleItem
     ..isGreaterOrEqual(0)
     ..isLessOrEqual(model.items.length);
+  if (model.middleItem == model.items.length) {
+    check(model.middleMessage).equals(model.messages.length);
+  } else {
+    check(model.items[model.middleItem]).isA<MessageListMessageItem>()
+      .message.identicalTo(model.messages[model.middleMessage]);
+  }
 }
 
 extension MessageListRecipientHeaderItemChecks on Subject<MessageListRecipientHeaderItem> {
@@ -2026,6 +2036,7 @@ extension MessageListViewChecks on Subject<MessageListView> {
   Subject<PerAccountStore> get store => has((x) => x.store, 'store');
   Subject<Narrow> get narrow => has((x) => x.narrow, 'narrow');
   Subject<List<Message>> get messages => has((x) => x.messages, 'messages');
+  Subject<int> get middleMessage => has((x) => x.middleMessage, 'middleMessage');
   Subject<List<ZulipMessageContent>> get contents => has((x) => x.contents, 'contents');
   Subject<List<MessageListItem>> get items => has((x) => x.items, 'items');
   Subject<int> get middleItem => has((x) => x.middleItem, 'middleItem');
