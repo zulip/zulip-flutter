@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -449,7 +450,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     required PerAccountStore store,
     required Narrow narrow,
   }) {
-    return store.allUsers.toList()
+    return store.allUsers.whereNot((user) => store.isUserMuted(user.userId)).toList()
       ..sort(_comparator(store: store, narrow: narrow));
   }
 

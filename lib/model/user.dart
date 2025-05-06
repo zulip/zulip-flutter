@@ -1,6 +1,7 @@
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
+import 'algorithms.dart';
 import 'localizations.dart';
 import 'store.dart';
 
@@ -66,6 +67,9 @@ mixin UserStore on PerAccountStoreBase {
     return getUser(message.senderId)?.fullName
       ?? message.senderFullName;
   }
+
+  /// Whether the user with the given [id] is muted by [selfUser].
+  bool isUserMuted(int id);
 }
 
 /// The implementation of [UserStore] that does the work.
@@ -81,15 +85,30 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
          initialSnapshot.realmUsers
          .followedBy(initialSnapshot.realmNonActiveUsers)
          .followedBy(initialSnapshot.crossRealmBots)
-         .map((user) => MapEntry(user.userId, user)));
+         .map((user) => MapEntry(user.userId, user))),
+       _mutedUsers = initialSnapshot.mutedUsers,
+       _mutedUsersSorted = _sortMutedUsers(initialSnapshot.mutedUsers);
 
   final Map<int, User> _users;
+
+  // Currently we don't need this, but we would need it if we wanted to display
+  // muted users in the order of server.
+  // ignore: unused_field
+  List<MutedUserItem> _mutedUsers;
+
+  List<MutedUserItem> _mutedUsersSorted;
 
   @override
   User? getUser(int userId) => _users[userId];
 
   @override
   Iterable<User> get allUsers => _users.values;
+
+  @override
+  bool isUserMuted(int id) {
+    return binarySearchByKey(_mutedUsersSorted, id,
+      (item, id) => item.id.compareTo(id)) >= 0;
+  }
 
   void handleRealmUserEvent(RealmUserEvent event) {
     switch (event) {
@@ -128,5 +147,14 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
           }
         }
     }
+  }
+
+  void handleMutedUsersEvent(MutedUsersEvent event) {
+    _mutedUsers = event.mutedUsers;
+    _mutedUsersSorted = _sortMutedUsers(event.mutedUsers);
+  }
+
+  static List<MutedUserItem> _sortMutedUsers(List<MutedUserItem> mutedUsers) {
+    return mutedUsers..sort((a, b) => a.id.compareTo(b.id));
   }
 }

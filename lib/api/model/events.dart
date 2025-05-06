@@ -55,6 +55,7 @@ sealed class Event {
         }
       // case 'muted_topics': … // TODO(#422) we ignore this feature on older servers
       case 'user_topic': return UserTopicEvent.fromJson(json);
+      case 'muted_users': return MutedUsersEvent.fromJson(json);
       case 'message': return MessageEvent.fromJson(json);
       case 'update_message': return UpdateMessageEvent.fromJson(json);
       case 'delete_message': return DeleteMessageEvent.fromJson(json);
@@ -662,6 +663,24 @@ class UserTopicEvent extends Event {
 
   @override
   Map<String, dynamic> toJson() => _$UserTopicEventToJson(this);
+}
+
+/// A Zulip event of type `muted_users`: https://zulip.com/api/get-events#muted_users
+@JsonSerializable(fieldRename: FieldRename.snake)
+class MutedUsersEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'muted_users';
+
+  final List<MutedUserItem> mutedUsers;
+
+  MutedUsersEvent({required super.id, required this.mutedUsers});
+
+  factory MutedUsersEvent.fromJson(Map<String, dynamic> json) =>
+    _$MutedUsersEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$MutedUsersEventToJson(this);
 }
 
 /// A Zulip event of type `message`: https://zulip.com/api/get-events#message

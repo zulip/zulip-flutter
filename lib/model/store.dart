@@ -464,6 +464,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       accountId: accountId,
       selfUserId: account.userId,
     );
+    final users = UserStoreImpl(core: core, initialSnapshot: initialSnapshot);
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       core: core,
@@ -487,7 +488,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         typingStartedWaitPeriod: Duration(
           milliseconds: initialSnapshot.serverTypingStartedWaitPeriodMilliseconds),
       ),
-      users: UserStoreImpl(core: core, initialSnapshot: initialSnapshot),
+      users: users,
       typingStatus: TypingStatus(core: core,
         typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
       ),
@@ -498,8 +499,11 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         core: core,
         channelStore: channels,
       ),
-      recentDmConversationsView: RecentDmConversationsView(core: core,
-        initial: initialSnapshot.recentPrivateConversations),
+      recentDmConversationsView: RecentDmConversationsView(
+        initial: initialSnapshot.recentPrivateConversations,
+        core: core,
+        userStore: users,
+      ),
       recentSenders: RecentSenders(),
     );
   }
@@ -629,6 +633,9 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
 
   @override
   Iterable<User> get allUsers => _users.allUsers;
+
+  @override
+  bool isUserMuted(int id) => _users.isUserMuted(id);
 
   final UserStoreImpl _users;
 
@@ -881,6 +888,11 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         _messages.handleUserTopicEvent(event);
         // Update _channels last, so other handlers can compare to the old value.
         _channels.handleUserTopicEvent(event);
+        notifyListeners();
+
+      case MutedUsersEvent():
+        assert(debugLog("server event: muted_users"));
+        _users.handleMutedUsersEvent(event);
         notifyListeners();
 
       case MessageEvent():

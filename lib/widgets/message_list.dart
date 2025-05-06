@@ -423,7 +423,10 @@ class MessageListAppBarTitle extends StatelessWidget {
         if (otherRecipientIds.isEmpty) {
           return Text(zulipLocalizations.dmsWithYourselfPageTitle);
         } else {
-          final names = otherRecipientIds.map(store.userDisplayName);
+          final names = otherRecipientIds.map((id) =>
+            store.isUserMuted(id)
+              ? zulipLocalizations.mutedUser
+              : store.userDisplayName(id));
           // TODO show avatars
           return Text(
             zulipLocalizations.dmsWithOthersPageTitle(names.join(', ')));
@@ -1221,7 +1224,9 @@ class DmRecipientHeader extends StatelessWidget {
       title = zulipLocalizations.messageListGroupYouAndOthers(
         message.conversation.allRecipientIds
           .where((id) => id != store.selfUserId)
-          .map(store.userDisplayName)
+          .map((id) => store.isUserMuted(id)
+            ? zulipLocalizations.mutedUser
+            : store.userDisplayName(id))
           .sorted()
           .join(", "));
     } else {
@@ -1252,7 +1257,7 @@ class DmRecipientHeader extends StatelessWidget {
                 child: Icon(
                   color: designVariables.title,
                   size: 16,
-                  ZulipIcons.user)),
+                  ZulipIcons.two_person)),
               Expanded(
                 child: Text(title,
                   style: recipientHeaderTextStyle(context),
@@ -1363,22 +1368,53 @@ String formatHeaderDate(
 // Design referenced from:
 //   - https://github.com/zulip/zulip-mobile/issues/5511
 //   - https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
-class MessageWithPossibleSender extends StatelessWidget {
+//   - https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6089-28385&t=zjBHYbg3XaDaMLB3-0
+class MessageWithPossibleSender extends StatefulWidget {
   const MessageWithPossibleSender({super.key, required this.item});
 
   final MessageListMessageItem item;
 
   @override
+  State<MessageWithPossibleSender> createState() => _MessageWithPossibleSenderState();
+}
+
+class _MessageWithPossibleSenderState extends State<MessageWithPossibleSender> {
+  late PerAccountStore store;
+  late final Message message;
+  late bool showAsMuted;
+
+  @override
+  void initState() {
+    super.initState();
+    message = widget.item.message;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    store = PerAccountStoreWidget.of(context);
+    showAsMuted = store.isUserMuted(message.senderId);
+  }
+
+  void changeMuteStatus(bool newValue) {
+    setState(() {
+      showAsMuted = newValue;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final localizations = ZulipLocalizations.of(context);
     final messageListTheme = MessageListTheme.of(context);
     final designVariables = DesignVariables.of(context);
 
-    final message = item.message;
     final sender = store.getUser(message.senderId);
 
     Widget? senderRow;
-    if (item.showSender) {
+    if (widget.item.showSender) {
+      final senderName = showAsMuted
+        ? localizations.mutedSender
+        : message.senderFullName; // TODO(#716): use `store.senderDisplayName`
       final time = _kMessageTimestampFormat
         .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
       senderRow = Row(
@@ -1388,20 +1424,21 @@ class MessageWithPossibleSender extends StatelessWidget {
         children: [
           Flexible(
             child: GestureDetector(
-              onTap: () => Navigator.push(context,
+              onTap: showAsMuted ? null : () => Navigator.push(context,
                 ProfilePage.buildRoute(context: context,
                   userId: message.senderId)),
               child: Row(
                 children: [
                   Avatar(size: 32, borderRadius: 3,
-                    userId: message.senderId),
+                    userId: message.senderId, showAsMuted: showAsMuted),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text(message.senderFullName, // TODO(#716): use `store.senderDisplayName`
+                    child: Text(senderName,
                       style: TextStyle(
                         fontSize: 18,
                         height: (22 / 18),
-                        color: designVariables.title,
+                        color: designVariables.title.withFadedAlpha(
+                          showAsMuted ? 0.5 : 1),
                       ).merge(weightVariableTextStyle(context, wght: 600)),
                       overflow: TextOverflow.ellipsis)),
                   if (sender?.isBot ?? false) ...[
@@ -1424,7 +1461,6 @@ class MessageWithPossibleSender extends StatelessWidget {
         ]);
     }
 
-    final localizations = ZulipLocalizations.of(context);
     String? editStateText;
     switch (message.editState) {
       case MessageEditState.edited:
@@ -1445,40 +1481,103 @@ class MessageWithPossibleSender extends StatelessWidget {
         child: Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star));
     }
 
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onLongPress: () => showMessageActionSheet(context: context, message: message),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(children: [
-          if (senderRow != null)
-            Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
-              child: senderRow),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: localizedTextBaseline(context),
-            children: [
-              const SizedBox(width: 16),
-              Expanded(child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  MessageContent(message: message, content: item.content),
-                  if ((message.reactions?.total ?? 0) > 0)
-                    ReactionChipsList(messageId: message.id, reactions: message.reactions!),
-                  if (editStateText != null)
-                    Text(editStateText,
-                      textAlign: TextAlign.end,
-                      style: TextStyle(
-                        color: designVariables.labelEdited,
-                        fontSize: 12,
-                        height: (12 / 12),
-                        letterSpacing: proportionalLetterSpacing(
-                          context, 0.05, baseFontSize: 12))),
-                ])),
-              SizedBox(width: 16,
-                child: star),
-            ]),
-        ])));
+    Widget? revealButton;
+    if (showAsMuted) {
+      revealButton = TextButton.icon(
+        onPressed: () {
+          changeMuteStatus(false);
+        },
+        style: TextButton.styleFrom(
+          minimumSize: Size.zero,
+          padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+          splashFactory: NoSplash.splashFactory,
+        ).copyWith(
+          backgroundColor: WidgetStateColor.fromMap({
+            WidgetState.pressed: designVariables.neutralButtonBg,
+            ~WidgetState.pressed: designVariables.neutralButtonBg
+              .withFadedAlpha(0),
+          }),
+          foregroundColor: WidgetStateColor.fromMap({
+            WidgetState.pressed: designVariables.neutralButtonLabel,
+            ~WidgetState.pressed: designVariables.neutralButtonLabel
+              .withFadedAlpha(0.85),
+          }),
+        ),
+        icon: Icon(ZulipIcons.eye),
+        label: Text(localizations.revealButtonLabel,
+          style: TextStyle(fontSize: 16, height: 1)
+            .merge(weightVariableTextStyle(context, wght: 600))));
+    }
+
+    return PossibleMutedMessage(
+      changeMuteStatus: changeMuteStatus,
+      child: Builder(
+        builder: (context) {
+          return GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onLongPress: showAsMuted
+              ? null
+              : () => showMessageActionSheet(context: context, message: message),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Column(children: [
+                if (senderRow != null)
+                  Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
+                    child: senderRow),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: localizedTextBaseline(context),
+                  children: [
+                    const SizedBox(width: 16),
+                    if (showAsMuted)
+                      Padding(padding: const EdgeInsets.symmetric(vertical: 2.0),
+                        child: revealButton)
+                    else
+                      ...[
+                        Expanded(child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            MessageContent(message: message, content: widget.item.content),
+                            if ((message.reactions?.total ?? 0) > 0)
+                              ReactionChipsList(messageId: message.id, reactions: message.reactions!),
+                            if (editStateText != null)
+                              Text(editStateText,
+                                textAlign: TextAlign.end,
+                                style: TextStyle(
+                                  color: designVariables.labelEdited,
+                                  fontSize: 12,
+                                  height: (12 / 12),
+                                  letterSpacing: proportionalLetterSpacing(
+                                    context, 0.05, baseFontSize: 12))),
+                          ])),
+                        SizedBox(width: 16, child: star),
+                      ],
+                  ]),
+              ])));
+        }
+      ),
+    );
+  }
+}
+
+class PossibleMutedMessage extends InheritedWidget {
+  const PossibleMutedMessage({
+    super.key,
+    required this.changeMuteStatus,
+    required super.child,
+  });
+
+  final ValueChanged<bool> changeMuteStatus;
+
+  @override
+  bool updateShouldNotify(covariant PossibleMutedMessage oldWidget) => false;
+
+  static PossibleMutedMessage of(BuildContext context) {
+    final value = context.getInheritedWidgetOfExactType<PossibleMutedMessage>();
+    assert(value != null, 'No PossibleMutedMessage ancestor');
+    return value!;
   }
 }
 
