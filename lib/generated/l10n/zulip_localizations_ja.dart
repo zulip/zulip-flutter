@@ -141,7 +141,7 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get errorCouldNotFetchMessageSource =>
-      'Could not fetch message source';
+      'Could not fetch message source.';
 
   @override
   String get errorCopyingFailed => 'Copying failed';
@@ -459,7 +459,7 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   }
 
   @override
-  String get errorInvalidResponse => 'The server sent an invalid response';
+  String get errorInvalidResponse => 'The server sent an invalid response.';
 
   @override
   String get errorNetworkRequestFailed => 'Network request failed';
@@ -480,7 +480,7 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   }
 
   @override
-  String get errorVideoPlayerFailed => 'Unable to play the video';
+  String get errorVideoPlayerFailed => 'Unable to play the video.';
 
   @override
   String get serverUrlValidationErrorEmpty => 'Please enter a URL.';
