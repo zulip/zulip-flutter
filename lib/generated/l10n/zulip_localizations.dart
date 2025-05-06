@@ -359,7 +359,7 @@ abstract class ZulipLocalizations {
   /// Error message when the source of a message could not be fetched.
   ///
   /// In en, this message translates to:
-  /// **'Could not fetch message source'**
+  /// **'Could not fetch message source.'**
   String get errorCouldNotFetchMessageSource;
 
   /// Error message when copying the text of a message to the user's system clipboard failed.
@@ -863,7 +863,7 @@ abstract class ZulipLocalizations {
   /// Error message when an API call returned an invalid response.
   ///
   /// In en, this message translates to:
-  /// **'The server sent an invalid response'**
+  /// **'The server sent an invalid response.'**
   String get errorInvalidResponse;
 
   /// Error message when a network request fails.
@@ -893,7 +893,7 @@ abstract class ZulipLocalizations {
   /// Error message when a video fails to play.
   ///
   /// In en, this message translates to:
-  /// **'Unable to play the video'**
+  /// **'Unable to play the video.'**
   String get errorVideoPlayerFailed;
 
   /// Error message when URL is empty
