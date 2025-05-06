@@ -76,8 +76,19 @@ mixin _MessageSequence {
   /// conceptually belongs in this message list.
   /// That information is expressed in [fetched] and [haveOldest].
   ///
+  /// See also [middleMessage], an index which divides this list
+  /// into a top slice and a bottom slice.
+  ///
   /// See also [contents] and [items].
   final List<Message> messages = [];
+
+  /// An index into [messages] dividing it into a top slice and a bottom slice.
+  ///
+  /// The indices 0 to before [middleMessage] are the top slice of [messages],
+  /// and the indices from [middleMessage] to the end are the bottom slice.
+  ///
+  /// The corresponding item index is [middleItem].
+  int get middleMessage => messages.isEmpty ? 0 : messages.length - 1;
 
   /// Whether [messages] and [items] represent the results of a fetch.
   ///
@@ -146,6 +157,12 @@ mixin _MessageSequence {
   ///
   /// The indices 0 to before [middleItem] are the top slice of [items],
   /// and the indices from [middleItem] to the end are the bottom slice.
+  ///
+  /// The top and bottom slices of [items] correspond to
+  /// the top and bottom slices of [messages] respectively.
+  /// Either the bottom slices of both [items] and [messages] are empty,
+  /// or the first item in the bottom slice of [items] is a [MessageListMessageItem]
+  /// for the first message in the bottom slice of [messages].
   int get middleItem => items.isEmpty ? 0 : items.length - 1;
 
   int _findMessageWithId(int messageId) {
