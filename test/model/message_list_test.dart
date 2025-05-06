@@ -116,6 +116,14 @@ void main() {
       });
   }
 
+  void checkHasMessageIds(Iterable<int> messageIds) {
+    check(model.messages.map((m) => m.id)).deepEquals(messageIds);
+  }
+
+  void checkHasMessages(Iterable<Message> messages) {
+    checkHasMessageIds(messages.map((e) => e.id));
+  }
+
   group('fetchInitial', () {
     final someChannel = eg.stream();
     const someTopic = 'some topic';
@@ -439,10 +447,6 @@ void main() {
       await setVisibility(policy);
     }
 
-    void checkHasMessageIds(Iterable<int> messageIds) {
-      check(model.messages.map((m) => m.id)).deepEquals(messageIds);
-    }
-
     test('mute a visible topic', () async {
       await prepare(narrow: const CombinedFeedNarrow());
       await prepareMutes();
@@ -643,11 +647,11 @@ void main() {
       check(model).messages.length.equals(30);
       await store.handleEvent(eg.deleteMessageEvent(messagesToDelete));
       checkNotifiedOnce();
-      check(model.messages.map((message) => message.id)).deepEquals([
+      checkHasMessages([
         ...messages.sublist(0, 2),
         ...messages.sublist(5, 10),
         ...messages.sublist(15),
-      ].map((message) => message.id));
+      ]);
     });
   });
 
@@ -749,10 +753,6 @@ void main() {
   group('messagesMoved', () {
     final stream = eg.stream();
     final otherStream = eg.stream();
-
-    void checkHasMessages(Iterable<Message> messages) {
-      check(model.messages.map((e) => e.id)).deepEquals(messages.map((e) => e.id));
-    }
 
     Future<void> prepareNarrow(Narrow narrow, List<Message>? messages) async {
       await prepare(narrow: narrow);
@@ -1457,8 +1457,7 @@ void main() {
         eg.dmMessage(    id: 205, from: eg.otherUser, to: [eg.selfUser]),
       ]);
       final expected = <int>[];
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..addAll([201, 203, 205]));
+      checkHasMessageIds(expected..addAll([201, 203, 205]));
 
       // … and on fetchOlder…
       connection.prepare(json: olderResult(
@@ -1471,34 +1470,33 @@ void main() {
         ]).toJson());
       await model.fetchOlder();
       checkNotified(count: 2);
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..insertAll(0, [101, 103, 105]));
+      checkHasMessageIds(expected..insertAll(0, [101, 103, 105]));
 
       // … and on MessageEvent.
       await store.addMessage(
         eg.streamMessage(id: 301, stream: stream1, topic: 'A'));
       checkNotifiedOnce();
-      check(model.messages.map((m) => m.id)).deepEquals(expected..add(301));
+      checkHasMessageIds(expected..add(301));
 
       await store.addMessage(
         eg.streamMessage(id: 302, stream: stream1, topic: 'B'));
       checkNotNotified();
-      check(model.messages.map((m) => m.id)).deepEquals(expected);
+      checkHasMessageIds(expected);
 
       await store.addMessage(
         eg.streamMessage(id: 303, stream: stream2, topic: 'C'));
       checkNotifiedOnce();
-      check(model.messages.map((m) => m.id)).deepEquals(expected..add(303));
+      checkHasMessageIds(expected..add(303));
 
       await store.addMessage(
         eg.streamMessage(id: 304, stream: stream2, topic: 'D'));
       checkNotNotified();
-      check(model.messages.map((m) => m.id)).deepEquals(expected);
+      checkHasMessageIds(expected);
 
       await store.addMessage(
         eg.dmMessage(id: 305, from: eg.otherUser, to: [eg.selfUser]));
       checkNotifiedOnce();
-      check(model.messages.map((m) => m.id)).deepEquals(expected..add(305));
+      checkHasMessageIds(expected..add(305));
     });
 
     test('in ChannelNarrow', () async {
@@ -1516,8 +1514,7 @@ void main() {
         eg.streamMessage(id: 203, stream: stream, topic: 'C'),
       ]);
       final expected = <int>[];
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..addAll([201, 202]));
+      checkHasMessageIds(expected..addAll([201, 202]));
 
       // … and on fetchOlder…
       connection.prepare(json: olderResult(
@@ -1528,24 +1525,23 @@ void main() {
         ]).toJson());
       await model.fetchOlder();
       checkNotified(count: 2);
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..insertAll(0, [101, 102]));
+      checkHasMessageIds(expected..insertAll(0, [101, 102]));
 
       // … and on MessageEvent.
       await store.addMessage(
         eg.streamMessage(id: 301, stream: stream, topic: 'A'));
       checkNotifiedOnce();
-      check(model.messages.map((m) => m.id)).deepEquals(expected..add(301));
+      checkHasMessageIds(expected..add(301));
 
       await store.addMessage(
         eg.streamMessage(id: 302, stream: stream, topic: 'B'));
       checkNotifiedOnce();
-      check(model.messages.map((m) => m.id)).deepEquals(expected..add(302));
+      checkHasMessageIds(expected..add(302));
 
       await store.addMessage(
         eg.streamMessage(id: 303, stream: stream, topic: 'C'));
       checkNotNotified();
-      check(model.messages.map((m) => m.id)).deepEquals(expected);
+      checkHasMessageIds(expected);
     });
 
     test('in TopicNarrow', () async {
@@ -1560,8 +1556,7 @@ void main() {
         eg.streamMessage(id: 201, stream: stream, topic: 'A'),
       ]);
       final expected = <int>[];
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..addAll([201]));
+      checkHasMessageIds(expected..addAll([201]));
 
       // … and on fetchOlder…
       connection.prepare(json: olderResult(
@@ -1570,14 +1565,13 @@ void main() {
         ]).toJson());
       await model.fetchOlder();
       checkNotified(count: 2);
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..insertAll(0, [101]));
+      checkHasMessageIds(expected..insertAll(0, [101]));
 
       // … and on MessageEvent.
       await store.addMessage(
         eg.streamMessage(id: 301, stream: stream, topic: 'A'));
       checkNotifiedOnce();
-      check(model.messages.map((m) => m.id)).deepEquals(expected..add(301));
+      checkHasMessageIds(expected..add(301));
     });
 
     test('in MentionsNarrow', () async {
@@ -1600,23 +1594,21 @@ void main() {
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: getMessages(201));
       final expected = <int>[];
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..addAll([201, 202, 203]));
+      checkHasMessageIds(expected..addAll([201, 202, 203]));
 
       // … and on fetchOlder…
       connection.prepare(json: olderResult(
         anchor: 201, foundOldest: true, messages: getMessages(101)).toJson());
       await model.fetchOlder();
       checkNotified(count: 2);
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..insertAll(0, [101, 102, 103]));
+      checkHasMessageIds(expected..insertAll(0, [101, 102, 103]));
 
       // … and on MessageEvent.
       final messages = getMessages(301);
       for (var i = 0; i < 3; i += 1) {
         await store.addMessage(messages[i]);
         checkNotifiedOnce();
-        check(model.messages.map((m) => m.id)).deepEquals(expected..add(301 + i));
+        checkHasMessageIds(expected..add(301 + i));
       }
     });
 
@@ -1638,23 +1630,21 @@ void main() {
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: getMessages(201));
       final expected = <int>[];
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..addAll([201, 202]));
+      checkHasMessageIds(expected..addAll([201, 202]));
 
       // … and on fetchOlder…
       connection.prepare(json: olderResult(
         anchor: 201, foundOldest: true, messages: getMessages(101)).toJson());
       await model.fetchOlder();
       checkNotified(count: 2);
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..insertAll(0, [101, 102]));
+      checkHasMessageIds(expected..insertAll(0, [101, 102]));
 
       // … and on MessageEvent.
       final messages = getMessages(301);
       for (var i = 0; i < 2; i += 1) {
         await store.addMessage(messages[i]);
         checkNotifiedOnce();
-        check(model.messages.map((m) => m.id)).deepEquals(expected..add(301 + i));
+        checkHasMessageIds(expected..add(301 + i));
       }
     });
   });
