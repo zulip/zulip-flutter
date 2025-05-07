@@ -343,7 +343,7 @@ void main() {
 
     test('results update after query change', () async {
       final store = prepare(
-        realmEmoji: {'1': 'happy'}, unicodeEmoji: {'1f642': ['smile']});
+        realmEmoji: {'1': 'happy'}, unicodeEmoji: {'1f516': ['bookmark']});
       final view = EmojiAutocompleteView.init(store: store,
         query: EmojiAutocompleteQuery('hap'));
       bool done = false;
@@ -354,11 +354,11 @@ void main() {
         isRealmResult(emojiName: 'happy'));
 
       done = false;
-      view.query = EmojiAutocompleteQuery('sm');
+      view.query = EmojiAutocompleteQuery('bo');
       await Future(() {});
       check(done).isTrue();
       check(view.results).single.which(
-        isUnicodeResult(names: ['smile']));
+        isUnicodeResult(names: ['bookmark']));
     });
 
     Future<Iterable<EmojiAutocompleteResult>> resultsOf(
