@@ -115,9 +115,7 @@ mixin EmojiStore {
   ///
   /// See description in the web code:
   ///   https://github.com/zulip/zulip/blob/83a121c7e/web/shared/src/typeahead.ts#L3-L21
-  Iterable<EmojiCandidate> popularEmojiCandidates() {
-    return EmojiStoreImpl._popularCandidates;
-  }
+  Iterable<EmojiCandidate> popularEmojiCandidates();
 
   Iterable<EmojiCandidate> allEmojiCandidates();
 
@@ -235,6 +233,11 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
       candidate(list[4], ['working_on_it', 'hammer_and_wrench', 'tools']),
       candidate(list[5], ['octopus']),
     ];
+  }
+
+  @override
+  Iterable<EmojiCandidate> popularEmojiCandidates() {
+    return _popularCandidates;
   }
 
   /// Codes for the popular emoji, in order; all are Unicode emoji.
