@@ -5,6 +5,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/message.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
@@ -727,7 +728,11 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         return MessageItem(
           key: ValueKey(data.message.id),
           header: header,
-          trailingWhitespace: 11,
+          item: data);
+      case MessageListOutboxMessageItem():
+        final header = RecipientHeader(message: data.message, narrow: widget.narrow);
+        return MessageItem(
+          header: header,
           item: data);
     }
   }
@@ -1001,28 +1006,33 @@ class MessageItem extends StatelessWidget {
     super.key,
     required this.item,
     required this.header,
-    this.trailingWhitespace,
   });
 
-  final MessageListMessageItem item;
+  final MessageListMessageBaseItem item;
   final Widget header;
-  final double? trailingWhitespace;
 
   @override
   Widget build(BuildContext context) {
-    final message = item.message;
     final messageListTheme = MessageListTheme.of(context);
+
+    final item = this.item;
+    Widget child = ColoredBox(
+      color: messageListTheme.bgMessageRegular,
+      child: Column(children: [
+        switch (item) {
+          MessageListMessageItem() => MessageWithPossibleSender(item: item),
+          MessageListOutboxMessageItem() => OutboxMessageWithPossibleSender(item: item),
+        },
+      ]));
+    if (item case MessageListMessageItem(:final message)) {
+      child = _UnreadMarker(
+        isRead: message.flags.contains(MessageFlag.read),
+        child: child);
+    }
     return StickyHeaderItem(
       allowOverflow: !item.isLastInBlock,
       header: header,
-      child: _UnreadMarker(
-        isRead: message.flags.contains(MessageFlag.read),
-        child: ColoredBox(
-          color: messageListTheme.bgMessageRegular,
-          child: Column(children: [
-            MessageWithPossibleSender(item: item),
-            if (trailingWhitespace != null && item.isLastInBlock) SizedBox(height: trailingWhitespace!),
-          ]))));
+      child: child);
   }
 }
 
@@ -1359,14 +1369,14 @@ String formatHeaderDate(
   }
 }
 
-/// A Zulip message, showing the sender's name and avatar if specified.
-// Design referenced from:
-//   - https://github.com/zulip/zulip-mobile/issues/5511
-//   - https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
-class MessageWithPossibleSender extends StatelessWidget {
-  const MessageWithPossibleSender({super.key, required this.item});
+// TODO(i18n): web seems to ignore locale in formatting time, but we could do better
+final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
 
-  final MessageListMessageItem item;
+class _SenderRow extends StatelessWidget {
+  const _SenderRow({required this.message, required this.showTimestamp});
+
+  final MessageBase message;
+  final bool showTimestamp;
 
   @override
   Widget build(BuildContext context) {
@@ -1374,14 +1384,12 @@ class MessageWithPossibleSender extends StatelessWidget {
     final messageListTheme = MessageListTheme.of(context);
     final designVariables = DesignVariables.of(context);
 
-    final message = item.message;
     final sender = store.getUser(message.senderId);
-
-    Widget? senderRow;
-    if (item.showSender) {
-      final time = _kMessageTimestampFormat
-        .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
-      senderRow = Row(
+    final time = _kMessageTimestampFormat
+      .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: localizedTextBaseline(context),
@@ -1397,7 +1405,9 @@ class MessageWithPossibleSender extends StatelessWidget {
                     userId: message.senderId),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text(message.senderFullName, // TODO(#716): use `store.senderDisplayName`
+                    child: Text(message is Message
+                        ? store.senderDisplayName(message as Message)
+                        : store.userDisplayName(message.senderId),
                       style: TextStyle(
                         fontSize: 18,
                         height: (22 / 18),
@@ -1413,16 +1423,33 @@ class MessageWithPossibleSender extends StatelessWidget {
                     ),
                   ],
                 ]))),
-          const SizedBox(width: 4),
-          Text(time,
-            style: TextStyle(
-              color: messageListTheme.labelTime,
-              fontSize: 16,
-              height: (18 / 16),
-              fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
-            ).merge(weightVariableTextStyle(context))),
-        ]);
-    }
+          if (showTimestamp) ...[
+            const SizedBox(width: 4),
+            Text(time,
+              style: TextStyle(
+                color: messageListTheme.labelTime,
+                fontSize: 16,
+                height: (18 / 16),
+                fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
+              ).merge(weightVariableTextStyle(context))),
+          ],
+        ]));
+  }
+}
+
+/// A Zulip message, showing the sender's name and avatar if specified.
+// Design referenced from:
+//   - https://github.com/zulip/zulip-mobile/issues/5511
+//   - https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
+class MessageWithPossibleSender extends StatelessWidget {
+  const MessageWithPossibleSender({super.key, required this.item});
+
+  final MessageListMessageItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final message = item.message;
 
     final localizations = ZulipLocalizations.of(context);
     String? editStateText;
@@ -1451,9 +1478,8 @@ class MessageWithPossibleSender extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Column(children: [
-          if (senderRow != null)
-            Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
-              child: senderRow),
+          if (item.showSender)
+            _SenderRow(message: message, showTimestamp: true),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: localizedTextBaseline(context),
@@ -1482,5 +1508,100 @@ class MessageWithPossibleSender extends StatelessWidget {
   }
 }
 
-// TODO(i18n): web seems to ignore locale in formatting time, but we could do better
-final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
+/// A placeholder for Zulip message sent by the self-user.
+///
+/// See also [OutboxMessage].
+class OutboxMessageWithPossibleSender extends StatelessWidget {
+  const OutboxMessageWithPossibleSender({super.key, required this.item});
+
+  final MessageListOutboxMessageItem item;
+
+  void _handlePress(BuildContext context) {
+    final content = item.message.content.endsWith('\n')
+      ? item.message.content : '${item.message.content}\n';
+
+    final composeBoxController =
+      MessageListPage.ancestorOf(context).composeBoxState!.controller;
+    composeBoxController.content.insertPadded(content);
+    if (!composeBoxController.contentFocusNode.hasFocus) {
+      composeBoxController.contentFocusNode.requestFocus();
+    }
+
+    if (composeBoxController case StreamComposeBoxController(:final topic)) {
+      final conversation = item.message.conversation;
+      if (conversation is StreamConversation) {
+        topic.setTopic(conversation.topic);
+      }
+    }
+
+    final store = PerAccountStoreWidget.of(context);
+    assert(store.outboxMessages.containsKey(item.message.localMessageId));
+    store.removeOutboxMessage(item.message.localMessageId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final isComposeBoxOffered =
+      MessageListPage.ancestorOf(context).composeBoxState != null;
+
+    final GestureTapCallback? handleTap;
+    final double opacity;
+    final Widget bottom;
+    switch (item.message.state) {
+      case OutboxMessageState.hidden:
+        assert(false,
+          'Hidden OutboxMessage messages should not appear in message lists');
+        handleTap = null;
+        opacity = 1.0;
+        bottom = SizedBox.shrink();
+
+      case OutboxMessageState.waiting:
+        handleTap = null;
+        opacity = 1.0;
+        bottom = LinearProgressIndicator(
+          minHeight: 2,
+          color: designVariables.foreground.withFadedAlpha(0.5),
+          backgroundColor: designVariables.foreground.withFadedAlpha(0.2));
+
+      case OutboxMessageState.failed:
+      case OutboxMessageState.waitPeriodExpired:
+        handleTap = isComposeBoxOffered ? () => _handlePress(context) : null;
+        opacity = 0.6;
+        bottom = Text(
+          zulipLocalizations.messageIsntSentLabel,
+          textAlign: TextAlign.end,
+          style: TextStyle(
+            color: designVariables.btnLabelAttLowIntDanger,
+            fontSize: 12,
+            height: 12 / 12,
+            letterSpacing: proportionalLetterSpacing(
+              context, 0.006, baseFontSize: 12),
+          ).merge(weightVariableTextStyle(context, wght: 400)));
+    }
+
+    return GestureDetector(
+      onTap: handleTap,
+      behavior: HitTestBehavior.opaque,
+      child: Opacity(opacity: opacity, child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(children: [
+          if (item.showSender)
+            _SenderRow(message: item.message, showTimestamp: false),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // This is adapated from [MessageContent].
+                // TODO(#576): Offer InheritedMessage ancestor once we are ready
+                //   to support local echoing images and lightbox.
+                DefaultTextStyle(
+                  style: ContentTheme.of(context).textStylePlainParagraph,
+                  child: BlockContentList(nodes: item.content.nodes)),
+
+                bottom,
+              ])),
+        ]))));
+  }
+}

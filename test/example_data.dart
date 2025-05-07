@@ -12,6 +12,7 @@ import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/database.dart';
+import 'package:zulip/model/message.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
@@ -67,6 +68,20 @@ ZulipApiException apiExceptionUnauthorized({String routeName = 'someRoute'}) {
     routeName: routeName,
     httpStatus: 401, code: 'UNAUTHORIZED',
     data: {}, message: 'Invalid API key');
+}
+
+////////////////////////////////////////////////////////////////
+// Time values.
+//
+
+final timeInPast = DateTime.utc(2025, 4, 1, 8, 30, 0);
+
+/// The UNIX timestamp, in UTC seconds.
+///
+/// This is the commonly used format in the Zulip API for timestamps.
+int utcTimestamp([DateTime? dateTime]) {
+  dateTime ??= timeInPast;
+  return dateTime.toUtc().millisecondsSinceEpoch ~/ 1000;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -470,7 +485,7 @@ StreamMessage streamMessage({
     'last_edit_timestamp': lastEditTimestamp,
     'subject': topic ?? _defaultTopic,
     'submessages': submessages ?? [],
-    'timestamp': timestamp ?? 1678139636,
+    'timestamp': timestamp ?? utcTimestamp(),
     'type': 'stream',
   }) as Map<String, dynamic>);
 }
@@ -511,7 +526,7 @@ DmMessage dmMessage({
     'last_edit_timestamp': lastEditTimestamp,
     'subject': '',
     'submessages': submessages ?? [],
-    'timestamp': timestamp ?? 1678139636,
+    'timestamp': timestamp ?? utcTimestamp(),
     'type': 'private',
   }) as Map<String, dynamic>);
 }
@@ -551,6 +566,44 @@ GetMessagesResult olderGetMessagesResult({
     historyLimited: historyLimited,
     messages: messages,
   );
+}
+
+int _nextLocalMessageId = 1;
+
+StreamOutboxMessage streamOutboxMessage({
+  int? localMessageId,
+  int? selfUserId,
+  int? timestamp,
+  ZulipStream? stream,
+  String? topic,
+  String? content,
+}) {
+  final effectiveStream = stream ?? _stream(streamId: defaultStreamMessageStreamId);
+  return StreamOutboxMessage(
+    localMessageId: localMessageId ?? _nextLocalMessageId++,
+    selfUserId: selfUserId ?? selfUser.userId,
+    timestamp: timestamp ?? utcTimestamp(),
+    conversation: StreamConversation(
+      effectiveStream.streamId, TopicName(topic ?? 'topic'),
+      displayRecipient: null,
+    ),
+    content: content ?? 'content');
+}
+
+DmOutboxMessage dmOutboxMessage({
+  int? localMessageId,
+  required User from,
+  required List<User> to,
+  int? timestamp,
+  String? content,
+}) {
+  final allRecipientIds = [from, ...to].map((user) => user.userId).toList();
+  return DmOutboxMessage(
+    localMessageId: localMessageId ?? _nextLocalMessageId++,
+    selfUserId: from.userId,
+    timestamp: timestamp ?? utcTimestamp(),
+    conversation: DmConversation(allRecipientIds: allRecipientIds),
+    content: content ?? 'content');
 }
 
 PollWidgetData pollWidgetData({
@@ -623,8 +676,8 @@ UserTopicEvent userTopicEvent(
   );
 }
 
-MessageEvent messageEvent(Message message) =>
-  MessageEvent(id: 0, message: message, localMessageId: null);
+MessageEvent messageEvent(Message message, {int? localMessageId}) =>
+  MessageEvent(id: 0, message: message, localMessageId: localMessageId?.toString());
 
 DeleteMessageEvent deleteMessageEvent(List<StreamMessage> messages) {
   assert(messages.isNotEmpty);
@@ -660,7 +713,7 @@ UpdateMessageEvent updateMessageEditEvent(
     messageId: messageId,
     messageIds: [messageId],
     flags: flags ?? origMessage.flags,
-    editTimestamp: editTimestamp ?? 1234567890, // TODO generate timestamp
+    editTimestamp: editTimestamp ?? utcTimestamp(),
     moveData: null,
     origContent: 'some probably-mismatched old Markdown',
     origRenderedContent: origMessage.content,
@@ -691,7 +744,7 @@ UpdateMessageEvent _updateMessageMoveEvent(
     messageId: messageIds.first,
     messageIds: messageIds,
     flags: flags,
-    editTimestamp: 1234567890, // TODO generate timestamp
+    editTimestamp: utcTimestamp(),
     moveData: UpdateMessageMoveData(
       origStreamId: origStreamId,
       newStreamId: newStreamId ?? origStreamId,

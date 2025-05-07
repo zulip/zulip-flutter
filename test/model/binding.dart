@@ -242,6 +242,9 @@ class TestZulipBinding extends ZulipBinding {
   }
 
   @override
+  DateTime utcNow() => clock.now().toUtc();
+
+  @override
   Stopwatch stopwatch() => clock.stopwatch();
 
   /// The value that `ZulipBinding.instance.deviceInfo` should return.
