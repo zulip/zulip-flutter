@@ -129,6 +129,28 @@ GetServerSettingsResult serverSettings({
   );
 }
 
+ServerEmojiData serverEmojiDataPopular = ServerEmojiData(codeToNames: {
+  '1f44d': ['+1', 'thumbs_up', 'like'],
+  '1f389': ['tada'],
+  '1f642': ['smile'],
+  '2764': ['heart', 'love', 'love_you'],
+  '1f6e0': ['working_on_it', 'hammer_and_wrench', 'tools'],
+  '1f419': ['octopus'],
+});
+
+ServerEmojiData serverEmojiDataPopularPlus(ServerEmojiData data) {
+  final a = serverEmojiDataPopular;
+  final b = data;
+  final result = ServerEmojiData(
+    codeToNames: {...a.codeToNames, ...b.codeToNames},
+  );
+  assert(
+    result.codeToNames.length == a.codeToNames.length + b.codeToNames.length,
+    'eg.serverEmojiDataPopularPlus called with data that collides with eg.serverEmojiDataPopular',
+  );
+  return result;
+}
+
 RealmEmojiItem realmEmojiItem({
   required String emojiCode,
   required String emojiName,

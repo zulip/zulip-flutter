@@ -78,7 +78,10 @@ void main() {
     });
   });
 
-  final popularCandidates = eg.store().popularEmojiCandidates();
+  final popularCandidates = (
+    eg.store()..setServerEmojiData(eg.serverEmojiDataPopular)
+  ).popularEmojiCandidates();
+  assert(popularCandidates.length == 6);
 
   Condition<Object?> isUnicodeCandidate(String? emojiCode, List<String>? names) {
     return (it_) {
@@ -118,18 +121,25 @@ void main() {
 
     PerAccountStore prepare({
       Map<String, RealmEmojiItem> realmEmoji = const {},
+      bool addServerDataForPopular = true,
       Map<String, List<String>>? unicodeEmoji,
     }) {
       final store = eg.store(
         initialSnapshot: eg.initialSnapshot(realmEmoji: realmEmoji));
-      if (unicodeEmoji != null) {
-        store.setServerEmojiData(ServerEmojiData(codeToNames: unicodeEmoji));
+
+      if (addServerDataForPopular || unicodeEmoji != null) {
+        final extraEmojiData = ServerEmojiData(codeToNames: unicodeEmoji ?? {});
+        final emojiData = addServerDataForPopular
+          ? eg.serverEmojiDataPopularPlus(extraEmojiData)
+          : extraEmojiData;
+        store.setServerEmojiData(emojiData);
       }
       return store;
     }
 
     test('popular emoji appear even when no server emoji data', () {
-      final store = prepare(unicodeEmoji: null);
+      final store = prepare(unicodeEmoji: null, addServerDataForPopular: false);
+      check(store.debugServerEmojiData).isNull();
       check(store.allEmojiCandidates()).deepEquals([
         ...arePopularCandidates,
         isZulipCandidate(),
@@ -139,7 +149,8 @@ void main() {
     test('popular emoji appear in their canonical order', () {
       // In the server's emoji data, have the popular emoji in a permuted order,
       // and interspersed with other emoji.
-      final store = prepare(unicodeEmoji: {
+      assert(popularCandidates.length == 6);
+      final store = prepare(addServerDataForPopular: false, unicodeEmoji: {
         '1f603': ['smiley'],
         for (final candidate in popularCandidates.skip(3))
           candidate.emojiCode: [candidate.emojiName, ...candidate.aliases],
@@ -246,15 +257,17 @@ void main() {
     });
 
     test('updates on setServerEmojiData', () {
-      final store = prepare();
+      final store = prepare(unicodeEmoji: null, addServerDataForPopular: false);
+      check(store.debugServerEmojiData).isNull();
       check(store.allEmojiCandidates()).deepEquals([
         ...arePopularCandidates,
         isZulipCandidate(),
       ]);
 
-      store.setServerEmojiData(ServerEmojiData(codeToNames: {
-        '1f516': ['bookmark'],
-      }));
+      store.setServerEmojiData(eg.serverEmojiDataPopularPlus(
+        ServerEmojiData(codeToNames: {
+          '1f516': ['bookmark'],
+        })));
       check(store.allEmojiCandidates()).deepEquals([
         ...arePopularCandidates,
         isUnicodeCandidate('1f516', ['bookmark']),
@@ -318,9 +331,9 @@ void main() {
           for (final MapEntry(:key, :value) in realmEmoji.entries)
             key: eg.realmEmojiItem(emojiCode: key, emojiName: value),
         }));
-      if (unicodeEmoji != null) {
-        store.setServerEmojiData(ServerEmojiData(codeToNames: unicodeEmoji));
-      }
+      final extraEmojiData = ServerEmojiData(codeToNames: unicodeEmoji ?? {});
+      ServerEmojiData emojiData = eg.serverEmojiDataPopularPlus(extraEmojiData);
+      store.setServerEmojiData(emojiData);
       return store;
     }
 
