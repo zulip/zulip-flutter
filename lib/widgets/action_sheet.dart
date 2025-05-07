@@ -699,7 +699,7 @@ class ReactionButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(pageContext);
-    final popularEmojiCandidates = store.popularEmojiCandidates;
+    final popularEmojiCandidates = store.popularEmojiCandidates();
     assert(popularEmojiCandidates.every(
       (emoji) => emoji.emojiType == ReactionType.unicodeEmoji));
 
