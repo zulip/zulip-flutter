@@ -115,9 +115,7 @@ mixin EmojiStore {
   ///
   /// See description in the web code:
   ///   https://github.com/zulip/zulip/blob/83a121c7e/web/shared/src/typeahead.ts#L3-L21
-  Iterable<EmojiCandidate> popularEmojiCandidates() {
-    return EmojiStoreImpl._popularCandidates;
-  }
+  Iterable<EmojiCandidate> popularEmojiCandidates();
 
   Iterable<EmojiCandidate> allEmojiCandidates();
 
@@ -215,6 +213,11 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
   Map<String, List<String>>? _serverEmojiData;
 
   static final _popularCandidates = _generatePopularCandidates();
+
+  @override
+  Iterable<EmojiCandidate> popularEmojiCandidates() {
+    return _popularCandidates;
+  }
 
   static List<EmojiCandidate> _generatePopularCandidates() {
     EmojiCandidate candidate(String emojiCode, List<String> names) {
