@@ -332,6 +332,11 @@ void main() {
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
         child: MessageListPage(initNarrow: narrow)));
 
+      store.setServerEmojiData(eg.serverEmojiDataPopularPlus(
+        ServerEmojiData(codeToNames: {
+          '1f4a4': ['zzz', 'sleepy'], // (just 'zzz' in real data)
+        })));
+
       // global store, per-account store, and message list get loaded
       await tester.pumpAndSettle();
       // request the message action sheet
@@ -339,10 +344,6 @@ void main() {
       // sheet appears onscreen; default duration of bottom-sheet enter animation
       await tester.pump(const Duration(milliseconds: 250));
 
-      store.setServerEmojiData(eg.serverEmojiDataPopularPlus(
-        ServerEmojiData(codeToNames: {
-          '1f4a4': ['zzz', 'sleepy'], // (just 'zzz' in real data)
-        })));
       await store.handleEvent(RealmEmojiUpdateEvent(id: 1, realmEmoji: {
         '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'buzzing'),
       }));
