@@ -221,32 +221,44 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
   static final _popularCandidates = _generatePopularCandidates();
 
   static List<EmojiCandidate> _generatePopularCandidates() {
-    EmojiCandidate candidate(String emojiCode, String emojiUnicode,
-        List<String> names) {
+    EmojiCandidate candidate(String emojiCode, List<String> names) {
       final emojiName = names.removeAt(0);
-      assert(emojiUnicode == tryParseEmojiCodeToUnicode(emojiCode));
+      final emojiUnicode = tryParseEmojiCodeToUnicode(emojiCode)!;
       return EmojiCandidate(emojiType: ReactionType.unicodeEmoji,
         emojiCode: emojiCode, emojiName: emojiName, aliases: names,
         emojiDisplay: UnicodeEmojiDisplay(
           emojiName: emojiName, emojiUnicode: emojiUnicode));
     }
+    final list = _popularEmojiCodesList;
     return [
-      // This list should match web:
-      //   https://github.com/zulip/zulip/blob/83a121c7e/web/shared/src/typeahead.ts#L22-L29
-      candidate('1f44d', '👍', ['+1', 'thumbs_up', 'like']),
-      candidate('1f389', '🎉', ['tada']),
-      candidate('1f642', '🙂', ['smile']),
-      candidate( '2764', '❤', ['heart', 'love', 'love_you']),
-      candidate('1f6e0', '🛠', ['working_on_it', 'hammer_and_wrench', 'tools']),
-      candidate('1f419', '🐙', ['octopus']),
+      candidate(list[0], ['+1', 'thumbs_up', 'like']),
+      candidate(list[1], ['tada']),
+      candidate(list[2], ['smile']),
+      candidate(list[3], ['heart', 'love', 'love_you']),
+      candidate(list[4], ['working_on_it', 'hammer_and_wrench', 'tools']),
+      candidate(list[5], ['octopus']),
     ];
   }
 
-  static final _popularEmojiCodes = (() {
-    assert(_popularCandidates.every((c) =>
-      c.emojiType == ReactionType.unicodeEmoji));
-    return Set.of(_popularCandidates.map((c) => c.emojiCode));
+  /// Codes for the popular emoji, in order; all are Unicode emoji.
+  // This list should match web:
+  //   https://github.com/zulip/zulip/blob/83a121c7e/web/shared/src/typeahead.ts#L22-L29
+  static final List<String> _popularEmojiCodesList = (() {
+    String check(String emojiCode, String emojiUnicode) {
+      assert(emojiUnicode == tryParseEmojiCodeToUnicode(emojiCode));
+      return emojiCode;
+    }
+    return [
+      check('1f44d', '👍'),
+      check('1f389', '🎉'),
+      check('1f642', '🙂'),
+      check('2764', '❤'),
+      check('1f6e0', '🛠'),
+      check('1f419', '🐙'),
+    ];
   })();
+
+  static final Set<String> _popularEmojiCodes = Set.of(_popularEmojiCodesList);
 
   static bool _isPopularEmoji(EmojiCandidate candidate) {
     return candidate.emojiType == ReactionType.unicodeEmoji
