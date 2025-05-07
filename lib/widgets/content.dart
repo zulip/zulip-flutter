@@ -817,24 +817,34 @@ class MathBlock extends StatelessWidget {
           children: [TextSpan(text: node.texSource)])));
     }
 
-    return _Katex(inline: false, nodes: nodes);
+    return _Katex(
+      inline: false,
+      textStyle: ContentTheme.of(context).textStylePlainParagraph,
+      nodes: nodes);
   }
 }
 
 // Base text style from .katex class in katex.scss :
 //   https://github.com/KaTeX/KaTeX/blob/613c3da8/src/styles/katex.scss#L13-L15
-const kBaseKatexTextStyle = TextStyle(
-  fontSize: kBaseFontSize * 1.21,
-  fontFamily: 'KaTeX_Main',
-  height: 1.2);
+TextStyle mkBaseKatexTextStyle(TextStyle style) {
+  assert(style.fontSize != null);
+  return style.copyWith(
+    fontSize: style.fontSize! * 1.21,
+    fontFamily: 'KaTeX_Main',
+    height: 1.2,
+    fontWeight: FontWeight.normal,
+    fontStyle: FontStyle.normal);
+}
 
 class _Katex extends StatelessWidget {
   const _Katex({
     required this.inline,
+    required this.textStyle,
     required this.nodes,
   });
 
   final bool inline;
+  final TextStyle textStyle;
   final List<KatexNode> nodes;
 
   @override
@@ -851,8 +861,7 @@ class _Katex extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.ltr,
       child: DefaultTextStyle(
-        style: kBaseKatexTextStyle.copyWith(
-          color: ContentTheme.of(context).textStylePlainParagraph.color),
+        style: mkBaseKatexTextStyle(textStyle),
         child: widget));
   }
 }
@@ -869,7 +878,11 @@ class _KatexNodeList extends StatelessWidget {
         return WidgetSpan(
           alignment: PlaceholderAlignment.baseline,
           baseline: TextBaseline.alphabetic,
-          child: _KatexSpan(e));
+          child: switch (e) {
+            KatexSpanNode() => _KatexSpan(e),
+            KatexVlistNode() => _KatexVlist(e),
+            KatexNegativeMarginNode() => _KatexNegativeMargin(e),
+          });
       }))));
   }
 }
@@ -877,7 +890,7 @@ class _KatexNodeList extends StatelessWidget {
 class _KatexSpan extends StatelessWidget {
   const _KatexSpan(this.node);
 
-  final KatexNode node;
+  final KatexSpanNode node;
 
   @override
   Widget build(BuildContext context) {
@@ -940,7 +953,75 @@ class _KatexSpan extends StatelessWidget {
         textAlign: textAlign,
         child: widget);
     }
-    return widget;
+
+    if (styles.verticalAlignEm != null) {
+      widget = Baseline(
+        baseline: styles.verticalAlignEm! * em,
+        baselineType: TextBaseline.alphabetic,
+        child: widget);
+    }
+
+    return Container(
+      margin: styles.marginRightEm != null && !styles.marginRightEm!.isNegative
+        ? EdgeInsets.only(right: styles.marginRightEm! * em)
+        : null,
+      height: styles.heightEm != null
+        ? styles.heightEm! * em
+        : null,
+      child: widget,
+    );
+  }
+}
+
+class _KatexVlist extends StatelessWidget {
+  const _KatexVlist(this.node);
+
+  final KatexVlistNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    return Stack(children: List.unmodifiable(node.rows.map((row) {
+      return Transform.translate(
+        offset: Offset(0, row.verticalOffsetEm * em),
+        child: RichText(text: TextSpan(
+          children: List.unmodifiable(row.nodes.map((e) {
+            return WidgetSpan(
+              alignment: PlaceholderAlignment.baseline,
+              baseline: TextBaseline.alphabetic,
+              child: switch (e) {
+                KatexSpanNode() => _KatexSpan(e),
+                KatexVlistNode() => _KatexVlist(e),
+                KatexNegativeMarginNode() => _KatexNegativeMargin(e),
+              });
+          })))));
+    })));
+  }
+}
+
+class _KatexNegativeMargin extends StatelessWidget {
+  const _KatexNegativeMargin(this.node);
+
+  final KatexNegativeMarginNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    return Transform.translate(
+      offset: Offset(node.marginRightEm * em, 0),
+      child: Text.rich(TextSpan(
+        children: List.unmodifiable(node.nodes.map((e) {
+          return WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: switch (e) {
+              KatexSpanNode() => _KatexSpan(e),
+              KatexVlistNode() => _KatexVlist(e),
+              KatexNegativeMarginNode() => _KatexNegativeMargin(e),
+            });
+        })))));
   }
 }
 
@@ -1262,7 +1343,7 @@ class _InlineContentBuilder {
           : WidgetSpan(
               alignment: PlaceholderAlignment.baseline,
               baseline: TextBaseline.alphabetic,
-              child: _Katex(inline: true, nodes: nodes));
+              child: _Katex(inline: true, textStyle: widget.style, nodes: nodes));
 
       case GlobalTimeNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,

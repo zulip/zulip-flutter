@@ -369,8 +369,12 @@ abstract class MathNode extends ContentNode {
   }
 }
 
-class KatexNode extends ContentNode {
-  const KatexNode({
+sealed class KatexNode extends ContentNode {
+  const KatexNode({super.debugHtmlNode});
+}
+
+class KatexSpanNode extends KatexNode {
+  const KatexSpanNode({
     required this.styles,
     required this.text,
     required this.nodes,
@@ -399,6 +403,63 @@ class KatexNode extends ContentNode {
   @override
   List<DiagnosticsNode> debugDescribeChildren() {
     return nodes?.map((node) => node.toDiagnosticsNode()).toList() ?? const [];
+  }
+}
+
+class KatexVlistNode extends KatexNode {
+  const KatexVlistNode({
+    required this.rows,
+    super.debugHtmlNode,
+  });
+
+  final List<KatexVlistRowNode> rows;
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return rows.map((row) => row.toDiagnosticsNode()).toList();
+  }
+}
+
+class KatexVlistRowNode extends ContentNode {
+  const KatexVlistRowNode({
+    required this.verticalOffsetEm,
+    this.nodes = const [],
+  });
+
+  final double verticalOffsetEm;
+  final List<KatexNode> nodes;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('verticalOffsetEm', '$verticalOffsetEm'));
+  }
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return nodes.map((node) => node.toDiagnosticsNode()).toList();
+  }
+}
+
+class KatexNegativeMarginNode extends KatexNode {
+  const KatexNegativeMarginNode({
+    required this.marginRightEm,
+    required this.nodes,
+    super.debugHtmlNode,
+  });
+
+  final double marginRightEm;
+  final List<KatexNode> nodes;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('marginRightEm', '$marginRightEm'));
+  }
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return nodes.map((node) => node.toDiagnosticsNode()).toList();
   }
 }
 
