@@ -212,9 +212,9 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
   /// retrieving the data.
   Map<String, List<String>>? _serverEmojiData;
 
-  static final _popularCandidates = _generatePopularCandidates();
+  List<EmojiCandidate>? _popularCandidates;
 
-  static List<EmojiCandidate> _generatePopularCandidates() {
+  List<EmojiCandidate> _generatePopularCandidates() {
     EmojiCandidate candidate(String emojiCode, List<String> names) {
       final [emojiName, ...aliases] = names;
       final emojiUnicode = tryParseEmojiCodeToUnicode(emojiCode);
@@ -224,20 +224,20 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
         emojiDisplay: UnicodeEmojiDisplay(
           emojiName: emojiName, emojiUnicode: emojiUnicode!));
     }
-    final list = _popularEmojiCodesList;
-    return [
-      candidate(list[0], ['+1', 'thumbs_up', 'like']),
-      candidate(list[1], ['tada']),
-      candidate(list[2], ['smile']),
-      candidate(list[3], ['heart', 'love', 'love_you']),
-      candidate(list[4], ['working_on_it', 'hammer_and_wrench', 'tools']),
-      candidate(list[5], ['octopus']),
-    ];
+    if (_serverEmojiData == null) return [];
+
+    final result = <EmojiCandidate>[];
+    for (final emojiCode in _popularEmojiCodesList) {
+      final names = _serverEmojiData![emojiCode];
+      if (names == null) continue;
+      result.add(candidate(emojiCode, names));
+    }
+    return result;
   }
 
   @override
   Iterable<EmojiCandidate> popularEmojiCandidates() {
-    return _popularCandidates;
+    return _popularCandidates ??= _generatePopularCandidates();
   }
 
   /// Codes for the popular emoji, in order; all are Unicode emoji.
@@ -378,6 +378,7 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
   @override
   void setServerEmojiData(ServerEmojiData data) {
     _serverEmojiData = data.codeToNames;
+    _popularCandidates = null;
     _allEmojiCandidates = null;
   }
 

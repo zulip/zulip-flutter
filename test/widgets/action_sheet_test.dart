@@ -52,6 +52,7 @@ late FakeApiConnection connection;
 Future<void> setupToMessageActionSheet(WidgetTester tester, {
   required Message message,
   required Narrow narrow,
+  bool useLegacy = false,
 }) async {
   addTearDown(testBinding.reset);
   assert(narrow.containsMessage(message));
@@ -70,7 +71,9 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
     await store.addSubscription(eg.subscription(stream));
   }
   connection = store.connection as FakeApiConnection;
-  store.setServerEmojiData(eg.serverEmojiDataPopular);
+  store.setServerEmojiData(useLegacy
+    ? eg.serverEmojiDataPopular
+    : eg.serverEmojiDataPopularModern);
 
   connection.prepare(json: eg.newestGetMessagesResult(
     foundOldest: true, messages: [message]).toJson());
@@ -812,74 +815,87 @@ void main() {
 
   group('message action sheet', () {
     group('ReactionButtons', () {
-      final popularCandidates =
-        (eg.store()..setServerEmojiData(eg.serverEmojiDataPopular))
-          .popularEmojiCandidates();
+      for (final useLegacy in [false, true]) {
+        final popularCandidates =
+          (eg.store()..setServerEmojiData(
+            useLegacy
+              ? eg.serverEmojiDataPopular
+              : eg.serverEmojiDataPopularModern))
+            .popularEmojiCandidates();
+        for (final emoji in popularCandidates) {
+          final emojiDisplay = emoji.emojiDisplay as UnicodeEmojiDisplay;
 
-      for (final emoji in popularCandidates) {
-        final emojiDisplay = emoji.emojiDisplay as UnicodeEmojiDisplay;
+          Future<void> tapButton(WidgetTester tester) async {
+            await tester.tap(find.descendant(
+              of: find.byType(BottomSheet),
+              matching: find.text(emojiDisplay.emojiUnicode)));
+          }
 
-        Future<void> tapButton(WidgetTester tester) async {
-          await tester.tap(find.descendant(
-            of: find.byType(BottomSheet),
-            matching: find.text(emojiDisplay.emojiUnicode)));
+          testWidgets('${emoji.emojiName} adding success; useLegacy: $useLegacy', (tester) async {
+            final message = eg.streamMessage();
+            await setupToMessageActionSheet(tester,
+              message: message,
+              narrow: TopicNarrow.ofMessage(message),
+              useLegacy: useLegacy);
+
+            connection.prepare(json: {});
+            await tapButton(tester);
+            await tester.pump(Duration.zero);
+
+            check(connection.lastRequest).isA<http.Request>()
+              ..method.equals('POST')
+              ..url.path.equals('/api/v1/messages/${message.id}/reactions')
+              ..bodyFields.deepEquals({
+                  'reaction_type': 'unicode_emoji',
+                  'emoji_code': emoji.emojiCode,
+                  'emoji_name': emoji.emojiName,
+                });
+          });
+
+          testWidgets('${emoji.emojiName} removing success', (tester) async {
+            final message = eg.streamMessage(
+              reactions: [Reaction(
+                emojiName: emoji.emojiName,
+                emojiCode: emoji.emojiCode,
+                reactionType: ReactionType.unicodeEmoji,
+                userId: eg.selfAccount.userId)]
+            );
+            await setupToMessageActionSheet(tester,
+              message: message,
+              narrow: TopicNarrow.ofMessage(message),
+              useLegacy: useLegacy);
+
+            connection.prepare(json: {});
+            await tapButton(tester);
+            await tester.pump(Duration.zero);
+
+            check(connection.lastRequest).isA<http.Request>()
+              ..method.equals('DELETE')
+              ..url.path.equals('/api/v1/messages/${message.id}/reactions')
+              ..bodyFields.deepEquals({
+                  'reaction_type': 'unicode_emoji',
+                  'emoji_code': emoji.emojiCode,
+                  'emoji_name': emoji.emojiName,
+                });
+          });
+
+          testWidgets('${emoji.emojiName} request has an error', (tester) async {
+            final message = eg.streamMessage();
+            await setupToMessageActionSheet(tester,
+              message: message,
+              narrow: TopicNarrow.ofMessage(message),
+              useLegacy: useLegacy);
+
+            connection.prepare(
+              apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
+            await tapButton(tester);
+            await tester.pump(Duration.zero); // error arrives; error dialog shows
+
+            await tester.tap(find.byWidget(checkErrorDialog(tester,
+              expectedTitle: 'Adding reaction failed',
+              expectedMessage: 'Invalid message(s)')));
+          });
         }
-
-        testWidgets('${emoji.emojiName} adding success', (tester) async {
-          final message = eg.streamMessage();
-          await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-
-          connection.prepare(json: {});
-          await tapButton(tester);
-          await tester.pump(Duration.zero);
-
-          check(connection.lastRequest).isA<http.Request>()
-            ..method.equals('POST')
-            ..url.path.equals('/api/v1/messages/${message.id}/reactions')
-            ..bodyFields.deepEquals({
-                'reaction_type': 'unicode_emoji',
-                'emoji_code': emoji.emojiCode,
-                'emoji_name': emoji.emojiName,
-              });
-        });
-
-        testWidgets('${emoji.emojiName} removing success', (tester) async {
-          final message = eg.streamMessage(
-            reactions: [Reaction(
-              emojiName: emoji.emojiName,
-              emojiCode: emoji.emojiCode,
-              reactionType: ReactionType.unicodeEmoji,
-              userId: eg.selfAccount.userId)]
-          );
-          await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-
-          connection.prepare(json: {});
-          await tapButton(tester);
-          await tester.pump(Duration.zero);
-
-          check(connection.lastRequest).isA<http.Request>()
-            ..method.equals('DELETE')
-            ..url.path.equals('/api/v1/messages/${message.id}/reactions')
-            ..bodyFields.deepEquals({
-                'reaction_type': 'unicode_emoji',
-                'emoji_code': emoji.emojiCode,
-                'emoji_name': emoji.emojiName,
-              });
-        });
-
-        testWidgets('${emoji.emojiName} request has an error', (tester) async {
-          final message = eg.streamMessage();
-          await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
-
-          connection.prepare(
-            apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
-          await tapButton(tester);
-          await tester.pump(Duration.zero); // error arrives; error dialog shows
-
-          await tester.tap(find.byWidget(checkErrorDialog(tester,
-            expectedTitle: 'Adding reaction failed',
-            expectedMessage: 'Invalid message(s)')));
-        });
       }
     });
 
