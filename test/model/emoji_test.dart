@@ -137,15 +137,6 @@ void main() {
   group('allEmojiCandidates', () {
     // TODO test emojiDisplay of candidates matches emojiDisplayFor
 
-    test('popular emoji appear even when no server emoji data', () {
-      final store = prepare(unicodeEmoji: null, addServerDataForPopular: false);
-      check(store.debugServerEmojiData).isNull();
-      check(store.allEmojiCandidates()).deepEquals([
-        ...arePopularCandidates,
-        isZulipCandidate(),
-      ]);
-    });
-
     test('popular emoji appear in their canonical order', () {
       // In the server's emoji data, have the popular emoji in a permuted order,
       // and interspersed with other emoji.
@@ -260,7 +251,6 @@ void main() {
       final store = prepare(unicodeEmoji: null, addServerDataForPopular: false);
       check(store.debugServerEmojiData).isNull();
       check(store.allEmojiCandidates()).deepEquals([
-        ...arePopularCandidates,
         isZulipCandidate(),
       ]);
 
@@ -300,6 +290,44 @@ void main() {
       });
       final candidates = store.allEmojiCandidates();
       check(store.allEmojiCandidates()).identicalTo(candidates);
+    });
+  });
+
+  group('popularEmojiCandidates', () {
+    test('memoizes result, before setServerEmojiData', () {
+      final store = eg.store();
+      check(store.debugServerEmojiData).isNull();
+      final candidates = store.popularEmojiCandidates();
+      check(store.popularEmojiCandidates())
+        ..isEmpty()..identicalTo(candidates);
+    });
+
+    test('memoizes result, after setServerEmojiData', () {
+      final store = prepare();
+      check(store.debugServerEmojiData).isNotNull();
+      final candidates = store.popularEmojiCandidates();
+      check(store.popularEmojiCandidates())
+        ..isNotEmpty()..identicalTo(candidates);
+    });
+
+    test('updates on first and subsequent setServerEmojiData', () {
+      final store = eg.store();
+      check(store.debugServerEmojiData).isNull();
+
+      final candidates1 = store.popularEmojiCandidates();
+      check(candidates1).isEmpty();
+
+      store.setServerEmojiData(eg.serverEmojiDataPopular);
+      final candidates2 = store.popularEmojiCandidates();
+      check(candidates2)
+        ..isNotEmpty()
+        ..not((it) => it.identicalTo(candidates1));
+
+      store.setServerEmojiData(eg.serverEmojiDataPopularModern);
+      final candidates3 = store.popularEmojiCandidates();
+      check(candidates3)
+        ..isNotEmpty()
+        ..not((it) => it.identicalTo(candidates2));
     });
   });
 
