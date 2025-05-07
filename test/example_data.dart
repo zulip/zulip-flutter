@@ -151,6 +151,20 @@ ServerEmojiData serverEmojiDataPopularPlus(ServerEmojiData data) {
   return result;
 }
 
+/// Like [serverEmojiDataPopular], but with the modern '1f642': ['slight_smile']
+/// instead of '1f642': ['smile']; see zulip/zulip@9feba0f16f.
+///
+/// zulip/zulip@9feba0f16f is a Server 11 commit.
+// TODO(server-11) can drop legacy data
+ServerEmojiData serverEmojiDataPopularModern = ServerEmojiData(codeToNames: {
+  '1f44d': ['+1', 'thumbs_up', 'like'],
+  '1f389': ['tada'],
+  '1f642': ['slight_smile'],
+  '2764': ['heart', 'love', 'love_you'],
+  '1f6e0': ['working_on_it', 'hammer_and_wrench', 'tools'],
+  '1f419': ['octopus'],
+});
+
 RealmEmojiItem realmEmojiItem({
   required String emojiCode,
   required String emojiName,

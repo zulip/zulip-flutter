@@ -554,6 +554,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final pageContext = PageRoot.contextOf(context);
   final store = PerAccountStoreWidget.of(pageContext);
 
+  final popularEmojiLoaded = store.popularEmojiCandidates().isNotEmpty;
+
   // The UI that's conditioned on this won't live-update during this appearance
   // of the action sheet (we avoid calling composeBoxControllerOf in a build
   // method; see its doc).
@@ -567,7 +569,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
 
   final optionButtons = [
-    ReactionButtons(message: message, pageContext: pageContext),
+    if (popularEmojiLoaded)
+      ReactionButtons(message: message, pageContext: pageContext),
     StarButton(message: message, pageContext: pageContext),
     if (isComposeBoxOffered)
       QuoteAndReplyButton(message: message, pageContext: pageContext),
@@ -669,6 +672,12 @@ class ReactionButtons extends StatelessWidget {
     final popularEmojiCandidates = store.popularEmojiCandidates();
     assert(popularEmojiCandidates.every(
       (emoji) => emoji.emojiType == ReactionType.unicodeEmoji));
+    // (if this is empty, the widget isn't built in the first place)
+    assert(popularEmojiCandidates.isNotEmpty);
+    // UI not designed to handle more than 6 popular emoji.
+    // (We might have fewer if ServerEmojiData is lacking expected data,
+    // but that looks fine in manual testing, even when there's just one.)
+    assert(popularEmojiCandidates.length <= 6);
 
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
