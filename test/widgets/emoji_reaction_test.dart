@@ -299,7 +299,7 @@ void main() {
   // - Non-animated image emoji is selected when intended
 
   group('EmojiPicker', () {
-    final popularCandidates = eg.store().popularEmojiCandidates;
+    final popularCandidates = eg.store().popularEmojiCandidates();
 
     Future<void> setupEmojiPicker(WidgetTester tester, {
       required StreamMessage message,
