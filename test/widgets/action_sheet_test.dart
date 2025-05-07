@@ -70,6 +70,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
     await store.addSubscription(eg.subscription(stream));
   }
   connection = store.connection as FakeApiConnection;
+  store.setServerEmojiData(eg.serverEmojiDataPopular);
 
   connection.prepare(json: eg.newestGetMessagesResult(
     foundOldest: true, messages: [message]).toJson());
@@ -810,7 +811,9 @@ void main() {
 
   group('message action sheet', () {
     group('ReactionButtons', () {
-      final popularCandidates = eg.store().popularEmojiCandidates();
+      final popularCandidates =
+        (eg.store()..setServerEmojiData(eg.serverEmojiDataPopular))
+          .popularEmojiCandidates();
 
       for (final emoji in popularCandidates) {
         final emojiDisplay = emoji.emojiDisplay as UnicodeEmojiDisplay;
