@@ -810,7 +810,7 @@ void main() {
 
   group('message action sheet', () {
     group('ReactionButtons', () {
-      final popularCandidates = EmojiStore.popularEmojiCandidates;
+      final popularCandidates = eg.store().popularEmojiCandidates;
 
       for (final emoji in popularCandidates) {
         final emojiDisplay = emoji.emojiDisplay as UnicodeEmojiDisplay;
