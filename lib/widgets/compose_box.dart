@@ -501,8 +501,12 @@ class _ContentInput extends StatelessWidget {
     this.hintText,
     this.enabled = true,
   });
+  /// The narrow used for autocomplete.
+  ///
+  /// If `null`, autocomplete is disabled.
+  // TODO support autocomplete without a narrow
+  final Narrow? narrow;
 
-  final Narrow narrow;
   final ComposeBoxController controller;
   final String? hintText;
   final bool enabled;
@@ -536,49 +540,55 @@ class _ContentInput extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
+    final inputWidget = ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight(context)),
+      // This [ClipRect] replaces the [TextField] clipping we disable below.
+      child: ClipRect(
+        child: InsetShadowBox(
+          top: _verticalPadding, bottom: _verticalPadding,
+          color: designVariables.composeBoxBg,
+          child: TextField(
+            enabled: enabled,
+            controller: controller.content,
+            focusNode: controller.contentFocusNode,
+            // Let the content show through the `contentPadding` so that
+            // our [InsetShadowBox] can fade it smoothly there.
+            clipBehavior: Clip.none,
+            style: TextStyle(
+              fontSize: _fontSize,
+              height: _lineHeightRatio,
+              color: designVariables.textInput),
+            // From the spec at
+            //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
+            // > Compose box has the height to fit 2 lines. This is [done] to
+            // > have a bigger hit area for the user to start the input. […]
+            minLines: 2,
+            maxLines: null,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: InputDecoration(
+              // This padding ensures that the user can always scroll long
+              // content entirely out of the top or bottom shadow if desired.
+              // With this and the `minLines: 2` above, an empty content input
+              // gets 60px vertical distance (with no text-size scaling)
+              // between the top of the top shadow and the bottom of the
+              // bottom shadow. That's a bit more than the 54px given in the
+              // Figma, and we can revisit if needed, but it's tricky to get
+              // that 54px distance while also making the scrolling work like
+              // this and offering two lines of touchable area.
+              contentPadding: const EdgeInsets.symmetric(vertical: _verticalPadding),
+              hintText: hintText,
+              hintStyle: TextStyle(
+                color: designVariables.textInput.withFadedAlpha(0.5)))))));
+
+    if (narrow == null) {
+      return inputWidget;
+    }
+
     return ComposeAutocomplete(
-      narrow: narrow,
+      narrow: narrow!,
       controller: controller.content,
       focusNode: controller.contentFocusNode,
-      fieldViewBuilder: (context) => ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight(context)),
-        // This [ClipRect] replaces the [TextField] clipping we disable below.
-        child: ClipRect(
-          child: InsetShadowBox(
-            top: _verticalPadding, bottom: _verticalPadding,
-            color: designVariables.composeBoxBg,
-            child: TextField(
-              enabled: enabled,
-              controller: controller.content,
-              focusNode: controller.contentFocusNode,
-              // Let the content show through the `contentPadding` so that
-              // our [InsetShadowBox] can fade it smoothly there.
-              clipBehavior: Clip.none,
-              style: TextStyle(
-                fontSize: _fontSize,
-                height: _lineHeightRatio,
-                color: designVariables.textInput),
-              // From the spec at
-              //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
-              // > Compose box has the height to fit 2 lines. This is [done] to
-              // > have a bigger hit area for the user to start the input. […]
-              minLines: 2,
-              maxLines: null,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                // This padding ensures that the user can always scroll long
-                // content entirely out of the top or bottom shadow if desired.
-                // With this and the `minLines: 2` above, an empty content input
-                // gets 60px vertical distance (with no text-size scaling)
-                // between the top of the top shadow and the bottom of the
-                // bottom shadow. That's a bit more than the 54px given in the
-                // Figma, and we can revisit if needed, but it's tricky to get
-                // that 54px distance while also making the scrolling work like
-                // this and offering two lines of touchable area.
-                contentPadding: const EdgeInsets.symmetric(vertical: _verticalPadding),
-                hintText: hintText,
-                hintStyle: TextStyle(
-                  color: designVariables.textInput.withFadedAlpha(0.5))))))));
+      fieldViewBuilder: (context) => inputWidget);
   }
 }
 
