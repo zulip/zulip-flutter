@@ -698,11 +698,12 @@ class ReactionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    assert(EmojiStore.popularEmojiCandidates.every(
+    final store = PerAccountStoreWidget.of(pageContext);
+    final popularEmojiCandidates = store.popularEmojiCandidates;
+    assert(popularEmojiCandidates.every(
       (emoji) => emoji.emojiType == ReactionType.unicodeEmoji));
 
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = PerAccountStoreWidget.of(pageContext);
     final designVariables = DesignVariables.of(context);
 
     bool hasSelfVote(EmojiCandidate emoji) {
@@ -718,7 +719,7 @@ class ReactionButtons extends StatelessWidget {
         color: designVariables.contextMenuItemBg.withFadedAlpha(0.12)),
       child: Row(children: [
         Flexible(child: Row(spacing: 1, children: List.unmodifiable(
-          EmojiStore.popularEmojiCandidates.mapIndexed((index, emoji) =>
+          popularEmojiCandidates.mapIndexed((index, emoji) =>
             _buildButton(
               context: context,
               emoji: emoji,

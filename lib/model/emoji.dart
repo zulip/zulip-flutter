@@ -115,11 +115,7 @@ mixin EmojiStore {
   ///
   /// See description in the web code:
   ///   https://github.com/zulip/zulip/blob/83a121c7e/web/shared/src/typeahead.ts#L3-L21
-  // Someday this list may start varying rather than being hard-coded,
-  // and then this will become a non-static member on EmojiStore.
-  // For now, though, the fact it's constant is convenient when writing
-  // tests of the logic that uses this data; so we guarantee it in the API.
-  static Iterable<EmojiCandidate> get popularEmojiCandidates {
+  Iterable<EmojiCandidate> get popularEmojiCandidates {
     return EmojiStoreImpl._popularCandidates;
   }
 
@@ -319,7 +315,7 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
 
     // Include the "popular" emoji, in their canonical order
     // relative to each other.
-    results.addAll(EmojiStore.popularEmojiCandidates);
+    results.addAll(popularEmojiCandidates);
 
     final namesOverridden = {
       for (final emoji in activeRealmEmoji) emoji.name,
