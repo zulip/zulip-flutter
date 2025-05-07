@@ -221,10 +221,10 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
 
   static List<EmojiCandidate> _generatePopularCandidates() {
     EmojiCandidate candidate(String emojiCode, List<String> names) {
-      final emojiName = names.removeAt(0);
+      final [emojiName, ...aliases] = names;
       final emojiUnicode = tryParseEmojiCodeToUnicode(emojiCode)!;
       return EmojiCandidate(emojiType: ReactionType.unicodeEmoji,
-        emojiCode: emojiCode, emojiName: emojiName, aliases: names,
+        emojiCode: emojiCode, emojiName: emojiName, aliases: aliases,
         emojiDisplay: UnicodeEmojiDisplay(
           emojiName: emojiName, emojiUnicode: emojiUnicode));
     }
