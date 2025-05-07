@@ -319,7 +319,7 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
 
     // Include the "popular" emoji, in their canonical order
     // relative to each other.
-    results.addAll(_popularCandidates);
+    results.addAll(EmojiStore.popularEmojiCandidates);
 
     final namesOverridden = {
       for (final emoji in activeRealmEmoji) emoji.name,
