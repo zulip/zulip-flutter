@@ -78,7 +78,7 @@ void main() {
     });
   });
 
-  final popularCandidates = EmojiStore.popularEmojiCandidates;
+  final popularCandidates = eg.store().popularEmojiCandidates;
 
   Condition<Object?> isUnicodeCandidate(String? emojiCode, List<String>? names) {
     return (it_) {
