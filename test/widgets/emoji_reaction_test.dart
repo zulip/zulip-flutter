@@ -299,7 +299,9 @@ void main() {
   // - Non-animated image emoji is selected when intended
 
   group('EmojiPicker', () {
-    final popularCandidates = eg.store().popularEmojiCandidates();
+    final popularCandidates =
+      (eg.store()..setServerEmojiData(eg.serverEmojiDataPopular))
+        .popularEmojiCandidates();
 
     Future<void> setupEmojiPicker(WidgetTester tester, {
       required StreamMessage message,
@@ -337,9 +339,10 @@ void main() {
       // sheet appears onscreen; default duration of bottom-sheet enter animation
       await tester.pump(const Duration(milliseconds: 250));
 
-      store.setServerEmojiData(ServerEmojiData(codeToNames: {
-        '1f4a4': ['zzz', 'sleepy'], // (just 'zzz' in real data)
-      }));
+      store.setServerEmojiData(eg.serverEmojiDataPopularPlus(
+        ServerEmojiData(codeToNames: {
+          '1f4a4': ['zzz', 'sleepy'], // (just 'zzz' in real data)
+        })));
       await store.handleEvent(RealmEmojiUpdateEvent(id: 1, realmEmoji: {
         '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'buzzing'),
       }));
