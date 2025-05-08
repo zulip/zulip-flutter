@@ -454,10 +454,16 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       .._register();
   }
 
-  MessageListView._({required this.store, required this.narrow});
+  MessageListView._({required this.store, required Narrow narrow})
+    : _narrow = narrow;
 
   final PerAccountStore store;
-  Narrow narrow;
+
+  /// The narrow shown in this message list.
+  ///
+  /// This can change over time, notably if showing a topic that gets moved.
+  Narrow get narrow => _narrow;
+  Narrow _narrow;
 
   void _register() {
     store.registerMessageList(this);
@@ -601,9 +607,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         // This can't be a redirect; a redirect can't produce an empty result.
         // (The server only redirects if the message is accessible to the user,
         // and if it is, it'll appear in the result, making it non-empty.)
-        this.narrow = narrow.sansWith();
+        _narrow = narrow.sansWith();
       case StreamMessage():
-        this.narrow = TopicNarrow.ofMessage(someFetchedMessageOrNull);
+        _narrow = TopicNarrow.ofMessage(someFetchedMessageOrNull);
       case DmMessage(): // TODO(log)
         assert(false);
     }
@@ -786,7 +792,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     switch (propagateMode) {
       case PropagateMode.changeAll:
       case PropagateMode.changeLater:
-        narrow = newNarrow;
+        _narrow = newNarrow;
         _reset();
         fetchInitial();
       case PropagateMode.changeOne:
