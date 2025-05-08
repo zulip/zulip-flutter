@@ -781,6 +781,7 @@ class PerAccountStore extends PerAccountStoreBase with
         unreads.handleMessageEvent(event);
         recentDmConversationsView.handleMessageEvent(event);
         recentSenders.handleMessage(event.message); // TODO(#824)
+        if (_channels.handleMessageEvent(event)) notifyListeners();
         // When adding anything here (to handle [MessageEvent]),
         // it probably belongs in [reconcileMessages] too.
 
@@ -788,6 +789,7 @@ class PerAccountStore extends PerAccountStoreBase with
         assert(debugLog("server event: update_message ${event.messageId}"));
         _messages.handleUpdateMessageEvent(event);
         unreads.handleUpdateMessageEvent(event);
+        if (_channels.handleUpdateMessageEvent(event)) notifyListeners();
 
       case DeleteMessageEvent():
         assert(debugLog("server event: delete_message ${event.messageIds}"));

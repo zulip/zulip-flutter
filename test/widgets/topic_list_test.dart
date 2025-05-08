@@ -14,8 +14,10 @@ import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/topic_list.dart';
 
 import '../api/fake_api.dart';
+import '../api/route/route_checks.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
+import '../model/store_checks.dart';
 import '../model/test_store.dart';
 import '../stdlib_checks.dart';
 import 'test_app.dart';
@@ -169,6 +171,18 @@ void main() {
     of: topicItemFinder.at(index),
     matching: finder);
 
+  testWidgets('sort topics by maxId', (tester) async {
+    await prepare(tester, topics: [
+      eg.getStreamTopicsEntry(name: 'A', maxId: 3),
+      eg.getStreamTopicsEntry(name: 'B', maxId: 2),
+      eg.getStreamTopicsEntry(name: 'C', maxId: 4),
+    ]);
+
+    check(findInTopicItemAt(0, find.text('C'))).findsOne();
+    check(findInTopicItemAt(1, find.text('A'))).findsOne();
+    check(findInTopicItemAt(2, find.text('B'))).findsOne();
+  });
+
   testWidgets('show topic action sheet', (tester) async {
     final channel = eg.stream();
     await prepare(tester, channel: channel,
@@ -190,16 +204,72 @@ void main() {
       });
   });
 
-  testWidgets('sort topics by maxId', (tester) async {
-    await prepare(tester, topics: [
-      eg.getStreamTopicsEntry(name: 'A', maxId: 3),
-      eg.getStreamTopicsEntry(name: 'B', maxId: 2),
-      eg.getStreamTopicsEntry(name: 'C', maxId: 4),
-    ]);
+  testWidgets('show topic action sheet before and after moves', (tester) async {
+    final channel = eg.stream();
+    final message = eg.streamMessage(id: 123, stream: channel, topic: 'foo');
+    await prepare(tester, channel: channel,
+      topics: [eg.getStreamTopicsEntry(name: 'foo', maxId: 123)],
+      messages: [message]);
+    check(store).getStreamTopics(channel.streamId).isNotNull().single
+      .maxId.equals(123);
+    check(topicItemFinder).findsOne();
 
-    check(findInTopicItemAt(0, find.text('C'))).findsOne();
-    check(findInTopicItemAt(1, find.text('A'))).findsOne();
-    check(findInTopicItemAt(2, find.text('B'))).findsOne();
+    // Before the move, "foo"'s maxId is known to be accurate.  This makes
+    // topic actions that require `someMessageIdInTopic` available.
+    await tester.longPress(find.text('foo'));
+    await tester.pump(Duration(milliseconds: 150)); // bottom-sheet animation
+    check(find.text('Mark as resolved')).findsOne();
+    await tester.tap(find.text('Cancel'));
+
+    await store.handleEvent(eg.updateMessageEventMoveFrom(
+      origMessages: [message],
+      newTopicStr: 'bar'));
+    await tester.pump();
+    check(topicItemFinder).findsExactly(2);
+
+    // After the move, the message with maxId moved away from "foo". The topic
+    // actions that require `someMessageIdInTopic` is no longer available.
+    await tester.longPress(find.text('foo'));
+    await tester.pump(Duration(milliseconds: 150)); // bottom-sheet animation
+    check(find.text('Mark as resolved')).findsNothing();
+    await tester.tap(find.text('Cancel'));
+    await tester.pump();
+
+    // Topic actions that require `someMessageIdInTopic` is available
+    // for "bar", the new topic that the message moved to.
+    await tester.longPress(find.text('bar'));
+    await tester.pump(Duration(milliseconds: 150)); // bottom-sheet animation
+    check(find.text('Mark as resolved')).findsOne();
+  });
+
+  // event handling is more thoroughly tested in test/model/channel_test.dart
+  testWidgets('smoke resolve topic from topic action sheet', (tester) async {
+    final channel = eg.stream();
+    final messages = List.generate(10, (i) =>
+      eg.streamMessage(id: 100+i, stream: channel, topic: 'foo'));
+
+    await prepare(tester, channel: channel,
+      topics: [eg.getStreamTopicsEntry(maxId: messages.last.id, name: 'foo')],
+      messages: messages);
+    await tester.longPress(topicItemFinder);
+    await tester.pump(Duration(milliseconds: 150)); // bottom-sheet animation
+    check(findInTopicItemAt(0, find.byIcon(ZulipIcons.check))).findsNothing();
+    check(find.descendant(of: topicItemFinder,
+      matching: find.text('foo'))).findsOne();
+
+    connection.prepare(json: {});
+    await tester.tap(find.text('Mark as resolved'));
+    await tester.pump();
+    await tester.pump(Duration.zero);
+
+    await store.handleEvent(eg.updateMessageEventMoveFrom(
+      origMessages: messages,
+      newTopic: eg.t('foo').resolve(),
+      propagateMode: PropagateMode.changeAll));
+    await tester.pump();
+    check(findInTopicItemAt(0, find.byIcon(ZulipIcons.check))).findsOne();
+    check(find.descendant(of: topicItemFinder,
+      matching: find.text('foo'))).findsOne();
   });
 
   testWidgets('resolved and unresolved topics', (tester) async {
