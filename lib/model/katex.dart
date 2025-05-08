@@ -112,11 +112,11 @@ class _KatexParser {
   List<KatexNode> parseKatexHtml(dom.Element element) {
     assert(element.localName == 'span');
     assert(element.className == 'katex-html');
-    return _parseChildSpans(element);
+    return _parseChildSpans(element.nodes);
   }
 
-  List<KatexNode> _parseChildSpans(dom.Element element) {
-    return List.unmodifiable(element.nodes.map((node) {
+  List<KatexNode> _parseChildSpans(List<dom.Node> nodes) {
+    return List.unmodifiable(nodes.map((node) {
       if (node case dom.Element(localName: 'span')) {
         return _parseSpan(node);
       } else {
@@ -346,7 +346,7 @@ class _KatexParser {
     if (element.nodes case [dom.Text(:final data)]) {
       text = data;
     } else {
-      spans = _parseChildSpans(element);
+      spans = _parseChildSpans(element.nodes);
     }
     if (text == null && spans == null) throw KatexHtmlParseError();
 
