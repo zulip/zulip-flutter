@@ -561,7 +561,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       narrow: narrow.apiEncode(),
       anchor: AnchorCode.newest,
       numBefore: kMessageListFetchBatchSize,
-      numAfter: 0,
+      numAfter: kMessageListFetchBatchSize,
       allowEmptyTopicName: true,
     );
     if (this.generation > generation) return;
