@@ -109,11 +109,6 @@ class _KatexParser {
   bool get hasError => _hasError;
   bool _hasError = false;
 
-  void _logError(String message) {
-    assert(debugLog(message));
-    _hasError = true;
-  }
-
   List<KatexNode> parseKatexHtml(dom.Element element) {
     assert(element.localName == 'span');
     assert(element.className == 'katex-html');
@@ -334,7 +329,8 @@ class _KatexParser {
           break;
 
         default:
-          _logError('KaTeX: Unsupported CSS class: $spanClass');
+          assert(debugLog('KaTeX: Unsupported CSS class: $spanClass'));
+          _hasError = true;
       }
     }
     final styles = KatexSpanStyles(
