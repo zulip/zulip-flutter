@@ -580,6 +580,48 @@ abstract class ZulipLocalizations {
   /// **'Type a message'**
   String get composeBoxGenericContentHint;
 
+  /// Label for the back button in the new DM sheet, allowing the user to return to the previous screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get newDmSheetBackButtonLabel;
+
+  /// Label for the front button in the new DM sheet, if applicable, for navigation or action.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get newDmSheetNextButtonLabel;
+
+  /// Title displayed at the top of the new DM screen.
+  ///
+  /// In en, this message translates to:
+  /// **'New DM'**
+  String get newDmSheetScreenTitle;
+
+  /// Label for the floating action button (FAB) that opens the new DM sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'New DM'**
+  String get newDmFabButtonLabel;
+
+  /// Hint text for the search bar when no users are selected
+  ///
+  /// In en, this message translates to:
+  /// **'Add one or more users'**
+  String get newDmSheetSearchHintEmpty;
+
+  /// Hint text for the search bar when at least one user is selected
+  ///
+  /// In en, this message translates to:
+  /// **'Add another user…'**
+  String get newDmSheetSearchHintSomeSelected;
+
+  /// Message shown in the new DM sheet when no users match the search.
+  ///
+  /// In en, this message translates to:
+  /// **'No users found'**
+  String get newDmSheetNoUsersFound;
+
   /// Hint text for content input when sending a message to one other person.
   ///
   /// In en, this message translates to:
