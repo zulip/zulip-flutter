@@ -80,6 +80,7 @@ typedef ReportErrorCallback = void Function(
 ///
 /// If `details` is non-null, the [SnackBar] will contain a button that would
 /// open a dialog containing the error details.
+/// Prose in `details` should have final punctuation.
 // This gets set in [ZulipApp].  We need this indirection to keep `lib/log.dart`
 // from importing widget code, because the file is a dependency for the rest of
 // the app.
@@ -91,6 +92,8 @@ ReportErrorCancellablyCallback reportErrorToUserBriefly = defaultReportErrorToUs
 /// as the body.  If called before the app's widget tree is ready
 /// (see [ZulipApp.ready]), then we give up on showing the message to the user,
 /// and just log the message to the console.
+///
+/// Prose in `message` should have final punctuation.
 // This gets set in [ZulipApp].  We need this indirection to keep `lib/log.dart`
 // from importing widget code, because the file is a dependency for the rest of
 // the app.

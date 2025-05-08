@@ -9,16 +9,19 @@ import 'package:mime/mime.dart';
 import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
+import '../api/route/saved_snippets.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
 import '../model/compose.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
 import 'autocomplete.dart';
+import 'button.dart';
 import 'color.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
+import 'saved_snippet.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -224,12 +227,29 @@ enum ContentValidationError {
         return zulipLocalizations.contentValidationErrorUploadInProgress;
     }
   }
+
+  /// Convert this into message suitable to use in [SavedSnippetComposeBox].
+  String messageForSavedSnippet(ZulipLocalizations zulipLocalizations) {
+    switch (this) {
+      case ContentValidationError.empty:
+        return zulipLocalizations.savedSnippetContentValidationErrorEmpty;
+      case ContentValidationError.tooLong:
+        return zulipLocalizations.savedSnippetContentValidationErrorTooLong;
+      case ContentValidationError.quoteAndReplyInProgress:
+      case ContentValidationError.uploadInProgress:
+        return message(zulipLocalizations);
+    }
+  }
 }
 
 class ComposeContentController extends ComposeController<ContentValidationError> {
-  ComposeContentController() {
+  ComposeContentController({this.skipValidationErrorEmpty = false}) {
     _update();
   }
+
+  /// Whether to skip producing [ContentValidationError.empty],
+  /// which is desired for the edit-message compose box.
+  final bool skipValidationErrorEmpty;
 
   // TODO(#1237) use `max_message_length` instead of hardcoded limit
   @override final maxLengthUnicodeCodePoints = kMaxMessageLengthCodePoints;
@@ -377,7 +397,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   @override
   List<ContentValidationError> _computeValidationErrors() {
     return [
-      if (textNormalized.isEmpty)
+      if (!skipValidationErrorEmpty && textNormalized.isEmpty)
         ContentValidationError.empty,
 
       if (
@@ -391,6 +411,46 @@ class ComposeContentController extends ComposeController<ContentValidationError>
 
       if (_uploads.isNotEmpty)
         ContentValidationError.uploadInProgress,
+    ];
+  }
+}
+
+enum SavedSnippetTitleValidationError {
+  empty,
+  tooLong;
+
+  String message(ZulipLocalizations zulipLocalizations) {
+    return switch (this) {
+      SavedSnippetTitleValidationError.empty => zulipLocalizations.savedSnippetTitleValidationErrorEmpty,
+      SavedSnippetTitleValidationError.tooLong => zulipLocalizations.savedSnippetTitleValidationErrorTooLong,
+    };
+  }
+}
+
+class ComposeSavedSnippetTitleController extends ComposeController<SavedSnippetTitleValidationError> {
+  ComposeSavedSnippetTitleController() {
+    _update();
+  }
+
+  // TODO find the right value for this
+  @override int get maxLengthUnicodeCodePoints => kMaxTopicLengthCodePoints;
+
+  @override
+  String _computeTextNormalized() {
+    return text.trim();
+  }
+
+  @override
+  List<SavedSnippetTitleValidationError> _computeValidationErrors() {
+    return [
+      if (textNormalized.isEmpty)
+        SavedSnippetTitleValidationError.empty,
+
+      if (
+        _lengthUnicodeCodePointsIfLong != null
+        && _lengthUnicodeCodePointsIfLong! > maxLengthUnicodeCodePoints
+      )
+        SavedSnippetTitleValidationError.tooLong,
     ];
   }
 }
@@ -494,8 +554,13 @@ class _ContentInput extends StatelessWidget {
     required this.hintText,
   });
 
-  final Narrow narrow;
-  final ComposeBoxController controller;
+  /// The narrow used for autocomplete.
+  ///
+  /// If `null`, autocomplete is disabled.
+  // TODO support autocomplete without a narrow
+  final Narrow? narrow;
+
+  final BaseComposeBoxController controller;
   final String hintText;
 
   static double maxHeight(BuildContext context) {
@@ -527,48 +592,54 @@ class _ContentInput extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
+    final inputWidget = ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight(context)),
+      // This [ClipRect] replaces the [TextField] clipping we disable below.
+      child: ClipRect(
+        child: InsetShadowBox(
+          top: _verticalPadding, bottom: _verticalPadding,
+          color: designVariables.composeBoxBg,
+          child: TextField(
+            controller: controller.content,
+            focusNode: controller.contentFocusNode,
+            // Let the content show through the `contentPadding` so that
+            // our [InsetShadowBox] can fade it smoothly there.
+            clipBehavior: Clip.none,
+            style: TextStyle(
+              fontSize: _fontSize,
+              height: _lineHeightRatio,
+              color: designVariables.textInput),
+            // From the spec at
+            //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
+            // > Compose box has the height to fit 2 lines. This is [done] to
+            // > have a bigger hit area for the user to start the input. […]
+            minLines: 2,
+            maxLines: null,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: InputDecoration(
+              // This padding ensures that the user can always scroll long
+              // content entirely out of the top or bottom shadow if desired.
+              // With this and the `minLines: 2` above, an empty content input
+              // gets 60px vertical distance (with no text-size scaling)
+              // between the top of the top shadow and the bottom of the
+              // bottom shadow. That's a bit more than the 54px given in the
+              // Figma, and we can revisit if needed, but it's tricky to get
+              // that 54px distance while also making the scrolling work like
+              // this and offering two lines of touchable area.
+              contentPadding: const EdgeInsets.symmetric(vertical: _verticalPadding),
+              hintText: hintText,
+              hintStyle: TextStyle(
+                color: designVariables.textInput.withFadedAlpha(0.5)))))));
+
+    if (narrow == null) {
+      return inputWidget;
+    }
+
     return ComposeAutocomplete(
-      narrow: narrow,
+      narrow: narrow!,
       controller: controller.content,
       focusNode: controller.contentFocusNode,
-      fieldViewBuilder: (context) => ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight(context)),
-        // This [ClipRect] replaces the [TextField] clipping we disable below.
-        child: ClipRect(
-          child: InsetShadowBox(
-            top: _verticalPadding, bottom: _verticalPadding,
-            color: designVariables.composeBoxBg,
-            child: TextField(
-              controller: controller.content,
-              focusNode: controller.contentFocusNode,
-              // Let the content show through the `contentPadding` so that
-              // our [InsetShadowBox] can fade it smoothly there.
-              clipBehavior: Clip.none,
-              style: TextStyle(
-                fontSize: _fontSize,
-                height: _lineHeightRatio,
-                color: designVariables.textInput),
-              // From the spec at
-              //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
-              // > Compose box has the height to fit 2 lines. This is [done] to
-              // > have a bigger hit area for the user to start the input. […]
-              minLines: 2,
-              maxLines: null,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                // This padding ensures that the user can always scroll long
-                // content entirely out of the top or bottom shadow if desired.
-                // With this and the `minLines: 2` above, an empty content input
-                // gets 60px vertical distance (with no text-size scaling)
-                // between the top of the top shadow and the bottom of the
-                // bottom shadow. That's a bit more than the 54px given in the
-                // Figma, and we can revisit if needed, but it's tricky to get
-                // that 54px distance while also making the scrolling work like
-                // this and offering two lines of touchable area.
-                contentPadding: const EdgeInsets.symmetric(vertical: _verticalPadding),
-                hintText: hintText,
-                hintStyle: TextStyle(
-                  color: designVariables.textInput.withFadedAlpha(0.5))))))));
+      fieldViewBuilder: (context) => inputWidget);
   }
 }
 
@@ -670,6 +741,43 @@ class _StreamContentInputState extends State<_StreamContentInput> {
   }
 }
 
+class _TitleTextField extends StatelessWidget {
+  const _TitleTextField({
+    required this.controller,
+    required this.focusNode,
+    required this.hintText,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final String hintText;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    TextStyle topicTextStyle = TextStyle(
+      fontSize: 20,
+      height: 22 / 20,
+      color: designVariables.textInput.withFadedAlpha(0.9),
+    ).merge(weightVariableTextStyle(context, wght: 600));
+
+    return Container(
+      padding: const EdgeInsets.only(top: 10, bottom: 9),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(
+        width: 1,
+        color: designVariables.foreground.withFadedAlpha(0.2)))),
+      child: TextField(
+        controller: controller,
+        focusNode: focusNode,
+        textInputAction: TextInputAction.next,
+        style: topicTextStyle,
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: topicTextStyle.copyWith(
+            color: designVariables.textInput.withFadedAlpha(0.5)))));
+  }
+}
+
 class _TopicInput extends StatelessWidget {
   const _TopicInput({required this.streamId, required this.controller});
 
@@ -679,32 +787,32 @@ class _TopicInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final designVariables = DesignVariables.of(context);
-    TextStyle topicTextStyle = TextStyle(
-      fontSize: 20,
-      height: 22 / 20,
-      color: designVariables.textInput.withFadedAlpha(0.9),
-    ).merge(weightVariableTextStyle(context, wght: 600));
 
     return TopicAutocomplete(
       streamId: streamId,
       controller: controller.topic,
       focusNode: controller.topicFocusNode,
       contentFocusNode: controller.contentFocusNode,
-      fieldViewBuilder: (context) => Container(
-        padding: const EdgeInsets.only(top: 10, bottom: 9),
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(
-          width: 1,
-          color: designVariables.foreground.withFadedAlpha(0.2)))),
-        child: TextField(
+      fieldViewBuilder: (context) =>
+        _TitleTextField(
           controller: controller.topic,
           focusNode: controller.topicFocusNode,
-          textInputAction: TextInputAction.next,
-          style: topicTextStyle,
-          decoration: InputDecoration(
-            hintText: zulipLocalizations.composeBoxTopicHintText,
-            hintStyle: topicTextStyle.copyWith(
-              color: designVariables.textInput.withFadedAlpha(0.5))))));
+          hintText: zulipLocalizations.composeBoxTopicHintText));
+  }
+}
+
+class _SavedSnippetTitleInput extends StatelessWidget {
+  const _SavedSnippetTitleInput({required this.controller});
+
+  final SavedSnippetComposeBoxController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return _TitleTextField(
+      controller: controller.title,
+      focusNode: controller.titleFocusNode,
+      hintText: zulipLocalizations.newSavedSnippetTitleHint);
   }
 }
 
@@ -757,6 +865,41 @@ class _FixedDestinationContentInput extends StatelessWidget {
         hintText: _hintText(context)));
   }
 }
+
+class _EditMessageContentInput extends StatelessWidget {
+  const _EditMessageContentInput({
+    required this.narrow,
+    required this.controller,
+  });
+
+  final Narrow narrow;
+  final EditMessageComposeBoxController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return _ContentInput(
+      narrow: narrow,
+      controller: controller,
+      hintText: zulipLocalizations.composeBoxEditMessageHint);
+  }
+}
+
+class _SavedSnippetContentInput extends StatelessWidget {
+  const _SavedSnippetContentInput({required this.controller});
+
+  final SavedSnippetComposeBoxController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return _ContentInput(
+      narrow: null,
+      controller: controller,
+      hintText: zulipLocalizations.newSavedSnippetContentHint);
+  }
+}
+
 
 /// Data on a file to be uploaded, from any source.
 ///
@@ -844,13 +987,34 @@ Future<void> _uploadFiles({
   }
 }
 
-abstract class _AttachUploadsButton extends StatelessWidget {
-  const _AttachUploadsButton({required this.controller});
+abstract class _ComposeButton extends StatelessWidget {
+  const _ComposeButton();
 
-  final ComposeBoxController controller;
+  BaseComposeBoxController get controller;
 
   IconData get icon;
   String tooltip(ZulipLocalizations zulipLocalizations);
+
+  void handlePress(BuildContext context);
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return SizedBox(
+      width: _composeButtonSize,
+      child: IconButton(
+        icon: Icon(icon, color: designVariables.foreground.withFadedAlpha(0.5)),
+        tooltip: tooltip(zulipLocalizations),
+        onPressed: () => handlePress(context)));
+  }
+}
+
+abstract class _AttachUploadsButton extends _ComposeButton {
+  const _AttachUploadsButton({required this.controller});
+
+  @override
+  final BaseComposeBoxController controller;
 
   /// Request files from the user, in the way specific to this upload type.
   ///
@@ -861,7 +1025,8 @@ abstract class _AttachUploadsButton extends StatelessWidget {
   /// return an empty [Iterable] after showing user feedback as appropriate.
   Future<Iterable<_File>> getFiles(BuildContext context);
 
-  void _handlePress(BuildContext context) async {
+  @override
+  void handlePress(BuildContext context) async {
     final files = await getFiles(context);
     if (files.isEmpty) {
       return; // Nothing to do (getFiles handles user feedback)
@@ -878,18 +1043,6 @@ abstract class _AttachUploadsButton extends StatelessWidget {
       contentController: controller.content,
       contentFocusNode: controller.contentFocusNode,
       files: files);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    return SizedBox(
-      width: _composeButtonSize,
-      child: IconButton(
-        icon: Icon(icon, color: designVariables.foreground.withFadedAlpha(0.5)),
-        tooltip: tooltip(zulipLocalizations),
-        onPressed: () => _handlePress(context)));
   }
 }
 
@@ -1052,6 +1205,25 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
   }
 }
 
+class _ShowSavedSnippetsButton extends _ComposeButton {
+  const _ShowSavedSnippetsButton({required this.controller});
+
+  @override
+  final ComposeBoxController controller;
+
+  @override
+  void handlePress(BuildContext context) {
+    showSavedSnippetPickerSheet(context: context, controller: controller);
+  }
+
+  @override
+  IconData get icon => ZulipIcons.message_square_text;
+
+  @override
+  String tooltip(ZulipLocalizations zulipLocalizations) =>
+    zulipLocalizations.composeBoxShowSavedSnippetsTooltip;
+}
+
 class _SendButton extends StatefulWidget {
   const _SendButton({required this.controller, required this.getDestination});
 
@@ -1188,6 +1360,98 @@ class _SendButtonState extends State<_SendButton> {
   }
 }
 
+class _SavedSnipppetSaveButton extends StatefulWidget {
+  const _SavedSnipppetSaveButton({required this.controller});
+
+  final SavedSnippetComposeBoxController controller;
+
+  @override
+  State<_SavedSnipppetSaveButton> createState() => _SavedSnipppetSaveButtonState();
+}
+
+class _SavedSnipppetSaveButtonState extends State<_SavedSnipppetSaveButton> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.title.hasValidationErrors.addListener(_hasErrorsChanged);
+    widget.controller.content.hasValidationErrors.addListener(_hasErrorsChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _SavedSnipppetSaveButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final controller = widget.controller;
+    final oldController = oldWidget.controller;
+    if (controller == oldController) return;
+
+    oldController.title.hasValidationErrors.removeListener(_hasErrorsChanged);
+    controller.title.hasValidationErrors.addListener(_hasErrorsChanged);
+    oldController.content.hasValidationErrors.removeListener(_hasErrorsChanged);
+    controller.content.hasValidationErrors.addListener(_hasErrorsChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.title.hasValidationErrors.removeListener(_hasErrorsChanged);
+    widget.controller.content.hasValidationErrors.removeListener(_hasErrorsChanged);
+    super.dispose();
+  }
+
+  void _hasErrorsChanged() {
+   setState(() {
+     // The actual state lives in widget.controller.
+   });
+  }
+
+  void _save() async {
+    if (widget.controller.title.hasValidationErrors.value
+        || widget.controller.content.hasValidationErrors.value) {
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      final validationErrorMessages = [
+        for (final error in widget.controller.title.validationErrors)
+          error.message(zulipLocalizations),
+        for (final error in widget.controller.content.validationErrors)
+          error.messageForSavedSnippet(zulipLocalizations),
+      ];
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorFailedToCreateSavedSnippetTitle,
+        message: validationErrorMessages.join('\n\n'));
+      return;
+    }
+
+    final store = PerAccountStoreWidget.of(context);
+    try {
+      // TODO(#1502) allow saving edits to an existing saved snippet as well
+      await createSavedSnippet(store.connection,
+        title: widget.controller.title.textNormalized,
+        content: widget.controller.content.textNormalized);
+      if (!mounted) return;
+      Navigator.pop(context);
+    } on ApiRequestException catch (e) {
+      if (!mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      final message = switch (e) {
+        ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
+        _ => e.message,
+      };
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorFailedToCreateSavedSnippetTitle,
+        message: message);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return IconButton(onPressed: _save,
+      icon: Icon(ZulipIcons.check, color:
+        widget.controller.title.hasValidationErrors.value
+        || widget.controller.content.hasValidationErrors.value
+          ? designVariables.icon.withFadedAlpha(0.5) : designVariables.icon));
+  }
+}
+
 class _ComposeBoxContainer extends StatelessWidget {
   const _ComposeBoxContainer({
     required this.body,
@@ -1251,14 +1515,11 @@ class _ComposeBoxContainer extends StatelessWidget {
 
 /// The text inputs, compose-button row, and send button for the compose box.
 abstract class _ComposeBoxBody extends StatelessWidget {
-  /// The narrow on view in the message list.
-  Narrow get narrow;
-
-  ComposeBoxController get controller;
+  BaseComposeBoxController get controller;
 
   Widget? buildTopicInput();
   Widget buildContentInput();
-  Widget buildSendButton();
+  Widget? buildSendButton();
 
   @override
   Widget build(BuildContext context) {
@@ -1284,13 +1545,18 @@ abstract class _ComposeBoxBody extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(4)))));
 
+    final store = PerAccountStoreWidget.of(context);
     final composeButtons = [
       _AttachFileButton(controller: controller),
       _AttachMediaButton(controller: controller),
       _AttachFromCameraButton(controller: controller),
+      if (store.zulipFeatureLevel >= 297 // TODO(server-10) simplify
+          && controller is ComposeBoxController)
+        _ShowSavedSnippetsButton(controller: controller as ComposeBoxController),
     ];
 
     final topicInput = buildTopicInput();
+    final sendButton = buildSendButton();
     return Column(children: [
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -1308,7 +1574,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(children: composeButtons),
-              buildSendButton(),
+              if (sendButton != null) sendButton,
             ]))),
     ]);
   }
@@ -1321,7 +1587,6 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 class _StreamComposeBoxBody extends _ComposeBoxBody {
   _StreamComposeBoxBody({required this.narrow, required this.controller});
 
-  @override
   final ChannelNarrow narrow;
 
   @override
@@ -1347,7 +1612,6 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
 class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
   _FixedDestinationComposeBoxBody({required this.narrow, required this.controller});
 
-  @override
   final SendableNarrow narrow;
 
   @override
@@ -1366,7 +1630,41 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
   );
 }
 
-sealed class ComposeBoxController {
+/// A compose box for editing an already-sent message.
+class _EditMessageComposeBoxBody extends _ComposeBoxBody {
+  _EditMessageComposeBoxBody({required this.narrow, required this.controller});
+
+  final Narrow narrow;
+
+  @override
+  final EditMessageComposeBoxController controller;
+
+  @override Widget? buildTopicInput() => null;
+
+  @override Widget buildContentInput() => _EditMessageContentInput(
+    narrow: narrow,
+    controller: controller);
+
+  @override Widget? buildSendButton() => null;
+}
+
+class _SavedSnippetComposeBoxBody extends _ComposeBoxBody {
+  _SavedSnippetComposeBoxBody({required this.controller});
+
+  @override
+  final SavedSnippetComposeBoxController controller;
+
+  @override Widget buildTopicInput() => _SavedSnippetTitleInput(
+    controller: controller);
+
+  @override Widget buildContentInput() => _SavedSnippetContentInput(
+    controller: controller);
+
+  @override Widget? buildSendButton() => _SavedSnipppetSaveButton(
+    controller: controller);
+}
+
+sealed class BaseComposeBoxController {
   final content = ComposeContentController();
   final contentFocusNode = FocusNode();
 
@@ -1376,6 +1674,9 @@ sealed class ComposeBoxController {
     contentFocusNode.dispose();
   }
 }
+
+/// The compose box controller for a [ComposeBox].
+sealed class ComposeBoxController extends BaseComposeBoxController {}
 
 class StreamComposeBoxController extends ComposeBoxController {
   StreamComposeBoxController({required PerAccountStore store})
@@ -1393,6 +1694,44 @@ class StreamComposeBoxController extends ComposeBoxController {
 }
 
 class FixedDestinationComposeBoxController extends ComposeBoxController {}
+
+class EditMessageComposeBoxController extends ComposeBoxController {
+  EditMessageComposeBoxController._({
+    required this.messageId,
+    required this.originalRawContent,
+  });
+
+  factory EditMessageComposeBoxController.init({
+    required int messageId,
+    required String originalRawContent,
+  }) {
+    return EditMessageComposeBoxController._(
+      messageId: messageId,
+      originalRawContent: originalRawContent
+    )
+      ..content.value = TextEditingValue(text: originalRawContent);
+  }
+
+  @override ComposeContentController get content => _content;
+  final _content = ComposeContentController(skipValidationErrorEmpty: true);
+
+  final int messageId;
+  final String originalRawContent;
+}
+
+class SavedSnippetComposeBoxController extends BaseComposeBoxController {
+  SavedSnippetComposeBoxController();
+
+  final title = ComposeSavedSnippetTitleController();
+  final titleFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    super.dispose();
+    title.dispose();
+    titleFocusNode.dispose();
+  }
+}
 
 abstract class _Banner extends StatelessWidget {
   const _Banner();
@@ -1484,6 +1823,60 @@ class _ErrorBanner extends _Banner {
   }
 }
 
+class _EditMessageBanner extends _Banner {
+  const _EditMessageBanner({required this.composeBoxState});
+
+  final ComposeBoxState composeBoxState;
+
+  @override
+  String getLabel(ZulipLocalizations zulipLocalizations) =>
+    zulipLocalizations.composeBoxBannerLabelEditMessage;
+
+  @override
+  Color getLabelColor(DesignVariables designVariables) =>
+    designVariables.bannerTextIntInfo;
+
+  @override
+  Color getBackgroundColor(DesignVariables designVariables) =>
+    designVariables.bannerBgIntInfo;
+
+  @override
+  Widget? buildTrailing(context) {
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return Row(mainAxisSize: MainAxisSize.min, spacing: 8, children: [
+      ZulipWebUiKitButton(label: zulipLocalizations.composeBoxBannerButtonCancel,
+        onPressed: () {
+          composeBoxState.endEditInteraction();
+        }),
+      // TODO(#1481) disabled appearance when there are validation errors
+      ZulipWebUiKitButton(label: zulipLocalizations.composeBoxBannerButtonSave,
+        attention: ZulipWebUiKitButtonAttention.high,
+        onPressed: () {
+          final controller = composeBoxState.controller;
+          if (controller is! EditMessageComposeBoxController) return; // TODO(log)
+          final zulipLocalizations = ZulipLocalizations.of(context);
+
+          if (controller.content.hasValidationErrors.value) {
+            List<String> validationErrorMessages =
+              controller.content.validationErrors.map((error) =>
+                error.message(zulipLocalizations)).toList();
+            showErrorDialog(context: context,
+              title: zulipLocalizations.errorMessageEditNotSaved,
+              message: validationErrorMessages.join('\n\n'));
+            return;
+          }
+
+          store.editMessage(
+            messageId: controller.messageId,
+            originalRawContent: controller.originalRawContent,
+            newContent: controller.content.textNormalized);
+          composeBoxState.endEditInteraction();
+        }),
+    ]);
+  }
+}
+
 /// The compose box.
 ///
 /// Takes the full screen width, covering the horizontal insets with its surface.
@@ -1515,11 +1908,56 @@ class ComposeBox extends StatefulWidget {
 /// The interface for the state of a [ComposeBox].
 abstract class ComposeBoxState extends State<ComposeBox> {
   ComposeBoxController get controller;
+
+  void startEditInteraction({
+    required int messageId,
+    required String originalRawContent,
+  });
+
+  void endEditInteraction();
 }
 
 class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateMixin<ComposeBox> implements ComposeBoxState {
   @override ComposeBoxController get controller => _controller!;
   ComposeBoxController? _controller;
+
+  @override
+  void startEditInteraction({
+    required int messageId,
+    required String originalRawContent,
+  }) async {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    switch (_controller) {
+      case EditMessageComposeBoxController():
+        throw StateError('startEditInteraction called during message-edit interaction');
+      case StreamComposeBoxController():
+      case FixedDestinationComposeBoxController():
+        if (_controller!.content.textNormalized.isNotEmpty) {
+          final dialog = showSuggestedActionDialog(context: context,
+            title: zulipLocalizations.discardDraftConfirmationDialogTitle,
+            message: zulipLocalizations.discardDraftConfirmationDialogMessage,
+            // TODO(#1032) "destructive" style for action button
+            actionButtonText: zulipLocalizations.discardDraftConfirmationDialogConfirmButton);
+          if (await dialog.result != true) return;
+          if (!context.mounted) return;
+        }
+      case null: // TODO(log)
+    }
+    setState(() {
+      _controller?.dispose();
+      _controller = EditMessageComposeBoxController.init(
+          messageId: messageId, originalRawContent: originalRawContent)
+        ..contentFocusNode.requestFocus();
+    });
+  }
+
+  @override
+  void endEditInteraction() {
+    final store = PerAccountStoreWidget.of(context);
+    setState(() {
+      _setNewController(store);
+    });
+  }
 
   @override
   void onNewStore() {
@@ -1535,6 +1973,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       case StreamComposeBoxController():
         controller.topic.store = newStore;
       case FixedDestinationComposeBoxController():
+      case EditMessageComposeBoxController():
         // no reference to the store that needs updating
     }
   }
@@ -1590,12 +2029,13 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   @override
   Widget build(BuildContext context) {
-    final Widget? body;
-
     final errorBanner = _errorBannerComposingNotAllowed(context);
     if (errorBanner != null) {
       return _ComposeBoxContainer(body: null, banner: errorBanner);
     }
+
+    final Widget? body;
+    Widget? banner;
 
     final controller = this.controller;
     final narrow = widget.narrow;
@@ -1608,6 +2048,10 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         narrow as SendableNarrow;
         body = _FixedDestinationComposeBoxBody(controller: controller, narrow: narrow);
       }
+      case EditMessageComposeBoxController(): {
+        body = _EditMessageComposeBoxBody(controller: controller, narrow: narrow);
+        banner = _EditMessageBanner(composeBoxState: this);
+      }
     }
 
     // TODO(#720) dismissable message-send error, maybe something like:
@@ -1615,6 +2059,36 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     //       errorBanner = _ErrorBanner(label:
     //         ZulipLocalizations.of(context).errorSendMessageTimeout);
     //     }
-    return _ComposeBoxContainer(body: body, banner: null);
+    return _ComposeBoxContainer(body: body, banner: banner);
+  }
+}
+
+class SavedSnippetComposeBox extends StatefulWidget {
+  const SavedSnippetComposeBox({super.key});
+
+  @override
+  State<SavedSnippetComposeBox> createState() => _SavedSnippetComposeBoxState();
+}
+
+class _SavedSnippetComposeBoxState extends State<SavedSnippetComposeBox> {
+  // TODO: preserve the controller independent from this state
+  late SavedSnippetComposeBoxController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = SavedSnippetComposeBoxController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _ComposeBoxContainer(
+      body: _SavedSnippetComposeBoxBody(controller: _controller));
   }
 }

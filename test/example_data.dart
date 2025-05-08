@@ -70,6 +70,20 @@ ZulipApiException apiExceptionUnauthorized({String routeName = 'someRoute'}) {
 }
 
 ////////////////////////////////////////////////////////////////
+// Time values.
+//
+
+final timeInPast = DateTime.utc(2025, 4, 1, 8, 30, 0);
+
+/// The UNIX timestamp, in UTC seconds.
+///
+/// This is the commonly used format in the Zulip API for timestamps.
+int utcTimestamp([DateTime? dateTime]) {
+  dateTime ??= timeInPast;
+  return dateTime.toUtc().millisecondsSinceEpoch ~/ 1000;
+}
+
+////////////////////////////////////////////////////////////////
 // Realm-wide (or server-wide) metadata.
 //
 
@@ -235,6 +249,28 @@ final Account otherAccount = account(
 final User thirdUser = user(fullName: 'Third User');
 
 final User fourthUser  = user(fullName: 'Fourth User');
+
+////////////////////////////////////////////////////////////////
+// Data attached to the self-account on the realm
+//
+
+int _nextSavedSnippetId() => _lastSavedSnippetId++;
+int _lastSavedSnippetId = 1;
+
+SavedSnippet savedSnippet({
+  int? id,
+  String? title,
+  String? content,
+  int? dateCreated,
+}) {
+  _checkPositive(id, 'saved snippet ID');
+  return SavedSnippet(
+    id: id ?? _nextSavedSnippetId(),
+    title: title ?? 'A saved snippet',
+    content: content ?? 'foo bar baz',
+    dateCreated: dateCreated ?? utcTimestamp(),
+  );
+}
 
 ////////////////////////////////////////////////////////////////
 // Streams and subscriptions.
@@ -470,7 +506,7 @@ StreamMessage streamMessage({
     'last_edit_timestamp': lastEditTimestamp,
     'subject': topic ?? _defaultTopic,
     'submessages': submessages ?? [],
-    'timestamp': timestamp ?? 1678139636,
+    'timestamp': timestamp ?? utcTimestamp(),
     'type': 'stream',
   }) as Map<String, dynamic>);
 }
@@ -511,7 +547,7 @@ DmMessage dmMessage({
     'last_edit_timestamp': lastEditTimestamp,
     'subject': '',
     'submessages': submessages ?? [],
-    'timestamp': timestamp ?? 1678139636,
+    'timestamp': timestamp ?? utcTimestamp(),
     'type': 'private',
   }) as Map<String, dynamic>);
 }
@@ -660,7 +696,7 @@ UpdateMessageEvent updateMessageEditEvent(
     messageId: messageId,
     messageIds: [messageId],
     flags: flags ?? origMessage.flags,
-    editTimestamp: editTimestamp ?? 1234567890, // TODO generate timestamp
+    editTimestamp: editTimestamp ?? utcTimestamp(),
     moveData: null,
     origContent: 'some probably-mismatched old Markdown',
     origRenderedContent: origMessage.content,
@@ -691,7 +727,7 @@ UpdateMessageEvent _updateMessageMoveEvent(
     messageId: messageIds.first,
     messageIds: messageIds,
     flags: flags,
-    editTimestamp: 1234567890, // TODO generate timestamp
+    editTimestamp: utcTimestamp(),
     moveData: UpdateMessageMoveData(
       origStreamId: origStreamId,
       newStreamId: newStreamId ?? origStreamId,
@@ -909,6 +945,7 @@ InitialSnapshot initialSnapshot({
   int? serverTypingStartedWaitPeriodMilliseconds,
   Map<String, RealmEmojiItem>? realmEmoji,
   List<RecentDmConversation>? recentPrivateConversations,
+  List<SavedSnippet>? savedSnippets,
   List<Subscription>? subscriptions,
   UnreadMessagesSnapshot? unreadMsgs,
   List<ZulipStream>? streams,
@@ -944,6 +981,7 @@ InitialSnapshot initialSnapshot({
       serverTypingStartedWaitPeriodMilliseconds ?? 10000,
     realmEmoji: realmEmoji ?? {},
     recentPrivateConversations: recentPrivateConversations ?? [],
+    savedSnippets: savedSnippets ?? [],
     subscriptions: subscriptions ?? [], // TODO add subscriptions to default
     unreadMsgs: unreadMsgs ?? _unreadMsgs(),
     streams: streams ?? [], // TODO add streams to default
@@ -957,7 +995,7 @@ InitialSnapshot initialSnapshot({
     realmMandatoryTopics: realmMandatoryTopics ?? true,
     realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
     realmAllowMessageEditing: realmAllowMessageEditing ?? true,
-    realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds ?? 600,
+    realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
     serverEmojiDataUrl: serverEmojiDataUrl

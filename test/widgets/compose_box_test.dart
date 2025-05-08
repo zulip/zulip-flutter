@@ -3,11 +3,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:checks/checks.dart';
+import 'package:crypto/crypto.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_checks/flutter_checks.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
@@ -18,6 +19,7 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/page.dart';
@@ -32,6 +34,8 @@ import '../model/store_checks.dart';
 import '../model/test_store.dart';
 import '../model/typing_status_test.dart';
 import '../stdlib_checks.dart';
+import '../test_navigation.dart';
+import 'compose_box_checks.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
 
@@ -40,6 +44,7 @@ void main() {
 
   late PerAccountStore store;
   late FakeApiConnection connection;
+  late ComposeBoxState state;
   late ComposeBoxController? controller;
 
   Future<void> prepareComposeBox(WidgetTester tester, {
@@ -79,7 +84,8 @@ void main() {
         ])));
     await tester.pumpAndSettle();
 
-    controller = tester.state<ComposeBoxState>(find.byType(ComposeBox)).controller;
+    state = tester.state<ComposeBoxState>(find.byType(ComposeBox));
+    controller = state.controller;
   }
 
   /// A [Finder] for the topic input.
@@ -117,9 +123,11 @@ void main() {
       .controller.isNotNull().value.text.equals(expected);
   }
 
+  final sendButtonFinder = find.byIcon(ZulipIcons.send);
+
   Future<void> tapSendButton(WidgetTester tester) async {
     connection.prepare(json: SendMessageResult(id: 123).toJson());
-    await tester.tap(find.byIcon(ZulipIcons.send));
+    await tester.tap(sendButtonFinder);
     await tester.pump(Duration.zero);
   }
 
@@ -230,6 +238,33 @@ void main() {
           '\n\n^\n',     'a\n', '\n\na\n\n^');
         testInsertPadded('text start; two empty lines; insertion point; two empty lines',
           '\n\n^\n\n',   'a\n', '\n\na\n\n^\n');
+      });
+    });
+
+    group('ContentValidationError.empty', () {
+      late ComposeContentController controller;
+
+      void checkCountsAsEmpty(String text, bool expected) {
+        controller.value = TextEditingValue(text: text);
+        expected
+          ? check(controller).validationErrors.contains(ContentValidationError.empty)
+          : check(controller).validationErrors.not((it) => it.contains(ContentValidationError.empty));
+      }
+
+      testWidgets('skipValidationErrorEmpty: false (default)', (tester) async {
+        controller = ComposeContentController();
+        addTearDown(controller.dispose);
+        checkCountsAsEmpty('', true);
+        checkCountsAsEmpty(' ', true);
+        checkCountsAsEmpty('a', false);
+      });
+
+      testWidgets('skipValidationErrorEmpty: true', (tester) async {
+        controller = ComposeContentController(skipValidationErrorEmpty: true);
+        addTearDown(controller.dispose);
+        checkCountsAsEmpty('', false);
+        checkCountsAsEmpty(' ', false);
+        checkCountsAsEmpty('a', false);
       });
     });
   });
@@ -618,7 +653,7 @@ void main() {
 
       connection.prepare(json: {});
       connection.prepare(json: SendMessageResult(id: 123).toJson());
-      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.tap(sendButtonFinder);
       await tester.pump(Duration.zero);
       final requests = connection.takeRequests();
       checkSetTypingStatusRequests([requests.first], [(TypingOp.stop, narrow)]);
@@ -782,7 +817,7 @@ void main() {
 
       await enterTopic(tester, narrow: narrow, topic: topicInputText);
       await tester.enterText(contentInputFinder, 'test content');
-      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.tap(sendButtonFinder);
       await tester.pump();
     }
 
@@ -839,7 +874,7 @@ void main() {
   group('uploads', () {
     void checkAppearsLoading(WidgetTester tester, bool expected) {
       final sendButtonElement = tester.element(find.ancestor(
-        of: find.byIcon(ZulipIcons.send),
+        of: sendButtonFinder,
         matching: find.byType(IconButton)));
       final sendButtonWidget = sendButtonElement.widget as IconButton;
       final designVariables = DesignVariables.of(sendButtonElement);
@@ -973,6 +1008,160 @@ void main() {
     // target platform the test is simulating.
     // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
     skip: Platform.isWindows);
+  });
+
+  testWidgets('_ShowSavedSnippetsButton', (tester) async {
+    final channel = eg.stream();
+    await prepareComposeBox(tester, narrow: ChannelNarrow(channel.streamId),
+      streams: [channel]);
+
+    check(find.byIcon(ZulipIcons.message_square_text)).findsOne();
+  });
+
+  testWidgets('legacy: _ShowSavedSnippetsButton', (tester) async {
+    final channel = eg.stream();
+    await prepareComposeBox(tester, narrow: ChannelNarrow(channel.streamId),
+      streams: [channel],
+      zulipFeatureLevel: 296);
+
+    check(find.byIcon(ZulipIcons.message_square_text)).findsNothing();
+  });
+
+  // Tests for the bottom sheet that _ShowSavedSnippetsButton leads to
+  // are in test/widgets/saved_snippet_test.dart.
+
+  group('SavedSnippetComposeBox', () {
+    final newSavedSnippetInputFinder = find.descendant(
+      of: find.byType(SavedSnippetComposeBox), matching: find.byType(TextField));
+
+    late List<Route<void>> poppedRoutes;
+
+    Future<void> prepareSavedSnippetComposeBox(WidgetTester tester, {
+      required String title,
+      required String content,
+    }) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      connection = store.connection as FakeApiConnection;
+
+      poppedRoutes = [];
+      final navigatorObserver = TestNavigatorObserver()
+        ..onPopped = (route, prevRoute) => poppedRoutes.add(route);
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        navigatorObservers: [navigatorObserver],
+        child: const SavedSnippetComposeBox()));
+      await tester.pump();
+      await tester.enterText(newSavedSnippetInputFinder.first, title);
+      await tester.enterText(newSavedSnippetInputFinder.last, content);
+    }
+
+    testWidgets('should not offer _ShowSavedSnippetsButton', (tester) async {
+      await prepareSavedSnippetComposeBox(tester,
+        title: 'title foo', content: 'content bar');
+      check(find.byIcon(ZulipIcons.message_square_text)).findsNothing();
+    });
+
+    testWidgets('add new saved snippet', (tester) async {
+      await prepareSavedSnippetComposeBox(tester,
+        title: 'title foo', content: 'content bar');
+
+      connection.prepare(json: {});
+      await tester.tap(find.byIcon(ZulipIcons.check));
+      await tester.pump(Duration.zero);
+      check(poppedRoutes).single;
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..bodyFields['title'].equals('title foo')
+        ..bodyFields['content'].equals('content bar');
+      checkNoErrorDialog(tester);
+
+      await store.handleEvent(SavedSnippetsAddEvent(id: 100,
+        savedSnippet: eg.savedSnippet(title: 'title foo', content: 'content bar')));
+      await tester.pump();
+      check(find.text('title foo')).findsOne();
+      check(find.text('content bar')).findsOne();
+    });
+
+    testWidgets('handle unexpected API exception', (tester) async {
+      await prepareSavedSnippetComposeBox(tester,
+        title: 'title foo', content: 'content bar');
+
+      connection.prepare(apiException: eg.apiExceptionUnauthorized());
+      await tester.tap(find.byIcon(ZulipIcons.check));
+      await tester.pump(Duration.zero);
+      check(poppedRoutes).isEmpty();
+      checkErrorDialog(tester,
+        expectedTitle: 'Failed to create saved snippet',
+        expectedMessage: 'The server said:\n\nInvalid API key');
+    });
+
+    group('client validation errors', () {
+      testWidgets('empty title', (tester) async {
+        await prepareSavedSnippetComposeBox(tester,
+          title: '', content: 'content bar');
+
+        await tester.tap(find.byIcon(ZulipIcons.check));
+        await tester.pump(Duration.zero);
+        check(poppedRoutes).isEmpty();
+        check(connection.takeRequests()).isEmpty();
+        checkErrorDialog(tester,
+          expectedTitle: 'Failed to create saved snippet',
+          expectedMessage: 'Title cannot be empty.');
+      });
+
+      testWidgets('empty content', (tester) async {
+        await prepareSavedSnippetComposeBox(tester,
+          title: 'title foo', content: '');
+
+        await tester.tap(find.byIcon(ZulipIcons.check));
+        await tester.pump(Duration.zero);
+        check(poppedRoutes).isEmpty();
+        check(connection.takeRequests()).isEmpty();
+        checkErrorDialog(tester,
+          expectedTitle: 'Failed to create saved snippet',
+          expectedMessage: 'Content cannot be empty.');
+      });
+
+      testWidgets('title is too long', (tester) async {
+        await prepareSavedSnippetComposeBox(tester,
+          title: 'a' * 61, content: 'content bar');
+
+        await tester.tap(find.byIcon(ZulipIcons.check));
+        await tester.pump(Duration.zero);
+        check(poppedRoutes).isEmpty();
+        check(connection.takeRequests()).isEmpty();
+        checkErrorDialog(tester,
+          expectedTitle: 'Failed to create saved snippet',
+          expectedMessage: "Title length shouldn't be greater than 60 characters.");
+      });
+
+      testWidgets('content is too long', (tester) async {
+        await prepareSavedSnippetComposeBox(tester,
+          title: 'title foo', content: 'a' * 10001);
+
+        await tester.tap(find.byIcon(ZulipIcons.check));
+        await tester.pump(Duration.zero);
+        check(poppedRoutes).isEmpty();
+        check(connection.takeRequests()).isEmpty();
+        checkErrorDialog(tester,
+          expectedTitle: 'Failed to create saved snippet',
+          expectedMessage: "Content length shouldn't be greater than 10000 characters.");
+      });
+
+      testWidgets('disable send button if there are validation errors', (tester) async {
+        await prepareSavedSnippetComposeBox(tester,
+          title: '', content: 'content bar');
+        final iconElement = tester.element(find.byIcon(ZulipIcons.check));
+        final designVariables = DesignVariables.of(iconElement);
+        check(iconElement.widget).isA<Icon>().color.isNotNull()
+          .isSameColorAs(designVariables.icon.withFadedAlpha(0.5));
+
+        await tester.enterText(newSavedSnippetInputFinder.first, 'title foo');
+        await tester.pump();
+        check(iconElement.widget).isA<Icon>().color.isNotNull()
+          .isSameColorAs(designVariables.icon);
+      });
+    });
   });
 
   group('error banner', () {
@@ -1279,5 +1468,196 @@ void main() {
 
       checkContentInputValue(tester, 'some content');
     });
+  });
+
+  group('edit message', () {
+    final channel = eg.stream();
+    final topic = 'topic';
+    final message = eg.streamMessage(stream: channel, topic: topic);
+    final dmMessage = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
+
+    Future<void> prepareEditMessage(WidgetTester tester, {required Narrow narrow}) async {
+      await prepareComposeBox(tester,
+        narrow: narrow,
+        streams: [channel]);
+      await store.addMessages([message, dmMessage]);
+    }
+
+    void checkRequest(int messageId, {
+      required String prevContent,
+      required String content,
+    }) {
+      final prevContentSha256 = sha256.convert(utf8.encode(prevContent)).toString();
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('PATCH')
+        ..url.path.equals('/api/v1/messages/$messageId')
+        ..bodyFields.deepEquals({
+          'prev_content_sha256': prevContentSha256,
+          'content': content,
+        });
+    }
+
+    // Check that the compose-box controller is the normal one for the narrow,
+    // not [EditMessageComposeBoxController].
+    void checkNotEditMessageController(Narrow narrow, [String expectedContentText = '']) {
+      switch (narrow) {
+        case ChannelNarrow():
+          check(controller)
+            .isA<StreamComposeBoxController>()
+            .content.value.text.equals(expectedContentText);
+        case TopicNarrow():
+        case DmNarrow():
+          check(controller).isA<FixedDestinationComposeBoxController>();
+        default:
+          throw StateError('unexpected narrow type');
+      }
+    }
+
+    final narrowVariants = ValueVariant({
+      ChannelNarrow(channel.streamId),
+      eg.topicNarrow(channel.streamId, topic),
+      DmNarrow.ofMessage(dmMessage, selfUserId: eg.selfUser.userId),
+    });
+
+    testWidgets('smoke', (tester) async {
+      final narrow = narrowVariants.currentValue!;
+      await prepareEditMessage(tester, narrow: narrow);
+
+      checkNotEditMessageController(narrow);
+
+      state.startEditInteraction(messageId: message.id, originalRawContent: 'foo');
+      controller = state.controller;
+      await tester.pump();
+      check(controller)
+        .isA<EditMessageComposeBoxController>()
+        .contentFocusNode.hasFocus.isTrue();
+      checkContentInputValue(tester, 'foo');
+      // Upload buttons present
+      check(find.byIcon(ZulipIcons.camera)).findsOne();
+      // Send button not present
+      check(sendButtonFinder).findsNothing();
+
+      await enterContent(tester, 'bar');
+      checkContentInputValue(tester, 'bar');
+
+      connection.prepare(json: UpdateMessageResult().toJson());
+      await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
+      await tester.pump(Duration.zero);
+      checkRequest(message.id, prevContent: 'foo', content: 'bar');
+      controller = state.controller;
+      checkNotEditMessageController(narrow);
+      checkContentInputValue(tester, '');
+    }, variant: narrowVariants);
+
+    testWidgets('cancel edit', (tester) async {
+      final narrow = narrowVariants.currentValue!;
+      await prepareEditMessage(tester, narrow: narrow);
+      checkNotEditMessageController(narrow);
+
+      state.startEditInteraction(messageId: message.id, originalRawContent: 'foo');
+      check(state.controller).isA<EditMessageComposeBoxController>();
+      controller = state.controller;
+      await tester.pump();
+
+      await enterContent(tester, 'bar');
+      checkContentInputValue(tester, 'bar');
+
+      await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Cancel'));
+      await tester.pump();
+      check(connection.takeRequests()).isEmpty();
+      controller = state.controller;
+      checkNotEditMessageController(narrow);
+    }, variant: narrowVariants);
+
+    testWidgets('edit request fails', (tester) async {
+      final narrow = narrowVariants.currentValue!;
+      await prepareEditMessage(tester, narrow: narrow);
+
+      checkNotEditMessageController(narrow);
+
+      state.startEditInteraction(messageId: message.id, originalRawContent: 'foo');
+      check(state.controller).isA<EditMessageComposeBoxController>();
+      controller = state.controller;
+      await tester.pump();
+
+      await enterContent(tester, 'bar');
+      checkContentInputValue(tester, 'bar');
+
+      connection.prepare(apiException: eg.apiBadRequest());
+      await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
+      await tester.pump(Duration.zero);
+      checkRequest(message.id, prevContent: 'foo', content: 'bar');
+      controller = state.controller;
+      checkNotEditMessageController(narrow);
+
+      // Error state appears in the message list, not here
+    }, variant: narrowVariants);
+
+    testWidgets('compose box not empty when edit requested; cancel confirmation dialog', (tester) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
+      final narrow = narrowVariants.currentValue!;
+      await prepareEditMessage(tester, narrow: narrow);
+
+      checkNotEditMessageController(narrow);
+      await enterContent(tester, 'asdfjkl;');
+
+      state.startEditInteraction(messageId: message.id, originalRawContent: 'foo');
+      await tester.pump();
+      final (actionButton, cancelButton) = checkSuggestedActionDialog(tester,
+        expectedTitle: 'Discard the message you’re writing?',
+        expectedMessage: 'When you edit a message, the content that was previously in the compose box is discarded.',
+        expectedActionButtonText: 'Discard');
+
+      await tester.tap(find.byWidget(cancelButton));
+      await tester.pump();
+      checkNotEditMessageController(narrow, 'asdfjkl;');
+      check(controller).identicalTo(state.controller);
+    }, variant: narrowVariants);
+
+    testWidgets('compose box not empty when edit requested; continue through confirmation dialog', (tester) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
+      final narrow = narrowVariants.currentValue!;
+      await prepareEditMessage(tester, narrow: narrow);
+
+      checkNotEditMessageController(narrow);
+      await enterContent(tester, 'asdfjkl;');
+
+      state.startEditInteraction(messageId: message.id, originalRawContent: 'foo');
+      await tester.pump();
+      final (actionButton, cancelButton) = checkSuggestedActionDialog(tester,
+        expectedTitle: 'Discard the message you’re writing?',
+        expectedMessage: 'When you edit a message, the content that was previously in the compose box is discarded.',
+        expectedActionButtonText: 'Discard');
+
+      await tester.tap(find.byWidget(actionButton));
+      await tester.pump();
+      controller = state.controller;
+      check(controller)
+        .isA<EditMessageComposeBoxController>()
+        .contentFocusNode.hasFocus.isTrue();
+      checkContentInputValue(tester, 'foo');
+
+      await enterContent(tester, 'bar');
+
+      connection.prepare(json: UpdateMessageResult().toJson());
+      await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
+      await tester.pump(Duration.zero);
+      checkRequest(message.id, prevContent: 'foo', content: 'bar');
+      controller = state.controller;
+      checkNotEditMessageController(narrow);
+    }, variant: narrowVariants);
+
+    testWidgets('calling startEditInteraction twice in a row throws StateError', (tester) async {
+      final narrow = narrowVariants.currentValue!;
+      await prepareEditMessage(tester, narrow: narrow);
+
+      state.startEditInteraction(messageId: message.id, originalRawContent: 'foo');
+      await check(state.startEditInteraction(messageId: message.id, originalRawContent: 'foo'))
+        .isA<Future<void>>().throws<StateError>();
+    }, variant: narrowVariants);
   });
 }

@@ -23,6 +23,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/action_sheet.dart';
 import 'package:zulip/widgets/app_bar.dart';
+import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/emoji.dart';
@@ -52,11 +53,18 @@ late FakeApiConnection connection;
 Future<void> setupToMessageActionSheet(WidgetTester tester, {
   required Message message,
   required Narrow narrow,
+  bool? realmAllowMessageEditing,
+  int? realmMessageContentEditLimitSeconds,
 }) async {
   addTearDown(testBinding.reset);
   assert(narrow.containsMessage(message));
 
-  await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+  await testBinding.globalStore.add(
+    eg.selfAccount,
+    eg.initialSnapshot(
+      realmAllowMessageEditing: realmAllowMessageEditing,
+      realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
+    ));
   store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
   await store.addUsers([
     eg.selfUser,
@@ -1407,6 +1415,174 @@ void main() {
         )));
 
         check(mockSharePlus.sharedString).isNull();
+      });
+    });
+
+    group('EditButton', () {
+      group('present/absent appropriately', () {
+        /// Test whether the edit-message button is visible, given params.
+        ///
+        /// The message timestamp is 60s before the current time
+        /// ([TestBinding.utcNow]) as of the start of the test run.
+        ///
+        /// The message has streamId: 1 and topic: 'topic'.
+        /// The message list is for that [TopicNarrow] unless [narrow] is passed.
+        void testVisibility(bool expected, {
+          bool self = true,
+          Narrow? narrow,
+          bool allowed = true,
+          int? limit,
+          bool composing = false,
+          bool? errorStatus,
+        }) {
+          assert(!composing || errorStatus == null);
+          final description = [
+            'from self: $self',
+            'narrow: $narrow',
+            'realm allows: $allowed',
+            'edit limit: $limit',
+            'editing compose box active: $composing',
+            'edit-message error status: $errorStatus',
+          ].join(', ');
+
+          Future<void> tapEditAndPump(WidgetTester tester, {
+            required String rawContentToPrepare,
+          }) async {
+            await tester.ensureVisible(find.byIcon(ZulipIcons.edit, skipOffstage: false));
+            connection.prepare(json: GetMessageResult(
+              message: eg.streamMessage(content: rawContentToPrepare)).toJson());
+            await tester.tap(find.byIcon(ZulipIcons.edit));
+            await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+          }
+
+          void checkButtonIsPresent(bool expected) {
+            if (expected) {
+              check(find.byIcon(ZulipIcons.edit, skipOffstage: false)).findsOne();
+            } else {
+              check(find.byIcon(ZulipIcons.edit, skipOffstage: false)).findsNothing();
+            }
+          }
+
+          testWidgets(description, (tester) async {
+            TypingNotifier.debugEnable = false;
+            addTearDown(TypingNotifier.debugReset);
+
+            final message = eg.streamMessage(
+              stream: eg.stream(streamId: 1),
+              topic: 'topic',
+              sender: self ? eg.selfUser : eg.otherUser,
+              timestamp: eg.utcTimestamp(testBinding.utcNow()) - 60);
+
+            await setupToMessageActionSheet(tester,
+              message: message,
+              narrow: narrow ?? TopicNarrow.ofMessage(message),
+              realmAllowMessageEditing: allowed,
+              realmMessageContentEditLimitSeconds: limit,
+            );
+
+            if (!composing && errorStatus == null) {
+              checkButtonIsPresent(expected);
+              return;
+            }
+
+            await tapEditAndPump(tester, rawContentToPrepare: 'foo');
+            await tester.pump(Duration(seconds: 1));
+            await tester.enterText(find.byWidgetPredicate(
+                (widget) => widget is TextField && widget.controller?.text == 'foo'),
+              'bar');
+
+            if (errorStatus == true) {
+              connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
+              await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
+              await tester.pump(Duration.zero);
+            } else if (errorStatus == false) {
+              connection.prepare(
+                json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+              await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
+              await tester.pump(Duration(milliseconds: 500));
+            }
+
+            await tester.longPress(find.byType(MessageWithPossibleSender));
+            // sheet appears onscreen; default duration of bottom-sheet enter animation
+            await tester.pump(const Duration(milliseconds: 250));
+            checkButtonIsPresent(expected);
+
+            await tester.pump(Duration(milliseconds: 500));
+          });
+        }
+
+        testVisibility(true);
+        // TODO(server-6) limit 0 not expected on 6.0+
+        testVisibility(true, limit: 0);
+        testVisibility(true, limit: 600);
+        testVisibility(true, narrow: ChannelNarrow(1));
+
+        testVisibility(false, self: false);
+        testVisibility(false, narrow: CombinedFeedNarrow());
+        testVisibility(false, allowed: false);
+        testVisibility(false, limit: 10);
+        testVisibility(false, composing: true);
+        testVisibility(false, errorStatus: false);
+        testVisibility(false, errorStatus: true);
+      });
+
+      group('tap button', () {
+        ComposeBoxController? findComposeBoxController(WidgetTester tester) {
+          return tester.stateList<ComposeBoxState>(find.byType(ComposeBox))
+            .singleOrNull?.controller;
+        }
+
+        testWidgets('smoke', (tester) async {
+          final message = eg.streamMessage(sender: eg.selfUser);
+          await setupToMessageActionSheet(tester,
+            message: message,
+            narrow: TopicNarrow.ofMessage(message),
+            realmAllowMessageEditing: true,
+            realmMessageContentEditLimitSeconds: null,
+          );
+
+          check(findComposeBoxController(tester))
+            .isNotNull()
+            .isA<FixedDestinationComposeBoxController>();
+
+          await tester.ensureVisible(find.byIcon(ZulipIcons.edit, skipOffstage: false));
+          connection.prepare(json: GetMessageResult(
+            message: eg.streamMessage(content: 'foo')).toJson());
+          await tester.tap(find.byIcon(ZulipIcons.edit));
+          await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+          await tester.pump(Duration.zero);
+
+          check(findComposeBoxController(tester))
+            .isNotNull()
+            .isA<EditMessageComposeBoxController>()
+              ..messageId.equals(message.id)
+              ..originalRawContent.equals('foo');
+        });
+
+        testWidgets('fetchRawContentWithFeedback fails', (tester) async {
+          final message = eg.streamMessage(sender: eg.selfUser);
+          await setupToMessageActionSheet(tester,
+            message: message,
+            narrow: TopicNarrow.ofMessage(message),
+            realmAllowMessageEditing: true,
+            realmMessageContentEditLimitSeconds: null,
+          );
+
+          check(findComposeBoxController(tester))
+            .isNotNull()
+            .isA<FixedDestinationComposeBoxController>();
+
+          await tester.ensureVisible(find.byIcon(ZulipIcons.edit, skipOffstage: false));
+          connection.prepare(
+            apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
+          await tester.tap(find.byIcon(ZulipIcons.edit));
+          await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+          await tester.pump(Duration.zero);
+
+          check(findComposeBoxController(tester))
+            .isNotNull()
+            .isA<FixedDestinationComposeBoxController>();
+        });
       });
     });
 

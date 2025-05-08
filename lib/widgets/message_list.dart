@@ -788,16 +788,16 @@ class _TypingStatusWidgetState extends State<TypingStatusWidget> with PerAccount
     if (narrow is! SendableNarrow) return const SizedBox();
 
     final store = PerAccountStoreWidget.of(context);
-    final localizations = ZulipLocalizations.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final typistIds = model!.typistIdsInNarrow(narrow);
     if (typistIds.isEmpty) return const SizedBox();
     final text = switch (typistIds.length) {
-      1 => localizations.onePersonTyping(
+      1 => zulipLocalizations.onePersonTyping(
              store.userDisplayName(typistIds.first)),
-      2 => localizations.twoPeopleTyping(
+      2 => zulipLocalizations.twoPeopleTyping(
              store.userDisplayName(typistIds.first),
              store.userDisplayName(typistIds.last)),
-      _ => localizations.manyPeopleTyping,
+      _ => zulipLocalizations.manyPeopleTyping,
     };
 
     return Padding(
@@ -1420,18 +1420,31 @@ class MessageWithPossibleSender extends StatelessWidget {
 
   final MessageListMessageItem item;
 
+  Widget _withRestoreEditMessageGestureDetector(BuildContext context, Widget child) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        final store = PerAccountStoreWidget.of(context);
+        final composeBoxState = MessageListPage.ancestorOf(context).composeBoxState;
+        if (composeBoxState == null) return;
+        composeBoxState.startEditInteraction(messageId: item.message.id,
+          originalRawContent: store.takeFailedMessageEdit(item.message.id));
+      },
+      child: child);
+  }
+
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
     final message = item.message;
 
-    final localizations = ZulipLocalizations.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     String? editStateText;
     switch (message.editState) {
       case MessageEditState.edited:
-        editStateText = localizations.messageIsEditedLabel;
+        editStateText = zulipLocalizations.messageIsEditedLabel;
       case MessageEditState.moved:
-        editStateText = localizations.messageIsMovedLabel;
+        editStateText = zulipLocalizations.messageIsMovedLabel;
       case MessageEditState.none:
     }
 
@@ -1446,9 +1459,68 @@ class MessageWithPossibleSender extends StatelessWidget {
         child: Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star));
     }
 
+    final store = PerAccountStoreWidget.of(context);
+    final editMessageErrorStatus = store.getEditMessageErrorStatus(message.id);
+    Widget? editMessageErrorStatusRow;
+    if (editMessageErrorStatus != null) {
+      final baseTextStyle = TextStyle(
+        fontSize: 12,
+        height: 12 / 12,
+        letterSpacing: proportionalLetterSpacing(context,
+          0.05, baseFontSize: 12),
+      );
+      editMessageErrorStatusRow = switch (editMessageErrorStatus) {
+        // TODO parse markdown and show new content as local echo?
+        false => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 1.5,
+          children: [
+            Text(
+              style: baseTextStyle.copyWith(color: designVariables.btnLabelAttLowIntInfo),
+              textAlign: TextAlign.end,
+              zulipLocalizations.savingMessageEditLabel),
+            // TODO instead place within outer padding; see Figma:
+            //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=4026-8775&m=dev
+            LinearProgressIndicator(
+              minHeight: 2,
+              color: designVariables.foreground.withValues(alpha: 0.5),
+              backgroundColor: designVariables.foreground.withValues(alpha: 0.2),
+            ),
+          ]),
+        true => _withRestoreEditMessageGestureDetector(context,
+          Text(
+            style: baseTextStyle.copyWith(color: designVariables.btnLabelAttLowIntDanger),
+            textAlign: TextAlign.end,
+            zulipLocalizations.savingMessageEditFailedLabel)),
+      };
+    }
+
+    Widget content = MessageContent(message: message, content: item.content);
+
+    if (editMessageErrorStatus != null) {
+      content = Opacity(opacity: 0.6, child: content);
+      switch (editMessageErrorStatus) {
+        case true:
+          content = _withRestoreEditMessageGestureDetector(context, content);
+        case false:
+          content = IgnorePointer(child: content);
+      }
+    }
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onLongPress: () => showMessageActionSheet(context: context, message: message),
+      onLongPress: () {
+        final composeBoxState = MessageListPage.ancestorOf(context).composeBoxState;
+        final controller = composeBoxState?.controller;
+        final editMessageInProgress =
+          controller is EditMessageComposeBoxController
+          || editMessageErrorStatus != null;
+
+        showMessageActionSheet(context: context,
+          message: message,
+          messageListHasComposeBox: composeBoxState != null,
+          editMessageInProgress: editMessageInProgress);
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Column(children: [
@@ -1462,10 +1534,11 @@ class MessageWithPossibleSender extends StatelessWidget {
               Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  MessageContent(message: message, content: item.content),
+                  content,
                   if ((message.reactions?.total ?? 0) > 0)
                     ReactionChipsList(messageId: message.id, reactions: message.reactions!),
-                  if (editStateText != null)
+                  if (editMessageErrorStatusRow != null) editMessageErrorStatusRow
+                  else if (editStateText != null)
                     Text(editStateText,
                       textAlign: TextAlign.end,
                       style: TextStyle(

@@ -29,6 +29,7 @@ import 'message_list.dart';
 import 'recent_dm_conversations.dart';
 import 'recent_senders.dart';
 import 'channel.dart';
+import 'saved_snippet.dart';
 import 'settings.dart';
 import 'typing_status.dart';
 import 'unreads.dart';
@@ -425,7 +426,7 @@ Uri? tryResolveUrl(Uri baseUrl, String reference) {
 /// This class does not attempt to poll an event queue
 /// to keep the data up to date.  For that behavior, see
 /// [UpdateMachine].
-class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStore, UserStore, ChannelStore, MessageStore {
+class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStore, SavedSnippetStore, UserStore, ChannelStore, MessageStore {
   /// Construct a store for the user's data, starting from the given snapshot.
   ///
   /// The global store must already have been updated with
@@ -479,6 +480,8 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       emailAddressVisibility: initialSnapshot.emailAddressVisibility,
       emoji: EmojiStoreImpl(
         core: core, allRealmEmoji: initialSnapshot.realmEmoji),
+      savedSnippets: SavedSnippetStoreImpl(
+        savedSnippets: initialSnapshot.savedSnippets ?? []),
       userSettings: initialSnapshot.userSettings,
       typingNotifier: TypingNotifier(
         core: core,
@@ -517,6 +520,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     required this.customProfileFields,
     required this.emailAddressVisibility,
     required EmojiStoreImpl emoji,
+    required SavedSnippetStoreImpl savedSnippets,
     required this.userSettings,
     required this.typingNotifier,
     required UserStoreImpl users,
@@ -528,6 +532,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     required this.recentSenders,
   }) : _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
        _emoji = emoji,
+       _savedSnippets = savedSnippets,
        _users = users,
        _channels = channels,
        _messages = messages;
@@ -616,6 +621,10 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
 
   ////////////////////////////////
   // Data attached to the self-account on the realm.
+
+  @override
+  Map<int, SavedSnippet> get savedSnippets => _savedSnippets.savedSnippets;
+  final SavedSnippetStoreImpl _savedSnippets;
 
   final UserSettings? userSettings; // TODO(server-5)
 
@@ -864,6 +873,11 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         assert(debugLog("server event: realm_user/update"));
         _users.handleRealmUserEvent(event);
         autocompleteViewManager.handleRealmUserUpdateEvent(event);
+        notifyListeners();
+
+      case SavedSnippetsEvent():
+        assert(debugLog('server event: saved_snippets/${event.op}'));
+        _savedSnippets.handleSavedSnippetsEvent(event);
         notifyListeners();
 
       case ChannelEvent():

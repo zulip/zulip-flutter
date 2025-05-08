@@ -120,6 +120,11 @@ abstract class ZulipBinding {
   /// This wraps [url_launcher.closeInAppWebView].
   Future<void> closeInAppWebView();
 
+  /// Provides access to the current UTC date and time.
+  ///
+  /// Outside tests, this just calls [DateTime.timestamp].
+  DateTime utcNow();
+
   /// Provides access to a new stopwatch.
   ///
   /// Outside tests, this just calls the [Stopwatch] constructor.
@@ -382,6 +387,9 @@ class LiveZulipBinding extends ZulipBinding {
   Future<void> closeInAppWebView() async {
     return url_launcher.closeInAppWebView();
   }
+
+  @override
+  DateTime utcNow() => DateTime.timestamp();
 
   @override
   Stopwatch stopwatch() => Stopwatch();

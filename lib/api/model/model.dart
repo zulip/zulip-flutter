@@ -311,6 +311,30 @@ enum UserRole{
   }
 }
 
+/// An item in `saved_snippets` from the initial snapshot.
+///
+/// For docs, search for "saved_snippets:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class SavedSnippet {
+  SavedSnippet({
+    required this.id,
+    required this.title,
+    required this.content,
+    required this.dateCreated,
+  });
+
+  final int id;
+  final String title;
+  final String content;
+  final int dateCreated;
+
+  factory SavedSnippet.fromJson(Map<String, Object?> json) =>
+    _$SavedSnippetFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SavedSnippetToJson(this);
+}
+
 /// As in `streams` in the initial snapshot.
 ///
 /// Not called `Stream` because dart:async uses that name.
