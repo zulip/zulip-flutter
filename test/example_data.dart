@@ -77,7 +77,7 @@ final Uri realmUrl = Uri.parse('https://chat.example/');
 Uri get _realmUrl => realmUrl;
 
 const String recentZulipVersion = '9.0';
-const int recentZulipFeatureLevel = 278;
+const int recentZulipFeatureLevel = 382;
 const int futureZulipFeatureLevel = 9999;
 const int ancientZulipFeatureLevel = kMinSupportedZulipFeatureLevel - 1;
 

@@ -904,7 +904,11 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   Future<void> _fetch() async {
      assert(!_isFetching);
     _isFetching = true;
-    final result = await getStreamTopics(store.connection, streamId: streamId);
+    final result = await getStreamTopics(store.connection, streamId: streamId,
+      allowEmptyTopicName:
+        // TODO(server-10): simplify this condition away
+        store.zulipFeatureLevel >= 334 ? true : null,
+    );
     _topics = result.topics.map((e) => e.name);
     _isFetching = false;
     return _startSearch();
@@ -942,13 +946,11 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
   bool testTopic(TopicName topic, PerAccountStore store) {
     // TODO(#881): Sort by match relevance, like web does.
 
-    // ignore: unnecessary_null_comparison // null topic names soon to be enabled
     if (topic.displayName == null) {
       return store.realmEmptyTopicDisplayName.toLowerCase()
         .contains(raw.toLowerCase());
     }
     return topic.displayName != raw
-      // ignore: unnecessary_non_null_assertion // null topic names soon to be enabled
       && topic.displayName!.toLowerCase().contains(raw.toLowerCase());
   }
 

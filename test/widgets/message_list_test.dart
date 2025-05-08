@@ -204,7 +204,7 @@ void main() {
         messageCount: 1);
       checkAppBarChannelTopic(
         channel.name, eg.defaultRealmEmptyTopicDisplayName);
-    }, skip: true); // null topic names soon to be enabled
+    });
 
     testWidgets('has channel-feed action for topic narrows', (tester) async {
       final pushedRoutes = <Route<void>>[];
@@ -331,6 +331,7 @@ void main() {
             'anchor': AnchorCode.newest.toJson(),
             'num_before': kMessageListFetchBatchSize.toString(),
             'num_after': '0',
+            'allow_empty_topic_name': 'true',
           });
       });
 
@@ -363,6 +364,7 @@ void main() {
             'anchor': AnchorCode.newest.toJson(),
             'num_before': kMessageListFetchBatchSize.toString(),
             'num_after': '0',
+            'allow_empty_topic_name': 'true',
           });
       });
     });
@@ -1015,7 +1017,7 @@ void main() {
         await tester.pump();
         check(findInMessageList('stream name')).single;
         check(findInMessageList(eg.defaultRealmEmptyTopicDisplayName)).single;
-      }, skip: true); // null topic names soon to be enabled
+      });
 
       testWidgets('show general chat for empty topics without channel name', (tester) async {
         await setupMessageListPage(tester,
@@ -1024,7 +1026,7 @@ void main() {
         await tester.pump();
         check(findInMessageList('stream name')).isEmpty();
         check(findInMessageList(eg.defaultRealmEmptyTopicDisplayName)).single;
-      }, skip: true); // null topic names soon to be enabled
+      });
 
       testWidgets('show topic visibility icon when followed', (tester) async {
         await setupMessageListPage(tester,

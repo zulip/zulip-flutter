@@ -325,6 +325,11 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get composeBoxTopicHintText => 'Тема';
 
   @override
+  String composeBoxEnterTopicOrSkipHintText(String defaultTopicName) {
+    return 'Enter a topic (skip for “$defaultTopicName”)';
+  }
+
+  @override
   String composeBoxUploadingFilename(String filename) {
     return 'Загрузка $filename…';
   }
