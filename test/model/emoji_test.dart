@@ -29,9 +29,9 @@ void main() {
   group('emojiDisplayFor', () {
     test('Unicode emoji', () {
       check(eg.store().emojiDisplayFor(emojiType: ReactionType.unicodeEmoji,
-        emojiCode: '1f642', emojiName: 'smile')
+        emojiCode: '1f642', emojiName: 'slight_smile')
       ).isA<UnicodeEmojiDisplay>()
-        ..emojiName.equals('smile')
+        ..emojiName.equals('slight_smile')
         ..emojiUnicode.equals('🙂');
     });
 
@@ -315,13 +315,13 @@ void main() {
       final candidates1 = store.popularEmojiCandidates();
       check(candidates1).isEmpty();
 
-      store.setServerEmojiData(eg.serverEmojiDataPopular);
+      store.setServerEmojiData(eg.serverEmojiDataPopularLegacy);
       final candidates2 = store.popularEmojiCandidates();
       check(candidates2)
         ..isNotEmpty()
         ..not((it) => it.identicalTo(candidates1));
 
-      store.setServerEmojiData(eg.serverEmojiDataPopularModern);
+      store.setServerEmojiData(eg.serverEmojiDataPopular);
       final candidates3 = store.popularEmojiCandidates();
       check(candidates3)
         ..isNotEmpty()
@@ -417,7 +417,7 @@ void main() {
       check(await resultsOf('')).deepEquals([
         isUnicodeResult(names: ['+1', 'thumbs_up', 'like']),
         isUnicodeResult(names: ['tada']),
-        isUnicodeResult(names: ['smile']),
+        isUnicodeResult(names: ['slight_smile']),
         isUnicodeResult(names: ['heart', 'love', 'love_you']),
         isUnicodeResult(names: ['working_on_it', 'hammer_and_wrench', 'tools']),
         isUnicodeResult(names: ['octopus']),
@@ -430,6 +430,7 @@ void main() {
         isUnicodeResult(names: ['tada']),
         isUnicodeResult(names: ['working_on_it', 'hammer_and_wrench', 'tools']),
         // other
+        isUnicodeResult(names: ['slight_smile']),
         isUnicodeResult(names: ['heart', 'love', 'love_you']),
         isUnicodeResult(names: ['octopus']),
       ]);
@@ -440,6 +441,7 @@ void main() {
         isUnicodeResult(names: ['working_on_it', 'hammer_and_wrench', 'tools']),
         // other
         isUnicodeResult(names: ['+1', 'thumbs_up', 'like']),
+        isUnicodeResult(names: ['slight_smile']),
       ]);
     });
 

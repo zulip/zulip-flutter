@@ -74,8 +74,8 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   connection = store.connection as FakeApiConnection;
   if (shouldSetServerEmojiData) {
     store.setServerEmojiData(useLegacyServerEmojiData
-      ? eg.serverEmojiDataPopular
-      : eg.serverEmojiDataPopularModern);
+      ? eg.serverEmojiDataPopularLegacy
+      : eg.serverEmojiDataPopular);
   }
 
   connection.prepare(json: eg.newestGetMessagesResult(
@@ -830,8 +830,8 @@ void main() {
         final popularCandidates =
           (eg.store()..setServerEmojiData(
             useLegacy
-              ? eg.serverEmojiDataPopular
-              : eg.serverEmojiDataPopularModern))
+              ? eg.serverEmojiDataPopularLegacy
+              : eg.serverEmojiDataPopular))
             .popularEmojiCandidates();
         for (final emoji in popularCandidates) {
           final emojiDisplay = emoji.emojiDisplay as UnicodeEmojiDisplay;
