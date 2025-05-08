@@ -606,8 +606,10 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           if (childIndex < 0) return null;
           return childIndex;
         },
-        childCount: topItems,
+        childCount: topItems + 1,
         (context, childIndex) {
+          if (childIndex == topItems) return _buildStartCap();
+
           final itemIndex = totalItems - 1 - (childIndex + bottomItems);
           final data = model.items[itemIndex];
           final item = _buildItem(data);
@@ -688,12 +690,21 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       ]);
   }
 
+  Widget _buildStartCap() {
+    // These assertions are invariants of [MessageListView].
+    assert(!(model.fetchingOlder && model.fetchOlderCoolingDown));
+    final effectiveFetchingOlder =
+      model.fetchingOlder || model.fetchOlderCoolingDown;
+    assert(!(model.haveOldest && effectiveFetchingOlder));
+    return switch ((effectiveFetchingOlder, model.haveOldest)) {
+      (true, _) => const _MessageListLoadingMore(),
+      (_, true) => const _MessageListHistoryStart(),
+      (_,    _) => const SizedBox.shrink(),
+    };
+  }
+
   Widget _buildItem(MessageListItem data) {
     switch (data) {
-      case MessageListHistoryStartItem():
-        return const _MessageListHistoryStart();
-      case MessageListLoadingItem():
-        return const _MessageListLoadingMore();
       case MessageListRecipientHeaderItem():
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
         return StickyHeaderItem(allowOverflow: true,

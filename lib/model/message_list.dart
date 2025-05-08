@@ -63,21 +63,6 @@ class MessageListMessageItem extends MessageListMessageBaseItem {
   });
 }
 
-/// Indicates the app is loading more messages at the top.
-// TODO(#80): or loading at the bottom, by adding a [MessageListDirection.newer]
-class MessageListLoadingItem extends MessageListItem {
-  final MessageListDirection direction;
-
-  const MessageListLoadingItem(this.direction);
-}
-
-enum MessageListDirection { older }
-
-/// Indicates we've reached the oldest message in the narrow.
-class MessageListHistoryStartItem extends MessageListItem {
-  const MessageListHistoryStartItem();
-}
-
 /// The sequence of messages in a message list, and how to display them.
 ///
 /// This comprises much of the guts of [MessageListView].
@@ -161,11 +146,6 @@ mixin _MessageSequence {
 
   static int _compareItemToMessageId(MessageListItem item, int messageId) {
     switch (item) {
-      case MessageListHistoryStartItem():        return -1;
-      case MessageListLoadingItem():
-        switch (item.direction) {
-          case MessageListDirection.older:       return -1;
-        }
       case MessageListRecipientHeaderItem(:var message):
       case MessageListDateSeparatorItem(:var message):
         if (message.id == null)                  return 1;  // TODO(#1441): test
@@ -328,37 +308,12 @@ mixin _MessageSequence {
       showSender: !canShareSender, isLastInBlock: true));
   }
 
-  /// Update [items] to include markers at start and end as appropriate.
-  void _updateEndMarkers() {
-    assert(fetched);
-    assert(!(fetchingOlder && fetchOlderCoolingDown));
-    final effectiveFetchingOlder = fetchingOlder || fetchOlderCoolingDown;
-    assert(!(effectiveFetchingOlder && haveOldest));
-    final startMarker = switch ((effectiveFetchingOlder, haveOldest)) {
-      (true, _) => const MessageListLoadingItem(MessageListDirection.older),
-      (_, true) => const MessageListHistoryStartItem(),
-      (_,    _) => null,
-    };
-    final hasStartMarker = switch (items.firstOrNull) {
-      MessageListLoadingItem()      => true,
-      MessageListHistoryStartItem() => true,
-      _                             => false,
-    };
-    switch ((startMarker != null, hasStartMarker)) {
-      case (true, true): items[0] = startMarker!;
-      case (true, _   ): items.addFirst(startMarker!);
-      case (_,    true): items.removeFirst();
-      case (_,    _   ): break;
-    }
-  }
-
   /// Recompute [items] from scratch, based on [messages], [contents], and flags.
   void _reprocessAll() {
     items.clear();
     for (var i = 0; i < messages.length; i++) {
       _processMessage(i);
     }
-    _updateEndMarkers();
   }
 }
 
@@ -508,7 +463,6 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
     _fetched = true;
     _haveOldest = result.foundOldest;
-    _updateEndMarkers();
     notifyListeners();
   }
 
@@ -555,7 +509,6 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       || (narrow as TopicNarrow).with_ == null);
     assert(messages.isNotEmpty);
     _fetchingOlder = true;
-    _updateEndMarkers();
     notifyListeners();
     final generation = this.generation;
     bool hasFetchError = false;
@@ -601,13 +554,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
             .wait().then((_) {
               if (this.generation != generation) return;
               _fetchOlderCoolingDown = false;
-              _updateEndMarkers();
               notifyListeners();
             }));
         } else {
           _fetchOlderCooldownBackoffMachine = null;
         }
-        _updateEndMarkers();
         notifyListeners();
       }
     }

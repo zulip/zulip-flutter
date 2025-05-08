@@ -1791,7 +1791,6 @@ void main() {
     // We check showSender has the right values in [checkInvariants],
     // but to make this test explicit:
     check(model.items).deepEquals(<void Function(Subject<Object?>)>[
-      (it) => it.isA<MessageListHistoryStartItem>(),
       (it) => it.isA<MessageListRecipientHeaderItem>(),
       (it) => it.isA<MessageListMessageItem>().showSender.isTrue(),
       (it) => it.isA<MessageListMessageItem>().showSender.isFalse(),
@@ -1964,12 +1963,6 @@ void checkInvariants(MessageListView model) {
   }
 
   int i = 0;
-  if (model.haveOldest) {
-    check(model.items[i++]).isA<MessageListHistoryStartItem>();
-  }
-  if (model.fetchingOlder || model.fetchOlderCoolingDown) {
-    check(model.items[i++]).isA<MessageListLoadingItem>();
-  }
   for (int j = 0; j < model.messages.length; j++) {
     bool forcedShowSender = false;
     if (j == 0
@@ -1991,9 +1984,7 @@ void checkInvariants(MessageListView model) {
         i == model.items.length || switch (model.items[i]) {
           MessageListMessageItem()
           || MessageListDateSeparatorItem() => false,
-          MessageListRecipientHeaderItem()
-          || MessageListHistoryStartItem()
-          || MessageListLoadingItem()       => true,
+          MessageListRecipientHeaderItem()  => true,
         });
   }
   check(model.items).length.equals(i);
