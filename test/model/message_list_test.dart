@@ -67,7 +67,10 @@ void main() {
   void checkNotifiedOnce() => checkNotified(count: 1);
 
   /// Initialize [model] and the rest of the test state.
-  Future<void> prepare({Narrow narrow = const CombinedFeedNarrow()}) async {
+  Future<void> prepare({
+    Narrow narrow = const CombinedFeedNarrow(),
+    Anchor anchor = AnchorCode.newest,
+  }) async {
     final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
     subscription = eg.subscription(stream);
     store = eg.store();
@@ -75,7 +78,7 @@ void main() {
     await store.addSubscription(subscription);
     connection = store.connection as FakeApiConnection;
     notifiedCount = 0;
-    model = MessageListView.init(store: store, narrow: narrow)
+    model = MessageListView.init(store: store, narrow: narrow, anchor: anchor)
       ..addListener(() {
         checkInvariants(model);
         notifiedCount++;
@@ -88,11 +91,18 @@ void main() {
   ///
   /// The test case must have already called [prepare] to initialize the state.
   Future<void> prepareMessages({
-    required bool foundOldest,
+    bool? foundOldest,
+    bool? foundNewest,
+    int? anchorMessageId,
     required List<Message> messages,
   }) async {
-    connection.prepare(json:
-      newestResult(foundOldest: foundOldest, messages: messages).toJson());
+    final result = eg.getMessagesResult(
+      anchor: model.anchor == AnchorCode.firstUnread
+        ? NumericAnchor(anchorMessageId!) : model.anchor,
+      foundOldest: foundOldest,
+      foundNewest: foundNewest,
+      messages: messages);
+    connection.prepare(json: result.toJson());
     await model.fetchInitial();
     checkNotifiedOnce();
   }
@@ -187,11 +197,7 @@ void main() {
     });
 
     test('early in history', () async {
-      // For now, this gets a response that isn't realistic for the
-      // request it sends, to simulate when we start sending requests
-      // that would make this response realistic.
-      // TODO(#82): send appropriate fetch request
-      await prepare();
+      await prepare(anchor: NumericAnchor(1000));
       connection.prepare(json: nearResult(
         anchor: 1000, foundOldest: true, foundNewest: false,
         messages: List.generate(111, (i) => eg.streamMessage(id: 990 + i)),
@@ -217,6 +223,26 @@ void main() {
         ..messages.isEmpty()
         ..haveOldest.isTrue()
         ..haveNewest.isTrue();
+    });
+
+    group('sends proper anchor', () {
+      Future<void> checkFetchWithAnchor(Anchor anchor) async {
+        await prepare(anchor: anchor);
+        // This prepared response isn't entirely realistic, depending on the anchor.
+        // That's OK; these particular tests don't use the details of the response.
+        connection.prepare(json:
+          newestResult(foundOldest: true, messages: []).toJson());
+        await model.fetchInitial();
+        checkNotifiedOnce();
+        check(connection.lastRequest).isA<http.Request>()
+          .url.queryParameters['anchor']
+            .equals(anchor.toJson());
+      }
+
+      test('oldest',      () => checkFetchWithAnchor(AnchorCode.oldest));
+      test('firstUnread', () => checkFetchWithAnchor(AnchorCode.firstUnread));
+      test('newest',      () => checkFetchWithAnchor(AnchorCode.newest));
+      test('numeric',     () => checkFetchWithAnchor(NumericAnchor(12345)));
     });
 
     // TODO(#824): move this test
@@ -441,13 +467,10 @@ void main() {
 
     test('while in mid-history', () async {
       final stream = eg.stream();
-      await prepare(narrow: ChannelNarrow(stream.streamId));
-      connection.prepare(json: nearResult(
-        anchor: 1000, foundOldest: true, foundNewest: false,
-        messages: List.generate(30,
-          (i) => eg.streamMessage(id: 1000 + i, stream: stream))).toJson());
-      await model.fetchInitial();
-      checkNotifiedOnce();
+      await prepare(narrow: ChannelNarrow(stream.streamId),
+        anchor: NumericAnchor(1000));
+      await prepareMessages(foundOldest: true, foundNewest: false, messages:
+        List.generate(30, (i) => eg.streamMessage(id: 1000 + i, stream: stream)));
 
       check(model).messages.length.equals(30);
       await store.addMessage(eg.streamMessage(stream: stream));
@@ -1711,8 +1734,9 @@ void main() {
         ..middleMessage.equals(0);
     });
 
-    test('on fetchInitial not empty', () async {
-      await prepare(narrow: const CombinedFeedNarrow());
+    test('on fetchInitial, anchor past end', () async {
+      await prepare(narrow: const CombinedFeedNarrow(),
+        anchor: AnchorCode.newest);
       final stream1 = eg.stream();
       final stream2 = eg.stream();
       await store.addStreams([stream1, stream2]);
@@ -1733,6 +1757,34 @@ void main() {
         // … even though that's not the last message that was in the response.
         ..messages[model.middleMessage].id
             .equals(messages[messages.length - 2].id);
+    });
+
+    test('on fetchInitial, anchor in middle', () async {
+      final s1 = eg.stream();
+      final s2 = eg.stream();
+      final messages = [
+        eg.streamMessage(id: 1, stream: s1), eg.streamMessage(id: 2, stream: s2),
+        eg.streamMessage(id: 3, stream: s1), eg.streamMessage(id: 4, stream: s2),
+        eg.streamMessage(id: 5, stream: s1), eg.streamMessage(id: 6, stream: s2),
+        eg.streamMessage(id: 7, stream: s1), eg.streamMessage(id: 8, stream: s2),
+      ];
+      final anchorId = 4;
+
+      await prepare(narrow: const CombinedFeedNarrow(),
+        anchor: NumericAnchor(anchorId));
+      await store.addStreams([s1, s2]);
+      await store.addSubscription(eg.subscription(s1));
+      await store.addSubscription(eg.subscription(s2, isMuted: true));
+      await prepareMessages(foundOldest: true, foundNewest: true,
+        messages: messages);
+      // The anchor message is the first visible message with ID at least anchorId…
+      check(model)
+        ..messages[model.middleMessage - 1].id.isLessThan(anchorId)
+        ..messages[model.middleMessage].id.isGreaterOrEqual(anchorId);
+      // … even though a non-visible message actually had anchorId itself.
+      check(messages[3].id)
+        ..equals(anchorId)
+        ..isLessThan(model.messages[model.middleMessage].id);
     });
 
     /// Like [prepareMessages], but arrange for the given top and bottom slices.

@@ -517,7 +517,11 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   void _initModel(PerAccountStore store) {
-    _model = MessageListView.init(store: store, narrow: widget.narrow);
+    // TODO(#82): get anchor as page/route argument, instead of using newest
+    // TODO(#80): default to anchor firstUnread, instead of newest
+    final anchor = AnchorCode.newest;
+    _model = MessageListView.init(store: store,
+      narrow: widget.narrow, anchor: anchor);
     model.addListener(_modelChanged);
     model.fetchInitial();
   }
