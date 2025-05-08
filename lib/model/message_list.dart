@@ -85,10 +85,25 @@ mixin _MessageSequence {
   /// A sequence number for invalidating stale fetches.
   int generation = 0;
 
-  /// The messages.
+  /// The known messages in the list.
+  ///
+  /// This may or may not represent all the message history that
+  /// conceptually belongs in this message list.
+  /// That information is expressed in [fetched] and [haveOldest].
+  ///
+  /// See also [middleMessage], an index which divides this list
+  /// into a top slice and a bottom slice.
   ///
   /// See also [contents] and [items].
   final List<Message> messages = [];
+
+  /// An index into [messages] dividing it into a top slice and a bottom slice.
+  ///
+  /// The indices 0 to before [middleMessage] are the top slice of [messages],
+  /// and the indices from [middleMessage] to the end are the bottom slice.
+  ///
+  /// The corresponding item index is [middleItem].
+  int middleMessage = 0;
 
   /// Whether [messages] and [items] represent the results of a fetch.
   ///
@@ -148,7 +163,22 @@ mixin _MessageSequence {
   /// This information is completely derived from [messages] and
   /// the flags [haveOldest], [fetchingOlder] and [fetchOlderCoolingDown].
   /// It exists as an optimization, to memoize that computation.
+  ///
+  /// See also [middleItem], an index which divides this list
+  /// into a top slice and a bottom slice.
   final QueueList<MessageListItem> items = QueueList();
+
+  /// An index into [items] dividing it into a top slice and a bottom slice.
+  ///
+  /// The indices 0 to before [middleItem] are the top slice of [items],
+  /// and the indices from [middleItem] to the end are the bottom slice.
+  ///
+  /// The top and bottom slices of [items] correspond to
+  /// the top and bottom slices of [messages] respectively.
+  /// Either the bottom slices of both [items] and [messages] are empty,
+  /// or the first item in the bottom slice of [items] is a [MessageListMessageItem]
+  /// for the first message in the bottom slice of [messages].
+  int middleItem = 0;
 
   int _findMessageWithId(int messageId) {
     return binarySearchByKey(messages, messageId,
@@ -222,6 +252,7 @@ mixin _MessageSequence {
     candidate++;
     assert(contents.length == messages.length);
     while (candidate < messages.length) {
+      if (candidate == middleMessage) middleMessage = target;
       if (test(messages[candidate])) {
         candidate++;
         continue;
@@ -230,6 +261,7 @@ mixin _MessageSequence {
       contents[target] = contents[candidate];
       target++; candidate++;
     }
+    if (candidate == middleMessage) middleMessage = target;
     messages.length = target;
     contents.length = target;
     assert(contents.length == messages.length);
@@ -252,6 +284,13 @@ mixin _MessageSequence {
     }
     if (messagesToRemoveById.isEmpty) return false;
 
+    if (middleMessage == messages.length) {
+      middleMessage -= messagesToRemoveById.length;
+    } else {
+      final middleMessageId = messages[middleMessage].id;
+      middleMessage -= messagesToRemoveById
+        .where((id) => id < middleMessageId).length;
+    }
     assert(contents.length == messages.length);
     messages.removeWhere((message) => messagesToRemoveById.contains(message.id));
     contents.removeWhere((content) => contentToRemove.contains(content));
@@ -266,11 +305,15 @@ mixin _MessageSequence {
     //   On a Pixel 5, a batch of 100 messages takes ~15-20ms in _insertAllMessages.
     //   (Before that, ~2-5ms in jsonDecode and 0ms in fromJson,
     //   so skip worrying about those steps.)
+    final oldLength = messages.length;
     assert(contents.length == messages.length);
     messages.insertAll(index, toInsert);
     contents.insertAll(index, toInsert.map(
       (message) => _parseMessageContent(message)));
     assert(contents.length == messages.length);
+    if (index <= middleMessage) {
+      middleMessage += messages.length - oldLength;
+    }
     _reprocessAll();
   }
 
@@ -278,6 +321,7 @@ mixin _MessageSequence {
   void _reset() {
     generation += 1;
     messages.clear();
+    middleMessage = 0;
     _fetched = false;
     _haveOldest = false;
     _fetchingOlder = false;
@@ -285,6 +329,7 @@ mixin _MessageSequence {
     _fetchOlderCooldownBackoffMachine = null;
     contents.clear();
     items.clear();
+    middleItem = 0;
   }
 
   /// Redo all computations from scratch, based on [messages].
@@ -324,6 +369,7 @@ mixin _MessageSequence {
         canShareSender = (prevMessageItem.message.senderId == message.senderId);
       }
     }
+    if (index == middleMessage) middleItem = items.length;
     items.add(MessageListMessageItem(message, content,
       showSender: !canShareSender, isLastInBlock: true));
   }
@@ -346,8 +392,8 @@ mixin _MessageSequence {
     };
     switch ((startMarker != null, hasStartMarker)) {
       case (true, true): items[0] = startMarker!;
-      case (true, _   ): items.addFirst(startMarker!);
-      case (_,    true): items.removeFirst();
+      case (true, _   ): items.addFirst(startMarker!); middleItem++;
+      case (_,    true): items.removeFirst(); middleItem--;
       case (_,    _   ): break;
     }
   }
@@ -358,6 +404,7 @@ mixin _MessageSequence {
     for (var i = 0; i < messages.length; i++) {
       _processMessage(i);
     }
+    if (middleMessage == messages.length) middleItem = items.length;
     _updateEndMarkers();
   }
 }
@@ -497,13 +544,18 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       numAfter: 0,
     );
     if (this.generation > generation) return;
+
     _adjustNarrowForTopicPermalink(result.messages.firstOrNull);
+
     store.reconcileMessages(result.messages);
     store.recentSenders.handleMessages(result.messages); // TODO(#824)
+
+    // We'll make the bottom slice start at the last visible message, if any.
     for (final message in result.messages) {
-      if (_messageVisible(message)) {
-        _addMessage(message);
-      }
+      if (!_messageVisible(message)) continue;
+      middleMessage = messages.length;
+      _addMessage(message);
+      // Now [middleMessage] is the last message (the one just added).
     }
     _fetched = true;
     _haveOldest = result.foundOldest;
