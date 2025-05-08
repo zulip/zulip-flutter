@@ -645,15 +645,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           if (childIndex < 0) return null;
           return childIndex;
         },
-        childCount: bottomItems + 3,
+        childCount: bottomItems + 1,
         (context, childIndex) {
-          // To reinforce that the end of the feed has been reached:
-          //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
-          if (childIndex == bottomItems + 2) return const SizedBox(height: 36);
-
-          if (childIndex == bottomItems + 1) return MarkAsReadWidget(narrow: widget.narrow);
-
-          if (childIndex == bottomItems) return TypingStatusWidget(narrow: widget.narrow);
+          if (childIndex == bottomItems) return _buildEndCap();
 
           final itemIndex = topItems + childIndex;
           final data = model.items[itemIndex];
@@ -700,6 +694,16 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       (_, true) => const _MessageListHistoryStart(),
       (_,    _) => const SizedBox.shrink(),
     };
+  }
+
+  Widget _buildEndCap() {
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      TypingStatusWidget(narrow: widget.narrow),
+      MarkAsReadWidget(narrow: widget.narrow),
+      // To reinforce that the end of the feed has been reached:
+      //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
+      const SizedBox(height: 36),
+    ]);
   }
 
   Widget _buildItem(MessageListItem data) {
