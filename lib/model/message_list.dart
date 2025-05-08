@@ -13,6 +13,8 @@ import 'content.dart';
 import 'narrow.dart';
 import 'store.dart';
 
+export '../api/route/messages.dart' show Anchor, AnchorCode, NumericAnchor;
+
 /// The number of messages to fetch in each request.
 const kMessageListFetchBatchSize = 100; // TODO tune
 
@@ -125,9 +127,6 @@ mixin _MessageSequence {
   bool _haveOldest = false;
 
   /// Whether we know we have the newest messages for this narrow.
-  ///
-  /// (Currently this is always true once [fetched] is true,
-  /// because we start from the newest.)
   ///
   /// See also [haveOldest].
   bool get haveNewest => _haveNewest;
@@ -418,14 +417,20 @@ bool _sameDay(DateTime date1, DateTime date2) {
 ///  * When the object will no longer be used, call [dispose] to free
 ///    resources on the [PerAccountStore].
 class MessageListView with ChangeNotifier, _MessageSequence {
-  factory MessageListView.init(
-      {required PerAccountStore store, required Narrow narrow}) {
-    return MessageListView._(store: store, narrow: narrow)
+  factory MessageListView.init({
+    required PerAccountStore store,
+    required Narrow narrow,
+    Anchor anchor = AnchorCode.newest, // TODO(#82): make required, for explicitness
+  }) {
+    return MessageListView._(store: store, narrow: narrow, anchor: anchor)
       .._register();
   }
 
-  MessageListView._({required this.store, required Narrow narrow})
-    : _narrow = narrow;
+  MessageListView._({
+    required this.store,
+    required Narrow narrow,
+    required Anchor anchor,
+  }) : _narrow = narrow, _anchor = anchor;
 
   final PerAccountStore store;
 
@@ -434,6 +439,17 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// This can change over time, notably if showing a topic that gets moved.
   Narrow get narrow => _narrow;
   Narrow _narrow;
+
+  /// The anchor point this message list starts from in the message history.
+  ///
+  /// This is passed to the server in the get-messages request
+  /// sent by [fetchInitial].
+  /// That includes not only the original [fetchInitial] call made by
+  /// the message-list widget, but any additional [fetchInitial] calls
+  /// which might be made internally by this class in order to
+  /// fetch the messages from scratch, e.g. after certain events.
+  Anchor get anchor => _anchor;
+  final Anchor _anchor;
 
   void _register() {
     store.registerMessageList(this);
@@ -520,8 +536,6 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Fetch messages, starting from scratch.
   Future<void> fetchInitial() async {
-    // TODO(#80): fetch from anchor firstUnread, instead of newest
-    // TODO(#82): fetch from a given message ID as anchor
     assert(!fetched && !haveOldest && !haveNewest && !busyFetchingMore);
     assert(messages.isEmpty && contents.isEmpty);
     _setStatus(FetchingStatus.fetchInitial, was: FetchingStatus.unstarted);
@@ -529,7 +543,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     final generation = this.generation;
     final result = await getMessages(store.connection,
       narrow: narrow.apiEncode(),
-      anchor: AnchorCode.newest,
+      anchor: anchor,
       numBefore: kMessageListFetchBatchSize,
       numAfter: kMessageListFetchBatchSize,
       allowEmptyTopicName: true,
@@ -541,12 +555,20 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     store.reconcileMessages(result.messages);
     store.recentSenders.handleMessages(result.messages); // TODO(#824)
 
-    // We'll make the bottom slice start at the last visible message, if any.
+    // The bottom slice will start at the "anchor message".
+    // This is the first visible message at or past [anchor] if any,
+    // else the last visible message if any.  [reachedAnchor] helps track that.
+    bool reachedAnchor = false;
     for (final message in result.messages) {
       if (!_messageVisible(message)) continue;
-      middleMessage = messages.length;
+      if (!reachedAnchor) {
+        // Push the previous message into the top slice.
+        middleMessage = messages.length;
+        // We could interpret [anchor] for ourselves; but the server has already
+        // done that work, reducing it to an int, `result.anchor`.  So use that.
+        reachedAnchor = message.id >= result.anchor;
+      }
       _addMessage(message);
-      // Now [middleMessage] is the last message (the one just added).
     }
     _haveOldest = result.foundOldest;
     _haveNewest = result.foundNewest;
