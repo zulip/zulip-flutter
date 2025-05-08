@@ -1,8 +1,15 @@
+import 'dart:async';
+
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
+import '../api/route/channels.dart';
+import 'store.dart';
+
+final _apiGetStreamTopics = getStreamTopics;  // similar to _apiSendMessage in lib/model/message.dart
 
 /// The portion of [PerAccountStore] for channels, topics, and stuff about them.
 ///
@@ -33,6 +40,26 @@ mixin ChannelStore {
   /// The same [Subscription] objects are among the values in [streams]
   /// and [streamsByName].
   Map<int, Subscription> get subscriptions;
+
+  /// Fetch topics in a stream from the server.
+  ///
+  /// The results from the last successful fetch
+  /// can be retrieved with [getStreamTopics].
+  Future<void> fetchTopics(int streamId);
+
+  /// Pairs of the known topics and its latest message ID, in the given stream.
+  ///
+  /// Returns null if the data has never been fetched yet.
+  /// To fetch it from the server, use [fetchTopics].
+  ///
+  /// The result is guaranteed to be sorted by [GetStreamTopicsEntry.maxId], and the
+  /// topics are guaranteed to be distinct.
+  ///
+  /// In some cases, the same maxId affected by message moves can be present in
+  /// multiple [GetStreamTopicsEntry] entries.  For this reason, the caller
+  /// should not rely on [getStreamTopics] to determine which topic the message
+  /// is in.  Instead, refer to [PerAccountStore.messages].
+  List<GetStreamTopicsEntry>? getStreamTopics(int streamId);
 
   /// The visibility policy that the self-user has for the given topic.
   ///
@@ -208,6 +235,34 @@ class ChannelStoreImpl extends PerAccountStoreBase with ChannelStore {
   @override
   final Map<int, Subscription> subscriptions;
 
+  /// Maps indexed by stream IDs, of the known latest message IDs in each topic.
+  ///
+  /// For example: `_latestMessageIdsByStreamTopic[stream.id][topic] = maxId`
+  ///
+  /// In some cases, the same message IDs, when affected by message moves, can
+  /// be present for mutliple stream-topic keys.
+  final Map<int, Map<TopicName, int>> _latestMessageIdsByStreamTopic = {};
+
+  @override
+  Future<void> fetchTopics(int streamId) async {
+    final result = await _apiGetStreamTopics(connection, streamId: streamId,
+      allowEmptyTopicName: true);
+    _latestMessageIdsByStreamTopic[streamId] = {
+      for (final GetStreamTopicsEntry(:name, :maxId) in result.topics)
+        name: maxId,
+    };
+  }
+
+  @override
+  List<GetStreamTopicsEntry>? getStreamTopics(int streamId) {
+    final latestMessageIdsInStream = _latestMessageIdsByStreamTopic[streamId];
+    if (latestMessageIdsInStream == null) return null;
+    return [
+      for (final MapEntry(:key, :value) in latestMessageIdsInStream.entries)
+        GetStreamTopicsEntry(maxId: value, name: key),
+    ].sortedBy((value) => -value.maxId);
+  }
+
   @override
   Map<int, Map<TopicName, UserTopicVisibilityPolicy>> get debugTopicVisibility => topicVisibility;
 
@@ -373,5 +428,46 @@ class ChannelStoreImpl extends PerAccountStoreBase with ChannelStore {
       final forStream = topicVisibility.putIfAbsent(event.streamId, () => {});
       forStream[event.topicName] = visibilityPolicy;
     }
+  }
+
+  /// Handle a [MessageEvent], returning whether listeners should be notified.
+  bool handleMessageEvent(MessageEvent event) {
+    if (event.message is! StreamMessage) return false;
+    final StreamMessage(:streamId, :topic) = event.message as StreamMessage;
+
+    final latestMessageIdsByTopic = _latestMessageIdsByStreamTopic[streamId];
+    if (latestMessageIdsByTopic == null) return false;
+    assert(!latestMessageIdsByTopic.containsKey(topic)
+           || latestMessageIdsByTopic[topic]! < event.message.id);
+    latestMessageIdsByTopic[topic] = event.message.id;
+    return true;
+  }
+
+  /// Handle a [UpdateMessageEvent], returning whether listeners should be
+  /// notified.
+  bool handleUpdateMessageEvent(UpdateMessageEvent event) {
+    if (event.moveData == null) return false;
+    final UpdateMessageMoveData(
+      :origStreamId, :origTopic, :newStreamId, :newTopic, :propagateMode,
+    ) = event.moveData!;
+    bool shouldNotify = false;
+
+    final origLatestMessageIdsByTopics = _latestMessageIdsByStreamTopic[origStreamId];
+    if (propagateMode == PropagateMode.changeAll
+        && origLatestMessageIdsByTopics != null) {
+      shouldNotify = origLatestMessageIdsByTopics.remove(origTopic) != null;
+    }
+
+    final newLatestMessageIdsByTopics = _latestMessageIdsByStreamTopic[newStreamId];
+    if (newLatestMessageIdsByTopics != null) {
+      final movedMaxId = event.messageIds.max;
+      if (!newLatestMessageIdsByTopics.containsKey(newTopic)
+          || newLatestMessageIdsByTopics[newTopic]! < movedMaxId) {
+        newLatestMessageIdsByTopics[newTopic] = movedMaxId;
+        shouldNotify = true;
+      }
+    }
+
+    return shouldNotify;
   }
 }
