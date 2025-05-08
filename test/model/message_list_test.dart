@@ -157,7 +157,7 @@ void main() {
           narrow: narrow.apiEncode(),
           anchor: 'newest',
           numBefore: kMessageListFetchBatchSize,
-          numAfter: 0,
+          numAfter: kMessageListFetchBatchSize,
           allowEmptyTopicName: true,
         );
       }
