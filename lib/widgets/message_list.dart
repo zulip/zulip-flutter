@@ -569,7 +569,6 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   Widget _buildListView(BuildContext context) {
     const centerSliverKey = ValueKey('center sliver');
-    final zulipLocalizations = ZulipLocalizations.of(context);
 
     // The list has two slivers: a top sliver growing upward,
     // and a bottom sliver growing downward.
@@ -611,7 +610,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         (context, childIndex) {
           final itemIndex = totalItems - 1 - (childIndex + bottomItems);
           final data = model.items[itemIndex];
-          final item = _buildItem(zulipLocalizations, data);
+          final item = _buildItem(data);
           return item;
         }));
 
@@ -657,7 +656,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
           final itemIndex = topItems + childIndex;
           final data = model.items[itemIndex];
-          return _buildItem(zulipLocalizations, data);
+          return _buildItem(data);
         }));
 
     if (!ComposeBox.hasComposeBox(widget.narrow)) {
@@ -689,18 +688,12 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       ]);
   }
 
-  Widget _buildItem(ZulipLocalizations zulipLocalizations, MessageListItem data) {
+  Widget _buildItem(MessageListItem data) {
     switch (data) {
       case MessageListHistoryStartItem():
-        return Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: Text(zulipLocalizations.noEarlierMessages))); // TODO use an icon
+        return const _MessageListHistoryStart();
       case MessageListLoadingItem():
-        return const Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.0),
-            child: CircularProgressIndicator())); // TODO perhaps a different indicator
+        return const _MessageListLoadingMore();
       case MessageListRecipientHeaderItem():
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
         return StickyHeaderItem(allowOverflow: true,
@@ -718,6 +711,31 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           trailingWhitespace: 11,
           item: data);
     }
+  }
+}
+
+class _MessageListHistoryStart extends StatelessWidget {
+  const _MessageListHistoryStart();
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: Text(zulipLocalizations.noEarlierMessages))); // TODO use an icon
+  }
+}
+
+class _MessageListLoadingMore extends StatelessWidget {
+  const _MessageListLoadingMore();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 16.0),
+        child: CircularProgressIndicator())); // TODO perhaps a different indicator
   }
 }
 
