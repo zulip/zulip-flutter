@@ -610,6 +610,9 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   }
 
   @override
+  Iterable<EmojiCandidate> popularEmojiCandidates() => _emoji.popularEmojiCandidates();
+
+  @override
   Iterable<EmojiCandidate> allEmojiCandidates() => _emoji.allEmojiCandidates();
 
   EmojiStoreImpl _emoji;
