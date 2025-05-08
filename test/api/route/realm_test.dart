@@ -22,7 +22,7 @@ void main() {
     }
 
     final fakeResult = ServerEmojiData(codeToNames: {
-      '1f642': ['smile'],
+      '1f642': ['slight_smile'],
       '1f34a': ['orange', 'tangerine', 'mandarin'],
     });
 

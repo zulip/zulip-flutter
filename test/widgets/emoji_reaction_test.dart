@@ -161,7 +161,7 @@ void main() {
             // Base JSON for various unicode emoji reactions. Just missing user_id.
             final u1 = {'emoji_name': '+1', 'emoji_code': '1f44d', 'reaction_type': 'unicode_emoji'};
             final u2 = {'emoji_name': 'family_man_man_girl_boy', 'emoji_code': '1f468-200d-1f468-200d-1f467-200d-1f466', 'reaction_type': 'unicode_emoji'};
-            final u3 = {'emoji_name': 'smile', 'emoji_code': '1f642', 'reaction_type': 'unicode_emoji'};
+            final u3 = {'emoji_name': 'slight_smile', 'emoji_code': '1f642', 'reaction_type': 'unicode_emoji'};
             final u4 = {'emoji_name': 'tada', 'emoji_code': '1f389', 'reaction_type': 'unicode_emoji'};
             final u5 = {'emoji_name': 'exploding_head', 'emoji_code': '1f92f', 'reaction_type': 'unicode_emoji'};
 
@@ -239,7 +239,7 @@ void main() {
     await setupChipsInBox(tester, reactions: [
       Reaction.fromJson({
         'user_id': eg.selfUser.userId,
-        'emoji_name': 'smile', 'emoji_code': '1f642', 'reaction_type': 'unicode_emoji'}),
+        'emoji_name': 'slight_smile', 'emoji_code': '1f642', 'reaction_type': 'unicode_emoji'}),
       Reaction.fromJson({
         'user_id': eg.otherUser.userId,
         'emoji_name': 'tada', 'emoji_code': '1f389', 'reaction_type': 'unicode_emoji'}),
@@ -251,7 +251,7 @@ void main() {
       return material.color;
     }
 
-    check(backgroundColor('smile')).isNotNull()
+    check(backgroundColor('slight_smile')).isNotNull()
       .isSameColorAs(EmojiReactionTheme.light.bgSelected);
     check(backgroundColor('tada')).isNotNull()
       .isSameColorAs(EmojiReactionTheme.light.bgUnselected);
@@ -261,13 +261,13 @@ void main() {
 
     await tester.pump(kThemeAnimationDuration * 0.4);
     final expectedLerped = EmojiReactionTheme.light.lerp(EmojiReactionTheme.dark, 0.4);
-    check(backgroundColor('smile')).isNotNull()
+    check(backgroundColor('slight_smile')).isNotNull()
       .isSameColorAs(expectedLerped.bgSelected);
     check(backgroundColor('tada')).isNotNull()
       .isSameColorAs(expectedLerped.bgUnselected);
 
     await tester.pump(kThemeAnimationDuration * 0.6);
-    check(backgroundColor('smile')).isNotNull()
+    check(backgroundColor('slight_smile')).isNotNull()
       .isSameColorAs(EmojiReactionTheme.dark.bgSelected);
     check(backgroundColor('tada')).isNotNull()
       .isSameColorAs(EmojiReactionTheme.dark.bgUnselected);
