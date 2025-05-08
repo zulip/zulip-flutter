@@ -13,6 +13,7 @@ import '../api/exception.dart';
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
+import '../api/route/channels.dart';
 import '../api/route/events.dart';
 import '../api/route/messages.dart';
 import '../api/backoff.dart';
@@ -693,6 +694,12 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   Map<String, ZulipStream> get streamsByName => _channels.streamsByName;
   @override
   Map<int, Subscription> get subscriptions => _channels.subscriptions;
+
+  @override
+  Future<void> fetchTopics(int streamId) => _channels.fetchTopics(streamId);
+  @override
+  List<GetStreamTopicsEntry>? getStreamTopics(int streamId) =>
+    _channels.getStreamTopics(streamId);
   @override
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic) =>
     _channels.topicVisibilityPolicy(streamId, topic);
@@ -890,6 +897,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         unreads.handleMessageEvent(event);
         recentDmConversationsView.handleMessageEvent(event);
         recentSenders.handleMessage(event.message); // TODO(#824)
+        if (_channels.handleMessageEvent(event)) notifyListeners();
         // When adding anything here (to handle [MessageEvent]),
         // it probably belongs in [reconcileMessages] too.
 
@@ -897,6 +905,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         assert(debugLog("server event: update_message ${event.messageId}"));
         _messages.handleUpdateMessageEvent(event);
         unreads.handleUpdateMessageEvent(event);
+        if (_channels.handleUpdateMessageEvent(event)) notifyListeners();
 
       case DeleteMessageEvent():
         assert(debugLog("server event: delete_message ${event.messageIds}"));

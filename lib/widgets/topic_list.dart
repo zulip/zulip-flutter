@@ -4,6 +4,7 @@ import '../api/model/model.dart';
 import '../api/route/channels.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
+import '../model/store.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
 import 'app_bar.dart';
@@ -128,16 +129,13 @@ class _TopicList extends StatefulWidget {
 
 class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMixin {
   Unreads? unreadsModel;
-  // TODO(#1499): store the results on [ChannelStore], and keep them
-  //   up-to-date by handling events
-  List<GetStreamTopicsEntry>? lastFetchedTopics;
 
   @override
   void onNewStore() {
     unreadsModel?.removeListener(_modelChanged);
     final store = PerAccountStoreWidget.of(context);
     unreadsModel = store.unreads..addListener(_modelChanged);
-    _fetchTopics();
+    _fetchTopics(store);
   }
 
   @override
@@ -152,22 +150,22 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
     });
   }
 
-  void _fetchTopics() async {
+  void _fetchTopics(PerAccountStore store) async {
     // Do nothing when the fetch fails; the topic-list will stay on
     // the loading screen, until the user navigates away and back.
     // TODO(design) show a nice error message on screen when this fails
-    final store = PerAccountStoreWidget.of(context);
-    final result = await getStreamTopics(store.connection,
-      streamId: widget.streamId);
+    await store.fetchTopics(widget.streamId);
     if (!mounted) return;
     setState(() {
-      lastFetchedTopics = result.topics;
+      // The actuall state lives in the PerAccountStore
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (lastFetchedTopics == null) {
+    final store = PerAccountStoreWidget.of(context);
+    final streamTopics = store.getStreamTopics(widget.streamId);
+    if (streamTopics == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -175,7 +173,7 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
 
     // This is adapted from parts of the build method on [_InboxPageState].
     final topicItems = <_TopicItemData>[];
-    for (final GetStreamTopicsEntry(:maxId, name: topic) in lastFetchedTopics!) {
+    for (final GetStreamTopicsEntry(:maxId, name: topic) in streamTopics) {
       final unreadMessageIds =
         unreadsModel!.streams[widget.streamId]?[topic] ?? <int>[];
       final countInTopic = unreadMessageIds.length;
@@ -185,9 +183,6 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
         topic: topic,
         unreadCount: countInTopic,
         hasMention: hasMention,
-        // `lastFetchedTopics.maxId` can become outdated when a new message
-        // arrives or when there are message moves, until we re-fetch.
-        // TODO(#1499): track changes to this
         maxId: maxId,
       ));
     }
