@@ -79,10 +79,21 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   // global store, per-account store, and message list get loaded
   await tester.pumpAndSettle();
 
-  // request the message action sheet
-  await tester.longPress(find.byType(MessageContent));
+  // Request the message action sheet.
+  //
+  // We use `warnIfMissed: false` to suppress warnings in cases where
+  // MessageContent itself didn't hit-test as true but the action sheet still
+  // opened. The action sheet still opens because the gesture handler is an
+  // ancestor of MessageContent, but MessageContent might not hit-test as true
+  // because its render box effectively has HitTestBehavior.deferToChild, and
+  // the long-press might land where no child hit-tests as true,
+  // like if it's in padding around a Paragraph.
+  await tester.longPress(find.byType(MessageContent), warnIfMissed: false);
   // sheet appears onscreen; default duration of bottom-sheet enter animation
   await tester.pump(const Duration(milliseconds: 250));
+  // Check the action sheet did in fact open, so we don't defeat any tests that
+  // use simple `find.byIcon`-style checks to test presence/absence of a button.
+  check(find.byType(BottomSheet)).findsOne();
 }
 
 void main() {
