@@ -464,7 +464,8 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       accountId: accountId,
       selfUserId: account.userId,
     );
-    final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
+    final channels = ChannelStoreImpl(
+      core: core, initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       core: core,
       realmWildcardMentionPolicy: initialSnapshot.realmWildcardMentionPolicy,
