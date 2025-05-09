@@ -472,7 +472,7 @@ StreamMessage streamMessage({
   // of the properties as we're constructing the data.  That's probably OK
   // because (a) this is only for tests; (b) the types do get checked
   // dynamically in the constructor, so any ill-typing won't propagate further.
-  return StreamMessage.fromJson(deepToJson({
+  final result = StreamMessage.fromJson(deepToJson({
     ..._messagePropertiesBase,
     ..._messagePropertiesFromSender(sender),
     ..._messagePropertiesFromContent(content, contentMarkdown),
@@ -487,6 +487,8 @@ StreamMessage streamMessage({
     'timestamp': timestamp ?? utcTimestamp(),
     'type': 'stream',
   }) as Map<String, dynamic>);
+  result.poll?.debugSubmessagesForToJson = submessages;
+  return result;
 }
 
 /// Construct an example direct message.
@@ -512,7 +514,7 @@ DmMessage dmMessage({
 }) {
   _checkPositive(id, 'message ID');
   assert(!to.any((user) => user.userId == from.userId));
-  return DmMessage.fromJson(deepToJson({
+  final result = DmMessage.fromJson(deepToJson({
     ..._messagePropertiesBase,
     ..._messagePropertiesFromSender(from),
     ..._messagePropertiesFromContent(content, contentMarkdown),
@@ -528,6 +530,8 @@ DmMessage dmMessage({
     'timestamp': timestamp ?? utcTimestamp(),
     'type': 'private',
   }) as Map<String, dynamic>);
+  result.poll?.debugSubmessagesForToJson = submessages;
+  return result;
 }
 
 /// A GetMessagesResult the server might return on an `anchor=newest` request.

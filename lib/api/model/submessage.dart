@@ -471,10 +471,24 @@ class Poll extends ChangeNotifier {
     return json as Poll?;
   }
 
+  /// What [toJson] should return, for tests.
+  ///
+  /// This exists because [toJson] would just return [] otherwise.
+  @visibleForTesting
+  List<Submessage>? debugSubmessagesForToJson;
+
   static List<Submessage> toJson(Poll? poll) {
+    List<Submessage>? result;
+
+    assert(() {
+      result = poll?.debugSubmessagesForToJson;
+      return true;
+    }());
+
     // Rather than maintaining a up-to-date submessages list, return as if it is
     // empty, because we are not sending the submessages to the server anyway.
-    return [];
+    // If we change our mind, we can remove [debugSubmessagesForToJson].
+    return result ?? [];
   }
 }
 
