@@ -161,8 +161,11 @@ enum VisibilityEffect {
 /// Generally the only code that should need this class is [PerAccountStore]
 /// itself.  Other code accesses this functionality through [PerAccountStore],
 /// or through the mixin [ChannelStore] which describes its interface.
-class ChannelStoreImpl with ChannelStore {
-  factory ChannelStoreImpl({required InitialSnapshot initialSnapshot}) {
+class ChannelStoreImpl extends PerAccountStoreBase with ChannelStore {
+  factory ChannelStoreImpl({
+    required CorePerAccountStore core,
+    required InitialSnapshot initialSnapshot,
+  }) {
     final subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
       (subscription) => MapEntry(subscription.streamId, subscription)));
 
@@ -182,6 +185,7 @@ class ChannelStoreImpl with ChannelStore {
     }
 
     return ChannelStoreImpl._(
+      core: core,
       streams: streams,
       streamsByName: streams.map((_, stream) => MapEntry(stream.name, stream)),
       subscriptions: subscriptions,
@@ -190,6 +194,7 @@ class ChannelStoreImpl with ChannelStore {
   }
 
   ChannelStoreImpl._({
+    required super.core,
     required this.streams,
     required this.streamsByName,
     required this.subscriptions,
