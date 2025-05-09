@@ -231,6 +231,14 @@ class _TopicItem extends StatelessWidget {
     final isTopicVisibleInStream = store.isTopicVisibleInStream(streamId, topic);
     final visibilityIcon = iconDataForTopicVisibilityPolicy(
       store.topicVisibilityPolicy(streamId, topic));
+    // The message with `maxId` might not remain in `topic` since we last fetch
+    // the list of topics.  Make sure we check for that before passing `maxId`
+    // to the topic action sheet.
+    // See also: [ChannelStore.getStreamTopics]
+    final message = store.messages[maxId];
+    final isMaxIdInTopic = message is StreamMessage
+      && message.streamId == streamId
+      && message.topic.isSameAs(topic);
 
     final trailingWidgets = [
       if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
@@ -249,7 +257,7 @@ class _TopicItem extends StatelessWidget {
         onLongPress: () => showTopicActionSheet(context,
           channelId: streamId,
           topic: topic,
-          someMessageIdInTopic: maxId),
+          someMessageIdInTopic: isMaxIdInTopic ? maxId : null),
         splashFactory: NoSplash.splashFactory,
         child: Padding(padding: EdgeInsetsDirectional.fromSTEB(28, 8, 12, 8),
           child: Row(
