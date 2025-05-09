@@ -479,7 +479,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// which might be made internally by this class in order to
   /// fetch the messages from scratch, e.g. after certain events.
   Anchor get anchor => _anchor;
-  final Anchor _anchor;
+  Anchor _anchor;
 
   void _register() {
     store.registerMessageList(this);
@@ -754,6 +754,16 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         }
       }
     }
+  }
+
+  void jumpToEnd() {
+    assert(fetched);
+    assert(!haveNewest);
+    assert(anchor != AnchorCode.newest);
+    _anchor = AnchorCode.newest;
+    _reset();
+    notifyListeners();
+    fetchInitial();
   }
 
   /// Add [outboxMessage] if it belongs to the view.

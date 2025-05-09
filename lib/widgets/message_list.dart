@@ -543,6 +543,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       //   redirected us to the new location of the operand message ID.
       widget.onNarrowChanged(model.narrow);
     }
+    // TODO when model reset, reset scroll
     setState(() {
       // The actual state lives in the [MessageListView] model.
       // This method was called because that just changed.
@@ -618,6 +619,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
                   //   MessageList's dartdoc.
                   child: SafeArea(
                     child: ScrollToBottomButton(
+                      model: model,
                       scrollController: scrollController,
                       visible: _scrollToBottomVisible))),
               ])))));
@@ -817,13 +819,23 @@ class _MessageListLoadingMore extends StatelessWidget {
 }
 
 class ScrollToBottomButton extends StatelessWidget {
-  const ScrollToBottomButton({super.key, required this.scrollController, required this.visible});
+  const ScrollToBottomButton({
+    super.key,
+    required this.model,
+    required this.scrollController,
+    required this.visible,
+  });
 
-  final ValueNotifier<bool> visible;
+  final MessageListView model;
   final MessageListScrollController scrollController;
+  final ValueNotifier<bool> visible;
 
   void _scrollToBottom() {
-    scrollController.position.scrollToEnd();
+    if (model.haveNewest) {
+      scrollController.position.scrollToEnd();
+    } else {
+      model.jumpToEnd();
+    }
   }
 
   @override
