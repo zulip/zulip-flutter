@@ -375,6 +375,8 @@ void main() {
 
   group('fetch initial batch of messages', () {
     // TODO(#1569): test effect of initAnchorMessageId
+    // TODO(#1569): test that after jumpToEnd, then new store causing new fetch,
+    //   new post-jump anchor prevails over initAnchorMessageId
 
     group('topic permalink', () {
       final someStream = eg.stream();
@@ -667,6 +669,8 @@ void main() {
       // … and for good measure confirm the button disappeared.
       check(isButtonVisible(tester)).equals(false);
     });
+
+    // TODO(#1569): test choice of jumpToEnd vs. scrollToEnd
 
     testWidgets('scrolls at reasonable, constant speed', (tester) async {
       const maxSpeed = 8000.0;

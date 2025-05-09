@@ -554,6 +554,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       //   redirected us to the new location of the operand message ID.
       widget.onNarrowChanged(model.narrow);
     }
+    // TODO when model reset, reset scroll
     setState(() {
       // The actual state lives in the [MessageListView] model.
       // This method was called because that just changed.
@@ -638,6 +639,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
                   //   MessageList's dartdoc.
                   child: SafeArea(
                     child: ScrollToBottomButton(
+                      model: model,
                       scrollController: scrollController,
                       visible: _scrollToBottomVisible))),
               ])))));
@@ -837,13 +839,40 @@ class _MessageListLoadingMore extends StatelessWidget {
 }
 
 class ScrollToBottomButton extends StatelessWidget {
-  const ScrollToBottomButton({super.key, required this.scrollController, required this.visible});
+  const ScrollToBottomButton({
+    super.key,
+    required this.model,
+    required this.scrollController,
+    required this.visible,
+  });
 
-  final ValueNotifier<bool> visible;
+  final MessageListView model;
   final MessageListScrollController scrollController;
+  final ValueNotifier<bool> visible;
 
   void _scrollToBottom() {
-    scrollController.position.scrollToEnd();
+    if (model.haveNewest) {
+      // Scrolling smoothly from here to the bottom won't require any requests
+      // to the server.
+      // It also probably isn't *that* far away: the user must have scrolled
+      // here from there (or from near enough that a fetch reached there),
+      // so scrolling back there -- at top speed -- shouldn't take too long.
+      // Go for it.
+      scrollController.position.scrollToEnd();
+    } else {
+      // This message list doesn't have the messages for the bottom of history.
+      // There could be quite a lot of history between here and there --
+      // for example, at first unread in the combined feed or a busy channel,
+      // for a user who has some old unreads going back months and years.
+      // In that case trying to scroll smoothly to the bottom is hopeless.
+      //
+      // Given that there were at least 100 messages between this message list's
+      // initial anchor and the end of history (or else `fetchInitial` would
+      // have reached the end at the outset), that situation is very likely.
+      // Even if the end is close by, it's at least one fetch away.
+      // Instead of scrolling, jump to the end, which is always just one fetch.
+      model.jumpToEnd();
+    }
   }
 
   @override

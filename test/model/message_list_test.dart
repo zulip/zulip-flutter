@@ -566,6 +566,8 @@ void main() {
     });
   });
 
+  // TODO(#1569): test jumpToEnd
+
   group('MessageEvent', () {
     test('in narrow', () async {
       final stream = eg.stream();
