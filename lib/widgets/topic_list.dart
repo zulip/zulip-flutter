@@ -1,0 +1,344 @@
+import 'package:flutter/material.dart';
+
+import '../api/model/model.dart';
+import '../api/route/channels.dart';
+import '../generated/l10n/zulip_localizations.dart';
+import '../model/narrow.dart';
+import '../model/unreads.dart';
+import 'action_sheet.dart';
+import 'app_bar.dart';
+import 'color.dart';
+import 'icons.dart';
+import 'message_list.dart';
+import 'page.dart';
+import 'store.dart';
+import 'text.dart';
+import 'theme.dart';
+
+class TopicListPage extends StatelessWidget {
+  const TopicListPage({super.key, required this.streamId});
+
+  final int streamId;
+
+  static AccountRoute<void> buildRoute({
+    required BuildContext context,
+    required int streamId,
+  }) {
+    return MaterialAccountWidgetRoute(
+      context: context,
+      page: TopicListPage(streamId: streamId));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+    final appBarBackgroundColor = colorSwatchFor(
+      context, store.subscriptions[streamId]).barBackground;
+
+    return PageRoot(child: Scaffold(
+      appBar: ZulipAppBar(
+        buildTitle: (willCenterTitle) =>
+          _TopicListAppBarTitle(streamId: streamId, willCenterTitle: willCenterTitle),
+        actions: [
+          IconButton(
+            icon: const Icon(ZulipIcons.message_feed),
+            tooltip: zulipLocalizations.channelFeedButtonTooltip,
+            onPressed: () => Navigator.push(context,
+              MessageListPage.buildRoute(context: context,
+                narrow: ChannelNarrow(streamId)))),
+        ],
+        backgroundColor: appBarBackgroundColor,
+        shape: Border(bottom: BorderSide(
+          width: 1, color: designVariables.borderBar))),
+      body: _TopicList(streamId: streamId)));
+  }
+}
+
+// This is adapted from [MessageListAppBarTitle].
+class _TopicListAppBarTitle extends StatelessWidget {
+  const _TopicListAppBarTitle({
+    required this.streamId,
+    required this.willCenterTitle,
+  });
+
+  final int streamId;
+  final bool willCenterTitle;
+
+  Widget _buildAppBarRow(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    final stream = store.streams[streamId];
+    final channelIconColor = colorSwatchFor(
+      context, store.subscriptions[streamId]).iconOnBarBackground;
+
+    // A null [Icon.icon] makes a blank space.
+    final icon = stream != null ? iconDataForStream(stream) : null;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      // TODO(design): The vertical alignment of the stream privacy icon is a bit ad hoc.
+      //   For screenshots of some experiments, see:
+      //     https://github.com/zulip/zulip-flutter/pull/219#discussion_r1281024746
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Padding(padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 6),
+          child: Icon(size: 18, icon, color: channelIconColor)),
+        Flexible(child: Text(
+          stream?.name ?? zulipLocalizations.unknownChannelName,
+          style: TextStyle(
+            fontSize: 20,
+            height: 30 / 20,
+            color: designVariables.title,
+          ).merge(weightVariableTextStyle(context, wght: 600)))),
+        Container(width: 20, height: 30,
+          padding: EdgeInsets.only(top: 2),
+          alignment: Alignment.center,
+          child: Icon(ZulipIcons.chevron_down,
+            size: 16, color: designVariables.icon)),
+      ]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final alignment = willCenterTitle
+      ? Alignment.center
+      : AlignmentDirectional.centerStart;
+    return SizedBox(
+      width: double.infinity,
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onLongPress: () {
+          showChannelActionSheet(context, channelId: streamId);
+        },
+        child: Align(alignment: alignment,
+          child: _buildAppBarRow(context))));
+  }
+}
+
+class _TopicList extends StatefulWidget {
+  const _TopicList({required this.streamId});
+
+  final int streamId;
+
+  @override
+  State<_TopicList> createState() => _TopicListState();
+}
+
+class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMixin {
+  Unreads? unreadsModel;
+  // TODO(#1499): store the results on [ChannelStore], and keep them
+  //   up-to-date by handling events
+  List<GetStreamTopicsEntry>? lastFetchedTopics;
+
+  @override
+  void onNewStore() {
+    unreadsModel?.removeListener(_modelChanged);
+    final store = PerAccountStoreWidget.of(context);
+    unreadsModel = store.unreads..addListener(_modelChanged);
+    _fetchTopics();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    unreadsModel?.removeListener(_modelChanged);
+  }
+
+  void _modelChanged() {
+    setState(() {
+      // The actual state lives in `unreadsModel`.
+    });
+  }
+
+  void _fetchTopics() async {
+    // Do nothing when the fetch fails; the topic-list will stay on
+    // the loading screen, until the user navigates away and back.
+    // TODO(design) show a nice error message on screen when this fails
+    final store = PerAccountStoreWidget.of(context);
+    final result = await getStreamTopics(store.connection,
+      streamId: widget.streamId);
+    if (!mounted) return;
+    setState(() {
+      lastFetchedTopics = result.topics;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (lastFetchedTopics == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    // TODO(design) handle the rare case when `lastFetchTopics` is empty
+
+    // This is adapted from parts of the build method on [_InboxPageState].
+    final topicItems = <_TopicItemData>[];
+    for (final GetStreamTopicsEntry(:maxId, name: topic) in lastFetchedTopics!) {
+      final unreadMessageIds =
+        unreadsModel!.streams[widget.streamId]?[topic] ?? <int>[];
+      final countInTopic = unreadMessageIds.length;
+      final hasMention = unreadMessageIds.any((messageId) =>
+        unreadsModel!.mentions.contains(messageId));
+      topicItems.add(_TopicItemData(
+        topic: topic,
+        unreadCount: countInTopic,
+        hasMention: hasMention,
+        // `lastFetchedTopics.maxId` can become outdated when a new message
+        // arrives or when there are message moves, until we re-fetch.
+        // TODO(#1499): track changes to this
+        maxId: maxId,
+      ));
+    }
+    topicItems.sort((a, b) {
+      final aMaxId = a.maxId;
+      final bMaxId = b.maxId;
+      return bMaxId.compareTo(aMaxId);
+    });
+
+    return ListView.builder(
+      itemCount: topicItems.length,
+      itemBuilder: (BuildContext context, int index) =>
+        _TopicItem(streamId: widget.streamId, data: topicItems[index]));
+  }
+}
+
+class _TopicItemData {
+  final TopicName topic;
+  final int unreadCount;
+  final bool hasMention;
+  final int maxId;
+
+  const _TopicItemData({
+    required this.topic,
+    required this.unreadCount,
+    required this.hasMention,
+    required this.maxId,
+  });
+}
+
+// This is adapted from `_TopicItem` in lib/widgets/inbox.dart.
+class _TopicItem extends StatelessWidget {
+  const _TopicItem({required this.streamId, required this.data});
+
+  final int streamId;
+  final _TopicItemData data;
+
+  @override
+  Widget build(BuildContext context) {
+    final _TopicItemData(
+      :topic, :unreadCount, :hasMention, :maxId) = data;
+
+    final store = PerAccountStoreWidget.of(context);
+
+    final designVariables = DesignVariables.of(context);
+    final isTopicVisibleInStream = store.isTopicVisibleInStream(streamId, topic);
+    final visibilityIcon = iconDataForTopicVisibilityPolicy(
+      store.topicVisibilityPolicy(streamId, topic));
+
+    final trailingWidgets = [
+      if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
+      if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
+      if (unreadCount > 0) _UnreadCountBadge(count: unreadCount),
+    ];
+
+    return Material(
+      color: designVariables.bgMessageRegular,
+      child: InkWell(
+        onTap: () {
+          final narrow = TopicNarrow(streamId, topic);
+          Navigator.push(context,
+            MessageListPage.buildRoute(context: context, narrow: narrow));
+        },
+        onLongPress: () => showTopicActionSheet(context,
+          channelId: streamId,
+          topic: topic,
+          someMessageIdInTopic: maxId),
+        splashFactory: NoSplash.splashFactory,
+        child: Padding(padding: EdgeInsetsDirectional.fromSTEB(28, 8, 12, 8),
+          child: Row(
+            // In the Figma design, the icons and text on the topic
+            // item row are aligned to the start on the cross axis
+            // (i.e., `align-items: flex-start`).  The icons are padded down
+            // 2px relative to the start, to visibly sit on the baseline.
+            // To account for scaled text, we align everything on the row to
+            // [CrossAxisAlignment.baseline] instead, and move the icons
+            // relative to the text baseline.
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: localizedTextBaseline(context),
+            spacing: 8,
+            children: [
+              if (!topic.isResolved)
+                SizedBox.square(dimension: 16)
+              else
+                _IconMarker(icon: ZulipIcons.check),
+              Expanded(child: Opacity(
+                opacity: isTopicVisibleInStream ? 1 : 0.5,
+                child: Text(
+                  style: TextStyle(
+                    fontSize: 17,
+                    height: 20 / 17,
+                    // ignore: unnecessary_null_comparison // null topic names soon to be enabled
+                    fontStyle: topic.displayName == null ? FontStyle.italic : null,
+                    color: designVariables.textMessage,
+                  ),
+                  // ignore: dead_null_aware_expression // null topic names soon to be enabled
+                  topic.unresolve().displayName ?? store.realmEmptyTopicDisplayName))),
+              Opacity(opacity: isTopicVisibleInStream ? 1 : 0.5, child: Row(
+                // Similarly, the trailing icons and unread marker are aligned
+                // to the text baseline.
+                // This causes layout shift when a topic is mark as read/unread.
+                // TODO find a way to address this
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: localizedTextBaseline(context),
+                spacing: 4,
+                children: [
+                  ...trailingWidgets,
+                  if (trailingWidgets.isEmpty)
+                    const SizedBox(width: 53),
+                ])),
+            ]))));
+  }
+}
+
+class _IconMarker extends StatelessWidget {
+  const _IconMarker({required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return Transform.translate(
+      offset: Offset(0, 2),
+      child: Icon(icon, size: 16,
+        color: designVariables.textMessage.withFadedAlpha(0.4)));
+  }
+}
+
+// This is adapted from [UnreadCountBadge].
+class _UnreadCountBadge extends StatelessWidget {
+  const _UnreadCountBadge({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(5),
+        color: designVariables.bgCounterUnread,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Text(count.toString(),
+          style: TextStyle(
+            fontSize: 15,
+            height: 16 / 15,
+            color: designVariables.labelCounterUnread,
+          ).merge(weightVariableTextStyle(context, wght: 500)))));
+  }
+}
