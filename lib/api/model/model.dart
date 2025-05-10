@@ -329,6 +329,8 @@ class ZulipStream {
 
   final int streamId;
   String name;
+  @JsonKey(defaultValue: false) // TODO(server-10): remove default
+  bool isArchived;
   String description;
   String renderedDescription;
 
@@ -351,6 +353,7 @@ class ZulipStream {
   ZulipStream({
     required this.streamId,
     required this.name,
+    required this.isArchived,
     required this.description,
     required this.renderedDescription,
     required this.dateCreated,
@@ -479,6 +482,7 @@ class Subscription extends ZulipStream {
   Subscription({
     required super.streamId,
     required super.name,
+    required super.isArchived,
     required super.description,
     required super.renderedDescription,
     required super.dateCreated,

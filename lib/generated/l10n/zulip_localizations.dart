@@ -616,6 +616,12 @@ abstract class ZulipLocalizations {
   /// **'(unknown channel)'**
   String get unknownChannelName;
 
+  /// Label shown next to an archived channel's name in headers.
+  ///
+  /// In en, this message translates to:
+  /// **'(archived)'**
+  String get channelArchivedLabel;
+
   /// Hint text for topic input widget in compose box.
   ///
   /// In en, this message translates to:

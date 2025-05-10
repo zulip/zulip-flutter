@@ -52,6 +52,7 @@ late FakeApiConnection connection;
 Future<void> setupToMessageActionSheet(WidgetTester tester, {
   required Message message,
   required Narrow narrow,
+  bool? isArchived,
 }) async {
   addTearDown(testBinding.reset);
   assert(narrow.containsMessage(message));
@@ -65,7 +66,10 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
       ...narrow.otherRecipientIds.map((id) => eg.user(userId: id)),
   ]);
   if (message is StreamMessage) {
-    final stream = eg.stream(streamId: message.streamId);
+    final stream = eg.stream(
+      streamId: message.streamId,
+      isArchived: isArchived ?? false,
+    );
     await store.addStream(stream);
     await store.addSubscription(eg.subscription(stream));
   }
@@ -134,7 +138,8 @@ void main() {
       await tester.pump();
       check(find.byType(InboxPageBody)).findsOne();
 
-      await tester.longPress(find.text(someChannel.name).hitTestable());
+      await tester.longPress(
+        find.textContaining(findRichText: true, someChannel.name).first);
       await tester.pump(const Duration(milliseconds: 250));
     }
 
@@ -183,9 +188,8 @@ void main() {
         child: const MessageListPage(initNarrow: CombinedFeedNarrow())));
       await tester.pumpAndSettle();
 
-      await tester.longPress(find.descendant(
-        of: find.byType(RecipientHeader),
-        matching: find.text(message.displayRecipient ?? '')));
+      await tester.longPress(
+        find.textContaining(findRichText: true, message.displayRecipient ?? '').first);
       await tester.pump(const Duration(milliseconds: 250));
     }
 
@@ -479,15 +483,17 @@ void main() {
       /// If `isChannelMuted` is `null`, the user is not subscribed to the
       /// channel.
       Future<void> setupToTopicActionSheet(WidgetTester tester, {
+        ZulipStream? channel,
         required bool? isChannelMuted,
         required UserTopicVisibilityPolicy visibilityPolicy,
         int? zulipFeatureLevel,
       }) async {
         addTearDown(testBinding.reset);
+        channel ??= someChannel;
 
         topic = 'isChannelMuted: $isChannelMuted, policy: $visibilityPolicy';
         await prepare(
-          channel: someChannel,
+          channel: channel,
           topic: topic,
           isChannelSubscribed: isChannelMuted != null, // shorthand; see dartdoc
           isChannelMuted: isChannelMuted,
@@ -496,9 +502,13 @@ void main() {
         );
 
         final message = eg.streamMessage(
-          stream: someChannel, topic: topic, sender: eg.otherUser);
+          stream: channel, topic: topic, sender: eg.otherUser);
+        await store.handleEvent(MessageEvent(
+          id: 1,
+          message: message,
+          localMessageId: null));
         await showFromAppBar(tester,
-          channel: someChannel, topic: TopicName(topic), messages: [message]);
+          channel: channel, topic: TopicName(topic), messages: [message]);
       }
 
       void checkButtons(List<Finder> expectedButtonFinders) {
@@ -602,6 +612,18 @@ void main() {
             checkButtons(buttons);
           });
         }
+      });
+
+      group('archived channels', () {
+        testWidgets('limited topic actions for archived channels', (tester) async {
+          final archivedChannel = eg.stream(isArchived: true);
+
+          await setupToTopicActionSheet(tester,
+            channel: archivedChannel,
+            isChannelMuted: false,
+            visibilityPolicy: UserTopicVisibilityPolicy.none);
+          checkButtons([]);
+        });
       });
 
       group('legacy: follow is unsupported when FL < 219', () {
@@ -761,6 +783,30 @@ void main() {
 
         checkErrorDialog(tester,
           expectedTitle: 'Failed to mark topic as unresolved');
+      });
+
+      testWidgets('not offered in archived channel', (tester) async {
+        final archivedChannel = eg.stream(isArchived: true);
+        final message = eg.streamMessage(stream: archivedChannel, topic: 'zulip');
+
+        await prepare(channel: archivedChannel, topic: 'zulip');
+        await showFromAppBar(tester,
+          channel: archivedChannel,
+          topic: TopicName('zulip'),
+          messages: [message]);
+        check(findButtonForLabel('Mark as resolved')).findsNothing();
+      });
+
+      testWidgets('not offered in archived channel with resolved topic', (tester) async {
+        final archivedChannel = eg.stream(isArchived: true);
+        final message = eg.streamMessage(stream: archivedChannel, topic: '✔ zulip');
+
+        await prepare(channel: archivedChannel, topic: '✔ zulip');
+        await showFromAppBar(tester,
+          channel: archivedChannel,
+          topic: TopicName('✔ zulip'),
+          messages: [message]);
+        check(findButtonForLabel('Mark as unresolved')).findsNothing();
       });
     });
 
@@ -1154,6 +1200,16 @@ void main() {
       testWidgets('not offered in StarredMessagesNarrow (composing to reply is not yet supported)', (tester) async {
         final message = eg.streamMessage(flags: [MessageFlag.starred]);
         await setupToMessageActionSheet(tester, message: message, narrow: const StarredMessagesNarrow());
+        check(findQuoteAndReplyButton(tester)).isNull();
+      });
+
+      testWidgets('not offered in archived channels', (tester) async {
+        final message = eg.streamMessage();
+
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: TopicNarrow.ofMessage(message),
+          isArchived: true);
         check(findQuoteAndReplyButton(tester)).isNull();
       });
     });

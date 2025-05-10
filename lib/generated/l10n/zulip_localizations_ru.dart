@@ -322,6 +322,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get unknownChannelName => '(неизвестный канал)';
 
   @override
+  String get channelArchivedLabel => '(archived)';
+
+  @override
   String get composeBoxTopicHintText => 'Тема';
 
   @override
