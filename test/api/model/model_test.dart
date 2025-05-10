@@ -161,6 +161,27 @@ void main() {
 
       doCheck(eg.t('✔ a'),          eg.t('✔ b'),          false);
     });
+
+    test('interpretAsServer', () {
+      final emptyTopicDisplayName = eg.defaultRealmEmptyTopicDisplayName;
+      void doCheck(TopicName topicA, TopicName expected, int zulipFeatureLevel) {
+        check(topicA.interpretAsServer(
+          zulipFeatureLevel: zulipFeatureLevel,
+          realmEmptyTopicDisplayName: emptyTopicDisplayName),
+        ).equals(expected);
+      }
+
+      check(() => doCheck(eg.t(''),        eg.t(''),                    333))
+        .throws<void>();
+      doCheck(eg.t('(no topic)'),          eg.t('(no topic)'),          333);
+      doCheck(eg.t(emptyTopicDisplayName), eg.t(emptyTopicDisplayName), 333);
+      doCheck(eg.t('other topic'),         eg.t('other topic'),         333);
+
+      doCheck(eg.t(''),                    eg.t(emptyTopicDisplayName), 334);
+      doCheck(eg.t('(no topic)'),          eg.t(emptyTopicDisplayName), 334);
+      doCheck(eg.t(emptyTopicDisplayName), eg.t(emptyTopicDisplayName), 334);
+      doCheck(eg.t('other topic'),         eg.t('other topic'),         334);
+    });
   });
 
   group('DmMessage', () {
