@@ -385,6 +385,12 @@ abstract class PerAccountStoreBase {
   /// This returns null if [reference] fails to parse as a URL.
   Uri? tryResolveUrl(String reference) => _tryResolveUrl(realmUrl, reference);
 
+  /// Always equal to `connection.zulipFeatureLevel`
+  /// and `account.zulipFeatureLevel`.
+  int get zulipFeatureLevel => connection.zulipFeatureLevel!;
+
+  String get zulipVersion => account.zulipVersion;
+
   ////////////////////////////////
   // Data attached to the self-account on the realm.
 
@@ -492,7 +498,8 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
       ),
       channels: channels,
-      messages: MessageStoreImpl(core: core),
+      messages: MessageStoreImpl(core: core,
+        realmEmptyTopicDisplayName: initialSnapshot.realmEmptyTopicDisplayName),
       unreads: Unreads(
         initial: initialSnapshot.unreadMsgs,
         core: core,
@@ -558,11 +565,6 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   ////////////////////////////////
   // Data attached to the realm or the server.
 
-  /// Always equal to `connection.zulipFeatureLevel`
-  /// and `account.zulipFeatureLevel`.
-  int get zulipFeatureLevel => connection.zulipFeatureLevel!;
-
-  String get zulipVersion => account.zulipVersion;
   final RealmWildcardMentionPolicy realmWildcardMentionPolicy; // TODO(#668): update this realm setting
   final bool realmMandatoryTopics;  // TODO(#668): update this realm setting
   /// For docs, please see [InitialSnapshot.realmWaitingPeriodThreshold].
@@ -731,6 +733,8 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   @override
   Map<int, Message> get messages => _messages.messages;
   @override
+  Map<int, OutboxMessage> get outboxMessages => _messages.outboxMessages;
+  @override
   void registerMessageList(MessageListView view) =>
     _messages.registerMessageList(view);
   @override
@@ -741,6 +745,8 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     assert(!_disposed);
     return _messages.sendMessage(destination: destination, content: content);
   }
+  @override
+  void removeOutboxMessage(int localMessageId) => _messages.removeOutboxMessage(localMessageId);
   @override
   void reconcileMessages(List<Message> messages) {
     _messages.reconcileMessages(messages);
