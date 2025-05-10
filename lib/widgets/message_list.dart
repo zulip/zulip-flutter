@@ -788,16 +788,16 @@ class _TypingStatusWidgetState extends State<TypingStatusWidget> with PerAccount
     if (narrow is! SendableNarrow) return const SizedBox();
 
     final store = PerAccountStoreWidget.of(context);
-    final localizations = ZulipLocalizations.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final typistIds = model!.typistIdsInNarrow(narrow);
     if (typistIds.isEmpty) return const SizedBox();
     final text = switch (typistIds.length) {
-      1 => localizations.onePersonTyping(
+      1 => zulipLocalizations.onePersonTyping(
              store.userDisplayName(typistIds.first)),
-      2 => localizations.twoPeopleTyping(
+      2 => zulipLocalizations.twoPeopleTyping(
              store.userDisplayName(typistIds.first),
              store.userDisplayName(typistIds.last)),
-      _ => localizations.manyPeopleTyping,
+      _ => zulipLocalizations.manyPeopleTyping,
     };
 
     return Padding(
@@ -1425,13 +1425,13 @@ class MessageWithPossibleSender extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     final message = item.message;
 
-    final localizations = ZulipLocalizations.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     String? editStateText;
     switch (message.editState) {
       case MessageEditState.edited:
-        editStateText = localizations.messageIsEditedLabel;
+        editStateText = zulipLocalizations.messageIsEditedLabel;
       case MessageEditState.moved:
-        editStateText = localizations.messageIsMovedLabel;
+        editStateText = zulipLocalizations.messageIsMovedLabel;
       case MessageEditState.none:
     }
 
@@ -1444,6 +1444,26 @@ class MessageWithPossibleSender extends StatelessWidget {
       star = Transform.translate(
         offset: Offset(starOffset, 0),
         child: Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star));
+    }
+
+    Widget content = MessageContent(message: message, content: item.content);
+
+    final editMessageErrorStatus = store.getEditMessageErrorStatus(message.id);
+    if (editMessageErrorStatus != null) {
+      // The Figma also fades the sender row:
+      //   https://github.com/zulip/zulip-flutter/pull/1498#discussion_r2076574000
+      // We've decided to just fade the message content because that's the only
+      // thing that's changing.
+      content = Opacity(opacity: 0.6, child: content);
+      switch (editMessageErrorStatus) {
+        case false:
+          // IgnorePointer neutralizes interactable message content like links;
+          // this seemed appropriate along with the faded appearance.
+          content = IgnorePointer(child: content);
+        case true:
+          content = _RestoreEditMessageGestureDetector(messageId: message.id,
+            child: content);
+      }
     }
 
     return GestureDetector(
@@ -1462,10 +1482,12 @@ class MessageWithPossibleSender extends StatelessWidget {
               Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  MessageContent(message: message, content: item.content),
+                  content,
                   if ((message.reactions?.total ?? 0) > 0)
                     ReactionChipsList(messageId: message.id, reactions: message.reactions!),
-                  if (editStateText != null)
+                  if (editMessageErrorStatus != null)
+                    _EditMessageStatusRow(messageId: message.id, status: editMessageErrorStatus)
+                  else if (editStateText != null)
                     Text(editStateText,
                       textAlign: TextAlign.end,
                       style: TextStyle(
@@ -1479,5 +1501,79 @@ class MessageWithPossibleSender extends StatelessWidget {
                 child: star),
             ]),
         ])));
+  }
+}
+
+class _EditMessageStatusRow extends StatelessWidget {
+  const _EditMessageStatusRow({
+    required this.messageId,
+    required this.status,
+  });
+
+  final int messageId;
+  final bool status;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final baseTextStyle = TextStyle(
+      fontSize: 12,
+      height: 12 / 12,
+      letterSpacing: proportionalLetterSpacing(context,
+        0.05, baseFontSize: 12));
+
+    return switch (status) {
+      // TODO parse markdown and show new content as local echo?
+      false => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 1.5,
+        children: [
+          Text(
+            style: baseTextStyle
+              .copyWith(color: designVariables.btnLabelAttLowIntInfo),
+            textAlign: TextAlign.end,
+            zulipLocalizations.savingMessageEditLabel),
+          // TODO instead place within outer padding; see Figma:
+          //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=4026-8775&m=dev
+          LinearProgressIndicator(
+            minHeight: 2,
+            color: designVariables.foreground.withValues(alpha: 0.5),
+            backgroundColor: designVariables.foreground.withValues(alpha: 0.2),
+          ),
+        ]),
+      true => _RestoreEditMessageGestureDetector(
+        messageId: messageId,
+        child: Text(
+          style: baseTextStyle
+            .copyWith(color: designVariables.btnLabelAttLowIntDanger),
+          textAlign: TextAlign.end,
+          zulipLocalizations.savingMessageEditFailedLabel)),
+    };
+  }
+}
+
+class _RestoreEditMessageGestureDetector extends StatelessWidget {
+  const _RestoreEditMessageGestureDetector({
+    required this.messageId,
+    required this.child,
+  });
+
+  final int messageId;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        final store = PerAccountStoreWidget.of(context);
+        final composeBoxState = MessageListPage.ancestorOf(context).composeBoxState;
+        if (composeBoxState == null) return;
+        composeBoxState.startEditInteraction(messageId: messageId,
+          originalRawContent: store.takeFailedMessageEdit(messageId));
+      },
+      child: child);
   }
 }

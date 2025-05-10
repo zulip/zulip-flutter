@@ -23,6 +23,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/action_sheet.dart';
 import 'package:zulip/widgets/app_bar.dart';
+import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/emoji.dart';
@@ -52,11 +53,18 @@ late FakeApiConnection connection;
 Future<void> setupToMessageActionSheet(WidgetTester tester, {
   required Message message,
   required Narrow narrow,
+  bool? realmAllowMessageEditing,
+  int? realmMessageContentEditLimitSeconds,
 }) async {
   addTearDown(testBinding.reset);
   assert(narrow.containsMessage(message));
 
-  await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+  await testBinding.globalStore.add(
+    eg.selfAccount,
+    eg.initialSnapshot(
+      realmAllowMessageEditing: realmAllowMessageEditing,
+      realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
+    ));
   store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
   await store.addUsers([
     eg.selfUser,
@@ -79,10 +87,21 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   // global store, per-account store, and message list get loaded
   await tester.pumpAndSettle();
 
-  // request the message action sheet
-  await tester.longPress(find.byType(MessageContent));
+  // Request the message action sheet.
+  //
+  // We use `warnIfMissed: false` to suppress warnings in cases where
+  // MessageContent itself didn't hit-test as true but the action sheet still
+  // opened. The action sheet still opens because the gesture handler is an
+  // ancestor of MessageContent, but MessageContent might not hit-test as true
+  // because its render box effectively has HitTestBehavior.deferToChild, and
+  // the long-press might land on a child such that it doesn't hit-test as true,
+  // like if it's in padding around a Paragraph.
+  await tester.longPress(find.byType(MessageContent), warnIfMissed: false);
   // sheet appears onscreen; default duration of bottom-sheet enter animation
   await tester.pump(const Duration(milliseconds: 250));
+  // Check the action sheet did in fact open, so we don't defeat any tests that
+  // use simple `find.byIcon`-style checks to test presence/absence of a button.
+  check(find.byType(BottomSheet)).findsOne();
 }
 
 void main() {
@@ -1407,6 +1426,196 @@ void main() {
         )));
 
         check(mockSharePlus.sharedString).isNull();
+      });
+    });
+
+    group('EditButton', () {
+      Future<void> tapEditAndPump(WidgetTester tester, {
+        Duration requestPumpDuration = Duration.zero,
+      }) async {
+        await tester.ensureVisible(find.byIcon(ZulipIcons.edit, skipOffstage: false));
+        await tester.tap(find.byIcon(ZulipIcons.edit));
+        await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+        await tester.pump(requestPumpDuration); // request
+      }
+
+      group('present/absent appropriately', () {
+        /// Test whether the edit-message button is visible, given params.
+        ///
+        /// The message timestamp is 60s before the current time
+        /// ([TestZulipBinding.utcNow]) as of the start of the test run.
+        ///
+        /// The message has streamId: 1 and topic: 'topic'.
+        /// The message list is for that [TopicNarrow] unless [narrow] is passed.
+        void testVisibility(bool expected, {
+          bool self = true,
+          Narrow? narrow,
+          bool allowed = true,
+          int? limit,
+          bool composing = false,
+          bool? errorStatus,
+          bool poll = false,
+        }) {
+          // It's impossible for the compose box to be in editing mode
+          // while, for the same message, the message-edit request is either
+          // in progress or in the error state.
+          assert(!composing || errorStatus == null);
+
+          final description = [
+            'from self: $self',
+            'narrow: $narrow',
+            'realm allows: $allowed',
+            'edit limit: $limit',
+            'compose box is in editing mode: $composing',
+            'edit-message error status: $errorStatus',
+            'has poll: $poll',
+          ].join(', ');
+
+          void checkButtonIsPresent(bool expected) {
+            if (expected) {
+              check(find.byIcon(ZulipIcons.edit, skipOffstage: false)).findsOne();
+            } else {
+              check(find.byIcon(ZulipIcons.edit, skipOffstage: false)).findsNothing();
+            }
+          }
+
+          testWidgets(description, (tester) async {
+            TypingNotifier.debugEnable = false;
+            addTearDown(TypingNotifier.debugReset);
+
+            final message = eg.streamMessage(
+              stream: eg.stream(streamId: 1),
+              topic: 'topic',
+              sender: self ? eg.selfUser : eg.otherUser,
+              timestamp: eg.utcTimestamp(testBinding.utcNow()) - 60,
+              submessages: poll
+                ? [eg.submessage(content: eg.pollWidgetData(question: 'poll', options: ['A']))]
+                : null,
+            );
+
+            await setupToMessageActionSheet(tester,
+              message: message,
+              narrow: narrow ?? TopicNarrow.ofMessage(message),
+              realmAllowMessageEditing: allowed,
+              realmMessageContentEditLimitSeconds: limit,
+            );
+
+            if (!composing && errorStatus == null) {
+              checkButtonIsPresent(expected);
+              return;
+            }
+            // For the given message, we're testing either:
+            // A) The state where the compose box is in edit-message mode, or
+            // B) The edit request is in progress or the error state
+            // (A and B can't both be true; see `assert` at top)
+            //
+            // Tap the Edit button, as preparation for either state.
+
+            connection.prepare(json: GetMessageResult(
+              message: eg.streamMessage(content: 'foo')).toJson());
+            await tapEditAndPump(tester);
+            await tester.pump(Duration(seconds: 1));
+            await tester.enterText(find.byWidgetPredicate(
+                (widget) => widget is TextField && widget.controller?.text == 'foo'),
+              'bar');
+
+            if (errorStatus == true) {
+              // We're testing the request-in-progress state. Prepare a delay
+              // and tap Save.
+              connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
+              await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
+              await tester.pump(Duration.zero);
+            } else if (errorStatus == false) {
+              // We're testing the request-failed state. Prepare a failure
+              // and tap Save.
+              connection.prepare(
+                json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+              await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
+              await tester.pump(Duration(milliseconds: 500));
+            } else {
+              // Keep the compose box in edit-message mode, to test that,
+              // by not tapping Save.
+            }
+
+            // See comment in setupToMessageActionSheet about warnIfMissed: false
+            await tester.longPress(find.byType(MessageContent), warnIfMissed: false);
+            // sheet appears onscreen; default duration of bottom-sheet enter animation
+            await tester.pump(const Duration(milliseconds: 250));
+            check(find.byType(BottomSheet)).findsOne();
+            checkButtonIsPresent(expected);
+
+            await tester.pump(Duration(milliseconds: 500));
+          });
+        }
+
+        testVisibility(true);
+        // TODO(server-6) limit 0 not expected on 6.0+
+        testVisibility(true, limit: 0);
+        testVisibility(true, limit: 600);
+        testVisibility(true, narrow: ChannelNarrow(1));
+
+        testVisibility(false, self: false);
+        testVisibility(false, narrow: CombinedFeedNarrow());
+        testVisibility(false, allowed: false);
+        testVisibility(false, limit: 10);
+        testVisibility(false, composing: true);
+        testVisibility(false, errorStatus: false);
+        testVisibility(false, errorStatus: true);
+        testVisibility(false, poll: true);
+      });
+
+      group('tap button', () {
+        ComposeBoxController? findComposeBoxController(WidgetTester tester) {
+          return tester.stateList<ComposeBoxState>(find.byType(ComposeBox))
+            .singleOrNull?.controller;
+        }
+
+        testWidgets('smoke', (tester) async {
+          final message = eg.streamMessage(sender: eg.selfUser);
+          await setupToMessageActionSheet(tester,
+            message: message,
+            narrow: TopicNarrow.ofMessage(message),
+            realmAllowMessageEditing: true,
+            realmMessageContentEditLimitSeconds: null,
+          );
+
+          check(findComposeBoxController(tester))
+            .isNotNull()
+            .isA<FixedDestinationComposeBoxController>();
+
+
+          connection.prepare(json: GetMessageResult(
+            message: eg.streamMessage(content: 'foo')).toJson());
+          await tapEditAndPump(tester);
+
+          check(findComposeBoxController(tester))
+            .isNotNull()
+            .isA<EditMessageComposeBoxController>()
+              ..messageId.equals(message.id)
+              ..originalRawContent.equals('foo');
+        });
+
+        testWidgets('fetchRawContentWithFeedback fails', (tester) async {
+          final message = eg.streamMessage(sender: eg.selfUser);
+          await setupToMessageActionSheet(tester,
+            message: message,
+            narrow: TopicNarrow.ofMessage(message),
+            realmAllowMessageEditing: true,
+            realmMessageContentEditLimitSeconds: null,
+          );
+
+          check(findComposeBoxController(tester))
+            .isNotNull()
+            .isA<FixedDestinationComposeBoxController>();
+
+          connection.prepare(
+            apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
+          await tapEditAndPump(tester);
+
+          check(findComposeBoxController(tester))
+            .isNotNull()
+            .isA<FixedDestinationComposeBoxController>();
+        });
       });
     });
 

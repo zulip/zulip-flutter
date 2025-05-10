@@ -123,6 +123,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get actionSheetOptionUnstarMessage => 'Unstar message';
 
   @override
+  String get actionSheetOptionEditMessage => 'Edit message';
+
+  @override
   String get actionSheetOptionMarkTopicAsRead => 'Mark topic as read';
 
   @override
@@ -141,7 +144,7 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
 
   @override
   String get errorCouldNotFetchMessageSource =>
-      'Could not fetch message source';
+      'Could not fetch message source.';
 
   @override
   String get errorCopyingFailed => 'Copying failed';
@@ -190,6 +193,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
 
   @override
   String get errorMessageNotSent => 'Message not sent';
+
+  @override
+  String get errorMessageEditNotSaved => 'Message not saved';
 
   @override
   String errorLoginCouldNotConnect(String url) {
@@ -263,6 +269,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get errorUnstarMessageFailedTitle => 'Failed to unstar message';
 
   @override
+  String get errorCouldNotEditMessageTitle => 'Could not edit message';
+
+  @override
   String get successLinkCopied => 'Link copied';
 
   @override
@@ -278,6 +287,32 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   @override
   String get errorBannerCannotPostInChannelLabel =>
       'You do not have permission to post in this channel.';
+
+  @override
+  String get composeBoxBannerLabelEditMessage => 'Edit message';
+
+  @override
+  String get composeBoxBannerButtonCancel => 'Cancel';
+
+  @override
+  String get composeBoxBannerButtonSave => 'Save';
+
+  @override
+  String get savingMessageEditLabel => 'SAVING EDIT…';
+
+  @override
+  String get savingMessageEditFailedLabel => 'EDIT NOT SAVED';
+
+  @override
+  String get discardDraftConfirmationDialogTitle =>
+      'Discard the message you’re writing?';
+
+  @override
+  String get discardDraftConfirmationDialogMessage =>
+      'When you edit a message, the content that was previously in the compose box is discarded.';
+
+  @override
+  String get discardDraftConfirmationDialogConfirmButton => 'Discard';
 
   @override
   String get composeBoxAttachFilesTooltip => 'Attach files';
@@ -306,6 +341,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String composeBoxChannelContentHint(String destination) {
     return 'Message $destination';
   }
+
+  @override
+  String get composeBoxEditMessageHint => 'Message content';
 
   @override
   String get composeBoxSendTooltip => 'Send';
@@ -454,7 +492,7 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   }
 
   @override
-  String get errorInvalidResponse => 'The server sent an invalid response';
+  String get errorInvalidResponse => 'The server sent an invalid response.';
 
   @override
   String get errorNetworkRequestFailed => 'Network request failed';
@@ -475,7 +513,7 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   }
 
   @override
-  String get errorVideoPlayerFailed => 'Unable to play the video';
+  String get errorVideoPlayerFailed => 'Unable to play the video.';
 
   @override
   String get serverUrlValidationErrorEmpty => 'Please enter a URL.';

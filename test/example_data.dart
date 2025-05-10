@@ -70,6 +70,20 @@ ZulipApiException apiExceptionUnauthorized({String routeName = 'someRoute'}) {
 }
 
 ////////////////////////////////////////////////////////////////
+// Time values.
+//
+
+final timeInPast = DateTime.utc(2025, 4, 1, 8, 30, 0);
+
+/// The UNIX timestamp, in UTC seconds.
+///
+/// This is the commonly used format in the Zulip API for timestamps.
+int utcTimestamp([DateTime? dateTime]) {
+  dateTime ??= timeInPast;
+  return dateTime.toUtc().millisecondsSinceEpoch ~/ 1000;
+}
+
+////////////////////////////////////////////////////////////////
 // Realm-wide (or server-wide) metadata.
 //
 
@@ -458,7 +472,7 @@ StreamMessage streamMessage({
   // of the properties as we're constructing the data.  That's probably OK
   // because (a) this is only for tests; (b) the types do get checked
   // dynamically in the constructor, so any ill-typing won't propagate further.
-  return StreamMessage.fromJson(deepToJson({
+  final result = StreamMessage.fromJson(deepToJson({
     ..._messagePropertiesBase,
     ..._messagePropertiesFromSender(sender),
     ..._messagePropertiesFromContent(content, contentMarkdown),
@@ -470,9 +484,11 @@ StreamMessage streamMessage({
     'last_edit_timestamp': lastEditTimestamp,
     'subject': topic ?? _defaultTopic,
     'submessages': submessages ?? [],
-    'timestamp': timestamp ?? 1678139636,
+    'timestamp': timestamp ?? utcTimestamp(),
     'type': 'stream',
   }) as Map<String, dynamic>);
+  result.poll?.debugSubmessagesForToJson = submessages;
+  return result;
 }
 
 /// Construct an example direct message.
@@ -498,7 +514,7 @@ DmMessage dmMessage({
 }) {
   _checkPositive(id, 'message ID');
   assert(!to.any((user) => user.userId == from.userId));
-  return DmMessage.fromJson(deepToJson({
+  final result = DmMessage.fromJson(deepToJson({
     ..._messagePropertiesBase,
     ..._messagePropertiesFromSender(from),
     ..._messagePropertiesFromContent(content, contentMarkdown),
@@ -511,9 +527,11 @@ DmMessage dmMessage({
     'last_edit_timestamp': lastEditTimestamp,
     'subject': '',
     'submessages': submessages ?? [],
-    'timestamp': timestamp ?? 1678139636,
+    'timestamp': timestamp ?? utcTimestamp(),
     'type': 'private',
   }) as Map<String, dynamic>);
+  result.poll?.debugSubmessagesForToJson = submessages;
+  return result;
 }
 
 /// A GetMessagesResult the server might return on an `anchor=newest` request.
@@ -660,7 +678,7 @@ UpdateMessageEvent updateMessageEditEvent(
     messageId: messageId,
     messageIds: [messageId],
     flags: flags ?? origMessage.flags,
-    editTimestamp: editTimestamp ?? 1234567890, // TODO generate timestamp
+    editTimestamp: editTimestamp ?? utcTimestamp(),
     moveData: null,
     origContent: 'some probably-mismatched old Markdown',
     origRenderedContent: origMessage.content,
@@ -691,7 +709,7 @@ UpdateMessageEvent _updateMessageMoveEvent(
     messageId: messageIds.first,
     messageIds: messageIds,
     flags: flags,
-    editTimestamp: 1234567890, // TODO generate timestamp
+    editTimestamp: utcTimestamp(),
     moveData: UpdateMessageMoveData(
       origStreamId: origStreamId,
       newStreamId: newStreamId ?? origStreamId,
@@ -957,7 +975,7 @@ InitialSnapshot initialSnapshot({
     realmMandatoryTopics: realmMandatoryTopics ?? true,
     realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
     realmAllowMessageEditing: realmAllowMessageEditing ?? true,
-    realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds ?? 600,
+    realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
     serverEmojiDataUrl: serverEmojiDataUrl
