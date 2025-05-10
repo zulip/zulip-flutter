@@ -1303,6 +1303,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Zulip'**
   String get zulipAppTitle;
+
+  /// Title for the language settings section in the app settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get languageSettingsTitle;
+
+  /// Option to use the system default language setting.
+  ///
+  /// In en, this message translates to:
+  /// **'System default'**
+  String get systemDefaultLanguage;
 }
 
 class _ZulipLocalizationsDelegate
