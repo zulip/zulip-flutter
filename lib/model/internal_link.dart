@@ -109,6 +109,22 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
   return result;
 }
 
+/// The result of parsing some URL within a Zulip realm,
+/// when the URL corresponds to some page in this app.
+sealed class InternalLink {
+  InternalLink({required this.realmUrl});
+
+  final Uri realmUrl;
+}
+
+/// The result of parsing some URL that points to a narrow on a Zulip realm,
+/// when the narrow is of a type that this app understands.
+class NarrowLink extends InternalLink {
+  NarrowLink(this.narrow, {required super.realmUrl});
+
+  final Narrow narrow;
+}
+
 /// A [Narrow] from a given URL, on `store`'s realm.
 ///
 /// `url` must already be a result from [PerAccountStore.tryResolveUrl]
@@ -131,7 +147,7 @@ Narrow? parseInternalLink(Uri url, PerAccountStore store) {
   switch (category) {
     case 'narrow':
       if (segments.isEmpty || !segments.length.isEven) return null;
-      return _interpretNarrowSegments(segments, store);
+      return _interpretNarrowSegments(segments, store)?.narrow;
   }
   return null;
 }
@@ -155,7 +171,7 @@ bool _isInternalLink(Uri url, Uri realmUrl) {
   return (category, segments);
 }
 
-Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
+NarrowLink? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
   assert(segments.isNotEmpty);
   assert(segments.length.isEven);
 
@@ -209,6 +225,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
     }
   }
 
+  final Narrow? narrow;
   if (isElementOperands.isNotEmpty) {
     if (streamElement != null || topicElement != null || dmElement != null || withElement != null) {
       return null;
@@ -216,9 +233,9 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
     if (isElementOperands.length > 1) return null;
     switch (isElementOperands.single) {
       case IsOperand.mentioned:
-        return const MentionsNarrow();
+        narrow = const MentionsNarrow();
       case IsOperand.starred:
-        return const StarredMessagesNarrow();
+        narrow = const StarredMessagesNarrow();
       case IsOperand.dm:
       case IsOperand.private:
       case IsOperand.alerted:
@@ -230,17 +247,20 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
     }
   } else if (dmElement != null) {
     if (streamElement != null || topicElement != null || withElement != null) return null;
-    return DmNarrow.withUsers(dmElement.operand, selfUserId: store.selfUserId);
+    narrow = DmNarrow.withUsers(dmElement.operand, selfUserId: store.selfUserId);
   } else if (streamElement != null) {
     final streamId = streamElement.operand;
     if (topicElement != null) {
-      return TopicNarrow(streamId, topicElement.operand, with_: withElement?.operand);
+      narrow = TopicNarrow(streamId, topicElement.operand, with_: withElement?.operand);
     } else {
       if (withElement != null) return null;
-      return ChannelNarrow(streamId);
+      narrow = ChannelNarrow(streamId);
     }
+  } else {
+    return null;
   }
-  return null;
+
+  return NarrowLink(narrow, realmUrl: store.realmUrl);
 }
 
 @JsonEnum(fieldRename: FieldRename.kebab, alwaysCreate: true)
