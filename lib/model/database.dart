@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart';
 import 'package:drift/internal/versioned_schema.dart';
 import 'package:drift/remote.dart';
 import 'package:sqlite3/common.dart';
 
 import '../log.dart';
+import '../migration/legacy_app_data.dart';
 import 'schema_versions.g.dart';
 import 'settings.dart';
 
@@ -180,6 +183,9 @@ class AppDatabase extends _$AppDatabase {
     await m.createAll();
     // Corresponds to `from4to5` above.
     await into(globalSettings).insert(GlobalSettingsCompanion());
+    if (Platform.isAndroid) {
+      await getDataFromLegacyApp();
+    }
   }
 
   @override
@@ -238,6 +244,87 @@ class AppDatabase extends _$AppDatabase {
         throw AccountAlreadyExistsException();
       }
       rethrow;
+    }
+  }
+
+  Future<void> getDataFromLegacyApp() async {
+    final canRetrieveLegacyData = await LegacyAppData.init();
+    if (!canRetrieveLegacyData) {
+      return;
+    }
+    await getLegacyAccountsData();
+    await getLegacySettingsData();
+    await LegacyAppData.close();
+  }
+
+  Future<void> getLegacyAccountsData() async {
+    final accounts = await LegacyAppData.getAccountsData();
+    if (accounts == null) {
+      return;
+    }
+    for (var account in accounts) {
+      final values = AccountsCompanion(
+        realmUrl: Value(account.realm!),
+        userId: account.userId != null ? Value(account.userId!) : Value
+            .absent(),
+        email: Value(account.email!),
+        apiKey: Value(account.apiKey!),
+        zulipVersion: account.zulipVersion != null ? Value(
+            account.zulipVersion!) : Value.absent(),
+        zulipFeatureLevel: account.zulipFeatureLevel != null ? Value(
+            account.zulipFeatureLevel!) : Value.absent(),
+        ackedPushToken: account.ackedPushToken != null ? Value(
+            account.ackedPushToken!) : Value.absent(),
+      );
+      try {
+        await createAccount(values);
+      } on AccountAlreadyExistsException {
+        continue;
+      }
+    }
+  }
+
+  Future<void> getLegacySettingsData() async {
+    // the only settings we care about are the browser and theme settings for now.
+    // if we add new settings that the RN app had, we should handle them here too.
+    var settings = await LegacyAppData.getSettingsData();
+    await populateLegacySettingsData(settings);
+  }
+
+  Future<void> populateLegacySettingsData(Map<String,dynamic>? settings) async {
+    if (settings == null) {
+      return;
+    }
+    // the RN app had 3 options for browser: external, default and embedded.
+    // embedded: The in-app browser
+    // external: The user's default browser app
+    // default: 'external' on iOS, 'embedded' on Android
+    switch (settings['browser']) {
+      case 'external':
+      case 'default':
+        await update(globalSettings).write(
+          GlobalSettingsCompanion(
+            browserPreference: Value(BrowserPreference.external),
+          ),
+        );
+        break;
+      case 'embedded':
+        await update(globalSettings).write(
+          GlobalSettingsCompanion(
+            browserPreference: Value(BrowserPreference.inApp),
+          ),
+        );
+        break;
+      default:
+    }
+
+    // the RN app had night for dark and default for system theme.
+    if (settings['theme'] == 'night') {
+      await update(globalSettings).write(
+        GlobalSettingsCompanion(
+          themeSetting: Value(ThemeSetting.dark),
+        ),
+      );
     }
   }
 }
