@@ -125,29 +125,33 @@ class NarrowLink extends InternalLink {
   final Narrow narrow;
 }
 
-/// A [Narrow] from a given URL, on `store`'s realm.
+/// Try to parse the given URL as a page in this app, on `store`'s realm.
 ///
 /// `url` must already be a result from [PerAccountStore.tryResolveUrl]
 /// on `store`.
 ///
-/// Returns `null` if any of the operator/operand pairs are invalid.
+/// Returns null if the URL isn't on this realm,
+/// or isn't a valid Zulip URL,
+/// or isn't currently supported as leading to a page in this app.
 ///
+/// In particular this will return null if `url` is a `/#narrow/…` URL
+/// and any of the operator/operand pairs are invalid.
 /// Since narrow links can combine operators in ways our [Narrow] type can't
 /// represent, this can also return null for valid narrow links.
 ///
 /// This can also return null for some valid narrow links that our Narrow
 /// type *could* accurately represent. We should try to understand these
-/// better, but some kinds will be rare, even unheard-of:
+/// better, but some kinds will be rare, even unheard-of.  For example:
 ///   #narrow/stream/1-announce/stream/1-announce (duplicated operator)
 // TODO(#252): handle all valid narrow links, returning a search narrow
-Narrow? parseInternalLink(Uri url, PerAccountStore store) {
+InternalLink? parseInternalLink(Uri url, PerAccountStore store) {
   if (!_isInternalLink(url, store.realmUrl)) return null;
 
   final (category, segments) = _getCategoryAndSegmentsFromFragment(url.fragment);
   switch (category) {
     case 'narrow':
       if (segments.isEmpty || !segments.length.isEven) return null;
-      return _interpretNarrowSegments(segments, store)?.narrow;
+      return _interpretNarrowSegments(segments, store);
   }
   return null;
 }
