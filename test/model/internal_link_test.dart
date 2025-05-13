@@ -380,6 +380,8 @@ void main() {
       }
     });
 
+    // TODO(#1570): test parsing /near/ operator
+
     group('unexpected link shapes are rejected', () {
       final testCases = [
         ('/#narrow/stream/name/topic/',           null), // missing operand
