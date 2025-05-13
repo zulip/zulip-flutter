@@ -82,6 +82,8 @@ const double _composeButtonSize = 44;
 ///
 /// Subclasses must ensure that [_update] is called in all exposed constructors.
 abstract class ComposeController<ErrorT> extends TextEditingController {
+  ComposeController({super.text});
+
   int get maxLengthUnicodeCodePoints;
 
   String get textNormalized => _textNormalized;
@@ -143,7 +145,7 @@ enum TopicValidationError {
 }
 
 class ComposeTopicController extends ComposeController<TopicValidationError> {
-  ComposeTopicController({required this.store}) {
+  ComposeTopicController({super.text, required this.store}) {
     _update();
   }
 
@@ -226,7 +228,7 @@ enum ContentValidationError {
 }
 
 class ComposeContentController extends ComposeController<ContentValidationError> {
-  ComposeContentController() {
+  ComposeContentController({super.text}) {
     _update();
   }
 
