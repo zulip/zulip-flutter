@@ -120,9 +120,10 @@ sealed class InternalLink {
 /// The result of parsing some URL that points to a narrow on a Zulip realm,
 /// when the narrow is of a type that this app understands.
 class NarrowLink extends InternalLink {
-  NarrowLink(this.narrow, {required super.realmUrl});
+  NarrowLink(this.narrow, this.nearMessageId, {required super.realmUrl});
 
   final Narrow narrow;
+  final int? nearMessageId;
 }
 
 /// Try to parse the given URL as a page in this app, on `store`'s realm.
@@ -184,6 +185,7 @@ NarrowLink? _interpretNarrowSegments(List<String> segments, PerAccountStore stor
   ApiNarrowDm? dmElement;
   ApiNarrowWith? withElement;
   Set<IsOperand> isElementOperands = {};
+  int? nearMessageId;
 
   for (var i = 0; i < segments.length; i += 2) {
     final (operator, negated) = _parseOperator(segments[i]);
@@ -221,8 +223,9 @@ NarrowLink? _interpretNarrowSegments(List<String> segments, PerAccountStore stor
         // It is fine to have duplicates of the same [IsOperand].
         isElementOperands.add(IsOperand.fromRawString(operand));
 
-      case _NarrowOperator.near: // TODO(#82): support for near
-        continue;
+      case _NarrowOperator.near:
+        if (nearMessageId != null) return null;
+        nearMessageId = int.tryParse(operand, radix: 10);
 
       case _NarrowOperator.unknown:
         return null;
@@ -264,7 +267,7 @@ NarrowLink? _interpretNarrowSegments(List<String> segments, PerAccountStore stor
     return null;
   }
 
-  return NarrowLink(narrow, realmUrl: store.realmUrl);
+  return NarrowLink(narrow, nearMessageId, realmUrl: store.realmUrl);
 }
 
 @JsonEnum(fieldRename: FieldRename.kebab, alwaysCreate: true)
