@@ -1536,15 +1536,17 @@ void _launchUrl(BuildContext context, String urlString) async {
     return;
   }
 
-  final internalNarrow = parseInternalLink(url, store);
-  if (internalNarrow != null) {
-    unawaited(Navigator.push(context,
-      MessageListPage.buildRoute(context: context,
-        narrow: internalNarrow)));
-    return;
-  }
+  final internalLink = parseInternalLink(url, store);
+  assert(internalLink == null || internalLink.realmUrl == store.realmUrl);
+  switch (internalLink) {
+    case NarrowLink():
+      unawaited(Navigator.push(context,
+        MessageListPage.buildRoute(context: context,
+          narrow: internalLink.narrow)));
 
-  await PlatformActions.launchUrl(context, url);
+    case null:
+      await PlatformActions.launchUrl(context, url);
+  }
 }
 
 /// Like [Image.network], but includes [authHeader] if [src] is on-realm.

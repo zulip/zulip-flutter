@@ -160,7 +160,12 @@ void main() {
         test(urlString, () async {
           final store = await setupStore(realmUrl: realmUrl, streams: streams, users: users);
           final url = store.tryResolveUrl(urlString)!;
-          check(parseInternalLink(url, store)).equals(expected);
+          final result = parseInternalLink(url, store);
+          if (expected == null) {
+            check(result).isNull();
+          } else {
+            check(result).isA<NarrowLink>().narrow.equals(expected);
+          }
         });
       }
     }
@@ -563,4 +568,8 @@ void main() {
       });
     });
   });
+}
+
+extension NarrowLinkChecks on Subject<NarrowLink> {
+  Subject<Narrow> get narrow => has((x) => x.narrow, 'narrow');
 }
