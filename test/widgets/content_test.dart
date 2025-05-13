@@ -1032,6 +1032,8 @@ void main() {
         .page.isA<MessageListPage>().initNarrow.equals(const ChannelNarrow(1));
     });
 
+    // TODO(#1570): test links with /near/ go to the specific message
+
     testWidgets('invalid internal links are opened in browser', (tester) async {
       // Link is invalid due to `topic` operator missing an operand.
       final pushedRoutes = await prepare(tester,

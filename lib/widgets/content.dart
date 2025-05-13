@@ -1542,7 +1542,8 @@ void _launchUrl(BuildContext context, String urlString) async {
     case NarrowLink():
       unawaited(Navigator.push(context,
         MessageListPage.buildRoute(context: context,
-          narrow: internalLink.narrow)));
+          narrow: internalLink.narrow,
+          initAnchorMessageId: internalLink.nearMessageId)));
 
     case null:
       await PlatformActions.launchUrl(context, url);
