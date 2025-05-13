@@ -374,6 +374,8 @@ void main() {
   });
 
   group('fetch initial batch of messages', () {
+    // TODO(#1569): test effect of initAnchorMessageId
+
     group('topic permalink', () {
       final someStream = eg.stream();
       const someTopic = 'some topic';
