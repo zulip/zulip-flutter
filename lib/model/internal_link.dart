@@ -140,14 +140,14 @@ class NarrowLink extends InternalLink {
 /// better, but some kinds will be rare, even unheard-of:
 ///   #narrow/stream/1-announce/stream/1-announce (duplicated operator)
 // TODO(#252): handle all valid narrow links, returning a search narrow
-Narrow? parseInternalLink(Uri url, PerAccountStore store) {
+InternalLink? parseInternalLink(Uri url, PerAccountStore store) {
   if (!_isInternalLink(url, store.realmUrl)) return null;
 
   final (category, segments) = _getCategoryAndSegmentsFromFragment(url.fragment);
   switch (category) {
     case 'narrow':
       if (segments.isEmpty || !segments.length.isEven) return null;
-      return _interpretNarrowSegments(segments, store)?.narrow;
+      return _interpretNarrowSegments(segments, store);
   }
   return null;
 }
