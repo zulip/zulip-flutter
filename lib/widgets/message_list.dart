@@ -147,12 +147,17 @@ abstract class MessageListPageState {
 }
 
 class MessageListPage extends StatefulWidget {
-  const MessageListPage({super.key, required this.initNarrow});
+  const MessageListPage({
+    super.key,
+    required this.initNarrow,
+    this.initAnchorMessageId,
+  });
 
   static AccountRoute<void> buildRoute({int? accountId, BuildContext? context,
-      required Narrow narrow}) {
+      required Narrow narrow, int? initAnchorMessageId}) {
     return MaterialAccountWidgetRoute(accountId: accountId, context: context,
-      page: MessageListPage(initNarrow: narrow));
+      page: MessageListPage(
+        initNarrow: narrow, initAnchorMessageId: initAnchorMessageId));
   }
 
   /// The [MessageListPageState] above this context in the tree.
@@ -168,6 +173,7 @@ class MessageListPage extends StatefulWidget {
   }
 
   final Narrow initNarrow;
+  final int? initAnchorMessageId;
 
   @override
   State<MessageListPage> createState() => _MessageListPageState();
@@ -237,6 +243,10 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
             narrow: ChannelNarrow(streamId)))));
     }
 
+    // TODO(#80): default to anchor firstUnread, instead of newest
+    final initAnchor = widget.initAnchorMessageId == null
+      ? AnchorCode.newest : NumericAnchor(widget.initAnchorMessageId!);
+
     // Insert a PageRoot here, to provide a context that can be used for
     // MessageListPage.ancestorOf.
     return PageRoot(child: Scaffold(
@@ -256,7 +266,8 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
       //   we matched to the Figma in 21dbae120. See another frame, which uses that:
       //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=147%3A9088&mode=dev
       body: Builder(
-        builder: (BuildContext context) => Column(
+        builder: (BuildContext context) {
+          return Column(
           // Children are expected to take the full horizontal space
           // and handle the horizontal device insets.
           // The bottom inset should be handled by the last child only.
@@ -276,11 +287,13 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
                 child: MessageList(
                   key: _messageListKey,
                   narrow: narrow,
+                  initAnchor: initAnchor,
                   onNarrowChanged: _narrowChanged,
                 ))),
             if (ComposeBox.hasComposeBox(narrow))
               ComposeBox(key: _composeBoxKey, narrow: narrow)
-          ]))));
+          ]);
+        })));
   }
 }
 
@@ -438,9 +451,15 @@ const kFetchMessagesBufferPixels = (kMessageListFetchBatchSize / 2) * _kShortMes
 /// When there is no [ComposeBox], also takes responsibility
 /// for dealing with the bottom inset.
 class MessageList extends StatefulWidget {
-  const MessageList({super.key, required this.narrow, required this.onNarrowChanged});
+  const MessageList({
+    super.key,
+    required this.narrow,
+    required this.initAnchor,
+    required this.onNarrowChanged,
+  });
 
   final Narrow narrow;
+  final Anchor initAnchor;
   final void Function(Narrow newNarrow) onNarrowChanged;
 
   @override
@@ -463,8 +482,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   @override
   void onNewStore() { // TODO(#464) try to keep using old model until new one gets messages
+    final anchor = _model == null ? widget.initAnchor : _model!.anchor;
     _model?.dispose();
-    _initModel(PerAccountStoreWidget.of(context));
+    _initModel(PerAccountStoreWidget.of(context), anchor);
   }
 
   @override
@@ -475,10 +495,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     super.dispose();
   }
 
-  void _initModel(PerAccountStore store) {
-    // TODO(#82): get anchor as page/route argument, instead of using newest
-    // TODO(#80): default to anchor firstUnread, instead of newest
-    final anchor = AnchorCode.newest;
+  void _initModel(PerAccountStore store, Anchor anchor) {
     _model = MessageListView.init(store: store,
       narrow: widget.narrow, anchor: anchor);
     model.addListener(_modelChanged);
