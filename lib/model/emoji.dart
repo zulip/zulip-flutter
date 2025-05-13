@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:diacritic/diacritic.dart';
 
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
@@ -459,7 +460,7 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
   static const _separator = '_';
 
   static String _adjustQuery(String raw) {
-    return raw.toLowerCase().replaceAll(' ', '_'); // TODO(#1067) remove diacritics too
+    return removeDiacritics(raw.toLowerCase()).replaceAll(' ', '_');
   }
 
   @override
@@ -505,17 +506,17 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
     // for the finer distinctions.
     // See also commentary in [_rankResult].
 
-    // TODO(#1067) this assumes emojiName is already lower-case (and no diacritics)
-    if (emojiName == _adjusted)           return EmojiMatchQuality.exact;
-    if (emojiName.startsWith(_adjusted))  return EmojiMatchQuality.prefix;
-    if (emojiName.contains(_sepAdjusted)) return EmojiMatchQuality.wordAligned;
+    final normalizedEmojiName = removeDiacritics(emojiName.toLowerCase());
+
+    if (normalizedEmojiName == _adjusted)           return EmojiMatchQuality.exact;
+    if (normalizedEmojiName.startsWith(_adjusted))  return EmojiMatchQuality.prefix;
+    if (normalizedEmojiName.contains(_sepAdjusted)) return EmojiMatchQuality.wordAligned;
     if (!_adjusted.contains(_separator)) {
       // If the query is a single token (doesn't contain a separator),
       // allow a match anywhere in the string, too.
-      if (emojiName.contains(_adjusted))  return EmojiMatchQuality.other;
-    } else {
-      // Otherwise, require at least a word-aligned match.
+      if(normalizedEmojiName.contains(_adjusted))  return EmojiMatchQuality.other;
     }
+
     return null;
   }
 
