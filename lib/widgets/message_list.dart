@@ -704,13 +704,21 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   Widget _buildEndCap() {
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      TypingStatusWidget(narrow: widget.narrow),
-      MarkAsReadWidget(narrow: widget.narrow),
-      // To reinforce that the end of the feed has been reached:
-      //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
-      const SizedBox(height: 36),
-    ]);
+    if (model.haveNewest) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        TypingStatusWidget(narrow: widget.narrow),
+        // TODO perhaps offer mark-as-read even when not done fetching?
+        MarkAsReadWidget(narrow: widget.narrow),
+        // To reinforce that the end of the feed has been reached:
+        //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
+        const SizedBox(height: 36),
+      ]);
+    } else if (model.busyFetchingMore) {
+      // See [_buildStartCap] for why this condition shows a loading indicator.
+      return const _MessageListLoadingMore();
+    } else {
+      return SizedBox.shrink();
+    }
   }
 
   Widget _buildItem(MessageListItem data) {
