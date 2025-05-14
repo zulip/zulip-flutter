@@ -20,6 +20,7 @@ import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/compose_box.dart';
+import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/theme.dart';
@@ -69,15 +70,12 @@ void main() {
 
     connection = store.connection as FakeApiConnection;
 
+    connection.prepare(json:
+      eg.newestGetMessagesResult(foundOldest: true, messages: []).toJson());
     await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
-      child: Column(
-        // This positions the compose box at the bottom of the screen,
-        // simulating the layout of the message list page.
-        children: [
-          const Expanded(child: SizedBox.expand()),
-          ComposeBox(narrow: narrow),
-        ])));
+      child: MessageListPage(initNarrow: narrow)));
     await tester.pumpAndSettle();
+    connection.takeRequests();
 
     controller = tester.state<ComposeBoxState>(find.byType(ComposeBox)).controller;
   }
@@ -1334,6 +1332,14 @@ void main() {
       await enterContent(tester, 'some content');
       checkContentInputValue(tester, 'some content');
 
+      // Encache a new connection; prepare it for the message-list fetch
+      final newConnection = (testBinding.globalStore
+          ..clearCachedApiConnections()
+          ..useCachedApiConnections = true)
+        .apiConnectionFromAccount(store.account) as FakeApiConnection;
+      newConnection.prepare(json:
+        eg.newestGetMessagesResult(foundOldest: true, messages: []).toJson());
+
       store.updateMachine!
         ..debugPauseLoop()
         ..poll()
@@ -1341,6 +1347,7 @@ void main() {
             eg.apiExceptionBadEventQueueId(queueId: store.queueId))
         ..debugAdvanceLoop();
       await tester.pump();
+      await tester.pump(Duration.zero);
 
       final newStore = testBinding.globalStore.perAccountSync(store.accountId)!;
       check(newStore)
