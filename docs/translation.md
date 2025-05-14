@@ -25,6 +25,8 @@ is working correctly.
 
 ## Adding new UI strings
 
+<div id="add-string" />
+
 ### Adding a string to the translation database
 
 To add a new string in the UI, start by
@@ -78,6 +80,26 @@ taking arguments corresponding to the placeholders.
 For example:
 `zulipLocalizations.subscribedToNChannels(store.subscriptions.length)`.
 
+
+## Adding a new language
+
+ARB files for new languages are automatically created in pull requests generated
+by [the update-translations GitHub workflow](/.github/workflows/update-translations.yml).
+However, this won't make them in the in-app settings UI.
+
+On [Weblate](https://hosted.weblate.org/projects/zulip/zulip-flutter/),
+we can check the percentage of strings translated in each language.
+We use this information to determine if we should start offerring the language
+in the in-app settings UI.  For reference, on the web app, we offer a language
+when it is 5% translated. (Search for `percent_translated` in the server code.)
+
+When a language has a good percentage of strings translated, follow these steps
+to add it:
+
+- If the language tag is, for example, 'en-GB', [add a string](#add-string)
+  named 'languageEnGb'.
+- Update [localizations.dart](/lib/model/localizations.dart) to include the new language in
+  `languages`, following the instructions there.
 
 ## Hack to enforce locale (for testing, etc.)
 

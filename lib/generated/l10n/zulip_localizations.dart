@@ -1407,6 +1407,30 @@ abstract class ZulipLocalizations {
   /// **'Open links with in-app browser'**
   String get openLinksWithInAppBrowser;
 
+  /// Label for the English language.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEn;
+
+  /// Label for the Polish language.
+  ///
+  /// In en, this message translates to:
+  /// **'Polish'**
+  String get languagePl;
+
+  /// Label for the Russian language.
+  ///
+  /// In en, this message translates to:
+  /// **'Russian'**
+  String get languageRu;
+
+  /// Label for the Ukrainian language.
+  ///
+  /// In en, this message translates to:
+  /// **'Ukrainian'**
+  String get languageUk;
+
   /// Text to display for a poll when the question is missing
   ///
   /// In en, this message translates to:

@@ -782,6 +782,18 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Відкривати посилання за допомогою браузера додатку';
 
   @override
+  String get languageEn => 'English';
+
+  @override
+  String get languagePl => 'Polish';
+
+  @override
+  String get languageRu => 'Russian';
+
+  @override
+  String get languageUk => 'Ukrainian';
+
+  @override
   String get pollWidgetQuestionMissing => 'Немає питання.';
 
   @override

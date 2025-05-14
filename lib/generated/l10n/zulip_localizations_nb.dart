@@ -768,6 +768,18 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get openLinksWithInAppBrowser => 'Open links with in-app browser';
 
   @override
+  String get languageEn => 'English';
+
+  @override
+  String get languagePl => 'Polish';
+
+  @override
+  String get languageRu => 'Russian';
+
+  @override
+  String get languageUk => 'Ukrainian';
+
+  @override
   String get pollWidgetQuestionMissing => 'No question.';
 
   @override

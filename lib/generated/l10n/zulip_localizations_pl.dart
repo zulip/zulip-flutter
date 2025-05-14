@@ -778,6 +778,18 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get openLinksWithInAppBrowser => 'Otwieraj odnośniki w aplikacji';
 
   @override
+  String get languageEn => 'English';
+
+  @override
+  String get languagePl => 'Polish';
+
+  @override
+  String get languageRu => 'Russian';
+
+  @override
+  String get languageUk => 'Ukrainian';
+
+  @override
   String get pollWidgetQuestionMissing => 'Brak pytania.';
 
   @override
