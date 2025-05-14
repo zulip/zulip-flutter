@@ -53,6 +53,7 @@ void main() {
     bool foundOldest = true,
     int? messageCount,
     List<Message>? messages,
+    GetMessagesResult? fetchResult,
     List<ZulipStream>? streams,
     List<User>? users,
     List<Subscription>? subscriptions,
@@ -77,12 +78,17 @@ void main() {
     // prepare message list data
     await store.addUser(eg.selfUser);
     await store.addUsers(users ?? []);
-    assert((messageCount == null) != (messages == null));
-    messages ??= List.generate(messageCount!, (index) {
-      return eg.streamMessage(sender: eg.selfUser);
-    });
-    connection.prepare(json:
-      eg.newestGetMessagesResult(foundOldest: foundOldest, messages: messages).toJson());
+    if (fetchResult != null) {
+      assert(foundOldest && messageCount == null && messages == null);
+    } else {
+      assert((messageCount == null) != (messages == null));
+      messages ??= List.generate(messageCount!, (index) {
+        return eg.streamMessage(sender: eg.selfUser);
+      });
+      fetchResult = eg.newestGetMessagesResult(
+        foundOldest: foundOldest, messages: messages);
+    }
+    connection.prepare(json: fetchResult.toJson());
 
     await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
       skipAssertAccountExists: skipAssertAccountExists,
@@ -615,6 +621,55 @@ void main() {
       check(pos).equals(0);
       // … and scrolled far enough to effectively test the max speed.
       check(log.sum).isGreaterThan(2 * maxSpeed);
+    });
+  });
+
+  group('markers at end of list', () {
+    final findLoadingIndicator = find.byType(CircularProgressIndicator);
+
+    testWidgets('spacer when have newest', (tester) async {
+      final messages = List.generate(10,
+        (i) => eg.streamMessage(content: '<p>message $i</p>'));
+      await setupMessageListPage(tester, narrow: CombinedFeedNarrow(),
+        fetchResult: eg.nearGetMessagesResult(anchor: messages.last.id,
+          foundOldest: true, foundNewest: true, messages: messages));
+      check(findMessageListScrollController(tester)!.position)
+        .extentAfter.equals(0);
+
+      // There's no loading indicator.
+      check(findLoadingIndicator).findsNothing();
+      // The last message is spaced above the bottom of the viewport.
+      check(tester.getRect(find.text('message 9')))
+        .bottom..isGreaterThan(400)..isLessThan(570);
+    });
+
+    testWidgets('loading indicator displaces spacer etc.', (tester) async {
+      await setupMessageListPage(tester, narrow: CombinedFeedNarrow(),
+        skipPumpAndSettle: true,
+        fetchResult: eg.nearGetMessagesResult(anchor: 1000,
+          foundOldest: true, foundNewest: false,
+          messages: List.generate(10,
+            (i) => eg.streamMessage(id: 100 + i, content: '<p>message $i</p>'))));
+      await tester.pump();
+
+      // The message list will immediately start fetching newer messages.
+      connection.prepare(json: eg.newerGetMessagesResult(
+        anchor: 109, foundNewest: true, messages: List.generate(100,
+          (i) => eg.streamMessage(id: 110 + i))).toJson());
+      await tester.pump(Duration(milliseconds: 10));
+      await tester.pump();
+
+      // There's a loading indicator.
+      check(findLoadingIndicator).findsOne();
+      // It's at the bottom.
+      check(findMessageListScrollController(tester)!.position)
+        .extentAfter.equals(0);
+      final loadingIndicatorRect = tester.getRect(findLoadingIndicator);
+      check(loadingIndicatorRect).bottom.isGreaterThan(575);
+      // The last message is shortly above it; no spacer or anything else.
+      check(tester.getRect(find.text('message 9')))
+        .bottom.isGreaterThan(loadingIndicatorRect.top - 36); // TODO where's this space going?
+      await tester.pumpAndSettle();
     });
   });
 
