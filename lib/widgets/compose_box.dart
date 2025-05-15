@@ -493,11 +493,13 @@ class _ContentInput extends StatelessWidget {
     required this.narrow,
     required this.controller,
     required this.hintText,
+    this.enabled = true, // ignore: unused_element_parameter
   });
 
   final Narrow narrow;
   final ComposeBoxController controller;
   final String hintText;
+  final bool enabled;
 
   static double maxHeight(BuildContext context) {
     final clampingTextScaler = MediaQuery.textScalerOf(context)
@@ -540,6 +542,7 @@ class _ContentInput extends StatelessWidget {
             top: _verticalPadding, bottom: _verticalPadding,
             color: designVariables.composeBoxBg,
             child: TextField(
+              enabled: enabled,
               controller: controller.content,
               focusNode: controller.contentFocusNode,
               // Let the content show through the `contentPadding` so that
@@ -957,9 +960,10 @@ Future<void> _uploadFiles({
 }
 
 abstract class _AttachUploadsButton extends StatelessWidget {
-  const _AttachUploadsButton({required this.controller});
+  const _AttachUploadsButton({required this.controller, required this.enabled});
 
   final ComposeBoxController controller;
+  final bool enabled;
 
   IconData get icon;
   String tooltip(ZulipLocalizations zulipLocalizations);
@@ -1001,7 +1005,7 @@ abstract class _AttachUploadsButton extends StatelessWidget {
       child: IconButton(
         icon: Icon(icon, color: designVariables.foreground.withFadedAlpha(0.5)),
         tooltip: tooltip(zulipLocalizations),
-        onPressed: () => _handlePress(context)));
+        onPressed: enabled ? () => _handlePress(context) : null));
   }
 }
 
@@ -1060,7 +1064,7 @@ Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type)
 }
 
 class _AttachFileButton extends _AttachUploadsButton {
-  const _AttachFileButton({required super.controller});
+  const _AttachFileButton({required super.controller, required super.enabled});
 
   @override
   IconData get icon => ZulipIcons.attach_file;
@@ -1076,7 +1080,7 @@ class _AttachFileButton extends _AttachUploadsButton {
 }
 
 class _AttachMediaButton extends _AttachUploadsButton {
-  const _AttachMediaButton({required super.controller});
+  const _AttachMediaButton({required super.controller, required super.enabled});
 
   @override
   IconData get icon => ZulipIcons.image;
@@ -1093,7 +1097,7 @@ class _AttachMediaButton extends _AttachUploadsButton {
 }
 
 class _AttachFromCameraButton extends _AttachUploadsButton {
-  const _AttachFromCameraButton({required super.controller});
+  const _AttachFromCameraButton({required super.controller, required super.enabled});
 
   @override
   IconData get icon => ZulipIcons.camera;
@@ -1370,6 +1374,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 
   Widget? buildTopicInput();
   Widget buildContentInput();
+  bool getComposeButtonsEnabled(BuildContext context);
   Widget buildSendButton();
 
   @override
@@ -1396,10 +1401,11 @@ abstract class _ComposeBoxBody extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(4)))));
 
+    final composeButtonsEnabled = getComposeButtonsEnabled(context);
     final composeButtons = [
-      _AttachFileButton(controller: controller),
-      _AttachMediaButton(controller: controller),
-      _AttachFromCameraButton(controller: controller),
+      _AttachFileButton(controller: controller, enabled: composeButtonsEnabled),
+      _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
+      _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
     ];
 
     final topicInput = buildTopicInput();
@@ -1449,6 +1455,8 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
     controller: controller,
   );
 
+  @override bool getComposeButtonsEnabled(BuildContext context) => true;
+
   @override Widget buildSendButton() => _SendButton(
     controller: controller,
     getDestination: () => StreamDestination(
@@ -1471,6 +1479,8 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
     narrow: narrow,
     controller: controller,
   );
+
+  @override bool getComposeButtonsEnabled(BuildContext context) => true;
 
   @override Widget buildSendButton() => _SendButton(
     controller: controller,
@@ -1756,7 +1766,8 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
     final errorBanner = _errorBannerComposingNotAllowed(context);
     if (errorBanner != null) {
-      return _ComposeBoxContainer(body: null, banner: errorBanner);
+      return ComposeBoxInheritedWidget.fromComposeBoxState(this,
+        child: _ComposeBoxContainer(body: null, banner: errorBanner));
     }
 
     final controller = this.controller;
@@ -1777,6 +1788,39 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     //       errorBanner = _ErrorBanner(label:
     //         ZulipLocalizations.of(context).errorSendMessageTimeout);
     //     }
-    return _ComposeBoxContainer(body: body, banner: null);
+    return ComposeBoxInheritedWidget.fromComposeBoxState(this,
+      child: _ComposeBoxContainer(body: body, banner: null));
+  }
+}
+
+/// An [InheritedWidget] to provide data to leafward [StatelessWidget]s,
+/// such as flags that should cause the upload buttons to be disabled.
+class ComposeBoxInheritedWidget extends InheritedWidget {
+  factory ComposeBoxInheritedWidget.fromComposeBoxState(
+    ComposeBoxState state, {
+    required Widget child,
+  }) {
+    return ComposeBoxInheritedWidget._(
+      // TODO add fields
+      child: child,
+    );
+  }
+
+  const ComposeBoxInheritedWidget._({
+    // TODO add fields
+    required super.child,
+  });
+
+  // TODO add fields
+
+  @override
+  bool updateShouldNotify(covariant ComposeBoxInheritedWidget oldWidget) =>
+    // TODO compare fields
+    false;
+
+  static ComposeBoxInheritedWidget of(BuildContext context) {
+    final widget = context.dependOnInheritedWidgetOfExactType<ComposeBoxInheritedWidget>();
+    assert(widget != null, 'No ComposeBoxInheritedWidget ancestor');
+    return widget!;
   }
 }
