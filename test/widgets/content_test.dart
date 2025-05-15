@@ -595,15 +595,20 @@ void main() {
       final content = ContentExample.mathBlockKatexSizing;
       await prepareContent(tester, plainContent(content.html));
 
+      final context = tester.element(find.byType(MathBlock));
+      final baseTextStyle =
+        mkBaseKatexTextStyle(ContentTheme.of(context).textStylePlainParagraph);
+
       final mathBlockNode = content.expectedNodes.single as MathBlockNode;
-      final baseNode = mathBlockNode.nodes!.single;
+      final baseNode = mathBlockNode.nodes!.single as KatexSpanNode;
       final nodes = baseNode.nodes!.skip(1); // Skip .strut node.
-      for (final katexNode in nodes) {
-        final fontSize = katexNode.styles.fontSizeEm! * kBaseKatexTextStyle.fontSize!;
+      for (var katexNode in nodes) {
+        katexNode = katexNode as KatexSpanNode;
+        final fontSize = katexNode.styles.fontSizeEm! * baseTextStyle.fontSize!;
         checkKatexText(tester, katexNode.text!,
           fontFamily: 'KaTeX_Main',
           fontSize: fontSize,
-          fontHeight: kBaseKatexTextStyle.height!);
+          fontHeight: baseTextStyle.height!);
       }
     });
 
@@ -616,17 +621,21 @@ void main() {
       final content = ContentExample.mathBlockKatexNestedSizing;
       await prepareContent(tester, plainContent(content.html));
 
-      var fontSize = 0.5 * kBaseKatexTextStyle.fontSize!;
+      final context = tester.element(find.byType(MathBlock));
+      final baseTextStyle =
+        mkBaseKatexTextStyle(ContentTheme.of(context).textStylePlainParagraph);
+
+      var fontSize = 0.5 * baseTextStyle.fontSize!;
       checkKatexText(tester, '1',
         fontFamily: 'KaTeX_Main',
         fontSize: fontSize,
-        fontHeight: kBaseKatexTextStyle.height!);
+        fontHeight: baseTextStyle.height!);
 
       fontSize = 4.976 * fontSize;
       checkKatexText(tester, '2',
         fontFamily: 'KaTeX_Main',
         fontSize: fontSize,
-        fontHeight: kBaseKatexTextStyle.height!);
+        fontHeight: baseTextStyle.height!);
     });
 
     testWidgets('displays KaTeX content with different delimiter sizing', (tester) async {
@@ -639,25 +648,51 @@ void main() {
       await prepareContent(tester, plainContent(content.html));
 
       final mathBlockNode = content.expectedNodes.single as MathBlockNode;
-      final baseNode = mathBlockNode.nodes!.single;
+      final baseNode = mathBlockNode.nodes!.single as KatexSpanNode;
       var nodes = baseNode.nodes!.skip(1); // Skip .strut node.
 
-      final fontSize = kBaseKatexTextStyle.fontSize!;
+      final context = tester.element(find.byType(MathBlock));
+      final baseTextStyle =
+        mkBaseKatexTextStyle(ContentTheme.of(context).textStylePlainParagraph);
 
-      final firstNode = nodes.first;
+      final firstNode = nodes.first as KatexSpanNode;
       checkKatexText(tester, firstNode.text!,
         fontFamily: 'KaTeX_Main',
-        fontSize: fontSize,
-        fontHeight: kBaseKatexTextStyle.height!);
+        fontSize: baseTextStyle.fontSize!,
+        fontHeight: baseTextStyle.height!);
       nodes = nodes.skip(1);
 
       for (var katexNode in nodes) {
-        katexNode = katexNode.nodes!.single; // Skip empty .mord parent.
+        katexNode = katexNode as KatexSpanNode;
+        katexNode = katexNode.nodes!.single as KatexSpanNode; // Skip empty .mord parent.
         final fontFamily = katexNode.styles.fontFamily!;
         checkKatexText(tester, katexNode.text!,
           fontFamily: fontFamily,
-          fontSize: fontSize,
-          fontHeight: kBaseKatexTextStyle.height!);
+          fontSize: baseTextStyle.fontSize!,
+          fontHeight: baseTextStyle.height!);
+      }
+    });
+
+    testWidgets('displays KaTeX contetnt with vertical and horizontal offsets', (tester) async {
+      addTearDown(testBinding.reset);
+      final globalSettings = testBinding.globalStore.settings;
+      await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
+      check(globalSettings).getBool(BoolGlobalSetting.renderKatex).isTrue();
+
+      final content = ContentExample.mathBlockKatexVerticalHorizontalOffsets;
+      await prepareContent(tester, plainContent(content.html));
+
+      const testCases = [
+        ('K', Rect.fromLTRB(357.95, 0.64, 378.52, 25.64)),
+        ('A', Rect.fromLTRB(375.02, 1.32, 389.42, 18.32)),
+        ('T', Rect.fromLTRB(386.33, 0.64, 406.90, 25.64)),
+        ('E', Rect.fromLTRB(403.47, 5.43, 424.04, 30.43)),
+        ('X', Rect.fromLTRB(421.47, 1.0,  442.04, 26.0)),
+      ];
+
+      for (final testCase in testCases) {
+        check(tester.getRect(find.text(testCase.$1)))
+          .within(distance: 0.01, from: testCase.$2);
       }
     });
   });
