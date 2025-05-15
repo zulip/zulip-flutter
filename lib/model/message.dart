@@ -63,13 +63,18 @@ mixin MessageStore {
   ///
   /// Should only be called when there is a failed request,
   /// per [getEditMessageErrorStatus].
-  String takeFailedMessageEdit(int messageId);
+  ({String originalRawContent, String newContent}) takeFailedMessageEdit(int messageId);
 }
 
 class _EditMessageRequestStatus {
-  _EditMessageRequestStatus({required this.hasError, required this.newContent});
+  _EditMessageRequestStatus({
+    required this.hasError,
+    required this.originalRawContent,
+    required this.newContent,
+  });
 
   bool hasError;
+  final String originalRawContent;
   final String newContent;
 }
 
@@ -185,7 +190,7 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
     }
 
     _editMessageRequests[messageId] = _EditMessageRequestStatus(
-      hasError: false, newContent: newContent);
+      hasError: false, originalRawContent: originalRawContent, newContent: newContent);
     _notifyMessageListViewsForOneMessage(messageId);
     try {
       await updateMessage(connection,
@@ -210,7 +215,7 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
   }
 
   @override
-  String takeFailedMessageEdit(int messageId) {
+  ({String originalRawContent, String newContent}) takeFailedMessageEdit(int messageId) {
     final status = _editMessageRequests.remove(messageId);
     _notifyMessageListViewsForOneMessage(messageId);
     if (status == null) {
@@ -219,7 +224,10 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
     if (!status.hasError) {
       throw StateError("called takeFailedMessageEdit, but edit hasn't failed");
     }
-    return status.newContent;
+    return (
+      originalRawContent: status.originalRawContent,
+      newContent: status.newContent
+    );
   }
 
   void handleUserTopicEvent(UserTopicEvent event) {

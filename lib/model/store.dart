@@ -765,7 +765,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       originalRawContent: originalRawContent, newContent: newContent);
   }
   @override
-  String takeFailedMessageEdit(int messageId) {
+  ({String originalRawContent, String newContent}) takeFailedMessageEdit(int messageId) {
     assert(!_disposed);
     return _messages.takeFailedMessageEdit(messageId);
   }

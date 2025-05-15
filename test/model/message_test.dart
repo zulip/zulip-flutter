@@ -252,7 +252,7 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNotNull().isTrue();
       checkNotifiedOnce();
 
-      check(store.takeFailedMessageEdit(message.id)).equals('new content');
+      check(store.takeFailedMessageEdit(message.id).newContent).equals('new content');
       check(store.getEditMessageErrorStatus(message.id)).isNull();
       checkNotifiedOnce();
     }));
@@ -338,7 +338,7 @@ void main() {
       async.elapse(Duration(seconds: 1));
       check(store.getEditMessageErrorStatus(message.id)).isNotNull().isTrue();
       checkNotifiedOnce();
-      check(store.takeFailedMessageEdit(message.id)).equals('new content');
+      check(store.takeFailedMessageEdit(message.id).newContent).equals('new content');
       checkNotifiedOnce();
 
       await store.handleEvent(eg.updateMessageEditEvent(message)); // no error
