@@ -320,6 +320,7 @@ void main() {
 
     PerAccountStore prepare({
       Map<String, String> realmEmoji = const {},
+      bool addServerDataForPopular = true,
       Map<String, List<String>>? unicodeEmoji,
     }) {
       final store = eg.store(
@@ -328,7 +329,9 @@ void main() {
             key: eg.realmEmojiItem(emojiCode: key, emojiName: value),
         }));
       final extraEmojiData = ServerEmojiData(codeToNames: unicodeEmoji ?? {});
-      ServerEmojiData emojiData = eg.serverEmojiDataPopularPlus(extraEmojiData);
+      final emojiData = addServerDataForPopular
+        ? eg.serverEmojiDataPopularPlus(extraEmojiData)
+        : extraEmojiData;
       store.setServerEmojiData(emojiData);
       return store;
     }
