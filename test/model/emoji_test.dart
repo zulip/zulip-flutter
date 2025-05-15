@@ -324,6 +324,7 @@ void main() {
 
     PerAccountStore prepare({
       Map<String, String> realmEmoji = const {},
+      bool addServerDataForPopular = true,
       Map<String, List<String>>? unicodeEmoji,
     }) {
       final store = eg.store(
@@ -331,9 +332,13 @@ void main() {
           for (final MapEntry(:key, :value) in realmEmoji.entries)
             key: eg.realmEmojiItem(emojiCode: key, emojiName: value),
         }));
-      final extraEmojiData = ServerEmojiData(codeToNames: unicodeEmoji ?? {});
-      ServerEmojiData emojiData = eg.serverEmojiDataPopularPlus(extraEmojiData);
-      store.setServerEmojiData(emojiData);
+      if (addServerDataForPopular || unicodeEmoji != null) {
+        final extraEmojiData = ServerEmojiData(codeToNames: unicodeEmoji ?? {});
+        final emojiData = addServerDataForPopular
+          ? eg.serverEmojiDataPopularPlus(extraEmojiData)
+          : extraEmojiData;
+        store.setServerEmojiData(emojiData);
+      }
       return store;
     }
 
