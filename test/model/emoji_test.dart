@@ -10,6 +10,22 @@ import 'package:zulip/model/store.dart';
 import '../example_data.dart' as eg;
 
 void main() {
+  PerAccountStore prepare({
+    Map<String, RealmEmojiItem> realmEmoji = const {},
+    bool addServerDataForPopular = true,
+    Map<String, List<String>>? unicodeEmoji,
+  }) {
+    final store = eg.store(
+      initialSnapshot: eg.initialSnapshot(realmEmoji: realmEmoji));
+
+    final extraEmojiData = ServerEmojiData(codeToNames: unicodeEmoji ?? {});
+    final emojiData = addServerDataForPopular
+      ? eg.serverEmojiDataPopularPlus(extraEmojiData)
+      : extraEmojiData;
+    store.setServerEmojiData(emojiData);
+    return store;
+  }
+
   group('emojiDisplayFor', () {
     test('Unicode emoji', () {
       check(eg.store().emojiDisplayFor(emojiType: ReactionType.unicodeEmoji,
@@ -118,22 +134,6 @@ void main() {
 
   group('allEmojiCandidates', () {
     // TODO test emojiDisplay of candidates matches emojiDisplayFor
-
-    PerAccountStore prepare({
-      Map<String, RealmEmojiItem> realmEmoji = const {},
-      bool addServerDataForPopular = true,
-      Map<String, List<String>>? unicodeEmoji,
-    }) {
-      final store = eg.store(
-        initialSnapshot: eg.initialSnapshot(realmEmoji: realmEmoji));
-
-      final extraEmojiData = ServerEmojiData(codeToNames: unicodeEmoji ?? {});
-      final emojiData = addServerDataForPopular
-        ? eg.serverEmojiDataPopularPlus(extraEmojiData)
-        : extraEmojiData;
-      store.setServerEmojiData(emojiData);
-      return store;
-    }
 
     test('popular emoji appear even when no server emoji data', () {
       final store = prepare(unicodeEmoji: null, addServerDataForPopular: false);
@@ -317,22 +317,6 @@ void main() {
 
     List<Condition<Object?>> arePopularResults = popularCandidates.map(
       (c) => isUnicodeResult(emojiCode: c.emojiCode)).toList();
-
-    PerAccountStore prepare({
-      Map<String, RealmEmojiItem> realmEmoji = const {},
-      bool addServerDataForPopular = true,
-      Map<String, List<String>>? unicodeEmoji,
-    }) {
-      final store = eg.store(
-        initialSnapshot: eg.initialSnapshot(realmEmoji: realmEmoji));
-
-      final extraEmojiData = ServerEmojiData(codeToNames: unicodeEmoji ?? {});
-      final emojiData = addServerDataForPopular
-        ? eg.serverEmojiDataPopularPlus(extraEmojiData)
-        : extraEmojiData;
-      store.setServerEmojiData(emojiData);
-      return store;
-    }
 
     test('results can include all three emoji types', () async {
       final store = prepare(
