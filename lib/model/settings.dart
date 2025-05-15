@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
@@ -226,6 +227,16 @@ class GlobalSettingsStore extends ChangeNotifier {
       case BrowserPreference.external:
         return UrlLaunchMode.externalApplication;
     }
+  }
+
+  /// The user's choice of [Locale].
+  ///
+  /// This is null if the value has never been set.
+  Locale? get language => _data.language;
+
+  /// Set [language], persistently for future runs of the app.
+  Future<void> setLanguage(Locale value) async {
+    await _update(GlobalSettingsCompanion(language: Value(value)));
   }
 
   /// The user's choice of the given bool-valued setting, or our default for it.
