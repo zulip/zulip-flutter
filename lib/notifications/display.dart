@@ -294,7 +294,7 @@ class NotificationDisplayManager {
         name: data.senderFullName,
         iconBitmap: await _fetchBitmap(data.senderAvatarUrl))));
 
-    final intentDataUrl = NotificationOpenPayload(
+    final intentDataUrl = NotificationNavigationData(
       realmUrl: data.realmUrl,
       userId: data.userId,
       narrow: switch (data.recipient) {
@@ -302,7 +302,7 @@ class NotificationDisplayManager {
           TopicNarrow(streamId, topic),
         FcmMessageDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildUrl();
+      }).buildAndroidNotificationUrl();
 
     await _androidHost.notify(
       id: kNotificationId,
@@ -498,7 +498,7 @@ class NotificationDisplayManager {
 
     assert(debugLog('got notif: url: $url'));
     assert(url.scheme == 'zulip' && url.host == 'notification');
-    final payload = NotificationOpenPayload.parseUrl(url);
+    final payload = NotificationNavigationData.parseAndroidNotificationUrl(url);
 
     final account = globalStore.accounts.firstWhereOrNull(
       (account) => account.realmUrl.origin == payload.realmUrl.origin
@@ -551,20 +551,21 @@ class NotificationDisplayManager {
   }
 }
 
-/// The information contained in 'zulip://notification/…' internal
-/// Android intent data URL, used for notification-open flow.
-class NotificationOpenPayload {
+class NotificationNavigationData {
   final Uri realmUrl;
   final int userId;
-  final Narrow narrow;
+  final SendableNarrow narrow;
 
-  NotificationOpenPayload({
+  NotificationNavigationData({
     required this.realmUrl,
     required this.userId,
     required this.narrow,
   });
 
-  factory NotificationOpenPayload.parseUrl(Uri url) {
+  /// Parses the internal Android notification url, that was created using
+  /// [buildAndroidNotificationUrl], and retrieves the information required
+  /// for navigation.
+  factory NotificationNavigationData.parseAndroidNotificationUrl(Uri url) {
     if (url case Uri(
       scheme: 'zulip',
       host: 'notification',
@@ -582,7 +583,7 @@ class NotificationOpenPayload {
       final realmUrl = Uri.parse(realmUrlStr);
       final userId = int.parse(userIdStr, radix: 10);
 
-      final Narrow narrow;
+      final SendableNarrow narrow;
       switch (narrowType) {
         case 'topic':
           final channelIdStr = url.queryParameters['channel_id']!;
@@ -599,7 +600,7 @@ class NotificationOpenPayload {
           throw const FormatException();
       }
 
-      return NotificationOpenPayload(
+      return NotificationNavigationData(
         realmUrl: realmUrl,
         userId: userId,
         narrow: narrow,
@@ -610,7 +611,7 @@ class NotificationOpenPayload {
     }
   }
 
-  Uri buildUrl() {
+  Uri buildAndroidNotificationUrl() {
     return Uri(
       scheme: 'zulip',
       host: 'notification',
@@ -627,7 +628,6 @@ class NotificationOpenPayload {
             'narrow_type': 'dm',
             'all_recipient_ids': allRecipientIds.join(','),
           },
-          _ => throw UnsupportedError('Found an unexpected Narrow of type ${narrow.runtimeType}.'),
         })
       },
     );
