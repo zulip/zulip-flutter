@@ -319,15 +319,13 @@ void main() {
       (c) => isUnicodeResult(emojiCode: c.emojiCode)).toList();
 
     PerAccountStore prepare({
-      Map<String, String> realmEmoji = const {},
+      Map<String, RealmEmojiItem> realmEmoji = const {},
       bool addServerDataForPopular = true,
       Map<String, List<String>>? unicodeEmoji,
     }) {
       final store = eg.store(
-        initialSnapshot: eg.initialSnapshot(realmEmoji: {
-          for (final MapEntry(:key, :value) in realmEmoji.entries)
-            key: eg.realmEmojiItem(emojiCode: key, emojiName: value),
-        }));
+        initialSnapshot: eg.initialSnapshot(realmEmoji: realmEmoji));
+
       final extraEmojiData = ServerEmojiData(codeToNames: unicodeEmoji ?? {});
       final emojiData = addServerDataForPopular
         ? eg.serverEmojiDataPopularPlus(extraEmojiData)
@@ -338,7 +336,9 @@ void main() {
 
     test('results can include all three emoji types', () async {
       final store = prepare(
-        realmEmoji: {'1': 'happy'}, unicodeEmoji: {'1f516': ['bookmark']});
+        realmEmoji: {'1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'happy')},
+        unicodeEmoji: {'1f516': ['bookmark']},
+      );
       final view = EmojiAutocompleteView.init(store: store,
         query: EmojiAutocompleteQuery(''));
       bool done = false;
@@ -355,7 +355,9 @@ void main() {
 
     test('results update after query change', () async {
       final store = prepare(
-        realmEmoji: {'1': 'happy'}, unicodeEmoji: {'1f516': ['bookmark']});
+        realmEmoji: {'1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'happy')},
+        unicodeEmoji: {'1f516': ['bookmark']},
+      );
       final view = EmojiAutocompleteView.init(store: store,
         query: EmojiAutocompleteQuery('hap'));
       bool done = false;
@@ -375,7 +377,7 @@ void main() {
 
     Future<Iterable<EmojiAutocompleteResult>> resultsOf(
       String query, {
-      Map<String, String> realmEmoji = const {},
+      Map<String, RealmEmojiItem> realmEmoji = const {},
       Map<String, List<String>>? unicodeEmoji,
     }) async {
       final store = prepare(realmEmoji: realmEmoji, unicodeEmoji: unicodeEmoji);
