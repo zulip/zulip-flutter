@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:drift/drift.dart';
 import 'package:drift/internal/versioned_schema.dart';
 import 'package:drift/remote.dart';
@@ -28,6 +30,9 @@ class GlobalSettings extends Table {
     .nullable()();
 
   Column<String> get markReadOnScroll => textEnum<MarkReadOnScrollSetting>()
+    .nullable()();
+
+  Column<String> get language => text().map(const LocaleConverter())
     .nullable()();
 
   // If adding a new column to this table, consider whether [BoolGlobalSettings]
@@ -125,7 +130,7 @@ class AppDatabase extends _$AppDatabase {
   //    information on using the build_runner.
   //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 8; // See note.
+  static const int latestSchemaVersion = 9; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -188,6 +193,9 @@ class AppDatabase extends _$AppDatabase {
       await m.addColumn(schema.globalSettings,
         schema.globalSettings.markReadOnScroll);
     },
+    from8To9: (m, schema) async {
+      await m.addColumn(schema.globalSettings, schema.globalSettings.language);
+    }
   );
 
   Future<void> _createLatestSchema(Migrator m) async {
@@ -257,3 +265,55 @@ class AppDatabase extends _$AppDatabase {
 }
 
 class AccountAlreadyExistsException implements Exception {}
+
+class LocaleConverter extends TypeConverter<Locale, String> {
+  const LocaleConverter();
+
+  /// Parse a Unicode BCP 47 Language Identifier into [Locale].
+  ///
+  /// Throw when it fails to convert [languageTag] into a [Locale].
+  ///
+  /// This supports parsing a Unicode Language Identifier returned from
+  /// [Locale.toLanguageTag].
+  ///
+  /// This implementation refers to a part of
+  /// [this EBNF grammar](https://www.unicode.org/reports/tr35/#Unicode_language_identifier),
+  /// assuming the identifier is valid without
+  /// [unicode_variant_subtag](https://www.unicode.org/reports/tr35/#unicode_variant_subtag).
+  ///
+  /// This doesn't check if the [languageTag] is a valid identifier, (i.e., when
+  /// this returns without errors, the identifier is not necessarily
+  /// syntactically well-formed or valid).
+  // TODO(upstream): send this as a factory Locale.fromLanguageTag
+  //   https://github.com/flutter/flutter/issues/143491
+  Locale _fromLanguageTag(String languageTag) {
+    final subtags = languageTag.replaceAll('_', '-').split('-');
+
+    return switch (subtags) {
+      [final language, final script, final region] =>
+        Locale.fromSubtags(
+          languageCode: language, scriptCode: script, countryCode: region),
+
+      [final language, final script] when script.length == 4 =>
+        Locale.fromSubtags(languageCode: language, scriptCode: script),
+
+      [final language, final region] =>
+        Locale(language, region),
+
+      [final language] =>
+        Locale(language),
+
+      _ => throw ArgumentError.value(languageTag, 'languageTag'),
+    };
+  }
+
+  @override
+  Locale fromSql(String fromDb) {
+    return _fromLanguageTag(fromDb);
+  }
+
+  @override
+  String toSql(Locale value) {
+    return value.toLanguageTag();
+  }
+}

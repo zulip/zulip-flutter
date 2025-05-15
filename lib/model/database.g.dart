@@ -57,11 +57,21 @@ class $GlobalSettingsTable extends GlobalSettings
         $GlobalSettingsTable.$convertermarkReadOnScrolln,
       );
   @override
+  late final GeneratedColumnWithTypeConverter<Locale?, String> language =
+      GeneratedColumn<String>(
+        'language',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<Locale?>($GlobalSettingsTable.$converterlanguagen);
+  @override
   List<GeneratedColumn> get $columns => [
     themeSetting,
     browserPreference,
     visitFirstUnread,
     markReadOnScroll,
+    language,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -101,6 +111,12 @@ class $GlobalSettingsTable extends GlobalSettings
               data['${effectivePrefix}mark_read_on_scroll'],
             ),
           ),
+      language: $GlobalSettingsTable.$converterlanguagen.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}language'],
+        ),
+      ),
     );
   }
 
@@ -141,6 +157,10 @@ class $GlobalSettingsTable extends GlobalSettings
   $convertermarkReadOnScrolln = JsonTypeConverter2.asNullable(
     $convertermarkReadOnScroll,
   );
+  static TypeConverter<Locale, String> $converterlanguage =
+      const LocaleConverter();
+  static TypeConverter<Locale?, String?> $converterlanguagen =
+      NullAwareTypeConverter.wrap($converterlanguage);
 }
 
 class GlobalSettingsData extends DataClass
@@ -149,11 +169,13 @@ class GlobalSettingsData extends DataClass
   final BrowserPreference? browserPreference;
   final VisitFirstUnreadSetting? visitFirstUnread;
   final MarkReadOnScrollSetting? markReadOnScroll;
+  final Locale? language;
   const GlobalSettingsData({
     this.themeSetting,
     this.browserPreference,
     this.visitFirstUnread,
     this.markReadOnScroll,
+    this.language,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -184,6 +206,11 @@ class GlobalSettingsData extends DataClass
         ),
       );
     }
+    if (!nullToAbsent || language != null) {
+      map['language'] = Variable<String>(
+        $GlobalSettingsTable.$converterlanguagen.toSql(language),
+      );
+    }
     return map;
   }
 
@@ -201,6 +228,9 @@ class GlobalSettingsData extends DataClass
       markReadOnScroll: markReadOnScroll == null && nullToAbsent
           ? const Value.absent()
           : Value(markReadOnScroll),
+      language: language == null && nullToAbsent
+          ? const Value.absent()
+          : Value(language),
     );
   }
 
@@ -219,6 +249,7 @@ class GlobalSettingsData extends DataClass
           .fromJson(serializer.fromJson<String?>(json['visitFirstUnread'])),
       markReadOnScroll: $GlobalSettingsTable.$convertermarkReadOnScrolln
           .fromJson(serializer.fromJson<String?>(json['markReadOnScroll'])),
+      language: serializer.fromJson<Locale?>(json['language']),
     );
   }
   @override
@@ -243,6 +274,7 @@ class GlobalSettingsData extends DataClass
           markReadOnScroll,
         ),
       ),
+      'language': serializer.toJson<Locale?>(language),
     };
   }
 
@@ -251,6 +283,7 @@ class GlobalSettingsData extends DataClass
     Value<BrowserPreference?> browserPreference = const Value.absent(),
     Value<VisitFirstUnreadSetting?> visitFirstUnread = const Value.absent(),
     Value<MarkReadOnScrollSetting?> markReadOnScroll = const Value.absent(),
+    Value<Locale?> language = const Value.absent(),
   }) => GlobalSettingsData(
     themeSetting: themeSetting.present ? themeSetting.value : this.themeSetting,
     browserPreference: browserPreference.present
@@ -262,6 +295,7 @@ class GlobalSettingsData extends DataClass
     markReadOnScroll: markReadOnScroll.present
         ? markReadOnScroll.value
         : this.markReadOnScroll,
+    language: language.present ? language.value : this.language,
   );
   GlobalSettingsData copyWithCompanion(GlobalSettingsCompanion data) {
     return GlobalSettingsData(
@@ -277,6 +311,7 @@ class GlobalSettingsData extends DataClass
       markReadOnScroll: data.markReadOnScroll.present
           ? data.markReadOnScroll.value
           : this.markReadOnScroll,
+      language: data.language.present ? data.language.value : this.language,
     );
   }
 
@@ -286,7 +321,8 @@ class GlobalSettingsData extends DataClass
           ..write('themeSetting: $themeSetting, ')
           ..write('browserPreference: $browserPreference, ')
           ..write('visitFirstUnread: $visitFirstUnread, ')
-          ..write('markReadOnScroll: $markReadOnScroll')
+          ..write('markReadOnScroll: $markReadOnScroll, ')
+          ..write('language: $language')
           ..write(')'))
         .toString();
   }
@@ -297,6 +333,7 @@ class GlobalSettingsData extends DataClass
     browserPreference,
     visitFirstUnread,
     markReadOnScroll,
+    language,
   );
   @override
   bool operator ==(Object other) =>
@@ -305,7 +342,8 @@ class GlobalSettingsData extends DataClass
           other.themeSetting == this.themeSetting &&
           other.browserPreference == this.browserPreference &&
           other.visitFirstUnread == this.visitFirstUnread &&
-          other.markReadOnScroll == this.markReadOnScroll);
+          other.markReadOnScroll == this.markReadOnScroll &&
+          other.language == this.language);
 }
 
 class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
@@ -313,12 +351,14 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
   final Value<BrowserPreference?> browserPreference;
   final Value<VisitFirstUnreadSetting?> visitFirstUnread;
   final Value<MarkReadOnScrollSetting?> markReadOnScroll;
+  final Value<Locale?> language;
   final Value<int> rowid;
   const GlobalSettingsCompanion({
     this.themeSetting = const Value.absent(),
     this.browserPreference = const Value.absent(),
     this.visitFirstUnread = const Value.absent(),
     this.markReadOnScroll = const Value.absent(),
+    this.language = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   GlobalSettingsCompanion.insert({
@@ -326,6 +366,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
     this.browserPreference = const Value.absent(),
     this.visitFirstUnread = const Value.absent(),
     this.markReadOnScroll = const Value.absent(),
+    this.language = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   static Insertable<GlobalSettingsData> custom({
@@ -333,6 +374,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
     Expression<String>? browserPreference,
     Expression<String>? visitFirstUnread,
     Expression<String>? markReadOnScroll,
+    Expression<String>? language,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -340,6 +382,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
       if (browserPreference != null) 'browser_preference': browserPreference,
       if (visitFirstUnread != null) 'visit_first_unread': visitFirstUnread,
       if (markReadOnScroll != null) 'mark_read_on_scroll': markReadOnScroll,
+      if (language != null) 'language': language,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -349,6 +392,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
     Value<BrowserPreference?>? browserPreference,
     Value<VisitFirstUnreadSetting?>? visitFirstUnread,
     Value<MarkReadOnScrollSetting?>? markReadOnScroll,
+    Value<Locale?>? language,
     Value<int>? rowid,
   }) {
     return GlobalSettingsCompanion(
@@ -356,6 +400,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
       browserPreference: browserPreference ?? this.browserPreference,
       visitFirstUnread: visitFirstUnread ?? this.visitFirstUnread,
       markReadOnScroll: markReadOnScroll ?? this.markReadOnScroll,
+      language: language ?? this.language,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -389,6 +434,11 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
         ),
       );
     }
+    if (language.present) {
+      map['language'] = Variable<String>(
+        $GlobalSettingsTable.$converterlanguagen.toSql(language.value),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -402,6 +452,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
           ..write('browserPreference: $browserPreference, ')
           ..write('visitFirstUnread: $visitFirstUnread, ')
           ..write('markReadOnScroll: $markReadOnScroll, ')
+          ..write('language: $language, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1248,6 +1299,7 @@ typedef $$GlobalSettingsTableCreateCompanionBuilder =
       Value<BrowserPreference?> browserPreference,
       Value<VisitFirstUnreadSetting?> visitFirstUnread,
       Value<MarkReadOnScrollSetting?> markReadOnScroll,
+      Value<Locale?> language,
       Value<int> rowid,
     });
 typedef $$GlobalSettingsTableUpdateCompanionBuilder =
@@ -1256,6 +1308,7 @@ typedef $$GlobalSettingsTableUpdateCompanionBuilder =
       Value<BrowserPreference?> browserPreference,
       Value<VisitFirstUnreadSetting?> visitFirstUnread,
       Value<MarkReadOnScrollSetting?> markReadOnScroll,
+      Value<Locale?> language,
       Value<int> rowid,
     });
 
@@ -1299,6 +1352,12 @@ class $$GlobalSettingsTableFilterComposer
     column: $table.markReadOnScroll,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
+
+  ColumnWithTypeConverterFilters<Locale?, Locale, String> get language =>
+      $composableBuilder(
+        column: $table.language,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 }
 
 class $$GlobalSettingsTableOrderingComposer
@@ -1327,6 +1386,11 @@ class $$GlobalSettingsTableOrderingComposer
 
   ColumnOrderings<String> get markReadOnScroll => $composableBuilder(
     column: $table.markReadOnScroll,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get language => $composableBuilder(
+    column: $table.language,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -1363,6 +1427,9 @@ class $$GlobalSettingsTableAnnotationComposer
     column: $table.markReadOnScroll,
     builder: (column) => column,
   );
+
+  GeneratedColumnWithTypeConverter<Locale?, String> get language =>
+      $composableBuilder(column: $table.language, builder: (column) => column);
 }
 
 class $$GlobalSettingsTableTableManager
@@ -1409,12 +1476,14 @@ class $$GlobalSettingsTableTableManager
                     const Value.absent(),
                 Value<MarkReadOnScrollSetting?> markReadOnScroll =
                     const Value.absent(),
+                Value<Locale?> language = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GlobalSettingsCompanion(
                 themeSetting: themeSetting,
                 browserPreference: browserPreference,
                 visitFirstUnread: visitFirstUnread,
                 markReadOnScroll: markReadOnScroll,
+                language: language,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -1426,12 +1495,14 @@ class $$GlobalSettingsTableTableManager
                     const Value.absent(),
                 Value<MarkReadOnScrollSetting?> markReadOnScroll =
                     const Value.absent(),
+                Value<Locale?> language = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GlobalSettingsCompanion.insert(
                 themeSetting: themeSetting,
                 browserPreference: browserPreference,
                 visitFirstUnread: visitFirstUnread,
                 markReadOnScroll: markReadOnScroll,
+                language: language,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
