@@ -774,6 +774,9 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get openLinksWithInAppBrowser => 'Open links with in-app browser';
 
   @override
+  String get languageSettingTitle => 'Language';
+
+  @override
   String get languageEn => 'English';
 
   @override

@@ -790,6 +790,9 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
       'Odpri povezave v brskalniku znotraj aplikacije';
 
   @override
+  String get languageSettingTitle => 'Language';
+
+  @override
   String get languageEn => 'English';
 
   @override

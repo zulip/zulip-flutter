@@ -782,6 +782,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Відкривати посилання за допомогою браузера додатку';
 
   @override
+  String get languageSettingTitle => 'Language';
+
+  @override
   String get languageEn => 'English';
 
   @override

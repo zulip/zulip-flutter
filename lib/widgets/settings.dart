@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/localizations.dart';
 import '../model/settings.dart';
 import 'app_bar.dart';
+import 'icons.dart';
 import 'page.dart';
 import 'store.dart';
 
@@ -25,6 +29,7 @@ class SettingsPage extends StatelessWidget {
         const _BrowserPreferenceSetting(),
         const _VisitFirstUnreadSetting(),
         const _MarkReadOnScrollSetting(),
+        const _LanguageSetting(),
         if (GlobalSettingsStore.experimentalFeatureFlags.isNotEmpty)
           ListTile(
             title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
@@ -228,6 +233,76 @@ class MarkReadOnScrollSettingPage extends StatelessWidget {
             // ignore: deprecated_member_use
             onChanged: (newValue) => _handleChange(context, newValue)),
       ]));
+  }
+}
+
+class _LanguageSetting extends StatelessWidget {
+  const _LanguageSetting();
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    Widget? subtitle;
+    final currentLanguageSelfname = kSelfnamesByLocale[
+      GlobalStoreWidget.settingsOf(context).language];
+    if (currentLanguageSelfname != null) {
+      subtitle = Text(currentLanguageSelfname);
+    }
+
+    return ListTile(
+      title: Text(zulipLocalizations.languageSettingTitle),
+      subtitle: subtitle,
+      onTap: () => Navigator.push(context, _LanguagePage.buildRoute()));
+  }
+}
+
+class _LanguagePage extends StatelessWidget {
+  const _LanguagePage();
+
+  static WidgetRoute<void> buildRoute() {
+    return MaterialWidgetRoute(page: const _LanguagePage());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(zulipLocalizations.languageSettingTitle)),
+      body: SingleChildScrollView(
+        child: Column(children: [
+          for (final language in zulipLocalizations.languages())
+            _LanguageItem(language: language),
+        ])));
+  }
+}
+
+class _LanguageItem extends StatelessWidget {
+  const _LanguageItem({required this.language});
+
+  /// The [Language] this corresponds to, from [ZulipLocalizations.languages].
+  final Language language;
+
+  @override
+  Widget build(BuildContext context) {
+    final (locale, selfname, displayName) = language;
+    final isCurrentLanguageInSettings =
+      locale == GlobalStoreWidget.settingsOf(context).language;
+
+    return ListTile(
+      title: Text(selfname),
+      subtitle: Text(
+        isCurrentLanguageInSettings
+        ? // Make sure the subtitle text is consistent to the title — since
+          // displayName (decided by translators) can be different from our
+          // hard-coded selfname when isCurrentLanguage is true.
+          selfname
+        : displayName),
+      trailing: isCurrentLanguageInSettings ? Icon(ZulipIcons.check) : null,
+      onTap: () {
+        unawaited(GlobalStoreWidget.settingsOf(context).setLanguage(locale));
+      });
   }
 }
 

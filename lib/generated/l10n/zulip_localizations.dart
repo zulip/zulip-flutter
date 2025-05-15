@@ -1407,6 +1407,12 @@ abstract class ZulipLocalizations {
   /// **'Open links with in-app browser'**
   String get openLinksWithInAppBrowser;
 
+  /// Title for language setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get languageSettingTitle;
+
   /// Label for the English language.
   ///
   /// In en, this message translates to:

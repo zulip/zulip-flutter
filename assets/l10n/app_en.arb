@@ -943,6 +943,10 @@
   "@openLinksWithInAppBrowser": {
     "description": "Label for toggling setting to open links with in-app browser"
   },
+  "languageSettingTitle": "Language",
+  "@languageSettingTitle": {
+    "description": "Title for language setting."
+  },
   "languageEn": "English",
   "@languageEn": {
     "description": "Label for the English language."
