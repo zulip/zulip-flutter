@@ -80,6 +80,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Позначити канал як прочитаний';
 
   @override
+  String get actionSheetOptionListOfTopics => 'List of topics';
+
+  @override
   String get actionSheetOptionMuteTopic => 'Заглушити тему';
 
   @override
@@ -595,6 +598,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
 
   @override
   String get mainMenuMyProfile => 'Мій профіль';
+
+  @override
+  String get topicsButtonLabel => 'TOPICS';
 
   @override
   String get channelFeedButtonTooltip => 'Стрічка каналу';
