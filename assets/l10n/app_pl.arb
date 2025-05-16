@@ -557,10 +557,6 @@
   "@errorNotificationOpenTitle": {
     "description": "Error title when notification opening fails"
   },
-  "errorNotificationOpenAccountMissing": "Konto związane z tym powiadomieniem już nie istnieje.",
-  "@errorNotificationOpenAccountMissing": {
-    "description": "Error message when the account associated with the notification is not found"
-  },
   "aboutPageOpenSourceLicenses": "Licencje otwartego źródła",
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"

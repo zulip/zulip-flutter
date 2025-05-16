@@ -8,7 +8,6 @@ import 'package:http/http.dart' as http;
 
 import '../api/model/model.dart';
 import '../api/notifications.dart';
-import '../generated/l10n/zulip_localizations.dart';
 import '../host/android_notifications.dart';
 import '../log.dart';
 import '../model/binding.dart';
@@ -16,11 +15,9 @@ import '../model/localizations.dart';
 import '../model/narrow.dart';
 import '../widgets/app.dart';
 import '../widgets/color.dart';
-import '../widgets/dialog.dart';
 import '../widgets/message_list.dart';
-import '../widgets/page.dart';
-import '../widgets/store.dart';
 import '../widgets/theme.dart';
+import 'navigate.dart';
 
 AndroidNotificationHostApi get _androidHost => ZulipBinding.instance.androidNotificationHost;
 
@@ -294,7 +291,7 @@ class NotificationDisplayManager {
         name: data.senderFullName,
         iconBitmap: await _fetchBitmap(data.senderAvatarUrl))));
 
-    final intentDataUrl = NotificationOpenPayload(
+    final intentDataUrl = NotificationNavigationData(
       realmUrl: data.realmUrl,
       userId: data.userId,
       narrow: switch (data.recipient) {
@@ -302,7 +299,7 @@ class NotificationDisplayManager {
           TopicNarrow(streamId, topic),
         FcmMessageDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildUrl();
+      }).buildAndroidNotificationUrl();
 
     await _androidHost.notify(
       id: kNotificationId,
@@ -481,42 +478,6 @@ class NotificationDisplayManager {
 
   static String _personKey(Uri realmUrl, int userId) => "$realmUrl|$userId";
 
-  /// Provides the route and the account ID by parsing the notification URL.
-  ///
-  /// The URL must have been generated using [NotificationOpenPayload.buildUrl]
-  /// while creating the notification.
-  ///
-  /// Returns null and shows an error dialog if the associated account is not
-  /// found in the global store.
-  static AccountRoute<void>? routeForNotification({
-    required BuildContext context,
-    required Uri url,
-  }) {
-    assert(defaultTargetPlatform == TargetPlatform.android);
-
-    final globalStore = GlobalStoreWidget.of(context);
-
-    assert(debugLog('got notif: url: $url'));
-    assert(url.scheme == 'zulip' && url.host == 'notification');
-    final payload = NotificationOpenPayload.parseUrl(url);
-
-    final account = globalStore.accounts.firstWhereOrNull(
-      (account) => account.realmUrl.origin == payload.realmUrl.origin
-                && account.userId == payload.userId);
-    if (account == null) { // TODO(log)
-      final zulipLocalizations = ZulipLocalizations.of(context);
-      showErrorDialog(context: context,
-        title: zulipLocalizations.errorNotificationOpenTitle,
-        message: zulipLocalizations.errorNotificationOpenAccountMissing);
-      return null;
-    }
-
-    return MessageListPage.buildRoute(
-      accountId: account.id,
-      // TODO(#82): Open at specific message, not just conversation
-      narrow: payload.narrow);
-  }
-
   /// Navigates to the [MessageListPage] of the specific conversation
   /// given the `zulip://notification/…` Android intent data URL,
   /// generated with [NotificationOpenPayload.buildUrl] while creating
@@ -530,7 +491,13 @@ class NotificationDisplayManager {
     assert(context.mounted);
     if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
 
-    final route = routeForNotification(context: context, url: url);
+    assert(debugLog('got notif: url: $url'));
+    assert(url.scheme == 'zulip' && url.host == 'notification');
+    final payload =
+      NotificationNavigationService.tryParseAndroidNotificationUrl(context, url);
+    if (payload == null) return; // TODO(log)
+
+    final route = NotificationNavigationService.routeForNotification(context, payload);
     if (route == null) return; // TODO(log)
 
     // TODO(nav): Better interact with existing nav stack on notif open
@@ -548,88 +515,5 @@ class NotificationDisplayManager {
       // TODO(log)
     }
     return null;
-  }
-}
-
-/// The information contained in 'zulip://notification/…' internal
-/// Android intent data URL, used for notification-open flow.
-class NotificationOpenPayload {
-  final Uri realmUrl;
-  final int userId;
-  final Narrow narrow;
-
-  NotificationOpenPayload({
-    required this.realmUrl,
-    required this.userId,
-    required this.narrow,
-  });
-
-  factory NotificationOpenPayload.parseUrl(Uri url) {
-    if (url case Uri(
-      scheme: 'zulip',
-      host: 'notification',
-      queryParameters: {
-        'realm_url': var realmUrlStr,
-        'user_id': var userIdStr,
-        'narrow_type': var narrowType,
-        // In case of narrowType == 'topic':
-        // 'channel_id' and 'topic' handled below.
-
-        // In case of narrowType == 'dm':
-        // 'all_recipient_ids' handled below.
-      },
-    )) {
-      final realmUrl = Uri.parse(realmUrlStr);
-      final userId = int.parse(userIdStr, radix: 10);
-
-      final Narrow narrow;
-      switch (narrowType) {
-        case 'topic':
-          final channelIdStr = url.queryParameters['channel_id']!;
-          final channelId = int.parse(channelIdStr, radix: 10);
-          final topicStr = url.queryParameters['topic']!;
-          narrow = TopicNarrow(channelId, TopicName(topicStr));
-        case 'dm':
-          final allRecipientIdsStr = url.queryParameters['all_recipient_ids']!;
-          final allRecipientIds = allRecipientIdsStr.split(',')
-            .map((idStr) => int.parse(idStr, radix: 10))
-            .toList(growable: false);
-          narrow = DmNarrow(allRecipientIds: allRecipientIds, selfUserId: userId);
-        default:
-          throw const FormatException();
-      }
-
-      return NotificationOpenPayload(
-        realmUrl: realmUrl,
-        userId: userId,
-        narrow: narrow,
-      );
-    } else {
-      // TODO(dart): simplify after https://github.com/dart-lang/language/issues/2537
-      throw const FormatException();
-    }
-  }
-
-  Uri buildUrl() {
-    return Uri(
-      scheme: 'zulip',
-      host: 'notification',
-      queryParameters: <String, String>{
-        'realm_url': realmUrl.toString(),
-        'user_id': userId.toString(),
-        ...(switch (narrow) {
-          TopicNarrow(streamId: var channelId, :var topic) => {
-            'narrow_type': 'topic',
-            'channel_id': channelId.toString(),
-            'topic': topic.apiName,
-          },
-          DmNarrow(:var allRecipientIds) => {
-            'narrow_type': 'dm',
-            'all_recipient_ids': allRecipientIds.join(','),
-          },
-          _ => throw UnsupportedError('Found an unexpected Narrow of type ${narrow.runtimeType}.'),
-        })
-      },
-    );
   }
 }
