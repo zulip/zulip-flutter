@@ -128,6 +128,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get actionSheetOptionUnstarMessage => 'Odbierz gwiazdkę';
 
   @override
+  String get actionSheetOptionEditMessage => 'Edit message';
+
+  @override
   String get actionSheetOptionMarkTopicAsRead =>
       'Oznacz wątek jako przeczytany';
 
@@ -196,6 +199,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get errorMessageNotSent => 'Nie wysłano wiadomości';
+
+  @override
+  String get errorMessageEditNotSaved => 'Message not saved';
 
   @override
   String errorLoginCouldNotConnect(String url) {
@@ -270,6 +276,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Odebranie gwiazdki bez powodzenia';
 
   @override
+  String get errorCouldNotEditMessageTitle => 'Could not edit message';
+
+  @override
   String get successLinkCopied => 'Skopiowano odnośnik';
 
   @override
@@ -287,6 +296,32 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Nie masz uprawnień do dodawania wpisów w tym kanale.';
 
   @override
+  String get composeBoxBannerLabelEditMessage => 'Edit message';
+
+  @override
+  String get composeBoxBannerButtonCancel => 'Cancel';
+
+  @override
+  String get composeBoxBannerButtonSave => 'Save';
+
+  @override
+  String get savingMessageEditLabel => 'SAVING EDIT…';
+
+  @override
+  String get savingMessageEditFailedLabel => 'EDIT NOT SAVED';
+
+  @override
+  String get discardDraftConfirmationDialogTitle =>
+      'Discard the message you’re writing?';
+
+  @override
+  String get discardDraftConfirmationDialogMessage =>
+      'When you edit a message, the content that was previously in the compose box is discarded.';
+
+  @override
+  String get discardDraftConfirmationDialogConfirmButton => 'Discard';
+
+  @override
   String get composeBoxAttachFilesTooltip => 'Dołącz pliki';
 
   @override
@@ -294,6 +329,46 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get composeBoxAttachFromCameraTooltip => 'Zrób zdjęcie';
+
+  @override
+  String get composeBoxShowSavedSnippetsTooltip => 'Show saved snippets';
+
+  @override
+  String get noSavedSnippets => 'No saved snippets';
+
+  @override
+  String get savedSnippetsTitle => 'Saved snippets';
+
+  @override
+  String get newSavedSnippetButton => 'New';
+
+  @override
+  String get newSavedSnippetTitle => 'New snippet';
+
+  @override
+  String get newSavedSnippetTitleHint => 'Title';
+
+  @override
+  String get newSavedSnippetContentHint => 'Content';
+
+  @override
+  String get errorFailedToCreateSavedSnippetTitle =>
+      'Failed to create saved snippet';
+
+  @override
+  String get savedSnippetTitleValidationErrorEmpty => 'Title cannot be empty.';
+
+  @override
+  String get savedSnippetTitleValidationErrorTooLong =>
+      'Title length shouldn\'t be greater than 60 characters.';
+
+  @override
+  String get savedSnippetContentValidationErrorEmpty =>
+      'Content cannot be empty.';
+
+  @override
+  String get savedSnippetContentValidationErrorTooLong =>
+      'Content length shouldn\'t be greater than 10000 characters.';
 
   @override
   String get composeBoxGenericContentHint => 'Wpisz wiadomość';
@@ -313,6 +388,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String composeBoxChannelContentHint(String destination) {
     return 'Wiadomość do $destination';
   }
+
+  @override
+  String get composeBoxEditMessageHint => 'Message content';
 
   @override
   String get composeBoxSendTooltip => 'Wyślij';

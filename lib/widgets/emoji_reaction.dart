@@ -413,10 +413,6 @@ void showEmojiPickerSheet({
   final store = PerAccountStoreWidget.of(pageContext);
   showModalBottomSheet<void>(
     context: pageContext,
-    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
-    // on my iPhone 13 Pro but is marked as "much slower":
-    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
-    clipBehavior: Clip.antiAlias,
     // The bottom inset is left for [builder] to handle;
     // see [EmojiPicker] and its [CustomScrollView] for how we do that.
     useSafeArea: true,
