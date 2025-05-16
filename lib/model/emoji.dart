@@ -115,13 +115,7 @@ mixin EmojiStore {
   ///
   /// See description in the web code:
   ///   https://github.com/zulip/zulip/blob/83a121c7e/web/shared/src/typeahead.ts#L3-L21
-  // Someday this list may start varying rather than being hard-coded,
-  // and then this will become a non-static member on EmojiStore.
-  // For now, though, the fact it's constant is convenient when writing
-  // tests of the logic that uses this data; so we guarantee it in the API.
-  static Iterable<EmojiCandidate> get popularEmojiCandidates {
-    return EmojiStoreImpl._popularCandidates;
-  }
+  Iterable<EmojiCandidate> popularEmojiCandidates();
 
   Iterable<EmojiCandidate> allEmojiCandidates();
 
@@ -218,35 +212,53 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
   /// retrieving the data.
   Map<String, List<String>>? _serverEmojiData;
 
-  static final _popularCandidates = _generatePopularCandidates();
+  List<EmojiCandidate>? _popularCandidates;
 
-  static List<EmojiCandidate> _generatePopularCandidates() {
-    EmojiCandidate candidate(String emojiCode, String emojiUnicode,
-        List<String> names) {
-      final emojiName = names.removeAt(0);
-      assert(emojiUnicode == tryParseEmojiCodeToUnicode(emojiCode));
+  List<EmojiCandidate> _generatePopularCandidates() {
+    EmojiCandidate candidate(String emojiCode, List<String> names) {
+      final [emojiName, ...aliases] = names;
+      final emojiUnicode = tryParseEmojiCodeToUnicode(emojiCode);
+      assert(emojiUnicode != null);
       return EmojiCandidate(emojiType: ReactionType.unicodeEmoji,
-        emojiCode: emojiCode, emojiName: emojiName, aliases: names,
+        emojiCode: emojiCode, emojiName: emojiName, aliases: aliases,
         emojiDisplay: UnicodeEmojiDisplay(
-          emojiName: emojiName, emojiUnicode: emojiUnicode));
+          emojiName: emojiName, emojiUnicode: emojiUnicode!));
     }
-    return [
-      // This list should match web:
-      //   https://github.com/zulip/zulip/blob/83a121c7e/web/shared/src/typeahead.ts#L22-L29
-      candidate('1f44d', '👍', ['+1', 'thumbs_up', 'like']),
-      candidate('1f389', '🎉', ['tada']),
-      candidate('1f642', '🙂', ['smile']),
-      candidate( '2764', '❤', ['heart', 'love', 'love_you']),
-      candidate('1f6e0', '🛠', ['working_on_it', 'hammer_and_wrench', 'tools']),
-      candidate('1f419', '🐙', ['octopus']),
-    ];
+    if (_serverEmojiData == null) return [];
+
+    final result = <EmojiCandidate>[];
+    for (final emojiCode in _popularEmojiCodesList) {
+      final names = _serverEmojiData![emojiCode];
+      if (names == null) continue; // TODO(log)
+      result.add(candidate(emojiCode, names));
+    }
+    return result;
   }
 
-  static final _popularEmojiCodes = (() {
-    assert(_popularCandidates.every((c) =>
-      c.emojiType == ReactionType.unicodeEmoji));
-    return Set.of(_popularCandidates.map((c) => c.emojiCode));
+  @override
+  Iterable<EmojiCandidate> popularEmojiCandidates() {
+    return _popularCandidates ??= _generatePopularCandidates();
+  }
+
+  /// Codes for the popular emoji, in order; all are Unicode emoji.
+  // This list should match web:
+  //   https://github.com/zulip/zulip/blob/9feba0f16/web/shared/src/typeahead.ts#L22-L29
+  static final List<String> _popularEmojiCodesList = (() {
+    String check(String emojiCode, String emojiUnicode) {
+      assert(emojiUnicode == tryParseEmojiCodeToUnicode(emojiCode));
+      return emojiCode;
+    }
+    return [
+      check('1f44d', '👍'),
+      check('1f389', '🎉'),
+      check('1f642', '🙂'),
+      check('2764', '❤'),
+      check('1f6e0', '🛠'),
+      check('1f419', '🐙'),
+    ];
   })();
+
+  static final Set<String> _popularEmojiCodes = Set.of(_popularEmojiCodesList);
 
   static bool _isPopularEmoji(EmojiCandidate candidate) {
     return candidate.emojiType == ReactionType.unicodeEmoji
@@ -307,7 +319,7 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
 
     // Include the "popular" emoji, in their canonical order
     // relative to each other.
-    results.addAll(_popularCandidates);
+    results.addAll(popularEmojiCandidates());
 
     final namesOverridden = {
       for (final emoji in activeRealmEmoji) emoji.name,
@@ -366,6 +378,7 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
   @override
   void setServerEmojiData(ServerEmojiData data) {
     _serverEmojiData = data.codeToNames;
+    _popularCandidates = null;
     _allEmojiCandidates = null;
   }
 
