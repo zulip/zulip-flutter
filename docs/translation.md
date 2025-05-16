@@ -25,6 +25,8 @@ is working correctly.
 
 ## Adding new UI strings
 
+<div id="add-string" />
+
 ### Adding a string to the translation database
 
 To add a new string in the UI, start by
@@ -77,6 +79,21 @@ taking arguments corresponding to the placeholders.
 
 For example:
 `zulipLocalizations.subscribedToNChannels(store.subscriptions.length)`.
+
+
+## Adding a new language
+
+ARB files for new languages are automatically created in Pull Requests generated
+[the update-translations GitHub workflow](/.github/workflows/update-translations.yml).
+However, this won't make them appear in settings.
+
+When a language has a good percentage of strings translated, we should add it to
+settings.  First, if the language tag is 'en-GB', [add a string](#add-string)
+named 'languageNameEnGb'.
+
+Then, update [localizations.dart](/lib/model/localizations.dart) to include
+the new language in `kSelfnamesByLocale` and `localeDisplayName`, following
+the instructions there.
 
 
 ## Hack to enforce locale (for testing, etc.)

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:drift/drift.dart';
 import 'package:drift/internal/versioned_schema.dart';
 import 'package:drift/remote.dart';
@@ -24,11 +26,64 @@ class GlobalSettings extends Table {
   Column<String> get browserPreference => textEnum<BrowserPreference>()
     .nullable()();
 
+  Column<String> get language => text().map(const LocaleConverter()).nullable()();
+
   // If adding a new column to this table, consider whether [BoolGlobalSettings]
   // can do the job instead (by adding a value to the [BoolGlobalSetting] enum).
   // That way is more convenient, when it works, because
   // it avoids a migration and therefore several added copies of our schema
   // in the Drift generated files.
+}
+
+class LocaleConverter extends TypeConverter<Locale, String> {
+  const LocaleConverter();
+
+  /// Parse a Unicode BCP 47 Language Identifier into [Locale].
+  ///
+  /// This supports parsing a subset of syntactically valid Unicode Language
+  /// Identifiers, including values [Locale.toLanguageTag] might return.
+  ///
+  /// Like [Locale], neither
+  /// [variant subtags](https://www.unicode.org/reports/tr35/#unicode_variant_subtag).
+  /// nor [extensions](https://www.unicode.org/reports/tr35/#extensions)
+  /// are supported.  It throws when it fails to convert [languageTag] into a
+  /// [Locale].
+  ///
+  /// See also:
+  ///  * https://www.unicode.org/reports/tr35/#Unicode_language_identifier;
+  ///    the method implements a subset of this EBNF grammar.
+  // TODO(upstream): support Locale.fromLanguageTag:
+  //   https://github.com/flutter/flutter/issues/143491
+  Locale _fromLanguageTag(String languageTag) {
+    final subtags = languageTag.replaceAll('_', '-').split('-');
+
+    return switch (subtags) {
+      [final language, final script, final region] =>
+        Locale.fromSubtags(
+          languageCode: language, scriptCode: script, countryCode: region),
+
+      [final language, final script] when script.length == 4 =>
+        Locale.fromSubtags(languageCode: language, scriptCode: script),
+
+      [final language, final region] =>
+        Locale(language, region),
+
+      [final language] =>
+        Locale(language),
+
+      _ => throw ArgumentError.value(languageTag, 'languageTag'),
+    };
+  }
+
+  @override
+  Locale fromSql(String fromDb) {
+    return _fromLanguageTag(fromDb);
+  }
+
+  @override
+  String toSql(Locale value) {
+    return value.toLanguageTag();
+  }
 }
 
 /// The table of the user's bool-valued, account-independent settings.
@@ -119,7 +174,7 @@ class AppDatabase extends _$AppDatabase {
   //    information on using the build_runner.
   //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 6; // See note.
+  static const int latestSchemaVersion = 7; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -174,6 +229,9 @@ class AppDatabase extends _$AppDatabase {
     from5To6: (m, schema) async {
       await m.createTable(schema.boolGlobalSettings);
     },
+    from6To7: (m, schema) async {
+      await m.addColumn(schema.globalSettings, schema.globalSettings.language);
+    }
   );
 
   Future<void> _createLatestSchema(Migrator m) async {

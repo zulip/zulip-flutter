@@ -1,8 +1,10 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/model/settings.dart';
+import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/settings.dart';
 
 import '../flutter_checks.dart';
@@ -125,6 +127,95 @@ void main() {
         expectedBrowserPreference: expectInApp
           ? BrowserPreference.inApp : BrowserPreference.external);
     }, variant: TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+  });
+
+  group('language setting', () {
+    Finder languageListTileFinder = find.ancestor(
+      of: find.text('Language'), matching: find.byType(ListTile));
+
+    Locale ambientLocale(WidgetTester tester, [Finder? finder]) {
+      final element = tester.element(finder ?? find.byType(SettingsPage));
+      return Localizations.localeOf(element);
+    }
+
+    testWidgets('on SettingsPage, when no language is set', (tester) async {
+      await prepare(tester);
+      check(ambientLocale(tester)).equals(const Locale('en'));
+
+      assert(testBinding.globalStore.settings.language == null);
+      await tester.pump();
+      check(languageListTileFinder).findsOne();
+      check(find.text('English')).findsNothing();
+    });
+
+    testWidgets('on SettingsPage, when a language is set', (tester) async {
+      await prepare(tester);
+      check(ambientLocale(tester)).equals(const Locale('en'));
+
+      await testBinding.globalStore.settings.setLanguage(const Locale('en'));
+      await tester.pump();
+      check(find.descendant(
+        of: languageListTileFinder, matching: find.text('English'))).findsOne();
+    });
+
+    testWidgets('LanguagePage smoke', (tester) async {
+      await prepare(tester);
+      await tester.tap(languageListTileFinder);
+      await tester.pump();
+      await tester.pump();
+      check(find.text('Polski').hitTestable()).findsOne();
+      check(find.text('Polish')).findsOne();
+      check(find.byIcon(ZulipIcons.check)).findsNothing();
+      check(ambientLocale(tester)).equals(const Locale('en'));
+      check(testBinding.globalStore).settings.language.isNull();
+
+      await tester.tap(find.text('Polish'));
+      await tester.pump();
+      check(find.text('Polski').hitTestable()).findsExactly(2);
+      check(find.text('Polish')).findsNothing();
+      check(find.descendant(
+        of: find.widgetWithText(ListTile, 'Polski'),
+        matching: find.byIcon(ZulipIcons.check)),
+      ).findsOne();
+      check(ambientLocale(tester)).equals(const Locale('pl'));
+      check(testBinding.globalStore).settings.language.equals(const Locale('pl'));
+    });
+
+    testWidgets('show selfname in its appropriate (different) locale', (tester) async {
+      await prepare(tester);
+      await tester.tap(languageListTileFinder);
+      await tester.pump();
+      await tester.pump();
+
+      Finder findInPolishListTile(String label) => find.descendant(
+        of: find.ancestor(
+          of: find.text('Polish'),
+          matching: find.byType(ListTile)),
+        matching: find.text(label)).hitTestable();
+
+      check(ambientLocale(tester, findInPolishListTile('Polish')))
+        .equals(const Locale('en'));
+      check(ambientLocale(tester, findInPolishListTile('Polski')))
+        .equals(const Locale('pl'));
+    });
+
+    testWidgets('handle unsupported (but valid) locale stored in database', (tester) async {
+      await prepare(tester);
+      // https://www.loc.gov/standards/iso639-2/php/code_list.php
+      await testBinding.globalStore.settings.setLanguage(const Locale('zxx'));
+      await tester.pumpAndSettle(); // expect no errors
+      check(ambientLocale(tester)).equals(const Locale('en'));
+
+      await tester.tap(languageListTileFinder);
+      await tester.pump();
+      await tester.pump();
+      check(find.byIcon(ZulipIcons.check)).findsNothing();
+
+      await tester.tap(find.text('Polish'));
+      await tester.pump();
+      check(ambientLocale(tester)).equals(const Locale('pl'));
+      check(testBinding.globalStore).settings.language.equals(const Locale('pl'));
+    });
   });
 
   // TODO maybe test GlobalSettingType.experimentalFeatureFlag settings
