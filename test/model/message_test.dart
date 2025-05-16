@@ -1,14 +1,17 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:checks/checks.dart';
 import 'package:crypto/crypto.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/submessage.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/model/message.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -18,12 +21,17 @@ import '../api/model/model_checks.dart';
 import '../api/model/submessage_checks.dart';
 import '../example_data.dart' as eg;
 import '../fake_async.dart';
+import '../fake_async_checks.dart';
 import '../stdlib_checks.dart';
+import 'binding.dart';
+import 'message_checks.dart';
 import 'message_list_test.dart';
 import 'store_checks.dart';
 import 'test_store.dart';
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   // These "late" variables are the common state operated on by each test.
   // Each test case calls [prepare] to initialize them.
   late Subscription subscription;
@@ -42,10 +50,16 @@ void main() {
   void checkNotifiedOnce() => checkNotified(count: 1);
 
   /// Initialize [store] and the rest of the test state.
-  Future<void> prepare({Narrow narrow = const CombinedFeedNarrow()}) async {
-    final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
+  Future<void> prepare({
+    Narrow narrow = const CombinedFeedNarrow(),
+    ZulipStream? stream,
+    int? zulipFeatureLevel,
+  }) async {
+    stream ??= eg.stream(streamId: eg.defaultStreamMessageStreamId);
     subscription = eg.subscription(stream);
-    store = eg.store();
+    final selfAccount = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
+    store = eg.store(account: selfAccount,
+      initialSnapshot: eg.initialSnapshot(zulipFeatureLevel: zulipFeatureLevel));
     await store.addStream(stream);
     await store.addSubscription(subscription);
     connection = store.connection as FakeApiConnection;
@@ -54,8 +68,12 @@ void main() {
       ..addListener(() {
         notifiedCount++;
       });
+    addTearDown(messageList.dispose);
     check(messageList).fetched.isFalse();
     checkNotNotified();
+
+    // This cleans up possibly pending timers from [MessageStoreImpl].
+    addTearDown(store.dispose);
   }
 
   /// Perform the initial message fetch for [messageList].
@@ -79,6 +97,360 @@ void main() {
     await store.addMessages(messages);
     checkNotified(count: messageList.fetched ? messages.length : 0);
   }
+
+  test('dispose cancels pending timers', () => awaitFakeAsync((async) async {
+    final stream = eg.stream();
+    final store = eg.store();
+    await store.addStream(stream);
+    await store.addSubscription(eg.subscription(stream));
+
+    (store.connection as FakeApiConnection).prepare(
+      json: SendMessageResult(id: 1).toJson());
+    await store.sendMessage(
+      destination: StreamDestination(stream.streamId, eg.t('topic')),
+      content: 'content');
+    check(async.pendingTimers).deepEquals(<Condition<Object?>>[
+      (it) => it.isA<FakeTimer>().duration.equals(kLocalEchoDebounceDuration),
+      (it) => it.isA<FakeTimer>().duration.equals(kSendMessageOfferRestoreWaitPeriod),
+    ]);
+
+    store.dispose();
+    check(async.pendingTimers).isEmpty();
+  }));
+
+  group('sendMessage', () {
+    final stream = eg.stream();
+    final streamDestination = StreamDestination(stream.streamId, eg.t('some topic'));
+    late StreamMessage message;
+
+    test('outbox messages get unique localMessageId', () async {
+      await prepare(stream: stream);
+      await prepareMessages([]);
+
+      for (int i = 0; i < 10; i++) {
+        connection.prepare(json: SendMessageResult(id: 1).toJson());
+        await store.sendMessage(destination: streamDestination, content: 'content');
+      }
+      // [store.outboxMessages] has the same number of keys (localMessageId)
+      // as the number of sent messages, which are guaranteed to be distinct.
+      check(store.outboxMessages).keys.length.equals(10);
+    });
+
+    late Future<void> sendMessageFuture;
+    late OutboxMessage outboxMessage;
+
+    Future<void> prepareSendMessageToSucceed({
+      MessageDestination? destination,
+      Duration delay = Duration.zero,
+      int? zulipFeatureLevel,
+    }) async {
+      message = eg.streamMessage(stream: stream);
+      await prepare(stream: stream, zulipFeatureLevel: zulipFeatureLevel);
+      await prepareMessages([eg.streamMessage(stream: stream)]);
+      connection.prepare(json: SendMessageResult(id: 1).toJson(), delay: delay);
+      sendMessageFuture = store.sendMessage(
+        destination: destination ?? streamDestination, content: 'content');
+      outboxMessage = store.outboxMessages.values.single;
+    }
+
+    Future<void> prepareSendMessageToFail({
+      Duration delay = Duration.zero,
+    }) async {
+      message = eg.streamMessage(stream: stream);
+      await prepare(stream: stream);
+      await prepareMessages([eg.streamMessage(stream: stream)]);
+      connection.prepare(apiException: eg.apiBadRequest(), delay: delay);
+      sendMessageFuture = store.sendMessage(
+        destination: streamDestination, content: 'content');
+
+      // This allows `async.elapse` to not fail when `sendMessageFuture` throws.
+      // The caller should still await the future since this does not await it.
+      unawaited(check(sendMessageFuture).throws());
+
+      outboxMessage = store.outboxMessages.values.single;
+    }
+
+    test('while message is being sent, message event arrives, then the send succeeds', () => awaitFakeAsync((async) async {
+      // Send message with a delay in response, leaving time for the message
+      // event to arrive.
+      await prepareSendMessageToSucceed(delay: Duration(seconds: 1));
+      check(connection.lastRequest).isA<http.Request>()
+        ..bodyFields['queue_id'].equals(store.queueId)
+        ..bodyFields['local_id'].equals('${outboxMessage.localMessageId}');
+      check(outboxMessage).state.equals(OutboxMessageState.hidden);
+
+      // Handle the message event before `future` completes, i.e. while the
+      // message is being sent.
+      await store.handleEvent(eg.messageEvent(message,
+        localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      check(outboxMessage).state.equals(OutboxMessageState.hidden);
+
+      // Complete the send request. The outbox message should no longer get
+      // updated because it is not in the store any more.
+      async.elapse(const Duration(seconds: 1));
+      await sendMessageFuture;
+      check(outboxMessage).state.equals(OutboxMessageState.hidden);
+    }));
+
+    test('while message is being sent, message event arrives, then the send fails', () => awaitFakeAsync((async) async {
+      // Set up an error to fail `sendMessage` with a delay, leaving time for
+      // the message event to arrive.
+      await prepareSendMessageToFail(delay: const Duration(seconds: 1));
+      check(outboxMessage).state.equals(OutboxMessageState.hidden);
+
+      // Handle the message event before `future` completes, i.e. while the
+      // message is being sent.
+      await store.handleEvent(eg.messageEvent(message,
+        localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      check(outboxMessage).state.equals(OutboxMessageState.hidden);
+
+      // Complete the send request with an error.  The outbox message should no
+      // longer be updated because it is not in the store any more.
+      async.elapse(const Duration(seconds: 1));
+      await check(sendMessageFuture).throws();
+      check(outboxMessage).state.equals(OutboxMessageState.hidden);
+    }));
+
+    test('message is sent successfully, message event arrives before debounce timeout', () async {
+      // Set up to successfully send the message immediately.
+      await prepareSendMessageToSucceed();
+      await sendMessageFuture;
+      check(outboxMessage).state.equals(OutboxMessageState.hidden);
+
+      // Handle the event after the message is sent but before the debounce
+      // timeout.
+      await store.handleEvent(eg.messageEvent(message,
+        localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      // The outbox message should remain hidden since the send
+      // request was successful.
+      check(outboxMessage).state.equals(OutboxMessageState.hidden);
+    });
+
+    test('DM message is sent successfully, message event arrives before debounce timeout', () async {
+      // Set up to successfully send the message immediately.
+      await prepareSendMessageToSucceed(destination: DmDestination(
+        userIds: [eg.selfUser.userId, eg.otherUser.userId]));
+      await sendMessageFuture;
+      check(outboxMessage).state.equals(OutboxMessageState.hidden);
+
+      // Handle the event after the message is sent but before the debounce
+      // timeout.
+      await store.handleEvent(eg.messageEvent(
+        eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]),
+        localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      // The outbox message should remain hidden since the send
+      // request was successful.
+      check(outboxMessage).state.equals(OutboxMessageState.hidden);
+    });
+
+    test('message is sent successfully, message event arrives after debounce timeout', () => awaitFakeAsync((async) async {
+      // Set up to successfully send the message immediately.
+      await prepareSendMessageToSucceed();
+      await sendMessageFuture;
+      check(outboxMessage).state.equals(OutboxMessageState.hidden);
+
+      // Pass enough time without handling the message event, to expire
+      // the debounce timer.
+      async.elapse(kLocalEchoDebounceDuration);
+      check(store.outboxMessages).values.single.identicalTo(outboxMessage);
+      check(outboxMessage).state.equals(OutboxMessageState.waiting);
+
+      // Handle the event when the outbox message is in waiting state.
+      // The outbox message should be removed without errors.
+      await store.handleEvent(eg.messageEvent(message,
+        localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      // The outbox message should no longer be updated because it is not in
+      // the store any more.
+      check(outboxMessage).state.equals(OutboxMessageState.waiting);
+    }));
+
+    test('message failed to send before debounce timeout', () => awaitFakeAsync((async) async {
+      // Set up to fail the send request, but do not complete it yet, to
+      // check the initial states.
+      await prepareSendMessageToFail();
+      check(outboxMessage).state.equals(OutboxMessageState.hidden);
+      check(async.pendingTimers).deepEquals(<Condition<Object?>>[
+        (it) => it.isA<FakeTimer>().duration.equals(kLocalEchoDebounceDuration),
+        (it) => it.isA<FakeTimer>().duration.equals(kSendMessageOfferRestoreWaitPeriod),
+        (it) => it.isA<FakeTimer>().duration.equals(Duration.zero),  // timer for send-message response
+      ]);
+
+      // Complete the send request with an error.
+      await check(sendMessageFuture).throws();
+      check(store.outboxMessages).values.single.identicalTo(outboxMessage);
+      check(outboxMessage).state.equals(OutboxMessageState.failed);
+      // Both the debounce timer and wait period timer should have been cancelled.
+      check(async.pendingTimers).isEmpty();
+    }));
+
+    test('message failed to send after debounce timeout', () => awaitFakeAsync((async) async {
+      // Set up to fail the send request, but only after the debounce timeout.
+      await prepareSendMessageToFail(
+        delay: kLocalEchoDebounceDuration + const Duration(milliseconds: 1));
+      check(outboxMessage).state.equals(OutboxMessageState.hidden);
+
+      // Wait for just enough time for the debounce timer to expire, but not
+      // for the send request to complete.
+      async.elapse(kLocalEchoDebounceDuration);
+      check(store.outboxMessages).values.single.identicalTo(outboxMessage);
+      check(outboxMessage).state.equals(OutboxMessageState.waiting);
+
+      // Complete the send request with an error.
+      async.elapse(const Duration(milliseconds: 1));
+      await check(sendMessageFuture).throws();
+      check(store.outboxMessages).values.single.identicalTo(outboxMessage);
+      check(outboxMessage).state.equals(OutboxMessageState.failed);
+    }));
+
+    test('message failed to send, message event arrives', () async {
+      // Set up to fail the send request immediately.
+      await prepareSendMessageToFail();
+      await check(sendMessageFuture).throws();
+      check(outboxMessage).state.equals(OutboxMessageState.failed);
+
+      // Handle the event when the outbox message is in failed state.
+      // The outbox message should be removed without errors.
+      await store.handleEvent(eg.messageEvent(message,
+        localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      // The outbox message should no longer be updated because it is not in
+      // the store any more.
+      check(outboxMessage).state.equals(OutboxMessageState.failed);
+    });
+
+    test('send request pending until after kSendMessageOfferRestoreWaitPeriod, completes successfully, then message event arrives', () => awaitFakeAsync((async) async {
+      // Send a message, but keep it pending until after reaching
+      // [kSendMessageOfferRestoreWaitPeriod].
+      await prepareSendMessageToSucceed(
+        delay: kSendMessageOfferRestoreWaitPeriod + Duration(seconds: 1));
+      async.elapse(kLocalEchoDebounceDuration);
+      check(outboxMessage).state.equals(OutboxMessageState.waiting);
+
+      // Wait till we reach [kSendMessageOfferRestoreWaitPeriod] after the send
+      // request was initiated, but before it actually completes.
+      assert(kSendMessageOfferRestoreWaitPeriod > kLocalEchoDebounceDuration);
+      async.elapse(kSendMessageOfferRestoreWaitPeriod - kLocalEchoDebounceDuration);
+      check(outboxMessage).state.equals(OutboxMessageState.waitPeriodExpired);
+
+      // Wait till the send request completes successfully.
+      async.elapse(const Duration(seconds: 1));
+      await sendMessageFuture;
+      // The outbox message should remain in the store …
+      check(store.outboxMessages).values.single.identicalTo(outboxMessage);
+      // … and stay in the waitPeriodExpired state.
+      check(outboxMessage).state.equals(OutboxMessageState.waitPeriodExpired);
+
+      // Handle the message event.  The outbox message should get removed
+      // without errors.
+      await store.handleEvent(eg.messageEvent(message,
+        localMessageId: outboxMessage.localMessageId));
+      check(store.outboxMessages).isEmpty();
+      // The outbox message should no longer be updated because it is not in
+      // the store any more.
+      check(outboxMessage).state.equals(OutboxMessageState.waitPeriodExpired);
+    }));
+
+    test('send request pending until after kSendMessageOfferRestoreWaitPeriod, then fails', () => awaitFakeAsync((async) async {
+      // Send a message, but keep it pending until after reaching
+      // [kSendMessageOfferRestoreWaitPeriod].
+      await prepareSendMessageToFail(
+        delay: kSendMessageOfferRestoreWaitPeriod + Duration(seconds: 1));
+      async.elapse(kLocalEchoDebounceDuration);
+      check(outboxMessage).state.equals(OutboxMessageState.waiting);
+
+      // Wait till we reach [kSendMessageOfferRestoreWaitPeriod] after the send
+      // request was initiated, but before it fails.
+      assert(kSendMessageOfferRestoreWaitPeriod > kLocalEchoDebounceDuration);
+      async.elapse(kSendMessageOfferRestoreWaitPeriod - kLocalEchoDebounceDuration);
+      check(outboxMessage).state.equals(OutboxMessageState.waitPeriodExpired);
+
+      // Wait till the send request fails.
+      async.elapse(Duration(seconds: 1));
+      await check(sendMessageFuture).throws();
+      // The outbox message should remain in the store …
+      check(store.outboxMessages).values.single.identicalTo(outboxMessage);
+      // … and transition to failed state.
+      check(outboxMessage).state.equals(OutboxMessageState.failed);
+    }));
+
+    test('send request completes, message event does not arrive after kSendMessageOfferRestoreWaitPeriod', () => awaitFakeAsync((async) async {
+      // Send a message and have it complete successfully without wait.
+      await prepareSendMessageToSucceed();
+      async.elapse(kLocalEchoDebounceDuration);
+      check(outboxMessage).state.equals(OutboxMessageState.waiting);
+
+      // Wait till we reach [kSendMessageOfferRestoreWaitPeriod] after the send
+      // request was initiated.
+      assert(kSendMessageOfferRestoreWaitPeriod > kLocalEchoDebounceDuration);
+      async.elapse(kSendMessageOfferRestoreWaitPeriod - kLocalEchoDebounceDuration);
+      // The outbox message should transition to waitPeriodExpired state.
+      check(outboxMessage).state.equals(OutboxMessageState.waitPeriodExpired);
+    }));
+
+    test('send request fails, message event does not arrive after kSendMessageOfferRestoreWaitPeriod', () => awaitFakeAsync((async) async {
+      // Send a message and have it fail without wait.
+      await prepareSendMessageToFail();
+      async.elapse(kLocalEchoDebounceDuration);
+      check(outboxMessage).state.equals(OutboxMessageState.failed);
+
+      // Wait till we reach [kSendMessageOfferRestoreWaitPeriod] after the send
+      // request was initiated.
+      assert(kSendMessageOfferRestoreWaitPeriod > kLocalEchoDebounceDuration);
+      async.elapse(kSendMessageOfferRestoreWaitPeriod - kLocalEchoDebounceDuration);
+      // The outbox message should stay in failed state,
+      // and it should not transition to waitPeriodExpired state.
+      check(outboxMessage).state.equals(OutboxMessageState.failed);
+    }));
+
+    test('when sending to "(no topic)", process topic like the server does when creating outbox message', () => awaitFakeAsync((async) async {
+      // Send a message and have it complete successfully without wait.
+      await prepareSendMessageToSucceed(
+        destination: StreamDestination(stream.streamId, TopicName('(no topic)')),
+        zulipFeatureLevel: 370);
+      async.elapse(kLocalEchoDebounceDuration);
+      check(outboxMessage).conversation.isA<StreamConversation>()
+        .topic.equals(eg.t(''));
+    }));
+
+    test('legacy: when sending to "(no topic)", process topic like the server does when creating outbox message', () => awaitFakeAsync((async) async {
+      // Send a message and have it complete successfully without wait.
+      await prepareSendMessageToSucceed(
+        destination: StreamDestination(stream.streamId, TopicName('(no topic)')),
+        zulipFeatureLevel: 369);
+      async.elapse(kLocalEchoDebounceDuration);
+      check(outboxMessage).conversation.isA<StreamConversation>()
+        .topic.equals(eg.t('(no topic)'));
+    }));
+
+    test('set timestamp to now when creating outbox messages', () => awaitFakeAsync(
+      initialTime: eg.timeInPast,
+      (async) async {
+        await prepareSendMessageToSucceed();
+        check(outboxMessage).timestamp.equals(eg.utcTimestamp(eg.timeInPast));
+      }));
+  });
+
+  test('removeOutboxMessage', () async {
+    final stream = eg.stream();
+    await prepare(stream: stream);
+    await prepareMessages([]);
+
+    for (int i = 0; i < 10; i++) {
+      connection.prepare(json: SendMessageResult(id: 1).toJson());
+      await store.sendMessage(
+        destination: StreamDestination(stream.streamId, eg.t('topic')),
+        content: 'content');
+    }
+
+    final localMessageIds = store.outboxMessages.keys.toList();
+    store.removeOutboxMessage(localMessageIds.removeAt(5));
+    check(store.outboxMessages.keys).deepEquals(localMessageIds);
+  });
 
   group('reconcileMessages', () {
     test('from empty', () async {
