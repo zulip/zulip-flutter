@@ -61,14 +61,10 @@ void main() {
   /// Perform the initial message fetch for [messageList].
   ///
   /// The test case must have already called [prepare] to initialize the state.
-  ///
-  /// This does not support submessages. Use [prepareMessageWithSubmessages]
-  /// instead if needed.
   Future<void> prepareMessages(
     List<Message> messages, {
     bool foundOldest = false,
   }) async {
-    assert(messages.every((message) => message.poll == null));
     connection.prepare(json:
       eg.newestGetMessagesResult(foundOldest: foundOldest, messages: messages).toJson());
     await messageList.fetchInitial();
@@ -256,7 +252,7 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNotNull().isTrue();
       checkNotifiedOnce();
 
-      check(store.takeFailedMessageEdit(message.id)).equals('new content');
+      check(store.takeFailedMessageEdit(message.id).newContent).equals('new content');
       check(store.getEditMessageErrorStatus(message.id)).isNull();
       checkNotifiedOnce();
     }));
@@ -342,7 +338,7 @@ void main() {
       async.elapse(Duration(seconds: 1));
       check(store.getEditMessageErrorStatus(message.id)).isNotNull().isTrue();
       checkNotifiedOnce();
-      check(store.takeFailedMessageEdit(message.id)).equals('new content');
+      check(store.takeFailedMessageEdit(message.id).newContent).equals('new content');
       checkNotifiedOnce();
 
       await store.handleEvent(eg.updateMessageEditEvent(message)); // no error

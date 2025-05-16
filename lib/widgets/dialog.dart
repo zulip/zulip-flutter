@@ -49,6 +49,9 @@ class DialogStatus<T> {
 ///
 /// The [DialogStatus.result] field of the return value can be used
 /// for waiting for the dialog to be closed.
+///
+/// Prose in [message] should have final punctuation:
+///   https://github.com/zulip/zulip-flutter/pull/1498#issuecomment-2853578577
 // This API is inspired by [ScaffoldManager.showSnackBar].  We wrap
 // [showDialog]'s return value, a [Future], inside [DialogStatus]
 // whose documentation can be accessed.  This helps avoid confusion when

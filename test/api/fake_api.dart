@@ -81,6 +81,10 @@ class FakeHttpClient extends http.BaseClient {
     }
   }
 
+  void clearPreparedResponses() {
+    _preparedResponses.clear();
+  }
+
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     _requestHistory.add(request);
@@ -277,6 +281,10 @@ class FakeApiConnection extends ApiConnection {
       httpStatus: httpStatus, json: json, body: body,
       delay: delay,
     );
+  }
+
+  void clearPreparedResponses() {
+    client.clearPreparedResponses();
   }
 }
 
