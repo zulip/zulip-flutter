@@ -117,6 +117,10 @@ enum BoolGlobalSetting {
   /// errors are encountered.
   forceRenderKatex(GlobalSettingType.experimentalFeatureFlag, false),
 
+  /// An experimental flag to open the message list at the first unread,
+  /// instead of the newest messages.
+  openFirstUnread(GlobalSettingType.experimentalFeatureFlag, false),
+
   // Former settings which might exist in the database,
   // whose names should therefore not be reused:
   // (this list is empty so far)
