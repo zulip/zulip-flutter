@@ -322,8 +322,7 @@ void main() {
     });
 
     test('nop when already fetching', () async {
-      const narrow = CombinedFeedNarrow();
-      await prepare(narrow: narrow);
+      await prepare();
       await prepareMessages(foundOldest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
 
@@ -351,7 +350,7 @@ void main() {
     });
 
     test('nop when already haveOldest true', () async {
-      await prepare(narrow: const CombinedFeedNarrow());
+      await prepare();
       await prepareMessages(foundOldest: true, messages:
         List.generate(30, (i) => eg.streamMessage()));
       check(model)
@@ -370,7 +369,7 @@ void main() {
     test('nop during backoff', () => awaitFakeAsync((async) async {
       final olderMessages = List.generate(5, (i) => eg.streamMessage());
       final initialMessages = List.generate(5, (i) => eg.streamMessage());
-      await prepare(narrow: const CombinedFeedNarrow());
+      await prepare();
       await prepareMessages(foundOldest: false, messages: initialMessages);
       check(connection.takeRequests()).single;
 
@@ -400,8 +399,7 @@ void main() {
     }));
 
     test('handles servers not understanding includeAnchor', () async {
-      const narrow = CombinedFeedNarrow();
-      await prepare(narrow: narrow);
+      await prepare();
       await prepareMessages(foundOldest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
 
@@ -419,8 +417,7 @@ void main() {
 
     // TODO(#824): move this test
     test('recent senders track all the messages', () async {
-      const narrow = CombinedFeedNarrow();
-      await prepare(narrow: narrow);
+      await prepare();
       final initialMessages = List.generate(10, (i) => eg.streamMessage(id: 100 + i));
       await prepareMessages(foundOldest: false, messages: initialMessages);
 
