@@ -420,7 +420,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   factory MessageListView.init({
     required PerAccountStore store,
     required Narrow narrow,
-    Anchor anchor = AnchorCode.newest, // TODO(#82): make required, for explicitness
+    required Anchor anchor,
   }) {
     return MessageListView._(store: store, narrow: narrow, anchor: anchor)
       .._register();
