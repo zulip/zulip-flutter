@@ -530,23 +530,64 @@ DmMessage dmMessage({
   }) as Map<String, dynamic>);
 }
 
-/// A GetMessagesResult the server might return on an `anchor=newest` request.
+/// A GetMessagesResult the server might return for
+/// a request that sent the given [anchor].
+///
+/// The request's anchor controls the response's [GetMessagesResult.anchor],
+/// affects the default for [foundAnchor],
+/// and in some cases forces the value of [foundOldest] or [foundNewest].
+GetMessagesResult getMessagesResult({
+  required Anchor anchor,
+  bool? foundAnchor,
+  bool? foundOldest,
+  bool? foundNewest,
+  bool historyLimited = false,
+  required List<Message> messages,
+}) {
+  final resultAnchor = switch (anchor) {
+    AnchorCode.oldest => 0,
+    NumericAnchor(:final messageId) => messageId,
+    AnchorCode.firstUnread =>
+      throw ArgumentError("firstUnread not accepted in this helper; try NumericAnchor"),
+    AnchorCode.newest => 10_000_000_000_000_000, // that's 16 zeros
+  };
+
+  switch (anchor) {
+    case AnchorCode.oldest || AnchorCode.newest:
+      assert(foundAnchor == null);
+      foundAnchor = false;
+    case AnchorCode.firstUnread || NumericAnchor():
+      foundAnchor ??= true;
+  }
+
+  if (anchor == AnchorCode.oldest) {
+    assert(foundOldest == null);
+    foundOldest = true;
+  } else if (anchor == AnchorCode.newest) {
+    assert(foundNewest == null);
+    foundNewest = true;
+  }
+  if (foundOldest == null || foundNewest == null) throw ArgumentError();
+
+  return GetMessagesResult(
+    anchor: resultAnchor,
+    foundAnchor: foundAnchor,
+    foundOldest: foundOldest,
+    foundNewest: foundNewest,
+    historyLimited: historyLimited,
+    messages: messages,
+  );
+}
+
+/// A GetMessagesResult the server might return on an `anchor=newest` request,
+/// or `anchor=first_unread` when there are no unreads.
 GetMessagesResult newestGetMessagesResult({
   required bool foundOldest,
   bool historyLimited = false,
   required List<Message> messages,
 }) {
-  return GetMessagesResult(
-    // These anchor, foundAnchor, and foundNewest values are what the server
-    // appears to always return when the request had `anchor=newest`.
-    anchor: 10000000000000000, // that's 16 zeros
-    foundAnchor: false,
-    foundNewest: true,
-
-    foundOldest: foundOldest,
-    historyLimited: historyLimited,
-    messages: messages,
-  );
+  return getMessagesResult(anchor: AnchorCode.newest, foundOldest: foundOldest,
+    historyLimited: historyLimited, messages: messages);
 }
 
 /// A GetMessagesResult the server might return on an initial request
