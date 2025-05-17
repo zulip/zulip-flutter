@@ -1368,12 +1368,14 @@ void main() {
 
       int notifiedCount1 = 0;
       final model1 = MessageListView.init(store: store,
-          narrow: ChannelNarrow(stream.streamId))
+          narrow: ChannelNarrow(stream.streamId),
+          anchor: AnchorCode.newest)
         ..addListener(() => notifiedCount1++);
 
       int notifiedCount2 = 0;
       final model2 = MessageListView.init(store: store,
-          narrow: eg.topicNarrow(stream.streamId, 'hello'))
+          narrow: eg.topicNarrow(stream.streamId, 'hello'),
+          anchor: AnchorCode.newest)
         ..addListener(() => notifiedCount2++);
 
       for (final m in [model1, model2]) {
@@ -1413,7 +1415,8 @@ void main() {
       await store.handleEvent(mkEvent(message));
 
       // init msglist *after* event was handled
-      model = MessageListView.init(store: store, narrow: const CombinedFeedNarrow());
+      model = MessageListView.init(store: store,
+        narrow: const CombinedFeedNarrow(), anchor: AnchorCode.newest);
       checkInvariants(model);
 
       connection.prepare(json:
