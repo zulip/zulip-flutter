@@ -42,7 +42,7 @@ void main() {
   void checkNotifiedOnce() => checkNotified(count: 1);
 
   /// Initialize [store] and the rest of the test state.
-  Future<void> prepare({Narrow narrow = const CombinedFeedNarrow()}) async {
+  Future<void> prepare() async {
     final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
     subscription = eg.subscription(stream);
     store = eg.store();
@@ -50,7 +50,9 @@ void main() {
     await store.addSubscription(subscription);
     connection = store.connection as FakeApiConnection;
     notifiedCount = 0;
-    messageList = MessageListView.init(store: store, narrow: narrow)
+    messageList = MessageListView.init(store: store,
+        narrow: const CombinedFeedNarrow(),
+        anchor: AnchorCode.newest)
       ..addListener(() {
         notifiedCount++;
       });
