@@ -7,6 +7,7 @@ import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
+import '../model/settings.dart';
 import '../model/store.dart';
 import '../model/typing_status.dart';
 import 'action_sheet.dart';
@@ -243,9 +244,14 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
             narrow: ChannelNarrow(streamId)))));
     }
 
-    // TODO(#80): default to anchor firstUnread, instead of newest
-    final initAnchor = widget.initAnchorMessageId == null
-      ? AnchorCode.newest : NumericAnchor(widget.initAnchorMessageId!);
+    final Anchor initAnchor;
+    if (widget.initAnchorMessageId != null) {
+      initAnchor = NumericAnchor(widget.initAnchorMessageId!);
+    } else {
+      final globalSettings = GlobalStoreWidget.settingsOf(context);
+      initAnchor = globalSettings.getBool(BoolGlobalSetting.openFirstUnread)
+        ? AnchorCode.firstUnread : AnchorCode.newest;
+    }
 
     // Insert a PageRoot here, to provide a context that can be used for
     // MessageListPage.ancestorOf.
