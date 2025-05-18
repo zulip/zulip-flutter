@@ -418,13 +418,19 @@ bool _sameDay(DateTime date1, DateTime date2) {
 ///  * When the object will no longer be used, call [dispose] to free
 ///    resources on the [PerAccountStore].
 class MessageListView with ChangeNotifier, _MessageSequence {
-  MessageListView._({required this.store, required this.narrow});
-
   factory MessageListView.init(
       {required PerAccountStore store, required Narrow narrow}) {
-    final view = MessageListView._(store: store, narrow: narrow);
-    store.registerMessageList(view);
-    return view;
+    return MessageListView._(store: store, narrow: narrow)
+      .._register();
+  }
+
+  MessageListView._({required this.store, required this.narrow});
+
+  final PerAccountStore store;
+  Narrow narrow;
+
+  void _register() {
+    store.registerMessageList(this);
   }
 
   @override
@@ -432,9 +438,6 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     store.unregisterMessageList(this);
     super.dispose();
   }
-
-  final PerAccountStore store;
-  Narrow narrow;
 
   /// Whether [message] should actually appear in this message list,
   /// given that it does belong to the narrow.
