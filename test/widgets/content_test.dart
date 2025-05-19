@@ -729,6 +729,43 @@ void main() {
         });
       }
     });
+
+    testWidgets('golden tests', (tester) async {
+      await _loadKatexFonts();
+
+      addTearDown(testBinding.reset);
+      final globalSettings = testBinding.globalStore.settings;
+      await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
+      check(globalSettings).getBool(BoolGlobalSetting.renderKatex).isTrue();
+
+      final contentHtml =
+          ContentExample.mathBlockKatexSizing.html +
+          ContentExample.mathBlockKatexNestedSizing.html +
+          ContentExample.mathBlockKatexDelimSizing.html +
+          ContentExample.mathBlockKatexVertical1.html +
+          ContentExample.mathBlockKatexVertical2.html +
+          ContentExample.mathBlockKatexVertical3.html +
+          ContentExample.mathBlockKatexVertical4.html +
+          ContentExample.mathBlockKatexVertical5.html;
+
+      await prepareContent(tester, Builder(builder: (context) =>
+        DefaultTextStyle(
+          style: ContentTheme.of(context).textStylePlainParagraph,
+          child: BlockContentList(
+            nodes: parseContent(contentHtml).nodes.map((node) {
+              final mathBlockNode = node as MathBlockNode;
+              return ParagraphNode(
+                links: null,
+                nodes: [
+                  MathInlineNode(
+                    texSource: mathBlockNode.texSource,
+                    nodes: mathBlockNode.nodes),
+                ]);
+            }).toList(growable: false)))));
+
+      await check(find.byType(BlockContentList))
+        .matchesGoldenFile(Uri.file('goldens/katex.png'));
+    });
   });
 
   /// Make a [TargetFontSizeFinder] to pass to [checkFontSizeRatio],
