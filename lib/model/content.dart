@@ -429,6 +429,37 @@ class KatexStrutNode extends KatexNode {
   }
 }
 
+class KatexVlistNode extends KatexNode {
+  const KatexVlistNode({
+    required this.rows,
+    super.debugHtmlNode,
+  });
+
+  final List<KatexVlistRowNode> rows;
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return rows.map((row) => row.toDiagnosticsNode()).toList();
+  }
+}
+
+class KatexVlistRowNode extends ContentNode {
+  const KatexVlistRowNode({
+    required this.verticalOffsetEm,
+    required this.node,
+    super.debugHtmlNode,
+  });
+
+  final double verticalOffsetEm;
+  final KatexSpanNode node;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DoubleProperty('verticalOffsetEm', verticalOffsetEm));
+  }
+}
+
 class MathBlockNode extends MathNode implements BlockContentNode {
   const MathBlockNode({
     super.debugHtmlNode,
