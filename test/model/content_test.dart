@@ -884,6 +884,65 @@ class ContentExample {
         ]),
     ]);
 
+  static const mathBlockKatexSpace = ContentExample(
+    'math block; KaTeX space',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2214883
+    '```math\n1:2\n```',
+    '<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mn>1</mn><mo>:</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">1:2</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base">'
+            '<span class="strut" style="height:0.6444em;"></span>'
+            '<span class="mord">1</span>'
+            '<span class="mspace" style="margin-right:0.2778em;"></span>'
+            '<span class="mrel">:</span>'
+            '<span class="mspace" style="margin-right:0.2778em;"></span></span>'
+          '<span class="base">'
+            '<span class="strut" style="height:0.6444em;"></span>'
+            '<span class="mord">2</span></span></span></span></span></p>', [
+      MathBlockNode(
+        texSource: '1:2',
+        nodes: [
+          KatexSpanNode(
+            styles: KatexSpanStyles(),
+            text: null,
+            nodes: [
+              KatexStrutNode(
+                heightEm: 0.6444,
+                verticalAlignEm: null),
+              KatexSpanNode(
+                styles: KatexSpanStyles(),
+                text: '1',
+                nodes: null),
+              KatexSpanNode(
+                styles: KatexSpanStyles(marginRightEm: 0.2778),
+                text: null,
+                nodes: []),
+              KatexSpanNode(
+                styles: KatexSpanStyles(),
+                text: ':',
+                nodes: null),
+              KatexSpanNode(
+                styles: KatexSpanStyles(marginRightEm: 0.2778),
+                text: null,
+                nodes: []),
+            ]),
+          KatexSpanNode(
+            styles: KatexSpanStyles(),
+            text: null,
+            nodes: [
+              KatexStrutNode(
+                heightEm: 0.6444,
+                verticalAlignEm: null),
+              KatexSpanNode(
+                styles: KatexSpanStyles(),
+                text: '2',
+                nodes: null),
+            ]),
+        ]),
+    ]);
+
   static const imageSingle = ContentExample(
     'single image',
     // https://chat.zulip.org/#narrow/stream/7-test-here/topic/Thumbnails/near/1900103
@@ -1973,6 +2032,7 @@ void main() async {
   testParseExample(ContentExample.mathBlockKatexSizing);
   testParseExample(ContentExample.mathBlockKatexNestedSizing);
   testParseExample(ContentExample.mathBlockKatexDelimSizing);
+  testParseExample(ContentExample.mathBlockKatexSpace);
 
   testParseExample(ContentExample.imageSingle);
   testParseExample(ContentExample.imageSingleNoDimensions);

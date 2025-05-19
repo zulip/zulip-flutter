@@ -597,6 +597,11 @@ void main() {
           ('⌈', Offset(27.12, 20.14), Size(11.99, 25.00)),
           ('⌊', Offset(39.11, 20.14), Size(13.14, 25.00)),
         ]),
+        (ContentExample.mathBlockKatexSpace, skip: false, [
+          ('1', Offset(0.00, 2.24), Size(10.28, 25.00)),
+          (':', Offset(16.00, 2.24), Size(5.72, 25.00)),
+          ('2', Offset(27.43, 2.24), Size(10.28, 25.00)),
+        ]),
       ];
 
       for (final testCase in testCases) {

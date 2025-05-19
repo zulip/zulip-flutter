@@ -492,6 +492,8 @@ class _KatexParser {
       if (stylesheet.topLevels case [css_visitor.RuleSet() && final rule]) {
         double? heightEm;
         double? verticalAlignEm;
+        double? marginRightEm;
+        double? marginLeftEm;
 
         for (final declaration in rule.declarationGroup.declarations) {
           if (declaration case css_visitor.Declaration(
@@ -507,6 +509,20 @@ class _KatexParser {
               case 'vertical-align':
                 verticalAlignEm = _getEm(expression);
                 if (verticalAlignEm != null) continue;
+
+              case 'margin-right':
+                marginRightEm = _getEm(expression);
+                if (marginRightEm != null) {
+                  if (marginRightEm < 0) throw _KatexHtmlParseError();
+                  continue;
+                }
+
+              case 'margin-left':
+                marginLeftEm = _getEm(expression);
+                if (marginLeftEm != null) {
+                  if (marginLeftEm < 0) throw _KatexHtmlParseError();
+                  continue;
+                }
             }
 
             // TODO handle more CSS properties
@@ -522,6 +538,8 @@ class _KatexParser {
         return KatexSpanStyles(
           heightEm: heightEm,
           verticalAlignEm: verticalAlignEm,
+          marginRightEm: marginRightEm,
+          marginLeftEm: marginLeftEm,
         );
       } else {
         throw _KatexHtmlParseError();
@@ -560,6 +578,9 @@ class KatexSpanStyles {
   final double? heightEm;
   final double? verticalAlignEm;
 
+  final double? marginRightEm;
+  final double? marginLeftEm;
+
   final String? fontFamily;
   final double? fontSizeEm;
   final KatexSpanFontWeight? fontWeight;
@@ -569,6 +590,8 @@ class KatexSpanStyles {
   const KatexSpanStyles({
     this.heightEm,
     this.verticalAlignEm,
+    this.marginRightEm,
+    this.marginLeftEm,
     this.fontFamily,
     this.fontSizeEm,
     this.fontWeight,
@@ -581,6 +604,8 @@ class KatexSpanStyles {
     'KatexSpanStyles',
     heightEm,
     verticalAlignEm,
+    marginRightEm,
+    marginLeftEm,
     fontFamily,
     fontSizeEm,
     fontWeight,
@@ -593,6 +618,8 @@ class KatexSpanStyles {
     return other is KatexSpanStyles &&
       other.heightEm == heightEm &&
       other.verticalAlignEm == verticalAlignEm &&
+      other.marginRightEm == marginRightEm &&
+      other.marginLeftEm == marginLeftEm &&
       other.fontFamily == fontFamily &&
       other.fontSizeEm == fontSizeEm &&
       other.fontWeight == fontWeight &&
@@ -605,6 +632,8 @@ class KatexSpanStyles {
     final args = <String>[];
     if (heightEm != null) args.add('heightEm: $heightEm');
     if (verticalAlignEm != null) args.add('verticalAlignEm: $verticalAlignEm');
+    if (marginRightEm != null) args.add('marginRightEm: $marginRightEm');
+    if (marginLeftEm != null) args.add('marginLeftEm: $marginLeftEm');
     if (fontFamily != null) args.add('fontFamily: $fontFamily');
     if (fontSizeEm != null) args.add('fontSizeEm: $fontSizeEm');
     if (fontWeight != null) args.add('fontWeight: $fontWeight');
@@ -624,6 +653,8 @@ class KatexSpanStyles {
     return KatexSpanStyles(
       heightEm: other.heightEm ?? heightEm,
       verticalAlignEm: other.verticalAlignEm ?? verticalAlignEm,
+      marginRightEm: other.marginRightEm ?? marginRightEm,
+      marginLeftEm: other.marginLeftEm ?? marginLeftEm,
       fontFamily: other.fontFamily ?? fontFamily,
       fontSizeEm: other.fontSizeEm ?? fontSizeEm,
       fontStyle: other.fontStyle ?? fontStyle,
@@ -635,6 +666,8 @@ class KatexSpanStyles {
   KatexSpanStyles filter({
     bool heightEm = true,
     bool verticalAlignEm = true,
+    bool marginRightEm = true,
+    bool marginLeftEm = true,
     bool fontFamily = true,
     bool fontSizeEm = true,
     bool fontWeight = true,
@@ -644,6 +677,8 @@ class KatexSpanStyles {
     return KatexSpanStyles(
       heightEm: heightEm ? this.heightEm : null,
       verticalAlignEm: verticalAlignEm ? this.verticalAlignEm : null,
+      marginRightEm: marginRightEm ? this.marginRightEm : null,
+      marginLeftEm: marginLeftEm ? this.marginLeftEm : null,
       fontFamily: fontFamily ? this.fontFamily : null,
       fontSizeEm: fontSizeEm ? this.fontSizeEm : null,
       fontWeight: fontWeight ? this.fontWeight : null,

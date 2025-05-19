@@ -909,7 +909,7 @@ class _KatexSpan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final em = DefaultTextStyle.of(context).style.fontSize!;
+    var em = DefaultTextStyle.of(context).style.fontSize!;
 
     Widget widget = const SizedBox.shrink();
     if (node.text != null) {
@@ -929,6 +929,8 @@ class _KatexSpan extends StatelessWidget {
       double fontSizeEm => fontSizeEm * em,
       null => null,
     };
+    if (fontSize != null) em = fontSize;
+
     final fontWeight = switch (styles.fontWeight) {
       KatexSpanFontWeight.bold => FontWeight.bold,
       null => null,
@@ -973,11 +975,28 @@ class _KatexSpan extends StatelessWidget {
         child: widget);
     }
 
-    return SizedBox(
+    widget = SizedBox(
       height: styles.heightEm != null
-        ? styles.heightEm! * (fontSize ?? em)
+        ? styles.heightEm! * em
         : null,
       child: widget);
+
+    final margin = switch ((styles.marginLeftEm, styles.marginRightEm)) {
+      (null, null) => null,
+      (null, final marginRightEm?) =>
+        EdgeInsets.only(right: marginRightEm * em),
+      (final marginLeftEm?, null) =>
+        EdgeInsets.only(left: marginLeftEm * em),
+      (final marginLeftEm?, final marginRightEm?) =>
+        EdgeInsets.only(left: marginLeftEm * em, right: marginRightEm * em),
+    };
+
+    if (margin != null) {
+      assert(margin.isNonNegative);
+      widget = Padding(padding: margin, child: widget);
+    }
+
+    return widget;
   }
 }
 
