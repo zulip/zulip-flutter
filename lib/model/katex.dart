@@ -272,6 +272,21 @@ class _KatexParser {
           fontStyle = KatexSpanFontStyle.normal;
 
         // TODO handle skipped class declarations between .mainrm and
+        //   .mspace .
+
+        case 'mspace':
+          // .mspace { ... }
+          // Do nothing, it has properties that don't need special handling.
+          break;
+
+        // TODO handle skipped class declarations between .mspace and
+        //   .thinbox .
+
+        case 'msupsub':
+          // .msupsub { text-align: left; }
+          textAlign = KatexSpanTextAlign.left;
+
+        // TODO handle skipped class declarations between .msupsub and
         //   .sizing .
 
         case 'sizing':
