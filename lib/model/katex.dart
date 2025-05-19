@@ -424,6 +424,7 @@ class _KatexParser {
       if (stylesheet.topLevels case [css_visitor.RuleSet() && final rule]) {
         double? heightEm;
         double? verticalAlignEm;
+        double? topEm;
         double? marginRightEm;
         double? marginLeftEm;
 
@@ -441,6 +442,10 @@ class _KatexParser {
               case 'vertical-align':
                 verticalAlignEm = _getEm(expression);
                 if (verticalAlignEm != null) continue;
+
+              case 'top':
+                topEm = _getEm(expression);
+                if (topEm != null) continue;
 
               case 'margin-right':
                 marginRightEm = _getEm(expression);
@@ -468,6 +473,7 @@ class _KatexParser {
 
         return KatexSpanStyles(
           heightEm: heightEm,
+          topEm: topEm,
           verticalAlignEm: verticalAlignEm,
           marginRightEm: marginRightEm,
           marginLeftEm: marginLeftEm,
@@ -509,6 +515,8 @@ class KatexSpanStyles {
   final double? heightEm;
   final double? verticalAlignEm;
 
+  final double? topEm;
+
   final double? marginRightEm;
   final double? marginLeftEm;
 
@@ -521,6 +529,7 @@ class KatexSpanStyles {
   const KatexSpanStyles({
     this.heightEm,
     this.verticalAlignEm,
+    this.topEm,
     this.marginRightEm,
     this.marginLeftEm,
     this.fontFamily,
@@ -535,6 +544,7 @@ class KatexSpanStyles {
     'KatexSpanStyles',
     heightEm,
     verticalAlignEm,
+    topEm,
     marginRightEm,
     marginLeftEm,
     fontFamily,
@@ -549,6 +559,7 @@ class KatexSpanStyles {
     return other is KatexSpanStyles &&
       other.heightEm == heightEm &&
       other.verticalAlignEm == verticalAlignEm &&
+      other.topEm == topEm &&
       other.marginRightEm == marginRightEm &&
       other.marginLeftEm == marginLeftEm &&
       other.fontFamily == fontFamily &&
@@ -563,6 +574,7 @@ class KatexSpanStyles {
     final args = <String>[];
     if (heightEm != null) args.add('heightEm: $heightEm');
     if (verticalAlignEm != null) args.add('verticalAlignEm: $verticalAlignEm');
+    if (topEm != null) args.add('topEm: $topEm');
     if (marginRightEm != null) args.add('marginRightEm: $marginRightEm');
     if (marginLeftEm != null) args.add('marginLeftEm: $marginLeftEm');
     if (fontFamily != null) args.add('fontFamily: $fontFamily');
@@ -577,6 +589,7 @@ class KatexSpanStyles {
     return KatexSpanStyles(
       heightEm: other.heightEm ?? heightEm,
       verticalAlignEm: other.verticalAlignEm ?? verticalAlignEm,
+      topEm: other.topEm ?? topEm,
       marginRightEm: other.marginRightEm ?? marginRightEm,
       marginLeftEm: other.marginLeftEm ?? marginLeftEm,
       fontFamily: other.fontFamily ?? fontFamily,
@@ -590,6 +603,7 @@ class KatexSpanStyles {
   KatexSpanStyles filter({
     bool heightEm = true,
     bool verticalAlignEm = true,
+    bool topEm = true,
     bool marginRightEm = true,
     bool marginLeftEm = true,
     bool fontFamily = true,
@@ -601,6 +615,7 @@ class KatexSpanStyles {
     return KatexSpanStyles(
       heightEm: heightEm ? this.heightEm : null,
       verticalAlignEm: verticalAlignEm ? this.verticalAlignEm : null,
+      topEm: topEm ? this.topEm : null,
       marginRightEm: marginRightEm ? this.marginRightEm : null,
       marginLeftEm: marginLeftEm ? this.marginLeftEm : null,
       fontFamily: fontFamily ? this.fontFamily : null,
