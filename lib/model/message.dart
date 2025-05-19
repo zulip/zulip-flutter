@@ -92,14 +92,20 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
   @override
   Set<MessageListView> get debugMessageListViews => _messageListViews;
 
+  bool _disposed = false;
+
   @override
   void registerMessageList(MessageListView view) {
+    assert(!_disposed);
     final added = _messageListViews.add(view);
     assert(added);
   }
 
   @override
   void unregisterMessageList(MessageListView view) {
+    // TODO: Add `assert(!_disposed);` here once we ensure [PerAccountStore] is
+    //   only disposed after those with references to it are disposed.  See
+    //   [disposed] for details.
     final removed = _messageListViews.remove(view);
     assert(removed);
   }
@@ -137,10 +143,14 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
     //   [InheritedNotifier] to rebuild in the next frame) before the owner's
     //   `dispose` or `onNewStore` is called.  Discussion:
     //     https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/MessageListView.20lifecycle/near/2086893
+
+    assert(!_disposed);
+    _disposed = true;
   }
 
   @override
   Future<void> sendMessage({required MessageDestination destination, required String content}) {
+    assert(!_disposed);
     // TODO implement outbox; see design at
     //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/.23M3881.20Sending.20outbox.20messages.20is.20fraught.20with.20issues/near/1405739
     return _apiSendMessage(connection,
@@ -152,6 +162,7 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
 
   @override
   void reconcileMessages(List<Message> messages) {
+    assert(!_disposed);
     // What to do when some of the just-fetched messages are already known?
     // This is common and normal: in particular it happens when one message list
     // overlaps another, e.g. a stream and a topic within it.
@@ -185,6 +196,7 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
     required String originalRawContent,
     required String newContent,
   }) async {
+    assert(!_disposed);
     if (_editMessageRequests.containsKey(messageId)) {
       throw StateError('an edit request is already in progress');
     }
@@ -202,6 +214,8 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
     } catch (e) {
       // TODO(log) if e is something unexpected
 
+      if (_disposed) return;
+
       final status = _editMessageRequests[messageId];
       if (status == null) {
         // The event actually arrived before this request failed
@@ -216,6 +230,7 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
 
   @override
   ({String originalRawContent, String newContent}) takeFailedMessageEdit(int messageId) {
+    assert(!_disposed);
     final status = _editMessageRequests.remove(messageId);
     _notifyMessageListViewsForOneMessage(messageId);
     if (status == null) {
