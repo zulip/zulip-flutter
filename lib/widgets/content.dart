@@ -817,10 +817,12 @@ class MathBlock extends StatelessWidget {
           children: [TextSpan(text: node.texSource)])));
     }
 
-    return _Katex(
-      inline: false,
-      textStyle: ContentTheme.of(context).textStylePlainParagraph,
-      nodes: nodes);
+    return Center(
+      child: SingleChildScrollViewWithScrollbar(
+        scrollDirection: Axis.horizontal,
+        child: _Katex(
+          textStyle: ContentTheme.of(context).textStylePlainParagraph,
+          nodes: nodes)));
   }
 }
 
@@ -841,25 +843,16 @@ TextStyle mkBaseKatexTextStyle(TextStyle style) {
 
 class _Katex extends StatelessWidget {
   const _Katex({
-    required this.inline,
     required this.textStyle,
     required this.nodes,
   });
 
-  final bool inline;
   final TextStyle textStyle;
   final List<KatexNode> nodes;
 
   @override
   Widget build(BuildContext context) {
     Widget widget = _KatexNodeList(nodes: nodes);
-
-    if (!inline) {
-      widget = Center(
-        child: SingleChildScrollViewWithScrollbar(
-          scrollDirection: Axis.horizontal,
-          child: widget));
-    }
 
     return Directionality(
       textDirection: TextDirection.ltr,
@@ -1318,7 +1311,7 @@ class _InlineContentBuilder {
           : WidgetSpan(
               alignment: PlaceholderAlignment.baseline,
               baseline: TextBaseline.alphabetic,
-              child: _Katex(inline: true, textStyle: widget.style, nodes: nodes));
+              child: _Katex(textStyle: widget.style, nodes: nodes));
 
       case GlobalTimeNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
