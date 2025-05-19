@@ -954,7 +954,30 @@ class _KatexSpan extends StatelessWidget {
         child: widget);
     }
 
-    return SizedBox(
+    final marginRight = switch (styles.marginRightEm) {
+      double marginRightEm => marginRightEm * em,
+      null => null,
+    };
+    final marginLeft = switch (styles.marginLeftEm) {
+      double marginLeftEm => marginLeftEm * em,
+      null => null,
+    };
+
+    EdgeInsets? margin;
+    if (marginRight != null || marginLeft != null) {
+      margin = EdgeInsets.zero;
+      if (marginRight != null) {
+        assert(marginRight >= 0);
+        margin += EdgeInsets.only(right: marginRight);
+      }
+      if (marginLeft != null) {
+        assert(marginLeft >= 0);
+        margin += EdgeInsets.only(left: marginLeft);
+      }
+    }
+
+    return Container(
+      margin: margin,
       height: styles.heightEm != null
         ? styles.heightEm! * (fontSize ?? em)
         : null,
