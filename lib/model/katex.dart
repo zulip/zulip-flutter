@@ -359,6 +359,12 @@ class _KatexParser {
 
         case 'mord':
         case 'mopen':
+        case 'mtight':
+        case 'text':
+        case 'mrel':
+        case 'mop':
+        case 'mclose':
+        case 'minner':
           // Ignore these classes because they don't have a CSS definition
           // in katex.scss, but we encounter them in the generated HTML.
           break;
