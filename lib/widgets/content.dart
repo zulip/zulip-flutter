@@ -981,6 +981,9 @@ class _KatexSpan extends StatelessWidget {
       height: styles.heightEm != null
         ? styles.heightEm! * (fontSize ?? em)
         : null,
+      transform: styles.topEm != null
+        ? Matrix4.translationValues(0, styles.topEm! * em, 0)
+        : null,
       child: widget);
   }
 }
