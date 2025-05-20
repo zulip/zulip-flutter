@@ -84,6 +84,10 @@
   "@actionSheetOptionMarkChannelAsRead": {
     "description": "Label for marking a channel as read."
   },
+  "actionSheetOptionListOfTopics": "List of topics",
+  "@actionSheetOptionListOfTopics": {
+    "description": "Label for navigating to a channel's topic-list page."
+  },
   "actionSheetOptionMuteTopic": "Mute topic",
   "@actionSheetOptionMuteTopic":  {
     "description": "Label for muting a topic on action sheet."
@@ -768,6 +772,10 @@
   "mainMenuMyProfile": "My profile",
   "@mainMenuMyProfile": {
     "description": "Label for main-menu button leading to the user's own profile."
+  },
+  "topicsButtonLabel": "TOPICS",
+  "@topicsButtonLabel": {
+    "description": "Label for message list button leading to topic-list page. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
   "channelFeedButtonTooltip": "Channel feed",
   "@channelFeedButtonTooltip": {

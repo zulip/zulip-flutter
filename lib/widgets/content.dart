@@ -26,6 +26,7 @@ import 'poll.dart';
 import 'scrolling.dart';
 import 'store.dart';
 import 'text.dart';
+import 'theme.dart';
 
 /// A central place for styles for Zulip content (rendered Zulip Markdown).
 ///
@@ -988,7 +989,7 @@ class WebsitePreview extends StatelessWidget {
         // TODO(#488) use different color for non-message contexts
         // TODO(#647) use different color for highlighted messages
         // TODO(#681) use different color for DM messages
-        color: MessageListTheme.of(context).bgMessageRegular,
+        color: DesignVariables.of(context).bgMessageRegular,
         child: ClipRect(
           child: ConstrainedBox(
             constraints: BoxConstraints(maxHeight: 80),

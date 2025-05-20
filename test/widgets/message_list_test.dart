@@ -29,6 +29,8 @@ import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/channel_colors.dart';
+import 'package:zulip/widgets/theme.dart';
+import 'package:zulip/widgets/topic_list.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -251,6 +253,25 @@ void main() {
         of: find.byType(MessageListAppBarTitle),
         matching: find.byIcon(ZulipIcons.mute))).findsOne();
     });
+
+    testWidgets('has topic-list action for channel narrows', (tester) async {
+      final channel = eg.stream(name: 'channel foo');
+      await setupMessageListPage(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        streams: [channel],
+        messages: [eg.streamMessage(stream: channel, topic: 'topic foo')]);
+
+      connection.prepare(json: GetStreamTopicsResult(topics: [
+        eg.getStreamTopicsEntry(name: 'topic foo'),
+      ]).toJson());
+      await tester.tap(find.text('TOPICS'));
+      await tester.pump(); // tap the button
+      await tester.pump(Duration.zero); // wait for request
+      check(find.descendant(
+        of: find.byType(TopicListPage),
+        matching: find.text('channel foo')),
+      ).findsOne();
+    });
   });
 
   group('presents message content appropriately', () {
@@ -290,17 +311,17 @@ void main() {
       return widget.color;
     }
 
-    check(backgroundColor()).isSameColorAs(MessageListTheme.light.bgMessageRegular);
+    check(backgroundColor()).isSameColorAs(DesignVariables.light.bgMessageRegular);
 
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
     await tester.pump();
 
     await tester.pump(kThemeAnimationDuration * 0.4);
-    final expectedLerped = MessageListTheme.light.lerp(MessageListTheme.dark, 0.4);
+    final expectedLerped = DesignVariables.light.lerp(DesignVariables.dark, 0.4);
     check(backgroundColor()).isSameColorAs(expectedLerped.bgMessageRegular);
 
     await tester.pump(kThemeAnimationDuration * 0.6);
-    check(backgroundColor()).isSameColorAs(MessageListTheme.dark.bgMessageRegular);
+    check(backgroundColor()).isSameColorAs(DesignVariables.dark.bgMessageRegular);
   });
 
   group('fetch initial batch of messages', () {

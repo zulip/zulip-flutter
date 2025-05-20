@@ -79,6 +79,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Отметить канал как прочитанный';
 
   @override
+  String get actionSheetOptionListOfTopics => 'List of topics';
+
+  @override
   String get actionSheetOptionMuteTopic => 'Отключить тему';
 
   @override
@@ -641,6 +644,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get mainMenuMyProfile => 'Мой профиль';
+
+  @override
+  String get topicsButtonLabel => 'TOPICS';
 
   @override
   String get channelFeedButtonTooltip => 'Лента канала';

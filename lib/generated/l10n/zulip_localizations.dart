@@ -236,6 +236,12 @@ abstract class ZulipLocalizations {
   /// **'Mark channel as read'**
   String get actionSheetOptionMarkChannelAsRead;
 
+  /// Label for navigating to a channel's topic-list page.
+  ///
+  /// In en, this message translates to:
+  /// **'List of topics'**
+  String get actionSheetOptionListOfTopics;
+
   /// Label for muting a topic on action sheet.
   ///
   /// In en, this message translates to:
@@ -1147,6 +1153,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'My profile'**
   String get mainMenuMyProfile;
+
+  /// Label for message list button leading to topic-list page. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)
+  ///
+  /// In en, this message translates to:
+  /// **'TOPICS'**
+  String get topicsButtonLabel;
 
   /// Tooltip for button to navigate to a given channel's feed
   ///

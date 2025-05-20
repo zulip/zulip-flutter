@@ -26,11 +26,11 @@ import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'topic_list.dart';
 
 /// Message-list styles that differ between light and dark themes.
 class MessageListTheme extends ThemeExtension<MessageListTheme> {
   static final light = MessageListTheme._(
-    bgMessageRegular: const HSLColor.fromAHSL(1, 0, 0, 1).toColor(),
     dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
     labelTime: const HSLColor.fromAHSL(0.49, 0, 0, 0).toColor(),
     senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.08, 0.65).toColor(),
@@ -48,7 +48,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   );
 
   static final dark = MessageListTheme._(
-    bgMessageRegular: const HSLColor.fromAHSL(1, 0, 0, 0.11).toColor(),
     dmRecipientHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
     labelTime: const HSLColor.fromAHSL(0.5, 0, 0, 1).toColor(),
     senderBotIcon: const HSLColor.fromAHSL(1, 180, 0.05, 0.5).toColor(),
@@ -65,7 +64,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   );
 
   MessageListTheme._({
-    required this.bgMessageRegular,
     required this.dmRecipientHeaderBg,
     required this.labelTime,
     required this.senderBotIcon,
@@ -84,7 +82,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     return extension!;
   }
 
-  final Color bgMessageRegular;
   final Color dmRecipientHeaderBg;
   final Color labelTime;
   final Color senderBotIcon;
@@ -94,7 +91,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
 
   @override
   MessageListTheme copyWith({
-    Color? bgMessageRegular,
     Color? dmRecipientHeaderBg,
     Color? labelTime,
     Color? senderBotIcon,
@@ -103,7 +99,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     Color? unreadMarkerGap,
   }) {
     return MessageListTheme._(
-      bgMessageRegular: bgMessageRegular ?? this.bgMessageRegular,
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
       labelTime: labelTime ?? this.labelTime,
       senderBotIcon: senderBotIcon ?? this.senderBotIcon,
@@ -119,7 +114,6 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       return this;
     }
     return MessageListTheme._(
-      bgMessageRegular: Color.lerp(bgMessageRegular, other.bgMessageRegular, t)!,
       dmRecipientHeaderBg: Color.lerp(dmRecipientHeaderBg, other.dmRecipientHeaderBg, t)!,
       labelTime: Color.lerp(labelTime, other.labelTime, t)!,
       senderBotIcon: Color.lerp(senderBotIcon, other.senderBotIcon, t)!,
@@ -235,14 +229,40 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
         removeAppBarBottomBorder = true;
     }
 
-    List<Widget>? actions;
-    if (narrow case TopicNarrow(:final streamId)) {
-      (actions ??= []).add(IconButton(
-        icon: const Icon(ZulipIcons.message_feed),
-        tooltip: zulipLocalizations.channelFeedButtonTooltip,
-        onPressed: () => Navigator.push(context,
-          MessageListPage.buildRoute(context: context,
-            narrow: ChannelNarrow(streamId)))));
+    List<Widget> actions = [];
+    switch (narrow) {
+      case CombinedFeedNarrow():
+      case MentionsNarrow():
+      case StarredMessagesNarrow():
+      case DmNarrow():
+        break;
+      case ChannelNarrow(:final streamId):
+        final designVariables = DesignVariables.of(context);
+        final zulipLocalizations = ZulipLocalizations.of(context);
+        actions.add(GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(TopicListPage.buildRoute(
+              context: context, streamId: streamId));
+          },
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(4, 8, 12, 8),
+            child: Center(child: Text(zulipLocalizations.topicsButtonLabel,
+              style: TextStyle(
+                color: designVariables.icon,
+                fontSize: 18,
+                height: 19 / 18,
+                // This is equivalent to css `all-small-caps`, see:
+                //   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps#all-small-caps
+                fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
+              ).merge(weightVariableTextStyle(context, wght: 600)))))));
+      case TopicNarrow(:final streamId):
+        actions.add(IconButton(
+          icon: const Icon(ZulipIcons.message_feed),
+          tooltip: zulipLocalizations.channelFeedButtonTooltip,
+          onPressed: () => Navigator.push(context,
+            MessageListPage.buildRoute(context: context,
+              narrow: ChannelNarrow(streamId)))));
     }
 
     final Anchor initAnchor;
@@ -1040,13 +1060,12 @@ class DateSeparator extends StatelessWidget {
     // to align with the vertically centered divider lines.
     const textBottomPadding = 2.0;
 
-    final messageListTheme = MessageListTheme.of(context);
     final designVariables = DesignVariables.of(context);
 
     final line = BorderSide(width: 0, color: designVariables.foreground);
 
     // TODO(#681) use different color for DM messages
-    return ColoredBox(color: messageListTheme.bgMessageRegular,
+    return ColoredBox(color: designVariables.bgMessageRegular,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
         child: Row(children: [
@@ -1083,11 +1102,11 @@ class MessageItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final messageListTheme = MessageListTheme.of(context);
+    final designVariables = DesignVariables.of(context);
 
     final item = this.item;
     Widget child = ColoredBox(
-      color: messageListTheme.bgMessageRegular,
+      color: designVariables.bgMessageRegular,
       child: Column(children: [
         switch (item) {
           MessageListMessageItem() => MessageWithPossibleSender(item: item),
