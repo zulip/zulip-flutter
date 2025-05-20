@@ -498,7 +498,8 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
       ),
       channels: channels,
-      messages: MessageStoreImpl(core: core),
+      messages: MessageStoreImpl(core: core,
+        realmEmptyTopicDisplayName: initialSnapshot.realmEmptyTopicDisplayName),
       unreads: Unreads(
         initial: initialSnapshot.unreadMsgs,
         core: core,
@@ -733,6 +734,8 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   @override
   Map<int, Message> get messages => _messages.messages;
   @override
+  Map<int, OutboxMessage> get outboxMessages => _messages.outboxMessages;
+  @override
   void registerMessageList(MessageListView view) =>
     _messages.registerMessageList(view);
   @override
@@ -743,6 +746,9 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     assert(!_disposed);
     return _messages.sendMessage(destination: destination, content: content);
   }
+  @override
+  OutboxMessage takeOutboxMessage(int localMessageId) =>
+    _messages.takeOutboxMessage(localMessageId);
   @override
   void reconcileMessages(List<Message> messages) {
     _messages.reconcileMessages(messages);

@@ -10,6 +10,7 @@ import '../api/route/messages.dart';
 import 'algorithms.dart';
 import 'channel.dart';
 import 'content.dart';
+import 'message.dart';
 import 'narrow.dart';
 import 'store.dart';
 
@@ -63,6 +64,22 @@ class MessageListMessageItem extends MessageListMessageBaseItem {
     required super.showSender,
     required super.isLastInBlock,
   });
+}
+
+/// An [OutboxMessage] to show in the message list.
+class MessageListOutboxMessageItem extends MessageListMessageBaseItem {
+  @override
+  final OutboxMessage message;
+  @override
+  final ZulipContent content;
+
+  MessageListOutboxMessageItem(
+    this.message, {
+    required super.showSender,
+    required super.isLastInBlock,
+  }) : content = ZulipContent(nodes: [
+    ParagraphNode(links: [], nodes: [TextNode(message.content)]),
+  ]);
 }
 
 /// The status of outstanding or recent fetch requests from a [MessageListView].
@@ -157,14 +174,25 @@ mixin _MessageSequence {
   /// It exists as an optimization, to memoize the work of parsing.
   final List<ZulipMessageContent> contents = [];
 
+  /// The messages sent by the self-user, retrieved from
+  /// [MessageStore.outboxMessages].
+  ///
+  /// See also [items].
+  ///
+  /// Usually this should not have that many items, so we do not anticipate
+  /// performance issues with unoptimized O(N) iterations through this list.
+  final List<OutboxMessage> outboxMessages = [];
+
   /// The messages and their siblings in the UI, in order.
   ///
   /// This has a [MessageListMessageItem] corresponding to each element
-  /// of [messages], in order.  It may have additional items interspersed
-  /// before, between, or after the messages.
+  /// of [messages], then a [MessageListOutboxMessageItem] corresponding to each
+  /// element of [outboxMessages], in order.
+  /// It may have additional items interspersed before, between, or after the
+  /// messages.
   ///
-  /// This information is completely derived from [messages] and
-  /// the flags [haveOldest], [haveNewest], and [busyFetchingMore].
+  /// This information is completely derived from [messages], [outboxMessages]
+  /// and the flags [haveOldest], [haveNewest], and [busyFetchingMore].
   /// It exists as an optimization, to memoize that computation.
   ///
   /// See also [middleItem], an index which divides this list
@@ -196,9 +224,10 @@ mixin _MessageSequence {
     switch (item) {
       case MessageListRecipientHeaderItem(:var message):
       case MessageListDateSeparatorItem(:var message):
-        if (message.id == null)                  return 1;  // TODO(#1441): test
+        if (message.id == null)                  return 1;
         return message.id! <= messageId ? -1 : 1;
       case MessageListMessageItem(:var message): return message.id.compareTo(messageId);
+      case MessageListOutboxMessageItem():       return 1;
     }
   }
 
@@ -315,11 +344,47 @@ mixin _MessageSequence {
     _reprocessAll();
   }
 
+  /// Append [outboxMessage] to [outboxMessages], and update derived data
+  /// accordingly.
+  ///
+  /// The caller is responsible for ensuring this is an appropriate thing to do
+  /// given [narrow] and other concerns.
+  void _addOutboxMessage(OutboxMessage outboxMessage) {
+    assert(!outboxMessages.contains(outboxMessage));
+    outboxMessages.add(outboxMessage);
+    _processOutboxMessage(outboxMessages.length - 1);
+  }
+
+  /// Remove the [outboxMessage] from the view.
+  ///
+  /// Returns true if the outbox message was removed, false otherwise.
+  bool _removeOutboxMessage(OutboxMessage outboxMessage) {
+    if (!outboxMessages.remove(outboxMessage)) {
+      return false;
+    }
+    _reprocessOutboxMessages();
+    return true;
+  }
+
+  /// Remove all outbox messages that satisfy [test] from [outboxMessages].
+  ///
+  /// Returns true if any outbox messages were removed, false otherwise.
+  bool _removeOutboxMessagesWhere(bool Function(OutboxMessage) test) {
+    final count = outboxMessages.length;
+    outboxMessages.removeWhere(test);
+    if (outboxMessages.length == count) {
+      return false;
+    }
+    _reprocessOutboxMessages();
+    return true;
+  }
+
   /// Reset all [_MessageSequence] data, and cancel any active fetches.
   void _reset() {
     generation += 1;
     messages.clear();
     middleMessage = 0;
+    outboxMessages.clear();
     _haveOldest = false;
     _haveNewest = false;
     _status = FetchingStatus.unstarted;
@@ -338,24 +403,28 @@ mixin _MessageSequence {
     _reprocessAll();
   }
 
-  /// Append to [items] based on the index-th message and its content.
+  /// Append to [items] based on [message] and [prevMessage].
   ///
-  /// The previous messages in the list must already have been processed.
-  /// This message must already have been parsed and reflected in [contents].
-  void _processMessage(int index) {
-    // This will get more complicated to handle the ways that messages interact
-    // with the display of neighboring messages: sender headings #175
-    // and date separators #173.
-    final message = messages[index];
-    final content = contents[index];
-    bool canShareSender;
-    if (index == 0 || !haveSameRecipient(messages[index - 1], message)) {
+  /// This appends a recipient header or a date separator to [items],
+  /// depending on how [prevMessage] relates to [message],
+  /// and then the result of [buildItem].
+  ///
+  /// [prevMessage] should be the message that visually appears before [message].
+  ///
+  /// The caller must ensure that [prevMessage] and all messages before it
+  /// have been processed.
+  void _addItemsForMessage(MessageBase message, {
+    required MessageBase? prevMessage,
+    required MessageListMessageBaseItem Function(bool canShareSender) buildItem,
+  }) {
+    final bool canShareSender;
+    if (prevMessage == null || !haveSameRecipient(prevMessage, message)) {
       items.add(MessageListRecipientHeaderItem(message));
       canShareSender = false;
     } else {
-      assert(items.last is MessageListMessageItem);
-      final prevMessageItem = items.last as MessageListMessageItem;
-      assert(identical(prevMessageItem.message, messages[index - 1]));
+      assert(items.last is MessageListMessageBaseItem);
+      final prevMessageItem = items.last as MessageListMessageBaseItem;
+      assert(identical(prevMessageItem.message, prevMessage));
       assert(prevMessageItem.isLastInBlock);
       prevMessageItem.isLastInBlock = false;
 
@@ -363,21 +432,94 @@ mixin _MessageSequence {
         items.add(MessageListDateSeparatorItem(message));
         canShareSender = false;
       } else {
-        canShareSender = (prevMessageItem.message.senderId == message.senderId);
+        canShareSender = prevMessage.senderId == message.senderId;
       }
     }
-    if (index == middleMessage) middleItem = items.length;
-    items.add(MessageListMessageItem(message, content,
-      showSender: !canShareSender, isLastInBlock: true));
+    final item = buildItem(canShareSender);
+    assert(identical(item.message, message));
+    assert(item.showSender == !canShareSender);
+    assert(item.isLastInBlock);
+    items.add(item);
   }
 
-  /// Recompute [items] from scratch, based on [messages], [contents], and flags.
+  /// Append to [items] based on the index-th message and its content.
+  ///
+  /// The previous messages in the list must already have been processed.
+  /// This message must already have been parsed and reflected in [contents].
+  void _processMessage(int index) {
+    assert(items.lastOrNull is! MessageListOutboxMessageItem);
+    final prevMessage = index == 0 ? null : messages[index - 1];
+    final message = messages[index];
+    final content = contents[index];
+
+    _addItemsForMessage(message,
+      prevMessage: prevMessage,
+      buildItem: (bool canShareSender) {
+        if (index == middleMessage) middleItem = items.length; // TODO merge better
+        return MessageListMessageItem(
+          message, content, showSender: !canShareSender, isLastInBlock: true);
+      });
+  }
+
+  /// Append to [items] based on the index-th outbox message.
+  ///
+  /// All [messages] and previous messages in [outboxMessages] must already have
+  /// been processed.
+  void _processOutboxMessage(int index) {
+    final prevMessage = index == 0 ? messages.lastOrNull
+                                   : outboxMessages[index - 1];
+    final message = outboxMessages[index];
+
+    _addItemsForMessage(message,
+      prevMessage: prevMessage,
+      buildItem: (bool canShareSender) => MessageListOutboxMessageItem(
+        message, showSender: !canShareSender, isLastInBlock: true));
+  }
+
+  /// Remove items associated with [outboxMessages] from [items].
+  ///
+  /// This is designed to be idempotent; repeated calls will not change the
+  /// content of [items].
+  ///
+  /// This is efficient due to the expected small size of [outboxMessages].
+  void _removeOutboxMessageItems() {
+    // This loop relies on the assumption that all items that follow
+    // the last [MessageListMessageItem] are derived from outbox messages.
+    // If there is no [MessageListMessageItem] at all,
+    // this will end up removing end markers.
+    while (items.isNotEmpty && items.last is! MessageListMessageItem) {
+      items.removeLast();
+    }
+    assert(items.none((e) => e is MessageListOutboxMessageItem));
+
+    if (items.isNotEmpty) {
+      final lastItem = items.last as MessageListMessageItem;
+      lastItem.isLastInBlock = true;
+    }
+  }
+
+  /// Recompute the portion of [items] derived from outbox messages,
+  /// based on [outboxMessages] and [messages].
+  ///
+  /// All [messages] should have been processed when this is called.
+  void _reprocessOutboxMessages() {
+    _removeOutboxMessageItems();
+    for (var i = 0; i < outboxMessages.length; i++) {
+      _processOutboxMessage(i);
+    }
+  }
+
+  /// Recompute [items] from scratch, based on [messages], [contents],
+  /// [outboxMessages] and flags.
   void _reprocessAll() {
     items.clear();
     for (var i = 0; i < messages.length; i++) {
       _processMessage(i);
     }
     if (middleMessage == messages.length) middleItem = items.length;
+    for (var i = 0; i < outboxMessages.length; i++) {
+      _processOutboxMessage(i);
+    }
   }
 }
 
@@ -423,6 +565,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     required Anchor anchor,
   }) {
     return MessageListView._(store: store, narrow: narrow, anchor: anchor)
+      .._syncOutboxMessages()
+      .._reprocessOutboxMessages()
       .._register();
   }
 
@@ -559,6 +703,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     // This is the first visible message at or past [anchor] if any,
     // else the last visible message if any.  [reachedAnchor] helps track that.
     bool reachedAnchor = false;
+    _removeOutboxMessageItems();
     for (final message in result.messages) {
       if (!_messageVisible(message)) continue;
       if (!reachedAnchor) {
@@ -570,6 +715,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       }
       _addMessage(message);
     }
+    _reprocessOutboxMessages();
     _haveOldest = result.foundOldest;
     _haveNewest = result.foundNewest;
     _setStatus(FetchingStatus.idle, was: FetchingStatus.fetchInitial);
@@ -736,16 +882,72 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     fetchInitial();
   }
 
+  bool _shouldAddOutboxMessage(OutboxMessage outboxMessage, {
+    bool wasUnmuted = false,
+  }) {
+    return !outboxMessage.hidden
+      && narrow.containsMessage(outboxMessage)
+      && (_messageVisible(outboxMessage) || wasUnmuted);
+  }
+
+  /// Copy outbox messages from the store, keeping the ones belong to the view.
+  ///
+  /// This does not recompute [items].  The caller is expected to call
+  /// [_reprocessOutboxMessages] later to keep [items] up-to-date.
+  ///
+  /// This assumes that [outboxMessages] is empty.
+  void _syncOutboxMessages() {
+    assert(outboxMessages.isEmpty);
+    for (final outboxMessage in store.outboxMessages.values) {
+      if (_shouldAddOutboxMessage(outboxMessage)) {
+        outboxMessages.add(outboxMessage);
+      }
+    }
+  }
+
+  /// Add [outboxMessage] if it belongs to the view.
+  void addOutboxMessage(OutboxMessage outboxMessage) {
+    assert(outboxMessages.none(
+      (message) => message.localMessageId == outboxMessage.localMessageId));
+    if (_shouldAddOutboxMessage(outboxMessage)) {
+      _addOutboxMessage(outboxMessage);
+      if (fetched) {
+        // Only need to notify listeners when [fetched] is true, because
+        // otherwise the message list just shows a loading indicator with
+        // no other items.
+        notifyListeners();
+      }
+    }
+  }
+
+  /// Remove the [outboxMessage] from the view.
+  ///
+  /// This is a no-op if the message is not found.
+  ///
+  /// This should only be called from [MessageStore.takeOutboxMessage].
+  void removeOutboxMessage(OutboxMessage outboxMessage) {
+    if (_removeOutboxMessage(outboxMessage)) {
+      notifyListeners();
+    }
+  }
+
   void handleUserTopicEvent(UserTopicEvent event) {
     switch (_canAffectVisibility(event)) {
       case VisibilityEffect.none:
         return;
 
       case VisibilityEffect.muted:
-        if (_removeMessagesWhere((message) =>
-            (message is StreamMessage
-             && message.streamId == event.streamId
-             && message.topic == event.topicName))) {
+        bool removed = _removeOutboxMessagesWhere((message) =>
+          message is StreamOutboxMessage
+          && message.conversation.streamId == event.streamId
+          && message.conversation.topic == event.topicName);
+
+        removed |= _removeMessagesWhere((message) =>
+          message is StreamMessage
+          && message.streamId == event.streamId
+          && message.topic == event.topicName);
+
+        if (removed) {
           notifyListeners();
         }
 
@@ -757,6 +959,18 @@ class MessageListView with ChangeNotifier, _MessageSequence {
           _reset();
           notifyListeners();
           fetchInitial();
+        }
+
+        outboxMessages.clear();
+        for (final outboxMessage in store.outboxMessages.values) {
+          if (_shouldAddOutboxMessage(
+            outboxMessage,
+            wasUnmuted: outboxMessage is StreamOutboxMessage
+              && outboxMessage.conversation.streamId == event.streamId
+              && outboxMessage.conversation.topic == event.topicName,
+          )) {
+            outboxMessages.add(outboxMessage);
+          }
         }
     }
   }
@@ -771,14 +985,34 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   void handleMessageEvent(MessageEvent event) {
     final message = event.message;
     if (!narrow.containsMessage(message) || !_messageVisible(message)) {
+      assert(event.localMessageId == null || outboxMessages.none((message) =>
+        message.localMessageId == int.parse(event.localMessageId!, radix: 10)));
       return;
     }
     if (!fetched) {
       // TODO mitigate this fetch/event race: save message to add to list later
       return;
     }
+    if (outboxMessages.isEmpty) {
+      assert(items.none((item) => item is MessageListOutboxMessageItem));
+      _addMessage(message);
+      notifyListeners();
+      return;
+    }
+
+    // We always remove all outbox message items
+    // to ensure that message items come before them.
+    _removeOutboxMessageItems();
     // TODO insert in middle instead, when appropriate
     _addMessage(message);
+    if (event.localMessageId != null) {
+      final localMessageId = int.parse(event.localMessageId!);
+      // [outboxMessages] is epxected to be short, so removing the corresponding
+      // outbox message and reprocessing them all in linear time is efficient.
+      outboxMessages.removeWhere(
+        (message) => message.localMessageId == localMessageId);
+    }
+    _reprocessOutboxMessages();
     notifyListeners();
   }
 
@@ -810,6 +1044,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     // TODO in cases where we do have data to do better, do better.
     _reset();
     notifyListeners();
+    _syncOutboxMessages();
     fetchInitial();
   }
 
@@ -825,6 +1060,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case PropagateMode.changeLater:
         _narrow = newNarrow;
         _reset();
+        _syncOutboxMessages();
         fetchInitial();
       case PropagateMode.changeOne:
     }
@@ -892,6 +1128,15 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// Notify listeners if any of the given messages is present in this view.
   void notifyListenersIfAnyMessagePresent(Iterable<int> messageIds) {
     final isAnyPresent = messageIds.any((id) => _findMessageWithId(id) != -1);
+    if (isAnyPresent) {
+      notifyListeners();
+    }
+  }
+
+  /// Notify listeners if the given outbox message is present in this view.
+  void notifyListenersIfOutboxMessagePresent(int localMessageId) {
+    final isAnyPresent =
+      outboxMessages.any((message) => message.localMessageId == localMessageId);
     if (isAnyPresent) {
       notifyListeners();
     }

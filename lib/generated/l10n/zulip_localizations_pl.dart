@@ -714,6 +714,10 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get messageIsMovedLabel => 'PRZENIESIONO';
 
   @override
+  String get messageIsntSentLabel =>
+      'MESSAGE ISN\'T SENT. CHECK YOUR CONNECTION.';
+
+  @override
   String pollVoterNames(String voterNames) {
     return '($voterNames)';
   }

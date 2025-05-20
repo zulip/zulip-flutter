@@ -864,6 +864,10 @@
   "@messageIsMovedLabel": {
     "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
+  "messageIsntSentLabel": "MESSAGE ISN'T SENT. CHECK YOUR CONNECTION.",
+  "@messageIsntSentLabel": {
+    "description": "Label for a message that isn't sent. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
   "pollVoterNames": "({voterNames})",
   "@pollVoterNames": {
     "description": "The list of people who voted for a poll option, wrapped in parentheses.",
