@@ -425,8 +425,9 @@ void main() {
     } catch (e, st) {
       check(e).isA<MalformedServerResponseException>()
         ..causeException.isA<DistinctiveError>()
-        ..message.contains("something is wrong");
-      check(st.toString()).contains("distinctivelyNamedFromJson");
+        ..message.contains("something is wrong")
+        ..message.contains("#0      main.<anonymous closure>.distinctivelyNamedFromJson");
+      check(st).asString.contains("#0      main.<anonymous closure>.distinctivelyNamedFromJson");
     }
   });
 
