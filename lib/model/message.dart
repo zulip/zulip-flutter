@@ -435,4 +435,10 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore {
     // [Poll] is responsible for notifying the affected listeners.
     poll.handleSubmessageEvent(event);
   }
+
+  void handleMutedUsersEvent(MutedUsersEvent event) {
+    for (final view in _messageListViews) {
+      view.handleMutedUsersEvent(event);
+    }
+  }
 }

@@ -956,6 +956,8 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
 
       case MutedUsersEvent():
         assert(debugLog("server event: muted_users"));
+        _messages.handleMutedUsersEvent(event);
+        // Update _users last, so other handlers can compare to the old value.
         _users.handleMutedUsersEvent(event);
         notifyListeners();
 
