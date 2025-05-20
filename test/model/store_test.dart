@@ -708,7 +708,7 @@ void main() {
 
     final emojiDataUrl = Uri.parse('https://cdn.example/emoji.json');
     final data = {
-      '1f642': ['smile'],
+      '1f642': ['slight_smile'],
       '1f34a': ['orange', 'tangerine', 'mandarin'],
     };
 

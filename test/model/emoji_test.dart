@@ -10,12 +10,28 @@ import 'package:zulip/model/store.dart';
 import '../example_data.dart' as eg;
 
 void main() {
+  PerAccountStore prepare({
+    Map<String, RealmEmojiItem> realmEmoji = const {},
+    bool addServerDataForPopular = true,
+    Map<String, List<String>>? unicodeEmoji,
+  }) {
+    final store = eg.store(
+      initialSnapshot: eg.initialSnapshot(realmEmoji: realmEmoji));
+
+    final extraEmojiData = ServerEmojiData(codeToNames: unicodeEmoji ?? {});
+    final emojiData = addServerDataForPopular
+      ? eg.serverEmojiDataPopularPlus(extraEmojiData)
+      : extraEmojiData;
+    store.setServerEmojiData(emojiData);
+    return store;
+  }
+
   group('emojiDisplayFor', () {
     test('Unicode emoji', () {
       check(eg.store().emojiDisplayFor(emojiType: ReactionType.unicodeEmoji,
-        emojiCode: '1f642', emojiName: 'smile')
+        emojiCode: '1f642', emojiName: 'slight_smile')
       ).isA<UnicodeEmojiDisplay>()
-        ..emojiName.equals('smile')
+        ..emojiName.equals('slight_smile')
         ..emojiUnicode.equals('🙂');
     });
 
@@ -78,7 +94,10 @@ void main() {
     });
   });
 
-  final popularCandidates = EmojiStore.popularEmojiCandidates;
+  final popularCandidates = (
+    eg.store()..setServerEmojiData(eg.serverEmojiDataPopular)
+  ).popularEmojiCandidates();
+  assert(popularCandidates.length == 6);
 
   Condition<Object?> isUnicodeCandidate(String? emojiCode, List<String>? names) {
     return (it_) {
@@ -116,30 +135,11 @@ void main() {
   group('allEmojiCandidates', () {
     // TODO test emojiDisplay of candidates matches emojiDisplayFor
 
-    PerAccountStore prepare({
-      Map<String, RealmEmojiItem> realmEmoji = const {},
-      Map<String, List<String>>? unicodeEmoji,
-    }) {
-      final store = eg.store(
-        initialSnapshot: eg.initialSnapshot(realmEmoji: realmEmoji));
-      if (unicodeEmoji != null) {
-        store.setServerEmojiData(ServerEmojiData(codeToNames: unicodeEmoji));
-      }
-      return store;
-    }
-
-    test('popular emoji appear even when no server emoji data', () {
-      final store = prepare(unicodeEmoji: null);
-      check(store.allEmojiCandidates()).deepEquals([
-        ...arePopularCandidates,
-        isZulipCandidate(),
-      ]);
-    });
-
     test('popular emoji appear in their canonical order', () {
       // In the server's emoji data, have the popular emoji in a permuted order,
       // and interspersed with other emoji.
-      final store = prepare(unicodeEmoji: {
+      assert(popularCandidates.length == 6);
+      final store = prepare(addServerDataForPopular: false, unicodeEmoji: {
         '1f603': ['smiley'],
         for (final candidate in popularCandidates.skip(3))
           candidate.emojiCode: [candidate.emojiName, ...candidate.aliases],
@@ -252,9 +252,10 @@ void main() {
         isZulipCandidate(),
       ]);
 
-      store.setServerEmojiData(ServerEmojiData(codeToNames: {
-        '1f516': ['bookmark'],
-      }));
+      store.setServerEmojiData(eg.serverEmojiDataPopularPlus(
+        ServerEmojiData(codeToNames: {
+          '1f516': ['bookmark'],
+        })));
       check(store.allEmojiCandidates()).deepEquals([
         ...arePopularCandidates,
         isUnicodeCandidate('1f516', ['bookmark']),
@@ -290,6 +291,44 @@ void main() {
     });
   });
 
+  group('popularEmojiCandidates', () {
+    test('memoizes result, before setServerEmojiData', () {
+      final store = eg.store();
+      check(store.debugServerEmojiData).isNull();
+      final candidates = store.popularEmojiCandidates();
+      check(store.popularEmojiCandidates())
+        ..isEmpty()..identicalTo(candidates);
+    });
+
+    test('memoizes result, after setServerEmojiData', () {
+      final store = prepare();
+      check(store.debugServerEmojiData).isNotNull();
+      final candidates = store.popularEmojiCandidates();
+      check(store.popularEmojiCandidates())
+        ..isNotEmpty()..identicalTo(candidates);
+    });
+
+    test('updates on first and subsequent setServerEmojiData', () {
+      final store = eg.store();
+      check(store.debugServerEmojiData).isNull();
+
+      final candidates1 = store.popularEmojiCandidates();
+      check(candidates1).isEmpty();
+
+      store.setServerEmojiData(eg.serverEmojiDataPopularLegacy);
+      final candidates2 = store.popularEmojiCandidates();
+      check(candidates2)
+        ..isNotEmpty()
+        ..not((it) => it.identicalTo(candidates1));
+
+      store.setServerEmojiData(eg.serverEmojiDataPopular);
+      final candidates3 = store.popularEmojiCandidates();
+      check(candidates3)
+        ..isNotEmpty()
+        ..not((it) => it.identicalTo(candidates2));
+    });
+  });
+
   group('EmojiAutocompleteView', () {
     Condition<Object?> isUnicodeResult({String? emojiCode, List<String>? names}) {
       return (it) => it.isA<EmojiAutocompleteResult>().candidate.which(
@@ -309,24 +348,11 @@ void main() {
     List<Condition<Object?>> arePopularResults = popularCandidates.map(
       (c) => isUnicodeResult(emojiCode: c.emojiCode)).toList();
 
-    PerAccountStore prepare({
-      Map<String, String> realmEmoji = const {},
-      Map<String, List<String>>? unicodeEmoji,
-    }) {
-      final store = eg.store(
-        initialSnapshot: eg.initialSnapshot(realmEmoji: {
-          for (final MapEntry(:key, :value) in realmEmoji.entries)
-            key: eg.realmEmojiItem(emojiCode: key, emojiName: value),
-        }));
-      if (unicodeEmoji != null) {
-        store.setServerEmojiData(ServerEmojiData(codeToNames: unicodeEmoji));
-      }
-      return store;
-    }
-
     test('results can include all three emoji types', () async {
       final store = prepare(
-        realmEmoji: {'1': 'happy'}, unicodeEmoji: {'1f516': ['bookmark']});
+        realmEmoji: {'1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'happy')},
+        unicodeEmoji: {'1f516': ['bookmark']},
+      );
       final view = EmojiAutocompleteView.init(store: store,
         query: EmojiAutocompleteQuery(''));
       bool done = false;
@@ -343,7 +369,9 @@ void main() {
 
     test('results update after query change', () async {
       final store = prepare(
-        realmEmoji: {'1': 'happy'}, unicodeEmoji: {'1f642': ['smile']});
+        realmEmoji: {'1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'happy')},
+        unicodeEmoji: {'1f516': ['bookmark']},
+      );
       final view = EmojiAutocompleteView.init(store: store,
         query: EmojiAutocompleteQuery('hap'));
       bool done = false;
@@ -354,16 +382,16 @@ void main() {
         isRealmResult(emojiName: 'happy'));
 
       done = false;
-      view.query = EmojiAutocompleteQuery('sm');
+      view.query = EmojiAutocompleteQuery('bo');
       await Future(() {});
       check(done).isTrue();
       check(view.results).single.which(
-        isUnicodeResult(names: ['smile']));
+        isUnicodeResult(names: ['bookmark']));
     });
 
     Future<Iterable<EmojiAutocompleteResult>> resultsOf(
       String query, {
-      Map<String, String> realmEmoji = const {},
+      Map<String, RealmEmojiItem> realmEmoji = const {},
       Map<String, List<String>>? unicodeEmoji,
     }) async {
       final store = prepare(realmEmoji: realmEmoji, unicodeEmoji: unicodeEmoji);
@@ -389,7 +417,7 @@ void main() {
       check(await resultsOf('')).deepEquals([
         isUnicodeResult(names: ['+1', 'thumbs_up', 'like']),
         isUnicodeResult(names: ['tada']),
-        isUnicodeResult(names: ['smile']),
+        isUnicodeResult(names: ['slight_smile']),
         isUnicodeResult(names: ['heart', 'love', 'love_you']),
         isUnicodeResult(names: ['working_on_it', 'hammer_and_wrench', 'tools']),
         isUnicodeResult(names: ['octopus']),
@@ -402,6 +430,7 @@ void main() {
         isUnicodeResult(names: ['tada']),
         isUnicodeResult(names: ['working_on_it', 'hammer_and_wrench', 'tools']),
         // other
+        isUnicodeResult(names: ['slight_smile']),
         isUnicodeResult(names: ['heart', 'love', 'love_you']),
         isUnicodeResult(names: ['octopus']),
       ]);
@@ -412,6 +441,7 @@ void main() {
         isUnicodeResult(names: ['working_on_it', 'hammer_and_wrench', 'tools']),
         // other
         isUnicodeResult(names: ['+1', 'thumbs_up', 'like']),
+        isUnicodeResult(names: ['slight_smile']),
       ]);
     });
 
