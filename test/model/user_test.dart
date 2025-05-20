@@ -2,6 +2,8 @@ import 'package:checks/checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/model/store.dart';
+import 'package:zulip/model/user.dart';
 
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
@@ -50,6 +52,36 @@ void main() {
       // ... even though `store.userDisplayName` (with no message available
       // for fallback) only has a generic fallback name.
       check(store.userDisplayName(message.senderId)).equals('(unknown user)');
+    });
+  });
+
+  group('willChangeIfRecipientMuted', () {
+    MutedUsersEvent mkEvent(List<int> userIds) =>
+      eg.mutedUsersEvent(userIds);
+
+    void checkChanges(PerAccountStore store,
+      List<int> userIds,
+      MutenessEffect expected,
+    ) {
+      check(store.willChangeIfRecipientMuted(mkEvent(userIds))).equals(expected);
+    }
+
+    testWidgets('one muted user, event comes with two users -> added', (tester) async {
+      final user1 = eg.user(userId: 1);
+      final user2 = eg.user(userId: 2);
+      final store = eg.store();
+      await store.addUsers([user1, user2]);
+      await store.muteUser(user1.userId);
+      checkChanges(store, [user1.userId, user2.userId], MutenessEffect.added);
+    });
+
+    testWidgets('two muted users, event comes with one user -> removed', (tester) async {
+      final user1 = eg.user(userId: 1);
+      final user2 = eg.user(userId: 2);
+      final store = eg.store();
+      await store.addUsers([user1, user2]);
+      await store.muteUsers([user1.userId, user2.userId]);
+      checkChanges(store, [user1.userId], MutenessEffect.removed);
     });
   });
 

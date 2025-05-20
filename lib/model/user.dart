@@ -91,6 +91,25 @@ mixin UserStore on PerAccountStoreBase {
     if (narrow.otherRecipientIds.isEmpty) return false;
     return !narrow.otherRecipientIds.any((id) => !isUserMuted(id, mutedUsers: mutedUsers));
   }
+
+  /// Whether the given event will change the result of [allRecipientsMuted]
+  /// for its mutedUsers, compared to the current state.
+  MutenessEffect willChangeIfRecipientMuted(MutedUsersEvent event) {
+    assert(mutedUsers.length != event.mutedUsers.length);
+    return mutedUsers.length < event.mutedUsers.length
+      ? MutenessEffect.added
+      : MutenessEffect.removed;
+  }
+}
+
+/// Whether a given [MutedUsersEvent] will affect the results
+/// that [UserStore.allRecipientsMuted] would give for some messages.
+enum MutenessEffect {
+  /// A new user is added to the muted users list.
+  added,
+
+  /// A new user is removed from the muted users list.
+  removed,
 }
 
 /// The implementation of [UserStore] that does the work.

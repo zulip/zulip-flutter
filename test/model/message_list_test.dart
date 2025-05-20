@@ -66,12 +66,18 @@ void main() {
   void checkNotifiedOnce() => checkNotified(count: 1);
 
   /// Initialize [model] and the rest of the test state.
-  Future<void> prepare({Narrow narrow = const CombinedFeedNarrow()}) async {
+  Future<void> prepare({
+    Narrow narrow = const CombinedFeedNarrow(),
+    List<User>? users,
+    List<int>? mutedUserIds,
+  }) async {
     final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
     subscription = eg.subscription(stream);
     store = eg.store();
     await store.addStream(stream);
     await store.addSubscription(subscription);
+    await store.addUsers([...?users, eg.selfUser]);
+    await store.muteUsers(mutedUserIds ?? []);
     connection = store.connection as FakeApiConnection;
     notifiedCount = 0;
     model = MessageListView.init(store: store, narrow: narrow)
@@ -654,6 +660,144 @@ void main() {
         ...messages.sublist(15),
       ]);
     });
+  });
+
+  group('MutedUsersEvent', () {
+    final user1 = eg.user(userId: 1);
+    final user2 = eg.user(userId: 2);
+    final user3 = eg.user(userId: 3);
+    final users = [user1, user2, user3];
+
+    test('CombinedFeedNarrow', () async {
+      await prepare(narrow: CombinedFeedNarrow(), users: users);
+      await prepareMessages(foundOldest: true, messages: [
+        eg.dmMessage(id: 1, from: eg.selfUser, to: [user1]),
+        eg.dmMessage(id: 2, from: eg.selfUser, to: [user1, user2]),
+        eg.dmMessage(id: 3, from: eg.selfUser, to: [user2, user3]),
+        eg.dmMessage(id: 4, from: eg.selfUser, to: []),
+        eg.streamMessage(id: 5),
+      ]);
+      checkHasMessageIds([1, 2, 3, 4, 5]);
+
+      await store.muteUser(user1.userId);
+      checkNotifiedOnce();
+      checkHasMessageIds([2, 3, 4, 5]);
+
+      await store.muteUser(user2.userId);
+      checkNotifiedOnce();
+      checkHasMessageIds([3, 4, 5]);
+    });
+
+    test('MentionsNarrow', () async {
+      await prepare(narrow: MentionsNarrow(), users: users);
+      await prepareMessages(foundOldest: true, messages: [
+        eg.dmMessage(id: 1, from: eg.selfUser, to: [user1],
+          flags: [MessageFlag.mentioned]),
+        eg.dmMessage(id: 2, from: eg.selfUser, to: [user2],
+          flags: [MessageFlag.mentioned]),
+        eg.streamMessage(id: 3, flags: [MessageFlag.mentioned]),
+      ]);
+      checkHasMessageIds([1, 2, 3]);
+
+      await store.muteUser(user1.userId);
+      checkNotifiedOnce();
+      checkHasMessageIds([2, 3]);
+    });
+
+    test('StarredMessagesNarrow', () async {
+      await prepare(narrow: StarredMessagesNarrow(), users: users);
+      await prepareMessages(foundOldest: true, messages: [
+        eg.dmMessage(id: 1, from: eg.selfUser, to: [user1],
+          flags: [MessageFlag.starred]),
+        eg.dmMessage(id: 2, from: eg.selfUser, to: [user2],
+          flags: [MessageFlag.starred]),
+        eg.streamMessage(id: 3, flags: [MessageFlag.starred]),
+      ]);
+      checkHasMessageIds([1, 2, 3]);
+
+      await store.muteUser(user1.userId);
+      checkNotifiedOnce();
+      checkHasMessageIds([2, 3]);
+    });
+
+    test('ChannelNarrow -> do nothing', () async {
+      await prepare(narrow: ChannelNarrow(eg.defaultStreamMessageStreamId), users: users);
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1),
+      ]);
+      checkHasMessageIds([1]);
+
+      await store.muteUser(user1.userId);
+      checkNotNotified();
+      checkHasMessageIds([1]);
+    });
+
+    test('TopicNarrow -> do nothing', () async {
+      await prepare(narrow: TopicNarrow(eg.defaultStreamMessageStreamId,
+        TopicName('topic')), users: users);
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1, topic: 'topic'),
+      ]);
+      checkHasMessageIds([1]);
+
+      await store.muteUser(user1.userId);
+      checkNotNotified();
+      checkHasMessageIds([1]);
+    });
+
+    test('DmNarrow -> do nothing', () async {
+      await prepare(
+        narrow: DmNarrow.withUser(user1.userId, selfUserId: eg.selfUser.userId),
+        users: users);
+      await prepareMessages(foundOldest: true, messages: [
+        eg.dmMessage(id: 1, from: eg.selfUser, to: [user1]),
+      ]);
+      checkHasMessageIds([1]);
+
+      await store.muteUser(user1.userId);
+      checkNotNotified();
+      checkHasMessageIds([1]);
+    });
+
+    test('unmute a user -> refetch from scratch', () => awaitFakeAsync((async) async {
+      await prepare(narrow: CombinedFeedNarrow(), users: users,
+        mutedUserIds: [user1.userId]);
+      final messages = <Message>[
+        eg.dmMessage(id: 1, from: eg.selfUser, to: [user1]),
+        eg.streamMessage(id: 2),
+      ];
+      await prepareMessages(foundOldest: true, messages: messages);
+      checkHasMessageIds([2]);
+
+      connection.prepare(
+        json: newestResult(foundOldest: true, messages: messages).toJson());
+      await store.unmuteUser(user1.userId);
+      checkNotifiedOnce();
+      check(model).fetched.isFalse();
+      checkHasMessageIds([]);
+
+      async.elapse(Duration.zero);
+      checkNotifiedOnce();
+      checkHasMessageIds([1, 2]);
+    }));
+
+    test('unmute a user before initial fetch completes -> do nothing', () => awaitFakeAsync((async) async {
+      await prepare(narrow: CombinedFeedNarrow(), users: users,
+        mutedUserIds: [user1.userId]);
+      final messages = <Message>[
+        eg.dmMessage(id: 1, from: eg.selfUser, to: [user1]),
+        eg.streamMessage(id: 2),
+      ];
+      connection.prepare(
+        json: newestResult(foundOldest: true, messages: messages).toJson());
+      final fetchFuture = model.fetchInitial();
+      await store.unmuteUser(user1.userId);
+      checkNotNotified();
+
+      await fetchFuture;
+      checkNotifiedOnce();
+      checkHasMessageIds([1, 2]);
+    }));
   });
 
   group('notifyListenersIfMessagePresent', () {
