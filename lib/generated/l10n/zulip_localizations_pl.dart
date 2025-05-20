@@ -370,7 +370,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String composeBoxEnterTopicOrSkipHintText(String defaultTopicName) {
-    return 'Enter a topic (skip for “$defaultTopicName”)';
+    return 'Wpisz tytuł wątku (pomiń aby uzyskać “$defaultTopicName”)';
   }
 
   @override

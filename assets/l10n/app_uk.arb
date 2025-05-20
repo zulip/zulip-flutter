@@ -7,7 +7,7 @@
   "@actionSheetOptionFollowTopic": {
     "description": "Label for following a topic on action sheet."
   },
-  "actionSheetOptionUnstarMessage": "Зняти позначку зірочки з повідомлення",
+  "actionSheetOptionUnstarMessage": "Зняти позначку зірки з повідомлення",
   "@actionSheetOptionUnstarMessage": {
     "description": "Label for unstar button on action sheet."
   },
@@ -51,11 +51,11 @@
   "@errorSharingFailed": {
     "description": "Error message when sharing a message failed."
   },
-  "errorStarMessageFailedTitle": "Не вдалося позначити повідомлення зірочкою",
+  "errorStarMessageFailedTitle": "Не вдалося позначити повідомлення зіркою",
   "@errorStarMessageFailedTitle": {
     "description": "Error title when starring a message failed."
   },
-  "errorUnstarMessageFailedTitle": "Не вдалося зняти позначку зірочки з повідомлення",
+  "errorUnstarMessageFailedTitle": "Не вдалося зняти позначку зірки з повідомлення",
   "@errorUnstarMessageFailedTitle": {
     "description": "Error title when unstarring a message failed."
   },
@@ -157,7 +157,7 @@
   "@permissionsDeniedReadExternalStorage": {
     "description": "Message for dialog asking the user to grant permissions for external storage read access."
   },
-  "actionSheetOptionStarMessage": "Позначити повідомлення зірочкою",
+  "actionSheetOptionStarMessage": "Вибрати повідомлення",
   "@actionSheetOptionStarMessage": {
     "description": "Label for star button on action sheet."
   },
@@ -315,7 +315,7 @@
       }
     }
   },
-  "composeBoxGroupDmContentHint": "Група повідомлень",
+  "composeBoxGroupDmContentHint": "Написати групі",
   "@composeBoxGroupDmContentHint": {
     "description": "Hint text for content input when sending a message to a group."
   },
@@ -691,7 +691,7 @@
   "@mentionsPageTitle": {
     "description": "Page title for the 'Mentions' message view."
   },
-  "starredMessagesPageTitle": "Повідомлення, позначені зірочкою",
+  "starredMessagesPageTitle": "Вибрані повідомлення",
   "@starredMessagesPageTitle": {
     "description": "Page title for the 'Starred messages' message view."
   },
@@ -955,7 +955,7 @@
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
   },
-  "combinedFeedPageTitle": "Комбінована стрічка",
+  "combinedFeedPageTitle": "Об'єднана стрічка",
   "@combinedFeedPageTitle": {
     "description": "Page title for the 'Combined feed' message view."
   },

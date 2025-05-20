@@ -1006,5 +1006,15 @@
         "example": "4.0"
       }
     }
+  },
+  "composeBoxEnterTopicOrSkipHintText": "Wpisz tytuł wątku (pomiń aby uzyskać “{defaultTopicName}”)",
+  "@composeBoxEnterTopicOrSkipHintText": {
+    "description": "Hint text for topic input widget in compose box when topics are optional.",
+    "placeholders": {
+      "defaultTopicName": {
+        "type": "String",
+        "example": "general chat"
+      }
+    }
   }
 }

@@ -4,9 +4,9 @@ import 'zulip_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for English (`en`).
-class ZulipLocalizationsEn extends ZulipLocalizations {
-  ZulipLocalizationsEn([String locale = 'en']) : super(locale);
+/// The translations for German (`de`).
+class ZulipLocalizationsDe extends ZulipLocalizations {
+  ZulipLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
   String get aboutPageTitle => 'About Zulip';
@@ -767,13 +767,4 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
 
   @override
   String get zulipAppTitle => 'Zulip';
-}
-
-/// The translations for English, as used in the United Kingdom (`en_GB`).
-class ZulipLocalizationsEnGb extends ZulipLocalizationsEn {
-  ZulipLocalizationsEnGb() : super('en_GB');
-
-  @override
-  String get topicValidationErrorMandatoryButEmpty =>
-      'Topics are required in this organisation.';
 }
