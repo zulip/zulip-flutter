@@ -55,6 +55,7 @@ void main() {
     bool foundOldest = true,
     int? messageCount,
     List<Message>? messages,
+    GetMessagesResult? fetchResult,
     List<ZulipStream>? streams,
     List<User>? users,
     List<Subscription>? subscriptions,
@@ -79,12 +80,17 @@ void main() {
     // prepare message list data
     await store.addUser(eg.selfUser);
     await store.addUsers(users ?? []);
-    assert((messageCount == null) != (messages == null));
-    messages ??= List.generate(messageCount!, (index) {
-      return eg.streamMessage(sender: eg.selfUser);
-    });
-    connection.prepare(json:
-      eg.newestGetMessagesResult(foundOldest: foundOldest, messages: messages).toJson());
+    if (fetchResult != null) {
+      assert(foundOldest && messageCount == null && messages == null);
+    } else {
+      assert((messageCount == null) != (messages == null));
+      messages ??= List.generate(messageCount!, (index) {
+        return eg.streamMessage(sender: eg.selfUser);
+      });
+      fetchResult = eg.newestGetMessagesResult(
+        foundOldest: foundOldest, messages: messages);
+    }
+    connection.prepare(json: fetchResult.toJson());
 
     await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
       skipAssertAccountExists: skipAssertAccountExists,
@@ -332,7 +338,7 @@ void main() {
             'narrow': jsonEncode(narrow.apiEncode()),
             'anchor': AnchorCode.newest.toJson(),
             'num_before': kMessageListFetchBatchSize.toString(),
-            'num_after': '0',
+            'num_after': kMessageListFetchBatchSize.toString(),
             'allow_empty_topic_name': 'true',
           });
       });
@@ -365,7 +371,7 @@ void main() {
             'narrow': jsonEncode(narrow.apiEncode()),
             'anchor': AnchorCode.newest.toJson(),
             'num_before': kMessageListFetchBatchSize.toString(),
-            'num_after': '0',
+            'num_after': kMessageListFetchBatchSize.toString(),
             'allow_empty_topic_name': 'true',
           });
       });
@@ -462,23 +468,61 @@ void main() {
     // [MessageListScrollView], in scrolling_test.dart .
 
     testWidgets('sticks to end upon new message', (tester) async {
-      await setupMessageListPage(tester,
-        messages: List.generate(10, (_) => eg.streamMessage(content: '<p>a</p>')));
+      await setupMessageListPage(tester, messages: List.generate(10,
+        (i) => eg.streamMessage(content: '<p>message $i</p>')));
       final controller = findMessageListScrollController(tester)!;
+      final findMiddleMessage = find.text('message 5');
 
-      // Starts at end, and with room to scroll up.
-      check(controller.position)
-        ..extentAfter.equals(0)
-        ..extentBefore.isGreaterThan(0);
-      final oldPosition = controller.position.pixels;
+      // Started out scrolled to the bottom.
+      check(controller.position).extentAfter.equals(0);
+      final scrollPixels = controller.position.pixels;
 
-      // On new message, position remains at end…
+      // Note the position of some mid-screen message.
+      final messageRect = tester.getRect(findMiddleMessage);
+      check(messageRect)..top.isGreaterThan(0)..bottom.isLessThan(600);
+
+      // When a new message arrives, the existing message moves up…
       await store.addMessage(eg.streamMessage(content: '<p>a</p><p>b</p>'));
       await tester.pump();
+      check(tester.getRect(findMiddleMessage))
+        ..top.isLessThan(messageRect.top)
+        ..height.isCloseTo(messageRect.height, Tolerance().distance);
+      // … because the position remains at the end…
       check(controller.position)
         ..extentAfter.equals(0)
         // … even though that means a bigger number now.
-        ..pixels.isGreaterThan(oldPosition);
+        ..pixels.isGreaterThan(scrollPixels);
+    });
+
+    testWidgets('preserves visible messages upon new message, when not at end', (tester) async {
+      await setupMessageListPage(tester, messages: List.generate(10,
+        (i) => eg.streamMessage(content: '<p>message $i</p>')));
+      final controller = findMessageListScrollController(tester)!;
+      final findMiddleMessage = find.text('message 5');
+
+      // Started at bottom.  Scroll up a bit.
+      check(controller.position).extentAfter.equals(0);
+      controller.position.jumpTo(controller.position.pixels - 100);
+      await tester.pump();
+      check(controller.position).extentAfter.equals(100);
+      final scrollPixels = controller.position.pixels;
+
+      // Note the position of some mid-screen message.
+      final messageRect = tester.getRect(findMiddleMessage);
+      check(messageRect)..top.isGreaterThan(0)..bottom.isLessThan(600);
+
+      // When a new message arrives, the existing message doesn't shift…
+      await store.addMessage(eg.streamMessage(content: '<p>a</p><p>b</p>'));
+      await tester.pump();
+      check(tester.getRect(findMiddleMessage)).equals(messageRect);
+      // … because the scroll position value remained the same…
+      check(controller.position)
+        ..pixels.equals(scrollPixels)
+        // … even though there's now more content off screen below.
+        // (This last check relies on the fact that the old extentAfter is small,
+        // less than cacheExtent, so that the new content is only barely offscreen,
+        // it gets built, and the new extentAfter reflects it.)
+        ..extentAfter.isGreaterThan(100);
     });
   });
 
@@ -579,6 +623,55 @@ void main() {
       check(pos).equals(0);
       // … and scrolled far enough to effectively test the max speed.
       check(log.sum).isGreaterThan(2 * maxSpeed);
+    });
+  });
+
+  group('markers at end of list', () {
+    final findLoadingIndicator = find.byType(CircularProgressIndicator);
+
+    testWidgets('spacer when have newest', (tester) async {
+      final messages = List.generate(10,
+        (i) => eg.streamMessage(content: '<p>message $i</p>'));
+      await setupMessageListPage(tester, narrow: CombinedFeedNarrow(),
+        fetchResult: eg.nearGetMessagesResult(anchor: messages.last.id,
+          foundOldest: true, foundNewest: true, messages: messages));
+      check(findMessageListScrollController(tester)!.position)
+        .extentAfter.equals(0);
+
+      // There's no loading indicator.
+      check(findLoadingIndicator).findsNothing();
+      // The last message is spaced above the bottom of the viewport.
+      check(tester.getRect(find.text('message 9')))
+        .bottom..isGreaterThan(400)..isLessThan(570);
+    });
+
+    testWidgets('loading indicator displaces spacer etc.', (tester) async {
+      await setupMessageListPage(tester, narrow: CombinedFeedNarrow(),
+        skipPumpAndSettle: true,
+        fetchResult: eg.nearGetMessagesResult(anchor: 1000,
+          foundOldest: true, foundNewest: false,
+          messages: List.generate(10,
+            (i) => eg.streamMessage(id: 100 + i, content: '<p>message $i</p>'))));
+      await tester.pump();
+
+      // The message list will immediately start fetching newer messages.
+      connection.prepare(json: eg.newerGetMessagesResult(
+        anchor: 109, foundNewest: true, messages: List.generate(100,
+          (i) => eg.streamMessage(id: 110 + i))).toJson());
+      await tester.pump(Duration(milliseconds: 10));
+      await tester.pump();
+
+      // There's a loading indicator.
+      check(findLoadingIndicator).findsOne();
+      // It's at the bottom.
+      check(findMessageListScrollController(tester)!.position)
+        .extentAfter.equals(0);
+      final loadingIndicatorRect = tester.getRect(findLoadingIndicator);
+      check(loadingIndicatorRect).bottom.isGreaterThan(575);
+      // The last message is shortly above it; no spacer or anything else.
+      check(tester.getRect(find.text('message 9')))
+        .bottom.isGreaterThan(loadingIndicatorRect.top - 36); // TODO where's this space going?
+      await tester.pumpAndSettle();
     });
   });
 
@@ -1594,15 +1687,8 @@ void main() {
       // as the number of items changes in MessageList. See
       // `findChildIndexCallback` passed into [SliverStickyHeaderList]
       // at [_MessageListState._buildListView].
-
-      // TODO(#82): Cut paddingMessage.  It's there to paper over a glitch:
-      //   the _UnreadMarker animation *does* get interrupted in the case where
-      //   the message gets pushed from one sliver to the other.  See:
-      //     https://github.com/zulip/zulip-flutter/pull/1436#issuecomment-2756738779
-      //   That case will no longer exist when #82 is complete.
       final message = eg.streamMessage(flags: []);
-      final paddingMessage = eg.streamMessage();
-      await setupMessageListPage(tester, messages: [message, paddingMessage]);
+      await setupMessageListPage(tester, messages: [message]);
       check(getAnimation(tester, message.id))
         ..value.equals(1.0)
         ..status.equals(AnimationStatus.dismissed);
@@ -1626,11 +1712,10 @@ void main() {
         ..status.equals(AnimationStatus.forward);
 
       // introduce new message
-      check(find.byType(MessageItem)).findsExactly(2);
       final newMessage = eg.streamMessage(flags:[MessageFlag.read]);
       await store.addMessage(newMessage);
       await tester.pump(); // process handleEvent
-      check(find.byType(MessageItem)).findsExactly(3);
+      check(find.byType(MessageItem)).findsExactly(2);
       check(getAnimation(tester, message.id))
         ..value.isGreaterThan(0.0)
         ..value.isLessThan(1.0)

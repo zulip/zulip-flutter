@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/backoff.dart';
@@ -24,9 +26,29 @@ import 'recent_senders_test.dart' as recent_senders_test;
 import 'test_store.dart';
 
 const newestResult = eg.newestGetMessagesResult;
+const nearResult = eg.nearGetMessagesResult;
 const olderResult = eg.olderGetMessagesResult;
+const newerResult = eg.newerGetMessagesResult;
 
 void main() {
+  // Arrange for errors caught within the Flutter framework to be printed
+  // unconditionally, rather than throttled as they normally are in an app.
+  //
+  // When using `testWidgets` from flutter_test, this is done automatically;
+  // compare the [FlutterError.dumpErrorToConsole] call sites,
+  // and [FlutterError.onError=] and [debugPrint=] call sites, in flutter_test.
+  //
+  // This test file is unusual in needing this manual arrangement; it's needed
+  // because these aren't widget tests, and yet do have some failures arise as
+  // exceptions that get caught by the framework: namely, when [checkInvariants]
+  // throws from within an `addListener` callback.  Those exceptions get caught
+  // by [ChangeNotifier.notifyListeners] and reported there through
+  // [FlutterError.reportError].
+  debugPrint = debugPrintSynchronously;
+  FlutterError.onError = (details) {
+    FlutterError.dumpErrorToConsole(details, forceReport: true);
+  };
+
   // These variables are the common state operated on by each test.
   // Each test case calls [prepare] to initialize them.
   late Subscription subscription;
@@ -46,7 +68,10 @@ void main() {
   void checkNotifiedOnce() => checkNotified(count: 1);
 
   /// Initialize [model] and the rest of the test state.
-  Future<void> prepare({Narrow narrow = const CombinedFeedNarrow()}) async {
+  Future<void> prepare({
+    Narrow narrow = const CombinedFeedNarrow(),
+    Anchor anchor = AnchorCode.newest,
+  }) async {
     final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
     subscription = eg.subscription(stream);
     store = eg.store();
@@ -54,7 +79,7 @@ void main() {
     await store.addSubscription(subscription);
     connection = store.connection as FakeApiConnection;
     notifiedCount = 0;
-    model = MessageListView.init(store: store, narrow: narrow)
+    model = MessageListView.init(store: store, narrow: narrow, anchor: anchor)
       ..addListener(() {
         checkInvariants(model);
         notifiedCount++;
@@ -67,11 +92,18 @@ void main() {
   ///
   /// The test case must have already called [prepare] to initialize the state.
   Future<void> prepareMessages({
-    required bool foundOldest,
+    bool? foundOldest,
+    bool? foundNewest,
+    int? anchorMessageId,
     required List<Message> messages,
   }) async {
-    connection.prepare(json:
-      newestResult(foundOldest: foundOldest, messages: messages).toJson());
+    final result = eg.getMessagesResult(
+      anchor: model.anchor == AnchorCode.firstUnread
+        ? NumericAnchor(anchorMessageId!) : model.anchor,
+      foundOldest: foundOldest,
+      foundNewest: foundNewest,
+      messages: messages);
+    connection.prepare(json: result.toJson());
     await model.fetchInitial();
     checkNotifiedOnce();
   }
@@ -95,6 +127,14 @@ void main() {
         'num_after': numAfter.toString(),
         'allow_empty_topic_name': allowEmptyTopicName.toString(),
       });
+  }
+
+  void checkHasMessageIds(Iterable<int> messageIds) {
+    check(model.messages.map((m) => m.id)).deepEquals(messageIds);
+  }
+
+  void checkHasMessages(Iterable<Message> messages) {
+    checkHasMessageIds(messages.map((e) => e.id));
   }
 
   group('fetchInitial', () {
@@ -122,12 +162,13 @@ void main() {
         checkNotifiedOnce();
         check(model)
           ..messages.length.equals(kMessageListFetchBatchSize)
-          ..haveOldest.isFalse();
+          ..haveOldest.isFalse()
+          ..haveNewest.isTrue();
         checkLastRequest(
           narrow: narrow.apiEncode(),
           anchor: 'newest',
           numBefore: kMessageListFetchBatchSize,
-          numAfter: 0,
+          numAfter: kMessageListFetchBatchSize,
           allowEmptyTopicName: true,
         );
       }
@@ -152,7 +193,22 @@ void main() {
       checkNotifiedOnce();
       check(model)
         ..messages.length.equals(30)
-        ..haveOldest.isTrue();
+        ..haveOldest.isTrue()
+        ..haveNewest.isTrue();
+    });
+
+    test('early in history', () async {
+      await prepare(anchor: NumericAnchor(1000));
+      connection.prepare(json: nearResult(
+        anchor: 1000, foundOldest: true, foundNewest: false,
+        messages: List.generate(111, (i) => eg.streamMessage(id: 990 + i)),
+      ).toJson());
+      await model.fetchInitial();
+      checkNotifiedOnce();
+      check(model)
+        ..messages.length.equals(111)
+        ..haveOldest.isTrue()
+        ..haveNewest.isFalse();
     });
 
     test('no messages found', () async {
@@ -166,7 +222,28 @@ void main() {
       check(model)
         ..fetched.isTrue()
         ..messages.isEmpty()
-        ..haveOldest.isTrue();
+        ..haveOldest.isTrue()
+        ..haveNewest.isTrue();
+    });
+
+    group('sends proper anchor', () {
+      Future<void> checkFetchWithAnchor(Anchor anchor) async {
+        await prepare(anchor: anchor);
+        // This prepared response isn't entirely realistic, depending on the anchor.
+        // That's OK; these particular tests don't use the details of the response.
+        connection.prepare(json:
+          newestResult(foundOldest: true, messages: []).toJson());
+        await model.fetchInitial();
+        checkNotifiedOnce();
+        check(connection.lastRequest).isA<http.Request>()
+          .url.queryParameters['anchor']
+            .equals(anchor.toJson());
+      }
+
+      test('oldest',      () => checkFetchWithAnchor(AnchorCode.oldest));
+      test('firstUnread', () => checkFetchWithAnchor(AnchorCode.firstUnread));
+      test('newest',      () => checkFetchWithAnchor(AnchorCode.newest));
+      test('numeric',     () => checkFetchWithAnchor(NumericAnchor(12345)));
     });
 
     // TODO(#824): move this test
@@ -215,8 +292,8 @@ void main() {
     });
   });
 
-  group('fetchOlder', () {
-    test('smoke', () async {
+  group('fetching more', () {
+    test('fetchOlder smoke', () async {
       const narrow = CombinedFeedNarrow();
       await prepare(narrow: narrow);
       await prepareMessages(foundOldest: false,
@@ -228,12 +305,12 @@ void main() {
       ).toJson());
       final fetchFuture = model.fetchOlder();
       checkNotifiedOnce();
-      check(model).fetchingOlder.isTrue();
+      check(model).busyFetchingMore.isTrue();
 
       await fetchFuture;
       checkNotifiedOnce();
       check(model)
-        ..fetchingOlder.isFalse()
+        ..busyFetchingMore.isFalse()
         ..messages.length.equals(200);
       checkLastRequest(
         narrow: narrow.apiEncode(),
@@ -245,42 +322,102 @@ void main() {
       );
     });
 
-    test('nop when already fetching', () async {
+    test('fetchNewer smoke', () async {
       const narrow = CombinedFeedNarrow();
-      await prepare(narrow: narrow);
-      await prepareMessages(foundOldest: false,
+      await prepare(narrow: narrow, anchor: NumericAnchor(1000));
+      await prepareMessages(foundOldest: true, foundNewest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
 
+      connection.prepare(json: newerResult(
+        anchor: 1099, foundNewest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 1100 + i)),
+      ).toJson());
+      final fetchFuture = model.fetchNewer();
+      checkNotifiedOnce();
+      check(model).busyFetchingMore.isTrue();
+
+      await fetchFuture;
+      checkNotifiedOnce();
+      check(model)
+        ..busyFetchingMore.isFalse()
+        ..messages.length.equals(200);
+      checkLastRequest(
+        narrow: narrow.apiEncode(),
+        anchor: '1099',
+        includeAnchor: false,
+        numBefore: 0,
+        numAfter: kMessageListFetchBatchSize,
+        allowEmptyTopicName: true,
+      );
+    });
+
+    test('nop when already fetching older', () async {
+      await prepare(anchor: NumericAnchor(1000));
+      await prepareMessages(foundOldest: false, foundNewest: false,
+        messages: List.generate(201, (i) => eg.streamMessage(id: 900 + i)));
+
       connection.prepare(json: olderResult(
-        anchor: 1000, foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 900 + i)),
+        anchor: 900, foundOldest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 800 + i)),
       ).toJson());
       final fetchFuture = model.fetchOlder();
       checkNotifiedOnce();
-      check(model).fetchingOlder.isTrue();
+      check(model).busyFetchingMore.isTrue();
 
       // Don't prepare another response.
       final fetchFuture2 = model.fetchOlder();
       checkNotNotified();
-      check(model).fetchingOlder.isTrue();
+      check(model).busyFetchingMore.isTrue();
+      final fetchFuture3 = model.fetchNewer();
+      checkNotNotified();
+      check(model)..busyFetchingMore.isTrue()..messages.length.equals(201);
 
       await fetchFuture;
       await fetchFuture2;
+      await fetchFuture3;
       // We must not have made another request, because we didn't
       // prepare another response and didn't get an exception.
       checkNotifiedOnce();
-      check(model)
-        ..fetchingOlder.isFalse()
-        ..messages.length.equals(200);
+      check(model)..busyFetchingMore.isFalse()..messages.length.equals(301);
     });
 
-    test('nop when already haveOldest true', () async {
-      await prepare(narrow: const CombinedFeedNarrow());
-      await prepareMessages(foundOldest: true, messages:
-        List.generate(30, (i) => eg.streamMessage()));
+    test('nop when already fetching newer', () async {
+      await prepare(anchor: NumericAnchor(1000));
+      await prepareMessages(foundOldest: false, foundNewest: false,
+        messages: List.generate(201, (i) => eg.streamMessage(id: 900 + i)));
+
+      connection.prepare(json: newerResult(
+        anchor: 1100, foundNewest: false,
+        messages: List.generate(100, (i) => eg.streamMessage(id: 1101 + i)),
+      ).toJson());
+      final fetchFuture = model.fetchNewer();
+      checkNotifiedOnce();
+      check(model).busyFetchingMore.isTrue();
+
+      // Don't prepare another response.
+      final fetchFuture2 = model.fetchOlder();
+      checkNotNotified();
+      check(model).busyFetchingMore.isTrue();
+      final fetchFuture3 = model.fetchNewer();
+      checkNotNotified();
+      check(model)..busyFetchingMore.isTrue()..messages.length.equals(201);
+
+      await fetchFuture;
+      await fetchFuture2;
+      await fetchFuture3;
+      // We must not have made another request, because we didn't
+      // prepare another response and didn't get an exception.
+      checkNotifiedOnce();
+      check(model)..busyFetchingMore.isFalse()..messages.length.equals(301);
+    });
+
+    test('fetchOlder nop when already haveOldest true', () async {
+      await prepare(anchor: NumericAnchor(1000));
+      await prepareMessages(foundOldest: true, foundNewest: false, messages:
+        List.generate(151, (i) => eg.streamMessage(id: 950 + i)));
       check(model)
         ..haveOldest.isTrue()
-        ..messages.length.equals(30);
+        ..messages.length.equals(151);
 
       await model.fetchOlder();
       // We must not have made a request, because we didn't
@@ -288,45 +425,73 @@ void main() {
       checkNotNotified();
       check(model)
         ..haveOldest.isTrue()
-        ..messages.length.equals(30);
+        ..messages.length.equals(151);
+    });
+
+    test('fetchNewer nop when already haveNewest true', () async {
+      await prepare(anchor: NumericAnchor(1000));
+      await prepareMessages(foundOldest: false, foundNewest: true, messages:
+        List.generate(151, (i) => eg.streamMessage(id: 950 + i)));
+      check(model)
+        ..haveNewest.isTrue()
+        ..messages.length.equals(151);
+
+      await model.fetchNewer();
+      // We must not have made a request, because we didn't
+      // prepare a response and didn't get an exception.
+      checkNotNotified();
+      check(model)
+        ..haveNewest.isTrue()
+        ..messages.length.equals(151);
     });
 
     test('nop during backoff', () => awaitFakeAsync((async) async {
       final olderMessages = List.generate(5, (i) => eg.streamMessage());
       final initialMessages = List.generate(5, (i) => eg.streamMessage());
-      await prepare(narrow: const CombinedFeedNarrow());
-      await prepareMessages(foundOldest: false, messages: initialMessages);
+      final newerMessages = List.generate(5, (i) => eg.streamMessage());
+      await prepare(anchor: NumericAnchor(initialMessages[2].id));
+      await prepareMessages(foundOldest: false, foundNewest: false,
+        messages: initialMessages);
       check(connection.takeRequests()).single;
 
       connection.prepare(apiException: eg.apiBadRequest());
       check(async.pendingTimers).isEmpty();
       await check(model.fetchOlder()).throws<ZulipApiException>();
       checkNotified(count: 2);
-      check(model).fetchOlderCoolingDown.isTrue();
+      check(model).busyFetchingMore.isTrue();
       check(connection.takeRequests()).single;
 
       await model.fetchOlder();
       checkNotNotified();
-      check(model).fetchOlderCoolingDown.isTrue();
-      check(model).fetchingOlder.isFalse();
+      check(model).busyFetchingMore.isTrue();
+      check(connection.lastRequest).isNull();
+
+      await model.fetchNewer();
+      checkNotNotified();
+      check(model).busyFetchingMore.isTrue();
       check(connection.lastRequest).isNull();
 
       // Wait long enough that a first backoff is sure to finish.
       async.elapse(const Duration(seconds: 1));
-      check(model).fetchOlderCoolingDown.isFalse();
+      check(model).busyFetchingMore.isFalse();
       checkNotifiedOnce();
       check(connection.lastRequest).isNull();
 
-      connection.prepare(json: olderResult(
-        anchor: 1000, foundOldest: false, messages: olderMessages).toJson());
+      connection.prepare(json: olderResult(anchor: initialMessages.first.id,
+        foundOldest: false, messages: olderMessages).toJson());
       await model.fetchOlder();
+      checkNotified(count: 2);
+      check(connection.takeRequests()).single;
+
+      connection.prepare(json: newerResult(anchor: initialMessages.last.id,
+        foundNewest: false, messages: newerMessages).toJson());
+      await model.fetchNewer();
       checkNotified(count: 2);
       check(connection.takeRequests()).single;
     }));
 
-    test('handles servers not understanding includeAnchor', () async {
-      const narrow = CombinedFeedNarrow();
-      await prepare(narrow: narrow);
+    test('fetchOlder handles servers not understanding includeAnchor', () async {
+      await prepare();
       await prepareMessages(foundOldest: false,
         messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
 
@@ -338,14 +503,30 @@ void main() {
       await model.fetchOlder();
       checkNotified(count: 2);
       check(model)
-        ..fetchingOlder.isFalse()
+        ..busyFetchingMore.isFalse()
         ..messages.length.equals(200);
     });
 
+    test('fetchNewer handles servers not understanding includeAnchor', () async {
+      await prepare(anchor: NumericAnchor(1000));
+      await prepareMessages(foundOldest: true, foundNewest: false,
+        messages: List.generate(101, (i) => eg.streamMessage(id: 1000 + i)));
+
+      // The old behavior is to include the anchor message regardless of includeAnchor.
+      connection.prepare(json: newerResult(
+        anchor: 1100, foundNewest: false, foundAnchor: true,
+        messages: List.generate(101, (i) => eg.streamMessage(id: 1100 + i)),
+      ).toJson());
+      await model.fetchNewer();
+      checkNotified(count: 2);
+      check(model)
+        ..busyFetchingMore.isFalse()
+        ..messages.length.equals(201);
+    });
+
     // TODO(#824): move this test
-    test('recent senders track all the messages', () async {
-      const narrow = CombinedFeedNarrow();
-      await prepare(narrow: narrow);
+    test('fetchOlder recent senders track all the messages', () async {
+      await prepare();
       final initialMessages = List.generate(10, (i) => eg.streamMessage(id: 100 + i));
       await prepareMessages(foundOldest: false, messages: initialMessages);
 
@@ -361,6 +542,27 @@ void main() {
       check(model).messages.length.equals(20);
       recent_senders_test.checkMatchesMessages(store.recentSenders,
         [...initialMessages, ...oldMessages]);
+    });
+
+    // TODO(#824): move this test
+    test('TODO fetchNewer recent senders track all the messages', () async {
+      await prepare(anchor: NumericAnchor(100));
+      final initialMessages = List.generate(10, (i) => eg.streamMessage(id: 100 + i));
+      await prepareMessages(foundOldest: true, foundNewest: false,
+        messages: initialMessages);
+
+      final newMessages = List.generate(10, (i) => eg.streamMessage(id: 110 + i))
+        // Not subscribed to the stream with id 10.
+        ..add(eg.streamMessage(id: 120, stream: eg.stream(streamId: 10)));
+      connection.prepare(json: newerResult(
+        anchor: 100, foundNewest: false,
+        messages: newMessages,
+      ).toJson());
+      await model.fetchNewer();
+
+      check(model).messages.length.equals(20);
+      recent_senders_test.checkMatchesMessages(store.recentSenders,
+        [...initialMessages, ...newMessages]);
     });
   });
 
@@ -418,10 +620,6 @@ void main() {
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream, isMuted: streamMuted));
       await setVisibility(policy);
-    }
-
-    void checkHasMessageIds(Iterable<int> messageIds) {
-      check(model.messages.map((m) => m.id)).deepEquals(messageIds);
     }
 
     test('mute a visible topic', () async {
@@ -624,11 +822,11 @@ void main() {
       check(model).messages.length.equals(30);
       await store.handleEvent(eg.deleteMessageEvent(messagesToDelete));
       checkNotifiedOnce();
-      check(model.messages.map((message) => message.id)).deepEquals([
+      checkHasMessages([
         ...messages.sublist(0, 2),
         ...messages.sublist(5, 10),
         ...messages.sublist(15),
-      ].map((message) => message.id));
+      ]);
     });
   });
 
@@ -730,10 +928,6 @@ void main() {
   group('messagesMoved', () {
     final stream = eg.stream();
     final otherStream = eg.stream();
-
-    void checkHasMessages(Iterable<Message> messages) {
-      check(model.messages.map((e) => e.id)).deepEquals(messages.map((e) => e.id));
-    }
 
     Future<void> prepareNarrow(Narrow narrow, List<Message>? messages) async {
       await prepare(narrow: narrow);
@@ -1048,7 +1242,7 @@ void main() {
           messages: olderMessages,
         ).toJson());
         final fetchFuture = model.fetchOlder();
-        check(model).fetchingOlder.isTrue();
+        check(model).busyFetchingMore.isTrue();
         checkHasMessages(initialMessages);
         checkNotifiedOnce();
 
@@ -1061,7 +1255,7 @@ void main() {
           origStreamId: otherStream.streamId,
           newMessages: movedMessages,
         ));
-        check(model).fetchingOlder.isFalse();
+        check(model).busyFetchingMore.isFalse();
         checkHasMessages([]);
         checkNotifiedOnce();
 
@@ -1084,7 +1278,7 @@ void main() {
         ).toJson());
         final fetchFuture = model.fetchOlder();
         checkHasMessages(initialMessages);
-        check(model).fetchingOlder.isTrue();
+        check(model).busyFetchingMore.isTrue();
         checkNotifiedOnce();
 
         connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
@@ -1097,7 +1291,7 @@ void main() {
           newMessages: movedMessages,
         ));
         checkHasMessages([]);
-        check(model).fetchingOlder.isFalse();
+        check(model).busyFetchingMore.isFalse();
         checkNotifiedOnce();
 
         async.elapse(const Duration(seconds: 1));
@@ -1118,7 +1312,7 @@ void main() {
         BackoffMachine.debugDuration = const Duration(seconds: 1);
         await check(model.fetchOlder()).throws<ZulipApiException>();
         final backoffTimerA = async.pendingTimers.single;
-        check(model).fetchOlderCoolingDown.isTrue();
+        check(model).busyFetchingMore.isTrue();
         check(model).fetched.isTrue();
         checkHasMessages(initialMessages);
         checkNotified(count: 2);
@@ -1136,36 +1330,36 @@ void main() {
         check(model).fetched.isFalse();
         checkHasMessages([]);
         checkNotifiedOnce();
-        check(model).fetchOlderCoolingDown.isFalse();
+        check(model).busyFetchingMore.isFalse();
         check(backoffTimerA.isActive).isTrue();
 
         async.elapse(Duration.zero);
         check(model).fetched.isTrue();
         checkHasMessages(initialMessages + movedMessages);
         checkNotifiedOnce();
-        check(model).fetchOlderCoolingDown.isFalse();
+        check(model).busyFetchingMore.isFalse();
         check(backoffTimerA.isActive).isTrue();
 
         connection.prepare(apiException: eg.apiBadRequest());
         BackoffMachine.debugDuration = const Duration(seconds: 2);
         await check(model.fetchOlder()).throws<ZulipApiException>();
         final backoffTimerB = async.pendingTimers.last;
-        check(model).fetchOlderCoolingDown.isTrue();
+        check(model).busyFetchingMore.isTrue();
         check(backoffTimerA.isActive).isTrue();
         check(backoffTimerB.isActive).isTrue();
         checkNotified(count: 2);
 
-        // When `backoffTimerA` ends, `fetchOlderCoolingDown` remains `true`
+        // When `backoffTimerA` ends, `busyFetchingMore` remains `true`
         // because the backoff was from a previous generation.
         async.elapse(const Duration(seconds: 1));
-        check(model).fetchOlderCoolingDown.isTrue();
+        check(model).busyFetchingMore.isTrue();
         check(backoffTimerA.isActive).isFalse();
         check(backoffTimerB.isActive).isTrue();
         checkNotNotified();
 
-        // When `backoffTimerB` ends, `fetchOlderCoolingDown` gets reset.
+        // When `backoffTimerB` ends, `busyFetchingMore` gets reset.
         async.elapse(const Duration(seconds: 1));
-        check(model).fetchOlderCoolingDown.isFalse();
+        check(model).busyFetchingMore.isFalse();
         check(backoffTimerA.isActive).isFalse();
         check(backoffTimerB.isActive).isFalse();
         checkNotifiedOnce();
@@ -1247,7 +1441,7 @@ void main() {
         ).toJson());
         final fetchFuture1 = model.fetchOlder();
         checkHasMessages(initialMessages);
-        check(model).fetchingOlder.isTrue();
+        check(model).busyFetchingMore.isTrue();
         checkNotifiedOnce();
 
         connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
@@ -1260,7 +1454,7 @@ void main() {
           newMessages: movedMessages,
         ));
         checkHasMessages([]);
-        check(model).fetchingOlder.isFalse();
+        check(model).busyFetchingMore.isFalse();
         checkNotifiedOnce();
 
         async.elapse(const Duration(seconds: 1));
@@ -1273,19 +1467,19 @@ void main() {
         ).toJson());
         final fetchFuture2 = model.fetchOlder();
         checkHasMessages(initialMessages + movedMessages);
-        check(model).fetchingOlder.isTrue();
+        check(model).busyFetchingMore.isTrue();
         checkNotifiedOnce();
 
         await fetchFuture1;
         checkHasMessages(initialMessages + movedMessages);
         // The older fetchOlder call should not override fetchingOlder set by
         // the new fetchOlder call, nor should it notify the listeners.
-        check(model).fetchingOlder.isTrue();
+        check(model).busyFetchingMore.isTrue();
         checkNotNotified();
 
         await fetchFuture2;
         checkHasMessages(olderMessages + initialMessages + movedMessages);
-        check(model).fetchingOlder.isFalse();
+        check(model).busyFetchingMore.isFalse();
         checkNotifiedOnce();
       }));
     });
@@ -1301,12 +1495,14 @@ void main() {
 
       int notifiedCount1 = 0;
       final model1 = MessageListView.init(store: store,
-          narrow: ChannelNarrow(stream.streamId))
+          narrow: ChannelNarrow(stream.streamId),
+          anchor: AnchorCode.newest)
         ..addListener(() => notifiedCount1++);
 
       int notifiedCount2 = 0;
       final model2 = MessageListView.init(store: store,
-          narrow: eg.topicNarrow(stream.streamId, 'hello'))
+          narrow: eg.topicNarrow(stream.streamId, 'hello'),
+          anchor: AnchorCode.newest)
         ..addListener(() => notifiedCount2++);
 
       for (final m in [model1, model2]) {
@@ -1346,7 +1542,8 @@ void main() {
       await store.handleEvent(mkEvent(message));
 
       // init msglist *after* event was handled
-      model = MessageListView.init(store: store, narrow: const CombinedFeedNarrow());
+      model = MessageListView.init(store: store,
+        narrow: const CombinedFeedNarrow(), anchor: AnchorCode.newest);
       checkInvariants(model);
 
       connection.prepare(json:
@@ -1438,8 +1635,7 @@ void main() {
         eg.dmMessage(    id: 205, from: eg.otherUser, to: [eg.selfUser]),
       ]);
       final expected = <int>[];
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..addAll([201, 203, 205]));
+      checkHasMessageIds(expected..addAll([201, 203, 205]));
 
       // … and on fetchOlder…
       connection.prepare(json: olderResult(
@@ -1452,34 +1648,33 @@ void main() {
         ]).toJson());
       await model.fetchOlder();
       checkNotified(count: 2);
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..insertAll(0, [101, 103, 105]));
+      checkHasMessageIds(expected..insertAll(0, [101, 103, 105]));
 
       // … and on MessageEvent.
       await store.addMessage(
         eg.streamMessage(id: 301, stream: stream1, topic: 'A'));
       checkNotifiedOnce();
-      check(model.messages.map((m) => m.id)).deepEquals(expected..add(301));
+      checkHasMessageIds(expected..add(301));
 
       await store.addMessage(
         eg.streamMessage(id: 302, stream: stream1, topic: 'B'));
       checkNotNotified();
-      check(model.messages.map((m) => m.id)).deepEquals(expected);
+      checkHasMessageIds(expected);
 
       await store.addMessage(
         eg.streamMessage(id: 303, stream: stream2, topic: 'C'));
       checkNotifiedOnce();
-      check(model.messages.map((m) => m.id)).deepEquals(expected..add(303));
+      checkHasMessageIds(expected..add(303));
 
       await store.addMessage(
         eg.streamMessage(id: 304, stream: stream2, topic: 'D'));
       checkNotNotified();
-      check(model.messages.map((m) => m.id)).deepEquals(expected);
+      checkHasMessageIds(expected);
 
       await store.addMessage(
         eg.dmMessage(id: 305, from: eg.otherUser, to: [eg.selfUser]));
       checkNotifiedOnce();
-      check(model.messages.map((m) => m.id)).deepEquals(expected..add(305));
+      checkHasMessageIds(expected..add(305));
     });
 
     test('in ChannelNarrow', () async {
@@ -1497,8 +1692,7 @@ void main() {
         eg.streamMessage(id: 203, stream: stream, topic: 'C'),
       ]);
       final expected = <int>[];
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..addAll([201, 202]));
+      checkHasMessageIds(expected..addAll([201, 202]));
 
       // … and on fetchOlder…
       connection.prepare(json: olderResult(
@@ -1509,24 +1703,23 @@ void main() {
         ]).toJson());
       await model.fetchOlder();
       checkNotified(count: 2);
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..insertAll(0, [101, 102]));
+      checkHasMessageIds(expected..insertAll(0, [101, 102]));
 
       // … and on MessageEvent.
       await store.addMessage(
         eg.streamMessage(id: 301, stream: stream, topic: 'A'));
       checkNotifiedOnce();
-      check(model.messages.map((m) => m.id)).deepEquals(expected..add(301));
+      checkHasMessageIds(expected..add(301));
 
       await store.addMessage(
         eg.streamMessage(id: 302, stream: stream, topic: 'B'));
       checkNotifiedOnce();
-      check(model.messages.map((m) => m.id)).deepEquals(expected..add(302));
+      checkHasMessageIds(expected..add(302));
 
       await store.addMessage(
         eg.streamMessage(id: 303, stream: stream, topic: 'C'));
       checkNotNotified();
-      check(model.messages.map((m) => m.id)).deepEquals(expected);
+      checkHasMessageIds(expected);
     });
 
     test('in TopicNarrow', () async {
@@ -1541,8 +1734,7 @@ void main() {
         eg.streamMessage(id: 201, stream: stream, topic: 'A'),
       ]);
       final expected = <int>[];
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..addAll([201]));
+      checkHasMessageIds(expected..addAll([201]));
 
       // … and on fetchOlder…
       connection.prepare(json: olderResult(
@@ -1551,14 +1743,13 @@ void main() {
         ]).toJson());
       await model.fetchOlder();
       checkNotified(count: 2);
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..insertAll(0, [101]));
+      checkHasMessageIds(expected..insertAll(0, [101]));
 
       // … and on MessageEvent.
       await store.addMessage(
         eg.streamMessage(id: 301, stream: stream, topic: 'A'));
       checkNotifiedOnce();
-      check(model.messages.map((m) => m.id)).deepEquals(expected..add(301));
+      checkHasMessageIds(expected..add(301));
     });
 
     test('in MentionsNarrow', () async {
@@ -1581,23 +1772,21 @@ void main() {
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: getMessages(201));
       final expected = <int>[];
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..addAll([201, 202, 203]));
+      checkHasMessageIds(expected..addAll([201, 202, 203]));
 
       // … and on fetchOlder…
       connection.prepare(json: olderResult(
         anchor: 201, foundOldest: true, messages: getMessages(101)).toJson());
       await model.fetchOlder();
       checkNotified(count: 2);
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..insertAll(0, [101, 102, 103]));
+      checkHasMessageIds(expected..insertAll(0, [101, 102, 103]));
 
       // … and on MessageEvent.
       final messages = getMessages(301);
       for (var i = 0; i < 3; i += 1) {
         await store.addMessage(messages[i]);
         checkNotifiedOnce();
-        check(model.messages.map((m) => m.id)).deepEquals(expected..add(301 + i));
+        checkHasMessageIds(expected..add(301 + i));
       }
     });
 
@@ -1619,24 +1808,259 @@ void main() {
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: getMessages(201));
       final expected = <int>[];
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..addAll([201, 202]));
+      checkHasMessageIds(expected..addAll([201, 202]));
 
       // … and on fetchOlder…
       connection.prepare(json: olderResult(
         anchor: 201, foundOldest: true, messages: getMessages(101)).toJson());
       await model.fetchOlder();
       checkNotified(count: 2);
-      check(model.messages.map((m) => m.id))
-        .deepEquals(expected..insertAll(0, [101, 102]));
+      checkHasMessageIds(expected..insertAll(0, [101, 102]));
 
       // … and on MessageEvent.
       final messages = getMessages(301);
       for (var i = 0; i < 2; i += 1) {
         await store.addMessage(messages[i]);
         checkNotifiedOnce();
-        check(model.messages.map((m) => m.id)).deepEquals(expected..add(301 + i));
+        checkHasMessageIds(expected..add(301 + i));
       }
+    });
+  });
+
+  group('middleMessage maintained', () {
+    // In [checkInvariants] we verify that messages don't move from the
+    // top to the bottom slice or vice versa.
+    // Most of these test cases rely on that for all the checks they need.
+
+    test('on fetchInitial empty', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await prepareMessages(foundOldest: true, messages: []);
+      check(model)..messages.isEmpty()
+        ..middleMessage.equals(0);
+    });
+
+    test('on fetchInitial empty due to muting', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream, isMuted: true));
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(stream: stream),
+      ]);
+      check(model)..messages.isEmpty()
+        ..middleMessage.equals(0);
+    });
+
+    test('on fetchInitial, anchor past end', () async {
+      await prepare(narrow: const CombinedFeedNarrow(),
+        anchor: AnchorCode.newest);
+      final stream1 = eg.stream();
+      final stream2 = eg.stream();
+      await store.addStreams([stream1, stream2]);
+      await store.addSubscription(eg.subscription(stream1));
+      await store.addSubscription(eg.subscription(stream2, isMuted: true));
+      final messages = [
+        eg.streamMessage(stream: stream1), eg.streamMessage(stream: stream2),
+        eg.streamMessage(stream: stream1), eg.streamMessage(stream: stream2),
+        eg.streamMessage(stream: stream1), eg.streamMessage(stream: stream2),
+        eg.streamMessage(stream: stream1), eg.streamMessage(stream: stream2),
+        eg.streamMessage(stream: stream1), eg.streamMessage(stream: stream2),
+      ];
+      await prepareMessages(foundOldest: true, messages: messages);
+      // The anchor message is the last visible message…
+      check(model)
+        ..messages.length.equals(5)
+        ..middleMessage.equals(model.messages.length - 1)
+        // … even though that's not the last message that was in the response.
+        ..messages[model.middleMessage].id
+            .equals(messages[messages.length - 2].id);
+    });
+
+    test('on fetchInitial, anchor in middle', () async {
+      final s1 = eg.stream();
+      final s2 = eg.stream();
+      final messages = [
+        eg.streamMessage(id: 1, stream: s1), eg.streamMessage(id: 2, stream: s2),
+        eg.streamMessage(id: 3, stream: s1), eg.streamMessage(id: 4, stream: s2),
+        eg.streamMessage(id: 5, stream: s1), eg.streamMessage(id: 6, stream: s2),
+        eg.streamMessage(id: 7, stream: s1), eg.streamMessage(id: 8, stream: s2),
+      ];
+      final anchorId = 4;
+
+      await prepare(narrow: const CombinedFeedNarrow(),
+        anchor: NumericAnchor(anchorId));
+      await store.addStreams([s1, s2]);
+      await store.addSubscription(eg.subscription(s1));
+      await store.addSubscription(eg.subscription(s2, isMuted: true));
+      await prepareMessages(foundOldest: true, foundNewest: true,
+        messages: messages);
+      // The anchor message is the first visible message with ID at least anchorId…
+      check(model)
+        ..messages[model.middleMessage - 1].id.isLessThan(anchorId)
+        ..messages[model.middleMessage].id.isGreaterOrEqual(anchorId);
+      // … even though a non-visible message actually had anchorId itself.
+      check(messages[3].id)
+        ..equals(anchorId)
+        ..isLessThan(model.messages[model.middleMessage].id);
+    });
+
+    /// Like [prepareMessages], but arrange for the given top and bottom slices.
+    Future<void> prepareMessageSplit(List<Message> top, List<Message> bottom, {
+      bool foundOldest = true,
+    }) async {
+      assert(bottom.isNotEmpty); // could handle this too if necessary
+      await prepareMessages(foundOldest: foundOldest, messages: [
+        ...top,
+        bottom.first,
+      ]);
+      if (bottom.length > 1) {
+        await store.addMessages(bottom.skip(1));
+        checkNotifiedOnce();
+      }
+      check(model)
+        ..messages.length.equals(top.length + bottom.length)
+        ..middleMessage.equals(top.length);
+    }
+
+    test('on fetchOlder', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await prepareMessageSplit(foundOldest: false,
+        [eg.streamMessage(id: 100, stream: stream)],
+        [eg.streamMessage(id: 101, stream: stream)]);
+
+      connection.prepare(json: olderResult(anchor: 100, foundOldest: true,
+        messages: List.generate(5, (i) =>
+          eg.streamMessage(id: 95 + i, stream: stream))).toJson());
+      await model.fetchOlder();
+      checkNotified(count: 2);
+    });
+
+    test('on fetchOlder, from top empty', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await prepareMessageSplit(foundOldest: false,
+        [], [eg.streamMessage(id: 100, stream: stream)]);
+
+      connection.prepare(json: olderResult(anchor: 100, foundOldest: true,
+        messages: List.generate(5, (i) =>
+          eg.streamMessage(id: 95 + i, stream: stream))).toJson());
+      await model.fetchOlder();
+      checkNotified(count: 2);
+      // The messages from fetchOlder should go in the top sliver, always.
+      check(model).middleMessage.equals(5);
+    });
+
+    test('on MessageEvent', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await prepareMessageSplit(foundOldest: false,
+        [eg.streamMessage(stream: stream)],
+        [eg.streamMessage(stream: stream)]);
+
+      await store.addMessage(eg.streamMessage(stream: stream));
+      checkNotifiedOnce();
+    });
+
+    test('on messages muted, including anchor', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await prepareMessageSplit([
+        eg.streamMessage(stream: stream, topic: 'foo'),
+        eg.streamMessage(stream: stream, topic: 'bar'),
+      ], [
+        eg.streamMessage(stream: stream, topic: 'bar'),
+        eg.streamMessage(stream: stream, topic: 'foo'),
+      ]);
+
+      await store.handleEvent(eg.userTopicEvent(
+        stream.streamId, 'bar', UserTopicVisibilityPolicy.muted));
+      checkNotifiedOnce();
+    });
+
+    test('on messages muted, not including anchor', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await prepareMessageSplit([
+        eg.streamMessage(stream: stream, topic: 'foo'),
+        eg.streamMessage(stream: stream, topic: 'bar'),
+      ], [
+        eg.streamMessage(stream: stream, topic: 'foo'),
+      ]);
+
+      await store.handleEvent(eg.userTopicEvent(
+        stream.streamId, 'bar', UserTopicVisibilityPolicy.muted));
+      checkNotifiedOnce();
+    });
+
+    test('on messages muted, bottom empty', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await prepareMessageSplit([
+        eg.streamMessage(stream: stream, topic: 'foo'),
+        eg.streamMessage(stream: stream, topic: 'bar'),
+      ], [
+        eg.streamMessage(stream: stream, topic: 'third'),
+      ]);
+
+      await store.handleEvent(eg.deleteMessageEvent([
+        model.messages.last as StreamMessage]));
+      checkNotifiedOnce();
+      check(model).middleMessage.equals(model.messages.length);
+
+      await store.handleEvent(eg.userTopicEvent(
+        stream.streamId, 'bar', UserTopicVisibilityPolicy.muted));
+      checkNotifiedOnce();
+    });
+
+    test('on messages deleted', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      final messages = [
+        eg.streamMessage(id: 1, stream: stream),
+        eg.streamMessage(id: 2, stream: stream),
+        eg.streamMessage(id: 3, stream: stream),
+        eg.streamMessage(id: 4, stream: stream),
+      ];
+      await prepareMessageSplit(messages.sublist(0, 2), messages.sublist(2));
+
+      await store.handleEvent(eg.deleteMessageEvent(messages.sublist(1, 3)));
+      checkNotifiedOnce();
+    });
+
+    test('on messages deleted, bottom empty', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      final messages = [
+        eg.streamMessage(id: 1, stream: stream),
+        eg.streamMessage(id: 2, stream: stream),
+        eg.streamMessage(id: 3, stream: stream),
+        eg.streamMessage(id: 4, stream: stream),
+      ];
+      await prepareMessageSplit(messages.sublist(0, 3), messages.sublist(3));
+
+      await store.handleEvent(eg.deleteMessageEvent(messages.sublist(3)));
+      checkNotifiedOnce();
+      check(model).middleMessage.equals(model.messages.length);
+
+      await store.handleEvent(eg.deleteMessageEvent(messages.sublist(1, 2)));
+      checkNotifiedOnce();
     });
   });
 
@@ -1913,20 +2337,20 @@ void main() {
   });
 }
 
+MessageListView? _lastModel;
+List<Message>? _lastMessages;
+int? _lastMiddleMessage;
+
 void checkInvariants(MessageListView model) {
   if (!model.fetched) {
     check(model)
       ..messages.isEmpty()
       ..haveOldest.isFalse()
-      ..fetchingOlder.isFalse()
-      ..fetchOlderCoolingDown.isFalse();
+      ..haveNewest.isFalse()
+      ..busyFetchingMore.isFalse();
   }
-  if (model.haveOldest) {
-    check(model).fetchingOlder.isFalse();
-    check(model).fetchOlderCoolingDown.isFalse();
-  }
-  if (model.fetchingOlder) {
-    check(model).fetchOlderCoolingDown.isFalse();
+  if (model.haveOldest && model.haveNewest) {
+    check(model).busyFetchingMore.isFalse();
   }
 
   for (final message in model.messages) {
@@ -1950,6 +2374,25 @@ void checkInvariants(MessageListView model) {
 
   check(isSortedWithoutDuplicates(model.messages.map((m) => m.id).toList()))
     .isTrue();
+
+  check(model).middleMessage
+    ..isGreaterOrEqual(0)
+    ..isLessOrEqual(model.messages.length);
+
+  if (identical(model, _lastModel)
+      && model.generation == _lastModel!.generation) {
+    // All messages that were present, and still are, should be on the same side
+    // of `middleMessage` (still top or bottom slice respectively) as they were.
+    _checkNoIntersection(ListSlice(model.messages, 0, model.middleMessage),
+      ListSlice(_lastMessages!, _lastMiddleMessage!, _lastMessages!.length),
+      because: 'messages moved from bottom slice to top slice');
+    _checkNoIntersection(ListSlice(_lastMessages!, 0, _lastMiddleMessage!),
+      ListSlice(model.messages, model.middleMessage, model.messages.length),
+      because: 'messages moved from top slice to bottom slice');
+  }
+  _lastModel = model;
+  _lastMessages = model.messages.toList();
+  _lastMiddleMessage = model.middleMessage;
 
   check(model).contents.length.equals(model.messages.length);
   for (int i = 0; i < model.contents.length; i++) {
@@ -1988,6 +2431,27 @@ void checkInvariants(MessageListView model) {
         });
   }
   check(model.items).length.equals(i);
+
+  check(model).middleItem
+    ..isGreaterOrEqual(0)
+    ..isLessOrEqual(model.items.length);
+  if (model.middleItem == model.items.length) {
+    check(model.middleMessage).equals(model.messages.length);
+  } else {
+    check(model.items[model.middleItem]).isA<MessageListMessageItem>()
+      .message.identicalTo(model.messages[model.middleMessage]);
+  }
+}
+
+void _checkNoIntersection(List<Message> xs, List<Message> ys, {String? because}) {
+  // Both lists are sorted by ID.  As an optimization, bet on all or nearly all
+  // of the first list having smaller IDs than all or nearly all of the other.
+  if (xs.isEmpty || ys.isEmpty) return;
+  if (xs.last.id < ys.first.id) return;
+  final yCandidates = Set.of(ys.takeWhile((m) => m.id <= xs.last.id));
+  final intersection = xs.reversed.takeWhile((m) => ys.first.id <= m.id)
+    .where(yCandidates.contains);
+  check(intersection, because: because).isEmpty();
 }
 
 extension MessageListRecipientHeaderItemChecks on Subject<MessageListRecipientHeaderItem> {
@@ -2013,10 +2477,12 @@ extension MessageListViewChecks on Subject<MessageListView> {
   Subject<PerAccountStore> get store => has((x) => x.store, 'store');
   Subject<Narrow> get narrow => has((x) => x.narrow, 'narrow');
   Subject<List<Message>> get messages => has((x) => x.messages, 'messages');
+  Subject<int> get middleMessage => has((x) => x.middleMessage, 'middleMessage');
   Subject<List<ZulipMessageContent>> get contents => has((x) => x.contents, 'contents');
   Subject<List<MessageListItem>> get items => has((x) => x.items, 'items');
+  Subject<int> get middleItem => has((x) => x.middleItem, 'middleItem');
   Subject<bool> get fetched => has((x) => x.fetched, 'fetched');
   Subject<bool> get haveOldest => has((x) => x.haveOldest, 'haveOldest');
-  Subject<bool> get fetchingOlder => has((x) => x.fetchingOlder, 'fetchingOlder');
-  Subject<bool> get fetchOlderCoolingDown => has((x) => x.fetchOlderCoolingDown, 'fetchOlderCoolingDown');
+  Subject<bool> get haveNewest => has((x) => x.haveNewest, 'haveNewest');
+  Subject<bool> get busyFetchingMore => has((x) => x.busyFetchingMore, 'busyFetchingMore');
 }

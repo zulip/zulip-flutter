@@ -7,6 +7,7 @@ import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
+import '../model/settings.dart';
 import '../model/store.dart';
 import '../model/typing_status.dart';
 import 'action_sheet.dart';
@@ -147,12 +148,17 @@ abstract class MessageListPageState {
 }
 
 class MessageListPage extends StatefulWidget {
-  const MessageListPage({super.key, required this.initNarrow});
+  const MessageListPage({
+    super.key,
+    required this.initNarrow,
+    this.initAnchorMessageId,
+  });
 
   static AccountRoute<void> buildRoute({int? accountId, BuildContext? context,
-      required Narrow narrow}) {
+      required Narrow narrow, int? initAnchorMessageId}) {
     return MaterialAccountWidgetRoute(accountId: accountId, context: context,
-      page: MessageListPage(initNarrow: narrow));
+      page: MessageListPage(
+        initNarrow: narrow, initAnchorMessageId: initAnchorMessageId));
   }
 
   /// The [MessageListPageState] above this context in the tree.
@@ -168,6 +174,7 @@ class MessageListPage extends StatefulWidget {
   }
 
   final Narrow initNarrow;
+  final int? initAnchorMessageId;
 
   @override
   State<MessageListPage> createState() => _MessageListPageState();
@@ -237,6 +244,15 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
             narrow: ChannelNarrow(streamId)))));
     }
 
+    final Anchor initAnchor;
+    if (widget.initAnchorMessageId != null) {
+      initAnchor = NumericAnchor(widget.initAnchorMessageId!);
+    } else {
+      final globalSettings = GlobalStoreWidget.settingsOf(context);
+      initAnchor = globalSettings.getBool(BoolGlobalSetting.openFirstUnread)
+        ? AnchorCode.firstUnread : AnchorCode.newest;
+    }
+
     // Insert a PageRoot here, to provide a context that can be used for
     // MessageListPage.ancestorOf.
     return PageRoot(child: Scaffold(
@@ -256,7 +272,8 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
       //   we matched to the Figma in 21dbae120. See another frame, which uses that:
       //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=147%3A9088&mode=dev
       body: Builder(
-        builder: (BuildContext context) => Column(
+        builder: (BuildContext context) {
+          return Column(
           // Children are expected to take the full horizontal space
           // and handle the horizontal device insets.
           // The bottom inset should be handled by the last child only.
@@ -276,11 +293,13 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
                 child: MessageList(
                   key: _messageListKey,
                   narrow: narrow,
+                  initAnchor: initAnchor,
                   onNarrowChanged: _narrowChanged,
                 ))),
             if (ComposeBox.hasComposeBox(narrow))
               ComposeBox(key: _composeBoxKey, narrow: narrow)
-          ]))));
+          ]);
+        })));
   }
 }
 
@@ -438,9 +457,15 @@ const kFetchMessagesBufferPixels = (kMessageListFetchBatchSize / 2) * _kShortMes
 /// When there is no [ComposeBox], also takes responsibility
 /// for dealing with the bottom inset.
 class MessageList extends StatefulWidget {
-  const MessageList({super.key, required this.narrow, required this.onNarrowChanged});
+  const MessageList({
+    super.key,
+    required this.narrow,
+    required this.initAnchor,
+    required this.onNarrowChanged,
+  });
 
   final Narrow narrow;
+  final Anchor initAnchor;
   final void Function(Narrow newNarrow) onNarrowChanged;
 
   @override
@@ -463,8 +488,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   @override
   void onNewStore() { // TODO(#464) try to keep using old model until new one gets messages
+    final anchor = _model == null ? widget.initAnchor : _model!.anchor;
     _model?.dispose();
-    _initModel(PerAccountStoreWidget.of(context));
+    _initModel(PerAccountStoreWidget.of(context), anchor);
   }
 
   @override
@@ -475,8 +501,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     super.dispose();
   }
 
-  void _initModel(PerAccountStore store) {
-    _model = MessageListView.init(store: store, narrow: widget.narrow);
+  void _initModel(PerAccountStore store, Anchor anchor) {
+    _model = MessageListView.init(store: store,
+      narrow: widget.narrow, anchor: anchor);
     model.addListener(_modelChanged);
     model.fetchInitial();
   }
@@ -490,6 +517,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       //   redirected us to the new location of the operand message ID.
       widget.onNarrowChanged(model.narrow);
     }
+    // TODO when model reset, reset scroll
     setState(() {
       // The actual state lives in the [MessageListView] model.
       // This method was called because that just changed.
@@ -511,6 +539,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       //   The cause seems to be that this gets called again with maxScrollExtent
       //   still not yet updated to account for the newly-added messages.
       model.fetchOlder();
+    }
+    if (scrollMetrics.extentAfter < kFetchMessagesBufferPixels) {
+      model.fetchNewer();
     }
   }
 
@@ -562,6 +593,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
                   //   MessageList's dartdoc.
                   child: SafeArea(
                     child: ScrollToBottomButton(
+                      model: model,
                       scrollController: scrollController,
                       visible: _scrollToBottomVisible))),
               ])))));
@@ -573,10 +605,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     // The list has two slivers: a top sliver growing upward,
     // and a bottom sliver growing downward.
     // Each sliver has some of the items from `model.items`.
-    const maxBottomItems = 1;
     final totalItems = model.items.length;
-    final bottomItems = totalItems <= maxBottomItems ? totalItems : maxBottomItems;
-    final topItems = totalItems - bottomItems;
+    final topItems = model.middleItem;
+    final bottomItems = totalItems - topItems;
 
     // The top sliver has its child 0 as the item just before the
     // sliver boundary, child 1 as the item before that, and so on.
@@ -646,15 +677,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           if (childIndex < 0) return null;
           return childIndex;
         },
-        childCount: bottomItems + 3,
+        childCount: bottomItems + 1,
         (context, childIndex) {
-          // To reinforce that the end of the feed has been reached:
-          //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
-          if (childIndex == bottomItems + 2) return const SizedBox(height: 36);
-
-          if (childIndex == bottomItems + 1) return MarkAsReadWidget(narrow: widget.narrow);
-
-          if (childIndex == bottomItems) return TypingStatusWidget(narrow: widget.narrow);
+          if (childIndex == bottomItems) return _buildEndCap();
 
           final itemIndex = topItems + childIndex;
           final data = model.items[itemIndex];
@@ -691,16 +716,34 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   Widget _buildStartCap() {
-    // These assertions are invariants of [MessageListView].
-    assert(!(model.fetchingOlder && model.fetchOlderCoolingDown));
-    final effectiveFetchingOlder =
-      model.fetchingOlder || model.fetchOlderCoolingDown;
-    assert(!(model.haveOldest && effectiveFetchingOlder));
-    return switch ((effectiveFetchingOlder, model.haveOldest)) {
-      (true, _) => const _MessageListLoadingMore(),
-      (_, true) => const _MessageListHistoryStart(),
-      (_,    _) => const SizedBox.shrink(),
-    };
+    // If we're done fetching older messages, show that.
+    // Else if we're busy with fetching, then show a loading indicator.
+    //
+    // This applies even if the fetch is over, but failed, and we're still
+    // in backoff from it; and even if the fetch is/was for the other direction.
+    // The loading indicator really means "busy, working on it"; and that's the
+    // right summary even if the fetch is internally queued behind other work.
+    return model.haveOldest ? const _MessageListHistoryStart()
+      : model.busyFetchingMore ? const _MessageListLoadingMore()
+      : const SizedBox.shrink();
+  }
+
+  Widget _buildEndCap() {
+    if (model.haveNewest) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        TypingStatusWidget(narrow: widget.narrow),
+        // TODO perhaps offer mark-as-read even when not done fetching?
+        MarkAsReadWidget(narrow: widget.narrow),
+        // To reinforce that the end of the feed has been reached:
+        //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
+        const SizedBox(height: 36),
+      ]);
+    } else if (model.busyFetchingMore) {
+      // See [_buildStartCap] for why this condition shows a loading indicator.
+      return const _MessageListLoadingMore();
+    } else {
+      return SizedBox.shrink();
+    }
   }
 
   Widget _buildItem(MessageListItem data) {
@@ -751,13 +794,23 @@ class _MessageListLoadingMore extends StatelessWidget {
 }
 
 class ScrollToBottomButton extends StatelessWidget {
-  const ScrollToBottomButton({super.key, required this.scrollController, required this.visible});
+  const ScrollToBottomButton({
+    super.key,
+    required this.model,
+    required this.scrollController,
+    required this.visible,
+  });
 
-  final ValueNotifier<bool> visible;
+  final MessageListView model;
   final MessageListScrollController scrollController;
+  final ValueNotifier<bool> visible;
 
   void _scrollToBottom() {
-    scrollController.position.scrollToEnd();
+    if (model.haveNewest) {
+      scrollController.position.scrollToEnd();
+    } else {
+      model.jumpToEnd();
+    }
   }
 
   @override
