@@ -2962,9 +2962,20 @@ void checkInvariants(MessageListView model) {
     ..isLessOrEqual(model.items.length);
   if (model.middleItem == model.items.length) {
     check(model.middleMessage).equals(model.messages.length);
-  } else {
+  } else if (model.middleMessage < model.messages.length) {
     check(model.items[model.middleItem]).isA<MessageListMessageItem>()
       .message.identicalTo(model.messages[model.middleMessage]);
+  } else {
+    // TODO merge slices with outbox more cleanly
+    final item = model.items[model.middleItem];
+    final message = switch (item) {
+      MessageListRecipientHeaderItem(:final message)
+      || MessageListDateSeparatorItem(:final message)
+      || MessageListMessageBaseItem(:final message)
+        => message,
+    };
+    check(message).isA<OutboxMessage>()
+      .identicalTo(model.outboxMessages.first);
   }
 }
 
