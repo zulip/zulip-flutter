@@ -1400,11 +1400,11 @@ abstract class ZulipLocalizations {
   /// **'Failed to open notification'**
   String get errorNotificationOpenTitle;
 
-  /// Error message when the account associated with the notification is not found
+  /// Error message when the account associated with the notification could not be found
   ///
   /// In en, this message translates to:
-  /// **'The account associated with this notification no longer exists.'**
-  String get errorNotificationOpenAccountMissing;
+  /// **'The account associated with this notification could not be found.'**
+  String get errorNotificationOpenAccountNotFound;
 
   /// Error title when adding a message reaction fails
   ///

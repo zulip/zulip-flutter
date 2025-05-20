@@ -774,8 +774,8 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get errorNotificationOpenTitle => 'Nepodarilo sa otvoriť oznámenie';
 
   @override
-  String get errorNotificationOpenAccountMissing =>
-      'The account associated with this notification no longer exists.';
+  String get errorNotificationOpenAccountNotFound =>
+      'The account associated with this notification could not be found.';
 
   @override
   String get errorReactionAddingFailedTitle => 'Nepodarilo sa pridať reakciu';

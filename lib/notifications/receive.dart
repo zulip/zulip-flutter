@@ -8,6 +8,7 @@ import '../firebase_options.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import 'display.dart';
+import 'navigate.dart';
 
 @pragma('vm:entry-point')
 class NotificationService {
@@ -77,6 +78,8 @@ class NotificationService {
         await _getFcmToken();
 
       case TargetPlatform.iOS: // TODO(#324): defer requesting notif permission
+        await NotificationNavigationService.instance.start();
+
         await ZulipBinding.instance.firebaseInitializeApp(
           options: kFirebaseOptionsIos);
 
