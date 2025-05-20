@@ -14,6 +14,7 @@ import 'zulip_localizations_pl.dart';
 import 'zulip_localizations_ru.dart';
 import 'zulip_localizations_sk.dart';
 import 'zulip_localizations_uk.dart';
+import 'zulip_localizations_zh.dart';
 
 // ignore_for_file: type=lint
 
@@ -111,6 +112,17 @@ abstract class ZulipLocalizations {
     Locale('ru'),
     Locale('sk'),
     Locale('uk'),
+    Locale('zh'),
+    Locale.fromSubtags(
+      languageCode: 'zh',
+      countryCode: 'CN',
+      scriptCode: 'Hans',
+    ),
+    Locale.fromSubtags(
+      languageCode: 'zh',
+      countryCode: 'TW',
+      scriptCode: 'Hant',
+    ),
   ];
 
   /// Title for About Zulip page.
@@ -1432,6 +1444,7 @@ class _ZulipLocalizationsDelegate
     'ru',
     'sk',
     'uk',
+    'zh',
   ].contains(locale.languageCode);
 
   @override
@@ -1439,6 +1452,14 @@ class _ZulipLocalizationsDelegate
 }
 
 ZulipLocalizations lookupZulipLocalizations(Locale locale) {
+  // Lookup logic when language+script+country codes are specified.
+  switch (locale.toString()) {
+    case 'zh_Hans_CN':
+      return ZulipLocalizationsZhHansCn();
+    case 'zh_Hant_TW':
+      return ZulipLocalizationsZhHantTw();
+  }
+
   // Lookup logic when language+country codes are specified.
   switch (locale.languageCode) {
     case 'en':
@@ -1471,6 +1492,8 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
       return ZulipLocalizationsSk();
     case 'uk':
       return ZulipLocalizationsUk();
+    case 'zh':
+      return ZulipLocalizationsZh();
   }
 
   throw FlutterError(
