@@ -56,6 +56,7 @@ extension PerAccountStoreChecks on Subject<PerAccountStore> {
   Subject<Account> get account => has((x) => x.account, 'account');
   Subject<int> get selfUserId => has((x) => x.selfUserId, 'selfUserId');
   Subject<UserSettings?> get userSettings => has((x) => x.userSettings, 'userSettings');
+  Subject<Map<int, SavedSnippet>> get savedSnippets => has((x) => x.savedSnippets, 'savedSnippets');
   Subject<Map<int, ZulipStream>> get streams => has((x) => x.streams, 'streams');
   Subject<Map<String, ZulipStream>> get streamsByName => has((x) => x.streamsByName, 'streamsByName');
   Subject<Map<int, Subscription>> get subscriptions => has((x) => x.subscriptions, 'subscriptions');

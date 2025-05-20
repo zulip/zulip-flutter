@@ -21,6 +21,13 @@ extension UserChecks on Subject<User> {
   Subject<bool> get isSystemBot => has((x) => x.isSystemBot, 'isSystemBot');
 }
 
+extension SavedSnippetChecks on Subject<SavedSnippet> {
+  Subject<int> get id => has((x) => x.id, 'id');
+  Subject<String> get title => has((x) => x.title, 'title');
+  Subject<String> get content => has((x) => x.content, 'content');
+  Subject<int> get dateCreated => has((x) => x.dateCreated, 'dateCreated');
+}
+
 extension ZulipStreamChecks on Subject<ZulipStream> {
 }
 

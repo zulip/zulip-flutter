@@ -287,6 +287,28 @@ final User thirdUser = user(fullName: 'Third User');
 final User fourthUser  = user(fullName: 'Fourth User');
 
 ////////////////////////////////////////////////////////////////
+// Data attached to the self-account on the realm
+//
+
+int _nextSavedSnippetId() => _lastSavedSnippetId++;
+int _lastSavedSnippetId = 1;
+
+SavedSnippet savedSnippet({
+  int? id,
+  String? title,
+  String? content,
+  int? dateCreated,
+}) {
+  _checkPositive(id, 'saved snippet ID');
+  return SavedSnippet(
+    id: id ?? _nextSavedSnippetId(),
+    title: title ?? 'A saved snippet',
+    content: content ?? 'foo bar baz',
+    dateCreated: dateCreated ?? 1234567890, // TODO generate timestamp
+  );
+}
+
+////////////////////////////////////////////////////////////////
 // Streams and subscriptions.
 //
 
