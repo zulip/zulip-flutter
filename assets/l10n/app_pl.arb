@@ -107,7 +107,7 @@
       }
     }
   },
-  "errorCouldNotFetchMessageSource": "Nie można uzyskać źródłowej wiadomości",
+  "errorCouldNotFetchMessageSource": "Nie można uzyskać źródłowej wiadomości.",
   "@errorCouldNotFetchMessageSource": {
     "description": "Error message when the source of a message could not be fetched."
   },
@@ -377,11 +377,11 @@
   "@topicValidationErrorMandatoryButEmpty": {
     "description": "Topic validation error when topic is required but was empty."
   },
-  "errorInvalidResponse": "Nieprawidłowa odpowiedź serwera",
+  "errorInvalidResponse": "Nieprawidłowa odpowiedź serwera.",
   "@errorInvalidResponse": {
     "description": "Error message when an API call returned an invalid response."
   },
-  "errorVideoPlayerFailed": "Nie da rady odtworzyć wideo",
+  "errorVideoPlayerFailed": "Nie da rady odtworzyć wideo.",
   "@errorVideoPlayerFailed": {
     "description": "Error message when a video fails to play."
   },
@@ -1016,5 +1016,61 @@
         "example": "general chat"
       }
     }
+  },
+  "actionSheetOptionEditMessage": "Zmień wiadomość",
+  "@actionSheetOptionEditMessage": {
+    "description": "Label for the 'Edit message' button in the message action sheet."
+  },
+  "errorMessageEditNotSaved": "Nie zapisano wiadomości",
+  "@errorMessageEditNotSaved": {
+    "description": "Error message for compose box when a message edit could not be saved."
+  },
+  "errorCouldNotEditMessageTitle": "Nie można zmienić wiadomości",
+  "@errorCouldNotEditMessageTitle": {
+    "description": "Error title when an exception prevented us from opening the compose box for editing a message."
+  },
+  "composeBoxBannerLabelEditMessage": "Zmień wiadomość",
+  "@composeBoxBannerLabelEditMessage": {
+    "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "editAlreadyInProgressMessage": "Operacja zmiany w toku. Zaczekaj na jej zakończenie.",
+  "@editAlreadyInProgressMessage": {
+    "description": "Error message when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "savingMessageEditLabel": "ZAPIS ZMIANY…",
+  "@savingMessageEditLabel": {
+    "description": "Text on a message in the message list saying that a message edit request is processing. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "savingMessageEditFailedLabel": "NIE ZAPISANO ZMIANY",
+  "@savingMessageEditFailedLabel": {
+    "description": "Text on a message in the message list saying that a message edit request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "discardDraftConfirmationDialogTitle": "Czy chcesz przerwać szykowanie wpisu?",
+  "@discardDraftConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "discardDraftConfirmationDialogMessage": "Miej na uwadze, że przechodząc do zmiany wiadomości wyczyścisz okno nowej wiadomości.",
+  "@discardDraftConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "discardDraftConfirmationDialogConfirmButton": "Odrzuć",
+  "@discardDraftConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "composeBoxBannerButtonCancel": "Anuluj",
+  "@composeBoxBannerButtonCancel": {
+    "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
+  },
+  "preparingEditMessageContentInput": "Przygotowywanie…",
+  "@preparingEditMessageContentInput": {
+    "description": "Hint text for content input when the compose box is preparing to edit a message."
+  },
+  "editAlreadyInProgressTitle": "Nie udało się zapisać zmiany",
+  "@editAlreadyInProgressTitle": {
+    "description": "Error title when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "composeBoxBannerButtonSave": "Zapisz",
+  "@composeBoxBannerButtonSave": {
+    "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
   }
 }

@@ -128,7 +128,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get actionSheetOptionUnstarMessage => 'Odbierz gwiazdkę';
 
   @override
-  String get actionSheetOptionEditMessage => 'Edit message';
+  String get actionSheetOptionEditMessage => 'Zmień wiadomość';
 
   @override
   String get actionSheetOptionMarkTopicAsRead =>
@@ -150,7 +150,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get errorCouldNotFetchMessageSource =>
-      'Nie można uzyskać źródłowej wiadomości';
+      'Nie można uzyskać źródłowej wiadomości.';
 
   @override
   String get errorCopyingFailed => 'Nie udało się skopiować';
@@ -201,7 +201,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get errorMessageNotSent => 'Nie wysłano wiadomości';
 
   @override
-  String get errorMessageEditNotSaved => 'Message not saved';
+  String get errorMessageEditNotSaved => 'Nie zapisano wiadomości';
 
   @override
   String errorLoginCouldNotConnect(String url) {
@@ -276,7 +276,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Odebranie gwiazdki bez powodzenia';
 
   @override
-  String get errorCouldNotEditMessageTitle => 'Could not edit message';
+  String get errorCouldNotEditMessageTitle => 'Nie można zmienić wiadomości';
 
   @override
   String get successLinkCopied => 'Skopiowano odnośnik';
@@ -296,37 +296,37 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Nie masz uprawnień do dodawania wpisów w tym kanale.';
 
   @override
-  String get composeBoxBannerLabelEditMessage => 'Edit message';
+  String get composeBoxBannerLabelEditMessage => 'Zmień wiadomość';
 
   @override
-  String get composeBoxBannerButtonCancel => 'Cancel';
+  String get composeBoxBannerButtonCancel => 'Anuluj';
 
   @override
-  String get composeBoxBannerButtonSave => 'Save';
+  String get composeBoxBannerButtonSave => 'Zapisz';
 
   @override
-  String get editAlreadyInProgressTitle => 'Cannot edit message';
+  String get editAlreadyInProgressTitle => 'Nie udało się zapisać zmiany';
 
   @override
   String get editAlreadyInProgressMessage =>
-      'An edit is already in progress. Please wait for it to complete.';
+      'Operacja zmiany w toku. Zaczekaj na jej zakończenie.';
 
   @override
-  String get savingMessageEditLabel => 'SAVING EDIT…';
+  String get savingMessageEditLabel => 'ZAPIS ZMIANY…';
 
   @override
-  String get savingMessageEditFailedLabel => 'EDIT NOT SAVED';
+  String get savingMessageEditFailedLabel => 'NIE ZAPISANO ZMIANY';
 
   @override
   String get discardDraftConfirmationDialogTitle =>
-      'Discard the message you’re writing?';
+      'Czy chcesz przerwać szykowanie wpisu?';
 
   @override
   String get discardDraftConfirmationDialogMessage =>
-      'When you edit a message, the content that was previously in the compose box is discarded.';
+      'Miej na uwadze, że przechodząc do zmiany wiadomości wyczyścisz okno nowej wiadomości.';
 
   @override
-  String get discardDraftConfirmationDialogConfirmButton => 'Discard';
+  String get discardDraftConfirmationDialogConfirmButton => 'Odrzuć';
 
   @override
   String get composeBoxAttachFilesTooltip => 'Dołącz pliki';
@@ -357,7 +357,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
-  String get preparingEditMessageContentInput => 'Preparing…';
+  String get preparingEditMessageContentInput => 'Przygotowywanie…';
 
   @override
   String get composeBoxSendTooltip => 'Wyślij';
@@ -511,7 +511,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
-  String get errorInvalidResponse => 'Nieprawidłowa odpowiedź serwera';
+  String get errorInvalidResponse => 'Nieprawidłowa odpowiedź serwera.';
 
   @override
   String get errorNetworkRequestFailed => 'Dostęp do sieci bez powodzenia';
@@ -532,7 +532,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
-  String get errorVideoPlayerFailed => 'Nie da rady odtworzyć wideo';
+  String get errorVideoPlayerFailed => 'Nie da rady odtworzyć wideo.';
 
   @override
   String get serverUrlValidationErrorEmpty => 'Proszę podaj URL.';
