@@ -231,6 +231,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
 
           navigatorKey: ZulipApp.navigatorKey,
           navigatorObservers: [
+            NotificationDisplayManager.accountObserver,
             if (widget.navigatorObservers != null)
               ...widget.navigatorObservers!,
             _PreventEmptyStack(),
