@@ -14,13 +14,14 @@ import 'exception.dart';
 ///
 /// When updating this, also update [kMinSupportedZulipFeatureLevel]
 /// and the README.
-const kMinSupportedZulipVersion = '4.0';
+// TODO(#268) address all TODO(server-5), TODO(server-6), and TODO(server-7)
+const kMinSupportedZulipVersion = '7.0';
 
 /// The Zulip feature level reserved for the [kMinSupportedZulipVersion] release.
 ///
 /// For this value, see the API changelog:
 ///   https://zulip.com/api/changelog
-const kMinSupportedZulipFeatureLevel = 65;
+const kMinSupportedZulipFeatureLevel = 185;
 
 /// The doc stating our oldest supported server version.
 // TODO: Instead, link to new Help Center doc once we have it:

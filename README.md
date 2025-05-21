@@ -289,7 +289,7 @@ good time to [report them as issues][dart-test-tracker].
 
 #### Server compatibility
 
-We support Zulip Server 4.0 and later.
+We support Zulip Server 7.0 and later.
 
 For API features added in newer versions, use `TODO(server-N)`
 comments (like those you see in the existing code.)
