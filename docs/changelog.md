@@ -3,6 +3,52 @@
 ## Unreleased
 
 
+## 0.0.29 (2025-05-19)
+
+This is a preview beta, including some experimental changes
+not yet merged to the main branch.
+
+
+### Highlights for users
+
+This is a feature-packed release, as this new app gets near ready to
+replace the legacy Zulip mobile app a few weeks from now.
+Please try out the new features, and as always report anything broken.
+
+* Initial support for TeX math!  Try enabling the
+  experimental flag, in settings. (#46)
+* Edit a message. (#126)
+* Initial support to open at first unread message;
+  try enabling in settings. (#80)
+* List of topics in channel. (#1158)
+* (iOS) Go to conversation on opening notification. (#1147)
+
+
+### Highlights for developers
+
+* Further user highlights that didn't fit in 500 characters:
+  * #1441 simplified local echo, enabling recovery from failed send
+  * #82 on following a message link, go to specific message
+    in middle of history
+  * #930 no more images moving around when you navigate from
+    one message list to another
+  * #1250 general chat
+  * #1470 when you re-open the app after a while and start typing
+    a message, your draft is preserved across the app's reloading
+    its data from the server
+
+* Resolved in main: #1470, #407, #1485, #930, #44, #1250, #126
+
+* Resolved in the experimental branch:
+  * #82, and #80 behind a flag, via PR #1517
+  * #1441 via PR #1453
+  * #1158 via PR #1500
+  * #1495 via PR #1506
+  * #127 via PR #1322
+  * more toward #46 via PR #1452
+  * #1147 via PR #1379
+
+
 ## 0.0.28 (2025-04-21)
 
 ### Highlights for users
