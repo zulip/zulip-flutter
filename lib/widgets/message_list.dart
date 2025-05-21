@@ -329,9 +329,18 @@ class MessageListAppBarTitle extends StatelessWidget {
   Widget _buildStreamRow(BuildContext context, {
     ZulipStream? stream,
   }) {
+    final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
+
     // A null [Icon.icon] makes a blank space.
-    final icon = stream != null ? iconDataForStream(stream) : null;
+    IconData? icon;
+    Color? iconColor;
+    if (stream != null) {
+      icon = iconDataForStream(stream);
+      iconColor = colorSwatchFor(context, store.subscriptions[stream.streamId])
+        .iconOnBarBackground;
+    }
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       // TODO(design): The vertical alignment of the stream privacy icon is a bit ad hoc.
@@ -339,7 +348,7 @@ class MessageListAppBarTitle extends StatelessWidget {
       //     https://github.com/zulip/zulip-flutter/pull/219#discussion_r1281024746
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(size: 16, icon),
+        Icon(size: 16, color: iconColor, icon),
         const SizedBox(width: 4),
         Flexible(child: Text(
           stream?.name ?? zulipLocalizations.unknownChannelName)),

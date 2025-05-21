@@ -19,6 +19,7 @@ import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
+import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/autocomplete.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/compose_box.dart';
@@ -210,6 +211,36 @@ void main() {
       checkAppBarChannelTopic(
         channel.name, eg.defaultRealmEmptyTopicDisplayName);
     });
+
+    void testChannelIconInChannelRow(IconData expectedIcon, {
+      required bool isWebPublic,
+      required bool inviteOnly,
+    }) {
+      final description = 'channel icon in channel row; '
+        'web-public: $isWebPublic, invite-only: $inviteOnly';
+      testWidgets(description, (tester) async {
+        final color = 0xff95a5fd;
+
+        final channel = eg.stream(isWebPublic: isWebPublic, inviteOnly: inviteOnly);
+        final subscription = eg.subscription(channel, color: color);
+
+        await setupMessageListPage(tester,
+          narrow: ChannelNarrow(channel.streamId),
+          streams: [channel],
+          subscriptions: [subscription],
+          messages: [eg.streamMessage(stream: channel)]);
+
+        final iconElement = tester.element(find.descendant(
+          of: find.byType(ZulipAppBar),
+          matching: find.byIcon(expectedIcon)));
+
+        check(Theme.brightnessOf(iconElement)).equals(Brightness.light);
+        check(iconElement.widget as Icon).color.equals(Color(0xff5972fc));
+      });
+    }
+    testChannelIconInChannelRow(ZulipIcons.globe, isWebPublic: true, inviteOnly: false);
+    testChannelIconInChannelRow(ZulipIcons.lock, isWebPublic: false, inviteOnly: true);
+    testChannelIconInChannelRow(ZulipIcons.hash_sign, isWebPublic: false, inviteOnly: false);
 
     testWidgets('has channel-feed action for topic narrows', (tester) async {
       final pushedRoutes = <Route<void>>[];
