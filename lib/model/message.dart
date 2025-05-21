@@ -530,12 +530,14 @@ const kSendMessageOfferRestoreWaitPeriod = Duration(seconds: 10);  // TODO(#1441
 /// [MessageStore.sendMessage] call and before its eventual deletion.
 ///
 /// ```
-///              Got an [ApiRequestException].
-///          ┌──────┬──────────┬─────────────► failed
-/// (create) │      │          │                 │
-///    └► hidden   waiting   waitPeriodExpired ──┴──────────────► (delete)
-///          │      ▲   │      ▲                   User restores
-///          └──────┘   └──────┘                   the draft.
+///                             Got an [ApiRequestException].
+///          ┌──────┬────────────────────────────┬──────────► failed
+///          │      │                            │              │
+///          │      │      [sendMessage]         │              │
+/// (create) │      │      request succeeds.     │              │
+///    └► hidden   waiting ◄─────────────── waitPeriodExpired ──┴─────► (delete)
+///          │      ▲   │                     ▲               User restores
+///          └──────┘   └─────────────────────┘               the draft.
 ///         Debounce     [sendMessage] request
 ///         timed out.   not finished when
 ///                      wait period timed out.
@@ -559,7 +561,8 @@ enum OutboxMessageState {
   /// outbox message is shown to the user.
   ///
   /// This state can be reached after staying in [hidden] for
-  /// [kLocalEchoDebounceDuration].
+  /// [kLocalEchoDebounceDuration], or when the request succeeds after the
+  /// outbox message reaches [OutboxMessageState.waitPeriodExpired].
   waiting,
 
   /// The [sendMessage] HTTP request did not finish in time and the user is
@@ -717,7 +720,8 @@ mixin _OutboxMessageStore on PerAccountStoreBase {
     final isStateTransitionValid = switch (newState) {
       OutboxMessageState.hidden => false,
       OutboxMessageState.waiting =>
-        oldState == OutboxMessageState.hidden,
+        oldState == OutboxMessageState.hidden
+        || oldState == OutboxMessageState.waitPeriodExpired,
       OutboxMessageState.waitPeriodExpired =>
         oldState == OutboxMessageState.waiting,
       OutboxMessageState.failed =>
@@ -803,6 +807,14 @@ mixin _OutboxMessageStore on PerAccountStoreBase {
     // Cancel the timer that would have had us start presuming that the
     // send might have failed.
     _outboxMessageWaitPeriodTimers.remove(localMessageId)?.cancel();
+    if (_outboxMessages[localMessageId]!.state
+          == OutboxMessageState.waitPeriodExpired) {
+      // The user was offered to restore the message since the request did not
+      // complete for a while.  Since the request was successful, we expect the
+      // message event to arrive eventually.  Stop inviting the the user to
+      // retry, to avoid double-sends.
+      _updateOutboxMessage(localMessageId, newState: OutboxMessageState.waiting);
+    }
   }
 
   TopicName _processTopicLikeServer(TopicName topic, {
