@@ -18,6 +18,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/display.dart';
+import 'package:zulip/notifications/navigate.dart';
 import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/color.dart';
@@ -121,6 +122,7 @@ void main() {
     addTearDown(testBinding.reset);
     testBinding.firebaseMessagingInitialToken = '012abc';
     addTearDown(NotificationService.debugReset);
+    addTearDown(NotificationNavigationService.debugReset);
     NotificationService.debugBackgroundIsolateIsLive = false;
     await NotificationService.instance.start();
   }
@@ -346,7 +348,7 @@ void main() {
       const expectedPendingIntentFlags = PendingIntentFlag.immutable;
       const expectedIntentFlags = IntentFlag.activityClearTop | IntentFlag.activityNewTask;
       final expectedSelfUserKey = '${data.realmUrl}|${data.userId}';
-      final expectedIntentDataUrl = NotificationOpenPayload(
+      final expectedIntentDataUrl = NotificationNavigationData(
         realmUrl: data.realmUrl,
         userId: data.userId,
         narrow: switch (data.recipient) {
@@ -354,7 +356,7 @@ void main() {
           TopicNarrow(streamId, topic),
         FcmMessageDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildUrl();
+      }).buildAndroidNotificationUrl();
 
       final messageStyleMessagesChecks =
         messageStyleMessages.mapIndexed((i, messageData) {
@@ -1072,7 +1074,7 @@ void main() {
 
     Future<void> openNotification(WidgetTester tester, Account account, Message message) async {
       final data = messageFcmMessage(message, account: account);
-      final intentDataUrl = NotificationOpenPayload(
+      final intentDataUrl = NotificationNavigationData(
         realmUrl: data.realmUrl,
         userId: data.userId,
         narrow: switch (data.recipient) {
@@ -1080,7 +1082,7 @@ void main() {
           TopicNarrow(streamId, topic),
         FcmMessageDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildUrl();
+      }).buildAndroidNotificationUrl();
       unawaited(
         WidgetsBinding.instance.handlePushRoute(intentDataUrl.toString()));
       await tester.idle(); // let navigateForNotification find navigator
@@ -1137,7 +1139,7 @@ void main() {
       check(pushedRoutes.single).isA<DialogRoute<void>>();
       await tester.tap(find.byWidget(checkErrorDialog(tester,
         expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
-        expectedMessage: zulipLocalizations.errorNotificationOpenAccountMissing)));
+        expectedMessage: zulipLocalizations.errorNotificationOpenAccountNotFound)));
     });
 
     testWidgets('mismatching account', (tester) async {
@@ -1149,7 +1151,7 @@ void main() {
       check(pushedRoutes.single).isA<DialogRoute<void>>();
       await tester.tap(find.byWidget(checkErrorDialog(tester,
         expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
-        expectedMessage: zulipLocalizations.errorNotificationOpenAccountMissing)));
+        expectedMessage: zulipLocalizations.errorNotificationOpenAccountNotFound)));
     });
 
     testWidgets('find account among several', (tester) async {
@@ -1198,11 +1200,11 @@ void main() {
     testWidgets('at app launch', (tester) async {
       addTearDown(testBinding.reset);
       // Set up a value for `PlatformDispatcher.defaultRouteName` to return,
-      // for determining the intial route.
+      // for determining the initial route.
       final account = eg.selfAccount;
       final message = eg.streamMessage();
       final data = messageFcmMessage(message, account: account);
-      final intentDataUrl = NotificationOpenPayload(
+      final intentDataUrl = NotificationNavigationData(
         realmUrl: data.realmUrl,
         userId: data.userId,
         narrow: switch (data.recipient) {
@@ -1210,7 +1212,7 @@ void main() {
             TopicNarrow(streamId, topic),
           FcmMessageDmRecipient(:var allRecipientIds) =>
             DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-        }).buildUrl();
+        }).buildAndroidNotificationUrl();
       addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
       tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
 
@@ -1235,7 +1237,7 @@ void main() {
       await testBinding.globalStore.add(accountA, eg.initialSnapshot());
       await testBinding.globalStore.add(accountB, eg.initialSnapshot());
 
-      final intentDataUrl = NotificationOpenPayload(
+      final intentDataUrl = NotificationNavigationData(
         realmUrl: data.realmUrl,
         userId: data.userId,
         narrow: switch (data.recipient) {
@@ -1243,7 +1245,7 @@ void main() {
             TopicNarrow(streamId, topic),
           FcmMessageDmRecipient(:var allRecipientIds) =>
             DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-        }).buildUrl();
+        }).buildAndroidNotificationUrl();
       addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
       tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
 
@@ -1256,39 +1258,39 @@ void main() {
     });
   });
 
-  group('NotificationOpenPayload', () {
+  group('NotificationNavigationData', () {
     test('smoke round-trip', () {
       // DM narrow
-      var payload = NotificationOpenPayload(
+      var payload = NotificationNavigationData(
         realmUrl: Uri.parse('http://chat.example'),
         userId: 1001,
         narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
       );
-      var url = payload.buildUrl();
-      check(NotificationOpenPayload.parseUrl(url))
+      var url = payload.buildAndroidNotificationUrl();
+      check(NotificationNavigationData.parseAndroidNotificationUrl(url))
         ..realmUrl.equals(payload.realmUrl)
         ..userId.equals(payload.userId)
         ..narrow.equals(payload.narrow);
 
       // Topic narrow
-      payload = NotificationOpenPayload(
+      payload = NotificationNavigationData(
         realmUrl: Uri.parse('http://chat.example'),
         userId: 1001,
         narrow: eg.topicNarrow(1, 'topic A'),
       );
-      url = payload.buildUrl();
-      check(NotificationOpenPayload.parseUrl(url))
+      url = payload.buildAndroidNotificationUrl();
+      check(NotificationNavigationData.parseAndroidNotificationUrl(url))
         ..realmUrl.equals(payload.realmUrl)
         ..userId.equals(payload.userId)
         ..narrow.equals(payload.narrow);
     });
 
     test('buildUrl: smoke DM', () {
-      final url = NotificationOpenPayload(
+      final url = NotificationNavigationData(
         realmUrl: Uri.parse('http://chat.example'),
         userId: 1001,
         narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
-      ).buildUrl();
+      ).buildAndroidNotificationUrl();
       check(url)
         ..scheme.equals('zulip')
         ..host.equals('notification')
@@ -1301,11 +1303,11 @@ void main() {
     });
 
     test('buildUrl: smoke topic', () {
-      final url = NotificationOpenPayload(
+      final url = NotificationNavigationData(
         realmUrl: Uri.parse('http://chat.example'),
         userId: 1001,
         narrow: eg.topicNarrow(1, 'topic A'),
-      ).buildUrl();
+      ).buildAndroidNotificationUrl();
       check(url)
         ..scheme.equals('zulip')
         ..host.equals('notification')
@@ -1328,7 +1330,7 @@ void main() {
           'narrow_type': 'dm',
           'all_recipient_ids': '1001,1002',
         });
-      check(NotificationOpenPayload.parseUrl(url))
+      check(NotificationNavigationData.parseAndroidNotificationUrl(url))
         ..realmUrl.equals(Uri.parse('http://chat.example'))
         ..userId.equals(1001)
         ..narrow.which((it) => it.isA<DmNarrow>()
@@ -1347,7 +1349,7 @@ void main() {
           'channel_id': '1',
           'topic': 'topic A',
         });
-      check(NotificationOpenPayload.parseUrl(url))
+      check(NotificationNavigationData.parseAndroidNotificationUrl(url))
         ..realmUrl.equals(Uri.parse('http://chat.example'))
         ..userId.equals(1001)
         ..narrow.which((it) => it.isA<TopicNarrow>()
@@ -1406,7 +1408,7 @@ void main() {
         },
       ];
       for (final params in testCases) {
-        check(() => NotificationOpenPayload.parseUrl(Uri(
+        check(() => NotificationNavigationData.parseAndroidNotificationUrl(Uri(
           scheme: 'zulip',
           host: 'notification',
           queryParameters: params,
@@ -1432,7 +1434,7 @@ void main() {
           'channel_id': '1',
           'topic': 'topic A',
         });
-      check(() => NotificationOpenPayload.parseUrl(url))
+      check(() => NotificationNavigationData.parseAndroidNotificationUrl(url))
         .throws<FormatException>();
     });
 
@@ -1447,7 +1449,7 @@ void main() {
           'channel_id': '1',
           'topic': 'topic A',
         });
-      check(() => NotificationOpenPayload.parseUrl(url))
+      check(() => NotificationNavigationData.parseAndroidNotificationUrl(url))
         .throws<FormatException>();
     });
   });
@@ -1531,7 +1533,7 @@ extension on Subject<StatusBarNotification> {
   Subject<String> get tag => has((x) => x.tag, 'tag');
 }
 
-extension on Subject<NotificationOpenPayload> {
+extension on Subject<NotificationNavigationData> {
   Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
   Subject<int> get userId => has((x) => x.userId, 'userId');
   Subject<Narrow> get narrow => has((x) => x.narrow, 'narrow');
