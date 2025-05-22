@@ -448,6 +448,23 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
+  /// Whether [_messageVisible] is true for all possible messages.
+  ///
+  /// This is useful for an optimization.
+  bool get _allMessagesVisible {
+    switch (narrow) {
+      case CombinedFeedNarrow():
+      case ChannelNarrow():
+        return false;
+
+      case TopicNarrow():
+      case DmNarrow():
+      case MentionsNarrow():
+      case StarredMessagesNarrow():
+        return true;
+    }
+  }
+
   /// Whether this event could affect the result that [_messageVisible]
   /// would ever have returned for any possible message in this message list.
   VisibilityEffect _canAffectVisibility(UserTopicEvent event) {
@@ -464,23 +481,6 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case MentionsNarrow():
       case StarredMessagesNarrow():
         return VisibilityEffect.none;
-    }
-  }
-
-  /// Whether [_messageVisible] is true for all possible messages.
-  ///
-  /// This is useful for an optimization.
-  bool get _allMessagesVisible {
-    switch (narrow) {
-      case CombinedFeedNarrow():
-      case ChannelNarrow():
-        return false;
-
-      case TopicNarrow():
-      case DmNarrow():
-      case MentionsNarrow():
-      case StarredMessagesNarrow():
-        return true;
     }
   }
 
