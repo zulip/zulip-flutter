@@ -10,6 +10,7 @@ import '../api/route/messages.dart';
 import 'algorithms.dart';
 import 'channel.dart';
 import 'content.dart';
+import 'message.dart';
 import 'narrow.dart';
 import 'store.dart';
 
@@ -616,6 +617,20 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
+  /// Add [outboxMessage] if it belongs to the view.
+  void addOutboxMessage(OutboxMessage outboxMessage) {
+    // TODO(#1441) implement this
+  }
+
+  /// Remove the [outboxMessage] from the view.
+  ///
+  /// This is a no-op if the message is not found.
+  ///
+  /// This should only be called from [MessageStore.takeOutboxMessage].
+  void removeOutboxMessage(OutboxMessage outboxMessage) {
+    // TODO(#1441) implement this
+  }
+
   void handleUserTopicEvent(UserTopicEvent event) {
     switch (_canAffectVisibility(event)) {
       case VisibilityEffect.none:
@@ -775,6 +790,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     if (isAnyPresent) {
       notifyListeners();
     }
+  }
+
+  /// Notify listeners if the given outbox message is present in this view.
+  void notifyListenersIfOutboxMessagePresent(int localMessageId) {
+    // TODO(#1441) implement this
   }
 
   /// Called when the app is reassembled during debugging, e.g. for hot reload.
