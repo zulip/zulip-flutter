@@ -332,7 +332,7 @@ void main() {
             'narrow': jsonEncode(narrow.apiEncode()),
             'anchor': AnchorCode.newest.toJson(),
             'num_before': kMessageListFetchBatchSize.toString(),
-            'num_after': '0',
+            'num_after': kMessageListFetchBatchSize.toString(),
             'allow_empty_topic_name': 'true',
           });
       });
@@ -365,7 +365,7 @@ void main() {
             'narrow': jsonEncode(narrow.apiEncode()),
             'anchor': AnchorCode.newest.toJson(),
             'num_before': kMessageListFetchBatchSize.toString(),
-            'num_after': '0',
+            'num_after': kMessageListFetchBatchSize.toString(),
             'allow_empty_topic_name': 'true',
           });
       });
