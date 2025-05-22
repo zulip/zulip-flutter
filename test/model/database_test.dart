@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:checks/checks.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
@@ -44,6 +46,20 @@ void main() {
       await db.update(db.globalSettings)
         .write(GlobalSettingsCompanion(themeSetting: Value(ThemeSetting.dark)));
       check(await db.getGlobalSettings()).themeSetting.equals(ThemeSetting.dark);
+    });
+
+    test('LocaleConverter roundtrips', () async {
+      Future<void> doCheck(Locale locale) async {
+        await db.update(db.globalSettings)
+          .write(GlobalSettingsCompanion(language: Value(locale)));
+        check(await db.getGlobalSettings()).language.equals(locale);
+      }
+
+      await doCheck(Locale('en'));
+      await doCheck(Locale('en', 'GB'));
+      await doCheck(Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'));
+      await doCheck(Locale.fromSubtags(
+        languageCode: 'zh', scriptCode: 'Hant', countryCode: 'TW'));
     });
 
     test('BoolGlobalSettings get ignores unknown names', () async {

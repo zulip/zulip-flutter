@@ -32,7 +32,20 @@ class $GlobalSettingsTable extends GlobalSettings
     $GlobalSettingsTable.$converterbrowserPreferencen,
   );
   @override
-  List<GeneratedColumn> get $columns => [themeSetting, browserPreference];
+  late final GeneratedColumnWithTypeConverter<Locale?, String> language =
+      GeneratedColumn<String>(
+        'language',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<Locale?>($GlobalSettingsTable.$converterlanguagen);
+  @override
+  List<GeneratedColumn> get $columns => [
+    themeSetting,
+    browserPreference,
+    language,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -57,6 +70,12 @@ class $GlobalSettingsTable extends GlobalSettings
               data['${effectivePrefix}browser_preference'],
             ),
           ),
+      language: $GlobalSettingsTable.$converterlanguagen.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}language'],
+        ),
+      ),
     );
   }
 
@@ -81,13 +100,22 @@ class $GlobalSettingsTable extends GlobalSettings
   $converterbrowserPreferencen = JsonTypeConverter2.asNullable(
     $converterbrowserPreference,
   );
+  static TypeConverter<Locale, String> $converterlanguage =
+      const LocaleConverter();
+  static TypeConverter<Locale?, String?> $converterlanguagen =
+      NullAwareTypeConverter.wrap($converterlanguage);
 }
 
 class GlobalSettingsData extends DataClass
     implements Insertable<GlobalSettingsData> {
   final ThemeSetting? themeSetting;
   final BrowserPreference? browserPreference;
-  const GlobalSettingsData({this.themeSetting, this.browserPreference});
+  final Locale? language;
+  const GlobalSettingsData({
+    this.themeSetting,
+    this.browserPreference,
+    this.language,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -103,6 +131,11 @@ class GlobalSettingsData extends DataClass
         ),
       );
     }
+    if (!nullToAbsent || language != null) {
+      map['language'] = Variable<String>(
+        $GlobalSettingsTable.$converterlanguagen.toSql(language),
+      );
+    }
     return map;
   }
 
@@ -116,6 +149,10 @@ class GlobalSettingsData extends DataClass
           browserPreference == null && nullToAbsent
               ? const Value.absent()
               : Value(browserPreference),
+      language:
+          language == null && nullToAbsent
+              ? const Value.absent()
+              : Value(language),
     );
   }
 
@@ -130,6 +167,7 @@ class GlobalSettingsData extends DataClass
       ),
       browserPreference: $GlobalSettingsTable.$converterbrowserPreferencen
           .fromJson(serializer.fromJson<String?>(json['browserPreference'])),
+      language: serializer.fromJson<Locale?>(json['language']),
     );
   }
   @override
@@ -144,18 +182,21 @@ class GlobalSettingsData extends DataClass
           browserPreference,
         ),
       ),
+      'language': serializer.toJson<Locale?>(language),
     };
   }
 
   GlobalSettingsData copyWith({
     Value<ThemeSetting?> themeSetting = const Value.absent(),
     Value<BrowserPreference?> browserPreference = const Value.absent(),
+    Value<Locale?> language = const Value.absent(),
   }) => GlobalSettingsData(
     themeSetting: themeSetting.present ? themeSetting.value : this.themeSetting,
     browserPreference:
         browserPreference.present
             ? browserPreference.value
             : this.browserPreference,
+    language: language.present ? language.value : this.language,
   );
   GlobalSettingsData copyWithCompanion(GlobalSettingsCompanion data) {
     return GlobalSettingsData(
@@ -167,6 +208,7 @@ class GlobalSettingsData extends DataClass
           data.browserPreference.present
               ? data.browserPreference.value
               : this.browserPreference,
+      language: data.language.present ? data.language.value : this.language,
     );
   }
 
@@ -174,43 +216,50 @@ class GlobalSettingsData extends DataClass
   String toString() {
     return (StringBuffer('GlobalSettingsData(')
           ..write('themeSetting: $themeSetting, ')
-          ..write('browserPreference: $browserPreference')
+          ..write('browserPreference: $browserPreference, ')
+          ..write('language: $language')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(themeSetting, browserPreference);
+  int get hashCode => Object.hash(themeSetting, browserPreference, language);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is GlobalSettingsData &&
           other.themeSetting == this.themeSetting &&
-          other.browserPreference == this.browserPreference);
+          other.browserPreference == this.browserPreference &&
+          other.language == this.language);
 }
 
 class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
   final Value<ThemeSetting?> themeSetting;
   final Value<BrowserPreference?> browserPreference;
+  final Value<Locale?> language;
   final Value<int> rowid;
   const GlobalSettingsCompanion({
     this.themeSetting = const Value.absent(),
     this.browserPreference = const Value.absent(),
+    this.language = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   GlobalSettingsCompanion.insert({
     this.themeSetting = const Value.absent(),
     this.browserPreference = const Value.absent(),
+    this.language = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   static Insertable<GlobalSettingsData> custom({
     Expression<String>? themeSetting,
     Expression<String>? browserPreference,
+    Expression<String>? language,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (themeSetting != null) 'theme_setting': themeSetting,
       if (browserPreference != null) 'browser_preference': browserPreference,
+      if (language != null) 'language': language,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -218,11 +267,13 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
   GlobalSettingsCompanion copyWith({
     Value<ThemeSetting?>? themeSetting,
     Value<BrowserPreference?>? browserPreference,
+    Value<Locale?>? language,
     Value<int>? rowid,
   }) {
     return GlobalSettingsCompanion(
       themeSetting: themeSetting ?? this.themeSetting,
       browserPreference: browserPreference ?? this.browserPreference,
+      language: language ?? this.language,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -242,6 +293,11 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
         ),
       );
     }
+    if (language.present) {
+      map['language'] = Variable<String>(
+        $GlobalSettingsTable.$converterlanguagen.toSql(language.value),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -253,6 +309,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
     return (StringBuffer('GlobalSettingsCompanion(')
           ..write('themeSetting: $themeSetting, ')
           ..write('browserPreference: $browserPreference, ')
+          ..write('language: $language, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1109,12 +1166,14 @@ typedef $$GlobalSettingsTableCreateCompanionBuilder =
     GlobalSettingsCompanion Function({
       Value<ThemeSetting?> themeSetting,
       Value<BrowserPreference?> browserPreference,
+      Value<Locale?> language,
       Value<int> rowid,
     });
 typedef $$GlobalSettingsTableUpdateCompanionBuilder =
     GlobalSettingsCompanion Function({
       Value<ThemeSetting?> themeSetting,
       Value<BrowserPreference?> browserPreference,
+      Value<Locale?> language,
       Value<int> rowid,
     });
 
@@ -1138,6 +1197,12 @@ class $$GlobalSettingsTableFilterComposer
     column: $table.browserPreference,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
+
+  ColumnWithTypeConverterFilters<Locale?, Locale, String> get language =>
+      $composableBuilder(
+        column: $table.language,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 }
 
 class $$GlobalSettingsTableOrderingComposer
@@ -1156,6 +1221,11 @@ class $$GlobalSettingsTableOrderingComposer
 
   ColumnOrderings<String> get browserPreference => $composableBuilder(
     column: $table.browserPreference,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get language => $composableBuilder(
+    column: $table.language,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -1180,6 +1250,9 @@ class $$GlobalSettingsTableAnnotationComposer
     column: $table.browserPreference,
     builder: (column) => column,
   );
+
+  GeneratedColumnWithTypeConverter<Locale?, String> get language =>
+      $composableBuilder(column: $table.language, builder: (column) => column);
 }
 
 class $$GlobalSettingsTableTableManager
@@ -1226,10 +1299,12 @@ class $$GlobalSettingsTableTableManager
                 Value<ThemeSetting?> themeSetting = const Value.absent(),
                 Value<BrowserPreference?> browserPreference =
                     const Value.absent(),
+                Value<Locale?> language = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GlobalSettingsCompanion(
                 themeSetting: themeSetting,
                 browserPreference: browserPreference,
+                language: language,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -1237,10 +1312,12 @@ class $$GlobalSettingsTableTableManager
                 Value<ThemeSetting?> themeSetting = const Value.absent(),
                 Value<BrowserPreference?> browserPreference =
                     const Value.absent(),
+                Value<Locale?> language = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GlobalSettingsCompanion.insert(
                 themeSetting: themeSetting,
                 browserPreference: browserPreference,
+                language: language,
                 rowid: rowid,
               ),
           withReferenceMapper:
