@@ -36,10 +36,6 @@ void _showActionSheet(
 }) {
   showModalBottomSheet<void>(
     context: context,
-    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
-    // on my iPhone 13 Pro but is marked as "much slower":
-    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
-    clipBehavior: Clip.antiAlias,
     useSafeArea: true,
     isScrollControlled: true,
     builder: (BuildContext _) {

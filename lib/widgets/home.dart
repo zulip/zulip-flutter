@@ -293,10 +293,6 @@ void _showMainMenu(BuildContext context, {
   final accountId = PerAccountStoreWidget.accountIdOf(context);
   showModalBottomSheet<void>(
     context: context,
-    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
-    // on my iPhone 13 Pro but is marked as "much slower":
-    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
-    clipBehavior: Clip.antiAlias,
     useSafeArea: true,
     isScrollControlled: true,
     // TODO: Fix the issue that the color does not respond when the theme
