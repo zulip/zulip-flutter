@@ -12,6 +12,7 @@ import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/database.dart';
+import 'package:zulip/model/message.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
@@ -625,6 +626,44 @@ GetMessagesResult olderGetMessagesResult({
   );
 }
 
+int _nextLocalMessageId = 1;
+
+StreamOutboxMessage streamOutboxMessage({
+  int? localMessageId,
+  int? selfUserId,
+  int? timestamp,
+  ZulipStream? stream,
+  String? topic,
+  String? content,
+}) {
+  final effectiveStream = stream ?? _stream(streamId: defaultStreamMessageStreamId);
+  return OutboxMessage.fromConversation(
+    StreamConversation(
+      effectiveStream.streamId, TopicName(topic ?? 'topic'),
+      displayRecipient: null,
+    ),
+    localMessageId: localMessageId ?? _nextLocalMessageId++,
+    selfUserId: selfUserId ?? selfUser.userId,
+    timestamp: timestamp ?? utcTimestamp(),
+    contentMarkdown: content ?? 'content') as StreamOutboxMessage;
+}
+
+DmOutboxMessage dmOutboxMessage({
+  int? localMessageId,
+  required User from,
+  required List<User> to,
+  int? timestamp,
+  String? content,
+}) {
+  final allRecipientIds = [from, ...to].map((user) => user.userId).toList();
+  return OutboxMessage.fromConversation(
+    DmConversation(allRecipientIds: allRecipientIds),
+    localMessageId: localMessageId ?? _nextLocalMessageId++,
+    selfUserId: from.userId,
+    timestamp: timestamp ?? utcTimestamp(),
+    contentMarkdown: content ?? 'content') as DmOutboxMessage;
+}
+
 PollWidgetData pollWidgetData({
   required String question,
   required List<String> options,
@@ -695,8 +734,8 @@ UserTopicEvent userTopicEvent(
   );
 }
 
-MessageEvent messageEvent(Message message) =>
-  MessageEvent(id: 0, message: message, localMessageId: null);
+MessageEvent messageEvent(Message message, {int? localMessageId}) =>
+  MessageEvent(id: 0, message: message, localMessageId: localMessageId?.toString());
 
 DeleteMessageEvent deleteMessageEvent(List<StreamMessage> messages) {
   assert(messages.isNotEmpty);

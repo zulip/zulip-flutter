@@ -14,6 +14,7 @@ import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/localizations.dart';
+import 'package:zulip/model/message.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -943,7 +944,8 @@ void main() {
 
       connection.prepare(json: SendMessageResult(id: 1).toJson());
       await tester.tap(find.byIcon(ZulipIcons.send));
-      await tester.pump();
+      await tester.pump(Duration.zero);
+      final localMessageId = store.outboxMessages.keys.single;
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
@@ -952,8 +954,12 @@ void main() {
           'to': '${otherChannel.streamId}',
           'topic': 'new topic',
           'content': 'Some text',
-          'read_by_sender': 'true'});
-      await tester.pumpAndSettle();
+          'read_by_sender': 'true',
+          'queue_id': store.queueId,
+          'local_id': localMessageId.toString()});
+      // Remove the outbox message and its timers created when sending message.
+      await store.handleEvent(
+        eg.messageEvent(message, localMessageId: localMessageId));
     });
 
     testWidgets('Move to narrow with existing messages', (tester) async {
@@ -1447,6 +1453,37 @@ void main() {
       checkUser(users[2], isBot: false);
 
       debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
+  group('OutboxMessageWithPossibleSender', () {
+    final stream = eg.stream();
+    const content = 'outbox message content';
+
+    final contentInputFinder = find.byWidgetPredicate(
+      (widget) => widget is TextField && widget.controller is ComposeContentController);
+
+    Finder outboxMessageFinder = find.descendant(
+      of: find.byType(MessageItem),
+      matching: find.text(content, findRichText: true)).hitTestable();
+
+    testWidgets('sent message appear in message list after debounce timeout', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: eg.topicNarrow(stream.streamId, 'topic'), streams: [stream],
+        messages: []);
+
+      connection.prepare(json: SendMessageResult(id: 1).toJson());
+      await tester.enterText(contentInputFinder, content);
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump(Duration.zero);
+      check(outboxMessageFinder).findsNothing();
+
+      await tester.pump(kLocalEchoDebounceDuration);
+      check(outboxMessageFinder).findsOne();
+
+      await store.handleEvent(eg.messageEvent(
+        eg.streamMessage(stream: stream, topic: 'topic'),
+        localMessageId: store.outboxMessages.keys.single));
     });
   });
 
