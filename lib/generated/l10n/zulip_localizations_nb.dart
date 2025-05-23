@@ -77,6 +77,9 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get actionSheetOptionMarkChannelAsRead => 'Mark channel as read';
 
   @override
+  String get actionSheetOptionTopicList => 'Topic list';
+
+  @override
   String get actionSheetOptionMuteTopic => 'Mute topic';
 
   @override
@@ -628,6 +631,9 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
 
   @override
   String get mainMenuMyProfile => 'My profile';
+
+  @override
+  String get topicsButtonLabel => 'TOPICS';
 
   @override
   String get channelFeedButtonTooltip => 'Channel feed';
