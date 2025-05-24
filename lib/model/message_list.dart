@@ -12,6 +12,7 @@ import 'channel.dart';
 import 'content.dart';
 import 'narrow.dart';
 import 'store.dart';
+import 'user.dart';
 
 /// The number of messages to fetch in each request.
 const kMessageListFetchBatchSize = 100; // TODO tune
@@ -431,7 +432,10 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return switch (message.conversation) {
           StreamConversation(:final streamId, :final topic) =>
             store.isTopicVisible(streamId, topic),
-          DmConversation() => true,
+          DmConversation(:final allRecipientIds) => () {
+            return !store.allRecipientsMuted(DmNarrow(
+              allRecipientIds: allRecipientIds, selfUserId: store.selfUserId));
+          }(),
         };
 
       case ChannelNarrow(:final streamId):
@@ -442,8 +446,33 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
       case TopicNarrow():
       case DmNarrow():
+        return true;
+
       case MentionsNarrow():
+      // case ReactionsNarrow(): // TODO
       case StarredMessagesNarrow():
+        if (message.conversation case DmConversation(:final allRecipientIds)) {
+          return !store.allRecipientsMuted(DmNarrow(
+            allRecipientIds: allRecipientIds, selfUserId: store.selfUserId));
+        }
+        return true;
+    }
+  }
+
+  /// Whether [_messageVisible] is true for all possible messages.
+  ///
+  /// This is useful for an optimization.
+  bool get _allMessagesVisible {
+    switch (narrow) {
+      case CombinedFeedNarrow():
+      case ChannelNarrow():
+      case MentionsNarrow():
+      // case ReactionsNarrow(): // TODO
+      case StarredMessagesNarrow():
+        return false;
+
+      case TopicNarrow():
+      case DmNarrow():
         return true;
     }
   }
@@ -467,20 +496,19 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
-  /// Whether [_messageVisible] is true for all possible messages.
-  ///
-  /// This is useful for an optimization.
-  bool get _allMessagesVisible {
-    switch (narrow) {
+  /// Whether this event could affect the result that [_messageVisible]
+  /// would ever have returned for any possible message in this message list.
+  MutenessEffect? _canAffectMuteness(MutedUsersEvent event) {
+    switch(narrow) {
       case CombinedFeedNarrow():
-      case ChannelNarrow():
-        return false;
-
-      case TopicNarrow():
-      case DmNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
-        return true;
+        return store.willChangeIfRecipientMuted(event);
+
+      case ChannelNarrow():
+      case TopicNarrow():
+      case DmNarrow():
+        return null;
     }
   }
 
@@ -660,6 +688,33 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     // TODO insert in middle instead, when appropriate
     _addMessage(message);
     notifyListeners();
+  }
+
+  void handleMutedUsersEvent(MutedUsersEvent event) {
+    switch(_canAffectMuteness(event)) {
+      case MutenessEffect.added:
+        if (_removeMessagesWhere((message) =>
+            (message is DmMessage
+             && store.allRecipientsMuted(
+                  DmNarrow.ofMessage(message, selfUserId: store.selfUserId),
+                  mutedUsers: event.mutedUsers,
+                )))) {
+          notifyListeners();
+        }
+
+      case MutenessEffect.removed:
+        // TODO get the newly-unmuted messages from the message store
+        // For now, we simplify the task by just refetching this message list
+        // from scratch.
+        if (fetched) {
+          _reset();
+          notifyListeners();
+          fetchInitial();
+        }
+
+      default:
+        return;
+    }
   }
 
   /// Update data derived from the content of the given message.
