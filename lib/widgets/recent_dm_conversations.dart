@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'content.dart';
 import 'icons.dart';
 import 'message_list.dart';
+import 'new_dm_sheet.dart';
 import 'store.dart';
+import 'text.dart';
 import 'theme.dart';
 import 'unread_count_badge.dart';
 
@@ -49,18 +52,25 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
   @override
   Widget build(BuildContext context) {
     final sorted = model!.sorted;
-    return SafeArea(
-      // Don't pad the bottom here; we want the list content to do that.
-      bottom: false,
-      child: ListView.builder(
-        itemCount: sorted.length,
-        itemBuilder: (context, index) {
-          final narrow = sorted[index];
-          return RecentDmConversationsItem(
-            narrow: narrow,
-            unreadCount: unreadsModel!.countInDmNarrow(narrow),
-          );
-        }));
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      clipBehavior: Clip.none,
+      children:[
+        SafeArea(
+          // Don't pad the bottom here; we want the list content to do that.
+          bottom: false,
+          child: ListView.builder(
+            itemCount: sorted.length,
+            itemBuilder: (context, index) {
+              final narrow = sorted[index];
+              return RecentDmConversationsItem(
+                narrow: narrow,
+                unreadCount: unreadsModel!.countInDmNarrow(narrow));
+            })),
+        Positioned(
+          bottom: 16,
+          child: _NewDmButton()),
+      ]);
   }
 }
 
@@ -136,5 +146,64 @@ class RecentDmConversationsItem extends StatelessWidget {
                   count: unreadCount))
             : const SizedBox(),
           ]))));
+  }
+}
+
+class _NewDmButton extends StatefulWidget {
+  const _NewDmButton();
+
+  @override
+  State<_NewDmButton> createState() => _NewDmButtonState();
+}
+
+class _NewDmButtonState extends State<_NewDmButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final fabBgColor = _pressed
+      ? designVariables.fabBgPressed
+      : designVariables.fabBg;
+    final fabLabelColor = _pressed
+      ? designVariables.fabLabelPressed
+      : designVariables.fabLabel;
+
+    return InkWell(
+      onTap: () => showNewDmSheet(context),
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      borderRadius: BorderRadius.circular(28),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 20, 12),
+        decoration: BoxDecoration(
+          color: fabBgColor,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [BoxShadow(
+            color: designVariables.fabShadow,
+            blurRadius: _pressed ? 12 : 16,
+            spreadRadius: 0,
+            offset: _pressed
+              ? const Offset(0, 2)
+              : const Offset(0, 4)),
+          ]),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.add, size: 24, color: fabLabelColor),
+            const SizedBox(width: 8),
+            Text(
+              zulipLocalizations.newDmFabButtonLabel,
+              style: TextStyle(
+                fontSize: 20,
+                height: 24 / 20,
+                color: fabLabelColor,
+              ).merge(weightVariableTextStyle(context, wght: 500))),
+          ])));
   }
 }
