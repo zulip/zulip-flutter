@@ -322,7 +322,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Czy chcesz przerwać szykowanie wpisu?';
 
   @override
-  String get discardDraftConfirmationDialogMessage =>
+  String get discardDraftForEditConfirmationDialogMessage =>
       'Miej na uwadze, że przechodząc do zmiany wiadomości wyczyścisz okno nowej wiadomości.';
 
   @override

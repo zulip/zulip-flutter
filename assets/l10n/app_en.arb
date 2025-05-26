@@ -373,9 +373,9 @@
   "@discardDraftConfirmationDialogTitle": {
     "description": "Title for a confirmation dialog for discarding message text that was typed into the compose box."
   },
-  "discardDraftConfirmationDialogMessage": "When you edit a message, the content that was previously in the compose box is discarded.",
-  "@discardDraftConfirmationDialogMessage": {
-    "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box."
+  "discardDraftForEditConfirmationDialogMessage": "When you edit a message, the content that was previously in the compose box is discarded.",
+  "@discardDraftForEditConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box, when editing a message."
   },
   "discardDraftConfirmationDialogConfirmButton": "Discard",
   "@discardDraftConfirmationDialogConfirmButton": {

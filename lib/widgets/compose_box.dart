@@ -1852,7 +1852,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     if (await _abortBecauseContentInputNotEmpty(
-          message: zulipLocalizations.discardDraftConfirmationDialogMessage)) {
+          message: zulipLocalizations.discardDraftForEditConfirmationDialogMessage)) {
       return;
     }
     if (!mounted) return;

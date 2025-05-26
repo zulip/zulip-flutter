@@ -1049,9 +1049,9 @@
   "@discardDraftConfirmationDialogTitle": {
     "description": "Title for a confirmation dialog for discarding message text that was typed into the compose box."
   },
-  "discardDraftConfirmationDialogMessage": "Miej na uwadze, że przechodząc do zmiany wiadomości wyczyścisz okno nowej wiadomości.",
-  "@discardDraftConfirmationDialogMessage": {
-    "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box."
+  "discardDraftForEditConfirmationDialogMessage": "Miej na uwadze, że przechodząc do zmiany wiadomości wyczyścisz okno nowej wiadomości.",
+  "@discardDraftForEditConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box, when editing a message."
   },
   "discardDraftConfirmationDialogConfirmButton": "Odrzuć",
   "@discardDraftConfirmationDialogConfirmButton": {
