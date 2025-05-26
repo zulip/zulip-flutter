@@ -1446,7 +1446,7 @@ class _SenderRow extends StatelessWidget {
                     userId: message.senderId),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text(message.senderFullName, // TODO(#716): use `store.senderDisplayName`
+                    child: Text(store.senderDisplayName(message),
                       style: TextStyle(
                         fontSize: 18,
                         height: (22 / 18),

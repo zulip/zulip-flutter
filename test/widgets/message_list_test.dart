@@ -1443,6 +1443,30 @@ void main() {
   });
 
   group('MessageWithPossibleSender', () {
+    testWidgets('known user', (tester) async {
+      final user = eg.user(fullName: 'Old Name');
+      await setupMessageListPage(tester,
+        messages: [eg.streamMessage(sender: user)],
+        users: [user]);
+
+      check(find.widgetWithText(MessageWithPossibleSender, 'Old Name')).findsOne();
+
+      // If the user's name changes, the sender row should update.
+      await store.handleEvent(RealmUserUpdateEvent(id: 1,
+        userId: user.userId, fullName: 'New Name'));
+      await tester.pump();
+      check(find.widgetWithText(MessageWithPossibleSender, 'New Name')).findsOne();
+    });
+
+    testWidgets('unknown user', (tester) async {
+      final user = eg.user(fullName: 'Some User');
+      await setupMessageListPage(tester, messages: [eg.streamMessage(sender: user)]);
+      check(store.getUser(user.userId)).isNull();
+
+      // The sender row should fall back to the name in the message.
+      check(find.widgetWithText(MessageWithPossibleSender, 'Some User')).findsOne();
+    });
+
     testWidgets('Updates avatar on RealmUserUpdateEvent', (tester) async {
       addTearDown(testBinding.reset);
 
