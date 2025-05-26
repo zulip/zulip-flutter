@@ -1849,11 +1849,13 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   @override
   void startEditInteraction(int messageId) async {
-    if (await _abortBecauseContentInputNotEmpty()) return;
-    if (!mounted) return;
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final abort = await _abortBecauseContentInputNotEmpty(
+      dialogMessage: zulipLocalizations.discardDraftConfirmationDialogMessage);
+    if (abort || !mounted) return;
 
     final store = PerAccountStoreWidget.of(context);
-    final zulipLocalizations = ZulipLocalizations.of(context);
 
     switch (store.getEditMessageErrorStatus(messageId)) {
       case null:
@@ -1878,12 +1880,14 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   /// If there's text in the compose box, give a confirmation dialog
   /// asking if it can be discarded and await the result.
-  Future<bool> _abortBecauseContentInputNotEmpty() async {
+  Future<bool> _abortBecauseContentInputNotEmpty({
+    required String dialogMessage,
+  }) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
     if (controller.content.textNormalized.isNotEmpty) {
       final dialog = showSuggestedActionDialog(context: context,
         title: zulipLocalizations.discardDraftConfirmationDialogTitle,
-        message: zulipLocalizations.discardDraftConfirmationDialogMessage,
+        message: dialogMessage,
         // TODO(#1032) "destructive" style for action button
         actionButtonText: zulipLocalizations.discardDraftConfirmationDialogConfirmButton);
       if (await dialog.result != true) return true;
