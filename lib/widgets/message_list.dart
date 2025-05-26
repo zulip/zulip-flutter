@@ -5,6 +5,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/message.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
@@ -1376,7 +1377,7 @@ final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
 class _SenderRow extends StatelessWidget {
   const _SenderRow({required this.message, required this.showTimestamp});
 
-  final Message message;
+  final MessageBase message;
   final bool showTimestamp;
 
   @override
@@ -1406,7 +1407,9 @@ class _SenderRow extends StatelessWidget {
                     userId: message.senderId),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text(store.senderDisplayName(message),
+                    child: Text(message is Message
+                        ? store.senderDisplayName(message as Message)
+                        : store.userDisplayName(message.senderId),
                       style: TextStyle(
                         fontSize: 18,
                         height: (22 / 18),
