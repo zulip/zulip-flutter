@@ -1444,11 +1444,12 @@ void main() {
 
   Future<void> expectAndHandleDiscardConfirmation(
     WidgetTester tester, {
+    required String expectedMessage,
     required bool shouldContinue,
   }) async {
     final (actionButton, cancelButton) = checkSuggestedActionDialog(tester,
       expectedTitle: 'Discard the message you’re writing?',
-      expectedMessage: 'When you edit a message, the content that was previously in the compose box is discarded.',
+      expectedMessage: expectedMessage,
       expectedActionButtonText: 'Discard');
     if (shouldContinue) {
       await tester.tap(find.byWidget(actionButton));
@@ -1623,6 +1624,14 @@ void main() {
     testSmoke(narrow: topicNarrow,   start: _EditInteractionStart.restoreFailedEdit);
     testSmoke(narrow: dmNarrow,      start: _EditInteractionStart.restoreFailedEdit);
 
+    Future<void> expectAndHandleDiscardForEditConfirmation(WidgetTester tester, {
+      required bool shouldContinue,
+    }) {
+      return expectAndHandleDiscardConfirmation(tester,
+        expectedMessage: 'When you edit a message, the content that was previously in the compose box is discarded.',
+        shouldContinue: shouldContinue);
+    }
+
     // Test the "Discard…?" confirmation dialog when you tap "Edit message" in
     // the action sheet but there's text in the compose box for a new message.
     void testInterruptComposingFromActionSheet({required Narrow narrow}) {
@@ -1638,7 +1647,7 @@ void main() {
 
         // Expect confirmation dialog; tap Cancel
         await startEditInteractionFromActionSheet(tester, messageId: messageId);
-        await expectAndHandleDiscardConfirmation(tester, shouldContinue: false);
+        await expectAndHandleDiscardForEditConfirmation(tester, shouldContinue: false);
         check(connection.takeRequests()).isEmpty();
         // fetch-raw-content request wasn't actually sent;
         // take back its prepared response
@@ -1653,7 +1662,7 @@ void main() {
         // Try again, but this time tap Discard and expect to enter an edit session
         await startEditInteractionFromActionSheet(tester,
           messageId: messageId, originalRawContent: 'foo');
-        await expectAndHandleDiscardConfirmation(tester, shouldContinue: true);
+        await expectAndHandleDiscardForEditConfirmation(tester, shouldContinue: true);
         await tester.pump();
         await checkAwaitingRawMessageContent(tester);
         await tester.pump(Duration(seconds: 1)); // fetch-raw-content request
@@ -1702,7 +1711,7 @@ void main() {
         // Expect confirmation dialog; tap Cancel
         await tester.tap(find.text('EDIT NOT SAVED'));
         await tester.pump();
-        await expectAndHandleDiscardConfirmation(tester, shouldContinue: false);
+        await expectAndHandleDiscardForEditConfirmation(tester, shouldContinue: false);
         checkNotInEditingMode(tester,
           narrow: narrow, expectedContentText: 'composing new message');
 
@@ -1712,7 +1721,7 @@ void main() {
         // Try again, but this time tap Discard and expect to enter edit session
         await tester.tap(find.text('EDIT NOT SAVED'));
         await tester.pump();
-        await expectAndHandleDiscardConfirmation(tester, shouldContinue: true);
+        await expectAndHandleDiscardForEditConfirmation(tester, shouldContinue: true);
         await tester.pump();
         checkContentInputValue(tester, 'bar');
         await enterContent(tester, 'baz');

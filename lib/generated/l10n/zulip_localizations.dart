@@ -643,11 +643,11 @@ abstract class ZulipLocalizations {
   /// **'Discard the message you’re writing?'**
   String get discardDraftConfirmationDialogTitle;
 
-  /// Message for a confirmation dialog for discarding message text that was typed into the compose box.
+  /// Message for a confirmation dialog for discarding message text that was typed into the compose box, when editing a message.
   ///
   /// In en, this message translates to:
   /// **'When you edit a message, the content that was previously in the compose box is discarded.'**
-  String get discardDraftConfirmationDialogMessage;
+  String get discardDraftForEditConfirmationDialogMessage;
 
   /// Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box.
   ///

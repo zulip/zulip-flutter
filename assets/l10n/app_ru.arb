@@ -1069,8 +1069,8 @@
   "@editAlreadyInProgressMessage": {
     "description": "Error message when a message edit cannot be saved because there is another edit already in progress."
   },
-  "discardDraftConfirmationDialogMessage": "При изменении сообщения текст из поля для редактирования удаляется.",
-  "@discardDraftConfirmationDialogMessage": {
+  "discardDraftForEditConfirmationDialogMessage": "При изменении сообщения текст из поля для редактирования удаляется.",
+  "@discardDraftForEditConfirmationDialogMessage": {
     "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box."
   }
 }

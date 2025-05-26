@@ -326,7 +326,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Отказаться от написанного сообщения?';
 
   @override
-  String get discardDraftConfirmationDialogMessage =>
+  String get discardDraftForEditConfirmationDialogMessage =>
       'При изменении сообщения текст из поля для редактирования удаляется.';
 
   @override
