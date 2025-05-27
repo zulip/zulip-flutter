@@ -1504,7 +1504,7 @@ class MessageWithPossibleSender extends StatelessWidget {
       behavior: HitTestBehavior.translucent,
       onLongPress: () => showMessageActionSheet(context: context, message: message),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.only(top: 4, bottom: 2),
         child: Column(children: [
           if (item.showSender)
             _SenderRow(message: message, showTimestamp: true),
