@@ -25,10 +25,11 @@ void main() {
   }
 
   DmOutboxMessage dmOutboxMessage({required List<int> allRecipientIds}) {
+    final senderUserId = allRecipientIds[0];
     return OutboxMessage.fromConversation(
-      DmConversation(allRecipientIds: allRecipientIds),
+      DmConversation(allRecipientIds: allRecipientIds..sort()),
       localMessageId: nextLocalMessageId++,
-      selfUserId: allRecipientIds[0],
+      selfUserId: senderUserId,
       timestamp: 123456789,
       contentMarkdown: 'content') as DmOutboxMessage;
   }
@@ -228,7 +229,7 @@ void main() {
       check(narrow.containsMessage(
         dmOutboxMessage(allRecipientIds: [2, 3]))).isFalse();
       check(narrow.containsMessage(
-        dmOutboxMessage(allRecipientIds: [1, 2]))).isTrue();
+        dmOutboxMessage(allRecipientIds: [2, 1]))).isTrue();
     });
   });
 
