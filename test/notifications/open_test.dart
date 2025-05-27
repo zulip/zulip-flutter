@@ -85,7 +85,7 @@ void main() {
           TopicNarrow(streamId, topic),
         FcmMessageDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildUrl();
+      }).buildAndroidNotificationUrl();
       unawaited(
         WidgetsBinding.instance.handlePushRoute(intentDataUrl.toString()));
       await tester.idle(); // let navigateForNotification find navigator
@@ -215,7 +215,7 @@ void main() {
             TopicNarrow(streamId, topic),
           FcmMessageDmRecipient(:var allRecipientIds) =>
             DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-        }).buildUrl();
+        }).buildAndroidNotificationUrl();
       addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
       tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
 
@@ -248,7 +248,7 @@ void main() {
             TopicNarrow(streamId, topic),
           FcmMessageDmRecipient(:var allRecipientIds) =>
             DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-        }).buildUrl();
+        }).buildAndroidNotificationUrl();
       addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
       tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
 
@@ -269,8 +269,8 @@ void main() {
         userId: 1001,
         narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
       );
-      var url = payload.buildUrl();
-      check(NotificationOpenPayload.parseUrl(url))
+      var url = payload.buildAndroidNotificationUrl();
+      check(NotificationOpenPayload.parseAndroidNotificationUrl(url))
         ..realmUrl.equals(payload.realmUrl)
         ..userId.equals(payload.userId)
         ..narrow.equals(payload.narrow);
@@ -281,179 +281,183 @@ void main() {
         userId: 1001,
         narrow: eg.topicNarrow(1, 'topic A'),
       );
-      url = payload.buildUrl();
-      check(NotificationOpenPayload.parseUrl(url))
+      url = payload.buildAndroidNotificationUrl();
+      check(NotificationOpenPayload.parseAndroidNotificationUrl(url))
         ..realmUrl.equals(payload.realmUrl)
         ..userId.equals(payload.userId)
         ..narrow.equals(payload.narrow);
     });
 
-    test('buildUrl: smoke DM', () {
-      final url = NotificationOpenPayload(
-        realmUrl: Uri.parse('http://chat.example'),
-        userId: 1001,
-        narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
-      ).buildUrl();
-      check(url)
-        ..scheme.equals('zulip')
-        ..host.equals('notification')
-        ..queryParameters.deepEquals({
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'dm',
-          'all_recipient_ids': '1001,1002',
-        });
+    group('buildAndroidNotificationUrl', () {
+      test('smoke DM', () {
+        final url = NotificationOpenPayload(
+          realmUrl: Uri.parse('http://chat.example'),
+          userId: 1001,
+          narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
+        ).buildAndroidNotificationUrl();
+        check(url)
+          ..scheme.equals('zulip')
+          ..host.equals('notification')
+          ..queryParameters.deepEquals({
+            'realm_url': 'http://chat.example',
+            'user_id': '1001',
+            'narrow_type': 'dm',
+            'all_recipient_ids': '1001,1002',
+          });
+      });
+
+      test('smoke topic', () {
+        final url = NotificationOpenPayload(
+          realmUrl: Uri.parse('http://chat.example'),
+          userId: 1001,
+          narrow: eg.topicNarrow(1, 'topic A'),
+        ).buildAndroidNotificationUrl();
+        check(url)
+          ..scheme.equals('zulip')
+          ..host.equals('notification')
+          ..queryParameters.deepEquals({
+            'realm_url': 'http://chat.example',
+            'user_id': '1001',
+            'narrow_type': 'topic',
+            'channel_id': '1',
+            'topic': 'topic A',
+          });
+      });
     });
 
-    test('buildUrl: smoke topic', () {
-      final url = NotificationOpenPayload(
-        realmUrl: Uri.parse('http://chat.example'),
-        userId: 1001,
-        narrow: eg.topicNarrow(1, 'topic A'),
-      ).buildUrl();
-      check(url)
-        ..scheme.equals('zulip')
-        ..host.equals('notification')
-        ..queryParameters.deepEquals({
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'topic',
-          'channel_id': '1',
-          'topic': 'topic A',
-        });
-    });
-
-    test('parse: smoke DM', () {
-      final url = Uri(
-        scheme: 'zulip',
-        host: 'notification',
-        queryParameters: <String, String>{
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'dm',
-          'all_recipient_ids': '1001,1002',
-        });
-      check(NotificationOpenPayload.parseUrl(url))
-        ..realmUrl.equals(Uri.parse('http://chat.example'))
-        ..userId.equals(1001)
-        ..narrow.which((it) => it.isA<DmNarrow>()
-          ..allRecipientIds.deepEquals([1001, 1002])
-          ..otherRecipientIds.deepEquals([1002]));
-    });
-
-    test('parse: smoke topic', () {
-      final url = Uri(
-        scheme: 'zulip',
-        host: 'notification',
-        queryParameters: <String, String>{
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'topic',
-          'channel_id': '1',
-          'topic': 'topic A',
-        });
-      check(NotificationOpenPayload.parseUrl(url))
-        ..realmUrl.equals(Uri.parse('http://chat.example'))
-        ..userId.equals(1001)
-        ..narrow.which((it) => it.isA<TopicNarrow>()
-          ..streamId.equals(1)
-          ..topic.equals(eg.t('topic A')));
-    });
-
-    test('parse: fails when missing any expected query parameters', () {
-      final testCases = <Map<String, String>>[
-        {
-          // 'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'topic',
-          'channel_id': '1',
-          'topic': 'topic A',
-        },
-        {
-          'realm_url': 'http://chat.example',
-          // 'user_id': '1001',
-          'narrow_type': 'topic',
-          'channel_id': '1',
-          'topic': 'topic A',
-        },
-        {
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          // 'narrow_type': 'topic',
-          'channel_id': '1',
-          'topic': 'topic A',
-        },
-        {
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'topic',
-          // 'channel_id': '1',
-          'topic': 'topic A',
-        },
-        {
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'topic',
-          'channel_id': '1',
-          // 'topic': 'topic A',
-        },
-        {
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          // 'narrow_type': 'dm',
-          'all_recipient_ids': '1001,1002',
-        },
-        {
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'dm',
-          // 'all_recipient_ids': '1001,1002',
-        },
-      ];
-      for (final params in testCases) {
-        check(() => NotificationOpenPayload.parseUrl(Uri(
+    group('parseAndroidNotificationUrl', () {
+      test('smoke DM', () {
+        final url = Uri(
           scheme: 'zulip',
           host: 'notification',
-          queryParameters: params,
-        )))
-          // Missing 'realm_url', 'user_id' and 'narrow_type'
-          // throws 'FormatException'.
-          // Missing 'channel_id', 'topic', when narrow_type == 'topic'
-          // throws 'TypeError'.
-          // Missing 'all_recipient_ids', when narrow_type == 'dm'
-          // throws 'TypeError'.
-          .throws<Object>();
-      }
-    });
+          queryParameters: <String, String>{
+            'realm_url': 'http://chat.example',
+            'user_id': '1001',
+            'narrow_type': 'dm',
+            'all_recipient_ids': '1001,1002',
+          });
+        check(NotificationOpenPayload.parseAndroidNotificationUrl(url))
+          ..realmUrl.equals(Uri.parse('http://chat.example'))
+          ..userId.equals(1001)
+          ..narrow.which((it) => it.isA<DmNarrow>()
+            ..allRecipientIds.deepEquals([1001, 1002])
+            ..otherRecipientIds.deepEquals([1002]));
+      });
 
-    test('parse: fails when scheme is not "zulip"', () {
-      final url = Uri(
-        scheme: 'http',
-        host: 'notification',
-        queryParameters: <String, String>{
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'topic',
-          'channel_id': '1',
-          'topic': 'topic A',
-        });
-      check(() => NotificationOpenPayload.parseUrl(url))
-        .throws<FormatException>();
-    });
+      test('smoke topic', () {
+        final url = Uri(
+          scheme: 'zulip',
+          host: 'notification',
+          queryParameters: <String, String>{
+            'realm_url': 'http://chat.example',
+            'user_id': '1001',
+            'narrow_type': 'topic',
+            'channel_id': '1',
+            'topic': 'topic A',
+          });
+        check(NotificationOpenPayload.parseAndroidNotificationUrl(url))
+          ..realmUrl.equals(Uri.parse('http://chat.example'))
+          ..userId.equals(1001)
+          ..narrow.which((it) => it.isA<TopicNarrow>()
+            ..streamId.equals(1)
+            ..topic.equals(eg.t('topic A')));
+      });
 
-    test('parse: fails when host is not "notification"', () {
-      final url = Uri(
-        scheme: 'zulip',
-        host: 'example',
-        queryParameters: <String, String>{
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'topic',
-          'channel_id': '1',
-          'topic': 'topic A',
-        });
-      check(() => NotificationOpenPayload.parseUrl(url))
-        .throws<FormatException>();
+      test('fails when missing any expected query parameters', () {
+        final testCases = <Map<String, String>>[
+          {
+            // 'realm_url': 'http://chat.example',
+            'user_id': '1001',
+            'narrow_type': 'topic',
+            'channel_id': '1',
+            'topic': 'topic A',
+          },
+          {
+            'realm_url': 'http://chat.example',
+            // 'user_id': '1001',
+            'narrow_type': 'topic',
+            'channel_id': '1',
+            'topic': 'topic A',
+          },
+          {
+            'realm_url': 'http://chat.example',
+            'user_id': '1001',
+            // 'narrow_type': 'topic',
+            'channel_id': '1',
+            'topic': 'topic A',
+          },
+          {
+            'realm_url': 'http://chat.example',
+            'user_id': '1001',
+            'narrow_type': 'topic',
+            // 'channel_id': '1',
+            'topic': 'topic A',
+          },
+          {
+            'realm_url': 'http://chat.example',
+            'user_id': '1001',
+            'narrow_type': 'topic',
+            'channel_id': '1',
+            // 'topic': 'topic A',
+          },
+          {
+            'realm_url': 'http://chat.example',
+            'user_id': '1001',
+            // 'narrow_type': 'dm',
+            'all_recipient_ids': '1001,1002',
+          },
+          {
+            'realm_url': 'http://chat.example',
+            'user_id': '1001',
+            'narrow_type': 'dm',
+            // 'all_recipient_ids': '1001,1002',
+          },
+        ];
+        for (final params in testCases) {
+          check(() => NotificationOpenPayload.parseAndroidNotificationUrl(Uri(
+            scheme: 'zulip',
+            host: 'notification',
+            queryParameters: params,
+          )))
+            // Missing 'realm_url', 'user_id' and 'narrow_type'
+            // throws 'FormatException'.
+            // Missing 'channel_id', 'topic', when narrow_type == 'topic'
+            // throws 'TypeError'.
+            // Missing 'all_recipient_ids', when narrow_type == 'dm'
+            // throws 'TypeError'.
+            .throws<Object>();
+        }
+      });
+
+      test('fails when scheme is not "zulip"', () {
+        final url = Uri(
+          scheme: 'http',
+          host: 'notification',
+          queryParameters: <String, String>{
+            'realm_url': 'http://chat.example',
+            'user_id': '1001',
+            'narrow_type': 'topic',
+            'channel_id': '1',
+            'topic': 'topic A',
+          });
+        check(() => NotificationOpenPayload.parseAndroidNotificationUrl(url))
+          .throws<FormatException>();
+      });
+
+      test('fails when host is not "notification"', () {
+        final url = Uri(
+          scheme: 'zulip',
+          host: 'example',
+          queryParameters: <String, String>{
+            'realm_url': 'http://chat.example',
+            'user_id': '1001',
+            'narrow_type': 'topic',
+            'channel_id': '1',
+            'topic': 'topic A',
+          });
+        check(() => NotificationOpenPayload.parseAndroidNotificationUrl(url))
+          .throws<FormatException>();
+      });
     });
   });
 }

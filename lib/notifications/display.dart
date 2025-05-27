@@ -296,7 +296,7 @@ class NotificationDisplayManager {
           TopicNarrow(streamId, topic),
         FcmMessageDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildUrl();
+      }).buildAndroidNotificationUrl();
 
     await _androidHost.notify(
       id: kNotificationId,
