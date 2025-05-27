@@ -175,8 +175,10 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     final initialRouteUrl = Uri.tryParse(initialRoute);
     if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
       assert(debugLog('got notif: url: $initialRouteUrl'));
-      final data =
-        NotificationOpenPayload.parseAndroidNotificationUrl(initialRouteUrl);
+      final data = NotificationOpenService.tryParseAndroidNotificationUrl(
+        context: context,
+        url: initialRouteUrl);
+      if (data == null) return null; // TODO(log)
       return NotificationOpenService.routeForNotification(
         context: context,
         data: data);
