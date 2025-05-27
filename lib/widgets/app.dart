@@ -168,27 +168,35 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  AccountRoute<void>? _initialRouteAndroid(
+    BuildContext context,
+    String initialRoute,
+  ) {
+    final initialRouteUrl = Uri.tryParse(initialRoute);
+    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
+      assert(debugLog('got notif: url: $initialRouteUrl'));
+      final data =
+        NotificationOpenPayload.parseAndroidNotificationUrl(initialRouteUrl);
+      return NotificationOpenService.routeForNotification(
+        context: context,
+        data: data);
+    }
+
+    return null;
+  }
+
   List<Route<dynamic>> _handleGenerateInitialRoutes(String initialRoute) {
     // The `_ZulipAppState.context` lacks the required ancestors. Instead
     // we use the Navigator which should be available when this callback is
     // called and it's context should have the required ancestors.
     final context = ZulipApp.navigatorKey.currentContext!;
 
-    final initialRouteUrl = Uri.tryParse(initialRoute);
-    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
-      final route = NotificationOpenService.routeForNotification(
-        context: context,
-        url: initialRouteUrl);
-
-      if (route != null) {
-        return [
-          HomePage.buildRoute(accountId: route.accountId),
-          route,
-        ];
-      } else {
-        // The account didn't match any existing accounts,
-        // fall through to show the default route below.
-      }
+    final route = _initialRouteAndroid(context, initialRoute);
+    if (route != null) {
+      return [
+        HomePage.buildRoute(accountId: route.accountId),
+        route,
+      ];
     }
 
     final globalStore = GlobalStoreWidget.of(context);
@@ -209,7 +217,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
         await LoginPage.handleWebAuthUrl(url);
         return true;
       case Uri(scheme: 'zulip', host: 'notification') && var url:
-        await NotificationOpenService.navigateForNotification(url);
+        await NotificationOpenService.navigateForAndroidNotificationUrl(url);
         return true;
     }
     return super.didPushRouteInformation(routeInformation);
