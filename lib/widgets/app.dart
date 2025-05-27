@@ -9,7 +9,7 @@ import '../log.dart';
 import '../model/actions.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
-import '../notifications/display.dart';
+import '../notifications/open.dart';
 import 'about_zulip.dart';
 import 'dialog.dart';
 import 'home.dart';
@@ -176,7 +176,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
 
     final initialRouteUrl = Uri.tryParse(initialRoute);
     if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
-      final route = NotificationDisplayManager.routeForNotification(
+      final route = NotificationOpenService.routeForNotification(
         context: context,
         url: initialRouteUrl);
 
@@ -209,7 +209,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
         await LoginPage.handleWebAuthUrl(url);
         return true;
       case Uri(scheme: 'zulip', host: 'notification') && var url:
-        await NotificationDisplayManager.navigateForNotification(url);
+        await NotificationOpenService.navigateForNotification(url);
         return true;
     }
     return super.didPushRouteInformation(routeInformation);

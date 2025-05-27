@@ -3,23 +3,16 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart' hide Notification;
 import 'package:http/http.dart' as http;
 
 import '../api/model/model.dart';
 import '../api/notifications.dart';
-import '../generated/l10n/zulip_localizations.dart';
 import '../host/android_notifications.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
-import '../widgets/app.dart';
 import '../widgets/color.dart';
-import '../widgets/dialog.dart';
-import '../widgets/message_list.dart';
-import '../widgets/page.dart';
-import '../widgets/store.dart';
 import '../widgets/theme.dart';
 import 'open.dart';
 
@@ -481,62 +474,6 @@ class NotificationDisplayManager {
   }
 
   static String _personKey(Uri realmUrl, int userId) => "$realmUrl|$userId";
-
-  /// Provides the route and the account ID by parsing the notification URL.
-  ///
-  /// The URL must have been generated using [NotificationOpenPayload.buildUrl]
-  /// while creating the notification.
-  ///
-  /// Returns null and shows an error dialog if the associated account is not
-  /// found in the global store.
-  static AccountRoute<void>? routeForNotification({
-    required BuildContext context,
-    required Uri url,
-  }) {
-    assert(defaultTargetPlatform == TargetPlatform.android);
-
-    final globalStore = GlobalStoreWidget.of(context);
-
-    assert(debugLog('got notif: url: $url'));
-    assert(url.scheme == 'zulip' && url.host == 'notification');
-    final payload = NotificationOpenPayload.parseUrl(url);
-
-    final account = globalStore.accounts.firstWhereOrNull(
-      (account) => account.realmUrl.origin == payload.realmUrl.origin
-                && account.userId == payload.userId);
-    if (account == null) { // TODO(log)
-      final zulipLocalizations = ZulipLocalizations.of(context);
-      showErrorDialog(context: context,
-        title: zulipLocalizations.errorNotificationOpenTitle,
-        message: zulipLocalizations.errorNotificationOpenAccountNotFound);
-      return null;
-    }
-
-    return MessageListPage.buildRoute(
-      accountId: account.id,
-      // TODO(#82): Open at specific message, not just conversation
-      narrow: payload.narrow);
-  }
-
-  /// Navigates to the [MessageListPage] of the specific conversation
-  /// given the `zulip://notification/…` Android intent data URL,
-  /// generated with [NotificationOpenPayload.buildUrl] while creating
-  /// the notification.
-  static Future<void> navigateForNotification(Uri url) async {
-    assert(defaultTargetPlatform == TargetPlatform.android);
-    assert(debugLog('opened notif: url: $url'));
-
-    NavigatorState navigator = await ZulipApp.navigator;
-    final context = navigator.context;
-    assert(context.mounted);
-    if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
-
-    final route = routeForNotification(context: context, url: url);
-    if (route == null) return; // TODO(log)
-
-    // TODO(nav): Better interact with existing nav stack on notif open
-    unawaited(navigator.push(route));
-  }
 
   static Future<Uint8List?> _fetchBitmap(Uri url) async {
     try {
