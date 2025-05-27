@@ -62,12 +62,28 @@ class NotificationOpenService {
     if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
 
     assert(url.scheme == 'zulip' && url.host == 'notification');
-    final data = NotificationOpenPayload.parseAndroidNotificationUrl(url);
+    final data = tryParseAndroidNotificationUrl(context: context, url: url);
+    if (data == null) return; // TODO(log)
     final route = routeForNotification(context: context, data: data);
     if (route == null) return; // TODO(log)
 
     // TODO(nav): Better interact with existing nav stack on notif open
     unawaited(navigator.push(route));
+  }
+
+  static NotificationOpenPayload? tryParseAndroidNotificationUrl({
+    required BuildContext context,
+    required Uri url,
+  }) {
+    try {
+      return NotificationOpenPayload.parseAndroidNotificationUrl(url);
+    } on FormatException catch (e, st) {
+      assert(debugLog('$e\n$st'));
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorNotificationOpenTitle);
+      return null;
+    }
   }
 }
 
