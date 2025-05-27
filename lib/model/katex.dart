@@ -131,6 +131,8 @@ class _KatexParser {
   KatexNode _parseSpan(dom.Element element) {
     // TODO maybe check if the sequence of ancestors matter for spans.
 
+    final debugHtmlNode = kDebugMode ? element : null;
+
     // Aggregate the CSS styles that apply, in the same order as the CSS
     // classes specified for this span, mimicking the behaviour on web.
     //
@@ -353,7 +355,8 @@ class _KatexParser {
     return KatexNode(
       styles: styles,
       text: text,
-      nodes: spans);
+      nodes: spans,
+      debugHtmlNode: debugHtmlNode);
   }
 }
 
