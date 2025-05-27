@@ -1598,7 +1598,7 @@ class _EditMessageStatusRow extends StatelessWidget {
     return switch (status) {
       // TODO parse markdown and show new content as local echo?
       false => Padding(
-        padding: const EdgeInsets.only(bottom: 4),
+        padding: const EdgeInsets.only(bottom: 2),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 1.5,
