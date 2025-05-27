@@ -17,11 +17,7 @@ import '../widgets/store.dart';
 /// Responds to the user opening a notification.
 class NotificationOpenService {
 
-  /// Provides the route and the account ID by parsing the notification URL.
-  ///
-  /// The URL must have been generated using
-  /// [NotificationOpenPayload.buildAndroidNotificationUrl] while creating the
-  /// notification.
+  /// Provides the route to open by parsing the notification payload.
   ///
   /// Returns null and shows an error dialog if the associated account is not
   /// found in the global store.
@@ -29,19 +25,15 @@ class NotificationOpenService {
   /// The context argument should be a descendant of the app's main [Navigator].
   static AccountRoute<void>? routeForNotification({
     required BuildContext context,
-    required Uri url,
+    required NotificationOpenPayload data,
   }) {
     assert(defaultTargetPlatform == TargetPlatform.android);
 
     final globalStore = GlobalStoreWidget.of(context);
 
-    assert(debugLog('got notif: url: $url'));
-    assert(url.scheme == 'zulip' && url.host == 'notification');
-    final payload = NotificationOpenPayload.parseAndroidNotificationUrl(url);
-
     final account = globalStore.accounts.firstWhereOrNull(
-      (account) => account.realmUrl.origin == payload.realmUrl.origin
-                && account.userId == payload.userId);
+      (account) => account.realmUrl.origin == data.realmUrl.origin
+                && account.userId == data.userId);
     if (account == null) { // TODO(log)
       final zulipLocalizations = ZulipLocalizations.of(context);
       showErrorDialog(context: context,
@@ -53,14 +45,14 @@ class NotificationOpenService {
     return MessageListPage.buildRoute(
       accountId: account.id,
       // TODO(#82): Open at specific message, not just conversation
-      narrow: payload.narrow);
+      narrow: data.narrow);
   }
 
   /// Navigates to the [MessageListPage] of the specific conversation
   /// given the `zulip://notification/…` Android intent data URL,
   /// generated with [NotificationOpenPayload.buildAndroidNotificationUrl]
   /// while creating the notification.
-  static Future<void> navigateForNotification(Uri url) async {
+  static Future<void> navigateForAndroidNotificationUrl(Uri url) async {
     assert(defaultTargetPlatform == TargetPlatform.android);
     assert(debugLog('opened notif: url: $url'));
 
@@ -69,7 +61,9 @@ class NotificationOpenService {
     assert(context.mounted);
     if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
 
-    final route = routeForNotification(context: context, url: url);
+    assert(url.scheme == 'zulip' && url.host == 'notification');
+    final data = NotificationOpenPayload.parseAndroidNotificationUrl(url);
+    final route = routeForNotification(context: context, data: data);
     if (route == null) return; // TODO(log)
 
     // TODO(nav): Better interact with existing nav stack on notif open
