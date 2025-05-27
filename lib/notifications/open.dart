@@ -19,8 +19,9 @@ class NotificationOpenService {
 
   /// Provides the route and the account ID by parsing the notification URL.
   ///
-  /// The URL must have been generated using [NotificationOpenPayload.buildUrl]
-  /// while creating the notification.
+  /// The URL must have been generated using
+  /// [NotificationOpenPayload.buildAndroidNotificationUrl] while creating the
+  /// notification.
   ///
   /// Returns null and shows an error dialog if the associated account is not
   /// found in the global store.
@@ -34,7 +35,7 @@ class NotificationOpenService {
 
     assert(debugLog('got notif: url: $url'));
     assert(url.scheme == 'zulip' && url.host == 'notification');
-    final payload = NotificationOpenPayload.parseUrl(url);
+    final payload = NotificationOpenPayload.parseAndroidNotificationUrl(url);
 
     final account = globalStore.accounts.firstWhereOrNull(
       (account) => account.realmUrl.origin == payload.realmUrl.origin
@@ -55,8 +56,8 @@ class NotificationOpenService {
 
   /// Navigates to the [MessageListPage] of the specific conversation
   /// given the `zulip://notification/…` Android intent data URL,
-  /// generated with [NotificationOpenPayload.buildUrl] while creating
-  /// the notification.
+  /// generated with [NotificationOpenPayload.buildAndroidNotificationUrl]
+  /// while creating the notification.
   static Future<void> navigateForNotification(Uri url) async {
     assert(defaultTargetPlatform == TargetPlatform.android);
     assert(debugLog('opened notif: url: $url'));
@@ -74,8 +75,8 @@ class NotificationOpenService {
   }
 }
 
-/// The information contained in 'zulip://notification/…' internal
-/// Android intent data URL, used for notification-open flow.
+/// The data from a notification that describes what to do
+/// when the user opens the notification.
 class NotificationOpenPayload {
   final Uri realmUrl;
   final int userId;
@@ -87,7 +88,10 @@ class NotificationOpenPayload {
     required this.narrow,
   });
 
-  factory NotificationOpenPayload.parseUrl(Uri url) {
+  /// Parses the internal Android notification url, that was created using
+  /// [buildAndroidNotificationUrl], and retrieves the information required
+  /// for navigation.
+  factory NotificationOpenPayload.parseAndroidNotificationUrl(Uri url) {
     if (url case Uri(
       scheme: 'zulip',
       host: 'notification',
@@ -133,7 +137,7 @@ class NotificationOpenPayload {
     }
   }
 
-  Uri buildUrl() {
+  Uri buildAndroidNotificationUrl() {
     return Uri(
       scheme: 'zulip',
       host: 'notification',
