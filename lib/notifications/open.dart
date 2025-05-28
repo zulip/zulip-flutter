@@ -100,6 +100,72 @@ class NotificationOpenPayload {
     required this.narrow,
   });
 
+  /// Parses the iOS APNs payload and retrieves the information
+  /// required for navigation.
+  factory NotificationOpenPayload.parseIosApnsPayload(Map<Object?, Object?> payload) {
+    if (payload case {
+      'zulip': {
+        'user_id': final int userId,
+        'sender_id': final int senderId,
+      } && final zulipData,
+    }) {
+      final eventType = zulipData['event'];
+      if (eventType != null && eventType != 'message') {
+        // On Android, we also receive "remove" notification messages, tagged
+        // with an `event` field with value 'remove'. As of Zulip Server 10,
+        // however, these are not yet sent to iOS devices, and we don't have a
+        // way to handle them even if they were.
+        //
+        // The messages we currently do receive, and can handle, are analogous
+        // to Android notification messages of event type 'message'. On the
+        // assumption that some future version of the Zulip server will send
+        // explicit event types in APNs messages, accept messages with that
+        // `event` value, but no other.
+        throw const FormatException();
+      }
+
+      final realmUrl = switch (zulipData) {
+        {'realm_url': final String value} => value,
+        {'realm_uri': final String value} => value,
+        _ => throw const FormatException(),
+      };
+
+      final narrow = switch (zulipData) {
+        {
+          'recipient_type': 'stream',
+          // TODO(server-5) remove this comment.
+          // We require 'stream_id' here but that is new from Server 5.0,
+          // resulting in failure on pre-5.0 servers.
+          'stream_id': final int streamId,
+          'topic': final String topic,
+        } =>
+          TopicNarrow(streamId, TopicName(topic)),
+
+        {'recipient_type': 'private', 'pm_users': final String pmUsers} =>
+          DmNarrow(
+            allRecipientIds: pmUsers
+              .split(',')
+              .map((e) => int.parse(e, radix: 10))
+              .toList(growable: false)
+              ..sort(),
+            selfUserId: userId),
+
+        {'recipient_type': 'private'} =>
+          DmNarrow.withUser(senderId, selfUserId: userId),
+
+        _ => throw const FormatException(),
+      };
+
+      return NotificationOpenPayload(
+        realmUrl: Uri.parse(realmUrl),
+        userId: userId,
+        narrow: narrow);
+    } else {
+      // TODO(dart): simplify after https://github.com/dart-lang/language/issues/2537
+      throw const FormatException();
+    }
+  }
+
   /// Parses the internal Android notification url, that was created using
   /// [buildAndroidNotificationUrl], and retrieves the information required
   /// for navigation.
