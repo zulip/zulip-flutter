@@ -405,6 +405,34 @@
   "@composeBoxGenericContentHint": {
     "description": "Hint text for content input when sending a message."
   },
+  "newDmSheetBackButtonLabel": "Back",
+  "@newDmSheetBackButtonLabel": {
+    "description": "Label for the back button in the new DM sheet, allowing the user to return to the previous screen."
+  },
+  "newDmSheetNextButtonLabel": "Next",
+  "@newDmSheetNextButtonLabel": {
+    "description": "Label for the front button in the new DM sheet, if applicable, for navigation or action."
+  },
+  "newDmSheetScreenTitle": "New DM",
+  "@newDmSheetScreenTitle": {
+    "description": "Title displayed at the top of the new DM screen."
+  },
+  "newDmFabButtonLabel": "New DM",
+  "@newDmFabButtonLabel": {
+    "description": "Label for the floating action button (FAB) that opens the new DM sheet."
+  },
+  "newDmSheetSearchHintEmpty": "Add one or more users",
+  "@newDmSheetSearchHintEmpty": {
+    "description": "Hint text for the search bar when no users are selected"
+  },
+  "newDmSheetSearchHintSomeSelected": "Add another user…",
+  "@newDmSheetSearchHintSomeSelected": {
+    "description": "Hint text for the search bar when at least one user is selected"
+  },
+  "newDmSheetNoUsersFound": "No users found",
+  "@newDmSheetNoUsersFound": {
+    "description": "Message shown in the new DM sheet when no users match the search."
+  },
   "composeBoxDmContentHint": "Message @{user}",
   "@composeBoxDmContentHint": {
     "description": "Hint text for content input when sending a message to one other person.",
