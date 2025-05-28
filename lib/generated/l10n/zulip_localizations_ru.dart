@@ -131,7 +131,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get actionSheetOptionUnstarMessage => 'Снять отметку с сообщения';
 
   @override
-  String get actionSheetOptionEditMessage => 'Edit message';
+  String get actionSheetOptionEditMessage => 'Редактировать сообщение';
 
   @override
   String get actionSheetOptionMarkTopicAsRead =>
@@ -153,7 +153,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get errorCouldNotFetchMessageSource =>
-      'Не удалось извлечь источник сообщения';
+      'Не удалось извлечь источник сообщения.';
 
   @override
   String get errorCopyingFailed => 'Сбой копирования';
@@ -204,7 +204,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get errorMessageNotSent => 'Сообщение не отправлено';
 
   @override
-  String get errorMessageEditNotSaved => 'Message not saved';
+  String get errorMessageEditNotSaved => 'Сообщение не сохранено';
 
   @override
   String errorLoginCouldNotConnect(String url) {
@@ -280,7 +280,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Не удалось снять отметку с сообщения';
 
   @override
-  String get errorCouldNotEditMessageTitle => 'Could not edit message';
+  String get errorCouldNotEditMessageTitle => 'Сбой редактирования';
 
   @override
   String get successLinkCopied => 'Ссылка скопирована';
@@ -300,37 +300,37 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'У вас нет права писать в этом канале.';
 
   @override
-  String get composeBoxBannerLabelEditMessage => 'Edit message';
+  String get composeBoxBannerLabelEditMessage => 'Редактирование сообщения';
 
   @override
-  String get composeBoxBannerButtonCancel => 'Cancel';
+  String get composeBoxBannerButtonCancel => 'Отмена';
 
   @override
-  String get composeBoxBannerButtonSave => 'Save';
+  String get composeBoxBannerButtonSave => 'Сохранить';
 
   @override
-  String get editAlreadyInProgressTitle => 'Cannot edit message';
+  String get editAlreadyInProgressTitle => 'Редактирование недоступно';
 
   @override
   String get editAlreadyInProgressMessage =>
-      'An edit is already in progress. Please wait for it to complete.';
+      'Редактирование уже выполняется. Дождитесь завершения.';
 
   @override
-  String get savingMessageEditLabel => 'SAVING EDIT…';
+  String get savingMessageEditLabel => 'ЗАПИСЬ ПРАВОК…';
 
   @override
-  String get savingMessageEditFailedLabel => 'EDIT NOT SAVED';
+  String get savingMessageEditFailedLabel => 'ПРАВКИ НЕ СОХРАНЕНЫ';
 
   @override
   String get discardDraftConfirmationDialogTitle =>
-      'Discard the message you’re writing?';
+      'Отказаться от написанного сообщения?';
 
   @override
   String get discardDraftConfirmationDialogMessage =>
-      'When you edit a message, the content that was previously in the compose box is discarded.';
+      'При изменении сообщения текст из поля для редактирования удаляется.';
 
   @override
-  String get discardDraftConfirmationDialogConfirmButton => 'Discard';
+  String get discardDraftConfirmationDialogConfirmButton => 'Сбросить';
 
   @override
   String get composeBoxAttachFilesTooltip => 'Прикрепить файлы';
@@ -361,7 +361,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   }
 
   @override
-  String get preparingEditMessageContentInput => 'Preparing…';
+  String get preparingEditMessageContentInput => 'Подготовка…';
 
   @override
   String get composeBoxSendTooltip => 'Отправить';
@@ -374,7 +374,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String composeBoxEnterTopicOrSkipHintText(String defaultTopicName) {
-    return 'Enter a topic (skip for “$defaultTopicName”)';
+    return 'Укажите тему (или оставьте “$defaultTopicName”)';
   }
 
   @override
@@ -517,7 +517,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   }
 
   @override
-  String get errorInvalidResponse => 'Получен недопустимый ответ сервера';
+  String get errorInvalidResponse => 'Сервер отправил недопустимый ответ.';
 
   @override
   String get errorNetworkRequestFailed => 'Сбой сетевого запроса';
@@ -538,7 +538,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   }
 
   @override
-  String get errorVideoPlayerFailed => 'Не удается воспроизвести видео';
+  String get errorVideoPlayerFailed => 'Не удается воспроизвести видео.';
 
   @override
   String get serverUrlValidationErrorEmpty => 'Пожалуйста, введите URL-адрес.';

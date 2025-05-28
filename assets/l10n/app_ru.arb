@@ -113,7 +113,7 @@
       }
     }
   },
-  "errorCouldNotFetchMessageSource": "Не удалось извлечь источник сообщения",
+  "errorCouldNotFetchMessageSource": "Не удалось извлечь источник сообщения.",
   "@errorCouldNotFetchMessageSource": {
     "description": "Error message when the source of a message could not be fetched."
   },
@@ -393,7 +393,7 @@
   "@serverUrlValidationErrorNoUseEmail": {
     "description": "Error message when URL looks like an email"
   },
-  "errorVideoPlayerFailed": "Не удается воспроизвести видео",
+  "errorVideoPlayerFailed": "Не удается воспроизвести видео.",
   "@errorVideoPlayerFailed": {
     "description": "Error message when a video fails to play."
   },
@@ -525,7 +525,7 @@
   "@successMessageTextCopied": {
     "description": "Message when content of a message was copied to the user's system clipboard."
   },
-  "errorInvalidResponse": "Получен недопустимый ответ сервера",
+  "errorInvalidResponse": "Сервер отправил недопустимый ответ.",
   "@errorInvalidResponse": {
     "description": "Error message when an API call returned an invalid response."
   },
@@ -1006,5 +1006,71 @@
   "experimentalFeatureSettingsWarning": "Эти параметры включают функции, которые все еще находятся в стадии разработки и не готовы. Они могут не работать и вызывать проблемы в других местах приложения.\n\nЦель этих настроек — экспериментирование людьми, работающими над разработкой Zulip.",
   "@experimentalFeatureSettingsWarning": {
     "description": "Warning text on settings page for experimental, in-development features"
+  },
+  "errorCouldNotEditMessageTitle": "Сбой редактирования",
+  "@errorCouldNotEditMessageTitle": {
+    "description": "Error title when an exception prevented us from opening the compose box for editing a message."
+  },
+  "composeBoxBannerButtonSave": "Сохранить",
+  "@composeBoxBannerButtonSave": {
+    "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
+  },
+  "editAlreadyInProgressTitle": "Редактирование недоступно",
+  "@editAlreadyInProgressTitle": {
+    "description": "Error title when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "savingMessageEditLabel": "ЗАПИСЬ ПРАВОК…",
+  "@savingMessageEditLabel": {
+    "description": "Text on a message in the message list saying that a message edit request is processing. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "savingMessageEditFailedLabel": "ПРАВКИ НЕ СОХРАНЕНЫ",
+  "@savingMessageEditFailedLabel": {
+    "description": "Text on a message in the message list saying that a message edit request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "discardDraftConfirmationDialogTitle": "Отказаться от написанного сообщения?",
+  "@discardDraftConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "discardDraftConfirmationDialogConfirmButton": "Сбросить",
+  "@discardDraftConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "composeBoxBannerButtonCancel": "Отмена",
+  "@composeBoxBannerButtonCancel": {
+    "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
+  },
+  "actionSheetOptionEditMessage": "Редактировать сообщение",
+  "@actionSheetOptionEditMessage": {
+    "description": "Label for the 'Edit message' button in the message action sheet."
+  },
+  "errorMessageEditNotSaved": "Сообщение не сохранено",
+  "@errorMessageEditNotSaved": {
+    "description": "Error message for compose box when a message edit could not be saved."
+  },
+  "preparingEditMessageContentInput": "Подготовка…",
+  "@preparingEditMessageContentInput": {
+    "description": "Hint text for content input when the compose box is preparing to edit a message."
+  },
+  "composeBoxEnterTopicOrSkipHintText": "Укажите тему (или оставьте “{defaultTopicName}”)",
+  "@composeBoxEnterTopicOrSkipHintText": {
+    "description": "Hint text for topic input widget in compose box when topics are optional.",
+    "placeholders": {
+      "defaultTopicName": {
+        "type": "String",
+        "example": "general chat"
+      }
+    }
+  },
+  "composeBoxBannerLabelEditMessage": "Редактирование сообщения",
+  "@composeBoxBannerLabelEditMessage": {
+    "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "editAlreadyInProgressMessage": "Редактирование уже выполняется. Дождитесь завершения.",
+  "@editAlreadyInProgressMessage": {
+    "description": "Error message when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "discardDraftConfirmationDialogMessage": "При изменении сообщения текст из поля для редактирования удаляется.",
+  "@discardDraftConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box."
   }
 }
