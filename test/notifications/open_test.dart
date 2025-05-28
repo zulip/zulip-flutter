@@ -75,9 +75,9 @@ void main() {
       check(pushedRoutes).isEmpty();
     }
 
-    Future<void> openNotification(WidgetTester tester, Account account, Message message) async {
+    Uri androidNotificationUrlForMessage(Account account, Message message) {
       final data = messageFcmMessage(message, account: account);
-      final intentDataUrl = NotificationOpenPayload(
+      return NotificationOpenPayload(
         realmUrl: data.realmUrl,
         userId: data.userId,
         narrow: switch (data.recipient) {
@@ -86,9 +86,21 @@ void main() {
         FcmMessageDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
       }).buildAndroidNotificationUrl();
+    }
+
+    Future<void> openNotification(WidgetTester tester, Account account, Message message) async {
+      final intentDataUrl = androidNotificationUrlForMessage(account, message);
       unawaited(
         WidgetsBinding.instance.handlePushRoute(intentDataUrl.toString()));
       await tester.idle(); // let navigateForNotification find navigator
+    }
+
+    void setupNotificationDataForLaunch(WidgetTester tester, Account account, Message message) {
+      // Set up a value for `PlatformDispatcher.defaultRouteName` to return,
+      // for determining the initial route.
+      final intentDataUrl = androidNotificationUrlForMessage(account, message);
+      addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
+      tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
     }
 
     void matchesNavigation(Subject<Route<void>> route, Account account, Message message) {
@@ -202,22 +214,9 @@ void main() {
 
     testWidgets('at app launch', (tester) async {
       addTearDown(testBinding.reset);
-      // Set up a value for `PlatformDispatcher.defaultRouteName` to return,
-      // for determining the intial route.
       final account = eg.selfAccount;
       final message = eg.streamMessage();
-      final data = messageFcmMessage(message, account: account);
-      final intentDataUrl = NotificationOpenPayload(
-        realmUrl: data.realmUrl,
-        userId: data.userId,
-        narrow: switch (data.recipient) {
-          FcmMessageChannelRecipient(:var streamId, :var topic) =>
-            TopicNarrow(streamId, topic),
-          FcmMessageDmRecipient(:var allRecipientIds) =>
-            DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-        }).buildAndroidNotificationUrl();
-      addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
-      tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
+      setupNotificationDataForLaunch(tester, account, message);
 
       // Now start the app.
       await testBinding.globalStore.add(account, eg.initialSnapshot());
@@ -236,21 +235,9 @@ void main() {
       final accountA = eg.selfAccount;
       final accountB = eg.otherAccount;
       final message = eg.streamMessage();
-      final data = messageFcmMessage(message, account: accountB);
       await testBinding.globalStore.add(accountA, eg.initialSnapshot());
       await testBinding.globalStore.add(accountB, eg.initialSnapshot());
-
-      final intentDataUrl = NotificationOpenPayload(
-        realmUrl: data.realmUrl,
-        userId: data.userId,
-        narrow: switch (data.recipient) {
-          FcmMessageChannelRecipient(:var streamId, :var topic) =>
-            TopicNarrow(streamId, topic),
-          FcmMessageDmRecipient(:var allRecipientIds) =>
-            DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-        }).buildAndroidNotificationUrl();
-      addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
-      tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
+      setupNotificationDataForLaunch(tester, accountB, message);
 
       await prepare(tester, early: true);
       check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
