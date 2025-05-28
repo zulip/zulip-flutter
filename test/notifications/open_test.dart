@@ -25,6 +25,50 @@ import '../widgets/message_list_checks.dart';
 import '../widgets/page_checks.dart';
 import 'display_test.dart';
 
+Map<String, Object?> messageApnsPayload(
+  Message zulipMessage, {
+  String? streamName,
+  Account? account,
+}) {
+  account ??= eg.selfAccount;
+  return {
+    "aps": {
+      "alert": {
+        "title": "test",
+        "subtitle": "test",
+        "body": zulipMessage.content,
+      },
+      "sound": "default",
+      "badge": 0,
+    },
+    "zulip": {
+      "server": "zulip.example.cloud",
+      "realm_id": 4,
+      "realm_uri": account.realmUrl.toString(),
+      "realm_url": account.realmUrl.toString(),
+      "realm_name": "Test",
+      "user_id": account.userId,
+      "sender_id": zulipMessage.senderId,
+      "sender_email": zulipMessage.senderEmail,
+      "time": zulipMessage.timestamp,
+      "message_ids": [zulipMessage.id],
+      ...(switch (zulipMessage) {
+        StreamMessage(:var streamId, :var topic) => {
+          "recipient_type": "stream",
+          "stream_id": streamId,
+          if (streamName != null) "stream": streamName,
+          "topic": topic,
+        },
+        DmMessage(allRecipientIds: [_, _, _, ...]) => {
+          "recipient_type": "private",
+          "pm_users": zulipMessage.allRecipientIds.join(","),
+        },
+        DmMessage() => {"recipient_type": "private"},
+      }),
+    },
+  };
+}
+
 void main() {
   TestZulipBinding.ensureInitialized();
   final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
@@ -249,7 +293,7 @@ void main() {
   });
 
   group('NotificationOpenPayload', () {
-    test('smoke round-trip', () {
+    test('android: smoke round-trip', () {
       // DM narrow
       var payload = NotificationOpenPayload(
         realmUrl: Uri.parse('http://chat.example'),
@@ -273,6 +317,56 @@ void main() {
         ..realmUrl.equals(payload.realmUrl)
         ..userId.equals(payload.userId)
         ..narrow.equals(payload.narrow);
+    });
+
+    group('parseIosApnsPayload', () {
+      test('smoke one-one DM', () {
+        final userA = eg.user(userId: 1001);
+        final userB = eg.user(userId: 1002);
+        final account = eg.account(
+          realmUrl: Uri.parse('http://chat.example'),
+          user: userA);
+        final payload = messageApnsPayload(eg.dmMessage(from: userB, to: [userA]),
+          account: account);
+        check(NotificationOpenPayload.parseIosApnsPayload(payload))
+          ..realmUrl.equals(Uri.parse('http://chat.example'))
+          ..userId.equals(1001)
+          ..narrow.which((it) => it.isA<DmNarrow>()
+            ..otherRecipientIds.deepEquals([1002]));
+      });
+
+      test('smoke group DM', () {
+        final userA = eg.user(userId: 1001);
+        final userB = eg.user(userId: 1002);
+        final userC = eg.user(userId: 1003);
+        final account = eg.account(
+          realmUrl: Uri.parse('http://chat.example'),
+          user: userA);
+        final payload = messageApnsPayload(eg.dmMessage(from: userC, to: [userA, userB]),
+          account: account);
+        check(NotificationOpenPayload.parseIosApnsPayload(payload))
+          ..realmUrl.equals(Uri.parse('http://chat.example'))
+          ..userId.equals(1001)
+          ..narrow.which((it) => it.isA<DmNarrow>()
+            ..otherRecipientIds.deepEquals([1002, 1003]));
+      });
+
+      test('smoke topic message', () {
+        final userA = eg.user(userId: 1001);
+        final account = eg.account(
+          realmUrl: Uri.parse('http://chat.example'),
+          user: userA);
+        final payload = messageApnsPayload(eg.streamMessage(
+          stream: eg.stream(streamId: 1),
+          topic: 'topic A'),
+          account: account);
+        check(NotificationOpenPayload.parseIosApnsPayload(payload))
+          ..realmUrl.equals(Uri.parse('http://chat.example'))
+          ..userId.equals(1001)
+          ..narrow.which((it) => it.isA<TopicNarrow>()
+            ..streamId.equals(1)
+            ..topic.equals(TopicName('topic A')));
+      });
     });
 
     group('buildAndroidNotificationUrl', () {
