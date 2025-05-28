@@ -1412,6 +1412,179 @@ void main() {
     });
   });
 
+  /// Starts an edit interaction from the action sheet's 'Edit message' button.
+  ///
+  /// The fetch-raw-content request is prepared with [delay] (default 1s).
+  Future<void> startEditInteractionFromActionSheet(
+    WidgetTester tester, {
+    required int messageId,
+    String originalRawContent = 'foo',
+    Duration delay = const Duration(seconds: 1),
+    bool fetchShouldSucceed = true,
+  }) async {
+    await tester.longPress(find.byWidgetPredicate((widget) =>
+      widget is MessageWithPossibleSender && widget.item.message.id == messageId));
+    // sheet appears onscreen; default duration of bottom-sheet enter animation
+    await tester.pump(const Duration(milliseconds: 250));
+    final findEditButton = find.descendant(
+      of: find.byType(BottomSheet),
+      matching: find.byIcon(ZulipIcons.edit, skipOffstage: false));
+    await tester.ensureVisible(findEditButton);
+    if (fetchShouldSucceed) {
+      connection.prepare(delay: delay,
+        json: GetMessageResult(message: eg.streamMessage(content: originalRawContent)).toJson());
+    } else {
+      connection.prepare(apiException: eg.apiBadRequest(), delay: delay);
+    }
+    await tester.tap(findEditButton);
+    await tester.pump();
+    await tester.pump();
+    connection.takeRequests();
+  }
+
+  Future<void> expectAndHandleDiscardConfirmation(
+    WidgetTester tester, {
+    required String expectedMessage,
+    required bool shouldContinue,
+  }) async {
+    final (actionButton, cancelButton) = checkSuggestedActionDialog(tester,
+      expectedTitle: 'Discard the message you’re writing?',
+      expectedMessage: expectedMessage,
+      expectedActionButtonText: 'Discard');
+    if (shouldContinue) {
+      await tester.tap(find.byWidget(actionButton));
+    } else {
+      await tester.tap(find.byWidget(cancelButton));
+    }
+  }
+
+  group('restoreMessageNotSent', () {
+    final channel = eg.stream();
+    final topic = 'topic';
+    final topicNarrow = eg.topicNarrow(channel.streamId, topic);
+
+    final failedMessageContent = 'failed message';
+    final failedMessageFinder = find.widgetWithText(
+      OutboxMessageWithPossibleSender, failedMessageContent, skipOffstage: true);
+
+    Future<void> prepareMessageNotSent(WidgetTester tester, {
+      required Narrow narrow,
+      List<User> otherUsers = const [],
+    }) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+      await prepareComposeBox(tester,
+        narrow: narrow, streams: [channel], otherUsers: otherUsers);
+
+      if (narrow is ChannelNarrow) {
+        connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+        await enterTopic(tester, narrow: narrow, topic: topic);
+      }
+      await enterContent(tester, failedMessageContent);
+      connection.prepare(httpException: SocketException('error'));
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump(Duration.zero);
+
+      await tester.tap(find.byWidget(checkErrorDialog(tester,
+        expectedTitle: 'Message not sent')));
+      await tester.pump(Duration(milliseconds: 250));
+      check(failedMessageFinder).findsOne();
+    }
+
+    testWidgets('restore content in DM narrow', (tester) async {
+      final dmNarrow = DmNarrow.withUser(
+        eg.otherUser.userId, selfUserId: eg.selfUser.userId);
+      await prepareMessageNotSent(tester, narrow: dmNarrow, otherUsers: [eg.otherUser]);
+
+      await tester.tap(failedMessageFinder);
+      await tester.pump();
+      check(state).controller.content.text.equals(failedMessageContent);
+    });
+
+    testWidgets('restore content in topic narrow', (tester) async {
+      await prepareMessageNotSent(tester, narrow: topicNarrow);
+
+      await tester.tap(failedMessageFinder);
+      await tester.pump();
+      check(state).controller.content.text.equals(failedMessageContent);
+    });
+
+    testWidgets('restore content and topic in channel narrow', (tester) async {
+      final channelNarrow = ChannelNarrow(channel.streamId);
+      await prepareMessageNotSent(tester, narrow: channelNarrow);
+
+      await tester.enterText(topicInputFinder, 'topic before restoring');
+      check(state).controller.isA<StreamComposeBoxController>()
+        ..topic.text.equals('topic before restoring')
+        ..content.text.isNotNull().isEmpty();
+
+      await tester.tap(failedMessageFinder);
+      await tester.pump();
+      check(state).controller.isA<StreamComposeBoxController>()
+        ..topic.text.equals(topic)
+        ..content.text.equals(failedMessageContent);
+    });
+
+    Future<void> expectAndHandleDiscardForMessageNotSentConfirmation(
+      WidgetTester tester, {
+      required bool shouldContinue,
+    }) {
+      return expectAndHandleDiscardConfirmation(tester,
+        expectedMessage: 'When you restore a message not sent, the content that was previously in the compose box is discarded.',
+        shouldContinue: shouldContinue);
+    }
+
+    testWidgets('restore content, if discard draft when interrupting new-message compose', (tester) async {
+      await prepareMessageNotSent(tester, narrow: topicNarrow);
+      await enterContent(tester, 'composing something');
+
+      await tester.tap(failedMessageFinder);
+      await tester.pump();
+      check(state).controller.content.text.equals('composing something');
+
+      await expectAndHandleDiscardForMessageNotSentConfirmation(tester,
+        shouldContinue: true);
+      await tester.pump();
+      check(state).controller.content.text.equals(failedMessageContent);
+    });
+
+    testWidgets('do not restore content, if cancel when interrupting new-message compose', (tester) async {
+      await prepareMessageNotSent(tester, narrow: topicNarrow);
+      await enterContent(tester, 'composing something');
+
+      await tester.tap(failedMessageFinder);
+      await tester.pump();
+      check(state).controller.content.text.equals('composing something');
+
+      await expectAndHandleDiscardForMessageNotSentConfirmation(tester,
+        shouldContinue: false);
+      await tester.pump();
+      check(state).controller.content.text.equals('composing something');
+    });
+
+    testWidgets('do not restore content in editing mode', (tester) async {
+      await prepareMessageNotSent(tester, narrow: topicNarrow);
+
+      final messageToEdit = eg.streamMessage(
+        sender: eg.selfUser, stream: channel, topic: topic,
+        content: 'message to edit');
+      await store.addMessage(messageToEdit);
+      await tester.pump();
+
+      await startEditInteractionFromActionSheet(tester, messageId: messageToEdit.id,
+        originalRawContent: 'message to edit',
+        delay: Duration.zero);
+      await tester.pump(const Duration(milliseconds: 250)); // bottom-sheet animation
+
+      await tester.tap(failedMessageFinder);
+      await tester.pump();
+      // Since restoring message not sent is not allowed in editing mode,
+      // there should be no discard draft confirmation dialog either.
+      checkNoErrorDialog(tester);
+      check(state).controller.content.text.equals('message to edit');
+    });
+  });
+
   group('edit message', () {
     final channel = eg.stream();
     final topic = 'topic';
@@ -1464,36 +1637,6 @@ void main() {
       check(connection.lastRequest).equals(lastRequest);
     }
 
-    /// Starts an interaction from the action sheet's 'Edit message' button.
-    ///
-    /// The fetch-raw-content request is prepared with [delay] (default 1s).
-    Future<void> startInteractionFromActionSheet(
-      WidgetTester tester, {
-      required int messageId,
-      String originalRawContent = 'foo',
-      Duration delay = const Duration(seconds: 1),
-      bool fetchShouldSucceed = true,
-    }) async {
-      await tester.longPress(find.byWidgetPredicate((widget) =>
-        widget is MessageWithPossibleSender && widget.item.message.id == messageId));
-      // sheet appears onscreen; default duration of bottom-sheet enter animation
-      await tester.pump(const Duration(milliseconds: 250));
-      final findEditButton = find.descendant(
-        of: find.byType(BottomSheet),
-        matching: find.byIcon(ZulipIcons.edit, skipOffstage: false));
-      await tester.ensureVisible(findEditButton);
-      if (fetchShouldSucceed) {
-        connection.prepare(delay: delay,
-          json: GetMessageResult(message: eg.streamMessage(content: originalRawContent)).toJson());
-      } else {
-        connection.prepare(apiException: eg.apiBadRequest(), delay: delay);
-      }
-      await tester.tap(findEditButton);
-      await tester.pump();
-      await tester.pump();
-      connection.takeRequests();
-    }
-
     /// Starts an interaction by tapping a failed edit in the message list.
     Future<void> startInteractionFromRestoreFailedEdit(
       WidgetTester tester, {
@@ -1501,7 +1644,7 @@ void main() {
       String originalRawContent = 'foo',
       String newContent = 'bar',
     }) async {
-      await startInteractionFromActionSheet(tester,
+      await startEditInteractionFromActionSheet(tester,
         messageId: messageId, originalRawContent: originalRawContent);
       await tester.pump(Duration(seconds: 1)); // raw-content request
       await enterContent(tester, newContent);
@@ -1557,7 +1700,7 @@ void main() {
         final messageId = msgIdInNarrow(narrow);
         switch (start) {
           case _EditInteractionStart.actionSheet:
-            await startInteractionFromActionSheet(tester,
+            await startEditInteractionFromActionSheet(tester,
               messageId: messageId,
               originalRawContent: 'foo');
             await checkAwaitingRawMessageContent(tester);
@@ -1608,19 +1751,12 @@ void main() {
     testSmoke(narrow: topicNarrow,   start: _EditInteractionStart.restoreFailedEdit);
     testSmoke(narrow: dmNarrow,      start: _EditInteractionStart.restoreFailedEdit);
 
-    Future<void> expectAndHandleDiscardConfirmation(
-      WidgetTester tester, {
+    Future<void> expectAndHandleDiscardForEditConfirmation(WidgetTester tester, {
       required bool shouldContinue,
-    }) async {
-      final (actionButton, cancelButton) = checkSuggestedActionDialog(tester,
-        expectedTitle: 'Discard the message you’re writing?',
+    }) {
+      return expectAndHandleDiscardConfirmation(tester,
         expectedMessage: 'When you edit a message, the content that was previously in the compose box is discarded.',
-        expectedActionButtonText: 'Discard');
-      if (shouldContinue) {
-        await tester.tap(find.byWidget(actionButton));
-      } else {
-        await tester.tap(find.byWidget(cancelButton));
-      }
+        shouldContinue: shouldContinue);
     }
 
     // Test the "Discard…?" confirmation dialog when you tap "Edit message" in
@@ -1637,8 +1773,8 @@ void main() {
         await enterContent(tester, 'composing new message');
 
         // Expect confirmation dialog; tap Cancel
-        await startInteractionFromActionSheet(tester, messageId: messageId);
-        await expectAndHandleDiscardConfirmation(tester, shouldContinue: false);
+        await startEditInteractionFromActionSheet(tester, messageId: messageId);
+        await expectAndHandleDiscardForEditConfirmation(tester, shouldContinue: false);
         check(connection.takeRequests()).isEmpty();
         // fetch-raw-content request wasn't actually sent;
         // take back its prepared response
@@ -1651,9 +1787,9 @@ void main() {
         checkContentInputValue(tester, 'composing new message…');
 
         // Try again, but this time tap Discard and expect to enter an edit session
-        await startInteractionFromActionSheet(tester,
+        await startEditInteractionFromActionSheet(tester,
           messageId: messageId, originalRawContent: 'foo');
-        await expectAndHandleDiscardConfirmation(tester, shouldContinue: true);
+        await expectAndHandleDiscardForEditConfirmation(tester, shouldContinue: true);
         await tester.pump();
         await checkAwaitingRawMessageContent(tester);
         await tester.pump(Duration(seconds: 1)); // fetch-raw-content request
@@ -1685,7 +1821,7 @@ void main() {
         final messageId = msgIdInNarrow(narrow);
         await prepareEditMessage(tester, narrow: narrow);
 
-        await startInteractionFromActionSheet(tester,
+        await startEditInteractionFromActionSheet(tester,
           messageId: messageId, originalRawContent: 'foo');
         await tester.pump(Duration(seconds: 1)); // raw-content request
         await enterContent(tester, 'bar');
@@ -1702,7 +1838,7 @@ void main() {
         // Expect confirmation dialog; tap Cancel
         await tester.tap(find.text('EDIT NOT SAVED'));
         await tester.pump();
-        await expectAndHandleDiscardConfirmation(tester, shouldContinue: false);
+        await expectAndHandleDiscardForEditConfirmation(tester, shouldContinue: false);
         checkNotInEditingMode(tester,
           narrow: narrow, expectedContentText: 'composing new message');
 
@@ -1712,7 +1848,7 @@ void main() {
         // Try again, but this time tap Discard and expect to enter edit session
         await tester.tap(find.text('EDIT NOT SAVED'));
         await tester.pump();
-        await expectAndHandleDiscardConfirmation(tester, shouldContinue: true);
+        await expectAndHandleDiscardForEditConfirmation(tester, shouldContinue: true);
         await tester.pump();
         checkContentInputValue(tester, 'bar');
         await enterContent(tester, 'baz');
@@ -1742,7 +1878,7 @@ void main() {
         checkNotInEditingMode(tester, narrow: narrow);
 
         final messageId = msgIdInNarrow(narrow);
-        await startInteractionFromActionSheet(tester,
+        await startEditInteractionFromActionSheet(tester,
           messageId: messageId,
           originalRawContent: 'foo',
           fetchShouldSucceed: false);
@@ -1790,7 +1926,7 @@ void main() {
         final messageId = msgIdInNarrow(narrow);
         switch (start) {
           case _EditInteractionStart.actionSheet:
-            await startInteractionFromActionSheet(tester,
+            await startEditInteractionFromActionSheet(tester,
               messageId: messageId, delay: Duration(seconds: 5));
             await checkAwaitingRawMessageContent(tester);
             await tester.pump(duringFetchRawContentRequest!
@@ -1809,7 +1945,7 @@ void main() {
 
         // We've canceled the previous edit session, so we should be able to
         // do a new edit-message session…
-        await startInteractionFromActionSheet(tester,
+        await startEditInteractionFromActionSheet(tester,
           messageId: messageId, originalRawContent: 'foo');
         await checkAwaitingRawMessageContent(tester);
         await tester.pump(Duration(seconds: 1)); // fetch-raw-content request

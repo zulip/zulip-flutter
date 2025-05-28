@@ -327,8 +327,12 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Discard the message you’re writing?';
 
   @override
-  String get discardDraftConfirmationDialogMessage =>
+  String get discardDraftForEditConfirmationDialogMessage =>
       'When you edit a message, the content that was previously in the compose box is discarded.';
+
+  @override
+  String get discardDraftForMessageNotSentConfirmationDialogMessage =>
+      'When you restore a message not sent, the content that was previously in the compose box is discarded.';
 
   @override
   String get discardDraftConfirmationDialogConfirmButton => 'Discard';
@@ -721,6 +725,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
 
   @override
   String get messageIsMovedLabel => 'ПЕРЕМІЩЕНО';
+
+  @override
+  String get messageNotSentLabel => 'MESSAGE NOT SENT';
 
   @override
   String pollVoterNames(String voterNames) {

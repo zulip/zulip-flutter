@@ -377,9 +377,13 @@
   "@discardDraftConfirmationDialogTitle": {
     "description": "Title for a confirmation dialog for discarding message text that was typed into the compose box."
   },
-  "discardDraftConfirmationDialogMessage": "When you edit a message, the content that was previously in the compose box is discarded.",
-  "@discardDraftConfirmationDialogMessage": {
-    "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box."
+  "discardDraftForEditConfirmationDialogMessage": "When you edit a message, the content that was previously in the compose box is discarded.",
+  "@discardDraftForEditConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box, when editing a message."
+  },
+  "discardDraftForMessageNotSentConfirmationDialogMessage": "When you restore a message not sent, the content that was previously in the compose box is discarded.",
+  "@discardDraftForMessageNotSentConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog when restoring a message not sent, for discarding message text that was typed into the compose box."
   },
   "discardDraftConfirmationDialogConfirmButton": "Discard",
   "@discardDraftConfirmationDialogConfirmButton": {
@@ -871,6 +875,10 @@
   "messageIsMovedLabel": "MOVED",
   "@messageIsMovedLabel": {
     "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "messageNotSentLabel": "MESSAGE NOT SENT",
+  "@messageNotSentLabel": {
+    "description": "Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
   "pollVoterNames": "({voterNames})",
   "@pollVoterNames": {

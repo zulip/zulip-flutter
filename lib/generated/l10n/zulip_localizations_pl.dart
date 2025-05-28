@@ -325,8 +325,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Czy chcesz przerwać szykowanie wpisu?';
 
   @override
-  String get discardDraftConfirmationDialogMessage =>
+  String get discardDraftForEditConfirmationDialogMessage =>
       'Miej na uwadze, że przechodząc do zmiany wiadomości wyczyścisz okno nowej wiadomości.';
+
+  @override
+  String get discardDraftForMessageNotSentConfirmationDialogMessage =>
+      'When you restore a message not sent, the content that was previously in the compose box is discarded.';
 
   @override
   String get discardDraftConfirmationDialogConfirmButton => 'Odrzuć';
@@ -718,6 +722,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get messageIsMovedLabel => 'PRZENIESIONO';
+
+  @override
+  String get messageNotSentLabel => 'MESSAGE NOT SENT';
 
   @override
   String pollVoterNames(String voterNames) {
