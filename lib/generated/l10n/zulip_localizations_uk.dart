@@ -119,6 +119,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get actionSheetOptionMarkAsUnread => 'Позначити як непрочитане звідси';
 
   @override
+  String get actionSheetOptionHideMutedMessage => 'Hide muted message again';
+
+  @override
   String get actionSheetOptionShare => 'Поширити';
 
   @override
@@ -806,6 +809,15 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
 
   @override
   String get noEarlierMessages => 'Немає попередніх повідомлень';
+
+  @override
+  String get mutedSender => 'Muted sender';
+
+  @override
+  String get revealButtonLabel => 'Reveal message for muted sender';
+
+  @override
+  String get mutedUser => 'Muted user';
 
   @override
   String get scrollToBottomTooltip => 'Прокрутити вниз';

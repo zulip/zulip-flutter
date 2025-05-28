@@ -491,6 +491,12 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore, _OutboxMes
     poll.handleSubmessageEvent(event);
   }
 
+  void handleMutedUsersEvent(MutedUsersEvent event) {
+    for (final view in _messageListViews) {
+      view.handleMutedUsersEvent(event);
+    }
+  }
+
   /// In debug mode, controls whether outbox messages should be created when
   /// [sendMessage] is called.
   ///

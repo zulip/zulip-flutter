@@ -164,6 +164,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     fabLabelPressed: const Color(0xffeceefc),
     fabShadow: const Color(0xff2b0e8a).withValues(alpha: 0.4),
     foreground: const Color(0xff000000),
+    grey250: const Color(0xffbbbdc8),
+    grey550: const Color(0xff626573),
     icon: const Color(0xff6159e1),
     iconSelected: const Color(0xff222222),
     labelCounterUnread: const Color(0xff222222),
@@ -173,6 +175,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     mainBackground: const Color(0xfff0f0f0),
     radioBorder: Color(0xffbbbdc8),
     radioFillSelected: Color(0xff4370f0),
+    neutralButtonBg: const Color(0xff8c84ae).withValues(alpha: 0.3),
+    neutralButtonLabel: const Color(0xff433d5c),
     textInput: const Color(0xff000000),
     title: const Color(0xff1a1a1a),
     bgSearchInput: const Color(0xffe3e3e3),
@@ -233,6 +237,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     fabLabelPressed: const Color(0xffeceefc),
     fabShadow: const Color(0xff18171c),
     foreground: const Color(0xffffffff),
+    grey250: const Color(0xffbbbdc8),
+    grey550: const Color(0xff626573),
     icon: const Color(0xff7977fe),
     iconSelected: Colors.white.withValues(alpha: 0.8),
     labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
@@ -242,6 +248,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     mainBackground: const Color(0xff1d1d1d),
     radioBorder: Color(0xff626573),
     radioFillSelected: Color(0xff4e7cfa),
+    neutralButtonBg: const Color(0xffd4d1e0).withValues(alpha: 0.3),
+    neutralButtonLabel: const Color(0xffa9a3c2),
     textInput: const Color(0xffffffff).withValues(alpha: 0.9),
     title: const Color(0xffffffff).withValues(alpha: 0.9),
     bgSearchInput: const Color(0xff313131),
@@ -310,6 +318,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.fabLabel,
     required this.fabLabelPressed,
     required this.fabShadow,
+    required this.grey250,
+    required this.grey550,
     required this.icon,
     required this.iconSelected,
     required this.labelCounterUnread,
@@ -319,6 +329,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.mainBackground,
     required this.radioBorder,
     required this.radioFillSelected,
+    required this.neutralButtonBg,
+    required this.neutralButtonLabel,
     required this.textInput,
     required this.title,
     required this.bgSearchInput,
@@ -388,6 +400,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color fabLabelPressed;
   final Color fabShadow;
   final Color foreground;
+  final Color grey250;
+  final Color grey550;
   final Color icon;
   final Color iconSelected;
   final Color labelCounterUnread;
@@ -397,6 +411,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color mainBackground;
   final Color radioBorder;
   final Color radioFillSelected;
+  final Color neutralButtonBg;
+  final Color neutralButtonLabel;
   final Color textInput;
   final Color title;
   final Color bgSearchInput;
@@ -461,6 +477,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? fabLabelPressed,
     Color? fabShadow,
     Color? foreground,
+    Color? grey250,
+    Color? grey550,
     Color? icon,
     Color? iconSelected,
     Color? labelCounterUnread,
@@ -470,6 +488,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? mainBackground,
     Color? radioBorder,
     Color? radioFillSelected,
+    Color? neutralButtonBg,
+    Color? neutralButtonLabel,
     Color? textInput,
     Color? title,
     Color? bgSearchInput,
@@ -529,6 +549,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       fabLabel: fabLabel ?? this.fabLabel,
       fabLabelPressed: fabLabelPressed ?? this.fabLabelPressed,
       fabShadow: fabShadow ?? this.fabShadow,
+      grey250: grey250 ?? this.grey250,
+      grey550: grey550 ?? this.grey550,
       icon: icon ?? this.icon,
       iconSelected: iconSelected ?? this.iconSelected,
       labelCounterUnread: labelCounterUnread ?? this.labelCounterUnread,
@@ -538,6 +560,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: mainBackground ?? this.mainBackground,
       radioBorder: radioBorder ?? this.radioBorder,
       radioFillSelected: radioFillSelected ?? this.radioFillSelected,
+      neutralButtonBg: neutralButtonBg ?? this.neutralButtonBg,
+      neutralButtonLabel: neutralButtonLabel ?? this.neutralButtonLabel,
       textInput: textInput ?? this.textInput,
       title: title ?? this.title,
       bgSearchInput: bgSearchInput ?? this.bgSearchInput,
@@ -604,6 +628,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       fabLabel: Color.lerp(fabLabel, other.fabLabel, t)!,
       fabLabelPressed: Color.lerp(fabLabelPressed, other.fabLabelPressed, t)!,
       fabShadow: Color.lerp(fabShadow, other.fabShadow, t)!,
+      grey250: Color.lerp(grey250, other.grey250, t)!,
+      grey550: Color.lerp(grey550, other.grey550, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
       iconSelected: Color.lerp(iconSelected, other.iconSelected, t)!,
       labelCounterUnread: Color.lerp(labelCounterUnread, other.labelCounterUnread, t)!,
@@ -613,6 +639,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
       radioBorder: Color.lerp(radioBorder, other.radioBorder, t)!,
       radioFillSelected: Color.lerp(radioFillSelected, other.radioFillSelected, t)!,
+      neutralButtonBg: Color.lerp(neutralButtonBg, other.neutralButtonBg, t)!,
+      neutralButtonLabel: Color.lerp(neutralButtonLabel, other.neutralButtonLabel, t)!,
       textInput: Color.lerp(textInput, other.textInput, t)!,
       title: Color.lerp(title, other.title, t)!,
       bgSearchInput: Color.lerp(bgSearchInput, other.bgSearchInput, t)!,

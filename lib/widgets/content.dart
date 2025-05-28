@@ -17,6 +17,7 @@ import '../model/internal_link.dart';
 import '../model/katex.dart';
 import 'actions.dart';
 import 'code_block.dart';
+import 'color.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
@@ -1730,18 +1731,43 @@ class Avatar extends StatelessWidget {
     required this.userId,
     required this.size,
     required this.borderRadius,
+    this.showAsMuted = false,
   });
 
   final int userId;
   final double size;
   final double borderRadius;
+  final bool showAsMuted;
 
   @override
   Widget build(BuildContext context) {
     return AvatarShape(
       size: size,
       borderRadius: borderRadius,
-      child: AvatarImage(userId: userId, size: size));
+      child: showAsMuted
+        ? AvatarPlaceholder(size: size)
+        : AvatarImage(userId: userId, size: size));
+  }
+}
+
+/// A placeholder avatar for muted users.
+///
+/// Wrap this with [AvatarShape].
+class AvatarPlaceholder extends StatelessWidget {
+  const AvatarPlaceholder({super.key, this.size});
+
+  final double? size;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: designVariables.grey250.withFadedAlpha(0.5)),
+      child: Icon(ZulipIcons.person,
+        // Scale the icon proportionally to match the Figma design.
+        size: size != null ? size! * 20 / 32 : null,
+        color: designVariables.grey550.withFadedAlpha(0.5)));
   }
 }
 

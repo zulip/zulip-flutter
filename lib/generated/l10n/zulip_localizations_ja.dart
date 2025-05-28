@@ -114,6 +114,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get actionSheetOptionMarkAsUnread => 'Mark as unread from here';
 
   @override
+  String get actionSheetOptionHideMutedMessage => 'Hide muted message again';
+
+  @override
   String get actionSheetOptionShare => 'Share';
 
   @override
@@ -792,6 +795,15 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get noEarlierMessages => 'No earlier messages';
+
+  @override
+  String get mutedSender => 'Muted sender';
+
+  @override
+  String get revealButtonLabel => 'Reveal message for muted sender';
+
+  @override
+  String get mutedUser => 'Muted user';
 
   @override
   String get scrollToBottomTooltip => 'Scroll to bottom';

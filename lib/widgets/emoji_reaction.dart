@@ -162,7 +162,9 @@ class ReactionChip extends StatelessWidget {
       ? userIds.map((id) {
           return id == store.selfUserId
             ? zulipLocalizations.reactedEmojiSelfUser
-            : store.userDisplayName(id);
+            : store.isUserMuted(id)
+                ? zulipLocalizations.mutedUser
+                : store.userDisplayName(id);
         }).join(', ')
       : userIds.length.toString();
 

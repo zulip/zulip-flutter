@@ -471,6 +471,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       accountId: accountId,
       selfUserId: account.userId,
     );
+    final users = UserStoreImpl(core: core, initialSnapshot: initialSnapshot);
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       core: core,
@@ -496,7 +497,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         typingStartedWaitPeriod: Duration(
           milliseconds: initialSnapshot.serverTypingStartedWaitPeriodMilliseconds),
       ),
-      users: UserStoreImpl(core: core, initialSnapshot: initialSnapshot),
+      users: users,
       typingStatus: TypingStatus(core: core,
         typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
       ),
@@ -508,8 +509,11 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         core: core,
         channelStore: channels,
       ),
-      recentDmConversationsView: RecentDmConversationsView(core: core,
-        initial: initialSnapshot.recentPrivateConversations),
+      recentDmConversationsView: RecentDmConversationsView(
+        initial: initialSnapshot.recentPrivateConversations,
+        core: core,
+        userStore: users,
+      ),
       recentSenders: RecentSenders(),
     );
   }
@@ -644,6 +648,13 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
 
   @override
   Iterable<User> get allUsers => _users.allUsers;
+
+  @override
+  List<MutedUserItem> get mutedUsers => _users.mutedUsers;
+
+  @override
+  bool isUserMuted(int id, {List<MutedUserItem>? mutedUsers}) =>
+    _users.isUserMuted(id, mutedUsers: mutedUsers);
 
   final UserStoreImpl _users;
 
@@ -948,6 +959,13 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       case ReactionEvent():
         assert(debugLog("server event: reaction/${event.op}"));
         _messages.handleReactionEvent(event);
+
+      case MutedUsersEvent():
+        assert(debugLog("server event: muted_users"));
+        _messages.handleMutedUsersEvent(event);
+        // Update _users last, so other handlers can compare to the old value.
+        _users.handleMutedUsersEvent(event);
+        notifyListeners();
 
       case UnexpectedEvent():
         assert(debugLog("server event: ${jsonEncode(event.toJson())}")); // TODO log better
