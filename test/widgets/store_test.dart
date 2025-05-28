@@ -70,18 +70,68 @@ void main() {
             return const SizedBox.shrink();
           })));
     // First, shows a loading page instead of child.
-    check(tester.any(find.byType(CircularProgressIndicator))).isTrue();
+    check(find.byType(CircularProgressIndicator)).findsOne();
     check(globalStore).isNull();
 
     await tester.pump();
     // Then after loading, mounts child instead, with provided store.
-    check(tester.any(find.byType(CircularProgressIndicator))).isFalse();
+    check(find.byType(CircularProgressIndicator)).findsNothing();
     check(globalStore).identicalTo(testBinding.globalStore);
 
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     check(globalStore).isNotNull()
       .accountEntries.single
       .equals((accountId: eg.selfAccount.id, account: eg.selfAccount));
+  });
+
+  testWidgets('GlobalStoreWidget awaits blockingFuture', (tester) async {
+    addTearDown(testBinding.reset);
+
+    final completer = Completer<void>();
+    await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr,
+      child: GlobalStoreWidget(
+        blockingFuture: completer.future,
+        child: Text('done'))));
+
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+    // Even after the store must have loaded,
+    // still shows loading page while blockingFuture is pending.
+    check(find.byType(CircularProgressIndicator)).findsOne();
+    check(find.text('done')).findsNothing();
+
+    // Once blockingFuture completes…
+    completer.complete();
+    await tester.pump();
+    // … mounts child instead of the loading page.
+    check(find.byType(CircularProgressIndicator)).findsNothing();
+    check(find.text('done')).findsOne();
+  });
+
+  testWidgets('GlobalStoreWidget handles failed blockingFuture like success', (tester) async {
+    addTearDown(testBinding.reset);
+
+    final completer = Completer<void>();
+    await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr,
+      child: GlobalStoreWidget(
+        blockingFuture: completer.future,
+        child: Text('done'))));
+
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+    // Even after the store must have loaded,
+    // still shows loading page while blockingFuture is pending.
+    check(find.byType(CircularProgressIndicator)).findsOne();
+    check(find.text('done')).findsNothing();
+
+    // Once blockingFuture completes, even with an error…
+    completer.completeError(Exception('oops'));
+    await tester.pump();
+    // … mounts child instead of the loading page.
+    check(find.byType(CircularProgressIndicator)).findsNothing();
+    check(find.text('done')).findsOne();
   });
 
   testWidgets('GlobalStoreWidget.of updates dependents', (tester) async {

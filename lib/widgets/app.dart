@@ -9,7 +9,7 @@ import '../log.dart';
 import '../model/actions.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
-import '../notifications/display.dart';
+import '../notifications/open.dart';
 import 'about_zulip.dart';
 import 'dialog.dart';
 import 'home.dart';
@@ -168,27 +168,45 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  AccountRoute<void>? _initialRouteIos(BuildContext context) {
+    return NotificationOpenService.instance
+        .routeForNotificationFromLaunch(context: context);
+  }
+
+  // TODO migrate Android's notification navigation to use the new Pigeon API.
+  AccountRoute<void>? _initialRouteAndroid(
+    BuildContext context,
+    String initialRoute,
+  ) {
+    final initialRouteUrl = Uri.tryParse(initialRoute);
+    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
+      assert(debugLog('got notif: url: $initialRouteUrl'));
+      final data = NotificationOpenService.tryParseAndroidNotificationUrl(
+        context: context,
+        url: initialRouteUrl);
+      if (data == null) return null; // TODO(log)
+      return NotificationOpenService.routeForNotification(
+        context: context,
+        data: data);
+    }
+
+    return null;
+  }
+
   List<Route<dynamic>> _handleGenerateInitialRoutes(String initialRoute) {
     // The `_ZulipAppState.context` lacks the required ancestors. Instead
     // we use the Navigator which should be available when this callback is
-    // called and it's context should have the required ancestors.
+    // called and its context should have the required ancestors.
     final context = ZulipApp.navigatorKey.currentContext!;
 
-    final initialRouteUrl = Uri.tryParse(initialRoute);
-    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
-      final route = NotificationDisplayManager.routeForNotification(
-        context: context,
-        url: initialRouteUrl);
-
-      if (route != null) {
-        return [
-          HomePage.buildRoute(accountId: route.accountId),
-          route,
-        ];
-      } else {
-        // The account didn't match any existing accounts,
-        // fall through to show the default route below.
-      }
+    final route = defaultTargetPlatform == TargetPlatform.iOS
+        ? _initialRouteIos(context)
+        : _initialRouteAndroid(context, initialRoute);
+    if (route != null) {
+      return [
+        HomePage.buildRoute(accountId: route.accountId),
+        route,
+      ];
     }
 
     final globalStore = GlobalStoreWidget.of(context);
@@ -209,7 +227,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
         await LoginPage.handleWebAuthUrl(url);
         return true;
       case Uri(scheme: 'zulip', host: 'notification') && var url:
-        await NotificationDisplayManager.navigateForNotification(url);
+        await NotificationOpenService.navigateForAndroidNotificationUrl(url);
         return true;
     }
     return super.didPushRouteInformation(routeInformation);
@@ -218,6 +236,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return GlobalStoreWidget(
+      blockingFuture: NotificationOpenService.instance.initializationFuture,
       child: Builder(builder: (context) {
         return MaterialApp(
           onGenerateTitle: (BuildContext context) {
@@ -252,7 +271,6 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
           // handles startup, and then we always push whole routes with methods
           // like [Navigator.push], never mere names as with [Navigator.pushNamed].
           onGenerateRoute: (_) => null,
-
           onGenerateInitialRoutes: _handleGenerateInitialRoutes);
       }));
   }

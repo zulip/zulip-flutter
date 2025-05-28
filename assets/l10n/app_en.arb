@@ -955,9 +955,9 @@
   "@errorNotificationOpenTitle": {
     "description": "Error title when notification opening fails"
   },
-  "errorNotificationOpenAccountMissing": "The account associated with this notification no longer exists.",
-  "@errorNotificationOpenAccountMissing": {
-    "description": "Error message when the account associated with the notification is not found"
+  "errorNotificationOpenAccountNotFound": "The account associated with this notification could not be found.",
+  "@errorNotificationOpenAccountNotFound": {
+    "description": "Error message when the account associated with the notification could not be found"
   },
   "errorReactionAddingFailedTitle": "Adding reaction failed",
   "@errorReactionAddingFailedTitle": {

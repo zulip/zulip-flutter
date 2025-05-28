@@ -1293,8 +1293,8 @@ void main() {
       // (This is probably the common case.)
       addTearDown(testBinding.reset);
       testBinding.firebaseMessagingInitialToken = '012abc';
-      addTearDown(NotificationService.debugReset);
       testBinding.packageInfoResult = eg.packageInfo(packageName: 'com.zulip.flutter');
+      addTearDown(NotificationService.debugReset);
       await NotificationService.instance.start();
 
       // On store startup, send the token.
@@ -1321,8 +1321,8 @@ void main() {
       // request for the token is still pending.
       addTearDown(testBinding.reset);
       testBinding.firebaseMessagingInitialToken = '012abc';
-      addTearDown(NotificationService.debugReset);
       testBinding.packageInfoResult = eg.packageInfo(packageName: 'com.zulip.flutter');
+      addTearDown(NotificationService.debugReset);
       final startFuture = NotificationService.instance.start();
 
       // TODO this test is a bit brittle in its interaction with asynchrony;
