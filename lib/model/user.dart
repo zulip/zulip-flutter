@@ -84,7 +84,8 @@ mixin UserStore on PerAccountStoreBase {
   /// By default, looks for the recipients in [UserStore.mutedUsers] unless
   /// [mutedUsers] is non-null, in which case looks in the latter.
   bool allRecipientsMuted(DmNarrow narrow, {List<MutedUserItem>? mutedUsers}) {
-    return !narrow.otherRecipientIds.any((id) => !isUserMuted(id, mutedUsers: mutedUsers));
+    return narrow.otherRecipientIds.isNotEmpty // TODO fix this method's doc
+      && !narrow.otherRecipientIds.any((id) => !isUserMuted(id, mutedUsers: mutedUsers));
   }
 
   /// Whether the given event will change the result of [allRecipientsMuted]
