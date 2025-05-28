@@ -14,6 +14,8 @@ import 'message.dart';
 import 'narrow.dart';
 import 'store.dart';
 
+export '../api/route/messages.dart' show Anchor, AnchorCode, NumericAnchor;
+
 /// The number of messages to fetch in each request.
 const kMessageListFetchBatchSize = 100; // TODO tune
 
@@ -64,6 +66,25 @@ class MessageListMessageItem extends MessageListMessageBaseItem {
   });
 }
 
+/// The status of outstanding or recent fetch requests from a [MessageListView].
+enum FetchingStatus {
+  /// The model has not made any fetch requests (since its last reset, if any).
+  unstarted,
+
+  /// The model has made a `fetchInitial` request, which hasn't succeeded.
+  fetchInitial,
+
+  /// The model made a successful `fetchInitial` request,
+  /// and has no outstanding requests or backoff.
+  idle,
+
+  /// The model has an active `fetchOlder` request.
+  fetchingMore,
+
+  /// The model is in a backoff period from a failed request.
+  backoff,
+}
+
 /// The sequence of messages in a message list, and how to display them.
 ///
 /// This comprises much of the guts of [MessageListView].
@@ -75,7 +96,7 @@ mixin _MessageSequence {
   ///
   /// This may or may not represent all the message history that
   /// conceptually belongs in this message list.
-  /// That information is expressed in [fetched] and [haveOldest].
+  /// That information is expressed in [fetched], [haveOldest], [haveNewest].
   ///
   /// See also [middleMessage], an index which divides this list
   /// into a top slice and a bottom slice.
@@ -95,42 +116,39 @@ mixin _MessageSequence {
   ///
   /// This allows the UI to distinguish "still working on fetching messages"
   /// from "there are in fact no messages here".
-  bool get fetched => _fetched;
-  bool _fetched = false;
+  bool get fetched => switch (_status) {
+    FetchingStatus.unstarted || FetchingStatus.fetchInitial => false,
+    _ => true,
+  };
 
   /// Whether we know we have the oldest messages for this narrow.
   ///
-  /// (Currently we always have the newest messages for the narrow,
-  /// once [fetched] is true, because we start from the newest.)
+  /// See also [haveNewest].
   bool get haveOldest => _haveOldest;
   bool _haveOldest = false;
 
-  /// Whether we are currently fetching the next batch of older messages.
+  /// Whether we know we have the newest messages for this narrow.
   ///
-  /// When this is true, [fetchOlder] is a no-op.
-  /// That method is called frequently by Flutter's scrolling logic,
-  /// and this field helps us avoid spamming the same request just to get
-  /// the same response each time.
-  ///
-  /// See also [fetchOlderCoolingDown].
-  bool get fetchingOlder => _fetchingOlder;
-  bool _fetchingOlder = false;
+  /// See also [haveOldest].
+  bool get haveNewest => _haveNewest;
+  bool _haveNewest = false;
 
-  /// Whether [fetchOlder] had a request error recently.
+  /// Whether this message list is currently busy when it comes to
+  /// fetching more messages.
   ///
-  /// When this is true, [fetchOlder] is a no-op.
-  /// That method is called frequently by Flutter's scrolling logic,
-  /// and this field mitigates spamming the same request and getting
-  /// the same error each time.
-  ///
-  /// "Recently" is decided by a [BackoffMachine] that resets
-  /// when a [fetchOlder] request succeeds.
-  ///
-  /// See also [fetchingOlder].
-  bool get fetchOlderCoolingDown => _fetchOlderCoolingDown;
-  bool _fetchOlderCoolingDown = false;
+  /// Here "busy" means a new call to fetch more messages would do nothing,
+  /// rather than make any request to the server,
+  /// as a result of an existing recent request.
+  /// This is true both when the recent request is still outstanding,
+  /// and when it failed and the backoff from that is still in progress.
+  bool get busyFetchingMore => switch (_status) {
+    FetchingStatus.fetchingMore || FetchingStatus.backoff => true,
+    _ => false,
+  };
 
-  BackoffMachine? _fetchOlderCooldownBackoffMachine;
+  FetchingStatus _status = FetchingStatus.unstarted;
+
+  BackoffMachine? _fetchBackoffMachine;
 
   /// The parsed message contents, as a list parallel to [messages].
   ///
@@ -147,7 +165,7 @@ mixin _MessageSequence {
   /// before, between, or after the messages.
   ///
   /// This information is completely derived from [messages] and
-  /// the flags [haveOldest], [fetchingOlder] and [fetchOlderCoolingDown].
+  /// the flags [haveOldest], [haveNewest], and [busyFetchingMore].
   /// It exists as an optimization, to memoize that computation.
   ///
   /// See also [middleItem], an index which divides this list
@@ -303,11 +321,10 @@ mixin _MessageSequence {
     generation += 1;
     messages.clear();
     middleMessage = 0;
-    _fetched = false;
     _haveOldest = false;
-    _fetchingOlder = false;
-    _fetchOlderCoolingDown = false;
-    _fetchOlderCooldownBackoffMachine = null;
+    _haveNewest = false;
+    _status = FetchingStatus.unstarted;
+    _fetchBackoffMachine = null;
     contents.clear();
     items.clear();
     middleItem = 0;
@@ -430,13 +447,42 @@ bool _sameDay(DateTime date1, DateTime date2) {
 ///  * When the object will no longer be used, call [dispose] to free
 ///    resources on the [PerAccountStore].
 class MessageListView with ChangeNotifier, _MessageSequence {
-  MessageListView._({required this.store, required this.narrow});
+  factory MessageListView.init({
+    required PerAccountStore store,
+    required Narrow narrow,
+    required Anchor anchor,
+  }) {
+    return MessageListView._(store: store, narrow: narrow, anchor: anchor)
+      .._register();
+  }
 
-  factory MessageListView.init(
-      {required PerAccountStore store, required Narrow narrow}) {
-    final view = MessageListView._(store: store, narrow: narrow);
-    store.registerMessageList(view);
-    return view;
+  MessageListView._({
+    required this.store,
+    required Narrow narrow,
+    required Anchor anchor,
+  }) : _narrow = narrow, _anchor = anchor;
+
+  final PerAccountStore store;
+
+  /// The narrow shown in this message list.
+  ///
+  /// This can change over time, notably if showing a topic that gets moved.
+  Narrow get narrow => _narrow;
+  Narrow _narrow;
+
+  /// The anchor point this message list starts from in the message history.
+  ///
+  /// This is passed to the server in the get-messages request
+  /// sent by [fetchInitial].
+  /// That includes not only the original [fetchInitial] call made by
+  /// the message-list widget, but any additional [fetchInitial] calls
+  /// which might be made internally by this class in order to
+  /// fetch the messages from scratch, e.g. after certain events.
+  Anchor get anchor => _anchor;
+  Anchor _anchor;
+
+  void _register() {
+    store.registerMessageList(this);
   }
 
   @override
@@ -444,9 +490,6 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     store.unregisterMessageList(this);
     super.dispose();
   }
-
-  final PerAccountStore store;
-  Narrow narrow;
 
   /// Whether [message] should actually appear in this message list,
   /// given that it does belong to the narrow.
@@ -514,19 +557,25 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
+  void _setStatus(FetchingStatus value, {FetchingStatus? was}) {
+    assert(was == null || _status == was);
+    _status = value;
+    if (!fetched) return;
+    notifyListeners();
+  }
+
   /// Fetch messages, starting from scratch.
   Future<void> fetchInitial() async {
-    // TODO(#80): fetch from anchor firstUnread, instead of newest
-    // TODO(#82): fetch from a given message ID as anchor
-    assert(!fetched && !haveOldest && !fetchingOlder && !fetchOlderCoolingDown);
+    assert(!fetched && !haveOldest && !haveNewest && !busyFetchingMore);
     assert(messages.isEmpty && contents.isEmpty);
+    _setStatus(FetchingStatus.fetchInitial, was: FetchingStatus.unstarted);
     // TODO schedule all this in another isolate
     final generation = this.generation;
     final result = await getMessages(store.connection,
       narrow: narrow.apiEncode(),
-      anchor: AnchorCode.newest,
+      anchor: anchor,
       numBefore: kMessageListFetchBatchSize,
-      numAfter: 0,
+      numAfter: kMessageListFetchBatchSize,
       allowEmptyTopicName: true,
     );
     if (this.generation > generation) return;
@@ -536,16 +585,24 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     store.reconcileMessages(result.messages);
     store.recentSenders.handleMessages(result.messages); // TODO(#824)
 
-    // We'll make the bottom slice start at the last visible message, if any.
+    // The bottom slice will start at the "anchor message".
+    // This is the first visible message at or past [anchor] if any,
+    // else the last visible message if any.  [reachedAnchor] helps track that.
+    bool reachedAnchor = false;
     for (final message in result.messages) {
       if (!_messageVisible(message)) continue;
-      middleMessage = messages.length;
+      if (!reachedAnchor) {
+        // Push the previous message into the top slice.
+        middleMessage = messages.length;
+        // We could interpret [anchor] for ourselves; but the server has already
+        // done that work, reducing it to an int, `result.anchor`.  So use that.
+        reachedAnchor = message.id >= result.anchor;
+      }
       _addMessage(message);
-      // Now [middleMessage] is the last message (the one just added).
     }
-    _fetched = true;
     _haveOldest = result.foundOldest;
-    notifyListeners();
+    _haveNewest = result.foundNewest;
+    _setStatus(FetchingStatus.idle, was: FetchingStatus.fetchInitial);
   }
 
   /// Update [narrow] for the result of a "with" narrow (topic permalink) fetch.
@@ -572,26 +629,96 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         // This can't be a redirect; a redirect can't produce an empty result.
         // (The server only redirects if the message is accessible to the user,
         // and if it is, it'll appear in the result, making it non-empty.)
-        this.narrow = narrow.sansWith();
+        _narrow = narrow.sansWith();
       case StreamMessage():
-        this.narrow = TopicNarrow.ofMessage(someFetchedMessageOrNull);
+        _narrow = TopicNarrow.ofMessage(someFetchedMessageOrNull);
       case DmMessage(): // TODO(log)
         assert(false);
     }
   }
 
   /// Fetch the next batch of older messages, if applicable.
+  ///
+  /// If there are no older messages to fetch (i.e. if [haveOldest]),
+  /// or if this message list is already busy fetching more messages
+  /// (i.e. if [busyFetchingMore], which includes backoff from failed requests),
+  /// then this method does nothing and immediately returns.
+  /// That makes this method suitable to call frequently, e.g. every frame,
+  /// whenever it looks likely to be useful to have more messages.
   Future<void> fetchOlder() async {
     if (haveOldest) return;
-    if (fetchingOlder) return;
-    if (fetchOlderCoolingDown) return;
+    if (busyFetchingMore) return;
     assert(fetched);
+    assert(messages.isNotEmpty);
+    await _fetchMore(
+      anchor: NumericAnchor(messages[0].id),
+      numBefore: kMessageListFetchBatchSize,
+      numAfter: 0,
+      processResult: (result) {
+        if (result.messages.isNotEmpty
+            && result.messages.last.id == messages[0].id) {
+          // TODO(server-6): includeAnchor should make this impossible
+          result.messages.removeLast();
+        }
+
+        store.reconcileMessages(result.messages);
+        store.recentSenders.handleMessages(result.messages); // TODO(#824)
+
+        final fetchedMessages = _allMessagesVisible
+          ? result.messages // Avoid unnecessarily copying the list.
+          : result.messages.where(_messageVisible);
+
+        _insertAllMessages(0, fetchedMessages);
+        _haveOldest = result.foundOldest;
+      });
+  }
+
+  /// Fetch the next batch of newer messages, if applicable.
+  ///
+  /// If there are no newer messages to fetch (i.e. if [haveNewest]),
+  /// or if this message list is already busy fetching more messages
+  /// (i.e. if [busyFetchingMore], which includes backoff from failed requests),
+  /// then this method does nothing and immediately returns.
+  /// That makes this method suitable to call frequently, e.g. every frame,
+  /// whenever it looks likely to be useful to have more messages.
+  Future<void> fetchNewer() async {
+    if (haveNewest) return;
+    if (busyFetchingMore) return;
+    assert(fetched);
+    assert(messages.isNotEmpty);
+    await _fetchMore(
+      anchor: NumericAnchor(messages.last.id),
+      numBefore: 0,
+      numAfter: kMessageListFetchBatchSize,
+      processResult: (result) {
+        if (result.messages.isNotEmpty
+            && result.messages.first.id == messages.last.id) {
+          // TODO(server-6): includeAnchor should make this impossible
+          result.messages.removeAt(0);
+        }
+
+        store.reconcileMessages(result.messages);
+        store.recentSenders.handleMessages(result.messages); // TODO(#824)
+
+        for (final message in result.messages) {
+          if (_messageVisible(message)) {
+            _addMessage(message);
+          }
+        }
+        _haveNewest = result.foundNewest;
+      });
+  }
+
+  Future<void> _fetchMore({
+    required Anchor anchor,
+    required int numBefore,
+    required int numAfter,
+    required void Function(GetMessagesResult) processResult,
+  }) async {
     assert(narrow is! TopicNarrow
       // We only intend to send "with" in [fetchInitial]; see there.
       || (narrow as TopicNarrow).with_ == null);
-    assert(messages.isNotEmpty);
-    _fetchingOlder = true;
-    notifyListeners();
+    _setStatus(FetchingStatus.fetchingMore, was: FetchingStatus.idle);
     final generation = this.generation;
     bool hasFetchError = false;
     try {
@@ -599,10 +726,10 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       try {
         result = await getMessages(store.connection,
           narrow: narrow.apiEncode(),
-          anchor: NumericAnchor(messages[0].id),
+          anchor: anchor,
           includeAnchor: false,
-          numBefore: kMessageListFetchBatchSize,
-          numAfter: 0,
+          numBefore: numBefore,
+          numAfter: numAfter,
           allowEmptyTopicName: true,
         );
       } catch (e) {
@@ -611,39 +738,32 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       }
       if (this.generation > generation) return;
 
-      if (result.messages.isNotEmpty
-          && result.messages.last.id == messages[0].id) {
-        // TODO(server-6): includeAnchor should make this impossible
-        result.messages.removeLast();
-      }
-
-      store.reconcileMessages(result.messages);
-      store.recentSenders.handleMessages(result.messages); // TODO(#824)
-
-      final fetchedMessages = _allMessagesVisible
-        ? result.messages // Avoid unnecessarily copying the list.
-        : result.messages.where(_messageVisible);
-
-      _insertAllMessages(0, fetchedMessages);
-      _haveOldest = result.foundOldest;
+      processResult(result);
     } finally {
       if (this.generation == generation) {
-        _fetchingOlder = false;
         if (hasFetchError) {
-          assert(!fetchOlderCoolingDown);
-          _fetchOlderCoolingDown = true;
-          unawaited((_fetchOlderCooldownBackoffMachine ??= BackoffMachine())
+          _setStatus(FetchingStatus.backoff, was: FetchingStatus.fetchingMore);
+          unawaited((_fetchBackoffMachine ??= BackoffMachine())
             .wait().then((_) {
               if (this.generation != generation) return;
-              _fetchOlderCoolingDown = false;
-              notifyListeners();
+              _setStatus(FetchingStatus.idle, was: FetchingStatus.backoff);
             }));
         } else {
-          _fetchOlderCooldownBackoffMachine = null;
+          _setStatus(FetchingStatus.idle, was: FetchingStatus.fetchingMore);
+          _fetchBackoffMachine = null;
         }
-        notifyListeners();
       }
     }
+  }
+
+  void jumpToEnd() {
+    assert(fetched);
+    assert(!haveNewest);
+    assert(anchor != AnchorCode.newest);
+    _anchor = AnchorCode.newest;
+    _reset();
+    notifyListeners();
+    fetchInitial();
   }
 
   /// Add [outboxMessage] if it belongs to the view.
@@ -697,7 +817,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     if (!narrow.containsMessage(message) || !_messageVisible(message)) {
       return;
     }
-    if (!_fetched) {
+    if (!fetched) {
       // TODO mitigate this fetch/event race: save message to add to list later
       return;
     }
@@ -747,7 +867,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     switch (propagateMode) {
       case PropagateMode.changeAll:
       case PropagateMode.changeLater:
-        narrow = newNarrow;
+        _narrow = newNarrow;
         _reset();
         fetchInitial();
       case PropagateMode.changeOne:

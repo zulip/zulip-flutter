@@ -51,7 +51,6 @@ void main() {
 
   /// Initialize [store] and the rest of the test state.
   Future<void> prepare({
-    Narrow narrow = const CombinedFeedNarrow(),
     ZulipStream? stream,
     int? zulipFeatureLevel,
   }) async {
@@ -64,7 +63,9 @@ void main() {
     await store.addSubscription(subscription);
     connection = store.connection as FakeApiConnection;
     notifiedCount = 0;
-    messageList = MessageListView.init(store: store, narrow: narrow)
+    messageList = MessageListView.init(store: store,
+        narrow: const CombinedFeedNarrow(),
+        anchor: AnchorCode.newest)
       ..addListener(() {
         notifiedCount++;
       });
