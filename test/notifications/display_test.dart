@@ -1037,6 +1037,8 @@ void main() {
 
   group('NotificationDisplayManager open', () {
     late List<Route<void>> pushedRoutes;
+    late List<Route<void>> poppedRoutes;
+    late TestNavigatorObserver testNavObserver;
 
     void takeStartingRoutes({Account? account, bool withAccount = true}) {
       account ??= eg.selfAccount;
@@ -1056,8 +1058,14 @@ void main() {
         {bool early = false, bool withAccount = true}) async {
       await init(addSelfAccount: false);
       pushedRoutes = [];
-      final testNavObserver = TestNavigatorObserver()
-        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      poppedRoutes = [];
+      testNavObserver = TestNavigatorObserver();
+      testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      testNavObserver.onPopped = (route, prevRoute) => poppedRoutes.add(route);
+      testNavObserver.onReplaced = (route, prevRoute) {
+        poppedRoutes.add(prevRoute!);
+        pushedRoutes.add(route!);
+      };
       // This uses [ZulipApp] instead of [TestZulipApp] because notification
       // logic uses `await ZulipApp.navigator`.
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
@@ -1096,7 +1104,7 @@ void main() {
 
     Future<void> checkOpenNotification(WidgetTester tester, Account account, Message message) async {
       await openNotification(tester, account, message);
-      matchesNavigation(check(pushedRoutes).single, account, message);
+      check(pushedRoutes).any((it) => matchesNavigation(it, account, message));
       pushedRoutes.clear();
     }
 
@@ -1253,6 +1261,80 @@ void main() {
       await tester.pump();
       takeStartingRoutes(account: accountB);
       matchesNavigation(check(pushedRoutes).single, accountB, message);
+    });
+
+    testWidgets('notification switches account only when from different account', (tester) async {
+      addTearDown(testBinding.reset);
+
+      final accountA = eg.selfAccount;
+      final accountB = eg.otherAccount;
+      final message = eg.streamMessage();
+
+      await testBinding.globalStore.add(accountA, eg.initialSnapshot());
+      await testBinding.globalStore.add(accountB, eg.initialSnapshot());
+
+      await prepare(tester, early: true);
+      await tester.pump();
+      takeStartingRoutes(account: accountA);
+
+      await openNotification(tester, accountB, message);
+      check(poppedRoutes).any((it) => it.isA<MaterialAccountWidgetRoute>()
+        .accountId.equals(accountA.id));
+      check(pushedRoutes.last).isA<MaterialAccountWidgetRoute>()
+        ..accountId.equals(accountB.id)
+        ..page.isA<MessageListPage>();
+    });
+
+    testWidgets('notification preserves navigation stack when in same account', (tester) async {
+      addTearDown(testBinding.reset);
+
+      final account = eg.selfAccount;
+      final message = eg.streamMessage();
+
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+
+      await prepare(tester, early: true);
+      await tester.pump();
+      takeStartingRoutes(account: account);
+
+      await openNotification(tester, account, message);
+      check(pushedRoutes.last).isA<MaterialAccountWidgetRoute>()
+        ..accountId.equals(account.id)
+        ..page.isA<MessageListPage>();
+
+      check(poppedRoutes).isEmpty();
+    });
+
+    testWidgets('notification keeps AccountRoute in stack when opened from non-AccountRoute', (tester) async {
+      addTearDown(testBinding.reset);
+
+      final accountA = eg.selfAccount;
+      final accountB = eg.otherAccount;
+      final message = eg.streamMessage();
+
+      await testBinding.globalStore.add(accountA, eg.initialSnapshot());
+      await testBinding.globalStore.add(accountB, eg.initialSnapshot());
+
+      await prepare(tester, early: true);
+      await tester.pump();
+      takeStartingRoutes(account: accountA);
+
+      final navigator = await ZulipApp.navigator;
+      unawaited(navigator.push(MaterialWidgetRoute(page: const ChooseAccountPage())));
+      await tester.pumpAndSettle();
+
+      await openNotification(tester, accountA, message);
+      check(poppedRoutes).isEmpty();
+      check(pushedRoutes.last).isA<MaterialAccountWidgetRoute>()
+        ..accountId.equals(accountA.id)
+        ..page.isA<MessageListPage>();
+
+      await openNotification(tester, accountB, message);
+      check(poppedRoutes).any((it) => it.isA<MaterialAccountWidgetRoute>()
+        .accountId.equals(accountA.id));
+      check(pushedRoutes.last).isA<MaterialAccountWidgetRoute>()
+        ..accountId.equals(accountB.id)
+        ..page.isA<MessageListPage>();
     });
   });
 
