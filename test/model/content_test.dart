@@ -1642,15 +1642,18 @@ UnimplementedInlineContentNode inlineUnimplemented(String html) {
   return UnimplementedInlineContentNode(htmlNode: fragment.nodes.single);
 }
 
-void testParse(String name, String html, List<BlockContentNode> nodes) {
+void testParse(String name, String html, List<BlockContentNode> nodes, {
+  Object? skip,
+}) {
   test(name, () {
     check(parseContent(html))
       .equalsNode(ZulipContent(nodes: nodes));
-  });
+  }, skip: skip);
 }
 
-void testParseExample(ContentExample example) {
-  testParse('parse ${example.description}', example.html, example.expectedNodes);
+void testParseExample(ContentExample example, {Object? skip}) {
+  testParse('parse ${example.description}', example.html, example.expectedNodes,
+    skip: skip);
 }
 
 void main() async {
@@ -2034,7 +2037,7 @@ void main() async {
       r'^\s*static\s+(?:const|final)\s+(\w+)\s*=\s*ContentExample\s*(?:\.\s*inline\s*)?\(',
     ).allMatches(source).map((m) => m.group(1));
     final testedExamples = RegExp(multiLine: true,
-      r'^\s*testParseExample\s*\(\s*ContentExample\s*\.\s*(\w+)\);',
+      r'^\s*testParseExample\s*\(\s*ContentExample\s*\.\s*(\w+)(?:,\s*skip:\s*true)?\s*\);',
     ).allMatches(source).map((m) => m.group(1));
     check(testedExamples).unorderedEquals(declaredExamples);
   }, skip: Platform.isWindows, // [intended] purely analyzes source, so
