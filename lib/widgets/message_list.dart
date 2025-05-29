@@ -1537,7 +1537,7 @@ class MessageWithPossibleSender extends StatelessWidget {
       behavior: HitTestBehavior.translucent,
       onLongPress: () => showMessageActionSheet(context: context, message: message),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.only(top: 4),
         child: Column(children: [
           if (item.showSender)
             _SenderRow(message: message, showTimestamp: true),
@@ -1555,14 +1555,18 @@ class MessageWithPossibleSender extends StatelessWidget {
                   if (editMessageErrorStatus != null)
                     _EditMessageStatusRow(messageId: message.id, status: editMessageErrorStatus)
                   else if (editStateText != null)
-                    Text(editStateText,
-                      textAlign: TextAlign.end,
-                      style: TextStyle(
-                        color: designVariables.labelEdited,
-                        fontSize: 12,
-                        height: (12 / 12),
-                        letterSpacing: proportionalLetterSpacing(
-                          context, 0.05, baseFontSize: 12))),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(editStateText,
+                        textAlign: TextAlign.end,
+                        style: TextStyle(
+                          color: designVariables.labelEdited,
+                          fontSize: 12,
+                          height: (12 / 12),
+                          letterSpacing: proportionalLetterSpacing(context,
+                            0.05, baseFontSize: 12))))
+                  else
+                    Padding(padding: const EdgeInsets.only(bottom: 4))
                 ])),
               SizedBox(width: 16,
                 child: star),
@@ -1593,30 +1597,34 @@ class _EditMessageStatusRow extends StatelessWidget {
 
     return switch (status) {
       // TODO parse markdown and show new content as local echo?
-      false => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 1.5,
-        children: [
-          Text(
+      false => Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 1.5,
+          children: [
+            Text(
+              style: baseTextStyle
+                .copyWith(color: designVariables.btnLabelAttLowIntInfo),
+              textAlign: TextAlign.end,
+              zulipLocalizations.savingMessageEditLabel),
+            // TODO instead place within bottom outer padding:
+            //   https://github.com/zulip/zulip-flutter/pull/1498#discussion_r2087576108
+            LinearProgressIndicator(
+              minHeight: 2,
+              color: designVariables.foreground.withValues(alpha: 0.5),
+              backgroundColor: designVariables.foreground.withValues(alpha: 0.2),
+            ),
+          ])),
+      true => Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: _RestoreEditMessageGestureDetector(
+          messageId: messageId,
+          child: Text(
             style: baseTextStyle
-              .copyWith(color: designVariables.btnLabelAttLowIntInfo),
+              .copyWith(color: designVariables.btnLabelAttLowIntDanger),
             textAlign: TextAlign.end,
-            zulipLocalizations.savingMessageEditLabel),
-          // TODO instead place within bottom outer padding:
-          //   https://github.com/zulip/zulip-flutter/pull/1498#discussion_r2087576108
-          LinearProgressIndicator(
-            minHeight: 2,
-            color: designVariables.foreground.withValues(alpha: 0.5),
-            backgroundColor: designVariables.foreground.withValues(alpha: 0.2),
-          ),
-        ]),
-      true => _RestoreEditMessageGestureDetector(
-        messageId: messageId,
-        child: Text(
-          style: baseTextStyle
-            .copyWith(color: designVariables.btnLabelAttLowIntDanger),
-          textAlign: TextAlign.end,
-          zulipLocalizations.savingMessageEditFailedLabel)),
+            zulipLocalizations.savingMessageEditFailedLabel))),
     };
   }
 }
