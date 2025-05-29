@@ -8,6 +8,7 @@ import '../firebase_options.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import 'display.dart';
+import 'open.dart';
 
 @pragma('vm:entry-point')
 class NotificationService {
@@ -24,6 +25,7 @@ class NotificationService {
     instance.token.dispose();
     _instance = null;
     assert(debugBackgroundIsolateIsLive = true);
+    NotificationOpenService.debugReset();
   }
 
   /// Whether a background isolate should initialize [LiveZulipBinding].
@@ -77,6 +79,8 @@ class NotificationService {
         await _getFcmToken();
 
       case TargetPlatform.iOS: // TODO(#324): defer requesting notif permission
+        await NotificationOpenService.instance.start();
+
         await ZulipBinding.instance.firebaseInitializeApp(
           options: kFirebaseOptionsIos);
 
