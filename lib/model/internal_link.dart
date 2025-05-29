@@ -109,6 +109,23 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
   return result;
 }
 
+/// The result of parsing some URL within a Zulip realm,
+/// when the URL corresponds to some page in this app.
+sealed class InternalLink {
+  InternalLink({required this.realmUrl});
+
+  final Uri realmUrl;
+}
+
+/// The result of parsing some URL that points to a narrow on a Zulip realm,
+/// when the narrow is of a type that this app understands.
+class NarrowLink extends InternalLink {
+  NarrowLink(this.narrow, this.nearMessageId, {required super.realmUrl});
+
+  final Narrow narrow;
+  final int? nearMessageId;
+}
+
 /// A [Narrow] from a given URL, on `store`'s realm.
 ///
 /// `url` must already be a result from [PerAccountStore.tryResolveUrl]
@@ -124,7 +141,7 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
 /// better, but some kinds will be rare, even unheard-of:
 ///   #narrow/stream/1-announce/stream/1-announce (duplicated operator)
 // TODO(#252): handle all valid narrow links, returning a search narrow
-Narrow? parseInternalLink(Uri url, PerAccountStore store) {
+InternalLink? parseInternalLink(Uri url, PerAccountStore store) {
   if (!_isInternalLink(url, store.realmUrl)) return null;
 
   final (category, segments) = _getCategoryAndSegmentsFromFragment(url.fragment);
@@ -155,7 +172,7 @@ bool _isInternalLink(Uri url, Uri realmUrl) {
   return (category, segments);
 }
 
-Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
+NarrowLink? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
   assert(segments.isNotEmpty);
   assert(segments.length.isEven);
 
@@ -164,6 +181,7 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
   ApiNarrowDm? dmElement;
   ApiNarrowWith? withElement;
   Set<IsOperand> isElementOperands = {};
+  int? nearMessageId;
 
   for (var i = 0; i < segments.length; i += 2) {
     final (operator, negated) = _parseOperator(segments[i]);
@@ -201,14 +219,16 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
         // It is fine to have duplicates of the same [IsOperand].
         isElementOperands.add(IsOperand.fromRawString(operand));
 
-      case _NarrowOperator.near: // TODO(#82): support for near
-        continue;
+      case _NarrowOperator.near:
+        if (nearMessageId != null) return null;
+        nearMessageId = int.tryParse(operand, radix: 10);
 
       case _NarrowOperator.unknown:
         return null;
     }
   }
 
+  final Narrow? narrow;
   if (isElementOperands.isNotEmpty) {
     if (streamElement != null || topicElement != null || dmElement != null || withElement != null) {
       return null;
@@ -216,9 +236,9 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
     if (isElementOperands.length > 1) return null;
     switch (isElementOperands.single) {
       case IsOperand.mentioned:
-        return const MentionsNarrow();
+        narrow = const MentionsNarrow();
       case IsOperand.starred:
-        return const StarredMessagesNarrow();
+        narrow = const StarredMessagesNarrow();
       case IsOperand.dm:
       case IsOperand.private:
       case IsOperand.alerted:
@@ -230,17 +250,20 @@ Narrow? _interpretNarrowSegments(List<String> segments, PerAccountStore store) {
     }
   } else if (dmElement != null) {
     if (streamElement != null || topicElement != null || withElement != null) return null;
-    return DmNarrow.withUsers(dmElement.operand, selfUserId: store.selfUserId);
+    narrow = DmNarrow.withUsers(dmElement.operand, selfUserId: store.selfUserId);
   } else if (streamElement != null) {
     final streamId = streamElement.operand;
     if (topicElement != null) {
-      return TopicNarrow(streamId, topicElement.operand, with_: withElement?.operand);
+      narrow = TopicNarrow(streamId, topicElement.operand, with_: withElement?.operand);
     } else {
       if (withElement != null) return null;
-      return ChannelNarrow(streamId);
+      narrow = ChannelNarrow(streamId);
     }
+  } else {
+    return null;
   }
-  return null;
+
+  return NarrowLink(narrow, nearMessageId, realmUrl: store.realmUrl);
 }
 
 @JsonEnum(fieldRename: FieldRename.kebab, alwaysCreate: true)
