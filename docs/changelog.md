@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+This is a preview beta, including some experimental changes
+not yet merged to the main branch.
+
+
+### Highlights for users
+
+We're nearing ready to have this new app replace the legacy
+Zulip mobile app, a few weeks from now.
+
+In addition to all the features in the last beta:
+* Muted users are now muted. (#296)
+* Improved logic to recover from failed send. (#1441)
+* Numerous small improvements to the newest features.
+
+
+### Highlights for developers
+
+* Resolved in main: #83, #1495, #1456, #1158
+
+* Resolved in the experimental branch:
+  * #82, and #80 behind a flag, via PR #1517
+  * #1441 via PR #1453
+  * #127 via PR #1322
+  * more toward #46 via PR #1452
+  * #1147 via PR #1379
+  * #296 via PR #1429
+
 
 ## 0.0.29 (2025-05-19)
 
