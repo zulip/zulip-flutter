@@ -411,6 +411,24 @@ class KatexSpanNode extends KatexNode {
   }
 }
 
+class KatexStrutNode extends KatexNode {
+  const KatexStrutNode({
+    required this.heightEm,
+    required this.verticalAlignEm,
+    super.debugHtmlNode,
+  });
+
+  final double heightEm;
+  final double? verticalAlignEm;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DoubleProperty('heightEm', heightEm));
+    properties.add(DoubleProperty('verticalAlignEm', verticalAlignEm));
+  }
+}
+
 class MathBlockNode extends MathNode implements BlockContentNode {
   const MathBlockNode({
     super.debugHtmlNode,
