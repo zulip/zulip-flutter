@@ -896,6 +896,7 @@ class _KatexNodeList extends StatelessWidget {
             data: MediaQueryData(textScaler: TextScaler.noScaling),
             child: switch (e) {
               KatexSpanNode() => _KatexSpan(e),
+              KatexStrutNode() => _KatexStrut(e),
             }));
       }))));
   }
@@ -918,6 +919,10 @@ class _KatexSpan extends StatelessWidget {
     }
 
     final styles = node.styles;
+    // We expect vertical-align to be only present with the
+    // `strut` span, for which parser explicitly emits `KatexStrutNode`.
+    // So, this should always be null for non `strut` spans.
+    assert(styles.verticalAlignEm == null);
 
     final fontFamily = styles.fontFamily;
     final fontSize = switch (styles.fontSizeEm) {
@@ -973,6 +978,30 @@ class _KatexSpan extends StatelessWidget {
         ? styles.heightEm! * (fontSize ?? em)
         : null,
       child: widget);
+  }
+}
+
+class _KatexStrut extends StatelessWidget {
+  const _KatexStrut(this.node);
+
+  final KatexStrutNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    final verticalAlignEm = node.verticalAlignEm;
+    if (verticalAlignEm == null) {
+      return SizedBox(height: node.heightEm * em);
+    }
+
+    return SizedBox(
+      height: node.heightEm * em,
+      child: Baseline(
+        baseline: (verticalAlignEm + node.heightEm) * em,
+        baselineType: TextBaseline.alphabetic,
+        child: const Text('')),
+    );
   }
 }
 

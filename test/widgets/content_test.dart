@@ -591,14 +591,11 @@ void main() {
           ('1', Offset(0.00, 40.24), Size(5.14, 12.00)),
           ('2', Offset(5.14, 2.80), Size(25.59, 61.00)),
         ]),
-        // TODO: Re-enable this test after adding support for parsing
-        // `vertical-align` in inline styles. Currently it fails
-        // because `strut` span has `vertical-align`.
-        (ContentExample.mathBlockKatexDelimSizing, skip: true, [
-          ('(', Offset(8.00, 46.36), Size(9.42, 25.00)),
-          ('[', Offset(17.42, 46.36), Size(9.71, 25.00)),
-          ('⌈', Offset(27.12, 46.36), Size(11.99, 25.00)),
-          ('⌊', Offset(39.11, 46.36), Size(13.14, 25.00)),
+        (ContentExample.mathBlockKatexDelimSizing, skip: false, [
+          ('(', Offset(8.00, 20.14), Size(9.42, 25.00)),
+          ('[', Offset(17.42, 20.14), Size(9.71, 25.00)),
+          ('⌈', Offset(27.12, 20.14), Size(11.99, 25.00)),
+          ('⌊', Offset(39.11, 20.14), Size(13.14, 25.00)),
         ]),
       ];
 
@@ -629,7 +626,7 @@ void main() {
             check(size)
               .within(distance: 0.05, from: expectedSize);
           }
-        }, skip: testCase.skip);
+        });
       }
     });
   });

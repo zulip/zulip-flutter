@@ -187,7 +187,34 @@ class _KatexParser {
 
     final debugHtmlNode = kDebugMode ? element : null;
 
+    if (element.className == 'strut') {
+      if (element.nodes.isNotEmpty) throw _KatexHtmlParseError();
+
+      final styles = _parseSpanInlineStyles(element);
+      if (styles == null) throw _KatexHtmlParseError();
+
+      final heightEm = styles.heightEm;
+      if (heightEm == null) throw _KatexHtmlParseError();
+      final verticalAlignEm = styles.verticalAlignEm;
+
+      // Ensure only `height` and `vertical-align` inline styles are present.
+      if (styles.filter(heightEm: false, verticalAlignEm: false)
+          != const KatexSpanStyles()) {
+        throw _KatexHtmlParseError();
+      }
+
+      return KatexStrutNode(
+        heightEm: heightEm,
+        verticalAlignEm: verticalAlignEm,
+        debugHtmlNode: debugHtmlNode);
+    }
+
     final inlineStyles = _parseSpanInlineStyles(element);
+    if (inlineStyles != null) {
+      // We expect `vertical-align` inline style to be only present on a
+      // `strut` span, for which we emit `KatexStrutNode` separately.
+      if (inlineStyles.verticalAlignEm != null) throw _KatexHtmlParseError();
+    }
 
     // Aggregate the CSS styles that apply, in the same order as the CSS
     // classes specified for this span, mimicking the behaviour on web.
@@ -214,8 +241,9 @@ class _KatexParser {
 
         case 'strut':
           // .strut { ... }
-          // Do nothing, it has properties that don't need special handling.
-          break;
+          // We expect the 'strut' class to be the only class in a span,
+          // in which case we handle it separately and emit `KatexStrutNode`.
+          throw _KatexHtmlParseError();
 
         case 'textbf':
           // .textbf { font-weight: bold; }
@@ -463,6 +491,7 @@ class _KatexParser {
       final stylesheet = css_parser.parse('*{$styleStr}');
       if (stylesheet.topLevels case [css_visitor.RuleSet() && final rule]) {
         double? heightEm;
+        double? verticalAlignEm;
 
         for (final declaration in rule.declarationGroup.declarations) {
           if (declaration case css_visitor.Declaration(
@@ -474,6 +503,10 @@ class _KatexParser {
               case 'height':
                 heightEm = _getEm(expression);
                 if (heightEm != null) continue;
+
+              case 'vertical-align':
+                verticalAlignEm = _getEm(expression);
+                if (verticalAlignEm != null) continue;
             }
 
             // TODO handle more CSS properties
@@ -488,6 +521,7 @@ class _KatexParser {
 
         return KatexSpanStyles(
           heightEm: heightEm,
+          verticalAlignEm: verticalAlignEm,
         );
       } else {
         throw _KatexHtmlParseError();
@@ -524,6 +558,7 @@ enum KatexSpanTextAlign {
 @immutable
 class KatexSpanStyles {
   final double? heightEm;
+  final double? verticalAlignEm;
 
   final String? fontFamily;
   final double? fontSizeEm;
@@ -533,6 +568,7 @@ class KatexSpanStyles {
 
   const KatexSpanStyles({
     this.heightEm,
+    this.verticalAlignEm,
     this.fontFamily,
     this.fontSizeEm,
     this.fontWeight,
@@ -544,6 +580,7 @@ class KatexSpanStyles {
   int get hashCode => Object.hash(
     'KatexSpanStyles',
     heightEm,
+    verticalAlignEm,
     fontFamily,
     fontSizeEm,
     fontWeight,
@@ -555,6 +592,7 @@ class KatexSpanStyles {
   bool operator ==(Object other) {
     return other is KatexSpanStyles &&
       other.heightEm == heightEm &&
+      other.verticalAlignEm == verticalAlignEm &&
       other.fontFamily == fontFamily &&
       other.fontSizeEm == fontSizeEm &&
       other.fontWeight == fontWeight &&
@@ -566,6 +604,7 @@ class KatexSpanStyles {
   String toString() {
     final args = <String>[];
     if (heightEm != null) args.add('heightEm: $heightEm');
+    if (verticalAlignEm != null) args.add('verticalAlignEm: $verticalAlignEm');
     if (fontFamily != null) args.add('fontFamily: $fontFamily');
     if (fontSizeEm != null) args.add('fontSizeEm: $fontSizeEm');
     if (fontWeight != null) args.add('fontWeight: $fontWeight');
@@ -584,11 +623,32 @@ class KatexSpanStyles {
   KatexSpanStyles merge(KatexSpanStyles other) {
     return KatexSpanStyles(
       heightEm: other.heightEm ?? heightEm,
+      verticalAlignEm: other.verticalAlignEm ?? verticalAlignEm,
       fontFamily: other.fontFamily ?? fontFamily,
       fontSizeEm: other.fontSizeEm ?? fontSizeEm,
       fontStyle: other.fontStyle ?? fontStyle,
       fontWeight: other.fontWeight ?? fontWeight,
       textAlign: other.textAlign ?? textAlign,
+    );
+  }
+
+  KatexSpanStyles filter({
+    bool heightEm = true,
+    bool verticalAlignEm = true,
+    bool fontFamily = true,
+    bool fontSizeEm = true,
+    bool fontWeight = true,
+    bool fontStyle = true,
+    bool textAlign = true,
+  }) {
+    return KatexSpanStyles(
+      heightEm: heightEm ? this.heightEm : null,
+      verticalAlignEm: verticalAlignEm ? this.verticalAlignEm : null,
+      fontFamily: fontFamily ? this.fontFamily : null,
+      fontSizeEm: fontSizeEm ? this.fontSizeEm : null,
+      fontWeight: fontWeight ? this.fontWeight : null,
+      fontStyle: fontStyle ? this.fontStyle : null,
+      textAlign: textAlign ? this.textAlign : null,
     );
   }
 }
