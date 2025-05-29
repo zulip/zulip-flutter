@@ -519,7 +519,7 @@ class ContentExample {
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></p>',
     MathInlineNode(texSource: r'\lambda', nodes: [
       KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
-        KatexSpanNode(styles: KatexSpanStyles(heightEm: 0.6944), text: null, nodes: []),
+        KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
         KatexSpanNode(
           styles: KatexSpanStyles(
             fontFamily: 'KaTeX_Math',
@@ -539,7 +539,7 @@ class ContentExample {
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
     [MathBlockNode(texSource: r'\lambda', nodes: [
       KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
-        KatexSpanNode(styles: KatexSpanStyles(heightEm: 0.6944), text: null, nodes: []),
+        KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
         KatexSpanNode(
           styles: KatexSpanStyles(
             fontFamily: 'KaTeX_Math',
@@ -564,7 +564,7 @@ class ContentExample {
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span></p>', [
       MathBlockNode(texSource: 'a', nodes: [
         KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
-          KatexSpanNode(styles: KatexSpanStyles(heightEm: 0.4306), text: null, nodes: []),
+          KatexStrutNode(heightEm: 0.4306, verticalAlignEm: null),
           KatexSpanNode(
             styles: KatexSpanStyles(
               fontFamily: 'KaTeX_Math',
@@ -575,7 +575,7 @@ class ContentExample {
       ]),
       MathBlockNode(texSource: 'b', nodes: [
         KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
-          KatexSpanNode(styles: KatexSpanStyles(heightEm: 0.6944), text: null, nodes: []),
+          KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
           KatexSpanNode(
             styles: KatexSpanStyles(
               fontFamily: 'KaTeX_Math',
@@ -603,7 +603,7 @@ class ContentExample {
     [QuotationNode([
       MathBlockNode(texSource: r'\lambda', nodes: [
         KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
-          KatexSpanNode(styles: KatexSpanStyles(heightEm: 0.6944), text: null, nodes: []),
+          KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
           KatexSpanNode(
             styles: KatexSpanStyles(
               fontFamily: 'KaTeX_Math',
@@ -632,7 +632,7 @@ class ContentExample {
     [QuotationNode([
       MathBlockNode(texSource: 'a', nodes: [
         KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
-          KatexSpanNode(styles: KatexSpanStyles(heightEm: 0.4306), text: null, nodes: []),
+          KatexStrutNode(heightEm: 0.4306, verticalAlignEm: null),
           KatexSpanNode(
             styles: KatexSpanStyles(
               fontFamily: 'KaTeX_Math',
@@ -643,7 +643,7 @@ class ContentExample {
       ]),
       MathBlockNode(texSource: 'b', nodes: [
         KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
-          KatexSpanNode(styles: KatexSpanStyles(heightEm: 0.6944), text: null, nodes: []),
+          KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
           KatexSpanNode(
             styles: KatexSpanStyles(
               fontFamily: 'KaTeX_Math',
@@ -681,7 +681,7 @@ class ContentExample {
       ]),
       MathBlockNode(texSource: 'a', nodes: [
         KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
-          KatexSpanNode(styles: KatexSpanStyles(heightEm: 0.4306),text: null, nodes: []),
+          KatexStrutNode(heightEm: 0.4306, verticalAlignEm: null),
           KatexSpanNode(
             styles: KatexSpanStyles(
               fontFamily: 'KaTeX_Math',
@@ -731,10 +731,7 @@ class ContentExample {
             styles: KatexSpanStyles(),
             text: null,
             nodes: [
-              KatexSpanNode(
-                styles: KatexSpanStyles(heightEm: 1.6034),
-                text: null,
-                nodes: []),
+              KatexStrutNode(heightEm: 1.6034, verticalAlignEm: null),
               KatexSpanNode(
                 styles: KatexSpanStyles(fontSizeEm: 2.488), // .reset-size6.size11
                 text: '1',
@@ -800,10 +797,7 @@ class ContentExample {
             styles: KatexSpanStyles(),
             text: null,
             nodes: [
-              KatexSpanNode(
-                styles: KatexSpanStyles(heightEm: 1.6034),
-                text: null,
-                nodes: []),
+              KatexStrutNode(heightEm: 1.6034, verticalAlignEm: null),
               KatexSpanNode(
                 styles: KatexSpanStyles(fontSizeEm: 0.5), // reset-size6 size1
                 text: null,
@@ -845,10 +839,7 @@ class ContentExample {
             styles: KatexSpanStyles(),
             text: null,
             nodes: [
-              KatexSpanNode(
-                styles: KatexSpanStyles(heightEm: 3.0),
-                text: null,
-                nodes: []),
+              KatexStrutNode(heightEm: 3, verticalAlignEm: -1.25),
               KatexSpanNode(
                 styles: KatexSpanStyles(),
                 text: '⟨',
@@ -1963,10 +1954,7 @@ void main() async {
   testParseExample(ContentExample.mathBlockBetweenImages);
   testParseExample(ContentExample.mathBlockKatexSizing);
   testParseExample(ContentExample.mathBlockKatexNestedSizing);
-  // TODO: Re-enable this test after adding support for parsing
-  //       `vertical-align` in inline styles. Currently it fails
-  //       because `strut` span has `vertical-align`.
-  testParseExample(ContentExample.mathBlockKatexDelimSizing, skip: true);
+  testParseExample(ContentExample.mathBlockKatexDelimSizing);
 
   testParseExample(ContentExample.imageSingle);
   testParseExample(ContentExample.imageSingleNoDimensions);
