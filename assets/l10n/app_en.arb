@@ -132,6 +132,10 @@
   "@actionSheetOptionMarkAsUnread":  {
     "description": "Label for mark as unread button on action sheet."
   },
+  "actionSheetOptionHideMutedMessage": "Hide muted message again",
+  "@actionSheetOptionHideMutedMessage":  {
+    "description": "Label for hide muted message again button on action sheet."
+  },
   "actionSheetOptionShare": "Share",
   "@actionSheetOptionShare":  {
     "description": "Label for share button on action sheet."
@@ -381,6 +385,10 @@
   "@discardDraftForEditConfirmationDialogMessage": {
     "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box, when editing a message."
   },
+  "discardDraftForMessageNotSentConfirmationDialogMessage": "When you restore a message not sent, the content that was previously in the compose box is discarded.",
+  "@discardDraftForMessageNotSentConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog when restoring a message not sent, for discarding message text that was typed into the compose box."
+  },
   "discardDraftConfirmationDialogConfirmButton": "Discard",
   "@discardDraftConfirmationDialogConfirmButton": {
     "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
@@ -400,6 +408,34 @@
   "composeBoxGenericContentHint": "Type a message",
   "@composeBoxGenericContentHint": {
     "description": "Hint text for content input when sending a message."
+  },
+  "newDmSheetBackButtonLabel": "Back",
+  "@newDmSheetBackButtonLabel": {
+    "description": "Label for the back button in the new DM sheet, allowing the user to return to the previous screen."
+  },
+  "newDmSheetNextButtonLabel": "Next",
+  "@newDmSheetNextButtonLabel": {
+    "description": "Label for the front button in the new DM sheet, if applicable, for navigation or action."
+  },
+  "newDmSheetScreenTitle": "New DM",
+  "@newDmSheetScreenTitle": {
+    "description": "Title displayed at the top of the new DM screen."
+  },
+  "newDmFabButtonLabel": "New DM",
+  "@newDmFabButtonLabel": {
+    "description": "Label for the floating action button (FAB) that opens the new DM sheet."
+  },
+  "newDmSheetSearchHintEmpty": "Add one or more users",
+  "@newDmSheetSearchHintEmpty": {
+    "description": "Hint text for the search bar when no users are selected"
+  },
+  "newDmSheetSearchHintSomeSelected": "Add another user…",
+  "@newDmSheetSearchHintSomeSelected": {
+    "description": "Hint text for the search bar when at least one user is selected"
+  },
+  "newDmSheetNoUsersFound": "No users found",
+  "@newDmSheetNoUsersFound": {
+    "description": "Message shown in the new DM sheet when no users match the search."
   },
   "composeBoxDmContentHint": "Message @{user}",
   "@composeBoxDmContentHint": {
@@ -872,6 +908,10 @@
   "@messageIsMovedLabel": {
     "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
+  "messageNotSentLabel": "MESSAGE NOT SENT",
+  "@messageNotSentLabel": {
+    "description": "Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
   "pollVoterNames": "({voterNames})",
   "@pollVoterNames": {
     "description": "The list of people who voted for a poll option, wrapped in parentheses.",
@@ -942,6 +982,18 @@
   "noEarlierMessages": "No earlier messages",
   "@noEarlierMessages": {
     "description": "Text to show at the start of a message list if there are no earlier messages."
+  },
+  "mutedSender": "Muted sender",
+  "@mutedSender": {
+    "description": "Name for a muted user to display in message list."
+  },
+  "revealButtonLabel": "Reveal message for muted sender",
+  "@revealButtonLabel": {
+    "description": "Label for the button revealing hidden message from a muted sender in message list."
+  },
+  "mutedUser": "Muted user",
+  "@mutedUser": {
+    "description": "Name for a muted user to display all over the app."
   },
   "scrollToBottomTooltip": "Scroll to bottom",
   "@scrollToBottomTooltip": {

@@ -114,6 +114,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get actionSheetOptionMarkAsUnread => 'Mark as unread from here';
 
   @override
+  String get actionSheetOptionHideMutedMessage => 'Hide muted message again';
+
+  @override
   String get actionSheetOptionShare => 'Share';
 
   @override
@@ -322,6 +325,10 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
       'When you edit a message, the content that was previously in the compose box is discarded.';
 
   @override
+  String get discardDraftForMessageNotSentConfirmationDialogMessage =>
+      'When you restore a message not sent, the content that was previously in the compose box is discarded.';
+
+  @override
   String get discardDraftConfirmationDialogConfirmButton => 'Discard';
 
   @override
@@ -335,6 +342,27 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
 
   @override
   String get composeBoxGenericContentHint => 'Type a message';
+
+  @override
+  String get newDmSheetBackButtonLabel => 'Back';
+
+  @override
+  String get newDmSheetNextButtonLabel => 'Next';
+
+  @override
+  String get newDmSheetScreenTitle => 'New DM';
+
+  @override
+  String get newDmFabButtonLabel => 'New DM';
+
+  @override
+  String get newDmSheetSearchHintEmpty => 'Add one or more users';
+
+  @override
+  String get newDmSheetSearchHintSomeSelected => 'Add another user…';
+
+  @override
+  String get newDmSheetNoUsersFound => 'No users found';
 
   @override
   String composeBoxDmContentHint(String user) {
@@ -711,6 +739,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get messageIsMovedLabel => 'MOVED';
 
   @override
+  String get messageNotSentLabel => 'MESSAGE NOT SENT';
+
+  @override
   String pollVoterNames(String voterNames) {
     return '($voterNames)';
   }
@@ -764,6 +795,15 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
 
   @override
   String get noEarlierMessages => 'No earlier messages';
+
+  @override
+  String get mutedSender => 'Muted sender';
+
+  @override
+  String get revealButtonLabel => 'Reveal message for muted sender';
+
+  @override
+  String get mutedUser => 'Muted user';
 
   @override
   String get scrollToBottomTooltip => 'Scroll to bottom';
