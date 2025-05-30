@@ -119,6 +119,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get actionSheetOptionMarkAsUnread => 'Позначити як непрочитане звідси';
 
   @override
+  String get actionSheetOptionHideMutedMessage => 'Hide muted message again';
+
+  @override
   String get actionSheetOptionShare => 'Поширити';
 
   @override
@@ -331,6 +334,10 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'When you edit a message, the content that was previously in the compose box is discarded.';
 
   @override
+  String get discardDraftForMessageNotSentConfirmationDialogMessage =>
+      'When you restore a message not sent, the content that was previously in the compose box is discarded.';
+
+  @override
   String get discardDraftConfirmationDialogConfirmButton => 'Discard';
 
   @override
@@ -344,6 +351,27 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
 
   @override
   String get composeBoxGenericContentHint => 'Ввести повідомлення';
+
+  @override
+  String get newDmSheetBackButtonLabel => 'Back';
+
+  @override
+  String get newDmSheetNextButtonLabel => 'Next';
+
+  @override
+  String get newDmSheetScreenTitle => 'New DM';
+
+  @override
+  String get newDmFabButtonLabel => 'New DM';
+
+  @override
+  String get newDmSheetSearchHintEmpty => 'Add one or more users';
+
+  @override
+  String get newDmSheetSearchHintSomeSelected => 'Add another user…';
+
+  @override
+  String get newDmSheetNoUsersFound => 'No users found';
 
   @override
   String composeBoxDmContentHint(String user) {
@@ -723,6 +751,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get messageIsMovedLabel => 'ПЕРЕМІЩЕНО';
 
   @override
+  String get messageNotSentLabel => 'MESSAGE NOT SENT';
+
+  @override
   String pollVoterNames(String voterNames) {
     return '($voterNames)';
   }
@@ -778,6 +809,15 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
 
   @override
   String get noEarlierMessages => 'Немає попередніх повідомлень';
+
+  @override
+  String get mutedSender => 'Muted sender';
+
+  @override
+  String get revealButtonLabel => 'Reveal message for muted sender';
+
+  @override
+  String get mutedUser => 'Muted user';
 
   @override
   String get scrollToBottomTooltip => 'Прокрутити вниз';
