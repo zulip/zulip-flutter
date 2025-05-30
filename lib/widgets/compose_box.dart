@@ -1290,9 +1290,6 @@ class _SendButtonState extends State<_SendButton> {
     controller.content.clear();
 
     try {
-      // TODO(#720) clear content input only on success response;
-      //   while waiting, put input(s) and send button into a disabled
-      //   "working on it" state (letting input text be selected for copying).
       await store.sendMessage(destination: widget.getDestination(), content: content);
     } on ApiRequestException catch (e) {
       if (!mounted) return;
@@ -1384,7 +1381,6 @@ class _ComposeBoxContainer extends StatelessWidget {
         border: Border(top: BorderSide(color: designVariables.borderBar)),
         boxShadow: ComposeBoxTheme.of(context).boxShadow,
       ),
-      // TODO(#720) try a Stack for the overlaid linear progress indicator
       child: Material(
         color: designVariables.composeBoxBg,
         child: Column(
@@ -1742,10 +1738,10 @@ class _ErrorBanner extends _Banner {
 
   @override
   Widget? buildTrailing(context) {
-    // TODO(#720) "x" button goes here.
-    //   24px square with 8px touchable padding in all directions?
-    //   and `bool get padEnd => false`; see Figma:
-    //     https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=4031-17029&m=dev
+    // An "x" button can go here.
+    // 24px square with 8px touchable padding in all directions?
+    // and `bool get padEnd => false`; see Figma:
+    //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=4031-17029&m=dev
     return null;
   }
 }
@@ -2083,11 +2079,6 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       }
     }
 
-    // TODO(#720) dismissable message-send error, maybe something like:
-    //     if (controller.sendMessageError.value != null) {
-    //       errorBanner = _ErrorBanner(label:
-    //         ZulipLocalizations.of(context).errorSendMessageTimeout);
-    //     }
     return ComposeBoxInheritedWidget.fromComposeBoxState(this,
       child: _ComposeBoxContainer(body: body, banner: banner));
   }
