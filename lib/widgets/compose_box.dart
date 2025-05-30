@@ -1941,7 +1941,8 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     // TODO timeout this request?
     if (!mounted) return;
     if (!identical(controller, emptyEditController)) {
-      // user tapped Cancel during the fetch-raw-content request
+      // During the fetch-raw-content request, the user tapped Cancel
+      // or tapped a failed message edit to restore.
       // TODO in this case we don't want the error dialog caused by
       //   ZulipAction.fetchRawContentWithFeedback; suppress that
       return;
