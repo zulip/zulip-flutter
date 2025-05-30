@@ -1288,10 +1288,6 @@ class _SendButtonState extends State<_SendButton> {
     final content = controller.content.textNormalized;
 
     controller.content.clear();
-    // The following `stoppedComposing` call is currently redundant,
-    // because clearing input sends a "typing stopped" notice.
-    // It will be necessary once we resolve #720.
-    store.typingNotifier.stoppedComposing();
 
     try {
       // TODO(#720) clear content input only on success response;
