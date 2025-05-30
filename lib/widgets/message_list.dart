@@ -1644,6 +1644,7 @@ class _RestoreEditMessageGestureDetector extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: () {
         final composeBoxState = MessageListPage.ancestorOf(context).composeBoxState;
+        // TODO(#1518) allow restore-edit-message from any message-list page
         if (composeBoxState == null) return;
         composeBoxState.startEditInteraction(messageId);
       },
