@@ -450,7 +450,10 @@ class MessageListAppBarTitle extends StatelessWidget {
         if (otherRecipientIds.isEmpty) {
           return Text(zulipLocalizations.dmsWithYourselfPageTitle);
         } else {
-          final names = otherRecipientIds.map(store.userDisplayName);
+          final names = otherRecipientIds.map((id) =>
+            store.isUserMuted(id)
+              ? zulipLocalizations.mutedUser
+              : store.userDisplayName(id));
           // TODO show avatars
           return Text(
             zulipLocalizations.dmsWithOthersPageTitle(names.join(', ')));
@@ -1272,7 +1275,9 @@ class DmRecipientHeader extends StatelessWidget {
       title = zulipLocalizations.messageListGroupYouAndOthers(
         message.conversation.allRecipientIds
           .where((id) => id != store.selfUserId)
-          .map(store.userDisplayName)
+          .map((id) => store.isUserMuted(id)
+            ? zulipLocalizations.mutedUser
+            : store.userDisplayName(id))
           .sorted()
           .join(", "));
     } else {

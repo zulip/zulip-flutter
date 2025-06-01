@@ -346,6 +346,24 @@ void main() {
         matching: find.text('channel foo')),
       ).findsOne();
     });
+
+    testWidgets('shows "Muted user" label for muted users in DM narrow', (tester) async {
+      final user1 = eg.user(userId: 1, fullName: 'User 1');
+      final user2 = eg.user(userId: 2, fullName: 'User 2');
+      final user3 = eg.user(userId: 3, fullName: 'User 3');
+      final mutedUsers = [1, 3];
+
+      await setupMessageListPage(tester,
+        narrow: DmNarrow.withOtherUsers([1, 2, 3], selfUserId: 10),
+        users: [user1, user2, user3],
+        mutedUserIds: mutedUsers,
+        messageCount: 1,
+      );
+
+      check(find.text(localizations.dmsWithOthersPageTitle(
+        '${localizations.mutedUser}, ${store.userDisplayName(user2.userId)}, ${localizations.mutedUser}'))
+      ).findsOne();
+    });
   });
 
   group('presents message content appropriately', () {
@@ -1375,6 +1393,23 @@ void main() {
           zulipLocalizations.unknownUserName)));
         tester.widget(find.text(zulipLocalizations.messageListGroupYouAndOthers(
           "${zulipLocalizations.unknownUserName}, ${eg.thirdUser.fullName}")));
+      });
+
+      testWidgets('show "Muted user" label for muted users', (tester) async {
+        final user1 = eg.user(userId: 1, fullName: 'User 1');
+        final user2 = eg.user(userId: 2, fullName: 'User 2');
+        final user3 = eg.user(userId: 3, fullName: 'User 3');
+        final mutedUsers = [1, 3];
+
+        await setupMessageListPage(tester,
+          users: [user1, user2, user3],
+          mutedUserIds: mutedUsers,
+          messages: [eg.dmMessage(from: eg.selfUser, to: [user1, user2, user3])]
+        );
+
+        check(find.text(localizations.messageListGroupYouAndOthers(
+          '${localizations.mutedUser}, ${localizations.mutedUser}, ${store.userDisplayName(user2.userId)}'))
+        ).findsOne();
       });
 
       testWidgets('icon color matches text color', (tester) async {
