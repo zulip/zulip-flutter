@@ -31,6 +31,7 @@ import '../stdlib_checks.dart';
 import '../test_images.dart';
 import 'content_test.dart';
 import 'dialog_checks.dart';
+import 'message_list_test.dart';
 import 'test_app.dart';
 import 'text_test.dart';
 
@@ -227,6 +228,27 @@ void main() {
         }
       }
     }
+
+    testWidgets('show "Muted user" label for muted reactors', (tester) async {
+      final user1 = eg.user(userId: 1, fullName: 'User 1');
+      final user2 = eg.user(userId: 2, fullName: 'User 2');
+
+      await prepare();
+      await store.addUsers([user1, user2]);
+      await store.muteUsers([user1.userId]);
+      await setupChipsInBox(tester,
+        reactions: [
+          Reaction.fromJson({'emoji_name': '+1', 'emoji_code': '1f44d', 'reaction_type': 'unicode_emoji', 'user_id': user1.userId}),
+          Reaction.fromJson({'emoji_name': '+1', 'emoji_code': '1f44d', 'reaction_type': 'unicode_emoji', 'user_id': user2.userId}),
+        ]);
+
+      final reactionChipFinder = find.byType(ReactionChip);
+      check(reactionChipFinder).findsOne();
+      check(find.descendant(
+        of: reactionChipFinder,
+        matching: find.text('${localizations.mutedUser}, ${store.userDisplayName(user2.userId)}')
+      )).findsOne();
+    });
   });
 
   testWidgets('Smoke test for light/dark/lerped', (tester) async {
