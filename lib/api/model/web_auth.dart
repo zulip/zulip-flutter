@@ -68,12 +68,21 @@ class WebAuthPayload {
   }
 }
 
+/// Whether a URL is hosted by the same org that publishes the app.
+bool isAppOwnDomain(Uri url) {
+  const List<String> appOwnDomains = ['zulip.com', 'zulipchat.com', 'chat.zulip.org'];
+  return appOwnDomains.any((domain) =>
+    url.host == domain || url.host.endsWith('.$domain'));
+}
+
 String generateOtp() {
   final rand = Random.secure();
   final Uint8List bytes = Uint8List.fromList(
     List.generate(32, (_) => rand.nextInt(256)));
   return hex.encode(bytes);
 }
+
+String generateRandomToken() => generateOtp();
 
 /// For tests, create an OTP-encrypted API key.
 @visibleForTesting
