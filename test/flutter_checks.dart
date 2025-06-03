@@ -249,9 +249,3 @@ extension IconButtonChecks on Subject<IconButton> {
 extension SwitchListTileChecks<T> on Subject<SwitchListTile> {
   Subject<bool> get value => has((x) => x.value, 'value');
 }
-
-extension RadioListTileChecks<T> on Subject<RadioListTile<T>> {
-  // TODO(#1545) stop using the deprecated member
-  // ignore: deprecated_member_use
-  Subject<bool> get checked => has((x) => x.checked, 'checked');
-}
