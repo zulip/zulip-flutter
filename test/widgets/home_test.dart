@@ -336,7 +336,7 @@ void main () {
       checkOnLoadingPage();
     }
 
-    Future<void> tapChooseAccount(WidgetTester tester) async {
+    Future<void> tapTryAnotherAccount(WidgetTester tester) async {
       await tester.tap(find.text('Try another account'));
       await tester.pump(Duration.zero); // tap the button
       await tester.pump(const Duration(milliseconds: 250)); // wait for animation
@@ -377,7 +377,7 @@ void main () {
       testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
       await prepare(tester);
       await tester.pump(kTryAnotherAccountWaitPeriod);
-      await tapChooseAccount(tester);
+      await tapTryAnotherAccount(tester);
 
       await tester.tap(find.byType(BackButton));
       await tester.pump(Duration.zero); // tap the button
@@ -392,7 +392,7 @@ void main () {
       testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
       await prepare(tester);
       await tester.pump(kTryAnotherAccountWaitPeriod);
-      await tapChooseAccount(tester);
+      await tapTryAnotherAccount(tester);
 
       testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration * 2;
       await chooseAccountWithEmail(tester, eg.otherAccount.email);
@@ -410,7 +410,7 @@ void main () {
       testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
       await prepare(tester);
       await tester.pump(kTryAnotherAccountWaitPeriod);
-      await tapChooseAccount(tester);
+      await tapTryAnotherAccount(tester);
 
       // While still loading, choose a different account.
       await chooseAccountWithEmail(tester, eg.otherAccount.email);
@@ -432,7 +432,7 @@ void main () {
 
       await tester.pump(kTryAnotherAccountWaitPeriod);
       // While still loading the first account, choose a different account.
-      await tapChooseAccount(tester);
+      await tapTryAnotherAccount(tester);
       await chooseAccountWithEmail(tester, eg.otherAccount.email);
       // User cannot go back because the navigator stack
       // was cleared after choosing an account.
@@ -443,7 +443,7 @@ void main () {
 
       await tester.pump(kTryAnotherAccountWaitPeriod);
       // While still loading the second account, choose a different account.
-      await tapChooseAccount(tester);
+      await tapTryAnotherAccount(tester);
       await chooseAccountWithEmail(tester, thirdAccount.email);
       // User cannot go back because the navigator stack
       // was cleared after choosing an account.
@@ -460,7 +460,7 @@ void main () {
       testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
       await prepare(tester);
       await tester.pump(kTryAnotherAccountWaitPeriod);
-      await tapChooseAccount(tester);
+      await tapTryAnotherAccount(tester);
 
       // Stall while on ChoooseAccountPage so that the account finished loading.
       await tester.pump(loadPerAccountDuration);
@@ -476,7 +476,7 @@ void main () {
       testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
       await prepare(tester);
       await tester.pump(kTryAnotherAccountWaitPeriod);
-      await tapChooseAccount(tester);
+      await tapTryAnotherAccount(tester);
 
       // Stall while on ChoooseAccountPage so that the account finished loading.
       await tester.pump(loadPerAccountDuration);
