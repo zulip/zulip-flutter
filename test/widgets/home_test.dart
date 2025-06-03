@@ -291,8 +291,12 @@ void main () {
       await tapButtonAndAwaitTransition(tester, combinedFeedMenuIconFinder);
 
       // When we go back to the home page, the menu sheet should be gone.
+      final topBeforePop = topRoute;
+      check(topBeforePop).isNotNull().isA<MaterialAccountWidgetRoute>()
+        .page.isA<MessageListPage>().initNarrow.equals(CombinedFeedNarrow());
       (await ZulipApp.navigator).pop();
-      await tester.pump(const Duration(milliseconds: 350)); // wait for pop animation
+      await tester.pump((topBeforePop as TransitionRoute).reverseTransitionDuration);
+
       check(find.byType(BottomSheet)).findsNothing();
     });
 
