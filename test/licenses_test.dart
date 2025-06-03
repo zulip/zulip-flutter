@@ -10,5 +10,5 @@ void main() {
   test('smoke: ensure all additional licenses load', () => awaitFakeAsync((async) async {
     await check(additionalLicenses().toList())
       .completes((it) => it.isNotEmpty());
-  }), skip: true); // TODO(#1540)
+  }));
 }

@@ -115,6 +115,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/KaTeX/LICENSE
     - assets/Noto_Color_Emoji/LICENSE
     - assets/Pygments/AUTHORS.txt
     - assets/Pygments/LICENSE.txt
