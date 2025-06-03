@@ -37,19 +37,22 @@ void main () {
   late Route<dynamic>? topRoute;
   late Route<dynamic>? previousTopRoute;
   late List<Route<dynamic>> pushedRoutes;
+  late Route<dynamic>? lastPoppedRoute;
 
   final testNavObserver = TestNavigatorObserver()
     ..onChangedTop = ((current, previous) {
         topRoute = current;
         previousTopRoute = previous;
       })
-    ..onPushed = ((route, prevRoute) => pushedRoutes.add(route));
+    ..onPushed = ((route, prevRoute) => pushedRoutes.add(route))
+    ..onPopped = ((route, prevRoute) => lastPoppedRoute = route);
 
   Future<void> prepare(WidgetTester tester) async {
     addTearDown(testBinding.reset);
     topRoute = null;
     previousTopRoute = null;
     pushedRoutes = [];
+    lastPoppedRoute = null;
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
     connection = store.connection as FakeApiConnection;
@@ -168,6 +171,44 @@ void main () {
       check(find.byType(BottomSheet)).findsOne();
     }
 
+    /// Taps the [buttonFinder] button and awaits the bottom sheet's exit.
+    ///
+    /// Includes a check that the bottom sheet is gone.
+    /// Also awaits the transition to a new pushed route, if one is pushed.
+    ///
+    /// [buttonFinder] will be run only in the bottom sheet's subtree;
+    /// it doesn't need its own `find.descendant` logic.
+    Future<void> tapButtonAndAwaitTransition(WidgetTester tester, Finder buttonFinder) async {
+      final topRouteBeforePress = topRoute;
+      check(topRouteBeforePress).isA<ModalBottomSheetRoute<void>>();
+      final numPushedRoutesBeforePress = pushedRoutes.length;
+      await tester.tap(find.descendant(
+        of: find.byType(BottomSheet),
+        matching: buttonFinder));
+      await tester.pump(Duration.zero);
+
+      final newPushedRoute = pushedRoutes.skip(numPushedRoutesBeforePress)
+        .singleOrNull;
+
+      final sheetPopDuration = (topRouteBeforePress as ModalBottomSheetRoute<void>)
+        .reverseTransitionDuration;
+      // TODO not sure why a 1ms fudge is needed; investigate.
+      await tester.pump(sheetPopDuration + Duration(milliseconds: 1));
+      check(find.byType(BottomSheet)).findsNothing();
+
+      if (newPushedRoute != null) {
+        final pushDuration = (newPushedRoute as TransitionRoute).transitionDuration;
+        if (pushDuration > sheetPopDuration) {
+          await tester.pump(pushDuration - sheetPopDuration);
+        }
+      }
+
+      // We dismissed the sheet by popping, not pushing or replacing.
+      check(topRouteBeforePress as Route<dynamic>?)
+        ..not((it) => it.identicalTo(topRoute))
+        ..identicalTo(lastPoppedRoute);
+    }
+
     void checkIconSelected(WidgetTester tester, Finder finder) {
       final widget = tester.widget(find.descendant(
         of: find.byType(BottomSheet),
@@ -190,9 +231,7 @@ void main () {
       await tapOpenMenuAndAwait(tester);
       checkIconSelected(tester, inboxMenuIconFinder);
       checkIconNotSelected(tester, channelsMenuIconFinder);
-      await tester.tap(find.text('Cancel'));
-      await tester.pump(Duration.zero); // tap the button
-      await tester.pump(const Duration(milliseconds: 250)); // wait for animation
+      await tapButtonAndAwaitTransition(tester, find.text('Cancel'));
 
       await tester.tap(find.byIcon(ZulipIcons.hash_italic));
       await tester.pump();
@@ -211,12 +250,7 @@ void main () {
       check(find.byType(InboxPageBody)).findsOne();
       check(find.byType(SubscriptionListPageBody)).findsNothing();
 
-      await tester.tap(find.descendant(
-        of: find.byType(BottomSheet),
-        matching: channelsMenuIconFinder));
-      await tester.pump(Duration.zero); // tap the button
-      await tester.pump(const Duration(milliseconds: 250)); // wait for animation
-      check(find.byType(BottomSheet)).findsNothing();
+      await tapButtonAndAwaitTransition(tester, channelsMenuIconFinder);
       check(find.byType(InboxPageBody)).findsNothing();
       check(find.byType(SubscriptionListPageBody)).findsOne();
 
@@ -228,23 +262,13 @@ void main () {
     testWidgets('navigation bar menu buttons dismiss the menu', (tester) async {
       await prepare(tester);
       await tapOpenMenuAndAwait(tester);
-
-      await tester.tap(find.descendant(
-        of: find.byType(BottomSheet),
-        matching: channelsMenuIconFinder));
-      await tester.pump(Duration.zero); // tap the button
-      await tester.pump(const Duration(milliseconds: 250)); // wait for animation
-      check(find.byType(BottomSheet)).findsNothing();
+      await tapButtonAndAwaitTransition(tester, channelsMenuIconFinder);
     });
 
     testWidgets('cancel button dismisses the menu', (tester) async {
       await prepare(tester);
       await tapOpenMenuAndAwait(tester);
-
-      await tester.tap(find.text('Cancel'));
-      await tester.pump(Duration.zero); // tap the button
-      await tester.pump(const Duration(milliseconds: 250)); // wait for animation
-      check(find.byType(BottomSheet)).findsNothing();
+      await tapButtonAndAwaitTransition(tester, find.text('Cancel'));
     });
 
     testWidgets('menu buttons dismiss the menu', (tester) async {
@@ -252,6 +276,7 @@ void main () {
       topRoute = null;
       previousTopRoute = null;
       pushedRoutes = [];
+      lastPoppedRoute = null;
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
@@ -263,11 +288,7 @@ void main () {
 
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true, messages: [eg.streamMessage()]).toJson());
-      await tester.tap(find.descendant(
-        of: find.byType(BottomSheet),
-        matching: combinedFeedMenuIconFinder));
-      await tester.pump(Duration.zero); // tap the button
-      await tester.pump(const Duration(milliseconds: 250)); // wait for animation
+      await tapButtonAndAwaitTransition(tester, combinedFeedMenuIconFinder);
 
       // When we go back to the home page, the menu sheet should be gone.
       (await ZulipApp.navigator).pop();
@@ -278,10 +299,7 @@ void main () {
     testWidgets('_MyProfileButton', (tester) async {
       await prepare(tester);
       await tapOpenMenuAndAwait(tester);
-
-      await tester.tap(find.text('My profile'));
-      await tester.pump(Duration.zero); // tap the button
-      await tester.pump(const Duration(milliseconds: 250)); // wait for animation
+      await tapButtonAndAwaitTransition(tester, find.text('My profile'));
       check(find.byType(ProfilePage)).findsOne();
       check(find.text(eg.selfUser.fullName)).findsAny();
     });
@@ -289,10 +307,7 @@ void main () {
     testWidgets('_AboutZulipButton', (tester) async {
       await prepare(tester);
       await tapOpenMenuAndAwait(tester);
-
-      await tester.tap(find.byIcon(ZulipIcons.info));
-      await tester.pump(Duration.zero); // tap the button
-      await tester.pump(const Duration(milliseconds: 250)); // wait for animation
+      await tapButtonAndAwaitTransition(tester, find.byIcon(ZulipIcons.info));
       check(find.byType(AboutZulipPage)).findsOne();
     });
   });
