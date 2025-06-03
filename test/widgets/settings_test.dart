@@ -2,6 +2,7 @@ import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legacy_checks/legacy_checks.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/settings.dart';
 
@@ -39,9 +40,18 @@ void main() {
         ThemeSetting.dark => 'Dark',
       };
       for (final title in ['System', 'Light', 'Dark']) {
-        check(tester.widget<RadioListTile<ThemeSetting?>>(
-          findRadioListTileWithTitle(title)))
-            .checked.equals(title == expectedCheckedTitle);
+        final expectedIsChecked = title == expectedCheckedTitle;
+        final element = tester.element(findRadioListTileWithTitle(title));
+        final checkedColor = Theme.of(element).colorScheme.primary;
+        // `paints` isn't a [Matcher] so we wrap it with `equals`;
+        // awkward but it works
+        final paintsAsCheckedMatcher = equals(paints..circle(color: checkedColor));
+        check(because: '$title should be ${expectedIsChecked ? 'checked' : 'unchecked'}',
+          element.renderObject,
+        ).legacyMatcher(
+          expectedIsChecked
+            ? paintsAsCheckedMatcher
+            : isNot(paintsAsCheckedMatcher));
       }
       check(testBinding.globalStore)
         .settings.themeSetting.equals(expectedThemeSetting);
