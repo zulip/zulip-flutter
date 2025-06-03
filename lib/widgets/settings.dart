@@ -46,21 +46,19 @@ class _ThemeSetting extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final globalSettings = GlobalStoreWidget.settingsOf(context);
-    return Column(
-      children: [
-        ListTile(title: Text(zulipLocalizations.themeSettingTitle)),
-        for (final themeSettingOption in [null, ...ThemeSetting.values])
-          RadioListTile<ThemeSetting?>.adaptive(
-            title: Text(ThemeSetting.displayName(
-              themeSetting: themeSettingOption,
-              zulipLocalizations: zulipLocalizations)),
-            value: themeSettingOption,
-            // TODO(#1545) stop using the deprecated members
-            // ignore: deprecated_member_use
-            groupValue: globalSettings.themeSetting,
-            // ignore: deprecated_member_use
-            onChanged: (newValue) => _handleChange(context, newValue)),
-      ]);
+    return RadioGroup<ThemeSetting?>(
+      groupValue: globalSettings.themeSetting,
+      onChanged: (newValue) => _handleChange(context, newValue),
+      child: Column(
+        children: [
+          ListTile(title: Text(zulipLocalizations.themeSettingTitle)),
+          for (final themeSettingOption in [null, ...ThemeSetting.values])
+            RadioListTile<ThemeSetting?>.adaptive(
+              title: Text(ThemeSetting.displayName(
+                themeSetting: themeSettingOption,
+                zulipLocalizations: zulipLocalizations)),
+              value: themeSettingOption),
+        ]));
   }
 }
 
@@ -135,19 +133,17 @@ class VisitFirstUnreadSettingPage extends StatelessWidget {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.initialAnchorSettingTitle)),
-      body: Column(children: [
-        ListTile(title: Text(zulipLocalizations.initialAnchorSettingDescription)),
-        for (final value in VisitFirstUnreadSetting.values)
-          RadioListTile.adaptive(
-            title: Text(_valueDisplayName(value,
-              zulipLocalizations: zulipLocalizations)),
-            value: value,
-            // TODO(#1545) stop using the deprecated members
-            // ignore: deprecated_member_use
-            groupValue: globalSettings.visitFirstUnread,
-            // ignore: deprecated_member_use
-            onChanged: (newValue) => _handleChange(context, newValue)),
-      ]));
+      body: RadioGroup<VisitFirstUnreadSetting>(
+        groupValue: globalSettings.visitFirstUnread,
+        onChanged: (newValue) => _handleChange(context, newValue),
+        child: Column(children: [
+          ListTile(title: Text(zulipLocalizations.initialAnchorSettingDescription)),
+          for (final value in VisitFirstUnreadSetting.values)
+            RadioListTile<VisitFirstUnreadSetting>.adaptive(
+              title: Text(_valueDisplayName(value,
+                zulipLocalizations: zulipLocalizations)),
+              value: value),
+        ])));
   }
 }
 
@@ -210,24 +206,22 @@ class MarkReadOnScrollSettingPage extends StatelessWidget {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.markReadOnScrollSettingTitle)),
-      body: Column(children: [
-        ListTile(title: Text(zulipLocalizations.markReadOnScrollSettingDescription)),
-        for (final value in MarkReadOnScrollSetting.values)
-          RadioListTile.adaptive(
-            title: Text(_valueDisplayName(value,
-              zulipLocalizations: zulipLocalizations)),
-            subtitle: () {
-              final result = _valueDescription(value,
-                zulipLocalizations: zulipLocalizations);
-              return result == null ? null : Text(result);
-            }(),
-            value: value,
-            // TODO(#1545) stop using the deprecated members
-            // ignore: deprecated_member_use
-            groupValue: globalSettings.markReadOnScroll,
-            // ignore: deprecated_member_use
-            onChanged: (newValue) => _handleChange(context, newValue)),
-      ]));
+      body: RadioGroup<MarkReadOnScrollSetting>(
+        groupValue: globalSettings.markReadOnScroll,
+        onChanged: (newValue) => _handleChange(context, newValue),
+        child: Column(children: [
+          ListTile(title: Text(zulipLocalizations.markReadOnScrollSettingDescription)),
+          for (final value in MarkReadOnScrollSetting.values)
+            RadioListTile<MarkReadOnScrollSetting>.adaptive(
+              title: Text(_valueDisplayName(value,
+                zulipLocalizations: zulipLocalizations)),
+              subtitle: () {
+                final result = _valueDescription(value,
+                  zulipLocalizations: zulipLocalizations);
+                return result == null ? null : Text(result);
+              }(),
+              value: value),
+        ])));
   }
 }
 
