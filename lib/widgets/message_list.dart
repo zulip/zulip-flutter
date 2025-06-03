@@ -526,6 +526,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     model.fetchInitial();
   }
 
+  bool _prevFetched = false;
+
   void _modelChanged() {
     if (model.narrow != widget.narrow) {
       // Either:
@@ -539,6 +541,15 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       // The actual state lives in the [MessageListView] model.
       // This method was called because that just changed.
     });
+
+    if (!_prevFetched && model.fetched && model.messages.isEmpty) {
+      // If the fetch came up empty, there's nothing to read,
+      // so opening the keyboard won't be bothersome and could be helpful.
+      // It's definitely helpful if we got here from the new-DM page.
+      MessageListPage.ancestorOf(context)
+        .composeBoxState?.controller.requestFocusIfUnfocused();
+    }
+    _prevFetched = model.fetched;
   }
 
   void _handleScrollMetrics(ScrollMetrics scrollMetrics) {

@@ -1546,6 +1546,15 @@ sealed class ComposeBoxController {
   final content = ComposeContentController();
   final contentFocusNode = FocusNode();
 
+  /// If no input is focused, requests focus on the appropriate input.
+  ///
+  /// This encapsulates choosing the topic or content input
+  /// when both exist (see [StreamComposeBoxController.requestFocusIfUnfocused]).
+  void requestFocusIfUnfocused() {
+    if (contentFocusNode.hasFocus) return;
+    contentFocusNode.requestFocus();
+  }
+
   @mustCallSuper
   void dispose() {
     content.dispose();
@@ -1608,6 +1617,19 @@ class StreamComposeBoxController extends ComposeBoxController {
   final topicFocusNode = FocusNode();
   final ValueNotifier<ComposeTopicInteractionStatus> topicInteractionStatus =
     ValueNotifier(ComposeTopicInteractionStatus.notEditingNotChosen);
+
+  @override void requestFocusIfUnfocused() {
+    if (topicFocusNode.hasFocus || contentFocusNode.hasFocus) return;
+    switch (topicInteractionStatus.value) {
+      case ComposeTopicInteractionStatus.notEditingNotChosen:
+        topicFocusNode.requestFocus();
+      case ComposeTopicInteractionStatus.isEditing:
+        // (should be impossible given early-return on topicFocusNode.hasFocus)
+        break;
+      case ComposeTopicInteractionStatus.hasChosen:
+        contentFocusNode.requestFocus();
+    }
+  }
 
   @override
   void dispose() {

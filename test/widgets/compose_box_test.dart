@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:checks/checks.dart';
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_checks/flutter_checks.dart';
@@ -56,14 +57,23 @@ void main() {
     User? selfUser,
     List<User> otherUsers = const [],
     List<ZulipStream> streams = const [],
+    List<Message>? messages,
     bool? mandatoryTopics,
     int? zulipFeatureLevel,
   }) async {
     if (narrow case ChannelNarrow(:var streamId) || TopicNarrow(: var streamId)) {
-      assert(streams.any((stream) => stream.streamId == streamId),
+      final channel = streams.firstWhereOrNull((s) => s.streamId == streamId);
+      assert(channel != null,
         'Add a channel with "streamId" the same as of $narrow.streamId to the store.');
+      if (narrow is ChannelNarrow) {
+        // By default, bypass the complexity where the topic input is autofocused
+        // on an empty fetch, by making the fetch not empty. (In particular that
+        // complexity includes a getStreamTopics fetch for topic autocomplete.)
+        messages ??= [eg.streamMessage(stream: channel)];
+      }
     }
     addTearDown(testBinding.reset);
+    messages ??= [];
     selfUser ??= eg.selfUser;
     zulipFeatureLevel ??= eg.futureZulipFeatureLevel;
     final selfAccount = eg.account(user: selfUser, zulipFeatureLevel: zulipFeatureLevel);
@@ -81,7 +91,11 @@ void main() {
     connection = store.connection as FakeApiConnection;
 
     connection.prepare(json:
-      eg.newestGetMessagesResult(foundOldest: true, messages: []).toJson());
+      eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson());
+    if (narrow is ChannelNarrow && messages.isEmpty) {
+      // The topic input will autofocus, triggering a getStreamTopics request.
+      connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+    }
     await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
       child: MessageListPage(initNarrow: narrow)));
     await tester.pumpAndSettle();
@@ -133,6 +147,64 @@ void main() {
     await tester.tap(sendButtonFinder);
     await tester.pump(Duration.zero);
   }
+
+  group('auto focus', () {
+    testWidgets('ChannelNarrow, non-empty fetch', (tester) async {
+      final channel = eg.stream();
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        streams: [channel],
+        messages: [eg.streamMessage(stream: channel)]);
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isFalse();
+    });
+
+    testWidgets('ChannelNarrow, empty fetch', (tester) async {
+      final channel = eg.stream();
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        streams: [channel],
+        messages: []);
+      check(controller).isA<StreamComposeBoxController>()
+        .topicFocusNode.hasFocus.isTrue();
+    });
+
+    testWidgets('TopicNarrow, non-empty fetch', (tester) async {
+      final channel = eg.stream();
+      await prepareComposeBox(tester,
+        narrow: TopicNarrow(channel.streamId, eg.t('topic')),
+        streams: [channel],
+        messages: [eg.streamMessage(stream: channel, topic: 'topic')]);
+      check(controller).isNotNull().contentFocusNode.hasFocus.isFalse();
+    });
+
+    testWidgets('TopicNarrow, empty fetch', (tester) async {
+      final channel = eg.stream();
+      await prepareComposeBox(tester,
+        narrow: TopicNarrow(channel.streamId, eg.t('topic')),
+        streams: [channel],
+        messages: []);
+      check(controller).isNotNull().contentFocusNode.hasFocus.isTrue();
+    });
+
+    testWidgets('DmNarrow, non-empty fetch', (tester) async {
+      final user = eg.user();
+      await prepareComposeBox(tester,
+        selfUser: eg.selfUser,
+        narrow: DmNarrow.withUser(user.userId, selfUserId: eg.selfUser.userId),
+        messages: [eg.dmMessage(from: user, to: [eg.selfUser])]);
+      check(controller).isNotNull().contentFocusNode.hasFocus.isFalse();
+    });
+
+    testWidgets('DmNarrow, empty fetch', (tester) async {
+      await prepareComposeBox(tester,
+        selfUser: eg.selfUser,
+        narrow: DmNarrow.withUser(eg.user().userId, selfUserId: eg.selfUser.userId),
+        messages: []);
+      check(controller).isNotNull().contentFocusNode.hasFocus.isTrue();
+    });
+  });
 
   group('ComposeBoxTheme', () {
     test('lerp light to dark, no crash', () {
