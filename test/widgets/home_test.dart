@@ -128,10 +128,10 @@ void main () {
         foundOldest: true, messages: []).toJson());
       await tester.tap(find.byIcon(ZulipIcons.message_feed));
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 250));
       check(pushedRoutes).single.isA<WidgetRoute>().page
         .isA<MessageListPage>()
         .initNarrow.equals(const CombinedFeedNarrow());
+      await tester.pump(Duration.zero); // message-list fetch
     });
   });
 
