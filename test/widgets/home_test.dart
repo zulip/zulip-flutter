@@ -33,11 +33,14 @@ void main () {
 
   late PerAccountStore store;
   late FakeApiConnection connection;
+  late List<Route<dynamic>> pushedRoutes;
 
-  Future<void> prepare(WidgetTester tester, {
-    NavigatorObserver? navigatorObserver,
-  }) async {
+  final testNavObserver = TestNavigatorObserver()
+    ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+  Future<void> prepare(WidgetTester tester) async {
     addTearDown(testBinding.reset);
+    pushedRoutes = [];
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
     connection = store.connection as FakeApiConnection;
@@ -45,7 +48,7 @@ void main () {
 
     await tester.pumpWidget(TestZulipApp(
       accountId: eg.selfAccount.id,
-      navigatorObservers: navigatorObserver != null ? [navigatorObserver] : [],
+      navigatorObservers: [testNavObserver],
       child: const HomePage()));
     await tester.pump();
   }
@@ -118,10 +121,7 @@ void main () {
     });
 
     testWidgets('combined feed', (tester) async {
-      final pushedRoutes = <Route<dynamic>>[];
-      final testNavObserver = TestNavigatorObserver()
-        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
-      await prepare(tester, navigatorObserver: testNavObserver);
+      await prepare(tester);
       pushedRoutes.clear();
 
       connection.prepare(json: eg.newestGetMessagesResult(
