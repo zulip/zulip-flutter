@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/settings.dart';
@@ -39,9 +40,12 @@ void main() {
         ThemeSetting.dark => 'Dark',
       };
       for (final title in ['System', 'Light', 'Dark']) {
-        check(tester.widget<RadioListTile<ThemeSetting?>>(
-          findRadioListTileWithTitle(title)))
-            .checked.equals(title == expectedCheckedTitle);
+        final expectedIsChecked = title == expectedCheckedTitle;
+        check(tester.semantics.find(findRadioListTileWithTitle(title)))
+          .containsSemantics(
+            label: title,
+            isInMutuallyExclusiveGroup: true,
+            hasCheckedState: true, isChecked: expectedIsChecked);
       }
       check(testBinding.globalStore)
         .settings.themeSetting.equals(expectedThemeSetting);
