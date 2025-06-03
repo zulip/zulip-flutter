@@ -138,15 +138,9 @@ void main () {
   group('menu', () {
     final designVariables = DesignVariables.light;
 
-    final inboxMenuIconFinder = find.descendant(
-      of: find.byType(BottomSheet),
-      matching: find.byIcon(ZulipIcons.inbox));
-    final channelsMenuIconFinder = find.descendant(
-      of: find.byType(BottomSheet),
-      matching: find.byIcon(ZulipIcons.hash_italic));
-    final combinedFeedMenuIconFinder = find.descendant(
-      of: find.byType(BottomSheet),
-      matching: find.byIcon(ZulipIcons.message_feed));
+    final inboxMenuIconFinder = find.byIcon(ZulipIcons.inbox);
+    final channelsMenuIconFinder = find.byIcon(ZulipIcons.hash_italic);
+    final combinedFeedMenuIconFinder = find.byIcon(ZulipIcons.message_feed);
 
     Future<void> tapOpenMenu(WidgetTester tester) async {
       await tester.tap(find.byIcon(ZulipIcons.menu));
@@ -156,12 +150,18 @@ void main () {
     }
 
     void checkIconSelected(WidgetTester tester, Finder finder) {
-      check(tester.widget(finder)).isA<Icon>().color.isNotNull()
+      final widget = tester.widget(find.descendant(
+        of: find.byType(BottomSheet),
+        matching: finder));
+      check(widget).isA<Icon>().color.isNotNull()
         .isSameColorAs(designVariables.iconSelected);
     }
 
     void checkIconNotSelected(WidgetTester tester, Finder finder) {
-      check(tester.widget(finder)).isA<Icon>().color.isNotNull()
+      final widget = tester.widget(find.descendant(
+        of: find.byType(BottomSheet),
+        matching: finder));
+      check(widget).isA<Icon>().color.isNotNull()
         .isSameColorAs(designVariables.icon);
     }
 
@@ -192,7 +192,9 @@ void main () {
       check(find.byType(InboxPageBody)).findsOne();
       check(find.byType(SubscriptionListPageBody)).findsNothing();
 
-      await tester.tap(channelsMenuIconFinder);
+      await tester.tap(find.descendant(
+        of: find.byType(BottomSheet),
+        matching: channelsMenuIconFinder));
       await tester.pump(Duration.zero); // tap the button
       await tester.pump(const Duration(milliseconds: 250)); // wait for animation
       check(find.byType(BottomSheet)).findsNothing();
@@ -208,7 +210,9 @@ void main () {
       await prepare(tester);
       await tapOpenMenu(tester);
 
-      await tester.tap(channelsMenuIconFinder);
+      await tester.tap(find.descendant(
+        of: find.byType(BottomSheet),
+        matching: channelsMenuIconFinder));
       await tester.pump(Duration.zero); // tap the button
       await tester.pump(const Duration(milliseconds: 250)); // wait for animation
       check(find.byType(BottomSheet)).findsNothing();
@@ -237,7 +241,9 @@ void main () {
 
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true, messages: [eg.streamMessage()]).toJson());
-      await tester.tap(combinedFeedMenuIconFinder);
+      await tester.tap(find.descendant(
+        of: find.byType(BottomSheet),
+        matching: combinedFeedMenuIconFinder));
       await tester.pump(Duration.zero); // tap the button
       await tester.pump(const Duration(milliseconds: 250)); // wait for animation
 
