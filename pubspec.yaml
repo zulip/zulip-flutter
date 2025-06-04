@@ -14,8 +14,8 @@ environment:
   # We use a recent version of Flutter from its main channel, and
   # the corresponding recent version of the Dart SDK.
   # Feel free to update these regularly; see README.md for instructions.
-  sdk: '>=3.9.0-114.0.dev <4.0.0'
-  flutter: '>=3.33.0-1.0.pre.44'  # 358b0726882869cd917e1e2dc07b6c298e6c2992
+  sdk: '>=3.9.0-172.0.dev <4.0.0'
+  flutter: '>=3.33.0-1.0.pre.347'  # d2e4017f8174fcb71baeb17d6210c4b51f59c564
 
 # To update dependencies, see instructions in README.md.
 dependencies:

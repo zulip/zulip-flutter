@@ -44,18 +44,19 @@ class _ThemeSetting extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final globalSettings = GlobalStoreWidget.settingsOf(context);
-    return Column(
-      children: [
-        ListTile(title: Text(zulipLocalizations.themeSettingTitle)),
-        for (final themeSettingOption in [null, ...ThemeSetting.values])
-          RadioListTile<ThemeSetting?>.adaptive(
-            title: Text(ThemeSetting.displayName(
-              themeSetting: themeSettingOption,
-              zulipLocalizations: zulipLocalizations)),
-            value: themeSettingOption,
-            groupValue: globalSettings.themeSetting,
-            onChanged: (newValue) => _handleChange(context, newValue)),
-      ]);
+    return RadioGroup<ThemeSetting?>(
+      groupValue: globalSettings.themeSetting,
+      onChanged: (newValue) => _handleChange(context, newValue),
+      child: Column(
+        children: [
+          ListTile(title: Text(zulipLocalizations.themeSettingTitle)),
+          for (final themeSettingOption in [null, ...ThemeSetting.values])
+            RadioListTile<ThemeSetting?>.adaptive(
+              title: Text(ThemeSetting.displayName(
+                themeSetting: themeSettingOption,
+                zulipLocalizations: zulipLocalizations)),
+              value: themeSettingOption),
+        ]));
   }
 }
 
