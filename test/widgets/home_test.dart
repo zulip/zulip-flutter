@@ -33,13 +33,22 @@ void main () {
 
   late PerAccountStore store;
   late FakeApiConnection connection;
+
+  late Route<dynamic>? topRoute;
+  late Route<dynamic>? previousTopRoute;
   late List<Route<dynamic>> pushedRoutes;
 
   final testNavObserver = TestNavigatorObserver()
-    ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+    ..onChangedTop = ((current, previous) {
+        topRoute = current;
+        previousTopRoute = previous;
+      })
+    ..onPushed = ((route, prevRoute) => pushedRoutes.add(route));
 
   Future<void> prepare(WidgetTester tester) async {
     addTearDown(testBinding.reset);
+    topRoute = null;
+    previousTopRoute = null;
     pushedRoutes = [];
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -142,10 +151,20 @@ void main () {
     final channelsMenuIconFinder = find.byIcon(ZulipIcons.hash_italic);
     final combinedFeedMenuIconFinder = find.byIcon(ZulipIcons.message_feed);
 
-    Future<void> tapOpenMenu(WidgetTester tester) async {
+    Future<void> tapOpenMenuAndAwait(WidgetTester tester) async {
+      final topRouteBeforePress = topRoute;
       await tester.tap(find.byIcon(ZulipIcons.menu));
-      await tester.pump(Duration.zero); // tap the button
-      await tester.pump(const Duration(milliseconds: 250)); // wait for animation
+      await tester.pump();
+      final topRouteAfterPress = topRoute;
+      check(topRouteAfterPress).isA<ModalBottomSheetRoute<void>>();
+      await tester.pump((topRouteAfterPress as ModalBottomSheetRoute<void>).transitionDuration);
+
+      // This was the only change during the interaction.
+      check(topRouteBeforePress).identicalTo(previousTopRoute);
+
+      // We got to the sheet by pushing, not popping or something else.
+      check(pushedRoutes.last).identicalTo(topRouteAfterPress);
+
       check(find.byType(BottomSheet)).findsOne();
     }
 
@@ -168,7 +187,7 @@ void main () {
     testWidgets('navigation states reflect on navigation bar menu buttons', (tester) async {
       await prepare(tester);
 
-      await tapOpenMenu(tester);
+      await tapOpenMenuAndAwait(tester);
       checkIconSelected(tester, inboxMenuIconFinder);
       checkIconNotSelected(tester, channelsMenuIconFinder);
       await tester.tap(find.text('Cancel'));
@@ -178,7 +197,7 @@ void main () {
       await tester.tap(find.byIcon(ZulipIcons.hash_italic));
       await tester.pump();
 
-      await tapOpenMenu(tester);
+      await tapOpenMenuAndAwait(tester);
       checkIconNotSelected(tester, inboxMenuIconFinder);
       checkIconSelected(tester, channelsMenuIconFinder);
     });
@@ -186,7 +205,7 @@ void main () {
     testWidgets('navigation bar menu buttons control navigation states', (tester) async {
       await prepare(tester);
 
-      await tapOpenMenu(tester);
+      await tapOpenMenuAndAwait(tester);
       checkIconSelected(tester, inboxMenuIconFinder);
       checkIconNotSelected(tester, channelsMenuIconFinder);
       check(find.byType(InboxPageBody)).findsOne();
@@ -201,14 +220,14 @@ void main () {
       check(find.byType(InboxPageBody)).findsNothing();
       check(find.byType(SubscriptionListPageBody)).findsOne();
 
-      await tapOpenMenu(tester);
+      await tapOpenMenuAndAwait(tester);
       checkIconNotSelected(tester, inboxMenuIconFinder);
       checkIconSelected(tester, channelsMenuIconFinder);
     });
 
     testWidgets('navigation bar menu buttons dismiss the menu', (tester) async {
       await prepare(tester);
-      await tapOpenMenu(tester);
+      await tapOpenMenuAndAwait(tester);
 
       await tester.tap(find.descendant(
         of: find.byType(BottomSheet),
@@ -220,7 +239,7 @@ void main () {
 
     testWidgets('cancel button dismisses the menu', (tester) async {
       await prepare(tester);
-      await tapOpenMenu(tester);
+      await tapOpenMenuAndAwait(tester);
 
       await tester.tap(find.text('Cancel'));
       await tester.pump(Duration.zero); // tap the button
@@ -230,14 +249,17 @@ void main () {
 
     testWidgets('menu buttons dismiss the menu', (tester) async {
       addTearDown(testBinding.reset);
+      topRoute = null;
+      previousTopRoute = null;
+      pushedRoutes = [];
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
-      await tester.pumpWidget(const ZulipApp());
+      await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
       final connection = store.connection as FakeApiConnection;
       await tester.pump();
 
-      await tapOpenMenu(tester);
+      await tapOpenMenuAndAwait(tester);
 
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true, messages: [eg.streamMessage()]).toJson());
@@ -255,7 +277,7 @@ void main () {
 
     testWidgets('_MyProfileButton', (tester) async {
       await prepare(tester);
-      await tapOpenMenu(tester);
+      await tapOpenMenuAndAwait(tester);
 
       await tester.tap(find.text('My profile'));
       await tester.pump(Duration.zero); // tap the button
@@ -266,7 +288,7 @@ void main () {
 
     testWidgets('_AboutZulipButton', (tester) async {
       await prepare(tester);
-      await tapOpenMenu(tester);
+      await tapOpenMenuAndAwait(tester);
 
       await tester.tap(find.byIcon(ZulipIcons.info));
       await tester.pump(Duration.zero); // tap the button

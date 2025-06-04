@@ -6,12 +6,18 @@ import 'package:flutter/widgets.dart';
 
 /// A trivial observer for testing the navigator.
 class TestNavigatorObserver extends NavigatorObserver {
+  void Function(Route<dynamic> topRoute, Route<dynamic>? previousTopRoute)? onChangedTop;
   void Function(Route<dynamic> route, Route<dynamic>? previousRoute)? onPushed;
   void Function(Route<dynamic> route, Route<dynamic>? previousRoute)? onPopped;
   void Function(Route<dynamic> route, Route<dynamic>? previousRoute)? onRemoved;
   void Function(Route<dynamic>? route, Route<dynamic>? previousRoute)? onReplaced;
   void Function(Route<dynamic> route, Route<dynamic>? previousRoute)? onStartUserGesture;
   void Function()? onStopUserGesture;
+
+  @override
+  void didChangeTop(Route<dynamic> topRoute, Route<dynamic>? previousTopRoute) {
+    onChangedTop?.call(topRoute, previousTopRoute);
+  }
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
