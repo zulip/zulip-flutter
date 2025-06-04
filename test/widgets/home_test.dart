@@ -329,24 +329,38 @@ void main () {
 
     Future<void> prepare(WidgetTester tester) async {
       addTearDown(testBinding.reset);
+      topRoute = null;
+      previousTopRoute = null;
+      pushedRoutes = [];
+      lastPoppedRoute = null;
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot());
-      await tester.pumpWidget(const ZulipApp());
+      await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
       await tester.pump(Duration.zero); // wait for the loading page
       checkOnLoadingPage();
     }
 
     Future<void> tapTryAnotherAccount(WidgetTester tester) async {
+      final numPushedRoutesBefore = pushedRoutes.length;
       await tester.tap(find.text('Try another account'));
-      await tester.pump(Duration.zero); // tap the button
-      await tester.pump(const Duration(milliseconds: 250)); // wait for animation
+      await tester.pump();
+      final pushedRoute = pushedRoutes.skip(numPushedRoutesBefore).single;
+      check(pushedRoute).isA<MaterialWidgetRoute>().page.isA<ChooseAccountPage>();
+      await tester.pump((pushedRoute as TransitionRoute).transitionDuration);
       checkOnChooseAccountPage();
     }
 
     Future<void> chooseAccountWithEmail(WidgetTester tester, String email) async {
+      lastPoppedRoute = null;
       await tester.tap(find.text(email));
-      await tester.pump(Duration.zero); // tap the button
-      await tester.pump(const Duration(milliseconds: 350)); // wait for push & pop animations
+      await tester.pump();
+      check(topRoute).isA<MaterialAccountWidgetRoute>().page.isA<HomePage>();
+      check(lastPoppedRoute).isA<MaterialWidgetRoute>().page.isA<ChooseAccountPage>();
+      final popDuration = (lastPoppedRoute as TransitionRoute).reverseTransitionDuration;
+      final pushDuration = (topRoute as TransitionRoute).transitionDuration;
+      final animationDuration = popDuration > pushDuration ? popDuration : pushDuration;
+      // TODO not sure why a 1ms fudge is needed; investigate.
+      await tester.pump(animationDuration + Duration(milliseconds: 1));
       checkOnLoadingPage();
     }
 
@@ -379,9 +393,14 @@ void main () {
       await tester.pump(kTryAnotherAccountWaitPeriod);
       await tapTryAnotherAccount(tester);
 
+      lastPoppedRoute = null;
       await tester.tap(find.byType(BackButton));
-      await tester.pump(Duration.zero); // tap the button
-      await tester.pump(const Duration(milliseconds: 350)); // wait for pop animation
+      await tester.pump();
+      check(lastPoppedRoute).isA<MaterialWidgetRoute>().page.isA<ChooseAccountPage>();
+      await tester.pump(
+        (lastPoppedRoute as TransitionRoute).reverseTransitionDuration
+        // TODO not sure why a 1ms fudge is needed; investigate.
+        + Duration(milliseconds: 1));
       checkOnLoadingPage();
 
       await tester.pump(loadPerAccountDuration);
@@ -466,9 +485,14 @@ void main () {
       await tester.pump(loadPerAccountDuration);
       checkOnChooseAccountPage();
 
+      lastPoppedRoute = null;
       await tester.tap(find.byType(BackButton));
-      await tester.pump(Duration.zero); // tap the button
-      await tester.pump(const Duration(milliseconds: 350)); // wait for pop animation
+      await tester.pump();
+      check(lastPoppedRoute).isA<MaterialWidgetRoute>().page.isA<ChooseAccountPage>();
+      await tester.pump(
+        (lastPoppedRoute as TransitionRoute).reverseTransitionDuration
+        // TODO not sure why a 1ms fudge is needed; investigate.
+        + Duration(milliseconds: 1));
       checkOnHomePage(tester, expectedAccount: eg.selfAccount);
     });
 
@@ -483,9 +507,14 @@ void main () {
       checkOnChooseAccountPage();
 
       // Choosing the already loaded account should result in no loading page.
+      lastPoppedRoute = null;
       await tester.tap(find.text(eg.selfAccount.email));
-      await tester.pump(Duration.zero); // tap the button
-      await tester.pump(const Duration(milliseconds: 350)); // wait for push & pop animations
+      await tester.pump();
+      check(lastPoppedRoute).isA<MaterialWidgetRoute>().page.isA<ChooseAccountPage>();
+      await tester.pump(
+        (lastPoppedRoute as TransitionRoute).reverseTransitionDuration
+        // TODO not sure why a 1ms fudge is needed; investigate.
+        + Duration(milliseconds: 1));
       // No additional wait for loadPerAccount.
       checkOnHomePage(tester, expectedAccount: eg.selfAccount);
     });
