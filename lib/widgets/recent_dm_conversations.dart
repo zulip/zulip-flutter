@@ -49,9 +49,7 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
   @override
   Widget build(BuildContext context) {
     final sorted = model!.sorted;
-    return SafeArea(
-      // Don't pad the bottom here; we want the list content to do that.
-      bottom: false,
+    return SafeArea( // horizontal insets
       child: ListView.builder(
         itemCount: sorted.length,
         itemBuilder: (context, index) {
