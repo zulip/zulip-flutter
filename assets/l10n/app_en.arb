@@ -409,13 +409,9 @@
   "@composeBoxGenericContentHint": {
     "description": "Hint text for content input when sending a message."
   },
-  "newDmSheetBackButtonLabel": "Back",
-  "@newDmSheetBackButtonLabel": {
-    "description": "Label for the back button in the new DM sheet, allowing the user to return to the previous screen."
-  },
-  "newDmSheetNextButtonLabel": "Next",
-  "@newDmSheetNextButtonLabel": {
-    "description": "Label for the front button in the new DM sheet, if applicable, for navigation or action."
+  "newDmSheetComposeButtonLabel": "Compose",
+  "@newDmSheetComposeButtonLabel": {
+    "description": "Label for the compose button in the new DM sheet that starts composing a message to the selected users."
   },
   "newDmSheetScreenTitle": "New DM",
   "@newDmSheetScreenTitle": {
@@ -431,7 +427,7 @@
   },
   "newDmSheetSearchHintSomeSelected": "Add another user…",
   "@newDmSheetSearchHintSomeSelected": {
-    "description": "Hint text for the search bar when at least one user is selected"
+    "description": "Hint text for the search bar when at least one user is selected."
   },
   "newDmSheetNoUsersFound": "No users found",
   "@newDmSheetNoUsersFound": {
