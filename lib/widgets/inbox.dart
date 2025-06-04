@@ -160,9 +160,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       sections.add(_StreamSectionData(streamId, countInStream, streamHasMention, topicItems));
     }
 
-    return SafeArea(
-      // Don't pad the bottom here; we want the list content to do that.
-      bottom: false,
+    return SafeArea( // horizontal insets
       child: StickyHeaderListView.builder(
         itemCount: sections.length,
         itemBuilder: (context, index) {
