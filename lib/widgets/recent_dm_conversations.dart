@@ -62,6 +62,7 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
       // Don't pad the bottom here; we want the list content to do that.
       bottom: false,
       child: ListView.builder(
+        padding: EdgeInsets.only(bottom: 90),
         itemCount: sorted.length,
         itemBuilder: (context, index) {
           final narrow = sorted[index];
