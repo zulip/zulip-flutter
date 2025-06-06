@@ -5,6 +5,7 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
+import 'home.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'store.dart';
@@ -94,13 +95,17 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     _sortSubs(pinned);
     _sortSubs(unpinned);
 
+    if (pinned.isEmpty && unpinned.isEmpty) {
+      return PageBodyEmptyContentPlaceholder(
+        // TODO(#188) add e.g. "Go to 'All channels' and join some of them."
+        message: zulipLocalizations.channelsEmptyPlaceholder);
+    }
+
     return SafeArea(
       // Don't pad the bottom here; we want the list content to do that.
       bottom: false,
       child: CustomScrollView(
         slivers: [
-          if (pinned.isEmpty && unpinned.isEmpty)
-            const _NoSubscriptionsItem(),
           if (pinned.isNotEmpty) ...[
             _SubscriptionListHeader(label: zulipLocalizations.pinnedSubscriptionsLabel),
             _SubscriptionList(unreadsModel: unreadsModel, subscriptions: pinned),
@@ -115,27 +120,6 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
           // This ensures last item in scrollable can settle in an unobstructed area.
           const SliverSafeArea(sliver: SliverToBoxAdapter(child: SizedBox.shrink())),
         ]));
-  }
-}
-
-class _NoSubscriptionsItem extends StatelessWidget {
-  const _NoSubscriptionsItem();
-
-  @override
-  Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    final zulipLocalizations = ZulipLocalizations.of(context);
-
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Text(zulipLocalizations.subscriptionListNoChannels,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: designVariables.subscriptionListHeaderText,
-            fontSize: 18,
-            height: (20 / 18),
-          ))));
   }
 }
 
