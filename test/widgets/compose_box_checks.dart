@@ -11,6 +11,11 @@ extension ComposeBoxControllerChecks on Subject<ComposeBoxController> {
   Subject<FocusNode> get contentFocusNode => has((c) => c.contentFocusNode, 'contentFocusNode');
 }
 
+extension StreamComposeBoxControllerChecks on Subject<StreamComposeBoxController> {
+  Subject<ComposeTopicController> get topic => has((c) => c.topic, 'topic');
+  Subject<FocusNode> get topicFocusNode => has((c) => c.topicFocusNode, 'topicFocusNode');
+}
+
 extension EditMessageComposeBoxControllerChecks on Subject<EditMessageComposeBoxController> {
   Subject<int> get messageId => has((c) => c.messageId, 'messageId');
   Subject<String?> get originalRawContent => has((c) => c.originalRawContent, 'originalRawContent');
