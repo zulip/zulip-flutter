@@ -118,6 +118,9 @@ class CustomProfileFieldExternalAccountData {
 class MutedUserItem {
   final int id;
 
+  // Mobile doesn't use the timestamp; ignore.
+  // final int timestamp;
+
   const MutedUserItem({required this.id});
 
   factory MutedUserItem.fromJson(Map<String, dynamic> json) =>
