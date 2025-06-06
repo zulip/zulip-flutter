@@ -385,9 +385,9 @@
   "@discardDraftForEditConfirmationDialogMessage": {
     "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box, when editing a message."
   },
-  "discardDraftForMessageNotSentConfirmationDialogMessage": "When you restore a message not sent, the content that was previously in the compose box is discarded.",
-  "@discardDraftForMessageNotSentConfirmationDialogMessage": {
-    "description": "Message for a confirmation dialog when restoring a message not sent, for discarding message text that was typed into the compose box."
+  "discardDraftForOutboxConfirmationDialogMessage": "When you restore an unsent message, the content that was previously in the compose box is discarded.",
+  "@discardDraftForOutboxConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog when restoring an outbox message, for discarding message text that was typed into the compose box."
   },
   "discardDraftConfirmationDialogConfirmButton": "Discard",
   "@discardDraftConfirmationDialogConfirmButton": {
