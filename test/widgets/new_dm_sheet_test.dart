@@ -63,11 +63,14 @@ void main() {
   Finder findUserTile(User user) =>
     find.widgetWithText(InkWell, user.fullName).first;
 
-  Finder findUserChip(User user) =>
-    find.byWidgetPredicate((widget) =>
+  Finder findUserChip(User user) {
+    final findAvatar = find.byWidgetPredicate((widget) =>
       widget is Avatar
       && widget.userId == user.userId
       && widget.size == 22);
+
+    return find.ancestor(of: findAvatar, matching: find.byType(GestureDetector));
+  }
 
   testWidgets('shows header with correct buttons', (tester) async {
     await setupSheet(tester, users: []);
@@ -200,6 +203,17 @@ void main() {
         check(icon).icon.equals(ZulipIcons.check_circle_unchecked);
       }
     }
+
+    testWidgets('tapping user chip deselects the user', (tester) async {
+      await setupSheet(tester, users: [eg.selfUser, eg.otherUser, eg.thirdUser]);
+
+      await tester.tap(findUserTile(eg.otherUser));
+      await tester.pump();
+      checkUserSelected(tester, eg.otherUser, true);
+      await tester.tap(findUserChip(eg.otherUser));
+      await tester.pump();
+      checkUserSelected(tester, eg.otherUser, false);
+    });
 
     testWidgets('selecting and deselecting a user', (tester) async {
       final user = eg.user(fullName: 'Test User');
