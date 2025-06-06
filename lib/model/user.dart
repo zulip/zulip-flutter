@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
@@ -69,15 +67,11 @@ mixin UserStore on PerAccountStoreBase {
       ?? message.senderFullName;
   }
 
-  /// Ids of all the users muted by [selfUser].
-  @visibleForTesting
-  Set<int> get mutedUsers;
-
-  /// Whether the user with the given [id] is muted by [selfUser].
+  /// Whether the user with [userId] is muted by the self-user.
   ///
-  /// By default, looks for the user id in [UserStore.mutedUsers] unless
-  /// [mutedUsers] is non-null, in which case looks in the latter.
-  bool isUserMuted(int id, {Set<int>? mutedUsers});
+  /// Looks for [userId] in a private [Set],
+  /// or in [mutedUsers] instead if that's non-null.
+  bool isUserMuted(int userId, {Set<int>? mutedUsers});
 }
 
 /// The implementation of [UserStore] that does the work.
@@ -94,7 +88,7 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
          .followedBy(initialSnapshot.realmNonActiveUsers)
          .followedBy(initialSnapshot.crossRealmBots)
          .map((user) => MapEntry(user.userId, user))),
-       mutedUsers = _toUserIds(initialSnapshot.mutedUsers);
+       _mutedUsers = _toUserIds(initialSnapshot.mutedUsers);
 
   final Map<int, User> _users;
 
@@ -104,12 +98,11 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
   @override
   Iterable<User> get allUsers => _users.values;
 
-  @override
-  final Set<int> mutedUsers;
+  final Set<int> _mutedUsers;
 
   @override
-  bool isUserMuted(int id, {Set<int>? mutedUsers}) {
-    return (mutedUsers ?? this.mutedUsers).contains(id);
+  bool isUserMuted(int userId, {Set<int>? mutedUsers}) {
+    return (mutedUsers ?? _mutedUsers).contains(userId);
   }
 
   static Set<int> _toUserIds(List<MutedUserItem> mutedUserItems) {
@@ -156,7 +149,7 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
   }
 
   void handleMutedUsersEvent(MutedUsersEvent event) {
-    mutedUsers.clear();
-    mutedUsers.addAll(_toUserIds(event.mutedUsers));
+    _mutedUsers.clear();
+    _mutedUsers.addAll(_toUserIds(event.mutedUsers));
   }
 }

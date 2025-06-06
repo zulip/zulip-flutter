@@ -5,7 +5,6 @@ import 'package:zulip/api/model/model.dart';
 
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
-import 'store_checks.dart';
 import 'test_store.dart';
 
 void main() {
@@ -89,12 +88,18 @@ void main() {
     final store = eg.store(initialSnapshot: eg.initialSnapshot(
       realmUsers: [user1, user2, user3],
       mutedUsers: [MutedUserItem(id: 2), MutedUserItem(id: 1)]));
-    check(store).mutedUsers.deepEquals({2, 1});
+    check(store.isUserMuted(1)).isTrue();
+    check(store.isUserMuted(2)).isTrue();
+    check(store.isUserMuted(3)).isFalse();
 
     await store.handleEvent(eg.mutedUsersEvent([2, 1, 3]));
-    check(store).mutedUsers.deepEquals({2, 1, 3});
+    check(store.isUserMuted(1)).isTrue();
+    check(store.isUserMuted(2)).isTrue();
+    check(store.isUserMuted(3)).isTrue();
 
     await store.handleEvent(eg.mutedUsersEvent([2, 3]));
-    check(store).mutedUsers.deepEquals({2, 3});
+    check(store.isUserMuted(1)).isFalse();
+    check(store.isUserMuted(2)).isTrue();
+    check(store.isUserMuted(3)).isTrue();
   });
 }
