@@ -691,17 +691,11 @@ abstract class ZulipLocalizations {
   /// **'Type a message'**
   String get composeBoxGenericContentHint;
 
-  /// Label for the back button in the new DM sheet, allowing the user to return to the previous screen.
+  /// Label for the compose button in the new DM sheet that starts composing a message to the selected users.
   ///
   /// In en, this message translates to:
-  /// **'Back'**
-  String get newDmSheetBackButtonLabel;
-
-  /// Label for the front button in the new DM sheet, if applicable, for navigation or action.
-  ///
-  /// In en, this message translates to:
-  /// **'Next'**
-  String get newDmSheetNextButtonLabel;
+  /// **'Compose'**
+  String get newDmSheetComposeButtonLabel;
 
   /// Title displayed at the top of the new DM screen.
   ///
@@ -721,7 +715,7 @@ abstract class ZulipLocalizations {
   /// **'Add one or more users'**
   String get newDmSheetSearchHintEmpty;
 
-  /// Hint text for the search bar when at least one user is selected
+  /// Hint text for the search bar when at least one user is selected.
   ///
   /// In en, this message translates to:
   /// **'Add another user…'**

@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
@@ -9,6 +10,7 @@ import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/new_dm_sheet.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/recent_dm_conversations.dart';
 
@@ -105,6 +107,32 @@ void main() {
         const Offset(0, -200), 4000);
       await tester.pumpAndSettle();
       check(tester.any(oldestConversationFinder)).isTrue(); // onscreen
+    });
+
+    testWidgets('opens new DM sheet on New DM button tap', (tester) async {
+      Route<dynamic>? lastPushedRoute;
+      Route<dynamic>? lastPoppedRoute;
+      final testNavObserver = TestNavigatorObserver()
+        ..onPushed = ((route, _) => lastPushedRoute = route)
+        ..onPopped = ((route, _) => lastPoppedRoute = route);
+
+      await setupPage(tester, navigatorObserver: testNavObserver,
+        users: [], dmMessages: []);
+
+      await tester.tap(find.widgetWithText(GestureDetector, 'New DM'));
+      await tester.pump();
+      check(lastPushedRoute).isA<ModalBottomSheetRoute<void>>();
+      await tester.pump((lastPushedRoute as TransitionRoute).transitionDuration);
+      check(find.byType(NewDmPicker)).findsOne();
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pump();
+      check(lastPoppedRoute).isA<ModalBottomSheetRoute<void>>();
+      await tester.pump(
+        (lastPoppedRoute as TransitionRoute).reverseTransitionDuration
+        // TODO not sure why a 1ms fudge is needed; investigate.
+        + Duration(milliseconds: 1));
+      check(find.byType(NewDmPicker)).findsNothing();
     });
   });
 
