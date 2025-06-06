@@ -760,6 +760,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           key: ValueKey(data.message.id),
           header: header,
           item: data);
+      case MessageListOutboxMessageItem():
+        final header = RecipientHeader(message: data.message, narrow: widget.narrow);
+        return MessageItem(header: header, item: data);
     }
   }
 }
@@ -1071,6 +1074,7 @@ class MessageItem extends StatelessWidget {
       child: Column(children: [
         switch (item) {
           MessageListMessageItem() => MessageWithPossibleSender(item: item),
+          MessageListOutboxMessageItem() => OutboxMessageWithPossibleSender(item: item),
         },
         // TODO refine this padding; discussion:
         //   https://github.com/zulip/zulip-flutter/pull/1453#discussion_r2106526985
@@ -1649,5 +1653,33 @@ class _RestoreEditMessageGestureDetector extends StatelessWidget {
         composeBoxState.startEditInteraction(messageId);
       },
       child: child);
+  }
+}
+
+/// A "local echo" placeholder for a Zulip message to be sent by the self-user.
+///
+/// See also [OutboxMessage].
+class OutboxMessageWithPossibleSender extends StatelessWidget {
+  const OutboxMessageWithPossibleSender({super.key, required this.item});
+
+  final MessageListOutboxMessageItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final message = item.message;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(children: [
+        if (item.showSender)
+          _SenderRow(message: message, showTimestamp: false),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          // This is adapted from [MessageContent].
+          // TODO(#576): Offer InheritedMessage ancestor once we are ready
+          //   to support local echoing images and lightbox.
+          child: DefaultTextStyle(
+            style: ContentTheme.of(context).textStylePlainParagraph,
+            child: BlockContentList(nodes: item.content.nodes))),
+      ]));
   }
 }
