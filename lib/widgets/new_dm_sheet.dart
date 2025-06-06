@@ -133,7 +133,8 @@ class _NewDmPickerState extends State<NewDmPicker> with PerAccountStoreAwareStat
       _NewDmHeader(selectedUserIds: selectedUserIds),
       _NewDmSearchBar(
         controller: searchController,
-        selectedUserIds: selectedUserIds),
+        selectedUserIds: selectedUserIds,
+        unselectUser: _unselectUser),
       Expanded(
         child: _NewDmUserList(
           filteredUsers: filteredUsers,
@@ -215,10 +216,12 @@ class _NewDmSearchBar extends StatelessWidget {
   const _NewDmSearchBar({
     required this.controller,
     required this.selectedUserIds,
+    required this.unselectUser,
   });
 
   final TextEditingController controller;
   final Set<int> selectedUserIds;
+  final void Function(int) unselectUser;
 
   // void _removeUser
 
@@ -266,7 +269,7 @@ class _NewDmSearchBar extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               for (final userId in selectedUserIds)
-                _SelectedUserChip(userId: userId),
+                _SelectedUserChip(userId: userId, unselectUser: unselectUser),
               // The IntrinsicWidth lets the text field participate in the Wrap
               // when its content fits on the same line with a user chip,
               // by preventing it from expanding to fill the available width.  See:
@@ -277,9 +280,13 @@ class _NewDmSearchBar extends StatelessWidget {
 }
 
 class _SelectedUserChip extends StatelessWidget {
-  const _SelectedUserChip({required this.userId});
+  const _SelectedUserChip({
+    required this.userId,
+    required this.unselectUser,
+  });
 
   final int userId;
+  final void Function(int) unselectUser;
 
   @override
   Widget build(BuildContext context) {
@@ -288,24 +295,26 @@ class _SelectedUserChip extends StatelessWidget {
     final clampedTextScaler = MediaQuery.textScalerOf(context)
       .clamp(maxScaleFactor: 1.5);
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: designVariables.bgMenuButtonSelected,
-        borderRadius: BorderRadius.circular(3)),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Avatar(userId: userId, size: clampedTextScaler.scale(22), borderRadius: 3),
-        Flexible(
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(5, 3, 4, 3),
-            child: Text(store.userDisplayName(userId),
-              textScaler: clampedTextScaler,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 16,
-                height: 16 / 16,
-                color: designVariables.labelMenuButton)))),
-      ]));
+    return GestureDetector(
+      onTap: () => unselectUser(userId),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: designVariables.bgMenuButtonSelected,
+          borderRadius: BorderRadius.circular(3)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Avatar(userId: userId, size: clampedTextScaler.scale(22), borderRadius: 3),
+          Flexible(
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(5, 3, 4, 3),
+              child: Text(store.userDisplayName(userId),
+                textScaler: clampedTextScaler,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 16 / 16,
+                  color: designVariables.labelMenuButton)))),
+        ])));
   }
 }
 
