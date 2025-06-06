@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'content.dart';
+import 'home.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'store.dart';
@@ -48,7 +50,14 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final sorted = model!.sorted;
+
+    if (sorted.isEmpty) {
+      return PageBodyEmptyContentPlaceholder(
+        message: zulipLocalizations.recentDmConversationsEmptyPlaceholder);
+    }
+
     return SafeArea(
       // Don't pad the bottom here; we want the list content to do that.
       bottom: false,

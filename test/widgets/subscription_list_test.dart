@@ -57,11 +57,12 @@ void main() {
     return find.byType(SubscriptionItem).evaluate().length;
   }
 
-  testWidgets('smoke', (tester) async {
+  testWidgets('empty', (tester) async {
     await setupStreamListPage(tester, subscriptions: []);
     check(getItemCount()).equals(0);
     check(isPinnedHeaderInTree()).isFalse();
     check(isUnpinnedHeaderInTree()).isFalse();
+    check(find.text('You are not subscribed to any channels yet.')).findsOne();
   });
 
   testWidgets('basic subscriptions', (tester) async {
