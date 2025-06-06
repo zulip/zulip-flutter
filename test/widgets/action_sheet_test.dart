@@ -41,9 +41,11 @@ import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../stdlib_checks.dart';
 import '../test_clipboard.dart';
+import '../test_images.dart';
 import '../test_share_plus.dart';
 import 'compose_box_checks.dart';
 import 'dialog_checks.dart';
+import 'message_list_test.dart';
 import 'test_app.dart';
 
 late PerAccountStore store;
@@ -53,10 +55,13 @@ late FakeApiConnection connection;
 Future<void> setupToMessageActionSheet(WidgetTester tester, {
   required Message message,
   required Narrow narrow,
+  User? messageSender,
+  List<int>? mutedUserIds,
   bool? realmAllowMessageEditing,
   int? realmMessageContentEditLimitSeconds,
   bool shouldSetServerEmojiData = true,
   bool useLegacyServerEmojiData = false,
+  Future<void> Function()? beforeLongPress,
 }) async {
   addTearDown(testBinding.reset);
   assert(narrow.containsMessage(message));
@@ -70,10 +75,11 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
   await store.addUsers([
     eg.selfUser,
-    eg.user(userId: message.senderId),
+    messageSender ?? eg.user(userId: message.senderId),
     if (narrow is DmNarrow)
       ...narrow.otherRecipientIds.map((id) => eg.user(userId: id)),
   ]);
+  await store.muteUsers(mutedUserIds ?? []);
   if (message is StreamMessage) {
     final stream = eg.stream(streamId: message.streamId);
     await store.addStream(stream);
@@ -93,6 +99,8 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
 
   // global store, per-account store, and message list get loaded
   await tester.pumpAndSettle();
+
+  await beforeLongPress?.call();
 
   // Request the message action sheet.
   //
@@ -1331,6 +1339,72 @@ void main() {
             expectedTitle: zulipLocalizations.errorMarkAsUnreadFailedTitle,
             expectedMessage: 'NetworkException: Oops (ClientException: Oops)');
         });
+      });
+    });
+
+    group('HideMutedMessageButton', () {
+      final user = eg.user(userId: 1, fullName: 'User', avatarUrl: '/foo.png');
+      final message = eg.streamMessage(sender: user,
+        content: '<p>A message</p>', reactions: [eg.unicodeEmojiReaction]);
+
+      testWidgets('not visible if message is from normal sender (not muted)', (tester) async {
+        prepareBoringImageHttpClient();
+
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: const CombinedFeedNarrow(),
+          messageSender: user,
+        );
+
+        check(find.byIcon(ZulipIcons.eye_off, skipOffstage: false)).findsNothing();
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('visible if message is from muted sender and revealed', (tester) async {
+        prepareBoringImageHttpClient();
+
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: const CombinedFeedNarrow(),
+          messageSender: user,
+          mutedUserIds: [user.userId],
+          beforeLongPress: () async {
+            checkMessage(message, isMuted: true, store: store);
+            await tester.tap(find.text(localizations.revealButtonLabel));
+            await tester.pump();
+            checkMessage(message, isMuted: false, store: store);
+          },
+        );
+
+        check(find.byIcon(ZulipIcons.eye_off, skipOffstage: false)).findsOne();
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('onPressed -> mutes the revealed message again', (tester) async {
+        prepareBoringImageHttpClient();
+
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: const CombinedFeedNarrow(),
+          messageSender: user,
+          mutedUserIds: [user.userId],
+          beforeLongPress: () async {
+            checkMessage(message, isMuted: true, store: store);
+            await tester.tap(find.text(localizations.revealButtonLabel));
+            await tester.pump();
+            checkMessage(message, isMuted: false, store: store);
+          },
+        );
+
+        await tester.ensureVisible(find.byIcon(ZulipIcons.eye_off, skipOffstage: false));
+        await tester.tap(find.byIcon(ZulipIcons.eye_off));
+        await tester.pumpAndSettle();
+
+        checkMessage(message, isMuted: true, store: store);
+
+        debugNetworkImageHttpClientProvider = null;
       });
     });
 

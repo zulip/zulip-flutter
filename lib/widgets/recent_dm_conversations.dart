@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
@@ -48,7 +49,7 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
 
   @override
   Widget build(BuildContext context) {
-    final sorted = model!.sorted;
+    final sorted = model!.sortedFiltered;
     return SafeArea(
       // Don't pad the bottom here; we want the list content to do that.
       bottom: false,
@@ -79,6 +80,7 @@ class RecentDmConversationsItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final localizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
 
     final String title;
@@ -88,20 +90,30 @@ class RecentDmConversationsItem extends StatelessWidget {
         title = store.selfUser.fullName;
         avatar = AvatarImage(userId: store.selfUserId, size: _avatarSize);
       case [var otherUserId]:
-        // TODO(#296) actually don't show this row if the user is muted?
-        //   (should we offer a "spam folder" style summary screen of recent
-        //   1:1 DM conversations from muted users?)
-        title = store.userDisplayName(otherUserId);
-        avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
+        // Although we currently don't display a DM conversation with a muted
+        // user; in the future we will have the "Search by location" feature
+        // similar to Web where a DM conversation with a muted user is displayed
+        // if searched for explicitly; for example using: "dm:Chris Bobbe".
+        //   https://zulip.com/help/search-for-messages#search-by-location
+        final isUserMuted = store.isUserMuted(otherUserId);
+        title = isUserMuted
+          ? localizations.mutedUser
+          : store.userDisplayName(otherUserId);
+        avatar = isUserMuted
+          ? AvatarPlaceholder(size: _avatarSize)
+          : AvatarImage(userId: otherUserId, size: _avatarSize);
       default:
         // TODO(i18n): List formatting, like you can do in JavaScript:
         //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
         //   // 'Chris、Greg、Alya'
-        title = narrow.otherRecipientIds.map(store.userDisplayName)
+        title = narrow.otherRecipientIds.map((id) =>
+          store.isUserMuted(id)
+            ? localizations.mutedUser
+            : store.userDisplayName(id))
           .join(', ');
-        avatar = ColoredBox(color: designVariables.groupDmConversationIconBg,
+        avatar = ColoredBox(color: designVariables.avatarPlaceholderBg,
           child: Center(
-            child: Icon(color: designVariables.groupDmConversationIcon,
+            child: Icon(color: designVariables.avatarPlaceholderIcon,
               ZulipIcons.group_dm)));
     }
 

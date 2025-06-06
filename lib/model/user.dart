@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart';
+
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import 'localizations.dart';
+import 'narrow.dart';
 import 'store.dart';
 
 /// The portion of [PerAccountStore] describing the users in the realm.
@@ -66,6 +69,47 @@ mixin UserStore on PerAccountStoreBase {
     return getUser(message.senderId)?.fullName
       ?? message.senderFullName;
   }
+
+  /// Ids of all the users muted by [selfUser].
+  @visibleForTesting
+  Set<int> get mutedUsers;
+
+  /// Whether the user with the given [id] is muted by [selfUser].
+  ///
+  /// By default, looks for the user id in [UserStore.mutedUsers] unless
+  /// [mutedUsers] is non-null, in which case looks in the latter.
+  bool isUserMuted(int id, {Set<int>? mutedUsers});
+
+  /// Ignores conversation where all of the users corresponding to
+  /// [DmNarrow.otherRecipientIds] are muted by [selfUser].
+  ///
+  /// Returns false for self-1:1 conversation.
+  ///
+  /// By default, looks for the recipients in [UserStore.mutedUsers] unless
+  /// [mutedUsers] is non-null, in which case looks in the latter.
+  bool ignoreConversation(DmNarrow narrow, {Set<int>? mutedUsers}) {
+    if (narrow.otherRecipientIds.isEmpty) return false;
+    return !narrow.otherRecipientIds.any((id) => !isUserMuted(id, mutedUsers: mutedUsers));
+  }
+
+  /// Whether the given event will change the result of [allRecipientsMuted]
+  /// for its mutedUsers, compared to the current state.
+  MutenessEffect willChangeIfRecipientMuted(MutedUsersEvent event) {
+    assert(mutedUsers.length != event.mutedUsers.length);
+    return mutedUsers.length < event.mutedUsers.length
+      ? MutenessEffect.added
+      : MutenessEffect.removed;
+  }
+}
+
+/// Whether a given [MutedUsersEvent] will affect the results
+/// that [UserStore.allRecipientsMuted] would give for some messages.
+enum MutenessEffect {
+  /// A new user is added to the muted users list.
+  added,
+
+  /// A new user is removed from the muted users list.
+  removed,
 }
 
 /// The implementation of [UserStore] that does the work.
@@ -81,7 +125,8 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
          initialSnapshot.realmUsers
          .followedBy(initialSnapshot.realmNonActiveUsers)
          .followedBy(initialSnapshot.crossRealmBots)
-         .map((user) => MapEntry(user.userId, user)));
+         .map((user) => MapEntry(user.userId, user))),
+       mutedUsers = _toUserIds(initialSnapshot.mutedUsers);
 
   final Map<int, User> _users;
 
@@ -90,6 +135,18 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
 
   @override
   Iterable<User> get allUsers => _users.values;
+
+  @override
+  final Set<int> mutedUsers;
+
+  @override
+  bool isUserMuted(int id, {Set<int>? mutedUsers}) {
+    return (mutedUsers ?? this.mutedUsers).contains(id);
+  }
+
+  static Set<int> _toUserIds(List<MutedUserItem> mutedUserItems) {
+    return Set.from(mutedUserItems.map((item) => item.id));
+  }
 
   void handleRealmUserEvent(RealmUserEvent event) {
     switch (event) {
@@ -128,5 +185,10 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
           }
         }
     }
+  }
+
+  void handleMutedUsersEvent(MutedUsersEvent event) {
+    mutedUsers.clear();
+    mutedUsers.addAll(_toUserIds(event.mutedUsers));
   }
 }

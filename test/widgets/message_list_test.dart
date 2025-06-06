@@ -24,6 +24,7 @@ import 'package:zulip/widgets/autocomplete.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/emoji_reaction.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
@@ -48,6 +49,34 @@ import 'message_list_checks.dart';
 import 'page_checks.dart';
 import 'test_app.dart';
 
+final localizations = GlobalLocalizations.zulipLocalizations;
+
+void checkMessage(Message message,
+    {required bool isMuted, required PerAccountStore store}) {
+  final placeholderAvatarFinder = find.descendant(
+    of: find.byType(AvatarShape),
+    matching: find.byIcon(ZulipIcons.person));
+  final imageAvatarFinder = find.descendant(
+    of: find.byType(AvatarShape),
+    matching: find.byType(RealmContentNetworkImage));
+
+  final mutedLabelFinder = find.text(localizations.mutedUser);
+  final nameFinder = find.text(store.senderDisplayName(message));
+
+  final revealButtonFinder = find.text(localizations.revealButtonLabel);
+  final contentFinder = find.byType(MessageContent);
+  final reactionsFinder = find.byType(ReactionChipsList);
+
+  check(placeholderAvatarFinder.evaluate().length).equals(isMuted ? 1 : 0);
+  check(mutedLabelFinder.evaluate().length).equals(isMuted ? 1 : 0);
+  check(revealButtonFinder.evaluate().length).equals(isMuted ? 1 : 0);
+
+  check(imageAvatarFinder.evaluate().length).equals(isMuted ? 0 : 1);
+  check(nameFinder.evaluate().length).equals(isMuted ? 0 : 1);
+  check(contentFinder.evaluate().length).equals(isMuted ? 0 : 1);
+  check(reactionsFinder.evaluate().length).equals(isMuted ? 0 : 1);
+}
+
 void main() {
   TestZulipBinding.ensureInitialized();
 
@@ -61,6 +90,7 @@ void main() {
     List<Message>? messages,
     List<ZulipStream>? streams,
     List<User>? users,
+    List<int>? mutedUserIds,
     List<Subscription>? subscriptions,
     UnreadMessagesSnapshot? unreadMsgs,
     int? zulipFeatureLevel,
@@ -83,6 +113,7 @@ void main() {
     // prepare message list data
     await store.addUser(eg.selfUser);
     await store.addUsers(users ?? []);
+    await store.muteUsers(mutedUserIds ?? []);
     assert((messageCount == null) != (messages == null));
     messages ??= List.generate(messageCount!, (index) {
       return eg.streamMessage(sender: eg.selfUser);
@@ -313,6 +344,24 @@ void main() {
       check(find.descendant(
         of: find.byType(TopicListPage),
         matching: find.text('channel foo')),
+      ).findsOne();
+    });
+
+    testWidgets('shows "Muted user" label for muted users in DM narrow', (tester) async {
+      final user1 = eg.user(userId: 1, fullName: 'User 1');
+      final user2 = eg.user(userId: 2, fullName: 'User 2');
+      final user3 = eg.user(userId: 3, fullName: 'User 3');
+      final mutedUsers = [1, 3];
+
+      await setupMessageListPage(tester,
+        narrow: DmNarrow.withOtherUsers([1, 2, 3], selfUserId: 10),
+        users: [user1, user2, user3],
+        mutedUserIds: mutedUsers,
+        messageCount: 1,
+      );
+
+      check(find.text(localizations.dmsWithOthersPageTitle(
+        '${localizations.mutedUser}, ${store.userDisplayName(user2.userId)}, ${localizations.mutedUser}'))
       ).findsOne();
     });
   });
@@ -1346,6 +1395,23 @@ void main() {
           "${zulipLocalizations.unknownUserName}, ${eg.thirdUser.fullName}")));
       });
 
+      testWidgets('show "Muted user" label for muted users', (tester) async {
+        final user1 = eg.user(userId: 1, fullName: 'User 1');
+        final user2 = eg.user(userId: 2, fullName: 'User 2');
+        final user3 = eg.user(userId: 3, fullName: 'User 3');
+        final mutedUsers = [1, 3];
+
+        await setupMessageListPage(tester,
+          users: [user1, user2, user3],
+          mutedUserIds: mutedUsers,
+          messages: [eg.dmMessage(from: eg.selfUser, to: [user1, user2, user3])]
+        );
+
+        check(find.text(localizations.messageListGroupYouAndOthers(
+          '${localizations.mutedUser}, ${localizations.mutedUser}, ${store.userDisplayName(user2.userId)}'))
+        ).findsOne();
+      });
+
       testWidgets('icon color matches text color', (tester) async {
         final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
         await setupMessageListPage(tester, messages: [
@@ -1355,7 +1421,7 @@ void main() {
         final textSpan = tester.renderObject<RenderParagraph>(find.text(
           zulipLocalizations.messageListGroupYouAndOthers(
             zulipLocalizations.unknownUserName))).text;
-        final icon = tester.widget<Icon>(find.byIcon(ZulipIcons.user));
+        final icon = tester.widget<Icon>(find.byIcon(ZulipIcons.two_person));
         check(textSpan).style.isNotNull().color.isNotNull().isSameColorAs(icon.color!);
       });
     });
@@ -1548,6 +1614,55 @@ void main() {
       checkUser(users[2], isBot: false);
 
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    group('Muted sender', () {
+      final user = eg.user(userId: 1, fullName: 'User', avatarUrl: '/foo.png');
+      final message =eg.streamMessage(sender: user,
+        content: '<p>A message</p>', reactions: [eg.unicodeEmojiReaction]);
+
+      testWidgets('Sender muted -> Message muted', (tester) async {
+        prepareBoringImageHttpClient();
+
+        await setupMessageListPage(tester,
+          users: [user],
+          mutedUserIds: [user.userId],
+          messages: [message],
+        );
+        checkMessage(message, isMuted: true, store: store);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('Sender not muted -> Message not muted', (tester) async {
+        prepareBoringImageHttpClient();
+
+        await setupMessageListPage(tester,
+          users: [user],
+          mutedUserIds: [],
+          messages: [message],
+        );
+        checkMessage(message, isMuted: false, store: store);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('Tapping reveal button on muted message reveals the message',
+          (tester) async {
+        prepareBoringImageHttpClient();
+
+        await setupMessageListPage(tester,
+          users: [user],
+          mutedUserIds: [user.userId],
+          messages: [message],
+        );
+        checkMessage(message, isMuted: true, store: store);
+        await tester.tap(find.text(localizations.revealButtonLabel));
+        await tester.pump();
+        checkMessage(message, isMuted: false, store: store);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
     });
   });
 

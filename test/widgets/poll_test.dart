@@ -7,6 +7,7 @@ import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/submessage.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/poll.dart';
 
@@ -28,12 +29,14 @@ void main() {
     WidgetTester tester,
     SubmessageData? submessageContent, {
     Iterable<User>? users,
+    List<int>? mutedUserIds,
     Iterable<(User, int)> voterIdxPairs = const [],
   }) async {
     addTearDown(testBinding.reset);
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
     await store.addUsers(users ?? [eg.selfUser, eg.otherUser]);
+    await store.muteUsers(mutedUserIds ?? []);
     connection = store.connection as FakeApiConnection;
 
     message = eg.streamMessage(
@@ -94,6 +97,21 @@ void main() {
     final allUserNames = '(${users.map((user) => user.fullName).join(', ')})';
     check(findTextAtRow(allUserNames, index: 0)).findsOne();
     check(findTextAtRow('100', index: 0)).findsOne();
+  });
+
+  testWidgets('muted voters', (tester) async {
+    final user1 = eg.user(userId: 1, fullName: 'User 1');
+    final user2 = eg.user(userId: 2, fullName: 'User 2');
+    await preparePollWidget(tester, pollWidgetData,
+      users: [user1, user2],
+      mutedUserIds: [user2.userId],
+      voterIdxPairs: [(user1, 0), (user2, 0), (user2, 1)]);
+
+    final localizations = GlobalLocalizations.zulipLocalizations;
+    check(findTextAtRow(
+      '(${store.userDisplayName(user1.userId)}, ${localizations.mutedUser})',
+      index: 0)).findsOne();
+    check(findTextAtRow('(${localizations.mutedUser})', index: 1)).findsOne();
   });
 
   testWidgets('show unknown voter', (tester) async {
