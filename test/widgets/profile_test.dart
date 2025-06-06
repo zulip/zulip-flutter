@@ -1,6 +1,12 @@
 import 'package:checks/checks.dart';
+import 'package:clock/clock.dart';
+import 'package:fake_async/fake_async.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/src/tzdb.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -65,6 +71,14 @@ CustomProfileField mkCustomProfileField(
     displayInProfileSummary: displayInProfileSummary ?? true,
   );
 }
+
+void resetTimezones() {
+  tz.initializeDatabase([]);
+}
+
+Subject<String> checkUserLocalTimeText(WidgetTester tester) =>
+  check(
+    tester.widget<Text>(find.descendant(of: find.byType(UserLocalTimeText), matching: find.byType(Text))).data).isNotNull();
 
 void main() {
   TestZulipBinding.ensureInitialized();
@@ -316,6 +330,97 @@ void main() {
             urlPattern: 'https://example/%(username)s')});
 
       check(find.textContaining(longString).evaluate()).length.equals(7);
+    });
+
+    group('UserLocalTimeText', () {
+      setUp(() async {
+        await UserLocalTimeText.initializeTimezonesUsingAssets();
+      });
+
+      test('assets; ensure the timezone database used to display users\' local time is up-to-date', () async {
+        tz.initializeTimeZones();
+        final latestTimezones = tz.tzdbSerialize(tz.timeZoneDatabase);
+
+        await UserLocalTimeText.initializeTimezonesUsingAssets();
+        final currentTimezones = tz.tzdbSerialize(tz.timeZoneDatabase);
+
+        check(
+          listEquals(currentTimezones, latestTimezones),
+          because:
+              'the timezone database used to display users\' local time is not up-to-date, please copy `package:timezone/data/latest_all.tzf` to `assets/timezone/latest_all.tzf`',
+        ).isTrue();
+      });
+
+      final testCases = [(
+          description: 'simple usecase',
+          currentTimezone: 'America/Los_Angeles',
+          currentYear: 2025, currentMonth: 02, currentDay: 01, currentHour: 12, currentMinute: 00,
+          userTimezone: 'America/New_York',
+          equalsTo: '3:00 PM local time'
+        ), (
+          description: 'abbreviation usecase',
+          currentTimezone: 'Europe/Brussels',
+          currentYear: 2025, currentMonth: 02, currentDay: 01, currentHour: 12, currentMinute: 00,
+          userTimezone: 'CET',
+          equalsTo: '12:00 PM local time'
+        ), (
+          description: 'DST usecase',
+          currentTimezone: 'Europe/London',
+          currentYear: 2025, currentMonth: 08, currentDay: 01, currentHour: 12, currentMinute: 00,
+          userTimezone: 'UTC',
+          equalsTo: '11:00 AM local time'
+        )
+      ];
+
+      for (
+        final (
+          :description,
+          :currentTimezone,
+          :currentYear,
+          :currentMonth,
+          :currentDay,
+          :currentHour,
+          :currentMinute, :userTimezone, :equalsTo) in testCases) {
+        testWidgets('page builds; $description', (tester) async {
+          final currentTime = tz.TZDateTime(
+            tz.getLocation(currentTimezone),
+            currentYear,
+            currentMonth,
+            currentDay,
+            currentHour,
+            currentMinute
+          );
+          resetTimezones();
+
+          await withClock(Clock.fixed(currentTime), () async {
+            final user = eg.user(userId: 1, timezone: userTimezone);
+            await setupPage(tester, pageUserId: user.userId, users: [user]);
+
+            checkUserLocalTimeText(tester).equals(equalsTo);
+          });
+        });
+      }
+
+      testWidgets('page builds; keep "current" local time current', (tester) async {
+        withClock(Clock.fixed(tz.TZDateTime(tz.getLocation('Europe/London'), 2025, 02, 01, 12, 00)), () {
+          FakeAsync().run((async) {
+            final user = eg.user(userId: 1, timezone: 'Europe/London');
+            setupPage(tester, pageUserId: user.userId, users: [user]);
+            async.flushMicrotasks();
+            checkUserLocalTimeText(tester).equals('12:00 PM local time');
+
+            async.elapse(Duration(minutes: 1));
+            tester.pumpAndSettle();
+            async.flushMicrotasks();
+            checkUserLocalTimeText(tester).equals('12:01 PM local time');
+
+            async.elapse(Duration(minutes: 1));
+            tester.pumpAndSettle();
+            async.flushMicrotasks();
+            checkUserLocalTimeText(tester).equals('12:02 PM local time');
+          });
+        });
+      });
     });
   });
 }

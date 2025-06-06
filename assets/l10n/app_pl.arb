@@ -1076,5 +1076,12 @@
   "actionSheetOptionListOfTopics": "Lista wątków",
   "@actionSheetOptionListOfTopics": {
     "description": "Label for navigating to a channel's topic-list page."
+  },
+  "userLocalTime": "{userTime} czas lokalny",
+  "@userLocalTime": {
+    "description": "Current time in the user's timezone",
+    "placeholders": {
+      "userTime": {"type": "DateTime", "format": "jm"}
+    }
   }
 }

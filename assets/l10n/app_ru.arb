@@ -1068,5 +1068,12 @@
   "discardDraftForEditConfirmationDialogMessage": "При изменении сообщения текст из поля для редактирования удаляется.",
   "@discardDraftForEditConfirmationDialogMessage": {
     "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "userLocalTime": "{userTime} местное время",
+  "@userLocalTime": {
+    "description": "Current time in the user's timezone",
+    "placeholders": {
+      "userTime": {"type": "DateTime", "format": "jm"}
+    }
   }
 }
