@@ -818,42 +818,48 @@ class MathBlock extends StatelessWidget {
           children: [TextSpan(text: node.texSource)])));
     }
 
-    return _Katex(inline: false, nodes: nodes);
+    return Center(
+      child: SingleChildScrollViewWithScrollbar(
+        scrollDirection: Axis.horizontal,
+        child: Katex(
+          textStyle: ContentTheme.of(context).textStylePlainParagraph,
+          nodes: nodes)));
   }
 }
 
-// Base text style from .katex class in katex.scss :
-//   https://github.com/KaTeX/KaTeX/blob/613c3da8/src/styles/katex.scss#L13-L15
-const kBaseKatexTextStyle = TextStyle(
-  fontSize: kBaseFontSize * 1.21,
-  fontFamily: 'KaTeX_Main',
-  height: 1.2);
+/// Creates a base text style for rendering KaTeX content.
+///
+/// This applies the CSS styles defined in .katex class in katex.scss :
+///   https://github.com/KaTeX/KaTeX/blob/613c3da8/src/styles/katex.scss#L13-L15
+///
+/// Requires the [style.fontSize] to be non-null.
+TextStyle mkBaseKatexTextStyle(TextStyle style) {
+  return style.copyWith(
+    fontSize: style.fontSize! * 1.21,
+    fontFamily: 'KaTeX_Main',
+    height: 1.2,
+    fontWeight: FontWeight.normal,
+    fontStyle: FontStyle.normal);
+}
 
-class _Katex extends StatelessWidget {
-  const _Katex({
-    required this.inline,
+class Katex extends StatelessWidget {
+  const Katex({
+    super.key,
+    required this.textStyle,
     required this.nodes,
   });
 
-  final bool inline;
+  final TextStyle textStyle;
   final List<KatexNode> nodes;
 
   @override
   Widget build(BuildContext context) {
     Widget widget = _KatexNodeList(nodes: nodes);
 
-    if (!inline) {
-      widget = Center(
-        child: SingleChildScrollViewWithScrollbar(
-          scrollDirection: Axis.horizontal,
-          child: widget));
-    }
-
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: DefaultTextStyle(
-        style: kBaseKatexTextStyle.copyWith(
-          color: ContentTheme.of(context).textStylePlainParagraph.color),
+      child: DefaultTextStyle.merge(
+        style: mkBaseKatexTextStyle(textStyle),
         child: widget));
   }
 }
@@ -870,7 +876,13 @@ class _KatexNodeList extends StatelessWidget {
         return WidgetSpan(
           alignment: PlaceholderAlignment.baseline,
           baseline: TextBaseline.alphabetic,
-          child: _KatexSpan(e));
+          child: MediaQuery(
+            data: MediaQueryData(textScaler: TextScaler.noScaling),
+            child: switch (e) {
+              KatexSpanNode() => _KatexSpan(e),
+              KatexStrutNode() => _KatexStrut(e),
+              KatexVlistNode() => _KatexVlist(e),
+            }));
       }))));
   }
 }
@@ -878,7 +890,7 @@ class _KatexNodeList extends StatelessWidget {
 class _KatexSpan extends StatelessWidget {
   const _KatexSpan(this.node);
 
-  final KatexNode node;
+  final KatexSpanNode node;
 
   @override
   Widget build(BuildContext context) {
@@ -941,7 +953,80 @@ class _KatexSpan extends StatelessWidget {
         textAlign: textAlign,
         child: widget);
     }
-    return widget;
+
+    final marginRight = switch (styles.marginRightEm) {
+      double marginRightEm => marginRightEm * em,
+      null => null,
+    };
+    final marginLeft = switch (styles.marginLeftEm) {
+      double marginLeftEm => marginLeftEm * em,
+      null => null,
+    };
+
+    EdgeInsets? margin;
+    if (marginRight != null || marginLeft != null) {
+      margin = EdgeInsets.zero;
+      if (marginRight != null) {
+        assert(marginRight >= 0);
+        margin += EdgeInsets.only(right: marginRight);
+      }
+      if (marginLeft != null) {
+        assert(marginLeft >= 0);
+        margin += EdgeInsets.only(left: marginLeft);
+      }
+    }
+
+    return Container(
+      margin: margin,
+      height: styles.heightEm != null
+        ? styles.heightEm! * em
+        : null,
+      transform: styles.topEm != null
+        ? Matrix4.translationValues(0, styles.topEm! * em, 0)
+        : null,
+      child: widget,
+    );
+  }
+}
+
+class _KatexStrut extends StatelessWidget {
+  const _KatexStrut(this.node);
+
+  final KatexStrutNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    final verticalAlignEm = node.verticalAlignEm;
+    if (verticalAlignEm == null) {
+      return SizedBox(height: node.heightEm * em);
+    }
+
+    return SizedBox(
+      height: node.heightEm * em,
+      child: Baseline(
+        baseline: (verticalAlignEm + node.heightEm) * em,
+        baselineType: TextBaseline.alphabetic,
+        child: const Text('')),
+    );
+  }
+}
+
+class _KatexVlist extends StatelessWidget {
+  const _KatexVlist(this.node);
+
+  final KatexVlistNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    return Stack(children: List.unmodifiable(node.rows.map((row) {
+      return Transform.translate(
+        offset: Offset(0, row.verticalOffsetEm * em),
+        child: _KatexSpan(row.node));
+    })));
   }
 }
 
@@ -1263,7 +1348,7 @@ class _InlineContentBuilder {
           : WidgetSpan(
               alignment: PlaceholderAlignment.baseline,
               baseline: TextBaseline.alphabetic,
-              child: _Katex(inline: true, nodes: nodes));
+              child: Katex(textStyle: widget.style, nodes: nodes));
 
       case GlobalTimeNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
