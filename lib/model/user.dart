@@ -88,7 +88,7 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
          .followedBy(initialSnapshot.realmNonActiveUsers)
          .followedBy(initialSnapshot.crossRealmBots)
          .map((user) => MapEntry(user.userId, user))),
-       _mutedUsers = _toUserIds(initialSnapshot.mutedUsers);
+       _mutedUsers = Set.from(initialSnapshot.mutedUsers.map((item) => item.id));
 
   final Map<int, User> _users;
 
@@ -103,10 +103,6 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
   @override
   bool isUserMuted(int userId, {Set<int>? mutedUsers}) {
     return (mutedUsers ?? _mutedUsers).contains(userId);
-  }
-
-  static Set<int> _toUserIds(List<MutedUserItem> mutedUserItems) {
-    return Set.from(mutedUserItems.map((item) => item.id));
   }
 
   void handleRealmUserEvent(RealmUserEvent event) {
@@ -150,6 +146,6 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
 
   void handleMutedUsersEvent(MutedUsersEvent event) {
     _mutedUsers.clear();
-    _mutedUsers.addAll(_toUserIds(event.mutedUsers));
+    _mutedUsers.addAll(event.mutedUsers.map((item) => item.id));
   }
 }
