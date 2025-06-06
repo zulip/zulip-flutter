@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../api/exception.dart';
@@ -354,12 +355,10 @@ class _LoginPageState extends State<LoginPage> {
         && defaultTargetPlatform == TargetPlatform.iOS
         && e.message != null && e.message!.startsWith('Error while launching')) {
         // Ignore; I've seen this on my iPhone even when auth succeeds.
-        // Specifically, Apple web auth…which on iOS should be replaced by
-        // Apple native auth; that's #462.
+        // Specifically, Apple web auth.
         // Possibly related:
         //   https://github.com/flutter/flutter/issues/91660
         // but in that issue, people report authentication not succeeding.
-        // TODO(#462) remove this?
         return;
       }
 
@@ -428,6 +427,48 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _handleNativeAppleAuth() async {
+    final state = generateRandomToken();
+    final credential = await SignInWithApple.getAppleIDCredential(
+      state: state,
+      scopes: [
+        AppleIDAuthorizationScopes.fullName,
+        AppleIDAuthorizationScopes.email,
+      ],
+    );
+    if (credential.state != state) throw Exception('`state` mismatch');
+
+    __otp = generateOtp();
+
+    final url = widget.serverSettings.realmUrl.resolve('/complete/apple/')
+      .replace(queryParameters: {'mobile_flow_otp': _otp!, 'native_flow': 'true', 'id_token': credential.identityToken});
+
+    await ZulipBinding.instance.launchUrl(url, mode: LaunchMode.inAppBrowserView);
+  }
+
+  bool _canUseNativeAppleFlow() {
+    // When the platform is iOS, [SignInWithApple.isAvailable] is always true
+    // because the minimum OS version is 14.0.
+    if (defaultTargetPlatform != TargetPlatform.iOS) return false;
+
+    // The native flow for Apple auth assumes that the app and the server
+    // are operated by the same organization, so that for a user to
+    // entrust private information to either one is the same as entrusting
+    // it to the other.  Check that this realm is on such a server.
+    //
+    // (For other realms, we'll simply fall back to the web flow, which
+    // handles things appropriately without relying on that assumption.)
+    return isAppOwnDomain(widget.serverSettings.realmUrl);
+  }
+
+  Future<void> _handleAuth(ExternalAuthenticationMethod method) async {
+    if (method.name == 'apple' && _canUseNativeAppleFlow()) {
+      await _handleNativeAppleAuth();
+    } else {
+      await _beginWebAuth(method);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
@@ -450,7 +491,7 @@ class _LoginPageState extends State<LoginPage> {
               ? Image.network(icon, width: 24, height: 24)
               : null,
             onPressed: !_inProgress
-              ? () => _beginWebAuth(method)
+              ? () => _handleAuth(method)
               : null,
             label: Text(
               zulipLocalizations.signInWithFoo(method.displayName)));
