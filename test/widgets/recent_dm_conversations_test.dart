@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
@@ -67,6 +68,12 @@ void main() {
     Finder findConversationItem(Narrow narrow) => find.byWidgetPredicate(
       (widget) => widget is RecentDmConversationsItem && widget.narrow == narrow,
     );
+
+    testWidgets('appearance when empty', (tester) async {
+      await setupPage(tester, users: [], dmMessages: []);
+      check(find.text('You have no direct messages yet! Why not start the conversation?'))
+        .findsOne();
+    });
 
     testWidgets('page builds; conversations appear in order', (tester) async {
       final user1 = eg.user(userId: 1);

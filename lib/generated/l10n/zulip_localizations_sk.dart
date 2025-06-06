@@ -642,10 +642,18 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get inboxPageTitle => 'Inbox';
 
   @override
+  String get inboxEmptyPlaceholder =>
+      'There are no unread messages in your inbox. Use the buttons below to view the combined feed or list of channels.';
+
+  @override
   String get recentDmConversationsPageTitle => 'Priama správa';
 
   @override
   String get recentDmConversationsSectionHeader => 'Direct messages';
+
+  @override
+  String get recentDmConversationsEmptyPlaceholder =>
+      'You have no direct messages yet! Why not start the conversation?';
 
   @override
   String get combinedFeedPageTitle => 'Zlúčený kanál';
@@ -658,6 +666,10 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
 
   @override
   String get channelsPageTitle => 'Kanály';
+
+  @override
+  String get channelsEmptyPlaceholder =>
+      'You are not subscribed to any channels yet.';
 
   @override
   String get mainMenuMyProfile => 'Môj profil';
@@ -684,9 +696,6 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
 
   @override
   String get unpinnedSubscriptionsLabel => 'Unpinned';
-
-  @override
-  String get subscriptionListNoChannels => 'No channels found';
 
   @override
   String get notifSelfUser => 'Ty';

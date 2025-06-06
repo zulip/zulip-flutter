@@ -1181,6 +1181,12 @@ abstract class ZulipLocalizations {
   /// **'Inbox'**
   String get inboxPageTitle;
 
+  /// Centered text on the 'Inbox' page saying that there is no content to show.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no unread messages in your inbox. Use the buttons below to view the combined feed or list of channels.'**
+  String get inboxEmptyPlaceholder;
+
   /// Title for the page with a list of DM conversations.
   ///
   /// In en, this message translates to:
@@ -1192,6 +1198,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Direct messages'**
   String get recentDmConversationsSectionHeader;
+
+  /// Centered text on the 'Direct messages' page saying that there is no content to show.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no direct messages yet! Why not start the conversation?'**
+  String get recentDmConversationsEmptyPlaceholder;
 
   /// Page title for the 'Combined feed' message view.
   ///
@@ -1216,6 +1228,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Channels'**
   String get channelsPageTitle;
+
+  /// Centered text on the 'Channels' page saying that there is no content to show.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not subscribed to any channels yet.'**
+  String get channelsEmptyPlaceholder;
 
   /// Label for main-menu button leading to the user's own profile.
   ///
@@ -1252,12 +1270,6 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Unpinned'**
   String get unpinnedSubscriptionsLabel;
-
-  /// Text to display on subscribed-channels page when there are no subscribed channels.
-  ///
-  /// In en, this message translates to:
-  /// **'No channels found'**
-  String get subscriptionListNoChannels;
 
   /// Display name for the user themself, to show after replying in an Android notification
   ///

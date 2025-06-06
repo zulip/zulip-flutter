@@ -6,6 +6,7 @@ import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
+import 'home.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'sticky_header.dart';
@@ -82,6 +83,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
     final subscriptions = store.subscriptions;
 
@@ -158,6 +160,12 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         return bLastUnreadId.compareTo(aLastUnreadId);
       });
       sections.add(_StreamSectionData(streamId, countInStream, streamHasMention, topicItems));
+    }
+
+    if (sections.isEmpty) {
+      return PageBodyEmptyContentPlaceholder(
+        // TODO(#315) add e.g. "You might be interested in recent conversations."
+        message: zulipLocalizations.inboxEmptyPlaceholder);
     }
 
     return SafeArea(

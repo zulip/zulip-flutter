@@ -196,6 +196,7 @@ void main() {
   group('InboxPage', () {
     testWidgets('page builds; empty', (tester) async {
       await setupPage(tester, unreadMessages: []);
+      check(find.textContaining('There are no unread messages in your inbox.')).findsOne();
     });
 
     // TODO more checks: ordering, etc.

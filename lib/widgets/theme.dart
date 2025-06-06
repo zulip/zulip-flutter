@@ -164,6 +164,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelCounterUnread: const Color(0xff222222),
     labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
     labelMenuButton: const Color(0xff222222),
+    labelSearchPrompt: const Color(0xff000000).withValues(alpha: 0.5),
     mainBackground: const Color(0xfff0f0f0),
     textInput: const Color(0xff000000),
     title: const Color(0xff1a1a1a),
@@ -225,6 +226,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.7),
     labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
     labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
+    labelSearchPrompt: const Color(0xffffffff).withValues(alpha: 0.5),
     mainBackground: const Color(0xff1d1d1d),
     textInput: const Color(0xffffffff).withValues(alpha: 0.9),
     title: const Color(0xffffffff).withValues(alpha: 0.9),
@@ -294,6 +296,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.labelCounterUnread,
     required this.labelEdited,
     required this.labelMenuButton,
+    required this.labelSearchPrompt,
     required this.mainBackground,
     required this.textInput,
     required this.title,
@@ -364,6 +367,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color labelCounterUnread;
   final Color labelEdited;
   final Color labelMenuButton;
+  final Color labelSearchPrompt;
   final Color mainBackground;
   final Color textInput;
   final Color title;
@@ -429,6 +433,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? labelCounterUnread,
     Color? labelEdited,
     Color? labelMenuButton,
+    Color? labelSearchPrompt,
     Color? mainBackground,
     Color? textInput,
     Color? title,
@@ -489,6 +494,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelCounterUnread: labelCounterUnread ?? this.labelCounterUnread,
       labelEdited: labelEdited ?? this.labelEdited,
       labelMenuButton: labelMenuButton ?? this.labelMenuButton,
+      labelSearchPrompt: labelSearchPrompt ?? this.labelSearchPrompt,
       mainBackground: mainBackground ?? this.mainBackground,
       textInput: textInput ?? this.textInput,
       title: title ?? this.title,
@@ -556,6 +562,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelCounterUnread: Color.lerp(labelCounterUnread, other.labelCounterUnread, t)!,
       labelEdited: Color.lerp(labelEdited, other.labelEdited, t)!,
       labelMenuButton: Color.lerp(labelMenuButton, other.labelMenuButton, t)!,
+      labelSearchPrompt: Color.lerp(labelSearchPrompt, other.labelSearchPrompt, t)!,
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
       textInput: Color.lerp(textInput, other.textInput, t)!,
       title: Color.lerp(title, other.title, t)!,
