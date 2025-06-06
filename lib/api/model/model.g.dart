@@ -68,6 +68,12 @@ Map<String, dynamic> _$CustomProfileFieldExternalAccountDataToJson(
   'url_pattern': instance.urlPattern,
 };
 
+MutedUserItem _$MutedUserItemFromJson(Map<String, dynamic> json) =>
+    MutedUserItem(id: (json['id'] as num).toInt());
+
+Map<String, dynamic> _$MutedUserItemToJson(MutedUserItem instance) =>
+    <String, dynamic>{'id': instance.id};
+
 RealmEmojiItem _$RealmEmojiItemFromJson(Map<String, dynamic> json) =>
     RealmEmojiItem(
       emojiCode: json['id'] as String,

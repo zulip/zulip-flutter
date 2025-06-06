@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
@@ -66,6 +68,16 @@ mixin UserStore on PerAccountStoreBase {
     return getUser(message.senderId)?.fullName
       ?? message.senderFullName;
   }
+
+  /// Ids of all the users muted by [selfUser].
+  @visibleForTesting
+  Set<int> get mutedUsers;
+
+  /// Whether the user with the given [id] is muted by [selfUser].
+  ///
+  /// By default, looks for the user id in [UserStore.mutedUsers] unless
+  /// [mutedUsers] is non-null, in which case looks in the latter.
+  bool isUserMuted(int id, {Set<int>? mutedUsers});
 }
 
 /// The implementation of [UserStore] that does the work.
@@ -81,7 +93,8 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
          initialSnapshot.realmUsers
          .followedBy(initialSnapshot.realmNonActiveUsers)
          .followedBy(initialSnapshot.crossRealmBots)
-         .map((user) => MapEntry(user.userId, user)));
+         .map((user) => MapEntry(user.userId, user))),
+       mutedUsers = _toUserIds(initialSnapshot.mutedUsers);
 
   final Map<int, User> _users;
 
@@ -90,6 +103,18 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
 
   @override
   Iterable<User> get allUsers => _users.values;
+
+  @override
+  final Set<int> mutedUsers;
+
+  @override
+  bool isUserMuted(int id, {Set<int>? mutedUsers}) {
+    return (mutedUsers ?? this.mutedUsers).contains(id);
+  }
+
+  static Set<int> _toUserIds(List<MutedUserItem> mutedUserItems) {
+    return Set.from(mutedUserItems.map((item) => item.id));
+  }
 
   void handleRealmUserEvent(RealmUserEvent event) {
     switch (event) {
@@ -128,5 +153,10 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
           }
         }
     }
+  }
+
+  void handleMutedUsersEvent(MutedUsersEvent event) {
+    mutedUsers.clear();
+    mutedUsers.addAll(_toUserIds(event.mutedUsers));
   }
 }

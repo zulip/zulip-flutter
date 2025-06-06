@@ -735,6 +735,11 @@ UserTopicEvent userTopicEvent(
   );
 }
 
+MutedUsersEvent mutedUsersEvent(List<int> userIds) {
+  return MutedUsersEvent(id: 1,
+    mutedUsers: userIds.map((id) => MutedUserItem(id: id)).toList());
+}
+
 MessageEvent messageEvent(Message message, {int? localMessageId}) =>
   MessageEvent(id: 0, message: message, localMessageId: localMessageId?.toString());
 
@@ -1019,6 +1024,7 @@ InitialSnapshot initialSnapshot({
   int? serverTypingStartedExpiryPeriodMilliseconds,
   int? serverTypingStoppedWaitPeriodMilliseconds,
   int? serverTypingStartedWaitPeriodMilliseconds,
+  List<MutedUserItem>? mutedUsers,
   Map<String, RealmEmojiItem>? realmEmoji,
   List<RecentDmConversation>? recentPrivateConversations,
   List<SavedSnippet>? savedSnippets,
@@ -1055,6 +1061,7 @@ InitialSnapshot initialSnapshot({
       serverTypingStoppedWaitPeriodMilliseconds ?? 5000,
     serverTypingStartedWaitPeriodMilliseconds:
       serverTypingStartedWaitPeriodMilliseconds ?? 10000,
+    mutedUsers: mutedUsers ?? [],
     realmEmoji: realmEmoji ?? {},
     recentPrivateConversations: recentPrivateConversations ?? [],
     savedSnippets: savedSnippets ?? [],
