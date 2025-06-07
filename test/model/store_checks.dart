@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:checks/checks.dart';
 import 'package:zulip/api/core.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
@@ -13,6 +15,7 @@ import 'package:zulip/model/unreads.dart';
 extension GlobalSettingsDataChecks on Subject<GlobalSettingsData> {
   Subject<ThemeSetting?> get themeSetting => has((x) => x.themeSetting, 'themeSetting');
   Subject<BrowserPreference?> get browserPreference => has((x) => x.browserPreference, 'browserPreference');
+  Subject<Locale?> get language => has((x) => x.language, 'language');
 }
 
 extension AccountChecks on Subject<Account> {
@@ -32,6 +35,7 @@ extension GlobalSettingsStoreChecks on Subject<GlobalSettingsStore> {
   Subject<BrowserPreference?> get browserPreference => has((x) => x.browserPreference, 'browserPreference');
   Subject<BrowserPreference> get effectiveBrowserPreference => has((x) => x.effectiveBrowserPreference, 'effectiveBrowserPreference');
   Subject<UrlLaunchMode> getUrlLaunchMode(Uri url) => has((x) => x.getUrlLaunchMode(url), 'getUrlLaunchMode');
+  Subject<Locale?> get language => has((x) => x.language, 'language');
   Subject<bool> getBool(BoolGlobalSetting setting) => has((x) => x.getBool(setting), 'getBool(${setting.name}');
 }
 

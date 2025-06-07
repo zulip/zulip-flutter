@@ -23,6 +23,37 @@ import 'test_app.dart';
 void main() {
   TestZulipBinding.ensureInitialized();
 
+  group('ZulipApp locale', () {
+    Future<void> prepare(WidgetTester tester, {required Locale? locale}) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      if (locale != null) {
+        await testBinding.globalStore.settings.setLanguage(locale);
+      }
+      await tester.pumpWidget(ZulipApp());
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets('no language is set', (tester) async {
+      await prepare(tester, locale: null);
+      final element = tester.element(find.byType(HomePage));
+      check(Localizations.localeOf(element)).equals(const Locale('en'));
+    });
+
+    testWidgets('has language set', (tester) async {
+      await prepare(tester, locale: const Locale('uk'));
+      final element = tester.element(find.byType(HomePage));
+      check(Localizations.localeOf(element)).equals(const Locale('uk'));
+    });
+
+    testWidgets('has unsupported language set', (tester) async {
+      await prepare(tester, locale: const Locale('zxx'));
+      final element = tester.element(find.byType(HomePage));
+      check(Localizations.localeOf(element)).equals(const Locale('en'));
+    });
+  });
+
   group('ZulipApp initial navigation', () {
     late List<Route<dynamic>> pushedRoutes = [];
 

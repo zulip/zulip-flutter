@@ -71,6 +71,7 @@ class TestZulipApp extends StatelessWidget {
 
       return MaterialApp(
         title: 'Zulip',
+        locale: GlobalStoreWidget.settingsOf(context).language,
         localizationsDelegates: ZulipLocalizations.localizationsDelegates,
         supportedLocales: ZulipLocalizations.supportedLocales,
         // The context has to be taken from the [Builder] because
