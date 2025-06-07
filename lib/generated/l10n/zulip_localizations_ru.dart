@@ -79,7 +79,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Отметить канал как прочитанный';
 
   @override
-  String get actionSheetOptionListOfTopics => 'List of topics';
+  String get actionSheetOptionListOfTopics => 'Список тем';
 
   @override
   String get actionSheetOptionMuteTopic => 'Отключить тему';
@@ -119,7 +119,8 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Отметить как непрочитанные начиная отсюда';
 
   @override
-  String get actionSheetOptionHideMutedMessage => 'Hide muted message again';
+  String get actionSheetOptionHideMutedMessage =>
+      'Скрыть отключенное сообщение';
 
   @override
   String get actionSheetOptionShare => 'Поделиться';
@@ -334,7 +335,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get discardDraftForMessageNotSentConfirmationDialogMessage =>
-      'When you restore a message not sent, the content that was previously in the compose box is discarded.';
+      'При восстановлении неотправленного сообщения текст в поле ввода текста будет утрачен.';
 
   @override
   String get discardDraftConfirmationDialogConfirmButton => 'Сбросить';
@@ -352,25 +353,25 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get composeBoxGenericContentHint => 'Ввести сообщение';
 
   @override
-  String get newDmSheetBackButtonLabel => 'Back';
+  String get newDmSheetBackButtonLabel => 'Назад';
 
   @override
-  String get newDmSheetNextButtonLabel => 'Next';
+  String get newDmSheetNextButtonLabel => 'Далее';
 
   @override
-  String get newDmSheetScreenTitle => 'New DM';
+  String get newDmSheetScreenTitle => 'Новое ЛС';
 
   @override
-  String get newDmFabButtonLabel => 'New DM';
+  String get newDmFabButtonLabel => 'Новое ЛС';
 
   @override
-  String get newDmSheetSearchHintEmpty => 'Add one or more users';
+  String get newDmSheetSearchHintEmpty => 'Добавить пользователей';
 
   @override
-  String get newDmSheetSearchHintSomeSelected => 'Add another user…';
+  String get newDmSheetSearchHintSomeSelected => 'Добавить еще…';
 
   @override
-  String get newDmSheetNoUsersFound => 'No users found';
+  String get newDmSheetNoUsersFound => 'Никто не найден';
 
   @override
   String composeBoxDmContentHint(String user) {
@@ -674,7 +675,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get mainMenuMyProfile => 'Мой профиль';
 
   @override
-  String get topicsButtonLabel => 'TOPICS';
+  String get topicsButtonLabel => 'ТЕМЫ';
 
   @override
   String get channelFeedButtonTooltip => 'Лента канала';
@@ -752,7 +753,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get messageIsMovedLabel => 'ПЕРЕМЕЩЕНО';
 
   @override
-  String get messageNotSentLabel => 'MESSAGE NOT SENT';
+  String get messageNotSentLabel => 'СООБЩЕНИЕ НЕ ОТПРАВЛЕНО';
 
   @override
   String pollVoterNames(String voterNames) {
@@ -793,7 +794,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get errorNotificationOpenAccountNotFound =>
-      'The account associated with this notification could not be found.';
+      'Учетная запись, связанная с этим уведомлением, не найдена.';
 
   @override
   String get errorReactionAddingFailedTitle => 'Не удалось добавить реакцию';
@@ -811,13 +812,13 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get noEarlierMessages => 'Предшествующих сообщений нет';
 
   @override
-  String get mutedSender => 'Muted sender';
+  String get mutedSender => 'Отключенный отправитель';
 
   @override
-  String get revealButtonLabel => 'Reveal message for muted sender';
+  String get revealButtonLabel => 'Показать сообщение отключенного отправителя';
 
   @override
-  String get mutedUser => 'Muted user';
+  String get mutedUser => 'Отключенный пользователь';
 
   @override
   String get scrollToBottomTooltip => 'Пролистать вниз';
