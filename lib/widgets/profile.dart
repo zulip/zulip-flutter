@@ -65,7 +65,7 @@ class ProfilePage extends StatelessWidget {
             fontSize: nameStyle.fontSize!,
             textScaler: MediaQuery.textScalerOf(context),
           ),
-          TextSpan(text: user.fullName),
+          TextSpan(text: store.userDisplayName(userId)),
         ]),
         textAlign: TextAlign.center,
         style: nameStyle),
@@ -91,7 +91,7 @@ class ProfilePage extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: ZulipAppBar(title: Text(user.fullName)),
+      appBar: ZulipAppBar(title: Text(store.userDisplayName(userId))),
       body: SingleChildScrollView(
         child: Center(
           child: ConstrainedBox(
