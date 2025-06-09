@@ -868,7 +868,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get noEarlierMessages => 'Brak historii';
 
   @override
-  String get revealButtonLabel => 'Odsłoń wiadomość od wyciszonego użytkownika';
+  String get revealButtonLabel => 'Reveal message';
 
   @override
   String get mutedUser => 'Wyciszony użytkownik';
