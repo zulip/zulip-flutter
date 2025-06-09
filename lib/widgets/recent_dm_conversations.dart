@@ -99,9 +99,9 @@ class RecentDmConversationsItem extends StatelessWidget {
         //   // 'Chris、Greg、Alya'
         title = narrow.otherRecipientIds.map(store.userDisplayName)
           .join(', ');
-        avatar = ColoredBox(color: designVariables.groupDmConversationIconBg,
+        avatar = ColoredBox(color: designVariables.avatarPlaceholderBg,
           child: Center(
-            child: Icon(color: designVariables.groupDmConversationIcon,
+            child: Icon(color: designVariables.avatarPlaceholderIcon,
               ZulipIcons.group_dm)));
     }
 
