@@ -860,8 +860,9 @@ class _FixedDestinationContentInput extends StatelessWidget {
         final store = PerAccountStoreWidget.of(context);
         final user = store.getUser(otherUserId);
         if (user == null) return zulipLocalizations.composeBoxGenericContentHint;
+        // TODO write a test where the user is muted
         return zulipLocalizations.composeBoxDmContentHint(
-          store.userDisplayName(otherUserId));
+          store.userDisplayName(otherUserId, replaceIfMuted: false));
 
       case DmNarrow(): // A group DM thread.
         return zulipLocalizations.composeBoxGroupDmContentHint;

@@ -281,6 +281,15 @@ hello
         check(userMentionFromMessage(message, silent: false, users: store))
           .equals('@**Full Name|123**');
       });
+
+      test('userMentionFromMessage, muted user', () async {
+        final store = eg.store();
+        await store.addUser(user);
+        await store.setMutedUsers([user.userId]);
+        check(store.isUserMuted(user.userId)).isTrue();
+        check(userMentionFromMessage(message, silent: false, users: store))
+          .equals('@**Full Name|123**'); // not replaced with 'Muted user'
+      });
     });
 
     test('wildcard', () {
