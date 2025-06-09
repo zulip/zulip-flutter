@@ -195,13 +195,18 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
         shape: const Border(), // Remove bottom border from [AppBarTheme]
         elevation: appBarElevation,
         title: Row(children: [
-          Avatar(size: 36, borderRadius: 36 / 8, userId: widget.message.senderId),
+          Avatar(
+            size: 36,
+            borderRadius: 36 / 8,
+            userId: widget.message.senderId,
+            replaceIfMuted: false,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: RichText(
               text: TextSpan(children: [
                 TextSpan(
-                  // TODO write a test where the sender is muted
+                  // TODO write a test where the sender is muted; check this and avatar
                   text: '${store.senderDisplayName(widget.message, replaceIfMuted: false)}\n',
 
                   // Restate default
