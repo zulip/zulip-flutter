@@ -12,6 +12,7 @@ import '../model/typing_status.dart';
 import 'action_sheet.dart';
 import 'actions.dart';
 import 'app_bar.dart';
+import 'button.dart';
 import 'color.dart';
 import 'compose_box.dart';
 import 'content.dart';
@@ -138,6 +139,19 @@ abstract class MessageListPageState {
   ///
   /// This is null if [MessageList] has not mounted yet.
   MessageListView? get model;
+
+  /// The "revealed" state of a message from a muted sender.
+  ///
+  /// See also: [revealMutedMessage], [unrevealMutedMessage].
+  bool isMutedMessageRevealed(int messageId);
+
+  /// For a message from a muted sender, reveal the sender and content,
+  /// replacing the "Muted user" placeholder.
+  void revealMutedMessage(int messageId);
+
+  /// For a message from a muted sender, hide the sender and content again
+  /// with the "Muted user" placeholder.
+  void unrevealMutedMessage(int messageId);
 }
 
 class MessageListPage extends StatefulWidget {
@@ -182,6 +196,25 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
   @override
   MessageListView? get model => _messageListKey.currentState?.model;
   final GlobalKey<_MessageListState> _messageListKey = GlobalKey();
+
+  @override
+  bool isMutedMessageRevealed(int messageId) =>
+    _revealedMutedMessages.contains(messageId);
+  final Set<int> _revealedMutedMessages = {};
+
+  @override
+  void revealMutedMessage(int messageId) {
+    setState(() {
+      _revealedMutedMessages.add(messageId);
+    });
+  }
+
+  @override
+  void unrevealMutedMessage(int messageId) {
+    setState(() {
+      _revealedMutedMessages.remove(messageId);
+    });
+  }
 
   @override
   void initState() {
@@ -1447,12 +1480,18 @@ class _SenderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final messageListPage = MessageListPage.ancestorOf(context);
     final messageListTheme = MessageListTheme.of(context);
     final designVariables = DesignVariables.of(context);
 
     final sender = store.getUser(message.senderId);
     final time = _kMessageTimestampFormat
       .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
+
+    final showAsMuted = store.isUserMuted(message.senderId)
+      && message is Message // i.e., not an outbox message
+      && !messageListPage.isMutedMessageRevealed((message as Message).id);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
       child: Row(
@@ -1461,22 +1500,26 @@ class _SenderRow extends StatelessWidget {
         children: [
           Flexible(
             child: GestureDetector(
-              onTap: () => Navigator.push(context,
+              onTap: () => showAsMuted ? null : Navigator.push(context,
                 ProfilePage.buildRoute(context: context,
                   userId: message.senderId)),
               child: Row(
                 children: [
                   Avatar(size: 32, borderRadius: 3,
-                    userId: message.senderId),
+                    userId: message.senderId,
+                    replaceIfMuted: showAsMuted),
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(message is Message
-                        ? store.senderDisplayName(message as Message)
+                        ? store.senderDisplayName(message as Message,
+                            replaceIfMuted: showAsMuted)
                         : store.userDisplayName(message.senderId),
                       style: TextStyle(
                         fontSize: 18,
                         height: (22 / 18),
-                        color: designVariables.title,
+                        color: showAsMuted
+                          ? designVariables.title.withFadedAlpha(0.5)
+                          : designVariables.title,
                       ).merge(weightVariableTextStyle(context, wght: 600)),
                       overflow: TextOverflow.ellipsis)),
                   if (sender?.isBot ?? false) ...[
@@ -1514,6 +1557,7 @@ class MessageWithPossibleSender extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final messageListPage = MessageListPage.ancestorOf(context);
     final designVariables = DesignVariables.of(context);
     final message = item.message;
 
@@ -1557,6 +1601,9 @@ class MessageWithPossibleSender extends StatelessWidget {
       }
     }
 
+    final showAsMuted = store.isUserMuted(message.senderId)
+      && !messageListPage.isMutedMessageRevealed(message.id);
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onLongPress: () => showMessageActionSheet(context: context, message: message),
@@ -1570,28 +1617,38 @@ class MessageWithPossibleSender extends StatelessWidget {
             textBaseline: localizedTextBaseline(context),
             children: [
               const SizedBox(width: 16),
-              Expanded(child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  content,
-                  if ((message.reactions?.total ?? 0) > 0)
-                    ReactionChipsList(messageId: message.id, reactions: message.reactions!),
-                  if (editMessageErrorStatus != null)
-                    _EditMessageStatusRow(messageId: message.id, status: editMessageErrorStatus)
-                  else if (editStateText != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(editStateText,
-                        textAlign: TextAlign.end,
-                        style: TextStyle(
-                          color: designVariables.labelEdited,
-                          fontSize: 12,
-                          height: (12 / 12),
-                          letterSpacing: proportionalLetterSpacing(context,
-                            0.05, baseFontSize: 12))))
-                  else
-                    Padding(padding: const EdgeInsets.only(bottom: 4))
-                ])),
+              Expanded(child: showAsMuted
+                ? Align(
+                    alignment: AlignmentDirectional.topStart,
+                    child: ZulipWebUiKitButton(
+                      label: zulipLocalizations.revealButtonLabel,
+                      icon: ZulipIcons.eye,
+                      size: ZulipWebUiKitButtonSize.small,
+                      intent: ZulipWebUiKitButtonIntent.neutral,
+                      attention: ZulipWebUiKitButtonAttention.minimal,
+                      onPressed: () => messageListPage.revealMutedMessage(message.id)))
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      content,
+                      if ((message.reactions?.total ?? 0) > 0)
+                        ReactionChipsList(messageId: message.id, reactions: message.reactions!),
+                      if (editMessageErrorStatus != null)
+                        _EditMessageStatusRow(messageId: message.id, status: editMessageErrorStatus)
+                      else if (editStateText != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text(editStateText,
+                            textAlign: TextAlign.end,
+                            style: TextStyle(
+                              color: designVariables.labelEdited,
+                              fontSize: 12,
+                              height: (12 / 12),
+                              letterSpacing: proportionalLetterSpacing(context,
+                                0.05, baseFontSize: 12))))
+                      else
+                        Padding(padding: const EdgeInsets.only(bottom: 4))
+                    ])),
               SizedBox(width: 16,
                 child: star),
             ]),

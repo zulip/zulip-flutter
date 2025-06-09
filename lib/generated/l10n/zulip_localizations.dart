@@ -1466,7 +1466,7 @@ abstract class ZulipLocalizations {
   /// Label for the button revealing hidden message from a muted sender in message list.
   ///
   /// In en, this message translates to:
-  /// **'Reveal message for muted sender'**
+  /// **'Reveal message'**
   String get revealButtonLabel;
 
   /// Text to display in place of a muted user's name.
