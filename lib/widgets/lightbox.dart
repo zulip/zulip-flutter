@@ -201,7 +201,8 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
             child: RichText(
               text: TextSpan(children: [
                 TextSpan(
-                  text: '${store.senderDisplayName(widget.message)}\n',
+                  // TODO write a test where the sender is muted
+                  text: '${store.senderDisplayName(widget.message, replaceIfMuted: false)}\n',
 
                   // Restate default
                   style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),

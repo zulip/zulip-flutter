@@ -1499,19 +1499,13 @@ abstract class ZulipLocalizations {
   /// **'No earlier messages'**
   String get noEarlierMessages;
 
-  /// Name for a muted user to display in message list.
-  ///
-  /// In en, this message translates to:
-  /// **'Muted sender'**
-  String get mutedSender;
-
   /// Label for the button revealing hidden message from a muted sender in message list.
   ///
   /// In en, this message translates to:
   /// **'Reveal message for muted sender'**
   String get revealButtonLabel;
 
-  /// Name for a muted user to display all over the app.
+  /// Text to display in place of a muted user's name.
   ///
   /// In en, this message translates to:
   /// **'Muted user'**

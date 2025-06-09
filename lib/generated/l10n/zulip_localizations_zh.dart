@@ -820,9 +820,6 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get noEarlierMessages => 'No earlier messages';
 
   @override
-  String get mutedSender => 'Muted sender';
-
-  @override
   String get revealButtonLabel => 'Reveal message for muted sender';
 
   @override

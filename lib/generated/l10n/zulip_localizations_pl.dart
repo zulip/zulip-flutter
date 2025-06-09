@@ -833,9 +833,6 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get noEarlierMessages => 'Brak historii';
 
   @override
-  String get mutedSender => 'Wyciszony nadawca';
-
-  @override
   String get revealButtonLabel => 'Odsłoń wiadomość od wyciszonego użytkownika';
 
   @override

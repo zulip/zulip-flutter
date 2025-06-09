@@ -27,6 +27,7 @@ import 'test_app.dart';
 Future<void> setupPage(WidgetTester tester, {
   required List<DmMessage> dmMessages,
   required List<User> users,
+  List<int>? mutedUserIds,
   NavigatorObserver? navigatorObserver,
   String? newNameForSelfUser,
 }) async {
@@ -38,6 +39,9 @@ Future<void> setupPage(WidgetTester tester, {
   await store.addUser(eg.selfUser);
   for (final user in users) {
     await store.addUser(user);
+  }
+  if (mutedUserIds != null) {
+    await store.setMutedUsers(mutedUserIds);
   }
 
   await store.addMessages(dmMessages);
@@ -238,13 +242,27 @@ void main() {
       });
 
       group('1:1', () {
-        testWidgets('has right title/avatar', (tester) async {
-          final user = eg.user(userId: 1);
-          final message = eg.dmMessage(from: eg.selfUser, to: [user]);
-          await setupPage(tester, users: [user], dmMessages: [message]);
+        group('has right title/avatar', () {
+          testWidgets('non-muted user', (tester) async {
+            final user = eg.user(userId: 1);
+            final message = eg.dmMessage(from: eg.selfUser, to: [user]);
+            await setupPage(tester, users: [user], dmMessages: [message]);
 
-          checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-          checkTitle(tester, user.fullName);
+            checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
+            checkTitle(tester, user.fullName);
+          });
+
+          testWidgets('muted user', (tester) async {
+            final user = eg.user(userId: 1);
+            final message = eg.dmMessage(from: eg.selfUser, to: [user]);
+            await setupPage(tester,
+              users: [user],
+              mutedUserIds: [user.userId],
+              dmMessages: [message]);
+
+            checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
+            checkTitle(tester, 'Muted user');
+          });
         });
 
         testWidgets('no error when user somehow missing from user store', (tester) async {
@@ -292,15 +310,45 @@ void main() {
           return result;
         }
 
-        testWidgets('has right title/avatar', (tester) async {
-          final users = usersList(2);
-          final user0 = users[0];
-          final user1 = users[1];
-          final message = eg.dmMessage(from: eg.selfUser, to: [user0, user1]);
-          await setupPage(tester, users: users, dmMessages: [message]);
+        group('has right title/avatar', () {
+          testWidgets('no users muted', (tester) async {
+            final users = usersList(2);
+            final user0 = users[0];
+            final user1 = users[1];
+            final message = eg.dmMessage(from: eg.selfUser, to: [user0, user1]);
+            await setupPage(tester, users: users, dmMessages: [message]);
 
-          checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-          checkTitle(tester, '${user0.fullName}, ${user1.fullName}');
+            checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
+            checkTitle(tester, '${user0.fullName}, ${user1.fullName}');
+          });
+
+          testWidgets('some users muted', (tester) async {
+            final users = usersList(2);
+            final user0 = users[0];
+            final user1 = users[1];
+            final message = eg.dmMessage(from: eg.selfUser, to: [user0, user1]);
+            await setupPage(tester,
+              users: users,
+              mutedUserIds: [user0.userId],
+              dmMessages: [message]);
+
+            checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
+            checkTitle(tester, 'Muted user, ${user1.fullName}');
+          });
+
+          testWidgets('all users muted', (tester) async {
+            final users = usersList(2);
+            final user0 = users[0];
+            final user1 = users[1];
+            final message = eg.dmMessage(from: eg.selfUser, to: [user0, user1]);
+            await setupPage(tester,
+              users: users,
+              mutedUserIds: [user0.userId, user1.userId],
+              dmMessages: [message]);
+
+            checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
+            checkTitle(tester, 'Muted user, Muted user');
+          });
         });
 
         testWidgets('no error when one user somehow missing from user store', (tester) async {

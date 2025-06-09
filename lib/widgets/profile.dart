@@ -49,7 +49,8 @@ class ProfilePage extends StatelessWidget {
       Center(
         child: Avatar(userId: userId, size: 200, borderRadius: 200 / 8)),
       const SizedBox(height: 16),
-      Text(store.userDisplayName(userId),
+      // TODO write a test where the user is muted
+      Text(store.userDisplayName(userId, replaceIfMuted: false),
         textAlign: TextAlign.center,
         style: _TextStyles.primaryFieldText
           .merge(weightVariableTextStyle(context, wght: 700))),
@@ -75,7 +76,9 @@ class ProfilePage extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: ZulipAppBar(title: Text(store.userDisplayName(userId))),
+      appBar: ZulipAppBar(
+        // TODO write a test where the user is muted
+        title: Text(store.userDisplayName(userId, replaceIfMuted: false))),
       body: SingleChildScrollView(
         child: Center(
           child: ConstrainedBox(
