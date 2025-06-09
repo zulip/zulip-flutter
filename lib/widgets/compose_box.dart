@@ -859,9 +859,10 @@ class _FixedDestinationContentInput extends StatelessWidget {
 
       case DmNarrow(otherRecipientIds: [final otherUserId]):
         final store = PerAccountStoreWidget.of(context);
-        final fullName = store.getUser(otherUserId)?.fullName;
-        if (fullName == null) return zulipLocalizations.composeBoxGenericContentHint;
-        return zulipLocalizations.composeBoxDmContentHint(fullName);
+        final user = store.getUser(otherUserId);
+        if (user == null) return zulipLocalizations.composeBoxGenericContentHint;
+        return zulipLocalizations.composeBoxDmContentHint(
+          store.userDisplayName(otherUserId));
 
       case DmNarrow(): // A group DM thread.
         return zulipLocalizations.composeBoxGroupDmContentHint;
