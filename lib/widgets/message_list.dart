@@ -151,13 +151,17 @@ class MessageListPage extends StatefulWidget {
 
   /// The [MessageListPageState] above this context in the tree.
   ///
-  /// Uses the inefficient [BuildContext.findAncestorStateOfType];
-  /// don't call this in a build method.
-  // If we do find ourselves wanting this in a build method, it won't be hard
-  // to enable that: we'd just need to add an [InheritedWidget] here.
+  /// Uses the efficient [BuildContext.dependOnInheritedWidgetOfExactType],
+  /// so this may be called in a build method.
+  ///
+  /// Because this uses [BuildContext.dependOnInheritedWidgetOfExactType],
+  /// it creates a dependency, and [context] will rebuild when the underlying
+  /// [State.setState] is called.
   static MessageListPageState ancestorOf(BuildContext context) {
-    final state = context.findAncestorStateOfType<_MessageListPageState>();
-    assert(state != null, 'No MessageListPage ancestor');
+    final state = context
+      .dependOnInheritedWidgetOfExactType<_MessageListPageInheritedWidget>()
+      ?.state;
+    assert(state != null, 'No _MessageListPageInheritedWidget ancestor');
     return state!;
   }
 
@@ -240,9 +244,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
         actions.add(_TopicListButton(streamId: streamId));
     }
 
-    // Insert a PageRoot here, to provide a context that can be used for
-    // MessageListPage.ancestorOf.
-    return PageRoot(child: Scaffold(
+    Widget result = Scaffold(
       appBar: ZulipAppBar(
         buildTitle: (willCenterTitle) =>
           MessageListAppBarTitle(narrow: narrow, willCenterTitle: willCenterTitle),
@@ -283,7 +285,30 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
                 ))),
             if (ComposeBox.hasComposeBox(narrow))
               ComposeBox(key: _composeBoxKey, narrow: narrow)
-          ]))));
+          ])));
+
+    // Insert a PageRoot here (under _MessageListPageInheritedWidget),
+    // to provide a context that can be used for MessageListPage.ancestorOf.
+    result = PageRoot(child: result);
+
+    return _MessageListPageInheritedWidget(this, child: result);
+  }
+}
+
+/// An [InheritedWidget] to provide [MessageListPageState] to leafward widgets.
+class _MessageListPageInheritedWidget extends InheritedWidget {
+  const _MessageListPageInheritedWidget(
+    this.state, {
+    required super.child,
+  });
+
+  final MessageListPageState state;
+
+  @override
+  bool updateShouldNotify(covariant _MessageListPageInheritedWidget oldWidget) {
+    // Ensure that dependent elements using [MessageListPage.ancestorOf]
+    // always rebuild when _MessageListPageState.setState is called.
+    return true;
   }
 }
 
