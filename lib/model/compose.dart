@@ -151,7 +151,7 @@ String userMention(User user, {bool silent = false, UserStore? users}) {
 String userMentionFromMessage(Message message, {bool silent = false, required UserStore users}) =>
   _userMentionImpl(
     silent: silent,
-    fullName: users.senderDisplayName(message),
+    fullName: users.senderDisplayName(message, replaceIfMuted: false),
     userId: message.senderId);
 
 String _userMentionImpl({required bool silent, required String fullName, int? userId}) =>

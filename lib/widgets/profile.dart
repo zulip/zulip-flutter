@@ -65,7 +65,8 @@ class ProfilePage extends StatelessWidget {
             fontSize: nameStyle.fontSize!,
             textScaler: MediaQuery.textScalerOf(context),
           ),
-          TextSpan(text: store.userDisplayName(userId)),
+          // TODO write a test where the user is muted
+          TextSpan(text: store.userDisplayName(userId, replaceIfMuted: false)),
         ]),
         textAlign: TextAlign.center,
         style: nameStyle),
@@ -91,7 +92,9 @@ class ProfilePage extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: ZulipAppBar(title: Text(store.userDisplayName(userId))),
+      appBar: ZulipAppBar(
+        // TODO write a test where the user is muted
+        title: Text(store.userDisplayName(userId, replaceIfMuted: false))),
       body: SingleChildScrollView(
         child: Center(
           child: ConstrainedBox(
