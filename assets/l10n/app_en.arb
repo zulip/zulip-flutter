@@ -1007,7 +1007,7 @@
   "@noEarlierMessages": {
     "description": "Text to show at the start of a message list if there are no earlier messages."
   },
-  "revealButtonLabel": "Reveal message for muted sender",
+  "revealButtonLabel": "Reveal message",
   "@revealButtonLabel": {
     "description": "Label for the button revealing hidden message from a muted sender in message list."
   },
