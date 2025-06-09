@@ -166,6 +166,7 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     final themeData = Theme.of(context);
 
     final appBarBackgroundColor = Colors.grey.shade900.withValues(alpha: 0.87);
@@ -200,7 +201,7 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
             child: RichText(
               text: TextSpan(children: [
                 TextSpan(
-                  text: '${widget.message.senderFullName}\n', // TODO(#716): use `store.senderDisplayName`
+                  text: '${store.senderDisplayName(widget.message)}\n',
 
                   // Restate default
                   style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),
