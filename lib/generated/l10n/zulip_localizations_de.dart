@@ -882,9 +882,6 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get noEarlierMessages => 'Keine früheren Nachrichten';
 
   @override
-  String get mutedSender => 'Stummgeschalteter Absender';
-
-  @override
   String get revealButtonLabel =>
       'Nachricht für stummgeschalteten Absender anzeigen';
 

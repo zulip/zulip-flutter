@@ -1,10 +1,12 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
@@ -19,9 +21,12 @@ import 'page_checks.dart';
 import 'profile_page_checks.dart';
 import 'test_app.dart';
 
+late PerAccountStore store;
+
 Future<void> setupPage(WidgetTester tester, {
   required int pageUserId,
   List<User>? users,
+  List<int>? mutedUserIds,
   List<CustomProfileField>? customProfileFields,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   NavigatorObserver? navigatorObserver,
@@ -32,11 +37,14 @@ Future<void> setupPage(WidgetTester tester, {
     customProfileFields: customProfileFields,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts);
   await testBinding.globalStore.add(eg.selfAccount, initialSnapshot);
-  final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+  store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
   await store.addUser(eg.selfUser);
   if (users != null) {
     await store.addUsers(users);
+  }
+  if (mutedUserIds != null) {
+    await store.setMutedUsers(mutedUserIds);
   }
 
   await tester.pumpWidget(TestZulipApp(
@@ -235,6 +243,25 @@ void main() {
 
       final textFinder = find.text('(unknown user)');
       check(textFinder.evaluate()).length.equals(1);
+    });
+
+    testWidgets('page builds; user field with muted user', (tester) async {
+      final users = [
+        eg.user(userId: 1, profileData: {
+          0: ProfileFieldUserData(value: '[2,3]'),
+        }),
+        eg.user(userId: 2, fullName: 'test user2'),
+        eg.user(userId: 3, fullName: 'test user3'),
+      ];
+
+      await setupPage(tester,
+        users: users,
+        mutedUserIds: [2],
+        pageUserId: 1,
+        customProfileFields: [mkCustomProfileField(0, CustomProfileFieldType.user)]);
+
+      check(find.text('Muted user')).findsOne();
+      check(find.text('test user3')).findsOne();
     });
 
     testWidgets('page builds; dm links to correct narrow', (tester) async {
