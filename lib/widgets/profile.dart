@@ -47,9 +47,13 @@ class ProfilePage extends StatelessWidget {
     final displayEmail = store.userDisplayEmail(userId);
     final items = [
       Center(
-        child: Avatar(userId: userId, size: 200, borderRadius: 200 / 8)),
+        child: Avatar(
+          userId: userId,
+          size: 200,
+          borderRadius: 200 / 8,
+          replaceIfMuted: false)),
       const SizedBox(height: 16),
-      // TODO write a test where the user is muted
+      // TODO write a test where the user is muted; check this and avatar
       Text(store.userDisplayName(userId, replaceIfMuted: false),
         textAlign: TextAlign.center,
         style: _TextStyles.primaryFieldText
