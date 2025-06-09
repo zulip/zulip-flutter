@@ -1667,6 +1667,15 @@ void main() {
         final mutedLabelFinder = find.widgetWithText(MessageWithPossibleSender,
           mutedLabel);
 
+        final avatarFinder = find.byWidgetPredicate(
+          (widget) => widget is Avatar && widget.userId == message.senderId);
+        final mutedAvatarFinder = find.descendant(
+          of: avatarFinder,
+          matching: find.byIcon(ZulipIcons.person));
+        final nonmutedAvatarFinder = find.descendant(
+          of: avatarFinder,
+          matching: find.byType(RealmContentNetworkImage));
+
         final senderName = store.senderDisplayName(message, replaceIfMuted: false);
         assert(senderName != mutedLabel);
         final senderNameFinder = find.widgetWithText(MessageWithPossibleSender,
@@ -1674,22 +1683,28 @@ void main() {
 
         check(mutedLabelFinder.evaluate().length).equals(expectIsMuted ? 1 : 0);
         check(senderNameFinder.evaluate().length).equals(expectIsMuted ? 0 : 1);
+        check(mutedAvatarFinder.evaluate().length).equals(expectIsMuted ? 1 : 0);
+        check(nonmutedAvatarFinder.evaluate().length).equals(expectIsMuted ? 0 : 1);
       }
 
-      final user = eg.user(userId: 1, fullName: 'User');
+      final user = eg.user(userId: 1, fullName: 'User', avatarUrl: '/foo.png');
       final message = eg.streamMessage(sender: user,
         content: '<p>A message</p>', reactions: [eg.unicodeEmojiReaction]);
 
       testWidgets('muted appearance', (tester) async {
+        prepareBoringImageHttpClient();
         await setupMessageListPage(tester,
           users: [user], mutedUserIds: [user.userId], messages: [message]);
         checkMessage(message, expectIsMuted: true);
+        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('not-muted appearance', (tester) async {
+        prepareBoringImageHttpClient();
         await setupMessageListPage(tester,
           users: [user], mutedUserIds: [], messages: [message]);
         checkMessage(message, expectIsMuted: false);
+        debugNetworkImageHttpClientProvider = null;
       });
     });
   });
