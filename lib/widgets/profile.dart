@@ -56,7 +56,9 @@ class ProfilePage extends StatelessWidget {
           borderRadius: 200 / 8,
           // Would look odd with this large image;
           // we'll show it by the user's name instead.
-          showPresence: false)),
+          showPresence: false,
+          replaceIfMuted: false,
+        )),
       const SizedBox(height: 16),
       Text.rich(
         TextSpan(children: [
@@ -65,7 +67,7 @@ class ProfilePage extends StatelessWidget {
             fontSize: nameStyle.fontSize!,
             textScaler: MediaQuery.textScalerOf(context),
           ),
-          // TODO write a test where the user is muted
+          // TODO write a test where the user is muted; check this and avatar
           TextSpan(text: store.userDisplayName(userId, replaceIfMuted: false)),
         ]),
         textAlign: TextAlign.center,
