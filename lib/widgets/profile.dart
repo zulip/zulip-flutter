@@ -49,7 +49,7 @@ class ProfilePage extends StatelessWidget {
       Center(
         child: Avatar(userId: userId, size: 200, borderRadius: 200 / 8)),
       const SizedBox(height: 16),
-      Text(user.fullName,
+      Text(store.userDisplayName(userId),
         textAlign: TextAlign.center,
         style: _TextStyles.primaryFieldText
           .merge(weightVariableTextStyle(context, wght: 700))),
@@ -75,7 +75,7 @@ class ProfilePage extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: ZulipAppBar(title: Text(user.fullName)),
+      appBar: ZulipAppBar(title: Text(store.userDisplayName(userId))),
       body: SingleChildScrollView(
         child: Center(
           child: ConstrainedBox(
