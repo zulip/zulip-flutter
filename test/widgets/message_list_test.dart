@@ -1709,10 +1709,15 @@ void main() {
         final senderNameFinder = find.widgetWithText(MessageWithPossibleSender,
           senderName);
 
+        final contentFinder = find.descendant(
+          of: find.byType(MessageContent),
+          matching: find.text('A message', findRichText: true));
+
         check(mutedLabelFinder.evaluate().length).equals(expectIsMuted ? 1 : 0);
         check(senderNameFinder.evaluate().length).equals(expectIsMuted ? 0 : 1);
         check(mutedAvatarFinder.evaluate().length).equals(expectIsMuted ? 1 : 0);
         check(nonmutedAvatarFinder.evaluate().length).equals(expectIsMuted ? 0 : 1);
+        check(contentFinder.evaluate().length).equals(expectIsMuted ? 0 : 1);
       }
 
       final user = eg.user(userId: 1, fullName: 'User', avatarUrl: '/foo.png');
@@ -1732,6 +1737,19 @@ void main() {
         await setupMessageListPage(tester,
           users: [user], mutedUserIds: [], messages: [message]);
         checkMessage(message, expectIsMuted: false);
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('"Reveal message" button', (tester) async {
+        prepareBoringImageHttpClient();
+
+        await setupMessageListPage(tester,
+          users: [user], mutedUserIds: [user.userId], messages: [message]);
+        checkMessage(message, expectIsMuted: true);
+        await tester.tap(find.text('Reveal message'));
+        await tester.pump();
+        checkMessage(message, expectIsMuted: false);
+
         debugNetworkImageHttpClientProvider = null;
       });
     });

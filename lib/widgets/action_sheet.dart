@@ -589,6 +589,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final markAsUnreadSupported = store.zulipFeatureLevel >= 155; // TODO(server-6)
   final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
 
+  final isSenderMuted = store.isUserMuted(message.senderId);
+
   final optionButtons = [
     if (popularEmojiLoaded)
       ReactionButtons(message: message, pageContext: pageContext),
@@ -597,6 +599,9 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       QuoteAndReplyButton(message: message, pageContext: pageContext),
     if (showMarkAsUnreadButton)
       MarkAsUnreadButton(message: message, pageContext: pageContext),
+    if (isSenderMuted)
+      // The message must have been revealed in order to open this action sheet.
+      UnrevealMutedMessageButton(message: message, pageContext: pageContext),
     CopyMessageTextButton(message: message, pageContext: pageContext),
     CopyMessageLinkButton(message: message, pageContext: pageContext),
     ShareButton(message: message, pageContext: pageContext),
@@ -901,6 +906,30 @@ class MarkAsUnreadButton extends MessageActionSheetMenuItemButton {
       message, messageListPage.narrow));
     // TODO should we alert the user about this change somehow? A snackbar?
     messageListPage.markReadOnScroll = false;
+  }
+}
+
+class UnrevealMutedMessageButton extends MessageActionSheetMenuItemButton {
+  UnrevealMutedMessageButton({
+    super.key,
+    required super.message,
+    required super.pageContext,
+  });
+
+  @override
+  IconData get icon => ZulipIcons.eye_off;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionHideMutedMessage;
+  }
+
+  @override
+  void onPressed() {
+    // The message should have been revealed in order to reach this action sheet.
+    assert(MessageListPage.revealedMutedMessagesOf(pageContext)
+      .isMutedMessageRevealed(message.id));
+    findMessageListPage().unrevealMutedMessage(message.id);
   }
 }
 

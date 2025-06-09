@@ -857,7 +857,7 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get noEarlierMessages => 'No earlier messages';
 
   @override
-  String get revealButtonLabel => 'Reveal message for muted sender';
+  String get revealButtonLabel => 'Reveal message';
 
   @override
   String get mutedUser => 'Muted user';
