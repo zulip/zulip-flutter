@@ -44,7 +44,7 @@ class ProfilePage extends StatelessWidget {
       return const _ProfileErrorPage();
     }
 
-    final displayEmail = store.userDisplayEmail(user);
+    final displayEmail = store.userDisplayEmail(userId);
     final items = [
       Center(
         child: Avatar(userId: userId, size: 200, borderRadius: 200 / 8)),
