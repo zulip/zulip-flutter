@@ -18,12 +18,14 @@ class ZulipWebUiKitButton extends StatelessWidget {
     super.key,
     this.attention = ZulipWebUiKitButtonAttention.medium,
     this.intent = ZulipWebUiKitButtonIntent.info,
+    this.size = ZulipWebUiKitButtonSize.normal,
     required this.label,
     required this.onPressed,
   });
 
   final ZulipWebUiKitButtonAttention attention;
   final ZulipWebUiKitButtonIntent intent;
+  final ZulipWebUiKitButtonSize size;
   final String label;
   final VoidCallback onPressed;
 
@@ -53,7 +55,8 @@ class ZulipWebUiKitButton extends StatelessWidget {
 
   TextStyle _labelStyle(BuildContext context, {required TextScaler textScaler}) {
     final designVariables = DesignVariables.of(context);
-    // Values chosen from the Figma frame for zulip-flutter's compose box:
+    // Normal-size values chosen from the Figma frame for zulip-flutter's
+    // compose box:
     //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3988-38201&m=dev
     // Commented values come from the Figma page "Zulip Web UI kit":
     //   https://www.figma.com/design/msWyAJ8cnMHgOMPxi7BUvA/Zulip-Web-UI-kit?node-id=1-8&p=f&m=dev
@@ -61,11 +64,14 @@ class ZulipWebUiKitButton extends StatelessWidget {
     //   https://github.com/zulip/zulip-flutter/pull/1432#discussion_r2023880851
     return TextStyle(
       color: _labelColor(designVariables),
-      fontSize: 17, // 16
-      height: 1.20, // 1.25
-      letterSpacing: proportionalLetterSpacing(context, textScaler: textScaler,
-        0.006,
-        baseFontSize: 17), // 16
+      fontSize: _forSize(16, 17 /* 16 */),
+      height: _forSize(1, 1.20 /* 1.25 */),
+      letterSpacing: _forSize(
+        0,
+        proportionalLetterSpacing(context, textScaler: textScaler,
+          0.006,
+          baseFontSize: 17 /* 16 */),
+      ),
     ).merge(weightVariableTextStyle(context,
         wght: 600)); // 500
   }
@@ -87,6 +93,12 @@ class ZulipWebUiKitButton extends StatelessWidget {
     }
   }
 
+  T _forSize<T>(T small, T normal) =>
+    switch (size) {
+      ZulipWebUiKitButtonSize.small => small,
+      ZulipWebUiKitButtonSize.normal => normal,
+    };
+
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
@@ -104,24 +116,32 @@ class ZulipWebUiKitButton extends StatelessWidget {
     //   from shrinking to zero as the button grows to accommodate a larger label
     final textScaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5);
 
+    final buttonHeight = _forSize(24, 28);
+
     return AnimatedScaleOnTap(
       scaleEnd: 0.96,
       duration: Duration(milliseconds: 100),
       child: TextButton(
         style: TextButton.styleFrom(
-          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4 - densityVerticalAdjustment),
+          padding: EdgeInsets.symmetric(
+            horizontal: _forSize(6, 10),
+            vertical: 4 - densityVerticalAdjustment,
+          ),
           foregroundColor: _labelColor(designVariables),
           shape: RoundedRectangleBorder(
             side: _borderSide(designVariables),
-            borderRadius: BorderRadius.circular(4)),
+            borderRadius: BorderRadius.circular(_forSize(6, 4))),
           splashFactory: NoSplash.splashFactory,
 
-          // These three arguments make the button 28px tall vertically,
+          // These three arguments make the button `buttonHeight` tall,
           // but with vertical padding to make the touch target 44px tall:
           //   https://github.com/zulip/zulip-flutter/pull/1432#discussion_r2023907300
           visualDensity: visualDensity,
           tapTargetSize: MaterialTapTargetSize.padded,
-          minimumSize: Size(kMinInteractiveDimension, 28 - densityVerticalAdjustment),
+          minimumSize: Size(
+            kMinInteractiveDimension,
+            buttonHeight - densityVerticalAdjustment,
+          ),
         ).copyWith(backgroundColor: _backgroundColor(designVariables)),
         onPressed: onPressed,
         child: ConstrainedBox(
@@ -148,6 +168,17 @@ enum ZulipWebUiKitButtonIntent {
   info,
   // success,
   // brand,
+}
+
+enum ZulipWebUiKitButtonSize {
+  /// A smaller size than the one in the Zulip Web UI Kit.
+  ///
+  /// This was ad hoc for mobile, for the "Reveal message" button
+  /// on a message from a muted sender:
+  ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6092-50786&m=dev
+  small,
+
+  normal,
 }
 
 /// Apply [Transform.scale] to the child widget when tapped, and reset its scale
