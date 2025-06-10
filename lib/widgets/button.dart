@@ -33,6 +33,15 @@ class ZulipWebUiKitButton extends StatelessWidget {
 
   WidgetStateColor _backgroundColor(DesignVariables designVariables) {
     switch ((attention, intent)) {
+      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.neutral):
+        return WidgetStateColor.fromMap({
+          WidgetState.pressed: designVariables.neutralButtonBg.withFadedAlpha(0.3),
+          ~WidgetState.pressed: designVariables.neutralButtonBg.withAlpha(0),
+        });
+      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.neutral):
+      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.neutral):
+      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.info):
+        throw UnimplementedError();
       case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info):
         return WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.btnBgAttMediumIntInfoActive,
@@ -48,6 +57,13 @@ class ZulipWebUiKitButton extends StatelessWidget {
 
   Color _labelColor(DesignVariables designVariables) {
     switch ((attention, intent)) {
+      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.neutral):
+        // TODO nit: don't fade in pressed state
+        return designVariables.neutralButtonLabel.withFadedAlpha(0.85);
+      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.neutral):
+      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.neutral):
+      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.info):
+        throw UnimplementedError();
       case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info):
         return designVariables.btnLabelAttMediumIntInfo;
       case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.info):
@@ -80,6 +96,8 @@ class ZulipWebUiKitButton extends StatelessWidget {
 
   BorderSide _borderSide(DesignVariables designVariables) {
     switch (attention) {
+      case ZulipWebUiKitButtonAttention.minimal:
+        return BorderSide.none;
       case ZulipWebUiKitButtonAttention.medium:
         // TODO inner shadow effect like `box-shadow: inset`, following Figma;
         //   needs Flutter support for something like that:
@@ -167,10 +185,15 @@ enum ZulipWebUiKitButtonAttention {
   high,
   medium,
   // low,
+
+  /// An ad hoc value for the "Reveal message" button
+  /// on a message from a muted sender:
+  ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6092-50786&m=dev
+  minimal,
 }
 
 enum ZulipWebUiKitButtonIntent {
-  // neutral,
+  neutral,
   // warning,
   // danger,
   info,
