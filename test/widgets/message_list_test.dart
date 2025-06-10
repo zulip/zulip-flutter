@@ -756,7 +756,17 @@ void main() {
         await checkTyping(tester,
           eg.typingEvent(narrow, TypingOp.stop, eg.otherUser.userId),
           expected: 'Third User and Fourth User are typing…');
+        await store.setMutedUsers([eg.thirdUser.userId]);
+        await tester.pump();
+        check(tester.widget<Text>(finder)).data.equals('Fourth User is typing…');
         // Verify that typing indicators expire after a set duration.
+        await tester.pump(const Duration(seconds: 15));
+        check(finder.evaluate()).isEmpty();
+        // Muted user starts typing again; nothing is shown.
+        await store.handleEvent(
+          eg.typingEvent(narrow, TypingOp.start, eg.thirdUser.userId));
+        await tester.pump();
+        check(finder.evaluate()).isEmpty();
         await tester.pump(const Duration(seconds: 15));
         check(finder.evaluate()).isEmpty();
       });
