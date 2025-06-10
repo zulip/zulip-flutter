@@ -22,7 +22,7 @@ class TypingStatus extends PerAccountStoreBase with ChangeNotifier {
   Iterable<SendableNarrow> get debugActiveNarrows => _timerMapsByNarrow.keys;
 
   Iterable<int> typistIdsInNarrow(SendableNarrow narrow) =>
-    _timerMapsByNarrow[narrow]?.keys ?? [];
+    _timerMapsByNarrow[narrow]?.keys ?? const [];
 
   // Using SendableNarrow as the key covers the narrows
   // where typing notices are supported (topics and DMs).
