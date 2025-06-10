@@ -165,6 +165,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
     labelMenuButton: const Color(0xff222222),
     mainBackground: const Color(0xfff0f0f0),
+    neutralButtonBg: const Color(0xff8c84ae),
+    neutralButtonLabel: const Color(0xff433d5c),
     textInput: const Color(0xff000000),
     title: const Color(0xff1a1a1a),
     bgSearchInput: const Color(0xffe3e3e3),
@@ -226,6 +228,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
     labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
     mainBackground: const Color(0xff1d1d1d),
+    neutralButtonBg: const Color(0xffd4d1e0),
+    neutralButtonLabel: const Color(0xffa9a3c2),
     textInput: const Color(0xffffffff).withValues(alpha: 0.9),
     title: const Color(0xffffffff).withValues(alpha: 0.9),
     bgSearchInput: const Color(0xff313131),
@@ -295,6 +299,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.labelEdited,
     required this.labelMenuButton,
     required this.mainBackground,
+    required this.neutralButtonBg,
+    required this.neutralButtonLabel,
     required this.textInput,
     required this.title,
     required this.bgSearchInput,
@@ -365,6 +371,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color labelEdited;
   final Color labelMenuButton;
   final Color mainBackground;
+  final Color neutralButtonBg;
+  final Color neutralButtonLabel;
   final Color textInput;
   final Color title;
   final Color bgSearchInput;
@@ -430,6 +438,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? labelEdited,
     Color? labelMenuButton,
     Color? mainBackground,
+    Color? neutralButtonBg,
+    Color? neutralButtonLabel,
     Color? textInput,
     Color? title,
     Color? bgSearchInput,
@@ -490,6 +500,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelEdited: labelEdited ?? this.labelEdited,
       labelMenuButton: labelMenuButton ?? this.labelMenuButton,
       mainBackground: mainBackground ?? this.mainBackground,
+      neutralButtonBg: neutralButtonBg ?? this.neutralButtonBg,
+      neutralButtonLabel: neutralButtonLabel ?? this.neutralButtonLabel,
       textInput: textInput ?? this.textInput,
       title: title ?? this.title,
       bgSearchInput: bgSearchInput ?? this.bgSearchInput,
@@ -557,6 +569,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelEdited: Color.lerp(labelEdited, other.labelEdited, t)!,
       labelMenuButton: Color.lerp(labelMenuButton, other.labelMenuButton, t)!,
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
+      neutralButtonBg: Color.lerp(neutralButtonBg, other.neutralButtonBg, t)!,
+      neutralButtonLabel: Color.lerp(neutralButtonLabel, other.neutralButtonLabel, t)!,
       textInput: Color.lerp(textInput, other.textInput, t)!,
       title: Color.lerp(title, other.title, t)!,
       bgSearchInput: Color.lerp(bgSearchInput, other.bgSearchInput, t)!,
