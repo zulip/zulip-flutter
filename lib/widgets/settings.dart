@@ -53,7 +53,10 @@ class _ThemeSetting extends StatelessWidget {
               themeSetting: themeSettingOption,
               zulipLocalizations: zulipLocalizations)),
             value: themeSettingOption,
+            // TODO(#1545) stop using the deprecated members
+            // ignore: deprecated_member_use
             groupValue: globalSettings.themeSetting,
+            // ignore: deprecated_member_use
             onChanged: (newValue) => _handleChange(context, newValue)),
       ]);
   }

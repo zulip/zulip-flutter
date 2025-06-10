@@ -251,5 +251,7 @@ extension SwitchListTileChecks<T> on Subject<SwitchListTile> {
 }
 
 extension RadioListTileChecks<T> on Subject<RadioListTile<T>> {
+  // TODO(#1545) stop using the deprecated member
+  // ignore: deprecated_member_use
   Subject<bool> get checked => has((x) => x.checked, 'checked');
 }
