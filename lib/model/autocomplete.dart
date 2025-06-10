@@ -12,6 +12,7 @@ import 'compose.dart';
 import 'emoji.dart';
 import 'narrow.dart';
 import 'store.dart';
+import 'user.dart';
 
 extension ComposeContentAutocomplete on ComposeContentController {
   AutocompleteIntent<ComposeAutocompleteQuery>? autocompleteIntent() {
@@ -649,7 +650,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   }
 
   MentionAutocompleteResult? _testUser(MentionAutocompleteQuery query, User user) {
-    if (query.testUser(user, store.autocompleteViewManager.autocompleteDataCache)) {
+    if (query.testUser(user, store.autocompleteViewManager.autocompleteDataCache, store)) {
       return UserMentionAutocompleteResult(userId: user.userId);
     }
     return null;
@@ -754,10 +755,11 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
       || wildcardOption.localizedCanonicalString(localizations).contains(_lowercase);
   }
 
-  bool testUser(User user, AutocompleteDataCache cache) {
-    // TODO(#236) test email too, not just name
+  bool testUser(User user, AutocompleteDataCache cache, UserStore store) {
     if (!user.isActive) return false;
+    if (store.isUserMuted(user.userId)) return false;
 
+    // TODO(#236) test email too, not just name
     return _testName(user, cache);
   }
 
