@@ -1194,7 +1194,7 @@ class _TypingStatusWidgetState extends State<TypingStatusWidget> with PerAccount
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     final typistIds = model!.typistIdsInNarrow(narrow);
-    if (typistIds.isEmpty) return const SizedBox();
+    if (typistIds == null) return const SizedBox();
     final text = switch (typistIds.length) {
       1 => zulipLocalizations.onePersonTyping(
              store.userDisplayName(typistIds.first)),
