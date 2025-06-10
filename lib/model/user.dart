@@ -2,6 +2,7 @@ import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import 'localizations.dart';
+import 'narrow.dart';
 import 'store.dart';
 
 /// The portion of [PerAccountStore] describing the users in the realm.
@@ -85,6 +86,17 @@ mixin UserStore on PerAccountStoreBase {
   /// Looks for [userId] in a private [Set],
   /// or in [event.mutedUsers] instead if event is non-null.
   bool isUserMuted(int userId, {MutedUsersEvent? event});
+
+  /// Whether the self-user has muted everyone in [narrow].
+  ///
+  /// Returns false for the self-DM.
+  ///
+  /// Calls [isUserMuted] for each participant, passing along [event].
+  bool shouldMuteDmConversation(DmNarrow narrow, {MutedUsersEvent? event}) {
+    if (narrow.otherRecipientIds.isEmpty) return false;
+    return narrow.otherRecipientIds.every(
+      (userId) => isUserMuted(userId, event: event));
+  }
 }
 
 /// The implementation of [UserStore] that does the work.
