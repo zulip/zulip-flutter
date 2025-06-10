@@ -20,6 +20,7 @@ class ZulipWebUiKitButton extends StatelessWidget {
     this.intent = ZulipWebUiKitButtonIntent.info,
     this.size = ZulipWebUiKitButtonSize.normal,
     required this.label,
+    this.icon,
     required this.onPressed,
   });
 
@@ -27,6 +28,7 @@ class ZulipWebUiKitButton extends StatelessWidget {
   final ZulipWebUiKitButtonIntent intent;
   final ZulipWebUiKitButtonSize size;
   final String label;
+  final IconData? icon;
   final VoidCallback onPressed;
 
   WidgetStateColor _backgroundColor(DesignVariables designVariables) {
@@ -118,16 +120,22 @@ class ZulipWebUiKitButton extends StatelessWidget {
 
     final buttonHeight = _forSize(24, 28);
 
+    final labelColor = _labelColor(designVariables);
+
     return AnimatedScaleOnTap(
       scaleEnd: 0.96,
       duration: Duration(milliseconds: 100),
-      child: TextButton(
+      child: TextButton.icon(
+        // TODO the gap between the icon and label should be 6px, not 8px
+        icon: icon != null ? Icon(icon) : null,
         style: TextButton.styleFrom(
+          iconSize: 16,
+          iconColor: labelColor,
           padding: EdgeInsets.symmetric(
             horizontal: _forSize(6, 10),
             vertical: 4 - densityVerticalAdjustment,
           ),
-          foregroundColor: _labelColor(designVariables),
+          foregroundColor: labelColor,
           shape: RoundedRectangleBorder(
             side: _borderSide(designVariables),
             borderRadius: BorderRadius.circular(_forSize(6, 4))),
@@ -144,7 +152,7 @@ class ZulipWebUiKitButton extends StatelessWidget {
           ),
         ).copyWith(backgroundColor: _backgroundColor(designVariables)),
         onPressed: onPressed,
-        child: ConstrainedBox(
+        label: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: 240),
           child: Text(label,
             textScaler: textScaler,
