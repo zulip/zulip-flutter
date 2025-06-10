@@ -287,6 +287,12 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore, _OutboxMes
     }
   }
 
+  void handleMutedUsersEvent(MutedUsersEvent event) {
+    for (final view in _messageListViews) {
+      view.handleMutedUsersEvent(event);
+    }
+  }
+
   void handleMessageEvent(MessageEvent event) {
     // If the message is one we already know about (from a fetch),
     // clobber it with the one from the event system.

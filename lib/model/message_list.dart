@@ -13,6 +13,7 @@ import 'content.dart';
 import 'message.dart';
 import 'narrow.dart';
 import 'store.dart';
+import 'user.dart';
 
 /// The number of messages to fetch in each request.
 const kMessageListFetchBatchSize = 100; // TODO tune
@@ -461,7 +462,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return switch (message.conversation) {
           StreamConversation(:final streamId, :final topic) =>
             store.isTopicVisible(streamId, topic),
-          DmConversation() => true,
+          DmConversation(:final allRecipientIds) =>
+            !store.shouldMuteDmConversation(DmNarrow(
+              allRecipientIds: allRecipientIds, selfUserId: store.selfUserId)),
         };
 
       case ChannelNarrow(:final streamId):
@@ -472,8 +475,14 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
       case TopicNarrow():
       case DmNarrow():
+        return true;
+
       case MentionsNarrow():
       case StarredMessagesNarrow():
+        if (message.conversation case DmConversation(:final allRecipientIds)) {
+          return !store.shouldMuteDmConversation(DmNarrow(
+            allRecipientIds: allRecipientIds, selfUserId: store.selfUserId));
+        }
         return true;
     }
   }
@@ -485,12 +494,12 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     switch (narrow) {
       case CombinedFeedNarrow():
       case ChannelNarrow():
+      case MentionsNarrow():
+      case StarredMessagesNarrow():
         return false;
 
       case TopicNarrow():
       case DmNarrow():
-      case MentionsNarrow():
-      case StarredMessagesNarrow():
         return true;
     }
   }
@@ -511,6 +520,22 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case MentionsNarrow():
       case StarredMessagesNarrow():
         return UserTopicVisibilityEffect.none;
+    }
+  }
+
+  /// Whether this event could affect the result that [_messageVisible]
+  /// would ever have returned for any possible message in this message list.
+  MutedUsersVisibilityEffect _mutedUsersEventCanAffectVisibility(MutedUsersEvent event) {
+    switch(narrow) {
+      case CombinedFeedNarrow():
+      case MentionsNarrow():
+      case StarredMessagesNarrow():
+        return store.mightChangeShouldMuteDmConversation(event);
+
+      case ChannelNarrow():
+      case TopicNarrow():
+      case DmNarrow():
+        return MutedUsersVisibilityEffect.none;
     }
   }
 
@@ -674,6 +699,36 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         }
 
       case UserTopicVisibilityEffect.unmuted:
+        // TODO get the newly-unmuted messages from the message store
+        // For now, we simplify the task by just refetching this message list
+        // from scratch.
+        if (fetched) {
+          _reset();
+          notifyListeners();
+          fetchInitial();
+        }
+    }
+  }
+
+  void handleMutedUsersEvent(MutedUsersEvent event) {
+    final newMutedUsers = {...event.mutedUsers.map((e) => e.id)};
+
+    switch (_mutedUsersEventCanAffectVisibility(event)) {
+      case MutedUsersVisibilityEffect.none:
+        return;
+
+      case MutedUsersVisibilityEffect.muted:
+        final anyRemoved = _removeMessagesWhere((message) {
+          if (message is! DmMessage) return false;
+          final narrow = DmNarrow.ofMessage(message, selfUserId: store.selfUserId);
+          return store.shouldMuteDmConversation(narrow, mutedUsers: newMutedUsers);
+        });
+        if (anyRemoved) {
+          notifyListeners();
+        }
+
+      case MutedUsersVisibilityEffect.mixed:
+      case MutedUsersVisibilityEffect.unmuted:
         // TODO get the newly-unmuted messages from the message store
         // For now, we simplify the task by just refetching this message list
         // from scratch.
