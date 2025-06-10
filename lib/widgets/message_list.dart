@@ -1327,13 +1327,14 @@ class _TypingStatusWidgetState extends State<TypingStatusWidget> with PerAccount
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     final typistIds = model!.typistIdsInNarrow(narrow);
-    if (typistIds.isEmpty) return const SizedBox();
-    final text = switch (typistIds.length) {
+    final filteredTypistIds = typistIds.whereNot(store.isUserMuted);
+    if (filteredTypistIds.isEmpty) return const SizedBox();
+    final text = switch (filteredTypistIds.length) {
       1 => zulipLocalizations.onePersonTyping(
-             store.userDisplayName(typistIds.first)),
+             store.userDisplayName(filteredTypistIds.first)),
       2 => zulipLocalizations.twoPeopleTyping(
-             store.userDisplayName(typistIds.first),
-             store.userDisplayName(typistIds.last)),
+             store.userDisplayName(filteredTypistIds.first),
+             store.userDisplayName(filteredTypistIds.last)),
       _ => zulipLocalizations.manyPeopleTyping,
     };
 

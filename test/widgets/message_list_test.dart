@@ -893,6 +893,30 @@ void main() {
       // Wait for the pending timers to end.
       await tester.pump(const Duration(seconds: 15));
     });
+
+    testWidgets('muted user typing', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: topicNarrow, users: users, messages: [streamMessage]);
+
+      await checkTyping(tester,
+        eg.typingEvent(topicNarrow, TypingOp.start, eg.otherUser.userId),
+        expected: 'Other User is typing…');
+
+      await checkTyping(tester,
+        eg.typingEvent(topicNarrow, TypingOp.start, eg.thirdUser.userId),
+        expected: 'Other User and Third User are typing…');
+
+      await store.setMutedUsers([eg.otherUser.userId]);
+      await tester.pump();
+
+      await checkTyping(tester,
+        eg.typingEvent(topicNarrow, TypingOp.start, eg.thirdUser.userId),
+        expected: 'Third User is typing…', // no "Other User"
+      );
+
+      // Wait for the pending timers to end.
+      await tester.pump(const Duration(seconds: 15));
+    });
   });
 
   group('MarkAsReadWidget', () {
