@@ -171,6 +171,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelMenuButton: const Color(0xff222222),
     labelSearchPrompt: const Color(0xff000000).withValues(alpha: 0.5),
     mainBackground: const Color(0xfff0f0f0),
+    neutralButtonBg: const Color(0xff8c84ae),
+    neutralButtonLabel: const Color(0xff433d5c),
     radioBorder: Color(0xffbbbdc8),
     radioFillSelected: Color(0xff4370f0),
     statusAway: Color(0xff73788c).withValues(alpha: 0.25),
@@ -247,6 +249,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
     labelSearchPrompt: const Color(0xffffffff).withValues(alpha: 0.5),
     mainBackground: const Color(0xff1d1d1d),
+    neutralButtonBg: const Color(0xffd4d1e0),
+    neutralButtonLabel: const Color(0xffa9a3c2),
     radioBorder: Color(0xff626573),
     radioFillSelected: Color(0xff4e7cfa),
     statusAway: Color(0xffabaeba).withValues(alpha: 0.30),
@@ -331,6 +335,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.labelMenuButton,
     required this.labelSearchPrompt,
     required this.mainBackground,
+    required this.neutralButtonBg,
+    required this.neutralButtonLabel,
     required this.radioBorder,
     required this.radioFillSelected,
     required this.statusAway,
@@ -412,6 +418,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color labelMenuButton;
   final Color labelSearchPrompt;
   final Color mainBackground;
+  final Color neutralButtonBg;
+  final Color neutralButtonLabel;
   final Color radioBorder;
   final Color radioFillSelected;
   final Color statusAway;
@@ -488,6 +496,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? labelMenuButton,
     Color? labelSearchPrompt,
     Color? mainBackground,
+    Color? neutralButtonBg,
+    Color? neutralButtonLabel,
     Color? radioBorder,
     Color? radioFillSelected,
     Color? statusAway,
@@ -559,6 +569,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelMenuButton: labelMenuButton ?? this.labelMenuButton,
       labelSearchPrompt: labelSearchPrompt ?? this.labelSearchPrompt,
       mainBackground: mainBackground ?? this.mainBackground,
+      neutralButtonBg: neutralButtonBg ?? this.neutralButtonBg,
+      neutralButtonLabel: neutralButtonLabel ?? this.neutralButtonLabel,
       radioBorder: radioBorder ?? this.radioBorder,
       radioFillSelected: radioFillSelected ?? this.radioFillSelected,
       statusAway: statusAway ?? this.statusAway,
@@ -637,6 +649,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelMenuButton: Color.lerp(labelMenuButton, other.labelMenuButton, t)!,
       labelSearchPrompt: Color.lerp(labelSearchPrompt, other.labelSearchPrompt, t)!,
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
+      neutralButtonBg: Color.lerp(neutralButtonBg, other.neutralButtonBg, t)!,
+      neutralButtonLabel: Color.lerp(neutralButtonLabel, other.neutralButtonLabel, t)!,
       radioBorder: Color.lerp(radioBorder, other.radioBorder, t)!,
       radioFillSelected: Color.lerp(radioFillSelected, other.radioFillSelected, t)!,
       statusAway: Color.lerp(statusAway, other.statusAway, t)!,
