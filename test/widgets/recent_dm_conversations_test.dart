@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
@@ -67,11 +68,11 @@ Future<void> setupPage(WidgetTester tester, {
 void main() {
   TestZulipBinding.ensureInitialized();
 
-  group('RecentDmConversationsPage', () {
-    Finder findConversationItem(Narrow narrow) => find.byWidgetPredicate(
-      (widget) => widget is RecentDmConversationsItem && widget.narrow == narrow,
-    );
+  Finder findConversationItem(Narrow narrow) => find.byWidgetPredicate(
+    (widget) => widget is RecentDmConversationsItem && widget.narrow == narrow,
+  );
 
+  group('RecentDmConversationsPage', () {
     testWidgets('page builds; conversations appear in order', (tester) async {
       final user1 = eg.user(userId: 1);
       final user2 = eg.user(userId: 2);
@@ -226,8 +227,8 @@ void main() {
               mutedUserIds: [user.userId],
               dmMessages: [message]);
 
-            checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-            checkTitle(tester, 'Muted user');
+            final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
+            check(findConversationItem(narrow)).findsNothing();
           });
         });
 
@@ -312,8 +313,8 @@ void main() {
               mutedUserIds: [user0.userId, user1.userId],
               dmMessages: [message]);
 
-            checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-            checkTitle(tester, 'Muted user, Muted user');
+            final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
+            check(findConversationItem(narrow)).findsNothing();
           });
         });
 

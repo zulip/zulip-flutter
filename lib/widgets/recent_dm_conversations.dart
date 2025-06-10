@@ -48,6 +48,7 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     final sorted = model!.sorted;
     return SafeArea(
       // Don't pad the bottom here; we want the list content to do that.
@@ -56,6 +57,12 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
         itemCount: sorted.length,
         itemBuilder: (context, index) {
           final narrow = sorted[index];
+          if (store.shouldMuteDmConversation(narrow)) {
+            // Filter out conversations where everyone is muted.
+            // TODO should we offer a "spam folder"-style summary screen
+            //   for these conversations we're filtering out?
+            return SizedBox.shrink();
+          }
           return RecentDmConversationsItem(
             narrow: narrow,
             unreadCount: unreadsModel!.countInDmNarrow(narrow),
@@ -88,9 +95,6 @@ class RecentDmConversationsItem extends StatelessWidget {
         title = store.selfUser.fullName;
         avatar = AvatarImage(userId: store.selfUserId, size: _avatarSize);
       case [var otherUserId]:
-        // TODO(#296) actually don't show this row if the user is muted?
-        //   (should we offer a "spam folder" style summary screen of recent
-        //   1:1 DM conversations from muted users?)
         title = store.userDisplayName(otherUserId);
         avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
       default:
