@@ -512,7 +512,7 @@ class ContentExample {
   static final mathInline = ContentExample.inline(
     'inline math',
     r"$$ \lambda $$",
-    expectedText: r'\lambda',
+    expectedText: r'λ',
     '<p><span class="katex">'
       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
         '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
@@ -532,7 +532,7 @@ class ContentExample {
   static const mathBlock = ContentExample(
     'math block',
     "```math\n\\lambda\n```",
-    expectedText: r'\lambda',
+    expectedText: r'λ',
     '<p><span class="katex-display"><span class="katex">'
       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
         '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
