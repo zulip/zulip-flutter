@@ -327,7 +327,7 @@ class _AllDmsHeaderItem extends _HeaderItem {
 
   @override String title(ZulipLocalizations zulipLocalizations) =>
     zulipLocalizations.recentDmConversationsSectionHeader;
-  @override IconData get icon => ZulipIcons.user;
+  @override IconData get icon => ZulipIcons.two_person;
 
   // TODO(design) check if this is the right variable for these
   @override Color collapsedIconColor(context) => DesignVariables.of(context).labelMenuButton;

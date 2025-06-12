@@ -79,4 +79,27 @@ void main() {
       check(getUser()).deliveryEmail.equals('c@mail.example');
     });
   });
+
+  testWidgets('MutedUsersEvent', (tester) async {
+    final user1 = eg.user(userId: 1);
+    final user2 = eg.user(userId: 2);
+    final user3 = eg.user(userId: 3);
+
+    final store = eg.store(initialSnapshot: eg.initialSnapshot(
+      realmUsers: [user1, user2, user3],
+      mutedUsers: [MutedUserItem(id: 2), MutedUserItem(id: 1)]));
+    check(store.isUserMuted(1)).isTrue();
+    check(store.isUserMuted(2)).isTrue();
+    check(store.isUserMuted(3)).isFalse();
+
+    await store.handleEvent(eg.mutedUsersEvent([2, 1, 3]));
+    check(store.isUserMuted(1)).isTrue();
+    check(store.isUserMuted(2)).isTrue();
+    check(store.isUserMuted(3)).isTrue();
+
+    await store.handleEvent(eg.mutedUsersEvent([2, 3]));
+    check(store.isUserMuted(1)).isFalse();
+    check(store.isUserMuted(2)).isTrue();
+    check(store.isUserMuted(3)).isTrue();
+  });
 }

@@ -44,6 +44,8 @@ class InitialSnapshot {
 
   // final List<…> mutedTopics; // TODO(#422) we ignore this feature on older servers
 
+  final List<MutedUserItem> mutedUsers;
+
   final Map<String, RealmEmojiItem> realmEmoji;
 
   final List<RecentDmConversation> recentPrivateConversations;
@@ -132,6 +134,7 @@ class InitialSnapshot {
     required this.serverTypingStartedExpiryPeriodMilliseconds,
     required this.serverTypingStoppedWaitPeriodMilliseconds,
     required this.serverTypingStartedWaitPeriodMilliseconds,
+    required this.mutedUsers,
     required this.realmEmoji,
     required this.recentPrivateConversations,
     required this.savedSnippets,

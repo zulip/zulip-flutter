@@ -110,6 +110,25 @@ class CustomProfileFieldExternalAccountData {
   Map<String, dynamic> toJson() => _$CustomProfileFieldExternalAccountDataToJson(this);
 }
 
+/// An item in the [InitialSnapshot.mutedUsers] or [MutedUsersEvent].
+///
+/// For docs, search for "muted_users:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class MutedUserItem {
+  final int id;
+
+  // Mobile doesn't use the timestamp; ignore.
+  // final int timestamp;
+
+  const MutedUserItem({required this.id});
+
+  factory MutedUserItem.fromJson(Map<String, dynamic> json) =>
+    _$MutedUserItemFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MutedUserItemToJson(this);
+}
+
 /// An item in [InitialSnapshot.realmEmoji] or [RealmEmojiUpdateEvent].
 ///
 /// For docs, search for "realm_emoji:"
