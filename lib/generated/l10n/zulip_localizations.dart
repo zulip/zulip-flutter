@@ -1421,6 +1421,36 @@ abstract class ZulipLocalizations {
   /// **'This poll has no options yet.'**
   String get pollWidgetOptionsMissing;
 
+  /// Title of setting controlling initial anchor of message list.
+  ///
+  /// In en, this message translates to:
+  /// **'Open message feeds at'**
+  String get initialAnchorSettingTitle;
+
+  /// Description of setting controlling initial anchor of message list.
+  ///
+  /// In en, this message translates to:
+  /// **'You can choose whether message feeds open at your first unread message or at the newest messages.'**
+  String get initialAnchorSettingDescription;
+
+  /// Label for a value of setting controlling initial anchor of message list.
+  ///
+  /// In en, this message translates to:
+  /// **'First unread message'**
+  String get initialAnchorSettingFirstUnreadAlways;
+
+  /// Label for a value of setting controlling initial anchor of message list.
+  ///
+  /// In en, this message translates to:
+  /// **'First unread message in single conversations, newest message elsewhere'**
+  String get initialAnchorSettingFirstUnreadConversations;
+
+  /// Label for a value of setting controlling initial anchor of message list.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest message'**
+  String get initialAnchorSettingNewestAlways;
+
   /// Title of settings page for experimental, in-development features
   ///
   /// In en, this message translates to:

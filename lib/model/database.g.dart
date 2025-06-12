@@ -32,7 +32,22 @@ class $GlobalSettingsTable extends GlobalSettings
     $GlobalSettingsTable.$converterbrowserPreferencen,
   );
   @override
-  List<GeneratedColumn> get $columns => [themeSetting, browserPreference];
+  late final GeneratedColumnWithTypeConverter<VisitFirstUnreadSetting?, String>
+  visitFirstUnread = GeneratedColumn<String>(
+    'visit_first_unread',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<VisitFirstUnreadSetting?>(
+    $GlobalSettingsTable.$convertervisitFirstUnreadn,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    themeSetting,
+    browserPreference,
+    visitFirstUnread,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -55,6 +70,13 @@ class $GlobalSettingsTable extends GlobalSettings
             attachedDatabase.typeMapping.read(
               DriftSqlType.string,
               data['${effectivePrefix}browser_preference'],
+            ),
+          ),
+      visitFirstUnread: $GlobalSettingsTable.$convertervisitFirstUnreadn
+          .fromSql(
+            attachedDatabase.typeMapping.read(
+              DriftSqlType.string,
+              data['${effectivePrefix}visit_first_unread'],
             ),
           ),
     );
@@ -81,13 +103,26 @@ class $GlobalSettingsTable extends GlobalSettings
   $converterbrowserPreferencen = JsonTypeConverter2.asNullable(
     $converterbrowserPreference,
   );
+  static JsonTypeConverter2<VisitFirstUnreadSetting, String, String>
+  $convertervisitFirstUnread = const EnumNameConverter<VisitFirstUnreadSetting>(
+    VisitFirstUnreadSetting.values,
+  );
+  static JsonTypeConverter2<VisitFirstUnreadSetting?, String?, String?>
+  $convertervisitFirstUnreadn = JsonTypeConverter2.asNullable(
+    $convertervisitFirstUnread,
+  );
 }
 
 class GlobalSettingsData extends DataClass
     implements Insertable<GlobalSettingsData> {
   final ThemeSetting? themeSetting;
   final BrowserPreference? browserPreference;
-  const GlobalSettingsData({this.themeSetting, this.browserPreference});
+  final VisitFirstUnreadSetting? visitFirstUnread;
+  const GlobalSettingsData({
+    this.themeSetting,
+    this.browserPreference,
+    this.visitFirstUnread,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -100,6 +135,13 @@ class GlobalSettingsData extends DataClass
       map['browser_preference'] = Variable<String>(
         $GlobalSettingsTable.$converterbrowserPreferencen.toSql(
           browserPreference,
+        ),
+      );
+    }
+    if (!nullToAbsent || visitFirstUnread != null) {
+      map['visit_first_unread'] = Variable<String>(
+        $GlobalSettingsTable.$convertervisitFirstUnreadn.toSql(
+          visitFirstUnread,
         ),
       );
     }
@@ -116,6 +158,10 @@ class GlobalSettingsData extends DataClass
           browserPreference == null && nullToAbsent
               ? const Value.absent()
               : Value(browserPreference),
+      visitFirstUnread:
+          visitFirstUnread == null && nullToAbsent
+              ? const Value.absent()
+              : Value(visitFirstUnread),
     );
   }
 
@@ -130,6 +176,8 @@ class GlobalSettingsData extends DataClass
       ),
       browserPreference: $GlobalSettingsTable.$converterbrowserPreferencen
           .fromJson(serializer.fromJson<String?>(json['browserPreference'])),
+      visitFirstUnread: $GlobalSettingsTable.$convertervisitFirstUnreadn
+          .fromJson(serializer.fromJson<String?>(json['visitFirstUnread'])),
     );
   }
   @override
@@ -144,18 +192,28 @@ class GlobalSettingsData extends DataClass
           browserPreference,
         ),
       ),
+      'visitFirstUnread': serializer.toJson<String?>(
+        $GlobalSettingsTable.$convertervisitFirstUnreadn.toJson(
+          visitFirstUnread,
+        ),
+      ),
     };
   }
 
   GlobalSettingsData copyWith({
     Value<ThemeSetting?> themeSetting = const Value.absent(),
     Value<BrowserPreference?> browserPreference = const Value.absent(),
+    Value<VisitFirstUnreadSetting?> visitFirstUnread = const Value.absent(),
   }) => GlobalSettingsData(
     themeSetting: themeSetting.present ? themeSetting.value : this.themeSetting,
     browserPreference:
         browserPreference.present
             ? browserPreference.value
             : this.browserPreference,
+    visitFirstUnread:
+        visitFirstUnread.present
+            ? visitFirstUnread.value
+            : this.visitFirstUnread,
   );
   GlobalSettingsData copyWithCompanion(GlobalSettingsCompanion data) {
     return GlobalSettingsData(
@@ -167,6 +225,10 @@ class GlobalSettingsData extends DataClass
           data.browserPreference.present
               ? data.browserPreference.value
               : this.browserPreference,
+      visitFirstUnread:
+          data.visitFirstUnread.present
+              ? data.visitFirstUnread.value
+              : this.visitFirstUnread,
     );
   }
 
@@ -174,43 +236,51 @@ class GlobalSettingsData extends DataClass
   String toString() {
     return (StringBuffer('GlobalSettingsData(')
           ..write('themeSetting: $themeSetting, ')
-          ..write('browserPreference: $browserPreference')
+          ..write('browserPreference: $browserPreference, ')
+          ..write('visitFirstUnread: $visitFirstUnread')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(themeSetting, browserPreference);
+  int get hashCode =>
+      Object.hash(themeSetting, browserPreference, visitFirstUnread);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is GlobalSettingsData &&
           other.themeSetting == this.themeSetting &&
-          other.browserPreference == this.browserPreference);
+          other.browserPreference == this.browserPreference &&
+          other.visitFirstUnread == this.visitFirstUnread);
 }
 
 class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
   final Value<ThemeSetting?> themeSetting;
   final Value<BrowserPreference?> browserPreference;
+  final Value<VisitFirstUnreadSetting?> visitFirstUnread;
   final Value<int> rowid;
   const GlobalSettingsCompanion({
     this.themeSetting = const Value.absent(),
     this.browserPreference = const Value.absent(),
+    this.visitFirstUnread = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   GlobalSettingsCompanion.insert({
     this.themeSetting = const Value.absent(),
     this.browserPreference = const Value.absent(),
+    this.visitFirstUnread = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   static Insertable<GlobalSettingsData> custom({
     Expression<String>? themeSetting,
     Expression<String>? browserPreference,
+    Expression<String>? visitFirstUnread,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (themeSetting != null) 'theme_setting': themeSetting,
       if (browserPreference != null) 'browser_preference': browserPreference,
+      if (visitFirstUnread != null) 'visit_first_unread': visitFirstUnread,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -218,11 +288,13 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
   GlobalSettingsCompanion copyWith({
     Value<ThemeSetting?>? themeSetting,
     Value<BrowserPreference?>? browserPreference,
+    Value<VisitFirstUnreadSetting?>? visitFirstUnread,
     Value<int>? rowid,
   }) {
     return GlobalSettingsCompanion(
       themeSetting: themeSetting ?? this.themeSetting,
       browserPreference: browserPreference ?? this.browserPreference,
+      visitFirstUnread: visitFirstUnread ?? this.visitFirstUnread,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -242,6 +314,13 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
         ),
       );
     }
+    if (visitFirstUnread.present) {
+      map['visit_first_unread'] = Variable<String>(
+        $GlobalSettingsTable.$convertervisitFirstUnreadn.toSql(
+          visitFirstUnread.value,
+        ),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -253,6 +332,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
     return (StringBuffer('GlobalSettingsCompanion(')
           ..write('themeSetting: $themeSetting, ')
           ..write('browserPreference: $browserPreference, ')
+          ..write('visitFirstUnread: $visitFirstUnread, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1109,12 +1189,14 @@ typedef $$GlobalSettingsTableCreateCompanionBuilder =
     GlobalSettingsCompanion Function({
       Value<ThemeSetting?> themeSetting,
       Value<BrowserPreference?> browserPreference,
+      Value<VisitFirstUnreadSetting?> visitFirstUnread,
       Value<int> rowid,
     });
 typedef $$GlobalSettingsTableUpdateCompanionBuilder =
     GlobalSettingsCompanion Function({
       Value<ThemeSetting?> themeSetting,
       Value<BrowserPreference?> browserPreference,
+      Value<VisitFirstUnreadSetting?> visitFirstUnread,
       Value<int> rowid,
     });
 
@@ -1138,6 +1220,16 @@ class $$GlobalSettingsTableFilterComposer
     column: $table.browserPreference,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
+
+  ColumnWithTypeConverterFilters<
+    VisitFirstUnreadSetting?,
+    VisitFirstUnreadSetting,
+    String
+  >
+  get visitFirstUnread => $composableBuilder(
+    column: $table.visitFirstUnread,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
 }
 
 class $$GlobalSettingsTableOrderingComposer
@@ -1156,6 +1248,11 @@ class $$GlobalSettingsTableOrderingComposer
 
   ColumnOrderings<String> get browserPreference => $composableBuilder(
     column: $table.browserPreference,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get visitFirstUnread => $composableBuilder(
+    column: $table.visitFirstUnread,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -1178,6 +1275,12 @@ class $$GlobalSettingsTableAnnotationComposer
   GeneratedColumnWithTypeConverter<BrowserPreference?, String>
   get browserPreference => $composableBuilder(
     column: $table.browserPreference,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<VisitFirstUnreadSetting?, String>
+  get visitFirstUnread => $composableBuilder(
+    column: $table.visitFirstUnread,
     builder: (column) => column,
   );
 }
@@ -1226,10 +1329,13 @@ class $$GlobalSettingsTableTableManager
                 Value<ThemeSetting?> themeSetting = const Value.absent(),
                 Value<BrowserPreference?> browserPreference =
                     const Value.absent(),
+                Value<VisitFirstUnreadSetting?> visitFirstUnread =
+                    const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GlobalSettingsCompanion(
                 themeSetting: themeSetting,
                 browserPreference: browserPreference,
+                visitFirstUnread: visitFirstUnread,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -1237,10 +1343,13 @@ class $$GlobalSettingsTableTableManager
                 Value<ThemeSetting?> themeSetting = const Value.absent(),
                 Value<BrowserPreference?> browserPreference =
                     const Value.absent(),
+                Value<VisitFirstUnreadSetting?> visitFirstUnread =
+                    const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GlobalSettingsCompanion.insert(
                 themeSetting: themeSetting,
                 browserPreference: browserPreference,
+                visitFirstUnread: visitFirstUnread,
                 rowid: rowid,
               ),
           withReferenceMapper:

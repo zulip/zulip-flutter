@@ -367,12 +367,87 @@ i1.GeneratedColumn<bool> _column_12(String aliasedName) =>
         'CHECK ("value" IN (0, 1))',
       ),
     );
+
+final class Schema7 extends i0.VersionedSchema {
+  Schema7({required super.database}) : super(version: 7);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    globalSettings,
+    boolGlobalSettings,
+    accounts,
+  ];
+  late final Shape4 globalSettings = Shape4(
+    source: i0.VersionedTable(
+      entityName: 'global_settings',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [_column_9, _column_10, _column_13],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape3 boolGlobalSettings = Shape3(
+    source: i0.VersionedTable(
+      entityName: 'bool_global_settings',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(name)'],
+      columns: [_column_11, _column_12],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape0 accounts = Shape0(
+    source: i0.VersionedTable(
+      entityName: 'accounts',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'UNIQUE(realm_url, user_id)',
+        'UNIQUE(realm_url, email)',
+      ],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_3,
+        _column_4,
+        _column_5,
+        _column_6,
+        _column_7,
+        _column_8,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+}
+
+class Shape4 extends i0.VersionedTable {
+  Shape4({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get themeSetting =>
+      columnsByName['theme_setting']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get browserPreference =>
+      columnsByName['browser_preference']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get visitFirstUnread =>
+      columnsByName['visit_first_unread']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<String> _column_13(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'visit_first_unread',
+      aliasedName,
+      true,
+      type: i1.DriftSqlType.string,
+    );
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
   required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
   required Future<void> Function(i1.Migrator m, Schema5 schema) from4To5,
   required Future<void> Function(i1.Migrator m, Schema6 schema) from5To6,
+  required Future<void> Function(i1.Migrator m, Schema7 schema) from6To7,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -401,6 +476,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from5To6(migrator, schema);
         return 6;
+      case 6:
+        final schema = Schema7(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from6To7(migrator, schema);
+        return 7;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -413,6 +493,7 @@ i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
   required Future<void> Function(i1.Migrator m, Schema5 schema) from4To5,
   required Future<void> Function(i1.Migrator m, Schema6 schema) from5To6,
+  required Future<void> Function(i1.Migrator m, Schema7 schema) from6To7,
 }) => i0.VersionedSchema.stepByStepHelper(
   step: migrationSteps(
     from1To2: from1To2,
@@ -420,5 +501,6 @@ i1.OnUpgrade stepByStep({
     from3To4: from3To4,
     from4To5: from4To5,
     from5To6: from5To6,
+    from6To7: from6To7,
   ),
 );

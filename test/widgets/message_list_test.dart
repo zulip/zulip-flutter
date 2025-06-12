@@ -408,7 +408,7 @@ void main() {
           ..url.path.equals('/api/v1/messages')
           ..url.queryParameters.deepEquals({
             'narrow': jsonEncode(narrow.apiEncode()),
-            'anchor': AnchorCode.newest.toJson(),
+            'anchor': AnchorCode.firstUnread.toJson(),
             'num_before': kMessageListFetchBatchSize.toString(),
             'num_after': kMessageListFetchBatchSize.toString(),
             'allow_empty_topic_name': 'true',
@@ -441,7 +441,7 @@ void main() {
           ..url.path.equals('/api/v1/messages')
           ..url.queryParameters.deepEquals({
             'narrow': jsonEncode(narrow.apiEncode()),
-            'anchor': AnchorCode.newest.toJson(),
+            'anchor': AnchorCode.firstUnread.toJson(),
             'num_before': kMessageListFetchBatchSize.toString(),
             'num_after': kMessageListFetchBatchSize.toString(),
             'allow_empty_topic_name': 'true',
