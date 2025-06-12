@@ -783,6 +783,23 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get pollWidgetOptionsMissing => 'Ta sonda nie ma opcji do wyboru.';
 
   @override
+  String get initialAnchorSettingTitle => 'Open message feeds at';
+
+  @override
+  String get initialAnchorSettingDescription =>
+      'You can choose whether message feeds open at your first unread message or at the newest messages.';
+
+  @override
+  String get initialAnchorSettingFirstUnreadAlways => 'First unread message';
+
+  @override
+  String get initialAnchorSettingFirstUnreadConversations =>
+      'First unread message in single conversations, newest message elsewhere';
+
+  @override
+  String get initialAnchorSettingNewestAlways => 'Newest message';
+
+  @override
   String get experimentalFeatureSettingsPageTitle => 'Funkcje eksperymentalne';
 
   @override
