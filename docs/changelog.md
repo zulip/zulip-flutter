@@ -11,8 +11,8 @@ not yet merged to the main branch.
 
 ### Highlights for users
 
-We're nearing ready to have this new app replace the legacy
-Zulip mobile app, next week.
+This app is nearing ready to replace the legacy Zulip mobile app,
+planned for next week.
 
 In addition to all the features in the last beta:
 * Conversations open at your first unread message. (#80)
