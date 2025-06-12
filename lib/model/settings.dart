@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
@@ -226,6 +228,25 @@ class GlobalSettingsStore extends ChangeNotifier {
       case BrowserPreference.external:
         return UrlLaunchMode.externalApplication;
     }
+  }
+
+  /// The user's choice of [Locale].
+  ///
+  /// In most cases, this will be present in the list returned by
+  /// [ZulipLocalizations.languages] (i.e., one of our supported languages).
+  /// This might not be true if we migrate from a [Locale] to another for the
+  /// same language.
+  ///
+  /// This is null if the value has never been set.
+  // TODO check if this [Locale] is supported, and update it in the persistent
+  //   store if this is known to be an alias of a supported [Locale]; if
+  //   necessary, set up migrations updating its value.
+  //   See disucssion: https://github.com/zulip/zulip-flutter/pull/1513#issuecomment-2899633541
+  Locale? get language => _data.language;
+
+  /// Set [language], persistently for future runs of the app.
+  Future<void> setLanguage(Locale value) async {
+    await _update(GlobalSettingsCompanion(language: Value(value)));
   }
 
   /// The user's choice of the given bool-valued setting, or our default for it.
