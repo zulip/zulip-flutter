@@ -246,9 +246,14 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
         actions.add(_TopicListButton(streamId: streamId));
     }
 
-    // TODO(#80): default to anchor firstUnread, instead of newest
-    final initAnchor = widget.initAnchorMessageId == null
-      ? AnchorCode.newest : NumericAnchor(widget.initAnchorMessageId!);
+    final Anchor initAnchor;
+    if (widget.initAnchorMessageId != null) {
+      initAnchor = NumericAnchor(widget.initAnchorMessageId!);
+    } else {
+      final globalSettings = GlobalStoreWidget.settingsOf(context);
+      final useFirstUnread = globalSettings.shouldVisitFirstUnread(narrow: narrow);
+      initAnchor = useFirstUnread ? AnchorCode.firstUnread : AnchorCode.newest;
+    }
 
     // Insert a PageRoot here, to provide a context that can be used for
     // MessageListPage.ancestorOf.

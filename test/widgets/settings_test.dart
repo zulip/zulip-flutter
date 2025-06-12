@@ -127,6 +127,8 @@ void main() {
     }, variant: TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
   });
 
+  // TODO(#1571): test visitFirstUnread setting UI
+
   // TODO maybe test GlobalSettingType.experimentalFeatureFlag settings
   //   Or maybe not; after all, it's a developer-facing feature, so
   //   should be low risk.

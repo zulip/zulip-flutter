@@ -951,6 +951,26 @@
   "@pollWidgetOptionsMissing": {
     "description": "Text to display for a poll when it has no options"
   },
+  "initialAnchorSettingTitle": "Open message feeds at",
+  "@initialAnchorSettingTitle": {
+    "description": "Title of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingDescription": "You can choose whether message feeds open at your first unread message or at the newest messages.",
+  "@initialAnchorSettingDescription": {
+    "description": "Description of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingFirstUnreadAlways": "First unread message",
+  "@initialAnchorSettingFirstUnreadAlways":  {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingFirstUnreadConversations": "First unread message in single conversations, newest message elsewhere",
+  "@initialAnchorSettingFirstUnreadConversations":  {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingNewestAlways": "Newest message",
+  "@initialAnchorSettingNewestAlways":  {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
   "experimentalFeatureSettingsPageTitle": "Experimental features",
   "@experimentalFeatureSettingsPageTitle": {
     "description": "Title of settings page for experimental, in-development features"
