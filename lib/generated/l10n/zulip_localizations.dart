@@ -655,11 +655,11 @@ abstract class ZulipLocalizations {
   /// **'When you edit a message, the content that was previously in the compose box is discarded.'**
   String get discardDraftForEditConfirmationDialogMessage;
 
-  /// Message for a confirmation dialog when restoring a message not sent, for discarding message text that was typed into the compose box.
+  /// Message for a confirmation dialog when restoring an outbox message, for discarding message text that was typed into the compose box.
   ///
   /// In en, this message translates to:
-  /// **'When you restore a message not sent, the content that was previously in the compose box is discarded.'**
-  String get discardDraftForMessageNotSentConfirmationDialogMessage;
+  /// **'When you restore an unsent message, the content that was previously in the compose box is discarded.'**
+  String get discardDraftForOutboxConfirmationDialogMessage;
 
   /// Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box.
   ///

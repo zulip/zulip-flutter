@@ -5,6 +5,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/message.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
@@ -803,6 +804,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           key: ValueKey(data.message.id),
           header: header,
           item: data);
+      case MessageListOutboxMessageItem():
+        final header = RecipientHeader(message: data.message, narrow: widget.narrow);
+        return MessageItem(header: header, item: data);
     }
   }
 }
@@ -1141,6 +1145,7 @@ class MessageItem extends StatelessWidget {
       child: Column(children: [
         switch (item) {
           MessageListMessageItem() => MessageWithPossibleSender(item: item),
+          MessageListOutboxMessageItem() => OutboxMessageWithPossibleSender(item: item),
         },
         // TODO refine this padding; discussion:
         //   https://github.com/zulip/zulip-flutter/pull/1453#discussion_r2106526985
@@ -1717,6 +1722,129 @@ class _RestoreEditMessageGestureDetector extends StatelessWidget {
         // TODO(#1518) allow restore-edit-message from any message-list page
         if (composeBoxState == null) return;
         composeBoxState.startEditInteraction(messageId);
+      },
+      child: child);
+  }
+}
+
+/// A "local echo" placeholder for a Zulip message to be sent by the self-user.
+///
+/// See also [OutboxMessage].
+class OutboxMessageWithPossibleSender extends StatelessWidget {
+  const OutboxMessageWithPossibleSender({super.key, required this.item});
+
+  final MessageListOutboxMessageItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final message = item.message;
+    final localMessageId = message.localMessageId;
+    final state = item.message.state;
+
+    // This is adapted from [MessageContent].
+    // TODO(#576): Offer InheritedMessage ancestor once we are ready
+    //   to support local echoing images and lightbox.
+    Widget content = DefaultTextStyle(
+      style: ContentTheme.of(context).textStylePlainParagraph,
+      child: BlockContentList(nodes: item.content.nodes));
+
+    switch (state) {
+      case OutboxMessageState.hidden:
+        throw StateError('Hidden OutboxMessage messages should not appear in message lists');
+      case OutboxMessageState.waiting:
+        break;
+      case OutboxMessageState.failed:
+      case OutboxMessageState.waitPeriodExpired:
+        // TODO(#576): When we support rendered-content local echo,
+        //   use IgnorePointer along with this faded appearance,
+        //   like we do for the failed-message-edit state
+        content = _RestoreOutboxMessageGestureDetector(
+          localMessageId: localMessageId,
+          child: Opacity(opacity: 0.6, child: content));
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Column(children: [
+        if (item.showSender)
+          _SenderRow(message: message, showTimestamp: false),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              content,
+              _OutboxMessageStatusRow(
+                localMessageId: localMessageId, outboxMessageState: state),
+            ])),
+      ]));
+  }
+}
+
+class _OutboxMessageStatusRow extends StatelessWidget {
+  const _OutboxMessageStatusRow({
+    required this.localMessageId,
+    required this.outboxMessageState,
+  });
+
+  final int localMessageId;
+  final OutboxMessageState outboxMessageState;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (outboxMessageState) {
+      case OutboxMessageState.hidden:
+        assert(false,
+          'Hidden OutboxMessage messages should not appear in message lists');
+        return SizedBox.shrink();
+
+      case OutboxMessageState.waiting:
+        final designVariables = DesignVariables.of(context);
+        return Padding(
+          padding: const EdgeInsetsGeometry.only(bottom: 2),
+          child: LinearProgressIndicator(
+            minHeight: 2,
+            color: designVariables.foreground.withFadedAlpha(0.5),
+            backgroundColor: designVariables.foreground.withFadedAlpha(0.2)));
+
+      case OutboxMessageState.failed:
+      case OutboxMessageState.waitPeriodExpired:
+        final designVariables = DesignVariables.of(context);
+        final zulipLocalizations = ZulipLocalizations.of(context);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: _RestoreOutboxMessageGestureDetector(
+            localMessageId: localMessageId,
+            child: Text(
+              zulipLocalizations.messageNotSentLabel,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                color: designVariables.btnLabelAttLowIntDanger,
+                fontSize: 12,
+                height: 12 / 12,
+                letterSpacing: proportionalLetterSpacing(
+                  context, 0.05, baseFontSize: 12)))));
+    }
+  }
+}
+
+class _RestoreOutboxMessageGestureDetector extends StatelessWidget {
+  const _RestoreOutboxMessageGestureDetector({
+    required this.localMessageId,
+    required this.child,
+  });
+
+  final int localMessageId;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        final composeBoxState = MessageListPage.ancestorOf(context).composeBoxState;
+        // TODO(#1518) allow restore-outbox-message from any message-list page
+        if (composeBoxState == null) return;
+        composeBoxState.restoreMessageNotSent(localMessageId);
       },
       child: child);
   }
