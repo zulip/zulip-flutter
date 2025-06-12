@@ -834,10 +834,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get noEarlierMessages => 'Предшествующих сообщений нет';
 
   @override
-  String get mutedSender => 'Muted sender';
-
-  @override
-  String get revealButtonLabel => 'Reveal message for muted sender';
+  String get revealButtonLabel => 'Reveal message';
 
   @override
   String get mutedUser => 'Muted user';
