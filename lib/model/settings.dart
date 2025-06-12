@@ -178,7 +178,7 @@ enum BoolGlobalSetting {
   upgradeWelcomeDialogShown(GlobalSettingType.internal, false),
 
   /// An experimental flag to toggle rendering KaTeX content in messages.
-  renderKatex(GlobalSettingType.experimentalFeatureFlag, false),
+  renderKatex(GlobalSettingType.experimentalFeatureFlag, true),
 
   /// An experimental flag to enable rendering KaTeX even when some
   /// errors are encountered.
