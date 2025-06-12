@@ -21,6 +21,7 @@ import 'test_app.dart';
 
 Future<void> setupSheet(WidgetTester tester, {
   required List<User> users,
+  List<int>? mutedUserIds,
 }) async {
   addTearDown(testBinding.reset);
 
@@ -31,6 +32,9 @@ Future<void> setupSheet(WidgetTester tester, {
   await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
   final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
   await store.addUsers(users);
+  if (mutedUserIds != null) {
+    await store.setMutedUsers(mutedUserIds);
+  }
 
   await tester.pumpWidget(TestZulipApp(
     navigatorObservers: [testNavObserver],
@@ -106,17 +110,24 @@ void main() {
   });
 
   group('user filtering', () {
+    final mutedUser = eg.user(fullName: 'Someone Muted');
     final testUsers = [
       eg.user(fullName: 'Alice Anderson'),
       eg.user(fullName: 'Bob Brown'),
       eg.user(fullName: 'Charlie Carter'),
+      mutedUser,
     ];
 
-    testWidgets('shows all users initially', (tester) async {
-      await setupSheet(tester, users: testUsers);
+    testWidgets('shows all non-muted users initially', (tester) async {
+      await setupSheet(tester, users: testUsers, mutedUserIds: [mutedUser.userId]);
       check(find.text('Alice Anderson')).findsOne();
       check(find.text('Bob Brown')).findsOne();
       check(find.text('Charlie Carter')).findsOne();
+
+      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(3);
+      check(find.byIcon(ZulipIcons.check_circle_checked)).findsNothing();
+      check(find.text('Someone Muted')).findsNothing();
+      check(find.text('Muted user')).findsNothing();
     });
 
     testWidgets('shows filtered users based on search', (tester) async {
