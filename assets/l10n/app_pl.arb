@@ -73,7 +73,7 @@
   "@actionSheetOptionMarkAsUnread": {
     "description": "Label for mark as unread button on action sheet."
   },
-  "logOutConfirmationDialogMessage": "Aby użyć tego konta należy wypełnić URL organizacji oraz dane konta.",
+  "logOutConfirmationDialogMessage": "Aby użyć tego konta należy wskazać URL organizacji oraz dane konta.",
   "@logOutConfirmationDialogMessage": {
     "description": "Message for a confirmation dialog for logging out."
   },
@@ -699,7 +699,7 @@
       "example": "http://chat.example.com/"
     }
   },
-  "tryAnotherAccountButton": "Sprawdź inne konto",
+  "tryAnotherAccountButton": "Użyj innego konta",
   "@tryAnotherAccountButton": {
     "description": "Label for loading screen button prompting user to try another account."
   },
@@ -866,10 +866,6 @@
   "pinnedSubscriptionsLabel": "Przypięte",
   "@pinnedSubscriptionsLabel": {
     "description": "Label for the list of pinned subscribed channels."
-  },
-  "subscriptionListNoChannels": "Nie odnaleziono kanałów",
-  "@subscriptionListNoChannels": {
-    "description": "Text to display on subscribed-channels page when there are no subscribed channels."
   },
   "unknownChannelName": "(nieznany kanał)",
   "@unknownChannelName": {
@@ -1076,5 +1072,53 @@
   "actionSheetOptionListOfTopics": "Lista wątków",
   "@actionSheetOptionListOfTopics": {
     "description": "Label for navigating to a channel's topic-list page."
+  },
+  "newDmSheetScreenTitle": "Nowa DM",
+  "@newDmSheetScreenTitle": {
+    "description": "Title displayed at the top of the new DM screen."
+  },
+  "newDmFabButtonLabel": "Nowa DM",
+  "@newDmFabButtonLabel": {
+    "description": "Label for the floating action button (FAB) that opens the new DM sheet."
+  },
+  "newDmSheetSearchHintSomeSelected": "Dodaj kolejnego użytkownika…",
+  "@newDmSheetSearchHintSomeSelected": {
+    "description": "Hint text for the search bar when at least one user is selected"
+  },
+  "mutedSender": "Wyciszony nadawca",
+  "@mutedSender": {
+    "description": "Name for a muted user to display in message list."
+  },
+  "revealButtonLabel": "Odsłoń wiadomość od wyciszonego użytkownika",
+  "@revealButtonLabel": {
+    "description": "Label for the button revealing hidden message from a muted sender in message list."
+  },
+  "mutedUser": "Wyciszony użytkownik",
+  "@mutedUser": {
+    "description": "Name for a muted user to display all over the app."
+  },
+  "newDmSheetNoUsersFound": "Nie odnaleziono użytkowników",
+  "@newDmSheetNoUsersFound": {
+    "description": "Message shown in the new DM sheet when no users match the search."
+  },
+  "actionSheetOptionHideMutedMessage": "Ukryj ponownie wyciszone wiadomości",
+  "@actionSheetOptionHideMutedMessage": {
+    "description": "Label for hide muted message again button on action sheet."
+  },
+  "newDmSheetSearchHintEmpty": "Dodaj jednego lub więcej użytkowników",
+  "@newDmSheetSearchHintEmpty": {
+    "description": "Hint text for the search bar when no users are selected"
+  },
+  "messageNotSentLabel": "NIE WYSŁANO WIADOMOŚCI",
+  "@messageNotSentLabel": {
+    "description": "Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "discardDraftForMessageNotSentConfirmationDialogMessage": "Odzyskanie wiadomości, która nie została wysłana, skutkuje wyczyszczeniem zawartości pola dodania wpisu.",
+  "@discardDraftForMessageNotSentConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog when restoring a message not sent, for discarding message text that was typed into the compose box."
+  },
+  "errorNotificationOpenAccountNotFound": "Nie odnaleziono konta powiązanego z tym powiadomieniem.",
+  "@errorNotificationOpenAccountNotFound": {
+    "description": "Error message when the account associated with the notification could not be found"
   }
 }

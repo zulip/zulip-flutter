@@ -35,7 +35,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
-  String get tryAnotherAccountButton => 'Sprawdź inne konto';
+  String get tryAnotherAccountButton => 'Użyj innego konta';
 
   @override
   String get chooseAccountPageLogOutButton => 'Wyloguj';
@@ -45,7 +45,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get logOutConfirmationDialogMessage =>
-      'Aby użyć tego konta należy wypełnić URL organizacji oraz dane konta.';
+      'Aby użyć tego konta należy wskazać URL organizacji oraz dane konta.';
 
   @override
   String get logOutConfirmationDialogConfirmButton => 'Wyloguj';
@@ -119,7 +119,8 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Odtąd oznacz jako nieprzeczytane';
 
   @override
-  String get actionSheetOptionHideMutedMessage => 'Hide muted message again';
+  String get actionSheetOptionHideMutedMessage =>
+      'Ukryj ponownie wyciszone wiadomości';
 
   @override
   String get actionSheetOptionShare => 'Udostępnij';
@@ -333,7 +334,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get discardDraftForMessageNotSentConfirmationDialogMessage =>
-      'When you restore a message not sent, the content that was previously in the compose box is discarded.';
+      'Odzyskanie wiadomości, która nie została wysłana, skutkuje wyczyszczeniem zawartości pola dodania wpisu.';
 
   @override
   String get discardDraftConfirmationDialogConfirmButton => 'Odrzuć';
@@ -354,19 +355,20 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get newDmSheetComposeButtonLabel => 'Compose';
 
   @override
-  String get newDmSheetScreenTitle => 'New DM';
+  String get newDmSheetScreenTitle => 'Nowa DM';
 
   @override
-  String get newDmFabButtonLabel => 'New DM';
+  String get newDmFabButtonLabel => 'Nowa DM';
 
   @override
-  String get newDmSheetSearchHintEmpty => 'Add one or more users';
+  String get newDmSheetSearchHintEmpty =>
+      'Dodaj jednego lub więcej użytkowników';
 
   @override
-  String get newDmSheetSearchHintSomeSelected => 'Add another user…';
+  String get newDmSheetSearchHintSomeSelected => 'Dodaj kolejnego użytkownika…';
 
   @override
-  String get newDmSheetNoUsersFound => 'No users found';
+  String get newDmSheetNoUsersFound => 'Nie odnaleziono użytkowników';
 
   @override
   String composeBoxDmContentHint(String user) {
@@ -754,7 +756,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get messageIsMovedLabel => 'PRZENIESIONO';
 
   @override
-  String get messageNotSentLabel => 'MESSAGE NOT SENT';
+  String get messageNotSentLabel => 'NIE WYSŁANO WIADOMOŚCI';
 
   @override
   String pollVoterNames(String voterNames) {
@@ -795,7 +797,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get errorNotificationOpenAccountNotFound =>
-      'The account associated with this notification could not be found.';
+      'Nie odnaleziono konta powiązanego z tym powiadomieniem.';
 
   @override
   String get errorReactionAddingFailedTitle => 'Dodanie reakcji bez powodzenia';
@@ -814,13 +816,13 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get noEarlierMessages => 'Brak historii';
 
   @override
-  String get mutedSender => 'Muted sender';
+  String get mutedSender => 'Wyciszony nadawca';
 
   @override
-  String get revealButtonLabel => 'Reveal message for muted sender';
+  String get revealButtonLabel => 'Odsłoń wiadomość od wyciszonego użytkownika';
 
   @override
-  String get mutedUser => 'Muted user';
+  String get mutedUser => 'Wyciszony użytkownik';
 
   @override
   String get scrollToBottomTooltip => 'Przewiń do dołu';

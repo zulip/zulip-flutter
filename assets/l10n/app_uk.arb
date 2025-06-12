@@ -959,10 +959,6 @@
   "@combinedFeedPageTitle": {
     "description": "Page title for the 'Combined feed' message view."
   },
-  "subscriptionListNoChannels": "Канали не знайдено",
-  "@subscriptionListNoChannels": {
-    "description": "Text to display on subscribed-channels page when there are no subscribed channels."
-  },
   "reactedEmojiSelfUser": "Ви",
   "@reactedEmojiSelfUser": {
     "description": "Display name for the user themself, to show on an emoji reaction added by the user."
@@ -990,10 +986,6 @@
   "experimentalFeatureSettingsWarning": "Ці опції вмикають функції, які ще розробляються та не готові. Вони можуть не працювати та викликати проблеми в інших місцях додатку.\n\nМетою цих налаштувань є експериментування людьми, що працюють над розробкою Zulip.",
   "@experimentalFeatureSettingsWarning": {
     "description": "Warning text on settings page for experimental, in-development features"
-  },
-  "errorNotificationOpenAccountMissing": "Обліковий запис, пов’язаний із цим сповіщенням, більше не існує.",
-  "@errorNotificationOpenAccountMissing": {
-    "description": "Error message when the account associated with the notification is not found"
   },
   "errorReactionAddingFailedTitle": "Не вдалося додати реакцію",
   "@errorReactionAddingFailedTitle": {
