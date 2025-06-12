@@ -799,10 +799,6 @@
   "@unpinnedSubscriptionsLabel": {
     "description": "Label for the list of unpinned subscribed channels."
   },
-  "subscriptionListNoChannels": "Каналы не найдены",
-  "@subscriptionListNoChannels": {
-    "description": "Text to display on subscribed-channels page when there are no subscribed channels."
-  },
   "wildcardMentionAll": "все",
   "@wildcardMentionAll": {
     "description": "Text for \"@all\" wildcard-mention autocomplete option when writing a channel or DM message."
@@ -1068,5 +1064,61 @@
   "discardDraftForEditConfirmationDialogMessage": "При изменении сообщения текст из поля для редактирования удаляется.",
   "@discardDraftForEditConfirmationDialogMessage": {
     "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "actionSheetOptionListOfTopics": "Список тем",
+  "@actionSheetOptionListOfTopics": {
+    "description": "Label for navigating to a channel's topic-list page."
+  },
+  "topicsButtonLabel": "ТЕМЫ",
+  "@topicsButtonLabel": {
+    "description": "Label for message list button leading to topic-list page. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "newDmSheetSearchHintEmpty": "Добавить пользователей",
+  "@newDmSheetSearchHintEmpty": {
+    "description": "Hint text for the search bar when no users are selected"
+  },
+  "mutedSender": "Отключенный отправитель",
+  "@mutedSender": {
+    "description": "Name for a muted user to display in message list."
+  },
+  "revealButtonLabel": "Показать сообщение отключенного отправителя",
+  "@revealButtonLabel": {
+    "description": "Label for the button revealing hidden message from a muted sender in message list."
+  },
+  "mutedUser": "Отключенный пользователь",
+  "@mutedUser": {
+    "description": "Name for a muted user to display all over the app."
+  },
+  "newDmSheetNoUsersFound": "Никто не найден",
+  "@newDmSheetNoUsersFound": {
+    "description": "Message shown in the new DM sheet when no users match the search."
+  },
+  "messageNotSentLabel": "СООБЩЕНИЕ НЕ ОТПРАВЛЕНО",
+  "@messageNotSentLabel": {
+    "description": "Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "actionSheetOptionHideMutedMessage": "Скрыть отключенное сообщение",
+  "@actionSheetOptionHideMutedMessage": {
+    "description": "Label for hide muted message again button on action sheet."
+  },
+  "newDmFabButtonLabel": "Новое ЛС",
+  "@newDmFabButtonLabel": {
+    "description": "Label for the floating action button (FAB) that opens the new DM sheet."
+  },
+  "discardDraftForMessageNotSentConfirmationDialogMessage": "При восстановлении неотправленного сообщения текст в поле ввода текста будет утрачен.",
+  "@discardDraftForMessageNotSentConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog when restoring a message not sent, for discarding message text that was typed into the compose box."
+  },
+  "newDmSheetScreenTitle": "Новое ЛС",
+  "@newDmSheetScreenTitle": {
+    "description": "Title displayed at the top of the new DM screen."
+  },
+  "newDmSheetSearchHintSomeSelected": "Добавить еще…",
+  "@newDmSheetSearchHintSomeSelected": {
+    "description": "Hint text for the search bar when at least one user is selected"
+  },
+  "errorNotificationOpenAccountNotFound": "Учетная запись, связанная с этим уведомлением, не найдена.",
+  "@errorNotificationOpenAccountNotFound": {
+    "description": "Error message when the account associated with the notification could not be found"
   }
 }

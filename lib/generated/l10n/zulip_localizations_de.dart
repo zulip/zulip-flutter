@@ -9,10 +9,10 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   ZulipLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
-  String get aboutPageTitle => 'About Zulip';
+  String get aboutPageTitle => 'Über Zulip';
 
   @override
-  String get aboutPageAppVersion => 'App version';
+  String get aboutPageAppVersion => 'App-Version';
 
   @override
   String get aboutPageOpenSourceLicenses => 'Open-source licenses';
@@ -21,13 +21,13 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get aboutPageTapToView => 'Tap to view';
 
   @override
-  String get chooseAccountPageTitle => 'Choose account';
+  String get chooseAccountPageTitle => 'Konto auswählen';
 
   @override
-  String get settingsPageTitle => 'Settings';
+  String get settingsPageTitle => 'Einstellungen';
 
   @override
-  String get switchAccountButton => 'Switch account';
+  String get switchAccountButton => 'Konto wechseln';
 
   @override
   String tryAnotherAccountMessage(Object url) {
