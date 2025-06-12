@@ -330,7 +330,7 @@ class _ImageEmoji extends StatelessWidget {
       // Unicode and text emoji get scaled; it would look weird if image emoji didn't.
       textScaler: _squareEmojiScalerClamped(context),
       emojiDisplay: emojiDisplay,
-      errorBuilder: (context, _, __) => _TextEmoji(
+      errorBuilder: (context, _, _) => _TextEmoji(
         emojiDisplay: TextEmojiDisplay(emojiName: emojiName), selected: selected),
     );
   }

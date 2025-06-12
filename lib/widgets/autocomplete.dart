@@ -130,7 +130,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
       //   `optionsBuilder` we pass is just a function that returns
       //   _resultsToDisplay, which is computed with lots of help from
       //   AutocompleteView.
-      optionsViewBuilder: (context, _, __) {
+      optionsViewBuilder: (context, _, _) {
         return Align(
           alignment: Alignment.bottomLeft,
           child: Material(
@@ -153,7 +153,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
       // The third isn't helpful; it lets us opt into behavior we don't actually
       // want (see discussion:
       //   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/autocomplete.20UI/near/1599994>)
-      fieldViewBuilder: (context, _, __, ___) => widget.fieldViewBuilder(context),
+      fieldViewBuilder: (context, _, _, _) => widget.fieldViewBuilder(context),
     );
   }
 }
