@@ -107,14 +107,14 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
   timezone: json['timezone'] as String,
   avatarUrl: json['avatar_url'] as String?,
   avatarVersion: (json['avatar_version'] as num).toInt(),
-  profileData: (User._readProfileData(json, 'profile_data')
-          as Map<String, dynamic>?)
-      ?.map(
-        (k, e) => MapEntry(
-          int.parse(k),
-          ProfileFieldUserData.fromJson(e as Map<String, dynamic>),
-        ),
-      ),
+  profileData:
+      (User._readProfileData(json, 'profile_data') as Map<String, dynamic>?)
+          ?.map(
+            (k, e) => MapEntry(
+              int.parse(k),
+              ProfileFieldUserData.fromJson(e as Map<String, dynamic>),
+            ),
+          ),
   isSystemBot: User._readIsSystemBot(json, 'is_system_bot') as bool,
 );
 

@@ -11,10 +11,9 @@ part of 'channels.dart';
 GetStreamTopicsResult _$GetStreamTopicsResultFromJson(
   Map<String, dynamic> json,
 ) => GetStreamTopicsResult(
-  topics:
-      (json['topics'] as List<dynamic>)
-          .map((e) => GetStreamTopicsEntry.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  topics: (json['topics'] as List<dynamic>)
+      .map((e) => GetStreamTopicsEntry.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$GetStreamTopicsResultToJson(

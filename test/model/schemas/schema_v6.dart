@@ -73,14 +73,12 @@ class GlobalSettingsData extends DataClass
 
   GlobalSettingsCompanion toCompanion(bool nullToAbsent) {
     return GlobalSettingsCompanion(
-      themeSetting:
-          themeSetting == null && nullToAbsent
-              ? const Value.absent()
-              : Value(themeSetting),
-      browserPreference:
-          browserPreference == null && nullToAbsent
-              ? const Value.absent()
-              : Value(browserPreference),
+      themeSetting: themeSetting == null && nullToAbsent
+          ? const Value.absent()
+          : Value(themeSetting),
+      browserPreference: browserPreference == null && nullToAbsent
+          ? const Value.absent()
+          : Value(browserPreference),
     );
   }
 
@@ -110,21 +108,18 @@ class GlobalSettingsData extends DataClass
     Value<String?> browserPreference = const Value.absent(),
   }) => GlobalSettingsData(
     themeSetting: themeSetting.present ? themeSetting.value : this.themeSetting,
-    browserPreference:
-        browserPreference.present
-            ? browserPreference.value
-            : this.browserPreference,
+    browserPreference: browserPreference.present
+        ? browserPreference.value
+        : this.browserPreference,
   );
   GlobalSettingsData copyWithCompanion(GlobalSettingsCompanion data) {
     return GlobalSettingsData(
-      themeSetting:
-          data.themeSetting.present
-              ? data.themeSetting.value
-              : this.themeSetting,
-      browserPreference:
-          data.browserPreference.present
-              ? data.browserPreference.value
-              : this.browserPreference,
+      themeSetting: data.themeSetting.present
+          ? data.themeSetting.value
+          : this.themeSetting,
+      browserPreference: data.browserPreference.present
+          ? data.browserPreference.value
+          : this.browserPreference,
     );
   }
 
@@ -247,16 +242,14 @@ class BoolGlobalSettings extends Table
   BoolGlobalSettingsData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return BoolGlobalSettingsData(
-      name:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}name'],
-          )!,
-      value:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.bool,
-            data['${effectivePrefix}value'],
-          )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}value'],
+      )!,
     );
   }
 
@@ -499,45 +492,38 @@ class Accounts extends Table with TableInfo<Accounts, AccountsData> {
   AccountsData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return AccountsData(
-      id:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}id'],
-          )!,
-      realmUrl:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}realm_url'],
-          )!,
-      userId:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}user_id'],
-          )!,
-      email:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}email'],
-          )!,
-      apiKey:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}api_key'],
-          )!,
-      zulipVersion:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}zulip_version'],
-          )!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      realmUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}realm_url'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}user_id'],
+      )!,
+      email: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}email'],
+      )!,
+      apiKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}api_key'],
+      )!,
+      zulipVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}zulip_version'],
+      )!,
       zulipMergeBase: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}zulip_merge_base'],
       ),
-      zulipFeatureLevel:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}zulip_feature_level'],
-          )!,
+      zulipFeatureLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}zulip_feature_level'],
+      )!,
       ackedPushToken: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}acked_push_token'],
@@ -599,15 +585,13 @@ class AccountsData extends DataClass implements Insertable<AccountsData> {
       email: Value(email),
       apiKey: Value(apiKey),
       zulipVersion: Value(zulipVersion),
-      zulipMergeBase:
-          zulipMergeBase == null && nullToAbsent
-              ? const Value.absent()
-              : Value(zulipMergeBase),
+      zulipMergeBase: zulipMergeBase == null && nullToAbsent
+          ? const Value.absent()
+          : Value(zulipMergeBase),
       zulipFeatureLevel: Value(zulipFeatureLevel),
-      ackedPushToken:
-          ackedPushToken == null && nullToAbsent
-              ? const Value.absent()
-              : Value(ackedPushToken),
+      ackedPushToken: ackedPushToken == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ackedPushToken),
     );
   }
 
@@ -661,11 +645,13 @@ class AccountsData extends DataClass implements Insertable<AccountsData> {
     email: email ?? this.email,
     apiKey: apiKey ?? this.apiKey,
     zulipVersion: zulipVersion ?? this.zulipVersion,
-    zulipMergeBase:
-        zulipMergeBase.present ? zulipMergeBase.value : this.zulipMergeBase,
+    zulipMergeBase: zulipMergeBase.present
+        ? zulipMergeBase.value
+        : this.zulipMergeBase,
     zulipFeatureLevel: zulipFeatureLevel ?? this.zulipFeatureLevel,
-    ackedPushToken:
-        ackedPushToken.present ? ackedPushToken.value : this.ackedPushToken,
+    ackedPushToken: ackedPushToken.present
+        ? ackedPushToken.value
+        : this.ackedPushToken,
   );
   AccountsData copyWithCompanion(AccountsCompanion data) {
     return AccountsData(
@@ -674,22 +660,18 @@ class AccountsData extends DataClass implements Insertable<AccountsData> {
       userId: data.userId.present ? data.userId.value : this.userId,
       email: data.email.present ? data.email.value : this.email,
       apiKey: data.apiKey.present ? data.apiKey.value : this.apiKey,
-      zulipVersion:
-          data.zulipVersion.present
-              ? data.zulipVersion.value
-              : this.zulipVersion,
-      zulipMergeBase:
-          data.zulipMergeBase.present
-              ? data.zulipMergeBase.value
-              : this.zulipMergeBase,
-      zulipFeatureLevel:
-          data.zulipFeatureLevel.present
-              ? data.zulipFeatureLevel.value
-              : this.zulipFeatureLevel,
-      ackedPushToken:
-          data.ackedPushToken.present
-              ? data.ackedPushToken.value
-              : this.ackedPushToken,
+      zulipVersion: data.zulipVersion.present
+          ? data.zulipVersion.value
+          : this.zulipVersion,
+      zulipMergeBase: data.zulipMergeBase.present
+          ? data.zulipMergeBase.value
+          : this.zulipMergeBase,
+      zulipFeatureLevel: data.zulipFeatureLevel.present
+          ? data.zulipFeatureLevel.value
+          : this.zulipFeatureLevel,
+      ackedPushToken: data.ackedPushToken.present
+          ? data.ackedPushToken.value
+          : this.ackedPushToken,
     );
   }
 

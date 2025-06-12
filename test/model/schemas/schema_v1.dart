@@ -95,45 +95,38 @@ class Accounts extends Table with TableInfo<Accounts, AccountsData> {
   AccountsData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return AccountsData(
-      id:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}id'],
-          )!,
-      realmUrl:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}realm_url'],
-          )!,
-      userId:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}user_id'],
-          )!,
-      email:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}email'],
-          )!,
-      apiKey:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}api_key'],
-          )!,
-      zulipVersion:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}zulip_version'],
-          )!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      realmUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}realm_url'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}user_id'],
+      )!,
+      email: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}email'],
+      )!,
+      apiKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}api_key'],
+      )!,
+      zulipVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}zulip_version'],
+      )!,
       zulipMergeBase: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}zulip_merge_base'],
       ),
-      zulipFeatureLevel:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}zulip_feature_level'],
-          )!,
+      zulipFeatureLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}zulip_feature_level'],
+      )!,
     );
   }
 
@@ -186,10 +179,9 @@ class AccountsData extends DataClass implements Insertable<AccountsData> {
       email: Value(email),
       apiKey: Value(apiKey),
       zulipVersion: Value(zulipVersion),
-      zulipMergeBase:
-          zulipMergeBase == null && nullToAbsent
-              ? const Value.absent()
-              : Value(zulipMergeBase),
+      zulipMergeBase: zulipMergeBase == null && nullToAbsent
+          ? const Value.absent()
+          : Value(zulipMergeBase),
       zulipFeatureLevel: Value(zulipFeatureLevel),
     );
   }
@@ -241,8 +233,9 @@ class AccountsData extends DataClass implements Insertable<AccountsData> {
     email: email ?? this.email,
     apiKey: apiKey ?? this.apiKey,
     zulipVersion: zulipVersion ?? this.zulipVersion,
-    zulipMergeBase:
-        zulipMergeBase.present ? zulipMergeBase.value : this.zulipMergeBase,
+    zulipMergeBase: zulipMergeBase.present
+        ? zulipMergeBase.value
+        : this.zulipMergeBase,
     zulipFeatureLevel: zulipFeatureLevel ?? this.zulipFeatureLevel,
   );
   AccountsData copyWithCompanion(AccountsCompanion data) {
@@ -252,18 +245,15 @@ class AccountsData extends DataClass implements Insertable<AccountsData> {
       userId: data.userId.present ? data.userId.value : this.userId,
       email: data.email.present ? data.email.value : this.email,
       apiKey: data.apiKey.present ? data.apiKey.value : this.apiKey,
-      zulipVersion:
-          data.zulipVersion.present
-              ? data.zulipVersion.value
-              : this.zulipVersion,
-      zulipMergeBase:
-          data.zulipMergeBase.present
-              ? data.zulipMergeBase.value
-              : this.zulipMergeBase,
-      zulipFeatureLevel:
-          data.zulipFeatureLevel.present
-              ? data.zulipFeatureLevel.value
-              : this.zulipFeatureLevel,
+      zulipVersion: data.zulipVersion.present
+          ? data.zulipVersion.value
+          : this.zulipVersion,
+      zulipMergeBase: data.zulipMergeBase.present
+          ? data.zulipMergeBase.value
+          : this.zulipMergeBase,
+      zulipFeatureLevel: data.zulipFeatureLevel.present
+          ? data.zulipFeatureLevel.value
+          : this.zulipFeatureLevel,
     );
   }
 

@@ -22,26 +22,28 @@ class $GlobalSettingsTable extends GlobalSettings
   ).withConverter<ThemeSetting?>($GlobalSettingsTable.$converterthemeSettingn);
   @override
   late final GeneratedColumnWithTypeConverter<BrowserPreference?, String>
-  browserPreference = GeneratedColumn<String>(
-    'browser_preference',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  ).withConverter<BrowserPreference?>(
-    $GlobalSettingsTable.$converterbrowserPreferencen,
-  );
+  browserPreference =
+      GeneratedColumn<String>(
+        'browser_preference',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<BrowserPreference?>(
+        $GlobalSettingsTable.$converterbrowserPreferencen,
+      );
   @override
   late final GeneratedColumnWithTypeConverter<VisitFirstUnreadSetting?, String>
-  visitFirstUnread = GeneratedColumn<String>(
-    'visit_first_unread',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  ).withConverter<VisitFirstUnreadSetting?>(
-    $GlobalSettingsTable.$convertervisitFirstUnreadn,
-  );
+  visitFirstUnread =
+      GeneratedColumn<String>(
+        'visit_first_unread',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<VisitFirstUnreadSetting?>(
+        $GlobalSettingsTable.$convertervisitFirstUnreadn,
+      );
   @override
   List<GeneratedColumn> get $columns => [
     themeSetting,
@@ -150,18 +152,15 @@ class GlobalSettingsData extends DataClass
 
   GlobalSettingsCompanion toCompanion(bool nullToAbsent) {
     return GlobalSettingsCompanion(
-      themeSetting:
-          themeSetting == null && nullToAbsent
-              ? const Value.absent()
-              : Value(themeSetting),
-      browserPreference:
-          browserPreference == null && nullToAbsent
-              ? const Value.absent()
-              : Value(browserPreference),
-      visitFirstUnread:
-          visitFirstUnread == null && nullToAbsent
-              ? const Value.absent()
-              : Value(visitFirstUnread),
+      themeSetting: themeSetting == null && nullToAbsent
+          ? const Value.absent()
+          : Value(themeSetting),
+      browserPreference: browserPreference == null && nullToAbsent
+          ? const Value.absent()
+          : Value(browserPreference),
+      visitFirstUnread: visitFirstUnread == null && nullToAbsent
+          ? const Value.absent()
+          : Value(visitFirstUnread),
     );
   }
 
@@ -206,29 +205,24 @@ class GlobalSettingsData extends DataClass
     Value<VisitFirstUnreadSetting?> visitFirstUnread = const Value.absent(),
   }) => GlobalSettingsData(
     themeSetting: themeSetting.present ? themeSetting.value : this.themeSetting,
-    browserPreference:
-        browserPreference.present
-            ? browserPreference.value
-            : this.browserPreference,
-    visitFirstUnread:
-        visitFirstUnread.present
-            ? visitFirstUnread.value
-            : this.visitFirstUnread,
+    browserPreference: browserPreference.present
+        ? browserPreference.value
+        : this.browserPreference,
+    visitFirstUnread: visitFirstUnread.present
+        ? visitFirstUnread.value
+        : this.visitFirstUnread,
   );
   GlobalSettingsData copyWithCompanion(GlobalSettingsCompanion data) {
     return GlobalSettingsData(
-      themeSetting:
-          data.themeSetting.present
-              ? data.themeSetting.value
-              : this.themeSetting,
-      browserPreference:
-          data.browserPreference.present
-              ? data.browserPreference.value
-              : this.browserPreference,
-      visitFirstUnread:
-          data.visitFirstUnread.present
-              ? data.visitFirstUnread.value
-              : this.visitFirstUnread,
+      themeSetting: data.themeSetting.present
+          ? data.themeSetting.value
+          : this.themeSetting,
+      browserPreference: data.browserPreference.present
+          ? data.browserPreference.value
+          : this.browserPreference,
+      visitFirstUnread: data.visitFirstUnread.present
+          ? data.visitFirstUnread.value
+          : this.visitFirstUnread,
     );
   }
 
@@ -405,16 +399,14 @@ class $BoolGlobalSettingsTable extends BoolGlobalSettings
   BoolGlobalSettingRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return BoolGlobalSettingRow(
-      name:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}name'],
-          )!,
-      value:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.bool,
-            data['${effectivePrefix}value'],
-          )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}value'],
+      )!,
     );
   }
 
@@ -771,46 +763,40 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
   Account map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Account(
-      id:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}id'],
-          )!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
       realmUrl: $AccountsTable.$converterrealmUrl.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
           data['${effectivePrefix}realm_url'],
         )!,
       ),
-      userId:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}user_id'],
-          )!,
-      email:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}email'],
-          )!,
-      apiKey:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}api_key'],
-          )!,
-      zulipVersion:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}zulip_version'],
-          )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}user_id'],
+      )!,
+      email: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}email'],
+      )!,
+      apiKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}api_key'],
+      )!,
+      zulipVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}zulip_version'],
+      )!,
       zulipMergeBase: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}zulip_merge_base'],
       ),
-      zulipFeatureLevel:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}zulip_feature_level'],
-          )!,
+      zulipFeatureLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}zulip_feature_level'],
+      )!,
       ackedPushToken: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}acked_push_token'],
@@ -893,15 +879,13 @@ class Account extends DataClass implements Insertable<Account> {
       email: Value(email),
       apiKey: Value(apiKey),
       zulipVersion: Value(zulipVersion),
-      zulipMergeBase:
-          zulipMergeBase == null && nullToAbsent
-              ? const Value.absent()
-              : Value(zulipMergeBase),
+      zulipMergeBase: zulipMergeBase == null && nullToAbsent
+          ? const Value.absent()
+          : Value(zulipMergeBase),
       zulipFeatureLevel: Value(zulipFeatureLevel),
-      ackedPushToken:
-          ackedPushToken == null && nullToAbsent
-              ? const Value.absent()
-              : Value(ackedPushToken),
+      ackedPushToken: ackedPushToken == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ackedPushToken),
     );
   }
 
@@ -955,11 +939,13 @@ class Account extends DataClass implements Insertable<Account> {
     email: email ?? this.email,
     apiKey: apiKey ?? this.apiKey,
     zulipVersion: zulipVersion ?? this.zulipVersion,
-    zulipMergeBase:
-        zulipMergeBase.present ? zulipMergeBase.value : this.zulipMergeBase,
+    zulipMergeBase: zulipMergeBase.present
+        ? zulipMergeBase.value
+        : this.zulipMergeBase,
     zulipFeatureLevel: zulipFeatureLevel ?? this.zulipFeatureLevel,
-    ackedPushToken:
-        ackedPushToken.present ? ackedPushToken.value : this.ackedPushToken,
+    ackedPushToken: ackedPushToken.present
+        ? ackedPushToken.value
+        : this.ackedPushToken,
   );
   Account copyWithCompanion(AccountsCompanion data) {
     return Account(
@@ -968,22 +954,18 @@ class Account extends DataClass implements Insertable<Account> {
       userId: data.userId.present ? data.userId.value : this.userId,
       email: data.email.present ? data.email.value : this.email,
       apiKey: data.apiKey.present ? data.apiKey.value : this.apiKey,
-      zulipVersion:
-          data.zulipVersion.present
-              ? data.zulipVersion.value
-              : this.zulipVersion,
-      zulipMergeBase:
-          data.zulipMergeBase.present
-              ? data.zulipMergeBase.value
-              : this.zulipMergeBase,
-      zulipFeatureLevel:
-          data.zulipFeatureLevel.present
-              ? data.zulipFeatureLevel.value
-              : this.zulipFeatureLevel,
-      ackedPushToken:
-          data.ackedPushToken.present
-              ? data.ackedPushToken.value
-              : this.ackedPushToken,
+      zulipVersion: data.zulipVersion.present
+          ? data.zulipVersion.value
+          : this.zulipVersion,
+      zulipMergeBase: data.zulipMergeBase.present
+          ? data.zulipMergeBase.value
+          : this.zulipMergeBase,
+      zulipFeatureLevel: data.zulipFeatureLevel.present
+          ? data.zulipFeatureLevel.value
+          : this.zulipFeatureLevel,
+      ackedPushToken: data.ackedPushToken.present
+          ? data.ackedPushToken.value
+          : this.ackedPushToken,
     );
   }
 
@@ -1314,16 +1296,12 @@ class $$GlobalSettingsTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer:
-              () => $$GlobalSettingsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer:
-              () =>
-                  $$GlobalSettingsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer:
-              () => $$GlobalSettingsTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
+          createFilteringComposer: () =>
+              $$GlobalSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GlobalSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GlobalSettingsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<ThemeSetting?> themeSetting = const Value.absent(),
@@ -1352,16 +1330,9 @@ class $$GlobalSettingsTableTableManager
                 visitFirstUnread: visitFirstUnread,
                 rowid: rowid,
               ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          BaseReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -1482,18 +1453,12 @@ class $$BoolGlobalSettingsTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer:
-              () => $$BoolGlobalSettingsTableFilterComposer(
-                $db: db,
-                $table: table,
-              ),
-          createOrderingComposer:
-              () => $$BoolGlobalSettingsTableOrderingComposer(
-                $db: db,
-                $table: table,
-              ),
-          createComputedFieldComposer:
-              () => $$BoolGlobalSettingsTableAnnotationComposer(
+          createFilteringComposer: () =>
+              $$BoolGlobalSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BoolGlobalSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BoolGlobalSettingsTableAnnotationComposer(
                 $db: db,
                 $table: table,
               ),
@@ -1517,16 +1482,9 @@ class $$BoolGlobalSettingsTableTableManager
                 value: value,
                 rowid: rowid,
               ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          BaseReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -1754,12 +1712,12 @@ class $$AccountsTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer:
-              () => $$AccountsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer:
-              () => $$AccountsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer:
-              () => $$AccountsTableAnnotationComposer($db: db, $table: table),
+          createFilteringComposer: () =>
+              $$AccountsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AccountsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AccountsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
@@ -1804,16 +1762,9 @@ class $$AccountsTableTableManager
                 zulipFeatureLevel: zulipFeatureLevel,
                 ackedPushToken: ackedPushToken,
               ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          BaseReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );

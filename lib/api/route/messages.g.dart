@@ -58,10 +58,9 @@ Map<String, dynamic> _$UploadFileResultToJson(UploadFileResult instance) =>
 UpdateMessageFlagsResult _$UpdateMessageFlagsResultFromJson(
   Map<String, dynamic> json,
 ) => UpdateMessageFlagsResult(
-  messages:
-      (json['messages'] as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toList(),
+  messages: (json['messages'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
 );
 
 Map<String, dynamic> _$UpdateMessageFlagsResultToJson(
