@@ -20,6 +20,7 @@ import 'code_block.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
+import 'katex.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
@@ -882,6 +883,7 @@ class _KatexNodeList extends StatelessWidget {
               KatexSpanNode() => _KatexSpan(e),
               KatexStrutNode() => _KatexStrut(e),
               KatexVlistNode() => _KatexVlist(e),
+              KatexNegativeMarginNode() => _KatexNegativeMargin(e),
             }));
       }))));
   }
@@ -955,23 +957,21 @@ class _KatexSpan extends StatelessWidget {
     }
 
     final marginRight = switch (styles.marginRightEm) {
-      double marginRightEm => marginRightEm * em,
-      null => null,
+      double marginRightEm when marginRightEm >= 0 => marginRightEm * em,
+      _ => null,
     };
     final marginLeft = switch (styles.marginLeftEm) {
-      double marginLeftEm => marginLeftEm * em,
-      null => null,
+      double marginLeftEm when marginLeftEm >= 0 => marginLeftEm * em,
+      _ => null,
     };
 
     EdgeInsets? margin;
     if (marginRight != null || marginLeft != null) {
       margin = EdgeInsets.zero;
       if (marginRight != null) {
-        assert(marginRight >= 0);
         margin += EdgeInsets.only(right: marginRight);
       }
       if (marginLeft != null) {
-        assert(marginLeft >= 0);
         margin += EdgeInsets.only(left: marginLeft);
       }
     }
@@ -1027,6 +1027,21 @@ class _KatexVlist extends StatelessWidget {
         offset: Offset(0, row.verticalOffsetEm * em),
         child: _KatexSpan(row.node));
     })));
+  }
+}
+
+class _KatexNegativeMargin extends StatelessWidget {
+  const _KatexNegativeMargin(this.node);
+
+  final KatexNegativeMarginNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    return NegativeLeftOffset(
+      leftOffset: node.leftOffsetEm * em,
+      child: _KatexNodeList(nodes: node.nodes));
   }
 }
 
