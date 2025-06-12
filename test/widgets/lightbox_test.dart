@@ -203,6 +203,7 @@ class FakeVideoPlayerPlatform extends Fake
 
 void main() {
   TestZulipBinding.ensureInitialized();
+  MessageListPage.debugEnableMarkReadOnScroll = false;
 
   group('LightboxHero', () {
     late PerAccountStore store;

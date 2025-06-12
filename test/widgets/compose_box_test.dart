@@ -43,6 +43,7 @@ import 'test_app.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
+  MessageListPage.debugEnableMarkReadOnScroll = false;
 
   late PerAccountStore store;
   late FakeApiConnection connection;

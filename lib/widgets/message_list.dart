@@ -743,9 +743,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   bool _effectiveMarkReadOnScroll() {
     if (!MessageListPage.debugEnableMarkReadOnScroll) return false;
     return widget.markReadOnScroll
-      ?? false;
-    // TODO instead:
-    //   ?? GlobalStoreWidget.settingsOf(context).markReadOnScrollForNarrow(widget.narrow);
+      ?? GlobalStoreWidget.settingsOf(context).markReadOnScrollForNarrow(widget.narrow);
   }
 
   void _handleScrollMetrics(ScrollMetrics scrollMetrics) {

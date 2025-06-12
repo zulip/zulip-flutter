@@ -45,10 +45,23 @@ class $GlobalSettingsTable extends GlobalSettings
         $GlobalSettingsTable.$convertervisitFirstUnreadn,
       );
   @override
+  late final GeneratedColumnWithTypeConverter<MarkReadOnScrollSetting?, String>
+  markReadOnScroll =
+      GeneratedColumn<String>(
+        'mark_read_on_scroll',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<MarkReadOnScrollSetting?>(
+        $GlobalSettingsTable.$convertermarkReadOnScrolln,
+      );
+  @override
   List<GeneratedColumn> get $columns => [
     themeSetting,
     browserPreference,
     visitFirstUnread,
+    markReadOnScroll,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -79,6 +92,13 @@ class $GlobalSettingsTable extends GlobalSettings
             attachedDatabase.typeMapping.read(
               DriftSqlType.string,
               data['${effectivePrefix}visit_first_unread'],
+            ),
+          ),
+      markReadOnScroll: $GlobalSettingsTable.$convertermarkReadOnScrolln
+          .fromSql(
+            attachedDatabase.typeMapping.read(
+              DriftSqlType.string,
+              data['${effectivePrefix}mark_read_on_scroll'],
             ),
           ),
     );
@@ -113,6 +133,14 @@ class $GlobalSettingsTable extends GlobalSettings
   $convertervisitFirstUnreadn = JsonTypeConverter2.asNullable(
     $convertervisitFirstUnread,
   );
+  static JsonTypeConverter2<MarkReadOnScrollSetting, String, String>
+  $convertermarkReadOnScroll = const EnumNameConverter<MarkReadOnScrollSetting>(
+    MarkReadOnScrollSetting.values,
+  );
+  static JsonTypeConverter2<MarkReadOnScrollSetting?, String?, String?>
+  $convertermarkReadOnScrolln = JsonTypeConverter2.asNullable(
+    $convertermarkReadOnScroll,
+  );
 }
 
 class GlobalSettingsData extends DataClass
@@ -120,10 +148,12 @@ class GlobalSettingsData extends DataClass
   final ThemeSetting? themeSetting;
   final BrowserPreference? browserPreference;
   final VisitFirstUnreadSetting? visitFirstUnread;
+  final MarkReadOnScrollSetting? markReadOnScroll;
   const GlobalSettingsData({
     this.themeSetting,
     this.browserPreference,
     this.visitFirstUnread,
+    this.markReadOnScroll,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -147,6 +177,13 @@ class GlobalSettingsData extends DataClass
         ),
       );
     }
+    if (!nullToAbsent || markReadOnScroll != null) {
+      map['mark_read_on_scroll'] = Variable<String>(
+        $GlobalSettingsTable.$convertermarkReadOnScrolln.toSql(
+          markReadOnScroll,
+        ),
+      );
+    }
     return map;
   }
 
@@ -161,6 +198,9 @@ class GlobalSettingsData extends DataClass
       visitFirstUnread: visitFirstUnread == null && nullToAbsent
           ? const Value.absent()
           : Value(visitFirstUnread),
+      markReadOnScroll: markReadOnScroll == null && nullToAbsent
+          ? const Value.absent()
+          : Value(markReadOnScroll),
     );
   }
 
@@ -177,6 +217,8 @@ class GlobalSettingsData extends DataClass
           .fromJson(serializer.fromJson<String?>(json['browserPreference'])),
       visitFirstUnread: $GlobalSettingsTable.$convertervisitFirstUnreadn
           .fromJson(serializer.fromJson<String?>(json['visitFirstUnread'])),
+      markReadOnScroll: $GlobalSettingsTable.$convertermarkReadOnScrolln
+          .fromJson(serializer.fromJson<String?>(json['markReadOnScroll'])),
     );
   }
   @override
@@ -196,6 +238,11 @@ class GlobalSettingsData extends DataClass
           visitFirstUnread,
         ),
       ),
+      'markReadOnScroll': serializer.toJson<String?>(
+        $GlobalSettingsTable.$convertermarkReadOnScrolln.toJson(
+          markReadOnScroll,
+        ),
+      ),
     };
   }
 
@@ -203,6 +250,7 @@ class GlobalSettingsData extends DataClass
     Value<ThemeSetting?> themeSetting = const Value.absent(),
     Value<BrowserPreference?> browserPreference = const Value.absent(),
     Value<VisitFirstUnreadSetting?> visitFirstUnread = const Value.absent(),
+    Value<MarkReadOnScrollSetting?> markReadOnScroll = const Value.absent(),
   }) => GlobalSettingsData(
     themeSetting: themeSetting.present ? themeSetting.value : this.themeSetting,
     browserPreference: browserPreference.present
@@ -211,6 +259,9 @@ class GlobalSettingsData extends DataClass
     visitFirstUnread: visitFirstUnread.present
         ? visitFirstUnread.value
         : this.visitFirstUnread,
+    markReadOnScroll: markReadOnScroll.present
+        ? markReadOnScroll.value
+        : this.markReadOnScroll,
   );
   GlobalSettingsData copyWithCompanion(GlobalSettingsCompanion data) {
     return GlobalSettingsData(
@@ -223,6 +274,9 @@ class GlobalSettingsData extends DataClass
       visitFirstUnread: data.visitFirstUnread.present
           ? data.visitFirstUnread.value
           : this.visitFirstUnread,
+      markReadOnScroll: data.markReadOnScroll.present
+          ? data.markReadOnScroll.value
+          : this.markReadOnScroll,
     );
   }
 
@@ -231,50 +285,61 @@ class GlobalSettingsData extends DataClass
     return (StringBuffer('GlobalSettingsData(')
           ..write('themeSetting: $themeSetting, ')
           ..write('browserPreference: $browserPreference, ')
-          ..write('visitFirstUnread: $visitFirstUnread')
+          ..write('visitFirstUnread: $visitFirstUnread, ')
+          ..write('markReadOnScroll: $markReadOnScroll')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(themeSetting, browserPreference, visitFirstUnread);
+  int get hashCode => Object.hash(
+    themeSetting,
+    browserPreference,
+    visitFirstUnread,
+    markReadOnScroll,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is GlobalSettingsData &&
           other.themeSetting == this.themeSetting &&
           other.browserPreference == this.browserPreference &&
-          other.visitFirstUnread == this.visitFirstUnread);
+          other.visitFirstUnread == this.visitFirstUnread &&
+          other.markReadOnScroll == this.markReadOnScroll);
 }
 
 class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
   final Value<ThemeSetting?> themeSetting;
   final Value<BrowserPreference?> browserPreference;
   final Value<VisitFirstUnreadSetting?> visitFirstUnread;
+  final Value<MarkReadOnScrollSetting?> markReadOnScroll;
   final Value<int> rowid;
   const GlobalSettingsCompanion({
     this.themeSetting = const Value.absent(),
     this.browserPreference = const Value.absent(),
     this.visitFirstUnread = const Value.absent(),
+    this.markReadOnScroll = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   GlobalSettingsCompanion.insert({
     this.themeSetting = const Value.absent(),
     this.browserPreference = const Value.absent(),
     this.visitFirstUnread = const Value.absent(),
+    this.markReadOnScroll = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   static Insertable<GlobalSettingsData> custom({
     Expression<String>? themeSetting,
     Expression<String>? browserPreference,
     Expression<String>? visitFirstUnread,
+    Expression<String>? markReadOnScroll,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (themeSetting != null) 'theme_setting': themeSetting,
       if (browserPreference != null) 'browser_preference': browserPreference,
       if (visitFirstUnread != null) 'visit_first_unread': visitFirstUnread,
+      if (markReadOnScroll != null) 'mark_read_on_scroll': markReadOnScroll,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -283,12 +348,14 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
     Value<ThemeSetting?>? themeSetting,
     Value<BrowserPreference?>? browserPreference,
     Value<VisitFirstUnreadSetting?>? visitFirstUnread,
+    Value<MarkReadOnScrollSetting?>? markReadOnScroll,
     Value<int>? rowid,
   }) {
     return GlobalSettingsCompanion(
       themeSetting: themeSetting ?? this.themeSetting,
       browserPreference: browserPreference ?? this.browserPreference,
       visitFirstUnread: visitFirstUnread ?? this.visitFirstUnread,
+      markReadOnScroll: markReadOnScroll ?? this.markReadOnScroll,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -315,6 +382,13 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
         ),
       );
     }
+    if (markReadOnScroll.present) {
+      map['mark_read_on_scroll'] = Variable<String>(
+        $GlobalSettingsTable.$convertermarkReadOnScrolln.toSql(
+          markReadOnScroll.value,
+        ),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -327,6 +401,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
           ..write('themeSetting: $themeSetting, ')
           ..write('browserPreference: $browserPreference, ')
           ..write('visitFirstUnread: $visitFirstUnread, ')
+          ..write('markReadOnScroll: $markReadOnScroll, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1172,6 +1247,7 @@ typedef $$GlobalSettingsTableCreateCompanionBuilder =
       Value<ThemeSetting?> themeSetting,
       Value<BrowserPreference?> browserPreference,
       Value<VisitFirstUnreadSetting?> visitFirstUnread,
+      Value<MarkReadOnScrollSetting?> markReadOnScroll,
       Value<int> rowid,
     });
 typedef $$GlobalSettingsTableUpdateCompanionBuilder =
@@ -1179,6 +1255,7 @@ typedef $$GlobalSettingsTableUpdateCompanionBuilder =
       Value<ThemeSetting?> themeSetting,
       Value<BrowserPreference?> browserPreference,
       Value<VisitFirstUnreadSetting?> visitFirstUnread,
+      Value<MarkReadOnScrollSetting?> markReadOnScroll,
       Value<int> rowid,
     });
 
@@ -1212,6 +1289,16 @@ class $$GlobalSettingsTableFilterComposer
     column: $table.visitFirstUnread,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
+
+  ColumnWithTypeConverterFilters<
+    MarkReadOnScrollSetting?,
+    MarkReadOnScrollSetting,
+    String
+  >
+  get markReadOnScroll => $composableBuilder(
+    column: $table.markReadOnScroll,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
 }
 
 class $$GlobalSettingsTableOrderingComposer
@@ -1235,6 +1322,11 @@ class $$GlobalSettingsTableOrderingComposer
 
   ColumnOrderings<String> get visitFirstUnread => $composableBuilder(
     column: $table.visitFirstUnread,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get markReadOnScroll => $composableBuilder(
+    column: $table.markReadOnScroll,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -1263,6 +1355,12 @@ class $$GlobalSettingsTableAnnotationComposer
   GeneratedColumnWithTypeConverter<VisitFirstUnreadSetting?, String>
   get visitFirstUnread => $composableBuilder(
     column: $table.visitFirstUnread,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<MarkReadOnScrollSetting?, String>
+  get markReadOnScroll => $composableBuilder(
+    column: $table.markReadOnScroll,
     builder: (column) => column,
   );
 }
@@ -1309,11 +1407,14 @@ class $$GlobalSettingsTableTableManager
                     const Value.absent(),
                 Value<VisitFirstUnreadSetting?> visitFirstUnread =
                     const Value.absent(),
+                Value<MarkReadOnScrollSetting?> markReadOnScroll =
+                    const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GlobalSettingsCompanion(
                 themeSetting: themeSetting,
                 browserPreference: browserPreference,
                 visitFirstUnread: visitFirstUnread,
+                markReadOnScroll: markReadOnScroll,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -1323,11 +1424,14 @@ class $$GlobalSettingsTableTableManager
                     const Value.absent(),
                 Value<VisitFirstUnreadSetting?> visitFirstUnread =
                     const Value.absent(),
+                Value<MarkReadOnScrollSetting?> markReadOnScroll =
+                    const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GlobalSettingsCompanion.insert(
                 themeSetting: themeSetting,
                 browserPreference: browserPreference,
                 visitFirstUnread: visitFirstUnread,
+                markReadOnScroll: markReadOnScroll,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

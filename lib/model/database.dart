@@ -27,6 +27,9 @@ class GlobalSettings extends Table {
   Column<String> get visitFirstUnread => textEnum<VisitFirstUnreadSetting>()
     .nullable()();
 
+  Column<String> get markReadOnScroll => textEnum<MarkReadOnScrollSetting>()
+    .nullable()();
+
   // If adding a new column to this table, consider whether [BoolGlobalSettings]
   // can do the job instead (by adding a value to the [BoolGlobalSetting] enum).
   // That way is more convenient, when it works, because
@@ -122,7 +125,7 @@ class AppDatabase extends _$AppDatabase {
   //    information on using the build_runner.
   //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 7; // See note.
+  static const int latestSchemaVersion = 8; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -180,6 +183,10 @@ class AppDatabase extends _$AppDatabase {
     from6To7: (m, schema) async {
       await m.addColumn(schema.globalSettings,
         schema.globalSettings.visitFirstUnread);
+    },
+    from7To8: (m, schema) async {
+      await m.addColumn(schema.globalSettings,
+        schema.globalSettings.markReadOnScroll);
     },
   );
 

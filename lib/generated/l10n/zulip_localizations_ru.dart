@@ -805,6 +805,27 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get initialAnchorSettingNewestAlways => 'Newest message';
 
   @override
+  String get markReadOnScrollSettingTitle => 'Mark messages as read on scroll';
+
+  @override
+  String get markReadOnScrollSettingDescription =>
+      'When scrolling through messages, should they automatically be marked as read?';
+
+  @override
+  String get markReadOnScrollSettingAlways => 'Always';
+
+  @override
+  String get markReadOnScrollSettingNever => 'Never';
+
+  @override
+  String get markReadOnScrollSettingConversations =>
+      'Only in conversation views';
+
+  @override
+  String get markReadOnScrollSettingConversationsDescription =>
+      'Messages will be automatically marked as read only when viewing a single topic or direct message conversation.';
+
+  @override
   String get experimentalFeatureSettingsPageTitle =>
       'Экспериментальные функции';
 

@@ -145,6 +145,7 @@ typedef ExpectedEmoji = (String label, EmojiDisplay display);
 
 void main() {
   TestZulipBinding.ensureInitialized();
+  MessageListPage.debugEnableMarkReadOnScroll = false;
 
   group('@-mentions', () {
 

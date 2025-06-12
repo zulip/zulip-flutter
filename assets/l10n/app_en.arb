@@ -971,6 +971,30 @@
   "@initialAnchorSettingNewestAlways":  {
     "description": "Label for a value of setting controlling initial anchor of message list."
   },
+  "markReadOnScrollSettingTitle": "Mark messages as read on scroll",
+  "@markReadOnScrollSettingTitle": {
+    "description": "Title of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingDescription": "When scrolling through messages, should they automatically be marked as read?",
+  "@markReadOnScrollSettingDescription": {
+    "description": "Description of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingAlways": "Always",
+  "@markReadOnScrollSettingAlways":  {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingNever": "Never",
+  "@markReadOnScrollSettingNever":  {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingConversations": "Only in conversation views",
+  "@markReadOnScrollSettingConversations":  {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingConversationsDescription": "Messages will be automatically marked as read only when viewing a single topic or direct message conversation.",
+  "@markReadOnScrollSettingConversationsDescription":  {
+    "description": "Description for a value of setting controlling which message-list views should mark read on scroll."
+  },
   "experimentalFeatureSettingsPageTitle": "Experimental features",
   "@experimentalFeatureSettingsPageTitle": {
     "description": "Title of settings page for experimental, in-development features"

@@ -67,6 +67,26 @@ enum VisitFirstUnreadSetting {
   static VisitFirstUnreadSetting _default = conversations;
 }
 
+/// The user's choice of which message-list views should
+/// automatically mark messages as read when scrolling through them.
+///
+/// This can be overridden by local state: for example, if you've just tapped
+/// "Mark as unread from here" the view will stop marking as read automatically,
+/// regardless of this setting.
+enum MarkReadOnScrollSetting {
+  /// All views.
+  always,
+
+  /// Only conversation views.
+  conversations,
+
+  /// No views.
+  never;
+
+  /// The effective value of this setting if the user hasn't set it.
+  static MarkReadOnScrollSetting _default = conversations;
+}
+
 /// A general category of account-independent setting the user might set.
 ///
 /// Different kinds of settings call for different treatment in the UI,
@@ -268,6 +288,33 @@ class GlobalSettingsStore extends ChangeNotifier {
       VisitFirstUnreadSetting.always => true,
       VisitFirstUnreadSetting.never => false,
       VisitFirstUnreadSetting.conversations => switch (narrow) {
+        TopicNarrow() || DmNarrow()
+          => true,
+        CombinedFeedNarrow() || ChannelNarrow()
+        || MentionsNarrow() || StarredMessagesNarrow()
+          => false,
+      },
+    };
+  }
+
+  /// The user's choice of [MarkReadOnScrollSetting], applying our default.
+  ///
+  /// See also [markReadOnScrollForNarrow] and [setMarkReadOnScroll].
+  MarkReadOnScrollSetting get markReadOnScroll {
+    return _data.markReadOnScroll ?? MarkReadOnScrollSetting._default;
+  }
+
+  /// Set [markReadOnScroll], persistently for future runs of the app.
+  Future<void> setMarkReadOnScroll(MarkReadOnScrollSetting value) async {
+    await _update(GlobalSettingsCompanion(markReadOnScroll: Value(value)));
+  }
+
+  /// The value that [markReadOnScroll] works out to for the given narrow.
+  bool markReadOnScrollForNarrow(Narrow narrow) {
+    return switch (markReadOnScroll) {
+      MarkReadOnScrollSetting.always => true,
+      MarkReadOnScrollSetting.never => false,
+      MarkReadOnScrollSetting.conversations => switch (narrow) {
         TopicNarrow() || DmNarrow()
           => true,
         CombinedFeedNarrow() || ChannelNarrow()

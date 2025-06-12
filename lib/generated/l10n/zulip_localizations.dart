@@ -1449,6 +1449,42 @@ abstract class ZulipLocalizations {
   /// **'Newest message'**
   String get initialAnchorSettingNewestAlways;
 
+  /// Title of setting controlling which message-list views should mark read on scroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark messages as read on scroll'**
+  String get markReadOnScrollSettingTitle;
+
+  /// Description of setting controlling which message-list views should mark read on scroll.
+  ///
+  /// In en, this message translates to:
+  /// **'When scrolling through messages, should they automatically be marked as read?'**
+  String get markReadOnScrollSettingDescription;
+
+  /// Label for a value of setting controlling which message-list views should mark read on scroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Always'**
+  String get markReadOnScrollSettingAlways;
+
+  /// Label for a value of setting controlling which message-list views should mark read on scroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get markReadOnScrollSettingNever;
+
+  /// Label for a value of setting controlling which message-list views should mark read on scroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Only in conversation views'**
+  String get markReadOnScrollSettingConversations;
+
+  /// Description for a value of setting controlling which message-list views should mark read on scroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages will be automatically marked as read only when viewing a single topic or direct message conversation.'**
+  String get markReadOnScrollSettingConversationsDescription;
+
   /// Title of settings page for experimental, in-development features
   ///
   /// In en, this message translates to:

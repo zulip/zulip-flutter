@@ -114,6 +114,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
 void main() {
   TestZulipBinding.ensureInitialized();
   TestWidgetsFlutterBinding.ensureInitialized();
+  MessageListPage.debugEnableMarkReadOnScroll = false;
 
   void prepareRawContentResponseSuccess({
     required Message message,
