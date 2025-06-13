@@ -275,10 +275,9 @@ class _MentionAutocompleteItem extends StatelessWidget {
     String? sublabel;
     switch (option) {
       case UserMentionAutocompleteResult(:var userId):
-        final user = store.getUser(userId)!; // must exist because UserMentionAutocompleteResult
         avatar = Avatar(userId: userId, size: 36, borderRadius: 4);
-        label = user.fullName;
-        sublabel = store.userDisplayEmail(user);
+        label = store.userDisplayName(userId);
+        sublabel = store.userDisplayEmail(userId);
       case WildcardMentionAutocompleteResult(:var wildcardOption):
         avatar = SizedBox.square(dimension: 36,
           child: const Icon(ZulipIcons.three_person, size: 24));
