@@ -6,9 +6,181 @@
 // TODO(#1593): write tests for this file
 library;
 
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:sqlite3/sqlite3.dart';
 
 part 'legacy_app_data.g.dart';
+
+Future<LegacyAppData?> readLegacyAppData() async {
+  final LegacyAppDatabase db;
+  try {
+    final sqlDb = sqlite3.open(await LegacyAppDatabase._filename());
+
+    // For writing tests (but more refactoring needed):
+    // sqlDb = sqlite3.openInMemory();
+
+    db = LegacyAppDatabase(sqlDb);
+  } catch (_) {
+    // Presumably the legacy database just doesn't exist,
+    // e.g. because this is a fresh install, not an upgrade from the legacy app.
+    return null;
+  }
+
+  try {
+    if (db.migrationVersion() != 1) {
+      // The data is ancient.
+      return null; // TODO(log)
+    }
+
+    final migrationsState = db.getDecodedItem('reduxPersist:migrations',
+      LegacyAppMigrationsState.fromJson);
+    final migrationsVersion = migrationsState?.version;
+    if (migrationsVersion == null) {
+      // The data never got written in the first place,
+      // at least not coherently.
+      return null; // TODO(log)
+    }
+    if (migrationsVersion < 58) {
+      // The data predates a migration that affected data we'll try to read.
+      // Namely migration 58, from commit 49ed2ef5d, PR #5656, 2023-02.
+      return null; // TODO(log)
+    }
+    if (migrationsVersion > 66) {
+      // The data is from a future schema version this app is unaware of.
+      return null; // TODO(log)
+    }
+
+    final settingsStr = db.getItem('reduxPersist:settings');
+    final accountsStr = db.getItem('reduxPersist:accounts');
+    try {
+      return LegacyAppData.fromJson({
+        'settings': settingsStr == null ? null : jsonDecode(settingsStr),
+        'accounts': accountsStr == null ? null : jsonDecode(accountsStr),
+      });
+    } catch (_) {
+      return null; // TODO(log)
+    }
+  } on SqliteException {
+    return null; // TODO(log)
+  }
+}
+
+class LegacyAppDatabase {
+  LegacyAppDatabase(this._db);
+
+  final Database _db;
+
+  static Future<String> _filename() async {
+    const baseName = 'zulip.db'; // from AsyncStorageImpl._initDb
+
+    final dir = await switch (defaultTargetPlatform) {
+      // See node_modules/expo-sqlite/android/src/main/java/expo/modules/sqlite/SQLiteModule.kt
+      // and the method SQLiteModule.pathForDatabaseName there:
+      // works out to "${mContext.filesDir}/SQLite/$name",
+      // so starting from:
+      //   https://developer.android.com/reference/kotlin/android/content/Context#getFilesDir()
+      // That's what path_provider's getApplicationSupportDirectory gives.
+      // (The latter actually has a fallback when Android's getFilesDir
+      // returns null.  But the Android docs say that can't happen.  If it does,
+      // SQLiteModule would just fail to make a database, and the legacy app
+      // wouldn't have managed to store anything in the first place.)
+      TargetPlatform.android => getApplicationSupportDirectory(),
+
+      // See node_modules/expo-sqlite/ios/EXSQLite/EXSQLite.m
+      // and the method `pathForDatabaseName:` there:
+      // works out to "${fileSystem.documentDirectory}/SQLite/$name",
+      // The base directory there comes from:
+      //   node_modules/expo-modules-core/ios/Interfaces/FileSystem/EXFileSystemInterface.h
+      //   node_modules/expo-file-system/ios/EXFileSystem/EXFileSystem.m
+      // so ultimately from an expression:
+      //   NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)
+      // which means here:
+      //   https://developer.apple.com/documentation/foundation/nssearchpathfordirectoriesindomains(_:_:_:)?language=objc
+      //   https://developer.apple.com/documentation/foundation/filemanager/searchpathdirectory/documentdirectory?language=objc
+      // That's what path_provider's getApplicationDocumentsDirectory gives.
+      TargetPlatform.iOS => getApplicationDocumentsDirectory(),
+
+      // On other platforms, there is no Zulip legacy app that this app replaces.
+      // So there's nothing to migrate.
+      _ => throw Exception(),
+    };
+
+    return '${dir.path}/SQLite/$baseName';
+  }
+
+  /// The migration version of the AsyncStorage database as a whole
+  /// (not to be confused with the version within `state.migrations`).
+  ///
+  /// This is always 1 since it was introduced,
+  /// in commit caf3bf999 in 2022-04.
+  ///
+  /// Corresponds to portions of AsyncStorageImpl._migrate .
+  int migrationVersion() {
+    final rows = _db.select('SELECT version FROM migration LIMIT 1');
+    return rows.single.values.single as int;
+  }
+
+  T? getDecodedItem<T>(String key, T Function(Map<String, Object?>) fromJson) {
+    final valueStr = getItem(key);
+    if (valueStr == null) return null;
+
+    try {
+      return fromJson(jsonDecode(valueStr) as Map<String, Object?>);
+    } catch (_) {
+      return null; // TODO(log)
+    }
+  }
+
+  /// Corresponds to CompressedAsyncStorage.getItem.
+  String? getItem(String key) {
+    final item = getItemRaw(key);
+    if (item == null) return null;
+    if (item.startsWith('z')) {
+      // A leading 'z' marks Zulip compression.
+      // (It can't be the original uncompressed value, because all our values
+      // are JSON, and no JSON encoding starts with a 'z'.)
+
+      if (defaultTargetPlatform != TargetPlatform.android) {
+        return null; // TODO(log)
+      }
+
+      /// Corresponds to `header` in android/app/src/main/java/com/zulipmobile/TextCompression.kt .
+      const header = 'z|zlib base64|';
+      if (!item.startsWith(header)) {
+        return null; // TODO(log)
+      }
+
+      // These steps correspond to `decompress` in android/app/src/main/java/com/zulipmobile/TextCompression.kt .
+      final encodedSplit = item.substring(header.length);
+      // Not sure how newlines get there into the data; but empirically
+      // they do, after each 76 characters of `encodedSplit`.
+      final encoded = encodedSplit.replaceAll('\n', '');
+      final compressedBytes = base64Decode(encoded);
+      final uncompressedBytes = zlib.decoder.convert(compressedBytes);
+      return utf8.decode(uncompressedBytes);
+    }
+    return item;
+  }
+
+  /// Corresponds to AsyncStorageImpl.getItem.
+  String? getItemRaw(String key) {
+    final rows = _db.select('SELECT value FROM keyvalue WHERE key = ?', [key]);
+    final row = rows.firstOrNull;
+    if (row == null) return null;
+    return row.values.single as String;
+  }
+
+  /// Corresponds to AsyncStorageImpl.getAllKeys.
+  List<String> getAllKeys() {
+    final rows = _db.select('SELECT key FROM keyvalue');
+    return [for (final r in rows) r.values.single as String];
+  }
+}
 
 /// Represents the data from the legacy app's database,
 /// so far as it's relevant for this app.
