@@ -2,6 +2,9 @@ import 'package:checks/checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/store.dart';
+import 'package:zulip/model/user.dart';
 
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
@@ -80,26 +83,67 @@ void main() {
     });
   });
 
-  testWidgets('MutedUsersEvent', (tester) async {
-    final user1 = eg.user(userId: 1);
-    final user2 = eg.user(userId: 2);
-    final user3 = eg.user(userId: 3);
+  group('MutedUsersEvent', () {
+    testWidgets('smoke', (tester) async {
+      late PerAccountStore store;
 
-    final store = eg.store(initialSnapshot: eg.initialSnapshot(
-      realmUsers: [user1, user2, user3],
-      mutedUsers: [MutedUserItem(id: 2), MutedUserItem(id: 1)]));
-    check(store.isUserMuted(1)).isTrue();
-    check(store.isUserMuted(2)).isTrue();
-    check(store.isUserMuted(3)).isFalse();
+      void checkDmConversationMuted(List<int> otherUserIds, bool expected) {
+        final narrow = DmNarrow.withOtherUsers(otherUserIds, selfUserId: store.selfUserId);
+        check(store.shouldMuteDmConversation(narrow)).equals(expected);
+      }
 
-    await store.handleEvent(eg.mutedUsersEvent([2, 1, 3]));
-    check(store.isUserMuted(1)).isTrue();
-    check(store.isUserMuted(2)).isTrue();
-    check(store.isUserMuted(3)).isTrue();
+      final user1 = eg.user(userId: 1);
+      final user2 = eg.user(userId: 2);
+      final user3 = eg.user(userId: 3);
 
-    await store.handleEvent(eg.mutedUsersEvent([2, 3]));
-    check(store.isUserMuted(1)).isFalse();
-    check(store.isUserMuted(2)).isTrue();
-    check(store.isUserMuted(3)).isTrue();
+      store = eg.store(initialSnapshot: eg.initialSnapshot(
+        realmUsers: [user1, user2, user3],
+        mutedUsers: [MutedUserItem(id: 2), MutedUserItem(id: 1)]));
+      check(store.isUserMuted(1)).isTrue();
+      check(store.isUserMuted(2)).isTrue();
+      check(store.isUserMuted(3)).isFalse();
+      checkDmConversationMuted([1], true);
+      checkDmConversationMuted([1, 2], true);
+      checkDmConversationMuted([2, 3], false);
+      checkDmConversationMuted([1, 2, 3], false);
+
+      await store.handleEvent(eg.mutedUsersEvent([2, 1, 3]));
+      check(store.isUserMuted(1)).isTrue();
+      check(store.isUserMuted(2)).isTrue();
+      check(store.isUserMuted(3)).isTrue();
+      checkDmConversationMuted([1, 2, 3], true);
+
+      await store.handleEvent(eg.mutedUsersEvent([2, 3]));
+      check(store.isUserMuted(1)).isFalse();
+      check(store.isUserMuted(2)).isTrue();
+      check(store.isUserMuted(3)).isTrue();
+      checkDmConversationMuted([1], false);
+      checkDmConversationMuted([], false);
+    });
+
+    group('mightChangeShouldMuteDmConversation', () {
+      void doTest(
+        String description,
+        List<int> before,
+        List<int> after,
+        MutedUsersVisibilityEffect expected,
+      ) {
+        testWidgets(description, (tester) async {
+          final store = eg.store();
+          await store.addUser(eg.selfUser);
+          await store.addUsers(before.map((id) => eg.user(userId: id)));
+          await store.setMutedUsers(before);
+          final event = eg.mutedUsersEvent(after);
+          check(store.mightChangeShouldMuteDmConversation(event)).equals(expected);
+        });
+      }
+
+      doTest('none', [1], [1], MutedUsersVisibilityEffect.none);
+      doTest('none (empty to empty)', [], [], MutedUsersVisibilityEffect.none);
+      doTest('muted', [1], [1, 2], MutedUsersVisibilityEffect.muted);
+      doTest('unmuted', [1, 2], [1], MutedUsersVisibilityEffect.unmuted);
+      doTest('mixed', [1, 2, 3], [1, 2, 4], MutedUsersVisibilityEffect.mixed);
+      doTest('mixed (all replaced)', [1], [2], MutedUsersVisibilityEffect.mixed);
+    });
   });
 }

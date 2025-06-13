@@ -65,7 +65,7 @@ void main() {
   }
 
   void checkTypists(Map<SendableNarrow, List<User>> typistsByNarrow) {
-    final actualTypistsByNarrow = <SendableNarrow, Iterable<int>>{};
+    final actualTypistsByNarrow = <SendableNarrow, Iterable<int>?>{};
     for (final narrow in model.debugActiveNarrows) {
       actualTypistsByNarrow[narrow] = model.typistIdsInNarrow(narrow);
     }

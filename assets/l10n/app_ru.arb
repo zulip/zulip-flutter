@@ -1081,10 +1081,6 @@
   "@mutedSender": {
     "description": "Name for a muted user to display in message list."
   },
-  "revealButtonLabel": "Показать сообщение отключенного отправителя",
-  "@revealButtonLabel": {
-    "description": "Label for the button revealing hidden message from a muted sender in message list."
-  },
   "mutedUser": "Отключенный пользователь",
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
