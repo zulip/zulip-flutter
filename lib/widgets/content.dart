@@ -1762,18 +1762,23 @@ class Avatar extends StatelessWidget {
     required this.userId,
     required this.size,
     required this.borderRadius,
+    this.replaceIfMuted = true,
   });
 
   final int userId;
   final double size;
   final double borderRadius;
+  final bool replaceIfMuted;
 
   @override
   Widget build(BuildContext context) {
     return AvatarShape(
       size: size,
       borderRadius: borderRadius,
-      child: AvatarImage(userId: userId, size: size));
+      child: AvatarImage(
+        userId: userId,
+        size: size,
+        replaceIfMuted: replaceIfMuted));
   }
 }
 
@@ -1787,10 +1792,12 @@ class AvatarImage extends StatelessWidget {
     super.key,
     required this.userId,
     required this.size,
+    this.replaceIfMuted = true,
   });
 
   final int userId;
   final double size;
+  final bool replaceIfMuted;
 
   @override
   Widget build(BuildContext context) {
@@ -1799,6 +1806,10 @@ class AvatarImage extends StatelessWidget {
 
     if (user == null) { // TODO(log)
       return const SizedBox.shrink();
+    }
+
+    if (replaceIfMuted && store.isUserMuted(userId)) {
+      return _AvatarPlaceholder(size: size);
     }
 
     final resolvedUrl = switch (user.avatarUrl) {
@@ -1818,6 +1829,32 @@ class AvatarImage extends StatelessWidget {
       filterQuality: FilterQuality.medium,
       fit: BoxFit.cover,
     );
+  }
+}
+
+/// A placeholder avatar for muted users.
+///
+/// Wrap this with [AvatarShape].
+// TODO(#1558) use this as a fallback in more places (?) and update dartdoc.
+class _AvatarPlaceholder extends StatelessWidget {
+  const _AvatarPlaceholder({required this.size});
+
+  /// The size of the placeholder box.
+  ///
+  /// This should match the `size` passed to the wrapping [AvatarShape].
+  /// The placeholder's icon will be scaled proportionally to this.
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(color: designVariables.avatarPlaceholderBg),
+      child: Icon(ZulipIcons.person,
+        // Where the avatar placeholder appears in the Figma,
+        // this is how the icon is sized proportionally to its box.
+        size: size * 20 / 32,
+        color: designVariables.avatarPlaceholderIcon));
   }
 }
 

@@ -835,9 +835,6 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get noEarlierMessages => 'Немає попередніх повідомлень';
 
   @override
-  String get mutedSender => 'Заглушений відправник';
-
-  @override
   String get revealButtonLabel =>
       'Показати повідомлення заглушеного відправника';
 
