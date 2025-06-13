@@ -125,7 +125,7 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get actionSheetOptionShare => 'Deli';
 
   @override
-  String get actionSheetOptionQuoteAndReply => 'Citiraj in odgovori';
+  String get actionSheetOptionQuoteMessage => 'Quote message';
 
   @override
   String get actionSheetOptionStarMessage => 'Označi sporočilo z zvezdico';

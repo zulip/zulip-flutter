@@ -120,7 +120,7 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get actionSheetOptionShare => 'Share';
 
   @override
-  String get actionSheetOptionQuoteAndReply => 'Quote and reply';
+  String get actionSheetOptionQuoteMessage => 'Quote message';
 
   @override
   String get actionSheetOptionStarMessage => 'Star message';
@@ -951,9 +951,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get actionSheetOptionShare => '分享';
 
   @override
-  String get actionSheetOptionQuoteAndReply => '引用消息并回复';
-
-  @override
   String get actionSheetOptionStarMessage => '添加星标消息标记';
 
   @override
@@ -1729,9 +1726,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get actionSheetOptionShare => '分享';
-
-  @override
-  String get actionSheetOptionQuoteAndReply => '引用並回覆';
 
   @override
   String get actionSheetOptionStarMessage => '標註為重要訊息';

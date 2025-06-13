@@ -833,7 +833,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
-    return zulipLocalizations.actionSheetOptionQuoteAndReply;
+    return zulipLocalizations.actionSheetOptionQuoteMessage;
   }
 
   @override void onPressed() async {

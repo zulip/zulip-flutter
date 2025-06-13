@@ -120,7 +120,7 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get actionSheetOptionShare => 'Share';
 
   @override
-  String get actionSheetOptionQuoteAndReply => 'Quote and reply';
+  String get actionSheetOptionQuoteMessage => 'Quote message';
 
   @override
   String get actionSheetOptionStarMessage => 'Star message';

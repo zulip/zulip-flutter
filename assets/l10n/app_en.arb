@@ -140,9 +140,9 @@
   "@actionSheetOptionShare":  {
     "description": "Label for share button on action sheet."
   },
-  "actionSheetOptionQuoteAndReply": "Quote and reply",
-  "@actionSheetOptionQuoteAndReply":  {
-    "description": "Label for Quote and reply button on action sheet."
+  "actionSheetOptionQuoteMessage": "Quote message",
+  "@actionSheetOptionQuoteMessage":  {
+    "description": "Label for the 'Quote message' button in the message action sheet."
   },
   "actionSheetOptionStarMessage": "Star message",
   "@actionSheetOptionStarMessage":  {

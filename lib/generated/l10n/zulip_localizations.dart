@@ -339,11 +339,11 @@ abstract class ZulipLocalizations {
   /// **'Share'**
   String get actionSheetOptionShare;
 
-  /// Label for Quote and reply button on action sheet.
+  /// Label for the 'Quote message' button in the message action sheet.
   ///
   /// In en, this message translates to:
-  /// **'Quote and reply'**
-  String get actionSheetOptionQuoteAndReply;
+  /// **'Quote message'**
+  String get actionSheetOptionQuoteMessage;
 
   /// Label for star button on action sheet.
   ///

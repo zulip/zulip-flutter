@@ -121,7 +121,7 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get actionSheetOptionShare => 'Zdielať';
 
   @override
-  String get actionSheetOptionQuoteAndReply => 'Citovať a odpovedať';
+  String get actionSheetOptionQuoteMessage => 'Quote message';
 
   @override
   String get actionSheetOptionStarMessage => 'Ohviezdičkovať správu';

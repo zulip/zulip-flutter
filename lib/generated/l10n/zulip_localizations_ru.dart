@@ -126,7 +126,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get actionSheetOptionShare => 'Поделиться';
 
   @override
-  String get actionSheetOptionQuoteAndReply => 'Ответить с цитированием';
+  String get actionSheetOptionQuoteMessage => 'Quote message';
 
   @override
   String get actionSheetOptionStarMessage => 'Отметить сообщение';
