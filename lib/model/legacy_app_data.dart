@@ -9,12 +9,104 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 
+import '../log.dart';
+import 'database.dart';
+import 'settings.dart';
+
 part 'legacy_app_data.g.dart';
+
+Future<void> migrateLegacyAppData(AppDatabase db) async {
+  assert(debugLog("Migrating legacy app data..."));
+  final legacyData = await readLegacyAppData();
+  if (legacyData == null) {
+    assert(debugLog("... no legacy app data found."));
+    return;
+  }
+
+  assert(debugLog("Found settings: ${legacyData.settings?.toJson()}"));
+  final settings = legacyData.settings;
+  if (settings != null) {
+    await db.update(db.globalSettings).write(GlobalSettingsCompanion(
+      // TODO(#1139) apply settings.language
+      themeSetting: switch (settings.theme) {
+        // The legacy app has just two values for this setting: light and dark,
+        // where light is the default.  Map that default to the new default,
+        // which is to follow the system-wide setting.
+        // We planned the same change for the legacy app (but were
+        // foiled by React Native):
+        //   https://github.com/zulip/zulip-mobile/issues/5533
+        // More-recent discussion:
+        //   https://github.com/zulip/zulip-flutter/pull/1588#discussion_r2147418577
+        LegacyAppThemeSetting.default_ => drift.Value.absent(),
+        LegacyAppThemeSetting.night => drift.Value(ThemeSetting.dark),
+      },
+      browserPreference: switch (settings.browser) {
+        LegacyAppBrowserPreference.embedded => drift.Value(BrowserPreference.inApp),
+        LegacyAppBrowserPreference.external => drift.Value(BrowserPreference.external),
+        LegacyAppBrowserPreference.default_ => drift.Value.absent(),
+      },
+      markReadOnScroll: switch (settings.markMessagesReadOnScroll) {
+        // The legacy app's default was "always".
+        // In this app, that would mix poorly with the VisitFirstUnreadSetting
+        // default of "conversations"; so translate the old default
+        // to the new default of "conversations".
+        LegacyAppMarkMessagesReadOnScroll.always =>
+          drift.Value(MarkReadOnScrollSetting.conversations),
+        LegacyAppMarkMessagesReadOnScroll.never =>
+          drift.Value(MarkReadOnScrollSetting.never),
+        LegacyAppMarkMessagesReadOnScroll.conversationViewsOnly =>
+          drift.Value(MarkReadOnScrollSetting.conversations),
+      },
+    ));
+  }
+
+  assert(debugLog("Found ${legacyData.accounts?.length} accounts:"));
+  for (final account in legacyData.accounts ?? <LegacyAppAccount>[]) {
+    assert(debugLog("  account: ${account.toJson()..['apiKey'] = 'redacted'}"));
+    if (account.apiKey.isEmpty) {
+      // This represents the user having logged out of this account.
+      // (See `Auth.apiKey` in src/api/transportTypes.js .)
+      // In this app, when a user logs out of an account,
+      // the account is removed from the accounts list.  So remove this account.
+      assert(debugLog("    (account ignored because had been logged out)"));
+      continue;
+    }
+    if (account.userId == null
+        || account.zulipVersion == null
+        || account.zulipFeatureLevel == null) {
+      // The legacy app either never loaded server data for this account,
+      // or last did so on an ancient version of the app.
+      // (See docs and comments on these properties in src/types.js .
+      // Specifically, the latest added of these was userId, in commit 4fdefb09b
+      // (#M4968), released in v27.170 in 2021-09.)
+      // Drop the account.
+      assert(debugLog("    (account ignored because missing metadata)"));
+      continue;
+    }
+    await db.createAccount(AccountsCompanion.insert(
+      realmUrl: account.realm,
+      userId: account.userId!,
+      email: account.email,
+      apiKey: account.apiKey,
+      zulipVersion: account.zulipVersion!,
+      // no zulipMergeBase; legacy app didn't record it
+      zulipFeatureLevel: account.zulipFeatureLevel!,
+      // This app doesn't yet maintain ackedPushToken (#322), so avoid recording
+      // a value that would then be allowed to get stale.  See discussion:
+      //   https://github.com/zulip/zulip-flutter/pull/1588#discussion_r2148817025
+      // TODO(#322): apply ackedPushToken
+      // ackedPushToken: drift.Value(account.ackedPushToken),
+    ));
+  }
+
+  assert(debugLog("Done migrating legacy app data."));
+}
 
 Future<LegacyAppData?> readLegacyAppData() async {
   final LegacyAppDatabase db;
