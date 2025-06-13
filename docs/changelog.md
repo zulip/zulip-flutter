@@ -2,6 +2,41 @@
 
 ## Unreleased
 
+This is a preview beta, including some experimental changes
+not yet merged to the main branch.
+
+
+### Highlights for users
+
+This app is nearing ready to replace the legacy Zulip mobile app,
+planned for next week.
+
+In addition to all the features in the last beta:
+* The keyboard opens immediately when you start a
+  new conversation. (#1543)
+* Translation updates, including new near-complete translations
+  for Slovenian (sl) and Chinese (Simplified, China) (zh_Hans_CN).
+* Several small improvements to the newest features:
+  muted users (#296), message links going directly to message (#82).
+
+
+### Highlights for developers
+
+* User-visible changes not described above:
+  * upgraded Flutter and deps (PR #1568)
+  * suppress long-press on muted-sender message,
+    and hide muted users in new-DM list (part of #296)
+  * reject internal links with malformed /near/ operands
+    (part of #82)
+
+* Resolved in main: #276 (though external to the tree),
+  #1543, #82, #80, #1147, #1441
+
+* Resolved in the experimental branch:
+  * more toward #46 via PR #1452
+  * further toward #46 via PR #1559
+  * #296 via PR #1561
+
 
 ## 0.0.31 (2025-06-11)
 
