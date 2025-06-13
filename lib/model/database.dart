@@ -4,6 +4,7 @@ import 'package:drift/remote.dart';
 import 'package:sqlite3/common.dart';
 
 import '../log.dart';
+import 'legacy_app_data.dart';
 import 'schema_versions.g.dart';
 import 'settings.dart';
 
@@ -195,6 +196,7 @@ class AppDatabase extends _$AppDatabase {
     await m.createAll();
     // Corresponds to `from4to5` above.
     await into(globalSettings).insert(GlobalSettingsCompanion());
+    await migrateLegacyAppData(this);
   }
 
   @override
