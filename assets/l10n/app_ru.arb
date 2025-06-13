@@ -1116,5 +1116,21 @@
   "errorNotificationOpenAccountNotFound": "Учетная запись, связанная с этим уведомлением, не найдена.",
   "@errorNotificationOpenAccountNotFound": {
     "description": "Error message when the account associated with the notification could not be found"
+  },
+  "channelsEmptyPlaceholder": "Вы еще не подписаны ни на один канал.",
+  "@channelsEmptyPlaceholder": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show."
+  },
+  "recentDmConversationsEmptyPlaceholder": "У вас пока нет личных сообщений! Почему бы не начать беседу?",
+  "@recentDmConversationsEmptyPlaceholder": {
+    "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "newDmSheetComposeButtonLabel": "Написать",
+  "@newDmSheetComposeButtonLabel": {
+    "description": "Label for the compose button in the new DM sheet that starts composing a message to the selected users."
+  },
+  "inboxEmptyPlaceholder": "Нет непрочитанных входящих сообщений. Используйте кнопки ниже для просмотра объединенной ленты или списка каналов.",
+  "@inboxEmptyPlaceholder": {
+    "description": "Centered text on the 'Inbox' page saying that there is no content to show."
   }
 }

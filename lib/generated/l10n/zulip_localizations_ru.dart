@@ -353,7 +353,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get composeBoxGenericContentHint => 'Ввести сообщение';
 
   @override
-  String get newDmSheetComposeButtonLabel => 'Compose';
+  String get newDmSheetComposeButtonLabel => 'Написать';
 
   @override
   String get newDmSheetScreenTitle => 'Новое ЛС';
@@ -652,7 +652,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get inboxEmptyPlaceholder =>
-      'There are no unread messages in your inbox. Use the buttons below to view the combined feed or list of channels.';
+      'Нет непрочитанных входящих сообщений. Используйте кнопки ниже для просмотра объединенной ленты или списка каналов.';
 
   @override
   String get recentDmConversationsPageTitle => 'Личные сообщения';
@@ -662,7 +662,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get recentDmConversationsEmptyPlaceholder =>
-      'You have no direct messages yet! Why not start the conversation?';
+      'У вас пока нет личных сообщений! Почему бы не начать беседу?';
 
   @override
   String get combinedFeedPageTitle => 'Объединенная лента';
@@ -678,7 +678,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get channelsEmptyPlaceholder =>
-      'You are not subscribed to any channels yet.';
+      'Вы еще не подписаны ни на один канал.';
 
   @override
   String get mainMenuMyProfile => 'Мой профиль';

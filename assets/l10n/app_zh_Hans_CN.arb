@@ -1,3 +1,1158 @@
 {
-  "settingsPageTitle": "设置"
+  "settingsPageTitle": "设置",
+  "@settingsPageTitle": {},
+  "actionSheetOptionResolveTopic": "标记为已解决",
+  "@actionSheetOptionResolveTopic": {
+    "description": "Label for the 'Mark as resolved' button on the topic action sheet."
+  },
+  "aboutPageTitle": "关于Zulip",
+  "@aboutPageTitle": {
+    "description": "Title for About Zulip page."
+  },
+  "aboutPageAppVersion": "应用程序版本",
+  "@aboutPageAppVersion": {
+    "description": "Label for Zulip app version in About Zulip page"
+  },
+  "aboutPageOpenSourceLicenses": "开源许可",
+  "@aboutPageOpenSourceLicenses": {
+    "description": "Item title in About Zulip page to navigate to Licenses page"
+  },
+  "chooseAccountPageTitle": "选择账号",
+  "@chooseAccountPageTitle": {
+    "description": "Title for the page to choose between Zulip accounts."
+  },
+  "switchAccountButton": "切换账号",
+  "@switchAccountButton": {
+    "description": "Label for main-menu button leading to the choose-account page."
+  },
+  "tryAnotherAccountButton": "尝试另一个账号",
+  "@tryAnotherAccountButton": {
+    "description": "Label for loading screen button prompting user to try another account."
+  },
+  "chooseAccountPageLogOutButton": "登出",
+  "@chooseAccountPageLogOutButton": {
+    "description": "Label for the 'Log out' button for an account on the choose-account page"
+  },
+  "logOutConfirmationDialogTitle": "登出？",
+  "@logOutConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for logging out."
+  },
+  "chooseAccountButtonAddAnAccount": "添加一个账号",
+  "@chooseAccountButtonAddAnAccount": {
+    "description": "Label for ChooseAccountPage button to add an account"
+  },
+  "profileButtonSendDirectMessage": "发送私信",
+  "@profileButtonSendDirectMessage": {
+    "description": "Label for button in profile screen to navigate to DMs with the shown user."
+  },
+  "errorCouldNotShowUserProfile": "无法显示用户个人资料。",
+  "@errorCouldNotShowUserProfile": {
+    "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
+  "permissionsNeededOpenSettings": "打开设置",
+  "@permissionsNeededOpenSettings": {
+    "description": "Button label for permissions dialog button that opens the system settings screen."
+  },
+  "actionSheetOptionMarkChannelAsRead": "标记频道为已读",
+  "@actionSheetOptionMarkChannelAsRead": {
+    "description": "Label for marking a channel as read."
+  },
+  "actionSheetOptionListOfTopics": "话题列表",
+  "@actionSheetOptionListOfTopics": {
+    "description": "Label for navigating to a channel's topic-list page."
+  },
+  "actionSheetOptionFollowTopic": "关注话题",
+  "@actionSheetOptionFollowTopic": {
+    "description": "Label for following a topic on action sheet."
+  },
+  "actionSheetOptionUnfollowTopic": "取消关注话题",
+  "@actionSheetOptionUnfollowTopic": {
+    "description": "Label for unfollowing a topic on action sheet."
+  },
+  "zulipAppTitle": "Zulip",
+  "@zulipAppTitle": {
+    "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
+  },
+  "aboutPageTapToView": "查看更多",
+  "@aboutPageTapToView": {
+    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
+  },
+  "tryAnotherAccountMessage": "您在 {url} 的账号加载时间过长。",
+  "@tryAnotherAccountMessage": {
+    "description": "Message that appears on the loading screen after waiting for some time.",
+    "url": {
+      "type": "String",
+      "example": "http://chat.example.com/"
+    }
+  },
+  "logOutConfirmationDialogMessage": "下次登入此账号时，您将需要重新输入组织网址和账号信息。",
+  "@logOutConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for logging out."
+  },
+  "logOutConfirmationDialogConfirmButton": "登出",
+  "@logOutConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Log out' button on a confirmation dialog for logging out."
+  },
+  "permissionsNeededTitle": "需要额外权限",
+  "@permissionsNeededTitle": {
+    "description": "Title for dialog asking the user to grant additional permissions."
+  },
+  "permissionsDeniedCameraAccess": "上传图片前，请在设置授予 Zulip 相应的权限。",
+  "@permissionsDeniedCameraAccess": {
+    "description": "Message for dialog asking the user to grant permissions for camera access."
+  },
+  "permissionsDeniedReadExternalStorage": "上传文件前，请在设置授予 Zulip 相应的权限。",
+  "@permissionsDeniedReadExternalStorage": {
+    "description": "Message for dialog asking the user to grant permissions for external storage read access."
+  },
+  "newDmSheetComposeButtonLabel": "撰写消息",
+  "@newDmSheetComposeButtonLabel": {
+    "description": "Label for the compose button in the new DM sheet that starts composing a message to the selected users."
+  },
+  "composeBoxChannelContentHint": "发送消息到 {destination}",
+  "@composeBoxChannelContentHint": {
+    "description": "Hint text for content input when sending a message to a channel.",
+    "placeholders": {
+      "destination": {
+        "type": "String",
+        "example": "#channel name > topic name"
+      }
+    }
+  },
+  "preparingEditMessageContentInput": "准备编辑消息…",
+  "@preparingEditMessageContentInput": {
+    "description": "Hint text for content input when the compose box is preparing to edit a message."
+  },
+  "composeBoxSendTooltip": "发送",
+  "@composeBoxSendTooltip": {
+    "description": "Tooltip for send button in compose box."
+  },
+  "unknownChannelName": "（未知频道）",
+  "@unknownChannelName": {
+    "description": "Replacement name for channel when it cannot be found in the store."
+  },
+  "composeBoxLoadingMessage": "（加载消息 {messageId}）",
+  "@composeBoxLoadingMessage": {
+    "description": "Placeholder in compose box showing the quoted message is currently loading.",
+    "placeholders": {
+      "messageId": {
+        "type": "int",
+        "example": "1234"
+      }
+    }
+  },
+  "unknownUserName": "（未知用户）",
+  "@unknownUserName": {
+    "description": "Name placeholder to use for a user when we don't know their name."
+  },
+  "dmsWithOthersPageTitle": "与{others}的私信",
+  "@dmsWithOthersPageTitle": {
+    "description": "Message list page title for a DM group with others.",
+    "placeholders": {
+      "others": {
+        "type": "String",
+        "example": "Alice, Bob"
+      }
+    }
+  },
+  "messageListGroupYouWithYourself": "与自己的私信",
+  "@messageListGroupYouWithYourself": {
+    "description": "Message list recipient header for a DM group that only includes yourself."
+  },
+  "contentValidationErrorTooLong": "消息的长度不能超过10000个字符。",
+  "@contentValidationErrorTooLong": {
+    "description": "Content validation error message when the message is too long."
+  },
+  "errorDialogLearnMore": "更多信息",
+  "@errorDialogLearnMore": {
+    "description": "Button label in error dialogs to open a web page with more information."
+  },
+  "errorDialogContinue": "好的",
+  "@errorDialogContinue": {
+    "description": "Button label in error dialogs to acknowledge the error and close the dialog."
+  },
+  "errorDialogTitle": "错误",
+  "@errorDialogTitle": {
+    "description": "Generic title for error dialog."
+  },
+  "lightboxCopyLinkTooltip": "复制链接",
+  "@lightboxCopyLinkTooltip": {
+    "description": "Tooltip in lightbox for the copy link action."
+  },
+  "lightboxVideoCurrentPosition": "当前进度",
+  "@lightboxVideoCurrentPosition": {
+    "description": "The current playback position of the video playing in the lightbox."
+  },
+  "lightboxVideoDuration": "视频时长",
+  "@lightboxVideoDuration": {
+    "description": "The total duration of the video playing in the lightbox."
+  },
+  "loginFormSubmitLabel": "登入",
+  "@loginFormSubmitLabel": {
+    "description": "Button text to submit login credentials."
+  },
+  "loginMethodDivider": "或",
+  "@loginMethodDivider": {
+    "description": "Text on the divider between the username/password form and the third-party login options. Uppercase (for languages with letter case)."
+  },
+  "signInWithFoo": "使用{method}登入",
+  "@signInWithFoo": {
+    "description": "Button to use {method} to sign in to the app.",
+    "placeholders": {
+      "method": {
+        "type": "String",
+        "example": "Google"
+      }
+    }
+  },
+  "loginAddAnAccountPageTitle": "添加账号",
+  "@loginAddAnAccountPageTitle": {
+    "description": "Title for page to add a Zulip account."
+  },
+  "loginServerUrlLabel": "Zulip 服务器网址",
+  "@loginServerUrlLabel": {
+    "description": "Label in login page for Zulip server URL entry."
+  },
+  "loginHidePassword": "隐藏密码",
+  "@loginHidePassword": {
+    "description": "Icon label for button to hide password in input form."
+  },
+  "topicValidationErrorMandatoryButEmpty": "话题在该组织为必填项。",
+  "@topicValidationErrorMandatoryButEmpty": {
+    "description": "Topic validation error when topic is required but was empty."
+  },
+  "errorInvalidApiKeyMessage": "您在 {url} 的账号无法被登入。请重试或者使用另外的账号。",
+  "@errorInvalidApiKeyMessage": {
+    "description": "Error message in the dialog for invalid API key.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "http://chat.example.com/"
+      }
+    }
+  },
+  "errorInvalidResponse": "服务器的回复不合法。",
+  "@errorInvalidResponse": {
+    "description": "Error message when an API call returned an invalid response."
+  },
+  "errorNetworkRequestFailed": "网络请求失败",
+  "@errorNetworkRequestFailed": {
+    "description": "Error message when a network request fails."
+  },
+  "errorMalformedResponse": "服务器的回复不合法；HTTP 状态码 {httpStatus}",
+  "@errorMalformedResponse": {
+    "description": "Error message when an API call fails because we could not parse the response.",
+    "placeholders": {
+      "httpStatus": {
+        "type": "int",
+        "example": "200"
+      }
+    }
+  },
+  "errorMalformedResponseWithCause": "服务器的回复不合法；HTTP 状态码 {httpStatus}; {details}",
+  "@errorMalformedResponseWithCause": {
+    "description": "Error message when an API call fails because we could not parse the response, with details of the failure.",
+    "placeholders": {
+      "httpStatus": {
+        "type": "int",
+        "example": "200"
+      },
+      "details": {
+        "type": "String",
+        "example": "type 'Null' is not a subtype of type 'String' in type cast"
+      }
+    }
+  },
+  "serverUrlValidationErrorInvalidUrl": "请输入正确的网址。",
+  "@serverUrlValidationErrorInvalidUrl": {
+    "description": "Error message when URL is not in a valid format."
+  },
+  "serverUrlValidationErrorNoUseEmail": "请输入服务器网址，而不是您的电子邮件。",
+  "@serverUrlValidationErrorNoUseEmail": {
+    "description": "Error message when URL looks like an email"
+  },
+  "spoilerDefaultHeaderText": "剧透",
+  "@spoilerDefaultHeaderText": {
+    "description": "The default header text in a spoiler block ( https://zulip.com/help/spoilers )."
+  },
+  "markAllAsReadLabel": "将所有消息标为已读",
+  "@markAllAsReadLabel": {
+    "description": "Button text to mark messages as read."
+  },
+  "markAsReadComplete": "已将 {num, plural, other{{num} 条消息}}标为已读。",
+  "@markAsReadComplete": {
+    "description": "Message when marking messages as read has completed.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "markAsUnreadInProgress": "正在将消息标为未读…",
+  "@markAsUnreadInProgress": {
+    "description": "Progress message when marking messages as unread."
+  },
+  "errorMarkAsUnreadFailedTitle": "未能将消息标为未读",
+  "@errorMarkAsUnreadFailedTitle": {
+    "description": "Error title when mark as unread action failed."
+  },
+  "userRoleAdministrator": "管理员",
+  "@userRoleAdministrator": {
+    "description": "Label for UserRole.administrator"
+  },
+  "userRoleModerator": "版主",
+  "@userRoleModerator": {
+    "description": "Label for UserRole.moderator"
+  },
+  "userRoleMember": "成员",
+  "@userRoleMember": {
+    "description": "Label for UserRole.member"
+  },
+  "recentDmConversationsEmptyPlaceholder": "您还没有任何私信消息！何不开启一个新对话？",
+  "@recentDmConversationsEmptyPlaceholder": {
+    "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "channelsEmptyPlaceholder": "您还没有订阅任何频道。",
+  "@channelsEmptyPlaceholder": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show."
+  },
+  "channelFeedButtonTooltip": "频道订阅",
+  "@channelFeedButtonTooltip": {
+    "description": "Tooltip for button to navigate to a given channel's feed"
+  },
+  "unpinnedSubscriptionsLabel": "未置顶",
+  "@unpinnedSubscriptionsLabel": {
+    "description": "Label for the list of unpinned subscribed channels."
+  },
+  "notifGroupDmConversationLabel": "{senderFullName}向你和其他 {numOthers, plural, other{{numOthers} 个用户}}",
+  "@notifGroupDmConversationLabel": {
+    "description": "Label for a group DM conversation notification.",
+    "placeholders": {
+      "senderFullName": {
+        "type": "String",
+        "example": "Alice"
+      },
+      "numOthers": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "wildcardMentionChannel": "频道",
+  "@wildcardMentionChannel": {
+    "description": "Text for \"@channel\" wildcard-mention autocomplete option when writing a channel message."
+  },
+  "wildcardMentionEveryone": "所有人",
+  "@wildcardMentionEveryone": {
+    "description": "Text for \"@everyone\" wildcard-mention autocomplete option when writing a channel or DM message."
+  },
+  "wildcardMentionStream": "频道",
+  "@wildcardMentionStream": {
+    "description": "Text for \"@stream\" wildcard-mention autocomplete option when writing a channel message in older servers."
+  },
+  "wildcardMentionTopic": "话题",
+  "@wildcardMentionTopic": {
+    "description": "Text for \"@topic\" wildcard-mention autocomplete option when writing a channel message."
+  },
+  "wildcardMentionTopicDescription": "通知话题",
+  "@wildcardMentionTopicDescription": {
+    "description": "Description for \"@topic\" wildcard-mention autocomplete options when writing a channel message."
+  },
+  "messageNotSentLabel": "消息未发送",
+  "@messageNotSentLabel": {
+    "description": "Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "messageIsEditedLabel": "已编辑",
+  "@messageIsEditedLabel": {
+    "description": "Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "themeSettingDark": "深色",
+  "@themeSettingDark": {
+    "description": "Label for dark theme setting."
+  },
+  "themeSettingLight": "浅色",
+  "@themeSettingLight": {
+    "description": "Label for light theme setting."
+  },
+  "pollVoterNames": "（{voterNames}）",
+  "@pollVoterNames": {
+    "description": "The list of people who voted for a poll option, wrapped in parentheses.",
+    "placeholders": {
+      "voterNames": {
+        "type": "String",
+        "example": "Alice, Bob, Chad"
+      }
+    }
+  },
+  "pollWidgetOptionsMissing": "该投票还没有任何选项。",
+  "@pollWidgetOptionsMissing": {
+    "description": "Text to display for a poll when it has no options"
+  },
+  "experimentalFeatureSettingsWarning": "以下选项启用了一些正在开发中的功能。它们可能不能正常使用，或造成一些其他的问题。\n\n这些选项能够帮助开发者更好的试验这些功能。",
+  "@experimentalFeatureSettingsWarning": {
+    "description": "Warning text on settings page for experimental, in-development features"
+  },
+  "initialAnchorSettingDescription": "您可以将消息的起始位置设置为第一条未读消息或者最新消息。",
+  "@initialAnchorSettingDescription": {
+    "description": "Description of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingTitle": "设置消息起始位置于",
+  "@initialAnchorSettingTitle": {
+    "description": "Title of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingNewestAlways": "最新消息",
+  "@initialAnchorSettingNewestAlways": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingFirstUnreadConversations": "在单个话题或私信中，从第一条未读消息开始；在其他情况下，从最新消息开始",
+  "@initialAnchorSettingFirstUnreadConversations": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingFirstUnreadAlways": "第一条未读消息",
+  "@initialAnchorSettingFirstUnreadAlways": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "actionSheetOptionCopyMessageLink": "复制消息链接",
+  "@actionSheetOptionCopyMessageLink": {
+    "description": "Label for copy message link button on action sheet."
+  },
+  "errorConnectingToServerDetails": "未能连接到在 {serverUrl} 的 Zulip 服务器。即将重连：\n\n{error}",
+  "@errorConnectingToServerDetails": {
+    "description": "Dialog error message for a generic unknown error connecting to the server with details.",
+    "placeholders": {
+      "serverUrl": {
+        "type": "String",
+        "example": "http://example.com/"
+      },
+      "error": {
+        "type": "String",
+        "example": "Invalid format"
+      }
+    }
+  },
+  "errorAccountLoggedIn": "在 {server} 的账号 {email} 已经在您的账号列表了。",
+  "@errorAccountLoggedIn": {
+    "description": "Error message on attempting to log into an account that's already logged in.",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "user@example.com"
+      },
+      "server": {
+        "type": "String",
+        "example": "https://example.com"
+      }
+    }
+  },
+  "errorServerVersionUnsupportedMessage": "{url} 运行的 Zulip 服务器版本 {zulipVersion} 过低。该客户端只支持 {minSupportedZulipVersion} 及以后的服务器版本。",
+  "@errorServerVersionUnsupportedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "http://chat.example.com/"
+      },
+      "zulipVersion": {
+        "type": "String",
+        "example": "3.2"
+      },
+      "minSupportedZulipVersion": {
+        "type": "String",
+        "example": "4.0"
+      }
+    }
+  },
+  "errorHandlingEventDetails": "处理来自 {serverUrl} 的 Zulip 事件时发生了一些问题。即将重连。\n\n错误：{error}\n\n事件：{event}",
+  "@errorHandlingEventDetails": {
+    "description": "Error details on failing to handle a Zulip server event.",
+    "placeholders": {
+      "serverUrl": {
+        "type": "String",
+        "example": "https://chat.example.com"
+      },
+      "error": {
+        "type": "String",
+        "example": "Unexpected null value"
+      },
+      "event": {
+        "type": "String",
+        "example": "UpdateMessageEvent(id: 123, messageIds: [2345, 3456], newTopic: 'dinner')"
+      }
+    }
+  },
+  "editAlreadyInProgressTitle": "未能编辑消息",
+  "@editAlreadyInProgressTitle": {
+    "description": "Error title when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "errorServerMessage": "服务器：\n\n{message}",
+  "@errorServerMessage": {
+    "description": "Error message that quotes an error from the server.",
+    "placeholders": {
+      "message": {
+        "type": "String",
+        "example": "Invalid format"
+      }
+    }
+  },
+  "loginErrorMissingUsername": "请输入用户名。",
+  "@loginErrorMissingUsername": {
+    "description": "Error message when an empty username was provided."
+  },
+  "successMessageTextCopied": "已复制消息文本",
+  "@successMessageTextCopied": {
+    "description": "Message when content of a message was copied to the user's system clipboard."
+  },
+  "errorBannerDeactivatedDmLabel": "您不能向被停用的用户发送消息。",
+  "@errorBannerDeactivatedDmLabel": {
+    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  },
+  "noEarlierMessages": "没有更早的消息了",
+  "@noEarlierMessages": {
+    "description": "Text to show at the start of a message list if there are no earlier messages."
+  },
+  "discardDraftForOutboxConfirmationDialogMessage": "当您恢复未能发送的消息时，文本框已有的内容将会被清空。",
+  "@discardDraftForOutboxConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog when restoring an outbox message, for discarding message text that was typed into the compose box."
+  },
+  "loginPageTitle": "登入",
+  "@loginPageTitle": {
+    "description": "Title for login page."
+  },
+  "loginEmailLabel": "电子邮箱地址",
+  "@loginEmailLabel": {
+    "description": "Label for input when an email is required to log in."
+  },
+  "topicValidationErrorTooLong": "话题长度不应该超过 60 个字符。",
+  "@topicValidationErrorTooLong": {
+    "description": "Topic validation error when topic is too long."
+  },
+  "userRoleUnknown": "未知",
+  "@userRoleUnknown": {
+    "description": "Label for UserRole.unknown"
+  },
+  "markAsReadInProgress": "正在将消息标为已读…",
+  "@markAsReadInProgress": {
+    "description": "Progress message when marking messages as read."
+  },
+  "onePersonTyping": "{typist}正在输入…",
+  "@onePersonTyping": {
+    "description": "Text to display when there is one user typing.",
+    "placeholders": {
+      "typist": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  "inboxPageTitle": "收件箱",
+  "@inboxPageTitle": {
+    "description": "Title for the page with unreads."
+  },
+  "openLinksWithInAppBrowser": "使用内置浏览器打开链接",
+  "@openLinksWithInAppBrowser": {
+    "description": "Label for toggling setting to open links with in-app browser"
+  },
+  "inboxEmptyPlaceholder": "你的收件箱中没有未读消息。您可以通过底部导航栏访问综合消息或者频道列表。",
+  "@inboxEmptyPlaceholder": {
+    "description": "Centered text on the 'Inbox' page saying that there is no content to show."
+  },
+  "themeSettingSystem": "系统",
+  "@themeSettingSystem": {
+    "description": "Label for system theme setting."
+  },
+  "experimentalFeatureSettingsPageTitle": "实验功能",
+  "@experimentalFeatureSettingsPageTitle": {
+    "description": "Title of settings page for experimental, in-development features"
+  },
+  "wildcardMentionChannelDescription": "通知频道",
+  "@wildcardMentionChannelDescription": {
+    "description": "Description for \"@all\", \"@everyone\", \"@channel\", and \"@stream\" wildcard-mention autocomplete options when writing a channel message."
+  },
+  "actionSheetOptionMuteTopic": "静音话题",
+  "@actionSheetOptionMuteTopic": {
+    "description": "Label for muting a topic on action sheet."
+  },
+  "actionSheetOptionUnmuteTopic": "取消静音话题",
+  "@actionSheetOptionUnmuteTopic": {
+    "description": "Label for unmuting a topic on action sheet."
+  },
+  "actionSheetOptionUnresolveTopic": "标记为未解决",
+  "@actionSheetOptionUnresolveTopic": {
+    "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
+  },
+  "errorUnresolveTopicFailedTitle": "未能将话题标记为未解决",
+  "@errorUnresolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as unresolved failed."
+  },
+  "errorResolveTopicFailedTitle": "未能将话题标记为解决",
+  "@errorResolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as resolved failed."
+  },
+  "actionSheetOptionCopyMessageText": "复制消息文本",
+  "@actionSheetOptionCopyMessageText": {
+    "description": "Label for copy message text button on action sheet."
+  },
+  "actionSheetOptionMarkAsUnread": "从这里标为未读",
+  "@actionSheetOptionMarkAsUnread": {
+    "description": "Label for mark as unread button on action sheet."
+  },
+  "actionSheetOptionShare": "分享",
+  "@actionSheetOptionShare": {
+    "description": "Label for share button on action sheet."
+  },
+  "errorLoginInvalidInputTitle": "输入的信息不正确",
+  "@errorLoginInvalidInputTitle": {
+    "description": "Error title for login when input is invalid."
+  },
+  "errorMessageNotSent": "未能发送消息",
+  "@errorMessageNotSent": {
+    "description": "Error message for compose box when a message could not be sent."
+  },
+  "errorCouldNotConnectTitle": "未能连接",
+  "@errorCouldNotConnectTitle": {
+    "description": "Error title when the app could not connect to the server."
+  },
+  "errorMessageDoesNotSeemToExist": "找不到此消息。",
+  "@errorMessageDoesNotSeemToExist": {
+    "description": "Error message when loading a message that does not exist."
+  },
+  "discardDraftConfirmationDialogTitle": "放弃您正在撰写的消息？",
+  "@discardDraftConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "discardDraftConfirmationDialogConfirmButton": "清空",
+  "@discardDraftConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "composeBoxGroupDmContentHint": "私信群组",
+  "@composeBoxGroupDmContentHint": {
+    "description": "Hint text for content input when sending a message to a group."
+  },
+  "composeBoxSelfDmContentHint": "向自己撰写消息",
+  "@composeBoxSelfDmContentHint": {
+    "description": "Hint text for content input when sending a message to yourself."
+  },
+  "composeBoxUploadingFilename": "正在上传 {filename}…",
+  "@composeBoxUploadingFilename": {
+    "description": "Placeholder in compose box showing the specified file is currently uploading.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "file.txt"
+      }
+    }
+  },
+  "composeBoxTopicHintText": "话题",
+  "@composeBoxTopicHintText": {
+    "description": "Hint text for topic input widget in compose box."
+  },
+  "composeBoxEnterTopicOrSkipHintText": "输入话题（默认为“{defaultTopicName}”）",
+  "@composeBoxEnterTopicOrSkipHintText": {
+    "description": "Hint text for topic input widget in compose box when topics are optional.",
+    "placeholders": {
+      "defaultTopicName": {
+        "type": "String",
+        "example": "general chat"
+      }
+    }
+  },
+  "messageListGroupYouAndOthers": "您和{others}",
+  "@messageListGroupYouAndOthers": {
+    "description": "Message list recipient header for a DM group with others.",
+    "placeholders": {
+      "others": {
+        "type": "String",
+        "example": "Alice, Bob"
+      }
+    }
+  },
+  "dialogCancel": "取消",
+  "@dialogCancel": {
+    "description": "Button label in dialogs to cancel."
+  },
+  "loginUsernameLabel": "用户名",
+  "@loginUsernameLabel": {
+    "description": "Label for input when a username is required to log in."
+  },
+  "errorRequestFailed": "网络请求失败；HTTP 状态码 {httpStatus}",
+  "@errorRequestFailed": {
+    "description": "Error message when an API call fails.",
+    "placeholders": {
+      "httpStatus": {
+        "type": "int",
+        "example": "500"
+      }
+    }
+  },
+  "errorVideoPlayerFailed": "未能播放视频。",
+  "@errorVideoPlayerFailed": {
+    "description": "Error message when a video fails to play."
+  },
+  "combinedFeedPageTitle": "综合消息",
+  "@combinedFeedPageTitle": {
+    "description": "Page title for the 'Combined feed' message view."
+  },
+  "channelsPageTitle": "频道",
+  "@channelsPageTitle": {
+    "description": "Title for the page with a list of subscribed channels."
+  },
+  "pinnedSubscriptionsLabel": "置顶",
+  "@pinnedSubscriptionsLabel": {
+    "description": "Label for the list of pinned subscribed channels."
+  },
+  "twoPeopleTyping": "{typist}和{otherTypist}正在输入…",
+  "@twoPeopleTyping": {
+    "description": "Text to display when there are two users typing.",
+    "placeholders": {
+      "typist": {
+        "type": "String",
+        "example": "Alice"
+      },
+      "otherTypist": {
+        "type": "String",
+        "example": "Bob"
+      }
+    }
+  },
+  "manyPeopleTyping": "多个用户正在输入…",
+  "@manyPeopleTyping": {
+    "description": "Text to display when there are multiple users typing."
+  },
+  "errorNotificationOpenTitle": "未能打开消息提醒",
+  "@errorNotificationOpenTitle": {
+    "description": "Error title when notification opening fails"
+  },
+  "errorReactionAddingFailedTitle": "未能添加表情符号",
+  "@errorReactionAddingFailedTitle": {
+    "description": "Error title when adding a message reaction fails"
+  },
+  "errorReactionRemovingFailedTitle": "未能移除表情符号",
+  "@errorReactionRemovingFailedTitle": {
+    "description": "Error title when removing a message reaction fails"
+  },
+  "actionSheetOptionHideMutedMessage": "再次隐藏静音消息",
+  "@actionSheetOptionHideMutedMessage": {
+    "description": "Label for hide muted message again button on action sheet."
+  },
+  "actionSheetOptionQuoteAndReply": "引用消息并回复",
+  "@actionSheetOptionQuoteAndReply": {
+    "description": "Label for Quote and reply button on action sheet."
+  },
+  "actionSheetOptionStarMessage": "添加星标消息标记",
+  "@actionSheetOptionStarMessage": {
+    "description": "Label for star button on action sheet."
+  },
+  "actionSheetOptionUnstarMessage": "取消星标消息标记",
+  "@actionSheetOptionUnstarMessage": {
+    "description": "Label for unstar button on action sheet."
+  },
+  "actionSheetOptionEditMessage": "编辑消息",
+  "@actionSheetOptionEditMessage": {
+    "description": "Label for the 'Edit message' button in the message action sheet."
+  },
+  "actionSheetOptionMarkTopicAsRead": "将话题标为已读",
+  "@actionSheetOptionMarkTopicAsRead": {
+    "description": "Option to mark a specific topic as read in the action sheet."
+  },
+  "errorWebAuthOperationalErrorTitle": "出现了一些问题",
+  "@errorWebAuthOperationalErrorTitle": {
+    "description": "Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "errorAccountLoggedInTitle": "已经登入该账号",
+  "@errorAccountLoggedInTitle": {
+    "description": "Error title on attempting to log into an account that's already logged in."
+  },
+  "errorWebAuthOperationalError": "发生了未知的错误。",
+  "@errorWebAuthOperationalError": {
+    "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "errorCouldNotFetchMessageSource": "未能获取原始消息。",
+  "@errorCouldNotFetchMessageSource": {
+    "description": "Error message when the source of a message could not be fetched."
+  },
+  "errorCopyingFailed": "未能复制消息文本",
+  "@errorCopyingFailed": {
+    "description": "Error message when copying the text of a message to the user's system clipboard failed."
+  },
+  "errorFailedToUploadFileTitle": "未能上传文件：{filename}",
+  "@errorFailedToUploadFileTitle": {
+    "description": "Error title when the specified file failed to upload.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "file.txt"
+      }
+    }
+  },
+  "filenameAndSizeInMiB": "{filename}: {size} MiB",
+  "@filenameAndSizeInMiB": {
+    "description": "The name of a file, and its size in mebibytes.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "foo.txt"
+      },
+      "size": {
+        "type": "String",
+        "example": "20.2"
+      }
+    }
+  },
+  "errorFilesTooLargeTitle": "文件过大",
+  "@errorFilesTooLargeTitle": {
+    "description": "Error title when attached files are too large in size.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "errorLoginFailedTitle": "未能登入",
+  "@errorLoginFailedTitle": {
+    "description": "Error title for login when signing into a Zulip server fails."
+  },
+  "errorMessageEditNotSaved": "未能保存消息编辑",
+  "@errorMessageEditNotSaved": {
+    "description": "Error message for compose box when a message edit could not be saved."
+  },
+  "errorLoginCouldNotConnect": "未能连接到服务器：\n{url}",
+  "@errorLoginCouldNotConnect": {
+    "description": "Error message when the app could not connect to the server.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "http://example.com/"
+      }
+    }
+  },
+  "errorQuotationFailed": "未能引用消息",
+  "@errorQuotationFailed": {
+    "description": "Error message when quoting a message failed."
+  },
+  "errorConnectingToServerShort": "未能连接到 Zulip. 重试中…",
+  "@errorConnectingToServerShort": {
+    "description": "Short error message for a generic unknown error connecting to the server."
+  },
+  "errorFilesTooLarge": "{num, plural, other{{num} 个您上传的文件}}大小超过了该组织 {maxFileUploadSizeMib} MiB 的限制：\n\n{listMessage}",
+  "@errorFilesTooLarge": {
+    "description": "Error message when attached files are too large in size.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "2"
+      },
+      "maxFileUploadSizeMib": {
+        "type": "int",
+        "example": "15"
+      },
+      "listMessage": {
+        "type": "String",
+        "example": "foo.txt: 10.1 MiB\nbar.txt 20.2 MiB"
+      }
+    }
+  },
+  "errorHandlingEventTitle": "处理 Zulip 事件时发生了一些问题。即将重连…",
+  "@errorHandlingEventTitle": {
+    "description": "Error title on failing to handle a Zulip server event."
+  },
+  "errorCouldNotOpenLinkTitle": "未能打开链接",
+  "@errorCouldNotOpenLinkTitle": {
+    "description": "Error title when opening a link failed."
+  },
+  "errorCouldNotOpenLink": "未能打开此链接：{url}",
+  "@errorCouldNotOpenLink": {
+    "description": "Error message when opening a link failed.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "https://chat.example.com"
+      }
+    }
+  },
+  "errorFollowTopicFailed": "未能关注话题",
+  "@errorFollowTopicFailed": {
+    "description": "Error message when following a topic failed."
+  },
+  "errorMuteTopicFailed": "未能静音话题",
+  "@errorMuteTopicFailed": {
+    "description": "Error message when muting a topic failed."
+  },
+  "errorUnmuteTopicFailed": "未能取消静音话题",
+  "@errorUnmuteTopicFailed": {
+    "description": "Error message when unmuting a topic failed."
+  },
+  "errorUnfollowTopicFailed": "未能取消关注话题",
+  "@errorUnfollowTopicFailed": {
+    "description": "Error message when unfollowing a topic failed."
+  },
+  "errorSharingFailed": "分享失败",
+  "@errorSharingFailed": {
+    "description": "Error message when sharing a message failed."
+  },
+  "errorStarMessageFailedTitle": "未能添加星标消息标记",
+  "@errorStarMessageFailedTitle": {
+    "description": "Error title when starring a message failed."
+  },
+  "errorUnstarMessageFailedTitle": "未能取消星标消息标记",
+  "@errorUnstarMessageFailedTitle": {
+    "description": "Error title when unstarring a message failed."
+  },
+  "errorCouldNotEditMessageTitle": "未能编辑消息",
+  "@errorCouldNotEditMessageTitle": {
+    "description": "Error title when an exception prevented us from opening the compose box for editing a message."
+  },
+  "successLinkCopied": "已复制链接",
+  "@successLinkCopied": {
+    "description": "Success message after copy link action completed."
+  },
+  "successMessageLinkCopied": "已复制消息链接",
+  "@successMessageLinkCopied": {
+    "description": "Message when link of a message was copied to the user's system clipboard."
+  },
+  "errorBannerCannotPostInChannelLabel": "您没有足够的权限在此频道发送消息。",
+  "@errorBannerCannotPostInChannelLabel": {
+    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "composeBoxBannerLabelEditMessage": "编辑消息",
+  "@composeBoxBannerLabelEditMessage": {
+    "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "composeBoxBannerButtonCancel": "取消",
+  "@composeBoxBannerButtonCancel": {
+    "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
+  },
+  "composeBoxBannerButtonSave": "保存",
+  "@composeBoxBannerButtonSave": {
+    "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
+  },
+  "editAlreadyInProgressMessage": "已有正在被编辑的消息。请在其完成后重试。",
+  "@editAlreadyInProgressMessage": {
+    "description": "Error message when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "savingMessageEditLabel": "保存中…",
+  "@savingMessageEditLabel": {
+    "description": "Text on a message in the message list saying that a message edit request is processing. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "savingMessageEditFailedLabel": "编辑失败",
+  "@savingMessageEditFailedLabel": {
+    "description": "Text on a message in the message list saying that a message edit request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "discardDraftForEditConfirmationDialogMessage": "当您编辑消息时，文本框中已有的内容将会被清空。",
+  "@discardDraftForEditConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box, when editing a message."
+  },
+  "composeBoxAttachFilesTooltip": "上传文件",
+  "@composeBoxAttachFilesTooltip": {
+    "description": "Tooltip for compose box icon to attach a file to the message."
+  },
+  "composeBoxAttachMediaTooltip": "上传图片或视频",
+  "@composeBoxAttachMediaTooltip": {
+    "description": "Tooltip for compose box icon to attach media to the message."
+  },
+  "composeBoxAttachFromCameraTooltip": "拍摄照片",
+  "@composeBoxAttachFromCameraTooltip": {
+    "description": "Tooltip for compose box icon to attach an image from the camera to the message."
+  },
+  "composeBoxGenericContentHint": "撰写消息",
+  "@composeBoxGenericContentHint": {
+    "description": "Hint text for content input when sending a message."
+  },
+  "newDmSheetSearchHintEmpty": "添加一个或多个用户",
+  "@newDmSheetSearchHintEmpty": {
+    "description": "Hint text for the search bar when no users are selected"
+  },
+  "newDmSheetScreenTitle": "发起私信",
+  "@newDmSheetScreenTitle": {
+    "description": "Title displayed at the top of the new DM screen."
+  },
+  "newDmFabButtonLabel": "发起私信",
+  "@newDmFabButtonLabel": {
+    "description": "Label for the floating action button (FAB) that opens the new DM sheet."
+  },
+  "newDmSheetSearchHintSomeSelected": "添加更多用户…",
+  "@newDmSheetSearchHintSomeSelected": {
+    "description": "Hint text for the search bar when at least one user is selected."
+  },
+  "newDmSheetNoUsersFound": "没有用户",
+  "@newDmSheetNoUsersFound": {
+    "description": "Message shown in the new DM sheet when no users match the search."
+  },
+  "composeBoxDmContentHint": "私信 @{user}",
+  "@composeBoxDmContentHint": {
+    "description": "Hint text for content input when sending a message to one other person.",
+    "placeholders": {
+      "user": {
+        "type": "String",
+        "example": "channel name"
+      }
+    }
+  },
+  "dmsWithYourselfPageTitle": "与自己的私信",
+  "@dmsWithYourselfPageTitle": {
+    "description": "Message list page title for a DM group that only includes yourself."
+  },
+  "contentValidationErrorUploadInProgress": "请等待上传完成。",
+  "@contentValidationErrorUploadInProgress": {
+    "description": "Content validation error message when attachments have not finished uploading."
+  },
+  "contentValidationErrorEmpty": "发送的消息不能为空！",
+  "@contentValidationErrorEmpty": {
+    "description": "Content validation error message when the message is empty."
+  },
+  "contentValidationErrorQuoteAndReplyInProgress": "请等待引用消息完成。",
+  "@contentValidationErrorQuoteAndReplyInProgress": {
+    "description": "Content validation error message when a quotation has not completed yet."
+  },
+  "dialogContinue": "继续",
+  "@dialogContinue": {
+    "description": "Button label in dialogs to proceed."
+  },
+  "dialogClose": "关闭",
+  "@dialogClose": {
+    "description": "Button label in dialogs to close."
+  },
+  "snackBarDetails": "详情",
+  "@snackBarDetails": {
+    "description": "Button label for snack bar button that opens a dialog with more details."
+  },
+  "loginErrorMissingEmail": "请输入电子邮箱地址。",
+  "@loginErrorMissingEmail": {
+    "description": "Error message when an empty email was provided."
+  },
+  "loginPasswordLabel": "密码",
+  "@loginPasswordLabel": {
+    "description": "Label for password input field."
+  },
+  "loginErrorMissingPassword": "请输入密码。",
+  "@loginErrorMissingPassword": {
+    "description": "Error message when an empty password was provided."
+  },
+  "serverUrlValidationErrorEmpty": "请输入网址。",
+  "@serverUrlValidationErrorEmpty": {
+    "description": "Error message when URL is empty"
+  },
+  "serverUrlValidationErrorUnsupportedScheme": "服务器网址必须以 http:// 或 https:// 开头。",
+  "@serverUrlValidationErrorUnsupportedScheme": {
+    "description": "Error message when URL has an unsupported scheme."
+  },
+  "errorMarkAsReadFailedTitle": "未能将消息标为已读",
+  "@errorMarkAsReadFailedTitle": {
+    "description": "Error title when mark as read action failed."
+  },
+  "markAsUnreadComplete": "已将 {num, plural, other{{num} 条消息}}标为未读。",
+  "@markAsUnreadComplete": {
+    "description": "Message when marking messages as unread has completed.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "today": "今天",
+  "@today": {
+    "description": "Term to use to reference the current day."
+  },
+  "yesterday": "昨天",
+  "@yesterday": {
+    "description": "Term to use to reference the previous day."
+  },
+  "userRoleOwner": "所有者",
+  "@userRoleOwner": {
+    "description": "Label for UserRole.owner"
+  },
+  "userRoleGuest": "访客",
+  "@userRoleGuest": {
+    "description": "Label for UserRole.guest"
+  },
+  "recentDmConversationsSectionHeader": "私信",
+  "@recentDmConversationsSectionHeader": {
+    "description": "Heading for direct messages section on the 'Inbox' message view."
+  },
+  "recentDmConversationsPageTitle": "私信",
+  "@recentDmConversationsPageTitle": {
+    "description": "Title for the page with a list of DM conversations."
+  },
+  "mentionsPageTitle": "@提及",
+  "@mentionsPageTitle": {
+    "description": "Page title for the 'Mentions' message view."
+  },
+  "starredMessagesPageTitle": "星标消息",
+  "@starredMessagesPageTitle": {
+    "description": "Page title for the 'Starred messages' message view."
+  },
+  "mainMenuMyProfile": "个人资料",
+  "@mainMenuMyProfile": {
+    "description": "Label for main-menu button leading to the user's own profile."
+  },
+  "topicsButtonLabel": "话题",
+  "@topicsButtonLabel": {
+    "description": "Label for message list button leading to topic-list page. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "notifSelfUser": "您",
+  "@notifSelfUser": {
+    "description": "Display name for the user themself, to show after replying in an Android notification"
+  },
+  "reactedEmojiSelfUser": "您",
+  "@reactedEmojiSelfUser": {
+    "description": "Display name for the user themself, to show on an emoji reaction added by the user."
+  },
+  "wildcardMentionAll": "所有人",
+  "@wildcardMentionAll": {
+    "description": "Text for \"@all\" wildcard-mention autocomplete option when writing a channel or DM message."
+  },
+  "wildcardMentionAllDmDescription": "通知收件人",
+  "@wildcardMentionAllDmDescription": {
+    "description": "Description for \"@all\" and \"@everyone\" wildcard-mention autocomplete options when writing a DM message."
+  },
+  "messageIsMovedLabel": "已移动",
+  "@messageIsMovedLabel": {
+    "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "themeSettingTitle": "主题",
+  "@themeSettingTitle": {
+    "description": "Title for theme setting. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "emojiReactionsMore": "更多",
+  "@emojiReactionsMore": {
+    "description": "Label for a button opening the emoji picker."
+  },
+  "errorNotificationOpenAccountNotFound": "未能找到关联该消息提醒的账号。",
+  "@errorNotificationOpenAccountNotFound": {
+    "description": "Error message when the account associated with the notification could not be found"
+  },
+  "emojiPickerSearchEmoji": "搜索表情符号",
+  "@emojiPickerSearchEmoji": {
+    "description": "Hint text for the emoji picker search text field."
+  },
+  "scrollToBottomTooltip": "拖动到最底",
+  "@scrollToBottomTooltip": {
+    "description": "Tooltip for button to scroll to bottom."
+  },
+  "revealButtonLabel": "显示静音用户发送的消息",
+  "@revealButtonLabel": {
+    "description": "Label for the button revealing hidden message from a muted sender in message list."
+  },
+  "mutedSender": "静音发送者",
+  "@mutedSender": {
+    "description": "Name for a muted user to display in message list."
+  },
+  "mutedUser": "静音用户",
+  "@mutedUser": {
+    "description": "Name for a muted user to display all over the app."
+  },
+  "appVersionUnknownPlaceholder": "(…)",
+  "@appVersionUnknownPlaceholder": {
+    "description": "Placeholder to show in place of the app version when it is unknown."
+  },
+  "wildcardMentionStreamDescription": "通知频道",
+  "@wildcardMentionStreamDescription": {
+    "description": "Description for \"@all\", \"@everyone\", and \"@stream\" wildcard-mention autocomplete options when writing a channel message in older servers."
+  },
+  "pollWidgetQuestionMissing": "无问题。",
+  "@pollWidgetQuestionMissing": {
+    "description": "Text to display for a poll when the question is missing"
+  }
 }

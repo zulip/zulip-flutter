@@ -473,7 +473,7 @@
   "@errorWebAuthOperationalError": {
     "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
   },
-  "errorCouldNotFetchMessageSource": "Не вдалося отримати джерело повідомлення",
+  "errorCouldNotFetchMessageSource": "Не вдалося отримати джерело повідомлення.",
   "@errorCouldNotFetchMessageSource": {
     "description": "Error message when the source of a message could not be fetched."
   },
@@ -619,7 +619,7 @@
       }
     }
   },
-  "errorInvalidResponse": "Сервер надіслав недійсну відповідь",
+  "errorInvalidResponse": "Сервер надіслав недійсну відповідь.",
   "@errorInvalidResponse": {
     "description": "Error message when an API call returned an invalid response."
   },
@@ -637,7 +637,7 @@
       }
     }
   },
-  "errorVideoPlayerFailed": "Неможливо відтворити відео",
+  "errorVideoPlayerFailed": "Неможливо відтворити відео.",
   "@errorVideoPlayerFailed": {
     "description": "Error message when a video fails to play."
   },
@@ -998,5 +998,139 @@
   "emojiReactionsMore": "більше",
   "@emojiReactionsMore": {
     "description": "Label for a button opening the emoji picker."
+  },
+  "newDmSheetSearchHintEmpty": "Додати користувачів",
+  "@newDmSheetSearchHintEmpty": {
+    "description": "Hint text for the search bar when no users are selected"
+  },
+  "newDmSheetSearchHintSomeSelected": "Додати ще…",
+  "@newDmSheetSearchHintSomeSelected": {
+    "description": "Hint text for the search bar when at least one user is selected."
+  },
+  "newDmSheetComposeButtonLabel": "Написати",
+  "@newDmSheetComposeButtonLabel": {
+    "description": "Label for the compose button in the new DM sheet that starts composing a message to the selected users."
+  },
+  "channelsEmptyPlaceholder": "Ви ще не підписані на жодний канал.",
+  "@channelsEmptyPlaceholder": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show."
+  },
+  "recentDmConversationsEmptyPlaceholder": "У вас поки що немає особистих повідомлень! Чому б не розпочати бесіду?",
+  "@recentDmConversationsEmptyPlaceholder": {
+    "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "inboxEmptyPlaceholder": "Немає непрочитаних вхідних повідомлень. Використовуйте кнопки знизу для перегляду обʼєднаної стрічки або списку каналів.",
+  "@inboxEmptyPlaceholder": {
+    "description": "Centered text on the 'Inbox' page saying that there is no content to show."
+  },
+  "actionSheetOptionListOfTopics": "Список тем",
+  "@actionSheetOptionListOfTopics": {
+    "description": "Label for navigating to a channel's topic-list page."
+  },
+  "composeBoxBannerButtonCancel": "Відміна",
+  "@composeBoxBannerButtonCancel": {
+    "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
+  },
+  "editAlreadyInProgressTitle": "Неможливо редагувати повідомлення",
+  "@editAlreadyInProgressTitle": {
+    "description": "Error title when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "topicsButtonLabel": "ТЕМИ",
+  "@topicsButtonLabel": {
+    "description": "Label for message list button leading to topic-list page. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "actionSheetOptionHideMutedMessage": "Сховати заглушене повідомлення",
+  "@actionSheetOptionHideMutedMessage": {
+    "description": "Label for hide muted message again button on action sheet."
+  },
+  "composeBoxBannerLabelEditMessage": "Редагування повідомлення",
+  "@composeBoxBannerLabelEditMessage": {
+    "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "discardDraftForEditConfirmationDialogMessage": "При редагуванні повідомлення, текст з поля для редагування видаляється.",
+  "@discardDraftForEditConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box, when editing a message."
+  },
+  "newDmSheetScreenTitle": "Нове особисте повідомлення",
+  "@newDmSheetScreenTitle": {
+    "description": "Title displayed at the top of the new DM screen."
+  },
+  "newDmFabButtonLabel": "Нове особисте повідомлення",
+  "@newDmFabButtonLabel": {
+    "description": "Label for the floating action button (FAB) that opens the new DM sheet."
+  },
+  "newDmSheetNoUsersFound": "Користувачі не знайдені",
+  "@newDmSheetNoUsersFound": {
+    "description": "Message shown in the new DM sheet when no users match the search."
+  },
+  "revealButtonLabel": "Показати повідомлення заглушеного відправника",
+  "@revealButtonLabel": {
+    "description": "Label for the button revealing hidden message from a muted sender in message list."
+  },
+  "messageNotSentLabel": "ПОВІДОМЛЕННЯ НЕ ВІДПРАВЛЕНО",
+  "@messageNotSentLabel": {
+    "description": "Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "errorNotificationOpenAccountNotFound": "Обліковий запис, звʼязаний з цим сповіщенням, не знайдений.",
+  "@errorNotificationOpenAccountNotFound": {
+    "description": "Error message when the account associated with the notification could not be found"
+  },
+  "mutedSender": "Заглушений відправник",
+  "@mutedSender": {
+    "description": "Name for a muted user to display in message list."
+  },
+  "actionSheetOptionEditMessage": "Редагувати повідомлення",
+  "@actionSheetOptionEditMessage": {
+    "description": "Label for the 'Edit message' button in the message action sheet."
+  },
+  "errorMessageEditNotSaved": "Повідомлення не збережено",
+  "@errorMessageEditNotSaved": {
+    "description": "Error message for compose box when a message edit could not be saved."
+  },
+  "errorCouldNotEditMessageTitle": "Не вдалося редагувати повідомлення",
+  "@errorCouldNotEditMessageTitle": {
+    "description": "Error title when an exception prevented us from opening the compose box for editing a message."
+  },
+  "composeBoxBannerButtonSave": "Зберегти",
+  "@composeBoxBannerButtonSave": {
+    "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
+  },
+  "editAlreadyInProgressMessage": "Редагування уже виконується. Дочекайтеся його завершення.",
+  "@editAlreadyInProgressMessage": {
+    "description": "Error message when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "savingMessageEditLabel": "ЗБЕРЕЖЕННЯ ПРАВОК…",
+  "@savingMessageEditLabel": {
+    "description": "Text on a message in the message list saying that a message edit request is processing. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "savingMessageEditFailedLabel": "ПРАВКИ НЕ ЗБЕРЕЖЕНІ",
+  "@savingMessageEditFailedLabel": {
+    "description": "Text on a message in the message list saying that a message edit request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "discardDraftConfirmationDialogTitle": "Відмовитися від написаного повідомлення?",
+  "@discardDraftConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "discardDraftConfirmationDialogConfirmButton": "Скинути",
+  "@discardDraftConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "preparingEditMessageContentInput": "Підготовка…",
+  "@preparingEditMessageContentInput": {
+    "description": "Hint text for content input when the compose box is preparing to edit a message."
+  },
+  "composeBoxEnterTopicOrSkipHintText": "Вкажіть тему (або залиште “{defaultTopicName}”)",
+  "@composeBoxEnterTopicOrSkipHintText": {
+    "description": "Hint text for topic input widget in compose box when topics are optional.",
+    "placeholders": {
+      "defaultTopicName": {
+        "type": "String",
+        "example": "general chat"
+      }
+    }
+  },
+  "mutedUser": "Заглушений користувач",
+  "@mutedUser": {
+    "description": "Name for a muted user to display all over the app."
   }
 }

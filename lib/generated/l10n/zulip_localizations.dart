@@ -8,11 +8,13 @@ import 'package:intl/intl.dart' as intl;
 import 'zulip_localizations_ar.dart';
 import 'zulip_localizations_de.dart';
 import 'zulip_localizations_en.dart';
+import 'zulip_localizations_it.dart';
 import 'zulip_localizations_ja.dart';
 import 'zulip_localizations_nb.dart';
 import 'zulip_localizations_pl.dart';
 import 'zulip_localizations_ru.dart';
 import 'zulip_localizations_sk.dart';
+import 'zulip_localizations_sl.dart';
 import 'zulip_localizations_uk.dart';
 import 'zulip_localizations_zh.dart';
 
@@ -106,11 +108,13 @@ abstract class ZulipLocalizations {
     Locale('ar'),
     Locale('de'),
     Locale('en', 'GB'),
+    Locale('it'),
     Locale('ja'),
     Locale('nb'),
     Locale('pl'),
     Locale('ru'),
     Locale('sk'),
+    Locale('sl'),
     Locale('uk'),
     Locale('zh'),
     Locale.fromSubtags(
@@ -1552,11 +1556,13 @@ class _ZulipLocalizationsDelegate
     'ar',
     'de',
     'en',
+    'it',
     'ja',
     'nb',
     'pl',
     'ru',
     'sk',
+    'sl',
     'uk',
     'zh',
   ].contains(locale.languageCode);
@@ -1594,6 +1600,8 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
       return ZulipLocalizationsDe();
     case 'en':
       return ZulipLocalizationsEn();
+    case 'it':
+      return ZulipLocalizationsIt();
     case 'ja':
       return ZulipLocalizationsJa();
     case 'nb':
@@ -1604,6 +1612,8 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
       return ZulipLocalizationsRu();
     case 'sk':
       return ZulipLocalizationsSk();
+    case 'sl':
+      return ZulipLocalizationsSl();
     case 'uk':
       return ZulipLocalizationsUk();
     case 'zh':

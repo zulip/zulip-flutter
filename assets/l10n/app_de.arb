@@ -18,5 +18,9 @@
   "switchAccountButton": "Konto wechseln",
   "@switchAccountButton": {
     "description": "Label for main-menu button leading to the choose-account page."
+  },
+  "aboutPageOpenSourceLicenses": "Open-Source-Lizenzen",
+  "@aboutPageOpenSourceLicenses": {
+    "description": "Item title in About Zulip page to navigate to Licenses page"
   }
 }

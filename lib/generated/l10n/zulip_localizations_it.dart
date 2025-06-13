@@ -4,30 +4,30 @@ import 'zulip_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for German (`de`).
-class ZulipLocalizationsDe extends ZulipLocalizations {
-  ZulipLocalizationsDe([String locale = 'de']) : super(locale);
+/// The translations for Italian (`it`).
+class ZulipLocalizationsIt extends ZulipLocalizations {
+  ZulipLocalizationsIt([String locale = 'it']) : super(locale);
 
   @override
-  String get aboutPageTitle => 'Über Zulip';
+  String get aboutPageTitle => 'About Zulip';
 
   @override
-  String get aboutPageAppVersion => 'App-Version';
+  String get aboutPageAppVersion => 'App version';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Open-Source-Lizenzen';
+  String get aboutPageOpenSourceLicenses => 'Open-source licenses';
 
   @override
   String get aboutPageTapToView => 'Tap to view';
 
   @override
-  String get chooseAccountPageTitle => 'Konto auswählen';
+  String get chooseAccountPageTitle => 'Choose account';
 
   @override
-  String get settingsPageTitle => 'Einstellungen';
+  String get settingsPageTitle => 'Settings';
 
   @override
-  String get switchAccountButton => 'Konto wechseln';
+  String get switchAccountButton => 'Switch account';
 
   @override
   String tryAnotherAccountMessage(Object url) {

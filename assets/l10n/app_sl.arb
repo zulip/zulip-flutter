@@ -1,0 +1,1136 @@
+{
+  "aboutPageTitle": "O Zulipu",
+  "@aboutPageTitle": {
+    "description": "Title for About Zulip page."
+  },
+  "permissionsDeniedCameraAccess": "Za nalaganje slik v nastavitvah omogočite Zulipu dostop do kamere.",
+  "@permissionsDeniedCameraAccess": {
+    "description": "Message for dialog asking the user to grant permissions for camera access."
+  },
+  "actionSheetOptionFollowTopic": "Sledi temi",
+  "@actionSheetOptionFollowTopic": {
+    "description": "Label for following a topic on action sheet."
+  },
+  "errorFailedToUploadFileTitle": "Nalaganje datoteke ni uspelo: {filename}",
+  "@errorFailedToUploadFileTitle": {
+    "description": "Error title when the specified file failed to upload.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "file.txt"
+      }
+    }
+  },
+  "composeBoxBannerButtonCancel": "Prekliči",
+  "@composeBoxBannerButtonCancel": {
+    "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
+  },
+  "composeBoxBannerButtonSave": "Shrani",
+  "@composeBoxBannerButtonSave": {
+    "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
+  },
+  "composeBoxEnterTopicOrSkipHintText": "Vnesite temo (ali pustite prazno za »{defaultTopicName}«)",
+  "@composeBoxEnterTopicOrSkipHintText": {
+    "description": "Hint text for topic input widget in compose box when topics are optional.",
+    "placeholders": {
+      "defaultTopicName": {
+        "type": "String",
+        "example": "general chat"
+      }
+    }
+  },
+  "loginFormSubmitLabel": "Prijava",
+  "@loginFormSubmitLabel": {
+    "description": "Button text to submit login credentials."
+  },
+  "userRoleModerator": "Moderator",
+  "@userRoleModerator": {
+    "description": "Label for UserRole.moderator"
+  },
+  "recentDmConversationsSectionHeader": "Neposredna sporočila",
+  "@recentDmConversationsSectionHeader": {
+    "description": "Heading for direct messages section on the 'Inbox' message view."
+  },
+  "wildcardMentionEveryone": "vsi",
+  "@wildcardMentionEveryone": {
+    "description": "Text for \"@everyone\" wildcard-mention autocomplete option when writing a channel or DM message."
+  },
+  "wildcardMentionChannel": "kanal",
+  "@wildcardMentionChannel": {
+    "description": "Text for \"@channel\" wildcard-mention autocomplete option when writing a channel message."
+  },
+  "themeSettingDark": "Temna",
+  "@themeSettingDark": {
+    "description": "Label for dark theme setting."
+  },
+  "zulipAppTitle": "Zulip",
+  "@zulipAppTitle": {
+    "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
+  },
+  "errorCouldNotFetchMessageSource": "Ni bilo mogoče pridobiti vira sporočila.",
+  "@errorCouldNotFetchMessageSource": {
+    "description": "Error message when the source of a message could not be fetched."
+  },
+  "markAsReadComplete": "Označeno je {num, plural, =1{1 sporočilo} one{2 sporočili} few{{num} sporočila} other{{num} sporočil}} kot prebrano.",
+  "@markAsReadComplete": {
+    "description": "Message when marking messages as read has completed.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "successLinkCopied": "Povezava je bila kopirana",
+  "@successLinkCopied": {
+    "description": "Success message after copy link action completed."
+  },
+  "permissionsDeniedReadExternalStorage": "Za nalaganje datotek v nastavitvah omogočite Zulipu dostop do shrambe datotek.",
+  "@permissionsDeniedReadExternalStorage": {
+    "description": "Message for dialog asking the user to grant permissions for external storage read access."
+  },
+  "actionSheetOptionUnfollowTopic": "Prenehaj slediti temi",
+  "@actionSheetOptionUnfollowTopic": {
+    "description": "Label for unfollowing a topic on action sheet."
+  },
+  "actionSheetOptionResolveTopic": "Označi kot razrešeno",
+  "@actionSheetOptionResolveTopic": {
+    "description": "Label for the 'Mark as resolved' button on the topic action sheet."
+  },
+  "actionSheetOptionUnresolveTopic": "Označi kot nerazrešeno",
+  "@actionSheetOptionUnresolveTopic": {
+    "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
+  },
+  "errorResolveTopicFailedTitle": "Neuspela označitev teme kot razrešene",
+  "@errorResolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as resolved failed."
+  },
+  "errorUnresolveTopicFailedTitle": "Neuspela označitev teme kot nerazrešene",
+  "@errorUnresolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as unresolved failed."
+  },
+  "actionSheetOptionCopyMessageText": "Kopiraj besedilo sporočila",
+  "@actionSheetOptionCopyMessageText": {
+    "description": "Label for copy message text button on action sheet."
+  },
+  "actionSheetOptionCopyMessageLink": "Kopiraj povezavo do sporočila",
+  "@actionSheetOptionCopyMessageLink": {
+    "description": "Label for copy message link button on action sheet."
+  },
+  "actionSheetOptionMarkAsUnread": "Od tu naprej označi kot neprebrano",
+  "@actionSheetOptionMarkAsUnread": {
+    "description": "Label for mark as unread button on action sheet."
+  },
+  "actionSheetOptionShare": "Deli",
+  "@actionSheetOptionShare": {
+    "description": "Label for share button on action sheet."
+  },
+  "actionSheetOptionQuoteAndReply": "Citiraj in odgovori",
+  "@actionSheetOptionQuoteAndReply": {
+    "description": "Label for Quote and reply button on action sheet."
+  },
+  "actionSheetOptionStarMessage": "Označi sporočilo z zvezdico",
+  "@actionSheetOptionStarMessage": {
+    "description": "Label for star button on action sheet."
+  },
+  "actionSheetOptionUnstarMessage": "Odstrani zvezdico s sporočila",
+  "@actionSheetOptionUnstarMessage": {
+    "description": "Label for unstar button on action sheet."
+  },
+  "actionSheetOptionEditMessage": "Uredi sporočilo",
+  "@actionSheetOptionEditMessage": {
+    "description": "Label for the 'Edit message' button in the message action sheet."
+  },
+  "actionSheetOptionMarkTopicAsRead": "Označi temo kot prebrano",
+  "@actionSheetOptionMarkTopicAsRead": {
+    "description": "Option to mark a specific topic as read in the action sheet."
+  },
+  "errorWebAuthOperationalErrorTitle": "Nekaj je šlo narobe",
+  "@errorWebAuthOperationalErrorTitle": {
+    "description": "Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "errorWebAuthOperationalError": "Prišlo je do nepričakovane napake.",
+  "@errorWebAuthOperationalError": {
+    "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "errorAccountLoggedInTitle": "Račun je že prijavljen",
+  "@errorAccountLoggedInTitle": {
+    "description": "Error title on attempting to log into an account that's already logged in."
+  },
+  "errorAccountLoggedIn": "Račun {email} na {server} je že na vašem seznamu računov.",
+  "@errorAccountLoggedIn": {
+    "description": "Error message on attempting to log into an account that's already logged in.",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "user@example.com"
+      },
+      "server": {
+        "type": "String",
+        "example": "https://example.com"
+      }
+    }
+  },
+  "errorCopyingFailed": "Kopiranje ni uspelo",
+  "@errorCopyingFailed": {
+    "description": "Error message when copying the text of a message to the user's system clipboard failed."
+  },
+  "filenameAndSizeInMiB": "{filename}: {size} MiB",
+  "@filenameAndSizeInMiB": {
+    "description": "The name of a file, and its size in mebibytes.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "foo.txt"
+      },
+      "size": {
+        "type": "String",
+        "example": "20.2"
+      }
+    }
+  },
+  "errorLoginInvalidInputTitle": "Neveljaven vnos",
+  "@errorLoginInvalidInputTitle": {
+    "description": "Error title for login when input is invalid."
+  },
+  "errorLoginFailedTitle": "Prijava ni uspela",
+  "@errorLoginFailedTitle": {
+    "description": "Error title for login when signing into a Zulip server fails."
+  },
+  "errorMessageNotSent": "Pošiljanje sporočila ni uspelo",
+  "@errorMessageNotSent": {
+    "description": "Error message for compose box when a message could not be sent."
+  },
+  "errorMessageEditNotSaved": "Sporočilo ni bilo shranjeno",
+  "@errorMessageEditNotSaved": {
+    "description": "Error message for compose box when a message edit could not be saved."
+  },
+  "errorLoginCouldNotConnect": "Ni se mogoče povezati s strežnikom:\n{url}",
+  "@errorLoginCouldNotConnect": {
+    "description": "Error message when the app could not connect to the server.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "http://example.com/"
+      }
+    }
+  },
+  "errorCouldNotConnectTitle": "Povezave ni bilo mogoče vzpostaviti",
+  "@errorCouldNotConnectTitle": {
+    "description": "Error title when the app could not connect to the server."
+  },
+  "errorMessageDoesNotSeemToExist": "Zdi se, da to sporočilo ne obstaja.",
+  "@errorMessageDoesNotSeemToExist": {
+    "description": "Error message when loading a message that does not exist."
+  },
+  "errorQuotationFailed": "Citiranje ni uspelo",
+  "@errorQuotationFailed": {
+    "description": "Error message when quoting a message failed."
+  },
+  "errorServerMessage": "Strežnik je sporočil:\n\n{message}",
+  "@errorServerMessage": {
+    "description": "Error message that quotes an error from the server.",
+    "placeholders": {
+      "message": {
+        "type": "String",
+        "example": "Invalid format"
+      }
+    }
+  },
+  "errorConnectingToServerDetails": "Napaka pri povezovanju z Zulipom na {serverUrl}. Poskusili bomo znova:\n\n{error}",
+  "@errorConnectingToServerDetails": {
+    "description": "Dialog error message for a generic unknown error connecting to the server with details.",
+    "placeholders": {
+      "serverUrl": {
+        "type": "String",
+        "example": "http://example.com/"
+      },
+      "error": {
+        "type": "String",
+        "example": "Invalid format"
+      }
+    }
+  },
+  "errorConnectingToServerShort": "Napaka pri povezovanju z Zulipom. Poskušamo znova…",
+  "@errorConnectingToServerShort": {
+    "description": "Short error message for a generic unknown error connecting to the server."
+  },
+  "errorCouldNotOpenLinkTitle": "Povezave ni mogoče odpreti",
+  "@errorCouldNotOpenLinkTitle": {
+    "description": "Error title when opening a link failed."
+  },
+  "errorMuteTopicFailed": "Utišanje teme ni uspelo",
+  "@errorMuteTopicFailed": {
+    "description": "Error message when muting a topic failed."
+  },
+  "errorCouldNotOpenLink": "Povezave ni bilo mogoče odpreti: {url}",
+  "@errorCouldNotOpenLink": {
+    "description": "Error message when opening a link failed.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "https://chat.example.com"
+      }
+    }
+  },
+  "errorUnmuteTopicFailed": "Preklic utišanja teme ni uspel",
+  "@errorUnmuteTopicFailed": {
+    "description": "Error message when unmuting a topic failed."
+  },
+  "errorFollowTopicFailed": "Sledenje temi ni uspelo",
+  "@errorFollowTopicFailed": {
+    "description": "Error message when following a topic failed."
+  },
+  "errorUnfollowTopicFailed": "Prenehanje sledenja temi ni uspelo",
+  "@errorUnfollowTopicFailed": {
+    "description": "Error message when unfollowing a topic failed."
+  },
+  "errorSharingFailed": "Deljenje ni uspelo",
+  "@errorSharingFailed": {
+    "description": "Error message when sharing a message failed."
+  },
+  "errorStarMessageFailedTitle": "Sporočila ni bilo mogoče označiti z zvezdico",
+  "@errorStarMessageFailedTitle": {
+    "description": "Error title when starring a message failed."
+  },
+  "errorUnstarMessageFailedTitle": "Sporočilu ni bilo mogoče odstraniti zvezdice",
+  "@errorUnstarMessageFailedTitle": {
+    "description": "Error title when unstarring a message failed."
+  },
+  "errorCouldNotEditMessageTitle": "Sporočila ni mogoče urediti",
+  "@errorCouldNotEditMessageTitle": {
+    "description": "Error title when an exception prevented us from opening the compose box for editing a message."
+  },
+  "errorBannerDeactivatedDmLabel": "Deaktiviranim uporabnikom ne morete pošiljati sporočil.",
+  "@errorBannerDeactivatedDmLabel": {
+    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  },
+  "successMessageLinkCopied": "Povezava do sporočila je bila kopirana",
+  "@successMessageLinkCopied": {
+    "description": "Message when link of a message was copied to the user's system clipboard."
+  },
+  "errorBannerCannotPostInChannelLabel": "Nimate dovoljenja za objavljanje v tem kanalu.",
+  "@errorBannerCannotPostInChannelLabel": {
+    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "composeBoxBannerLabelEditMessage": "Uredi sporočilo",
+  "@composeBoxBannerLabelEditMessage": {
+    "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "editAlreadyInProgressTitle": "Urejanje sporočila ni mogoče",
+  "@editAlreadyInProgressTitle": {
+    "description": "Error title when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "editAlreadyInProgressMessage": "Urejanje je že v teku. Počakajte, da se konča.",
+  "@editAlreadyInProgressMessage": {
+    "description": "Error message when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "savingMessageEditLabel": "SHRANJEVANJE SPREMEMB…",
+  "@savingMessageEditLabel": {
+    "description": "Text on a message in the message list saying that a message edit request is processing. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "savingMessageEditFailedLabel": "UREJANJE NI SHRANJENO",
+  "@savingMessageEditFailedLabel": {
+    "description": "Text on a message in the message list saying that a message edit request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "discardDraftConfirmationDialogConfirmButton": "Zavrzi",
+  "@discardDraftConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "composeBoxAttachFilesTooltip": "Pripni datoteke",
+  "@composeBoxAttachFilesTooltip": {
+    "description": "Tooltip for compose box icon to attach a file to the message."
+  },
+  "composeBoxAttachMediaTooltip": "Pripni fotografije ali videoposnetke",
+  "@composeBoxAttachMediaTooltip": {
+    "description": "Tooltip for compose box icon to attach media to the message."
+  },
+  "composeBoxAttachFromCameraTooltip": "Fotografiraj",
+  "@composeBoxAttachFromCameraTooltip": {
+    "description": "Tooltip for compose box icon to attach an image from the camera to the message."
+  },
+  "composeBoxGenericContentHint": "Vnesite sporočilo",
+  "@composeBoxGenericContentHint": {
+    "description": "Hint text for content input when sending a message."
+  },
+  "newDmSheetComposeButtonLabel": "Napiši",
+  "@newDmSheetComposeButtonLabel": {
+    "description": "Label for the compose button in the new DM sheet that starts composing a message to the selected users."
+  },
+  "newDmSheetScreenTitle": "Novo neposredno sporočilo",
+  "@newDmSheetScreenTitle": {
+    "description": "Title displayed at the top of the new DM screen."
+  },
+  "newDmFabButtonLabel": "Novo neposredno sporočilo",
+  "@newDmFabButtonLabel": {
+    "description": "Label for the floating action button (FAB) that opens the new DM sheet."
+  },
+  "newDmSheetSearchHintEmpty": "Dodajte enega ali več uporabnikov",
+  "@newDmSheetSearchHintEmpty": {
+    "description": "Hint text for the search bar when no users are selected"
+  },
+  "newDmSheetNoUsersFound": "Ni zadetkov med uporabniki",
+  "@newDmSheetNoUsersFound": {
+    "description": "Message shown in the new DM sheet when no users match the search."
+  },
+  "composeBoxDmContentHint": "Sporočilo @{user}",
+  "@composeBoxDmContentHint": {
+    "description": "Hint text for content input when sending a message to one other person.",
+    "placeholders": {
+      "user": {
+        "type": "String",
+        "example": "channel name"
+      }
+    }
+  },
+  "composeBoxGroupDmContentHint": "Skupinsko sporočilo",
+  "@composeBoxGroupDmContentHint": {
+    "description": "Hint text for content input when sending a message to a group."
+  },
+  "composeBoxSelfDmContentHint": "Zapišite opombo zase",
+  "@composeBoxSelfDmContentHint": {
+    "description": "Hint text for content input when sending a message to yourself."
+  },
+  "composeBoxChannelContentHint": "Sporočilo {destination}",
+  "@composeBoxChannelContentHint": {
+    "description": "Hint text for content input when sending a message to a channel.",
+    "placeholders": {
+      "destination": {
+        "type": "String",
+        "example": "#channel name > topic name"
+      }
+    }
+  },
+  "preparingEditMessageContentInput": "Pripravljanje…",
+  "@preparingEditMessageContentInput": {
+    "description": "Hint text for content input when the compose box is preparing to edit a message."
+  },
+  "composeBoxSendTooltip": "Pošlji",
+  "@composeBoxSendTooltip": {
+    "description": "Tooltip for send button in compose box."
+  },
+  "unknownChannelName": "(neznan kanal)",
+  "@unknownChannelName": {
+    "description": "Replacement name for channel when it cannot be found in the store."
+  },
+  "composeBoxTopicHintText": "Tema",
+  "@composeBoxTopicHintText": {
+    "description": "Hint text for topic input widget in compose box."
+  },
+  "composeBoxUploadingFilename": "Nalaganje {filename}…",
+  "@composeBoxUploadingFilename": {
+    "description": "Placeholder in compose box showing the specified file is currently uploading.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "file.txt"
+      }
+    }
+  },
+  "composeBoxLoadingMessage": "(nalaganje sporočila {messageId})",
+  "@composeBoxLoadingMessage": {
+    "description": "Placeholder in compose box showing the quoted message is currently loading.",
+    "placeholders": {
+      "messageId": {
+        "type": "int",
+        "example": "1234"
+      }
+    }
+  },
+  "unknownUserName": "(neznan uporabnik)",
+  "@unknownUserName": {
+    "description": "Name placeholder to use for a user when we don't know their name."
+  },
+  "dmsWithYourselfPageTitle": "Neposredna sporočila s samim seboj",
+  "@dmsWithYourselfPageTitle": {
+    "description": "Message list page title for a DM group that only includes yourself."
+  },
+  "messageListGroupYouAndOthers": "Vi in {others}",
+  "@messageListGroupYouAndOthers": {
+    "description": "Message list recipient header for a DM group with others.",
+    "placeholders": {
+      "others": {
+        "type": "String",
+        "example": "Alice, Bob"
+      }
+    }
+  },
+  "dmsWithOthersPageTitle": "Neposredna sporočila z {others}",
+  "@dmsWithOthersPageTitle": {
+    "description": "Message list page title for a DM group with others.",
+    "placeholders": {
+      "others": {
+        "type": "String",
+        "example": "Alice, Bob"
+      }
+    }
+  },
+  "contentValidationErrorTooLong": "Dolžina sporočila ne sme presegati 10000 znakov.",
+  "@contentValidationErrorTooLong": {
+    "description": "Content validation error message when the message is too long."
+  },
+  "contentValidationErrorEmpty": "Ni vsebine za pošiljanje!",
+  "@contentValidationErrorEmpty": {
+    "description": "Content validation error message when the message is empty."
+  },
+  "contentValidationErrorUploadInProgress": "Počakajte, da se nalaganje konča.",
+  "@contentValidationErrorUploadInProgress": {
+    "description": "Content validation error message when attachments have not finished uploading."
+  },
+  "dialogCancel": "Prekliči",
+  "@dialogCancel": {
+    "description": "Button label in dialogs to cancel."
+  },
+  "dialogContinue": "Nadaljuj",
+  "@dialogContinue": {
+    "description": "Button label in dialogs to proceed."
+  },
+  "dialogClose": "Zapri",
+  "@dialogClose": {
+    "description": "Button label in dialogs to close."
+  },
+  "errorDialogLearnMore": "Več o tem",
+  "@errorDialogLearnMore": {
+    "description": "Button label in error dialogs to open a web page with more information."
+  },
+  "errorDialogContinue": "V redu",
+  "@errorDialogContinue": {
+    "description": "Button label in error dialogs to acknowledge the error and close the dialog."
+  },
+  "errorDialogTitle": "Napaka",
+  "@errorDialogTitle": {
+    "description": "Generic title for error dialog."
+  },
+  "snackBarDetails": "Podrobnosti",
+  "@snackBarDetails": {
+    "description": "Button label for snack bar button that opens a dialog with more details."
+  },
+  "lightboxCopyLinkTooltip": "Kopiraj povezavo",
+  "@lightboxCopyLinkTooltip": {
+    "description": "Tooltip in lightbox for the copy link action."
+  },
+  "lightboxVideoCurrentPosition": "Trenutni položaj",
+  "@lightboxVideoCurrentPosition": {
+    "description": "The current playback position of the video playing in the lightbox."
+  },
+  "lightboxVideoDuration": "Trajanje videa",
+  "@lightboxVideoDuration": {
+    "description": "The total duration of the video playing in the lightbox."
+  },
+  "loginPageTitle": "Prijava",
+  "@loginPageTitle": {
+    "description": "Title for login page."
+  },
+  "loginMethodDivider": "ALI",
+  "@loginMethodDivider": {
+    "description": "Text on the divider between the username/password form and the third-party login options. Uppercase (for languages with letter case)."
+  },
+  "loginAddAnAccountPageTitle": "Dodaj račun",
+  "@loginAddAnAccountPageTitle": {
+    "description": "Title for page to add a Zulip account."
+  },
+  "signInWithFoo": "Prijava z {method}",
+  "@signInWithFoo": {
+    "description": "Button to use {method} to sign in to the app.",
+    "placeholders": {
+      "method": {
+        "type": "String",
+        "example": "Google"
+      }
+    }
+  },
+  "loginServerUrlLabel": "URL strežnika Zulip",
+  "@loginServerUrlLabel": {
+    "description": "Label in login page for Zulip server URL entry."
+  },
+  "loginHidePassword": "Skrij geslo",
+  "@loginHidePassword": {
+    "description": "Icon label for button to hide password in input form."
+  },
+  "loginEmailLabel": "E-poštni naslov",
+  "@loginEmailLabel": {
+    "description": "Label for input when an email is required to log in."
+  },
+  "loginErrorMissingEmail": "Vnesite svoj e-poštni naslov.",
+  "@loginErrorMissingEmail": {
+    "description": "Error message when an empty email was provided."
+  },
+  "loginPasswordLabel": "Geslo",
+  "@loginPasswordLabel": {
+    "description": "Label for password input field."
+  },
+  "loginErrorMissingPassword": "Vnesite svoje geslo.",
+  "@loginErrorMissingPassword": {
+    "description": "Error message when an empty password was provided."
+  },
+  "loginUsernameLabel": "Uporabniško ime",
+  "@loginUsernameLabel": {
+    "description": "Label for input when a username is required to log in."
+  },
+  "loginErrorMissingUsername": "Vnesite svoje uporabniško ime.",
+  "@loginErrorMissingUsername": {
+    "description": "Error message when an empty username was provided."
+  },
+  "topicValidationErrorTooLong": "Dolžina teme ne sme presegati 60 znakov.",
+  "@topicValidationErrorTooLong": {
+    "description": "Topic validation error when topic is too long."
+  },
+  "topicValidationErrorMandatoryButEmpty": "Teme so v tej organizaciji obvezne.",
+  "@topicValidationErrorMandatoryButEmpty": {
+    "description": "Topic validation error when topic is required but was empty."
+  },
+  "errorServerVersionUnsupportedMessage": "{url} uporablja strežnik Zulip {zulipVersion}, ki ni podprt. Najnižja podprta različica je strežnik Zulip {minSupportedZulipVersion}.",
+  "@errorServerVersionUnsupportedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "http://chat.example.com/"
+      },
+      "zulipVersion": {
+        "type": "String",
+        "example": "3.2"
+      },
+      "minSupportedZulipVersion": {
+        "type": "String",
+        "example": "4.0"
+      }
+    }
+  },
+  "errorInvalidApiKeyMessage": "Vašega računa na {url} ni bilo mogoče overiti. Poskusite se znova prijaviti ali uporabite drug račun.",
+  "@errorInvalidApiKeyMessage": {
+    "description": "Error message in the dialog for invalid API key.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "http://chat.example.com/"
+      }
+    }
+  },
+  "errorInvalidResponse": "Strežnik je poslal neveljaven odgovor.",
+  "@errorInvalidResponse": {
+    "description": "Error message when an API call returned an invalid response."
+  },
+  "errorMalformedResponse": "Strežnik je poslal napačno oblikovan odgovor; stanje HTTP {httpStatus}",
+  "@errorMalformedResponse": {
+    "description": "Error message when an API call fails because we could not parse the response.",
+    "placeholders": {
+      "httpStatus": {
+        "type": "int",
+        "example": "200"
+      }
+    }
+  },
+  "errorMalformedResponseWithCause": "Strežnik je poslal napačno oblikovan odgovor; stanje HTTP {httpStatus}; {details}",
+  "@errorMalformedResponseWithCause": {
+    "description": "Error message when an API call fails because we could not parse the response, with details of the failure.",
+    "placeholders": {
+      "httpStatus": {
+        "type": "int",
+        "example": "200"
+      },
+      "details": {
+        "type": "String",
+        "example": "type 'Null' is not a subtype of type 'String' in type cast"
+      }
+    }
+  },
+  "errorVideoPlayerFailed": "Videa ni mogoče predvajati.",
+  "@errorVideoPlayerFailed": {
+    "description": "Error message when a video fails to play."
+  },
+  "serverUrlValidationErrorEmpty": "Vnesite URL.",
+  "@serverUrlValidationErrorEmpty": {
+    "description": "Error message when URL is empty"
+  },
+  "serverUrlValidationErrorNoUseEmail": "Vnesite URL strežnika, ne vašega e-poštnega naslova.",
+  "@serverUrlValidationErrorNoUseEmail": {
+    "description": "Error message when URL looks like an email"
+  },
+  "serverUrlValidationErrorUnsupportedScheme": "URL strežnika se mora začeti s http:// ali https://.",
+  "@serverUrlValidationErrorUnsupportedScheme": {
+    "description": "Error message when URL has an unsupported scheme."
+  },
+  "markAllAsReadLabel": "Označi vsa sporočila kot prebrana",
+  "@markAllAsReadLabel": {
+    "description": "Button text to mark messages as read."
+  },
+  "spoilerDefaultHeaderText": "Skrito",
+  "@spoilerDefaultHeaderText": {
+    "description": "The default header text in a spoiler block ( https://zulip.com/help/spoilers )."
+  },
+  "markAsReadInProgress": "Označevanje sporočil kot prebranih…",
+  "@markAsReadInProgress": {
+    "description": "Progress message when marking messages as read."
+  },
+  "errorMarkAsReadFailedTitle": "Označevanje kot prebrano ni uspelo",
+  "@errorMarkAsReadFailedTitle": {
+    "description": "Error title when mark as read action failed."
+  },
+  "markAsUnreadInProgress": "Označevanje sporočil kot neprebranih…",
+  "@markAsUnreadInProgress": {
+    "description": "Progress message when marking messages as unread."
+  },
+  "errorMarkAsUnreadFailedTitle": "Označevanje kot neprebrano ni uspelo",
+  "@errorMarkAsUnreadFailedTitle": {
+    "description": "Error title when mark as unread action failed."
+  },
+  "today": "Danes",
+  "@today": {
+    "description": "Term to use to reference the current day."
+  },
+  "yesterday": "Včeraj",
+  "@yesterday": {
+    "description": "Term to use to reference the previous day."
+  },
+  "userRoleOwner": "Lastnik",
+  "@userRoleOwner": {
+    "description": "Label for UserRole.owner"
+  },
+  "userRoleAdministrator": "Skrbnik",
+  "@userRoleAdministrator": {
+    "description": "Label for UserRole.administrator"
+  },
+  "userRoleMember": "Član",
+  "@userRoleMember": {
+    "description": "Label for UserRole.member"
+  },
+  "userRoleGuest": "Gost",
+  "@userRoleGuest": {
+    "description": "Label for UserRole.guest"
+  },
+  "userRoleUnknown": "Neznano",
+  "@userRoleUnknown": {
+    "description": "Label for UserRole.unknown"
+  },
+  "inboxPageTitle": "Nabiralnik",
+  "@inboxPageTitle": {
+    "description": "Title for the page with unreads."
+  },
+  "recentDmConversationsPageTitle": "Neposredna sporočila",
+  "@recentDmConversationsPageTitle": {
+    "description": "Title for the page with a list of DM conversations."
+  },
+  "mentionsPageTitle": "Omembe",
+  "@mentionsPageTitle": {
+    "description": "Page title for the 'Mentions' message view."
+  },
+  "combinedFeedPageTitle": "Združen prikaz",
+  "@combinedFeedPageTitle": {
+    "description": "Page title for the 'Combined feed' message view."
+  },
+  "starredMessagesPageTitle": "Sporočila z zvezdico",
+  "@starredMessagesPageTitle": {
+    "description": "Page title for the 'Starred messages' message view."
+  },
+  "channelsPageTitle": "Kanali",
+  "@channelsPageTitle": {
+    "description": "Title for the page with a list of subscribed channels."
+  },
+  "channelsEmptyPlaceholder": "Niste še naročeni na noben kanal.",
+  "@channelsEmptyPlaceholder": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show."
+  },
+  "mainMenuMyProfile": "Moj profil",
+  "@mainMenuMyProfile": {
+    "description": "Label for main-menu button leading to the user's own profile."
+  },
+  "topicsButtonLabel": "TEME",
+  "@topicsButtonLabel": {
+    "description": "Label for message list button leading to topic-list page. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "channelFeedButtonTooltip": "Sporočila kanala",
+  "@channelFeedButtonTooltip": {
+    "description": "Tooltip for button to navigate to a given channel's feed"
+  },
+  "notifGroupDmConversationLabel": "{senderFullName} vam in {numOthers, plural, =1{1 drugi osebi} other{{numOthers} drugim osebam}}",
+  "@notifGroupDmConversationLabel": {
+    "description": "Label for a group DM conversation notification.",
+    "placeholders": {
+      "senderFullName": {
+        "type": "String",
+        "example": "Alice"
+      },
+      "numOthers": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "notifSelfUser": "Vi",
+  "@notifSelfUser": {
+    "description": "Display name for the user themself, to show after replying in an Android notification"
+  },
+  "reactedEmojiSelfUser": "Vi",
+  "@reactedEmojiSelfUser": {
+    "description": "Display name for the user themself, to show on an emoji reaction added by the user."
+  },
+  "onePersonTyping": "{typist} tipka…",
+  "@onePersonTyping": {
+    "description": "Text to display when there is one user typing.",
+    "placeholders": {
+      "typist": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  "manyPeopleTyping": "Več oseb tipka…",
+  "@manyPeopleTyping": {
+    "description": "Text to display when there are multiple users typing."
+  },
+  "twoPeopleTyping": "{typist} in {otherTypist} tipkata…",
+  "@twoPeopleTyping": {
+    "description": "Text to display when there are two users typing.",
+    "placeholders": {
+      "typist": {
+        "type": "String",
+        "example": "Alice"
+      },
+      "otherTypist": {
+        "type": "String",
+        "example": "Bob"
+      }
+    }
+  },
+  "wildcardMentionAll": "vsi",
+  "@wildcardMentionAll": {
+    "description": "Text for \"@all\" wildcard-mention autocomplete option when writing a channel or DM message."
+  },
+  "wildcardMentionStream": "tok",
+  "@wildcardMentionStream": {
+    "description": "Text for \"@stream\" wildcard-mention autocomplete option when writing a channel message in older servers."
+  },
+  "wildcardMentionTopic": "tema",
+  "@wildcardMentionTopic": {
+    "description": "Text for \"@topic\" wildcard-mention autocomplete option when writing a channel message."
+  },
+  "wildcardMentionChannelDescription": "Obvesti kanal",
+  "@wildcardMentionChannelDescription": {
+    "description": "Description for \"@all\", \"@everyone\", \"@channel\", and \"@stream\" wildcard-mention autocomplete options when writing a channel message."
+  },
+  "wildcardMentionStreamDescription": "Obvesti tok",
+  "@wildcardMentionStreamDescription": {
+    "description": "Description for \"@all\", \"@everyone\", and \"@stream\" wildcard-mention autocomplete options when writing a channel message in older servers."
+  },
+  "wildcardMentionAllDmDescription": "Obvesti prejemnike",
+  "@wildcardMentionAllDmDescription": {
+    "description": "Description for \"@all\" and \"@everyone\" wildcard-mention autocomplete options when writing a DM message."
+  },
+  "wildcardMentionTopicDescription": "Obvesti udeležence teme",
+  "@wildcardMentionTopicDescription": {
+    "description": "Description for \"@topic\" wildcard-mention autocomplete options when writing a channel message."
+  },
+  "messageIsEditedLabel": "UREJENO",
+  "@messageIsEditedLabel": {
+    "description": "Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "messageIsMovedLabel": "PREMAKNJENO",
+  "@messageIsMovedLabel": {
+    "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "messageNotSentLabel": "SPOROČILO NI POSLANO",
+  "@messageNotSentLabel": {
+    "description": "Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "pollVoterNames": "({voterNames})",
+  "@pollVoterNames": {
+    "description": "The list of people who voted for a poll option, wrapped in parentheses.",
+    "placeholders": {
+      "voterNames": {
+        "type": "String",
+        "example": "Alice, Bob, Chad"
+      }
+    }
+  },
+  "themeSettingTitle": "TEMA",
+  "@themeSettingTitle": {
+    "description": "Title for theme setting. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "themeSettingLight": "Svetla",
+  "@themeSettingLight": {
+    "description": "Label for light theme setting."
+  },
+  "themeSettingSystem": "Sistemska",
+  "@themeSettingSystem": {
+    "description": "Label for system theme setting."
+  },
+  "openLinksWithInAppBrowser": "Odpri povezave v brskalniku znotraj aplikacije",
+  "@openLinksWithInAppBrowser": {
+    "description": "Label for toggling setting to open links with in-app browser"
+  },
+  "pollWidgetQuestionMissing": "Brez vprašanja.",
+  "@pollWidgetQuestionMissing": {
+    "description": "Text to display for a poll when the question is missing"
+  },
+  "experimentalFeatureSettingsPageTitle": "Eksperimentalne funkcije",
+  "@experimentalFeatureSettingsPageTitle": {
+    "description": "Title of settings page for experimental, in-development features"
+  },
+  "pollWidgetOptionsMissing": "Ta anketa še nima odgovorov.",
+  "@pollWidgetOptionsMissing": {
+    "description": "Text to display for a poll when it has no options"
+  },
+  "experimentalFeatureSettingsWarning": "Te možnosti omogočajo funkcije, ki so še v razvoju in niso pripravljene. Morda ne bodo delovale in lahko povzročijo težave v drugih delih aplikacije.\n\nNamen teh nastavitev je eksperimentiranje za uporabnike, ki delajo na razvoju Zulipa.",
+  "@experimentalFeatureSettingsWarning": {
+    "description": "Warning text on settings page for experimental, in-development features"
+  },
+  "errorNotificationOpenAccountNotFound": "Računa, povezanega s tem obvestilom, ni bilo mogoče najti.",
+  "@errorNotificationOpenAccountNotFound": {
+    "description": "Error message when the account associated with the notification could not be found"
+  },
+  "errorReactionAddingFailedTitle": "Reakcije ni bilo mogoče dodati",
+  "@errorReactionAddingFailedTitle": {
+    "description": "Error title when adding a message reaction fails"
+  },
+  "errorReactionRemovingFailedTitle": "Reakcije ni bilo mogoče odstraniti",
+  "@errorReactionRemovingFailedTitle": {
+    "description": "Error title when removing a message reaction fails"
+  },
+  "emojiReactionsMore": "več",
+  "@emojiReactionsMore": {
+    "description": "Label for a button opening the emoji picker."
+  },
+  "emojiPickerSearchEmoji": "Iskanje emojijev",
+  "@emojiPickerSearchEmoji": {
+    "description": "Hint text for the emoji picker search text field."
+  },
+  "noEarlierMessages": "Ni starejših sporočil",
+  "@noEarlierMessages": {
+    "description": "Text to show at the start of a message list if there are no earlier messages."
+  },
+  "mutedSender": "Utišan pošiljatelj",
+  "@mutedSender": {
+    "description": "Name for a muted user to display in message list."
+  },
+  "revealButtonLabel": "Prikaži sporočilo utišanega pošiljatelja",
+  "@revealButtonLabel": {
+    "description": "Label for the button revealing hidden message from a muted sender in message list."
+  },
+  "mutedUser": "Uporabnik je utišan",
+  "@mutedUser": {
+    "description": "Name for a muted user to display all over the app."
+  },
+  "appVersionUnknownPlaceholder": "(...)",
+  "@appVersionUnknownPlaceholder": {
+    "description": "Placeholder to show in place of the app version when it is unknown."
+  },
+  "scrollToBottomTooltip": "Premakni se na konec",
+  "@scrollToBottomTooltip": {
+    "description": "Tooltip for button to scroll to bottom."
+  },
+  "recentDmConversationsEmptyPlaceholder": "Zaenkrat še nimate neposrednih sporočil! Zakaj ne bi začeli pogovora?",
+  "@recentDmConversationsEmptyPlaceholder": {
+    "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "errorFilesTooLarge": "{num, plural, =1{Datoteka presega} one{Dve datoteki presegata} few{{num} datoteke presegajo} other{{num} datotek presega}} omejitev velikosti strežnika ({maxFileUploadSizeMib} MiB) in {num, plural, =1{ne bo naložena} one{ne bosta naloženi} few{ne bodo naložene} other{ne bodo naložene}}:\n\n{listMessage}",
+  "@errorFilesTooLarge": {
+    "description": "Error message when attached files are too large in size.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "2"
+      },
+      "maxFileUploadSizeMib": {
+        "type": "int",
+        "example": "15"
+      },
+      "listMessage": {
+        "type": "String",
+        "example": "foo.txt: 10.1 MiB\nbar.txt 20.2 MiB"
+      }
+    }
+  },
+  "inboxEmptyPlaceholder": "V vašem nabiralniku ni neprebranih sporočil. Uporabite spodnje gumbe za ogled združenega prikaza ali seznama kanalov.",
+  "@inboxEmptyPlaceholder": {
+    "description": "Centered text on the 'Inbox' page saying that there is no content to show."
+  },
+  "successMessageTextCopied": "Besedilo sporočila je bilo kopirano",
+  "@successMessageTextCopied": {
+    "description": "Message when content of a message was copied to the user's system clipboard."
+  },
+  "contentValidationErrorQuoteAndReplyInProgress": "Počakajte, da se citat zaključi.",
+  "@contentValidationErrorQuoteAndReplyInProgress": {
+    "description": "Content validation error message when a quotation has not completed yet."
+  },
+  "errorNetworkRequestFailed": "Omrežna zahteva je spodletela",
+  "@errorNetworkRequestFailed": {
+    "description": "Error message when a network request fails."
+  },
+  "aboutPageAppVersion": "Različica aplikacije",
+  "@aboutPageAppVersion": {
+    "description": "Label for Zulip app version in About Zulip page"
+  },
+  "aboutPageOpenSourceLicenses": "Odprtokodne licence",
+  "@aboutPageOpenSourceLicenses": {
+    "description": "Item title in About Zulip page to navigate to Licenses page"
+  },
+  "aboutPageTapToView": "Dotaknite se za ogled",
+  "@aboutPageTapToView": {
+    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
+  },
+  "chooseAccountPageTitle": "Izberite račun",
+  "@chooseAccountPageTitle": {
+    "description": "Title for the page to choose between Zulip accounts."
+  },
+  "settingsPageTitle": "Nastavitve",
+  "@settingsPageTitle": {
+    "description": "Title for the settings page."
+  },
+  "switchAccountButton": "Preklopi račun",
+  "@switchAccountButton": {
+    "description": "Label for main-menu button leading to the choose-account page."
+  },
+  "tryAnotherAccountMessage": "Nalaganje vašega računa na {url} traja dlje kot običajno.",
+  "@tryAnotherAccountMessage": {
+    "description": "Message that appears on the loading screen after waiting for some time.",
+    "url": {
+      "type": "String",
+      "example": "http://chat.example.com/"
+    }
+  },
+  "tryAnotherAccountButton": "Poskusite z drugim računom",
+  "@tryAnotherAccountButton": {
+    "description": "Label for loading screen button prompting user to try another account."
+  },
+  "chooseAccountPageLogOutButton": "Odjava",
+  "@chooseAccountPageLogOutButton": {
+    "description": "Label for the 'Log out' button for an account on the choose-account page"
+  },
+  "logOutConfirmationDialogTitle": "Se želite odjaviti?",
+  "@logOutConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for logging out."
+  },
+  "logOutConfirmationDialogMessage": "Če boste ta račun želeli uporabljati v prihodnje, boste morali znova vnesti URL svoje organizacije in podatke za prijavo.",
+  "@logOutConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for logging out."
+  },
+  "logOutConfirmationDialogConfirmButton": "Odjavi se",
+  "@logOutConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Log out' button on a confirmation dialog for logging out."
+  },
+  "chooseAccountButtonAddAnAccount": "Dodaj račun",
+  "@chooseAccountButtonAddAnAccount": {
+    "description": "Label for ChooseAccountPage button to add an account"
+  },
+  "profileButtonSendDirectMessage": "Pošlji neposredno sporočilo",
+  "@profileButtonSendDirectMessage": {
+    "description": "Label for button in profile screen to navigate to DMs with the shown user."
+  },
+  "errorCouldNotShowUserProfile": "Uporabniškega profila ni mogoče prikazati.",
+  "@errorCouldNotShowUserProfile": {
+    "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
+  "permissionsNeededTitle": "Potrebna so dovoljenja",
+  "@permissionsNeededTitle": {
+    "description": "Title for dialog asking the user to grant additional permissions."
+  },
+  "permissionsNeededOpenSettings": "Odpri nastavitve",
+  "@permissionsNeededOpenSettings": {
+    "description": "Button label for permissions dialog button that opens the system settings screen."
+  },
+  "actionSheetOptionMarkChannelAsRead": "Označi kanal kot prebran",
+  "@actionSheetOptionMarkChannelAsRead": {
+    "description": "Label for marking a channel as read."
+  },
+  "actionSheetOptionListOfTopics": "Seznam tem",
+  "@actionSheetOptionListOfTopics": {
+    "description": "Label for navigating to a channel's topic-list page."
+  },
+  "actionSheetOptionMuteTopic": "Utišaj temo",
+  "@actionSheetOptionMuteTopic": {
+    "description": "Label for muting a topic on action sheet."
+  },
+  "actionSheetOptionUnmuteTopic": "Prekliči utišanje teme",
+  "@actionSheetOptionUnmuteTopic": {
+    "description": "Label for unmuting a topic on action sheet."
+  },
+  "errorFilesTooLargeTitle": "\"{num, plural, =1{Datoteka je prevelika} one{Dve datoteki sta preveliki} few{{num} datoteke so prevelike} other{{num} datotek je prevelikih}}\"",
+  "@errorFilesTooLargeTitle": {
+    "description": "Error title when attached files are too large in size.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "markAsUnreadComplete": "{num, plural, =1{Označeno je 1 sporočilo kot neprebrano} one{Označeni sta 2 sporočili kot neprebrani} few{Označena so {num} sporočila kot neprebrana} other{Označeno je {num} sporočil kot neprebranih}}.",
+  "@markAsUnreadComplete": {
+    "description": "Message when marking messages as unread has completed.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "errorHandlingEventTitle": "Napaka pri obravnavi posodobitve. Povezujemo se znova…",
+  "@errorHandlingEventTitle": {
+    "description": "Error title on failing to handle a Zulip server event."
+  },
+  "actionSheetOptionHideMutedMessage": "Znova skrij utišano sporočilo",
+  "@actionSheetOptionHideMutedMessage": {
+    "description": "Label for hide muted message again button on action sheet."
+  },
+  "errorHandlingEventDetails": "Napaka pri obravnavi posodobitve iz strežnika {serverUrl}; poskusili bomo znova.\n\nNapaka: {error}\n\nDogodek: {event}",
+  "@errorHandlingEventDetails": {
+    "description": "Error details on failing to handle a Zulip server event.",
+    "placeholders": {
+      "serverUrl": {
+        "type": "String",
+        "example": "https://chat.example.com"
+      },
+      "error": {
+        "type": "String",
+        "example": "Unexpected null value"
+      },
+      "event": {
+        "type": "String",
+        "example": "UpdateMessageEvent(id: 123, messageIds: [2345, 3456], newTopic: 'dinner')"
+      }
+    }
+  },
+  "discardDraftConfirmationDialogTitle": "Želite zavreči sporočilo, ki ga pišete?",
+  "@discardDraftConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "discardDraftForEditConfirmationDialogMessage": "Ko urejate sporočilo, se prejšnja vsebina polja za pisanje zavrže.",
+  "@discardDraftForEditConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box, when editing a message."
+  },
+  "newDmSheetSearchHintSomeSelected": "Dodajte še enega uporabnika…",
+  "@newDmSheetSearchHintSomeSelected": {
+    "description": "Hint text for the search bar when at least one user is selected."
+  },
+  "unpinnedSubscriptionsLabel": "Nepripeto",
+  "@unpinnedSubscriptionsLabel": {
+    "description": "Label for the list of unpinned subscribed channels."
+  },
+  "messageListGroupYouWithYourself": "Sporočila sebi",
+  "@messageListGroupYouWithYourself": {
+    "description": "Message list recipient header for a DM group that only includes yourself."
+  },
+  "errorRequestFailed": "Omrežna zahteva je spodletela: Stanje HTTP {httpStatus}",
+  "@errorRequestFailed": {
+    "description": "Error message when an API call fails.",
+    "placeholders": {
+      "httpStatus": {
+        "type": "int",
+        "example": "500"
+      }
+    }
+  },
+  "serverUrlValidationErrorInvalidUrl": "Vnesite veljaven URL.",
+  "@serverUrlValidationErrorInvalidUrl": {
+    "description": "Error message when URL is not in a valid format."
+  },
+  "errorNotificationOpenTitle": "Obvestila ni bilo mogoče odpreti",
+  "@errorNotificationOpenTitle": {
+    "description": "Error title when notification opening fails"
+  },
+  "pinnedSubscriptionsLabel": "Pripeto",
+  "@pinnedSubscriptionsLabel": {
+    "description": "Label for the list of pinned subscribed channels."
+  }
+}

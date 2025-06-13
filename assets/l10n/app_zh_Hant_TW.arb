@@ -1,3 +1,162 @@
 {
-  "settingsPageTitle": "設定"
+  "settingsPageTitle": "設定",
+  "@settingsPageTitle": {},
+  "aboutPageTitle": "關於 Zulip",
+  "@aboutPageTitle": {
+    "description": "Title for About Zulip page."
+  },
+  "chooseAccountPageLogOutButton": "登出",
+  "@chooseAccountPageLogOutButton": {
+    "description": "Label for the 'Log out' button for an account on the choose-account page"
+  },
+  "tryAnotherAccountMessage": "你在 {url} 的帳號載入的比較久",
+  "@tryAnotherAccountMessage": {
+    "description": "Message that appears on the loading screen after waiting for some time.",
+    "url": {
+      "type": "String",
+      "example": "http://chat.example.com/"
+    }
+  },
+  "chooseAccountPageTitle": "選取帳號",
+  "@chooseAccountPageTitle": {
+    "description": "Title for the page to choose between Zulip accounts."
+  },
+  "aboutPageAppVersion": "App 版本",
+  "@aboutPageAppVersion": {
+    "description": "Label for Zulip app version in About Zulip page"
+  },
+  "switchAccountButton": "切換帳號",
+  "@switchAccountButton": {
+    "description": "Label for main-menu button leading to the choose-account page."
+  },
+  "actionSheetOptionListOfTopics": "主題列表",
+  "@actionSheetOptionListOfTopics": {
+    "description": "Label for navigating to a channel's topic-list page."
+  },
+  "actionSheetOptionMuteTopic": "將主題設為靜音",
+  "@actionSheetOptionMuteTopic": {
+    "description": "Label for muting a topic on action sheet."
+  },
+  "actionSheetOptionResolveTopic": "標註為解決了",
+  "@actionSheetOptionResolveTopic": {
+    "description": "Label for the 'Mark as resolved' button on the topic action sheet."
+  },
+  "tryAnotherAccountButton": "請嘗試別的帳號",
+  "@tryAnotherAccountButton": {
+    "description": "Label for loading screen button prompting user to try another account."
+  },
+  "aboutPageTapToView": "點選查看",
+  "@aboutPageTapToView": {
+    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
+  },
+  "aboutPageOpenSourceLicenses": "開源軟體授權條款",
+  "@aboutPageOpenSourceLicenses": {
+    "description": "Item title in About Zulip page to navigate to Licenses page"
+  },
+  "logOutConfirmationDialogTitle": "登出？",
+  "@logOutConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for logging out."
+  },
+  "logOutConfirmationDialogConfirmButton": "登出",
+  "@logOutConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Log out' button on a confirmation dialog for logging out."
+  },
+  "profileButtonSendDirectMessage": "發送私訊",
+  "@profileButtonSendDirectMessage": {
+    "description": "Label for button in profile screen to navigate to DMs with the shown user."
+  },
+  "chooseAccountButtonAddAnAccount": "新增帳號",
+  "@chooseAccountButtonAddAnAccount": {
+    "description": "Label for ChooseAccountPage button to add an account"
+  },
+  "permissionsNeededTitle": "需要的權限",
+  "@permissionsNeededTitle": {
+    "description": "Title for dialog asking the user to grant additional permissions."
+  },
+  "permissionsNeededOpenSettings": "開啟設定",
+  "@permissionsNeededOpenSettings": {
+    "description": "Button label for permissions dialog button that opens the system settings screen."
+  },
+  "actionSheetOptionMarkChannelAsRead": "標註頻道已讀",
+  "@actionSheetOptionMarkChannelAsRead": {
+    "description": "Label for marking a channel as read."
+  },
+  "actionSheetOptionUnmuteTopic": "將主題取消靜音",
+  "@actionSheetOptionUnmuteTopic": {
+    "description": "Label for unmuting a topic on action sheet."
+  },
+  "actionSheetOptionUnresolveTopic": "標註為未解決",
+  "@actionSheetOptionUnresolveTopic": {
+    "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
+  },
+  "errorResolveTopicFailedTitle": "無法標註為解決了",
+  "@errorResolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as resolved failed."
+  },
+  "errorUnresolveTopicFailedTitle": "無法標註為未解決",
+  "@errorUnresolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as unresolved failed."
+  },
+  "actionSheetOptionCopyMessageText": "複製訊息文字",
+  "@actionSheetOptionCopyMessageText": {
+    "description": "Label for copy message text button on action sheet."
+  },
+  "actionSheetOptionCopyMessageLink": "複製訊息連結",
+  "@actionSheetOptionCopyMessageLink": {
+    "description": "Label for copy message link button on action sheet."
+  },
+  "actionSheetOptionMarkAsUnread": "從這裡開始註記為未讀",
+  "@actionSheetOptionMarkAsUnread": {
+    "description": "Label for mark as unread button on action sheet."
+  },
+  "actionSheetOptionMarkTopicAsRead": "標註主題為已讀",
+  "@actionSheetOptionMarkTopicAsRead": {
+    "description": "Option to mark a specific topic as read in the action sheet."
+  },
+  "actionSheetOptionShare": "分享",
+  "@actionSheetOptionShare": {
+    "description": "Label for share button on action sheet."
+  },
+  "actionSheetOptionQuoteAndReply": "引用並回覆",
+  "@actionSheetOptionQuoteAndReply": {
+    "description": "Label for Quote and reply button on action sheet."
+  },
+  "actionSheetOptionStarMessage": "標註為重要訊息",
+  "@actionSheetOptionStarMessage": {
+    "description": "Label for star button on action sheet."
+  },
+  "actionSheetOptionUnstarMessage": "取消標註為重要訊息",
+  "@actionSheetOptionUnstarMessage": {
+    "description": "Label for unstar button on action sheet."
+  },
+  "actionSheetOptionEditMessage": "編輯訊息",
+  "@actionSheetOptionEditMessage": {
+    "description": "Label for the 'Edit message' button in the message action sheet."
+  },
+  "errorWebAuthOperationalErrorTitle": "出錯了",
+  "@errorWebAuthOperationalErrorTitle": {
+    "description": "Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "errorWebAuthOperationalError": "出現了意外的錯誤。",
+  "@errorWebAuthOperationalError": {
+    "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "errorAccountLoggedInTitle": "帳號已經登入了",
+  "@errorAccountLoggedInTitle": {
+    "description": "Error title on attempting to log into an account that's already logged in."
+  },
+  "errorAccountLoggedIn": "在 {server} 的帳號 {email} 已經存在帳號清單中。",
+  "@errorAccountLoggedIn": {
+    "description": "Error message on attempting to log into an account that's already logged in.",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "user@example.com"
+      },
+      "server": {
+        "type": "String",
+        "example": "https://example.com"
+      }
+    }
+  }
 }
