@@ -223,7 +223,8 @@ void main() {
 
       void checkChanges(PerAccountStore store,
           UserTopicVisibilityPolicy newPolicy,
-          VisibilityEffect expectedInStream, VisibilityEffect expectedOverall) {
+          UserTopicVisibilityEffect expectedInStream,
+          UserTopicVisibilityEffect expectedOverall) {
         final event = mkEvent(newPolicy);
         check(store.willChangeIfTopicVisibleInStream(event)).equals(expectedInStream);
         check(store.willChangeIfTopicVisible        (event)).equals(expectedOverall);
@@ -234,7 +235,7 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
         checkChanges(store, UserTopicVisibilityPolicy.followed,
-          VisibilityEffect.none, VisibilityEffect.none);
+          UserTopicVisibilityEffect.none, UserTopicVisibilityEffect.none);
       });
 
       test('stream not muted, policy none -> muted, means muted', () async {
@@ -242,7 +243,7 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
         checkChanges(store, UserTopicVisibilityPolicy.muted,
-          VisibilityEffect.muted, VisibilityEffect.muted);
+          UserTopicVisibilityEffect.muted, UserTopicVisibilityEffect.muted);
       });
 
       test('stream muted, policy none -> followed, means none/unmuted', () async {
@@ -250,7 +251,7 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
         checkChanges(store, UserTopicVisibilityPolicy.followed,
-          VisibilityEffect.none, VisibilityEffect.unmuted);
+          UserTopicVisibilityEffect.none, UserTopicVisibilityEffect.unmuted);
       });
 
       test('stream muted, policy none -> muted, means muted/none', () async {
@@ -258,7 +259,7 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
         checkChanges(store, UserTopicVisibilityPolicy.muted,
-          VisibilityEffect.muted, VisibilityEffect.none);
+          UserTopicVisibilityEffect.muted, UserTopicVisibilityEffect.none);
       });
 
       final policies = [
@@ -293,10 +294,10 @@ void main() {
               final newVisibleInStream = store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'));
               final newVisible         = store.isTopicVisible(stream1.streamId, eg.t('topic'));
 
-              VisibilityEffect fromOldNew(bool oldVisible, bool newVisible) {
-                if (newVisible == oldVisible) return VisibilityEffect.none;
-                if (newVisible) return VisibilityEffect.unmuted;
-                return VisibilityEffect.muted;
+              UserTopicVisibilityEffect fromOldNew(bool oldVisible, bool newVisible) {
+                if (newVisible == oldVisible) return UserTopicVisibilityEffect.none;
+                if (newVisible) return UserTopicVisibilityEffect.unmuted;
+                return UserTopicVisibilityEffect.muted;
               }
               check(willChangeInStream)
                 .equals(fromOldNew(oldVisibleInStream, newVisibleInStream));
