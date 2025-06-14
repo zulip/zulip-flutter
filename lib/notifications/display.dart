@@ -59,14 +59,14 @@ class NotificationChannelManager {
   /// For example, for a resource `@raw/chime3`, where `raw` would be the
   /// resource type and `chime3` would be the resource name it generates the
   /// following URL:
-  ///   `android.resource://com.zulip.flutter/raw/chime3`
+  ///   `android.resource://com.zulipmobile/raw/chime3`
   ///
   /// Based on: https://stackoverflow.com/a/38340580
-  static Uri _resourceUrlFromName({
+  static Future<String> _resourceUrlFromName({
     required String resourceTypeName,
     required String resourceEntryName,
-  }) {
-    const packageName = 'com.zulip.flutter'; // TODO(#407)
+  }) async {
+    final packageInfo = await ZulipBinding.instance.packageInfo;
 
     // URL scheme for Android resource url.
     // See: https://developer.android.com/reference/android/content/ContentResolver#SCHEME_ANDROID_RESOURCE
@@ -74,9 +74,9 @@ class NotificationChannelManager {
 
     return Uri(
       scheme: schemeAndroidResource,
-      host: packageName,
+      host: packageInfo!.packageName,
       pathSegments: <String>[resourceTypeName, resourceEntryName],
-    );
+    ).toString();
   }
 
   /// Prepare our notification sounds; return a URL for our default sound.
@@ -87,9 +87,9 @@ class NotificationChannelManager {
   /// Returns a URL for our default notification sound: either in shared storage
   /// if we successfully copied it there, or else as our internal resource file.
   static Future<String> _ensureInitNotificationSounds() async {
-    String defaultSoundUrl = _resourceUrlFromName(
+    String defaultSoundUrl = await _resourceUrlFromName(
       resourceTypeName: 'raw',
-      resourceEntryName: kDefaultNotificationSound.resourceName).toString();
+      resourceEntryName: kDefaultNotificationSound.resourceName);
 
     final shouldUseResourceFile = switch (await ZulipBinding.instance.deviceInfo) {
       // Before Android 10 Q, we don't attempt to put the sounds in shared media storage.
