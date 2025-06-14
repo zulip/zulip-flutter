@@ -6,14 +6,21 @@
   Flutter and packages dependencies, do that first.
   For details of how, see our README.
 
-* Update translations from Weblate.
-  See `git log --stat --grep eblate` for previous examples.
+* Update translations from Weblate:
+  * Run the [GitHub action][weblate-github-action] to create a PR
+    (or update an existing bot PR) with translation updates.
+  * CI doesn't run on the bot's PRs.  So if you suspect the PR might
+    break anything (e.g. if this is the first sync since changing
+    something in our Weblate setup), run `tools/check` on it yourself.
+  * Merge the PR.
 
 * Write an entry in `docs/changelog.md`, under "Unreleased".
   Commit that change.
 
 * Run `tools/bump-version` to update the version number.
   Inspect the resulting commit and tag, and push.
+
+[weblate-github-action]: https://github.com/zulip/zulip-flutter/actions/workflows/update-translations.yml
 
 
 ## Build and upload alpha: Android
