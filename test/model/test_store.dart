@@ -267,6 +267,10 @@ extension PerAccountStoreTestExtension on PerAccountStore {
     }
   }
 
+  Future<void> setMutedUsers(List<int> userIds) async {
+    await handleEvent(eg.mutedUsersEvent(userIds));
+  }
+
   Future<void> addStream(ZulipStream stream) async {
     await addStreams([stream]);
   }

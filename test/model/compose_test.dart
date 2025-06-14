@@ -1,5 +1,6 @@
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
+import 'package:zulip/api/model/events.dart';
 import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/store.dart';
@@ -225,26 +226,69 @@ hello
   group('mention', () {
     group('user', () {
       final user = eg.user(userId: 123, fullName: 'Full Name');
-      test('not silent', () {
+      final message = eg.streamMessage(sender: user);
+      test('not silent', () async {
+        final store = eg.store();
+        await store.addUser(user);
         check(userMention(user, silent: false)).equals('@**Full Name|123**');
+        check(userMentionFromMessage(message, silent: false, users: store))
+          .equals('@**Full Name|123**');
       });
-      test('silent', () {
+      test('silent', () async {
+        final store = eg.store();
+        await store.addUser(user);
         check(userMention(user, silent: true)).equals('@_**Full Name|123**');
+        check(userMentionFromMessage(message, silent: true, users: store))
+          .equals('@_**Full Name|123**');
       });
       test('`users` passed; has two users with same fullName', () async {
         final store = eg.store();
         await store.addUsers([user, eg.user(userId: 5), eg.user(userId: 234, fullName: user.fullName)]);
         check(userMention(user, silent: true, users: store)).equals('@_**Full Name|123**');
+        check(userMentionFromMessage(message, silent: true, users: store))
+          .equals('@_**Full Name|123**');
       });
       test('`users` passed; has two same-name users but one of them is deactivated', () async {
         final store = eg.store();
         await store.addUsers([user, eg.user(userId: 5), eg.user(userId: 234, fullName: user.fullName, isActive: false)]);
         check(userMention(user, silent: true, users: store)).equals('@_**Full Name|123**');
+        check(userMentionFromMessage(message, silent: true, users: store))
+          .equals('@_**Full Name|123**');
       });
       test('`users` passed; user has unique fullName', () async {
         final store = eg.store();
         await store.addUsers([user, eg.user(userId: 234, fullName: 'Another Name')]);
         check(userMention(user, silent: true, users: store)).equals('@_**Full Name**');
+        check(userMentionFromMessage(message, silent: true, users: store))
+          .equals('@_**Full Name|123**');
+      });
+
+      test('userMentionFromMessage, known user', () async {
+        final user = eg.user(userId: 123, fullName: 'Full Name');
+        final store = eg.store();
+        await store.addUser(user);
+        check(userMentionFromMessage(message, silent: false, users: store))
+          .equals('@**Full Name|123**');
+        await store.handleEvent(RealmUserUpdateEvent(id: 1,
+          userId: user.userId, fullName: 'New Name'));
+        check(userMentionFromMessage(message, silent: false, users: store))
+          .equals('@**New Name|123**');
+      });
+
+      test('userMentionFromMessage, unknown user', () async {
+        final store = eg.store();
+        check(store.getUser(user.userId)).isNull();
+        check(userMentionFromMessage(message, silent: false, users: store))
+          .equals('@**Full Name|123**');
+      });
+
+      test('userMentionFromMessage, muted user', () async {
+        final store = eg.store();
+        await store.addUser(user);
+        await store.setMutedUsers([user.userId]);
+        check(store.isUserMuted(user.userId)).isTrue();
+        check(userMentionFromMessage(message, silent: false, users: store))
+          .equals('@**Full Name|123**'); // not replaced with 'Muted user'
       });
     });
 

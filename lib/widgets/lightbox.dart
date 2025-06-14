@@ -166,6 +166,7 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     final themeData = Theme.of(context);
 
     final appBarBackgroundColor = Colors.grey.shade900.withValues(alpha: 0.87);
@@ -194,13 +195,19 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
         shape: const Border(), // Remove bottom border from [AppBarTheme]
         elevation: appBarElevation,
         title: Row(children: [
-          Avatar(size: 36, borderRadius: 36 / 8, userId: widget.message.senderId),
+          Avatar(
+            size: 36,
+            borderRadius: 36 / 8,
+            userId: widget.message.senderId,
+            replaceIfMuted: false,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: RichText(
               text: TextSpan(children: [
                 TextSpan(
-                  text: '${widget.message.senderFullName}\n', // TODO(#716): use `store.senderDisplayName`
+                  // TODO write a test where the sender is muted; check this and avatar
+                  text: '${store.senderDisplayName(widget.message, replaceIfMuted: false)}\n',
 
                   // Restate default
                   style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),

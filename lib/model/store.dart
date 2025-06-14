@@ -675,10 +675,13 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     return byDate.difference(dateJoined).inDays >= realmWaitingPeriodThreshold;
   }
 
-  /// The given user's real email address, if known, for displaying in the UI.
+  /// The user's real email address, if known, for displaying in the UI.
   ///
-  /// Returns null if self-user isn't able to see [user]'s real email address.
-  String? userDisplayEmail(User user) {
+  /// Returns null if self-user isn't able to see the user's real email address,
+  /// or if the user isn't actually a user we know about.
+  String? userDisplayEmail(int userId) {
+    final user = getUser(userId);
+    if (user == null) return null;
     if (zulipFeatureLevel >= 163) { // TODO(server-7)
       // A non-null value means self-user has access to [user]'s real email,
       // while a null value means it doesn't have access to the email.
