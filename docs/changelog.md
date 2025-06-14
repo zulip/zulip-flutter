@@ -3,6 +3,37 @@
 ## Unreleased
 
 
+## 0.0.33 (2025-06-13)
+
+This is a preview beta, including some experimental changes
+not yet merged to the main branch.
+
+
+### Highlights for users
+
+This app is nearing ready to replace the legacy Zulip mobile app,
+planned for next week.
+
+In addition to all the features in the last beta:
+* Messages are automatically marked read as you scroll through
+  a conversation. (#81)
+* More translations.
+
+
+### Highlights for developers
+
+* User-visible changes not described above:
+  * "Quote message" button label rather than "Quote and reply"
+    (PR #1575)
+
+* Resolved in main: PR #1575, #81
+
+* Resolved in the experimental branch:
+  * more toward #46 via PR #1452
+  * further toward #46 via PR #1559
+  * #296 via PR #1561
+
+
 ## 0.0.32 (2025-06-12)
 
 This is a preview beta, including some experimental changes
