@@ -5,6 +5,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/database.dart';
 import '../model/message.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
@@ -139,6 +140,14 @@ abstract class MessageListPageState {
   ///
   /// This is null if [MessageList] has not mounted yet.
   MessageListView? get model;
+
+  /// This view's decision whether to mark read on scroll,
+  /// overriding [GlobalSettings.markReadOnScroll].
+  ///
+  /// For example, this is set to false after pressing
+  /// "Mark as unread from here" in the message action sheet.
+  bool? get markReadOnScroll;
+  set markReadOnScroll(bool? value);
 }
 
 class MessageListPage extends StatefulWidget {
@@ -172,6 +181,32 @@ class MessageListPage extends StatefulWidget {
 
   @override
   State<MessageListPage> createState() => _MessageListPageState();
+
+  /// In debug mode, controls whether mark-read-on-scroll is enabled,
+  /// overriding [GlobalSettings.markReadOnScroll]
+  /// and [MessageListPageState.markReadOnScroll].
+  ///
+  /// Outside of debug mode, this is always true and the setter has no effect.
+  static bool get debugEnableMarkReadOnScroll {
+    bool result = true;
+    assert(() {
+      result = _debugEnableMarkReadOnScroll;
+      return true;
+    }());
+    return result;
+  }
+  static bool _debugEnableMarkReadOnScroll = true;
+  static set debugEnableMarkReadOnScroll(bool value) {
+    assert(() {
+      _debugEnableMarkReadOnScroll = value;
+      return true;
+    }());
+  }
+
+  @visibleForTesting
+  static void debugReset() {
+    _debugEnableMarkReadOnScroll = true;
+  }
 }
 
 class _MessageListPageState extends State<MessageListPage> implements MessageListPageState {
@@ -185,6 +220,16 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
   @override
   MessageListView? get model => _messageListKey.currentState?.model;
   final GlobalKey<_MessageListState> _messageListKey = GlobalKey();
+
+  @override
+  bool? get markReadOnScroll => _markReadOnScroll;
+  bool? _markReadOnScroll;
+  @override
+  set markReadOnScroll(bool? value) {
+    setState(() {
+      _markReadOnScroll = value;
+    });
+  }
 
   @override
   void initState() {
@@ -298,6 +343,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
                   narrow: narrow,
                   initAnchor: initAnchor,
                   onNarrowChanged: _narrowChanged,
+                  markReadOnScroll: markReadOnScroll,
                 ))),
             if (ComposeBox.hasComposeBox(narrow))
               ComposeBox(key: _composeBoxKey, narrow: narrow)
@@ -503,17 +549,21 @@ class MessageList extends StatefulWidget {
     required this.narrow,
     required this.initAnchor,
     required this.onNarrowChanged,
+    required this.markReadOnScroll,
   });
 
   final Narrow narrow;
   final Anchor initAnchor;
   final void Function(Narrow newNarrow) onNarrowChanged;
+  final bool? markReadOnScroll;
 
   @override
   State<StatefulWidget> createState() => _MessageListState();
 }
 
 class _MessageListState extends State<MessageList> with PerAccountStoreAwareStateMixin<MessageList> {
+  final GlobalKey _scrollViewKey = GlobalKey();
+
   MessageListView get model => _model!;
   MessageListView? _model;
 
@@ -552,6 +602,17 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   bool _prevFetched = false;
 
   void _modelChanged() {
+    // When you're scrolling quickly, our mark-as-read requests include the
+    // messages *between* _messagesRecentlyInViewport and the messages currently
+    // in view, so that messages don't get left out because you were scrolling
+    // so fast that they never rendered onscreen.
+    //
+    // Here, the onscreen messages might be totally different,
+    // and not because of scrolling; e.g. because the narrow changed.
+    // Avoid "filling in" a mark-as-read request with totally wrong messages,
+    // by forgetting the old range.
+    _messagesRecentlyInViewport = null;
+
     if (model.narrow != widget.narrow) {
       // Either:
       // - A message move event occurred, where propagate mode is
@@ -576,7 +637,122 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     _prevFetched = model.fetched;
   }
 
+  /// Find the range of message IDs on screen, as a (first, last) tuple,
+  /// or null if no messages are onscreen.
+  ///
+  /// A message is considered onscreen if its bottom edge is in the viewport.
+  ///
+  /// Ignores outbox messages.
+  (int, int)? _findMessagesInViewport() {
+    final scrollViewElement = _scrollViewKey.currentContext as Element;
+    final scrollViewRenderObject = scrollViewElement.renderObject as RenderBox;
+
+    int? first;
+    int? last;
+    void visit(Element element) {
+      final widget = element.widget;
+      switch (widget) {
+        case RecipientHeader():
+        case DateSeparator():
+        case MarkAsReadWidget():
+          // MessageItems won't be descendants of these
+          return;
+
+        case MessageItem(item: MessageListOutboxMessageItem()):
+          return; // ignore outbox
+
+        case MessageItem(item: MessageListMessageItem(:final message)):
+          final isInViewport = _isMessageItemInViewport(
+            element, scrollViewRenderObject: scrollViewRenderObject);
+          if (isInViewport) {
+            if (first == null) {
+              assert(last == null);
+              first = message.id;
+              last = message.id;
+              return;
+            }
+            if (message.id < first!) {
+              first = message.id;
+            }
+            if (last! < message.id) {
+              last = message.id;
+            }
+          }
+          return; // no need to look for more MessageItems inside this one
+
+        default:
+          element.visitChildElements(visit);
+      }
+    }
+    scrollViewElement.visitChildElements(visit);
+
+    if (first == null) {
+      assert(last == null);
+      return null;
+    }
+    return (first!, last!);
+  }
+
+  bool _isMessageItemInViewport(
+    Element element, {
+    required RenderBox scrollViewRenderObject,
+  }) {
+    assert(element.widget is MessageItem
+      && (element.widget as MessageItem).item is MessageListMessageItem);
+    final viewportHeight = scrollViewRenderObject.size.height;
+
+    final messageRenderObject = element.renderObject as RenderBox;
+
+    final messageBottom = messageRenderObject.localToGlobal(
+      Offset(0, messageRenderObject.size.height),
+      ancestor: scrollViewRenderObject).dy;
+
+    return 0 < messageBottom && messageBottom <= viewportHeight;
+  }
+
+  (int, int)? _messagesRecentlyInViewport;
+
+  void _markReadFromScroll() {
+    final currentRange = _findMessagesInViewport();
+    if (currentRange == null) return;
+
+    final (currentFirst, currentLast) = currentRange;
+    final (prevFirst, prevLast) = _messagesRecentlyInViewport ?? (null, null);
+
+    // ("Hull" as in the "convex hull" around the old and new ranges.)
+    final firstOfHull = switch ((prevFirst, currentFirst)) {
+      (int previous, int current) => previous < current ? previous : current,
+      (           _, int current) => current,
+    };
+
+    final lastOfHull = switch ((prevLast, currentLast)) {
+      (int previous, int current) => previous > current ? previous : current,
+      (           _, int current) => current,
+    };
+
+    final sublist = model.getMessagesRange(firstOfHull, lastOfHull);
+    if (sublist == null) {
+      _messagesRecentlyInViewport = null;
+      return;
+    }
+    model.store.markReadFromScroll(sublist.map((message) => message.id));
+
+    _messagesRecentlyInViewport = currentRange;
+  }
+
+  bool _effectiveMarkReadOnScroll() {
+    if (!MessageListPage.debugEnableMarkReadOnScroll) return false;
+    return widget.markReadOnScroll
+      ?? false;
+    // TODO instead:
+    //   ?? GlobalStoreWidget.settingsOf(context).markReadOnScrollForNarrow(widget.narrow);
+  }
+
   void _handleScrollMetrics(ScrollMetrics scrollMetrics) {
+    if (_effectiveMarkReadOnScroll()) {
+      _markReadFromScroll();
+    }
+
     if (scrollMetrics.extentAfter == 0) {
       _scrollToBottomVisible.value = false;
     } else {
@@ -745,6 +921,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     }
 
     return MessageListScrollView(
+      key: _scrollViewKey,
+
       // TODO: Offer `ScrollViewKeyboardDismissBehavior.interactive` (or
       //   similar) if that is ever offered:
       //     https://github.com/flutter/flutter/issues/57609#issuecomment-1355340849

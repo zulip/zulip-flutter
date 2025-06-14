@@ -1,10 +1,11 @@
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 
+import '../api/exception.dart';
 import '../api/model/events.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
@@ -27,6 +28,8 @@ mixin MessageStore {
 
   void registerMessageList(MessageListView view);
   void unregisterMessageList(MessageListView view);
+
+  void markReadFromScroll(Iterable<int> messageIds);
 
   Future<void> sendMessage({
     required MessageDestination destination,
@@ -178,6 +181,67 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore, _OutboxMes
     assert(!_disposed);
     _disposeOutboxMessages();
     _disposed = true;
+  }
+
+  static const _markReadOnScrollBatchSize = 1000;
+  static const _markReadOnScrollDebounceDuration = Duration(milliseconds: 500);
+  final _markReadOnScrollQueue = _MarkReadOnScrollQueue();
+  bool _markReadOnScrollBusy = false;
+
+  /// Returns true on success, false on failure.
+  Future<bool> _sendMarkReadOnScrollRequest(List<int> toSend) async {
+    assert(toSend.isNotEmpty);
+
+    // TODO(#1581) mark as read locally for latency compensation
+    //   (in Unreads and on the message objects)
+    try {
+      await updateMessageFlags(connection,
+        messages: toSend,
+        op: UpdateMessageFlagsOp.add,
+        flag: MessageFlag.read);
+    } on ApiRequestException {
+      // TODO(#1581) un-mark as read locally?
+      return false;
+    }
+    return true;
+  }
+
+  @override
+  void markReadFromScroll(Iterable<int> messageIds) async {
+    assert(!_disposed);
+    _markReadOnScrollQueue.addAll(messageIds);
+    if (_markReadOnScrollBusy) return;
+
+    _markReadOnScrollBusy = true;
+    try {
+      do {
+        final toSend = <int>[];
+        int numFromQueue = 0;
+        for (final messageId in _markReadOnScrollQueue.iterable) {
+          if (toSend.length == _markReadOnScrollBatchSize) {
+            break;
+          }
+          final message = messages[messageId];
+          if (message != null && !message.flags.contains(MessageFlag.read)) {
+            toSend.add(message.id);
+          }
+          numFromQueue++;
+        }
+
+        if (toSend.isEmpty || await _sendMarkReadOnScrollRequest(toSend)) {
+          if (_disposed) return;
+          _markReadOnScrollQueue.removeFirstN(numFromQueue);
+        }
+        if (_disposed) return;
+
+        await Future<void>.delayed(_markReadOnScrollDebounceDuration);
+        if (_disposed) return;
+      } while (_markReadOnScrollQueue.isNotEmpty);
+    } finally {
+      if (!_disposed) {
+        _markReadOnScrollBusy = false;
+      }
+    }
   }
 
   @override
@@ -514,6 +578,34 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore, _OutboxMes
   @visibleForTesting
   static void debugReset() {
     _debugOutboxEnable = true;
+  }
+}
+
+class _MarkReadOnScrollQueue {
+  _MarkReadOnScrollQueue();
+
+  bool get isNotEmpty => _queue.isNotEmpty;
+
+  final _set = <int>{};
+  final _queue = QueueList<int>();
+
+  /// Add [messageIds] to the end of the queue,
+  /// if they aren't already in the queue.
+  void addAll(Iterable<int> messageIds) {
+    for (final messageId in messageIds) {
+      if (_set.add(messageId)) {
+        _queue.add(messageId);
+      }
+    }
+  }
+
+  Iterable<int> get iterable => _queue;
+
+  void removeFirstN(int n) {
+    for (int i = 0; i < n; i++) {
+      if (_queue.isEmpty) break;
+      _set.remove(_queue.removeFirst());
+    }
   }
 }
 

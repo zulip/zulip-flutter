@@ -222,6 +222,17 @@ mixin _MessageSequence {
     return binarySearchByKey(items, messageId, _compareItemToMessageId);
   }
 
+  Iterable<Message>? getMessagesRange(int firstMessageId, int lastMessageId) {
+    assert(firstMessageId <= lastMessageId);
+    final firstIndex = _findMessageWithId(firstMessageId);
+    final lastIndex = _findMessageWithId(lastMessageId);
+    if (firstIndex == -1 || lastIndex == -1) {
+      // TODO(log)
+      return null;
+    }
+    return messages.getRange(firstIndex, lastIndex + 1);
+  }
+
   static int _compareItemToMessageId(MessageListItem item, int messageId) {
     switch (item) {
       case MessageListRecipientHeaderItem(:var message):

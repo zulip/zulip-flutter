@@ -758,6 +758,9 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   void unregisterMessageList(MessageListView view) =>
     _messages.unregisterMessageList(view);
   @override
+  void markReadFromScroll(Iterable<int> messageIds) =>
+    _messages.markReadFromScroll(messageIds);
+  @override
   Future<void> sendMessage({required MessageDestination destination, required String content}) {
     assert(!_disposed);
     return _messages.sendMessage(destination: destination, content: content);
