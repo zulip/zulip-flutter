@@ -735,10 +735,6 @@
   "@actionSheetOptionHideMutedMessage": {
     "description": "Label for hide muted message again button on action sheet."
   },
-  "actionSheetOptionQuoteAndReply": "引用消息并回复",
-  "@actionSheetOptionQuoteAndReply": {
-    "description": "Label for Quote and reply button on action sheet."
-  },
   "actionSheetOptionStarMessage": "添加星标消息标记",
   "@actionSheetOptionStarMessage": {
     "description": "Label for star button on action sheet."

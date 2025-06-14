@@ -125,10 +125,6 @@
   "@actionSheetOptionShare": {
     "description": "Label for share button on action sheet."
   },
-  "actionSheetOptionQuoteAndReply": "Citiraj in odgovori",
-  "@actionSheetOptionQuoteAndReply": {
-    "description": "Label for Quote and reply button on action sheet."
-  },
   "actionSheetOptionStarMessage": "Označi sporočilo z zvezdico",
   "@actionSheetOptionStarMessage": {
     "description": "Label for star button on action sheet."

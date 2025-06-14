@@ -173,10 +173,6 @@
   "@errorResolveTopicFailedTitle": {
     "description": "Error title when marking a topic as resolved failed."
   },
-  "actionSheetOptionQuoteAndReply": "Цитата і відповідь",
-  "@actionSheetOptionQuoteAndReply": {
-    "description": "Label for Quote and reply button on action sheet."
-  },
   "signInWithFoo": "Увійти з {method}",
   "@signInWithFoo": {
     "description": "Button to use {method} to sign in to the app.",

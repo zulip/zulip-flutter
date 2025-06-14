@@ -334,7 +334,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get discardDraftForOutboxConfirmationDialogMessage =>
-      'When you restore an unsent message, the content that was previously in the compose box is discarded.';
+      'Przywracając wiadomość, która nie została wysłana, wyczyścisz zawartość kreatora nowej.';
 
   @override
   String get discardDraftConfirmationDialogConfirmButton => 'Odrzuć';
@@ -352,7 +352,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get composeBoxGenericContentHint => 'Wpisz wiadomość';
 
   @override
-  String get newDmSheetComposeButtonLabel => 'Compose';
+  String get newDmSheetComposeButtonLabel => 'Utwórz';
 
   @override
   String get newDmSheetScreenTitle => 'Nowa DM';
@@ -649,7 +649,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get inboxEmptyPlaceholder =>
-      'There are no unread messages in your inbox. Use the buttons below to view the combined feed or list of channels.';
+      'Obecnie brak nowych wiadomości. Skorzystaj z przycisków u dołu ekranu aby przejść do widoku mieszanego lub listy kanałów.';
 
   @override
   String get recentDmConversationsPageTitle => 'Wiadomości bezpośrednie';
@@ -659,7 +659,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get recentDmConversationsEmptyPlaceholder =>
-      'You have no direct messages yet! Why not start the conversation?';
+      'Brak wiadomości w archiwum! Może warto rozpocząć dyskusję?';
 
   @override
   String get combinedFeedPageTitle => 'Mieszany widok';
@@ -674,8 +674,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get channelsPageTitle => 'Kanały';
 
   @override
-  String get channelsEmptyPlaceholder =>
-      'You are not subscribed to any channels yet.';
+  String get channelsEmptyPlaceholder => 'Nie śledzisz żadnego z kanałów.';
 
   @override
   String get mainMenuMyProfile => 'Mój profil';
@@ -785,21 +784,22 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get pollWidgetOptionsMissing => 'Ta sonda nie ma opcji do wyboru.';
 
   @override
-  String get initialAnchorSettingTitle => 'Open message feeds at';
+  String get initialAnchorSettingTitle => 'Pokaż wiadomości w porządku';
 
   @override
   String get initialAnchorSettingDescription =>
-      'You can choose whether message feeds open at your first unread message or at the newest messages.';
+      'Możesz wybrać czy bardziej odpowiada Ci odczyt nieprzeczytanych lub najnowszych wiadomości.';
 
   @override
-  String get initialAnchorSettingFirstUnreadAlways => 'First unread message';
+  String get initialAnchorSettingFirstUnreadAlways =>
+      'Pierwsza nieprzeczytana wiadomość';
 
   @override
   String get initialAnchorSettingFirstUnreadConversations =>
-      'First unread message in single conversations, newest message elsewhere';
+      'Pierwsza nieprzeczytana wiadomość w pojedynczej dyskusji, wszędzie indziej najnowsza wiadomość';
 
   @override
-  String get initialAnchorSettingNewestAlways => 'Newest message';
+  String get initialAnchorSettingNewestAlways => 'Najnowsza wiadomość';
 
   @override
   String get markReadOnScrollSettingTitle => 'Mark messages as read on scroll';

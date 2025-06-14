@@ -335,7 +335,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get discardDraftForOutboxConfirmationDialogMessage =>
-      'When you restore an unsent message, the content that was previously in the compose box is discarded.';
+      'При восстановлении неотправленного сообщения содержимое поля редактирования очищается.';
 
   @override
   String get discardDraftConfirmationDialogConfirmButton => 'Сбросить';
@@ -788,21 +788,22 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get pollWidgetOptionsMissing => 'В опросе пока нет вариантов ответа.';
 
   @override
-  String get initialAnchorSettingTitle => 'Open message feeds at';
+  String get initialAnchorSettingTitle => 'Где открывать ленту сообщений';
 
   @override
   String get initialAnchorSettingDescription =>
-      'You can choose whether message feeds open at your first unread message or at the newest messages.';
+      'Можно открывать ленту сообщений на первом непрочитанном сообщении или на самом новом.';
 
   @override
-  String get initialAnchorSettingFirstUnreadAlways => 'First unread message';
+  String get initialAnchorSettingFirstUnreadAlways =>
+      'Первое непрочитанное сообщение';
 
   @override
   String get initialAnchorSettingFirstUnreadConversations =>
-      'First unread message in single conversations, newest message elsewhere';
+      'Первое непрочитанное сообщение в личных беседах, самое новое в остальных';
 
   @override
-  String get initialAnchorSettingNewestAlways => 'Newest message';
+  String get initialAnchorSettingNewestAlways => 'Самое новое сообщение';
 
   @override
   String get markReadOnScrollSettingTitle => 'Mark messages as read on scroll';

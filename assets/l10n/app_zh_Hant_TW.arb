@@ -117,10 +117,6 @@
   "@actionSheetOptionShare": {
     "description": "Label for share button on action sheet."
   },
-  "actionSheetOptionQuoteAndReply": "引用並回覆",
-  "@actionSheetOptionQuoteAndReply": {
-    "description": "Label for Quote and reply button on action sheet."
-  },
   "actionSheetOptionStarMessage": "標註為重要訊息",
   "@actionSheetOptionStarMessage": {
     "description": "Label for star button on action sheet."

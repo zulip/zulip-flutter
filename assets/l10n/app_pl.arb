@@ -53,10 +53,6 @@
   "@actionSheetOptionShare": {
     "description": "Label for share button on action sheet."
   },
-  "actionSheetOptionQuoteAndReply": "Odpowiedz cytując",
-  "@actionSheetOptionQuoteAndReply": {
-    "description": "Label for Quote and reply button on action sheet."
-  },
   "actionSheetOptionStarMessage": "Oznacz gwiazdką",
   "@actionSheetOptionStarMessage": {
     "description": "Label for star button on action sheet."
@@ -1116,5 +1112,45 @@
   "errorNotificationOpenAccountNotFound": "Nie odnaleziono konta powiązanego z tym powiadomieniem.",
   "@errorNotificationOpenAccountNotFound": {
     "description": "Error message when the account associated with the notification could not be found"
+  },
+  "newDmSheetComposeButtonLabel": "Utwórz",
+  "@newDmSheetComposeButtonLabel": {
+    "description": "Label for the compose button in the new DM sheet that starts composing a message to the selected users."
+  },
+  "inboxEmptyPlaceholder": "Obecnie brak nowych wiadomości. Skorzystaj z przycisków u dołu ekranu aby przejść do widoku mieszanego lub listy kanałów.",
+  "@inboxEmptyPlaceholder": {
+    "description": "Centered text on the 'Inbox' page saying that there is no content to show."
+  },
+  "recentDmConversationsEmptyPlaceholder": "Brak wiadomości w archiwum! Może warto rozpocząć dyskusję?",
+  "@recentDmConversationsEmptyPlaceholder": {
+    "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "channelsEmptyPlaceholder": "Nie śledzisz żadnego z kanałów.",
+  "@channelsEmptyPlaceholder": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show."
+  },
+  "initialAnchorSettingDescription": "Możesz wybrać czy bardziej odpowiada Ci odczyt nieprzeczytanych lub najnowszych wiadomości.",
+  "@initialAnchorSettingDescription": {
+    "description": "Description of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingFirstUnreadAlways": "Pierwsza nieprzeczytana wiadomość",
+  "@initialAnchorSettingFirstUnreadAlways": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingTitle": "Pokaż wiadomości w porządku",
+  "@initialAnchorSettingTitle": {
+    "description": "Title of setting controlling initial anchor of message list."
+  },
+  "discardDraftForOutboxConfirmationDialogMessage": "Przywracając wiadomość, która nie została wysłana, wyczyścisz zawartość kreatora nowej.",
+  "@discardDraftForOutboxConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog when restoring an outbox message, for discarding message text that was typed into the compose box."
+  },
+  "initialAnchorSettingFirstUnreadConversations": "Pierwsza nieprzeczytana wiadomość w pojedynczej dyskusji, wszędzie indziej najnowsza wiadomość",
+  "@initialAnchorSettingFirstUnreadConversations": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingNewestAlways": "Najnowsza wiadomość",
+  "@initialAnchorSettingNewestAlways": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
   }
 }

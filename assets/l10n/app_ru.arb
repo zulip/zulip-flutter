@@ -75,10 +75,6 @@
   "@actionSheetOptionShare": {
     "description": "Label for share button on action sheet."
   },
-  "actionSheetOptionQuoteAndReply": "Ответить с цитированием",
-  "@actionSheetOptionQuoteAndReply": {
-    "description": "Label for Quote and reply button on action sheet."
-  },
   "actionSheetOptionStarMessage": "Отметить сообщение",
   "@actionSheetOptionStarMessage": {
     "description": "Label for star button on action sheet."
@@ -1132,5 +1128,29 @@
   "inboxEmptyPlaceholder": "Нет непрочитанных входящих сообщений. Используйте кнопки ниже для просмотра объединенной ленты или списка каналов.",
   "@inboxEmptyPlaceholder": {
     "description": "Centered text on the 'Inbox' page saying that there is no content to show."
+  },
+  "initialAnchorSettingNewestAlways": "Самое новое сообщение",
+  "@initialAnchorSettingNewestAlways": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingTitle": "Где открывать ленту сообщений",
+  "@initialAnchorSettingTitle": {
+    "description": "Title of setting controlling initial anchor of message list."
+  },
+  "discardDraftForOutboxConfirmationDialogMessage": "При восстановлении неотправленного сообщения содержимое поля редактирования очищается.",
+  "@discardDraftForOutboxConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog when restoring an outbox message, for discarding message text that was typed into the compose box."
+  },
+  "initialAnchorSettingFirstUnreadAlways": "Первое непрочитанное сообщение",
+  "@initialAnchorSettingFirstUnreadAlways": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingDescription": "Можно открывать ленту сообщений на первом непрочитанном сообщении или на самом новом.",
+  "@initialAnchorSettingDescription": {
+    "description": "Description of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingFirstUnreadConversations": "Первое непрочитанное сообщение в личных беседах, самое новое в остальных",
+  "@initialAnchorSettingFirstUnreadConversations": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
   }
 }

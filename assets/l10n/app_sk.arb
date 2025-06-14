@@ -119,10 +119,6 @@
   "@actionSheetOptionShare": {
     "description": "Label for share button on action sheet."
   },
-  "actionSheetOptionQuoteAndReply": "Citovať a odpovedať",
-  "@actionSheetOptionQuoteAndReply": {
-    "description": "Label for Quote and reply button on action sheet."
-  },
   "actionSheetOptionStarMessage": "Ohviezdičkovať správu",
   "@actionSheetOptionStarMessage": {
     "description": "Label for star button on action sheet."
