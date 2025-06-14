@@ -210,8 +210,8 @@ void main() {
       NotificationChannelManager.kDefaultNotificationSound.resourceName;
     String fakeStoredUrl(String resourceName) =>
       testBinding.androidNotificationHost.fakeStoredNotificationSoundUrl(resourceName);
-    String fakeResourceUrl(String resourceName) =>
-      'android.resource://com.zulip.flutter/raw/$resourceName';
+    String fakeResourceUrl({required String resourceName, String? packageName}) =>
+      'android.resource://${packageName ?? eg.packageInfo().packageName}/raw/$resourceName';
 
     test('on Android 28 (and lower) resource file is used for notification sound', () async {
       addTearDown(testBinding.reset);
@@ -227,7 +227,30 @@ void main() {
         .isEmpty();
       check(androidNotificationHost.takeCreatedChannels())
         .single
-        .soundUrl.equals(fakeResourceUrl(defaultSoundResourceName));
+        .soundUrl.equals(fakeResourceUrl(resourceName: defaultSoundResourceName));
+    });
+
+    test('generates resource file URL from app package name', () async {
+      addTearDown(testBinding.reset);
+      final androidNotificationHost = testBinding.androidNotificationHost;
+
+      testBinding.packageInfoResult = eg.packageInfo(packageName: 'com.example.test');
+
+      // Force the default sound URL to be the resource file URL, by forcing
+      // the Android version to the one where we don't store sounds through the
+      // media store.
+      testBinding.deviceInfoResult =
+        const AndroidDeviceInfo(sdkInt: 28, release: '9');
+
+      await NotificationChannelManager.ensureChannel();
+      check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
+        .isEmpty();
+      check(androidNotificationHost.takeCreatedChannels())
+        .single
+        .soundUrl.equals(fakeResourceUrl(
+          resourceName: defaultSoundResourceName,
+          packageName: 'com.example.test',
+        ));
     });
 
     test('notification sound resource files are being copied to the media store', () async {
@@ -315,7 +338,7 @@ void main() {
         .isEmpty();
       check(androidNotificationHost.takeCreatedChannels())
         .single
-        .soundUrl.equals(fakeResourceUrl(defaultSoundResourceName));
+        .soundUrl.equals(fakeResourceUrl(resourceName: defaultSoundResourceName));
     });
   });
 
