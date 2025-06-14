@@ -37,11 +37,12 @@ enum NotificationSound {
 class NotificationChannelManager {
   /// The channel ID we use for our one notification channel, which we use for
   /// all notifications.
-  // TODO(launch) check this doesn't match zulip-mobile's current or previous
-  //   channel IDs
-  // Previous values: 'messages-1'
+  // Previous values from Zulip Flutter Beta:
+  //   'messages-1'
+  // Previous values from Zulip Mobile:
+  //   'default', 'messages-1', (alpha-only: 'messages-2'), 'messages-3'
   @visibleForTesting
-  static const kChannelId = 'messages-2';
+  static const kChannelId = 'messages-4';
 
   @visibleForTesting
   static const kDefaultNotificationSound = NotificationSound.chime3;
