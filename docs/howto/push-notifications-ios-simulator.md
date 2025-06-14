@@ -64,15 +64,15 @@ receive a notification on the iOS Simulator for the zulip-flutter app.
 Tapping on the notification should route to the respective conversation.
 
 ```shell-session
-$ xcrun simctl push [device-id] com.zulip.flutter [payload json path]
+$ xcrun simctl push [device-id] org.zulip.Zulip [payload json path]
 ```
 
 <details>
 <summary>Example output:</summary>
 
 ```shell-session
-$ xcrun simctl push 90CC33B2-679B-4053-B380-7B986A29F28C com.zulip.flutter ./dm.json
-Notification sent to 'com.zulip.flutter'
+$ xcrun simctl push 90CC33B2-679B-4053-B380-7B986A29F28C org.zulip.Zulip ./dm.json
+Notification sent to 'org.zulip.Zulip'
 ```
 
 </details>

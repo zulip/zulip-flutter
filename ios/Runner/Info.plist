@@ -26,7 +26,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.zulip.flutter</string>
+			<string>org.zulip.Zulip</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>zulip</string>
