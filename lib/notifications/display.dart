@@ -59,7 +59,7 @@ class NotificationChannelManager {
   /// For example, for a resource `@raw/chime3`, where `raw` would be the
   /// resource type and `chime3` would be the resource name it generates the
   /// following URL:
-  ///   `android.resource://com.zulip.flutter/raw/chime3`
+  ///   `android.resource://com.zulipmobile/raw/chime3`
   ///
   /// Based on: https://stackoverflow.com/a/38340580
   static Future<String> _resourceUrlFromName({
