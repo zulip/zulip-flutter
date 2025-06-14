@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 0.0.33 (2025-06-13)
+
 This is a preview beta, including some experimental changes
 not yet merged to the main branch.
 
