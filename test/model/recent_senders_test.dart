@@ -2,12 +2,15 @@ import 'package:checks/checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/recent_senders.dart';
+import 'package:zulip/model/store.dart';
 import '../example_data.dart' as eg;
+import 'test_store.dart';
 
 /// [messages] should be sorted by [id] ascending.
 void checkMatchesMessages(RecentSenders model, List<Message> messages) {
   final Map<int, Map<int, Set<int>>> messagesByUserInStream = {};
   final Map<int, Map<TopicName, Map<int, Set<int>>>> messagesByUserInTopic = {};
+  messages.sort((a, b) => a.id - b.id);
   for (final message in messages) {
     if (message is! StreamMessage) {
       throw UnsupportedError('Message of type ${message.runtimeType} is not expected.');
@@ -139,6 +142,156 @@ void main() {
         eg.streamMessage(stream: streamA, topic: 'thing', sender: userY),
         eg.streamMessage(stream: streamA, topic: 'thing', sender: userX),
       ]);
+    });
+  });
+
+  group('RecentSenders.handleUpdateMessageEvent', () {
+    late PerAccountStore store;
+    late RecentSenders model;
+
+    final origChannel = eg.stream(); final newChannel = eg.stream();
+    final origTopic   = 'origTopic'; final newTopic   = 'newTopic';
+    final userX       = eg.user();   final userY      = eg.user();
+
+    Future<void> prepare(List<Message> messages) async {
+      store = eg.store();
+      await store.addMessages(messages);
+      await store.addStreams([origChannel, newChannel]);
+      await store.addUsers([userX, userY]);
+      model = store.recentSenders;
+    }
+
+    List<StreamMessage> copyMessagesWith(Iterable<StreamMessage> messages, {
+      ZulipStream? newChannel,
+      String? newTopic,
+    }) {
+      assert(newChannel != null || newTopic != null);
+      return messages.map((message) => StreamMessage.fromJson(
+        message.toJson()
+          ..['stream_id'] = newChannel?.streamId ?? message.streamId
+          // See [StreamMessage.displayRecipient] for why this is needed.
+          ..['display_recipient'] = newChannel?.name ?? message.displayRecipient!
+
+          ..['subject'] = newTopic ?? message.topic
+      )).toList();
+    }
+
+    test('move a conversation entirely, with additional unknown messages', () async {
+      final messages = List.generate(10, (i) => eg.streamMessage(
+        stream: origChannel, topic: origTopic, sender: userX));
+      await prepare(messages);
+      final unknownMessages = List.generate(10, (i) => eg.streamMessage(
+        stream: origChannel, topic: origTopic, sender: userX));
+      checkMatchesMessages(model, messages);
+
+      final messageIdsByUserInTopicBefore =
+        model.topicSenders[origChannel.streamId]![eg.t(origTopic)]![userX.userId]!.ids;
+
+      await store.handleEvent(eg.updateMessageEventMoveFrom(
+        origMessages: messages + unknownMessages,
+        newStreamId: newChannel.streamId));
+      checkMatchesMessages(model, copyMessagesWith(
+        messages, newChannel: newChannel));
+
+      // Check we avoided creating a new list for the moved message IDs.
+      check(messageIdsByUserInTopicBefore).identicalTo(
+        model.topicSenders[newChannel.streamId]![eg.t(origTopic)]![userX.userId]!.ids);
+    });
+
+    test('move a conversation exactly', () async {
+      final messages = List.generate(10, (i) => eg.streamMessage(
+        stream: origChannel, topic: origTopic, sender: userX));
+      await prepare(messages);
+
+      final messageIdsByUserInTopicBefore =
+        model.topicSenders[origChannel.streamId]![eg.t(origTopic)]![userX.userId]!.ids;
+
+      await store.handleEvent(eg.updateMessageEventMoveFrom(
+        origMessages: messages,
+        newStreamId: newChannel.streamId,
+        newTopicStr: newTopic));
+      checkMatchesMessages(model, copyMessagesWith(
+        messages, newChannel: newChannel, newTopic: newTopic));
+
+      // Check we avoided creating a new list for the moved message IDs.
+      check(messageIdsByUserInTopicBefore).identicalTo(
+        model.topicSenders[newChannel.streamId]![eg.t(newTopic)]![userX.userId]!.ids);
+    });
+
+    test('move a conversation partially to a different channel', () async {
+      final messages = List.generate(10, (i) => eg.streamMessage(
+        stream: origChannel, topic: origTopic));
+      final movedMessages = messages.take(5).toList();
+      final otherMessages = messages.skip(5);
+      await prepare(messages);
+
+      await store.handleEvent(eg.updateMessageEventMoveFrom(
+        origMessages: movedMessages,
+        newStreamId: newChannel.streamId));
+      checkMatchesMessages(model, [
+        ...copyMessagesWith(movedMessages, newChannel: newChannel),
+        ...otherMessages,
+      ]);
+    });
+
+    test('move a conversation partially to a different topic, within the same channel', () async {
+      final messages = List.generate(10, (i) => eg.streamMessage(
+        stream: origChannel, topic: origTopic, sender: userX));
+      final movedMessages = messages.take(5).toList();
+      final otherMessages = messages.skip(5);
+      await prepare(messages);
+
+      final messageIdsByUserInStreamBefore =
+        model.streamSenders[origChannel.streamId]![userX.userId]!.ids;
+
+      await store.handleEvent(eg.updateMessageEventMoveFrom(
+        origMessages: movedMessages,
+        newTopicStr: newTopic));
+      checkMatchesMessages(model, [
+        ...copyMessagesWith(movedMessages, newTopic: newTopic),
+        ...otherMessages,
+      ]);
+
+      // Check that we did not touch stream message IDs tracker
+      // when there wasn't a stream move.
+      check(messageIdsByUserInStreamBefore).identicalTo(
+        model.streamSenders[origChannel.streamId]![userX.userId]!.ids);
+    });
+
+    test('move a conversation with multiple senders', () async {
+      final messages = [
+        eg.streamMessage(stream: origChannel, topic: origTopic, sender: userX),
+        eg.streamMessage(stream: origChannel, topic: origTopic, sender: userX),
+        eg.streamMessage(stream: origChannel, topic: origTopic, sender: userY),
+      ];
+      await prepare(messages);
+
+      await store.handleEvent(eg.updateMessageEventMoveFrom(
+        origMessages: messages,
+        newStreamId: newChannel.streamId));
+      checkMatchesMessages(model, copyMessagesWith(
+        messages, newChannel: newChannel));
+    });
+
+    test('move a converstion, but message IDs from the event are not sorted in ascending order', () async {
+      final messages = List.generate(10, (i) => eg.streamMessage(
+        id: 100-i, stream: origChannel, topic: origTopic));
+      await prepare(messages);
+
+      await store.handleEvent(eg.updateMessageEventMoveFrom(
+        origMessages: messages,
+        newStreamId: newChannel.streamId));
+      checkMatchesMessages(model,
+        copyMessagesWith(messages, newChannel: newChannel));
+    });
+
+    test('message edit update without move', () async {
+      final messages = List.generate(10, (i) => eg.streamMessage(
+        stream: origChannel, topic: origTopic));
+      await prepare(messages);
+
+      await store.handleEvent(eg.updateMessageEditEvent(messages[0]));
+      checkMatchesMessages(model, messages);
     });
   });
 
