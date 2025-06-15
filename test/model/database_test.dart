@@ -326,6 +326,8 @@ void main() {
       check(globalSettings.browserPreference).isNull();
       await after.close();
     });
+
+    // TODO(#1593) test upgrade to v9: legacyUpgradeState set to noLegacy
   });
 }
 
