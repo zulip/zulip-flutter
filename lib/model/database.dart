@@ -31,6 +31,9 @@ class GlobalSettings extends Table {
   Column<String> get markReadOnScroll => textEnum<MarkReadOnScrollSetting>()
     .nullable()();
 
+  Column<String> get legacyUpgradeState => textEnum<LegacyUpgradeState>()
+    .nullable()();
+
   // If adding a new column to this table, consider whether [BoolGlobalSettings]
   // can do the job instead (by adding a value to the [BoolGlobalSetting] enum).
   // That way is more convenient, when it works, because
@@ -126,7 +129,7 @@ class AppDatabase extends _$AppDatabase {
   //    information on using the build_runner.
   //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 8; // See note.
+  static const int latestSchemaVersion = 9; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -189,6 +192,15 @@ class AppDatabase extends _$AppDatabase {
       await m.addColumn(schema.globalSettings,
         schema.globalSettings.markReadOnScroll);
     },
+    from8To9: (m, schema) async {
+      await m.addColumn(schema.globalSettings,
+        schema.globalSettings.legacyUpgradeState);
+      // Earlier versions of this app weren't built to be installed over
+      // the legacy app.  So if upgrading from an earlier version of this app,
+      // assume there wasn't also the legacy app before that.
+      await m.database.update(schema.globalSettings).write(
+        RawValuesInsertable({'legacy_upgrade_state': Constant('noLegacy')}));
+    }
   );
 
   Future<void> _createLatestSchema(Migrator m) async {
@@ -196,6 +208,7 @@ class AppDatabase extends _$AppDatabase {
     await m.createAll();
     // Corresponds to `from4to5` above.
     await into(globalSettings).insert(GlobalSettingsCompanion());
+    // Corresponds to (but differs from) part of `from8To9` above.
     await migrateLegacyAppData(this);
   }
 
