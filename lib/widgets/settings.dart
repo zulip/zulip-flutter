@@ -20,7 +20,7 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       appBar: ZulipAppBar(
         title: Text(zulipLocalizations.settingsPageTitle)),
-      body: Column(children: [
+      body: SingleChildScrollView(child: Column(children: [
         const _ThemeSetting(),
         const _BrowserPreferenceSetting(),
         const _VisitFirstUnreadSetting(),
@@ -30,7 +30,7 @@ class SettingsPage extends StatelessWidget {
             title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
             onTap: () => Navigator.push(context,
               ExperimentalFeaturesPage.buildRoute()))
-      ]));
+      ])));
   }
 }
 
