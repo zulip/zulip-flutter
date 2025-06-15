@@ -15,6 +15,22 @@
   "@aboutPageTapToView": {
     "description": "Item subtitle in About Zulip page to navigate to Licenses page"
   },
+  "upgradeWelcomeDialogTitle": "Welcome to the new Zulip app!",
+  "@upgradeWelcomeDialogTitle": {
+    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogMessage": "You’ll find a familiar experience in a faster, sleeker package.",
+  "@upgradeWelcomeDialogMessage":  {
+    "description":  "Message text for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogLinkText":  "Check out the announcement blog post!",
+  "@upgradeWelcomeDialogLinkText":  {
+    "description":  "Text of link in dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogDismiss": "Let's go",
+  "@upgradeWelcomeDialogDismiss":  {
+    "description":  "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
+  },
   "chooseAccountPageTitle": "Choose account",
   "@chooseAccountPageTitle": {
     "description": "Title for the page to choose between Zulip accounts."

@@ -21,6 +21,20 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get aboutPageTapToView => 'Tap to view';
 
   @override
+  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
+
+  @override
+  String get upgradeWelcomeDialogMessage =>
+      'You’ll find a familiar experience in a faster, sleeker package.';
+
+  @override
+  String get upgradeWelcomeDialogLinkText =>
+      'Check out the announcement blog post!';
+
+  @override
+  String get upgradeWelcomeDialogDismiss => 'Let\'s go';
+
+  @override
   String get chooseAccountPageTitle => 'Konto auswählen';
 
   @override
