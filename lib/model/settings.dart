@@ -87,6 +87,24 @@ enum MarkReadOnScrollSetting {
   static MarkReadOnScrollSetting _default = conversations;
 }
 
+/// The outcome, or in-progress status, of migrating data from the legacy app.
+enum LegacyUpgradeState {
+  /// It's not yet known whether there was data from the legacy app.
+  unknown,
+
+  /// No legacy data was found.
+  noLegacy,
+
+  /// Legacy data was found, but not yet migrated into this app's database.
+  found,
+
+  /// Legacy data was found and migrated.
+  migrated,
+  ;
+
+  static LegacyUpgradeState _default = unknown;
+}
+
 /// A general category of account-independent setting the user might set.
 ///
 /// Different kinds of settings call for different treatment in the UI,
@@ -100,6 +118,9 @@ enum GlobalSettingType {
   /// (so that it stands ready to accept a future feature flag),
   /// we give it a placeholder value which isn't a real setting.
   placeholder,
+
+  /// Describes a pseudo-setting not directly exposed in the UI.
+  internal,
 
   /// Describes a setting which enables an in-progress feature of the app.
   ///
@@ -151,6 +172,10 @@ enum BoolGlobalSetting {
   /// That way when we remove those, this is already here.
   /// (Having one stable value in this enum is also handy for tests.)
   placeholderIgnore(GlobalSettingType.placeholder, false),
+
+  /// A pseudo-setting recording whether the user has been shown the
+  /// welcome dialog for upgrading from the legacy app.
+  upgradeWelcomeDialogShown(GlobalSettingType.internal, false),
 
   /// An experimental flag to toggle rendering KaTeX content in messages.
   renderKatex(GlobalSettingType.experimentalFeatureFlag, false),
@@ -322,6 +347,11 @@ class GlobalSettingsStore extends ChangeNotifier {
           => false,
       },
     };
+  }
+
+  /// The outcome, or in-progress status, of migrating data from the legacy app.
+  LegacyUpgradeState get legacyUpgradeState {
+    return _data.legacyUpgradeState ?? LegacyUpgradeState._default;
   }
 
   /// The user's choice of the given bool-valued setting, or our default for it.
