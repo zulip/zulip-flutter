@@ -4,6 +4,7 @@ import 'package:drift/remote.dart';
 import 'package:sqlite3/common.dart';
 
 import '../log.dart';
+import 'legacy_app_data.dart';
 import 'schema_versions.g.dart';
 import 'settings.dart';
 
@@ -28,6 +29,9 @@ class GlobalSettings extends Table {
     .nullable()();
 
   Column<String> get markReadOnScroll => textEnum<MarkReadOnScrollSetting>()
+    .nullable()();
+
+  Column<String> get legacyUpgradeState => textEnum<LegacyUpgradeState>()
     .nullable()();
 
   // If adding a new column to this table, consider whether [BoolGlobalSettings]
@@ -125,7 +129,7 @@ class AppDatabase extends _$AppDatabase {
   //    information on using the build_runner.
   //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 8; // See note.
+  static const int latestSchemaVersion = 9; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -188,12 +192,24 @@ class AppDatabase extends _$AppDatabase {
       await m.addColumn(schema.globalSettings,
         schema.globalSettings.markReadOnScroll);
     },
+    from8To9: (m, schema) async {
+      await m.addColumn(schema.globalSettings,
+        schema.globalSettings.legacyUpgradeState);
+      // Earlier versions of this app weren't built to be installed over
+      // the legacy app.  So if upgrading from an earlier version of this app,
+      // assume there wasn't also the legacy app before that.
+      await m.database.update(schema.globalSettings).write(
+        RawValuesInsertable({'legacy_upgrade_state': Constant('noLegacy')}));
+    }
   );
 
   Future<void> _createLatestSchema(Migrator m) async {
+    assert(debugLog('Creating DB schema from scratch.'));
     await m.createAll();
     // Corresponds to `from4to5` above.
     await into(globalSettings).insert(GlobalSettingsCompanion());
+    // Corresponds to (but differs from) part of `from8To9` above.
+    await migrateLegacyAppData(this);
   }
 
   @override
@@ -205,7 +221,7 @@ class AppDatabase extends _$AppDatabase {
           // This should only ever happen in dev.  As a dev convenience,
           // drop everything from the database and start over.
           // TODO(log): log schema downgrade as an error
-          assert(debugLog('Downgrading schema from v$from to v$to.'));
+          assert(debugLog('Downgrading DB schema from v$from to v$to.'));
 
           // In the actual app, the target schema version is always
           // the latest version as of the code that's being run.
@@ -219,6 +235,7 @@ class AppDatabase extends _$AppDatabase {
         }
         assert(1 <= from && from <= to && to <= latestSchemaVersion);
 
+        assert(debugLog('Upgrading DB schema from v$from to v$to.'));
         await m.runMigrationSteps(from: from, to: to, steps: _migrationSteps);
       });
   }
