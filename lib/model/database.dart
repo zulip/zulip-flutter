@@ -4,6 +4,7 @@ import 'package:drift/remote.dart';
 import 'package:sqlite3/common.dart';
 
 import '../log.dart';
+import 'legacy_app_data.dart';
 import 'schema_versions.g.dart';
 import 'settings.dart';
 
@@ -191,9 +192,11 @@ class AppDatabase extends _$AppDatabase {
   );
 
   Future<void> _createLatestSchema(Migrator m) async {
+    assert(debugLog('Creating DB schema from scratch.'));
     await m.createAll();
     // Corresponds to `from4to5` above.
     await into(globalSettings).insert(GlobalSettingsCompanion());
+    await migrateLegacyAppData(this);
   }
 
   @override
@@ -205,7 +208,7 @@ class AppDatabase extends _$AppDatabase {
           // This should only ever happen in dev.  As a dev convenience,
           // drop everything from the database and start over.
           // TODO(log): log schema downgrade as an error
-          assert(debugLog('Downgrading schema from v$from to v$to.'));
+          assert(debugLog('Downgrading DB schema from v$from to v$to.'));
 
           // In the actual app, the target schema version is always
           // the latest version as of the code that's being run.
@@ -219,6 +222,7 @@ class AppDatabase extends _$AppDatabase {
         }
         assert(1 <= from && from <= to && to <= latestSchemaVersion);
 
+        assert(debugLog('Upgrading DB schema from v$from to v$to.'));
         await m.runMigrationSteps(from: from, to: to, steps: _migrationSteps);
       });
   }
