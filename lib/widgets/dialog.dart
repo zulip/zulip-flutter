@@ -1,7 +1,11 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import 'actions.dart';
+import 'app.dart';
 
 Widget _dialogActionText(String text) {
   return Text(
@@ -111,4 +115,76 @@ DialogStatus<bool> showSuggestedActionDialog({
           child: _dialogActionText(actionButtonText ?? zulipLocalizations.dialogContinue)),
       ]));
   return DialogStatus(future);
+}
+
+bool debugDisableBetaCompleteDialog = false;
+void resetDebugDisableBetaCompleteDialog() {
+  debugDisableBetaCompleteDialog = false;
+}
+
+/// Show a brief dialog box saying that this beta channel has ended,
+/// offering a way to get the app from prod.
+void showBetaCompleteDialog() async {
+  if (debugDisableBetaCompleteDialog) return;
+
+  final navigator = await ZulipApp.navigator;
+  final context = navigator.context;
+  assert(context.mounted);
+  if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+
+  switch (defaultTargetPlatform) {
+    case TargetPlatform.android:
+    case TargetPlatform.iOS:
+      break;
+    case TargetPlatform.macOS:
+    case TargetPlatform.fuchsia:
+    case TargetPlatform.linux:
+    case TargetPlatform.windows:
+      // Do nothing on these unsupported platforms.
+      return;
+  }
+
+  final zulipLocalizations = ZulipLocalizations.of(context);
+
+  final message = 'Since Zulip’s new Flutter app has launched, this beta app is no longer maintained. We strongly recommend uninstalling it and switching to the main Zulip application to get the latest features and bug fixes. Thank you for being a beta tester!';
+
+  unawaited(showDialog(
+    context: context,
+    builder: (BuildContext context) => AlertDialog(
+      title: Text('Time to switch to the new app'),
+      content: SingleChildScrollView(child: Text(message)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: _dialogActionText('Got it')),
+        ...(switch (defaultTargetPlatform) {
+            TargetPlatform.android => [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  PlatformActions.launchUrl(context,
+                    Uri.parse('https://github.com/zulip/zulip-flutter/releases/latest'));
+                },
+                child: _dialogActionText('Download official APKs (less common)')),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  PlatformActions.launchUrl(context,
+                    Uri.parse('https://play.google.com/store/apps/details?id=com.zulipmobile'));
+                },
+                child: _dialogActionText('Open Google Play Store'))
+            ],
+            TargetPlatform.iOS => [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  PlatformActions.launchUrl(context,
+                    Uri.parse('https://apps.apple.com/app/zulip/id1203036395'));
+                },
+                child: _dialogActionText('Open App Store')),
+            ],
+            TargetPlatform.macOS || TargetPlatform.fuchsia
+              || TargetPlatform.linux || TargetPlatform.windows => throw UnimplementedError(),
+          }),
+      ])));
 }
