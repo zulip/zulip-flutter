@@ -15,8 +15,8 @@ Welcome to the new Zulip mobile app!  You'll find
 a familiar experience in a faster, sleeker package.
 
 For more information or to send us feedback,
-see the announcement:
-https://groups.google.com/g/zulip-announce/c/PfcyFY4cIMA
+see the announcement blog post:
+https://blog.zulip.com/flutter-mobile-app-launch
 
 
 ### Highlights for users (vs previous alpha, v30.0.256)
