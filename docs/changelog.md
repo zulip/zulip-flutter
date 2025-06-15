@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 30.0.256 (2025-06-15)
+
 With this release, this new app takes on the identity
 of the main Zulip app!
 
