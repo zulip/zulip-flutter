@@ -1,7 +1,11 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import 'actions.dart';
+import 'app.dart';
 
 Widget _dialogActionText(String text) {
   return Text(
@@ -111,4 +115,88 @@ DialogStatus<bool> showSuggestedActionDialog({
           child: _dialogActionText(actionButtonText ?? zulipLocalizations.dialogContinue)),
       ]));
   return DialogStatus(future);
+}
+
+bool debugDisableBetaCompleteDialog = false;
+
+/// A brief dialog box saying that this beta channel has ended,
+/// offering a way to get the app from prod.
+///
+/// Shown on every startup.
+class BetaCompleteDialog extends StatelessWidget {
+  const BetaCompleteDialog._();
+
+  static void show() async {
+    if (debugDisableBetaCompleteDialog) return;
+
+    final navigator = await ZulipApp.navigator;
+    final context = navigator.context;
+    assert(context.mounted);
+    if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+      case TargetPlatform.iOS:
+        break;
+      case TargetPlatform.macOS:
+      case TargetPlatform.fuchsia:
+      case TargetPlatform.linux:
+      case TargetPlatform.windows:
+        // Do nothing on these unsupported platforms.
+        return;
+    }
+
+    unawaited(showDialog(
+      context: context,
+      builder: (BuildContext context) => BetaCompleteDialog._()));
+  }
+
+  Widget _linkButton(BuildContext context, {
+    required String url,
+    required String label,
+  }) {
+    return TextButton(
+      onPressed: () {
+        Navigator.pop(context);
+        PlatformActions.launchUrl(context,
+          Uri.parse(url));
+      },
+      child: _dialogActionText(label));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final message = 'Thanks for being a beta tester of the new Zulip app!'
+      ' This app became the main Zulip mobile app in June 2025,'
+      ' and this beta version is no longer maintained.'
+      ' We recommend uninstalling this beta after switching'
+      ' to the main Zulip app, in order to get the latest features'
+      ' and bug fixes.';
+
+    return AlertDialog(
+      title: Text('Time to switch to the new app'),
+      content: SingleChildScrollView(child: Text(message)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: _dialogActionText('Got it')),
+        ...(switch (defaultTargetPlatform) {
+            TargetPlatform.android => [
+              _linkButton(context,
+                url: 'https://github.com/zulip/zulip-flutter/releases/latest',
+                label: 'Download official APKs (less common)'),
+              _linkButton(context,
+                url: 'https://play.google.com/store/apps/details?id=com.zulipmobile',
+                label: 'Open Google Play Store'),
+            ],
+            TargetPlatform.iOS => [
+              _linkButton(context,
+                url: 'https://apps.apple.com/app/zulip/id1203036395',
+                label: 'Open App Store'),
+            ],
+            TargetPlatform.macOS || TargetPlatform.fuchsia
+              || TargetPlatform.linux || TargetPlatform.windows => throw UnimplementedError(),
+          }),
+      ]);
+  }
 }

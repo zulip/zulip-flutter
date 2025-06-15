@@ -160,6 +160,10 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    // On every startup is fine; the goal is to be assertive but stop short of a
+    // rug-pull where we just disable all the app's features.
+    BetaCompleteDialog.show();
   }
 
   @override

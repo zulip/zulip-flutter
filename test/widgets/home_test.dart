@@ -8,6 +8,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/about_zulip.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/app_bar.dart';
+import 'package:zulip/widgets/dialog.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
@@ -48,6 +49,8 @@ void main () {
     ..onPopped = ((route, prevRoute) => lastPoppedRoute = route);
 
   Future<void> prepare(WidgetTester tester) async {
+    debugDisableBetaCompleteDialog = true;
+    addTearDown(() => debugDisableBetaCompleteDialog = false);
     addTearDown(testBinding.reset);
     topRoute = null;
     previousTopRoute = null;
@@ -272,6 +275,8 @@ void main () {
     });
 
     testWidgets('menu buttons dismiss the menu', (tester) async {
+      debugDisableBetaCompleteDialog = true;
+      addTearDown(() => debugDisableBetaCompleteDialog = false);
       addTearDown(testBinding.reset);
       topRoute = null;
       previousTopRoute = null;
@@ -328,6 +333,8 @@ void main () {
     }
 
     Future<void> prepare(WidgetTester tester) async {
+      debugDisableBetaCompleteDialog = true;
+      addTearDown(() => debugDisableBetaCompleteDialog = false);
       addTearDown(testBinding.reset);
       topRoute = null;
       previousTopRoute = null;
@@ -521,6 +528,8 @@ void main () {
   });
 
   testWidgets('logging out while still loading', (tester) async {
+    debugDisableBetaCompleteDialog = true;
+    addTearDown(() => debugDisableBetaCompleteDialog = false);
     // Regression test for: https://github.com/zulip/zulip-flutter/issues/1219
     addTearDown(testBinding.reset);
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
@@ -537,6 +546,8 @@ void main () {
   });
 
   testWidgets('logging out after fully loaded', (tester) async {
+    debugDisableBetaCompleteDialog = true;
+    addTearDown(() => debugDisableBetaCompleteDialog = false);
     // Regression test for: https://github.com/zulip/zulip-flutter/issues/1219
     addTearDown(testBinding.reset);
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
