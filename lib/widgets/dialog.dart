@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/settings.dart';
 import 'actions.dart';
+import 'app.dart';
+import 'content.dart';
+import 'store.dart';
 
 Widget _dialogActionText(String text) {
   return Text(
@@ -111,4 +115,70 @@ DialogStatus<bool> showSuggestedActionDialog({
           child: _dialogActionText(actionButtonText ?? zulipLocalizations.dialogContinue)),
       ]));
   return DialogStatus(future);
+}
+
+/// A brief dialog box welcoming the user to this new Zulip app,
+/// shown upon upgrading from the legacy app.
+class UpgradeWelcomeDialog extends StatelessWidget {
+  const UpgradeWelcomeDialog._();
+
+  static void maybeShow() async {
+    final navigator = await ZulipApp.navigator;
+    final context = navigator.context;
+    assert(context.mounted);
+    if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    switch (globalSettings.legacyUpgradeState) {
+      case LegacyUpgradeState.noLegacy:
+        // This install didn't replace the legacy app.
+        return;
+
+      case LegacyUpgradeState.unknown:
+        // Not clear if this replaced the legacy app;
+        // skip the dialog that would assume it had.
+        // TODO(log)
+        return;
+
+      case LegacyUpgradeState.found:
+      case LegacyUpgradeState.migrated:
+        // This install replaced the legacy app.
+        // Show the dialog, if we haven't already.
+        if (globalSettings.getBool(BoolGlobalSetting.upgradeWelcomeDialogShown)) {
+          return;
+        }
+    }
+
+    final future = showDialog<void>(
+      context: context,
+      builder: (context) => UpgradeWelcomeDialog._());
+
+    await future; // Wait for the dialog to be dismissed.
+
+    await globalSettings.setBool(BoolGlobalSetting.upgradeWelcomeDialogShown, true);
+  }
+
+  static const String _announcementUrl =
+    'https://blog.zulip.com/flutter-mobile-app-launch';
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return AlertDialog(
+      title: Text(zulipLocalizations.upgradeWelcomeDialogTitle),
+      content: SingleChildScrollView(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(zulipLocalizations.upgradeWelcomeDialogMessage),
+          GestureDetector(
+            onTap: () => PlatformActions.launchUrl(context,
+              Uri.parse(_announcementUrl)),
+            child: Text(
+              style: TextStyle(color: ContentTheme.of(context).colorLink),
+              zulipLocalizations.upgradeWelcomeDialogLinkText)),
+        ])),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context),
+          child: Text(zulipLocalizations.upgradeWelcomeDialogDismiss)),
+      ]);
+  }
 }

@@ -160,6 +160,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    UpgradeWelcomeDialog.maybeShow();
   }
 
   @override

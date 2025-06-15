@@ -119,6 +119,9 @@ enum GlobalSettingType {
   /// we give it a placeholder value which isn't a real setting.
   placeholder,
 
+  /// Describes a pseudo-setting not directly exposed in the UI.
+  internal,
+
   /// Describes a setting which enables an in-progress feature of the app.
   ///
   /// Sometimes when building a complex feature it's useful to merge PRs that
@@ -169,6 +172,10 @@ enum BoolGlobalSetting {
   /// That way when we remove those, this is already here.
   /// (Having one stable value in this enum is also handy for tests.)
   placeholderIgnore(GlobalSettingType.placeholder, false),
+
+  /// A pseudo-setting recording whether the user has been shown the
+  /// welcome dialog for upgrading from the legacy app.
+  upgradeWelcomeDialogShown(GlobalSettingType.internal, false),
 
   /// An experimental flag to toggle rendering KaTeX content in messages.
   renderKatex(GlobalSettingType.experimentalFeatureFlag, false),
