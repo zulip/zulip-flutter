@@ -2,11 +2,49 @@
 
 ## Unreleased
 
+This release branch includes some experimental changes
+not yet merged to the main branch.
+
+
+### Highlights for users (vs legacy app)
+
+Welcome to the new Zulip mobile app!  You'll find
+a familiar experience in a faster, sleeker package.
+
+For more information or to send us feedback,
+see the announcement:
+https://groups.google.com/g/zulip-announce/c/PfcyFY4cIMA
+
+
+### Highlights for users (vs previous alpha, v30.0.256)
+
+* Translation updates, including near-complete translations
+  for German (de) and Italian (it).
+
+
+### Highlights for developers
+
+* User-visible changes not described above:
+  * Updated link in welcome dialog. (part of #1580)
+  * Skip ackedPushToken in migrated account data.
+    (part of #1070)
+
+* Resolved in main: #1537, #1582
+
+* Resolved in the experimental branch:
+  * more toward #46 via PR #1452
+  * further toward #46 via PR #1559
+  * #296 via PR #1561
+  * #1070 via PR #1588
+  * #1580 via PR #1590
+
 
 ## 30.0.256 (2025-06-15)
 
 With this release, this new app takes on the identity
 of the main Zulip app!
+
+This was an alpha-only release.
 
 This release branch includes some experimental changes
 not yet merged to the main branch.
