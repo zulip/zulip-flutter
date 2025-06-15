@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 30.0.257 (2025-06-15)
+
 This release branch includes some experimental changes
 not yet merged to the main branch.
 
