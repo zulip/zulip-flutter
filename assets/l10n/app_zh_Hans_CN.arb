@@ -5,7 +5,7 @@
   "@actionSheetOptionResolveTopic": {
     "description": "Label for the 'Mark as resolved' button on the topic action sheet."
   },
-  "aboutPageTitle": "关于Zulip",
+  "aboutPageTitle": "关于 Zulip",
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
@@ -325,7 +325,7 @@
   "@unpinnedSubscriptionsLabel": {
     "description": "Label for the list of unpinned subscribed channels."
   },
-  "notifGroupDmConversationLabel": "{senderFullName}向你和其他 {numOthers, plural, other{{numOthers} 个用户}}",
+  "notifGroupDmConversationLabel": "{senderFullName}向您和其他 {numOthers, plural, other{{numOthers} 个用户}}",
   "@notifGroupDmConversationLabel": {
     "description": "Label for a group DM conversation notification.",
     "placeholders": {
@@ -367,7 +367,7 @@
   "@messageIsEditedLabel": {
     "description": "Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
-  "themeSettingDark": "深色",
+  "themeSettingDark": "暗色",
   "@themeSettingDark": {
     "description": "Label for dark theme setting."
   },
@@ -389,7 +389,7 @@
   "@pollWidgetOptionsMissing": {
     "description": "Text to display for a poll when it has no options"
   },
-  "experimentalFeatureSettingsWarning": "以下选项启用了一些正在开发中的功能。它们可能不能正常使用，或造成一些其他的问题。\n\n这些选项能够帮助开发者更好的试验这些功能。",
+  "experimentalFeatureSettingsWarning": "以下选项能够启用开发中的功能。它们暂不完善，并可能造成其他的一些问题。\n\n这些选项的目的是为了帮助开发者进行实验。",
   "@experimentalFeatureSettingsWarning": {
     "description": "Warning text on settings page for experimental, in-development features"
   },
@@ -553,7 +553,7 @@
   "@openLinksWithInAppBrowser": {
     "description": "Label for toggling setting to open links with in-app browser"
   },
-  "inboxEmptyPlaceholder": "你的收件箱中没有未读消息。您可以通过底部导航栏访问综合消息或者频道列表。",
+  "inboxEmptyPlaceholder": "您的收件箱中没有未读消息。您可以通过底部导航栏访问综合消息或者频道列表。",
   "@inboxEmptyPlaceholder": {
     "description": "Centered text on the 'Inbox' page saying that there is no content to show."
   },
@@ -625,7 +625,7 @@
   "@discardDraftConfirmationDialogConfirmButton": {
     "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
   },
-  "composeBoxGroupDmContentHint": "私信群组",
+  "composeBoxGroupDmContentHint": "发送私信到群组",
   "@composeBoxGroupDmContentHint": {
     "description": "Hint text for content input when sending a message to a group."
   },
@@ -975,7 +975,7 @@
   "@newDmSheetNoUsersFound": {
     "description": "Message shown in the new DM sheet when no users match the search."
   },
-  "composeBoxDmContentHint": "私信 @{user}",
+  "composeBoxDmContentHint": "发送私信给 @{user}",
   "@composeBoxDmContentHint": {
     "description": "Hint text for content input when sending a message to one other person.",
     "placeholders": {
@@ -1071,7 +1071,7 @@
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
   },
-  "mentionsPageTitle": "@提及",
+  "mentionsPageTitle": "被提及消息",
   "@mentionsPageTitle": {
     "description": "Page title for the 'Mentions' message view."
   },
@@ -1150,5 +1150,33 @@
   "pollWidgetQuestionMissing": "无问题。",
   "@pollWidgetQuestionMissing": {
     "description": "Text to display for a poll when the question is missing"
+  },
+  "markReadOnScrollSettingAlways": "总是",
+  "@markReadOnScrollSettingAlways": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingNever": "从不",
+  "@markReadOnScrollSettingNever": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingConversations": "只在对话视图",
+  "@markReadOnScrollSettingConversations": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingDescription": "在滑动浏览消息时，是否自动将它们标记为已读？",
+  "@markReadOnScrollSettingDescription": {
+    "description": "Description of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingConversationsDescription": "只将在同一个话题或私聊中的消息自动标记为已读。",
+  "@markReadOnScrollSettingConversationsDescription": {
+    "description": "Description for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingTitle": "滑动时将消息标为已读",
+  "@markReadOnScrollSettingTitle": {
+    "description": "Title of setting controlling which message-list views should mark read on scroll."
+  },
+  "actionSheetOptionQuoteMessage": "引用消息",
+  "@actionSheetOptionQuoteMessage": {
+    "description": "Label for the 'Quote message' button in the message action sheet."
   }
 }

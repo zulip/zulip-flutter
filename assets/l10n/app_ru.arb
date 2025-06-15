@@ -1152,5 +1152,33 @@
   "initialAnchorSettingFirstUnreadConversations": "Первое непрочитанное сообщение в личных беседах, самое новое в остальных",
   "@initialAnchorSettingFirstUnreadConversations": {
     "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "actionSheetOptionQuoteMessage": "Цитировать сообщение",
+  "@actionSheetOptionQuoteMessage": {
+    "description": "Label for the 'Quote message' button in the message action sheet."
+  },
+  "markReadOnScrollSettingTitle": "Отмечать сообщения как прочитанные при прокрутке",
+  "@markReadOnScrollSettingTitle": {
+    "description": "Title of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingDescription": "При прокрутке сообщений автоматически отмечать их как прочитанные?",
+  "@markReadOnScrollSettingDescription": {
+    "description": "Description of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingConversations": "Только при просмотре бесед",
+  "@markReadOnScrollSettingConversations": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingNever": "Никогда",
+  "@markReadOnScrollSettingNever": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingAlways": "Всегда",
+  "@markReadOnScrollSettingAlways": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingConversationsDescription": "Сообщения будут автоматически помечаться как прочитанные только при просмотре отдельной темы или личной беседы.",
+  "@markReadOnScrollSettingConversationsDescription": {
+    "description": "Description for a value of setting controlling which message-list views should mark read on scroll."
   }
 }

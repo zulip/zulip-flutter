@@ -1152,5 +1152,33 @@
   "initialAnchorSettingNewestAlways": "Najnowsza wiadomość",
   "@initialAnchorSettingNewestAlways": {
     "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "actionSheetOptionQuoteMessage": "Cytuj wiadomość",
+  "@actionSheetOptionQuoteMessage": {
+    "description": "Label for the 'Quote message' button in the message action sheet."
+  },
+  "markReadOnScrollSettingTitle": "Oznacz wiadomości jako przeczytane przy przwijaniu",
+  "@markReadOnScrollSettingTitle": {
+    "description": "Title of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingAlways": "Zawsze",
+  "@markReadOnScrollSettingAlways": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingConversations": "Tylko w widoku dyskusji",
+  "@markReadOnScrollSettingConversations": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingNever": "Nigdy",
+  "@markReadOnScrollSettingNever": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingDescription": "Czy chcesz z automatu oznaczać wiadomości jako przeczytane przy przewijaniu?",
+  "@markReadOnScrollSettingDescription": {
+    "description": "Description of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingConversationsDescription": "Wiadomości zostaną z automatu oznaczone jako przeczytane tylko w pojedyczym wątku lub w wymianie wiadomości bezpośrednich.",
+  "@markReadOnScrollSettingConversationsDescription": {
+    "description": "Description for a value of setting controlling which message-list views should mark read on scroll."
   }
 }
