@@ -73,4 +73,6 @@ void main() {
       await check(dialog.result).completes((it) => it.equals(null));
     });
   });
+
+  // TODO(#1594): test UpgradeWelcomeDialog
 }
