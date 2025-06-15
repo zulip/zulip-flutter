@@ -171,6 +171,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelMenuButton: const Color(0xff222222),
     labelSearchPrompt: const Color(0xff000000).withValues(alpha: 0.5),
     mainBackground: const Color(0xfff0f0f0),
+    neutralButtonBg: const Color(0xff8c84ae),
+    neutralButtonLabel: const Color(0xff433d5c),
     radioBorder: Color(0xffbbbdc8),
     radioFillSelected: Color(0xff4370f0),
     textInput: const Color(0xff000000),
@@ -178,11 +180,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgSearchInput: const Color(0xffe3e3e3),
     textMessage: const Color(0xff262626),
     channelColorSwatches: ChannelColorSwatches.light,
+    avatarPlaceholderBg: const Color(0x33808080),
+    avatarPlaceholderIcon: Colors.black.withValues(alpha: 0.5),
     contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15),
     contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20),
     dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
-    groupDmConversationIcon: Colors.black.withValues(alpha: 0.5),
-    groupDmConversationIconBg: const Color(0x33808080),
     inboxItemIconMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
     loginOrDivider: const Color(0xffdedede),
     loginOrDividerText: const Color(0xff575757),
@@ -240,6 +242,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
     labelSearchPrompt: const Color(0xffffffff).withValues(alpha: 0.5),
     mainBackground: const Color(0xff1d1d1d),
+    neutralButtonBg: const Color(0xffd4d1e0),
+    neutralButtonLabel: const Color(0xffa9a3c2),
     radioBorder: Color(0xff626573),
     radioFillSelected: Color(0xff4e7cfa),
     textInput: const Color(0xffffffff).withValues(alpha: 0.9),
@@ -247,14 +251,14 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgSearchInput: const Color(0xff313131),
     textMessage: const Color(0xffffffff).withValues(alpha: 0.8),
     channelColorSwatches: ChannelColorSwatches.dark,
+    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+    avatarPlaceholderBg: const Color(0x33cccccc),
+    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+    avatarPlaceholderIcon: Colors.white.withValues(alpha: 0.5),
     contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15), // the same as the light mode in Figma
     contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20), // the same as the light mode in Figma
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
     dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
-    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-    groupDmConversationIcon: Colors.white.withValues(alpha: 0.5),
-    // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-    groupDmConversationIconBg: const Color(0x33cccccc),
     inboxItemIconMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
     loginOrDivider: const Color(0xff424242),
     loginOrDividerText: const Color(0xffa8a8a8),
@@ -317,6 +321,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.labelMenuButton,
     required this.labelSearchPrompt,
     required this.mainBackground,
+    required this.neutralButtonBg,
+    required this.neutralButtonLabel,
     required this.radioBorder,
     required this.radioFillSelected,
     required this.textInput,
@@ -324,11 +330,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.bgSearchInput,
     required this.textMessage,
     required this.channelColorSwatches,
+    required this.avatarPlaceholderBg,
+    required this.avatarPlaceholderIcon,
     required this.contextMenuCancelBg,
     required this.contextMenuCancelPressedBg,
     required this.dmHeaderBg,
-    required this.groupDmConversationIcon,
-    required this.groupDmConversationIconBg,
     required this.inboxItemIconMarker,
     required this.loginOrDivider,
     required this.loginOrDividerText,
@@ -395,6 +401,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color labelMenuButton;
   final Color labelSearchPrompt;
   final Color mainBackground;
+  final Color neutralButtonBg;
+  final Color neutralButtonLabel;
   final Color radioBorder;
   final Color radioFillSelected;
   final Color textInput;
@@ -406,11 +414,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final ChannelColorSwatches channelColorSwatches;
 
   // Not named variables in Figma; taken from older Figma drafts, or elsewhere.
+  final Color avatarPlaceholderBg;
+  final Color avatarPlaceholderIcon;
   final Color contextMenuCancelBg; // In Figma, but unnamed.
   final Color contextMenuCancelPressedBg; // In Figma, but unnamed.
   final Color dmHeaderBg;
-  final Color groupDmConversationIcon;
-  final Color groupDmConversationIconBg;
   final Color inboxItemIconMarker;
   final Color loginOrDivider; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
   final Color loginOrDividerText; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
@@ -468,6 +476,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? labelMenuButton,
     Color? labelSearchPrompt,
     Color? mainBackground,
+    Color? neutralButtonBg,
+    Color? neutralButtonLabel,
     Color? radioBorder,
     Color? radioFillSelected,
     Color? textInput,
@@ -475,11 +485,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? bgSearchInput,
     Color? textMessage,
     ChannelColorSwatches? channelColorSwatches,
+    Color? avatarPlaceholderBg,
+    Color? avatarPlaceholderIcon,
     Color? contextMenuCancelBg,
     Color? contextMenuCancelPressedBg,
     Color? dmHeaderBg,
-    Color? groupDmConversationIcon,
-    Color? groupDmConversationIconBg,
     Color? inboxItemIconMarker,
     Color? loginOrDivider,
     Color? loginOrDividerText,
@@ -536,6 +546,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelMenuButton: labelMenuButton ?? this.labelMenuButton,
       labelSearchPrompt: labelSearchPrompt ?? this.labelSearchPrompt,
       mainBackground: mainBackground ?? this.mainBackground,
+      neutralButtonBg: neutralButtonBg ?? this.neutralButtonBg,
+      neutralButtonLabel: neutralButtonLabel ?? this.neutralButtonLabel,
       radioBorder: radioBorder ?? this.radioBorder,
       radioFillSelected: radioFillSelected ?? this.radioFillSelected,
       textInput: textInput ?? this.textInput,
@@ -543,11 +555,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgSearchInput: bgSearchInput ?? this.bgSearchInput,
       textMessage: textMessage ?? this.textMessage,
       channelColorSwatches: channelColorSwatches ?? this.channelColorSwatches,
+      avatarPlaceholderBg: avatarPlaceholderBg ?? this.avatarPlaceholderBg,
+      avatarPlaceholderIcon: avatarPlaceholderIcon ?? this.avatarPlaceholderIcon,
       contextMenuCancelBg: contextMenuCancelBg ?? this.contextMenuCancelBg,
       contextMenuCancelPressedBg: contextMenuCancelPressedBg ?? this.contextMenuCancelPressedBg,
       dmHeaderBg: dmHeaderBg ?? this.dmHeaderBg,
-      groupDmConversationIcon: groupDmConversationIcon ?? this.groupDmConversationIcon,
-      groupDmConversationIconBg: groupDmConversationIconBg ?? this.groupDmConversationIconBg,
       inboxItemIconMarker: inboxItemIconMarker ?? this.inboxItemIconMarker,
       loginOrDivider: loginOrDivider ?? this.loginOrDivider,
       loginOrDividerText: loginOrDividerText ?? this.loginOrDividerText,
@@ -611,6 +623,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelMenuButton: Color.lerp(labelMenuButton, other.labelMenuButton, t)!,
       labelSearchPrompt: Color.lerp(labelSearchPrompt, other.labelSearchPrompt, t)!,
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
+      neutralButtonBg: Color.lerp(neutralButtonBg, other.neutralButtonBg, t)!,
+      neutralButtonLabel: Color.lerp(neutralButtonLabel, other.neutralButtonLabel, t)!,
       radioBorder: Color.lerp(radioBorder, other.radioBorder, t)!,
       radioFillSelected: Color.lerp(radioFillSelected, other.radioFillSelected, t)!,
       textInput: Color.lerp(textInput, other.textInput, t)!,
@@ -618,11 +632,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgSearchInput: Color.lerp(bgSearchInput, other.bgSearchInput, t)!,
       textMessage: Color.lerp(textMessage, other.textMessage, t)!,
       channelColorSwatches: ChannelColorSwatches.lerp(channelColorSwatches, other.channelColorSwatches, t),
+      avatarPlaceholderBg: Color.lerp(avatarPlaceholderBg, other.avatarPlaceholderBg, t)!,
+      avatarPlaceholderIcon: Color.lerp(avatarPlaceholderIcon, other.avatarPlaceholderIcon, t)!,
       contextMenuCancelBg: Color.lerp(contextMenuCancelBg, other.contextMenuCancelBg, t)!,
       contextMenuCancelPressedBg: Color.lerp(contextMenuCancelPressedBg, other.contextMenuCancelPressedBg, t)!,
       dmHeaderBg: Color.lerp(dmHeaderBg, other.dmHeaderBg, t)!,
-      groupDmConversationIcon: Color.lerp(groupDmConversationIcon, other.groupDmConversationIcon, t)!,
-      groupDmConversationIconBg: Color.lerp(groupDmConversationIconBg, other.groupDmConversationIconBg, t)!,
       inboxItemIconMarker: Color.lerp(inboxItemIconMarker, other.inboxItemIconMarker, t)!,
       loginOrDivider: Color.lerp(loginOrDivider, other.loginOrDivider, t)!,
       loginOrDividerText: Color.lerp(loginOrDividerText, other.loginOrDividerText, t)!,

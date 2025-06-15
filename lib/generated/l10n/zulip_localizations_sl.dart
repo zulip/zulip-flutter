@@ -878,9 +878,6 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get noEarlierMessages => 'Ni starejših sporočil';
 
   @override
-  String get mutedSender => 'Utišan pošiljatelj';
-
-  @override
   String get revealButtonLabel => 'Prikaži sporočilo utišanega pošiljatelja';
 
   @override
