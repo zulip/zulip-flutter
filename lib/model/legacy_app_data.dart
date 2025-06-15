@@ -25,10 +25,12 @@ Future<void> migrateLegacyAppData(AppDatabase db) async {
   final legacyData = await readLegacyAppData();
   if (legacyData == null) {
     assert(debugLog("... no legacy app data found."));
+    await _setLegacyUpgradeState(db, LegacyUpgradeState.noLegacy);
     return;
   }
 
   assert(debugLog("Found settings: ${legacyData.settings?.toJson()}"));
+  await _setLegacyUpgradeState(db, LegacyUpgradeState.found);
   final settings = legacyData.settings;
   if (settings != null) {
     await db.update(db.globalSettings).write(GlobalSettingsCompanion(
@@ -99,6 +101,12 @@ Future<void> migrateLegacyAppData(AppDatabase db) async {
   }
 
   assert(debugLog("Done migrating legacy app data."));
+  await _setLegacyUpgradeState(db, LegacyUpgradeState.migrated);
+}
+
+Future<void> _setLegacyUpgradeState(AppDatabase db, LegacyUpgradeState value) async {
+  await db.update(db.globalSettings).write(GlobalSettingsCompanion(
+    legacyUpgradeState: drift.Value(value)));
 }
 
 Future<LegacyAppData?> readLegacyAppData() async {

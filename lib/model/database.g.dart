@@ -57,11 +57,24 @@ class $GlobalSettingsTable extends GlobalSettings
         $GlobalSettingsTable.$convertermarkReadOnScrolln,
       );
   @override
+  late final GeneratedColumnWithTypeConverter<LegacyUpgradeState?, String>
+  legacyUpgradeState =
+      GeneratedColumn<String>(
+        'legacy_upgrade_state',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<LegacyUpgradeState?>(
+        $GlobalSettingsTable.$converterlegacyUpgradeStaten,
+      );
+  @override
   List<GeneratedColumn> get $columns => [
     themeSetting,
     browserPreference,
     visitFirstUnread,
     markReadOnScroll,
+    legacyUpgradeState,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -99,6 +112,13 @@ class $GlobalSettingsTable extends GlobalSettings
             attachedDatabase.typeMapping.read(
               DriftSqlType.string,
               data['${effectivePrefix}mark_read_on_scroll'],
+            ),
+          ),
+      legacyUpgradeState: $GlobalSettingsTable.$converterlegacyUpgradeStaten
+          .fromSql(
+            attachedDatabase.typeMapping.read(
+              DriftSqlType.string,
+              data['${effectivePrefix}legacy_upgrade_state'],
             ),
           ),
     );
@@ -141,6 +161,14 @@ class $GlobalSettingsTable extends GlobalSettings
   $convertermarkReadOnScrolln = JsonTypeConverter2.asNullable(
     $convertermarkReadOnScroll,
   );
+  static JsonTypeConverter2<LegacyUpgradeState, String, String>
+  $converterlegacyUpgradeState = const EnumNameConverter<LegacyUpgradeState>(
+    LegacyUpgradeState.values,
+  );
+  static JsonTypeConverter2<LegacyUpgradeState?, String?, String?>
+  $converterlegacyUpgradeStaten = JsonTypeConverter2.asNullable(
+    $converterlegacyUpgradeState,
+  );
 }
 
 class GlobalSettingsData extends DataClass
@@ -149,11 +177,13 @@ class GlobalSettingsData extends DataClass
   final BrowserPreference? browserPreference;
   final VisitFirstUnreadSetting? visitFirstUnread;
   final MarkReadOnScrollSetting? markReadOnScroll;
+  final LegacyUpgradeState? legacyUpgradeState;
   const GlobalSettingsData({
     this.themeSetting,
     this.browserPreference,
     this.visitFirstUnread,
     this.markReadOnScroll,
+    this.legacyUpgradeState,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -184,6 +214,13 @@ class GlobalSettingsData extends DataClass
         ),
       );
     }
+    if (!nullToAbsent || legacyUpgradeState != null) {
+      map['legacy_upgrade_state'] = Variable<String>(
+        $GlobalSettingsTable.$converterlegacyUpgradeStaten.toSql(
+          legacyUpgradeState,
+        ),
+      );
+    }
     return map;
   }
 
@@ -201,6 +238,9 @@ class GlobalSettingsData extends DataClass
       markReadOnScroll: markReadOnScroll == null && nullToAbsent
           ? const Value.absent()
           : Value(markReadOnScroll),
+      legacyUpgradeState: legacyUpgradeState == null && nullToAbsent
+          ? const Value.absent()
+          : Value(legacyUpgradeState),
     );
   }
 
@@ -219,6 +259,8 @@ class GlobalSettingsData extends DataClass
           .fromJson(serializer.fromJson<String?>(json['visitFirstUnread'])),
       markReadOnScroll: $GlobalSettingsTable.$convertermarkReadOnScrolln
           .fromJson(serializer.fromJson<String?>(json['markReadOnScroll'])),
+      legacyUpgradeState: $GlobalSettingsTable.$converterlegacyUpgradeStaten
+          .fromJson(serializer.fromJson<String?>(json['legacyUpgradeState'])),
     );
   }
   @override
@@ -243,6 +285,11 @@ class GlobalSettingsData extends DataClass
           markReadOnScroll,
         ),
       ),
+      'legacyUpgradeState': serializer.toJson<String?>(
+        $GlobalSettingsTable.$converterlegacyUpgradeStaten.toJson(
+          legacyUpgradeState,
+        ),
+      ),
     };
   }
 
@@ -251,6 +298,7 @@ class GlobalSettingsData extends DataClass
     Value<BrowserPreference?> browserPreference = const Value.absent(),
     Value<VisitFirstUnreadSetting?> visitFirstUnread = const Value.absent(),
     Value<MarkReadOnScrollSetting?> markReadOnScroll = const Value.absent(),
+    Value<LegacyUpgradeState?> legacyUpgradeState = const Value.absent(),
   }) => GlobalSettingsData(
     themeSetting: themeSetting.present ? themeSetting.value : this.themeSetting,
     browserPreference: browserPreference.present
@@ -262,6 +310,9 @@ class GlobalSettingsData extends DataClass
     markReadOnScroll: markReadOnScroll.present
         ? markReadOnScroll.value
         : this.markReadOnScroll,
+    legacyUpgradeState: legacyUpgradeState.present
+        ? legacyUpgradeState.value
+        : this.legacyUpgradeState,
   );
   GlobalSettingsData copyWithCompanion(GlobalSettingsCompanion data) {
     return GlobalSettingsData(
@@ -277,6 +328,9 @@ class GlobalSettingsData extends DataClass
       markReadOnScroll: data.markReadOnScroll.present
           ? data.markReadOnScroll.value
           : this.markReadOnScroll,
+      legacyUpgradeState: data.legacyUpgradeState.present
+          ? data.legacyUpgradeState.value
+          : this.legacyUpgradeState,
     );
   }
 
@@ -286,7 +340,8 @@ class GlobalSettingsData extends DataClass
           ..write('themeSetting: $themeSetting, ')
           ..write('browserPreference: $browserPreference, ')
           ..write('visitFirstUnread: $visitFirstUnread, ')
-          ..write('markReadOnScroll: $markReadOnScroll')
+          ..write('markReadOnScroll: $markReadOnScroll, ')
+          ..write('legacyUpgradeState: $legacyUpgradeState')
           ..write(')'))
         .toString();
   }
@@ -297,6 +352,7 @@ class GlobalSettingsData extends DataClass
     browserPreference,
     visitFirstUnread,
     markReadOnScroll,
+    legacyUpgradeState,
   );
   @override
   bool operator ==(Object other) =>
@@ -305,7 +361,8 @@ class GlobalSettingsData extends DataClass
           other.themeSetting == this.themeSetting &&
           other.browserPreference == this.browserPreference &&
           other.visitFirstUnread == this.visitFirstUnread &&
-          other.markReadOnScroll == this.markReadOnScroll);
+          other.markReadOnScroll == this.markReadOnScroll &&
+          other.legacyUpgradeState == this.legacyUpgradeState);
 }
 
 class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
@@ -313,12 +370,14 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
   final Value<BrowserPreference?> browserPreference;
   final Value<VisitFirstUnreadSetting?> visitFirstUnread;
   final Value<MarkReadOnScrollSetting?> markReadOnScroll;
+  final Value<LegacyUpgradeState?> legacyUpgradeState;
   final Value<int> rowid;
   const GlobalSettingsCompanion({
     this.themeSetting = const Value.absent(),
     this.browserPreference = const Value.absent(),
     this.visitFirstUnread = const Value.absent(),
     this.markReadOnScroll = const Value.absent(),
+    this.legacyUpgradeState = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   GlobalSettingsCompanion.insert({
@@ -326,6 +385,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
     this.browserPreference = const Value.absent(),
     this.visitFirstUnread = const Value.absent(),
     this.markReadOnScroll = const Value.absent(),
+    this.legacyUpgradeState = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   static Insertable<GlobalSettingsData> custom({
@@ -333,6 +393,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
     Expression<String>? browserPreference,
     Expression<String>? visitFirstUnread,
     Expression<String>? markReadOnScroll,
+    Expression<String>? legacyUpgradeState,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -340,6 +401,8 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
       if (browserPreference != null) 'browser_preference': browserPreference,
       if (visitFirstUnread != null) 'visit_first_unread': visitFirstUnread,
       if (markReadOnScroll != null) 'mark_read_on_scroll': markReadOnScroll,
+      if (legacyUpgradeState != null)
+        'legacy_upgrade_state': legacyUpgradeState,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -349,6 +412,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
     Value<BrowserPreference?>? browserPreference,
     Value<VisitFirstUnreadSetting?>? visitFirstUnread,
     Value<MarkReadOnScrollSetting?>? markReadOnScroll,
+    Value<LegacyUpgradeState?>? legacyUpgradeState,
     Value<int>? rowid,
   }) {
     return GlobalSettingsCompanion(
@@ -356,6 +420,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
       browserPreference: browserPreference ?? this.browserPreference,
       visitFirstUnread: visitFirstUnread ?? this.visitFirstUnread,
       markReadOnScroll: markReadOnScroll ?? this.markReadOnScroll,
+      legacyUpgradeState: legacyUpgradeState ?? this.legacyUpgradeState,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -389,6 +454,13 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
         ),
       );
     }
+    if (legacyUpgradeState.present) {
+      map['legacy_upgrade_state'] = Variable<String>(
+        $GlobalSettingsTable.$converterlegacyUpgradeStaten.toSql(
+          legacyUpgradeState.value,
+        ),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -402,6 +474,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
           ..write('browserPreference: $browserPreference, ')
           ..write('visitFirstUnread: $visitFirstUnread, ')
           ..write('markReadOnScroll: $markReadOnScroll, ')
+          ..write('legacyUpgradeState: $legacyUpgradeState, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1248,6 +1321,7 @@ typedef $$GlobalSettingsTableCreateCompanionBuilder =
       Value<BrowserPreference?> browserPreference,
       Value<VisitFirstUnreadSetting?> visitFirstUnread,
       Value<MarkReadOnScrollSetting?> markReadOnScroll,
+      Value<LegacyUpgradeState?> legacyUpgradeState,
       Value<int> rowid,
     });
 typedef $$GlobalSettingsTableUpdateCompanionBuilder =
@@ -1256,6 +1330,7 @@ typedef $$GlobalSettingsTableUpdateCompanionBuilder =
       Value<BrowserPreference?> browserPreference,
       Value<VisitFirstUnreadSetting?> visitFirstUnread,
       Value<MarkReadOnScrollSetting?> markReadOnScroll,
+      Value<LegacyUpgradeState?> legacyUpgradeState,
       Value<int> rowid,
     });
 
@@ -1299,6 +1374,16 @@ class $$GlobalSettingsTableFilterComposer
     column: $table.markReadOnScroll,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
+
+  ColumnWithTypeConverterFilters<
+    LegacyUpgradeState?,
+    LegacyUpgradeState,
+    String
+  >
+  get legacyUpgradeState => $composableBuilder(
+    column: $table.legacyUpgradeState,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
 }
 
 class $$GlobalSettingsTableOrderingComposer
@@ -1327,6 +1412,11 @@ class $$GlobalSettingsTableOrderingComposer
 
   ColumnOrderings<String> get markReadOnScroll => $composableBuilder(
     column: $table.markReadOnScroll,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get legacyUpgradeState => $composableBuilder(
+    column: $table.legacyUpgradeState,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -1361,6 +1451,12 @@ class $$GlobalSettingsTableAnnotationComposer
   GeneratedColumnWithTypeConverter<MarkReadOnScrollSetting?, String>
   get markReadOnScroll => $composableBuilder(
     column: $table.markReadOnScroll,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<LegacyUpgradeState?, String>
+  get legacyUpgradeState => $composableBuilder(
+    column: $table.legacyUpgradeState,
     builder: (column) => column,
   );
 }
@@ -1409,12 +1505,15 @@ class $$GlobalSettingsTableTableManager
                     const Value.absent(),
                 Value<MarkReadOnScrollSetting?> markReadOnScroll =
                     const Value.absent(),
+                Value<LegacyUpgradeState?> legacyUpgradeState =
+                    const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GlobalSettingsCompanion(
                 themeSetting: themeSetting,
                 browserPreference: browserPreference,
                 visitFirstUnread: visitFirstUnread,
                 markReadOnScroll: markReadOnScroll,
+                legacyUpgradeState: legacyUpgradeState,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -1426,12 +1525,15 @@ class $$GlobalSettingsTableTableManager
                     const Value.absent(),
                 Value<MarkReadOnScrollSetting?> markReadOnScroll =
                     const Value.absent(),
+                Value<LegacyUpgradeState?> legacyUpgradeState =
+                    const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GlobalSettingsCompanion.insert(
                 themeSetting: themeSetting,
                 browserPreference: browserPreference,
                 visitFirstUnread: visitFirstUnread,
                 markReadOnScroll: markReadOnScroll,
+                legacyUpgradeState: legacyUpgradeState,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
