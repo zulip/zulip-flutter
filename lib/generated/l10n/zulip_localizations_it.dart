@@ -877,9 +877,6 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get noEarlierMessages => 'Nessun messaggio precedente';
 
   @override
-  String get mutedSender => 'Mittente silenziato';
-
-  @override
   String get revealButtonLabel => 'Mostra messaggio per mittente silenziato';
 
   @override

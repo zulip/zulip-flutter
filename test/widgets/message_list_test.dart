@@ -65,6 +65,7 @@ void main() {
     GetMessagesResult? fetchResult,
     List<ZulipStream>? streams,
     List<User>? users,
+    List<int>? mutedUserIds,
     List<Subscription>? subscriptions,
     UnreadMessagesSnapshot? unreadMsgs,
     int? zulipFeatureLevel,
@@ -87,6 +88,9 @@ void main() {
     // prepare message list data
     await store.addUser(eg.selfUser);
     await store.addUsers(users ?? []);
+    if (mutedUserIds != null) {
+      await store.setMutedUsers(mutedUserIds);
+    }
     if (fetchResult != null) {
       assert(foundOldest && messageCount == null && messages == null);
     } else {
@@ -323,6 +327,22 @@ void main() {
         of: find.byType(TopicListPage),
         matching: find.text('channel foo')),
       ).findsOne();
+    });
+
+    testWidgets('shows "Muted user" label for muted users in DM narrow', (tester) async {
+      final user1 = eg.user(userId: 1, fullName: 'User 1');
+      final user2 = eg.user(userId: 2, fullName: 'User 2');
+      final user3 = eg.user(userId: 3, fullName: 'User 3');
+      final mutedUsers = [1, 3];
+
+      await setupMessageListPage(tester,
+        narrow: DmNarrow.withOtherUsers([1, 2, 3], selfUserId: 10),
+        users: [user1, user2, user3],
+        mutedUserIds: mutedUsers,
+        messageCount: 1,
+      );
+
+      check(find.text('DMs with Muted user, User 2, Muted user')).findsOne();
     });
   });
 
@@ -813,7 +833,17 @@ void main() {
         await checkTyping(tester,
           eg.typingEvent(narrow, TypingOp.stop, eg.otherUser.userId),
           expected: 'Third User and Fourth User are typing…');
+        await store.setMutedUsers([eg.thirdUser.userId]);
+        await tester.pump();
+        check(tester.widget<Text>(finder)).data.equals('Fourth User is typing…');
         // Verify that typing indicators expire after a set duration.
+        await tester.pump(const Duration(seconds: 15));
+        check(finder.evaluate()).isEmpty();
+        // Muted user starts typing again; nothing is shown.
+        await store.handleEvent(
+          eg.typingEvent(narrow, TypingOp.start, eg.thirdUser.userId));
+        await tester.pump();
+        check(finder.evaluate()).isEmpty();
         await tester.pump(const Duration(seconds: 15));
         check(finder.evaluate()).isEmpty();
       });
@@ -1423,6 +1453,21 @@ void main() {
           "${zulipLocalizations.unknownUserName}, ${eg.thirdUser.fullName}")));
       });
 
+      testWidgets('show "Muted user" label for muted users', (tester) async {
+        final user1 = eg.user(userId: 1, fullName: 'User 1');
+        final user2 = eg.user(userId: 2, fullName: 'User 2');
+        final user3 = eg.user(userId: 3, fullName: 'User 3');
+        final mutedUsers = [1, 3];
+
+        await setupMessageListPage(tester,
+          users: [user1, user2, user3],
+          mutedUserIds: mutedUsers,
+          messages: [eg.dmMessage(from: eg.selfUser, to: [user1, user2, user3])]
+        );
+
+        check(find.text('You and Muted user, Muted user, User 2')).findsOne();
+      });
+
       testWidgets('icon color matches text color', (tester) async {
         final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
         await setupMessageListPage(tester, messages: [
@@ -1625,6 +1670,71 @@ void main() {
       checkUser(users[2], isBot: false);
 
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    group('Muted sender', () {
+      void checkMessage(Message message, {required bool expectIsMuted}) {
+        final mutedLabel = 'Muted user';
+        final mutedLabelFinder = find.widgetWithText(MessageWithPossibleSender,
+          mutedLabel);
+
+        final avatarFinder = find.byWidgetPredicate(
+          (widget) => widget is Avatar && widget.userId == message.senderId);
+        final mutedAvatarFinder = find.descendant(
+          of: avatarFinder,
+          matching: find.byIcon(ZulipIcons.person));
+        final nonmutedAvatarFinder = find.descendant(
+          of: avatarFinder,
+          matching: find.byType(RealmContentNetworkImage));
+
+        final senderName = store.senderDisplayName(message, replaceIfMuted: false);
+        assert(senderName != mutedLabel);
+        final senderNameFinder = find.widgetWithText(MessageWithPossibleSender,
+          senderName);
+
+        final contentFinder = find.descendant(
+          of: find.byType(MessageContent),
+          matching: find.text('A message', findRichText: true));
+
+        check(mutedLabelFinder.evaluate().length).equals(expectIsMuted ? 1 : 0);
+        check(senderNameFinder.evaluate().length).equals(expectIsMuted ? 0 : 1);
+        check(mutedAvatarFinder.evaluate().length).equals(expectIsMuted ? 1 : 0);
+        check(nonmutedAvatarFinder.evaluate().length).equals(expectIsMuted ? 0 : 1);
+        check(contentFinder.evaluate().length).equals(expectIsMuted ? 0 : 1);
+      }
+
+      final user = eg.user(userId: 1, fullName: 'User', avatarUrl: '/foo.png');
+      final message = eg.streamMessage(sender: user,
+        content: '<p>A message</p>', reactions: [eg.unicodeEmojiReaction]);
+
+      testWidgets('muted appearance', (tester) async {
+        prepareBoringImageHttpClient();
+        await setupMessageListPage(tester,
+          users: [user], mutedUserIds: [user.userId], messages: [message]);
+        checkMessage(message, expectIsMuted: true);
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('not-muted appearance', (tester) async {
+        prepareBoringImageHttpClient();
+        await setupMessageListPage(tester,
+          users: [user], mutedUserIds: [], messages: [message]);
+        checkMessage(message, expectIsMuted: false);
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('"Reveal message" button', (tester) async {
+        prepareBoringImageHttpClient();
+
+        await setupMessageListPage(tester,
+          users: [user], mutedUserIds: [user.userId], messages: [message]);
+        checkMessage(message, expectIsMuted: true);
+        await tester.tap(find.text('Reveal message'));
+        await tester.pump();
+        checkMessage(message, expectIsMuted: false);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
     });
   });
 

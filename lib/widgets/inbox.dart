@@ -395,6 +395,7 @@ class _DmItem extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
 
+    // TODO write a test where a/the recipient is muted
     final title = switch (narrow.otherRecipientIds) { // TODO dedupe with [RecentDmConversationsItem]
       [] => store.selfUser.fullName,
       [var otherUserId] => store.userDisplayName(otherUserId),
