@@ -87,6 +87,24 @@ enum MarkReadOnScrollSetting {
   static MarkReadOnScrollSetting _default = conversations;
 }
 
+/// The outcome, or in-progress status, of migrating data from the legacy app.
+enum LegacyUpgradeState {
+  /// It's not yet known whether there was data from the legacy app.
+  unknown,
+
+  /// No legacy data was found.
+  noLegacy,
+
+  /// Legacy data was found, but not yet migrated into this app's database.
+  found,
+
+  /// Legacy data was found and migrated.
+  migrated,
+  ;
+
+  static LegacyUpgradeState _default = unknown;
+}
+
 /// A general category of account-independent setting the user might set.
 ///
 /// Different kinds of settings call for different treatment in the UI,
@@ -322,6 +340,11 @@ class GlobalSettingsStore extends ChangeNotifier {
           => false,
       },
     };
+  }
+
+  /// The outcome, or in-progress status, of migrating data from the legacy app.
+  LegacyUpgradeState get legacyUpgradeState {
+    return _data.legacyUpgradeState ?? LegacyUpgradeState._default;
   }
 
   /// The user's choice of the given bool-valued setting, or our default for it.
