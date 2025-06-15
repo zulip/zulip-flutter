@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -82,6 +84,14 @@ void main() {
 
   // TODO(#1583) test markReadOnScroll applies default
   // TODO(#1583) test markReadOnScrollForNarrow
+
+  test('setLanguage smoke', () async {
+    final globalSettings = eg.globalStore().settings;
+    check(globalSettings).language.isNull();
+
+    await globalSettings.setLanguage(Locale('en'));
+    check(globalSettings).language.equals(Locale('en'));
+  });
 
   group('getBool/setBool', () {
     test('get from default', () {
