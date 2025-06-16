@@ -272,9 +272,13 @@ class LegacyAppDatabase {
       // Not sure how newlines get there into the data; but empirically
       // they do, after each 76 characters of `encodedSplit`.
       final encoded = encodedSplit.replaceAll('\n', '');
-      final compressedBytes = base64Decode(encoded);
-      final uncompressedBytes = zlib.decoder.convert(compressedBytes);
-      return utf8.decode(uncompressedBytes);
+      try {
+        final compressedBytes = base64Decode(encoded);
+        final uncompressedBytes = zlib.decoder.convert(compressedBytes);
+        return utf8.decode(uncompressedBytes);
+      } catch (_) {
+        return null; // TODO(log)
+      }
     }
     return item;
   }
