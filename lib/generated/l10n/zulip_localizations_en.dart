@@ -799,7 +799,7 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
 
   @override
   String get initialAnchorSettingFirstUnreadConversations =>
-      'First unread message in single conversations, newest message elsewhere';
+      'First unread message in conversation views, newest message elsewhere';
 
   @override
   String get initialAnchorSettingNewestAlways => 'Newest message';

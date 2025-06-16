@@ -979,7 +979,7 @@
   "@initialAnchorSettingFirstUnreadAlways":  {
     "description": "Label for a value of setting controlling initial anchor of message list."
   },
-  "initialAnchorSettingFirstUnreadConversations": "First unread message in single conversations, newest message elsewhere",
+  "initialAnchorSettingFirstUnreadConversations": "First unread message in conversation views, newest message elsewhere",
   "@initialAnchorSettingFirstUnreadConversations":  {
     "description": "Label for a value of setting controlling initial anchor of message list."
   },

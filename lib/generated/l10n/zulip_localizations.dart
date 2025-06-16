@@ -1464,7 +1464,7 @@ abstract class ZulipLocalizations {
   /// Label for a value of setting controlling initial anchor of message list.
   ///
   /// In en, this message translates to:
-  /// **'First unread message in single conversations, newest message elsewhere'**
+  /// **'First unread message in conversation views, newest message elsewhere'**
   String get initialAnchorSettingFirstUnreadConversations;
 
   /// Label for a value of setting controlling initial anchor of message list.
