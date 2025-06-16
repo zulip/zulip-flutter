@@ -4,6 +4,7 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/model/algorithms.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/unreads.dart';
@@ -11,6 +12,18 @@ import 'package:zulip/model/unreads.dart';
 import '../example_data.dart' as eg;
 import 'test_store.dart';
 import 'unreads_checks.dart';
+
+void checkInvariants(Unreads model) {
+  for (final MapEntry(value: topics) in model.streams.entries) {
+    for (final MapEntry(value: messageIds) in topics.entries) {
+      check(isSortedWithoutDuplicates(messageIds)).isTrue();
+    }
+  }
+
+  for (final MapEntry(value: messageIds) in model.dms.entries) {
+    check(isSortedWithoutDuplicates(messageIds)).isTrue();
+  }
+}
 
 void main() {
   // These variables are the common state operated on by each test.
@@ -23,7 +36,10 @@ void main() {
     check(notifiedCount).equals(count);
     notifiedCount = 0;
   }
-  void checkNotNotified() => checkNotified(count: 0);
+  void checkNotNotified() {
+    checkInvariants(model);
+    checkNotified(count: 0);
+  }
   void checkNotifiedOnce() => checkNotified(count: 1);
 
   /// Initialize [model] and the rest of the test state.
@@ -38,9 +54,11 @@ void main() {
     ),
   }) {
     store = eg.store(initialSnapshot: eg.initialSnapshot(unreadMsgs: initial));
+    checkInvariants(store.unreads);
     notifiedCount = 0;
     model = store.unreads
       ..addListener(() {
+        checkInvariants(model);
         notifiedCount++;
       });
     checkNotNotified();
@@ -600,12 +618,11 @@ void main() {
       test('tolerates unsorted messages', () async {
         await prepareStore();
         final unreadMessages = List.generate(10, (i) =>
-          eg.streamMessage(
-            id: 1000 - i, stream: origChannel, topic: origTopic));
+          eg.streamMessage(stream: origChannel, topic: origTopic));
         fillWithMessages(unreadMessages);
 
         model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
-          origMessages: unreadMessages,
+          origMessages: unreadMessages.reversed.toList(),
           newTopicStr: newTopic));
         checkNotifiedOnce();
         checkMatchesMessages(copyMessagesWith(unreadMessages, newTopic: newTopic));
