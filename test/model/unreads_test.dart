@@ -64,7 +64,8 @@ void main() {
     checkNotNotified();
   }
 
-  void fillWithMessages(Iterable<Message> messages) {
+  void fillWithMessages(List<Message> messages) {
+    check(isSortedWithoutDuplicates(messages.map((m) => m.id).toList())).isTrue();
     for (final message in messages) {
       model.handleMessageEvent(eg.messageEvent(message));
     }
@@ -260,9 +261,9 @@ void main() {
   group('isUnread', () {
     final unreadDmMessage = eg.dmMessage(
       from: eg.otherUser, to: [eg.selfUser], flags: []);
+    final unreadChannelMessage = eg.streamMessage(flags: []);
     final readDmMessage = eg.dmMessage(
       from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.read]);
-    final unreadChannelMessage = eg.streamMessage(flags: []);
     final readChannelMessage = eg.streamMessage(flags: [MessageFlag.read]);
 
     final allMessages = <Message>[
@@ -499,11 +500,11 @@ void main() {
         prepare();
         await store.addStream(origChannel);
         await store.addSubscription(eg.subscription(origChannel));
+        unreadMessages = List<StreamMessage>.generate(10,
+          (_) => eg.streamMessage(stream: origChannel, topic: origTopic));
         readMessages  = List<StreamMessage>.generate(10,
           (_) => eg.streamMessage(stream: origChannel, topic: origTopic,
                    flags: [MessageFlag.read]));
-        unreadMessages = List<StreamMessage>.generate(10,
-          (_) => eg.streamMessage(stream: origChannel, topic: origTopic));
       }
 
       List<StreamMessage> copyMessagesWith(Iterable<StreamMessage> messages, {
