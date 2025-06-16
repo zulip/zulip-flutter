@@ -3,7 +3,45 @@
 ## Unreleased
 
 
+### 30.0.258 (2025-06-16)
+
+This release branch includes some experimental changes
+not yet merged to the main branch.
+
+
+### Highlights for users (vs legacy app)
+
+Welcome to the new Zulip mobile app!  You'll find
+a familiar experience in a faster, sleeker package.
+
+For more information or to send us feedback,
+see the announcement blog post:
+https://blog.zulip.com/flutter-mobile-app-launch
+
+
+### Highlights for users (vs previous beta, v30.0.257)
+
+* More translation updates. (PR #1596)
+* Handle additional error cases in migrating data from
+  legacy app. (PR #1595)
+
+
+### Highlights for developers
+
+* User-visible changes not described above:
+  * Tweak wording of first-unread setting. (PR #1597)
+
+* Resolved in main: #1070, #1580, PR #1595, PR #1596, PR #1597
+
+* Resolved in the experimental branch:
+  * more toward #46 via PR #1452
+  * further toward #46 via PR #1559
+  * #296 via PR #1561
+
+
 ## 30.0.257 (2025-06-15)
+
+This was a beta-only release.
 
 This release branch includes some experimental changes
 not yet merged to the main branch.
