@@ -101,7 +101,11 @@ class EmojiReactionTheme extends ThemeExtension<EmojiReactionTheme> {
       bgSelected: Color.lerp(bgSelected, other.bgSelected, t)!,
       bgUnselected: Color.lerp(bgUnselected, other.bgUnselected, t)!,
       borderSelected: Color.lerp(borderSelected, other.borderSelected, t)!,
-      borderUnselected: Color.lerp(borderUnselected, other.borderUnselected, t)!,
+      borderUnselected: Color.lerp(
+        borderUnselected,
+        other.borderUnselected,
+        t,
+      )!,
       textSelected: Color.lerp(textSelected, other.textSelected, t)!,
       textUnselected: Color.lerp(textUnselected, other.textUnselected, t)!,
     );
@@ -121,14 +125,24 @@ class ReactionChipsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final displayEmojiReactionUsers = store.userSettings?.displayEmojiReactionUsers ?? false;
+    final displayEmojiReactionUsers =
+        store.userSettings?.displayEmojiReactionUsers ?? false;
     final showNames = displayEmojiReactionUsers && reactions.total <= 3;
 
-    return Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center,
-      children: reactions.aggregated.map((reactionVotes) => ReactionChip(
-        showName: showNames,
-        messageId: messageId, reactionWithVotes: reactionVotes),
-      ).toList());
+    return Wrap(
+      spacing: 4,
+      runSpacing: 4,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: reactions.aggregated
+          .map(
+            (reactionVotes) => ReactionChip(
+              showName: showNames,
+              messageId: messageId,
+              reactionWithVotes: reactionVotes,
+            ),
+          )
+          .toList(),
+    );
   }
 }
 
@@ -156,22 +170,32 @@ class ReactionChip extends StatelessWidget {
 
     final selfVoted = userIds.contains(store.selfUserId);
     final label = showName
-      // TODO(i18n): List formatting, like you can do in JavaScript:
-      //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Shu'])
-      //   // 'Chris、Greg、Alya、Shu'
-      ? userIds.map((id) {
-          return id == store.selfUserId
-            ? zulipLocalizations.reactedEmojiSelfUser
-            : store.userDisplayName(id);
-        }).join(', ')
-      : userIds.length.toString();
+        // TODO(i18n): List formatting, like you can do in JavaScript:
+        //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Shu'])
+        //   // 'Chris、Greg、Alya、Shu'
+        ? userIds
+              .map((id) {
+                return id == store.selfUserId
+                    ? zulipLocalizations.reactedEmojiSelfUser
+                    : store.userDisplayName(id);
+              })
+              .join(', ')
+        : userIds.length.toString();
 
     final reactionTheme = EmojiReactionTheme.of(context);
-    final borderColor =     selfVoted ? reactionTheme.borderSelected : reactionTheme.borderUnselected;
-    final labelColor =      selfVoted ? reactionTheme.textSelected   : reactionTheme.textUnselected;
-    final backgroundColor = selfVoted ? reactionTheme.bgSelected     : reactionTheme.bgUnselected;
-    final splashColor =     selfVoted ? reactionTheme.bgUnselected   : reactionTheme.bgSelected;
-    final highlightColor =  splashColor.withFadedAlpha(0.5);
+    final borderColor = selfVoted
+        ? reactionTheme.borderSelected
+        : reactionTheme.borderUnselected;
+    final labelColor = selfVoted
+        ? reactionTheme.textSelected
+        : reactionTheme.textUnselected;
+    final backgroundColor = selfVoted
+        ? reactionTheme.bgSelected
+        : reactionTheme.bgUnselected;
+    final splashColor = selfVoted
+        ? reactionTheme.bgUnselected
+        : reactionTheme.bgSelected;
+    final highlightColor = splashColor.withFadedAlpha(0.5);
 
     final borderSide = BorderSide(
       color: borderColor,
@@ -179,19 +203,25 @@ class ReactionChip extends StatelessWidget {
     );
     final shape = StadiumBorder(side: borderSide);
 
-    final emojiDisplay = store.emojiDisplayFor(
-      emojiType: reactionType,
-      emojiCode: emojiCode,
-      emojiName: emojiName,
-    ).resolve(store.userSettings);
+    final emojiDisplay = store
+        .emojiDisplayFor(
+          emojiType: reactionType,
+          emojiCode: emojiCode,
+          emojiName: emojiName,
+        )
+        .resolve(store.userSettings);
 
     final emoji = switch (emojiDisplay) {
-      UnicodeEmojiDisplay() => _UnicodeEmoji(
-        emojiDisplay: emojiDisplay),
+      UnicodeEmojiDisplay() => _UnicodeEmoji(emojiDisplay: emojiDisplay),
       ImageEmojiDisplay() => _ImageEmoji(
-        emojiDisplay: emojiDisplay, emojiName: emojiName, selected: selfVoted),
+        emojiDisplay: emojiDisplay,
+        emojiName: emojiName,
+        selected: selfVoted,
+      ),
       TextEmojiDisplay() => _TextEmoji(
-        emojiDisplay: emojiDisplay, selected: selfVoted),
+        emojiDisplay: emojiDisplay,
+        selected: selfVoted,
+      ),
     };
 
     return Tooltip(
@@ -206,7 +236,8 @@ class ReactionChip extends StatelessWidget {
           splashColor: splashColor,
           highlightColor: highlightColor,
           onTap: () {
-            (selfVoted ? removeReaction : addReaction).call(store.connection,
+            (selfVoted ? removeReaction : addReaction).call(
+              store.connection,
               messageId: messageId,
               reactionType: reactionType,
               emojiCode: emojiCode,
@@ -239,29 +270,54 @@ class ReactionChip extends StatelessWidget {
                   children: [
                     // So text-emoji chips are at least as tall as square-emoji
                     // ones (probably a good thing).
-                    SizedBox(height: _squareEmojiScalerClamped(context).scale(_squareEmojiSize)),
-                    Flexible( // [Flexible] to let text emojis expand if they can
-                      child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3),
-                        child: emoji)),
-                    Padding(padding: const EdgeInsets.symmetric(horizontal: 3),
+                    SizedBox(
+                      height: _squareEmojiScalerClamped(
+                        context,
+                      ).scale(_squareEmojiSize),
+                    ),
+                    Flexible(
+                      // [Flexible] to let text emojis expand if they can
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 3),
+                        child: emoji,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
                       child: Container(
                         constraints: BoxConstraints(maxWidth: maxLabelWidth),
                         child: Text(
                           textWidthBasis: TextWidthBasis.longestLine,
                           textScaler: labelScaler,
-                          style: TextStyle(
-                            fontSize: (14 * 0.90),
-                            letterSpacing: proportionalLetterSpacing(context,
-                              kButtonTextLetterSpacingProportion,
-                              baseFontSize: (14 * 0.90),
-                              textScaler: labelScaler),
-                            height: 13 / (14 * 0.90),
-                            color: labelColor,
-                          ).merge(weightVariableTextStyle(context,
-                              wght: selfVoted ? 600 : null)),
-                          label))),
-                  ]);
-                })))));
+                          style:
+                              TextStyle(
+                                fontSize: (14 * 0.90),
+                                letterSpacing: proportionalLetterSpacing(
+                                  context,
+                                  kButtonTextLetterSpacingProportion,
+                                  baseFontSize: (14 * 0.90),
+                                  textScaler: labelScaler,
+                                ),
+                                height: 13 / (14 * 0.90),
+                                color: labelColor,
+                              ).merge(
+                                weightVariableTextStyle(
+                                  context,
+                                  wght: selfVoted ? 600 : null,
+                                ),
+                              ),
+                          label,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -283,19 +339,19 @@ const _notoColorEmojiTextSize = 14.5;
 /// This should scale [_squareEmojiSize] for Unicode and image emojis.
 // TODO(a11y) clamp higher?
 TextScaler _squareEmojiScalerClamped(BuildContext context) =>
-  MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2);
+    MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2);
 
 /// A [TextScaler] that limits text emojis' max scale factor,
 /// to minimize the need for line breaks.
 // TODO(a11y) clamp higher?
 TextScaler _textEmojiScalerClamped(BuildContext context) =>
-  MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5);
+    MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5);
 
 /// A [TextScaler] that limits the label's max scale factor,
 /// to minimize the need for line breaks.
 // TODO(a11y) clamp higher?
 TextScaler _labelTextScalerClamped(BuildContext context) =>
-  MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2);
+    MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2);
 
 class _UnicodeEmoji extends StatelessWidget {
   const _UnicodeEmoji({required this.emojiDisplay});
@@ -308,7 +364,8 @@ class _UnicodeEmoji extends StatelessWidget {
       size: _squareEmojiSize,
       notoColorEmojiTextSize: _notoColorEmojiTextSize,
       textScaler: _squareEmojiScalerClamped(context),
-      emojiDisplay: emojiDisplay);
+      emojiDisplay: emojiDisplay,
+    );
   }
 }
 
@@ -331,7 +388,9 @@ class _ImageEmoji extends StatelessWidget {
       textScaler: _squareEmojiScalerClamped(context),
       emojiDisplay: emojiDisplay,
       errorBuilder: (context, _, _) => _TextEmoji(
-        emojiDisplay: TextEmojiDisplay(emojiName: emojiName), selected: selected),
+        emojiDisplay: TextEmojiDisplay(emojiName: emojiName),
+        selected: selected,
+      ),
     );
   }
 }
@@ -359,10 +418,12 @@ class _TextEmoji extends StatelessWidget {
       style: TextStyle(
         fontSize: 14 * 0.8,
         height: 1, // to be denser when we have to wrap
-        color: selected ? reactionTheme.textSelected : reactionTheme.textUnselected,
-      ).merge(weightVariableTextStyle(context,
-          wght: selected ? 600 : null)),
-      text);
+        color: selected
+            ? reactionTheme.textSelected
+            : reactionTheme.textUnselected,
+      ).merge(weightVariableTextStyle(context, wght: selected ? 600 : null)),
+      text,
+    );
   }
 }
 
@@ -392,15 +453,17 @@ Future<void> doAddOrRemoveReaction({
     switch (e) {
       case ZulipApiException():
         errorMessage = e.message;
-        // TODO(#741) specific messages for common errors, like network errors
-        //   (support with reusable code)
+      // TODO(#741) specific messages for common errors, like network errors
+      //   (support with reusable code)
       default:
-        // TODO(log)
+      // TODO(log)
     }
 
-    showErrorDialog(context: context,
+    showErrorDialog(
+      context: context,
       title: errorDialogTitle,
-      message: errorMessage);
+      message: errorMessage,
+    );
     return;
   }
 }
@@ -427,12 +490,17 @@ void showEmojiPickerSheet({
         // expands behind the software keyboard — resulting in some
         // list entries being covered by the keyboard. Add explicit
         // bottom padding the size of the keyboard, which fixes this.
-        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
         // For _EmojiPickerItem, and RealmContentNetworkImage used in ImageEmojiWidget.
         child: PerAccountStoreWidget(
           accountId: store.accountId,
-          child: EmojiPicker(pageContext: pageContext, message: message)));
-    });
+          child: EmojiPicker(pageContext: pageContext, message: message),
+        ),
+      );
+    },
+  );
 }
 
 @visibleForTesting
@@ -450,7 +518,8 @@ class EmojiPicker extends StatefulWidget {
   State<EmojiPicker> createState() => _EmojiPickerState();
 }
 
-class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStateMixin<EmojiPicker> {
+class _EmojiPickerState extends State<EmojiPicker>
+    with PerAccountStoreAwareStateMixin<EmojiPicker> {
   late TextEditingController _controller;
 
   EmojiAutocompleteView? _viewModel;
@@ -459,8 +528,7 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController()
-      ..addListener(_handleControllerUpdate);
+    _controller = TextEditingController()..addListener(_handleControllerUpdate);
   }
 
   @override
@@ -497,55 +565,87 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
 
-    return Column(children: [
-      Padding(padding: const EdgeInsetsDirectional.only(start: 8, top: 4),
-        child: Row(children: [
-          // TODO(design): Make sure if we need a button to clear the textfield.
-          Flexible(child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: TextField(
-              controller: _controller,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: zulipLocalizations.emojiPickerSearchEmoji,
-                contentPadding: const EdgeInsetsDirectional.only(start: 10, top: 6),
-                filled: true,
-                fillColor: designVariables.bgSearchInput,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none),
-                hintStyle: TextStyle(color: designVariables.textMessage)),
-              style: const TextStyle(fontSize: 19, height: 26 / 19)))),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              splashFactory: NoSplash.splashFactory,
-              foregroundColor: designVariables.contextMenuItemText,
-            ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
-              states.contains(WidgetState.pressed)
-                ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
-                : Colors.transparent)),
-            child: Text(zulipLocalizations.dialogClose,
-              style: const TextStyle(fontSize: 20, height: 30 / 20))),
-        ])),
-      Expanded(child: InsetShadowBox(
-        top: 8,
-        color: designVariables.bgContextMenu,
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: EdgeInsets.only(top: 8),
-              sliver: SliverSafeArea(
-                minimum: EdgeInsets.only(bottom: 8),
-                sliver: SliverList.builder(
-                  itemCount: _resultsToDisplay.length,
-                  itemBuilder: (context, i) => EmojiPickerListEntry(
-                    pageContext: widget.pageContext,
-                    emoji: _resultsToDisplay[i].candidate,
-                    message: widget.message)))),
-          ]))),
-    ]);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.only(start: 8, top: 4),
+          child: Row(
+            children: [
+              // TODO(design): Make sure if we need a button to clear the textfield.
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: TextField(
+                    controller: _controller,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: zulipLocalizations.emojiPickerSearchEmoji,
+                      contentPadding: const EdgeInsetsDirectional.only(
+                        start: 10,
+                        top: 6,
+                      ),
+                      filled: true,
+                      fillColor: designVariables.bgSearchInput,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                      ),
+                      hintStyle: TextStyle(color: designVariables.textMessage),
+                    ),
+                    style: const TextStyle(fontSize: 19, height: 26 / 19),
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                style:
+                    TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      splashFactory: NoSplash.splashFactory,
+                      foregroundColor: designVariables.contextMenuItemText,
+                    ).copyWith(
+                      backgroundColor: WidgetStateColor.resolveWith(
+                        (states) => states.contains(WidgetState.pressed)
+                            ? designVariables.contextMenuItemBg.withFadedAlpha(
+                                0.20,
+                              )
+                            : Colors.transparent,
+                      ),
+                    ),
+                child: Text(
+                  zulipLocalizations.dialogClose,
+                  style: const TextStyle(fontSize: 20, height: 30 / 20),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: InsetShadowBox(
+            top: 8,
+            color: designVariables.bgContextMenu,
+            child: CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.only(top: 8),
+                  sliver: SliverSafeArea(
+                    minimum: EdgeInsets.only(bottom: 8),
+                    sliver: SliverList.builder(
+                      itemCount: _resultsToDisplay.length,
+                      itemBuilder: (context, i) => EmojiPickerListEntry(
+                        pageContext: widget.pageContext,
+                        emoji: _resultsToDisplay[i].candidate,
+                        message: widget.message,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -575,8 +675,10 @@ class EmojiPickerListEntry extends StatelessWidget {
       doRemoveReaction: false,
       messageId: message.id,
       emoji: emoji,
-      errorDialogTitle:
-        ZulipLocalizations.of(pageContext).errorReactionAddingFailedTitle);
+      errorDialogTitle: ZulipLocalizations.of(
+        pageContext,
+      ).errorReactionAddingFailedTitle,
+    );
   }
 
   @override
@@ -587,41 +689,58 @@ class EmojiPickerListEntry extends StatelessWidget {
     // TODO deduplicate this logic with [_EmojiAutocompleteItem]
     final emojiDisplay = emoji.emojiDisplay.resolve(store.userSettings);
     final Widget? glyph = switch (emojiDisplay) {
-      ImageEmojiDisplay() =>
-        ImageEmojiWidget(size: _emojiSize, emojiDisplay: emojiDisplay),
-      UnicodeEmojiDisplay() =>
-        UnicodeEmojiWidget(
-          size: _emojiSize, notoColorEmojiTextSize: _notoColorEmojiTextSize,
-          emojiDisplay: emojiDisplay),
+      ImageEmojiDisplay() => ImageEmojiWidget(
+        size: _emojiSize,
+        emojiDisplay: emojiDisplay,
+      ),
+      UnicodeEmojiDisplay() => UnicodeEmojiWidget(
+        size: _emojiSize,
+        notoColorEmojiTextSize: _notoColorEmojiTextSize,
+        emojiDisplay: emojiDisplay,
+      ),
       TextEmojiDisplay() => null, // The text is already shown separately.
     };
 
     final label = emoji.aliases.isEmpty
-      ? emoji.emojiName
-      : [emoji.emojiName, ...emoji.aliases].join(", "); // TODO(#1080)
+        ? emoji.emojiName
+        : [emoji.emojiName, ...emoji.aliases].join(", "); // TODO(#1080)
 
     return InkWell(
       onTap: _onPressed,
       splashFactory: NoSplash.splashFactory,
-      overlayColor: WidgetStateColor.resolveWith((states) =>
-        states.any((e) => e == WidgetState.pressed)
-          ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
-          : Colors.transparent),
+      overlayColor: WidgetStateColor.resolveWith(
+        (states) => states.any((e) => e == WidgetState.pressed)
+            ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+            : Colors.transparent,
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Row(spacing: 4, children: [
-          if (glyph != null)
+        child: Row(
+          spacing: 4,
+          children: [
+            if (glyph != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: glyph,
+              ),
             Padding(
-              padding: const EdgeInsets.all(10),
-              child: glyph),
-          Flexible(child: Text(label,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 17,
-              height: 18 / 17,
-              color: designVariables.textMessage)))
-        ]),
-      ));
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              child: Flexible(
+                child: Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 17,
+                    height: 18 / 17,
+                    color: designVariables.textMessage,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
