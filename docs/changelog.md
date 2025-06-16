@@ -3,6 +3,48 @@
 ## Unreleased
 
 
+## 30.0.256 (2025-06-15)
+
+With this release, this new app takes on the identity
+of the main Zulip app!
+
+This release branch includes some experimental changes
+not yet merged to the main branch.
+
+
+### Highlights for users (vs legacy app)
+
+Welcome to the new Zulip mobile app!  You'll find
+a familiar experience in a faster, sleeker package.
+
+For more information or to send us feedback,
+see the announcement blog post:
+https://blog.zulip.com/flutter-mobile-app-launch
+
+
+### Highlights for users (vs last beta, v0.0.33)
+
+* This app now uses the app ID of the main Zulip mobile app,
+  formerly used by the legacy app.  It therefore installs over
+  any previous install of the legacy app, rather than of the
+  Flutter beta app. (#1582)
+* The app's icon and name no longer say "beta". (#1537)
+* Migrate accounts and settings from the legacy app's data. (#1070)
+* Show welcome dialog on upgrading from legacy app. (#1580)
+
+
+### Highlights for developers
+
+* Resolved in the experimental branch:
+  * more toward #46 via PR #1452
+  * further toward #46 via PR #1559
+  * #296 via PR #1561
+  * #1537 via PR #1577
+  * #1582 via PR #1586
+  * #1070 via PR #1588
+  * #1580 via PR #1590
+
+
 ## 0.0.33 (2025-06-13)
 
 This is a preview beta, including some experimental changes

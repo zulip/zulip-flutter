@@ -21,6 +21,20 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get aboutPageTapToView => 'Tap to view';
 
   @override
+  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
+
+  @override
+  String get upgradeWelcomeDialogMessage =>
+      'You’ll find a familiar experience in a faster, sleeker package.';
+
+  @override
+  String get upgradeWelcomeDialogLinkText =>
+      'Check out the announcement blog post!';
+
+  @override
+  String get upgradeWelcomeDialogDismiss => 'Let\'s go';
+
+  @override
   String get chooseAccountPageTitle => 'Choose account';
 
   @override
@@ -864,7 +878,7 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   ZulipLocalizationsZhHansCn() : super('zh_Hans_CN');
 
   @override
-  String get aboutPageTitle => '关于Zulip';
+  String get aboutPageTitle => '关于 Zulip';
 
   @override
   String get aboutPageAppVersion => '应用程序版本';
@@ -970,6 +984,9 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get actionSheetOptionShare => '分享';
+
+  @override
+  String get actionSheetOptionQuoteMessage => '引用消息';
 
   @override
   String get actionSheetOptionStarMessage => '添加星标消息标记';
@@ -1197,11 +1214,11 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String composeBoxDmContentHint(String user) {
-    return '私信 @$user';
+    return '发送私信给 @$user';
   }
 
   @override
-  String get composeBoxGroupDmContentHint => '私信群组';
+  String get composeBoxGroupDmContentHint => '发送私信到群组';
 
   @override
   String get composeBoxSelfDmContentHint => '向自己撰写消息';
@@ -1463,7 +1480,7 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get inboxPageTitle => '收件箱';
 
   @override
-  String get inboxEmptyPlaceholder => '你的收件箱中没有未读消息。您可以通过底部导航栏访问综合消息或者频道列表。';
+  String get inboxEmptyPlaceholder => '您的收件箱中没有未读消息。您可以通过底部导航栏访问综合消息或者频道列表。';
 
   @override
   String get recentDmConversationsPageTitle => '私信';
@@ -1478,7 +1495,7 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get combinedFeedPageTitle => '综合消息';
 
   @override
-  String get mentionsPageTitle => '@提及';
+  String get mentionsPageTitle => '被提及消息';
 
   @override
   String get starredMessagesPageTitle => '星标消息';
@@ -1505,7 +1522,7 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
       locale: localeName,
       other: '$numOthers 个用户',
     );
-    return '$senderFullName向你和其他 $_temp0';
+    return '$senderFullName向您和其他 $_temp0';
   }
 
   @override
@@ -1578,7 +1595,7 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get themeSettingTitle => '主题';
 
   @override
-  String get themeSettingDark => '深色';
+  String get themeSettingDark => '暗色';
 
   @override
   String get themeSettingLight => '浅色';
@@ -1612,11 +1629,30 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get initialAnchorSettingNewestAlways => '最新消息';
 
   @override
+  String get markReadOnScrollSettingTitle => '滑动时将消息标为已读';
+
+  @override
+  String get markReadOnScrollSettingDescription => '在滑动浏览消息时，是否自动将它们标记为已读？';
+
+  @override
+  String get markReadOnScrollSettingAlways => '总是';
+
+  @override
+  String get markReadOnScrollSettingNever => '从不';
+
+  @override
+  String get markReadOnScrollSettingConversations => '只在对话视图';
+
+  @override
+  String get markReadOnScrollSettingConversationsDescription =>
+      '只将在同一个话题或私聊中的消息自动标记为已读。';
+
+  @override
   String get experimentalFeatureSettingsPageTitle => '实验功能';
 
   @override
   String get experimentalFeatureSettingsWarning =>
-      '以下选项启用了一些正在开发中的功能。它们可能不能正常使用，或造成一些其他的问题。\n\n这些选项能够帮助开发者更好的试验这些功能。';
+      '以下选项能够启用开发中的功能。它们暂不完善，并可能造成其他的一些问题。\n\n这些选项的目的是为了帮助开发者进行实验。';
 
   @override
   String get errorNotificationOpenTitle => '未能打开消息提醒';

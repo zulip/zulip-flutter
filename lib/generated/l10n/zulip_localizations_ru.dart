@@ -21,6 +21,20 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get aboutPageTapToView => 'Нажмите для просмотра';
 
   @override
+  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
+
+  @override
+  String get upgradeWelcomeDialogMessage =>
+      'You’ll find a familiar experience in a faster, sleeker package.';
+
+  @override
+  String get upgradeWelcomeDialogLinkText =>
+      'Check out the announcement blog post!';
+
+  @override
+  String get upgradeWelcomeDialogDismiss => 'Let\'s go';
+
+  @override
   String get chooseAccountPageTitle => 'Выберите учетную запись';
 
   @override
@@ -126,7 +140,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get actionSheetOptionShare => 'Поделиться';
 
   @override
-  String get actionSheetOptionQuoteMessage => 'Quote message';
+  String get actionSheetOptionQuoteMessage => 'Цитировать сообщение';
 
   @override
   String get actionSheetOptionStarMessage => 'Отметить сообщение';
@@ -806,25 +820,26 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get initialAnchorSettingNewestAlways => 'Самое новое сообщение';
 
   @override
-  String get markReadOnScrollSettingTitle => 'Mark messages as read on scroll';
+  String get markReadOnScrollSettingTitle =>
+      'Отмечать сообщения как прочитанные при прокрутке';
 
   @override
   String get markReadOnScrollSettingDescription =>
-      'When scrolling through messages, should they automatically be marked as read?';
+      'При прокрутке сообщений автоматически отмечать их как прочитанные?';
 
   @override
-  String get markReadOnScrollSettingAlways => 'Always';
+  String get markReadOnScrollSettingAlways => 'Всегда';
 
   @override
-  String get markReadOnScrollSettingNever => 'Never';
+  String get markReadOnScrollSettingNever => 'Никогда';
 
   @override
   String get markReadOnScrollSettingConversations =>
-      'Only in conversation views';
+      'Только при просмотре бесед';
 
   @override
   String get markReadOnScrollSettingConversationsDescription =>
-      'Messages will be automatically marked as read only when viewing a single topic or direct message conversation.';
+      'Сообщения будут автоматически помечаться как прочитанные только при просмотре отдельной темы или личной беседы.';
 
   @override
   String get experimentalFeatureSettingsPageTitle =>
