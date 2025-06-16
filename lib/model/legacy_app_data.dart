@@ -91,20 +91,32 @@ Future<void> migrateLegacyAppData(AppDatabase db) async {
       assert(debugLog("    (account ignored because missing metadata)"));
       continue;
     }
-    await db.createAccount(AccountsCompanion.insert(
-      realmUrl: account.realm,
-      userId: account.userId!,
-      email: account.email,
-      apiKey: account.apiKey,
-      zulipVersion: account.zulipVersion!,
-      // no zulipMergeBase; legacy app didn't record it
-      zulipFeatureLevel: account.zulipFeatureLevel!,
-      // This app doesn't yet maintain ackedPushToken (#322), so avoid recording
-      // a value that would then be allowed to get stale.  See discussion:
-      //   https://github.com/zulip/zulip-flutter/pull/1588#discussion_r2148817025
-      // TODO(#322): apply ackedPushToken
-      // ackedPushToken: drift.Value(account.ackedPushToken),
-    ));
+    try {
+      await db.createAccount(AccountsCompanion.insert(
+        realmUrl: account.realm,
+        userId: account.userId!,
+        email: account.email,
+        apiKey: account.apiKey,
+        zulipVersion: account.zulipVersion!,
+        // no zulipMergeBase; legacy app didn't record it
+        zulipFeatureLevel: account.zulipFeatureLevel!,
+        // This app doesn't yet maintain ackedPushToken (#322), so avoid recording
+        // a value that would then be allowed to get stale.  See discussion:
+        //   https://github.com/zulip/zulip-flutter/pull/1588#discussion_r2148817025
+        // TODO(#322): apply ackedPushToken
+        // ackedPushToken: drift.Value(account.ackedPushToken),
+      ));
+    } on AccountAlreadyExistsException {
+      // There's one known way this can actually happen: the legacy app doesn't
+      // prevent duplicates on (realm, userId), only on (realm, email).
+      //
+      // So if e.g. the user changed their email on an account at some point
+      // in the past, and didn't go and delete the old version from the
+      // list of accounts, then the old version (the one later in the list,
+      // since the legacy app orders accounts by recency) will get dropped here.
+      assert(debugLog("    (account ignored because duplicate)"));
+      continue;
+    }
   }
 
   assert(debugLog("Done migrating legacy app data."));
