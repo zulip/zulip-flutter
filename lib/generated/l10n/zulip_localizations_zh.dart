@@ -890,6 +890,18 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get aboutPageTapToView => '查看更多';
 
   @override
+  String get upgradeWelcomeDialogTitle => '欢迎来到新的 Zulip 应用！';
+
+  @override
+  String get upgradeWelcomeDialogMessage => '您将会得到到更快，更流畅的体验。';
+
+  @override
+  String get upgradeWelcomeDialogLinkText => '来看看最新的公告吧！';
+
+  @override
+  String get upgradeWelcomeDialogDismiss => '开始吧';
+
+  @override
   String get chooseAccountPageTitle => '选择账号';
 
   @override

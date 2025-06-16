@@ -1180,5 +1180,21 @@
   "markReadOnScrollSettingConversationsDescription": "Сообщения будут автоматически помечаться как прочитанные только при просмотре отдельной темы или личной беседы.",
   "@markReadOnScrollSettingConversationsDescription": {
     "description": "Description for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "upgradeWelcomeDialogDismiss": "Приступим!",
+  "@upgradeWelcomeDialogDismiss": {
+    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogMessage": "Вы найдете привычные возможности в более быстром и легком приложении.",
+  "@upgradeWelcomeDialogMessage": {
+    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogTitle": "Добро пожаловать в новое приложение Zulip!",
+  "@upgradeWelcomeDialogTitle": {
+    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogLinkText": "Ознакомьтесь с анонсом в блоге!",
+  "@upgradeWelcomeDialogLinkText": {
+    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
   }
 }

@@ -21,18 +21,18 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get aboutPageTapToView => 'Нажмите для просмотра';
 
   @override
-  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
+  String get upgradeWelcomeDialogTitle =>
+      'Добро пожаловать в новое приложение Zulip!';
 
   @override
   String get upgradeWelcomeDialogMessage =>
-      'You’ll find a familiar experience in a faster, sleeker package.';
+      'Вы найдете привычные возможности в более быстром и легком приложении.';
 
   @override
-  String get upgradeWelcomeDialogLinkText =>
-      'Check out the announcement blog post!';
+  String get upgradeWelcomeDialogLinkText => 'Ознакомьтесь с анонсом в блоге!';
 
   @override
-  String get upgradeWelcomeDialogDismiss => 'Let\'s go';
+  String get upgradeWelcomeDialogDismiss => 'Приступим!';
 
   @override
   String get chooseAccountPageTitle => 'Выберите учетную запись';

@@ -1180,5 +1180,21 @@
   "emojiPickerSearchEmoji": "Cerca emoji",
   "@emojiPickerSearchEmoji": {
     "description": "Hint text for the emoji picker search text field."
+  },
+  "upgradeWelcomeDialogLinkText": "Date un'occhiata al post dell'annuncio sul blog!",
+  "@upgradeWelcomeDialogLinkText": {
+    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogDismiss": "Andiamo",
+  "@upgradeWelcomeDialogDismiss": {
+    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogMessage": "Troverai un'esperienza familiare in un pacchetto più veloce ed elegante.",
+  "@upgradeWelcomeDialogMessage": {
+    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogTitle": "Benvenuti alla nuova app Zulip!",
+  "@upgradeWelcomeDialogTitle": {
+    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
   }
 }

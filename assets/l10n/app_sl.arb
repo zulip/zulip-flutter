@@ -71,7 +71,7 @@
   "@errorCouldNotFetchMessageSource": {
     "description": "Error message when the source of a message could not be fetched."
   },
-  "markAsReadComplete": "Označeno je {num, plural, =1{1 sporočilo} one{2 sporočili} few{{num} sporočila} other{{num} sporočil}} kot prebrano.",
+  "markAsReadComplete": "Označeno je {num, plural, one{{num} sporočilo} two{{num} sporočili} few{{num} sporočila} other{{num} sporočil}} kot prebrano.",
   "@markAsReadComplete": {
     "description": "Message when marking messages as read has completed.",
     "placeholders": {
@@ -919,7 +919,7 @@
   "@recentDmConversationsEmptyPlaceholder": {
     "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
   },
-  "errorFilesTooLarge": "{num, plural, =1{Datoteka presega} one{Dve datoteki presegata} few{{num} datoteke presegajo} other{{num} datotek presega}} omejitev velikosti strežnika ({maxFileUploadSizeMib} MiB) in {num, plural, =1{ne bo naložena} one{ne bosta naloženi} few{ne bodo naložene} other{ne bodo naložene}}:\n\n{listMessage}",
+  "errorFilesTooLarge": "{num, plural, one{{num} datoteka presega} two{{num} datoteki presegata} few{{num} datoteke presegajo} other{{num} datotek presega}} omejitev velikosti strežnika ({maxFileUploadSizeMib} MiB) in {num, plural, one{ne bo naložena} two{ne bosta naloženi} few{ne bodo naložene} other{ne bodo naložene}}:\n\n{listMessage}",
   "@errorFilesTooLarge": {
     "description": "Error message when attached files are too large in size.",
     "placeholders": {
@@ -1041,7 +1041,7 @@
   "@actionSheetOptionUnmuteTopic": {
     "description": "Label for unmuting a topic on action sheet."
   },
-  "errorFilesTooLargeTitle": "\"{num, plural, =1{Datoteka je prevelika} one{Dve datoteki sta preveliki} few{{num} datoteke so prevelike} other{{num} datotek je prevelikih}}\"",
+  "errorFilesTooLargeTitle": "\"{num, plural, one{{num} datoteka je prevelika} two{{num} datoteki sta preveliki} few{{num} datoteke so prevelike} other{{num} datotek je prevelikih}}\"",
   "@errorFilesTooLargeTitle": {
     "description": "Error title when attached files are too large in size.",
     "placeholders": {
@@ -1051,7 +1051,7 @@
       }
     }
   },
-  "markAsUnreadComplete": "{num, plural, =1{Označeno je 1 sporočilo kot neprebrano} one{Označeni sta 2 sporočili kot neprebrani} few{Označena so {num} sporočila kot neprebrana} other{Označeno je {num} sporočil kot neprebranih}}.",
+  "markAsUnreadComplete": "{num, plural, one{Označeno je {num} sporočilo kot neprebrano} two{Označeni sta {num} sporočili kot neprebrani} few{Označena so {num} sporočila kot neprebrana} other{Označeno je {num} sporočil kot neprebranih}}.",
   "@markAsUnreadComplete": {
     "description": "Message when marking messages as unread has completed.",
     "placeholders": {
@@ -1128,5 +1128,73 @@
   "pinnedSubscriptionsLabel": "Pripeto",
   "@pinnedSubscriptionsLabel": {
     "description": "Label for the list of pinned subscribed channels."
+  },
+  "initialAnchorSettingTitle": "Odpri tok sporočil pri",
+  "@initialAnchorSettingTitle": {
+    "description": "Title of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingFirstUnreadAlways": "Prvo neprebrano sporočilo",
+  "@initialAnchorSettingFirstUnreadAlways": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingDescription": "Lahko izberete, ali se tok sporočil odpre pri vašem prvem neprebranem sporočilu ali pri najnovejših sporočilih.",
+  "@initialAnchorSettingDescription": {
+    "description": "Description of setting controlling initial anchor of message list."
+  },
+  "markReadOnScrollSettingDescription": "Naj se sporočila ob pomikanju samodejno označijo kot prebrana?",
+  "@markReadOnScrollSettingDescription": {
+    "description": "Description of setting controlling which message-list views should mark read on scroll."
+  },
+  "upgradeWelcomeDialogLinkText": "Preberite objavo na blogu!",
+  "@upgradeWelcomeDialogLinkText": {
+    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "initialAnchorSettingNewestAlways": "Najnovejše sporočilo",
+  "@initialAnchorSettingNewestAlways": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "markReadOnScrollSettingAlways": "Vedno",
+  "@markReadOnScrollSettingAlways": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingConversations": "Samo v pogledih pogovorov",
+  "@markReadOnScrollSettingConversations": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "initialAnchorSettingFirstUnreadConversations": "Prvo neprebrano v zasebnih pogovorih, najnovejše drugje",
+  "@initialAnchorSettingFirstUnreadConversations": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "markReadOnScrollSettingTitle": "Ob pomikanju označi sporočila kot prebrana",
+  "@markReadOnScrollSettingTitle": {
+    "description": "Title of setting controlling which message-list views should mark read on scroll."
+  },
+  "upgradeWelcomeDialogTitle": "Dobrodošli v novi aplikaciji Zulip!",
+  "@upgradeWelcomeDialogTitle": {
+    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "markReadOnScrollSettingConversationsDescription": "Sporočila bodo samodejno označena kot prebrana samo pri ogledu ene teme ali zasebnega pogovora.",
+  "@markReadOnScrollSettingConversationsDescription": {
+    "description": "Description for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingNever": "Nikoli",
+  "@markReadOnScrollSettingNever": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "upgradeWelcomeDialogMessage": "Čaka vas znana izkušnja v hitrejši in bolj elegantni obliki.",
+  "@upgradeWelcomeDialogMessage": {
+    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogDismiss": "Začnimo",
+  "@upgradeWelcomeDialogDismiss": {
+    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "actionSheetOptionQuoteMessage": "Citiraj sporočilo",
+  "@actionSheetOptionQuoteMessage": {
+    "description": "Label for the 'Quote message' button in the message action sheet."
+  },
+  "discardDraftForOutboxConfirmationDialogMessage": "Ko obnovite neodposlano sporočilo, se vsebina, ki je bila prej v polju za pisanje, zavrže.",
+  "@discardDraftForOutboxConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog when restoring an outbox message, for discarding message text that was typed into the compose box."
   }
 }

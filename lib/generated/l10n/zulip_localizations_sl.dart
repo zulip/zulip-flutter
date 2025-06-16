@@ -21,18 +21,17 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get aboutPageTapToView => 'Dotaknite se za ogled';
 
   @override
-  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
+  String get upgradeWelcomeDialogTitle => 'Dobrodošli v novi aplikaciji Zulip!';
 
   @override
   String get upgradeWelcomeDialogMessage =>
-      'You’ll find a familiar experience in a faster, sleeker package.';
+      'Čaka vas znana izkušnja v hitrejši in bolj elegantni obliki.';
 
   @override
-  String get upgradeWelcomeDialogLinkText =>
-      'Check out the announcement blog post!';
+  String get upgradeWelcomeDialogLinkText => 'Preberite objavo na blogu!';
 
   @override
-  String get upgradeWelcomeDialogDismiss => 'Let\'s go';
+  String get upgradeWelcomeDialogDismiss => 'Začnimo';
 
   @override
   String get chooseAccountPageTitle => 'Izberite račun';
@@ -139,7 +138,7 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get actionSheetOptionShare => 'Deli';
 
   @override
-  String get actionSheetOptionQuoteMessage => 'Quote message';
+  String get actionSheetOptionQuoteMessage => 'Citiraj sporočilo';
 
   @override
   String get actionSheetOptionStarMessage => 'Označi sporočilo z zvezdico';
@@ -196,14 +195,16 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
       locale: localeName,
       other: '$num datotek presega',
       few: '$num datoteke presegajo',
-      one: 'Dve datoteki presegata',
+      two: '$num datoteki presegata',
+      one: '$num datoteka presega',
     );
     String _temp1 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
       other: 'ne bodo naložene',
       few: 'ne bodo naložene',
-      one: 'ne bosta naloženi',
+      two: 'ne bosta naloženi',
+      one: 'ne bo naložena',
     );
     return '$_temp0 omejitev velikosti strežnika ($maxFileUploadSizeMib MiB) in $_temp1:\n\n$listMessage';
   }
@@ -215,7 +216,8 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
       locale: localeName,
       other: '$num datotek je prevelikih',
       few: '$num datoteke so prevelike',
-      one: 'Dve datoteki sta preveliki',
+      two: '$num datoteki sta preveliki',
+      one: '$num datoteka je prevelika',
     );
     return '\"$_temp0\"';
   }
@@ -358,7 +360,7 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
 
   @override
   String get discardDraftForOutboxConfirmationDialogMessage =>
-      'When you restore an unsent message, the content that was previously in the compose box is discarded.';
+      'Ko obnovite neodposlano sporočilo, se vsebina, ki je bila prej v polju za pisanje, zavrže.';
 
   @override
   String get discardDraftConfirmationDialogConfirmButton => 'Zavrzi';
@@ -615,7 +617,8 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
       locale: localeName,
       other: '$num sporočil',
       few: '$num sporočila',
-      one: '2 sporočili',
+      two: '$num sporočili',
+      one: '$num sporočilo',
     );
     return 'Označeno je $_temp0 kot prebrano.';
   }
@@ -633,7 +636,8 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
       locale: localeName,
       other: 'Označeno je $num sporočil kot neprebranih',
       few: 'Označena so $num sporočila kot neprebrana',
-      one: 'Označeni sta 2 sporočili kot neprebrani',
+      two: 'Označeni sta $num sporočili kot neprebrani',
+      one: 'Označeno je $num sporočilo kot neprebrano',
     );
     return '$_temp0.';
   }
@@ -810,42 +814,44 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get pollWidgetOptionsMissing => 'Ta anketa še nima odgovorov.';
 
   @override
-  String get initialAnchorSettingTitle => 'Open message feeds at';
+  String get initialAnchorSettingTitle => 'Odpri tok sporočil pri';
 
   @override
   String get initialAnchorSettingDescription =>
-      'You can choose whether message feeds open at your first unread message or at the newest messages.';
+      'Lahko izberete, ali se tok sporočil odpre pri vašem prvem neprebranem sporočilu ali pri najnovejših sporočilih.';
 
   @override
-  String get initialAnchorSettingFirstUnreadAlways => 'First unread message';
+  String get initialAnchorSettingFirstUnreadAlways =>
+      'Prvo neprebrano sporočilo';
 
   @override
   String get initialAnchorSettingFirstUnreadConversations =>
-      'First unread message in single conversations, newest message elsewhere';
+      'Prvo neprebrano v zasebnih pogovorih, najnovejše drugje';
 
   @override
-  String get initialAnchorSettingNewestAlways => 'Newest message';
+  String get initialAnchorSettingNewestAlways => 'Najnovejše sporočilo';
 
   @override
-  String get markReadOnScrollSettingTitle => 'Mark messages as read on scroll';
+  String get markReadOnScrollSettingTitle =>
+      'Ob pomikanju označi sporočila kot prebrana';
 
   @override
   String get markReadOnScrollSettingDescription =>
-      'When scrolling through messages, should they automatically be marked as read?';
+      'Naj se sporočila ob pomikanju samodejno označijo kot prebrana?';
 
   @override
-  String get markReadOnScrollSettingAlways => 'Always';
+  String get markReadOnScrollSettingAlways => 'Vedno';
 
   @override
-  String get markReadOnScrollSettingNever => 'Never';
+  String get markReadOnScrollSettingNever => 'Nikoli';
 
   @override
   String get markReadOnScrollSettingConversations =>
-      'Only in conversation views';
+      'Samo v pogledih pogovorov';
 
   @override
   String get markReadOnScrollSettingConversationsDescription =>
-      'Messages will be automatically marked as read only when viewing a single topic or direct message conversation.';
+      'Sporočila bodo samodejno označena kot prebrana samo pri ogledu ene teme ali zasebnega pogovora.';
 
   @override
   String get experimentalFeatureSettingsPageTitle => 'Eksperimentalne funkcije';
