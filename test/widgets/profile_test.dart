@@ -1,11 +1,14 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/profile.dart';
@@ -13,15 +16,19 @@ import 'package:zulip/widgets/profile.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../model/test_store.dart';
+import '../test_images.dart';
 import '../test_navigation.dart';
 import 'message_list_checks.dart';
 import 'page_checks.dart';
 import 'profile_page_checks.dart';
 import 'test_app.dart';
 
+late PerAccountStore store;
+
 Future<void> setupPage(WidgetTester tester, {
   required int pageUserId,
   List<User>? users,
+  List<int>? mutedUserIds,
   List<CustomProfileField>? customProfileFields,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   NavigatorObserver? navigatorObserver,
@@ -32,11 +39,14 @@ Future<void> setupPage(WidgetTester tester, {
     customProfileFields: customProfileFields,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts);
   await testBinding.globalStore.add(eg.selfAccount, initialSnapshot);
-  final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+  store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
   await store.addUser(eg.selfUser);
   if (users != null) {
     await store.addUsers(users);
+  }
+  if (mutedUserIds != null) {
+    await store.setMutedUsers(mutedUserIds);
   }
 
   await tester.pumpWidget(TestZulipApp(
@@ -235,6 +245,43 @@ void main() {
 
       final textFinder = find.text('(unknown user)');
       check(textFinder.evaluate()).length.equals(1);
+    });
+
+    testWidgets('page builds; user field with muted user', (tester) async {
+      prepareBoringImageHttpClient();
+
+      Finder avatarFinder(int userId) => find.byWidgetPredicate(
+        (widget) => widget is Avatar && widget.userId == userId);
+      Finder mutedAvatarFinder(int userId) => find.descendant(
+        of: avatarFinder(userId),
+        matching: find.byIcon(ZulipIcons.person));
+      Finder nonmutedAvatarFinder(int userId) => find.descendant(
+        of: avatarFinder(userId),
+        matching: find.byType(RealmContentNetworkImage));
+
+      final users = [
+        eg.user(userId: 1, profileData: {
+          0: ProfileFieldUserData(value: '[2,3]'),
+        }),
+        eg.user(userId: 2, fullName: 'test user2', avatarUrl: '/foo.png'),
+        eg.user(userId: 3, fullName: 'test user3', avatarUrl: '/bar.png'),
+      ];
+
+      await setupPage(tester,
+        users: users,
+        mutedUserIds: [2],
+        pageUserId: 1,
+        customProfileFields: [mkCustomProfileField(0, CustomProfileFieldType.user)]);
+
+      check(find.text('Muted user')).findsOne();
+      check(mutedAvatarFinder(2)).findsOne();
+      check(nonmutedAvatarFinder(2)).findsNothing();
+
+      check(find.text('test user3')).findsOne();
+      check(mutedAvatarFinder(3)).findsNothing();
+      check(nonmutedAvatarFinder(3)).findsOne();
+
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('page builds; dm links to correct narrow', (tester) async {

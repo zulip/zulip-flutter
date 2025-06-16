@@ -369,8 +369,12 @@ abstract class MathNode extends ContentNode {
   }
 }
 
-class KatexNode extends ContentNode {
-  const KatexNode({
+sealed class KatexNode extends ContentNode {
+  const KatexNode({super.debugHtmlNode});
+}
+
+class KatexSpanNode extends KatexNode {
+  const KatexSpanNode({
     required this.styles,
     required this.text,
     required this.nodes,
@@ -399,6 +403,77 @@ class KatexNode extends ContentNode {
   @override
   List<DiagnosticsNode> debugDescribeChildren() {
     return nodes?.map((node) => node.toDiagnosticsNode()).toList() ?? const [];
+  }
+}
+
+class KatexStrutNode extends KatexNode {
+  const KatexStrutNode({
+    required this.heightEm,
+    required this.verticalAlignEm,
+    super.debugHtmlNode,
+  });
+
+  final double heightEm;
+  final double? verticalAlignEm;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DoubleProperty('heightEm', heightEm));
+    properties.add(DoubleProperty('verticalAlignEm', verticalAlignEm));
+  }
+}
+
+class KatexVlistNode extends KatexNode {
+  const KatexVlistNode({
+    required this.rows,
+    super.debugHtmlNode,
+  });
+
+  final List<KatexVlistRowNode> rows;
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return rows.map((row) => row.toDiagnosticsNode()).toList();
+  }
+}
+
+class KatexVlistRowNode extends ContentNode {
+  const KatexVlistRowNode({
+    required this.verticalOffsetEm,
+    required this.node,
+    super.debugHtmlNode,
+  });
+
+  final double verticalOffsetEm;
+  final KatexSpanNode node;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DoubleProperty('verticalOffsetEm', verticalOffsetEm));
+  }
+}
+
+class KatexNegativeMarginNode extends KatexNode {
+  const KatexNegativeMarginNode({
+    required this.leftOffsetEm,
+    required this.nodes,
+    super.debugHtmlNode,
+  }) : assert(leftOffsetEm < 0);
+
+  final double leftOffsetEm;
+  final List<KatexNode> nodes;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DoubleProperty('leftOffsetEm', leftOffsetEm));
+  }
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return nodes.map((node) => node.toDiagnosticsNode()).toList();
   }
 }
 

@@ -1,7 +1,9 @@
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
+import 'algorithms.dart';
 import 'localizations.dart';
+import 'narrow.dart';
 import 'store.dart';
 
 /// The portion of [PerAccountStore] describing the users in the realm.
@@ -44,27 +46,40 @@ mixin UserStore on PerAccountStoreBase {
 
   /// The name to show the given user as in the UI, even for unknown users.
   ///
-  /// This is the user's [User.fullName] if the user is known,
-  /// and otherwise a translation of "(unknown user)".
+  /// If the user is muted and [replaceIfMuted] is true (the default),
+  /// this is [ZulipLocalizations.mutedUser].
+  ///
+  /// Otherwise this is the user's [User.fullName] if the user is known,
+  /// or (if unknown) [ZulipLocalizations.unknownUserName].
   ///
   /// When a [Message] is available which the user sent,
   /// use [senderDisplayName] instead for a better-informed fallback.
-  String userDisplayName(int userId) {
+  String userDisplayName(int userId, {bool replaceIfMuted = true}) {
+    if (replaceIfMuted && isUserMuted(userId)) {
+      return GlobalLocalizations.zulipLocalizations.mutedUser;
+    }
     return getUser(userId)?.fullName
       ?? GlobalLocalizations.zulipLocalizations.unknownUserName;
   }
 
   /// The name to show for the given message's sender in the UI.
   ///
-  /// If the user is known (see [getUser]), this is their current [User.fullName].
+  /// If the sender is muted and [replaceIfMuted] is true (the default),
+  /// this is [ZulipLocalizations.mutedUser].
+  ///
+  /// Otherwise, if the user is known (see [getUser]),
+  /// this is their current [User.fullName].
   /// If unknown, this uses the fallback value conveniently provided on the
   /// [Message] object itself, namely [Message.senderFullName].
   ///
   /// For a user who isn't the sender of some known message,
   /// see [userDisplayName].
-  String senderDisplayName(Message message) {
-    return getUser(message.senderId)?.fullName
-      ?? message.senderFullName;
+  String senderDisplayName(Message message, {bool replaceIfMuted = true}) {
+    final senderId = message.senderId;
+    if (replaceIfMuted && isUserMuted(senderId)) {
+      return GlobalLocalizations.zulipLocalizations.mutedUser;
+    }
+    return getUser(senderId)?.fullName ?? message.senderFullName;
   }
 
   /// Whether the user with [userId] is muted by the self-user.
@@ -72,6 +87,38 @@ mixin UserStore on PerAccountStoreBase {
   /// Looks for [userId] in a private [Set],
   /// or in [event.mutedUsers] instead if event is non-null.
   bool isUserMuted(int userId, {MutedUsersEvent? event});
+
+  /// Whether the self-user has muted everyone in [narrow].
+  ///
+  /// Returns false for the self-DM.
+  ///
+  /// Calls [isUserMuted] for each participant, passing along [event].
+  bool shouldMuteDmConversation(DmNarrow narrow, {MutedUsersEvent? event}) {
+    if (narrow.otherRecipientIds.isEmpty) return false;
+    return narrow.otherRecipientIds.every(
+      (userId) => isUserMuted(userId, event: event));
+  }
+
+  /// Whether the given event might change the result of [shouldMuteDmConversation]
+  /// for its list of muted users, compared to the current state.
+  MutedUsersVisibilityEffect mightChangeShouldMuteDmConversation(MutedUsersEvent event);
+}
+
+/// Whether and how a given [MutedUsersEvent] may affect the results
+/// that [UserStore.shouldMuteDmConversation] would give for some messages.
+enum MutedUsersVisibilityEffect {
+  /// The event will have no effect on the visibility results.
+  none,
+
+  /// The event may change some visibility results from true to false.
+  muted,
+
+  /// The event may change some visibility results from false to true.
+  unmuted,
+
+  /// The event may change some visibility results from false to true,
+  /// and some from true to false.
+  mixed;
 }
 
 /// The implementation of [UserStore] that does the work.
@@ -103,6 +150,29 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
   @override
   bool isUserMuted(int userId, {MutedUsersEvent? event}) {
     return (event?.mutedUsers.map((item) => item.id) ?? _mutedUsers).contains(userId);
+  }
+
+  @override
+  MutedUsersVisibilityEffect mightChangeShouldMuteDmConversation(MutedUsersEvent event) {
+    final sortedOld = _mutedUsers.toList()..sort();
+    final sortedNew = event.mutedUsers.map((u) => u.id).toList()..sort();
+    assert(isSortedWithoutDuplicates(sortedOld));
+    assert(isSortedWithoutDuplicates(sortedNew));
+    final union = setUnion(sortedOld, sortedNew);
+
+    final willMuteSome = sortedOld.length < union.length;
+    final willUnmuteSome = sortedNew.length < union.length;
+
+    switch ((willUnmuteSome, willMuteSome)) {
+      case (true, false):
+        return MutedUsersVisibilityEffect.unmuted;
+      case (false, true):
+        return MutedUsersVisibilityEffect.muted;
+      case (true, true):
+        return MutedUsersVisibilityEffect.mixed;
+      case (false, false): // TODO(log)?
+        return MutedUsersVisibilityEffect.none;
+    }
   }
 
   void handleRealmUserEvent(RealmUserEvent event) {
