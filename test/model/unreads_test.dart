@@ -138,14 +138,14 @@ void main() {
           eg.unreadChannelMsgs(streamId: stream2.streamId, topic: 'c', unreadMessageIds: [7, 8]),
         ],
         dms: [
-          UnreadDmSnapshot(otherUserId: 1, unreadMessageIds: [9, 10]),
-          UnreadDmSnapshot(otherUserId: 2, unreadMessageIds: [11, 12]),
+          UnreadDmSnapshot(otherUserId: 1, unreadMessageIds: [11, 12]),
+          UnreadDmSnapshot(otherUserId: 2, unreadMessageIds: [13, 14]),
         ],
         huddles: [
-          UnreadHuddleSnapshot(userIdsString: '1,2,${eg.selfUser.userId}', unreadMessageIds: [13, 14]),
-          UnreadHuddleSnapshot(userIdsString: '2,3,${eg.selfUser.userId}', unreadMessageIds: [15, 16]),
+          UnreadHuddleSnapshot(userIdsString: '1,2,${eg.selfUser.userId}', unreadMessageIds: [15, 16]),
+          UnreadHuddleSnapshot(userIdsString: '2,3,${eg.selfUser.userId}', unreadMessageIds: [17, 18]),
         ],
-        mentions: [6, 12, 16],
+        mentions: [6, 14, 18],
         oldUnreadsMissing: false,
       ));
       checkMatchesMessages([
@@ -157,14 +157,14 @@ void main() {
         eg.streamMessage(id: 6, stream: stream2, topic: 'b', flags: [MessageFlag.mentioned]),
         eg.streamMessage(id: 7, stream: stream2, topic: 'c', flags: []),
         eg.streamMessage(id: 8, stream: stream2, topic: 'c', flags: []),
-        eg.dmMessage(id: 9,  from: user1, to: [eg.selfUser], flags: []),
-        eg.dmMessage(id: 10, from: user1, to: [eg.selfUser], flags: []),
-        eg.dmMessage(id: 11, from: user2, to: [eg.selfUser], flags: []),
-        eg.dmMessage(id: 12, from: user2, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
-        eg.dmMessage(id: 13, from: user1, to: [user2, eg.selfUser], flags: []),
-        eg.dmMessage(id: 14, from: user1, to: [user2, eg.selfUser], flags: []),
-        eg.dmMessage(id: 15, from: user2, to: [user3, eg.selfUser], flags: []),
-        eg.dmMessage(id: 16, from: user2, to: [user3, eg.selfUser], flags: [MessageFlag.wildcardMentioned]),
+        eg.dmMessage(id: 11,  from: user1, to: [eg.selfUser], flags: []),
+        eg.dmMessage(id: 12, from: user1, to: [eg.selfUser], flags: []),
+        eg.dmMessage(id: 13, from: user2, to: [eg.selfUser], flags: []),
+        eg.dmMessage(id: 14, from: user2, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
+        eg.dmMessage(id: 15, from: user1, to: [user2, eg.selfUser], flags: []),
+        eg.dmMessage(id: 16, from: user1, to: [user2, eg.selfUser], flags: []),
+        eg.dmMessage(id: 17, from: user2, to: [user3, eg.selfUser], flags: []),
+        eg.dmMessage(id: 18, from: user2, to: [user3, eg.selfUser], flags: [MessageFlag.wildcardMentioned]),
       ]);
     });
   });
