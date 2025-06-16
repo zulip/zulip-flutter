@@ -5,11 +5,13 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/algorithms.dart';
+import 'package:zulip/model/channel.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/unreads.dart';
 
 import '../example_data.dart' as eg;
+import '../stdlib_checks.dart';
 import 'test_store.dart';
 import 'unreads_checks.dart';
 
@@ -76,7 +78,7 @@ void main() {
     assert(Set.of(messages.map((m) => m.id)).length == messages.length,
       'checkMatchesMessages: duplicate messages in test input');
 
-    final Map<int, Map<TopicName, QueueList<int>>> expectedStreams = {};
+    final Map<int, TopicKeyedMap<QueueList<int>>> expectedStreams = {};
     final Map<DmNarrow, QueueList<int>> expectedDms = {};
     final Set<int> expectedMentions = {};
     for (final message in messages) {
@@ -85,7 +87,7 @@ void main() {
       }
       switch (message) {
         case StreamMessage():
-          final perTopic = expectedStreams[message.streamId] ??= {};
+          final perTopic = expectedStreams[message.streamId] ??= makeTopicKeyedMap();
           final messageIds = perTopic[message.topic] ??= QueueList();
           messageIds.add(message.id);
         case DmMessage():
@@ -136,6 +138,9 @@ void main() {
           eg.unreadChannelMsgs(streamId: stream1.streamId, topic: 'b', unreadMessageIds: [3, 4]),
           eg.unreadChannelMsgs(streamId: stream2.streamId, topic: 'b', unreadMessageIds: [5, 6]),
           eg.unreadChannelMsgs(streamId: stream2.streamId, topic: 'c', unreadMessageIds: [7, 8]),
+
+          // TODO(server-10) drop this (see implementation)
+          eg.unreadChannelMsgs(streamId: stream2.streamId, topic: 'C', unreadMessageIds: [9, 10]),
         ],
         dms: [
           UnreadDmSnapshot(otherUserId: 1, unreadMessageIds: [11, 12]),
@@ -157,6 +162,8 @@ void main() {
         eg.streamMessage(id: 6, stream: stream2, topic: 'b', flags: [MessageFlag.mentioned]),
         eg.streamMessage(id: 7, stream: stream2, topic: 'c', flags: []),
         eg.streamMessage(id: 8, stream: stream2, topic: 'c', flags: []),
+        eg.streamMessage(id: 9, stream: stream2, topic: 'C', flags: []),
+        eg.streamMessage(id: 10, stream: stream2, topic: 'C', flags: []),
         eg.dmMessage(id: 11,  from: user1, to: [eg.selfUser], flags: []),
         eg.dmMessage(id: 12, from: user1, to: [eg.selfUser], flags: []),
         eg.dmMessage(id: 13, from: user2, to: [eg.selfUser], flags: []),
@@ -201,10 +208,10 @@ void main() {
       await store.addUserTopic(stream, 'c', UserTopicVisibilityPolicy.muted);
       fillWithMessages([
         eg.streamMessage(stream: stream, topic: 'a', flags: []),
-        eg.streamMessage(stream: stream, topic: 'a', flags: []),
+        eg.streamMessage(stream: stream, topic: 'A', flags: []),
         eg.streamMessage(stream: stream, topic: 'b', flags: []),
         eg.streamMessage(stream: stream, topic: 'b', flags: []),
-        eg.streamMessage(stream: stream, topic: 'b', flags: []),
+        eg.streamMessage(stream: stream, topic: 'B', flags: []),
         eg.streamMessage(stream: stream, topic: 'c', flags: []),
       ]);
       check(model.countInChannel      (stream.streamId)).equals(5);
@@ -220,9 +227,13 @@ void main() {
     test('countInTopicNarrow', () {
       final stream = eg.stream();
       prepare();
-      fillWithMessages(List.generate(7, (i) => eg.streamMessage(
-        stream: stream, topic: 'a', flags: [])));
-      check(model.countInTopicNarrow(stream.streamId, eg.t('a'))).equals(7);
+      final messages = [
+        ...List.generate(7, (i) => eg.streamMessage(stream: stream, topic: 'a', flags: [])),
+        ...List.generate(2, (i) => eg.streamMessage(stream: stream, topic: 'A', flags: [])),
+      ];
+      fillWithMessages(messages);
+      check(model.countInTopicNarrow(stream.streamId, eg.t('a'))).equals(9);
+      check(model.countInTopicNarrow(stream.streamId, eg.t('A'))).equals(9);
     });
 
     test('countInDmNarrow', () {
@@ -369,6 +380,24 @@ void main() {
             checkMatchesMessages([oldMessage, newMessage]);
           });
         }
+      });
+
+      test('topics case-insensitive but case-preserving', () {
+        final stream = eg.stream();
+        final message1 = eg.streamMessage(stream: stream, topic: 'aaa');
+        final message2 = eg.streamMessage(stream: stream, topic: 'AaA');
+        final message3 = eg.streamMessage(stream: stream, topic: 'aAa');
+        prepare();
+        fillWithMessages([message1]);
+        model.handleMessageEvent(eg.messageEvent(message2));
+        model.handleMessageEvent(eg.messageEvent(message3));
+        checkNotified(count: 2);
+        checkMatchesMessages([message1, message2, message3]);
+        // Redundant with checkMatchesMessages, but for explicitness here:
+        check(model).streams.values.single
+          .entries.single
+            ..key.equals(eg.t('aaa'))
+            ..value.length.equals(3);
       });
     });
 
@@ -629,6 +658,39 @@ void main() {
         checkMatchesMessages(copyMessagesWith(unreadMessages, newTopic: newTopic));
       });
 
+      test('topics case-insensitive but case-preserving', () async {
+        final message1 = eg.streamMessage(stream: origChannel, topic: 'aaa', flags: []);
+        final message2 = eg.streamMessage(stream: origChannel, topic: 'aaa', flags: []);
+        final messages = [message1, message2];
+        await prepareStore();
+        fillWithMessages(messages);
+
+        model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+          // 'AAA' finds the key 'aaa'
+          origMessages: copyMessagesWith([message1], newTopic: 'AAA'),
+          newTopicStr: 'bbb'));
+        checkNotifiedOnce();
+        checkMatchesMessages([
+          ...copyMessagesWith([message1], newTopic: 'bbb'),
+          message2,
+        ]);
+
+        model.handleUpdateMessageEvent(eg.updateMessageEventMoveFrom(
+          origMessages: [message2],
+          // 'BBB' finds the key 'bbb'
+          newTopicStr: 'BBB'));
+        checkNotifiedOnce();
+        checkMatchesMessages([
+          ...copyMessagesWith([message1], newTopic: 'bbb'),
+          ...copyMessagesWith([message2], newTopic: 'BBB'),
+        ]);
+        // Redundant with checkMatchesMessages, but for explicitness here:
+        check(model).streams.values.single
+          .entries.single
+            ..key.equals(eg.t('bbb'))
+            ..value.length.equals(2);
+      });
+
       test('tolerates unreads unknown to the model', () async {
         await prepareStore();
         fillWithMessages(unreadMessages);
@@ -690,6 +752,7 @@ void main() {
       fillWithMessages(messages);
 
       final expectedRemainingMessages = Set.of(messages);
+      assert(messages.any((m) => m.id == 14));
       for (final message in messages) {
         final event = switch (message) {
           StreamMessage() => DeleteMessageEvent(
@@ -697,7 +760,12 @@ void main() {
             messageType: MessageType.stream,
             messageIds: [message.id],
             streamId: message.streamId,
-            topic: message.topic,
+            topic: () {
+              if (message.id != 14) return message.topic;
+              final uppercase = message.topic.apiName.toUpperCase();
+              assert(message.topic.apiName != uppercase);
+              return eg.t(uppercase); // exercise case-insensitivity of topics
+            }(),
           ),
           DmMessage() => DeleteMessageEvent(
             id: 0,

@@ -41,14 +41,22 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
     required CorePerAccountStore core,
     required ChannelStore channelStore,
   }) {
-    final streams = <int, Map<TopicName, QueueList<int>>>{};
+    final streams = <int, TopicKeyedMap<QueueList<int>>>{};
     final dms = <DmNarrow, QueueList<int>>{};
     final mentions = Set.of(initial.mentions);
 
     for (final unreadChannelSnapshot in initial.channels) {
       final streamId = unreadChannelSnapshot.streamId;
       final topic = unreadChannelSnapshot.topic;
-      (streams[streamId] ??= {})[topic] = QueueList.from(unreadChannelSnapshot.unreadMessageIds);
+      final topics = (streams[streamId] ??= makeTopicKeyedMap());
+      topics.update(topic,
+        // Older servers differentiate topics case-sensitively, but shouldn't:
+        //   https://github.com/zulip/zulip/pull/31869
+        // Our topic-keyed map is case-insensitive. When we've seen this
+        // topic before, modulo case, aggregate instead of clobbering.
+        // TODO(server-10) simplify away
+        (value) => setUnion(value, unreadChannelSnapshot.unreadMessageIds),
+        ifAbsent: () => QueueList.from(unreadChannelSnapshot.unreadMessageIds));
     }
 
     for (final unreadDmSnapshot in initial.dms) {
@@ -88,7 +96,10 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   // int count;
 
   /// Unread stream messages, as: stream ID → topic → message IDs (sorted).
-  final Map<int, Map<TopicName, QueueList<int>>> streams;
+  ///
+  /// The topic-keyed map is case-insensitive and case-preserving;
+  /// it comes from [makeTopicKeyedMap].
+  final Map<int, TopicKeyedMap<QueueList<int>>> streams;
 
   /// Unread DM messages, as: DM narrow → message IDs (sorted).
   final Map<DmNarrow, QueueList<int>> dms;
@@ -405,7 +416,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
               _slowRemoveAllInDms(messageIdsSet);
             }
           case UpdateMessageFlagsRemoveEvent():
-            final newlyUnreadInStreams = <int, Map<TopicName, QueueList<int>>>{};
+            final newlyUnreadInStreams = <int, TopicKeyedMap<QueueList<int>>>{};
             final newlyUnreadInDms = <DmNarrow, QueueList<int>>{};
             for (final messageId in event.messages) {
               final detail = event.messageDetails![messageId];
@@ -420,7 +431,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
               }
               switch (detail.type) {
                 case MessageType.stream:
-                  final topics = (newlyUnreadInStreams[detail.streamId!] ??= {});
+                  final topics = (newlyUnreadInStreams[detail.streamId!] ??= makeTopicKeyedMap());
                   final messageIds = (topics[detail.topic!] ??= QueueList());
                   messageIds.add(messageId);
                 case MessageType.direct:
@@ -488,14 +499,15 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   }
 
   void _addLastInStreamTopic(int messageId, int streamId, TopicName topic) {
-    ((streams[streamId] ??= {})[topic] ??= QueueList()).addLast(messageId);
+    ((streams[streamId] ??= makeTopicKeyedMap())[topic] ??= QueueList())
+      .addLast(messageId);
   }
 
   // [messageIds] must be sorted ascending and without duplicates.
   void _addAllInStreamTopic(QueueList<int> messageIds, int streamId, TopicName topic) {
     assert(messageIds.isNotEmpty);
     assert(isSortedWithoutDuplicates(messageIds));
-    final topics = streams[streamId] ??= {};
+    final topics = streams[streamId] ??= makeTopicKeyedMap();
     topics.update(topic,
       ifAbsent: () => messageIds,
       // setUnion dedupes existing and incoming unread IDs,
