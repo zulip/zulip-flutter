@@ -9,10 +9,40 @@ import 'binding.dart';
 import 'content.dart';
 import 'settings.dart';
 
+/// The failure reason in case the KaTeX parser encountered a
+/// `_KatexHtmlParseError` exception.
+///
+/// Generally this means that parser encountered an unexpected HTML structure,
+/// an unsupported HTML node, or an unexpected inline CSS style or CSS class on
+/// a specific node.
+class KatexParserHardFailReason {
+  const KatexParserHardFailReason({
+    required this.error,
+    required this.stackTrace,
+  });
+
+  final String error;
+  final StackTrace stackTrace;
+}
+
+/// The failure reason in case the KaTeX parser found an unsupported
+/// CSS class or unsupported inline CSS style property.
+class KatexParserSoftFailReason {
+  const KatexParserSoftFailReason({
+    this.unsupportedCssClasses = const [],
+    this.unsupportedInlineCssProperties = const [],
+  });
+
+  final List<String> unsupportedCssClasses;
+  final List<String> unsupportedInlineCssProperties;
+}
+
 class MathParserResult {
   const MathParserResult({
     required this.texSource,
     required this.nodes,
+    this.hardFailReason,
+    this.softFailReason,
   });
 
   final String texSource;
@@ -23,6 +53,9 @@ class MathParserResult {
   /// CSS style, indicating that the widget should render the [texSource] as a
   /// fallback instead.
   final List<KatexNode>? nodes;
+
+  final KatexParserHardFailReason? hardFailReason;
+  final KatexParserSoftFailReason? softFailReason;
 }
 
 /// Parses the HTML spans containing KaTeX HTML tree.
@@ -88,6 +121,8 @@ MathParserResult? parseMath(dom.Element element, { required bool block }) {
     final flagForceRenderKatex =
       globalSettings.getBool(BoolGlobalSetting.forceRenderKatex);
 
+    KatexParserHardFailReason? hardFailReason;
+    KatexParserSoftFailReason? softFailReason;
     List<KatexNode>? nodes;
     if (flagRenderKatex) {
       final parser = _KatexParser();
@@ -95,14 +130,24 @@ MathParserResult? parseMath(dom.Element element, { required bool block }) {
         nodes = parser.parseKatexHtml(katexHtmlElement);
       } on _KatexHtmlParseError catch (e, st) {
         assert(debugLog('$e\n$st'));
+        hardFailReason = KatexParserHardFailReason(
+          error: e.message ?? 'unknown',
+          stackTrace: st);
       }
 
       if (parser.hasError && !flagForceRenderKatex) {
         nodes = null;
+        softFailReason = KatexParserSoftFailReason(
+          unsupportedCssClasses: parser.unsupportedCssClasses,
+          unsupportedInlineCssProperties: parser.unsupportedInlineCssProperties);
       }
     }
 
-    return MathParserResult(nodes: nodes, texSource: texSource);
+    return MathParserResult(
+      nodes: nodes,
+      texSource: texSource,
+      hardFailReason: hardFailReason,
+      softFailReason: softFailReason);
   } else {
     return null;
   }
@@ -111,6 +156,9 @@ MathParserResult? parseMath(dom.Element element, { required bool block }) {
 class _KatexParser {
   bool get hasError => _hasError;
   bool _hasError = false;
+
+  final unsupportedCssClasses = <String>[];
+  final unsupportedInlineCssProperties = <String>[];
 
   List<KatexNode> parseKatexHtml(dom.Element element) {
     assert(element.localName == 'span');
@@ -123,7 +171,10 @@ class _KatexParser {
       if (node case dom.Element(localName: 'span')) {
         return _parseSpan(node);
       } else {
-        throw _KatexHtmlParseError();
+        throw _KatexHtmlParseError(
+          node is dom.Element
+            ? 'unsupported html node: ${node.localName}'
+            : 'unsupported html node');
       }
     }));
   }
@@ -374,6 +425,7 @@ class _KatexParser {
 
         default:
           assert(debugLog('KaTeX: Unsupported CSS class: $spanClass'));
+          unsupportedCssClasses.add(spanClass);
           _hasError = true;
       }
     }
@@ -427,6 +479,7 @@ class _KatexParser {
             // TODO handle more CSS properties
             assert(debugLog('KaTeX: Unsupported CSS expression:'
               ' ${expression.toDebugString()}'));
+            unsupportedInlineCssProperties.add(property);
             _hasError = true;
           } else {
             throw _KatexHtmlParseError();
