@@ -93,7 +93,7 @@ MathParserResult? parseMath(dom.Element element, { required bool block }) {
       final parser = _KatexParser();
       try {
         nodes = parser.parseKatexHtml(katexHtmlElement);
-      } on KatexHtmlParseError catch (e, st) {
+      } on _KatexHtmlParseError catch (e, st) {
         assert(debugLog('$e\n$st'));
       }
 
@@ -123,7 +123,7 @@ class _KatexParser {
       if (node case dom.Element(localName: 'span')) {
         return _parseSpan(node);
       } else {
-        throw KatexHtmlParseError();
+        throw _KatexHtmlParseError();
       }
     }));
   }
@@ -303,14 +303,14 @@ class _KatexParser {
         case 'fontsize-ensurer':
           // .sizing,
           // .fontsize-ensurer { ... }
-          if (index + 2 > spanClasses.length) throw KatexHtmlParseError();
+          if (index + 2 > spanClasses.length) throw _KatexHtmlParseError();
           final resetSizeClass = spanClasses[index++];
           final sizeClass = spanClasses[index++];
 
           final resetSizeClassSuffix = _resetSizeClassRegExp.firstMatch(resetSizeClass)?.group(1);
-          if (resetSizeClassSuffix == null) throw KatexHtmlParseError();
+          if (resetSizeClassSuffix == null) throw _KatexHtmlParseError();
           final sizeClassSuffix = _sizeClassRegExp.firstMatch(sizeClass)?.group(1);
-          if (sizeClassSuffix == null) throw KatexHtmlParseError();
+          if (sizeClassSuffix == null) throw _KatexHtmlParseError();
 
           const sizes = <double>[0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.2, 1.44, 1.728, 2.074, 2.488];
 
@@ -318,13 +318,13 @@ class _KatexParser {
           final sizeIdx = int.parse(sizeClassSuffix, radix: 10);
 
           // These indexes start at 1.
-          if (resetSizeIdx > sizes.length) throw KatexHtmlParseError();
-          if (sizeIdx > sizes.length) throw KatexHtmlParseError();
+          if (resetSizeIdx > sizes.length) throw _KatexHtmlParseError();
+          if (sizeIdx > sizes.length) throw _KatexHtmlParseError();
           fontSizeEm = sizes[sizeIdx - 1] / sizes[resetSizeIdx - 1];
 
         case 'delimsizing':
           // .delimsizing { ... }
-          if (index + 1 > spanClasses.length) throw KatexHtmlParseError();
+          if (index + 1 > spanClasses.length) throw _KatexHtmlParseError();
           fontFamily = switch (spanClasses[index++]) {
             'size1' => 'KaTeX_Size1',
             'size2' => 'KaTeX_Size2',
@@ -332,19 +332,19 @@ class _KatexParser {
             'size4' => 'KaTeX_Size4',
             'mult' =>
               // TODO handle nested spans with `.delim-size{1,4}` class.
-              throw KatexHtmlParseError(),
-            _ => throw KatexHtmlParseError(),
+              throw _KatexHtmlParseError(),
+            _ => throw _KatexHtmlParseError(),
           };
 
         // TODO handle .nulldelimiter and .delimcenter .
 
         case 'op-symbol':
           // .op-symbol { ... }
-          if (index + 1 > spanClasses.length) throw KatexHtmlParseError();
+          if (index + 1 > spanClasses.length) throw _KatexHtmlParseError();
           fontFamily = switch (spanClasses[index++]) {
             'small-op' => 'KaTeX_Size1',
             'large-op' => 'KaTeX_Size2',
-            _ => throw KatexHtmlParseError(),
+            _ => throw _KatexHtmlParseError(),
           };
 
         // TODO handle more classes from katex.scss
@@ -392,7 +392,7 @@ class _KatexParser {
     } else {
       spans = _parseChildSpans(element.nodes);
     }
-    if (text == null && spans == null) throw KatexHtmlParseError();
+    if (text == null && spans == null) throw _KatexHtmlParseError();
 
     return KatexSpanNode(
       styles: inlineStyles != null
@@ -429,7 +429,7 @@ class _KatexParser {
               ' ${expression.toDebugString()}'));
             _hasError = true;
           } else {
-            throw KatexHtmlParseError();
+            throw _KatexHtmlParseError();
           }
         }
 
@@ -437,7 +437,7 @@ class _KatexParser {
           heightEm: heightEm,
         );
       } else {
-        throw KatexHtmlParseError();
+        throw _KatexHtmlParseError();
       }
     }
     return null;
@@ -540,9 +540,10 @@ class KatexSpanStyles {
   }
 }
 
-class KatexHtmlParseError extends Error {
+class _KatexHtmlParseError extends Error {
   final String? message;
-  KatexHtmlParseError([this.message]);
+
+  _KatexHtmlParseError([this.message]);
 
   @override
   String toString() {
