@@ -7,7 +7,9 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/channel.dart';
 
+import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
+import '../stdlib_checks.dart';
 import 'test_store.dart';
 
 void main() {
@@ -410,6 +412,32 @@ void main() {
         .equals(UserTopicVisibilityPolicy.followed);
       check(store.topicVisibilityPolicy(stream.streamId, eg.t('topic 4')))
         .equals(UserTopicVisibilityPolicy.none);
+    });
+  });
+
+  group('makeTopicKeyedMap', () {
+    test('"a" equals "A"', () {
+      final map = makeTopicKeyedMap<int>()
+        ..[eg.t('a')] = 1
+        ..[eg.t('A')] = 2;
+      check(map)
+        ..[eg.t('a')].equals(2)
+        ..[eg.t('A')].equals(2)
+        ..entries.which((it) => it.single
+          ..key.apiName.equals('a')
+          ..value.equals(2));
+    });
+
+    test('"A" equals "a"', () {
+      final map = makeTopicKeyedMap<int>()
+        ..[eg.t('A')] = 1
+        ..[eg.t('a')] = 2;
+      check(map)
+        ..[eg.t('A')].equals(2)
+        ..[eg.t('a')].equals(2)
+        ..entries.which((it) => it.single
+          ..key.apiName.equals('A')
+          ..value.equals(2));
     });
   });
 }

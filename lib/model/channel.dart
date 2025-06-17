@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/foundation.dart';
 
 import '../api/model/events.dart';
@@ -369,3 +371,21 @@ class ChannelStoreImpl with ChannelStore {
     }
   }
 }
+
+/// A [Map] with [TopicName] keys and [V] values.
+///
+/// When one of these is created by [makeTopicKeyedMap],
+/// key equality is done case-insensitively; see there.
+///
+/// This type should only be used for maps created by [makeTopicKeyedMap].
+/// It would be nice to enforce that.
+typedef TopicKeyedMap<V> = Map<TopicName, V>;
+
+/// Make a case-insensitive, case-preserving [TopicName]-keyed [LinkedHashMap].
+///
+/// The equality function is [TopicName.isSameAs],
+/// and the hash code is [String.hashCode] of [TopicName.canonicalize].
+TopicKeyedMap<V> makeTopicKeyedMap<V>() => LinkedHashMap<TopicName, V>(
+  equals: (a, b) => a.isSameAs(b),
+  hashCode: (k) => k.canonicalize().hashCode,
+);
