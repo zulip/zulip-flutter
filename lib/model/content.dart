@@ -341,7 +341,7 @@ class CodeBlockSpanNode extends ContentNode {
   }
 }
 
-abstract class MathNode extends ContentNode {
+sealed class MathNode extends ContentNode {
   const MathNode({
     super.debugHtmlNode,
     required this.texSource,
