@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/foundation.dart';
 
 import '../api/model/events.dart';
@@ -370,3 +372,13 @@ class ChannelStoreImpl with ChannelStore {
     }
   }
 }
+
+/// Make a case-insensitive, case-preserving [TopicName]-keyed [LinkedHashMap].
+///
+/// The equality function is [TopicName.isSameAs],
+/// and the hash code is [String.hashCode] of [TopicName.canonicalize].
+LinkedHashMap<TopicName, V> makeTopicKeyedMap<V>() => LinkedHashMap<TopicName, V>(
+  equals: (a, b) => a.isSameAs(b),
+  hashCode: (k) => k.canonicalize().hashCode,
+  isValidKey: (k) => k is TopicName,
+);
