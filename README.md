@@ -1,25 +1,25 @@
-# Zulip Flutter (beta)
+# Zulip Flutter
 
-A Zulip client for Android and iOS, using Flutter.
+The official Zulip app for Android and iOS, built with Flutter.
 
-This app is currently [in beta][beta].
-When it's ready, it [will become the new][] official mobile Zulip client.
-To see what work is planned before that launch,
-see the [milestones][] and the [project board][].
+This app [was launched][] as the main Zulip mobile app
+in June 2025.
+It replaced the [previous Zulip mobile app][] built with React Native.
 
-[beta]: https://chat.zulip.org/#narrow/stream/2-general/topic/Flutter/near/1708728
-[will become the new]: https://chat.zulip.org/#narrow/stream/2-general/topic/Flutter/near/1582367
-[milestones]: https://github.com/zulip/zulip-flutter/milestones?direction=asc&sort=title
-[project board]: https://github.com/orgs/zulip/projects/5/views/4
+[was launched]: https://blog.zulip.com/flutter-mobile-app-launch
+[previous Zulip mobile app]: https://github.com/zulip/zulip-mobile#readme
 
 
-## Using Zulip
+## Get the app
 
-To use Zulip on iOS or Android, install the [official mobile Zulip client][].
-
-You can also [try out this beta app][beta].
-
-[official mobile Zulip client]: https://github.com/zulip/zulip-mobile#readme
+Release versions of the app are available here:
+* [Zulip for iOS](https://apps.apple.com/app/zulip/id1203036395)
+  on Apple's App Store
+* [Zulip for Android](https://play.google.com/store/apps/details?id=com.zulipmobile)
+  on the Google Play Store
+  * Or if you don't use Google Play, you can
+    [download an APK](https://github.com/zulip/zulip-flutter/releases/latest)
+    from the official build we post on GitHub.
 
 
 ## Contributing
@@ -27,8 +27,8 @@ You can also [try out this beta app][beta].
 Contributions to this app are welcome.
 
 If you're looking to participate in Google Summer of Code with Zulip,
-this is one of the projects we intend to accept [GSoC 2025 applications][gsoc]
-for.
+this was among the projects we accepted [GSoC applications][gsoc] for
+in 2024 and 2025.
 
 [gsoc]: https://zulip.readthedocs.io/en/latest/outreach/gsoc.html#mobile-app
 
