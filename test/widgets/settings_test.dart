@@ -26,11 +26,19 @@ void main() {
     await tester.pump();
   }
 
-  group('ThemeSetting', () {
-    Finder findRadioListTileWithTitle(String title) => find.ancestor(
-      of: find.text(title),
-      matching: find.byType(RadioListTile<ThemeSetting?>));
+  Finder findRadioListTileWithTitle<T>(String title) => find.ancestor(
+    of: find.text(title),
+    matching: find.byType(RadioListTile<T>));
 
+  void checkRadioButtonAppearsChecked<T>(WidgetTester tester, String title, bool expectedIsChecked) {
+    check(tester.semantics.find(findRadioListTileWithTitle<T>(title)))
+      .containsSemantics(
+        label: title,
+        isInMutuallyExclusiveGroup: true,
+        hasCheckedState: true, isChecked: expectedIsChecked);
+  }
+
+  group('ThemeSetting', () {
     void checkThemeSetting(WidgetTester tester, {
       required ThemeSetting? expectedThemeSetting,
     }) {
@@ -40,12 +48,7 @@ void main() {
         ThemeSetting.dark => 'Dark',
       };
       for (final title in ['System', 'Light', 'Dark']) {
-        final expectedIsChecked = title == expectedCheckedTitle;
-        check(tester.semantics.find(findRadioListTileWithTitle(title)))
-          .containsSemantics(
-            label: title,
-            isInMutuallyExclusiveGroup: true,
-            hasCheckedState: true, isChecked: expectedIsChecked);
+        checkRadioButtonAppearsChecked<ThemeSetting?>(tester, title, title == expectedCheckedTitle);
       }
       check(testBinding.globalStore)
         .settings.themeSetting.equals(expectedThemeSetting);
@@ -60,13 +63,13 @@ void main() {
       check(Theme.of(element)).brightness.equals(Brightness.light);
       checkThemeSetting(tester, expectedThemeSetting: ThemeSetting.light);
 
-      await tester.tap(findRadioListTileWithTitle('Dark'));
+      await tester.tap(findRadioListTileWithTitle<ThemeSetting?>('Dark'));
       await tester.pump();
       await tester.pump(Duration(milliseconds: 250)); // wait for transition
       check(Theme.of(element)).brightness.equals(Brightness.dark);
       checkThemeSetting(tester, expectedThemeSetting: ThemeSetting.dark);
 
-      await tester.tap(findRadioListTileWithTitle('System'));
+      await tester.tap(findRadioListTileWithTitle<ThemeSetting?>('System'));
       await tester.pump();
       await tester.pump(Duration(milliseconds: 250)); // wait for transition
       check(Theme.of(element)).brightness.equals(Brightness.light);
