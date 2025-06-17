@@ -426,6 +426,7 @@ run_pigeon() {
     local outputs=(
         lib/host/'*'.g.dart
         android/'*'.g.kt
+        ios/'*'.g.swift
     )
 
     # Omitted from this check:
