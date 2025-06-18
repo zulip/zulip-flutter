@@ -1,4 +1,3 @@
-
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
@@ -163,6 +162,10 @@ void main() {
           await store.setUserTopic(stream1, 'topic', policy);
           check(store.topicVisibilityPolicy(stream1.streamId, eg.t('topic')))
             .equals(policy);
+
+          // Case-insensitive
+          check(store.topicVisibilityPolicy(stream1.streamId, eg.t('ToPiC')))
+            .equals(policy);
         }
       });
     });
@@ -198,6 +201,10 @@ void main() {
         await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
         check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isFalse();
         check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isFalse();
+
+        // Case-insensitive
+        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('ToPiC'))).isFalse();
+        check(store.isTopicVisible        (stream1.streamId, eg.t('ToPiC'))).isFalse();
       });
 
       test('with policy unmuted', () async {
@@ -207,6 +214,10 @@ void main() {
         await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
         check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
         check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isTrue();
+
+        // Case-insensitive
+        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('tOpIc'))).isTrue();
+        check(store.isTopicVisible        (stream1.streamId, eg.t('tOpIc'))).isTrue();
       });
 
       test('with policy followed', () async {
@@ -216,12 +227,28 @@ void main() {
         await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.followed);
         check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
         check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isTrue();
+
+        // Case-insensitive
+        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('TOPIC'))).isTrue();
+        check(store.isTopicVisible        (stream1.streamId, eg.t('TOPIC'))).isTrue();
       });
     });
 
     group('willChangeIfTopicVisible/InStream', () {
       UserTopicEvent mkEvent(UserTopicVisibilityPolicy policy) =>
         eg.userTopicEvent(stream1.streamId, 'topic', policy);
+
+      // For testing case-insensitivity
+      UserTopicEvent mkEventDifferentlyCased(UserTopicVisibilityPolicy policy) =>
+        eg.userTopicEvent(stream1.streamId, 'ToPiC', policy);
+
+      assert(() {
+        // (sanity check on mkEvent and mkEventDifferentlyCased)
+        final event1 = mkEvent(UserTopicVisibilityPolicy.followed);
+        final event2 = mkEventDifferentlyCased(UserTopicVisibilityPolicy.followed);
+        return event1.topicName.isSameAs(event2.topicName)
+          && event1.topicName.apiName != event2.topicName.apiName;
+      }());
 
       void checkChanges(PerAccountStore store,
           UserTopicVisibilityPolicy newPolicy,
@@ -230,6 +257,10 @@ void main() {
         final event = mkEvent(newPolicy);
         check(store.willChangeIfTopicVisibleInStream(event)).equals(expectedInStream);
         check(store.willChangeIfTopicVisible        (event)).equals(expectedOverall);
+
+        final event2 = mkEventDifferentlyCased(newPolicy);
+        check(store.willChangeIfTopicVisibleInStream(event2)).equals(expectedInStream);
+        check(store.willChangeIfTopicVisible        (event2)).equals(expectedOverall);
       }
 
       test('stream not muted, policy none -> followed, no change', () async {
@@ -366,6 +397,12 @@ void main() {
         compareTopicVisibility(store, [
           eg.userTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.unmuted),
         ]);
+
+        // case-insensitivity
+        await store.setUserTopic(stream1, 'ToPiC', UserTopicVisibilityPolicy.followed);
+        compareTopicVisibility(store, [
+          eg.userTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.followed),
+        ]);
       });
 
       test('remove, with others in stream', () async {
@@ -381,7 +418,8 @@ void main() {
       test('remove, as last in stream', () async {
         final store = eg.store();
         await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.none);
+        // case-insensitivity
+        await store.setUserTopic(stream1, 'ToPiC', UserTopicVisibilityPolicy.none);
         compareTopicVisibility(store, [
         ]);
       });
@@ -389,7 +427,8 @@ void main() {
       test('treat unknown enum value as removing', () async {
         final store = eg.store();
         await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unknown);
+        // case-insensitivity
+        await store.setUserTopic(stream1, 'ToPiC', UserTopicVisibilityPolicy.unknown);
         compareTopicVisibility(store, [
         ]);
       });
@@ -406,7 +445,8 @@ void main() {
         ]));
       check(store.topicVisibilityPolicy(stream.streamId, eg.t('topic 1')))
         .equals(UserTopicVisibilityPolicy.muted);
-      check(store.topicVisibilityPolicy(stream.streamId, eg.t('topic 2')))
+      // case-insensitivity
+      check(store.topicVisibilityPolicy(stream.streamId, eg.t('ToPiC 2')))
         .equals(UserTopicVisibilityPolicy.unmuted);
       check(store.topicVisibilityPolicy(stream.streamId, eg.t('topic 3')))
         .equals(UserTopicVisibilityPolicy.followed);

@@ -43,6 +43,8 @@ mixin ChannelStore {
   ///
   /// For policies directly applicable in the UI, see
   /// [isTopicVisibleInStream] and [isTopicVisible].
+  ///
+  /// Topics are treated case-insensitively; see [TopicName.isSameAs].
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic);
 
   /// The raw data structure underlying [topicVisibilityPolicy].
@@ -173,13 +175,13 @@ class ChannelStoreImpl with ChannelStore {
       streams.putIfAbsent(stream.streamId, () => stream);
     }
 
-    final topicVisibility = <int, Map<TopicName, UserTopicVisibilityPolicy>>{};
+    final topicVisibility = <int, TopicKeyedMap<UserTopicVisibilityPolicy>>{};
     for (final item in initialSnapshot.userTopics ?? const <UserTopicItem>[]) {
       if (_warnInvalidVisibilityPolicy(item.visibilityPolicy)) {
         // Not a value we expect. Keep it out of our data structures. // TODO(log)
         continue;
       }
-      final forStream = topicVisibility.putIfAbsent(item.streamId, () => {});
+      final forStream = topicVisibility.putIfAbsent(item.streamId, () => makeTopicKeyedMap());
       forStream[item.topicName] = item.visibilityPolicy;
     }
 
@@ -206,9 +208,9 @@ class ChannelStoreImpl with ChannelStore {
   final Map<int, Subscription> subscriptions;
 
   @override
-  Map<int, Map<TopicName, UserTopicVisibilityPolicy>> get debugTopicVisibility => topicVisibility;
+  Map<int, TopicKeyedMap<UserTopicVisibilityPolicy>> get debugTopicVisibility => topicVisibility;
 
-  final Map<int, Map<TopicName, UserTopicVisibilityPolicy>> topicVisibility;
+  final Map<int, TopicKeyedMap<UserTopicVisibilityPolicy>> topicVisibility;
 
   @override
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic) {
@@ -366,7 +368,7 @@ class ChannelStoreImpl with ChannelStore {
         topicVisibility.remove(event.streamId);
       }
     } else {
-      final forStream = topicVisibility.putIfAbsent(event.streamId, () => {});
+      final forStream = topicVisibility.putIfAbsent(event.streamId, () => makeTopicKeyedMap());
       forStream[event.topicName] = visibilityPolicy;
     }
   }
