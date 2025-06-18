@@ -106,6 +106,7 @@ run_check() {
 run_katex_check() {
     flutter test tools/content/unimplemented_katex_test.dart \
         --dart-define=corpusDir="$opt_corpus_dir" \
+        --dart-define=verbose="$opt_verbose" \
     || return 1
 }
 

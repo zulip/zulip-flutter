@@ -113,6 +113,11 @@ void main() async {
       buf.writeln('Because of $reason:');
       buf.writeln('  ${messageIds.length} messages failed.');
       buf.writeln('  Oldest message: $oldestId, Newest message: $newestId');
+      if (!_verbose) {
+        buf.writeln();
+        continue;
+      }
+
       buf.writeln('  Message IDs (up to 100): ${messageIds.take(100).join(', ')}');
       buf.writeln('  TeX source (up to 30):');
       for (final node in failedMathNodes.take(30)) {
@@ -152,6 +157,8 @@ void main() async {
 }
 
 const String _corpusDirPath = String.fromEnvironment('corpusDir');
+
+const bool _verbose = int.fromEnvironment('verbose', defaultValue: 0) != 0;
 
 Iterable<File> _getCorpusFiles() {
   final corpusDir = Directory(_corpusDirPath);
