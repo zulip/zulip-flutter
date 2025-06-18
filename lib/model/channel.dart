@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/foundation.dart';
 
 import '../api/model/events.dart';
@@ -41,6 +43,8 @@ mixin ChannelStore {
   ///
   /// For policies directly applicable in the UI, see
   /// [isTopicVisibleInStream] and [isTopicVisible].
+  ///
+  /// Topics are treated case-insensitively; see [TopicName.isSameAs].
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic);
 
   /// The raw data structure underlying [topicVisibilityPolicy].
@@ -171,13 +175,13 @@ class ChannelStoreImpl with ChannelStore {
       streams.putIfAbsent(stream.streamId, () => stream);
     }
 
-    final topicVisibility = <int, Map<TopicName, UserTopicVisibilityPolicy>>{};
+    final topicVisibility = <int, LinkedHashMap<TopicName, UserTopicVisibilityPolicy>>{};
     for (final item in initialSnapshot.userTopics ?? const <UserTopicItem>[]) {
       if (_warnInvalidVisibilityPolicy(item.visibilityPolicy)) {
         // Not a value we expect. Keep it out of our data structures. // TODO(log)
         continue;
       }
-      final forStream = topicVisibility.putIfAbsent(item.streamId, () => {});
+      final forStream = topicVisibility.putIfAbsent(item.streamId, () => makeTopicKeyedMap());
       forStream[item.topicName] = item.visibilityPolicy;
     }
 
@@ -204,9 +208,9 @@ class ChannelStoreImpl with ChannelStore {
   final Map<int, Subscription> subscriptions;
 
   @override
-  Map<int, Map<TopicName, UserTopicVisibilityPolicy>> get debugTopicVisibility => topicVisibility;
+  Map<int, LinkedHashMap<TopicName, UserTopicVisibilityPolicy>> get debugTopicVisibility => topicVisibility;
 
-  final Map<int, Map<TopicName, UserTopicVisibilityPolicy>> topicVisibility;
+  final Map<int, LinkedHashMap<TopicName, UserTopicVisibilityPolicy>> topicVisibility;
 
   @override
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic) {
@@ -365,8 +369,18 @@ class ChannelStoreImpl with ChannelStore {
         topicVisibility.remove(event.streamId);
       }
     } else {
-      final forStream = topicVisibility.putIfAbsent(event.streamId, () => {});
+      final forStream = topicVisibility.putIfAbsent(event.streamId, () => makeTopicKeyedMap());
       forStream[event.topicName] = visibilityPolicy;
     }
   }
 }
+
+/// Make a case-insensitive, case-preserving [TopicName]-keyed [LinkedHashMap].
+///
+/// The equality function is [TopicName.isSameAs],
+/// and the hash code is [String.hashCode] of [TopicName.canonicalize].
+LinkedHashMap<TopicName, V> makeTopicKeyedMap<V>() => LinkedHashMap<TopicName, V>(
+  equals: (a, b) => a.isSameAs(b),
+  hashCode: (k) => k.canonicalize().hashCode,
+  isValidKey: (k) => k is TopicName,
+);
