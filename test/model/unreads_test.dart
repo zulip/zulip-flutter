@@ -186,7 +186,7 @@ void main() {
       await store.addSubscription(eg.subscription(stream1));
       await store.addSubscription(eg.subscription(stream2));
       await store.addSubscription(eg.subscription(stream3, isMuted: true));
-      await store.addUserTopic(stream1, 'a', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream1, 'a', UserTopicVisibilityPolicy.muted);
       fillWithMessages([
         eg.streamMessage(stream: stream1, topic: 'a', flags: []),
         eg.streamMessage(stream: stream1, topic: 'b', flags: []),
@@ -204,8 +204,8 @@ void main() {
       prepare();
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream));
-      await store.addUserTopic(stream, 'a', UserTopicVisibilityPolicy.unmuted);
-      await store.addUserTopic(stream, 'c', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, 'a', UserTopicVisibilityPolicy.unmuted);
+      await store.setUserTopic(stream, 'c', UserTopicVisibilityPolicy.muted);
       fillWithMessages([
         eg.streamMessage(stream: stream, topic: 'a', flags: []),
         eg.streamMessage(stream: stream, topic: 'A', flags: []),

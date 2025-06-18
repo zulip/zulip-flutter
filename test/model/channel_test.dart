@@ -148,7 +148,7 @@ void main() {
 
       test('with nothing for topic', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.muted);
         check(store.topicVisibilityPolicy(stream1.streamId, eg.t('topic')))
           .equals(UserTopicVisibilityPolicy.none);
       });
@@ -160,7 +160,7 @@ void main() {
           UserTopicVisibilityPolicy.unmuted,
           UserTopicVisibilityPolicy.followed,
         ]) {
-          await store.addUserTopic(stream1, 'topic', policy);
+          await store.setUserTopic(stream1, 'topic', policy);
           check(store.topicVisibilityPolicy(stream1.streamId, eg.t('topic')))
             .equals(policy);
         }
@@ -195,7 +195,7 @@ void main() {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
         check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isFalse();
         check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isFalse();
       });
@@ -204,7 +204,7 @@ void main() {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
         check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
         check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isTrue();
       });
@@ -213,7 +213,7 @@ void main() {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.followed);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.followed);
         check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
         check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isTrue();
       });
@@ -343,7 +343,7 @@ void main() {
     group('events', () {
       test('add with new stream', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
         compareTopicVisibility(store, [
           eg.userTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.muted),
         ]);
@@ -351,8 +351,8 @@ void main() {
 
       test('add in existing stream', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.addUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted);
         compareTopicVisibility(store, [
           eg.userTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.muted),
           eg.userTopicItem(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted),
@@ -361,8 +361,8 @@ void main() {
 
       test('update existing policy', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
         compareTopicVisibility(store, [
           eg.userTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.unmuted),
         ]);
@@ -370,9 +370,9 @@ void main() {
 
       test('remove, with others in stream', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.addUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted);
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.none);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.none);
         compareTopicVisibility(store, [
           eg.userTopicItem(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted),
         ]);
@@ -380,16 +380,16 @@ void main() {
 
       test('remove, as last in stream', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.none);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.none);
         compareTopicVisibility(store, [
         ]);
       });
 
       test('treat unknown enum value as removing', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unknown);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unknown);
         compareTopicVisibility(store, [
         ]);
       });

@@ -359,7 +359,7 @@ void main() {
       final stream = eg.stream();
       final otherStream = eg.stream();
       await prepare(narrow: ChannelNarrow(stream.streamId));
-      await store.addUserTopic(stream, 'muted', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, 'muted', UserTopicVisibilityPolicy.muted);
       await prepareOutboxMessagesTo([
         StreamDestination(stream.streamId, eg.t('topic')),
         StreamDestination(stream.streamId, eg.t('muted')),
@@ -1124,7 +1124,7 @@ void main() {
         eg.streamMessage(id: 2, stream: stream, topic: topic),
       ];
       await prepareMessages(foundOldest: true, messages: messages);
-      await store.addUserTopic(stream, 'muted', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, 'muted', UserTopicVisibilityPolicy.muted);
       await prepareOutboxMessagesTo([
         StreamDestination(stream.streamId, eg.t(topic)),
         StreamDestination(stream.streamId, eg.t('muted')),
@@ -2218,9 +2218,9 @@ void main() {
       await prepare(narrow: const CombinedFeedNarrow());
       await store.addStreams([stream1, stream2]);
       await store.addSubscription(eg.subscription(stream1));
-      await store.addUserTopic(stream1, 'B', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream1, 'B', UserTopicVisibilityPolicy.muted);
       await store.addSubscription(eg.subscription(stream2, isMuted: true));
-      await store.addUserTopic(stream2, 'C', UserTopicVisibilityPolicy.unmuted);
+      await store.setUserTopic(stream2, 'C', UserTopicVisibilityPolicy.unmuted);
 
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: [
@@ -2278,8 +2278,8 @@ void main() {
       await prepare(narrow: ChannelNarrow(stream.streamId));
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
-      await store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.unmuted);
-      await store.addUserTopic(stream, 'C', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, 'A', UserTopicVisibilityPolicy.unmuted);
+      await store.setUserTopic(stream, 'C', UserTopicVisibilityPolicy.muted);
 
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: [
@@ -2323,7 +2323,7 @@ void main() {
       await prepare(narrow: ChannelNarrow(stream.streamId));
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream));
-      await store.addUserTopic(stream, 'muted', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, 'muted', UserTopicVisibilityPolicy.muted);
       await prepareMessages(foundOldest: true, messages: []);
 
       // Check filtering on sent messages…
@@ -2356,7 +2356,7 @@ void main() {
       await prepare(narrow: eg.topicNarrow(stream.streamId, 'A'));
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
-      await store.addUserTopic(stream, 'A', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, 'A', UserTopicVisibilityPolicy.muted);
 
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: [
@@ -2386,7 +2386,7 @@ void main() {
       const mutedTopic = 'muted';
       await prepare(narrow: const MentionsNarrow());
       await store.addStream(stream);
-      await store.addUserTopic(stream, mutedTopic, UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, mutedTopic, UserTopicVisibilityPolicy.muted);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
 
       List<Message> getMessages(int startingId) => [
@@ -2424,7 +2424,7 @@ void main() {
       const mutedTopic = 'muted';
       await prepare(narrow: const StarredMessagesNarrow());
       await store.addStream(stream);
-      await store.addUserTopic(stream, mutedTopic, UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, mutedTopic, UserTopicVisibilityPolicy.muted);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
 
       List<Message> getMessages(int startingId) => [
