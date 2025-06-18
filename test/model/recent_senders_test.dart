@@ -1,13 +1,16 @@
 import 'package:checks/checks.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/model/channel.dart';
 import 'package:zulip/model/recent_senders.dart';
 import '../example_data.dart' as eg;
 
 /// [messages] should be sorted by [id] ascending.
 void checkMatchesMessages(RecentSenders model, List<Message> messages) {
   final Map<int, Map<int, Set<int>>> messagesByUserInStream = {};
-  final Map<int, Map<TopicName, Map<int, Set<int>>>> messagesByUserInTopic = {};
+  final Map<int, TopicKeyedMap<Map<int, Set<int>>>> messagesByUserInTopic = {};
   for (final message in messages) {
     if (message is! StreamMessage) {
       throw UnsupportedError('Message of type ${message.runtimeType} is not expected.');
@@ -17,7 +20,7 @@ void checkMatchesMessages(RecentSenders model, List<Message> messages) {
 
     ((messagesByUserInStream[streamId] ??= {})
       [senderId] ??= {}).add(messageId);
-    (((messagesByUserInTopic[streamId] ??= {})[topic] ??= {})
+    (((messagesByUserInTopic[streamId] ??= makeTopicKeyedMap())[topic] ??= {})
       [senderId] ??= {}).add(messageId);
   }
 
@@ -125,6 +128,16 @@ void main() {
         [eg.streamMessage(stream: streamA, topic: 'other', sender: userX)]);
     });
 
+    test('case-insensitive topics', () {
+      checkHandleMessages(
+        [eg.streamMessage(stream: streamA, topic: 'thing', sender: userX)],
+        [eg.streamMessage(stream: streamA, topic: 'ThInG', sender: userX)]);
+      check(model.topicSenders).values.single.deepEquals(
+        {eg.t('thing'):
+          {userX.userId: (Subject<Object?> it) =>
+             it.isA<MessageIdTracker>().ids.length.equals(2)}});
+    });
+
     test('add new stream', () {
       checkHandleMessages(
         [eg.streamMessage(stream: streamA, topic: 'thing', sender: userX)],
@@ -161,6 +174,16 @@ void main() {
       Map.fromEntries(messages.map((msg) => MapEntry(msg.id, msg))));
 
     checkMatchesMessages(model, [messages[1]]);
+
+    // check case-insensitivity
+    model.handleDeleteMessageEvent(DeleteMessageEvent(
+      id: 0,
+      messageIds: [messages[1].id],
+      messageType: MessageType.stream,
+      streamId: stream.streamId,
+      topic: eg.t('oThEr'),
+    ), {messages[1].id: messages[1]});
+    checkMatchesMessages(model, []);
   });
 
   test('RecentSenders.latestMessageIdOfSenderInStream', () {
@@ -200,6 +223,9 @@ void main() {
 
     check(model.latestMessageIdOfSenderInTopic(streamId: 1,
       topic: eg.t('a'), senderId: 10)).equals(300);
+    // case-insensitivity
+    check(model.latestMessageIdOfSenderInTopic(streamId: 1,
+      topic: eg.t('A'), senderId: 10)).equals(300);
     // No message of user 20 in topic "a".
     check(model.latestMessageIdOfSenderInTopic(streamId: 1,
       topic: eg.t('a'), senderId: 20)).equals(null);
@@ -210,4 +236,8 @@ void main() {
     check(model.latestMessageIdOfSenderInTopic(streamId: 2,
       topic: eg.t('a'), senderId: 10)).equals(null);
   });
+}
+
+extension MessageIdTrackerChecks on Subject<MessageIdTracker> {
+  Subject<QueueList<int>> get ids => has((x) => x.ids, 'ids');
 }
