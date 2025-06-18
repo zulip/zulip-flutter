@@ -227,7 +227,7 @@ void main() {
           streams: [stream],
           subscriptions: [subscription],
           unreadMessages: [eg.streamMessage(stream: stream, topic: 'lunch')]);
-        await store.addUserTopic(stream, 'lunch', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream, 'lunch', UserTopicVisibilityPolicy.muted);
         await tester.pump();
         check(tester.widgetList(find.text('lunch'))).length.equals(0);
       });
@@ -249,7 +249,7 @@ void main() {
           streams: [stream],
           subscriptions: [subscription],
           unreadMessages: [eg.streamMessage(stream: stream, topic: 'lunch')]);
-        await store.addUserTopic(stream, 'lunch', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(stream, 'lunch', UserTopicVisibilityPolicy.unmuted);
         await tester.pump();
         check(tester.widgetList(find.text('lunch'))).length.equals(1);
       });
@@ -327,7 +327,7 @@ void main() {
           streams: [channel],
           subscriptions: [eg.subscription(channel)],
           unreadMessages: [message]);
-        await store.addUserTopic(channel, topic, UserTopicVisibilityPolicy.followed);
+        await store.setUserTopic(channel, topic, UserTopicVisibilityPolicy.followed);
         await tester.pump();
         check(hasIcon(tester,
           parent: findRowByLabel(tester, topic),
@@ -340,7 +340,7 @@ void main() {
           subscriptions: [eg.subscription(channel)],
           unreadMessages: [eg.streamMessage(stream: channel, topic: topic,
             flags: [MessageFlag.mentioned])]);
-        await store.addUserTopic(channel, topic, UserTopicVisibilityPolicy.followed);
+        await store.setUserTopic(channel, topic, UserTopicVisibilityPolicy.followed);
         await tester.pump();
         check(hasIcon(tester,
           parent: findRowByLabel(tester, topic),
@@ -356,7 +356,7 @@ void main() {
           streams: [channel],
           subscriptions: [eg.subscription(channel, isMuted: true)],
           unreadMessages: [message]);
-        await store.addUserTopic(channel, topic, UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(channel, topic, UserTopicVisibilityPolicy.unmuted);
         await tester.pump();
         check(hasIcon(tester,
           parent: findRowByLabel(tester, topic),
