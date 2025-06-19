@@ -1,35 +1,74 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legacy_checks/legacy_checks.dart';
 import 'package:zulip/model/settings.dart';
+import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/settings.dart';
+import 'package:zulip/widgets/store.dart';
 
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/store_checks.dart';
 import '../example_data.dart' as eg;
+import '../test_navigation.dart';
+import 'page_checks.dart';
 import 'test_app.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
 
+  late TestNavigatorObserver testNavObserver;
+  late Route<dynamic>? lastPushedRoute;
+  late Route<dynamic>? lastPoppedRoute;
+
   Future<void> prepare(WidgetTester tester) async {
     addTearDown(testBinding.reset);
+
+    testNavObserver = TestNavigatorObserver()
+      ..onPushed = ((route, _) => lastPushedRoute = route)
+      ..onPopped = ((route, _) => lastPoppedRoute = route);
+    lastPushedRoute = null;
+    lastPoppedRoute = null;
 
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     await tester.pumpWidget(TestZulipApp(
       accountId: eg.selfAccount.id,
+      navigatorObservers: [testNavObserver],
       child: SettingsPage()));
     await tester.pump();
     await tester.pump();
   }
 
-  group('ThemeSetting', () {
-    Finder findRadioListTileWithTitle(String title) => find.ancestor(
-      of: find.text(title),
-      matching: find.byType(RadioListTile<ThemeSetting?>));
+  void checkTileOnSettingsPage(WidgetTester tester, {
+    required String expectedTitle,
+    required String expectedSubtitle,
+  }) {
+    check(find.descendant(of: find.widgetWithText(ListTile, expectedTitle),
+      matching: find.text(expectedSubtitle))).findsOne();
+  }
 
+  Finder findRadioListTileWithTitle<T>(String title) => find.ancestor(
+    of: find.text(title),
+    matching: find.byType(RadioListTile<T>));
+
+  void checkRadioButtonAppearsChecked<T>(WidgetTester tester, String title, bool expectedIsChecked) {
+    final element = tester.element(findRadioListTileWithTitle<T>(title));
+      final checkedColor = Theme.of(element).colorScheme.primary;
+      // `paints` isn't a [Matcher] so we wrap it with `equals`;
+      // awkward but it works
+      final paintsAsCheckedMatcher = equals(paints..circle(color: checkedColor));
+      check(because: '$title should be ${expectedIsChecked ? 'checked' : 'unchecked'}',
+        element.renderObject,
+      ).legacyMatcher(
+        expectedIsChecked
+          ? paintsAsCheckedMatcher
+          : isNot(paintsAsCheckedMatcher));
+  }
+
+  group('ThemeSetting', () {
     void checkThemeSetting(WidgetTester tester, {
       required ThemeSetting? expectedThemeSetting,
     }) {
@@ -39,9 +78,7 @@ void main() {
         ThemeSetting.dark => 'Dark',
       };
       for (final title in ['System', 'Light', 'Dark']) {
-        check(tester.widget<RadioListTile<ThemeSetting?>>(
-          findRadioListTileWithTitle(title)))
-            .checked.equals(title == expectedCheckedTitle);
+        checkRadioButtonAppearsChecked<ThemeSetting?>(tester, title, title == expectedCheckedTitle);
       }
       check(testBinding.globalStore)
         .settings.themeSetting.equals(expectedThemeSetting);
@@ -56,13 +93,13 @@ void main() {
       check(Theme.of(element)).brightness.equals(Brightness.light);
       checkThemeSetting(tester, expectedThemeSetting: ThemeSetting.light);
 
-      await tester.tap(findRadioListTileWithTitle('Dark'));
+      await tester.tap(findRadioListTileWithTitle<ThemeSetting?>('Dark'));
       await tester.pump();
       await tester.pump(Duration(milliseconds: 250)); // wait for transition
       check(Theme.of(element)).brightness.equals(Brightness.dark);
       checkThemeSetting(tester, expectedThemeSetting: ThemeSetting.dark);
 
-      await tester.tap(findRadioListTileWithTitle('System'));
+      await tester.tap(findRadioListTileWithTitle<ThemeSetting?>('System'));
       await tester.pump();
       await tester.pump(Duration(milliseconds: 250)); // wait for transition
       check(Theme.of(element)).brightness.equals(Brightness.light);
@@ -127,7 +164,133 @@ void main() {
     }, variant: TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
   });
 
-  // TODO(#1571): test visitFirstUnread setting UI
+  group('VisitFirstUnreadSetting', () {
+    String settingTitle(VisitFirstUnreadSetting setting) => switch (setting) {
+      VisitFirstUnreadSetting.always => 'First unread message',
+      VisitFirstUnreadSetting.conversations => 'First unread message in conversation views, newest message elsewhere',
+      VisitFirstUnreadSetting.never => 'Newest message',
+    };
+
+    void checkPage(WidgetTester tester, {
+      required VisitFirstUnreadSetting expectedSetting,
+    }) {
+      for (final setting in VisitFirstUnreadSetting.values) {
+        final thisSettingTitle = settingTitle(setting);
+        checkRadioButtonAppearsChecked<VisitFirstUnreadSetting>(tester,
+          thisSettingTitle, thisSettingTitle == settingTitle(expectedSetting));
+      }
+    }
+
+    testWidgets('smoke', (tester) async {
+      await prepare(tester);
+      await tester.pumpAndSettle();
+
+      // "conversations" is the default, and it appears in the SettingsPage
+      // (as the setting tile's subtitle)
+      check(GlobalStoreWidget.settingsOf(tester.element(find.byType(SettingsPage))))
+        .visitFirstUnread.equals(VisitFirstUnreadSetting.conversations);
+      checkTileOnSettingsPage(tester,
+        expectedTitle: 'Open message feeds at',
+        expectedSubtitle: settingTitle(VisitFirstUnreadSetting.conversations));
+
+      await tester.tap(find.text('Open message feeds at'));
+      await tester.pump();
+      check(lastPushedRoute).isA<MaterialWidgetRoute>()
+        .page.isA<VisitFirstUnreadSettingPage>();
+      await tester.pump((lastPushedRoute as TransitionRoute).transitionDuration);
+      checkPage(tester, expectedSetting: VisitFirstUnreadSetting.conversations);
+
+      await tester.tap(findRadioListTileWithTitle<VisitFirstUnreadSetting>(
+        settingTitle(VisitFirstUnreadSetting.always)));
+      await tester.pumpAndSettle(); // TODO why doesn't just `pump` work?
+      checkPage(tester, expectedSetting: VisitFirstUnreadSetting.always);
+
+      await tester.tap(findRadioListTileWithTitle<VisitFirstUnreadSetting>(
+        settingTitle(VisitFirstUnreadSetting.conversations)));
+      await tester.pumpAndSettle();
+      checkPage(tester, expectedSetting: VisitFirstUnreadSetting.conversations);
+
+      await tester.tap(findRadioListTileWithTitle<VisitFirstUnreadSetting>(
+        settingTitle(VisitFirstUnreadSetting.never)));
+      await tester.pumpAndSettle();
+      checkPage(tester, expectedSetting: VisitFirstUnreadSetting.never);
+
+      await tester.tap(find.byType(BackButton));
+      check(lastPoppedRoute).isA<MaterialWidgetRoute>()
+        .page.isA<VisitFirstUnreadSettingPage>();
+      await tester.pump((lastPoppedRoute as TransitionRoute).reverseTransitionDuration);
+      check(GlobalStoreWidget.settingsOf(tester.element(find.byType(SettingsPage))))
+        .visitFirstUnread.equals(VisitFirstUnreadSetting.never);
+
+      checkTileOnSettingsPage(tester,
+        expectedTitle: 'Open message feeds at',
+        expectedSubtitle: settingTitle(VisitFirstUnreadSetting.never));
+    });
+  });
+
+  group('MarkReadOnScrollSetting', () {
+    String settingTitle(MarkReadOnScrollSetting setting) => switch (setting) {
+      MarkReadOnScrollSetting.always => 'Always',
+      MarkReadOnScrollSetting.conversations => 'Only in conversation views',
+      MarkReadOnScrollSetting.never => 'Never',
+    };
+
+    void checkPage(WidgetTester tester, {
+      required MarkReadOnScrollSetting expectedSetting,
+    }) {
+      for (final setting in MarkReadOnScrollSetting.values) {
+        final thisSettingTitle = settingTitle(setting);
+        checkRadioButtonAppearsChecked<MarkReadOnScrollSetting>(tester,
+          thisSettingTitle, thisSettingTitle == settingTitle(expectedSetting));
+      }
+    }
+
+    testWidgets('smoke', (tester) async {
+      await prepare(tester);
+      await tester.pumpAndSettle();
+
+      // "conversations" is the default, and it appears in the SettingsPage
+      // (as the setting tile's subtitle)
+      check(GlobalStoreWidget.settingsOf(tester.element(find.byType(SettingsPage))))
+        .markReadOnScroll.equals(MarkReadOnScrollSetting.conversations);
+      checkTileOnSettingsPage(tester,
+        expectedTitle: 'Mark messages as read on scroll',
+        expectedSubtitle: settingTitle(MarkReadOnScrollSetting.conversations));
+
+      await tester.tap(find.text('Mark messages as read on scroll'));
+      await tester.pump();
+      check(lastPushedRoute).isA<MaterialWidgetRoute>()
+        .page.isA<MarkReadOnScrollSettingPage>();
+      await tester.pump((lastPushedRoute as TransitionRoute).transitionDuration);
+      checkPage(tester, expectedSetting: MarkReadOnScrollSetting.conversations);
+
+      await tester.tap(findRadioListTileWithTitle<MarkReadOnScrollSetting>(
+        settingTitle(MarkReadOnScrollSetting.always)));
+      await tester.pumpAndSettle(); // TODO why doesn't just `pump` work?
+      checkPage(tester, expectedSetting: MarkReadOnScrollSetting.always);
+
+      await tester.tap(findRadioListTileWithTitle<MarkReadOnScrollSetting>(
+        settingTitle(MarkReadOnScrollSetting.conversations)));
+      await tester.pumpAndSettle();
+      checkPage(tester, expectedSetting: MarkReadOnScrollSetting.conversations);
+
+      await tester.tap(findRadioListTileWithTitle<MarkReadOnScrollSetting>(
+        settingTitle(MarkReadOnScrollSetting.never)));
+      await tester.pumpAndSettle();
+      checkPage(tester, expectedSetting: MarkReadOnScrollSetting.never);
+
+      await tester.tap(find.byType(BackButton));
+      check(lastPoppedRoute).isA<MaterialWidgetRoute>()
+        .page.isA<MarkReadOnScrollSettingPage>();
+      await tester.pump((lastPoppedRoute as TransitionRoute).reverseTransitionDuration);
+      check(GlobalStoreWidget.settingsOf(tester.element(find.byType(SettingsPage))))
+        .markReadOnScroll.equals(MarkReadOnScrollSetting.never);
+
+      checkTileOnSettingsPage(tester,
+        expectedTitle: 'Mark messages as read on scroll',
+        expectedSubtitle: settingTitle(MarkReadOnScrollSetting.never));
+    });
+  });
 
   // TODO maybe test GlobalSettingType.experimentalFeatureFlag settings
   //   Or maybe not; after all, it's a developer-facing feature, so
