@@ -350,6 +350,15 @@ class PerUserPresence {
   Map<String, dynamic> toJson() => _$PerUserPresenceToJson(this);
 }
 
+/// As in [PerClientPresence.status].
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum PresenceStatus {
+  active,
+  idle;
+
+  String toJson() => _$PresenceStatusEnumMap[this]!;
+}
+
 /// An item in `saved_snippets` from the initial snapshot.
 ///
 /// For docs, search for "saved_snippets:"

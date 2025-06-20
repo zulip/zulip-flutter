@@ -422,6 +422,11 @@ const _$EmojisetEnumMap = {
   Emojiset.text: 'text',
 };
 
+const _$PresenceStatusEnumMap = {
+  PresenceStatus.active: 'active',
+  PresenceStatus.idle: 'idle',
+};
+
 const _$ChannelPropertyNameEnumMap = {
   ChannelPropertyName.name: 'name',
   ChannelPropertyName.description: 'description',

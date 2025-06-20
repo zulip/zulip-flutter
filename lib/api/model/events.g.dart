@@ -716,6 +716,47 @@ Map<String, dynamic> _$TypingEventToJson(TypingEvent instance) =>
 
 const _$TypingOpEnumMap = {TypingOp.start: 'start', TypingOp.stop: 'stop'};
 
+PresenceEvent _$PresenceEventFromJson(Map<String, dynamic> json) =>
+    PresenceEvent(
+      id: (json['id'] as num).toInt(),
+      userId: (json['user_id'] as num).toInt(),
+      serverTimestamp: (json['server_timestamp'] as num).toInt(),
+      presence: (json['presence'] as Map<String, dynamic>).map(
+        (k, e) =>
+            MapEntry(k, PerClientPresence.fromJson(e as Map<String, dynamic>)),
+      ),
+    );
+
+Map<String, dynamic> _$PresenceEventToJson(PresenceEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'user_id': instance.userId,
+      'server_timestamp': instance.serverTimestamp,
+      'presence': instance.presence,
+    };
+
+PerClientPresence _$PerClientPresenceFromJson(Map<String, dynamic> json) =>
+    PerClientPresence(
+      client: json['client'] as String,
+      status: $enumDecode(_$PresenceStatusEnumMap, json['status']),
+      timestamp: (json['timestamp'] as num).toInt(),
+      pushable: json['pushable'] as bool,
+    );
+
+Map<String, dynamic> _$PerClientPresenceToJson(PerClientPresence instance) =>
+    <String, dynamic>{
+      'client': instance.client,
+      'status': instance.status,
+      'timestamp': instance.timestamp,
+      'pushable': instance.pushable,
+    };
+
+const _$PresenceStatusEnumMap = {
+  PresenceStatus.active: 'active',
+  PresenceStatus.idle: 'idle',
+};
+
 ReactionEvent _$ReactionEventFromJson(Map<String, dynamic> json) =>
     ReactionEvent(
       id: (json['id'] as num).toInt(),
