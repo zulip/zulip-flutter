@@ -350,7 +350,7 @@ class PerUserPresence {
   Map<String, dynamic> toJson() => _$PerUserPresenceToJson(this);
 }
 
-/// As in [PerClientPresence.status].
+/// As in [PerClientPresence.status] and [updatePresence].
 @JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum PresenceStatus {
   active,
