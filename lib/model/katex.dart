@@ -1,3 +1,5 @@
+import 'package:csslib/parser.dart' as css_parser;
+import 'package:csslib/visitor.dart' as css_visitor;
 import 'package:flutter/foundation.dart';
 import 'package:html/dom.dart' as dom;
 
@@ -6,10 +8,40 @@ import 'binding.dart';
 import 'content.dart';
 import 'settings.dart';
 
+/// The failure reason in case the KaTeX parser encountered a
+/// `_KatexHtmlParseError` exception.
+///
+/// Generally this means that parser encountered an unexpected HTML structure,
+/// an unsupported HTML node, or an unexpected inline CSS style or CSS class on
+/// a specific node.
+class KatexParserHardFailReason {
+  const KatexParserHardFailReason({
+    required this.error,
+    required this.stackTrace,
+  });
+
+  final String error;
+  final StackTrace stackTrace;
+}
+
+/// The failure reason in case the KaTeX parser found an unsupported
+/// CSS class or unsupported inline CSS style property.
+class KatexParserSoftFailReason {
+  const KatexParserSoftFailReason({
+    this.unsupportedCssClasses = const [],
+    this.unsupportedInlineCssProperties = const [],
+  });
+
+  final List<String> unsupportedCssClasses;
+  final List<String> unsupportedInlineCssProperties;
+}
+
 class MathParserResult {
   const MathParserResult({
     required this.texSource,
     required this.nodes,
+    this.hardFailReason,
+    this.softFailReason,
   });
 
   final String texSource;
@@ -20,6 +52,9 @@ class MathParserResult {
   /// CSS style, indicating that the widget should render the [texSource] as a
   /// fallback instead.
   final List<KatexNode>? nodes;
+
+  final KatexParserHardFailReason? hardFailReason;
+  final KatexParserSoftFailReason? softFailReason;
 }
 
 /// Parses the HTML spans containing KaTeX HTML tree.
@@ -85,21 +120,33 @@ MathParserResult? parseMath(dom.Element element, { required bool block }) {
     final flagForceRenderKatex =
       globalSettings.getBool(BoolGlobalSetting.forceRenderKatex);
 
+    KatexParserHardFailReason? hardFailReason;
+    KatexParserSoftFailReason? softFailReason;
     List<KatexNode>? nodes;
     if (flagRenderKatex) {
       final parser = _KatexParser();
       try {
         nodes = parser.parseKatexHtml(katexHtmlElement);
-      } on KatexHtmlParseError catch (e, st) {
+      } on _KatexHtmlParseError catch (e, st) {
         assert(debugLog('$e\n$st'));
+        hardFailReason = KatexParserHardFailReason(
+          error: e.message ?? 'unknown',
+          stackTrace: st);
       }
 
       if (parser.hasError && !flagForceRenderKatex) {
         nodes = null;
+        softFailReason = KatexParserSoftFailReason(
+          unsupportedCssClasses: parser.unsupportedCssClasses,
+          unsupportedInlineCssProperties: parser.unsupportedInlineCssProperties);
       }
     }
 
-    return MathParserResult(nodes: nodes, texSource: texSource);
+    return MathParserResult(
+      nodes: nodes,
+      texSource: texSource,
+      hardFailReason: hardFailReason,
+      softFailReason: softFailReason);
   } else {
     return null;
   }
@@ -109,23 +156,24 @@ class _KatexParser {
   bool get hasError => _hasError;
   bool _hasError = false;
 
-  void _logError(String message) {
-    assert(debugLog(message));
-    _hasError = true;
-  }
+  final unsupportedCssClasses = <String>[];
+  final unsupportedInlineCssProperties = <String>[];
 
   List<KatexNode> parseKatexHtml(dom.Element element) {
     assert(element.localName == 'span');
     assert(element.className == 'katex-html');
-    return _parseChildSpans(element);
+    return _parseChildSpans(element.nodes);
   }
 
-  List<KatexNode> _parseChildSpans(dom.Element element) {
-    return List.unmodifiable(element.nodes.map((node) {
+  List<KatexNode> _parseChildSpans(List<dom.Node> nodes) {
+    return List.unmodifiable(nodes.map((node) {
       if (node case dom.Element(localName: 'span')) {
         return _parseSpan(node);
       } else {
-        throw KatexHtmlParseError();
+        throw _KatexHtmlParseError(
+          node is dom.Element
+            ? 'unsupported html node: ${node.localName}'
+            : 'unsupported html node');
       }
     }));
   }
@@ -135,6 +183,10 @@ class _KatexParser {
 
   KatexNode _parseSpan(dom.Element element) {
     // TODO maybe check if the sequence of ancestors matter for spans.
+
+    final debugHtmlNode = kDebugMode ? element : null;
+
+    final inlineStyles = _parseSpanInlineStyles(element);
 
     // Aggregate the CSS styles that apply, in the same order as the CSS
     // classes specified for this span, mimicking the behaviour on web.
@@ -275,20 +327,35 @@ class _KatexParser {
           fontStyle = KatexSpanFontStyle.normal;
 
         // TODO handle skipped class declarations between .mainrm and
+        //   .mspace .
+
+        case 'mspace':
+          // .mspace { ... }
+          // Do nothing, it has properties that don't need special handling.
+          break;
+
+        // TODO handle skipped class declarations between .mspace and
+        //   .msupsub .
+
+        case 'msupsub':
+          // .msupsub { text-align: left; }
+          textAlign = KatexSpanTextAlign.left;
+
+        // TODO handle skipped class declarations between .msupsub and
         //   .sizing .
 
         case 'sizing':
         case 'fontsize-ensurer':
           // .sizing,
           // .fontsize-ensurer { ... }
-          if (index + 2 > spanClasses.length) throw KatexHtmlParseError();
+          if (index + 2 > spanClasses.length) throw _KatexHtmlParseError();
           final resetSizeClass = spanClasses[index++];
           final sizeClass = spanClasses[index++];
 
           final resetSizeClassSuffix = _resetSizeClassRegExp.firstMatch(resetSizeClass)?.group(1);
-          if (resetSizeClassSuffix == null) throw KatexHtmlParseError();
+          if (resetSizeClassSuffix == null) throw _KatexHtmlParseError();
           final sizeClassSuffix = _sizeClassRegExp.firstMatch(sizeClass)?.group(1);
-          if (sizeClassSuffix == null) throw KatexHtmlParseError();
+          if (sizeClassSuffix == null) throw _KatexHtmlParseError();
 
           const sizes = <double>[0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.2, 1.44, 1.728, 2.074, 2.488];
 
@@ -296,13 +363,13 @@ class _KatexParser {
           final sizeIdx = int.parse(sizeClassSuffix, radix: 10);
 
           // These indexes start at 1.
-          if (resetSizeIdx > sizes.length) throw KatexHtmlParseError();
-          if (sizeIdx > sizes.length) throw KatexHtmlParseError();
+          if (resetSizeIdx > sizes.length) throw _KatexHtmlParseError();
+          if (sizeIdx > sizes.length) throw _KatexHtmlParseError();
           fontSizeEm = sizes[sizeIdx - 1] / sizes[resetSizeIdx - 1];
 
         case 'delimsizing':
           // .delimsizing { ... }
-          if (index + 1 > spanClasses.length) throw KatexHtmlParseError();
+          if (index + 1 > spanClasses.length) throw _KatexHtmlParseError();
           fontFamily = switch (spanClasses[index++]) {
             'size1' => 'KaTeX_Size1',
             'size2' => 'KaTeX_Size2',
@@ -310,31 +377,39 @@ class _KatexParser {
             'size4' => 'KaTeX_Size4',
             'mult' =>
               // TODO handle nested spans with `.delim-size{1,4}` class.
-              throw KatexHtmlParseError(),
-            _ => throw KatexHtmlParseError(),
+              throw _KatexHtmlParseError(),
+            _ => throw _KatexHtmlParseError(),
           };
 
         // TODO handle .nulldelimiter and .delimcenter .
 
         case 'op-symbol':
           // .op-symbol { ... }
-          if (index + 1 > spanClasses.length) throw KatexHtmlParseError();
+          if (index + 1 > spanClasses.length) throw _KatexHtmlParseError();
           fontFamily = switch (spanClasses[index++]) {
             'small-op' => 'KaTeX_Size1',
             'large-op' => 'KaTeX_Size2',
-            _ => throw KatexHtmlParseError(),
+            _ => throw _KatexHtmlParseError(),
           };
 
         // TODO handle more classes from katex.scss
 
         case 'mord':
         case 'mopen':
+        case 'mtight':
+        case 'text':
+        case 'mrel':
+        case 'mop':
+        case 'mclose':
+        case 'minner':
           // Ignore these classes because they don't have a CSS definition
           // in katex.scss, but we encounter them in the generated HTML.
           break;
 
         default:
-          _logError('KaTeX: Unsupported CSS class: $spanClass');
+          assert(debugLog('KaTeX: Unsupported CSS class: $spanClass'));
+          unsupportedCssClasses.add(spanClass);
+          _hasError = true;
       }
     }
     final styles = KatexSpanStyles(
@@ -350,14 +425,67 @@ class _KatexParser {
     if (element.nodes case [dom.Text(:final data)]) {
       text = data;
     } else {
-      spans = _parseChildSpans(element);
+      spans = _parseChildSpans(element.nodes);
     }
-    if (text == null && spans == null) throw KatexHtmlParseError();
+    if (text == null && spans == null) throw _KatexHtmlParseError();
 
-    return KatexNode(
-      styles: styles,
+    return KatexSpanNode(
+      styles: inlineStyles != null
+        ? styles.merge(inlineStyles)
+        : styles,
       text: text,
-      nodes: spans);
+      nodes: spans,
+      debugHtmlNode: debugHtmlNode);
+  }
+
+  KatexSpanStyles? _parseSpanInlineStyles(dom.Element element) {
+    if (element.attributes case {'style': final styleStr}) {
+      // `package:csslib` doesn't seem to have a way to parse inline styles:
+      //   https://github.com/dart-lang/tools/issues/1173
+      // So, workaround that by wrapping it in a universal declaration.
+      final stylesheet = css_parser.parse('*{$styleStr}');
+      if (stylesheet.topLevels case [css_visitor.RuleSet() && final rule]) {
+        double? heightEm;
+
+        for (final declaration in rule.declarationGroup.declarations) {
+          if (declaration case css_visitor.Declaration(
+            :final property,
+            expression: css_visitor.Expressions(
+              expressions: [css_visitor.Expression() && final expression]),
+          )) {
+            switch (property) {
+              case 'height':
+                heightEm = _getEm(expression);
+                if (heightEm != null) continue;
+            }
+
+            // TODO handle more CSS properties
+            assert(debugLog('KaTeX: Unsupported CSS expression:'
+              ' ${expression.toDebugString()}'));
+            unsupportedInlineCssProperties.add(property);
+            _hasError = true;
+          } else {
+            throw _KatexHtmlParseError();
+          }
+        }
+
+        return KatexSpanStyles(
+          heightEm: heightEm,
+        );
+      } else {
+        throw _KatexHtmlParseError();
+      }
+    }
+    return null;
+  }
+
+  /// Returns the CSS `em` unit value if the given [expression] is actually an
+  /// `em` unit expression, else returns null.
+  double? _getEm(css_visitor.Expression expression) {
+    if (expression is css_visitor.EmTerm && expression.value is num) {
+      return (expression.value as num).toDouble();
+    }
+    return null;
   }
 }
 
@@ -378,6 +506,8 @@ enum KatexSpanTextAlign {
 
 @immutable
 class KatexSpanStyles {
+  final double? heightEm;
+
   final String? fontFamily;
   final double? fontSizeEm;
   final KatexSpanFontWeight? fontWeight;
@@ -385,6 +515,7 @@ class KatexSpanStyles {
   final KatexSpanTextAlign? textAlign;
 
   const KatexSpanStyles({
+    this.heightEm,
     this.fontFamily,
     this.fontSizeEm,
     this.fontWeight,
@@ -395,6 +526,7 @@ class KatexSpanStyles {
   @override
   int get hashCode => Object.hash(
     'KatexSpanStyles',
+    heightEm,
     fontFamily,
     fontSizeEm,
     fontWeight,
@@ -405,6 +537,7 @@ class KatexSpanStyles {
   @override
   bool operator ==(Object other) {
     return other is KatexSpanStyles &&
+      other.heightEm == heightEm &&
       other.fontFamily == fontFamily &&
       other.fontSizeEm == fontSizeEm &&
       other.fontWeight == fontWeight &&
@@ -415,6 +548,7 @@ class KatexSpanStyles {
   @override
   String toString() {
     final args = <String>[];
+    if (heightEm != null) args.add('heightEm: $heightEm');
     if (fontFamily != null) args.add('fontFamily: $fontFamily');
     if (fontSizeEm != null) args.add('fontSizeEm: $fontSizeEm');
     if (fontWeight != null) args.add('fontWeight: $fontWeight');
@@ -422,11 +556,23 @@ class KatexSpanStyles {
     if (textAlign != null) args.add('textAlign: $textAlign');
     return '${objectRuntimeType(this, 'KatexSpanStyles')}(${args.join(', ')})';
   }
+
+  KatexSpanStyles merge(KatexSpanStyles other) {
+    return KatexSpanStyles(
+      heightEm: other.heightEm ?? heightEm,
+      fontFamily: other.fontFamily ?? fontFamily,
+      fontSizeEm: other.fontSizeEm ?? fontSizeEm,
+      fontStyle: other.fontStyle ?? fontStyle,
+      fontWeight: other.fontWeight ?? fontWeight,
+      textAlign: other.textAlign ?? textAlign,
+    );
+  }
 }
 
-class KatexHtmlParseError extends Error {
+class _KatexHtmlParseError extends Error {
   final String? message;
-  KatexHtmlParseError([this.message]);
+
+  _KatexHtmlParseError([this.message]);
 
   @override
   String toString() {

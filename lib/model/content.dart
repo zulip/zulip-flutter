@@ -341,11 +341,13 @@ class CodeBlockSpanNode extends ContentNode {
   }
 }
 
-abstract class MathNode extends ContentNode {
+sealed class MathNode extends ContentNode {
   const MathNode({
     super.debugHtmlNode,
     required this.texSource,
     required this.nodes,
+    this.debugHardFailReason,
+    this.debugSoftFailReason,
   });
 
   final String texSource;
@@ -356,6 +358,9 @@ abstract class MathNode extends ContentNode {
   /// CSS style, indicating that the widget should render the [texSource] as a
   /// fallback instead.
   final List<KatexNode>? nodes;
+
+  final KatexParserHardFailReason? debugHardFailReason;
+  final KatexParserSoftFailReason? debugSoftFailReason;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -369,8 +374,12 @@ abstract class MathNode extends ContentNode {
   }
 }
 
-class KatexNode extends ContentNode {
-  const KatexNode({
+sealed class KatexNode extends ContentNode {
+  const KatexNode({super.debugHtmlNode});
+}
+
+class KatexSpanNode extends KatexNode {
+  const KatexSpanNode({
     required this.styles,
     required this.text,
     required this.nodes,
@@ -407,6 +416,8 @@ class MathBlockNode extends MathNode implements BlockContentNode {
     super.debugHtmlNode,
     required super.texSource,
     required super.nodes,
+    super.debugHardFailReason,
+    super.debugSoftFailReason,
   });
 }
 
@@ -876,6 +887,8 @@ class MathInlineNode extends MathNode implements InlineContentNode {
     super.debugHtmlNode,
     required super.texSource,
     required super.nodes,
+    super.debugHardFailReason,
+    super.debugSoftFailReason,
   });
 }
 
@@ -917,7 +930,9 @@ class _ZulipInlineContentParser {
     return MathInlineNode(
       texSource: parsed.texSource,
       nodes: parsed.nodes,
-      debugHtmlNode: debugHtmlNode);
+      debugHtmlNode: debugHtmlNode,
+      debugHardFailReason: kDebugMode ? parsed.hardFailReason : null,
+      debugSoftFailReason: kDebugMode ? parsed.softFailReason : null);
   }
 
   UserMentionNode? parseUserMention(dom.Element element) {
@@ -1624,7 +1639,9 @@ class _ZulipContentParser {
       result.add(MathBlockNode(
         texSource: parsed.texSource,
         nodes: parsed.nodes,
-        debugHtmlNode: kDebugMode ? firstChild : null));
+        debugHtmlNode: kDebugMode ? firstChild : null,
+        debugHardFailReason: kDebugMode ? parsed.hardFailReason : null,
+        debugSoftFailReason: kDebugMode ? parsed.softFailReason : null));
     } else {
       result.add(UnimplementedBlockContentNode(htmlNode: firstChild));
     }
@@ -1660,7 +1677,9 @@ class _ZulipContentParser {
           result.add(MathBlockNode(
             texSource: parsed.texSource,
             nodes: parsed.nodes,
-            debugHtmlNode: debugHtmlNode));
+            debugHtmlNode: debugHtmlNode,
+            debugHardFailReason: kDebugMode ? parsed.hardFailReason : null,
+            debugSoftFailReason: kDebugMode ? parsed.softFailReason : null));
           continue;
         }
       }
