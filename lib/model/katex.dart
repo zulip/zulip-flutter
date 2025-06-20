@@ -246,13 +246,17 @@ class _KatexParser {
           for (final innerSpan in vlist.nodes) {
             if (innerSpan case dom.Element(
               localName: 'span',
-              className: '',
               nodes: [
                 dom.Element(localName: 'span', className: 'pstrut') &&
                     final pstrutSpan,
                 ...final otherSpans,
               ],
             )) {
+              if (innerSpan.className != '') {
+                throw _KatexHtmlParseError('unexpected CSS class for '
+                  'vlist inner span: ${innerSpan.className}');
+              }
+
               var styles = _parseSpanInlineStyles(innerSpan);
               if (styles == null) throw _KatexHtmlParseError();
               if (styles.verticalAlignEm != null) throw _KatexHtmlParseError();
