@@ -474,9 +474,12 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       core: core,
+      serverPresencePingIntervalSeconds: initialSnapshot.serverPresencePingIntervalSeconds,
+      serverPresenceOfflineThresholdSeconds: initialSnapshot.serverPresenceOfflineThresholdSeconds,
       realmWildcardMentionPolicy: initialSnapshot.realmWildcardMentionPolicy,
       realmMandatoryTopics: initialSnapshot.realmMandatoryTopics,
       realmWaitingPeriodThreshold: initialSnapshot.realmWaitingPeriodThreshold,
+      realmPresenceDisabled: initialSnapshot.realmPresenceDisabled,
       maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
       realmEmptyTopicDisplayName: initialSnapshot.realmEmptyTopicDisplayName,
       realmAllowMessageEditing: initialSnapshot.realmAllowMessageEditing,
@@ -516,9 +519,12 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
 
   PerAccountStore._({
     required super.core,
+    required this.serverPresencePingIntervalSeconds,
+    required this.serverPresenceOfflineThresholdSeconds,
     required this.realmWildcardMentionPolicy,
     required this.realmMandatoryTopics,
     required this.realmWaitingPeriodThreshold,
+    required this.realmPresenceDisabled,
     required this.maxFileUploadSizeMib,
     required String? realmEmptyTopicDisplayName,
     required this.realmAllowMessageEditing,
@@ -570,12 +576,16 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   ////////////////////////////////
   // Data attached to the realm or the server.
 
+  final int serverPresencePingIntervalSeconds;
+  final int serverPresenceOfflineThresholdSeconds;
+
   final RealmWildcardMentionPolicy realmWildcardMentionPolicy; // TODO(#668): update this realm setting
   final bool realmMandatoryTopics;  // TODO(#668): update this realm setting
   /// For docs, please see [InitialSnapshot.realmWaitingPeriodThreshold].
   final int realmWaitingPeriodThreshold;  // TODO(#668): update this realm setting
   final bool realmAllowMessageEditing; // TODO(#668): update this realm setting
   final int? realmMessageContentEditLimitSeconds; // TODO(#668): update this realm setting
+  final bool realmPresenceDisabled; // TODO(#668): update this realm setting
   final int maxFileUploadSizeMib; // No event for this.
 
   /// The display name to use for empty topics.
