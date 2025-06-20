@@ -49,6 +49,11 @@ class InitialSnapshot {
 
   final List<MutedUserItem> mutedUsers;
 
+  // In the modern format because we pass `slim_presence`.
+  // TODO(#1611) stop passing and mentioning the deprecated slim_presence;
+  //   presence_last_update_id will be why we get the modern format.
+  final Map<int, PerUserPresence> presences;
+
   final Map<String, RealmEmojiItem> realmEmoji;
 
   final List<RecentDmConversation> recentPrivateConversations;
@@ -142,6 +147,7 @@ class InitialSnapshot {
     required this.serverTypingStoppedWaitPeriodMilliseconds,
     required this.serverTypingStartedWaitPeriodMilliseconds,
     required this.mutedUsers,
+    required this.presences,
     required this.realmEmoji,
     required this.recentPrivateConversations,
     required this.savedSnippets,

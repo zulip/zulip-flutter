@@ -330,6 +330,26 @@ enum UserRole{
   }
 }
 
+/// A value in [InitialSnapshot.presences].
+///
+/// For docs, search for "presences:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class PerUserPresence {
+  final int activeTimestamp;
+  final int idleTimestamp;
+
+  PerUserPresence({
+    required this.activeTimestamp,
+    required this.idleTimestamp,
+  });
+
+  factory PerUserPresence.fromJson(Map<String, dynamic> json) =>
+    _$PerUserPresenceFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PerUserPresenceToJson(this);
+}
+
 /// An item in `saved_snippets` from the initial snapshot.
 ///
 /// For docs, search for "saved_snippets:"

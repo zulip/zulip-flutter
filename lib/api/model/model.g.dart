@@ -168,6 +168,18 @@ Map<String, dynamic> _$ProfileFieldUserDataToJson(
   'rendered_value': instance.renderedValue,
 };
 
+PerUserPresence _$PerUserPresenceFromJson(Map<String, dynamic> json) =>
+    PerUserPresence(
+      activeTimestamp: (json['active_timestamp'] as num).toInt(),
+      idleTimestamp: (json['idle_timestamp'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$PerUserPresenceToJson(PerUserPresence instance) =>
+    <String, dynamic>{
+      'active_timestamp': instance.activeTimestamp,
+      'idle_timestamp': instance.idleTimestamp,
+    };
+
 SavedSnippet _$SavedSnippetFromJson(Map<String, dynamic> json) => SavedSnippet(
   id: (json['id'] as num).toInt(),
   title: json['title'] as String,

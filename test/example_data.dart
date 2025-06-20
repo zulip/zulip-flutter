@@ -1106,6 +1106,7 @@ InitialSnapshot initialSnapshot({
   int? serverTypingStoppedWaitPeriodMilliseconds,
   int? serverTypingStartedWaitPeriodMilliseconds,
   List<MutedUserItem>? mutedUsers,
+  Map<int, PerUserPresence>? presences,
   Map<String, RealmEmojiItem>? realmEmoji,
   List<RecentDmConversation>? recentPrivateConversations,
   List<SavedSnippet>? savedSnippets,
@@ -1146,6 +1147,7 @@ InitialSnapshot initialSnapshot({
     serverTypingStartedWaitPeriodMilliseconds:
       serverTypingStartedWaitPeriodMilliseconds ?? 10000,
     mutedUsers: mutedUsers ?? [],
+    presences: presences ?? {},
     realmEmoji: realmEmoji ?? {},
     recentPrivateConversations: recentPrivateConversations ?? [],
     savedSnippets: savedSnippets ?? [],
