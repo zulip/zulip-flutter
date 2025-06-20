@@ -1100,6 +1100,8 @@ InitialSnapshot initialSnapshot({
   List<String>? alertWords,
   List<CustomProfileField>? customProfileFields,
   EmailAddressVisibility? emailAddressVisibility,
+  int? serverPresencePingIntervalSeconds,
+  int? serverPresenceOfflineThresholdSeconds,
   int? serverTypingStartedExpiryPeriodMilliseconds,
   int? serverTypingStoppedWaitPeriodMilliseconds,
   int? serverTypingStartedWaitPeriodMilliseconds,
@@ -1117,6 +1119,7 @@ InitialSnapshot initialSnapshot({
   int? realmWaitingPeriodThreshold,
   bool? realmAllowMessageEditing,
   int? realmMessageContentEditLimitSeconds,
+  bool? realmPresenceDisabled,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   int? maxFileUploadSizeMib,
   Uri? serverEmojiDataUrl,
@@ -1134,6 +1137,8 @@ InitialSnapshot initialSnapshot({
     alertWords: alertWords ?? ['klaxon'],
     customProfileFields: customProfileFields ?? [],
     emailAddressVisibility: emailAddressVisibility ?? EmailAddressVisibility.everyone,
+    serverPresencePingIntervalSeconds: serverPresencePingIntervalSeconds ?? 60,
+    serverPresenceOfflineThresholdSeconds: serverPresenceOfflineThresholdSeconds ?? 140,
     serverTypingStartedExpiryPeriodMilliseconds:
       serverTypingStartedExpiryPeriodMilliseconds ?? 15000,
     serverTypingStoppedWaitPeriodMilliseconds:
@@ -1158,6 +1163,7 @@ InitialSnapshot initialSnapshot({
     realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
     realmAllowMessageEditing: realmAllowMessageEditing ?? true,
     realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
+    realmPresenceDisabled: realmPresenceDisabled ?? false,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
     serverEmojiDataUrl: serverEmojiDataUrl

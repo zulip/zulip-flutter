@@ -34,6 +34,9 @@ class InitialSnapshot {
   ///   * https://zulip.com/api/update-realm-user-settings-defaults#parameter-email_address_visibility
   final EmailAddressVisibility? emailAddressVisibility; // TODO(server-7): remove
 
+  final int serverPresencePingIntervalSeconds;
+  final int serverPresenceOfflineThresholdSeconds;
+
   // TODO(server-8): Remove the default values.
   @JsonKey(defaultValue: 15000)
   final int serverTypingStartedExpiryPeriodMilliseconds;
@@ -86,6 +89,8 @@ class InitialSnapshot {
   final bool realmAllowMessageEditing;
   final int? realmMessageContentEditLimitSeconds;
 
+  final bool realmPresenceDisabled;
+
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
 
   final int maxFileUploadSizeMib;
@@ -131,6 +136,8 @@ class InitialSnapshot {
     required this.alertWords,
     required this.customProfileFields,
     required this.emailAddressVisibility,
+    required this.serverPresencePingIntervalSeconds,
+    required this.serverPresenceOfflineThresholdSeconds,
     required this.serverTypingStartedExpiryPeriodMilliseconds,
     required this.serverTypingStoppedWaitPeriodMilliseconds,
     required this.serverTypingStartedWaitPeriodMilliseconds,
@@ -148,6 +155,7 @@ class InitialSnapshot {
     required this.realmWaitingPeriodThreshold,
     required this.realmAllowMessageEditing,
     required this.realmMessageContentEditLimitSeconds,
+    required this.realmPresenceDisabled,
     required this.realmDefaultExternalAccounts,
     required this.maxFileUploadSizeMib,
     required this.serverEmojiDataUrl,
