@@ -952,6 +952,10 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         assert(debugLog("server event: typing/${event.op} ${event.messageType}"));
         typingStatus.handleTypingEvent(event);
 
+      case PresenceEvent():
+        // TODO handle
+        break;
+
       case ReactionEvent():
         assert(debugLog("server event: reaction/${event.op}"));
         _messages.handleReactionEvent(event);

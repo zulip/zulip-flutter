@@ -26,6 +26,10 @@ InitialSnapshot _$InitialSnapshotFromJson(
     _$EmailAddressVisibilityEnumMap,
     json['email_address_visibility'],
   ),
+  serverPresencePingIntervalSeconds:
+      (json['server_presence_ping_interval_seconds'] as num).toInt(),
+  serverPresenceOfflineThresholdSeconds:
+      (json['server_presence_offline_threshold_seconds'] as num).toInt(),
   serverTypingStartedExpiryPeriodMilliseconds:
       (json['server_typing_started_expiry_period_milliseconds'] as num?)
           ?.toInt() ??
@@ -41,6 +45,12 @@ InitialSnapshot _$InitialSnapshotFromJson(
   mutedUsers: (json['muted_users'] as List<dynamic>)
       .map((e) => MutedUserItem.fromJson(e as Map<String, dynamic>))
       .toList(),
+  presences: (json['presences'] as Map<String, dynamic>).map(
+    (k, e) => MapEntry(
+      int.parse(k),
+      PerUserPresence.fromJson(e as Map<String, dynamic>),
+    ),
+  ),
   realmEmoji: (json['realm_emoji'] as Map<String, dynamic>).map(
     (k, e) => MapEntry(k, RealmEmojiItem.fromJson(e as Map<String, dynamic>)),
   ),
@@ -76,6 +86,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
   realmAllowMessageEditing: json['realm_allow_message_editing'] as bool,
   realmMessageContentEditLimitSeconds:
       (json['realm_message_content_edit_limit_seconds'] as num?)?.toInt(),
+  realmPresenceDisabled: json['realm_presence_disabled'] as bool,
   realmDefaultExternalAccounts:
       (json['realm_default_external_accounts'] as Map<String, dynamic>).map(
         (k, e) => MapEntry(
@@ -119,6 +130,10 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'custom_profile_fields': instance.customProfileFields,
       'email_address_visibility':
           _$EmailAddressVisibilityEnumMap[instance.emailAddressVisibility],
+      'server_presence_ping_interval_seconds':
+          instance.serverPresencePingIntervalSeconds,
+      'server_presence_offline_threshold_seconds':
+          instance.serverPresenceOfflineThresholdSeconds,
       'server_typing_started_expiry_period_milliseconds':
           instance.serverTypingStartedExpiryPeriodMilliseconds,
       'server_typing_stopped_wait_period_milliseconds':
@@ -126,6 +141,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'server_typing_started_wait_period_milliseconds':
           instance.serverTypingStartedWaitPeriodMilliseconds,
       'muted_users': instance.mutedUsers,
+      'presences': instance.presences.map((k, e) => MapEntry(k.toString(), e)),
       'realm_emoji': instance.realmEmoji,
       'recent_private_conversations': instance.recentPrivateConversations,
       'saved_snippets': instance.savedSnippets,
@@ -140,6 +156,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'realm_allow_message_editing': instance.realmAllowMessageEditing,
       'realm_message_content_edit_limit_seconds':
           instance.realmMessageContentEditLimitSeconds,
+      'realm_presence_disabled': instance.realmPresenceDisabled,
       'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
       'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
       'server_emoji_data_url': instance.serverEmojiDataUrl?.toString(),

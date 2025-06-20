@@ -1100,10 +1100,13 @@ InitialSnapshot initialSnapshot({
   List<String>? alertWords,
   List<CustomProfileField>? customProfileFields,
   EmailAddressVisibility? emailAddressVisibility,
+  int? serverPresencePingIntervalSeconds,
+  int? serverPresenceOfflineThresholdSeconds,
   int? serverTypingStartedExpiryPeriodMilliseconds,
   int? serverTypingStoppedWaitPeriodMilliseconds,
   int? serverTypingStartedWaitPeriodMilliseconds,
   List<MutedUserItem>? mutedUsers,
+  Map<int, PerUserPresence>? presences,
   Map<String, RealmEmojiItem>? realmEmoji,
   List<RecentDmConversation>? recentPrivateConversations,
   List<SavedSnippet>? savedSnippets,
@@ -1117,6 +1120,7 @@ InitialSnapshot initialSnapshot({
   int? realmWaitingPeriodThreshold,
   bool? realmAllowMessageEditing,
   int? realmMessageContentEditLimitSeconds,
+  bool? realmPresenceDisabled,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   int? maxFileUploadSizeMib,
   Uri? serverEmojiDataUrl,
@@ -1134,6 +1138,8 @@ InitialSnapshot initialSnapshot({
     alertWords: alertWords ?? ['klaxon'],
     customProfileFields: customProfileFields ?? [],
     emailAddressVisibility: emailAddressVisibility ?? EmailAddressVisibility.everyone,
+    serverPresencePingIntervalSeconds: serverPresencePingIntervalSeconds ?? 60,
+    serverPresenceOfflineThresholdSeconds: serverPresenceOfflineThresholdSeconds ?? 140,
     serverTypingStartedExpiryPeriodMilliseconds:
       serverTypingStartedExpiryPeriodMilliseconds ?? 15000,
     serverTypingStoppedWaitPeriodMilliseconds:
@@ -1141,6 +1147,7 @@ InitialSnapshot initialSnapshot({
     serverTypingStartedWaitPeriodMilliseconds:
       serverTypingStartedWaitPeriodMilliseconds ?? 10000,
     mutedUsers: mutedUsers ?? [],
+    presences: presences ?? {},
     realmEmoji: realmEmoji ?? {},
     recentPrivateConversations: recentPrivateConversations ?? [],
     savedSnippets: savedSnippets ?? [],
@@ -1158,6 +1165,7 @@ InitialSnapshot initialSnapshot({
     realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
     realmAllowMessageEditing: realmAllowMessageEditing ?? true,
     realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
+    realmPresenceDisabled: realmPresenceDisabled ?? false,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
     serverEmojiDataUrl: serverEmojiDataUrl

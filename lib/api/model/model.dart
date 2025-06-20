@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../model/algorithms.dart';
+import '../route/users.dart';
 import 'events.dart';
 import 'initial_snapshot.dart';
 import 'reaction.dart';
@@ -328,6 +329,35 @@ enum UserRole{
     // Roles with more privilege have lower [apiValue].
     return apiValue! <= threshold.apiValue!;
   }
+}
+
+/// A value in [InitialSnapshot.presences].
+///
+/// For docs, search for "presences:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class PerUserPresence {
+  final int activeTimestamp;
+  final int idleTimestamp;
+
+  PerUserPresence({
+    required this.activeTimestamp,
+    required this.idleTimestamp,
+  });
+
+  factory PerUserPresence.fromJson(Map<String, dynamic> json) =>
+    _$PerUserPresenceFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PerUserPresenceToJson(this);
+}
+
+/// As in [PerClientPresence.status] and [updatePresence].
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum PresenceStatus {
+  active,
+  idle;
+
+  String toJson() => _$PresenceStatusEnumMap[this]!;
 }
 
 /// An item in `saved_snippets` from the initial snapshot.
