@@ -12,9 +12,11 @@ import '../api/core.dart';
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/avatar_url.dart';
+import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
 import '../model/katex.dart';
+import '../model/presence.dart';
 import 'actions.dart';
 import 'code_block.dart';
 import 'dialog.dart';
@@ -1662,17 +1664,26 @@ class Avatar extends StatelessWidget {
     required this.userId,
     required this.size,
     required this.borderRadius,
+    this.backgroundColor,
+    this.showPresence = true,
   });
 
   final int userId;
   final double size;
   final double borderRadius;
+  final Color? backgroundColor;
+  final bool showPresence;
 
   @override
   Widget build(BuildContext context) {
+    // (The backgroundColor is only meaningful if presence will be shown;
+    // see [PresenceCircle.backgroundColor].)
+    assert(backgroundColor == null || showPresence);
     return AvatarShape(
       size: size,
       borderRadius: borderRadius,
+      backgroundColor: backgroundColor,
+      userIdForPresence: showPresence ? userId : null,
       child: AvatarImage(userId: userId, size: size));
   }
 }
@@ -1722,26 +1733,169 @@ class AvatarImage extends StatelessWidget {
 }
 
 /// A rounded square shape, to wrap an [AvatarImage] or similar.
+///
+/// If [userIdForPresence] is provided, this will paint a [PresenceCircle]
+/// on the shape.
 class AvatarShape extends StatelessWidget {
   const AvatarShape({
     super.key,
     required this.size,
     required this.borderRadius,
+    this.backgroundColor,
+    this.userIdForPresence,
     required this.child,
   });
 
   final double size;
   final double borderRadius;
+  final Color? backgroundColor;
+  final int? userIdForPresence;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.square(
+    // (The backgroundColor is only meaningful if presence will be shown;
+    // see [PresenceCircle.backgroundColor].)
+    assert(backgroundColor == null || userIdForPresence != null);
+
+    Widget result = SizedBox.square(
       dimension: size,
       child: ClipRRect(
         borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
         clipBehavior: Clip.antiAlias,
         child: child));
+
+    if (userIdForPresence != null) {
+      final presenceCircleSize = size / 4; // TODO(design) is this right?
+      result = Stack(children: [
+        result,
+        Positioned.directional(textDirection: Directionality.of(context),
+          end: 0,
+          bottom: 0,
+          child: PresenceCircle(
+            userId: userIdForPresence!,
+            size: presenceCircleSize,
+            backgroundColor: backgroundColor)),
+      ]);
+    }
+
+    return result;
+  }
+}
+
+/// The green or orange-gradient circle representing [PresenceStatus].
+///
+/// [backgroundColor] must not be [Colors.transparent].
+/// It exists to match the background on which the avatar image is painted.
+/// If [backgroundColor] is not passed, [DesignVariables.mainBackground] is used.
+///
+/// By default, nothing paints for a user in the "offline" status
+/// (i.e. a user without a [PresenceStatus]).
+/// Pass true for [explicitOffline] to paint a gray circle.
+class PresenceCircle extends StatefulWidget {
+  const PresenceCircle({
+    super.key,
+    required this.userId,
+    required this.size,
+    this.backgroundColor,
+    this.explicitOffline = false,
+  });
+
+  final int userId;
+  final double size;
+  final Color? backgroundColor;
+  final bool explicitOffline;
+
+  /// Creates a [WidgetSpan] with a [PresenceCircle], for use in rich text
+  /// before a user's name.
+  ///
+  /// The [PresenceCircle] will have `explicitOffline: true`.
+  static InlineSpan asWidgetSpan({
+    required int userId,
+    required double fontSize,
+    required TextScaler textScaler,
+    Color? backgroundColor,
+  }) {
+    final size = textScaler.scale(fontSize) / 2;
+    return WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.only(end: 4),
+        child: PresenceCircle(
+          userId: userId,
+          size: size,
+          backgroundColor: backgroundColor,
+          explicitOffline: true)));
+  }
+
+  @override
+  State<PresenceCircle> createState() => _PresenceCircleState();
+}
+
+class _PresenceCircleState extends State<PresenceCircle> with PerAccountStoreAwareStateMixin {
+  Presence? model;
+
+  @override
+  void onNewStore() {
+    model?.removeListener(_modelChanged);
+    model = PerAccountStoreWidget.of(context).presence
+      ..addListener(_modelChanged);
+  }
+
+  @override
+  void dispose() {
+    model!.removeListener(_modelChanged);
+    super.dispose();
+  }
+
+  void _modelChanged() {
+    setState(() {
+      // The actual state lives in [model].
+      // This method was called because that just changed.
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final status = model!.presenceStatusForUser(
+      widget.userId, utcNow: ZulipBinding.instance.utcNow());
+    final designVariables = DesignVariables.of(context);
+    final effectiveBackgroundColor = widget.backgroundColor ?? designVariables.mainBackground;
+    assert(effectiveBackgroundColor != Colors.transparent);
+
+    Color? color;
+    LinearGradient? gradient;
+    switch (status) {
+      case null:
+        if (widget.explicitOffline) {
+          // TODO(a11y) this should be an open circle, like on web,
+          //   to differentiate by shape (vs. the "active" status which is also
+          //   a solid circle)
+          color = designVariables.statusAway;
+        } else {
+          return SizedBox.square(dimension: widget.size);
+        }
+      case PresenceStatus.active:
+        color = designVariables.statusOnline;
+      case PresenceStatus.idle:
+        gradient = LinearGradient(
+          begin: AlignmentDirectional.centerStart,
+          end: AlignmentDirectional.centerEnd,
+          colors: [designVariables.statusIdle, effectiveBackgroundColor],
+          stops: [0.05, 1.00],
+        );
+    }
+
+    return SizedBox.square(dimension: widget.size,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: effectiveBackgroundColor,
+            width: 2,
+            strokeAlign: BorderSide.strokeAlignOutside),
+          color: color,
+          gradient: gradient,
+          shape: BoxShape.circle)));
   }
 }
 

@@ -570,7 +570,11 @@ class _MyProfileButton extends _MenuButton {
   Widget buildLeading(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     return Avatar(
-      userId: store.selfUserId, size: _MenuButton._iconSize, borderRadius: 4);
+      userId: store.selfUserId,
+      size: _MenuButton._iconSize,
+      borderRadius: 4,
+      showPresence: false,
+    );
   }
 
   @override

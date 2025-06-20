@@ -173,6 +173,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     mainBackground: const Color(0xfff0f0f0),
     radioBorder: Color(0xffbbbdc8),
     radioFillSelected: Color(0xff4370f0),
+    statusAway: Color(0xff73788c).withValues(alpha: 0.25),
+
+    // Following Web because it uses a gradient, to distinguish it by shape from
+    // the "active" dot, and the Figma doesn't; Figma just has solid #d5bb6c.
+    statusIdle: Color(0xfff5b266),
+
+    statusOnline: Color(0xff46aa62),
     textInput: const Color(0xff000000),
     title: const Color(0xff1a1a1a),
     bgSearchInput: const Color(0xffe3e3e3),
@@ -242,6 +249,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     mainBackground: const Color(0xff1d1d1d),
     radioBorder: Color(0xff626573),
     radioFillSelected: Color(0xff4e7cfa),
+    statusAway: Color(0xffabaeba).withValues(alpha: 0.30),
+
+    // Following Web because it uses a gradient, to distinguish it by shape from
+    // the "active" dot, and the Figma doesn't; Figma just has solid #8c853b.
+    statusIdle: Color(0xffae640a),
+
+    statusOnline: Color(0xff44bb66),
     textInput: const Color(0xffffffff).withValues(alpha: 0.9),
     title: const Color(0xffffffff).withValues(alpha: 0.9),
     bgSearchInput: const Color(0xff313131),
@@ -319,6 +333,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.mainBackground,
     required this.radioBorder,
     required this.radioFillSelected,
+    required this.statusAway,
+    required this.statusIdle,
+    required this.statusOnline,
     required this.textInput,
     required this.title,
     required this.bgSearchInput,
@@ -397,6 +414,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color mainBackground;
   final Color radioBorder;
   final Color radioFillSelected;
+  final Color statusAway;
+  final Color statusIdle;
+  final Color statusOnline;
   final Color textInput;
   final Color title;
   final Color bgSearchInput;
@@ -470,6 +490,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? mainBackground,
     Color? radioBorder,
     Color? radioFillSelected,
+    Color? statusAway,
+    Color? statusIdle,
+    Color? statusOnline,
     Color? textInput,
     Color? title,
     Color? bgSearchInput,
@@ -538,6 +561,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: mainBackground ?? this.mainBackground,
       radioBorder: radioBorder ?? this.radioBorder,
       radioFillSelected: radioFillSelected ?? this.radioFillSelected,
+      statusAway: statusAway ?? this.statusAway,
+      statusIdle: statusIdle ?? this.statusIdle,
+      statusOnline: statusOnline ?? this.statusOnline,
       textInput: textInput ?? this.textInput,
       title: title ?? this.title,
       bgSearchInput: bgSearchInput ?? this.bgSearchInput,
@@ -613,6 +639,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
       radioBorder: Color.lerp(radioBorder, other.radioBorder, t)!,
       radioFillSelected: Color.lerp(radioFillSelected, other.radioFillSelected, t)!,
+      statusAway: Color.lerp(statusAway, other.statusAway, t)!,
+      statusIdle: Color.lerp(statusIdle, other.statusIdle, t)!,
+      statusOnline: Color.lerp(statusOnline, other.statusOnline, t)!,
       textInput: Color.lerp(textInput, other.textInput, t)!,
       title: Color.lerp(title, other.title, t)!,
       bgSearchInput: Color.lerp(bgSearchInput, other.bgSearchInput, t)!,

@@ -1704,7 +1704,10 @@ class _SenderRow extends StatelessWidget {
                   userId: message.senderId)),
               child: Row(
                 children: [
-                  Avatar(size: 32, borderRadius: 3,
+                  Avatar(
+                    size: 32,
+                    borderRadius: 3,
+                    showPresence: false,
                     userId: message.senderId),
                   const SizedBox(width: 8),
                   Flexible(

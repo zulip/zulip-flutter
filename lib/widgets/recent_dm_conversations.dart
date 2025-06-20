@@ -101,6 +101,7 @@ class RecentDmConversationsItem extends StatelessWidget {
 
     final String title;
     final Widget avatar;
+    int? userIdForPresence;
     switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
       case []:
         title = store.selfUser.fullName;
@@ -111,6 +112,7 @@ class RecentDmConversationsItem extends StatelessWidget {
         //   1:1 DM conversations from muted users?)
         title = store.userDisplayName(otherUserId);
         avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
+        userIdForPresence = otherUserId;
       default:
         // TODO(i18n): List formatting, like you can do in JavaScript:
         //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
@@ -123,8 +125,10 @@ class RecentDmConversationsItem extends StatelessWidget {
               ZulipIcons.group_dm)));
     }
 
+    // TODO(design) check if this is the right variable
+    final backgroundColor = designVariables.background;
     return Material(
-      color: designVariables.background, // TODO(design) check if this is the right variable
+      color: backgroundColor,
       child: InkWell(
         onTap: () {
           Navigator.push(context,
@@ -133,7 +137,12 @@ class RecentDmConversationsItem extends StatelessWidget {
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 48),
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
             Padding(padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 0, 8),
-              child: AvatarShape(size: _avatarSize, borderRadius: 3, child: avatar)),
+              child: AvatarShape(
+                size: _avatarSize,
+                borderRadius: 3,
+                backgroundColor: userIdForPresence != null ? backgroundColor : null,
+                userIdForPresence: userIdForPresence,
+                child: avatar)),
             const SizedBox(width: 8),
             Expanded(child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),

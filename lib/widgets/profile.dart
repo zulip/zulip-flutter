@@ -44,15 +44,31 @@ class ProfilePage extends StatelessWidget {
       return const _ProfileErrorPage();
     }
 
+    final nameStyle = _TextStyles.primaryFieldText
+      .merge(weightVariableTextStyle(context, wght: 700));
+
     final displayEmail = store.userDisplayEmail(user);
     final items = [
       Center(
-        child: Avatar(userId: userId, size: 200, borderRadius: 200 / 8)),
+        child: Avatar(
+          userId: userId,
+          size: 200,
+          borderRadius: 200 / 8,
+          // Would look odd with this large image;
+          // we'll show it by the user's name instead.
+          showPresence: false)),
       const SizedBox(height: 16),
-      Text(user.fullName,
+      Text.rich(
+        TextSpan(children: [
+          PresenceCircle.asWidgetSpan(
+            userId: userId,
+            fontSize: nameStyle.fontSize!,
+            textScaler: MediaQuery.textScalerOf(context),
+          ),
+          TextSpan(text: user.fullName),
+        ]),
         textAlign: TextAlign.center,
-        style: _TextStyles.primaryFieldText
-          .merge(weightVariableTextStyle(context, wght: 700))),
+        style: nameStyle),
       if (displayEmail != null)
         Text(displayEmail,
           textAlign: TextAlign.center,
