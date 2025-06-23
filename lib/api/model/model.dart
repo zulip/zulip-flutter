@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../basic.dart';
 import '../../model/algorithms.dart';
 import 'events.dart';
 import 'initial_snapshot.dart';
@@ -156,6 +157,119 @@ class RealmEmojiItem {
     _$RealmEmojiItemFromJson(json);
 
   Map<String, dynamic> toJson() => _$RealmEmojiItemToJson(this);
+}
+
+/// A user's status, with [text] and [emoji] parts.
+///
+/// If a part is null, that part is empty/unset.
+/// For a [UserStatus] with all parts empty, see [zero].
+class UserStatus {
+  /// The text part (e.g. 'Working remotely'), or null if unset.
+  ///
+  /// This won't be the empty string.
+  final String? text;
+
+  /// The emoji part, or null if unset.
+  final StatusEmoji? emoji;
+
+  const UserStatus({required this.text, required this.emoji}) : assert(text != '');
+
+  static const UserStatus zero = UserStatus(text: null, emoji: null);
+}
+
+/// A user's status emoji, as in [UserStatus.emoji].
+class StatusEmoji {
+  final String emojiName;
+  final String emojiCode;
+  final ReactionType reactionType;
+
+  const StatusEmoji({
+    required this.emojiName,
+    required this.emojiCode,
+    required this.reactionType,
+  }) : assert(emojiName != ''), assert(emojiCode != '');
+}
+
+/// A change to part or all of a user's status.
+///
+/// The absence of one of these means there is no change.
+class UserStatusChange {
+  // final Option<bool> away; // deprecated in server-6 (FL-148); ignore
+  final Option<String?> text;
+  final Option<StatusEmoji?> emoji;
+
+  const UserStatusChange({required this.text, required this.emoji});
+
+  factory UserStatusChange.fromJson(Map<String, dynamic> json) {
+    return UserStatusChange(
+      text: _textFromJson(json), emoji: _emojiFromJson(json));
+  }
+
+  static Option<String?> _textFromJson(Map<String, dynamic> json) {
+    return switch (json['status_text'] as String?) {
+      null => OptionNone(),
+      '' => OptionSome(null),
+      final apiValue => OptionSome(apiValue),
+    };
+  }
+
+  static Option<StatusEmoji?> _emojiFromJson(Map<String, dynamic> json) {
+    final reactionType = json['reaction_type'] as String?;
+    final emojiCode = json['emoji_code'] as String?;
+    final emojiName = json['emoji_name'] as String?;
+
+    if (reactionType == null || emojiCode == null || emojiName == null) {
+      return OptionNone();
+    } else if (reactionType == '' || emojiCode == '' || emojiName == '') {
+      // Sometimes `reaction_type` is 'unicode_emoji' when the emoji is cleared.
+      // This is an accident, to be handled by looking at `emoji_code` instead:
+      //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/user.20status/near/2203132
+      return OptionSome(null);
+    } else {
+      return OptionSome(StatusEmoji(
+        reactionType: ReactionType.fromApiValue(reactionType),
+        emojiCode: emojiCode,
+        emojiName: emojiName));
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      ..._textToJson(text),
+      ..._emojiToJson(emoji),
+    };
+  }
+
+  Map<String, dynamic> _textToJson(Option<String?> text) {
+    return {
+      'status_text': switch (text) {
+        OptionNone<String?>() => null,
+        OptionSome<String?>(:var value) => value ?? '',
+      }
+    };
+  }
+
+  Map<String, dynamic> _emojiToJson(Option<StatusEmoji?> emoji) {
+    return switch (emoji) {
+      OptionNone<StatusEmoji?>() => {
+        'reaction_type': null,
+        'emoji_code': null,
+        'emoji_name': null,
+      },
+      OptionSome<StatusEmoji?>(:var value) =>
+        value == null
+          ? {'reaction_type': '', 'emoji_code': '', 'emoji_name': ''}
+          : {
+              'reaction_type': value.reactionType,
+              'emoji_code': value.emojiCode,
+              'emoji_name': value.emojiName,
+            },
+    };
+  }
+
+  UserStatus apply(UserStatus old) {
+    return UserStatus(text: text.or(old.text), emoji: emoji.or(old.emoji));
+  }
 }
 
 /// The name of a user setting that has a property in [UserSettings].
