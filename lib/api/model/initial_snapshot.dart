@@ -68,6 +68,16 @@ class InitialSnapshot {
 
   final List<ZulipStream> streams;
 
+  // In register-queue, the name of this field is the singular "user_status",
+  // even though it actually contains user status information for all the users
+  // that the self-user has access to. Therefore, we prefer to use the plural form.
+  //
+  // The API expresses each status as a change from the "zero status" (see
+  // [UserStatus.zero]), with entries omitted for users whose status is the
+  // zero status.
+  @JsonKey(name: 'user_status')
+  final Map<int, UserStatusChange> userStatuses;
+
   final UserSettings userSettings;
 
   final List<UserTopicItem>? userTopics; // TODO(server-6)
@@ -151,6 +161,7 @@ class InitialSnapshot {
     required this.subscriptions,
     required this.unreadMsgs,
     required this.streams,
+    required this.userStatuses,
     required this.userSettings,
     required this.userTopics,
     required this.realmWildcardMentionPolicy,

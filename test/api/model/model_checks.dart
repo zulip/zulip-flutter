@@ -1,6 +1,23 @@
 import 'package:checks/checks.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/submessage.dart';
+import 'package:zulip/basic.dart';
+
+extension UserStatusChecks on Subject<UserStatus> {
+  Subject<String?> get text => has((x) => x.text, 'text');
+  Subject<StatusEmoji?> get emoji => has((x) => x.emoji, 'emoji');
+}
+
+extension StatusEmojiChecks on Subject<StatusEmoji> {
+  Subject<String> get emojiName => has((x) => x.emojiName, 'emojiName');
+  Subject<String> get emojiCode => has((x) => x.emojiCode, 'emojiCode');
+  Subject<ReactionType> get reactionType => has((x) => x.reactionType, 'reactionType');
+}
+
+extension UserStatusChangeChecks on Subject<UserStatusChange> {
+  Subject<Option<String?>> get text => has((x) => x.text, 'text');
+  Subject<Option<StatusEmoji?>> get emoji => has((x) => x.emoji, 'emoji');
+}
 
 extension UserGroupChecks on Subject<UserGroup> {
   Subject<int> get id => has((x) => x.id, 'id');

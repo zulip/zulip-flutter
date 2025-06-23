@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../basic.dart';
 import '../../model/algorithms.dart';
 import 'events.dart';
 import 'initial_snapshot.dart';
@@ -156,6 +157,119 @@ class RealmEmojiItem {
     _$RealmEmojiItemFromJson(json);
 
   Map<String, dynamic> toJson() => _$RealmEmojiItemToJson(this);
+}
+
+/// A user's status, with [text] and [emoji] parts.
+///
+/// If a part is null, that part is empty/unset.
+/// For a [UserStatus] with all parts empty, see [zero].
+class UserStatus {
+  /// The text part (e.g. 'Working remotely'), or null if unset.
+  ///
+  /// This won't be the empty string.
+  final String? text;
+
+  /// The emoji part, or null if unset.
+  final StatusEmoji? emoji;
+
+  const UserStatus({required this.text, required this.emoji}) : assert(text != '');
+
+  static const UserStatus zero = UserStatus(text: null, emoji: null);
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! UserStatus) return false;
+    return (text, emoji) == (other.text, other.emoji);
+  }
+
+  @override
+  int get hashCode => Object.hash(text, emoji);
+}
+
+/// A user's status emoji, as in [UserStatus.emoji].
+class StatusEmoji {
+  final String emojiName;
+  final String emojiCode;
+  final ReactionType reactionType;
+
+  const StatusEmoji({
+    required this.emojiName,
+    required this.emojiCode,
+    required this.reactionType,
+  }) : assert(emojiName != ''), assert(emojiCode != '');
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! StatusEmoji) return false;
+    return (emojiName, emojiCode, reactionType) ==
+      (other.emojiName, other.emojiCode, other.reactionType);
+  }
+
+  @override
+  int get hashCode => Object.hash(emojiName, emojiCode, reactionType);
+}
+
+/// A change to part or all of a user's status.
+///
+/// The absence of one of these means there is no change.
+class UserStatusChange {
+  // final Option<bool> away; // deprecated in server-6 (FL-148); ignore
+  final Option<String?> text;
+  final Option<StatusEmoji?> emoji;
+
+  const UserStatusChange({required this.text, required this.emoji});
+
+  UserStatus apply(UserStatus old) {
+    return UserStatus(text: text.or(old.text), emoji: emoji.or(old.emoji));
+  }
+
+  factory UserStatusChange.fromJson(Map<String, dynamic> json) {
+    return UserStatusChange(
+      text: _textFromJson(json), emoji: _emojiFromJson(json));
+  }
+
+  static Option<String?> _textFromJson(Map<String, dynamic> json) {
+    return switch (json['status_text'] as String?) {
+      null => OptionNone(),
+      '' => OptionSome(null),
+      final apiValue => OptionSome(apiValue),
+    };
+  }
+
+  static Option<StatusEmoji?> _emojiFromJson(Map<String, dynamic> json) {
+    final emojiName = json['emoji_name'] as String?;
+    final emojiCode = json['emoji_code'] as String?;
+    final reactionType = json['reaction_type'] as String?;
+
+    if (emojiName == null || emojiCode == null || reactionType == null) {
+      return OptionNone();
+    } else if (emojiName == '' || emojiCode == '' || reactionType == '') {
+      // Sometimes `reaction_type` is 'unicode_emoji' when the emoji is cleared.
+      // This is an accident, to be handled by looking at `emoji_code` instead:
+      //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/user.20status/near/2203132
+      return OptionSome(null);
+    } else {
+      return OptionSome(StatusEmoji(
+        emojiName: emojiName,
+        emojiCode: emojiCode,
+        reactionType: ReactionType.fromApiValue(reactionType)));
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (text case OptionSome<String?>(:var value))
+        'status_text': value ?? '',
+      if (emoji case OptionSome<StatusEmoji?>(:var value))
+        ...value == null
+          ? {'emoji_name': '', 'emoji_code': '', 'reaction_type': ''}
+          : {
+              'emoji_name': value.emojiName,
+              'emoji_code': value.emojiCode,
+              'reaction_type': value.reactionType,
+            },
+    };
+  }
 }
 
 /// The name of a user setting that has a property in [UserSettings].

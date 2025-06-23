@@ -1138,6 +1138,7 @@ InitialSnapshot initialSnapshot({
   List<Subscription>? subscriptions,
   UnreadMessagesSnapshot? unreadMsgs,
   List<ZulipStream>? streams,
+  Map<int, UserStatusChange>? userStatuses,
   UserSettings? userSettings,
   List<UserTopicItem>? userTopics,
   RealmWildcardMentionPolicy? realmWildcardMentionPolicy,
@@ -1180,6 +1181,7 @@ InitialSnapshot initialSnapshot({
     subscriptions: subscriptions ?? [], // TODO add subscriptions to default
     unreadMsgs: unreadMsgs ?? _unreadMsgs(),
     streams: streams ?? [], // TODO add streams to default
+    userStatuses: userStatuses ?? {},
     userSettings: userSettings ?? UserSettings(
       twentyFourHourTime: false,
       displayEmojiReactionUsers: true,

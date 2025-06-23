@@ -4,6 +4,7 @@ import 'package:checks/checks.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/basic.dart';
 
 import '../../example_data.dart' as eg;
 import '../../stdlib_checks.dart';
@@ -23,6 +24,71 @@ void main() {
       '1': const CustomProfileFieldChoiceDataItem(text: 'Option 1'),
       '2': const CustomProfileFieldChoiceDataItem(text: 'Option 2'),
     });
+  });
+
+  test('UserStatusChange', () {
+    void doCheck({
+      required (String? statusText, String? emojiName,
+                String? emojiCode, String? reactionType)          incoming,
+      required (Option<String?> text, Option<StatusEmoji?> emoji) expected,
+    }) {
+      check(UserStatusChange.fromJson({
+        'status_text': incoming.$1,
+        'emoji_name': incoming.$2,
+        'emoji_code': incoming.$3,
+        'reaction_type': incoming.$4,
+      }))
+        ..text.equals(expected.$1)
+        ..emoji.equals(expected.$2);
+    }
+
+    doCheck(
+      incoming: ('Busy', 'working_on_it', '1f6e0', 'unicode_emoji'),
+      expected: (OptionSome('Busy'), OptionSome(StatusEmoji(
+                                       emojiName: 'working_on_it',
+                                       emojiCode: '1f6e0',
+                                       reactionType: ReactionType.unicodeEmoji))));
+
+    doCheck(
+      incoming: ('', 'working_on_it', '1f6e0', 'unicode_emoji'),
+      expected: (OptionSome(null), OptionSome(StatusEmoji(
+                                     emojiName: 'working_on_it',
+                                     emojiCode: '1f6e0',
+                                     reactionType: ReactionType.unicodeEmoji))));
+
+    doCheck(
+      incoming: (null, 'working_on_it', '1f6e0', 'unicode_emoji'),
+      expected: (OptionNone(), OptionSome(StatusEmoji(
+                                 emojiName: 'working_on_it',
+                                 emojiCode: '1f6e0',
+                                 reactionType: ReactionType.unicodeEmoji))));
+
+    doCheck(
+      incoming: ('Busy', '', '', ''),
+      expected: (OptionSome('Busy'), OptionSome(null)));
+
+    doCheck(
+      incoming: ('Busy', null, null, null),
+      expected: (OptionSome('Busy'), OptionNone()));
+
+    doCheck(
+      incoming: ('', '', '', ''),
+      expected: (OptionSome(null), OptionSome(null)));
+
+    doCheck(
+      incoming: (null, null, null, null),
+      expected: (OptionNone(), OptionNone()));
+
+    // For the API quirk when `reaction_type` is 'unicode_emoji' when the
+    // emoji is cleared.
+    doCheck(
+      incoming: ('', '', '', 'unicode_emoji'),
+      expected: (OptionSome(null), OptionSome(null)));
+
+    // Hardly likely to happen from the API standpoint, but we handle it anyway.
+    doCheck(
+      incoming: (null, null, null, 'unicode_emoji'),
+      expected: (OptionNone(), OptionNone()));
   });
 
   group('User', () {
