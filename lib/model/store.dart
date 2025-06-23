@@ -26,6 +26,7 @@ import 'emoji.dart';
 import 'localizations.dart';
 import 'message.dart';
 import 'message_list.dart';
+import 'presence.dart';
 import 'recent_dm_conversations.dart';
 import 'recent_senders.dart';
 import 'channel.dart';
@@ -501,8 +502,12 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       ),
       users: UserStoreImpl(core: core, initialSnapshot: initialSnapshot),
       typingStatus: TypingStatus(core: core,
-        typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds),
-      ),
+        typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds)),
+      presence: Presence(core: core,
+        serverPresencePingInterval: Duration(seconds: initialSnapshot.serverPresencePingIntervalSeconds),
+        serverPresenceOfflineThresholdSeconds: initialSnapshot.serverPresenceOfflineThresholdSeconds,
+        realmPresenceDisabled: initialSnapshot.realmPresenceDisabled,
+        initial: initialSnapshot.presences),
       channels: channels,
       messages: MessageStoreImpl(core: core,
         realmEmptyTopicDisplayName: initialSnapshot.realmEmptyTopicDisplayName),
@@ -538,6 +543,7 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
     required this.typingNotifier,
     required UserStoreImpl users,
     required this.typingStatus,
+    required this.presence,
     required ChannelStoreImpl channels,
     required MessageStoreImpl messages,
     required this.unreads,
@@ -662,6 +668,8 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   final UserStoreImpl _users;
 
   final TypingStatus typingStatus;
+
+  final Presence presence;
 
   /// Whether [user] has passed the realm's waiting period to be a full member.
   ///
@@ -1228,6 +1236,7 @@ class UpdateMachine {
     // TODO do registerNotificationToken before registerQueue:
     //   https://github.com/zulip/zulip-flutter/pull/325#discussion_r1365982807
     unawaited(updateMachine.registerNotificationToken());
+    store.presence.start();
     return updateMachine;
   }
 
