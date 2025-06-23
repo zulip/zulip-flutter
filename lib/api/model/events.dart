@@ -61,6 +61,7 @@ sealed class Event {
           default: return UnexpectedEvent.fromJson(json);
         }
       // case 'muted_topics': … // TODO(#422) we ignore this feature on older servers
+      case 'user_status': return UserStatusEvent.fromJson(json);
       case 'user_topic': return UserTopicEvent.fromJson(json);
       case 'muted_users': return MutedUsersEvent.fromJson(json);
       case 'message': return MessageEvent.fromJson(json);
@@ -706,6 +707,57 @@ class SubscriptionPeerRemoveEvent extends SubscriptionEvent {
 
   @override
   Map<String, dynamic> toJson() => _$SubscriptionPeerRemoveEventToJson(this);
+}
+
+/// A Zulip event of type `user_status`: https://zulip.com/api/get-events#user_status
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserStatusEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'user_status';
+
+  final int userId;
+  // final bool away; // deprecated in server-6 (FL-148); ignore
+  final String? statusText;
+  final String? emojiName;
+  final String? emojiCode;
+  final UserStatusEventReactionType? reactionType;
+
+  UserStatusEvent({
+    required super.id,
+    required this.userId,
+    required this.statusText,
+    required this.emojiName,
+    required this.emojiCode,
+    required this.reactionType,
+  });
+
+  factory UserStatusEvent.fromJson(Map<String, dynamic> json) =>
+    _$UserStatusEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$UserStatusEventToJson(this);
+}
+
+/// As in [UserStatusEvent.reactionType].
+///
+/// This is the same as [ReactionType], but with an additional value "empty"
+/// representing an empty string value in [UserStatusEvent] where no status
+/// emoji is selected.
+@JsonEnum(fieldRename: FieldRename.snake)
+enum UserStatusEventReactionType {
+  unicodeEmoji,
+  realmEmoji,
+  zulipExtraEmoji,
+  @JsonValue('')
+  empty;
+
+  String toJson() => _$UserStatusEventReactionTypeEnumMap[this]!;
+
+  static UserStatusEventReactionType fromApiValue(String value) => _byApiValue[value]!;
+
+  static final _byApiValue = _$UserStatusEventReactionTypeEnumMap
+    .map((key, value) => MapEntry(value, key));
 }
 
 /// A Zulip event of type `user_topic`: https://zulip.com/api/get-events#user_topic

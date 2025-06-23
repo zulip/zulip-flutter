@@ -438,6 +438,37 @@ Map<String, dynamic> _$SubscriptionPeerRemoveEventToJson(
   'user_ids': instance.userIds,
 };
 
+UserStatusEvent _$UserStatusEventFromJson(Map<String, dynamic> json) =>
+    UserStatusEvent(
+      id: (json['id'] as num).toInt(),
+      userId: (json['user_id'] as num).toInt(),
+      statusText: json['status_text'] as String?,
+      emojiName: json['emoji_name'] as String?,
+      emojiCode: json['emoji_code'] as String?,
+      reactionType: $enumDecodeNullable(
+        _$UserStatusEventReactionTypeEnumMap,
+        json['reaction_type'],
+      ),
+    );
+
+Map<String, dynamic> _$UserStatusEventToJson(UserStatusEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'user_id': instance.userId,
+      'status_text': instance.statusText,
+      'emoji_name': instance.emojiName,
+      'emoji_code': instance.emojiCode,
+      'reaction_type': instance.reactionType,
+    };
+
+const _$UserStatusEventReactionTypeEnumMap = {
+  UserStatusEventReactionType.unicodeEmoji: 'unicode_emoji',
+  UserStatusEventReactionType.realmEmoji: 'realm_emoji',
+  UserStatusEventReactionType.zulipExtraEmoji: 'zulip_extra_emoji',
+  UserStatusEventReactionType.empty: '',
+};
+
 UserTopicEvent _$UserTopicEventFromJson(Map<String, dynamic> json) =>
     UserTopicEvent(
       id: (json['id'] as num).toInt(),
