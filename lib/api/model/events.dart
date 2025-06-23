@@ -69,6 +69,7 @@ sealed class Event {
           default: return UnexpectedEvent.fromJson(json);
         }
       // case 'muted_topics': … // TODO(#422) we ignore this feature on older servers
+      case 'user_status': return UserStatusEvent.fromJson(json);
       case 'user_topic': return UserTopicEvent.fromJson(json);
       case 'muted_users': return MutedUsersEvent.fromJson(json);
       case 'message': return MessageEvent.fromJson(json);
@@ -795,6 +796,41 @@ class SubscriptionPeerRemoveEvent extends SubscriptionEvent {
 
   @override
   Map<String, dynamic> toJson() => _$SubscriptionPeerRemoveEventToJson(this);
+}
+
+/// A Zulip event of type `user_status`: https://zulip.com/api/get-events#user_status
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class UserStatusEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'user_status';
+
+  final int userId;
+
+  @JsonKey(readValue: _readChange)
+  final UserStatusChange change;
+
+  static Object? _readChange(Map<dynamic, dynamic> json, String key) {
+    assert(json is Map<String, dynamic>); // value came through `fromJson` with this type
+    return json;
+  }
+
+  UserStatusEvent({
+    required super.id,
+    required this.userId,
+    required this.change,
+  });
+
+  factory UserStatusEvent.fromJson(Map<String, dynamic> json) =>
+    _$UserStatusEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'type': type,
+    'user_id': userId,
+    ...change.toJson(),
+  };
 }
 
 /// A Zulip event of type `user_topic`: https://zulip.com/api/get-events#user_topic

@@ -502,6 +502,15 @@ Map<String, dynamic> _$SubscriptionPeerRemoveEventToJson(
   'user_ids': instance.userIds,
 };
 
+UserStatusEvent _$UserStatusEventFromJson(Map<String, dynamic> json) =>
+    UserStatusEvent(
+      id: (json['id'] as num).toInt(),
+      userId: (json['user_id'] as num).toInt(),
+      change: UserStatusChange.fromJson(
+        UserStatusEvent._readChange(json, 'change') as Map<String, dynamic>,
+      ),
+    );
+
 UserTopicEvent _$UserTopicEventFromJson(Map<String, dynamic> json) =>
     UserTopicEvent(
       id: (json['id'] as num).toInt(),
