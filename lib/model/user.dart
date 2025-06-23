@@ -85,6 +85,11 @@ mixin UserStore on PerAccountStoreBase {
   /// Looks for [userId] in a private [Set],
   /// or in [event.mutedUsers] instead if event is non-null.
   bool isUserMuted(int userId, {MutedUsersEvent? event});
+
+  /// The status of the user with the given ID.
+  ///
+  /// If no status is set for a user, returns [UserStatus.zero].
+  UserStatus getUserStatus(int userId);
 }
 
 /// The implementation of [UserStore] that does the work.
@@ -101,7 +106,9 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
          .followedBy(initialSnapshot.realmNonActiveUsers)
          .followedBy(initialSnapshot.crossRealmBots)
          .map((user) => MapEntry(user.userId, user))),
-       _mutedUsers = Set.from(initialSnapshot.mutedUsers.map((item) => item.id));
+       _mutedUsers = Set.from(initialSnapshot.mutedUsers.map((item) => item.id)),
+       _userStatuses = initialSnapshot.userStatuses.map((userId, change) =>
+         MapEntry(userId, change.apply(UserStatus.zero)));
 
   final Map<int, User> _users;
 
@@ -117,6 +124,11 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
   bool isUserMuted(int userId, {MutedUsersEvent? event}) {
     return (event?.mutedUsers.map((item) => item.id) ?? _mutedUsers).contains(userId);
   }
+
+  final Map<int, UserStatus> _userStatuses;
+
+  @override
+  UserStatus getUserStatus(int userId) => _userStatuses[userId] ?? UserStatus.zero;
 
   void handleRealmUserEvent(RealmUserEvent event) {
     switch (event) {
@@ -155,6 +167,11 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
           }
         }
     }
+  }
+
+  void handleUserStatusEvent(UserStatusEvent event) {
+    _userStatuses[event.userId] =
+      event.change.apply(getUserStatus(event.userId));
   }
 
   void handleMutedUsersEvent(MutedUsersEvent event) {
