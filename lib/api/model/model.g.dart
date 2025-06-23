@@ -94,6 +94,30 @@ Map<String, dynamic> _$RealmEmojiItemToJson(RealmEmojiItem instance) =>
       'author_id': instance.authorId,
     };
 
+UserStatus _$UserStatusFromJson(Map<String, dynamic> json) => UserStatus(
+  statusText: json['status_text'] as String?,
+  emojiName: json['emoji_name'] as String?,
+  emojiCode: json['emoji_code'] as String?,
+  reactionType: $enumDecodeNullable(
+    _$ReactionTypeEnumMap,
+    json['reaction_type'],
+  ),
+);
+
+Map<String, dynamic> _$UserStatusToJson(UserStatus instance) =>
+    <String, dynamic>{
+      'status_text': instance.statusText,
+      'emoji_name': instance.emojiName,
+      'emoji_code': instance.emojiCode,
+      'reaction_type': instance.reactionType,
+    };
+
+const _$ReactionTypeEnumMap = {
+  ReactionType.unicodeEmoji: 'unicode_emoji',
+  ReactionType.realmEmoji: 'realm_emoji',
+  ReactionType.zulipExtraEmoji: 'zulip_extra_emoji',
+};
+
 User _$UserFromJson(Map<String, dynamic> json) => User(
   userId: (json['user_id'] as num).toInt(),
   deliveryEmail: json['delivery_email'] as String?,
