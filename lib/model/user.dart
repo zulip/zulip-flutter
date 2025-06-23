@@ -102,6 +102,11 @@ mixin UserStore on PerAccountStoreBase {
   /// Whether the given event might change the result of [shouldMuteDmConversation]
   /// for its list of muted users, compared to the current state.
   MutedUsersVisibilityEffect mightChangeShouldMuteDmConversation(MutedUsersEvent event);
+
+  /// The status of the user with the given ID.
+  ///
+  /// If no status is set for the user, returns [UserStatus.zero].
+  UserStatus getUserStatus(int userId);
 }
 
 /// Whether and how a given [MutedUsersEvent] may affect the results
@@ -135,7 +140,9 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
          .followedBy(initialSnapshot.realmNonActiveUsers)
          .followedBy(initialSnapshot.crossRealmBots)
          .map((user) => MapEntry(user.userId, user))),
-       _mutedUsers = Set.from(initialSnapshot.mutedUsers.map((item) => item.id));
+       _mutedUsers = Set.from(initialSnapshot.mutedUsers.map((item) => item.id)),
+       _userStatuses = initialSnapshot.userStatuses.map((userId, change) =>
+         MapEntry(userId, change.apply(UserStatus.zero)));
 
   final Map<int, User> _users;
 
@@ -175,6 +182,11 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
     }
   }
 
+  final Map<int, UserStatus> _userStatuses;
+
+  @override
+  UserStatus getUserStatus(int userId) => _userStatuses[userId] ?? UserStatus.zero;
+
   void handleRealmUserEvent(RealmUserEvent event) {
     switch (event) {
       case RealmUserAddEvent():
@@ -212,6 +224,11 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
           }
         }
     }
+  }
+
+  void handleUserStatusEvent(UserStatusEvent event) {
+    _userStatuses[event.userId] =
+      event.change.apply(getUserStatus(event.userId));
   }
 
   void handleMutedUsersEvent(MutedUsersEvent event) {
