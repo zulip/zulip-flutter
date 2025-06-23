@@ -155,7 +155,7 @@
   "@initialAnchorSettingFirstUnreadAlways": {
     "description": "Label for a value of setting controlling initial anchor of message list."
   },
-  "initialAnchorSettingFirstUnreadConversations": "Erste ungelesene Nachricht in Einzelunterhaltungen, sonst neueste Nachricht",
+  "initialAnchorSettingFirstUnreadConversations": "Erste ungelesene Nachricht in Unterhaltungsansicht, sonst neueste Nachricht",
   "@initialAnchorSettingFirstUnreadConversations": {
     "description": "Label for a value of setting controlling initial anchor of message list."
   },
@@ -1180,5 +1180,21 @@
   "mutedSender": "Stummgeschalteter Absender",
   "@mutedSender": {
     "description": "Name for a muted user to display in message list."
+  },
+  "upgradeWelcomeDialogTitle": "Willkommen bei der neuen Zulip-App!",
+  "@upgradeWelcomeDialogTitle": {
+    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogMessage": "Du wirst ein vertrautes Erlebnis in einer schnelleren, schlankeren App erleben.",
+  "@upgradeWelcomeDialogMessage": {
+    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogLinkText": "Sieh dir den Ankündigungs-Blogpost an!",
+  "@upgradeWelcomeDialogLinkText": {
+    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogDismiss": "Los gehts",
+  "@upgradeWelcomeDialogDismiss": {
+    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
   }
 }

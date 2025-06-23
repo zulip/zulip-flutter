@@ -814,7 +814,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get initialAnchorSettingFirstUnreadConversations =>
-      'Первое непрочитанное сообщение в личных беседах, самое новое в остальных';
+      'Первое непрочитанное сообщение при просмотре бесед, самое новое в остальных местах';
 
   @override
   String get initialAnchorSettingNewestAlways => 'Самое новое сообщение';

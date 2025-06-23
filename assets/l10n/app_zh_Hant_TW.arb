@@ -29,15 +29,15 @@
   "@switchAccountButton": {
     "description": "Label for main-menu button leading to the choose-account page."
   },
-  "actionSheetOptionListOfTopics": "主題列表",
+  "actionSheetOptionListOfTopics": "話題列表",
   "@actionSheetOptionListOfTopics": {
     "description": "Label for navigating to a channel's topic-list page."
   },
-  "actionSheetOptionMuteTopic": "將主題設為靜音",
+  "actionSheetOptionMuteTopic": "靜音話題",
   "@actionSheetOptionMuteTopic": {
     "description": "Label for muting a topic on action sheet."
   },
-  "actionSheetOptionResolveTopic": "標註為解決了",
+  "actionSheetOptionResolveTopic": "標註為已解決",
   "@actionSheetOptionResolveTopic": {
     "description": "Label for the 'Mark as resolved' button on the topic action sheet."
   },
@@ -49,7 +49,7 @@
   "@aboutPageTapToView": {
     "description": "Item subtitle in About Zulip page to navigate to Licenses page"
   },
-  "aboutPageOpenSourceLicenses": "開源軟體授權條款",
+  "aboutPageOpenSourceLicenses": "開源授權條款",
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
   },
@@ -65,7 +65,7 @@
   "@profileButtonSendDirectMessage": {
     "description": "Label for button in profile screen to navigate to DMs with the shown user."
   },
-  "chooseAccountButtonAddAnAccount": "新增帳號",
+  "chooseAccountButtonAddAnAccount": "增添帳號",
   "@chooseAccountButtonAddAnAccount": {
     "description": "Label for ChooseAccountPage button to add an account"
   },
@@ -77,11 +77,11 @@
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
   },
-  "actionSheetOptionMarkChannelAsRead": "標註頻道已讀",
+  "actionSheetOptionMarkChannelAsRead": "標註頻道為已讀",
   "@actionSheetOptionMarkChannelAsRead": {
     "description": "Label for marking a channel as read."
   },
-  "actionSheetOptionUnmuteTopic": "將主題取消靜音",
+  "actionSheetOptionUnmuteTopic": "取消靜音話題",
   "@actionSheetOptionUnmuteTopic": {
     "description": "Label for unmuting a topic on action sheet."
   },
@@ -89,11 +89,11 @@
   "@actionSheetOptionUnresolveTopic": {
     "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
   },
-  "errorResolveTopicFailedTitle": "無法標註為解決了",
+  "errorResolveTopicFailedTitle": "無法標註話題為已解決",
   "@errorResolveTopicFailedTitle": {
     "description": "Error title when marking a topic as resolved failed."
   },
-  "errorUnresolveTopicFailedTitle": "無法標註為未解決",
+  "errorUnresolveTopicFailedTitle": "無法標註話題為未解決",
   "@errorUnresolveTopicFailedTitle": {
     "description": "Error title when marking a topic as unresolved failed."
   },
@@ -105,11 +105,11 @@
   "@actionSheetOptionCopyMessageLink": {
     "description": "Label for copy message link button on action sheet."
   },
-  "actionSheetOptionMarkAsUnread": "從這裡開始註記為未讀",
+  "actionSheetOptionMarkAsUnread": "從這裡開始標註為未讀",
   "@actionSheetOptionMarkAsUnread": {
     "description": "Label for mark as unread button on action sheet."
   },
-  "actionSheetOptionMarkTopicAsRead": "標註主題為已讀",
+  "actionSheetOptionMarkTopicAsRead": "標註話題為已讀",
   "@actionSheetOptionMarkTopicAsRead": {
     "description": "Option to mark a specific topic as read in the action sheet."
   },
@@ -117,11 +117,11 @@
   "@actionSheetOptionShare": {
     "description": "Label for share button on action sheet."
   },
-  "actionSheetOptionStarMessage": "標註為重要訊息",
+  "actionSheetOptionStarMessage": "收藏訊息",
   "@actionSheetOptionStarMessage": {
     "description": "Label for star button on action sheet."
   },
-  "actionSheetOptionUnstarMessage": "取消標註為重要訊息",
+  "actionSheetOptionUnstarMessage": "取消收藏訊息",
   "@actionSheetOptionUnstarMessage": {
     "description": "Label for unstar button on action sheet."
   },
@@ -154,5 +154,389 @@
         "example": "https://example.com"
       }
     }
+  },
+  "initialAnchorSettingFirstUnreadAlways": "第一則未讀訊息",
+  "@initialAnchorSettingFirstUnreadAlways": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "actionSheetOptionUnfollowTopic": "取消跟隨話題",
+  "@actionSheetOptionUnfollowTopic": {
+    "description": "Label for unfollowing a topic on action sheet."
+  },
+  "errorUnmuteTopicFailed": "無法取消靜音話題",
+  "@errorUnmuteTopicFailed": {
+    "description": "Error message when unmuting a topic failed."
+  },
+  "errorMuteTopicFailed": "無法靜音話題",
+  "@errorMuteTopicFailed": {
+    "description": "Error message when muting a topic failed."
+  },
+  "errorUnstarMessageFailedTitle": "無法取消收藏訊息",
+  "@errorUnstarMessageFailedTitle": {
+    "description": "Error title when unstarring a message failed."
+  },
+  "successLinkCopied": "已複製連結",
+  "@successLinkCopied": {
+    "description": "Success message after copy link action completed."
+  },
+  "successMessageLinkCopied": "已複製訊息連結",
+  "@successMessageLinkCopied": {
+    "description": "Message when link of a message was copied to the user's system clipboard."
+  },
+  "composeBoxBannerButtonCancel": "取消",
+  "@composeBoxBannerButtonCancel": {
+    "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
+  },
+  "composeBoxAttachMediaTooltip": "附加圖片或影片",
+  "@composeBoxAttachMediaTooltip": {
+    "description": "Tooltip for compose box icon to attach media to the message."
+  },
+  "loginPageTitle": "登入",
+  "@loginPageTitle": {
+    "description": "Title for login page."
+  },
+  "loginHidePassword": "隱藏密碼",
+  "@loginHidePassword": {
+    "description": "Icon label for button to hide password in input form."
+  },
+  "loginErrorMissingUsername": "請輸入您的使用者名稱。",
+  "@loginErrorMissingUsername": {
+    "description": "Error message when an empty username was provided."
+  },
+  "userRoleMember": "成員",
+  "@userRoleMember": {
+    "description": "Label for UserRole.member"
+  },
+  "wildcardMentionTopic": "topic",
+  "@wildcardMentionTopic": {
+    "description": "Text for \"@topic\" wildcard-mention autocomplete option when writing a channel message."
+  },
+  "emojiPickerSearchEmoji": "搜尋表情符號",
+  "@emojiPickerSearchEmoji": {
+    "description": "Hint text for the emoji picker search text field."
+  },
+  "actionSheetOptionFollowTopic": "跟隨話題",
+  "@actionSheetOptionFollowTopic": {
+    "description": "Label for following a topic on action sheet."
+  },
+  "errorUnfollowTopicFailed": "無法取消跟隨話題",
+  "@errorUnfollowTopicFailed": {
+    "description": "Error message when unfollowing a topic failed."
+  },
+  "errorStarMessageFailedTitle": "無法收藏訊息",
+  "@errorStarMessageFailedTitle": {
+    "description": "Error title when starring a message failed."
+  },
+  "editAlreadyInProgressTitle": "無法編輯訊息",
+  "@editAlreadyInProgressTitle": {
+    "description": "Error title when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "errorCouldNotEditMessageTitle": "無法編輯訊息",
+  "@errorCouldNotEditMessageTitle": {
+    "description": "Error title when an exception prevented us from opening the compose box for editing a message."
+  },
+  "composeBoxGroupDmContentHint": "訊息群組",
+  "@composeBoxGroupDmContentHint": {
+    "description": "Hint text for content input when sending a message to a group."
+  },
+  "composeBoxChannelContentHint": "訊息 {destination}",
+  "@composeBoxChannelContentHint": {
+    "description": "Hint text for content input when sending a message to a channel.",
+    "placeholders": {
+      "destination": {
+        "type": "String",
+        "example": "#channel name > topic name"
+      }
+    }
+  },
+  "errorDialogLearnMore": "了解更多",
+  "@errorDialogLearnMore": {
+    "description": "Button label in error dialogs to open a web page with more information."
+  },
+  "loginEmailLabel": "電子郵件地址",
+  "@loginEmailLabel": {
+    "description": "Label for input when an email is required to log in."
+  },
+  "markAllAsReadLabel": "標註所有訊息為已讀",
+  "@markAllAsReadLabel": {
+    "description": "Button text to mark messages as read."
+  },
+  "wildcardMentionChannel": "channel",
+  "@wildcardMentionChannel": {
+    "description": "Text for \"@channel\" wildcard-mention autocomplete option when writing a channel message."
+  },
+  "themeSettingDark": "深色主題",
+  "@themeSettingDark": {
+    "description": "Label for dark theme setting."
+  },
+  "themeSettingSystem": "系統主題",
+  "@themeSettingSystem": {
+    "description": "Label for system theme setting."
+  },
+  "actionSheetOptionHideMutedMessage": "再次隱藏已靜音的話題",
+  "@actionSheetOptionHideMutedMessage": {
+    "description": "Label for hide muted message again button on action sheet."
+  },
+  "errorQuotationFailed": "引述失敗",
+  "@errorQuotationFailed": {
+    "description": "Error message when quoting a message failed."
+  },
+  "successMessageTextCopied": "已複製訊息文字",
+  "@successMessageTextCopied": {
+    "description": "Message when content of a message was copied to the user's system clipboard."
+  },
+  "composeBoxBannerLabelEditMessage": "編輯訊息",
+  "@composeBoxBannerLabelEditMessage": {
+    "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "composeBoxAttachFilesTooltip": "附加檔案",
+  "@composeBoxAttachFilesTooltip": {
+    "description": "Tooltip for compose box icon to attach a file to the message."
+  },
+  "newDmSheetScreenTitle": "新增私訊",
+  "@newDmSheetScreenTitle": {
+    "description": "Title displayed at the top of the new DM screen."
+  },
+  "newDmFabButtonLabel": "新增私訊",
+  "@newDmFabButtonLabel": {
+    "description": "Label for the floating action button (FAB) that opens the new DM sheet."
+  },
+  "dialogCancel": "取消",
+  "@dialogCancel": {
+    "description": "Button label in dialogs to cancel."
+  },
+  "dialogContinue": "繼續",
+  "@dialogContinue": {
+    "description": "Button label in dialogs to proceed."
+  },
+  "loginFormSubmitLabel": "登入",
+  "@loginFormSubmitLabel": {
+    "description": "Button text to submit login credentials."
+  },
+  "signInWithFoo": "使用 {method} 登入",
+  "@signInWithFoo": {
+    "description": "Button to use {method} to sign in to the app.",
+    "placeholders": {
+      "method": {
+        "type": "String",
+        "example": "Google"
+      }
+    }
+  },
+  "loginPasswordLabel": "密碼",
+  "@loginPasswordLabel": {
+    "description": "Label for password input field."
+  },
+  "loginServerUrlLabel": "您的 Zulip 伺服器網址",
+  "@loginServerUrlLabel": {
+    "description": "Label in login page for Zulip server URL entry."
+  },
+  "loginUsernameLabel": "使用者名稱",
+  "@loginUsernameLabel": {
+    "description": "Label for input when a username is required to log in."
+  },
+  "yesterday": "昨天",
+  "@yesterday": {
+    "description": "Term to use to reference the previous day."
+  },
+  "userRoleOwner": "擁有者",
+  "@userRoleOwner": {
+    "description": "Label for UserRole.owner"
+  },
+  "userRoleAdministrator": "管理員",
+  "@userRoleAdministrator": {
+    "description": "Label for UserRole.administrator"
+  },
+  "userRoleModerator": "版主",
+  "@userRoleModerator": {
+    "description": "Label for UserRole.moderator"
+  },
+  "errorFollowTopicFailed": "無法跟隨話題",
+  "@errorFollowTopicFailed": {
+    "description": "Error message when following a topic failed."
+  },
+  "actionSheetOptionQuoteMessage": "引述訊息",
+  "@actionSheetOptionQuoteMessage": {
+    "description": "Label for the 'Quote message' button in the message action sheet."
+  },
+  "recentDmConversationsPageTitle": "私人訊息",
+  "@recentDmConversationsPageTitle": {
+    "description": "Title for the page with a list of DM conversations."
+  },
+  "composeBoxTopicHintText": "話題",
+  "@composeBoxTopicHintText": {
+    "description": "Hint text for topic input widget in compose box."
+  },
+  "today": "今天",
+  "@today": {
+    "description": "Term to use to reference the current day."
+  },
+  "channelsPageTitle": "頻道",
+  "@channelsPageTitle": {
+    "description": "Title for the page with a list of subscribed channels."
+  },
+  "loginErrorMissingPassword": "請輸入您的密碼。",
+  "@loginErrorMissingPassword": {
+    "description": "Error message when an empty password was provided."
+  },
+  "userRoleGuest": "訪客",
+  "@userRoleGuest": {
+    "description": "Label for UserRole.guest"
+  },
+  "mentionsPageTitle": "提及",
+  "@mentionsPageTitle": {
+    "description": "Page title for the 'Mentions' message view."
+  },
+  "recentDmConversationsSectionHeader": "私人訊息",
+  "@recentDmConversationsSectionHeader": {
+    "description": "Heading for direct messages section on the 'Inbox' message view."
+  },
+  "composeBoxDmContentHint": "訊息 @{user}",
+  "@composeBoxDmContentHint": {
+    "description": "Hint text for content input when sending a message to one other person.",
+    "placeholders": {
+      "user": {
+        "type": "String",
+        "example": "channel name"
+      }
+    }
+  },
+  "dialogClose": "關閉",
+  "@dialogClose": {
+    "description": "Button label in dialogs to close."
+  },
+  "loginErrorMissingEmail": "請輸入您的電子郵件地址。",
+  "@loginErrorMissingEmail": {
+    "description": "Error message when an empty email was provided."
+  },
+  "lightboxCopyLinkTooltip": "複製連結",
+  "@lightboxCopyLinkTooltip": {
+    "description": "Tooltip in lightbox for the copy link action."
+  },
+  "composeBoxUploadingFilename": "正在上傳 {filename}…",
+  "@composeBoxUploadingFilename": {
+    "description": "Placeholder in compose box showing the specified file is currently uploading.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "file.txt"
+      }
+    }
+  },
+  "topicsButtonLabel": "話題",
+  "@topicsButtonLabel": {
+    "description": "Label for message list button leading to topic-list page. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "themeSettingLight": "淺色主題",
+  "@themeSettingLight": {
+    "description": "Label for light theme setting."
+  },
+  "themeSettingTitle": "主題",
+  "@themeSettingTitle": {
+    "description": "Title for theme setting. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "errorVideoPlayerFailed": "無法播放影片。",
+  "@errorVideoPlayerFailed": {
+    "description": "Error message when a video fails to play."
+  },
+  "errorDialogTitle": "錯誤",
+  "@errorDialogTitle": {
+    "description": "Generic title for error dialog."
+  },
+  "wildcardMentionChannelDescription": "通知頻道",
+  "@wildcardMentionChannelDescription": {
+    "description": "Description for \"@all\", \"@everyone\", \"@channel\", and \"@stream\" wildcard-mention autocomplete options when writing a channel message."
+  },
+  "upgradeWelcomeDialogTitle": "歡迎使用新 Zulip 應用程式！",
+  "@upgradeWelcomeDialogTitle": {
+    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "errorCouldNotOpenLinkTitle": "無法開啟連結",
+  "@errorCouldNotOpenLinkTitle": {
+    "description": "Error title when opening a link failed."
+  },
+  "emojiReactionsMore": "更多",
+  "@emojiReactionsMore": {
+    "description": "Label for a button opening the emoji picker."
+  },
+  "errorSharingFailed": "分享失敗。",
+  "@errorSharingFailed": {
+    "description": "Error message when sharing a message failed."
+  },
+  "contentValidationErrorUploadInProgress": "請等待上傳完成。",
+  "@contentValidationErrorUploadInProgress": {
+    "description": "Content validation error message when attachments have not finished uploading."
+  },
+  "newDmSheetSearchHintEmpty": "增添一個或多個使用者",
+  "@newDmSheetSearchHintEmpty": {
+    "description": "Hint text for the search bar when no users are selected"
+  },
+  "contentValidationErrorQuoteAndReplyInProgress": "請等待引述完成。",
+  "@contentValidationErrorQuoteAndReplyInProgress": {
+    "description": "Content validation error message when a quotation has not completed yet."
+  },
+  "errorLoginFailedTitle": "登入失敗",
+  "@errorLoginFailedTitle": {
+    "description": "Error title for login when signing into a Zulip server fails."
+  },
+  "errorNetworkRequestFailed": "網路請求失敗",
+  "@errorNetworkRequestFailed": {
+    "description": "Error message when a network request fails."
+  },
+  "serverUrlValidationErrorInvalidUrl": "請輸入有效的網址。",
+  "@serverUrlValidationErrorInvalidUrl": {
+    "description": "Error message when URL is not in a valid format."
+  },
+  "errorCopyingFailed": "複製失敗",
+  "@errorCopyingFailed": {
+    "description": "Error message when copying the text of a message to the user's system clipboard failed."
+  },
+  "serverUrlValidationErrorNoUseEmail": "請輸入伺服器網址，而非您的電子郵件。",
+  "@serverUrlValidationErrorNoUseEmail": {
+    "description": "Error message when URL looks like an email"
+  },
+  "serverUrlValidationErrorEmpty": "請輸入網址。",
+  "@serverUrlValidationErrorEmpty": {
+    "description": "Error message when URL is empty"
+  },
+  "errorMessageDoesNotSeemToExist": "該訊息似乎不存在。",
+  "@errorMessageDoesNotSeemToExist": {
+    "description": "Error message when loading a message that does not exist."
+  },
+  "errorCouldNotOpenLink": "無法開啟連結: {url}",
+  "@errorCouldNotOpenLink": {
+    "description": "Error message when opening a link failed.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "https://chat.example.com"
+      }
+    }
+  },
+  "spoilerDefaultHeaderText": "劇透",
+  "@spoilerDefaultHeaderText": {
+    "description": "The default header text in a spoiler block ( https://zulip.com/help/spoilers )."
+  },
+  "markAsUnreadInProgress": "正在標註訊息為未讀…",
+  "@markAsUnreadInProgress": {
+    "description": "Progress message when marking messages as unread."
+  },
+  "errorLoginCouldNotConnect": "無法連線到伺服器:\n{url}",
+  "@errorLoginCouldNotConnect": {
+    "description": "Error message when the app could not connect to the server.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "http://example.com/"
+      }
+    }
+  },
+  "errorCouldNotConnectTitle": "無法連線",
+  "@errorCouldNotConnectTitle": {
+    "description": "Error title when the app could not connect to the server."
+  },
+  "errorInvalidResponse": "伺服器傳送了無效的請求。",
+  "@errorInvalidResponse": {
+    "description": "Error message when an API call returned an invalid response."
   }
 }

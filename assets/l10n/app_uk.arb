@@ -1128,5 +1128,73 @@
   "mutedUser": "Заглушений користувач",
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
+  },
+  "initialAnchorSettingFirstUnreadAlways": "Перше непрочитане повідомлення",
+  "@initialAnchorSettingFirstUnreadAlways": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "upgradeWelcomeDialogTitle": "Ласкаво просимо у новий додаток Zulip!",
+  "@upgradeWelcomeDialogTitle": {
+    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogLinkText": "Ознайомтесь з анонсом у блозі!",
+  "@upgradeWelcomeDialogLinkText": {
+    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogDismiss": "Ходімо!",
+  "@upgradeWelcomeDialogDismiss": {
+    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "initialAnchorSettingTitle": "Де відкривати стрічку повідомлень",
+  "@initialAnchorSettingTitle": {
+    "description": "Title of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingNewestAlways": "Найновіше повідомлення",
+  "@initialAnchorSettingNewestAlways": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingFirstUnreadConversations": "Перше непрочитане повідомлення при перегляді бесід, найновіше у інших місцях",
+  "@initialAnchorSettingFirstUnreadConversations": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "upgradeWelcomeDialogMessage": "Ви знайдете звичні можливості у більш швидкому і легкому додатку.",
+  "@upgradeWelcomeDialogMessage": {
+    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "initialAnchorSettingDescription": "Можна відкривати стрічку повідомлень на першому непрочитаному повідомленні або на найновішому.",
+  "@initialAnchorSettingDescription": {
+    "description": "Description of setting controlling initial anchor of message list."
+  },
+  "markReadOnScrollSettingDescription": "При прокручуванні повідомлень автоматично відмічати їх як прочитані?",
+  "@markReadOnScrollSettingDescription": {
+    "description": "Description of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingNever": "Ніколи",
+  "@markReadOnScrollSettingNever": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingConversations": "Тільки при перегляді бесід",
+  "@markReadOnScrollSettingConversations": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingAlways": "Завжди",
+  "@markReadOnScrollSettingAlways": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingTitle": "Відмічати повідомлення як прочитані при прокручуванні",
+  "@markReadOnScrollSettingTitle": {
+    "description": "Title of setting controlling which message-list views should mark read on scroll."
+  },
+  "actionSheetOptionQuoteMessage": "Цитувати повідомлення",
+  "@actionSheetOptionQuoteMessage": {
+    "description": "Label for the 'Quote message' button in the message action sheet."
+  },
+  "discardDraftForOutboxConfirmationDialogMessage": "При відновленні невідправленого повідомлення, вміст поля редагування очищається.",
+  "@discardDraftForOutboxConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog when restoring an outbox message, for discarding message text that was typed into the compose box."
+  },
+  "markReadOnScrollSettingConversationsDescription": "Повідомлення будуть автоматично помічатися як прочитані тільки при перегляді окремої теми або особистої бесіди.",
+  "@markReadOnScrollSettingConversationsDescription": {
+    "description": "Description for a value of setting controlling which message-list views should mark read on scroll."
   }
 }

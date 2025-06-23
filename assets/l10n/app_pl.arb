@@ -1145,7 +1145,7 @@
   "@discardDraftForOutboxConfirmationDialogMessage": {
     "description": "Message for a confirmation dialog when restoring an outbox message, for discarding message text that was typed into the compose box."
   },
-  "initialAnchorSettingFirstUnreadConversations": "Pierwsza nieprzeczytana wiadomość w pojedynczej dyskusji, wszędzie indziej najnowsza wiadomość",
+  "initialAnchorSettingFirstUnreadConversations": "Pierwsza nieprzeczytana wiadomość w widoku dyskusji, wszędzie indziej najnowsza wiadomość",
   "@initialAnchorSettingFirstUnreadConversations": {
     "description": "Label for a value of setting controlling initial anchor of message list."
   },
@@ -1180,5 +1180,21 @@
   "markReadOnScrollSettingConversationsDescription": "Wiadomości zostaną z automatu oznaczone jako przeczytane tylko w pojedyczym wątku lub w wymianie wiadomości bezpośrednich.",
   "@markReadOnScrollSettingConversationsDescription": {
     "description": "Description for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "upgradeWelcomeDialogTitle": "Witaj w nowej apce Zulip!",
+  "@upgradeWelcomeDialogTitle": {
+    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogMessage": "Napotkasz na znane rozwiązania, które upakowaliśmy w szybszy i elegancki pakiet.",
+  "@upgradeWelcomeDialogMessage": {
+    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogLinkText": "Sprawdź blog pod kątem obwieszczenia!",
+  "@upgradeWelcomeDialogLinkText": {
+    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogDismiss": "Zaczynajmy",
+  "@upgradeWelcomeDialogDismiss": {
+    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
   }
 }

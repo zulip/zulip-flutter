@@ -826,7 +826,7 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
 
   @override
   String get initialAnchorSettingFirstUnreadConversations =>
-      'Prvo neprebrano v zasebnih pogovorih, najnovejše drugje';
+      'Prvo neprebrano v pogovorih, najnovejše drugje';
 
   @override
   String get initialAnchorSettingNewestAlways => 'Najnovejše sporočilo';

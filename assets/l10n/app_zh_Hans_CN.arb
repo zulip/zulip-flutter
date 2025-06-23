@@ -405,7 +405,7 @@
   "@initialAnchorSettingNewestAlways": {
     "description": "Label for a value of setting controlling initial anchor of message list."
   },
-  "initialAnchorSettingFirstUnreadConversations": "在单个话题或私信中，从第一条未读消息开始；在其他情况下，从最新消息开始",
+  "initialAnchorSettingFirstUnreadConversations": "在单个话题或私信的第一条未读消息；在其他情况下的最新消息",
   "@initialAnchorSettingFirstUnreadConversations": {
     "description": "Label for a value of setting controlling initial anchor of message list."
   },

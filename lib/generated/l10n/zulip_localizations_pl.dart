@@ -21,18 +21,18 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get aboutPageTapToView => 'Dotknij, aby pokazać';
 
   @override
-  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
+  String get upgradeWelcomeDialogTitle => 'Witaj w nowej apce Zulip!';
 
   @override
   String get upgradeWelcomeDialogMessage =>
-      'You’ll find a familiar experience in a faster, sleeker package.';
+      'Napotkasz na znane rozwiązania, które upakowaliśmy w szybszy i elegancki pakiet.';
 
   @override
   String get upgradeWelcomeDialogLinkText =>
-      'Check out the announcement blog post!';
+      'Sprawdź blog pod kątem obwieszczenia!';
 
   @override
-  String get upgradeWelcomeDialogDismiss => 'Let\'s go';
+  String get upgradeWelcomeDialogDismiss => 'Zaczynajmy';
 
   @override
   String get chooseAccountPageTitle => 'Wybierz konto';
@@ -810,7 +810,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get initialAnchorSettingFirstUnreadConversations =>
-      'Pierwsza nieprzeczytana wiadomość w pojedynczej dyskusji, wszędzie indziej najnowsza wiadomość';
+      'Pierwsza nieprzeczytana wiadomość w widoku dyskusji, wszędzie indziej najnowsza wiadomość';
 
   @override
   String get initialAnchorSettingNewestAlways => 'Najnowsza wiadomość';

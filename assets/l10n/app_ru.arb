@@ -1149,7 +1149,7 @@
   "@initialAnchorSettingDescription": {
     "description": "Description of setting controlling initial anchor of message list."
   },
-  "initialAnchorSettingFirstUnreadConversations": "Первое непрочитанное сообщение в личных беседах, самое новое в остальных",
+  "initialAnchorSettingFirstUnreadConversations": "Первое непрочитанное сообщение при просмотре бесед, самое новое в остальных местах",
   "@initialAnchorSettingFirstUnreadConversations": {
     "description": "Label for a value of setting controlling initial anchor of message list."
   },

@@ -21,18 +21,18 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get aboutPageTapToView => 'Натисніть, щоб переглянути';
 
   @override
-  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
+  String get upgradeWelcomeDialogTitle =>
+      'Ласкаво просимо у новий додаток Zulip!';
 
   @override
   String get upgradeWelcomeDialogMessage =>
-      'You’ll find a familiar experience in a faster, sleeker package.';
+      'Ви знайдете звичні можливості у більш швидкому і легкому додатку.';
 
   @override
-  String get upgradeWelcomeDialogLinkText =>
-      'Check out the announcement blog post!';
+  String get upgradeWelcomeDialogLinkText => 'Ознайомтесь з анонсом у блозі!';
 
   @override
-  String get upgradeWelcomeDialogDismiss => 'Let\'s go';
+  String get upgradeWelcomeDialogDismiss => 'Ходімо!';
 
   @override
   String get chooseAccountPageTitle => 'Обрати обліковий запис';
@@ -140,7 +140,7 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get actionSheetOptionShare => 'Поширити';
 
   @override
-  String get actionSheetOptionQuoteMessage => 'Quote message';
+  String get actionSheetOptionQuoteMessage => 'Цитувати повідомлення';
 
   @override
   String get actionSheetOptionStarMessage => 'Вибрати повідомлення';
@@ -351,7 +351,7 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
 
   @override
   String get discardDraftForOutboxConfirmationDialogMessage =>
-      'When you restore an unsent message, the content that was previously in the compose box is discarded.';
+      'При відновленні невідправленого повідомлення, вміст поля редагування очищається.';
 
   @override
   String get discardDraftConfirmationDialogConfirmButton => 'Скинути';
@@ -803,42 +803,44 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'У цьому опитуванні ще немає варіантів.';
 
   @override
-  String get initialAnchorSettingTitle => 'Open message feeds at';
+  String get initialAnchorSettingTitle => 'Де відкривати стрічку повідомлень';
 
   @override
   String get initialAnchorSettingDescription =>
-      'You can choose whether message feeds open at your first unread message or at the newest messages.';
+      'Можна відкривати стрічку повідомлень на першому непрочитаному повідомленні або на найновішому.';
 
   @override
-  String get initialAnchorSettingFirstUnreadAlways => 'First unread message';
+  String get initialAnchorSettingFirstUnreadAlways =>
+      'Перше непрочитане повідомлення';
 
   @override
   String get initialAnchorSettingFirstUnreadConversations =>
-      'First unread message in conversation views, newest message elsewhere';
+      'Перше непрочитане повідомлення при перегляді бесід, найновіше у інших місцях';
 
   @override
-  String get initialAnchorSettingNewestAlways => 'Newest message';
+  String get initialAnchorSettingNewestAlways => 'Найновіше повідомлення';
 
   @override
-  String get markReadOnScrollSettingTitle => 'Mark messages as read on scroll';
+  String get markReadOnScrollSettingTitle =>
+      'Відмічати повідомлення як прочитані при прокручуванні';
 
   @override
   String get markReadOnScrollSettingDescription =>
-      'When scrolling through messages, should they automatically be marked as read?';
+      'При прокручуванні повідомлень автоматично відмічати їх як прочитані?';
 
   @override
-  String get markReadOnScrollSettingAlways => 'Always';
+  String get markReadOnScrollSettingAlways => 'Завжди';
 
   @override
-  String get markReadOnScrollSettingNever => 'Never';
+  String get markReadOnScrollSettingNever => 'Ніколи';
 
   @override
   String get markReadOnScrollSettingConversations =>
-      'Only in conversation views';
+      'Тільки при перегляді бесід';
 
   @override
   String get markReadOnScrollSettingConversationsDescription =>
-      'Messages will be automatically marked as read only when viewing a single topic or direct message conversation.';
+      'Повідомлення будуть автоматично помічатися як прочитані тільки при перегляді окремої теми або особистої бесіди.';
 
   @override
   String get experimentalFeatureSettingsPageTitle => 'Експериментальні функції';

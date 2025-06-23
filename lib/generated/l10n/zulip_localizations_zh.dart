@@ -1635,7 +1635,7 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get initialAnchorSettingFirstUnreadConversations =>
-      '在单个话题或私信中，从第一条未读消息开始；在其他情况下，从最新消息开始';
+      '在单个话题或私信的第一条未读消息；在其他情况下的最新消息';
 
   @override
   String get initialAnchorSettingNewestAlways => '最新消息';
@@ -1717,10 +1717,13 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get aboutPageAppVersion => 'App 版本';
 
   @override
-  String get aboutPageOpenSourceLicenses => '開源軟體授權條款';
+  String get aboutPageOpenSourceLicenses => '開源授權條款';
 
   @override
   String get aboutPageTapToView => '點選查看';
+
+  @override
+  String get upgradeWelcomeDialogTitle => '歡迎使用新 Zulip 應用程式！';
 
   @override
   String get chooseAccountPageTitle => '選取帳號';
@@ -1749,7 +1752,7 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get logOutConfirmationDialogConfirmButton => '登出';
 
   @override
-  String get chooseAccountButtonAddAnAccount => '新增帳號';
+  String get chooseAccountButtonAddAnAccount => '增添帳號';
 
   @override
   String get profileButtonSendDirectMessage => '發送私訊';
@@ -1761,28 +1764,34 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get permissionsNeededOpenSettings => '開啟設定';
 
   @override
-  String get actionSheetOptionMarkChannelAsRead => '標註頻道已讀';
+  String get actionSheetOptionMarkChannelAsRead => '標註頻道為已讀';
 
   @override
-  String get actionSheetOptionListOfTopics => '主題列表';
+  String get actionSheetOptionListOfTopics => '話題列表';
 
   @override
-  String get actionSheetOptionMuteTopic => '將主題設為靜音';
+  String get actionSheetOptionMuteTopic => '靜音話題';
 
   @override
-  String get actionSheetOptionUnmuteTopic => '將主題取消靜音';
+  String get actionSheetOptionUnmuteTopic => '取消靜音話題';
 
   @override
-  String get actionSheetOptionResolveTopic => '標註為解決了';
+  String get actionSheetOptionFollowTopic => '跟隨話題';
+
+  @override
+  String get actionSheetOptionUnfollowTopic => '取消跟隨話題';
+
+  @override
+  String get actionSheetOptionResolveTopic => '標註為已解決';
 
   @override
   String get actionSheetOptionUnresolveTopic => '標註為未解決';
 
   @override
-  String get errorResolveTopicFailedTitle => '無法標註為解決了';
+  String get errorResolveTopicFailedTitle => '無法標註話題為已解決';
 
   @override
-  String get errorUnresolveTopicFailedTitle => '無法標註為未解決';
+  String get errorUnresolveTopicFailedTitle => '無法標註話題為未解決';
 
   @override
   String get actionSheetOptionCopyMessageText => '複製訊息文字';
@@ -1791,22 +1800,28 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get actionSheetOptionCopyMessageLink => '複製訊息連結';
 
   @override
-  String get actionSheetOptionMarkAsUnread => '從這裡開始註記為未讀';
+  String get actionSheetOptionMarkAsUnread => '從這裡開始標註為未讀';
+
+  @override
+  String get actionSheetOptionHideMutedMessage => '再次隱藏已靜音的話題';
 
   @override
   String get actionSheetOptionShare => '分享';
 
   @override
-  String get actionSheetOptionStarMessage => '標註為重要訊息';
+  String get actionSheetOptionQuoteMessage => '引述訊息';
 
   @override
-  String get actionSheetOptionUnstarMessage => '取消標註為重要訊息';
+  String get actionSheetOptionStarMessage => '收藏訊息';
+
+  @override
+  String get actionSheetOptionUnstarMessage => '取消收藏訊息';
 
   @override
   String get actionSheetOptionEditMessage => '編輯訊息';
 
   @override
-  String get actionSheetOptionMarkTopicAsRead => '標註主題為已讀';
+  String get actionSheetOptionMarkTopicAsRead => '標註話題為已讀';
 
   @override
   String get errorWebAuthOperationalErrorTitle => '出錯了';
@@ -1821,4 +1836,262 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String errorAccountLoggedIn(String email, String server) {
     return '在 $server 的帳號 $email 已經存在帳號清單中。';
   }
+
+  @override
+  String get errorCopyingFailed => '複製失敗';
+
+  @override
+  String get errorLoginFailedTitle => '登入失敗';
+
+  @override
+  String errorLoginCouldNotConnect(String url) {
+    return '無法連線到伺服器:\n$url';
+  }
+
+  @override
+  String get errorCouldNotConnectTitle => '無法連線';
+
+  @override
+  String get errorMessageDoesNotSeemToExist => '該訊息似乎不存在。';
+
+  @override
+  String get errorQuotationFailed => '引述失敗';
+
+  @override
+  String get errorCouldNotOpenLinkTitle => '無法開啟連結';
+
+  @override
+  String errorCouldNotOpenLink(String url) {
+    return '無法開啟連結: $url';
+  }
+
+  @override
+  String get errorMuteTopicFailed => '無法靜音話題';
+
+  @override
+  String get errorUnmuteTopicFailed => '無法取消靜音話題';
+
+  @override
+  String get errorFollowTopicFailed => '無法跟隨話題';
+
+  @override
+  String get errorUnfollowTopicFailed => '無法取消跟隨話題';
+
+  @override
+  String get errorSharingFailed => '分享失敗。';
+
+  @override
+  String get errorStarMessageFailedTitle => '無法收藏訊息';
+
+  @override
+  String get errorUnstarMessageFailedTitle => '無法取消收藏訊息';
+
+  @override
+  String get errorCouldNotEditMessageTitle => '無法編輯訊息';
+
+  @override
+  String get successLinkCopied => '已複製連結';
+
+  @override
+  String get successMessageTextCopied => '已複製訊息文字';
+
+  @override
+  String get successMessageLinkCopied => '已複製訊息連結';
+
+  @override
+  String get composeBoxBannerLabelEditMessage => '編輯訊息';
+
+  @override
+  String get composeBoxBannerButtonCancel => '取消';
+
+  @override
+  String get editAlreadyInProgressTitle => '無法編輯訊息';
+
+  @override
+  String get composeBoxAttachFilesTooltip => '附加檔案';
+
+  @override
+  String get composeBoxAttachMediaTooltip => '附加圖片或影片';
+
+  @override
+  String get newDmSheetScreenTitle => '新增私訊';
+
+  @override
+  String get newDmFabButtonLabel => '新增私訊';
+
+  @override
+  String get newDmSheetSearchHintEmpty => '增添一個或多個使用者';
+
+  @override
+  String composeBoxDmContentHint(String user) {
+    return '訊息 @$user';
+  }
+
+  @override
+  String get composeBoxGroupDmContentHint => '訊息群組';
+
+  @override
+  String composeBoxChannelContentHint(String destination) {
+    return '訊息 $destination';
+  }
+
+  @override
+  String get composeBoxTopicHintText => '話題';
+
+  @override
+  String composeBoxUploadingFilename(String filename) {
+    return '正在上傳 $filename…';
+  }
+
+  @override
+  String get contentValidationErrorQuoteAndReplyInProgress => '請等待引述完成。';
+
+  @override
+  String get contentValidationErrorUploadInProgress => '請等待上傳完成。';
+
+  @override
+  String get dialogCancel => '取消';
+
+  @override
+  String get dialogContinue => '繼續';
+
+  @override
+  String get dialogClose => '關閉';
+
+  @override
+  String get errorDialogLearnMore => '了解更多';
+
+  @override
+  String get errorDialogTitle => '錯誤';
+
+  @override
+  String get lightboxCopyLinkTooltip => '複製連結';
+
+  @override
+  String get loginPageTitle => '登入';
+
+  @override
+  String get loginFormSubmitLabel => '登入';
+
+  @override
+  String signInWithFoo(String method) {
+    return '使用 $method 登入';
+  }
+
+  @override
+  String get loginServerUrlLabel => '您的 Zulip 伺服器網址';
+
+  @override
+  String get loginHidePassword => '隱藏密碼';
+
+  @override
+  String get loginEmailLabel => '電子郵件地址';
+
+  @override
+  String get loginErrorMissingEmail => '請輸入您的電子郵件地址。';
+
+  @override
+  String get loginPasswordLabel => '密碼';
+
+  @override
+  String get loginErrorMissingPassword => '請輸入您的密碼。';
+
+  @override
+  String get loginUsernameLabel => '使用者名稱';
+
+  @override
+  String get loginErrorMissingUsername => '請輸入您的使用者名稱。';
+
+  @override
+  String get errorInvalidResponse => '伺服器傳送了無效的請求。';
+
+  @override
+  String get errorNetworkRequestFailed => '網路請求失敗';
+
+  @override
+  String get errorVideoPlayerFailed => '無法播放影片。';
+
+  @override
+  String get serverUrlValidationErrorEmpty => '請輸入網址。';
+
+  @override
+  String get serverUrlValidationErrorInvalidUrl => '請輸入有效的網址。';
+
+  @override
+  String get serverUrlValidationErrorNoUseEmail => '請輸入伺服器網址，而非您的電子郵件。';
+
+  @override
+  String get spoilerDefaultHeaderText => '劇透';
+
+  @override
+  String get markAllAsReadLabel => '標註所有訊息為已讀';
+
+  @override
+  String get markAsUnreadInProgress => '正在標註訊息為未讀…';
+
+  @override
+  String get today => '今天';
+
+  @override
+  String get yesterday => '昨天';
+
+  @override
+  String get userRoleOwner => '擁有者';
+
+  @override
+  String get userRoleAdministrator => '管理員';
+
+  @override
+  String get userRoleModerator => '版主';
+
+  @override
+  String get userRoleMember => '成員';
+
+  @override
+  String get userRoleGuest => '訪客';
+
+  @override
+  String get recentDmConversationsPageTitle => '私人訊息';
+
+  @override
+  String get recentDmConversationsSectionHeader => '私人訊息';
+
+  @override
+  String get mentionsPageTitle => '提及';
+
+  @override
+  String get channelsPageTitle => '頻道';
+
+  @override
+  String get topicsButtonLabel => '話題';
+
+  @override
+  String get wildcardMentionChannel => 'channel';
+
+  @override
+  String get wildcardMentionTopic => 'topic';
+
+  @override
+  String get wildcardMentionChannelDescription => '通知頻道';
+
+  @override
+  String get themeSettingTitle => '主題';
+
+  @override
+  String get themeSettingDark => '深色主題';
+
+  @override
+  String get themeSettingLight => '淺色主題';
+
+  @override
+  String get themeSettingSystem => '系統主題';
+
+  @override
+  String get initialAnchorSettingFirstUnreadAlways => '第一則未讀訊息';
+
+  @override
+  String get emojiReactionsMore => '更多';
+
+  @override
+  String get emojiPickerSearchEmoji => '搜尋表情符號';
 }

@@ -1161,7 +1161,7 @@
   "@markReadOnScrollSettingConversations": {
     "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
   },
-  "initialAnchorSettingFirstUnreadConversations": "Prvo neprebrano v zasebnih pogovorih, najnovejše drugje",
+  "initialAnchorSettingFirstUnreadConversations": "Prvo neprebrano v pogovorih, najnovejše drugje",
   "@initialAnchorSettingFirstUnreadConversations": {
     "description": "Label for a value of setting controlling initial anchor of message list."
   },
