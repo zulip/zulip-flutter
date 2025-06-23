@@ -72,6 +72,9 @@ mixin UserStore on PerAccountStoreBase {
   /// Looks for [userId] in a private [Set],
   /// or in [event.mutedUsers] instead if event is non-null.
   bool isUserMuted(int userId, {MutedUsersEvent? event});
+
+  /// The status of the user with the given ID, or `null` if no status is set.
+  UserStatus? getUserStatus(int userId);
 }
 
 /// The implementation of [UserStore] that does the work.
@@ -88,7 +91,8 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
          .followedBy(initialSnapshot.realmNonActiveUsers)
          .followedBy(initialSnapshot.crossRealmBots)
          .map((user) => MapEntry(user.userId, user))),
-       _mutedUsers = Set.from(initialSnapshot.mutedUsers.map((item) => item.id));
+       _mutedUsers = Set.from(initialSnapshot.mutedUsers.map((item) => item.id)),
+       _userStatuses = initialSnapshot.userStatuses;
 
   final Map<int, User> _users;
 
@@ -104,6 +108,11 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
   bool isUserMuted(int userId, {MutedUsersEvent? event}) {
     return (event?.mutedUsers.map((item) => item.id) ?? _mutedUsers).contains(userId);
   }
+
+  final Map<int, UserStatus> _userStatuses;
+
+  @override
+  UserStatus? getUserStatus(int userId) => _userStatuses[userId];
 
   void handleRealmUserEvent(RealmUserEvent event) {
     switch (event) {
@@ -142,6 +151,50 @@ class UserStoreImpl extends PerAccountStoreBase with UserStore {
           }
         }
     }
+  }
+
+  void handleUserStatusEvent(UserStatusEvent event) {
+    final UserStatusEvent(
+      :userId, :statusText, :emojiName, :emojiCode, :reactionType) = event;
+
+    final oldStatus = _userStatuses[userId];
+    // Here's what the different values of a property in the event mean and how
+    // they affect the corresponding values in the resulting new status:
+    //  - Value is `null` -> property is not changed -> value in the new status
+    //    is the same as in the old status, or `null` if status wasn't set before.
+    //  - Value is empty -> property is cleared -> value in the new status is `null`.
+    //  - Value is not empty -> property is set - value in the new status is the
+    //    same as the value from the event.
+    final newStatus = UserStatus(
+      statusText: statusText == null
+        ? oldStatus?.statusText
+        : statusText.isEmpty
+            ? null
+            : statusText,
+      emojiName: emojiName == null
+        ? oldStatus?.emojiName
+        : emojiName.isEmpty
+            ? null
+            : emojiName,
+      emojiCode: emojiCode == null
+        ? oldStatus?.emojiCode
+        : emojiCode.isEmpty
+            ? null
+            : emojiCode,
+      reactionType: reactionType == null
+        ? oldStatus?.reactionType
+        : reactionType == UserStatusEventReactionType.empty
+          // Currently, if a status emoji is not selected, the server sends
+          // "reaction_type: unicode_emoji", so to keep things clean,
+          // we treat it as `null`.
+          // See discussion:
+          //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/user.20status/near/2203928
+          || (emojiName!.isEmpty)
+            ? null
+            : ReactionType.fromApiValue(reactionType.toJson()),
+      );
+
+    _userStatuses[event.userId] = newStatus;
   }
 
   void handleMutedUsersEvent(MutedUsersEvent event) {
