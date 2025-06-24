@@ -49,24 +49,30 @@ void _showActionSheet(
         role: SemanticsRole.menu,
         child: SafeArea(
           minimum: const EdgeInsets.only(bottom: 16),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // TODO(#217): show message text
-                Flexible(child: InsetShadowBox(
-                  top: 8, bottom: 8,
-                  color: designVariables.bgContextMenu,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(top: 16, bottom: 8),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(7),
-                      child: Column(spacing: 1,
-                        children: optionButtons))))),
-                const ActionSheetCancelButton(),
-              ]))));
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 8),
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // TODO(#217): show message text
+                      Flexible(child: InsetShadowBox(
+                        top: 8, bottom: 8,
+                        color: designVariables.bgContextMenu,
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(7),
+                            child: Column(spacing: 1,
+                              children: optionButtons))))),
+                      const ActionSheetCancelButton(),
+                    ]))),
+            ])));
     });
 }
 
