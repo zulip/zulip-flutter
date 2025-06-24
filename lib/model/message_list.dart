@@ -439,14 +439,15 @@ mixin _MessageSequence {
       items.add(MessageListRecipientHeaderItem(message));
       canShareSender = false;
     } else {
+      assert(items.last is MessageListMessageBaseItem);
+      final prevMessageItem = items.last as MessageListMessageBaseItem;
+      assert(identical(prevMessageItem.message, prevMessage));
+      assert(prevMessageItem.isLastInBlock);
+
       if (!haveSameRecipient(prevMessage, message)) {
         items.add(MessageListRecipientHeaderItem(message));
         canShareSender = false;
       } else {
-        assert(items.last is MessageListMessageBaseItem);
-        final prevMessageItem = items.last as MessageListMessageBaseItem;
-        assert(identical(prevMessageItem.message, prevMessage));
-        assert(prevMessageItem.isLastInBlock);
         prevMessageItem.isLastInBlock = false;
 
         if (!messagesSameDay(prevMessageItem.message, message)) {
