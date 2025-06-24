@@ -105,6 +105,18 @@ enum FetchingStatus {
 ///
 /// This comprises much of the guts of [MessageListView].
 mixin _MessageSequence {
+  /// Whether each message should have its own recipient header,
+  /// even if it's in the same conversation as the previous message.
+  ///
+  /// In some message-list views, notably "Mentions" and "Starred",
+  /// it would be misleading to give the impression that consecutive messages
+  /// in the same conversation were sent one after the other
+  /// with no other messages in between.
+  /// By giving each message its own recipient header (a `true` value for this),
+  /// we intend to avoid giving that impression.
+  @visibleForTesting
+  bool get oneMessagePerBlock;
+
   /// A sequence number for invalidating stale fetches.
   int generation = 0;
 
@@ -435,7 +447,11 @@ mixin _MessageSequence {
     required MessageListMessageBaseItem Function(bool canShareSender) buildItem,
   }) {
     final bool canShareSender;
-    if (prevMessage == null || !haveSameRecipient(prevMessage, message)) {
+    if (
+      prevMessage == null
+      || oneMessagePerBlock
+      || !haveSameRecipient(prevMessage, message)
+    ) {
       items.add(MessageListRecipientHeaderItem(message));
       canShareSender = false;
     } else {
@@ -622,6 +638,15 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     store.unregisterMessageList(this);
     super.dispose();
   }
+
+  @override bool get oneMessagePerBlock => switch (narrow) {
+    CombinedFeedNarrow()
+      || ChannelNarrow()
+      || TopicNarrow()
+      || DmNarrow() => false,
+    MentionsNarrow()
+      || StarredMessagesNarrow() => true,
+  };
 
   /// Whether [message] should actually appear in this message list,
   /// given that it does belong to the narrow.

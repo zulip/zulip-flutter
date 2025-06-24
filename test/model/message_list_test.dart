@@ -2742,6 +2742,53 @@ void main() {
     checkNotifiedOnce();
   }));
 
+  group('one message per block?', () {
+    final channelId = 1;
+    final topic = 'some topic';
+    void doTest({required Narrow narrow, required bool expected}) {
+      test('$narrow: ${expected ? 'yes' : 'no'}', () => awaitFakeAsync((async) async {
+        final sender = eg.user();
+        final channel = eg.stream(streamId: channelId);
+        final message1 = eg.streamMessage(
+          sender: sender,
+          stream: channel,
+          topic: topic,
+          flags: [MessageFlag.starred, MessageFlag.mentioned],
+        );
+        final message2 = eg.streamMessage(
+          sender: sender,
+          stream: channel,
+          topic: topic,
+          flags: [MessageFlag.starred, MessageFlag.mentioned],
+        );
+
+        await prepare(
+          narrow: narrow,
+          stream: channel,
+        );
+        connection.prepare(json: newestResult(
+          foundOldest: false,
+          messages: [message1, message2],
+        ).toJson());
+        await model.fetchInitial();
+        checkNotifiedOnce();
+
+        check(model).items.deepEquals(<Condition<Object?>>[
+          (it) => it.isA<MessageListRecipientHeaderItem>(),
+          (it) => it.isA<MessageListMessageItem>(),
+          if (expected) (it) => it.isA<MessageListRecipientHeaderItem>(),
+          (it) => it.isA<MessageListMessageItem>(),
+        ]);
+      }));
+    }
+
+    doTest(narrow: CombinedFeedNarrow(),                expected: false);
+    doTest(narrow: ChannelNarrow(channelId),            expected: false);
+    doTest(narrow: TopicNarrow(channelId, eg.t(topic)), expected: false);
+    doTest(narrow: StarredMessagesNarrow(),             expected: true);
+    doTest(narrow: MentionsNarrow(),                    expected: true);
+  });
+
   test('showSender is maintained correctly', () => awaitFakeAsync((async) async {
     // TODO(#150): This will get more complicated with message moves.
     // Until then, we always compute this sequentially from oldest to newest.
@@ -3011,6 +3058,7 @@ void checkInvariants(MessageListView model) {
   for (int j = 0; j < allMessages.length; j++) {
     bool forcedShowSender = false;
     if (j == 0
+        || model.oneMessagePerBlock
         || !haveSameRecipient(allMessages[j-1], allMessages[j])) {
       check(model.items[i++]).isA<MessageListRecipientHeaderItem>()
         .message.identicalTo(allMessages[j]);
