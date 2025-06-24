@@ -1887,6 +1887,12 @@ class _ZulipContentParser {
   }
 }
 
+ZulipMessageContent parseMessageContent(Message message) {
+  final poll = message.poll;
+  if (poll != null) return PollContent(poll);
+  return parseContent(message.content);
+}
+
 /// Parse a complete piece of Zulip HTML content,
 /// such as an entire value of [Message.content].
 ZulipContent parseContent(String html) {
