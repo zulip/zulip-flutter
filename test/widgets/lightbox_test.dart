@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 import 'package:video_player/video_player.dart';
+import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
@@ -205,6 +206,8 @@ void main() {
   TestZulipBinding.ensureInitialized();
   MessageListPage.debugEnableMarkReadOnScroll = false;
 
+  late PerAccountStore store;
+
   group('LightboxHero', () {
     late PerAccountStore store;
     late FakeApiConnection connection;
@@ -317,10 +320,16 @@ void main() {
 
     Future<void> setupPage(WidgetTester tester, {
       Message? message,
+      List<User>? users,
       required Uri? thumbnailUrl,
     }) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      if (users != null) {
+        await store.addUsers(users);
+      }
 
       // ZulipApp instead of TestZulipApp because we need the navigator to push
       // the lightbox route. The lightbox page works together with the route;
@@ -352,20 +361,41 @@ void main() {
       debugNetworkImageHttpClientProvider = null;
     });
 
-    testWidgets('app bar shows sender name and date', (tester) async {
-      prepareBoringImageHttpClient();
-      final timestamp = DateTime.parse("2024-07-23 23:12:24").millisecondsSinceEpoch ~/ 1000;
-      final message = eg.streamMessage(sender: eg.otherUser, timestamp: timestamp);
-      await setupPage(tester, message: message, thumbnailUrl: null);
-
-      // We're looking for a RichText, in the app bar, with both the
-      // sender's name and the timestamp.
+    void checkAppBarNameAndDate(WidgetTester tester, String expectedName, String expectedDate) {
       final labelTextWidget = tester.widget<RichText>(
         find.descendant(of: find.byType(AppBar).last,
-          matching: find.textContaining(findRichText: true,
-            eg.otherUser.fullName)));
+          matching: find.textContaining(findRichText: true, expectedName)));
       check(labelTextWidget.text.toPlainText())
-        .contains('Jul 23, 2024 23:12:24');
+        .contains(expectedDate);
+    }
+
+    testWidgets('app bar shows sender name and date; updates when name changes', (tester) async {
+      prepareBoringImageHttpClient();
+      final timestamp = DateTime.parse("2024-07-23 23:12:24").millisecondsSinceEpoch ~/ 1000;
+      final sender = eg.user(fullName: 'Old name');
+      final message = eg.streamMessage(sender: sender, timestamp: timestamp);
+      await setupPage(tester, message: message, thumbnailUrl: null, users: [sender]);
+      check(store.getUser(sender.userId)).isNotNull();
+
+      checkAppBarNameAndDate(tester, 'Old name', 'Jul 23, 2024 23:12:24');
+
+      await store.handleEvent(RealmUserUpdateEvent(id: 1,
+        userId: sender.userId, fullName: 'New name'));
+      await tester.pump();
+      checkAppBarNameAndDate(tester, 'New name', 'Jul 23, 2024 23:12:24');
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('app bar shows sender name and date; unknown sender', (tester) async {
+      prepareBoringImageHttpClient();
+      final timestamp = DateTime.parse("2024-07-23 23:12:24").millisecondsSinceEpoch ~/ 1000;
+      final sender = eg.user(fullName: 'Sender name');
+      final message = eg.streamMessage(sender: sender, timestamp: timestamp);
+      await setupPage(tester, message: message, thumbnailUrl: null, users: []);
+      check(store.getUser(sender.userId)).isNull();
+
+      checkAppBarNameAndDate(tester, 'Sender name', 'Jul 23, 2024 23:12:24');
 
       debugNetworkImageHttpClientProvider = null;
     });

@@ -855,10 +855,7 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get noEarlierMessages => 'No earlier messages';
 
   @override
-  String get mutedSender => 'Muted sender';
-
-  @override
-  String get revealButtonLabel => 'Reveal message for muted sender';
+  String get revealButtonLabel => 'Reveal message';
 
   @override
   String get mutedUser => 'Muted user';
@@ -1686,9 +1683,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get noEarlierMessages => '没有更早的消息了';
-
-  @override
-  String get mutedSender => '静音发送者';
 
   @override
   String get revealButtonLabel => '显示静音用户发送的消息';
