@@ -256,16 +256,10 @@ mixin _MessageSequence {
     }
   }
 
-  ZulipMessageContent _parseMessageContent(Message message) {
-    final poll = message.poll;
-    if (poll != null) return PollContent(poll);
-    return parseContent(message.content);
-  }
-
   /// Update data derived from the content of the index-th message.
   void _reparseContent(int index) {
     final message = messages[index];
-    final content = _parseMessageContent(message);
+    final content = parseMessageContent(message);
     contents[index] = content;
 
     final itemIndex = findItemWithMessageId(message.id);
@@ -282,7 +276,7 @@ mixin _MessageSequence {
   void _addMessage(Message message) {
     assert(contents.length == messages.length);
     messages.add(message);
-    contents.add(_parseMessageContent(message));
+    contents.add(parseMessageContent(message));
     assert(contents.length == messages.length);
     _processMessage(messages.length - 1);
   }
@@ -361,7 +355,7 @@ mixin _MessageSequence {
     assert(contents.length == messages.length);
     messages.insertAll(index, toInsert);
     contents.insertAll(index, toInsert.map(
-      (message) => _parseMessageContent(message)));
+      (message) => parseMessageContent(message)));
     assert(contents.length == messages.length);
     if (index <= middleMessage) {
       middleMessage += messages.length - oldLength;
@@ -424,7 +418,7 @@ mixin _MessageSequence {
   void _recompute() {
     assert(contents.length == messages.length);
     contents.clear();
-    contents.addAll(messages.map((message) => _parseMessageContent(message)));
+    contents.addAll(messages.map((message) => parseMessageContent(message)));
     assert(contents.length == messages.length);
     _reprocessAll();
   }
