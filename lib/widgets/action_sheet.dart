@@ -35,6 +35,9 @@ void _showActionSheet(
   BuildContext pageContext, {
   required List<Widget> optionButtons,
 }) {
+  // Could omit this if we need _showActionSheet outside a per-account context.
+  final accountId = PerAccountStoreWidget.accountIdOf(pageContext);
+
   showModalBottomSheet<void>(
     context: pageContext,
     // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
@@ -45,34 +48,36 @@ void _showActionSheet(
     isScrollControlled: true,
     builder: (BuildContext _) {
       final designVariables = DesignVariables.of(pageContext);
-      return Semantics(
-        role: SemanticsRole.menu,
-        child: SafeArea(
-          minimum: const EdgeInsets.only(bottom: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(height: 8),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // TODO(#217): show message text
-                      Flexible(child: InsetShadowBox(
-                        top: 8, bottom: 8,
-                        color: designVariables.bgContextMenu,
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(7),
-                            child: Column(spacing: 1,
-                              children: optionButtons))))),
-                      const ActionSheetCancelButton(),
-                    ]))),
-            ])));
+      return PerAccountStoreWidget(
+        accountId: accountId,
+        child: Semantics(
+          role: SemanticsRole.menu,
+          child: SafeArea(
+            minimum: const EdgeInsets.only(bottom: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: 8),
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // TODO(#217): show message text
+                        Flexible(child: InsetShadowBox(
+                          top: 8, bottom: 8,
+                          color: designVariables.bgContextMenu,
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(7),
+                              child: Column(spacing: 1,
+                                children: optionButtons))))),
+                        const ActionSheetCancelButton(),
+                      ]))),
+              ]))));
     });
 }
 
