@@ -1,4 +1,3 @@
-
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
@@ -7,7 +6,9 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/channel.dart';
 
+import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
+import '../stdlib_checks.dart';
 import 'test_store.dart';
 
 void main() {
@@ -146,7 +147,7 @@ void main() {
 
       test('with nothing for topic', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.muted);
         check(store.topicVisibilityPolicy(stream1.streamId, eg.t('topic')))
           .equals(UserTopicVisibilityPolicy.none);
       });
@@ -158,8 +159,12 @@ void main() {
           UserTopicVisibilityPolicy.unmuted,
           UserTopicVisibilityPolicy.followed,
         ]) {
-          await store.addUserTopic(stream1, 'topic', policy);
+          await store.setUserTopic(stream1, 'topic', policy);
           check(store.topicVisibilityPolicy(stream1.streamId, eg.t('topic')))
+            .equals(policy);
+
+          // Case-insensitive
+          check(store.topicVisibilityPolicy(stream1.streamId, eg.t('ToPiC')))
             .equals(policy);
         }
       });
@@ -193,27 +198,39 @@ void main() {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
         check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isFalse();
         check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isFalse();
+
+        // Case-insensitive
+        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('ToPiC'))).isFalse();
+        check(store.isTopicVisible        (stream1.streamId, eg.t('ToPiC'))).isFalse();
       });
 
       test('with policy unmuted', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
         check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
         check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isTrue();
+
+        // Case-insensitive
+        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('tOpIc'))).isTrue();
+        check(store.isTopicVisible        (stream1.streamId, eg.t('tOpIc'))).isTrue();
       });
 
       test('with policy followed', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.followed);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.followed);
         check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
         check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isTrue();
+
+        // Case-insensitive
+        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('TOPIC'))).isTrue();
+        check(store.isTopicVisible        (stream1.streamId, eg.t('TOPIC'))).isTrue();
       });
     });
 
@@ -221,12 +238,28 @@ void main() {
       UserTopicEvent mkEvent(UserTopicVisibilityPolicy policy) =>
         eg.userTopicEvent(stream1.streamId, 'topic', policy);
 
+      // For testing case-insensitivity
+      UserTopicEvent mkEventDifferentlyCased(UserTopicVisibilityPolicy policy) =>
+        eg.userTopicEvent(stream1.streamId, 'ToPiC', policy);
+
+      assert(() {
+        // (sanity check on mkEvent and mkEventDifferentlyCased)
+        final event1 = mkEvent(UserTopicVisibilityPolicy.followed);
+        final event2 = mkEventDifferentlyCased(UserTopicVisibilityPolicy.followed);
+        return event1.topicName.isSameAs(event2.topicName)
+          && event1.topicName.apiName != event2.topicName.apiName;
+      }());
+
       void checkChanges(PerAccountStore store,
           UserTopicVisibilityPolicy newPolicy,
           VisibilityEffect expectedInStream, VisibilityEffect expectedOverall) {
         final event = mkEvent(newPolicy);
         check(store.willChangeIfTopicVisibleInStream(event)).equals(expectedInStream);
         check(store.willChangeIfTopicVisible        (event)).equals(expectedOverall);
+
+        final event2 = mkEventDifferentlyCased(newPolicy);
+        check(store.willChangeIfTopicVisibleInStream(event2)).equals(expectedInStream);
+        check(store.willChangeIfTopicVisible        (event2)).equals(expectedOverall);
       }
 
       test('stream not muted, policy none -> followed, no change', () async {
@@ -340,7 +373,7 @@ void main() {
     group('events', () {
       test('add with new stream', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
         compareTopicVisibility(store, [
           eg.userTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.muted),
         ]);
@@ -348,8 +381,8 @@ void main() {
 
       test('add in existing stream', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.addUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted);
         compareTopicVisibility(store, [
           eg.userTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.muted),
           eg.userTopicItem(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted),
@@ -358,18 +391,24 @@ void main() {
 
       test('update existing policy', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
         compareTopicVisibility(store, [
           eg.userTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.unmuted),
+        ]);
+
+        // case-insensitivity
+        await store.setUserTopic(stream1, 'ToPiC', UserTopicVisibilityPolicy.followed);
+        compareTopicVisibility(store, [
+          eg.userTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.followed),
         ]);
       });
 
       test('remove, with others in stream', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.addUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted);
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.none);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.none);
         compareTopicVisibility(store, [
           eg.userTopicItem(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted),
         ]);
@@ -377,16 +416,18 @@ void main() {
 
       test('remove, as last in stream', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.none);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        // case-insensitivity
+        await store.setUserTopic(stream1, 'ToPiC', UserTopicVisibilityPolicy.none);
         compareTopicVisibility(store, [
         ]);
       });
 
       test('treat unknown enum value as removing', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unknown);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        // case-insensitivity
+        await store.setUserTopic(stream1, 'ToPiC', UserTopicVisibilityPolicy.unknown);
         compareTopicVisibility(store, [
         ]);
       });
@@ -403,12 +444,39 @@ void main() {
         ]));
       check(store.topicVisibilityPolicy(stream.streamId, eg.t('topic 1')))
         .equals(UserTopicVisibilityPolicy.muted);
-      check(store.topicVisibilityPolicy(stream.streamId, eg.t('topic 2')))
+      // case-insensitivity
+      check(store.topicVisibilityPolicy(stream.streamId, eg.t('ToPiC 2')))
         .equals(UserTopicVisibilityPolicy.unmuted);
       check(store.topicVisibilityPolicy(stream.streamId, eg.t('topic 3')))
         .equals(UserTopicVisibilityPolicy.followed);
       check(store.topicVisibilityPolicy(stream.streamId, eg.t('topic 4')))
         .equals(UserTopicVisibilityPolicy.none);
+    });
+  });
+
+  group('makeTopicKeyedMap', () {
+    test('"a" equals "A"', () {
+      final map = makeTopicKeyedMap<int>()
+        ..[eg.t('a')] = 1
+        ..[eg.t('A')] = 2;
+      check(map)
+        ..[eg.t('a')].equals(2)
+        ..[eg.t('A')].equals(2)
+        ..entries.which((it) => it.single
+          ..key.apiName.equals('a')
+          ..value.equals(2));
+    });
+
+    test('"A" equals "a"', () {
+      final map = makeTopicKeyedMap<int>()
+        ..[eg.t('A')] = 1
+        ..[eg.t('a')] = 2;
+      check(map)
+        ..[eg.t('A')].equals(2)
+        ..[eg.t('a')].equals(2)
+        ..entries.which((it) => it.single
+          ..key.apiName.equals('A')
+          ..value.equals(2));
     });
   });
 }
