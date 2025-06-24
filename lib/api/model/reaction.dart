@@ -175,4 +175,9 @@ enum ReactionType {
   zulipExtraEmoji;
 
   String toJson() => _$ReactionTypeEnumMap[this]!;
+
+  static ReactionType fromApiValue(String value) => _byApiValue[value]!;
+
+  static final _byApiValue = _$ReactionTypeEnumMap
+    .map((key, value) => MapEntry(value, key));
 }
