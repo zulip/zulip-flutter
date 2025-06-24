@@ -38,6 +38,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/content_test.dart';
 import '../model/test_store.dart';
 import '../stdlib_checks.dart';
 import '../test_clipboard.dart';
@@ -860,6 +861,81 @@ void main() {
   });
 
   group('message action sheet', () {
+    group('header', () {
+      void checkSenderAndTimestampShown(WidgetTester tester, {required int senderId}) {
+        check(find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byWidgetPredicate(
+            (widget) => widget is Avatar && widget.userId == senderId))
+        ).findsOne();
+        final expectedTimestampColor = MessageListTheme.of(
+          tester.element(find.byType(BottomSheet))).labelTime;
+        // TODO check the timestamp text itself, when it's convenient to do so:
+        //   https://github.com/zulip/zulip-flutter/pull/1624#discussion_r2181383754
+        check(find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byWidgetPredicate((widget) =>
+            widget is Text
+            && widget.style?.color == expectedTimestampColor
+            && (widget.style?.fontFeatures?.contains(FontFeature.enable('c2sc')) ?? false)))
+        ).findsOne();
+      }
+
+      testWidgets('message sender and content shown', (tester) async {
+        final message = eg.streamMessage(
+          timestamp: 1671409088,
+          content: ContentExample.userMentionPlain.html);
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: TopicNarrow.ofMessage(message));
+        checkSenderAndTimestampShown(tester, senderId: message.senderId);
+        check(find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(UserMention))
+        ).findsOne();
+      });
+
+      testWidgets('muted sender also shown', (tester) async {
+        final message = eg.streamMessage(
+          timestamp: 1671409088,
+          content: ContentExample.userMentionPlain.html);
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: TopicNarrow.ofMessage(message),
+          mutedUserIds: [message.senderId],
+          beforeLongPress: () async {
+            check(find.byType(MessageContent)).findsNothing();
+            await tester.tap(
+              find.widgetWithText(ZulipWebUiKitButton, 'Reveal message'));
+            await tester.pump();
+            check(find.byType(MessageContent)).findsOne();
+          },
+        );
+        checkSenderAndTimestampShown(tester, senderId: message.senderId);
+        check(find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(UserMention))
+        ).findsOne();
+      });
+
+      testWidgets('poll is rendered', (tester) async {
+        final submessageContent = eg.pollWidgetData(
+          question: 'poll', options: ['First option', 'Second option']);
+        final message = eg.streamMessage(
+          timestamp: 1671409088,
+          sender: eg.selfUser,
+          submessages: [eg.submessage(content: submessageContent)]);
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: TopicNarrow.ofMessage(message));
+        checkSenderAndTimestampShown(tester, senderId: message.senderId);
+        check(find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.text('First option'))
+        ).findsOne();
+      });
+    });
+
     group('ReactionButtons', () {
       testWidgets('absent if ServerEmojiData not loaded', (tester) async {
         final message = eg.streamMessage();
