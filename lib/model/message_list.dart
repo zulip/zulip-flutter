@@ -105,6 +105,8 @@ enum FetchingStatus {
 ///
 /// This comprises much of the guts of [MessageListView].
 mixin _MessageSequence {
+  bool get oneMessagePerBlock;
+
   /// A sequence number for invalidating stale fetches.
   int generation = 0;
 
@@ -435,7 +437,11 @@ mixin _MessageSequence {
     required MessageListMessageBaseItem Function(bool canShareSender) buildItem,
   }) {
     final bool canShareSender;
-    if (prevMessage == null || !haveSameRecipient(prevMessage, message)) {
+    if (
+      prevMessage == null
+      || oneMessagePerBlock
+      || !haveSameRecipient(prevMessage, message)
+    ) {
       items.add(MessageListRecipientHeaderItem(message));
       canShareSender = false;
     } else {
@@ -612,6 +618,15 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// fetch the messages from scratch, e.g. after certain events.
   Anchor get anchor => _anchor;
   Anchor _anchor;
+
+  @override bool get oneMessagePerBlock => switch (narrow) {
+    CombinedFeedNarrow()
+      || ChannelNarrow()
+      || TopicNarrow()
+      || DmNarrow() => false,
+    MentionsNarrow()
+      || StarredMessagesNarrow() => true,
+  };
 
   void _register() {
     store.registerMessageList(this);

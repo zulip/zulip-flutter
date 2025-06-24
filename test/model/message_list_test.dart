@@ -3011,6 +3011,7 @@ void checkInvariants(MessageListView model) {
   for (int j = 0; j < allMessages.length; j++) {
     bool forcedShowSender = false;
     if (j == 0
+        || model.oneMessagePerBlock
         || !haveSameRecipient(allMessages[j-1], allMessages[j])) {
       check(model.items[i++]).isA<MessageListRecipientHeaderItem>()
         .message.identicalTo(allMessages[j]);
