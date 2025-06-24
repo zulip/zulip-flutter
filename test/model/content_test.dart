@@ -1265,6 +1265,37 @@ class ContentExample {
         ]),
     ]);
 
+  static const mathBlockKatexBigOperators = ContentExample(
+    'math block katex big operators',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2203220
+    '```math\n\\bigsqcup\n```',
+    '<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo>⨆</mo></mrow><annotation encoding="application/x-tex">\\bigsqcup</annotation></semantics></math></span>'
+      '<span class="katex-html" aria-hidden="true">'
+        '<span class="base">'
+          '<span class="strut" style="height:1.6em;vertical-align:-0.55em;"></span>'
+          '<span class="mop op-symbol large-op" style="position:relative;top:0em;">⨆</span></span></span></span></span></p>',
+    [
+      MathBlockNode(
+        texSource: '\\bigsqcup',
+        nodes: [
+          KatexSpanNode(
+            styles: KatexSpanStyles(),
+            text: null,
+            nodes: [
+              KatexStrutNode(heightEm: 1.6, verticalAlignEm: -0.55),
+              KatexSpanNode(
+                styles: KatexSpanStyles(
+                  topEm: 0.0,
+                  fontFamily: 'KaTeX_Size2',
+                  position: KatexSpanPosition.relative),
+                text: '⨆',
+                nodes: null),
+            ]),
+        ]),
+    ]);
+
   static const imageSingle = ContentExample(
     'single image',
     // https://chat.zulip.org/#narrow/stream/7-test-here/topic/Thumbnails/near/1900103
@@ -2341,6 +2372,7 @@ void main() async {
   testParseExample(ContentExample.mathBlockKatexVertical3);
   testParseExample(ContentExample.mathBlockKatexVertical4);
   testParseExample(ContentExample.mathBlockKatexVertical5);
+  testParseExample(ContentExample.mathBlockKatexBigOperators);
 
   testParseExample(ContentExample.imageSingle);
   testParseExample(ContentExample.imageSingleNoDimensions);

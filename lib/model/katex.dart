@@ -514,6 +514,19 @@ class _KatexParser {
             _ => throw _KatexHtmlParseError(),
           };
 
+          // Some .op-symbol spans can have `position: relative` with some
+          // `top` offset as inline styles. We expect that if position is
+          // present it is always `relative` and be accompanying with some
+          // `top` offset.
+          if (inlineStyles case KatexSpanStyles(
+            :final position,
+            :final topEm,
+          ) when position != null) {
+            if (position != KatexSpanPosition.relative || topEm == null) {
+              throw _KatexHtmlParseError();
+            }
+          }
+
         // TODO handle more classes from katex.scss
 
         case 'mord':
