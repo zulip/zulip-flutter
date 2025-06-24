@@ -1073,7 +1073,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
           final itemIndex = totalItems - 1 - (childIndex + bottomItems);
           final data = model.items[itemIndex];
-          final item = _buildItem(data);
+          final item = _buildItem(data, isLastInFeed: itemIndex == totalItems - 1);
           return item;
         }));
 
@@ -1113,7 +1113,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
           final itemIndex = topItems + childIndex;
           final data = model.items[itemIndex];
-          return _buildItem(data);
+          return _buildItem(data, isLastInFeed: itemIndex == totalItems - 1);
         }));
 
     if (!ComposeBox.hasComposeBox(widget.narrow)) {
@@ -1178,7 +1178,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     }
   }
 
-  Widget _buildItem(MessageListItem data) {
+  Widget _buildItem(MessageListItem data, {required bool isLastInFeed}) {
     switch (data) {
       case MessageListRecipientHeaderItem():
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
@@ -1195,12 +1195,14 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           key: ValueKey(data.message.id),
           narrow: widget.narrow,
           header: header,
+          isLastInFeed: isLastInFeed,
           item: data);
       case MessageListOutboxMessageItem():
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
         return MessageItem(
           narrow: widget.narrow,
           header: header,
+          isLastInFeed: isLastInFeed,
           item: data);
     }
   }
@@ -1527,11 +1529,13 @@ class MessageItem extends StatelessWidget {
     required this.narrow,
     required this.item,
     required this.header,
+    required this.isLastInFeed,
   });
 
   final Narrow narrow;
   final MessageListMessageBaseItem item;
   final Widget header;
+  final bool isLastInFeed;
 
   @override
   Widget build(BuildContext context) {
@@ -1547,9 +1551,11 @@ class MessageItem extends StatelessWidget {
             item: item),
           MessageListOutboxMessageItem() => OutboxMessageWithPossibleSender(item: item),
         },
-        // TODO refine this padding; discussion:
-        //   https://github.com/zulip/zulip-flutter/pull/1453#discussion_r2106526985
-        if (item.isLastInBlock) const SizedBox(height: 11),
+        // TODO write tests for this padding logic
+        if (isLastInFeed)
+          const SizedBox(height: 5)
+        else if (item.isLastInBlock)
+          const SizedBox(height: 11),
       ]));
     if (item case MessageListMessageItem(:final message)) {
       child = _UnreadMarker(
