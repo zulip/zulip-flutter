@@ -38,6 +38,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/content_test.dart';
 import '../model/test_store.dart';
 import '../stdlib_checks.dart';
 import '../test_clipboard.dart';
@@ -854,6 +855,44 @@ void main() {
   });
 
   group('message action sheet', () {
+    group('header', () {
+      testWidgets('message sender and content shown', (tester) async {
+        final message = eg.streamMessage(content: ContentExample.userMentionPlain.html);
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: TopicNarrow.ofMessage(message));
+        check(find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byWidgetPredicate(
+            (widget) => widget is Avatar && widget.userId == message.senderId))
+        ).findsOne();
+        check(find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(UserMention))
+        ).findsOne();
+      });
+
+      testWidgets('poll is rendered', (tester) async {
+        final submessageContent = eg.pollWidgetData(
+          question: 'poll', options: ['First option', 'Second option']);
+        final message = eg.streamMessage(
+          sender: eg.selfUser,
+          submessages: [eg.submessage(content: submessageContent)]);
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: TopicNarrow.ofMessage(message));
+        check(find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byWidgetPredicate(
+            (widget) => widget is Avatar && widget.userId == message.senderId))
+        ).findsOne();
+        check(find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.text('First option'))
+        ).findsOne();
+      });
+    });
+
     group('ReactionButtons', () {
       testWidgets('absent if ServerEmojiData not loaded', (tester) async {
         final message = eg.streamMessage();
