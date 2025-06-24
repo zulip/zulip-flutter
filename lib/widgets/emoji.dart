@@ -89,6 +89,7 @@ class ImageEmojiWidget extends StatelessWidget {
     required this.size,
     this.textScaler = TextScaler.noScaling,
     this.errorBuilder,
+    this.noAnimation = false,
   });
 
   final ImageEmojiDisplay emojiDisplay;
@@ -105,13 +106,19 @@ class ImageEmojiWidget extends StatelessWidget {
 
   final ImageErrorWidgetBuilder? errorBuilder;
 
+  /// Whether to disable the animation for animated emojis.
+  ///
+  /// By default, animation is enabled.
+  final bool noAnimation;
+
   @override
   Widget build(BuildContext context) {
     // Some people really dislike animated emoji.
     final doNotAnimate =
+      noAnimation
       // From reading code, this doesn't actually get set on iOS:
       //   https://github.com/zulip/zulip-flutter/pull/410#discussion_r1408522293
-      MediaQuery.disableAnimationsOf(context)
+      || MediaQuery.disableAnimationsOf(context)
       || (defaultTargetPlatform == TargetPlatform.iOS
         // TODO(upstream) On iOS 17+ (new in 2023), there's a more closely
         //   relevant setting than "reduce motion". It's called "auto-play
