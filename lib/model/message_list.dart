@@ -435,21 +435,26 @@ mixin _MessageSequence {
     required MessageListMessageBaseItem Function(bool canShareSender) buildItem,
   }) {
     final bool canShareSender;
-    if (prevMessage == null || !haveSameRecipient(prevMessage, message)) {
+    if (prevMessage == null) {
       items.add(MessageListRecipientHeaderItem(message));
       canShareSender = false;
     } else {
-      assert(items.last is MessageListMessageBaseItem);
-      final prevMessageItem = items.last as MessageListMessageBaseItem;
-      assert(identical(prevMessageItem.message, prevMessage));
-      assert(prevMessageItem.isLastInBlock);
-      prevMessageItem.isLastInBlock = false;
-
-      if (!messagesSameDay(prevMessageItem.message, message)) {
-        items.add(MessageListDateSeparatorItem(message));
+      if (!haveSameRecipient(prevMessage, message)) {
+        items.add(MessageListRecipientHeaderItem(message));
         canShareSender = false;
       } else {
-        canShareSender = prevMessageItem.message.senderId == message.senderId;
+        assert(items.last is MessageListMessageBaseItem);
+        final prevMessageItem = items.last as MessageListMessageBaseItem;
+        assert(identical(prevMessageItem.message, prevMessage));
+        assert(prevMessageItem.isLastInBlock);
+        prevMessageItem.isLastInBlock = false;
+
+        if (!messagesSameDay(prevMessageItem.message, message)) {
+          items.add(MessageListDateSeparatorItem(message));
+          canShareSender = false;
+        } else {
+          canShareSender = prevMessageItem.message.senderId == message.senderId;
+        }
       }
     }
     final item = buildItem(canShareSender);
