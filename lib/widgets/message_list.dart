@@ -1334,9 +1334,7 @@ class MessageItem extends StatelessWidget {
           MessageListMessageItem() => MessageWithPossibleSender(item: item),
           MessageListOutboxMessageItem() => OutboxMessageWithPossibleSender(item: item),
         },
-        // TODO refine this padding; discussion:
-        //   https://github.com/zulip/zulip-flutter/pull/1453#discussion_r2106526985
-        if (item.isLastInBlock) const SizedBox(height: 11),
+        if (item.isLastInBlock && !item.isLastInFeed) const SizedBox(height: 11),
       ]));
     if (item case MessageListMessageItem(:final message)) {
       child = _UnreadMarker(

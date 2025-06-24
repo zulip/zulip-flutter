@@ -44,10 +44,12 @@ sealed class MessageListMessageBaseItem extends MessageListItem {
   ZulipMessageContent get content;
   bool showSender;
   bool isLastInBlock;
+  bool isLastInFeed;
 
   MessageListMessageBaseItem({
     required this.showSender,
     required this.isLastInBlock,
+    required this.isLastInFeed,
   });
 }
 
@@ -63,6 +65,7 @@ class MessageListMessageItem extends MessageListMessageBaseItem {
     this.content, {
     required super.showSender,
     required super.isLastInBlock,
+    required super.isLastInFeed,
   });
 }
 
@@ -77,6 +80,7 @@ class MessageListOutboxMessageItem extends MessageListMessageBaseItem {
     this.message, {
     required super.showSender,
     required super.isLastInBlock,
+    required super.isLastInFeed,
   }) : content = ZulipContent(nodes: [
     ParagraphNode(links: null, nodes: [TextNode(message.contentMarkdown)]),
   ]);
@@ -443,6 +447,9 @@ mixin _MessageSequence {
       final prevMessageItem = items.last as MessageListMessageBaseItem;
       assert(identical(prevMessageItem.message, prevMessage));
       assert(prevMessageItem.isLastInBlock);
+      assert(prevMessageItem.isLastInFeed);
+
+      prevMessageItem.isLastInFeed = false;
 
       if (!haveSameRecipient(prevMessage, message)) {
         items.add(MessageListRecipientHeaderItem(message));
@@ -462,6 +469,7 @@ mixin _MessageSequence {
     assert(identical(item.message, message));
     assert(item.showSender == !canShareSender);
     assert(item.isLastInBlock);
+    assert(item.isLastInFeed);
     if (shouldSetMiddleItem) {
       middleItem = items.length;
     }
@@ -482,7 +490,7 @@ mixin _MessageSequence {
       shouldSetMiddleItem: index == middleMessage,
       prevMessage: prevMessage,
       buildItem: (bool canShareSender) => MessageListMessageItem(
-        message, content, showSender: !canShareSender, isLastInBlock: true));
+        message, content, showSender: !canShareSender, isLastInBlock: true, isLastInFeed: true));
   }
 
   /// Append to [items] based on the index-th message in [outboxMessages].
@@ -500,7 +508,7 @@ mixin _MessageSequence {
       shouldSetMiddleItem: index == 0 && middleMessage == messages.length,
       prevMessage: prevMessage,
       buildItem: (bool canShareSender) => MessageListOutboxMessageItem(
-        message, showSender: !canShareSender, isLastInBlock: true));
+        message, showSender: !canShareSender, isLastInBlock: true, isLastInFeed: true));
   }
 
   /// Remove items associated with [outboxMessages] from [items].
@@ -519,6 +527,7 @@ mixin _MessageSequence {
     if (items.isNotEmpty) {
       final lastItem = items.last as MessageListMessageItem;
       lastItem.isLastInBlock = true;
+      lastItem.isLastInFeed = true;
     }
     if (middleMessage == messages.length) middleItem = items.length;
   }
