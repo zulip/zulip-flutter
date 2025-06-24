@@ -1651,7 +1651,11 @@ void main() {
             connection.prepare(json: GetMessageResult(
               message: eg.streamMessage(content: 'foo')).toJson());
             await tapEdit(tester);
-            await tester.pump(Duration.zero);
+            await tester.pump();
+            // Default duration of bottom-sheet exit animation,
+            // plus 1ms fudge factor (why needed?)
+            // TODO(#1668) get this dynamically instead of hard-coding
+            await tester.pump(Duration(milliseconds: 200 + 1));
             await tester.enterText(find.byWidgetPredicate(
                 (widget) => widget is TextField && widget.controller?.text == 'foo'),
               'bar');
