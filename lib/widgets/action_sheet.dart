@@ -32,11 +32,11 @@ import 'theme.dart';
 import 'topic_list.dart';
 
 void _showActionSheet(
-  BuildContext context, {
+  BuildContext pageContext, {
   required List<Widget> optionButtons,
 }) {
   showModalBottomSheet<void>(
-    context: context,
+    context: pageContext,
     // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
     // on my iPhone 13 Pro but is marked as "much slower":
     //   https://api.flutter.dev/flutter/dart-ui/Clip.html
@@ -44,7 +44,7 @@ void _showActionSheet(
     useSafeArea: true,
     isScrollControlled: true,
     builder: (BuildContext _) {
-      final designVariables = DesignVariables.of(context);
+      final designVariables = DesignVariables.of(pageContext);
       return Semantics(
         role: SemanticsRole.menu,
         child: SafeArea(
