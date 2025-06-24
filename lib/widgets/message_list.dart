@@ -1167,8 +1167,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         // TODO perhaps offer mark-as-read even when not done fetching?
         MarkAsReadWidget(narrow: widget.narrow),
         // To reinforce that the end of the feed has been reached:
-        //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
-        const SizedBox(height: 36),
+        //   https://chat.zulip.org/#narrow/channel/48-mobile/topic/space.20at.20end.20of.20thread/near/2203391
+        const SizedBox(height: 12),
       ]);
     } else if (model.busyFetchingMore) {
       // See [_buildStartCap] for why this condition shows a loading indicator.
