@@ -583,6 +583,7 @@ class _KatexParser {
         double? topEm;
         double? marginRightEm;
         double? marginLeftEm;
+        KatexSpanPosition? position;
 
         for (final declaration in rule.declarationGroup.declarations) {
           if (declaration case css_visitor.Declaration(
@@ -616,6 +617,13 @@ class _KatexParser {
                   if (marginLeftEm < 0) throw _KatexHtmlParseError();
                   continue;
                 }
+
+              case 'position':
+                position = switch (_getLiteral(expression)) {
+                  'relative' => KatexSpanPosition.relative,
+                  _ => null,
+                };
+                if (position != null) continue;
             }
 
             // TODO handle more CSS properties
@@ -634,6 +642,7 @@ class _KatexParser {
           verticalAlignEm: verticalAlignEm,
           marginRightEm: marginRightEm,
           marginLeftEm: marginLeftEm,
+          position: position,
         );
       } else {
         throw _KatexHtmlParseError();
@@ -647,6 +656,17 @@ class _KatexParser {
   double? _getEm(css_visitor.Expression expression) {
     if (expression is css_visitor.EmTerm && expression.value is num) {
       return (expression.value as num).toDouble();
+    }
+    return null;
+  }
+
+  /// Returns the CSS literal string value if the given [expression] is
+  /// actually a literal expression, else returns null.
+  String? _getLiteral(css_visitor.Expression expression) {
+    if (expression case css_visitor.LiteralTerm(:final value)) {
+      if (value case css_visitor.Identifier(:final name)) {
+        return name;
+      }
     }
     return null;
   }
@@ -667,6 +687,10 @@ enum KatexSpanTextAlign {
   right,
 }
 
+enum KatexSpanPosition {
+  relative,
+}
+
 @immutable
 class KatexSpanStyles {
   final double? heightEm;
@@ -683,6 +707,8 @@ class KatexSpanStyles {
   final KatexSpanFontStyle? fontStyle;
   final KatexSpanTextAlign? textAlign;
 
+  final KatexSpanPosition? position;
+
   const KatexSpanStyles({
     this.heightEm,
     this.verticalAlignEm,
@@ -694,6 +720,7 @@ class KatexSpanStyles {
     this.fontWeight,
     this.fontStyle,
     this.textAlign,
+    this.position,
   });
 
   @override
@@ -709,6 +736,7 @@ class KatexSpanStyles {
     fontWeight,
     fontStyle,
     textAlign,
+    position,
   );
 
   @override
@@ -723,7 +751,8 @@ class KatexSpanStyles {
       other.fontSizeEm == fontSizeEm &&
       other.fontWeight == fontWeight &&
       other.fontStyle == fontStyle &&
-      other.textAlign == textAlign;
+      other.textAlign == textAlign &&
+      other.position == position;
   }
 
   @override
@@ -739,6 +768,7 @@ class KatexSpanStyles {
     if (fontWeight != null) args.add('fontWeight: $fontWeight');
     if (fontStyle != null) args.add('fontStyle: $fontStyle');
     if (textAlign != null) args.add('textAlign: $textAlign');
+    if (position != null) args.add('position: $position');
     return '${objectRuntimeType(this, 'KatexSpanStyles')}(${args.join(', ')})';
   }
 
@@ -761,6 +791,7 @@ class KatexSpanStyles {
       fontStyle: other.fontStyle ?? fontStyle,
       fontWeight: other.fontWeight ?? fontWeight,
       textAlign: other.textAlign ?? textAlign,
+      position: other.position ?? position,
     );
   }
 
@@ -775,6 +806,7 @@ class KatexSpanStyles {
     bool fontWeight = true,
     bool fontStyle = true,
     bool textAlign = true,
+    bool position = true,
   }) {
     return KatexSpanStyles(
       heightEm: heightEm ? this.heightEm : null,
@@ -787,6 +819,7 @@ class KatexSpanStyles {
       fontWeight: fontWeight ? this.fontWeight : null,
       fontStyle: fontStyle ? this.fontStyle : null,
       textAlign: textAlign ? this.textAlign : null,
+      position: position ? this.position : null,
     );
   }
 }
