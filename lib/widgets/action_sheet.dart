@@ -44,6 +44,7 @@ void _showActionSheet(
     useSafeArea: true,
     isScrollControlled: true,
     builder: (BuildContext _) {
+      final designVariables = DesignVariables.of(context);
       return Semantics(
         role: SemanticsRole.menu,
         child: SafeArea(
@@ -57,7 +58,7 @@ void _showActionSheet(
                 // TODO(#217): show message text
                 Flexible(child: InsetShadowBox(
                   top: 8, bottom: 8,
-                  color: DesignVariables.of(context).bgContextMenu,
+                  color: designVariables.bgContextMenu,
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.only(top: 16, bottom: 8),
                     child: ClipRRect(
