@@ -13,12 +13,14 @@ import '../api/route/channels.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
+import '../model/content.dart';
 import '../model/emoji.dart';
 import '../model/internal_link.dart';
 import '../model/narrow.dart';
 import 'actions.dart';
 import 'color.dart';
 import 'compose_box.dart';
+import 'content.dart';
 import 'dialog.dart';
 import 'emoji.dart';
 import 'emoji_reaction.dart';
@@ -33,6 +35,7 @@ import 'topic_list.dart';
 
 void _showActionSheet(
   BuildContext pageContext, {
+  Widget? header,
   required List<Widget> optionButtons,
 }) {
   // Could omit this if we need _showActionSheet outside a per-account context.
@@ -57,15 +60,31 @@ void _showActionSheet(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(height: 8),
+                if (header != null)
+                  Flexible(
+                    // TODO(upstream) Enforce a flex ratio (e.g. 1:3)
+                    //   only when the header height plus the buttons' height
+                    //   exceeds available space. Otherwise let one or the other
+                    //   grow to fill available space even if it breaks the ratio.
+                    //   Needs support for separate properties like `flex-grow`
+                    //   and `flex-shrink`.
+                    flex: 1,
+                    child: InsetShadowBox(
+                      top: 8, bottom: 8,
+                      color: designVariables.bgContextMenu,
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: header)))
+                else
+                  SizedBox(height: 8),
                 Flexible(
+                  flex: 3,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // TODO(#217): show message text
                         Flexible(child: InsetShadowBox(
                           top: 8, bottom: 8,
                           color: designVariables.bgContextMenu,
@@ -621,7 +640,42 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       EditButton(message: message, pageContext: pageContext),
   ];
 
-  _showActionSheet(pageContext, optionButtons: optionButtons);
+  _showActionSheet(pageContext,
+    optionButtons: optionButtons,
+    header: _MessageActionSheetHeader(message: message));
+}
+
+class _MessageActionSheetHeader extends StatelessWidget {
+  const _MessageActionSheetHeader({required this.message});
+
+  final Message message;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    // TODO this seems to lose the hero animation when opening an image;
+    //   investigate.
+    // TODO should we close the sheet before opening a narrow link?
+    //   On popping the pushed narrow route, the sheet is still open.
+
+    return Container(
+      // TODO(#647) use different color for highlighted messages
+      // TODO(#681) use different color for DM messages
+      color: designVariables.bgMessageRegular,
+      padding: EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        spacing: 4,
+        children: [
+          SenderRow(message: message,
+            timestampStyle: MessageTimestampStyle.full),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            // TODO(#10) offer text selection; the Figma asks for it here:
+            //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3483-30210&m=dev
+            child: MessageContent(message: message, content: parseMessageContent(message))),
+        ]));
+  }
 }
 
 abstract class MessageActionSheetMenuItemButton extends ActionSheetMenuItemButton {

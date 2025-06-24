@@ -1893,7 +1893,8 @@ class SenderRow extends StatelessWidget {
     final revealedMutedMessagesState =
       MessageListPage.maybeRevealedMutedMessagesOf(context);
     // The "unrevealed" state only exists in the message list,
-    // and we're about to start showing a sender row outside the message list.
+    // and we show a sender row in at least one place outside the message list
+    // (the message action sheet).
     if (revealedMutedMessagesState == null) return false;
     return !revealedMutedMessagesState.isMutedMessageRevealed(message.id);
   }
@@ -1969,9 +1970,23 @@ class SenderRow extends StatelessWidget {
 enum MessageTimestampStyle {
   none,
   timeOnly,
+
+  /// The longest format, with full date and time as numbers, not "Today"/etc.
+  ///
+  /// For UI contexts focused just on the one message,
+  /// or as a tooltip on a shorter-formatted timestamp.
+  ///
+  /// The detail won't always be needed, but this format makes mental timezone
+  /// conversions easier, which is helpful when the user is thinking about
+  /// business hours on a different continent,
+  /// or traveling and they know their device timezone setting is wrong, etc.
+  // TODO(design) show "Today"/etc. after all? Discussion:
+  //   https://github.com/zulip/zulip-flutter/pull/1624#issuecomment-3050296488
+  full,
   ;
 
   static final _timeOnlyFormat = DateFormat('h:mm aa', 'en_US');
+  static final _fullFormat = DateFormat.yMMMd().add_jm();
 
   /// Format a [Message.timestamp] for this mode.
   // TODO(i18n): locale-specific formatting (see #45 for a plan with ffi)
@@ -1982,6 +1997,7 @@ enum MessageTimestampStyle {
     switch (this) {
       case none:     return null;
       case timeOnly: return _timeOnlyFormat.format(asDateTime);
+      case full: return _fullFormat.format(asDateTime);
     }
   }
 }
