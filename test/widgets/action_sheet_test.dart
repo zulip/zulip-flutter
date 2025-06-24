@@ -103,7 +103,11 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   // because its render box effectively has HitTestBehavior.deferToChild, and
   // the long-press might land where no child hit-tests as true,
   // like if it's in padding around a Paragraph.
-  await tester.longPress(find.byType(MessageContent), warnIfMissed: false);
+  await tester.longPress(
+    find.descendant(
+      of: find.byType(MessageList),
+      matching: find.byType(MessageContent)),
+    warnIfMissed: false);
   // sheet appears onscreen; default duration of bottom-sheet enter animation
   await tester.pump(const Duration(milliseconds: 250));
   // Check the action sheet did in fact open, so we don't defeat any tests that
@@ -1592,7 +1596,11 @@ void main() {
             }
 
             // See comment in setupToMessageActionSheet about warnIfMissed: false
-            await tester.longPress(find.byType(MessageContent), warnIfMissed: false);
+            await tester.longPress(
+              find.descendant(
+                of: find.byType(MessageList),
+                matching: find.byType(MessageContent)),
+              warnIfMissed: false);
             // sheet appears onscreen; default duration of bottom-sheet enter animation
             await tester.pump(const Duration(milliseconds: 250));
             check(find.byType(BottomSheet)).findsOne();
