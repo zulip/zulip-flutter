@@ -963,8 +963,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         // TODO perhaps offer mark-as-read even when not done fetching?
         MarkAsReadWidget(narrow: widget.narrow),
         // To reinforce that the end of the feed has been reached:
-        //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680603
-        const SizedBox(height: 36),
+        //   https://chat.zulip.org/#narrow/channel/48-mobile/topic/space.20at.20end.20of.20thread/near/2203391
+        const SizedBox(height: 12),
       ]);
     } else if (model.busyFetchingMore) {
       // See [_buildStartCap] for why this condition shows a loading indicator.
@@ -1334,9 +1334,7 @@ class MessageItem extends StatelessWidget {
           MessageListMessageItem() => MessageWithPossibleSender(item: item),
           MessageListOutboxMessageItem() => OutboxMessageWithPossibleSender(item: item),
         },
-        // TODO refine this padding; discussion:
-        //   https://github.com/zulip/zulip-flutter/pull/1453#discussion_r2106526985
-        if (item.isLastInBlock) const SizedBox(height: 11),
+        if (item.isLastInBlock && !item.isLastInFeed) const SizedBox(height: 11),
       ]));
     if (item case MessageListMessageItem(:final message)) {
       child = _UnreadMarker(

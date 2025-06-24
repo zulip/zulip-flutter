@@ -44,10 +44,12 @@ sealed class MessageListMessageBaseItem extends MessageListItem {
   ZulipMessageContent get content;
   bool showSender;
   bool isLastInBlock;
+  bool isLastInFeed;
 
   MessageListMessageBaseItem({
     required this.showSender,
     required this.isLastInBlock,
+    required this.isLastInFeed,
   });
 }
 
@@ -63,6 +65,7 @@ class MessageListMessageItem extends MessageListMessageBaseItem {
     this.content, {
     required super.showSender,
     required super.isLastInBlock,
+    required super.isLastInFeed,
   });
 }
 
@@ -77,6 +80,7 @@ class MessageListOutboxMessageItem extends MessageListMessageBaseItem {
     this.message, {
     required super.showSender,
     required super.isLastInBlock,
+    required super.isLastInFeed,
   }) : content = ZulipContent(nodes: [
     ParagraphNode(links: null, nodes: [TextNode(message.contentMarkdown)]),
   ]);
@@ -435,7 +439,7 @@ mixin _MessageSequence {
     required MessageListMessageBaseItem Function(bool canShareSender) buildItem,
   }) {
     final bool canShareSender;
-    if (prevMessage == null || !haveSameRecipient(prevMessage, message)) {
+    if (prevMessage == null) {
       items.add(MessageListRecipientHeaderItem(message));
       canShareSender = false;
     } else {
@@ -443,19 +447,29 @@ mixin _MessageSequence {
       final prevMessageItem = items.last as MessageListMessageBaseItem;
       assert(identical(prevMessageItem.message, prevMessage));
       assert(prevMessageItem.isLastInBlock);
-      prevMessageItem.isLastInBlock = false;
+      assert(prevMessageItem.isLastInFeed);
 
-      if (!messagesSameDay(prevMessageItem.message, message)) {
-        items.add(MessageListDateSeparatorItem(message));
+      prevMessageItem.isLastInFeed = false;
+
+      if (!haveSameRecipient(prevMessage, message)) {
+        items.add(MessageListRecipientHeaderItem(message));
         canShareSender = false;
       } else {
-        canShareSender = prevMessageItem.message.senderId == message.senderId;
+        prevMessageItem.isLastInBlock = false;
+
+        if (!messagesSameDay(prevMessageItem.message, message)) {
+          items.add(MessageListDateSeparatorItem(message));
+          canShareSender = false;
+        } else {
+          canShareSender = prevMessageItem.message.senderId == message.senderId;
+        }
       }
     }
     final item = buildItem(canShareSender);
     assert(identical(item.message, message));
     assert(item.showSender == !canShareSender);
     assert(item.isLastInBlock);
+    assert(item.isLastInFeed);
     if (shouldSetMiddleItem) {
       middleItem = items.length;
     }
@@ -476,7 +490,7 @@ mixin _MessageSequence {
       shouldSetMiddleItem: index == middleMessage,
       prevMessage: prevMessage,
       buildItem: (bool canShareSender) => MessageListMessageItem(
-        message, content, showSender: !canShareSender, isLastInBlock: true));
+        message, content, showSender: !canShareSender, isLastInBlock: true, isLastInFeed: true));
   }
 
   /// Append to [items] based on the index-th message in [outboxMessages].
@@ -494,7 +508,7 @@ mixin _MessageSequence {
       shouldSetMiddleItem: index == 0 && middleMessage == messages.length,
       prevMessage: prevMessage,
       buildItem: (bool canShareSender) => MessageListOutboxMessageItem(
-        message, showSender: !canShareSender, isLastInBlock: true));
+        message, showSender: !canShareSender, isLastInBlock: true, isLastInFeed: true));
   }
 
   /// Remove items associated with [outboxMessages] from [items].
@@ -513,6 +527,7 @@ mixin _MessageSequence {
     if (items.isNotEmpty) {
       final lastItem = items.last as MessageListMessageItem;
       lastItem.isLastInBlock = true;
+      lastItem.isLastInFeed = true;
     }
     if (middleMessage == messages.length) middleItem = items.length;
   }

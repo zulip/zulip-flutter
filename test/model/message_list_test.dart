@@ -3037,7 +3037,8 @@ void checkInvariants(MessageListView model) {
           || MessageListOutboxMessageItem()
           || MessageListDateSeparatorItem() => false,
           MessageListRecipientHeaderItem()  => true,
-        });
+        })
+      ..isLastInFeed.equals(i == model.items.length);
   }
   check(model.items).length.equals(i);
 
@@ -3082,6 +3083,7 @@ extension MessageListMessageBaseItemChecks on Subject<MessageListMessageBaseItem
   Subject<ZulipMessageContent> get content => has((x) => x.content, 'content');
   Subject<bool> get showSender => has((x) => x.showSender, 'showSender');
   Subject<bool> get isLastInBlock => has((x) => x.isLastInBlock, 'isLastInBlock');
+  Subject<bool> get isLastInFeed => has((x) => x.isLastInFeed, 'isLastInFeed');
 }
 
 extension MessageListMessageItemChecks on Subject<MessageListMessageItem> {
