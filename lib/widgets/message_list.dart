@@ -1883,8 +1883,8 @@ String formatHeaderDate(
 // TODO(i18n): web seems to ignore locale in formatting time, but we could do better
 final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
 
-class _SenderRow extends StatelessWidget {
-  const _SenderRow({required this.message, required this.showTimestamp});
+class SenderRow extends StatelessWidget {
+  const SenderRow({super.key, required this.message, required this.showTimestamp});
 
   final MessageBase message;
   final bool showTimestamp;
@@ -2059,7 +2059,7 @@ class MessageWithPossibleSender extends StatelessWidget {
         padding: const EdgeInsets.only(top: 4),
         child: Column(children: [
           if (item.showSender)
-            _SenderRow(message: message, showTimestamp: true),
+            SenderRow(message: message, showTimestamp: true),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: localizedTextBaseline(context),
@@ -2222,7 +2222,7 @@ class OutboxMessageWithPossibleSender extends StatelessWidget {
       padding: const EdgeInsets.only(top: 4),
       child: Column(children: [
         if (item.showSender)
-          _SenderRow(message: message, showTimestamp: false),
+          SenderRow(message: message, showTimestamp: false),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
