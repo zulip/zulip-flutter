@@ -369,8 +369,12 @@ abstract class MathNode extends ContentNode {
   }
 }
 
-class KatexNode extends ContentNode {
-  const KatexNode({
+sealed class KatexNode extends ContentNode {
+  const KatexNode({super.debugHtmlNode});
+}
+
+class KatexSpanNode extends KatexNode {
+  const KatexSpanNode({
     required this.styles,
     required this.text,
     required this.nodes,
