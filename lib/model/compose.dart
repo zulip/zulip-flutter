@@ -130,13 +130,32 @@ String wrapWithBacktickFence({required String content, String? infoString}) {
 /// To omit the user ID part ("|13313") whenever the name part is unambiguous,
 /// pass the full UserStore.  This means accepting a linear scan
 /// through all users; avoid it in performance-sensitive codepaths.
+///
+/// See also [userMentionFromMessage].
 String userMention(User user, {bool silent = false, UserStore? users}) {
   bool includeUserId = users == null
     || users.allUsers.where((u) => u.fullName == user.fullName)
          .take(2).length == 2;
-
-  return '@${silent ? '_' : ''}**${user.fullName}${includeUserId ? '|${user.userId}' : ''}**';
+  return _userMentionImpl(
+    silent: silent,
+    fullName: user.fullName,
+    userId: includeUserId ? user.userId : null);
 }
+
+/// An @-mention of an individual user, like @**Chris Bobbe|13313**,
+/// from sender data in a [Message].
+///
+/// The user ID part ("|13313") is always included.
+///
+/// See also [userMention].
+String userMentionFromMessage(Message message, {bool silent = false, required UserStore users}) =>
+  _userMentionImpl(
+    silent: silent,
+    fullName: users.senderDisplayName(message, replaceIfMuted: false),
+    userId: message.senderId);
+
+String _userMentionImpl({required bool silent, required String fullName, int? userId}) =>
+  '@${silent ? '_' : ''}**$fullName${userId != null ? '|$userId' : ''}**';
 
 /// An @-mention of all the users in a conversation, like @**channel**.
 String wildcardMention(WildcardMentionOption wildcardOption, {
@@ -190,13 +209,11 @@ String quoteAndReplyPlaceholder(
   PerAccountStore store, {
   required Message message,
 }) {
-  final sender = store.getUser(message.senderId);
-  assert(sender != null); // TODO(#716): should use `store.senderDisplayName`
   final url = narrowLink(store,
     SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
     nearMessageId: message.id);
-  // See note in [quoteAndReply] about asking `mention` to omit the |<id> part.
-  return '${userMention(sender!, silent: true)} ${inlineLink('said', url)}: ' // TODO(#1285)
+  return '${userMentionFromMessage(message, silent: true, users: store)} '
+    '${inlineLink('said', url)}: ' // TODO(#1285)
     '*${zulipLocalizations.composeBoxLoadingMessage(message.id)}*\n';
 }
 
@@ -212,14 +229,14 @@ String quoteAndReply(PerAccountStore store, {
   required Message message,
   required String rawContent,
 }) {
-  final sender = store.getUser(message.senderId);
-  assert(sender != null); // TODO(#716): should use `store.senderDisplayName`
   final url = narrowLink(store,
     SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
     nearMessageId: message.id);
-    // Could ask `mention` to omit the |<id> part unless the mention is ambiguous…
-    // but that would mean a linear scan through all users, and the extra noise
-    // won't much matter with the already probably-long message link in there too.
-    return '${userMention(sender!, silent: true)} ${inlineLink('said', url)}:\n' // TODO(#1285)
-      '${wrapWithBacktickFence(content: rawContent, infoString: 'quote')}';
+  // Could ask userMentionFromMessage to omit the |<id> part unless the mention
+  // is ambiguous… but that would mean a linear scan through all users,
+  // and the extra noise won't much matter with the already probably-long
+  // message link in there too.
+  return '${userMentionFromMessage(message, silent: true, users: store)} '
+    '${inlineLink('said', url)}:\n' // TODO(#1285)
+    '${wrapWithBacktickFence(content: rawContent, infoString: 'quote')}';
 }

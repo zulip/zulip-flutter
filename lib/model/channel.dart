@@ -69,10 +69,10 @@ mixin ChannelStore {
 
   /// Whether the given event will change the result of [isTopicVisibleInStream]
   /// for its stream and topic, compared to the current state.
-  VisibilityEffect willChangeIfTopicVisibleInStream(UserTopicEvent event) {
+  UserTopicVisibilityEffect willChangeIfTopicVisibleInStream(UserTopicEvent event) {
     final streamId = event.streamId;
     final topic = event.topicName;
-    return VisibilityEffect._fromBeforeAfter(
+    return UserTopicVisibilityEffect._fromBeforeAfter(
       _isTopicVisibleInStream(topicVisibilityPolicy(streamId, topic)),
       _isTopicVisibleInStream(event.visibilityPolicy));
   }
@@ -106,10 +106,10 @@ mixin ChannelStore {
 
   /// Whether the given event will change the result of [isTopicVisible]
   /// for its stream and topic, compared to the current state.
-  VisibilityEffect willChangeIfTopicVisible(UserTopicEvent event) {
+  UserTopicVisibilityEffect willChangeIfTopicVisible(UserTopicEvent event) {
     final streamId = event.streamId;
     final topic = event.topicName;
-    return VisibilityEffect._fromBeforeAfter(
+    return UserTopicVisibilityEffect._fromBeforeAfter(
       _isTopicVisible(streamId, topicVisibilityPolicy(streamId, topic)),
       _isTopicVisible(streamId, event.visibilityPolicy));
   }
@@ -137,7 +137,7 @@ mixin ChannelStore {
 /// Whether and how a given [UserTopicEvent] will affect the results
 /// that [ChannelStore.isTopicVisible] or [ChannelStore.isTopicVisibleInStream]
 /// would give for some messages.
-enum VisibilityEffect {
+enum UserTopicVisibilityEffect {
   /// The event will have no effect on the visibility results.
   none,
 
@@ -147,11 +147,11 @@ enum VisibilityEffect {
   /// The event will change some visibility results from false to true.
   unmuted;
 
-  factory VisibilityEffect._fromBeforeAfter(bool before, bool after) {
+  factory UserTopicVisibilityEffect._fromBeforeAfter(bool before, bool after) {
     return switch ((before, after)) {
-      (false, true) => VisibilityEffect.unmuted,
-      (true, false) => VisibilityEffect.muted,
-      _             => VisibilityEffect.none,
+      (false, true) => UserTopicVisibilityEffect.unmuted,
+      (true, false) => UserTopicVisibilityEffect.muted,
+      _             => UserTopicVisibilityEffect.none,
     };
   }
 }
