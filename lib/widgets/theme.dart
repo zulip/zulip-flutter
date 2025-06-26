@@ -201,6 +201,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     subscriptionListHeaderLine: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor(),
     subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
     unreadCountBadgeTextForChannel: Colors.black.withValues(alpha: 0.9),
+    userStatusText: const Color(0xff808080),
   );
 
   static final dark = DesignVariables._(
@@ -285,6 +286,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
     subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.75).toColor(),
     unreadCountBadgeTextForChannel: Colors.white.withValues(alpha: 0.9),
+    // TODO(design-dark) unchanged in dark theme?
+    userStatusText: const Color(0xff808080),
   );
 
   DesignVariables._({
@@ -357,6 +360,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.subscriptionListHeaderLine,
     required this.subscriptionListHeaderText,
     required this.unreadCountBadgeTextForChannel,
+    required this.userStatusText,
   });
 
   /// The [DesignVariables] from the context's active theme.
@@ -442,6 +446,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color subscriptionListHeaderLine;
   final Color subscriptionListHeaderText;
   final Color unreadCountBadgeTextForChannel;
+  final Color userStatusText; // In Figma, but unnamed.
 
   @override
   DesignVariables copyWith({
@@ -514,6 +519,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? subscriptionListHeaderLine,
     Color? subscriptionListHeaderText,
     Color? unreadCountBadgeTextForChannel,
+    Color? userStatusText,
   }) {
     return DesignVariables._(
       background: background ?? this.background,
@@ -585,6 +591,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       subscriptionListHeaderLine: subscriptionListHeaderLine ?? this.subscriptionListHeaderLine,
       subscriptionListHeaderText: subscriptionListHeaderText ?? this.subscriptionListHeaderText,
       unreadCountBadgeTextForChannel: unreadCountBadgeTextForChannel ?? this.unreadCountBadgeTextForChannel,
+      userStatusText: userStatusText ?? this.userStatusText,
     );
   }
 
@@ -663,6 +670,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       subscriptionListHeaderLine: Color.lerp(subscriptionListHeaderLine, other.subscriptionListHeaderLine, t)!,
       subscriptionListHeaderText: Color.lerp(subscriptionListHeaderText, other.subscriptionListHeaderText, t)!,
       unreadCountBadgeTextForChannel: Color.lerp(unreadCountBadgeTextForChannel, other.unreadCountBadgeTextForChannel, t)!,
+      userStatusText: Color.lerp(userStatusText, other.userStatusText, t)!,
     );
   }
 }
