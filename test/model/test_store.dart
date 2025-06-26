@@ -267,6 +267,27 @@ extension PerAccountStoreTestExtension on PerAccountStore {
     }
   }
 
+  Future<void> addUserStatus(int userId, UserStatus status) async {
+    await handleEvent(
+      UserStatusEvent(
+        id: 1,
+        userId: userId,
+        statusText: status.statusText,
+        emojiName: status.emojiName,
+        emojiCode: status.emojiCode,
+        reactionType: status.reactionType != null
+          ? UserStatusEventReactionType.fromApiValue(status.reactionType!.toJson())
+          : null,
+      ),
+    );
+  }
+
+  Future<void> addUserStatuses(List<(int userId, UserStatus status)> userStatuses) async {
+    for (final (userId, status) in userStatuses) {
+      await addUserStatus(userId, status);
+    }
+  }
+
   Future<void> addStream(ZulipStream stream) async {
     await addStreams([stream]);
   }

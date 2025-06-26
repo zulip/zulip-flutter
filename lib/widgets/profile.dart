@@ -12,6 +12,7 @@ import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
+import 'theme.dart';
 
 class _TextStyles {
   static const primaryFieldText = TextStyle(fontSize: 20);
@@ -43,6 +44,7 @@ class ProfilePage extends StatelessWidget {
     if (user == null) {
       return const _ProfileErrorPage();
     }
+    final userStatus = store.getUserStatus(userId);
 
     final nameStyle = _TextStyles.primaryFieldText
       .merge(weightVariableTextStyle(context, wght: 700));
@@ -66,9 +68,20 @@ class ProfilePage extends StatelessWidget {
             textScaler: MediaQuery.textScalerOf(context),
           ),
           TextSpan(text: user.fullName),
+          UserStatusEmoji.asWidgetSpan(
+            userId: userId,
+            size: 20,
+            notoColorEmojiTextSize: 16.6,
+            noAnimation: false,
+          ),
         ]),
         textAlign: TextAlign.center,
         style: nameStyle),
+      if (userStatus != null && userStatus.statusText != null)
+        Text(userStatus.statusText!,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16, color: DesignVariables.of(context).userStatusText)),
+
       if (displayEmail != null)
         Text(displayEmail,
           textAlign: TextAlign.center,

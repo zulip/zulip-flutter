@@ -14,12 +14,14 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../model/avatar_url.dart';
 import '../model/binding.dart';
 import '../model/content.dart';
+import '../model/emoji.dart';
 import '../model/internal_link.dart';
 import '../model/katex.dart';
 import '../model/presence.dart';
 import 'actions.dart';
 import 'code_block.dart';
 import 'dialog.dart';
+import 'emoji.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
 import 'lightbox.dart';
@@ -1896,6 +1898,70 @@ class _PresenceCircleState extends State<PresenceCircle> with PerAccountStoreAwa
           color: color,
           gradient: gradient,
           shape: BoxShape.circle)));
+  }
+}
+
+/// A user status emoji to be displayed in different parts of the app.
+///
+/// Use [noAnimation] to disable the animation for animated emojis.
+class UserStatusEmoji extends StatelessWidget {
+  const UserStatusEmoji({
+    super.key,
+    required this.userId,
+    required this.size,
+    required this.notoColorEmojiTextSize,
+    this.noAnimation = true,
+  });
+
+  final int userId;
+  final double size;
+  final double notoColorEmojiTextSize;
+  final bool noAnimation;
+
+  static InlineSpan asWidgetSpan({
+    required int userId,
+    required double size,
+    required double notoColorEmojiTextSize,
+    bool noAnimation = true,
+  }) {
+    return WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.only(start: 4.0),
+        child: UserStatusEmoji(userId: userId, size: size,
+          notoColorEmojiTextSize: notoColorEmojiTextSize, noAnimation: noAnimation)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final userStatus = store.getUserStatus(userId);
+
+    if (userStatus == null) return SizedBox.shrink();
+    if (userStatus.reactionType == null ||
+        userStatus.emojiCode == null ||
+        userStatus.emojiName == null) {
+      return SizedBox.shrink();
+    }
+
+    final emojiDisplay = store.emojiDisplayFor(
+      emojiType: userStatus.reactionType!,
+      emojiCode: userStatus.emojiCode!,
+      emojiName: userStatus.emojiName!)
+        // Web doesn't seem to respect the emojiset user settings for user status.
+        // .resolve(store.userSettings)
+    ;
+    return switch (emojiDisplay) {
+      UnicodeEmojiDisplay() => UnicodeEmojiWidget(
+        size: size, notoColorEmojiTextSize: notoColorEmojiTextSize,
+        emojiDisplay: emojiDisplay),
+      ImageEmojiDisplay() => ImageEmojiWidget(
+        size: size, emojiDisplay: emojiDisplay, noAnimation: noAnimation),
+      // If the status emoji has to be displayed as text because it failed to
+      // load, we ignore it because it would look weird for emojis with longer
+      // text, in certain places, for example in message list.
+      TextEmojiDisplay() => SizedBox.shrink(),
+    };
   }
 }
 

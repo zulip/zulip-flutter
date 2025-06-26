@@ -7,6 +7,12 @@ import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
 import 'test_store.dart';
 
+typedef StatusData = (String? statusText, String? emojiName,
+  String? emojiCode, ReactionType? reactionType);
+
+typedef StatusEventData = (int userId, String? statusText, String? emojiName,
+  String? emojiCode, UserStatusEventReactionType? reactionType);
+
 void main() {
   group('userDisplayName', () {
     test('on a known user', () async {
@@ -78,6 +84,64 @@ void main() {
         deliveryEmail: const JsonNullable('c@mail.example')));
       check(getUser()).deliveryEmail.equals('c@mail.example');
     });
+  });
+
+  testWidgets('UserStatusEvent', (tester) async {
+    UserStatus userStatus(StatusData data) => UserStatus(statusText: data.$1,
+      emojiName: data.$2, emojiCode: data.$3, reactionType: data.$4);
+
+    void checkUserStatus(UserStatus userStatus, StatusData expected) {
+      check(userStatus)
+        ..statusText.equals(expected.$1)
+        ..emojiName.equals(expected.$2)
+        ..emojiCode.equals(expected.$3)
+        ..reactionType.equals(expected.$4);
+    }
+
+    UserStatusEvent userStatusEvent(StatusEventData data) => UserStatusEvent(
+      id: 1, userId: data.$1, statusText: data.$2, emojiName: data.$3,
+      emojiCode: data.$4, reactionType: data.$5);
+
+    final store = eg.store(initialSnapshot: eg.initialSnapshot(
+      userStatuses: {
+        1: userStatus(('Busy', 'working_on_it', '1f6e0', ReactionType.unicodeEmoji)),
+        2: userStatus((null, 'calendar', '1f4c5', ReactionType.unicodeEmoji)),
+        3: userStatus(('Commuting', null, null, null)),
+      }
+    ));
+    checkUserStatus(store.getUserStatus(1)!,
+      ('Busy', 'working_on_it', '1f6e0', ReactionType.unicodeEmoji));
+    checkUserStatus(store.getUserStatus(2)!,
+      (null, 'calendar', '1f4c5', ReactionType.unicodeEmoji));
+    checkUserStatus(store.getUserStatus(3)!,
+      ('Commuting', null, null, null));
+    check(store.getUserStatus(4)).isNull();
+    check(store.getUserStatus(5)).isNull();
+
+    await store.handleEvent(userStatusEvent((1,
+      'Out sick', 'sick', '1f912', UserStatusEventReactionType.unicodeEmoji)));
+    checkUserStatus(store.getUserStatus(1)!,
+      ('Out sick', 'sick', '1f912', ReactionType.unicodeEmoji));
+
+    await store.handleEvent(userStatusEvent((2,
+      'In a meeting', null, null, null)));
+    checkUserStatus(store.getUserStatus(2)!,
+      ('In a meeting', 'calendar', '1f4c5', ReactionType.unicodeEmoji));
+
+    await store.handleEvent(userStatusEvent((3,
+      '', 'bus', '1f68c', UserStatusEventReactionType.unicodeEmoji)));
+    checkUserStatus(store.getUserStatus(3)!,
+      (null, 'bus', '1f68c', ReactionType.unicodeEmoji));
+
+    await store.handleEvent(userStatusEvent((4,
+      'Vacationing', null, null, null)));
+    checkUserStatus(store.getUserStatus(4)!,
+      ('Vacationing', null, null, null));
+
+    await store.handleEvent(userStatusEvent((5,
+      'Working remotely', '', '', UserStatusEventReactionType.empty)));
+    checkUserStatus(store.getUserStatus(5)!,
+      ('Working remotely', null, null, null));
   });
 
   testWidgets('MutedUsersEvent', (tester) async {

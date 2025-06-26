@@ -1,11 +1,13 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/emoji.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/profile.dart';
@@ -22,6 +24,7 @@ import 'test_app.dart';
 Future<void> setupPage(WidgetTester tester, {
   required int pageUserId,
   List<User>? users,
+  List<(int userId, UserStatus status)>? userStatuses,
   List<CustomProfileField>? customProfileFields,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   NavigatorObserver? navigatorObserver,
@@ -38,6 +41,7 @@ Future<void> setupPage(WidgetTester tester, {
   if (users != null) {
     await store.addUsers(users);
   }
+  await store.addUserStatuses(userStatuses ?? []);
 
   await tester.pumpWidget(TestZulipApp(
     accountId: eg.selfAccount.id,
@@ -74,11 +78,22 @@ void main() {
       final user = eg.user(userId: 1, fullName: 'test user',
         deliveryEmail: 'testuser@example.com');
 
-      await setupPage(tester, users: [user], pageUserId: user.userId);
+      await setupPage(tester, users: [user], pageUserId: user.userId,
+        userStatuses: [
+          (
+            user.userId,
+            UserStatus(statusText: 'Busy', emojiName: 'working_on_it',
+              emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji),
+          )
+        ]);
 
       check(because: 'find user avatar', find.byType(Avatar).evaluate()).length.equals(1);
       check(because: 'find user name', find.text('test user').evaluate()).isNotEmpty();
       check(because: 'find user delivery email', find.text('testuser@example.com').evaluate()).isNotEmpty();
+      final statusEmojiFinder = find.ancestor(of: find.byType(UnicodeEmojiWidget),
+        matching: find.byType(UserStatusEmoji));
+      check(because: 'find user status emoji', statusEmojiFinder).findsOne();
+      check(because: 'find user status text', find.text('Busy')).findsOne();
     });
 
     testWidgets('page builds; profile page renders with profileData', (tester) async {

@@ -158,6 +158,31 @@ class RealmEmojiItem {
   Map<String, dynamic> toJson() => _$RealmEmojiItemToJson(this);
 }
 
+/// A value in [InitialSnapshot.userStatuses].
+///
+/// For docs, search for "user_status:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserStatus {
+  // final bool? away; // deprecated in server-6 (FL-148); ignore
+  final String? statusText;
+  final String? emojiName;
+  final String? emojiCode;
+  final ReactionType? reactionType;
+
+  UserStatus({
+    required this.statusText,
+    required this.emojiName,
+    required this.emojiCode,
+    required this.reactionType,
+  });
+
+  factory UserStatus.fromJson(Map<String, dynamic> json) =>
+    _$UserStatusFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserStatusToJson(this);
+}
+
 /// The name of a user setting that has a property in [UserSettings].
 ///
 /// In Zulip event-handling code (for [UserSettingsUpdateEvent]),
