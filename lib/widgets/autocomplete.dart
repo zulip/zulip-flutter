@@ -277,29 +277,35 @@ class MentionAutocompleteItem extends StatelessWidget {
 
     Widget avatar;
     String label;
+    Widget? emoji;
     String? sublabel;
     switch (option) {
       case UserMentionAutocompleteResult(:var userId):
         avatar = Avatar(userId: userId, size: 36, borderRadius: 4);
         label = store.userDisplayName(userId);
+        emoji = UserStatusEmoji(userId: userId, size: 18,
+          padding: const EdgeInsetsDirectional.only(start: 5.0));
         sublabel = store.userDisplayEmail(userId);
       case WildcardMentionAutocompleteResult(:var wildcardOption):
         avatar = SizedBox.square(dimension: 36,
           child: const Icon(ZulipIcons.three_person, size: 24));
         label = wildcardOption.canonicalString;
+        emoji = null;
         sublabel = wildcardSublabel(wildcardOption, context: context, store: store);
     }
 
-    final labelWidget = Text(
-      label,
-      style: TextStyle(
-        fontSize: 18,
-        height: 20 / 18,
-        color: designVariables.contextMenuItemLabel,
-      ).merge(weightVariableTextStyle(context,
-          wght: sublabel == null ? 500 : 600)),
-      overflow: TextOverflow.ellipsis,
-      maxLines: 1);
+    final labelWidget = Row(children: [
+      Flexible(child: Text(label,
+        style: TextStyle(
+          fontSize: 18,
+          height: 20 / 18,
+          color: designVariables.contextMenuItemLabel,
+        ).merge(weightVariableTextStyle(context,
+            wght: sublabel == null ? 500 : 600)),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1)),
+      ?emoji,
+    ]);
 
     final sublabelWidget = sublabel == null ? null : Text(
       sublabel,
@@ -318,10 +324,7 @@ class MentionAutocompleteItem extends StatelessWidget {
         Expanded(child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            labelWidget,
-            if (sublabelWidget != null) sublabelWidget,
-          ])),
+          children: [labelWidget, ?sublabelWidget])),
       ]));
   }
 }
