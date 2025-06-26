@@ -294,6 +294,8 @@ class MenuButton extends StatelessWidget {
   final VoidCallback onPressed;
   final IconData? icon;
 
+  static double itemSpacing = 16;
+
   static bool _debugCheckShapeAncestor(BuildContext context) {
     final ancestor = context.findAncestorWidgetOfExactType<MenuButtonsShape>();
     assert(() {
@@ -312,9 +314,18 @@ class MenuButton extends StatelessWidget {
 
     final designVariables = DesignVariables.of(context);
 
+    // (see `trailingIcon`)
+    assert(Theme.of(context).visualDensity == VisualDensity.standard);
+
     return MenuItemButton(
       trailingIcon: icon != null
-        ? Icon(icon, color: designVariables.contextMenuItemText)
+        ? Padding(
+            // This Material widget gives us 12px padding before the icon --
+            // or more or less, depending on Theme.of(context).visualDensity,
+            // hence the `assert` above.
+            padding: EdgeInsetsDirectional.only(start: itemSpacing - 12),
+
+            child: Icon(icon, color: designVariables.contextMenuItemText))
         : null,
       style: MenuItemButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
