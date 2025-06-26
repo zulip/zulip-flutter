@@ -104,23 +104,29 @@ class RecentDmConversationsItem extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
 
-    final String title;
+    final InlineSpan title;
     final Widget avatar;
     int? userIdForPresence;
     switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
       case []:
-        title = store.selfUser.fullName;
+        title = TextSpan(text: store.selfUser.fullName, children: [
+          UserStatusEmoji.asWidgetSpan(userId: store.selfUserId,
+            fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
+        ]);
         avatar = AvatarImage(userId: store.selfUserId, size: _avatarSize);
       case [var otherUserId]:
-        title = store.userDisplayName(otherUserId);
+        title = TextSpan(text: store.userDisplayName(otherUserId), children: [
+          UserStatusEmoji.asWidgetSpan(userId: otherUserId,
+            fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
+        ]);
         avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
         userIdForPresence = otherUserId;
       default:
-        // TODO(i18n): List formatting, like you can do in JavaScript:
-        //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
-        //   // 'Chris、Greg、Alya'
-        title = narrow.otherRecipientIds.map(store.userDisplayName)
-          .join(', ');
+        title = TextSpan(
+          // TODO(i18n): List formatting, like you can do in JavaScript:
+          //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
+          //   // 'Chris、Greg、Alya'
+          text: narrow.otherRecipientIds.map(store.userDisplayName).join(', '));
         avatar = ColoredBox(color: designVariables.avatarPlaceholderBg,
           child: Center(
             child: Icon(color: designVariables.avatarPlaceholderIcon,
@@ -148,7 +154,7 @@ class RecentDmConversationsItem extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
+              child: Text.rich(
                 style: TextStyle(
                   fontSize: 17,
                   height: (20 / 17),
