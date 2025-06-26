@@ -663,7 +663,7 @@ class PerAccountStore extends PerAccountStoreBase with
   ////////////////////////////////
   // Data attached to the self-account on the realm.
 
-  final UserSettings? userSettings; // TODO(server-5)
+  final UserSettings userSettings;
 
   @override
   Map<int, SavedSnippet> get savedSnippets => _savedSnippets.savedSnippets;
@@ -907,11 +907,11 @@ class PerAccountStore extends PerAccountStoreBase with
         }
         switch (event.property!) {
           case UserSettingName.twentyFourHourTime:
-            userSettings?.twentyFourHourTime        = event.value as bool;
+            userSettings.twentyFourHourTime        = event.value as bool;
           case UserSettingName.displayEmojiReactionUsers:
-            userSettings?.displayEmojiReactionUsers = event.value as bool;
+            userSettings.displayEmojiReactionUsers = event.value as bool;
           case UserSettingName.emojiset:
-            userSettings?.emojiset                  = event.value as Emojiset;
+            userSettings.emojiset                  = event.value as Emojiset;
         }
         notifyListeners();
 
