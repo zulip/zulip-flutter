@@ -9,10 +9,12 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/basic.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/emoji.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
@@ -96,9 +98,22 @@ void main() {
       deliveryEmail: 'testuser@example.com');
 
     await setupPage(tester, users: [user], pageUserId: user.userId);
+    await store.changeUserStatuses({
+      user.userId: UserStatusChange(
+        text: OptionSome('Busy'),
+        emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+          emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))),
+    });
+    await tester.pump();
 
     check(because: 'find user avatar', find.byType(Avatar).evaluate()).length.equals(1);
     check(because: 'find user name', find.text('test user').evaluate()).isNotEmpty();
+    final statusEmojiFinder = find.ancestor(of: find.byType(UnicodeEmojiWidget),
+      matching: find.byType(UserStatusEmoji));
+    check(tester.firstWidget<UserStatusEmoji>(statusEmojiFinder)
+      .neverAnimate).isFalse();
+    check(because: 'find user status emoji', statusEmojiFinder).findsOne();
+    check(because: 'find user status text', find.text('Busy')).findsOne();
     check(because: 'find user delivery email', find.text('testuser@example.com').evaluate()).isNotEmpty();
   });
 
