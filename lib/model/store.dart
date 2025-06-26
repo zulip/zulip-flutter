@@ -886,6 +886,8 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
             userSettings.displayEmojiReactionUsers = event.value as bool;
           case UserSettingName.emojiset:
             userSettings.emojiset                  = event.value as Emojiset;
+          case UserSettingName.presenceEnabled:
+            userSettings.presenceEnabled           = event.value as bool;
         }
         notifyListeners();
 

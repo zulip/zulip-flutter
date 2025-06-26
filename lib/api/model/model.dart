@@ -167,7 +167,9 @@ class RealmEmojiItem {
 enum UserSettingName {
   twentyFourHourTime,
   displayEmojiReactionUsers,
-  emojiset;
+  emojiset,
+  presenceEnabled,
+  ;
 
   /// Get a [UserSettingName] from a raw, snake-case string we recognize, else null.
   ///
