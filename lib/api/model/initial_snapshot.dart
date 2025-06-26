@@ -257,6 +257,7 @@ class UserSettings {
   // (1) add it to the [UserSettingName] enum
   // (2) then re-run the command to refresh the .g.dart files
   // (3) handle the event that signals an update to the setting
+  // (4) add the setting to the [updateSettings] route binding
 
   UserSettings({
     required this.twentyFourHourTime,

@@ -180,6 +180,8 @@ enum UserSettingName {
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
   static final _byRawString = _$UserSettingNameEnumMap
     .map((key, value) => MapEntry(value, key));
+
+  String toJson() => _$UserSettingNameEnumMap[this]!;
 }
 
 /// As in [UserSettings.emojiset].
@@ -199,6 +201,8 @@ enum Emojiset {
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.kebab`
   static final _byRawString = _$EmojisetEnumMap
     .map((key, value) => MapEntry(value, key));
+
+  String toJson() => _$EmojisetEnumMap[this]!;
 }
 
 /// As in [InitialSnapshot.realmUserGroups] or [UserGroupAddEvent].

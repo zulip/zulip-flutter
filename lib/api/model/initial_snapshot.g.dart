@@ -239,7 +239,7 @@ Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
     <String, dynamic>{
       'twenty_four_hour_time': instance.twentyFourHourTime,
       'display_emoji_reaction_users': instance.displayEmojiReactionUsers,
-      'emojiset': _$EmojisetEnumMap[instance.emojiset]!,
+      'emojiset': instance.emojiset,
       'presence_enabled': instance.presenceEnabled,
     };
 

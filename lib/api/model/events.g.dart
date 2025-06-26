@@ -59,7 +59,7 @@ Map<String, dynamic> _$UserSettingsUpdateEventToJson(
   'id': instance.id,
   'type': instance.type,
   'op': instance.op,
-  'property': _$UserSettingNameEnumMap[instance.property],
+  'property': instance.property,
   'value': instance.value,
 };
 
