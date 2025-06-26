@@ -318,7 +318,7 @@ class Toggle extends StatelessWidget {
     // Figma has this (grey/400) in both light and dark mode.
     final inactiveColor = Color(0xff9194a3);
 
-    // TODO(upstream):
+    // TODO(#1636):
     //   All of these just need _SwitchConfig to be exposed,
     //   and there's an upstream issue for that:
     //     https://github.com/flutter/flutter/issues/131478
@@ -350,8 +350,10 @@ class Toggle extends StatelessWidget {
         ~WidgetState.selected: inactiveColor,
       }),
       trackOutlineWidth: WidgetStateProperty<double>.fromMap({
-        WidgetState.selected: 2,
-        ~WidgetState.selected: 1,
+        // The outline is effectively painted with strokeAlignCenter:
+        //   https://api.flutter.dev/flutter/painting/BorderSide/strokeAlignCenter-constant.html
+        WidgetState.selected: 2 * 2,
+        ~WidgetState.selected: 1 * 2,
       }),
       overlayColor: WidgetStatePropertyAll(Colors.transparent),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
