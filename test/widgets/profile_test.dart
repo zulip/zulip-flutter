@@ -9,10 +9,12 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/basic.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/emoji.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
@@ -27,6 +29,7 @@ import '../stdlib_checks.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
 import 'message_list_checks.dart';
+import 'message_list_test.dart';
 import 'page_checks.dart';
 import 'profile_page_checks.dart';
 import 'test_app.dart';
@@ -38,6 +41,7 @@ Future<void> setupPage(WidgetTester tester, {
   required int pageUserId,
   List<User>? users,
   List<int>? mutedUserIds,
+  List<(int userId, UserStatusChange change)>? userStatuses,
   List<CustomProfileField>? customProfileFields,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   bool realmPresenceDisabled = false,
@@ -60,6 +64,7 @@ Future<void> setupPage(WidgetTester tester, {
   if (mutedUserIds != null) {
     await store.setMutedUsers(mutedUserIds);
   }
+  await store.changeUserStatuses(userStatuses ?? []);
 
   await tester.pumpWidget(TestZulipApp(
     accountId: eg.selfAccount.id,
@@ -95,12 +100,25 @@ void main() {
     final user = eg.user(userId: 1, fullName: 'test user',
       deliveryEmail: 'testuser@example.com');
 
-    await setupPage(tester, users: [user], pageUserId: user.userId);
+    await setupPage(tester, users: [user], pageUserId: user.userId,
+        userStatuses: [
+          (
+            user.userId,
+            UserStatusChange(
+              text: OptionSome('Busy'),
+              emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+                emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji)))
+          ),
+        ]);
 
-    check(because: 'find user avatar', find.byType(Avatar).evaluate()).length.equals(1);
-    check(because: 'find user name', find.text('test user').evaluate()).isNotEmpty();
-    check(because: 'find user delivery email', find.text('testuser@example.com').evaluate()).isNotEmpty();
-  });
+      check(because: 'find user avatar', find.byType(Avatar).evaluate()).length.equals(1);
+      check(because: 'find user name', find.text('test user').evaluate()).isNotEmpty();
+      check(because: 'find user delivery email', find.text('testuser@example.com').evaluate()).isNotEmpty();
+      final statusEmojiFinder = findStatusEmoji(UnicodeEmojiWidget);
+      checkUserStatusEmoji(statusEmojiFinder, isAnimated: true);
+      check(because: 'find user status emoji', statusEmojiFinder).findsOne();
+      check(because: 'find user status text', find.text('Busy')).findsOne();
+    });
 
   testWidgets('page builds; error page shows up if data is missing', (tester) async {
     await setupPage(tester, pageUserId: eg.selfUser.userId + 1989);
