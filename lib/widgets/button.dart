@@ -289,11 +289,18 @@ class MenuButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.icon,
+    this.toggle,
   });
 
   final String label;
   final VoidCallback onPressed;
   final IconData? icon;
+
+  /// A [Toggle] to go before [icon], or in its place if it's null.
+  ///
+  /// See Figma:
+  ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6070-60682&m=dev
+  final Widget? toggle;
 
   static double itemSpacing = 16;
 
@@ -319,26 +326,37 @@ class MenuButton extends StatelessWidget {
     assert(Theme.of(context).visualDensity == VisualDensity.standard);
 
     return MenuItemButton(
-      trailingIcon: icon != null
+      trailingIcon: (icon != null || toggle != null)
         ? Padding(
             // This Material widget gives us 12px padding before the icon --
             // or more or less, depending on Theme.of(context).visualDensity,
             // hence the `assert` above.
             padding: EdgeInsetsDirectional.only(start: itemSpacing - 12),
 
-            child: Icon(icon, color: designVariables.contextMenuItemText))
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              spacing: itemSpacing,
+              children: [
+                if (toggle != null) toggle!,
+                if (icon != null) Icon(icon!, color: designVariables.contextMenuItemText),
+              ]))
         : null,
       style: MenuItemButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        minimumSize: Size.fromHeight(48),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         foregroundColor: designVariables.contextMenuItemText,
         splashFactory: NoSplash.splashFactory,
       ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
           designVariables.contextMenuItemBg.withFadedAlpha(
             states.contains(WidgetState.pressed) ? 0.20 : 0.12))),
       onPressed: onPressed,
-      child: Text(label,
-        style: const TextStyle(fontSize: 20, height: 24 / 20)
-          .merge(weightVariableTextStyle(context, wght: 600))));
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Text(label,
+          style: const TextStyle(fontSize: 20, height: 24 / 20)
+            .merge(weightVariableTextStyle(context, wght: 600))),
+      ));
   }
 }
 
