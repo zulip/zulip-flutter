@@ -226,11 +226,18 @@ class MenuButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.icon,
+    this.beforeIcon,
   });
 
   final String label;
   final VoidCallback onPressed;
   final IconData? icon;
+
+  /// An element to go before [icon], or in its place if it's null.
+  ///
+  /// E.g. a switch:
+  ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6070-60682&m=dev
+  final Widget? beforeIcon;
 
   static double itemSpacing = 16;
 
@@ -256,14 +263,21 @@ class MenuButton extends StatelessWidget {
     assert(Theme.of(context).visualDensity == VisualDensity.standard);
 
     return MenuItemButton(
-      trailingIcon: icon != null
+      trailingIcon: (icon != null || beforeIcon != null)
         ? Padding(
             // This Material widget gives us 12px padding before the icon --
             // or more or less, depending on Theme.of(context).visualDensity,
             // hence the `assert` above.
             padding: EdgeInsetsDirectional.only(start: itemSpacing - 12),
 
-            child: Icon(icon, color: designVariables.contextMenuItemText))
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              spacing: itemSpacing,
+              children: [
+                if (beforeIcon != null) beforeIcon!,
+                if (icon != null) Icon(icon, color: designVariables.contextMenuItemText),
+              ]))
         : null,
       style: MenuItemButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
