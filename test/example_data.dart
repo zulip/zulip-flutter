@@ -1158,6 +1158,7 @@ InitialSnapshot initialSnapshot({
       twentyFourHourTime: false,
       displayEmojiReactionUsers: true,
       emojiset: Emojiset.google,
+      presenceEnabled: true,
     ),
     userTopics: userTopics,
     realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? RealmWildcardMentionPolicy.everyone,

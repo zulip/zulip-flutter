@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'color.dart';
+import 'icons.dart';
 import 'text.dart';
 import 'theme.dart';
 
@@ -193,5 +194,169 @@ class _AnimatedScaleOnTapState extends State<AnimatedScaleOnTap> {
         duration: widget.duration,
         curve: Curves.easeOut,
         child: widget.child));
+  }
+}
+
+/// The rounded-rectangle shape and 1-pixel spacing for a run of [MenuButton]s.
+class MenuButtonsShape extends StatelessWidget {
+  const MenuButtonsShape({
+    super.key,
+    required this.buttons,
+  });
+
+  final List<Widget> buttons;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(7),
+      child: Column(spacing: 1,
+        children: buttons));
+  }
+}
+
+/// The "menu button" component in Figma.
+///
+/// Must have a [MenuButtonsShape] ancestor.
+///
+/// See Figma:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6070-60681&m=dev
+class MenuButton extends StatelessWidget {
+  const MenuButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.icon,
+    this.beforeIcon,
+  });
+
+  final String label;
+  final VoidCallback onPressed;
+  final IconData? icon;
+
+  /// An element to go before [icon], or in its place if it's null.
+  ///
+  /// E.g. a [Toggle].
+  final Widget? beforeIcon;
+
+  static double itemSpacing = 16;
+
+  static bool _debugCheckShapeAncestor(BuildContext context) {
+    final ancestor = context.findAncestorWidgetOfExactType<MenuButtonsShape>();
+    assert(() {
+      if (ancestor != null) return true;
+      throw FlutterError.fromParts([
+        ErrorSummary('No MenuButtonsShape ancestor found.'),
+        ErrorDescription('MenuButton widgets require a MenuButtonsShape ancestor.'),
+      ]);
+    }());
+    return true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _debugCheckShapeAncestor(context);
+
+    final designVariables = DesignVariables.of(context);
+
+    // (see `trailingIcon`)
+    assert(Theme.of(context).visualDensity == VisualDensity.standard);
+
+    return MenuItemButton(
+      trailingIcon: (icon != null || beforeIcon != null)
+        ? Padding(
+            // This Material widget gives us 12px padding before the icon --
+            // or more or less, depending on Theme.of(context).visualDensity,
+            // hence the `assert` above.
+            padding: EdgeInsetsDirectional.only(start: itemSpacing - 12),
+
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              spacing: itemSpacing,
+              children: [
+                if (beforeIcon != null) beforeIcon!,
+                if (icon != null) Icon(icon, color: designVariables.contextMenuItemText),
+              ]))
+        : null,
+      style: MenuItemButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        foregroundColor: designVariables.contextMenuItemText,
+        splashFactory: NoSplash.splashFactory,
+      ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
+          designVariables.contextMenuItemBg.withFadedAlpha(
+            states.contains(WidgetState.pressed) ? 0.20 : 0.12))),
+      onPressed: onPressed,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Text(label,
+          style: const TextStyle(fontSize: 20, height: 24 / 20)
+            .merge(weightVariableTextStyle(context, wght: 600))),
+      ));
+  }
+}
+
+/// The "toggle" component in Figma.
+///
+/// See Figma:
+///    https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6070-60682&m=dev
+class Toggle extends StatelessWidget {
+  const Toggle({
+    super.key,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    // Figma has this (blue/500) in both light and dark mode.
+    final activeColor = Color(0xff4370f0);
+
+    // Figma has this (grey/400) in both light and dark mode.
+    final inactiveColor = Color(0xff9194a3);
+
+    // TODO(#1636):
+    //   All of these just need _SwitchConfig to be exposed,
+    //   and there's an upstream issue for that:
+    //     https://github.com/flutter/flutter/issues/131478
+    //
+    //   - active thumb radius should be 10px, not 12px
+    //     (_SwitchConfig.thumbRadiusWithIcon)
+    //   - inactive thumb radius should be 7px, not 8px
+    //     (_SwitchConfig.inactiveThumbRadius)
+    //   - track dimensions before trackOutlineWidth should be 24px by 44px,
+    //     not 32px by 52px (_SwitchConfig.trackHeight and trackWidth).
+
+    return Switch(
+      value: value,
+      onChanged: onChanged,
+      padding: EdgeInsets.zero,
+      splashRadius: 0,
+      thumbIcon: WidgetStateProperty<Icon?>.fromMap({
+        WidgetState.selected: Icon(ZulipIcons.check, size: 16, color: activeColor),
+        ~WidgetState.selected: null,
+      }),
+
+      // Figma has white for "on" and "off" in both light and dark mode.
+      thumbColor: WidgetStatePropertyAll(Colors.white),
+
+      activeTrackColor: activeColor,
+      inactiveTrackColor: inactiveColor,
+      trackOutlineColor: WidgetStateColor.fromMap({
+        WidgetState.selected: activeColor,
+        ~WidgetState.selected: inactiveColor,
+      }),
+      trackOutlineWidth: WidgetStateProperty<double>.fromMap({
+        // The outline is effectively painted with strokeAlignCenter:
+        //   https://api.flutter.dev/flutter/painting/BorderSide/strokeAlignCenter-constant.html
+        WidgetState.selected: 2 * 2,
+        ~WidgetState.selected: 1 * 2,
+      }),
+      overlayColor: WidgetStatePropertyAll(Colors.transparent),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
   }
 }

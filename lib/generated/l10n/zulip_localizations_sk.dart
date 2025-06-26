@@ -632,6 +632,17 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get yesterday => 'Včera';
 
   @override
+  String get invisibleMode => 'Invisible mode';
+
+  @override
+  String get turnOnInvisibleModeErrorTitle =>
+      'Error turning on invisible mode. Please try again.';
+
+  @override
+  String get turnOffInvisibleModeErrorTitle =>
+      'Error turning off invisible mode. Please try again.';
+
+  @override
   String get userRoleOwner => 'Majiteľ';
 
   @override
