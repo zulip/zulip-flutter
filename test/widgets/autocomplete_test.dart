@@ -7,14 +7,17 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/realm.dart';
+import 'package:zulip/basic.dart';
 import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
+import 'package:zulip/widgets/autocomplete.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/emoji.dart';
 import 'package:zulip/widgets/message_list.dart';
 
 import '../api/fake_api.dart';
@@ -24,6 +27,8 @@ import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../test_images.dart';
 import 'test_app.dart';
+
+late PerAccountStore store;
 
 /// Simulates loading a [MessageListPage] and tapping to focus the compose input.
 ///
@@ -44,7 +49,7 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
 
   addTearDown(testBinding.reset);
   await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-  final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+  store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
   await store.addUsers([eg.selfUser, eg.otherUser]);
   await store.addUsers(users);
   final connection = store.connection as FakeApiConnection;
@@ -200,6 +205,84 @@ void main() {
       checkUserShown(user3, expected: false);
 
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    group('User status', () {
+      void checkStatusEmoji(WidgetTester tester, {required bool isPresent}) {
+        final statusEmojiFinder = find.ancestor(
+          of: find.byType(UnicodeEmojiWidget),
+          matching: find.byType(UserStatusEmoji));
+        if (isPresent) {
+          check(statusEmojiFinder).findsOne();
+          check(tester.firstWidget<UserStatusEmoji>(statusEmojiFinder)
+            .neverAnimate).isTrue();
+
+          final itemFinder = find.ancestor(of: statusEmojiFinder,
+            matching: find.byType(MentionAutocompleteItem));
+          check(itemFinder).findsOne();
+        } else {
+          check(statusEmojiFinder).findsNothing();
+        }
+      }
+
+      testWidgets('status emoji & text are set -> emoji is displayed, text is not', (tester) async {
+        final user = eg.user(fullName: 'User');
+        final composeInputFinder = await setupToComposeInput(tester, users: [user]);
+        await store.changeUserStatuses({
+          user.userId: UserStatusChange(
+            text: OptionSome('Busy'),
+            emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+              emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))),
+        });
+        await tester.pump();
+
+        // // TODO(#226): Remove this extra edit when this bug is fixed.
+        await tester.enterText(composeInputFinder, 'hello @u');
+        await tester.enterText(composeInputFinder, 'hello @');
+        await tester.pumpAndSettle(); // async computation; options appear
+
+        checkStatusEmoji(tester, isPresent: true);
+        check(find.descendant(of: find.byType(MentionAutocompleteItem),
+          matching: find.text('Busy'))).findsNothing();
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('status emoji is not set, text is set -> none of them is displayed', (tester) async {
+        final user = eg.user(fullName: 'User');
+        final composeInputFinder = await setupToComposeInput(tester, users: [user]);
+        await store.changeUserStatuses({
+          user.userId: UserStatusChange(
+            text: OptionSome('Busy'),
+            emoji: OptionNone()),
+        });
+        await tester.pump();
+
+        // // TODO(#226): Remove this extra edit when this bug is fixed.
+        await tester.enterText(composeInputFinder, 'hello @u');
+        await tester.enterText(composeInputFinder, 'hello @');
+        await tester.pumpAndSettle(); // async computation; options appear
+
+        checkStatusEmoji(tester, isPresent: false);
+        check(find.descendant(of: find.byType(MentionAutocompleteItem),
+          matching: find.text('Busy'))).findsNothing();
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('status is not set -> emoji is not displayed', (tester) async {
+        final user = eg.user(fullName: 'User');
+        final composeInputFinder = await setupToComposeInput(tester, users: [user]);
+
+        // // TODO(#226): Remove this extra edit when this bug is fixed.
+        await tester.enterText(composeInputFinder, 'hello @u');
+        await tester.enterText(composeInputFinder, 'hello @');
+        await tester.pumpAndSettle(); // async computation; options appear
+
+        checkStatusEmoji(tester, isPresent: false);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
     });
 
     void checkWildcardShown(WildcardMentionOption wildcard, {required bool expected}) {
