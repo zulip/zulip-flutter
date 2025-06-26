@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/basic.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/button.dart';
@@ -99,6 +100,7 @@ void main() {
 
     check(because: 'find user avatar', find.byType(Avatar).evaluate()).length.equals(1);
     check(because: 'find user name', find.text('test user').evaluate()).isNotEmpty();
+    // Tests for user status are in their own test group.
     check(because: 'find user delivery email', find.text('testuser@example.com').evaluate()).isNotEmpty();
   });
 
@@ -375,6 +377,40 @@ void main() {
             urlPattern: 'https://example/%(username)s')});
 
       check(find.textContaining(longString).evaluate()).length.equals(7);
+    });
+  });
+
+  group('user status', () {
+    testWidgets('non-self profile, status set: status info appears', (tester) async {
+      await setupPage(tester, users: [eg.otherUser], pageUserId: eg.otherUser.userId);
+      await store.changeUserStatus(eg.otherUser.userId, UserStatusChange(
+        text: OptionSome('Busy'),
+        emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+          emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+      await tester.pump();
+
+      final statusEmojiFinder = find.ancestor(of: find.text('\u{1f6e0}'),
+        matching: find.byType(UserStatusEmoji));
+      check(statusEmojiFinder).findsOne();
+      check(tester.widget<UserStatusEmoji>(statusEmojiFinder)
+        .neverAnimate).isFalse();
+      check(find.text('Busy')).findsOne();
+    });
+
+    testWidgets('self-profile, status set: status info appears', (tester) async {
+      await setupPage(tester, users: [eg.selfUser], pageUserId: eg.selfUser.userId);
+      await store.changeUserStatus(eg.selfUser.userId, UserStatusChange(
+        text: OptionSome('Busy'),
+        emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+          emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+      await tester.pump();
+
+      final statusEmojiFinder = find.ancestor(of: find.text('\u{1f6e0}'),
+        matching: find.byType(UserStatusEmoji));
+      check(statusEmojiFinder).findsOne();
+      check(tester.widget<UserStatusEmoji>(statusEmojiFinder)
+        .neverAnimate).isFalse();
+      check(find.text('Busy')).findsOne();
     });
   });
 
