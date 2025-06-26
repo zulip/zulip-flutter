@@ -5,8 +5,10 @@ import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/basic.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/emoji.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
@@ -28,6 +30,7 @@ Future<void> setupPage(WidgetTester tester, {
   required List<DmMessage> dmMessages,
   required List<User> users,
   List<int>? mutedUserIds,
+  List<(int userId, UserStatusChange change)>? userStatuses,
   NavigatorObserver? navigatorObserver,
   String? newNameForSelfUser,
 }) async {
@@ -43,6 +46,8 @@ Future<void> setupPage(WidgetTester tester, {
   if (mutedUserIds != null) {
     await store.setMutedUsers(mutedUserIds);
   }
+
+  await store.changeUserStatuses(userStatuses ?? []);
 
   await store.addMessages(dmMessages);
 
@@ -176,7 +181,7 @@ void main() {
         // TODO(#232): syntax like `check(find(…), findsOneWidget)`
         final widget = tester.widget(find.descendant(
           of: find.byType(RecentDmConversationsItem),
-          matching: find.text(expectedText),
+          matching: find.textContaining(expectedText),
         ));
         if (expectedLines != null) {
           final renderObject = tester.renderObject<RenderParagraph>(find.byWidget(widget));
@@ -184,6 +189,16 @@ void main() {
             20.0 // line height
             * expectedLines);
         }
+      }
+
+      void checkStatusEmoji({required bool isPresent}) {
+        final statusEmojiFinder = find.ancestor(of: find.byType(UnicodeEmojiWidget),
+          matching: find.byType(UserStatusEmoji));
+        final itemFinder = find.descendant(
+          of: find.byType(RecentDmConversationsItem),
+          matching: statusEmojiFinder,
+        );
+        check(itemFinder).findsExactly(isPresent ? 1 : 0);
       }
 
       Future<void> markMessageAsRead(WidgetTester tester, Message message) async {
@@ -229,6 +244,28 @@ void main() {
           await setupPage(tester, users: [], dmMessages: [message],
             newNameForSelfUser: name);
           checkTitle(tester, name, 2);
+        });
+
+        testWidgets('status emoji is set -> emoji is displayed', (tester) async {
+          final message = eg.dmMessage(from: eg.selfUser, to: []);
+          await setupPage(tester, dmMessages: [message], users: [],
+            userStatuses: [
+              (
+                eg.selfUser.userId,
+                UserStatusChange(
+                  text: OptionSome('Busy'),
+                  emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+                    emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji)))
+              ),
+            ]);
+          checkStatusEmoji(isPresent: true);
+        });
+
+        testWidgets('status emoji is not set -> emoji is not displayed', (tester) async {
+          final message = eg.dmMessage(from: eg.selfUser, to: []);
+          await setupPage(tester, dmMessages: [message], users: [],
+            userStatuses: []);
+          checkStatusEmoji(isPresent: false);
         });
 
         testWidgets('unread counts', (tester) async {
@@ -289,6 +326,30 @@ void main() {
           final message = eg.dmMessage(from: eg.selfUser, to: [user]);
           await setupPage(tester, users: [user], dmMessages: [message]);
           checkTitle(tester, user.fullName, 2);
+        });
+
+        testWidgets('status emoji is set -> emoji is displayed', (tester) async {
+          final user = eg.user();
+          final message = eg.dmMessage(from: eg.selfUser, to: [user]);
+          await setupPage(tester, users: [user], dmMessages: [message],
+            userStatuses: [
+              (
+                user.userId,
+                UserStatusChange(
+                  text: OptionSome('Busy'),
+                  emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+                    emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji)))
+              ),
+            ]);
+          checkStatusEmoji(isPresent: true);
+        });
+
+        testWidgets('status emoji is not set -> emoji is not displayed', (tester) async {
+          final user = eg.user();
+          final message = eg.dmMessage(from: eg.selfUser, to: [user]);
+          await setupPage(tester, users: [user], dmMessages: [message],
+            userStatuses: []);
+          checkStatusEmoji(isPresent: false);
         });
 
         testWidgets('unread counts', (tester) async {
@@ -377,6 +438,29 @@ void main() {
           final message = eg.dmMessage(from: eg.selfUser, to: users);
           await setupPage(tester, users: users, dmMessages: [message]);
           checkTitle(tester, users.map((u) => u.fullName).join(', '), 2);
+        });
+
+        testWidgets('status emojis are set -> emoji are not displayed', (tester) async {
+          final users = usersList(3);
+          final message = eg.dmMessage(from: eg.selfUser, to: users);
+          await setupPage(tester, users: users, dmMessages: [message],
+            userStatuses: [
+              (
+                users.first.userId,
+                UserStatusChange(
+                  text: OptionSome('Busy'),
+                  emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+                    emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji)))
+              ),
+              (
+                users.last.userId,
+                UserStatusChange(
+                  text: OptionSome('In a meeting'),
+                  emoji: OptionSome(StatusEmoji(emojiName: 'calendar',
+                    emojiCode: '1f4c5', reactionType: ReactionType.unicodeEmoji)))
+              ),
+            ]);
+          checkStatusEmoji(isPresent: false);
         });
 
         testWidgets('unread counts', (tester) async {
