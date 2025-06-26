@@ -1342,6 +1342,33 @@ void main() {
         tester.widget(find.text('new stream name'));
       });
 
+      testWidgets('navigates to ChannelNarrow on tapping channel in CombinedFeedNarrow', (tester) async {
+        final pushedRoutes = <Route<void>>[];
+        final navObserver = TestNavigatorObserver()
+          ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+        final channel = eg.stream();
+        final subscription = eg.subscription(channel);
+        final message = eg.streamMessage(stream: channel, topic: 'topic name');
+        await setupMessageListPage(tester,
+          narrow: CombinedFeedNarrow(),
+          subscriptions: [subscription],
+          messages: [message],
+          navObservers: [navObserver]);
+
+        assert(pushedRoutes.length == 1);
+        pushedRoutes.clear();
+
+        connection.prepare(json: eg.newestGetMessagesResult(
+          foundOldest: true, messages: [message]).toJson());
+        await tester.tap(find.descendant(
+          of: find.byType(StreamMessageRecipientHeader),
+          matching: find.text(channel.name)));
+        await tester.pump();
+        check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+          .initNarrow.equals(ChannelNarrow(channel.streamId));
+        await tester.pumpAndSettle();
+      });
+
       testWidgets('navigates to TopicNarrow on tapping topic in ChannelNarrow', (tester) async {
         final pushedRoutes = <Route<void>>[];
         final navObserver = TestNavigatorObserver()
