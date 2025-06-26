@@ -225,6 +225,7 @@ class _KatexParser {
     // A copy of class definition (where possible) is accompanied in a comment
     // with each case statement to keep track of updates.
     final spanClasses = List<String>.unmodifiable(element.className.split(' '));
+    double? widthEm;
     String? fontFamily;
     double? fontSizeEm;
     KatexSpanFontWeight? fontWeight;
@@ -415,7 +416,11 @@ class _KatexParser {
             _ => throw _KatexHtmlParseError(),
           };
 
-        // TODO handle .nulldelimiter and .delimcenter .
+        case 'nulldelimiter':
+          // .nulldelimiter { display: inline-block; width: 0.12em; }
+          widthEm = 0.12;
+
+        // TODO .delimcenter .
 
         case 'op-symbol':
           // .op-symbol { ... }
@@ -458,6 +463,7 @@ class _KatexParser {
       }
     }
     final styles = KatexSpanStyles(
+      widthEm: widthEm,
       fontFamily: fontFamily,
       fontSizeEm: fontSizeEm,
       fontWeight: fontWeight,
@@ -575,6 +581,7 @@ enum KatexSpanTextAlign {
 
 @immutable
 class KatexSpanStyles {
+  final double? widthEm;
   final double? heightEm;
   final double? verticalAlignEm;
 
@@ -588,6 +595,7 @@ class KatexSpanStyles {
   final KatexSpanTextAlign? textAlign;
 
   const KatexSpanStyles({
+    this.widthEm,
     this.heightEm,
     this.verticalAlignEm,
     this.marginRightEm,
@@ -602,6 +610,7 @@ class KatexSpanStyles {
   @override
   int get hashCode => Object.hash(
     'KatexSpanStyles',
+    widthEm,
     heightEm,
     verticalAlignEm,
     marginRightEm,
@@ -616,6 +625,7 @@ class KatexSpanStyles {
   @override
   bool operator ==(Object other) {
     return other is KatexSpanStyles &&
+      other.widthEm == widthEm &&
       other.heightEm == heightEm &&
       other.verticalAlignEm == verticalAlignEm &&
       other.marginRightEm == marginRightEm &&
@@ -630,6 +640,7 @@ class KatexSpanStyles {
   @override
   String toString() {
     final args = <String>[];
+    if (widthEm != null) args.add('widthEm: $widthEm');
     if (heightEm != null) args.add('heightEm: $heightEm');
     if (verticalAlignEm != null) args.add('verticalAlignEm: $verticalAlignEm');
     if (marginRightEm != null) args.add('marginRightEm: $marginRightEm');
@@ -651,6 +662,7 @@ class KatexSpanStyles {
   /// had `inherit` set to true.
   KatexSpanStyles merge(KatexSpanStyles other) {
     return KatexSpanStyles(
+      widthEm: other.widthEm ?? widthEm,
       heightEm: other.heightEm ?? heightEm,
       verticalAlignEm: other.verticalAlignEm ?? verticalAlignEm,
       marginRightEm: other.marginRightEm ?? marginRightEm,

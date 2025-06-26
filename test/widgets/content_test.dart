@@ -602,6 +602,10 @@ void main() {
           (':', Offset(16.00, 2.24), Size(5.72, 25.00)),
           ('2', Offset(27.43, 2.24), Size(10.28, 25.00)),
         ]),
+        (ContentExample.mathBlockKatexNulldelimiter, skip: false, [
+          ('a', Offset(2.47, 3.36), Size(10.88, 25.00)),
+          ('b', Offset(15.81, 3.36), Size(8.82, 25.00)),
+        ]),
       ];
 
       for (final testCase in testCases) {

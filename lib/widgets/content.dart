@@ -976,6 +976,9 @@ class _KatexSpan extends StatelessWidget {
     }
 
     widget = SizedBox(
+      width: styles.widthEm != null
+        ? styles.widthEm! * em
+        : null,
       height: styles.heightEm != null
         ? styles.heightEm! * em
         : null,
