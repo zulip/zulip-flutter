@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'color.dart';
+import 'icons.dart';
 import 'text.dart';
 import 'theme.dart';
 
@@ -338,5 +339,72 @@ class MenuButton extends StatelessWidget {
       child: Text(label,
         style: const TextStyle(fontSize: 20, height: 24 / 20)
           .merge(weightVariableTextStyle(context, wght: 600))));
+  }
+}
+
+/// The "toggle" component in Figma.
+///
+/// See Figma:
+///    https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6070-60682&m=dev
+class Toggle extends StatelessWidget {
+  const Toggle({
+    super.key,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    // Figma has this (blue/500) in both light and dark mode.
+    // TODO(#831)
+    final activeColor = Color(0xff4370f0);
+
+    // Figma has this (grey/400) in both light and dark mode.
+    // TODO(#831)
+    final inactiveColor = Color(0xff9194a3);
+
+    // TODO(#1636):
+    //   All of these just need _SwitchConfig to be exposed,
+    //   and there's an upstream issue for that:
+    //     https://github.com/flutter/flutter/issues/131478
+    //
+    //   - active thumb radius should be 10px, not 12px
+    //     (_SwitchConfig.thumbRadiusWithIcon)
+    //   - inactive thumb radius should be 7px, not 8px
+    //     (_SwitchConfig.inactiveThumbRadius)
+    //   - track dimensions before trackOutlineWidth should be 24px by 44px,
+    //     not 32px by 52px (_SwitchConfig.trackHeight and trackWidth).
+
+    return Switch(
+      value: value,
+      onChanged: onChanged,
+      padding: EdgeInsets.zero,
+      splashRadius: 0,
+      thumbIcon: WidgetStateProperty<Icon?>.fromMap({
+        WidgetState.selected: Icon(ZulipIcons.check, size: 16, color: activeColor),
+        ~WidgetState.selected: null,
+      }),
+
+      // Figma has white for "on" and "off" in both light and dark mode.
+      thumbColor: WidgetStatePropertyAll(Colors.white),
+
+      activeTrackColor: activeColor,
+      inactiveTrackColor: inactiveColor,
+      trackOutlineColor: WidgetStateColor.fromMap({
+        WidgetState.selected: activeColor,
+        ~WidgetState.selected: inactiveColor,
+      }),
+      trackOutlineWidth: WidgetStateProperty<double>.fromMap({
+        // The outline is effectively painted with strokeAlignCenter:
+        //   https://api.flutter.dev/flutter/painting/BorderSide/strokeAlignCenter-constant.html
+        WidgetState.selected: 2 * 2,
+        ~WidgetState.selected: 1 * 2,
+      }),
+      overlayColor: WidgetStatePropertyAll(Colors.transparent),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
   }
 }
