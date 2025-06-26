@@ -280,15 +280,18 @@ class MenuButton extends StatelessWidget {
               ]))
         : null,
       style: MenuItemButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         foregroundColor: designVariables.contextMenuItemText,
         splashFactory: NoSplash.splashFactory,
       ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
           designVariables.contextMenuItemBg.withFadedAlpha(
             states.contains(WidgetState.pressed) ? 0.20 : 0.12))),
       onPressed: onPressed,
-      child: Text(label,
-        style: const TextStyle(fontSize: 20, height: 24 / 20)
-          .merge(weightVariableTextStyle(context, wght: 600))));
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Text(label,
+          style: const TextStyle(fontSize: 20, height: 24 / 20)
+            .merge(weightVariableTextStyle(context, wght: 600))),
+      ));
   }
 }
