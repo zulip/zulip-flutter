@@ -251,6 +251,7 @@ class UserSettings {
   bool twentyFourHourTime;
   bool? displayEmojiReactionUsers; // TODO(server-6)
   Emojiset emojiset;
+  bool presenceEnabled;
 
   // TODO more, as needed. When adding a setting here, please also:
   // (1) add it to the [UserSettingName] enum
@@ -261,6 +262,7 @@ class UserSettings {
     required this.twentyFourHourTime,
     required this.displayEmojiReactionUsers,
     required this.emojiset,
+    required this.presenceEnabled,
   });
 
   factory UserSettings.fromJson(Map<String, dynamic> json) =>

@@ -67,6 +67,7 @@ const _$UserSettingNameEnumMap = {
   UserSettingName.twentyFourHourTime: 'twenty_four_hour_time',
   UserSettingName.displayEmojiReactionUsers: 'display_emoji_reaction_users',
   UserSettingName.emojiset: 'emojiset',
+  UserSettingName.presenceEnabled: 'presence_enabled',
 };
 
 CustomProfileFieldsEvent _$CustomProfileFieldsEventFromJson(

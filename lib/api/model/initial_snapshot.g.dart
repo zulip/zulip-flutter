@@ -225,12 +225,14 @@ UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
   twentyFourHourTime: json['twenty_four_hour_time'] as bool,
   displayEmojiReactionUsers: json['display_emoji_reaction_users'] as bool?,
   emojiset: $enumDecode(_$EmojisetEnumMap, json['emojiset']),
+  presenceEnabled: json['presence_enabled'] as bool,
 );
 
 const _$UserSettingsFieldMap = <String, String>{
   'twentyFourHourTime': 'twenty_four_hour_time',
   'displayEmojiReactionUsers': 'display_emoji_reaction_users',
   'emojiset': 'emojiset',
+  'presenceEnabled': 'presence_enabled',
 };
 
 Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
@@ -238,6 +240,7 @@ Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
       'twenty_four_hour_time': instance.twentyFourHourTime,
       'display_emoji_reaction_users': instance.displayEmojiReactionUsers,
       'emojiset': _$EmojisetEnumMap[instance.emojiset]!,
+      'presence_enabled': instance.presenceEnabled,
     };
 
 const _$EmojisetEnumMap = {

@@ -178,6 +178,8 @@ class UserSettingsUpdateEvent extends Event {
         return value as bool;
       case UserSettingName.emojiset:
         return Emojiset.fromRawString(value as String);
+      case UserSettingName.presenceEnabled:
+        return value as bool;
       case null:
         return null;
     }
