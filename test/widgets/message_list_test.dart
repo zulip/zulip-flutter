@@ -1365,7 +1365,8 @@ void main() {
           matching: find.text(channel.name)));
         await tester.pump();
         check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
-          .initNarrow.equals(ChannelNarrow(channel.streamId));
+          ..initNarrow.equals(ChannelNarrow(channel.streamId))
+          ..initAnchorMessageId.isNotNull().equals(message.id);
         await tester.pumpAndSettle();
       });
 
@@ -1391,7 +1392,8 @@ void main() {
           matching: find.text('topic name')));
         await tester.pump();
         check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
-          .initNarrow.equals(TopicNarrow.ofMessage(message));
+          ..initNarrow.equals(TopicNarrow.ofMessage(message))
+          ..initAnchorMessageId.isNotNull().equals(message.id);
         await tester.pumpAndSettle();
       });
 
@@ -1500,7 +1502,8 @@ void main() {
       await tester.tap(find.byType(DmRecipientHeader));
       await tester.pump();
       check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
-        .initNarrow.equals(DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId));
+        ..initNarrow.equals(DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId))
+        ..initAnchorMessageId.isNotNull().equals(dmMessage.id);
       await tester.pumpAndSettle();
     });
 

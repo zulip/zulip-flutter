@@ -1437,7 +1437,8 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       streamWidget = GestureDetector(
         onTap: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
-            narrow: ChannelNarrow(streamId))),
+            narrow: ChannelNarrow(streamId),
+            initAnchorMessageId: message.id)),
         onLongPress: () => showChannelActionSheet(context, channelId: streamId),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -1495,7 +1496,8 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       onTap: narrow is TopicNarrow ? null
         : () => Navigator.push(context,
             MessageListPage.buildRoute(context: context,
-              narrow: TopicNarrow.ofMessage(message))),
+              narrow: TopicNarrow.ofMessage(message),
+              initAnchorMessageId: message.id)),
       onLongPress: () => showTopicActionSheet(context,
         channelId: streamId,
         topic: topic,
@@ -1552,7 +1554,8 @@ class DmRecipientHeader extends StatelessWidget {
       onTap: narrow is DmNarrow ? null
         : () => Navigator.push(context,
             MessageListPage.buildRoute(context: context,
-              narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
+              narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId),
+              initAnchorMessageId: message.id)),
       child: ColoredBox(
         color: messageListTheme.dmRecipientHeaderBg,
         child: Padding(
