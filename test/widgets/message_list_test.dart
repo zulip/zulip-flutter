@@ -14,6 +14,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/basic.dart';
 import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/message.dart';
@@ -1770,6 +1771,74 @@ void main() {
       checkUser(users[2], isBot: false);
 
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    group('User status', () {
+      void checkFindsStatusEmoji(WidgetTester tester, Finder emojiFinder) {
+        final statusEmojiFinder = find.ancestor(of: emojiFinder,
+          matching: find.byType(UserStatusEmoji));
+        check(statusEmojiFinder).findsOne();
+        check(tester.widget<UserStatusEmoji>(statusEmojiFinder)
+          .neverAnimate).isTrue();
+        check(find.ancestor(of: statusEmojiFinder,
+          matching: find.byType(SenderRow))).findsOne();
+      }
+
+      testWidgets('emoji (unicode) & text are set -> emoji is displayed, text is not', (tester) async {
+        final user = eg.user();
+        await setupMessageListPage(tester,
+          users: [user], messages: [eg.streamMessage(sender: user)]);
+        await store.changeUserStatus(user.userId, UserStatusChange(
+          text: OptionSome('Busy'),
+          emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+            emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+        await tester.pump();
+
+        checkFindsStatusEmoji(tester, find.text('\u{1f6e0}'));
+        check(find.textContaining('Busy')).findsNothing();
+      });
+
+      testWidgets('emoji (image) & text are set -> emoji is displayed, text is not', (tester) async {
+        prepareBoringImageHttpClient();
+
+        final user = eg.user();
+        await setupMessageListPage(tester,
+          users: [user], messages: [eg.streamMessage(sender: user)]);
+        await store.changeUserStatus(user.userId, UserStatusChange(
+          text: OptionSome('Coding'),
+          emoji: OptionSome(StatusEmoji(emojiName: 'zulip',
+            emojiCode: 'zulip', reactionType: ReactionType.zulipExtraEmoji))));
+        await tester.pump();
+
+        checkFindsStatusEmoji(tester, find.byType(Image));
+        check(find.textContaining('Coding')).findsNothing();
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('longer user name -> emoji stays visible', (tester) async {
+        final user = eg.user(fullName: 'User with a very very very long name to check if emoji is still visible');
+        await setupMessageListPage(tester,
+          users: [user], messages: [eg.streamMessage(sender: user)]);
+        await store.changeUserStatus(user.userId, UserStatusChange(
+          text: OptionNone(),
+          emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+            emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+        await tester.pump();
+
+        checkFindsStatusEmoji(tester, find.text('\u{1f6e0}'));
+      });
+
+      testWidgets('emoji is not set, text is set -> text is not displayed', (tester) async {
+        final user = eg.user();
+        await setupMessageListPage(tester,
+          users: [user], messages: [eg.streamMessage(sender: user)]);
+        await store.changeUserStatus(user.userId, UserStatusChange(
+          text: OptionSome('Busy'), emoji: OptionNone()));
+        await tester.pump();
+
+        check(find.textContaining('Busy')).findsNothing();
+      });
     });
 
     group('Muted sender', () {
