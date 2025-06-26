@@ -38,6 +38,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/content_test.dart';
 import '../model/test_store.dart';
 import '../stdlib_checks.dart';
 import '../test_clipboard.dart';
@@ -103,7 +104,11 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   // because its render box effectively has HitTestBehavior.deferToChild, and
   // the long-press might land where no child hit-tests as true,
   // like if it's in padding around a Paragraph.
-  await tester.longPress(find.byType(MessageContent), warnIfMissed: false);
+  await tester.longPress(
+    find.descendant(
+      of: find.byType(MessageList),
+      matching: find.byType(MessageContent)),
+    warnIfMissed: false);
   // sheet appears onscreen; default duration of bottom-sheet enter animation
   await tester.pump(const Duration(milliseconds: 250));
   // Check the action sheet did in fact open, so we don't defeat any tests that
@@ -850,6 +855,44 @@ void main() {
   });
 
   group('message action sheet', () {
+    group('header', () {
+      testWidgets('message sender and content shown', (tester) async {
+        final message = eg.streamMessage(content: ContentExample.userMentionPlain.html);
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: TopicNarrow.ofMessage(message));
+        check(find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byWidgetPredicate(
+            (widget) => widget is Avatar && widget.userId == message.senderId))
+        ).findsOne();
+        check(find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(UserMention))
+        ).findsOne();
+      });
+
+      testWidgets('poll is rendered', (tester) async {
+        final submessageContent = eg.pollWidgetData(
+          question: 'poll', options: ['First option', 'Second option']);
+        final message = eg.streamMessage(
+          sender: eg.selfUser,
+          submessages: [eg.submessage(content: submessageContent)]);
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: TopicNarrow.ofMessage(message));
+        check(find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byWidgetPredicate(
+            (widget) => widget is Avatar && widget.userId == message.senderId))
+        ).findsOne();
+        check(find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.text('First option'))
+        ).findsOne();
+      });
+    });
+
     group('ReactionButtons', () {
       testWidgets('absent if ServerEmojiData not loaded', (tester) async {
         final message = eg.streamMessage();
@@ -1592,7 +1635,11 @@ void main() {
             }
 
             // See comment in setupToMessageActionSheet about warnIfMissed: false
-            await tester.longPress(find.byType(MessageContent), warnIfMissed: false);
+            await tester.longPress(
+              find.descendant(
+                of: find.byType(MessageList),
+                matching: find.byType(MessageContent)),
+              warnIfMissed: false);
             // sheet appears onscreen; default duration of bottom-sheet enter animation
             await tester.pump(const Duration(milliseconds: 250));
             check(find.byType(BottomSheet)).findsOne();
