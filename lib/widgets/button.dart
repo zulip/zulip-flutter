@@ -257,3 +257,75 @@ class _AnimatedScaleOnTapState extends State<AnimatedScaleOnTap> {
         child: widget.child));
   }
 }
+
+/// The rounded-rectangle shape and 1-pixel spacing for a run of [MenuButton]s.
+class MenuButtonsShape extends StatelessWidget {
+  const MenuButtonsShape({
+    super.key,
+    required this.buttons,
+  });
+
+  final List<Widget> buttons;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(7),
+      child: Column(spacing: 1,
+        children: buttons));
+  }
+}
+
+/// The "menu button" component in Figma.
+///
+/// Must have a [MenuButtonsShape] ancestor.
+///
+/// See Figma:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6070-60681&m=dev
+class MenuButton extends StatelessWidget {
+  const MenuButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.icon,
+  });
+
+  final String label;
+  final VoidCallback onPressed;
+  final IconData? icon;
+
+  static bool _debugCheckShapeAncestor(BuildContext context) {
+    final ancestor = context.findAncestorWidgetOfExactType<MenuButtonsShape>();
+    assert(() {
+      if (ancestor != null) return true;
+      throw FlutterError.fromParts([
+        ErrorSummary('No MenuButtonsShape ancestor found.'),
+        ErrorDescription('MenuButton widgets require a MenuButtonsShape ancestor.'),
+      ]);
+    }());
+    return true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _debugCheckShapeAncestor(context);
+
+    final designVariables = DesignVariables.of(context);
+
+    return MenuItemButton(
+      trailingIcon: icon != null
+        ? Icon(icon, color: designVariables.contextMenuItemText)
+        : null,
+      style: MenuItemButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        foregroundColor: designVariables.contextMenuItemText,
+        splashFactory: NoSplash.splashFactory,
+      ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
+          designVariables.contextMenuItemBg.withFadedAlpha(
+            states.contains(WidgetState.pressed) ? 0.20 : 0.12))),
+      onPressed: onPressed,
+      child: Text(label,
+        style: const TextStyle(fontSize: 20, height: 24 / 20)
+          .merge(weightVariableTextStyle(context, wght: 600))));
+  }
+}
