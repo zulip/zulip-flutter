@@ -3,13 +3,17 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
+import '../api/route/settings.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../log.dart';
 import '../model/content.dart';
 import '../model/narrow.dart';
 import 'app_bar.dart';
+import 'button.dart';
 import 'content.dart';
 import 'message_list.dart';
 import 'page.dart';
+import 'remote_settings.dart';
 import 'store.dart';
 import 'text.dart';
 
@@ -83,6 +87,12 @@ class ProfilePage extends StatelessWidget {
       // TODO(#196) render active status
       // TODO(#292) render user local time
 
+      if (!store.realmPresenceDisabled && userId == store.selfUserId) ...[
+        const SizedBox(height: 16),
+        _InvisibleModeToggle(),
+        const SizedBox(height: 16),
+      ],
+
       _ProfileDataTable(profileData: user.profileData),
       const SizedBox(height: 16),
       FilledButton.icon(
@@ -106,6 +116,34 @@ class ProfilePage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: items))))));
+  }
+}
+
+class _InvisibleModeToggle extends StatelessWidget {
+  const _InvisibleModeToggle();
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
+
+    return MenuButtonsShape(buttons: [
+      // `value: true` means invisible mode is on,
+      // i.e., that presenceEnabled is false.
+      RemoteSettingBuilder<bool>(
+        findValueInStore: (store) => !store.userSettings.presenceEnabled,
+        sendValueToServer: (value) => updateSettings(store.connection,
+          newSettings: {UserSettingName.presenceEnabled: !value}),
+        // TODO(#741) interpret API errors for user
+        onError: (e, requestedValue) => reportErrorToUserBriefly(
+          requestedValue
+            ? zulipLocalizations.turnOnInvisibleModeErrorTitle
+            : zulipLocalizations.turnOffInvisibleModeErrorTitle),
+        builder: (value, handleRequestNewValue) => MenuButton(
+          label: zulipLocalizations.invisibleMode,
+          onPressed: () => handleRequestNewValue(!value),
+          toggle: Toggle(value: value, onChanged: handleRequestNewValue))),
+    ]);
   }
 }
 

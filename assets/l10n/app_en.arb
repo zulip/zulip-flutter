@@ -773,6 +773,18 @@
   "@yesterday": {
     "description": "Term to use to reference the previous day."
   },
+  "invisibleMode": "Invisible mode",
+  "@invisibleMode": {
+    "description": "Label for the 'Invisible mode' switch on the profile page."
+  },
+  "turnOnInvisibleModeErrorTitle": "Error turning on invisible mode. Please try again.",
+  "@turnOnInvisibleModeErrorTitle": {
+    "description": "Error title when turning on invisible mode failed."
+  },
+  "turnOffInvisibleModeErrorTitle": "Error turning off invisible mode. Please try again.",
+  "@turnOffInvisibleModeErrorTitle": {
+    "description": "Error title when turning off invisible mode failed."
+  },
   "userRoleOwner": "Owner",
   "@userRoleOwner": {
     "description": "Label for UserRole.owner"

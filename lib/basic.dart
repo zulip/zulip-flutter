@@ -19,6 +19,12 @@ sealed class Option<T> {
 
   /// The value contained in this option, if any; else the given value.
   T or(T optb);
+
+  /// The value contained in this option, if any;
+  /// else the value returned by [fn].
+  ///
+  /// [fn] is called only if its return value is needed.
+  T orElse(T Function() fn);
 }
 
 class OptionNone<T> extends Option<T> {
@@ -26,6 +32,9 @@ class OptionNone<T> extends Option<T> {
 
   @override
   T or(T optb) => optb;
+
+  @override
+  T orElse(T Function() fn) => fn();
 
   @override
   bool operator ==(Object other) => other is OptionNone;
@@ -44,6 +53,9 @@ class OptionSome<T> extends Option<T> {
 
   @override
   T or(T optb) => value;
+
+  @override
+  T orElse(T Function() fn) => value;
 
   @override
   bool operator ==(Object other) => other is OptionSome && value == other.value;

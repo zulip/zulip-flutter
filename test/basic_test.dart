@@ -32,5 +32,17 @@ void main() {
       check(OptionSome<int?>(null).or(4)).equals(null);
       check(OptionNone<int?>().or(4)).equals(4);
     });
+
+    test('orElse', () {
+      check(OptionSome<int>(3).orElse(() => 4)).equals(3);
+      check(OptionSome<int?>(3).orElse(() => 4)).equals(3);
+      check(OptionSome<int?>(null).orElse(() => 4)).equals(null);
+      check(OptionNone<int?>().orElse(() => 4)).equals(4);
+
+      final myError = Error();
+      check(OptionSome<int>(3).orElse(() => throw myError)).equals(3);
+      check(() => OptionNone<int>().orElse(() => throw myError))
+        .throws<Error>().identicalTo(myError);
+    });
   });
 }

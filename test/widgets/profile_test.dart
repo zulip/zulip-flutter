@@ -1,21 +1,29 @@
+import 'dart:io';
+
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
+import 'package:zulip/widgets/remote_settings.dart';
 import 'package:zulip/widgets/profile.dart';
 
+import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../model/test_store.dart';
+import '../stdlib_checks.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
 import 'message_list_checks.dart';
@@ -24,6 +32,7 @@ import 'profile_page_checks.dart';
 import 'test_app.dart';
 
 late PerAccountStore store;
+late FakeApiConnection connection;
 
 Future<void> setupPage(WidgetTester tester, {
   required int pageUserId,
@@ -31,15 +40,18 @@ Future<void> setupPage(WidgetTester tester, {
   List<int>? mutedUserIds,
   List<CustomProfileField>? customProfileFields,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
+  bool realmPresenceDisabled = false,
   NavigatorObserver? navigatorObserver,
 }) async {
   addTearDown(testBinding.reset);
 
   final initialSnapshot = eg.initialSnapshot(
     customProfileFields: customProfileFields,
-    realmDefaultExternalAccounts: realmDefaultExternalAccounts);
+    realmDefaultExternalAccounts: realmDefaultExternalAccounts,
+    realmPresenceDisabled: realmPresenceDisabled);
   await testBinding.globalStore.add(eg.selfAccount, initialSnapshot);
   store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+  connection = store.connection as FakeApiConnection;
 
   await store.addUser(eg.selfUser);
   if (users != null) {
@@ -365,4 +377,285 @@ void main() {
       check(find.textContaining(longString).evaluate()).length.equals(7);
     });
   });
+
+  group('invisible mode', () {
+    final findRow = find.widgetWithText(MenuButton, 'Invisible mode');
+    final findToggle = find.descendant(of: findRow, matching: find.byType(Toggle));
+
+    void checkDoesNotAppear(WidgetTester tester) {
+      check(findRow).findsNothing();
+      check(findToggle).findsNothing();
+    }
+
+    void checkAppears(WidgetTester tester) {
+      check(findRow).findsOne();
+      check(findToggle).findsOne();
+    }
+
+    bool getValue(WidgetTester tester) => tester.widget<Toggle>(findToggle).value;
+
+    void checkAppearsActive(WidgetTester tester, bool expected) {
+      check(getValue(tester)).equals(expected);
+
+      check(tester.semantics.find(findRow)).matchesSemantics(
+        label: 'Invisible mode',
+        isFocusable: true,
+        hasEnabledState: true,
+        isEnabled: true,
+        hasTapAction: true,
+        hasFocusAction: true,
+        hasToggledState: true,
+        isToggled: expected);
+    }
+
+    void prepareRequestSuccess([Duration delay = Duration.zero]) {
+      connection.prepare(json: {}, delay: delay);
+    }
+
+    void prepareRequestError([Duration delay = Duration.zero]) {
+      connection.prepare(httpException: SocketException('failed'), delay: delay);
+    }
+
+    void scheduleEventAfter(Duration duration, bool newInvisibleModeValue) async {
+      await Future<void>.delayed(duration);
+      await store.handleEvent(UserSettingsUpdateEvent(id: 1,
+        property: UserSettingName.presenceEnabled, value: !newInvisibleModeValue));
+    }
+
+    void checkRequest(bool requestedInvisibleModeValue) {
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('PATCH')
+        ..url.path.equals('/api/v1/settings')
+        ..bodyFields.deepEquals({
+          'presence_enabled': requestedInvisibleModeValue ? 'false' : 'true',
+        });
+    }
+
+    final toggleInteractionModeVariant = ValueVariant<_InvisibleModeToggleInteractionMode>(
+      _InvisibleModeToggleInteractionMode.values.toSet());
+
+    Future<void> doToggle(WidgetTester tester, _InvisibleModeToggleInteractionMode mode) async {
+      switch (mode) {
+        case _InvisibleModeToggleInteractionMode.tapRow:
+          await tester.tap(findRow);
+        case _InvisibleModeToggleInteractionMode.tapToggle:
+          await tester.tap(findToggle);
+        case _InvisibleModeToggleInteractionMode.dragToggleThumb:
+          final textDirection = Directionality.of(tester.element(findToggle));
+          final dragDx = switch ((getValue(tester), textDirection)) {
+            (true,  TextDirection.ltr) => -40.0,
+            (false, TextDirection.ltr) =>  40.0,
+            (true,  TextDirection.rtl) =>  40.0,
+            (false, TextDirection.rtl) => -40.0,
+          };
+          await tester.drag(findToggle, Offset(dragDx, 0.0));
+      }
+    }
+
+    testWidgets('self-profile: appears', (tester) async {
+      await setupPage(tester, pageUserId: eg.selfUser.userId);
+      checkAppears(tester);
+    });
+
+    testWidgets('self-profile, but presence disabled in realm: does not appear', (tester) async {
+      await setupPage(tester, pageUserId: eg.selfUser.userId, realmPresenceDisabled: true);
+      checkDoesNotAppear(tester);
+    });
+
+    testWidgets('non-self profile: does not appear', (tester) async {
+      await setupPage(tester, pageUserId: eg.otherUser.userId, users: [eg.otherUser]);
+      checkDoesNotAppear(tester);
+    });
+
+    testWidgets('without recent interaction, event causes immediate update, which sticks', (tester) async {
+      await setupPage(tester, pageUserId: eg.selfUser.userId);
+      check(store.userSettings.presenceEnabled).isTrue();
+      checkAppearsActive(tester, false);
+
+      await store.handleEvent(UserSettingsUpdateEvent(id: 1,
+        property: UserSettingName.presenceEnabled, value: false));
+      await tester.pump();
+      checkAppearsActive(tester, true);
+
+      await tester.pump(RemoteSettingBuilder.localEchoIdleTimeout * 2);
+      checkAppearsActive(tester, true);
+    });
+
+    testWidgets('smoke, turn on', (tester) async {
+      final toggleInteractionMode = toggleInteractionModeVariant.currentValue!;
+
+      await setupPage(tester, pageUserId: eg.selfUser.userId);
+      check(store.userSettings.presenceEnabled).isTrue();
+      checkAppearsActive(tester, false);
+
+      // The appearance changes and the request is sent, immediately.
+      prepareRequestSuccess(Duration(milliseconds: 100));
+      scheduleEventAfter(Duration(milliseconds: 150), true);
+      await doToggle(tester, toggleInteractionMode);
+      await tester.pump();
+      await tester.pump();
+      checkAppearsActive(tester, true);
+      checkRequest(true);
+
+      // Wait a while, idly: no change, no extra requests
+      await tester.pump(RemoteSettingBuilder.localEchoIdleTimeout * 2);
+      check(connection.takeRequests()).isEmpty();
+      checkAppearsActive(tester, true);
+    }, variant: toggleInteractionModeVariant);
+
+    testWidgets('smoke, turn off', (tester) async {
+      final toggleInteractionMode = toggleInteractionModeVariant.currentValue!;
+
+      await setupPage(tester, pageUserId: eg.selfUser.userId);
+      await store.handleEvent(UserSettingsUpdateEvent(id: 1,
+        property: UserSettingName.presenceEnabled, value: false));
+      await tester.pump();
+      checkAppearsActive(tester, true);
+
+      // The appearance changes and the request is sent, immediately.
+      prepareRequestSuccess(Duration(milliseconds: 100));
+      scheduleEventAfter(Duration(milliseconds: 150), false);
+      await doToggle(tester, toggleInteractionMode);
+      await tester.pump();
+      await tester.pump();
+      checkAppearsActive(tester, false);
+      checkRequest(false);
+
+      // Wait a while, idly: no change, no extra requests
+      await tester.pump(RemoteSettingBuilder.localEchoIdleTimeout * 2);
+      check(connection.takeRequests()).isEmpty();
+      checkAppearsActive(tester, false);
+    }, variant: toggleInteractionModeVariant);
+
+    testWidgets('event arrives after local-echo timeout', (tester) async {
+      final toggleInteractionMode = toggleInteractionModeVariant.currentValue!;
+
+      await setupPage(tester, pageUserId: eg.selfUser.userId);
+      check(store.userSettings.presenceEnabled).isTrue();
+      checkAppearsActive(tester, false);
+
+      // The appearance changes and the request is sent, immediately.
+      prepareRequestSuccess(Duration(milliseconds: 100));
+      scheduleEventAfter(Duration(seconds: 10), true);
+      await doToggle(tester, toggleInteractionMode);
+      await tester.pump();
+      await tester.pump();
+      checkAppearsActive(tester, true);
+      checkRequest(true);
+
+      // Local-echo timeout passes and event hasn't come; change back.
+      await tester.pump(RemoteSettingBuilder.localEchoIdleTimeout);
+      await tester.pump();
+      checkAppearsActive(tester, false);
+
+      // The event comes after a while; update for the new value.
+      await tester.pump(Duration(seconds: 10));
+      check(connection.takeRequests()).isEmpty();
+      checkAppearsActive(tester, true);
+    }, variant: toggleInteractionModeVariant);
+
+    testWidgets('request has an error', (tester) async {
+      final toggleInteractionMode = toggleInteractionModeVariant.currentValue!;
+
+      await setupPage(tester, pageUserId: eg.selfUser.userId);
+      check(store.userSettings.presenceEnabled).isTrue();
+      checkAppearsActive(tester, false);
+
+      // The appearance changes and the request is sent, immediately.
+      final requestDuration = Duration(milliseconds: 100);
+      prepareRequestError(requestDuration);
+      await doToggle(tester, toggleInteractionMode);
+      await tester.pump();
+      await tester.pump();
+      checkAppearsActive(tester, true);
+      checkRequest(true);
+
+      // The appearance doesn't change as soon as the request errors,
+      // if it errored quickly…
+      await tester.pump(requestDuration);
+      checkAppearsActive(tester, true);
+
+      // Try waiting a bit longer; it still hasn't changed…
+      //   (https://github.com/zulip/zulip-flutter/pull/1631#discussion_r2191301085 )
+      final epsilon = Duration(milliseconds: 50);
+      await tester.pump(epsilon);
+      checkAppearsActive(tester, true);
+
+      // …it changes when [RemoteSettingBuilder.localEchoMinimum]
+      // has passed since the interaction.
+      await tester.pump(
+        RemoteSettingBuilder.localEchoMinimum - requestDuration - epsilon);
+      await tester.pump();
+      checkAppearsActive(tester, false);
+
+      // Wait a while, idly: no change, no extra requests
+      await tester.pump(RemoteSettingBuilder.localEchoIdleTimeout * 2);
+      check(connection.takeRequests()).isEmpty();
+      checkAppearsActive(tester, false);
+    }, variant: toggleInteractionModeVariant);
+
+    testWidgets('spam-tapping', (tester) async {
+      final toggleInteractionMode = toggleInteractionModeVariant.currentValue!;
+
+      await setupPage(tester, pageUserId: eg.selfUser.userId);
+      check(store.userSettings.presenceEnabled).isTrue();
+      checkAppearsActive(tester, false);
+
+      Future<void> doSpamTap({required bool expectedCurrentValue}) async {
+        checkAppearsActive(tester, expectedCurrentValue);
+        final newValue = !expectedCurrentValue;
+        // The appearance changes and the request is sent, immediately.
+        prepareRequestSuccess(Duration(milliseconds: 100));
+        scheduleEventAfter(Duration(milliseconds: 150), newValue);
+        await doToggle(tester, toggleInteractionMode);
+        await tester.pump();
+        await tester.pump();
+        checkAppearsActive(tester, newValue);
+        checkRequest(newValue);
+      }
+
+      // Events will be coming in, but those don't control the switch;
+      // only the user interaction does, until there have been no interactions
+      // for [RemoteSettingBuilder.localEchoMinimum].
+      await doSpamTap(expectedCurrentValue: false);
+      await tester.pump(Duration(milliseconds: 90));
+      await doSpamTap(expectedCurrentValue: true);
+      await tester.pump(Duration(milliseconds: 30));
+      await doSpamTap(expectedCurrentValue: false);
+      await tester.pump(Duration(milliseconds: 60));
+      await doSpamTap(expectedCurrentValue: true);
+      await tester.pump(Duration(milliseconds: 120));
+      await doSpamTap(expectedCurrentValue: false);
+      await tester.pump(Duration(milliseconds: 120));
+      await doSpamTap(expectedCurrentValue: true);
+      await tester.pump(Duration(milliseconds: 120));
+      await doSpamTap(expectedCurrentValue: false);
+      await tester.pump(Duration(milliseconds: 300));
+      await doSpamTap(expectedCurrentValue: true);
+      await tester.pump(Duration(milliseconds: 45));
+      await doSpamTap(expectedCurrentValue: false);
+      await tester.pump(Duration(milliseconds: 600));
+      await doSpamTap(expectedCurrentValue: true);
+      await tester.pump(Duration(milliseconds: 5));
+      await doSpamTap(expectedCurrentValue: false);
+      check(getValue(tester)).equals(true);
+
+      await tester.pump(RemoteSettingBuilder.localEchoMinimum - Duration(milliseconds: 1));
+      check(getValue(tester)).equals(true);
+      await tester.pump(Duration(milliseconds: 2));
+      check(getValue(tester)).equals(true);
+
+      // Wait a while, idly: no change, no extra requests
+      await tester.pump(RemoteSettingBuilder.localEchoIdleTimeout * 2);
+      check(connection.takeRequests()).isEmpty();
+      checkAppearsActive(tester, true);
+    }, variant: toggleInteractionModeVariant);
+  });
+}
+
+enum _InvisibleModeToggleInteractionMode {
+  tapRow,
+  tapToggle,
+  dragToggleThumb,
+  // TODO(a11y) is there something separate to test?
 }

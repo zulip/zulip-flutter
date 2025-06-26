@@ -647,6 +647,17 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get yesterday => 'Wczoraj';
 
   @override
+  String get invisibleMode => 'Invisible mode';
+
+  @override
+  String get turnOnInvisibleModeErrorTitle =>
+      'Error turning on invisible mode. Please try again.';
+
+  @override
+  String get turnOffInvisibleModeErrorTitle =>
+      'Error turning off invisible mode. Please try again.';
+
+  @override
   String get userRoleOwner => 'Właściciel';
 
   @override
