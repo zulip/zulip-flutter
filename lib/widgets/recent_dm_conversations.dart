@@ -146,7 +146,19 @@ class RecentDmConversationsItem extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: title),
+                    if (narrow.otherRecipientIds.length <= 1)
+                      if (narrow.otherRecipientIds case [var otherUserId])
+                        UserStatusEmoji.asWidgetSpan(userId: otherUserId,
+                          size: 17, notoColorEmojiTextSize: 14.1)
+                      else
+                        UserStatusEmoji.asWidgetSpan(userId: store.selfUserId,
+                          size: 17, notoColorEmojiTextSize: 14.1),
+                  ]
+                ),
                 style: TextStyle(
                   fontSize: 17,
                   height: (20 / 17),
@@ -154,8 +166,7 @@ class RecentDmConversationsItem extends StatelessWidget {
                   color: designVariables.labelMenuButton,
                 ),
                 maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                title))),
+                overflow: TextOverflow.ellipsis))),
             const SizedBox(width: 12),
             unreadCount > 0
               ? Padding(padding: const EdgeInsetsDirectional.only(end: 16),
