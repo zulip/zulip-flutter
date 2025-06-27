@@ -161,6 +161,8 @@ class _KatexParser {
   final unsupportedCssClasses = <String>[];
   final unsupportedInlineCssProperties = <String>[];
 
+  final List<String> _ancestorClasses = [];
+
   List<KatexNode> parseKatexHtml(dom.Element element) {
     assert(element.localName == 'span');
     assert(element.className == 'katex-html');
@@ -177,7 +179,9 @@ class _KatexParser {
             : 'unsupported html node');
       }
 
+      _ancestorClasses.add(node.className);
       final span = _parseSpan(node);
+      assert(_ancestorClasses.removeLast() == node.className);
 
       if (span is KatexSpanNode) {
         final marginRightEm = span.styles.marginRightEm;
