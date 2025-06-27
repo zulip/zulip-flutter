@@ -372,9 +372,219 @@ void main() {
     Finder findTextInPlaceholder(String text) =>
       find.descendant(of: findPlaceholder, matching: find.textContaining(text));
 
+    Future<void> checkLink(WidgetTester tester, {
+        required String linkText, required Uri expectedUrl}) async {
+      await tester.tapOnText(find.textRange.ofSubstring(linkText));
+      final (url: url, mode: _) = testBinding.takeLaunchUrlCalls().single;
+      check(url).equals(expectedUrl);
+    }
+
     testWidgets('Combined feed', (tester) async {
       await setupMessageListPage(tester, narrow: CombinedFeedNarrow(), messages: []);
-      check(findTextInPlaceholder('There are no messages here.')).findsOne();
+      check(findPlaceholder).findsOne();
+      check(findTextInPlaceholder('combined feed')).findsOne();
+    });
+
+    testWidgets('Subscribed channel', (tester) async {
+      final channel = eg.stream();
+      await setupMessageListPage(tester,
+        narrow: ChannelNarrow(channel.streamId), messages: [], streams: [channel],
+        skipPumpAndSettle: true);
+
+      // The topic input is autofocused, triggering topic autocomplete.
+      connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+      await tester.pumpAndSettle();
+
+      check(findPlaceholder).findsOne();
+      check(findTextInPlaceholder('no messages')).findsOne();
+    });
+
+    testWidgets('Channel without content access', (tester) async {
+      final channel = eg.stream(inviteOnly: true);
+      await setupMessageListPage(tester,
+        narrow: ChannelNarrow(channel.streamId), messages: [], streams: [channel],
+        skipPumpAndSettle: true);
+
+      // The topic input is autofocused, triggering topic autocomplete.
+      connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+      await tester.pumpAndSettle();
+
+      check(store.selfHasContentAccess(channel)).isFalse();
+      check(findPlaceholder).findsOne();
+      check(findTextInPlaceholder('content access')).findsOne();
+      await checkLink(tester,
+        linkText: 'content access',
+        expectedUrl: store.tryResolveUrl('/help/channel-permissions')!);
+    });
+
+    testWidgets('Unknown channel', (tester) async {
+      final channel = eg.stream();
+      await setupMessageListPage(tester,
+        narrow: ChannelNarrow(channel.streamId), messages: [], streams: []);
+      check(findPlaceholder).findsOne();
+      check(findTextInPlaceholder('This channel doesn’t exist, or you are not allowed to view it.')).findsOne();
+    });
+
+    testWidgets('Topic in unknown channel', (tester) async {
+      final channel = eg.stream();
+      await setupMessageListPage(tester,
+        narrow: TopicNarrow(channel.streamId, eg.t('topic')), messages: [], streams: []);
+      check(findPlaceholder).findsOne();
+      check(findTextInPlaceholder('This channel doesn’t exist, or you are not allowed to view it.')).findsOne();
+    });
+
+    testWidgets('Topic in subscribed channel', (tester) async {
+      final channel = eg.stream();
+      await setupMessageListPage(tester,
+        narrow: TopicNarrow(channel.streamId, eg.t('topic')), messages: [], streams: [channel]);
+      check(findPlaceholder).findsOne();
+      check(findTextInPlaceholder('no messages')).findsOne();
+    });
+
+    testWidgets('Topic in channel without content access', (tester) async {
+      final channel = eg.stream(inviteOnly: true);
+      await setupMessageListPage(tester,
+        narrow: TopicNarrow(channel.streamId, eg.t('topic')), messages: [], streams: [channel],
+        skipPumpAndSettle: true);
+
+      // The topic input is autofocused, triggering topic autocomplete.
+      connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+      await tester.pumpAndSettle();
+
+      check(store.selfHasContentAccess(channel)).isFalse();
+      check(findPlaceholder).findsOne();
+      check(findTextInPlaceholder('content access')).findsOne();
+      await checkLink(tester,
+        linkText: 'content access',
+        expectedUrl: store.tryResolveUrl('/help/channel-permissions')!);
+    });
+
+    testWidgets('Self-DM', (tester) async {
+      final selfUserId = eg.selfUser.userId;
+      await setupMessageListPage(tester,
+        narrow: DmNarrow.withUser(selfUserId, selfUserId: selfUserId), messages: [], users: [eg.selfUser]);
+      check(findPlaceholder).findsOne();
+      check(findTextInPlaceholder('yourself')).findsOne();
+      check(findTextInPlaceholder('Use this space')).findsOne();
+    });
+
+    testWidgets('1:1 DM', (tester) async {
+      final selfUserId = eg.selfUser.userId;
+      final user = eg.user();
+      await setupMessageListPage(tester,
+        narrow: DmNarrow.withUser(user.userId, selfUserId: selfUserId), messages: [], users: [eg.selfUser, user]);
+      check(findPlaceholder).findsOne();
+      check(findTextInPlaceholder(user.fullName)).findsOne();
+      check(findTextInPlaceholder('yet.')).findsOne();
+      check(findTextInPlaceholder('Why not start the conversation?')).findsOne();
+    });
+
+    testWidgets('1:1 DM, muted user', (tester) async {
+      final selfUserId = eg.selfUser.userId;
+      final user = eg.user();
+      await setupMessageListPage(tester,
+        narrow: DmNarrow.withUser(user.userId, selfUserId: selfUserId), messages: [], users: [eg.selfUser, user]);
+      await store.handleEvent(MutedUsersEvent(id: 1, mutedUsers: [MutedUserItem(id: user.userId)]));
+      await tester.pump();
+      check(store.isUserMuted(user.userId)).isTrue();
+      check(findPlaceholder).findsOne();
+
+      // Probably want to show their name, not "Muted user";
+      // this UI context is very much focused on the one user.
+      check(findTextInPlaceholder(user.fullName)).findsOne();
+      check(findTextInPlaceholder('Muted user')).findsNothing();
+
+      // No need to encourage starting a conversation though.
+      check(findTextInPlaceholder('Why not start the conversation?')).findsNothing();
+    });
+
+    testWidgets('1:1 DM, unknown user', (tester) async {
+      final selfUserId = eg.selfUser.userId;
+      await setupMessageListPage(tester,
+        narrow: DmNarrow.withUser(eg.user().userId, selfUserId: selfUserId), messages: [], users: [eg.selfUser]);
+      check(findPlaceholder).findsOne();
+      check(findTextInPlaceholder('this user')).findsOne();
+      check(findTextInPlaceholder('(unknown user)')).findsNothing();
+
+      // No need to encourage starting a conversation...right?
+      check(findTextInPlaceholder('yet.')).findsNothing();
+      check(findTextInPlaceholder('Why not start the conversation?')).findsNothing();
+    });
+
+    testWidgets('1:1 DM, deactivated user', (tester) async {
+      final selfUserId = eg.selfUser.userId;
+      final user = eg.user(isActive: false);
+      await setupMessageListPage(tester,
+        narrow: DmNarrow.withUser(user.userId, selfUserId: selfUserId), messages: [], users: [eg.selfUser, user]);
+      check(findPlaceholder).findsOne();
+      check(findTextInPlaceholder(user.fullName)).findsOne();
+
+      // Sending messages isn't allowed; don't suggest that
+      check(findTextInPlaceholder('yet.')).findsNothing();
+      check(findTextInPlaceholder('Why not start the conversation?')).findsNothing();
+    });
+
+    testWidgets('1:1 DM, muted and deactivated user', (tester) async {
+      final selfUserId = eg.selfUser.userId;
+      final user = eg.user(isActive: false);
+      await setupMessageListPage(tester,
+        narrow: DmNarrow.withUser(user.userId, selfUserId: selfUserId), messages: [], users: [eg.selfUser, user]);
+      await store.handleEvent(MutedUsersEvent(id: 1, mutedUsers: [MutedUserItem(id: user.userId)]));
+      await tester.pump();
+      check(store.isUserMuted(user.userId)).isTrue();
+      check(findPlaceholder).findsOne();
+
+      // Probably want to show their name, not "Muted user";
+      // this UI context is very much focused on the one user.
+      check(findTextInPlaceholder(user.fullName)).findsOne();
+      check(findTextInPlaceholder('Muted user')).findsNothing();
+
+      // Sending messages isn't allowed; don't suggest that
+      check(findTextInPlaceholder('yet.')).findsNothing();
+      check(findTextInPlaceholder('Why not start the conversation?')).findsNothing();
+    });
+
+    testWidgets('Group DM', (tester) async {
+      final selfUserId = eg.selfUser.userId;
+      final user1 = eg.user();
+      final user2 = eg.user();
+      await setupMessageListPage(tester,
+        narrow: DmNarrow.withUsers([user1.userId, user2.userId], selfUserId: selfUserId),
+        messages: [], users: [eg.selfUser, user1, user2]);
+      check(findPlaceholder).findsOne();
+      check(findTextInPlaceholder('these users')).findsOne();
+      check(findTextInPlaceholder('yet.')).findsOne();
+      check(findTextInPlaceholder('Why not start the conversation?')).findsOne();
+    });
+
+    testWidgets('Group DM with a deactivated user', (tester) async {
+      final selfUserId = eg.selfUser.userId;
+      final user1 = eg.user(isActive: false);
+      final user2 = eg.user();
+      await setupMessageListPage(tester,
+        narrow: DmNarrow.withUsers([user1.userId, user2.userId], selfUserId: selfUserId),
+        messages: [], users: [eg.selfUser, user1, user2]);
+      check(findPlaceholder).findsOne();
+      check(findTextInPlaceholder('these users')).findsOne();
+
+      // Sending messages isn't allowed; don't suggest that
+      check(findTextInPlaceholder('yet.')).findsNothing();
+      check(findTextInPlaceholder('Why not start the conversation?')).findsNothing();
+    });
+
+    testWidgets('Mentions', (tester) async {
+      await setupMessageListPage(tester, narrow: MentionsNarrow(), messages: []);
+      check(findPlaceholder).findsOne();
+      check(findTextInPlaceholder('mentioned')).findsOne();
+    });
+
+    testWidgets('Starred', (tester) async {
+      await setupMessageListPage(tester, narrow: StarredMessagesNarrow(), messages: []);
+      check(findPlaceholder).findsOne();
+      check(findTextInPlaceholder('starred')).findsOne();
+      check(findTextInPlaceholder('tap “Star message.”')).findsOne();
+      await checkLink(tester, linkText: 'Starring',
+        expectedUrl: store.tryResolveUrl('/help/star-a-message')!);
     });
 
     testWidgets('Search, empty keyword', (tester) async {
