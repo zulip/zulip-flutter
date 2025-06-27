@@ -826,6 +826,7 @@ class MathBlock extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: Katex(
           textStyle: ContentTheme.of(context).textStylePlainParagraph,
+          textAlign: TextAlign.center,
           nodes: nodes)));
   }
 }
@@ -849,10 +850,12 @@ class Katex extends StatelessWidget {
   const Katex({
     super.key,
     required this.textStyle,
+    this.textAlign,
     required this.nodes,
   });
 
   final TextStyle textStyle;
+  final TextAlign? textAlign;
   final List<KatexNode> nodes;
 
   @override
@@ -863,6 +866,7 @@ class Katex extends StatelessWidget {
       textDirection: TextDirection.ltr,
       child: DefaultTextStyle.merge(
         style: mkBaseKatexTextStyle(textStyle),
+        textAlign: textAlign,
         child: widget));
   }
 }
