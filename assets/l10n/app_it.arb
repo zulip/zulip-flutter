@@ -949,9 +949,9 @@
   "@mainMenuMyProfile": {
     "description": "Label for main-menu button leading to the user's own profile."
   },
-  "topicsButtonLabel": "ARGOMENTI",
-  "@topicsButtonLabel": {
-    "description": "Label for message list button leading to topic-list page. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  "topicsButtonTooltip": "Argomenti",
+  "@topicsButtonTooltip": {
+    "description": "Tooltip for button to navigate to topic-list page."
   },
   "reactedEmojiSelfUser": "Tu",
   "@reactedEmojiSelfUser": {

@@ -1065,9 +1065,9 @@
   "@actionSheetOptionListOfTopics": {
     "description": "Label for navigating to a channel's topic-list page."
   },
-  "topicsButtonLabel": "ТЕМЫ",
-  "@topicsButtonLabel": {
-    "description": "Label for message list button leading to topic-list page. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  "topicsButtonTooltip": "Темы",
+  "@topicsButtonTooltip": {
+    "description": "Tooltip for button to navigate to topic-list page."
   },
   "newDmSheetSearchHintEmpty": "Добавить пользователей",
   "@newDmSheetSearchHintEmpty": {

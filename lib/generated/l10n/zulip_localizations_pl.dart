@@ -694,7 +694,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get mainMenuMyProfile => 'Mój profil';
 
   @override
-  String get topicsButtonLabel => 'WĄTKI';
+  String get topicsButtonTooltip => 'Watki';
 
   @override
   String get channelFeedButtonTooltip => 'Strumień kanału';
