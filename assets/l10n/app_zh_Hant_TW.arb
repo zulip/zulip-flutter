@@ -423,9 +423,9 @@
       }
     }
   },
-  "topicsButtonLabel": "話題",
-  "@topicsButtonLabel": {
-    "description": "Label for message list button leading to topic-list page. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  "topicsButtonTooltip": "話題",
+  "@topicsButtonTooltip": {
+    "description": "Tooltip for button to navigate to topic-list page."
   },
   "themeSettingLight": "淺色主題",
   "@themeSettingLight": {

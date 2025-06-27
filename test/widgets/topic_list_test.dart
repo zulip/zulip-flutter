@@ -142,7 +142,7 @@ void main() {
     // Tap "TOPICS" button navigating to the topic-list page…
     connection.prepare(json: GetStreamTopicsResult(
       topics: [eg.getStreamTopicsEntry(name: 'topic A')]).toJson());
-    await tester.tap(find.text('TOPICS'));
+    await tester.tap(find.byIcon(ZulipIcons.topics));
     await tester.pump();
     await tester.pump(Duration.zero);
     check(find.text('topic A')).findsOne();
@@ -154,7 +154,7 @@ void main() {
     // … then back to the topic-list page, expecting to fetch again.
     connection.prepare(json: GetStreamTopicsResult(
       topics: [eg.getStreamTopicsEntry(name: 'topic B')]).toJson());
-    await tester.tap(find.text('TOPICS'));
+    await tester.tap(find.byIcon(ZulipIcons.topics));
     await tester.pump();
     await tester.pump(Duration.zero);
     check(find.text('topic A')).findsNothing();
