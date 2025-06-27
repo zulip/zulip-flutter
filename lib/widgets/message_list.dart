@@ -788,14 +788,18 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   @override
   Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
-
     if (!model.fetched) return const Center(child: CircularProgressIndicator());
 
     if (model.haveNewest && model.haveOldest
           && model.messages.isEmpty && model.outboxMessages.isEmpty) {
+      final (header, message, learnMoreButtonUrl) =
+        configureEmptyContentPlaceholder(context, narrow: widget.narrow);
+
       return PageBodyEmptyContentPlaceholder(
-        message: zulipLocalizations.emptyMessageList);
+        header: header,
+        message: message,
+        learnMoreButtonUrl: learnMoreButtonUrl,
+      );
     }
 
     // Pad the left and right insets, for small devices in landscape.
@@ -1004,6 +1008,75 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         return MessageItem(header: header, item: data);
     }
   }
+}
+
+(String header, String? message, Uri? learnMoreButton) configureEmptyContentPlaceholder(
+  BuildContext context, {
+  required Narrow narrow,
+}) {
+  final store = PerAccountStoreWidget.of(context);
+  final zulipLocalizations = ZulipLocalizations.of(context);
+
+  final String header;
+  String? message;
+  Uri? learnMoreButtonUrl;
+  switch (narrow) {
+    case CombinedFeedNarrow():
+      header = zulipLocalizations.emptyMessageListCombinedFeed;
+    case ChannelNarrow(:final streamId) || TopicNarrow(:final streamId):
+      final channel = store.streams[streamId];
+      if (channel == null) {
+        header = zulipLocalizations.emptyMessageListChannelUnavailable;
+      } else if (channel.inviteOnly && channel is! Subscription) {
+        header = zulipLocalizations.emptyMessageListPrivateChannelNotSubscribed;
+        learnMoreButtonUrl = store.tryResolveUrl('/help/channel-permissions#private-channels');
+      } else {
+        header = zulipLocalizations.emptyMessageList;
+      }
+    case DmNarrow(:final otherRecipientIds) when otherRecipientIds.isEmpty:
+      header = zulipLocalizations.emptyMessageListSelfDmHeader;
+      message = zulipLocalizations.emptyMessageListSelfDmMessage;
+    case DmNarrow(:final otherRecipientIds) when otherRecipientIds.length == 1:
+      final user = store.getUser(otherRecipientIds.single);
+      switch (user) {
+        case null:
+          header = zulipLocalizations.emptyMessageListDmUnknownUser;
+        case User(isActive: false):
+          header = zulipLocalizations.emptyMessageListDmDeactivatedUser(
+            store.userDisplayName(user.userId));
+        case User():
+          header = zulipLocalizations.emptyMessageListDm(store.userDisplayName(user.userId));
+          if (!store.isUserMuted(user.userId)) {
+            message = zulipLocalizations.emptyMessageListDmStartConversation;
+          }
+      }
+    case DmNarrow(:final otherRecipientIds)
+        when otherRecipientIds.any((userId) {
+          final user = store.getUser(userId);
+          return user != null && !user.isActive;
+        }):
+      header = zulipLocalizations.emptyMessageListGroupDmDeactivatedUser;
+    case DmNarrow():
+      header = zulipLocalizations.emptyMessageListGroupDm;
+      message = zulipLocalizations.emptyMessageListDmStartConversation;
+    case MentionsNarrow():
+      header = zulipLocalizations.emptyMessageListMentionsHeader;
+      if (store.zulipFeatureLevel >= 224) { // TODO(server-8)
+        // This string mentions @topic, which is new in Server 8.
+
+        // TODO(#233) ...It also mentions user-group mentions,
+        //   so we'll just comment it out until that's implemented.
+        // message = zulipLocalizations.emptyMessageListMentionsMessage;
+      }
+      // TODO(#233) as above, uncomment when user-group mentions are done
+      // learnMoreButtonUrl = store.tryResolveUrl('/help/mention-a-user-or-group');
+    case StarredMessagesNarrow():
+      header = zulipLocalizations.emptyMessageListStarredHeader;
+      message = zulipLocalizations.emptyMessageListStarredMessage(zulipLocalizations.actionSheetOptionStarMessage);
+      learnMoreButtonUrl = store.tryResolveUrl('/help/star-a-message');
+  }
+
+  return (header, message, learnMoreButtonUrl);
 }
 
 class _MessageListHistoryStart extends StatelessWidget {

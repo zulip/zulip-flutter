@@ -1,6 +1,8 @@
-
 import 'package:flutter/material.dart';
 
+import '../generated/l10n/zulip_localizations.dart';
+import '../model/binding.dart';
+import 'button.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -227,13 +229,16 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
     super.key,
     required this.header,
     this.message,
+    this.learnMoreButtonUrl,
   });
 
   final String header;
   final String? message;
+  final Uri? learnMoreButtonUrl;
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
 
     return SafeArea(
@@ -265,6 +270,10 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
                   height: 23 / 17,
                 ).merge(weightVariableTextStyle(context, wght: 500)),
                 message!),
+              if (learnMoreButtonUrl != null)
+                ZulipWebUiKitButton(
+                  label: zulipLocalizations.learnMoreButtonLabel,
+                  onPressed: () => ZulipBinding.instance.launchUrl(learnMoreButtonUrl!)),
             ]))));
   }
 }

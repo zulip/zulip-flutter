@@ -177,6 +177,12 @@ abstract class ZulipLocalizations {
   /// **'Let\'s go'**
   String get upgradeWelcomeDialogDismiss;
 
+  /// Label for a 'Learn more' button.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn more'**
+  String get learnMoreButtonLabel;
+
   /// Title for the page to choose between Zulip accounts.
   ///
   /// In en, this message translates to:
@@ -850,6 +856,96 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'There are no messages here.'**
   String get emptyMessageList;
+
+  /// Placeholder for the 'Combined feed' page when there are no messages.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no messages in your combined feed.'**
+  String get emptyMessageListCombinedFeed;
+
+  /// Placeholder for a channel page when there are no messages, the channel is private, and you are not subscribed.
+  ///
+  /// In en, this message translates to:
+  /// **'This channel is private.'**
+  String get emptyMessageListPrivateChannelNotSubscribed;
+
+  /// Placeholder for a channel page when there are no messages and the channel does not exist or you don't have access to it.
+  ///
+  /// In en, this message translates to:
+  /// **'This channel doesn’t exist, or you are not allowed to view it.'**
+  String get emptyMessageListChannelUnavailable;
+
+  /// Placeholder for the self-DM page when there are no messages.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not sent any direct messages to yourself yet!'**
+  String get emptyMessageListSelfDmHeader;
+
+  /// Extra detail in the placeholder for the self-DM page when there are no messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this space for personal notes, or to test out Zulip features.'**
+  String get emptyMessageListSelfDmMessage;
+
+  /// Placeholder for a 1:1 DM page when there are no messages.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no direct messages with {person} yet.'**
+  String emptyMessageListDm(String person);
+
+  /// Placeholder for a 1:1 DM page when there are no messages and the other user is deactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no direct messages with {person}.'**
+  String emptyMessageListDmDeactivatedUser(String person);
+
+  /// Placeholder for a 1:1 DM page when there are no messages and the other user's name is unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no direct messages with this person.'**
+  String get emptyMessageListDmUnknownUser;
+
+  /// Placeholder for a group DM page when there are no messages.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no direct messages with these users yet.'**
+  String get emptyMessageListGroupDm;
+
+  /// Placeholder for a group DM page when there are no messages and one or more participants is deactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no direct messages with these users.'**
+  String get emptyMessageListGroupDmDeactivatedUser;
+
+  /// Extra detail in the placeholder for some DM pages when there are no messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Why not start the conversation?'**
+  String get emptyMessageListDmStartConversation;
+
+  /// Placeholder for the 'Mentions' page when there are no messages.
+  ///
+  /// In en, this message translates to:
+  /// **'This view will show messages where you are mentioned.'**
+  String get emptyMessageListMentionsHeader;
+
+  /// Extra detail in the placeholder for the 'Mentions' page when there are no messages.
+  ///
+  /// In en, this message translates to:
+  /// **'To call attention to a message, you can mention a user, a group, topic participants, or all subscribers to a channel. Type @ in the compose box, and choose who you’d like to mention from the list of suggestions.'**
+  String get emptyMessageListMentionsMessage;
+
+  /// Placeholder for the 'Starred' page when there are no messages.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no starred messages.'**
+  String get emptyMessageListStarredHeader;
+
+  /// Extra detail in the placeholder for the 'Starred' page when there are no messages. The {button} placeholder will be the button's translated text.
+  ///
+  /// In en, this message translates to:
+  /// **'Starring messages is a good way to keep track of important messages, such as tasks you need to go back to, or useful references. To star a message, long-press it and tap “{button}.”'**
+  String emptyMessageListStarredMessage(String button);
 
   /// Message list recipient header for a DM group that only includes yourself.
   ///
