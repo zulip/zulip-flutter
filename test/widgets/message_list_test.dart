@@ -125,6 +125,9 @@ void main() {
     return findScrollView(tester).controller;
   }
 
+  final contentInputFinder = find.byWidgetPredicate(
+    (widget) => widget is TextField && widget.controller is ComposeContentController);
+
   group('MessageListPage', () {
     testWidgets('ancestorOf finds page state from message', (tester) async {
       await setupMessageListPage(tester,
@@ -1633,9 +1636,6 @@ void main() {
     final topic = 'topic';
     final topicNarrow = eg.topicNarrow(stream.streamId, topic);
     const content = 'outbox message content';
-
-    final contentInputFinder = find.byWidgetPredicate(
-      (widget) => widget is TextField && widget.controller is ComposeContentController);
 
     Finder outboxMessageFinder = find.widgetWithText(
       OutboxMessageWithPossibleSender, content, skipOffstage: true);
