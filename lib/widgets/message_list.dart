@@ -5,6 +5,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/binding.dart';
 import '../model/database.dart';
 import '../model/message.dart';
 import '../model/message_list.dart';
@@ -14,6 +15,7 @@ import '../model/typing_status.dart';
 import 'action_sheet.dart';
 import 'actions.dart';
 import 'app_bar.dart';
+import 'button.dart';
 import 'color.dart';
 import 'compose_box.dart';
 import 'content.dart';
@@ -790,6 +792,11 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   Widget build(BuildContext context) {
     if (!model.fetched) return const Center(child: CircularProgressIndicator());
 
+    if (model.haveNewest && model.haveOldest
+          && model.messages.isEmpty && model.outboxMessages.isEmpty) {
+      return NoMessagesPlaceholder(widget.narrow);
+    }
+
     // Pad the left and right insets, for small devices in landscape.
     return SafeArea(
       // Don't let this be the place we pad the bottom inset. When there's
@@ -995,6 +1002,114 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
         return MessageItem(header: header, item: data);
     }
+  }
+}
+
+/// A "no messages here" message, for the body of the message-list page.
+///
+/// Pads the horizontal insets.
+@visibleForTesting
+class NoMessagesPlaceholder extends StatelessWidget {
+  const NoMessagesPlaceholder(this.narrow, {super.key});
+
+  final Narrow narrow;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final String message;
+    String? explanation;
+    Uri? learnMoreButtonUrl;
+    switch (narrow) {
+      case CombinedFeedNarrow():
+        message = zulipLocalizations.emptyMessageListCombinedFeed;
+      case ChannelNarrow(:final streamId) || TopicNarrow(:final streamId):
+        final channel = store.streams[streamId];
+        if (channel == null) {
+          message = zulipLocalizations.emptyMessageListChannelUnavailable;
+        } else if (channel.inviteOnly && channel is! Subscription) {
+          message = zulipLocalizations.emptyMessageListPrivateChannelNotSubscribed;
+          learnMoreButtonUrl = store.tryResolveUrl('/help/channel-permissions#private-channels');
+        } else {
+          message = zulipLocalizations.emptyMessageList;
+        }
+      case DmNarrow(:final otherRecipientIds) when otherRecipientIds.isEmpty:
+        message = zulipLocalizations.emptyMessageListSelfDm;
+        explanation = zulipLocalizations.emptyMessageListSelfDmExplanation;
+      case DmNarrow(:final otherRecipientIds) when otherRecipientIds.length == 1:
+        final user = store.getUser(otherRecipientIds.single);
+        switch (user) {
+          case null:
+            message = zulipLocalizations.emptyMessageListDmUnknownUser;
+          case User(isActive: false):
+            message = zulipLocalizations.emptyMessageListDmDeactivatedUser(
+              store.userDisplayName(user.userId));
+          case User():
+            message = zulipLocalizations.emptyMessageListDm(store.userDisplayName(user.userId));
+            if (!store.isUserMuted(user.userId)) {
+              explanation = zulipLocalizations.emptyMessageListDmStartConversation;
+            }
+        }
+      case DmNarrow(:final otherRecipientIds)
+          when otherRecipientIds.any((userId) {
+            final user = store.getUser(userId);
+            return user != null && !user.isActive;
+          }):
+        message = zulipLocalizations.emptyMessageListGroupDmDeactivatedUser;
+      case DmNarrow():
+        message = zulipLocalizations.emptyMessageListGroupDm;
+        explanation = zulipLocalizations.emptyMessageListDmStartConversation;
+      case MentionsNarrow():
+        message = zulipLocalizations.emptyMessageListMentions;
+        if (store.zulipFeatureLevel >= 224) { // TODO(server-8)
+          // This string mentions @topic, which is new in Server 8.
+
+          // TODO(#233) ...It also mentions user-group mentions,
+          //   so we'll just comment it out until that's implemented.
+          // explanation = zulipLocalizations.emptyMessageListMentionsExplanation;
+        }
+        // TODO(#233) as above, uncomment when user-group mentions are done
+        // learnMoreButtonUrl = store.tryResolveUrl('/help/mention-a-user-or-group');
+      case StarredMessagesNarrow():
+        message = zulipLocalizations.emptyMessageListStarred;
+        explanation = zulipLocalizations.emptyMessageListStarredExplanation(zulipLocalizations.actionSheetOptionStarMessage);
+        learnMoreButtonUrl = store.tryResolveUrl('/help/star-a-message');
+    }
+
+    final baseTextStyle = TextStyle(
+      color: designVariables.labelSearchPrompt,
+      fontSize: 17,
+      height: 23 / 17,
+    );
+
+    // TODO(design) This was based on [PageBodyEmptyContentPlaceholder];
+    //   we may need a separate design.
+    return SafeArea(
+      minimum: EdgeInsets.symmetric(horizontal: 24),
+      child: Padding(
+        padding: EdgeInsets.only(top: 48, bottom: 16),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: Column(
+            spacing: 16,
+            children: [
+              Text(
+                textAlign: TextAlign.center,
+                style: baseTextStyle.merge(weightVariableTextStyle(context, wght: 500)),
+                message),
+              if (explanation != null)
+                Text(
+                  textAlign: TextAlign.center,
+                  style: baseTextStyle,
+                  explanation),
+              if (learnMoreButtonUrl != null)
+                ZulipWebUiKitButton(
+                  label: zulipLocalizations.learnMoreButtonLabel,
+                  onPressed: () => ZulipBinding.instance.launchUrl(learnMoreButtonUrl!)),
+            ]))));
   }
 }
 
