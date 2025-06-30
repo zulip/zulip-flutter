@@ -1070,5 +1070,12 @@
   "zulipAppTitle": "Zulip",
   "@zulipAppTitle": {
     "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
+  },
+  "userLocalTime": "{userTime} local time",
+  "@userLocalTime": {
+    "description": "Current time in the user's timezone",
+    "placeholders": {
+      "userTime": {"type": "DateTime", "format": "jm"}
+    }
   }
 }

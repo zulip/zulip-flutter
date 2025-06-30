@@ -1196,5 +1196,12 @@
   "upgradeWelcomeDialogDismiss": "Los gehts",
   "@upgradeWelcomeDialogDismiss": {
     "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "userLocalTime": "{userTime} Ortszeit",
+  "@userLocalTime": {
+    "description": "Current time in the user's timezone",
+    "placeholders": {
+      "userTime": {"type": "DateTime", "format": "jm"}
+    }
   }
 }

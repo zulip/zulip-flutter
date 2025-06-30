@@ -538,5 +538,12 @@
   "errorInvalidResponse": "伺服器傳送了無效的請求。",
   "@errorInvalidResponse": {
     "description": "Error message when an API call returned an invalid response."
+  },
+  "userLocalTime": "{userTime} 本地時間",
+  "@userLocalTime": {
+    "description": "Current time in the user's timezone",
+    "placeholders": {
+      "userTime": {"type": "DateTime", "format": "jm"}
+    }
   }
 }

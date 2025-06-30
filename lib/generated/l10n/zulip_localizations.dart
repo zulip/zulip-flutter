@@ -1598,6 +1598,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Zulip'**
   String get zulipAppTitle;
+
+  /// Current time in the user's timezone
+  ///
+  /// In en, this message translates to:
+  /// **'{userTime} local time'**
+  String userLocalTime(DateTime userTime);
 }
 
 class _ZulipLocalizationsDelegate

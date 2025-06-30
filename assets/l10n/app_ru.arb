@@ -1196,5 +1196,12 @@
   "upgradeWelcomeDialogLinkText": "Ознакомьтесь с анонсом в блоге!",
   "@upgradeWelcomeDialogLinkText": {
     "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "userLocalTime": "{userTime} местное время",
+  "@userLocalTime": {
+    "description": "Current time in the user's timezone",
+    "placeholders": {
+      "userTime": {"type": "DateTime", "format": "jm"}
+    }
   }
 }
