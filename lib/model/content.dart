@@ -1087,6 +1087,22 @@ class _ZulipInlineContentParser {
       return GlobalTimeNode(datetime: datetime, debugHtmlNode: debugHtmlNode);
     }
 
+    if (localName == 'audio' && className.isEmpty) {
+      final srcAttr = element.attributes['src'];
+      if (srcAttr == null) return unimplemented();
+
+      final String title = switch (element.attributes) {
+        {'title': final titleAttr} => titleAttr,
+        _ => Uri.tryParse(srcAttr)?.pathSegments.lastOrNull ?? srcAttr,
+      };
+
+      final link = LinkNode(
+        url: srcAttr,
+        nodes: [TextNode(title)]);
+      (_linkNodes ??= []).add(link);
+      return link;
+    }
+
     if (localName == 'span' && className == 'katex') {
       return parseInlineMath(element) ?? unimplemented();
     }

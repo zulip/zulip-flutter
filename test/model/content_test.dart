@@ -1327,6 +1327,24 @@ class ContentExample {
     InlineVideoNode(srcUrl: '/user_uploads/2/78/_KoRecCHZTFrVtyTKCkIh5Hq/Big-Buck-Bunny.webm'),
   ]);
 
+  static const audioInline = ContentExample(
+    'audio inline',
+    '![crab-rave.mp3](/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/crab-rave.mp3)',
+    '<p><audio controls preload="metadata" src="/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/crab-rave.mp3" title="crab-rave.mp3"></audio></p>', [
+    ParagraphNode(links: null, nodes: [
+      LinkNode(url: '/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/crab-rave.mp3', nodes: [TextNode('crab-rave.mp3')]),
+    ]),
+  ]);
+
+  static const audioInlineNoTitle = ContentExample(
+    'audio inline no title',
+    '![](/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/crab-rave.mp3)',
+    '<p><audio controls preload="metadata" src="/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/crab-rave.mp3"></audio></p>', [
+    ParagraphNode(links: null, nodes: [
+      LinkNode(url: '/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/crab-rave.mp3', nodes: [TextNode('crab-rave.mp3')]),
+    ]),
+  ]);
+
   static const websitePreviewSmoke = ContentExample(
     'website preview smoke',
     'https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title+description.html',
@@ -1989,6 +2007,9 @@ void main() async {
   testParseExample(ContentExample.videoEmbedVimeoClassesFlipped);
   testParseExample(ContentExample.videoInline);
   testParseExample(ContentExample.videoInlineClassesFlipped);
+
+  testParseExample(ContentExample.audioInline);
+  testParseExample(ContentExample.audioInlineNoTitle);
 
   testParseExample(ContentExample.websitePreviewSmoke);
   testParseExample(ContentExample.websitePreviewWithoutTitle);

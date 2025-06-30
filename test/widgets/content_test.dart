@@ -1167,6 +1167,26 @@ void main() {
     });
   });
 
+  group('InlineAudio', () {
+    Future<void> prepare(WidgetTester tester, String html) async {
+      await prepareContent(tester, plainContent(html),
+        // We try to resolve relative links on the self-account's realm.
+        wrapWithPerAccountStoreWidget: true);
+    }
+
+    testWidgets('tapping on audio link opens it in browser', (tester) async {
+      final url = eg.realmUrl.resolve('/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/crab-rave.mp3');
+      await prepare(tester, ContentExample.audioInline.html);
+
+      await tapText(tester, find.text('crab-rave.mp3'));
+
+      final expectedLaunchMode = defaultTargetPlatform == TargetPlatform.iOS ?
+        LaunchMode.externalApplication : LaunchMode.inAppBrowserView;
+      check(testBinding.takeLaunchUrlCalls())
+        .single.equals((url: url, mode: expectedLaunchMode));
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+  });
+
   group('MessageImageEmoji', () {
     Future<void> prepare(WidgetTester tester, String html) async {
       await prepareContent(tester, plainContent(html),
