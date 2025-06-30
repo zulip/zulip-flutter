@@ -149,16 +149,21 @@ class MalformedServerResponseException extends ServerException {
   /// in order to preserve the underlying exception's stack trace, which
   /// may be more informative than the exception object itself.
   final Object? causeException;
+  final StackTrace? causeStackTrace;
 
   MalformedServerResponseException({
     required super.routeName,
     required super.httpStatus,
     required super.data,
     this.causeException,
-  }) : super(message: causeException == null
+    this.causeStackTrace,
+  }) : assert((causeException == null && causeStackTrace == null) ||
+              (causeException != null && causeStackTrace != null),
+         'causeException and causeStackTrace must either both be null or both be non-null'),
+       super(message: causeException == null
          ? GlobalLocalizations.zulipLocalizations
             .errorMalformedResponse(httpStatus)
          : GlobalLocalizations.zulipLocalizations
             .errorMalformedResponseWithCause(
-              httpStatus, causeException.toString()));
+              httpStatus, '$causeException\n$causeStackTrace'));
 }
