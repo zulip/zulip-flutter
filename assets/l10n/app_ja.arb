@@ -16,5 +16,12 @@
   "userRoleGuest": "ゲスト",
   "@userRoleGuest": {},
   "userRoleUnknown": "不明",
-  "@userRoleUnknown": {}
+  "@userRoleUnknown": {},
+  "userLocalTime": "現地時間 {userTime}",
+  "@userLocalTime": {
+    "description": "Current time in the user's timezone",
+    "placeholders": {
+      "userTime": {"type": "DateTime", "format": "jm"}
+    }
+  }
 }

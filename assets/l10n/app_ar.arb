@@ -7,5 +7,12 @@
   "wildcardMentionChannelDescription": "إخطار القناة",
   "wildcardMentionStreamDescription": "إخطار الدفق",
   "wildcardMentionAllDmDescription": "إخطار المستلمين",
-  "wildcardMentionTopicDescription": "إخطار الموضوع"
+  "wildcardMentionTopicDescription": "إخطار الموضوع",
+  "userLocalTime": "{userTime} الوقت المحلي",
+  "@userLocalTime": {
+    "description": "Current time in the user's timezone",
+    "placeholders": {
+      "userTime": {"type": "DateTime", "format": "jm"}
+    }
+  }
 }

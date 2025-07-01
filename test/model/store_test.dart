@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:checks/checks.dart';
+import 'package:clock/clock.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -480,9 +481,11 @@ void main() {
     for (final (String dateJoined, DateTime currentDate, bool hasPassedWaitingPeriod) in testCases) {
       test('user joined at $dateJoined ${hasPassedWaitingPeriod ? 'has' : "hasn't"} '
           'passed waiting period by $currentDate', () {
-        final user = eg.user(dateJoined: dateJoined);
-        check(store.hasPassedWaitingPeriod(user, byDate: currentDate))
-          .equals(hasPassedWaitingPeriod);
+        withClock(Clock.fixed(currentDate), () {
+          final user = eg.user(dateJoined: dateJoined);
+          check(store.hasPassedWaitingPeriod(user))
+            .equals(hasPassedWaitingPeriod);
+        });
       });
     }
   });
@@ -526,11 +529,10 @@ void main() {
       test('"${role.name}" user ${canPost ? 'can' : "can't"} post in channel '
           'with "${policy.name}" policy', () {
         final store = eg.store();
+        // we don't use `withClock` because current time is not actually relevant for
+        // these test cases; for the ones which it is, they're practiced below.
         final actual = store.hasPostingPermission(
-          inChannel: eg.stream(channelPostPolicy: policy), user: eg.user(role: role),
-          // [byDate] is not actually relevant for these test cases; for the
-          // ones which it is, they're practiced below.
-          byDate: DateTime.now());
+          inChannel: eg.stream(channelPostPolicy: policy), user: eg.user(role: role));
         check(actual).equals(canPost);
       });
     }
@@ -544,21 +546,23 @@ void main() {
         role: UserRole.member, dateJoined: dateJoined);
 
       test('a "full" member -> can post in the channel', () {
-        final store = localStore(realmWaitingPeriodThreshold: 3);
-        final hasPermission = store.hasPostingPermission(
-          inChannel: eg.stream(channelPostPolicy: ChannelPostPolicy.fullMembers),
-          user: memberUser(dateJoined: '2024-11-25T10:00+00:00'),
-          byDate: DateTime.utc(2024, 11, 28, 10, 00));
-        check(hasPermission).isTrue();
+        withClock(Clock.fixed(DateTime.utc(2024, 11, 28, 10, 00)), () {
+          final store = localStore(realmWaitingPeriodThreshold: 3);
+          final hasPermission = store.hasPostingPermission(
+            inChannel: eg.stream(channelPostPolicy: ChannelPostPolicy.fullMembers),
+            user: memberUser(dateJoined: '2024-11-25T10:00+00:00'));
+          check(hasPermission).isTrue();
+        });
       });
 
       test('not a "full" member -> cannot post in the channel', () {
-        final store = localStore(realmWaitingPeriodThreshold: 3);
-        final actual = store.hasPostingPermission(
-          inChannel: eg.stream(channelPostPolicy: ChannelPostPolicy.fullMembers),
-          user: memberUser(dateJoined: '2024-11-25T10:00+00:00'),
-          byDate: DateTime.utc(2024, 11, 28, 09, 59));
-        check(actual).isFalse();
+        withClock(Clock.fixed(DateTime.utc(2024, 11, 28, 09, 59)), () {
+          final store = localStore(realmWaitingPeriodThreshold: 3);
+          final actual = store.hasPostingPermission(
+            inChannel: eg.stream(channelPostPolicy: ChannelPostPolicy.fullMembers),
+            user: memberUser(dateJoined: '2024-11-25T10:00+00:00'));
+          check(actual).isFalse();
+        });
       });
     });
   });

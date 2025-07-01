@@ -1194,5 +1194,12 @@
   "upgradeWelcomeDialogMessage": "您将会得到到更快，更流畅的体验。",
   "@upgradeWelcomeDialogMessage": {
     "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "userLocalTime": "{userTime} 当地时间",
+  "@userLocalTime": {
+    "description": "Current time in the user's timezone",
+    "placeholders": {
+      "userTime": {"type": "DateTime", "format": "jm"}
+    }
   }
 }

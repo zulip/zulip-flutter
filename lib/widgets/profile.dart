@@ -1,9 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/narrow.dart';
 import 'app_bar.dart';
@@ -78,7 +82,11 @@ class ProfilePage extends StatelessWidget {
         style: _TextStyles.primaryFieldText),
       // TODO(#197) render user status
       // TODO(#196) render active status
-      // TODO(#292) render user local time
+      DefaultTextStyle.merge(
+        textAlign: TextAlign.center,
+        style: _TextStyles.primaryFieldText,
+        child: UserLocalTimeText(user: user)
+      ),
 
       _ProfileDataTable(profileData: user.profileData),
       const SizedBox(height: 16),
@@ -293,5 +301,68 @@ class _UserWidget extends StatelessWidget {
             child: Text(store.userDisplayName(userId),
               style: _TextStyles.customProfileFieldText)),
         ])));
+  }
+}
+
+/// The text of current time in [user]'s timezone.
+class UserLocalTimeText extends StatefulWidget {
+  const UserLocalTimeText({
+    super.key,
+    required this.user,
+  });
+
+  final User user;
+
+  /// Initialize the timezone database used to know time difference from a timezone string.
+  ///
+  /// Usually, database initialization is done using `initializeTimeZones`, but it takes >100ms and not asynchronous.
+  /// So, we initialize database from the assets file copied from timezone library.
+  /// This file is checked up-to-date in `test/widgets/profile_test.dart`.
+  static Future<void> initializeTimezonesUsingAssets() async {
+    final blob = Uint8List.sublistView(await rootBundle.load('assets/timezone/latest_all.tzf'));
+    tz.initializeDatabase(blob);
+  }
+
+  @override
+  State<UserLocalTimeText> createState() => _UserLocalTimeTextState();
+}
+
+class _UserLocalTimeTextState extends State<UserLocalTimeText> {
+  late final Timer _timer;
+  final StreamController<DateTime> _streamController = StreamController();
+  Stream<DateTime> get _stream => _streamController.stream;
+
+  @override
+  void initState() {
+    _streamController.add(ZulipBinding.instance.utcNow());
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) { _streamController.add(ZulipBinding.instance.utcNow()); });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  Stream<String> _getDisplayLocalTimeFor(User user, ZulipLocalizations zulipLocalizations) async* {
+    if (!tz.timeZoneDatabase.isInitialized) await UserLocalTimeText.initializeTimezonesUsingAssets();
+
+    await for (final DateTime time in _stream) {
+      final location = tz.getLocation(user.timezone);
+      final localTime = tz.TZDateTime.from(time, location);
+      yield zulipLocalizations.userLocalTime(localTime);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: _getDisplayLocalTimeFor(widget.user, ZulipLocalizations.of(context)),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) Error.throwWithStackTrace(snapshot.error!, snapshot.stackTrace!);
+        return Text(snapshot.data ?? '');
+      }
+    );
   }
 }

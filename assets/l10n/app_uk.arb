@@ -1196,5 +1196,12 @@
   "markReadOnScrollSettingConversationsDescription": "Повідомлення будуть автоматично помічатися як прочитані тільки при перегляді окремої теми або особистої бесіди.",
   "@markReadOnScrollSettingConversationsDescription": {
     "description": "Description for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "userLocalTime": "{userTime} місцевий час",
+  "@userLocalTime": {
+    "description": "Current time in the user's timezone",
+    "placeholders": {
+      "userTime": {"type": "DateTime", "format": "jm"}
+    }
   }
 }
