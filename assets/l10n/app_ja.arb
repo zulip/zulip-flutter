@@ -1,20 +1,50 @@
 {
+  "aboutPageTitle": "Zulipについて",
+  "@aboutPageTitle": {
+    "description": "Title for About Zulip page."
+  },
+  "aboutPageAppVersion": "アプリバージョン",
+  "@aboutPageAppVersion": {
+    "description": "Label for Zulip app version in About Zulip page"
+  },
+  "aboutPageOpenSourceLicenses": "オープンソースライセンス",
+  "@aboutPageOpenSourceLicenses": {
+    "description": "Item title in About Zulip page to navigate to Licenses page"
+  },
   "chooseAccountPageTitle": "アカウントを選択",
-  "@chooseAccountPageTitle": {},
+  "@chooseAccountPageTitle": {
+    "description": "Title for the page to choose between Zulip accounts."
+  },
   "chooseAccountButtonAddAnAccount": "新しいアカウントを追加",
-  "@chooseAccountButtonAddAnAccount": {},
+  "@chooseAccountButtonAddAnAccount": {
+    "description": "Label for ChooseAccountPage button to add an account"
+  },
   "profileButtonSendDirectMessage": "ダイレクトメッセージを送信",
-  "@profileButtonSendDirectMessage": {},
+  "@profileButtonSendDirectMessage": {
+    "description": "Label for button in profile screen to navigate to DMs with the shown user."
+  },
   "userRoleOwner": "オーナー",
-  "@userRoleOwner": {},
+  "@userRoleOwner": {
+    "description": "Label for UserRole.owner"
+  },
   "userRoleAdministrator": "管理者",
-  "@userRoleAdministrator": {},
+  "@userRoleAdministrator": {
+    "description": "Label for UserRole.administrator"
+  },
   "userRoleModerator": "モデレータ",
-  "@userRoleModerator": {},
+  "@userRoleModerator": {
+    "description": "Label for UserRole.moderator"
+  },
   "userRoleMember": "メンバー",
-  "@userRoleMember": {},
+  "@userRoleMember": {
+    "description": "Label for UserRole.member"
+  },
   "userRoleGuest": "ゲスト",
-  "@userRoleGuest": {},
+  "@userRoleGuest": {
+    "description": "Label for UserRole.guest"
+  },
   "userRoleUnknown": "不明",
-  "@userRoleUnknown": {}
+  "@userRoleUnknown": {
+    "description": "Label for UserRole.unknown"
+  }
 }
