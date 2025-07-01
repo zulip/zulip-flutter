@@ -871,4 +871,17 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get zulipAppTitle => 'Zulip';
+
+  @override
+  String get errorUnimplementedHeader => 'コンテンツ表示エラー';
+
+  @override
+  String get errorUnimplementedWhatHappened => '何が起こったのですか?';
+
+  @override
+  String get errorUnimplementedDescription =>
+      'Zulipは本来デスクトップ用のアプリで、メッセージはHTML形式で受信されそのまま表示されています。しかし、モバイルアプリでは、メッセージの表示の為にHTMLをContentNodeという形式に変換する必要があります。このエラーは受信したHTMLがContentNodeに変換されなかった為に起こったエラーです。';
+
+  @override
+  String get errorUnimplementedHtmlHeading => 'HTML';
 }
