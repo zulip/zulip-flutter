@@ -378,10 +378,8 @@ class BlockContentList extends StatelessWidget {
             return const SizedBox.shrink();
           }(),
           WebsitePreviewNode() => WebsitePreview(node: node),
-          UnimplementedBlockContentNode() =>
-            Text.rich(_errorUnimplemented(node, context: context)),
+          UnimplementedBlockContentNode() => ErrorUnimplemented(node: node),
         };
-
       }),
     ]);
   }
@@ -1302,7 +1300,8 @@ class _InlineContentBuilder {
           child: GlobalTime(node: node, ambientTextStyle: widget.style));
 
       case UnimplementedInlineContentNode():
-        return _errorUnimplemented(node, context: _context!);
+        return WidgetSpan(alignment: PlaceholderAlignment.middle,
+          child: ErrorUnimplemented(node: node));
     }
   }
 
@@ -1929,35 +1928,52 @@ class _PresenceCircleState extends State<PresenceCircle> with PerAccountStoreAwa
   }
 }
 
-//
-// Small helpers.
-//
+class ErrorUnimplemented extends StatelessWidget {
+  const ErrorUnimplemented({
+    super.key,
+    required this.node,
+  });
 
-InlineSpan _errorUnimplemented(UnimplementedNode node, {required BuildContext context}) {
-  final contentTheme = ContentTheme.of(context);
-  final errorStyle = contentTheme.textStyleError;
-  final errorCodeStyle = contentTheme.textStyleErrorCode;
-  // For now this shows error-styled HTML code even in release mode,
-  // because release mode isn't yet about general users but developer demos,
-  // and we want to keep the demos honest.
-  // TODO(#194) think through UX for general release
-  // TODO(#1285) translate this
-  final htmlNode = node.htmlNode;
-  if (htmlNode is dom.Element) {
-    return TextSpan(children: [
-      TextSpan(text: "(unimplemented:", style: errorStyle),
-      TextSpan(text: htmlNode.outerHtml, style: errorCodeStyle),
-      TextSpan(text: ")", style: errorStyle),
-    ]);
-  } else if (htmlNode is dom.Text) {
-    return TextSpan(children: [
-      TextSpan(text: "(unimplemented: text «", style: errorStyle),
-      TextSpan(text: htmlNode.text, style: errorCodeStyle),
-      TextSpan(text: "»)", style: errorStyle),
-    ]);
-  } else {
-    return TextSpan(
-      text: "(unimplemented: DOM node type ${htmlNode.nodeType})",
-      style: errorStyle);
+  final UnimplementedNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final htmlNode = node.htmlNode;
+    final text = htmlNode is dom.Element ? htmlNode.outerHtml : htmlNode.text ?? '';
+    final header = [
+      ParagraphNode(
+        links: null,
+        nodes: [TextNode(zulipLocalizations.errorUnimplementedHeader)],
+      ),
+    ];
+    final content = [
+      HeadingNode(
+        links: null,
+        nodes: [TextNode(zulipLocalizations.errorUnimplementedWhatHappened)],
+        level: HeadingLevel.h3,
+      ),
+      ParagraphNode(
+        links: null,
+        nodes: [TextNode(zulipLocalizations.errorUnimplementedDescription)],
+      ),
+      HeadingNode(
+        links: null,
+        nodes: [TextNode(zulipLocalizations.errorUnimplementedHtmlHeading)],
+        level: HeadingLevel.h3,
+      ),
+      ParagraphNode(
+        links: null,
+        nodes: [InlineCodeNode(nodes: [TextNode(text)])],
+      ),
+    ];
+    return Modal(
+      borderColor: const Color(0xffbb0000),
+      expandIconColor: const Color(0xffffff00),
+      textColor: const Color(0xffffff00),
+      bgColor: const Color(0xffff0000),
+      header: header,
+      content: content,
+    );
   }
 }
