@@ -675,8 +675,12 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get inboxPageTitle => 'Eingang';
 
   @override
-  String get inboxEmptyPlaceholder =>
-      'Es sind keine ungelesenen Nachrichten in deinem Eingang. Verwende die Buttons unten um den kombinierten Feed oder die Kanalliste anzusehen.';
+  String get inboxEmptyPlaceholderHeader =>
+      'There are no unread messages in your inbox.';
+
+  @override
+  String get inboxEmptyPlaceholderMessage =>
+      'Use the buttons below to view the combined feed or list of channels.';
 
   @override
   String get recentDmConversationsPageTitle => 'Direktnachrichten';
@@ -685,8 +689,12 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get recentDmConversationsSectionHeader => 'Direktnachrichten';
 
   @override
-  String get recentDmConversationsEmptyPlaceholder =>
-      'Du hast noch keine Direktnachrichten! Warum nicht die Unterhaltung beginnen?';
+  String get recentDmConversationsEmptyPlaceholderHeader =>
+      'You have no direct messages yet!';
+
+  @override
+  String get recentDmConversationsEmptyPlaceholderMessage =>
+      'Why not start the conversation?';
 
   @override
   String get combinedFeedPageTitle => 'Kombinierter Feed';
@@ -701,7 +709,8 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get channelsPageTitle => 'Kanäle';
 
   @override
-  String get channelsEmptyPlaceholder => 'Du hast noch keine Kanäle abonniert.';
+  String get channelsEmptyPlaceholderHeader =>
+      'You are not subscribed to any channels yet.';
 
   @override
   String get mainMenuMyProfile => 'Mein Profil';

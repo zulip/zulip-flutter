@@ -680,8 +680,12 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get inboxPageTitle => 'Nabiralnik';
 
   @override
-  String get inboxEmptyPlaceholder =>
-      'V vašem nabiralniku ni neprebranih sporočil. Uporabite spodnje gumbe za ogled združenega prikaza ali seznama kanalov.';
+  String get inboxEmptyPlaceholderHeader =>
+      'There are no unread messages in your inbox.';
+
+  @override
+  String get inboxEmptyPlaceholderMessage =>
+      'Use the buttons below to view the combined feed or list of channels.';
 
   @override
   String get recentDmConversationsPageTitle => 'Neposredna sporočila';
@@ -690,8 +694,12 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get recentDmConversationsSectionHeader => 'Neposredna sporočila';
 
   @override
-  String get recentDmConversationsEmptyPlaceholder =>
-      'Zaenkrat še nimate neposrednih sporočil! Zakaj ne bi začeli pogovora?';
+  String get recentDmConversationsEmptyPlaceholderHeader =>
+      'You have no direct messages yet!';
+
+  @override
+  String get recentDmConversationsEmptyPlaceholderMessage =>
+      'Why not start the conversation?';
 
   @override
   String get combinedFeedPageTitle => 'Združen prikaz';
@@ -706,7 +714,8 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get channelsPageTitle => 'Kanali';
 
   @override
-  String get channelsEmptyPlaceholder => 'Niste še naročeni na noben kanal.';
+  String get channelsEmptyPlaceholderHeader =>
+      'You are not subscribed to any channels yet.';
 
   @override
   String get mainMenuMyProfile => 'Moj profil';

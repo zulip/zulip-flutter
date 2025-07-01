@@ -1212,8 +1212,14 @@ abstract class ZulipLocalizations {
   /// Centered text on the 'Inbox' page saying that there is no content to show.
   ///
   /// In en, this message translates to:
-  /// **'There are no unread messages in your inbox. Use the buttons below to view the combined feed or list of channels.'**
-  String get inboxEmptyPlaceholder;
+  /// **'There are no unread messages in your inbox.'**
+  String get inboxEmptyPlaceholderHeader;
+
+  /// Additional centered text on the 'Inbox' page saying that there is no content to show.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the buttons below to view the combined feed or list of channels.'**
+  String get inboxEmptyPlaceholderMessage;
 
   /// Title for the page with a list of DM conversations.
   ///
@@ -1230,8 +1236,14 @@ abstract class ZulipLocalizations {
   /// Centered text on the 'Direct messages' page saying that there is no content to show.
   ///
   /// In en, this message translates to:
-  /// **'You have no direct messages yet! Why not start the conversation?'**
-  String get recentDmConversationsEmptyPlaceholder;
+  /// **'You have no direct messages yet!'**
+  String get recentDmConversationsEmptyPlaceholderHeader;
+
+  /// Additional centered text on the 'Direct messages' page saying that there is no content to show.
+  ///
+  /// In en, this message translates to:
+  /// **'Why not start the conversation?'**
+  String get recentDmConversationsEmptyPlaceholderMessage;
 
   /// Page title for the 'Combined feed' message view.
   ///
@@ -1261,7 +1273,7 @@ abstract class ZulipLocalizations {
   ///
   /// In en, this message translates to:
   /// **'You are not subscribed to any channels yet.'**
-  String get channelsEmptyPlaceholder;
+  String get channelsEmptyPlaceholderHeader;
 
   /// Label for main-menu button leading to the user's own profile.
   ///

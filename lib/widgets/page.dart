@@ -223,9 +223,14 @@ class LoadingPlaceholderPage extends StatelessWidget {
 // TODO(#311) If the message list gets a bottom nav, the bottom inset will
 //   always be handled externally too; simplify implementation and dartdoc.
 class PageBodyEmptyContentPlaceholder extends StatelessWidget {
-  const PageBodyEmptyContentPlaceholder({super.key, required this.message});
+  const PageBodyEmptyContentPlaceholder({
+    super.key,
+    required this.header,
+    this.message,
+  });
 
-  final String message;
+  final String header;
+  final String? message;
 
   @override
   Widget build(BuildContext context) {
@@ -237,15 +242,29 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
         padding: EdgeInsets.only(top: 48),
         child: Align(
           alignment: Alignment.topCenter,
-          // TODO leading and trailing elements, like in Figma (given as SVGs):
-          //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=5957-167736&m=dev
-          child: Text(
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: designVariables.labelSearchPrompt,
-              fontSize: 17,
-              height: 23 / 17,
-            ).merge(weightVariableTextStyle(context, wght: 500)),
-            message))));
+          child: Column(
+            spacing: 16,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            // TODO leading and trailing elements, like in Figma (given as SVGs):
+            //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=5957-167736&m=dev
+            children: [
+              Text(
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: designVariables.labelSearchPrompt,
+                  fontSize: 22,
+                  height: 1.30,
+                ).merge(weightVariableTextStyle(context, wght: 600)),
+                header,
+              ),
+              if (message != null) Text(
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: designVariables.labelSearchPrompt,
+                  fontSize: 17,
+                  height: 23 / 17,
+                ).merge(weightVariableTextStyle(context, wght: 500)),
+                message!),
+            ]))));
   }
 }

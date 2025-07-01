@@ -98,7 +98,7 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     if (pinned.isEmpty && unpinned.isEmpty) {
       return PageBodyEmptyContentPlaceholder(
         // TODO(#188) add e.g. "Go to 'All channels' and join some of them."
-        message: zulipLocalizations.channelsEmptyPlaceholder);
+        header: zulipLocalizations.channelsEmptyPlaceholderHeader);
     }
 
     return SafeArea(
