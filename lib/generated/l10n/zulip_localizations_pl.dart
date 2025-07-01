@@ -444,6 +444,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
+  String get emptyMessageList => 'There are no messages here.';
+
+  @override
   String get messageListGroupYouWithYourself => 'Zapiski na własne konto';
 
   @override

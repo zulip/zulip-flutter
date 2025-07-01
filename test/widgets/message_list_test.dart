@@ -349,6 +349,36 @@ void main() {
     });
   });
 
+  group('no-messages placeholder', () {
+    final findPlaceholder = find.byType(PageBodyEmptyContentPlaceholder);
+
+    testWidgets('Combined feed', (tester) async {
+      await setupMessageListPage(tester, narrow: CombinedFeedNarrow(), messages: []);
+      check(
+        find.descendant(
+          of: findPlaceholder,
+          matching: find.textContaining('There are no messages here.')),
+      ).findsOne();
+    });
+
+    testWidgets('when `messages` empty but `outboxMessages` not empty, show outboxes, not placeholder', (tester) async {
+      final channel = eg.stream();
+      await setupMessageListPage(tester,
+        narrow: TopicNarrow(channel.streamId, eg.t('topic')),
+        streams: [channel],
+        messages: []);
+      check(findPlaceholder).findsOne();
+
+      connection.prepare(json: SendMessageResult(id: 1).toJson());
+      await tester.enterText(contentInputFinder, 'asdfjkl;');
+      await tester.tap(find.byIcon(ZulipIcons.send));
+      await tester.pump(kLocalEchoDebounceDuration);
+
+      check(findPlaceholder).findsNothing();
+      check(find.text('asdfjkl;')).findsOne();
+    });
+  });
+
   group('presents message content appropriately', () {
     testWidgets('content not asked to consume insets (including bottom), even without compose box', (tester) async {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/736

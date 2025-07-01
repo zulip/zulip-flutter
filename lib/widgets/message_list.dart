@@ -859,7 +859,14 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
     if (!model.fetched) return const Center(child: CircularProgressIndicator());
+
+    if (model.items.isEmpty && model.haveNewest && model.haveOldest) {
+      return PageBodyEmptyContentPlaceholder(
+        message: zulipLocalizations.emptyMessageList);
+    }
 
     // Pad the left and right insets, for small devices in landscape.
     return SafeArea(

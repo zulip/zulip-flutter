@@ -213,11 +213,15 @@ class LoadingPlaceholderPage extends StatelessWidget {
   }
 }
 
-/// A "no content here" message, for the Inbox, Subscriptions, and DMs pages.
+/// A "no content here" message for when a page has no content to show.
 ///
-/// This should go near the root of the "page body"'s widget subtree.
-/// In particular, it handles the horizontal device insets.
-/// (The vertical insets are handled externally, by the app bar and bottom nav.)
+/// Suitable for the inbox, the message-list page, etc.
+///
+/// This handles the horizontal device insets
+/// and the bottom inset when needed (in a message list with no compose box).
+/// The top inset is handled externally by the app bar.
+// TODO(#311) If the message list gets a bottom nav, the bottom inset will
+//   always be handled externally too; simplify implementation and dartdoc.
 class PageBodyEmptyContentPlaceholder extends StatelessWidget {
   const PageBodyEmptyContentPlaceholder({super.key, required this.message});
 
@@ -228,9 +232,9 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     return SafeArea(
-      minimum: EdgeInsets.symmetric(horizontal: 24),
+      minimum: EdgeInsets.fromLTRB(24, 0, 24, 16),
       child: Padding(
-        padding: EdgeInsets.only(top: 48, bottom: 16),
+        padding: EdgeInsets.only(top: 48),
         child: Align(
           alignment: Alignment.topCenter,
           // TODO leading and trailing elements, like in Figma (given as SVGs):
