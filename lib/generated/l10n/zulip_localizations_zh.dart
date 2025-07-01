@@ -74,7 +74,7 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get allChannelsPageTitle => 'All channels';
 
   @override
-  String get allChannelsEmptyPlaceholder =>
+  String get allChannelsEmptyPlaceholderHeader =>
       'There are no channels you can view in this organization.';
 
   @override
@@ -911,8 +911,12 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get inboxPageTitle => 'Inbox';
 
   @override
-  String get inboxEmptyPlaceholder =>
-      'There are no unread messages in your inbox. Use the buttons below to view the combined feed or list of channels.';
+  String get inboxEmptyPlaceholderHeader =>
+      'There are no unread messages in your inbox.';
+
+  @override
+  String get inboxEmptyPlaceholderMessage =>
+      'Use the buttons below to view the combined feed or list of channels.';
 
   @override
   String get recentDmConversationsPageTitle => 'Direct messages';
@@ -921,8 +925,12 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get recentDmConversationsSectionHeader => 'Direct messages';
 
   @override
-  String get recentDmConversationsEmptyPlaceholder =>
-      'You have no direct messages yet! Why not start the conversation?';
+  String get recentDmConversationsEmptyPlaceholderHeader =>
+      'You have no direct messages yet!';
+
+  @override
+  String get recentDmConversationsEmptyPlaceholderMessage =>
+      'Why not start a conversation?';
 
   @override
   String get combinedFeedPageTitle => 'Combined feed';
@@ -937,14 +945,12 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get channelsPageTitle => 'Channels';
 
   @override
-  String get channelsEmptyPlaceholder =>
+  String get channelsEmptyPlaceholderHeader =>
       'You’re not subscribed to any channels yet.';
 
   @override
-  String channelsEmptyPlaceholderWithAllChannelsLink(
-    String allChannelsPageTitle,
-  ) {
-    return 'You’re not subscribed to any channels yet. Try going to <z-link>$allChannelsPageTitle</z-link> and joining some of them.';
+  String channelsEmptyPlaceholderMessage(String allChannelsPageTitle) {
+    return 'Try going to <z-link>$allChannelsPageTitle</z-link> and joining some of them.';
   }
 
   @override
@@ -1231,9 +1237,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get allChannelsPageTitle => '所有频道';
-
-  @override
-  String get allChannelsEmptyPlaceholder => '在该组织里你没有可以查看的频道。';
 
   @override
   String get profileButtonSendDirectMessage => '发送私信';
@@ -2025,16 +2028,10 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get inboxPageTitle => '收件箱';
 
   @override
-  String get inboxEmptyPlaceholder => '您的收件箱中没有未读消息。您可以通过底部导航栏访问综合消息或者频道列表。';
-
-  @override
   String get recentDmConversationsPageTitle => '私信';
 
   @override
   String get recentDmConversationsSectionHeader => '私信';
-
-  @override
-  String get recentDmConversationsEmptyPlaceholder => '您还没有任何私信消息！何不开启一个新对话？';
 
   @override
   String get combinedFeedPageTitle => '综合消息';
@@ -2047,16 +2044,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get channelsPageTitle => '频道';
-
-  @override
-  String get channelsEmptyPlaceholder => '您还没有订阅任何频道。';
-
-  @override
-  String channelsEmptyPlaceholderWithAllChannelsLink(
-    String allChannelsPageTitle,
-  ) {
-    return '你还没订阅任何频道。可以访问 <z-link>$allChannelsPageTitle</z-link>然后加入。';
-  }
 
   @override
   String get sharePageTitle => '分享';
@@ -2337,9 +2324,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get allChannelsPageTitle => '所有頻道';
-
-  @override
-  String get allChannelsEmptyPlaceholder => '在此組織中沒有您可以查看的頻道。';
 
   @override
   String get profileButtonSendDirectMessage => '發送私訊';
@@ -3150,16 +3134,10 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get inboxPageTitle => '收件匣';
 
   @override
-  String get inboxEmptyPlaceholder => '您的收件匣中沒有未讀訊息。請使用下方按鈕查看整合訊息流或頻道清單。';
-
-  @override
   String get recentDmConversationsPageTitle => '私人訊息';
 
   @override
   String get recentDmConversationsSectionHeader => '私人訊息';
-
-  @override
-  String get recentDmConversationsEmptyPlaceholder => '您尚未有任何私人訊息！不如開始一段對話吧？';
 
   @override
   String get combinedFeedPageTitle => '綜合饋給';
@@ -3172,16 +3150,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get channelsPageTitle => '頻道';
-
-  @override
-  String get channelsEmptyPlaceholder => '您尚未訂閱任何頻道。';
-
-  @override
-  String channelsEmptyPlaceholderWithAllChannelsLink(
-    String allChannelsPageTitle,
-  ) {
-    return '您尚未訂閱任何頻道。請前往 <z-link>$allChannelsPageTitle</z-link> 並加入一些頻道。';
-  }
 
   @override
   String get sharePageTitle => '分享';

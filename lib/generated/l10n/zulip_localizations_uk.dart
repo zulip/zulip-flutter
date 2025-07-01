@@ -74,8 +74,8 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get allChannelsPageTitle => 'Усі канали';
 
   @override
-  String get allChannelsEmptyPlaceholder =>
-      'У цій організації немає каналів, які ви можете переглянути.';
+  String get allChannelsEmptyPlaceholderHeader =>
+      'There are no channels you can view in this organization.';
 
   @override
   String get profileButtonSendDirectMessage =>
@@ -928,8 +928,12 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get inboxPageTitle => 'Вхідні';
 
   @override
-  String get inboxEmptyPlaceholder =>
-      'Немає непрочитаних вхідних повідомлень. Використовуйте кнопки знизу для перегляду обʼєднаної стрічки або списку каналів.';
+  String get inboxEmptyPlaceholderHeader =>
+      'There are no unread messages in your inbox.';
+
+  @override
+  String get inboxEmptyPlaceholderMessage =>
+      'Use the buttons below to view the combined feed or list of channels.';
 
   @override
   String get recentDmConversationsPageTitle => 'Особисті повідомлення';
@@ -938,8 +942,12 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get recentDmConversationsSectionHeader => 'Особисті повідомлення';
 
   @override
-  String get recentDmConversationsEmptyPlaceholder =>
-      'У вас поки що немає особистих повідомлень! Чому б не розпочати бесіду?';
+  String get recentDmConversationsEmptyPlaceholderHeader =>
+      'You have no direct messages yet!';
+
+  @override
+  String get recentDmConversationsEmptyPlaceholderMessage =>
+      'Why not start a conversation?';
 
   @override
   String get combinedFeedPageTitle => 'Об\'єднана стрічка';
@@ -954,13 +962,12 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get channelsPageTitle => 'Канали';
 
   @override
-  String get channelsEmptyPlaceholder => 'Ви ще не підписані на жодний канал.';
+  String get channelsEmptyPlaceholderHeader =>
+      'You’re not subscribed to any channels yet.';
 
   @override
-  String channelsEmptyPlaceholderWithAllChannelsLink(
-    String allChannelsPageTitle,
-  ) {
-    return 'Ви ще не підписані на жодний канал. Спробуйте перейти за посиланням <z-link>$allChannelsPageTitle</z-link> та приєднатися до деяких із них.';
+  String channelsEmptyPlaceholderMessage(String allChannelsPageTitle) {
+    return 'Try going to <z-link>$allChannelsPageTitle</z-link> and joining some of them.';
   }
 
   @override

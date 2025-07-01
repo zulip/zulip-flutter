@@ -216,6 +216,8 @@ class LoadingPlaceholderPage extends StatelessWidget {
 ///
 /// Suitable for the inbox, the message-list page, etc.
 ///
+/// Specify a header and optionally a message.
+///
 /// This handles the horizontal device insets
 /// and the bottom inset when needed (in a message list with no compose box).
 /// The top inset is handled externally by the app bar.
@@ -228,16 +230,46 @@ class LoadingPlaceholderPage extends StatelessWidget {
 class PageBodyEmptyContentPlaceholder extends StatelessWidget {
   const PageBodyEmptyContentPlaceholder({
     super.key,
+    this.header,
+    this.headerWithLinkMarkup,
+    this.onTapHeaderLink,
     this.message,
     this.messageWithLinkMarkup,
-    this.onTapLink,
+    this.onTapMessageLink,
   }) : assert(
-         (message != null)
-         ^ (messageWithLinkMarkup != null && onTapLink != null));
+         (header != null)
+         ^ (headerWithLinkMarkup != null && onTapHeaderLink != null));
 
+  final String? header;
+  final String? headerWithLinkMarkup;
+  final VoidCallback? onTapHeaderLink;
   final String? message;
   final String? messageWithLinkMarkup;
-  final VoidCallback? onTapLink;
+  final VoidCallback? onTapMessageLink;
+
+  TextStyle _headerStyle(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    return TextStyle(
+      color: designVariables.labelSearchPrompt,
+      fontSize: 22,
+      height: 1.30,
+    ).merge(weightVariableTextStyle(context, wght: 600));
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    if (header != null) {
+      return Text(
+        textAlign: TextAlign.center,
+        style: _headerStyle(context),
+        header!);
+    }
+    return TextWithLink(
+      onTap: onTapHeaderLink!,
+      textAlign: TextAlign.center,
+      style: _headerStyle(context),
+      markup: headerWithLinkMarkup!);
+  }
 
   TextStyle _messageStyle(BuildContext context) {
     final designVariables = DesignVariables.of(context);
@@ -258,25 +290,33 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
     }
     if (messageWithLinkMarkup != null) {
       return TextWithLink(
-        onTap: onTapLink!,
+        onTap: onTapMessageLink!,
         textAlign: TextAlign.center,
         style: _messageStyle(context),
         markup: messageWithLinkMarkup!);
     }
-    assert(false);
     return null;
   }
 
   @override
   Widget build(BuildContext context) {
+    final header = _buildHeader(context);
+    final message = _buildMessage(context);
+
     return SafeArea(
       minimum: EdgeInsets.fromLTRB(24, 0, 24, 16),
       child: Padding(
         padding: EdgeInsets.only(top: 48),
         child: Align(
           alignment: Alignment.topCenter,
-          // TODO leading and trailing elements, like in Figma (given as SVGs):
-          //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=5957-167736&m=dev
-          child: _buildMessage(context))));
+          child: Column(
+            spacing: 16,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // TODO leading and trailing elements, like in Figma (given as SVGs):
+              //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=5957-167736&m=dev
+              header,
+              ?message,
+            ]))));
   }
 }

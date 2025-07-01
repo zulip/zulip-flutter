@@ -73,8 +73,8 @@ void main() {
   group('RecentDmConversationsPage', () {
     testWidgets('appearance when empty', (tester) async {
       await setupPage(tester, users: [], dmMessages: []);
-      check(find.text('You have no direct messages yet! Why not start the conversation?'))
-        .findsOne();
+      check(find.text('You have no direct messages yet!')).findsOne();
+      check(find.text('Why not start a conversation?')).findsOne();
     });
 
     testWidgets('page builds; conversations appear in order', (tester) async {
