@@ -326,6 +326,17 @@ void main() {
     });
   });
 
+  group('no-messages placeholder', () {
+    testWidgets('Combined feed', (tester) async {
+      await setupMessageListPage(tester, narrow: CombinedFeedNarrow(), messages: []);
+      check(
+        find.descendant(
+          of: find.byType(PageBodyEmptyContentPlaceholder),
+          matching: find.textContaining('There are no messages here.')),
+      ).findsOne();
+    });
+  });
+
   group('presents message content appropriately', () {
     testWidgets('content not asked to consume insets (including bottom), even without compose box', (tester) async {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/736

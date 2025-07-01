@@ -530,6 +530,10 @@
       "others": {"type": "String", "example": "Alice, Bob"}
     }
   },
+  "emptyMessageList": "There are no messages here.",
+  "@emptyMessageList": {
+    "description": "Placeholder for some message-list pages when there are no messages."
+  },
   "messageListGroupYouWithYourself": "Messages with yourself",
   "@messageListGroupYouWithYourself": {
     "description": "Message list recipient header for a DM group that only includes yourself."

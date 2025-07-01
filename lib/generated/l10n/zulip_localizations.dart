@@ -845,6 +845,12 @@ abstract class ZulipLocalizations {
   /// **'DMs with {others}'**
   String dmsWithOthersPageTitle(String others);
 
+  /// Placeholder for some message-list pages when there are no messages.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no messages here.'**
+  String get emptyMessageList;
+
   /// Message list recipient header for a DM group that only includes yourself.
   ///
   /// In en, this message translates to:
