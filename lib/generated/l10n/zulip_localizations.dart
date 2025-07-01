@@ -1598,6 +1598,30 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Zulip'**
   String get zulipAppTitle;
+
+  /// Header for an error screen explaining that content could not be displayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Error displaying content'**
+  String get errorUnimplementedHeader;
+
+  /// Label for explaining what happened in an error screen.
+  ///
+  /// In en, this message translates to:
+  /// **'What Happened?'**
+  String get errorUnimplementedWhatHappened;
+
+  /// Detailed description of an error that explains why content could not be displayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Zulip is primarily a desktop-oriented app, where messages are received and displayed in HTML format as-is. However, on the mobile app, HTML must be converted into a format called ContentNode in order to display messages properly. This error occurred because the received HTML could not be converted into a ContentNode.'**
+  String get errorUnimplementedDescription;
+
+  /// Heading for HTML section in an error screen.
+  ///
+  /// In en, this message translates to:
+  /// **'HTML'**
+  String get errorUnimplementedHtmlHeading;
 }
 
 class _ZulipLocalizationsDelegate

@@ -871,6 +871,19 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
 
   @override
   String get zulipAppTitle => 'Zulip';
+
+  @override
+  String get errorUnimplementedHeader => 'Error displaying content';
+
+  @override
+  String get errorUnimplementedWhatHappened => 'What Happened?';
+
+  @override
+  String get errorUnimplementedDescription =>
+      'Zulip is primarily a desktop-oriented app, where messages are received and displayed in HTML format as-is. However, on the mobile app, HTML must be converted into a format called ContentNode in order to display messages properly. This error occurred because the received HTML could not be converted into a ContentNode.';
+
+  @override
+  String get errorUnimplementedHtmlHeading => 'HTML';
 }
 
 /// The translations for Chinese, as used in China, using the Han script (`zh_Hans_CN`).

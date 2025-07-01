@@ -1070,5 +1070,21 @@
   "zulipAppTitle": "Zulip",
   "@zulipAppTitle": {
     "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
+  },
+  "errorUnimplementedHeader": "Error displaying content",
+  "errorUnimplementedWhatHappened": "What Happened?",
+  "errorUnimplementedDescription": "Zulip is primarily a desktop-oriented app, where messages are received and displayed in HTML format as-is. However, on the mobile app, HTML must be converted into a format called ContentNode in order to display messages properly. This error occurred because the received HTML could not be converted into a ContentNode.",
+  "errorUnimplementedHtmlHeading": "HTML",
+  "@errorUnimplementedHeader": {
+    "description": "Header for an error screen explaining that content could not be displayed."
+  },
+  "@errorUnimplementedWhatHappened": {
+    "description": "Label for explaining what happened in an error screen."
+  },
+  "@errorUnimplementedDescription": {
+    "description": "Detailed description of an error that explains why content could not be displayed."
+  },
+  "@errorUnimplementedHtmlHeading": {
+    "description": "Heading for HTML section in an error screen."
   }
 }
