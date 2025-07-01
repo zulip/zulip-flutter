@@ -528,16 +528,29 @@ class ListNodeWidget extends StatelessWidget {
   }
 }
 
-class Spoiler extends StatefulWidget {
-  const Spoiler({super.key, required this.node});
+class Modal extends StatefulWidget {
+  const Modal({
+    super.key,
+    required this.header,
+    required this.content,
+    required this.borderColor,
+    required this.expandIconColor,
+    this.bgColor,
+    this.textColor,
+  });
 
-  final SpoilerNode node;
+  final List<BlockContentNode> header;
+  final List<BlockContentNode> content;
+  final Color borderColor;
+  final Color expandIconColor;
+  final Color? bgColor;
+  final Color? textColor;
 
   @override
-  State<Spoiler> createState() => _SpoilerState();
+  State<Modal> createState() => _ModalState();
 }
 
-class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
+class _ModalState extends State<Modal> with TickerProviderStateMixin {
   bool expanded = false;
 
   late final AnimationController _controller = AnimationController(
@@ -565,56 +578,73 @@ class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    final header = widget.node.header;
-    final effectiveHeader = header.isNotEmpty
-      ? header
-      : [ParagraphNode(links: null,
-           nodes: [TextNode(zulipLocalizations.spoilerDefaultHeaderText)])];
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 5, 0, 15),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          // Web has the same color in light and dark mode.
-          border: Border.all(color: const Color(0xff808080)),
+          border: Border.all(color: widget.borderColor),
+          color: widget.bgColor,
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(10, 2, 8, 2),
-          child: Column(
-            children: [
-              GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: _handleTap,
-                child: Padding(
-                  padding: const EdgeInsets.all(5),
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                    Expanded(
-                      child: DefaultTextStyle.merge(
-                        style: weightVariableTextStyle(context, wght: 700),
-                        child: BlockContentList(
-                          nodes: effectiveHeader))),
-                    RotationTransition(
-                      turns: _animation.drive(Tween(begin: 0, end: 0.5)),
-                      // Web has the same color in light and dark mode.
-                      child: const Icon(color: Color(0xffd4d4d4), size: 25,
-                        Icons.expand_more)),
-                  ]))),
-              FadeTransition(
-                opacity: _animation,
-                child: const SizedBox(height: 0, width: double.infinity,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        // Web has the same color in light and dark mode.
-                        bottom: BorderSide(width: 1, color: Color(0xff808080))))))),
-              SizeTransition(
-                sizeFactor: _animation,
-                axis: Axis.vertical,
-                axisAlignment: -1,
-                child: Padding(
-                  padding: const EdgeInsets.all(5),
-                  child: BlockContentList(nodes: widget.node.content))),
-            ]))));
+        child: DefaultTextStyle.merge(
+          style: TextStyle(color: widget.textColor),
+          child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(10, 2, 8, 2),
+            child: Column(
+              children: [
+                GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: _handleTap,
+                  child: Padding(
+                    padding: const EdgeInsets.all(5),
+                    child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                      Expanded(
+                        child: DefaultTextStyle.merge(
+                          style: weightVariableTextStyle(context, wght: 700),
+                          child: BlockContentList(
+                            nodes: widget.header))),
+                      RotationTransition(
+                        turns: _animation.drive(Tween(begin: 0, end: 0.5)),
+                        child: Icon(color: widget.expandIconColor, size: 25,
+                          Icons.expand_more)),
+                    ]))),
+                FadeTransition(
+                  opacity: _animation,
+                  child: SizedBox(height: 0, width: double.infinity,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(width: 1, color: widget.borderColor)))))),
+                SizeTransition(
+                  sizeFactor: _animation,
+                  axis: Axis.vertical,
+                  axisAlignment: -1,
+                  child: Padding(
+                    padding: const EdgeInsets.all(5),
+                    child: BlockContentList(nodes: widget.content))),
+              ])),
+        )));
+  }
+}
+
+class Spoiler extends StatelessWidget {
+  const Spoiler({super.key, required this.node});
+
+  final SpoilerNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final header = node.header;
+    final effectiveHeader = header.isNotEmpty
+      ? header
+      : [ParagraphNode(links: null,
+           nodes: [TextNode(zulipLocalizations.spoilerDefaultHeaderText)])];
+    return Modal(
+      header: effectiveHeader,
+      content: node.content,
+      borderColor: const Color(0xff808080), // Web has the same color in light and dark mode.
+      expandIconColor: const Color(0xffd4d4d4), // Web has the same color in light and dark mode.
+    );
   }
 }
 
