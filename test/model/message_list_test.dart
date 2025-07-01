@@ -2627,7 +2627,7 @@ void main() {
     }));
   });
 
-  test('recipient headers are maintained consistently', () => awaitFakeAsync((async) async {
+  test('recipient headers are maintained consistently (Combined feed)', () => awaitFakeAsync((async) async {
     // TODO test date separators are maintained consistently too
     // This tests the code that maintains the invariant that recipient headers
     // are present just where they're required.
@@ -2648,7 +2648,7 @@ void main() {
       eg.dmMessage(id: id, from: eg.selfUser, to: [], timestamp: timestamp);
 
     // First, test fetchInitial, where some headers are needed and others not.
-    await prepare();
+    await prepare(narrow: CombinedFeedNarrow());
     connection.prepare(json: newestResult(
       foundOldest: false,
       messages: [streamMessage(10), streamMessage(11), dmMessage(12)],
