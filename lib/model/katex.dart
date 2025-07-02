@@ -275,8 +275,13 @@ class _KatexParser {
         //   .mspace .
 
         case 'mspace':
-          // .mspace { ... }
-          // Do nothing, it has properties that don't need special handling.
+          // .mspace { display: inline-block; }
+          // A .mspace span's children are always either empty,
+          // a no-break space " " (== "\xa0"),
+          // or one span.mtight containing a no-break space.
+          // TODO enforce that constraint on .mspace spans in parsing
+          // So `display: inline-block` has no effect compared to
+          // the initial `display: inline`.
           break;
 
         // TODO handle skipped class declarations between .mspace and
