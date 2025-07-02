@@ -3001,7 +3001,9 @@ void checkInvariants(MessageListView model) {
   final allMessages = [...model.messages, ...model.outboxMessages];
 
   for (final message in allMessages) {
-    check(model.narrow.containsMessage(message)).isTrue();
+    check(model.narrow.containsMessage(message))
+      .isNotNull() // TODO allow/expect null if narrow is a search narrow.
+      .isTrue();
 
     if (message is! MessageBase<StreamConversation>) continue;
     final conversation = message.conversation;

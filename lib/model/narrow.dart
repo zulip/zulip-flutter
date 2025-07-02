@@ -19,7 +19,10 @@ sealed class Narrow {
   /// This does not necessarily mean the message list would show this message
   /// when navigated to this narrow; in particular it does not address the
   /// question of whether the stream or topic, or the sending user, is muted.
-  bool containsMessage(MessageBase message);
+  ///
+  /// Null when the client is unable to predict whether the message
+  /// satisfies the filters of this narrow, e.g. when this is a search narrow.
+  bool? containsMessage(MessageBase message);
 
   /// This narrow, expressed as an [ApiNarrow].
   ApiNarrow apiEncode();

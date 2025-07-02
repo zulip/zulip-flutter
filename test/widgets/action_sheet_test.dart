@@ -63,7 +63,8 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   Future<void> Function()? beforeLongPress,
 }) async {
   addTearDown(testBinding.reset);
-  assert(narrow.containsMessage(message));
+  // TODO(#1667) will be null in a search narrow; remove `!`.
+  assert(narrow.containsMessage(message)!);
 
   await testBinding.globalStore.add(
     eg.selfAccount,

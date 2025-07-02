@@ -587,7 +587,7 @@ class MessageListAppBarTitle extends StatelessWidget {
                 // either still fetching messages (and the user can reopen the
                 // sheet after that finishes) or there aren't any messages to
                 // act on anyway.
-                assert(someMessage == null || narrow.containsMessage(someMessage));
+                assert(someMessage == null || narrow.containsMessage(someMessage)!);
                 showTopicActionSheet(context,
                   channelId: streamId,
                   topic: topic,

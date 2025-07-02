@@ -939,7 +939,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   bool _shouldAddOutboxMessage(OutboxMessage outboxMessage) {
     assert(haveNewest);
     return !outboxMessage.hidden
-      && narrow.containsMessage(outboxMessage)
+      && narrow.containsMessage(outboxMessage) == true
       && _messageVisible(outboxMessage);
   }
 
@@ -1026,7 +1026,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// Add [MessageEvent.message] to this view, if it belongs here.
   void handleMessageEvent(MessageEvent event) {
     final message = event.message;
-    if (!narrow.containsMessage(message) || !_messageVisible(message)) {
+    if (narrow.containsMessage(message) != true || !_messageVisible(message)) {
       assert(event.localMessageId == null || outboxMessages.none((message) =>
         message.localMessageId == int.parse(event.localMessageId!, radix: 10)));
       return;

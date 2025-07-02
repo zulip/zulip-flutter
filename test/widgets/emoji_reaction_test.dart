@@ -330,7 +330,8 @@ void main() {
       required Narrow narrow,
     }) async {
       addTearDown(testBinding.reset);
-      assert(narrow.containsMessage(message));
+      // TODO(#1667) will be null in a search narrow; remove `!`.
+      assert(narrow.containsMessage(message)!);
 
       final httpClient = FakeImageHttpClient();
       debugNetworkImageHttpClientProvider = () => httpClient;

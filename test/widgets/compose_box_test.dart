@@ -1702,7 +1702,10 @@ void main() {
 
     Message msgInNarrow(Narrow narrow) {
       final List<Message> messages = [message, dmMessage];
-      return messages.where((m) => narrow.containsMessage(m)).single;
+      return messages.where(
+        // TODO(#1667) will be null in a search narrow; remove `!`.
+        (m) => narrow.containsMessage(m)!
+      ).single;
     }
 
     int msgIdInNarrow(Narrow narrow) => msgInNarrow(narrow).id;
