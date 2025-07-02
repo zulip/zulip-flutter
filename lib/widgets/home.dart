@@ -267,7 +267,7 @@ void _showMainMenu(BuildContext context, {
   required ValueNotifier<_HomePageTab> tabNotifier,
 }) {
   final menuItems = <Widget>[
-    // TODO(#252): Search
+    const _SearchButton(),
     // const SizedBox(height: 8),
     _InboxButton(tabNotifier: tabNotifier),
     // TODO: Recent conversations
@@ -424,6 +424,24 @@ abstract class _NavigationBarMenuButton extends _MenuButton {
   @override
   void onPressed(BuildContext context) {
     tabNotifier.value = navigationTarget;
+  }
+}
+
+class _SearchButton extends _MenuButton {
+  const _SearchButton();
+
+  @override
+  IconData get icon => ZulipIcons.search;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.searchMessagesPageTitle;
+  }
+
+  @override
+  void onPressed(BuildContext context) {
+    Navigator.of(context).push(MessageListPage.buildRoute(
+      context: context, narrow: KeywordSearchNarrow('')));
   }
 }
 

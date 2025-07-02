@@ -3007,9 +3007,10 @@ void checkInvariants(MessageListView model) {
   final allMessages = [...model.messages, ...model.outboxMessages];
 
   for (final message in allMessages) {
-    check(model.narrow.containsMessage(message))
-      .isNotNull() // TODO allow/expect null if narrow is a search narrow.
-      .isTrue();
+    check(model.narrow.containsMessage(message)).anyOf(<Condition<bool?>>[
+      (it) => it.isNull(),
+      (it) => it.isNotNull().isTrue(),
+    ]);
 
     if (message is! MessageBase<StreamConversation>) continue;
     final conversation = message.conversation;
@@ -3024,6 +3025,7 @@ void checkInvariants(MessageListView model) {
       case DmNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
+      case KeywordSearchNarrow():
     }
   }
 

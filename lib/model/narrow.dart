@@ -368,3 +368,31 @@ class StarredMessagesNarrow extends Narrow {
   @override
   int get hashCode => 'StarredMessagesNarrow'.hashCode;
 }
+
+/// A keyword-search narrow.
+///
+/// [keyword] must have been trimmed with [String.trim].
+class KeywordSearchNarrow extends Narrow {
+  KeywordSearchNarrow(this.keyword)
+    : assert(keyword.trim() == keyword);
+
+  final String keyword;
+
+  @override
+  bool? containsMessage(MessageBase message) => null;
+
+  @override
+  ApiNarrow apiEncode() => [ApiNarrowSearch(keyword)];
+
+  @override
+  String toString() => 'KeywordSearchNarrow($keyword)';
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! KeywordSearchNarrow) return false;
+    return other.keyword == keyword;
+  }
+
+  @override
+  int get hashCode => Object.hash('KeywordSearchNarrow', keyword);
+}

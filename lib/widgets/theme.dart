@@ -186,6 +186,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     title: const Color(0xff1a1a1a),
     bgSearchInput: const Color(0xffe3e3e3),
     textMessage: const Color(0xff262626),
+    textMessageMuted: const Color(0xff262626).withValues(alpha: 0.6),
     channelColorSwatches: ChannelColorSwatches.light,
     avatarPlaceholderBg: const Color(0x33808080),
     avatarPlaceholderIcon: Colors.black.withValues(alpha: 0.5),
@@ -264,6 +265,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     title: const Color(0xffffffff).withValues(alpha: 0.9),
     bgSearchInput: const Color(0xff313131),
     textMessage: const Color(0xffffffff).withValues(alpha: 0.8),
+    textMessageMuted: const Color(0xffffffff).withValues(alpha: 0.5),
     channelColorSwatches: ChannelColorSwatches.dark,
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
     avatarPlaceholderBg: const Color(0x33cccccc),
@@ -346,6 +348,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.title,
     required this.bgSearchInput,
     required this.textMessage,
+    required this.textMessageMuted,
     required this.channelColorSwatches,
     required this.avatarPlaceholderBg,
     required this.avatarPlaceholderIcon,
@@ -429,6 +432,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color title;
   final Color bgSearchInput;
   final Color textMessage;
+  final Color textMessageMuted;
 
   // Not exactly from the Figma design, but from Vlad anyway.
   final ChannelColorSwatches channelColorSwatches;
@@ -507,6 +511,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? title,
     Color? bgSearchInput,
     Color? textMessage,
+    Color? textMessageMuted,
     ChannelColorSwatches? channelColorSwatches,
     Color? avatarPlaceholderBg,
     Color? avatarPlaceholderIcon,
@@ -580,6 +585,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       title: title ?? this.title,
       bgSearchInput: bgSearchInput ?? this.bgSearchInput,
       textMessage: textMessage ?? this.textMessage,
+      textMessageMuted: textMessageMuted ?? this.textMessageMuted,
       channelColorSwatches: channelColorSwatches ?? this.channelColorSwatches,
       avatarPlaceholderBg: avatarPlaceholderBg ?? this.avatarPlaceholderBg,
       avatarPlaceholderIcon: avatarPlaceholderIcon ?? this.avatarPlaceholderIcon,
@@ -660,6 +666,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       title: Color.lerp(title, other.title, t)!,
       bgSearchInput: Color.lerp(bgSearchInput, other.bgSearchInput, t)!,
       textMessage: Color.lerp(textMessage, other.textMessage, t)!,
+      textMessageMuted: Color.lerp(textMessageMuted, other.textMessageMuted, t)!,
       channelColorSwatches: ChannelColorSwatches.lerp(channelColorSwatches, other.channelColorSwatches, t),
       avatarPlaceholderBg: Color.lerp(avatarPlaceholderBg, other.avatarPlaceholderBg, t)!,
       avatarPlaceholderIcon: Color.lerp(avatarPlaceholderIcon, other.avatarPlaceholderIcon, t)!,

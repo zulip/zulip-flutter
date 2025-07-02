@@ -438,6 +438,9 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
   String get emptyMessageList => 'There are no messages here.';
 
   @override
+  String get emptyMessageListSearch => 'No search results.';
+
+  @override
   String get messageListGroupYouWithYourself => 'Messages with yourself';
 
   @override
@@ -649,6 +652,15 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
 
   @override
   String get userRoleUnknown => 'Unknown';
+
+  @override
+  String get searchMessagesPageTitle => 'Search';
+
+  @override
+  String get searchMessagesHintText => 'Search';
+
+  @override
+  String get searchMessagesClearButtonTooltip => 'Clear';
 
   @override
   String get inboxPageTitle => 'Inbox';

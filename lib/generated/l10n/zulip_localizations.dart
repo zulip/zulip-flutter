@@ -851,6 +851,12 @@ abstract class ZulipLocalizations {
   /// **'There are no messages here.'**
   String get emptyMessageList;
 
+  /// Placeholder for the 'Search' page when there are no messages.
+  ///
+  /// In en, this message translates to:
+  /// **'No search results.'**
+  String get emptyMessageListSearch;
+
   /// Message list recipient header for a DM group that only includes yourself.
   ///
   /// In en, this message translates to:
@@ -1202,6 +1208,24 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Unknown'**
   String get userRoleUnknown;
+
+  /// Page title for the 'Search' message view.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get searchMessagesPageTitle;
+
+  /// Hint text for the message search text field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get searchMessagesHintText;
+
+  /// Tooltip for the 'x' button in the search text field.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get searchMessagesClearButtonTooltip;
 
   /// Title for the page with unreads.
   ///

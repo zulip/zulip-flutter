@@ -197,6 +197,9 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   // TODO: Implement unreads handling.
   int countInStarredMessagesNarrow() => 0;
 
+  // TODO: Implement unreads handling?
+  int countInKeywordSearchNarrow() => 0;
+
   int countInNarrow(Narrow narrow) {
     switch (narrow) {
       case CombinedFeedNarrow():
@@ -211,6 +214,8 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
         return countInMentionsNarrow();
       case StarredMessagesNarrow():
         return countInStarredMessagesNarrow();
+      case KeywordSearchNarrow():
+        return countInKeywordSearchNarrow();
     }
   }
 

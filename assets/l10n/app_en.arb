@@ -534,6 +534,10 @@
   "@emptyMessageList": {
     "description": "Placeholder for some message-list pages when there are no messages."
   },
+  "emptyMessageListSearch": "No search results.",
+  "@emptyMessageListSearch": {
+    "description": "Placeholder for the 'Search' page when there are no messages."
+  },
   "messageListGroupYouWithYourself": "Messages with yourself",
   "@messageListGroupYouWithYourself": {
     "description": "Message list recipient header for a DM group that only includes yourself."
@@ -792,6 +796,18 @@
   "userRoleUnknown": "Unknown",
   "@userRoleUnknown": {
     "description": "Label for UserRole.unknown"
+  },
+  "searchMessagesPageTitle": "Search",
+  "@searchMessagesPageTitle": {
+    "description": "Page title for the 'Search' message view."
+  },
+  "searchMessagesHintText": "Search",
+  "@searchMessagesHintText": {
+    "description": "Hint text for the message search text field."
+  },
+  "searchMessagesClearButtonTooltip": "Clear",
+  "@searchMessagesClearButtonTooltip": {
+    "description": "Tooltip for the 'x' button in the search text field."
   },
   "inboxPageTitle": "Inbox",
   "@inboxPageTitle": {

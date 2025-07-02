@@ -654,7 +654,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       || TopicNarrow()
       || DmNarrow() => false,
     MentionsNarrow()
-      || StarredMessagesNarrow() => true,
+      || StarredMessagesNarrow()
+      || KeywordSearchNarrow() => true,
   };
 
   /// Whether [message] should actually appear in this message list,
@@ -683,6 +684,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case DmNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
+      case KeywordSearchNarrow():
         return true;
     }
   }
@@ -702,6 +704,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case DmNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
+      case KeywordSearchNarrow():
         return VisibilityEffect.none;
     }
   }
@@ -719,6 +722,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case DmNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
+      case KeywordSearchNarrow():
         return true;
     }
   }
@@ -734,6 +738,17 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   Future<void> fetchInitial() async {
     assert(!fetched && !haveOldest && !haveNewest && !busyFetchingMore);
     assert(messages.isEmpty && contents.isEmpty);
+
+    if (narrow case KeywordSearchNarrow(keyword: '')) {
+      // The server would reject an empty keyword search; skip the request.
+      // TODO this seems like an awkward layer to handle this at --
+      //   probably better if the UI code doesn't take it to this point.
+      _haveOldest = true;
+      _haveNewest = true;
+      _setStatus(FetchingStatus.idle, was: FetchingStatus.unstarted);
+      return;
+    }
+
     _setStatus(FetchingStatus.fetchInitial, was: FetchingStatus.unstarted);
     // TODO schedule all this in another isolate
     final generation = this.generation;
@@ -1135,6 +1150,13 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         // TODO(#1255): … except they may have become muted or not.
         //   We'll handle that at the same time as we handle muting itself changing.
         // Recipient headers, and downstream of those, may change, though.
+        _messagesMovedInternally(messageIds);
+
+      case KeywordSearchNarrow():
+        // This might not be quite true, since matches can be determined by
+        // the topic alone, and topics change. Punt on trying to add/remove
+        // messages, though, because we aren't equipped to evaluate the match
+        // without asking the server.
         _messagesMovedInternally(messageIds);
 
       case ChannelNarrow(:final streamId):

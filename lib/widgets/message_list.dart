@@ -284,7 +284,9 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
   @override
   Widget build(BuildContext context) {
     final Anchor initAnchor;
-    if (widget.initAnchorMessageId != null) {
+    if (narrow is KeywordSearchNarrow) {
+      initAnchor = AnchorCode.newest;
+    } else if (widget.initAnchorMessageId != null) {
       initAnchor = NumericAnchor(widget.initAnchorMessageId!);
     } else {
       final globalSettings = GlobalStoreWidget.settingsOf(context);
@@ -364,6 +366,7 @@ abstract class _MessageListAppBar {
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
+      case KeywordSearchNarrow():
         appBarBackgroundColor = null; // i.e., inherit
 
       case ChannelNarrow(:final streamId):
@@ -387,6 +390,7 @@ abstract class _MessageListAppBar {
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
+      case KeywordSearchNarrow():
       case DmNarrow():
         break;
       case ChannelNarrow(:final streamId):
@@ -402,6 +406,14 @@ abstract class _MessageListAppBar {
     }
 
     return ZulipAppBar(
+      centerTitle: switch (narrow) {
+        CombinedFeedNarrow() || ChannelNarrow()
+            || TopicNarrow() || DmNarrow()
+            || MentionsNarrow() || StarredMessagesNarrow()
+          => null,
+        KeywordSearchNarrow()
+          => false,
+      },
       buildTitle: (willCenterTitle) =>
         MessageListAppBarTitle(narrow: narrow, willCenterTitle: willCenterTitle),
       actions: actions,
@@ -607,9 +619,101 @@ class MessageListAppBarTitle extends StatelessWidget {
           return Text(
             zulipLocalizations.dmsWithOthersPageTitle(names.join(', ')));
         }
+
+      case KeywordSearchNarrow():
+        assert(!willCenterTitle);
+        return _SearchBar(onSubmitted: (narrow) {
+          MessageListPage.ancestorOf(context).model!.renarrowAndFetch(narrow);
+        });
     }
   }
 }
+
+class _SearchBar extends StatefulWidget {
+  const _SearchBar({required this.onSubmitted});
+
+  final void Function(KeywordSearchNarrow) onSubmitted;
+
+  @override
+  State<_SearchBar> createState() => _SearchBarState();
+}
+
+class _SearchBarState extends State<_SearchBar> {
+  late TextEditingController _controller;
+
+  static KeywordSearchNarrow _valueToNarrow(String value) =>
+    KeywordSearchNarrow(value.trim());
+
+  @override
+  void initState() {
+    _controller = TextEditingController();
+    super.initState();
+  }
+
+  void _handleSubmitted(String value) {
+    widget.onSubmitted(_valueToNarrow(value));
+  }
+
+  void _clearInput() {
+    _controller.clear();
+    _handleSubmitted('');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    return TextField(
+      controller: _controller,
+      autocorrect: false,
+
+      // Servers as of 2025-07 seem to require straight quotes for the
+      // "exact match"- style query. (N.B. the doc says this param is iOS-only.)
+      smartQuotesType: SmartQuotesType.disabled,
+
+      autofocus: true,
+      onSubmitted: _handleSubmitted,
+      cursorColor: designVariables.textInput,
+      style: TextStyle(
+        color: designVariables.textInput,
+        fontSize: 19,
+        height: 28 / 19,
+      ),
+      textInputAction: TextInputAction.search,
+      decoration: InputDecoration(
+        isDense: true,
+        hintText: zulipLocalizations.searchMessagesHintText,
+        hintStyle: TextStyle(color: designVariables.labelSearchPrompt),
+        prefixIcon: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 0, 8),
+          child: Icon(size: 24, ZulipIcons.search)),
+        prefixIconColor: designVariables.labelSearchPrompt,
+        prefixIconConstraints: BoxConstraints(),
+        suffixIcon: IconButton(
+          tooltip: zulipLocalizations.searchMessagesClearButtonTooltip,
+          onPressed: _clearInput,
+          // This and `suffixIconConstraints` allow 42px square touch target.
+          visualDensity: VisualDensity.compact,
+          highlightColor: Colors.transparent,
+          style: ButtonStyle(
+            padding: WidgetStatePropertyAll(EdgeInsets.zero),
+            splashFactory: NoSplash.splashFactory,
+          ),
+          iconSize: 24,
+          icon: Icon(ZulipIcons.remove)),
+        suffixIconColor: designVariables.textMessageMuted,
+        suffixIconConstraints: BoxConstraints(minWidth: 42, minHeight: 42),
+        contentPadding: const EdgeInsetsDirectional.symmetric(vertical: 7),
+        filled: true,
+        fillColor: designVariables.bgSearchInput,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide.none),
+      ));
+  }
+}
+
 
 /// The approximate height of a short message in the message list.
 const _kShortMessageHeight = 80;
@@ -880,8 +984,14 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     if (!model.fetched) return const Center(child: CircularProgressIndicator());
 
     if (model.items.isEmpty && model.haveNewest && model.haveOldest) {
-      return PageBodyEmptyContentPlaceholder(
-        message: zulipLocalizations.emptyMessageList);
+      final String message;
+      if (widget.narrow is KeywordSearchNarrow) {
+        message = zulipLocalizations.emptyMessageListSearch;
+      } else {
+        message = zulipLocalizations.emptyMessageList;
+      }
+
+      return PageBodyEmptyContentPlaceholder(message: message);
     }
 
     // Pad the left and right insets, for small devices in landscape.
@@ -1261,15 +1371,15 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
     final unreadCount = store.unreads.countInNarrow(widget.narrow);
-    final areMessagesRead = unreadCount == 0;
+    final shouldHide = unreadCount == 0;
 
     final messageListTheme = MessageListTheme.of(context);
 
     return IgnorePointer(
-      ignoring: areMessagesRead,
+      ignoring: shouldHide,
       child: MarkAsReadAnimation(
         loading: _loading,
-        hidden: areMessagesRead,
+        hidden: shouldHide,
         child: SizedBox(width: double.infinity,
           // Design referenced from:
           //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=132-9684&mode=design&t=jJwHzloKJ0TMOG4M-0
@@ -1501,6 +1611,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
+      case KeywordSearchNarrow():
         return true;
 
       case ChannelNarrow():
@@ -1920,7 +2031,8 @@ class MessageWithPossibleSender extends StatelessWidget {
         || TopicNarrow()
         || DmNarrow() => false,
       MentionsNarrow()
-        || StarredMessagesNarrow() => true,
+        || StarredMessagesNarrow()
+        || KeywordSearchNarrow() => true,
     };
 
     final showAsMuted = store.isUserMuted(message.senderId)

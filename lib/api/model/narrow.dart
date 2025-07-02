@@ -173,6 +173,20 @@ class ApiNarrowPmWith extends ApiNarrowDm {
   ApiNarrowPmWith._(super.operand, {super.negated});
 }
 
+/// An [ApiNarrowElement] with the 'search' operator.
+class ApiNarrowSearch extends ApiNarrowElement {
+  @override String get operator => 'search';
+
+  @override final String operand;
+
+  ApiNarrowSearch(this.operand, {super.negated});
+
+  factory ApiNarrowSearch.fromJson(Map<String, dynamic> json) => ApiNarrowSearch(
+    json['operand'] as String,
+    negated: json['negated'] as bool? ?? false,
+  );
+}
+
 class ApiNarrowIs extends ApiNarrowElement {
   @override String get operator => 'is';
 

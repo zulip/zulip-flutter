@@ -352,13 +352,22 @@ void main() {
   group('no-messages placeholder', () {
     final findPlaceholder = find.byType(PageBodyEmptyContentPlaceholder);
 
+    Finder findTextInPlaceholder(String text) =>
+      find.descendant(of: findPlaceholder, matching: find.textContaining(text));
+
     testWidgets('Combined feed', (tester) async {
       await setupMessageListPage(tester, narrow: CombinedFeedNarrow(), messages: []);
-      check(
-        find.descendant(
-          of: findPlaceholder,
-          matching: find.textContaining('There are no messages here.')),
-      ).findsOne();
+      check(findTextInPlaceholder('There are no messages here.')).findsOne();
+    });
+
+    testWidgets('Search, empty keyword', (tester) async {
+      await setupMessageListPage(tester, narrow: KeywordSearchNarrow(''), messages: []);
+      check(findTextInPlaceholder('No search results.')).findsOne();
+    });
+
+    testWidgets('Search, non-empty keyword', (tester) async {
+      await setupMessageListPage(tester, narrow: KeywordSearchNarrow('hello'), messages: []);
+      check(findTextInPlaceholder('No search results.')).findsOne();
     });
 
     testWidgets('when `messages` empty but `outboxMessages` not empty, show outboxes, not placeholder', (tester) async {

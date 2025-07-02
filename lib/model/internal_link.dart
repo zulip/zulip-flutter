@@ -92,6 +92,8 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
         fragment.write(element.operand.toString());
       case ApiNarrowMessageId():
         fragment.write(element.operand.toString());
+      case ApiNarrowSearch():
+        fragment.write(_encodeHashComponent(element.operand));
     }
   }
 
