@@ -392,9 +392,6 @@ class UpdateMessageFlagsResult {
 }
 
 /// https://zulip.com/api/update-message-flags-for-narrow
-///
-/// This binding only supports feature levels 155+.
-// TODO(server-6) remove FL 155+ mention in doc, and the related `assert`
 Future<UpdateMessageFlagsForNarrowResult> updateMessageFlagsForNarrow(ApiConnection connection, {
   required Anchor anchor,
   bool? includeAnchor,
@@ -404,7 +401,6 @@ Future<UpdateMessageFlagsForNarrowResult> updateMessageFlagsForNarrow(ApiConnect
   required UpdateMessageFlagsOp op,
   required MessageFlag flag,
 }) {
-  assert(connection.zulipFeatureLevel! >= 155);
   return connection.post('updateMessageFlagsForNarrow', UpdateMessageFlagsForNarrowResult.fromJson, 'messages/flags/narrow', {
     'anchor': RawParameter(anchor.toJson()),
     if (includeAnchor != null) 'include_anchor': includeAnchor,
@@ -438,64 +434,4 @@ class UpdateMessageFlagsForNarrowResult {
     _$UpdateMessageFlagsForNarrowResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$UpdateMessageFlagsForNarrowResultToJson(this);
-}
-
-/// https://zulip.com/api/mark-all-as-read
-///
-/// This binding is deprecated, in FL 155+ use
-/// [updateMessageFlagsForNarrow] instead.
-// TODO(server-6): Remove as deprecated by updateMessageFlagsForNarrow
-//
-// For FL < 153 this call was atomic on the server and would
-// not mark any messages as read if it timed out.
-// From FL 153 and onward the server started processing
-// in batches so progress could still be made in the event
-// of a timeout interruption. Thus, in FL 153 this call
-// started returning `result: partially_completed` and
-// `code: REQUEST_TIMEOUT` for timeouts.
-//
-// In FL 211 the `partially_completed` variant of
-// `result` was removed, the string `code` field also
-// removed, and a boolean `complete` field introduced.
-//
-// For full support of this endpoint we would need three
-// variants of the return structure based on feature
-// level (`{}`, `{code: string}`, and `{complete: bool}`)
-// as well as handling of `partially_completed` variant
-// of `result` in `lib/api/core.dart`. For simplicity we
-// ignore these return values.
-//
-// We don't use this method for FL 155+ (it is replaced
-// by `updateMessageFlagsForNarrow`) so there are only
-// two versions (FL 153 and FL 154) affected.
-Future<void> markAllAsRead(ApiConnection connection) {
-  return connection.post('markAllAsRead', (_) {}, 'mark_all_as_read', {});
-}
-
-/// https://zulip.com/api/mark-stream-as-read
-///
-/// This binding is deprecated, in FL 155+ use
-/// [updateMessageFlagsForNarrow] instead.
-// TODO(server-6): Remove as deprecated by updateMessageFlagsForNarrow
-Future<void> markStreamAsRead(ApiConnection connection, {
-  required int streamId,
-}) {
-  return connection.post('markStreamAsRead', (_) {}, 'mark_stream_as_read', {
-    'stream_id': streamId,
-  });
-}
-
-/// https://zulip.com/api/mark-topic-as-read
-///
-/// This binding is deprecated, in FL 155+ use
-/// [updateMessageFlagsForNarrow] instead.
-// TODO(server-6): Remove as deprecated by updateMessageFlagsForNarrow
-Future<void> markTopicAsRead(ApiConnection connection, {
-  required int streamId,
-  required TopicName topicName,
-}) {
-  return connection.post('markTopicAsRead', (_) {}, 'mark_topic_as_read', {
-    'stream_id': streamId,
-    'topic_name': RawParameter(topicName.apiName),
-  });
 }

@@ -21,7 +21,6 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
-import '../model/unreads_checks.dart';
 import '../stdlib_checks.dart';
 import '../test_clipboard.dart';
 import 'dialog_checks.dart';
@@ -118,106 +117,6 @@ void main() {
         await tester.pump(Duration.zero);
         await future;
         check(store.unreads.oldUnreadsMissing).isFalse();
-      });
-
-      testWidgets('CombinedFeedNarrow on legacy server', (tester) async {
-        const narrow = CombinedFeedNarrow();
-        await prepare(tester);
-        // Might as well test with oldUnreadsMissing: true.
-        store.unreads.oldUnreadsMissing = true;
-
-        connection.zulipFeatureLevel = 154;
-        connection.prepare(json: {});
-        final future = ZulipAction.markNarrowAsRead(context, narrow);
-        await tester.pump(Duration.zero);
-        await future;
-        check(connection.lastRequest).isA<http.Request>()
-          ..method.equals('POST')
-          ..url.path.equals('/api/v1/mark_all_as_read')
-          ..bodyFields.deepEquals({});
-
-        // Check that [Unreads.handleAllMessagesReadSuccess] wasn't called;
-        // in the legacy protocol, that'd be redundant with the mark-read event.
-        check(store.unreads).oldUnreadsMissing.isTrue();
-      });
-
-      testWidgets('ChannelNarrow on legacy server', (tester) async {
-        final stream = eg.stream();
-        final narrow = ChannelNarrow(stream.streamId);
-        await prepare(tester);
-        connection.zulipFeatureLevel = 154;
-        connection.prepare(json: {});
-        final future = ZulipAction.markNarrowAsRead(context, narrow);
-        await tester.pump(Duration.zero);
-        await future;
-        check(connection.lastRequest).isA<http.Request>()
-          ..method.equals('POST')
-          ..url.path.equals('/api/v1/mark_stream_as_read')
-          ..bodyFields.deepEquals({
-              'stream_id': stream.streamId.toString(),
-            });
-      });
-
-      testWidgets('TopicNarrow on legacy server', (tester) async {
-        final narrow = TopicNarrow.ofMessage(eg.streamMessage());
-        await prepare(tester);
-        connection.zulipFeatureLevel = 154;
-        connection.prepare(json: {});
-        final future = ZulipAction.markNarrowAsRead(context, narrow);
-        await tester.pump(Duration.zero);
-        await future;
-        check(connection.lastRequest).isA<http.Request>()
-          ..method.equals('POST')
-          ..url.path.equals('/api/v1/mark_topic_as_read')
-          ..bodyFields.deepEquals({
-              'stream_id': narrow.streamId.toString(),
-              'topic_name': narrow.topic,
-            });
-      });
-
-      testWidgets('DmNarrow on legacy server', (tester) async {
-        final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-        final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
-        final unreadMsgs = eg.unreadMsgs(dms: [
-          UnreadDmSnapshot(otherUserId: eg.otherUser.userId,
-            unreadMessageIds: [message.id]),
-        ]);
-        await prepare(tester, unreadMsgs: unreadMsgs);
-        connection.zulipFeatureLevel = 154;
-        connection.prepare(json:
-          UpdateMessageFlagsResult(messages: [message.id]).toJson());
-        final future = ZulipAction.markNarrowAsRead(context, narrow);
-        await tester.pump(Duration.zero);
-        await future;
-        check(connection.lastRequest).isA<http.Request>()
-          ..method.equals('POST')
-          ..url.path.equals('/api/v1/messages/flags')
-          ..bodyFields.deepEquals({
-              'messages': jsonEncode([message.id]),
-              'op': 'add',
-              'flag': 'read',
-            });
-      });
-
-      testWidgets('MentionsNarrow on legacy server', (tester) async {
-        const narrow = MentionsNarrow();
-        final message = eg.streamMessage(flags: [MessageFlag.mentioned]);
-        final unreadMsgs = eg.unreadMsgs(mentions: [message.id]);
-        await prepare(tester, unreadMsgs: unreadMsgs);
-        connection.zulipFeatureLevel = 154;
-        connection.prepare(json:
-          UpdateMessageFlagsResult(messages: [message.id]).toJson());
-        final future = ZulipAction.markNarrowAsRead(context, narrow);
-        await tester.pump(Duration.zero);
-        await future;
-        check(connection.lastRequest).isA<http.Request>()
-          ..method.equals('POST')
-          ..url.path.equals('/api/v1/messages/flags')
-          ..bodyFields.deepEquals({
-              'messages': jsonEncode([message.id]),
-              'op': 'add',
-              'flag': 'read',
-            });
       });
     });
 

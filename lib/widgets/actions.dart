@@ -26,25 +26,7 @@ abstract final class ZulipAction {
   /// This is mostly a wrapper around [updateMessageFlagsStartingFromAnchor];
   /// for details on the UI feedback, see there.
   static Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
-    final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final useLegacy = store.zulipFeatureLevel < 155; // TODO(server-6)
-    if (useLegacy) {
-      try {
-        await _legacyMarkNarrowAsRead(context, narrow);
-        return;
-      } catch (e) {
-        if (!context.mounted) return;
-        final message = switch (e) {
-          ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
-          _ => e.toString(), // TODO(#741): extract user-facing message better
-        };
-        showErrorDialog(context: context,
-          title: zulipLocalizations.errorMarkAsReadFailedTitle,
-          message: message);
-        return;
-      }
-    }
 
     final didPass = await updateMessageFlagsStartingFromAnchor(
       context: context,
@@ -205,39 +187,6 @@ abstract final class ZulipAction {
         title: onFailedTitle,
         message: message);
       return false;
-    }
-  }
-
-  static Future<void> _legacyMarkNarrowAsRead(BuildContext context, Narrow narrow) async {
-    final store = PerAccountStoreWidget.of(context);
-    final connection = store.connection;
-    switch (narrow) {
-      case CombinedFeedNarrow():
-        await markAllAsRead(connection);
-      case ChannelNarrow(:final streamId):
-        await markStreamAsRead(connection, streamId: streamId);
-      case TopicNarrow(:final streamId, :final topic):
-        await markTopicAsRead(connection, streamId: streamId, topicName: topic);
-      case DmNarrow():
-        final unreadDms = store.unreads.dms[narrow];
-        // Silently ignore this race-condition as the outcome
-        // (no unreads in this narrow) was the desired end-state
-        // of pushing the button.
-        if (unreadDms == null) return;
-        await updateMessageFlags(connection,
-          messages: unreadDms,
-          op: UpdateMessageFlagsOp.add,
-          flag: MessageFlag.read);
-      case MentionsNarrow():
-        final unreadMentions = store.unreads.mentions.toList();
-        if (unreadMentions.isEmpty) return;
-        await updateMessageFlags(connection,
-          messages: unreadMentions,
-          op: UpdateMessageFlagsOp.add,
-          flag: MessageFlag.read);
-      case StarredMessagesNarrow():
-        // TODO: Implement unreads handling.
-        return;
     }
   }
 

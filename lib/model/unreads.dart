@@ -441,22 +441,20 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
     notifyListeners();
   }
 
-  /// To be called on success of a mark-all-as-read task in the modern protocol.
+  /// To be called on success of a mark-all-as-read task.
   ///
   /// When the user successfully marks all messages as read,
   /// there can't possibly be ancient unreads we don't know about.
   /// So this updates [oldUnreadsMissing] to false and calls [notifyListeners].
   ///
-  /// When we use POST /messages/flags/narrow (FL 155+) for mark-all-as-read,
-  /// we don't expect to get a mark-as-read event with `all: true`,
+  /// We don't expect to get a mark-as-read event with `all: true`,
   /// even on completion of the last batch of unreads.
-  /// If we did get an event with `all: true` (as we do in the legacy mark-all-
+  /// If we did get an event with `all: true` (as we did in a legacy mark-all-
   /// as-read protocol), this would be handled naturally, in
   /// [handleUpdateMessageFlagsEvent].
   ///
   /// Discussion:
   ///   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680275>
-  // TODO(server-6) Delete mentions of legacy protocol.
   void handleAllMessagesReadSuccess() {
     oldUnreadsMissing = false;
 
