@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
@@ -989,11 +991,15 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
         return MessageItem(
           key: ValueKey(data.message.id),
+          narrow: widget.narrow,
           header: header,
           item: data);
       case MessageListOutboxMessageItem():
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
-        return MessageItem(header: header, item: data);
+        return MessageItem(
+          narrow: widget.narrow,
+          header: header,
+          item: data);
     }
   }
 }
@@ -1315,10 +1321,12 @@ class DateSeparator extends StatelessWidget {
 class MessageItem extends StatelessWidget {
   const MessageItem({
     super.key,
+    required this.narrow,
     required this.item,
     required this.header,
   });
 
+  final Narrow narrow;
   final MessageListMessageBaseItem item;
   final Widget header;
 
@@ -1331,7 +1339,9 @@ class MessageItem extends StatelessWidget {
       color: designVariables.bgMessageRegular,
       child: Column(children: [
         switch (item) {
-          MessageListMessageItem() => MessageWithPossibleSender(item: item),
+          MessageListMessageItem() => MessageWithPossibleSender(
+            narrow: narrow,
+            item: item),
           MessageListOutboxMessageItem() => OutboxMessageWithPossibleSender(item: item),
         },
         // TODO refine this padding; discussion:
@@ -1748,8 +1758,13 @@ class _SenderRow extends StatelessWidget {
 //   - https://github.com/zulip/zulip-mobile/issues/5511
 //   - https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
 class MessageWithPossibleSender extends StatelessWidget {
-  const MessageWithPossibleSender({super.key, required this.item});
+  const MessageWithPossibleSender({
+    super.key,
+    required this.narrow,
+    required this.item,
+  });
 
+  final Narrow narrow;
   final MessageListMessageItem item;
 
   @override
@@ -1798,8 +1813,24 @@ class MessageWithPossibleSender extends StatelessWidget {
       }
     }
 
+    final tapOpensConversation = switch (narrow) {
+      CombinedFeedNarrow()
+        || ChannelNarrow()
+        || TopicNarrow()
+        || DmNarrow() => false,
+      MentionsNarrow()
+        || StarredMessagesNarrow() => true,
+    };
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
+      onTap: tapOpensConversation
+        ? () => unawaited(Navigator.push(context,
+            MessageListPage.buildRoute(context: context,
+              narrow: SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
+              // TODO(#1655) "this view does not mark messages as read on scroll"
+              initAnchorMessageId: message.id)))
+        : null,
       onLongPress: () => showMessageActionSheet(context: context, message: message),
       child: Padding(
         padding: const EdgeInsets.only(top: 4),

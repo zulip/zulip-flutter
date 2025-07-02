@@ -1653,6 +1653,82 @@ void main() {
 
       debugNetworkImageHttpClientProvider = null;
     });
+
+    group('Opens conversation on tap?', () {
+      // (copied from test/widgets/content_test.dart)
+      Future<void> tapText(WidgetTester tester, Finder textFinder) async {
+        final height = tester.getSize(textFinder).height;
+        final target = tester.getTopLeft(textFinder)
+          .translate(height/4, height/2); // aim for middle of first letter
+        await tester.tapAt(target);
+      }
+
+      final subscription = eg.subscription(eg.stream(streamId: eg.defaultStreamMessageStreamId));
+      final topic = 'some topic';
+
+      void doTest(Narrow narrow, {
+        required bool expected,
+        required Message Function() mkMessage,
+      }) {
+        testWidgets('${expected ? 'yes' : 'no'}, if in $narrow', (tester) async {
+          final message = mkMessage();
+
+          Route<dynamic>? lastPushedRoute;
+          final navObserver = TestNavigatorObserver()
+            ..onPushed = ((route, prevRoute) => lastPushedRoute = route);
+
+          await setupMessageListPage(
+            tester,
+            narrow: narrow,
+            messages: [message],
+            subscriptions: [subscription],
+            navObservers: [navObserver]
+          );
+          lastPushedRoute = null;
+
+          // Tapping interactive content still works.
+          await store.handleEvent(eg.updateMessageEditEvent(message,
+            renderedContent: '<p><a href="https://example/">link</a></p>'));
+          await tester.pump();
+          await tapText(tester, find.text('link'));
+          await tester.pump(Duration.zero);
+          check(lastPushedRoute).isNull();
+          final launchUrlCalls = testBinding.takeLaunchUrlCalls();
+          check(launchUrlCalls.single.url).equals(Uri.parse('https://example/'));
+
+          // Tapping non-interactive content opens the conversation (if expected).
+          await store.handleEvent(eg.updateMessageEditEvent(message,
+            renderedContent: '<p>plain content</p>'));
+          await tester.pump();
+          await tapText(tester, find.text('plain content'));
+          if (expected) {
+            final expectedNarrow = SendableNarrow.ofMessage(message, selfUserId: store.selfUserId);
+
+            check(lastPushedRoute).isNotNull().isA<MaterialAccountWidgetRoute>()
+              .page.isA<MessageListPage>()
+                ..initNarrow.equals(expectedNarrow)
+                ..initAnchorMessageId.equals(message.id);
+          } else {
+            check(lastPushedRoute).isNull();
+          }
+
+          // TODO test tapping whitespace in message
+        });
+      }
+
+      doTest(expected: false, CombinedFeedNarrow(),
+        mkMessage: () => eg.streamMessage());
+      doTest(expected: false, ChannelNarrow(subscription.streamId),
+        mkMessage: () => eg.streamMessage(stream: subscription));
+      doTest(expected: false, TopicNarrow(subscription.streamId, eg.t(topic)),
+        mkMessage: () => eg.streamMessage(stream: subscription));
+      doTest(expected: false, DmNarrow.withUsers([], selfUserId: eg.selfUser.userId),
+        mkMessage: () => eg.streamMessage(stream: subscription, topic: topic));
+      doTest(expected: true, StarredMessagesNarrow(),
+        mkMessage: () => eg.streamMessage(flags: [MessageFlag.starred]));
+      doTest(expected: true, MentionsNarrow(),
+        mkMessage: () => eg.streamMessage(flags: [MessageFlag.mentioned]));
+    });
   });
 
   group('OutboxMessageWithPossibleSender', () {
