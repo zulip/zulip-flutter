@@ -283,6 +283,77 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
 
   @override
   Widget build(BuildContext context) {
+    final Anchor initAnchor;
+    if (widget.initAnchorMessageId != null) {
+      initAnchor = NumericAnchor(widget.initAnchorMessageId!);
+    } else {
+      final globalSettings = GlobalStoreWidget.settingsOf(context);
+      final useFirstUnread = globalSettings.shouldVisitFirstUnread(narrow: narrow);
+      initAnchor = useFirstUnread ? AnchorCode.firstUnread : AnchorCode.newest;
+    }
+
+    Widget result = Scaffold(
+      appBar: _MessageListAppBar.build(context, narrow: narrow),
+      // TODO question for Vlad: for a stream view, should we set the Scaffold's
+      //   [backgroundColor] based on stream color, as in this frame:
+      //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132%3A9684&mode=dev
+      //   That's not obviously preferred over the default background that
+      //   we matched to the Figma in 21dbae120. See another frame, which uses that:
+      //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=147%3A9088&mode=dev
+      body: Builder(
+        builder: (BuildContext context) {
+          return Column(
+          // Children are expected to take the full horizontal space
+          // and handle the horizontal device insets.
+          // The bottom inset should be handled by the last child only.
+          children: [
+            MediaQuery.removePadding(
+              // Scaffold knows about the app bar, and so has run this
+              // BuildContext, which is under `body`, through
+              // MediaQuery.removePadding with `removeTop: true`.
+              context: context,
+
+              // The compose box, when present, pads the bottom inset.
+              // TODO(#311) If we have a bottom nav, it will pad the bottom
+              //   inset, and this should always be true.
+              removeBottom: ComposeBox.hasComposeBox(narrow),
+
+              child: Expanded(
+                child: MessageList(
+                  key: _messageListKey,
+                  narrow: narrow,
+                  initAnchor: initAnchor,
+                  onNarrowChanged: _narrowChanged,
+                  markReadOnScroll: markReadOnScroll,
+                ))),
+            if (ComposeBox.hasComposeBox(narrow))
+              ComposeBox(key: _composeBoxKey, narrow: narrow)
+          ]);
+        }));
+
+    // Insert a PageRoot here (under MessageListPage),
+    // to provide a context that can be used for MessageListPage.ancestorOf.
+    result = PageRoot(child: result);
+
+    result = _RevealedMutedMessagesProvider(state: _revealedMutedMessages,
+      child: result);
+
+    return result;
+  }
+}
+
+// Conceptually this should be a widget class.  But it needs to be a
+// PreferredSizeWidget, with the `preferredSize` that the underlying AppBar
+// will have... and there's currently no good way to get that value short of
+// constructing the whole AppBar widget with all its properties.
+// So this has to be built eagerly by its parent's build method,
+// making it a build function rather than a widget.  Discussion:
+//   https://github.com/zulip/zulip-flutter/pull/1662#discussion_r2183471883
+// Still we can organize it on a class, with the name the widget would have.
+// TODO(upstream): AppBar should expose a bit more API so that it's possible
+//   to customize by composition in a reasonable way.
+abstract class _MessageListAppBar {
+  static AppBar build(BuildContext context, {required Narrow narrow}) {
     final store = PerAccountStoreWidget.of(context);
     final messageListTheme = MessageListTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -330,70 +401,15 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
         actions.add(_TopicListButton(streamId: streamId));
     }
 
-    final Anchor initAnchor;
-    if (widget.initAnchorMessageId != null) {
-      initAnchor = NumericAnchor(widget.initAnchorMessageId!);
-    } else {
-      final globalSettings = GlobalStoreWidget.settingsOf(context);
-      final useFirstUnread = globalSettings.shouldVisitFirstUnread(narrow: narrow);
-      initAnchor = useFirstUnread ? AnchorCode.firstUnread : AnchorCode.newest;
-    }
-
-    Widget result = Scaffold(
-      appBar: ZulipAppBar(
-        buildTitle: (willCenterTitle) =>
-          MessageListAppBarTitle(narrow: narrow, willCenterTitle: willCenterTitle),
-        actions: actions,
-        backgroundColor: appBarBackgroundColor,
-        shape: removeAppBarBottomBorder
-          ? const Border()
-          : null, // i.e., inherit
-      ),
-      // TODO question for Vlad: for a stream view, should we set the Scaffold's
-      //   [backgroundColor] based on stream color, as in this frame:
-      //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132%3A9684&mode=dev
-      //   That's not obviously preferred over the default background that
-      //   we matched to the Figma in 21dbae120. See another frame, which uses that:
-      //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=147%3A9088&mode=dev
-      body: Builder(
-        builder: (BuildContext context) {
-          return Column(
-          // Children are expected to take the full horizontal space
-          // and handle the horizontal device insets.
-          // The bottom inset should be handled by the last child only.
-          children: [
-            MediaQuery.removePadding(
-              // Scaffold knows about the app bar, and so has run this
-              // BuildContext, which is under `body`, through
-              // MediaQuery.removePadding with `removeTop: true`.
-              context: context,
-
-              // The compose box, when present, pads the bottom inset.
-              // TODO(#311) If we have a bottom nav, it will pad the bottom
-              //   inset, and this should always be true.
-              removeBottom: ComposeBox.hasComposeBox(narrow),
-
-              child: Expanded(
-                child: MessageList(
-                  key: _messageListKey,
-                  narrow: narrow,
-                  initAnchor: initAnchor,
-                  onNarrowChanged: _narrowChanged,
-                  markReadOnScroll: markReadOnScroll,
-                ))),
-            if (ComposeBox.hasComposeBox(narrow))
-              ComposeBox(key: _composeBoxKey, narrow: narrow)
-          ]);
-        }));
-
-    // Insert a PageRoot here (under MessageListPage),
-    // to provide a context that can be used for MessageListPage.ancestorOf.
-    result = PageRoot(child: result);
-
-    result = _RevealedMutedMessagesProvider(state: _revealedMutedMessages,
-      child: result);
-
-    return result;
+    return ZulipAppBar(
+      buildTitle: (willCenterTitle) =>
+        MessageListAppBarTitle(narrow: narrow, willCenterTitle: willCenterTitle),
+      actions: actions,
+      backgroundColor: appBarBackgroundColor,
+      shape: removeAppBarBottomBorder
+        ? const Border()
+        : null, // i.e., inherit
+    );
   }
 }
 
