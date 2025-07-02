@@ -364,6 +364,12 @@ class _KatexParser {
         case 'mathdefault':
           // Ignore these classes because they don't have a CSS definition
           // in katex.scss, but we encounter them in the generated HTML.
+          // (Why are they there if they're not used?  The story seems to be:
+          // they were used in KaTeX's CSS in the past, before 2020 or so; and
+          // they're still used internally by KaTeX in producing the HTML.
+          //   https://github.com/KaTeX/KaTeX/issues/2194#issuecomment-584703052
+          //   https://github.com/KaTeX/KaTeX/issues/3344
+          // )
           break;
 
         default:
