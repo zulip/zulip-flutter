@@ -327,10 +327,21 @@ class _KatexParser {
               }
             }
 
-            return KatexVlistNode(
+            final result = KatexVlistNode(
               rows: rows,
               debugHtmlNode: kDebugMode ? vlistT : null,
             );
+
+            if (_ancestorClasses.any(
+              (classes) => classes.split(' ').contains('op-limits'),
+            )) {
+              return KatexSpanNode(
+                styles: KatexSpanStyles(textAlign: KatexSpanTextAlign.center),
+                text: null,
+                nodes: [result]);
+            }
+
+            return result;
           } else {
             throw _KatexHtmlParseError();
           }
@@ -562,6 +573,10 @@ class _KatexParser {
             'large-op' => 'KaTeX_Size2',
             _ => throw _KatexHtmlParseError(),
           };
+
+        case 'op-limits':
+          // .op-limits > .vlist-t { text-align: center; }
+          // We handle this above while parsing the vlist.
 
         // TODO handle more classes from katex.scss
 
