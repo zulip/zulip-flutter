@@ -1,5 +1,16 @@
 # Making releases
 
+## NOTE: This document is out of date.
+
+Now that this is the main Zulip mobile app, the actual release process
+is roughly a hybrid of the steps below for building the app,
+then the steps from the legacy app's release instructions for
+distributing the app.
+
+Revising this into a single coherent set of instructions
+is an open TODO.
+
+
 ## Prepare source tree
 
 * If we haven't recently (like in the last week) upgraded our
