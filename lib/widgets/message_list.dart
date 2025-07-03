@@ -175,19 +175,19 @@ class MessageListPage extends StatefulWidget {
         initNarrow: narrow, initAnchorMessageId: initAnchorMessageId));
   }
 
-  /// The "revealed" state of a message from a muted sender.
+  /// The "revealed" state of a message from a muted sender,
+  /// if there is a [MessageListPage] ancestor, else null.
   ///
   /// This is updated via [MessageListPageState.revealMutedMessage]
   /// and [MessageListPageState.unrevealMutedMessage].
   ///
   /// Uses the efficient [BuildContext.dependOnInheritedWidgetOfExactType],
   /// so this is safe to call in a build method.
-  static RevealedMutedMessagesState revealedMutedMessagesOf(BuildContext context) {
+  static RevealedMutedMessagesState? maybeRevealedMutedMessagesOf(BuildContext context) {
     final state =
       context.dependOnInheritedWidgetOfExactType<_RevealedMutedMessagesProvider>()
       ?.state;
-    assert(state != null, 'No MessageListPage ancestor');
-    return state!;
+    return state;
   }
 
   /// The [MessageListPageState] above this context in the tree.
@@ -1893,8 +1893,12 @@ class _SenderRow extends StatelessWidget {
     final message = this.message;
     if (!store.isUserMuted(message.senderId)) return false;
     if (message is! Message) return false; // i.e., if an outbox message
-    return !MessageListPage.revealedMutedMessagesOf(context)
-      .isMutedMessageRevealed(message.id);
+    final revealedMutedMessagesState =
+      MessageListPage.maybeRevealedMutedMessagesOf(context);
+    // The "unrevealed" state only exists in the message list,
+    // and we're about to start showing a sender row outside the message list.
+    if (revealedMutedMessagesState == null) return false;
+    return !revealedMutedMessagesState.isMutedMessageRevealed(message.id);
   }
 
   @override
@@ -2036,7 +2040,7 @@ class MessageWithPossibleSender extends StatelessWidget {
     };
 
     final showAsMuted = store.isUserMuted(message.senderId)
-      && !MessageListPage.revealedMutedMessagesOf(context)
+      && !MessageListPage.maybeRevealedMutedMessagesOf(context)!
                          .isMutedMessageRevealed(message.id);
 
     return GestureDetector(
