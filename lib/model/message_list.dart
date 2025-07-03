@@ -1103,6 +1103,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case PropagateMode.changeLater:
         _narrow = newNarrow;
         _reset();
+        notifyListeners();
         fetchInitial();
       case PropagateMode.changeOne:
     }

@@ -1622,7 +1622,13 @@ void main() {
           newStreamId: otherStream.streamId,
           propagateMode: propagateMode,
         ));
-        checkNotifiedOnce();
+        switch (propagateMode) {
+          case PropagateMode.changeOne:
+            checkNotifiedOnce();
+          case PropagateMode.changeLater:
+          case PropagateMode.changeAll:
+            checkNotified(count: 2);
+        }
         async.elapse(const Duration(seconds: 1));
       });
 
