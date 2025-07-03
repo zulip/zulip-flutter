@@ -322,7 +322,7 @@ class ChannelStoreImpl with ChannelStore {
           case SubscriptionProperty.color:
             subscription.color                  = event.value as int;
           case SubscriptionProperty.isMuted:
-            // TODO(#421) update [MessageListView] if affected
+            // TODO(#1255) update [MessageListView] if affected
             subscription.isMuted                = event.value as bool;
           case SubscriptionProperty.inHomeView:
             subscription.isMuted                = !(event.value as bool);
