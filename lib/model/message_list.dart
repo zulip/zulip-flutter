@@ -1131,7 +1131,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
-        // The messages were and remain in this narrow.
+        // The messages didn't enter or leave this narrow.
         // TODO(#421): … except they may have become muted or not.
         //   We'll handle that at the same time as we handle muting itself changing.
         // Recipient headers, and downstream of those, may change, though.
