@@ -5,9 +5,9 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
-import 'home.dart';
 import 'icons.dart';
 import 'message_list.dart';
+import 'page.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -98,7 +98,7 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     if (pinned.isEmpty && unpinned.isEmpty) {
       return PageBodyEmptyContentPlaceholder(
         // TODO(#188) add e.g. "Go to 'All channels' and join some of them."
-        message: zulipLocalizations.channelsEmptyPlaceholder);
+        header: zulipLocalizations.channelsEmptyPlaceholderHeader);
     }
 
     return SafeArea(

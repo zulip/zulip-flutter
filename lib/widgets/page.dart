@@ -1,7 +1,11 @@
-
 import 'package:flutter/material.dart';
 
+import '../generated/l10n/zulip_localizations.dart';
+import '../model/binding.dart';
+import 'button.dart';
 import 'store.dart';
+import 'text.dart';
+import 'theme.dart';
 
 /// An [InheritedWidget] for near the root of a page's widget subtree,
 /// providing its [BuildContext].
@@ -208,5 +212,68 @@ class LoadingPlaceholderPage extends StatelessWidget {
       appBar: AppBar(),
       body: const LoadingPlaceholder(),
     );
+  }
+}
+
+/// A "no content here" message for when a page has no content to show.
+///
+/// Suitable for the inbox, the message-list page, etc.
+///
+/// This handles the horizontal device insets
+/// and the bottom inset when needed (in a message list with no compose box).
+/// The top inset is handled externally by the app bar.
+// TODO(#311) If the message list gets a bottom nav, the bottom inset will
+//   always be handled externally too; simplify implementation and dartdoc.
+class PageBodyEmptyContentPlaceholder extends StatelessWidget {
+  const PageBodyEmptyContentPlaceholder({
+    super.key,
+    required this.header,
+    this.message,
+    this.learnMoreButtonUrl,
+  });
+
+  final String header;
+  final String? message;
+  final Uri? learnMoreButtonUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+
+    return SafeArea(
+      minimum: EdgeInsets.fromLTRB(24, 0, 24, 16),
+      child: Padding(
+        padding: EdgeInsets.only(top: 48),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: Column(
+            spacing: 16,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            // TODO leading and trailing elements, like in Figma (given as SVGs):
+            //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=5957-167736&m=dev
+            children: [
+              Text(
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: designVariables.labelSearchPrompt,
+                  fontSize: 22,
+                  height: 1.30,
+                ).merge(weightVariableTextStyle(context, wght: 600)),
+                header,
+              ),
+              if (message != null) Text(
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: designVariables.labelSearchPrompt,
+                  fontSize: 17,
+                  height: 23 / 17,
+                ).merge(weightVariableTextStyle(context, wght: 500)),
+                message!),
+              if (learnMoreButtonUrl != null)
+                ZulipWebUiKitButton(
+                  label: zulipLocalizations.learnMoreButtonLabel,
+                  onPressed: () => ZulipBinding.instance.launchUrl(learnMoreButtonUrl!)),
+            ]))));
   }
 }

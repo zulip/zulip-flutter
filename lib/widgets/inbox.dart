@@ -6,9 +6,9 @@ import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
-import 'home.dart';
 import 'icons.dart';
 import 'message_list.dart';
+import 'page.dart';
 import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
@@ -165,7 +165,8 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
     if (sections.isEmpty) {
       return PageBodyEmptyContentPlaceholder(
         // TODO(#315) add e.g. "You might be interested in recent conversations."
-        message: zulipLocalizations.inboxEmptyPlaceholder);
+        header: zulipLocalizations.inboxEmptyPlaceholderHeader,
+        message: zulipLocalizations.inboxEmptyPlaceholderMessage);
     }
 
     return SafeArea(

@@ -35,6 +35,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get upgradeWelcomeDialogDismiss => 'Let\'s go';
 
   @override
+  String get learnMoreButtonLabel => 'Learn more';
+
+  @override
   String get chooseAccountPageTitle => 'Choose account';
 
   @override
@@ -435,6 +438,71 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   }
 
   @override
+  String get emptyMessageList => 'There are no messages here.';
+
+  @override
+  String get emptyMessageListCombinedFeed =>
+      'There are no messages in your combined feed.';
+
+  @override
+  String get emptyMessageListPrivateChannelNotSubscribed =>
+      'This channel is private.';
+
+  @override
+  String get emptyMessageListChannelUnavailable =>
+      'This channel doesn’t exist, or you are not allowed to view it.';
+
+  @override
+  String get emptyMessageListSelfDmHeader =>
+      'You have not sent any direct messages to yourself yet!';
+
+  @override
+  String get emptyMessageListSelfDmMessage =>
+      'Use this space for personal notes, or to test out Zulip features.';
+
+  @override
+  String emptyMessageListDm(String person) {
+    return 'You have no direct messages with $person yet.';
+  }
+
+  @override
+  String emptyMessageListDmDeactivatedUser(String person) {
+    return 'You have no direct messages with $person.';
+  }
+
+  @override
+  String get emptyMessageListDmUnknownUser =>
+      'You have no direct messages with this person.';
+
+  @override
+  String get emptyMessageListGroupDm =>
+      'You have no direct messages with these users yet.';
+
+  @override
+  String get emptyMessageListGroupDmDeactivatedUser =>
+      'You have no direct messages with these users.';
+
+  @override
+  String get emptyMessageListDmStartConversation =>
+      'Why not start the conversation?';
+
+  @override
+  String get emptyMessageListMentionsHeader =>
+      'This view will show messages where you are mentioned.';
+
+  @override
+  String get emptyMessageListMentionsMessage =>
+      'To call attention to a message, you can mention a user, a group, topic participants, or all subscribers to a channel. Type @ in the compose box, and choose who you’d like to mention from the list of suggestions.';
+
+  @override
+  String get emptyMessageListStarredHeader => 'You have no starred messages.';
+
+  @override
+  String emptyMessageListStarredMessage(String button) {
+    return 'Starring messages is a good way to keep track of important messages, such as tasks you need to go back to, or useful references. To star a message, long-press it and tap “$button.”';
+  }
+
+  @override
   String get messageListGroupYouWithYourself => 'Messages with yourself';
 
   @override
@@ -651,8 +719,12 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get inboxPageTitle => 'Inbox';
 
   @override
-  String get inboxEmptyPlaceholder =>
-      'There are no unread messages in your inbox. Use the buttons below to view the combined feed or list of channels.';
+  String get inboxEmptyPlaceholderHeader =>
+      'There are no unread messages in your inbox.';
+
+  @override
+  String get inboxEmptyPlaceholderMessage =>
+      'Use the buttons below to view the combined feed or list of channels.';
 
   @override
   String get recentDmConversationsPageTitle => 'Direct messages';
@@ -661,8 +733,12 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get recentDmConversationsSectionHeader => 'Direct messages';
 
   @override
-  String get recentDmConversationsEmptyPlaceholder =>
-      'You have no direct messages yet! Why not start the conversation?';
+  String get recentDmConversationsEmptyPlaceholderHeader =>
+      'You have no direct messages yet!';
+
+  @override
+  String get recentDmConversationsEmptyPlaceholderMessage =>
+      'Why not start the conversation?';
 
   @override
   String get combinedFeedPageTitle => 'Combined feed';
@@ -677,7 +753,7 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get channelsPageTitle => 'Channels';
 
   @override
-  String get channelsEmptyPlaceholder =>
+  String get channelsEmptyPlaceholderHeader =>
       'You are not subscribed to any channels yet.';
 
   @override
