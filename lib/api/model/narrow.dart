@@ -173,22 +173,6 @@ class ApiNarrowPmWith extends ApiNarrowDm {
   ApiNarrowPmWith._(super.operand, {super.negated});
 }
 
-/// An [ApiNarrowElement] with the 'with' operator.
-///
-/// If part of [ApiNarrow] use [resolveApiNarrowForServer].
-class ApiNarrowWith extends ApiNarrowElement {
-  @override String get operator => 'with';
-
-  @override final int operand;
-
-  ApiNarrowWith(this.operand, {super.negated});
-
-  factory ApiNarrowWith.fromJson(Map<String, dynamic> json) => ApiNarrowWith(
-    json['operand'] as int,
-    negated: json['negated'] as bool? ?? false,
-  );
-}
-
 class ApiNarrowIs extends ApiNarrowElement {
   @override String get operator => 'is';
 
@@ -227,6 +211,22 @@ enum IsOperand {
   String toString() => _$IsOperandEnumMap[this]!;
 
   String toJson() => toString();
+}
+
+/// An [ApiNarrowElement] with the 'with' operator.
+///
+/// If part of [ApiNarrow] use [resolveApiNarrowForServer].
+class ApiNarrowWith extends ApiNarrowElement {
+  @override String get operator => 'with';
+
+  @override final int operand;
+
+  ApiNarrowWith(this.operand, {super.negated});
+
+  factory ApiNarrowWith.fromJson(Map<String, dynamic> json) => ApiNarrowWith(
+    json['operand'] as int,
+    negated: json['negated'] as bool? ?? false,
+  );
 }
 
 class ApiNarrowMessageId extends ApiNarrowElement {
