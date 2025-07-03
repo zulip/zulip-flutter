@@ -538,5 +538,53 @@
   "errorInvalidResponse": "伺服器傳送了無效的請求。",
   "@errorInvalidResponse": {
     "description": "Error message when an API call returned an invalid response."
+  },
+  "newDmSheetSearchHintSomeSelected": "增添其他使用者…",
+  "@newDmSheetSearchHintSomeSelected": {
+    "description": "Hint text for the search bar when at least one user is selected."
+  },
+  "inboxPageTitle": "收件匣",
+  "@inboxPageTitle": {
+    "description": "Title for the page with unreads."
+  },
+  "initialAnchorSettingNewestAlways": "最新訊息",
+  "@initialAnchorSettingNewestAlways": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "experimentalFeatureSettingsPageTitle": "實驗性功能",
+  "@experimentalFeatureSettingsPageTitle": {
+    "description": "Title of settings page for experimental, in-development features"
+  },
+  "errorNotificationOpenTitle": "無法開啟通知",
+  "@errorNotificationOpenTitle": {
+    "description": "Error title when notification opening fails"
+  },
+  "loginAddAnAccountPageTitle": "增添帳號",
+  "@loginAddAnAccountPageTitle": {
+    "description": "Title for page to add a Zulip account."
+  },
+  "channelFeedButtonTooltip": "頻道饋給",
+  "@channelFeedButtonTooltip": {
+    "description": "Tooltip for button to navigate to a given channel's feed"
+  },
+  "unpinnedSubscriptionsLabel": "未釘選",
+  "@unpinnedSubscriptionsLabel": {
+    "description": "Label for the list of unpinned subscribed channels."
+  },
+  "wildcardMentionTopicDescription": "通知話題",
+  "@wildcardMentionTopicDescription": {
+    "description": "Description for \"@topic\" wildcard-mention autocomplete options when writing a channel message."
+  },
+  "pinnedSubscriptionsLabel": "已釘選",
+  "@pinnedSubscriptionsLabel": {
+    "description": "Label for the list of pinned subscribed channels."
+  },
+  "mutedUser": "已靜音的使用者",
+  "@mutedUser": {
+    "description": "Name for a muted user to display all over the app."
+  },
+  "combinedFeedPageTitle": "綜合饋給",
+  "@combinedFeedPageTitle": {
+    "description": "Page title for the 'Combined feed' message view."
   }
 }

@@ -1073,10 +1073,6 @@
   "@newDmSheetSearchHintEmpty": {
     "description": "Hint text for the search bar when no users are selected"
   },
-  "mutedSender": "Отключенный отправитель",
-  "@mutedSender": {
-    "description": "Name for a muted user to display in message list."
-  },
   "mutedUser": "Отключенный пользователь",
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."

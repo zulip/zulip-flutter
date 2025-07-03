@@ -1131,10 +1131,6 @@
   "@revealButtonLabel": {
     "description": "Label for the button revealing hidden message from a muted sender in message list."
   },
-  "mutedSender": "静音发送者",
-  "@mutedSender": {
-    "description": "Name for a muted user to display in message list."
-  },
   "mutedUser": "静音用户",
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."

@@ -1177,10 +1177,6 @@
   "@emojiPickerSearchEmoji": {
     "description": "Hint text for the emoji picker search text field."
   },
-  "mutedSender": "Stummgeschalteter Absender",
-  "@mutedSender": {
-    "description": "Name for a muted user to display in message list."
-  },
   "upgradeWelcomeDialogTitle": "Willkommen bei der neuen Zulip-App!",
   "@upgradeWelcomeDialogTitle": {
     "description": "Title for dialog shown on first upgrade from the legacy Zulip app."

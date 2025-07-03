@@ -444,7 +444,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
-  String get emptyMessageList => 'There are no messages here.';
+  String get emptyMessageList => 'Póki co brak wiadomości.';
 
   @override
   String get emptyMessageListSearch => 'No search results.';
@@ -883,7 +883,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get noEarlierMessages => 'Brak historii';
 
   @override
-  String get revealButtonLabel => 'Reveal message';
+  String get revealButtonLabel => 'Odsłoń wiadomość';
 
   @override
   String get mutedUser => 'Wyciszony użytkownik';

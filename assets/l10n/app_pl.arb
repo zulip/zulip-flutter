@@ -1081,10 +1081,6 @@
   "@newDmSheetSearchHintSomeSelected": {
     "description": "Hint text for the search bar when at least one user is selected"
   },
-  "mutedSender": "Wyciszony nadawca",
-  "@mutedSender": {
-    "description": "Name for a muted user to display in message list."
-  },
   "mutedUser": "Wyciszony użytkownik",
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
@@ -1192,5 +1188,13 @@
   "upgradeWelcomeDialogDismiss": "Zaczynajmy",
   "@upgradeWelcomeDialogDismiss": {
     "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "emptyMessageList": "Póki co brak wiadomości.",
+  "@emptyMessageList": {
+    "description": "Placeholder for some message-list pages when there are no messages."
+  },
+  "revealButtonLabel": "Odsłoń wiadomość",
+  "@revealButtonLabel": {
+    "description": "Label for the button revealing hidden message from a muted sender in message list."
   }
 }

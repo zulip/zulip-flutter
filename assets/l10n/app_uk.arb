@@ -1071,10 +1071,6 @@
   "@errorNotificationOpenAccountNotFound": {
     "description": "Error message when the account associated with the notification could not be found"
   },
-  "mutedSender": "Заглушений відправник",
-  "@mutedSender": {
-    "description": "Name for a muted user to display in message list."
-  },
   "actionSheetOptionEditMessage": "Редагувати повідомлення",
   "@actionSheetOptionEditMessage": {
     "description": "Label for the 'Edit message' button in the message action sheet."
