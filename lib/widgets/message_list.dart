@@ -1767,6 +1767,14 @@ class _SenderRow extends StatelessWidget {
   final MessageBase message;
   final bool showTimestamp;
 
+  bool _showAsMuted(BuildContext context, PerAccountStore store) {
+    final message = this.message;
+    if (!store.isUserMuted(message.senderId)) return false;
+    if (message is! Message) return false; // i.e., if an outbox message
+    return !MessageListPage.revealedMutedMessagesOf(context)
+      .isMutedMessageRevealed(message.id);
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
@@ -1777,10 +1785,7 @@ class _SenderRow extends StatelessWidget {
     final time = _kMessageTimestampFormat
       .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
 
-    final showAsMuted = store.isUserMuted(message.senderId)
-      && message is Message // i.e., not an outbox message
-      && !MessageListPage.revealedMutedMessagesOf(context)
-                          .isMutedMessageRevealed((message as Message).id);
+    final showAsMuted = _showAsMuted(context, store);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
