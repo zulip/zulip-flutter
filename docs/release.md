@@ -164,6 +164,38 @@ is an open TODO.
   "f123".  This efficiently finds any threads that mentioned "#F123".
 
 
+## Preview releases
+
+Sometimes we make a release that includes some experimental changes
+not yet merged to the `main` branch, i.e. a "preview release".
+
+Steps specific to this type of release are:
+
+* To prepare the tree, start from main and use commands like
+  `git merge --no-ff pr/123456` to merge together the desired PRs.
+
+  The use of `--no-ff` ensures that each such step creates an actual
+  merge commit.  This is helpful because it means that a command like
+  `git log --first-parent --oneline origin..`
+  can print a list of exactly which PRs were included, by number.
+  That record is useful for understanding the relationship between
+  releases, and for re-creating a similar branch with updated versions
+  of the same PRs.
+
+* The changelog should distinguish, outside the "for users" section,
+  between changes in main and changes not yet in main.
+  See past examples; search for "experimental".
+
+* After the new release is uploaded, the changelog and version number
+  in main should be updated to match the new release.
+
+  Try `git checkout -p v12.34.567 docs/changelog.md pubspec.yaml`.
+  Use the `-p` prompt to skip any other pubspec updates, such as
+  dependencies.  Then
+  `git commit -am "version: Sync version and changelog from v12.34.567 release"`
+  (with the correct version number), and push.
+
+
 ## One-time or annual setup
 
 * You'll need the Google Play upload key.  The setup is similar to
