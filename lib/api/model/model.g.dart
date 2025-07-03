@@ -319,8 +319,6 @@ StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) =>
       senderRealmStr: json['sender_realm_str'] as String,
       timestamp: (json['timestamp'] as num).toInt(),
       flags: Message._flagsFromJson(json['flags']),
-      matchContent: json['match_content'] as String?,
-      matchTopic: json['match_subject'] as String?,
       conversation: StreamConversation.fromJson(
         StreamMessage._readConversation(json, 'conversation')
             as Map<String, dynamic>,
@@ -345,8 +343,6 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
       'sender_realm_str': instance.senderRealmStr,
       'submessages': Poll.toJson(instance.poll),
       'flags': instance.flags,
-      'match_content': instance.matchContent,
-      'match_subject': instance.matchTopic,
       'type': instance.type,
       'stream_id': instance.streamId,
       'subject': instance.topic,
@@ -377,8 +373,6 @@ DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
   senderRealmStr: json['sender_realm_str'] as String,
   timestamp: (json['timestamp'] as num).toInt(),
   flags: Message._flagsFromJson(json['flags']),
-  matchContent: json['match_content'] as String?,
-  matchTopic: json['match_subject'] as String?,
   conversation: DmMessage._conversationFromJson(
     json['display_recipient'] as List,
   ),
@@ -401,8 +395,6 @@ Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
   'sender_realm_str': instance.senderRealmStr,
   'submessages': Poll.toJson(instance.poll),
   'flags': instance.flags,
-  'match_content': instance.matchContent,
-  'match_subject': instance.matchTopic,
   'type': instance.type,
   'display_recipient': DmMessage._allRecipientIdsToJson(
     instance.allRecipientIds,

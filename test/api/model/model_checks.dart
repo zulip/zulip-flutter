@@ -69,8 +69,6 @@ extension MessageChecks on Subject<Message> {
   Subject<Poll?> get poll => has((e) => e.poll, 'poll');
   Subject<String> get type => has((e) => e.type, 'type');
   Subject<List<MessageFlag>> get flags => has((e) => e.flags, 'flags');
-  Subject<String?> get matchContent => has((e) => e.matchContent, 'matchContent');
-  Subject<String?> get matchTopic => has((e) => e.matchTopic, 'matchTopic');
 }
 
 extension StreamMessageChecks on Subject<StreamMessage> {
