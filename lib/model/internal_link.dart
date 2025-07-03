@@ -144,7 +144,7 @@ class NarrowLink extends InternalLink {
 /// type *could* accurately represent. We should try to understand these
 /// better, but some kinds will be rare, even unheard-of.  For example:
 ///   #narrow/stream/1-announce/stream/1-announce (duplicated operator)
-// TODO(#252): handle all valid narrow links, returning a search narrow
+// TODO(#1661): handle all valid narrow links, returning a search narrow
 InternalLink? parseInternalLink(Uri url, PerAccountStore store) {
   if (!_isInternalLink(url, store.realmUrl)) return null;
 
