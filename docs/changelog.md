@@ -3,6 +3,40 @@
 ## Unreleased
 
 
+## 30.0.259 (2025-06-23)
+
+This release branch includes some experimental changes
+not yet merged to the main branch.
+
+
+### Highlights for users
+
+New since last week's release:
+* The app shows others' availability. (#196)
+* When you're using the app, you'll appear to others
+  as online, according to your settings. (#1607)
+* Much broader TeX math support. (PR #1601)
+* More translation updates. (PR #1615)
+
+Welcome to the new Zulip mobile app!  You'll find
+a familiar experience in a faster, sleeker package.
+
+For more information or to send us feedback,
+see the announcement blog post:
+https://blog.zulip.com/flutter-mobile-app-launch
+
+
+### Highlights for developers
+
+* Resolved in main: PR #1598, PR #1599, #196, #1607, PR #1615
+
+* Resolved in the experimental branch:
+  * more toward #46 via PR #1452
+  * further toward #46 via PR #1559
+  * yet further toward #46 via PR #1601 (cherry-picked)
+  * #296 via PR #1561
+
+
 ## 30.0.258 (2025-06-16)
 
 This release branch includes some experimental changes
