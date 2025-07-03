@@ -614,9 +614,18 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// The narrow shown in this message list.
   ///
-  /// This can change over time, notably if showing a topic that gets moved.
+  /// This can change over time, notably if showing a topic that gets moved,
+  /// or if [renarrowAndFetch] is called.
   Narrow get narrow => _narrow;
   Narrow _narrow;
+
+  /// Set [narrow] to [newNarrow], reset, [notifyListeners], and [fetchInitial].
+  void renarrowAndFetch(Narrow newNarrow) {
+    _narrow = newNarrow;
+    _reset();
+    notifyListeners();
+    fetchInitial();
+  }
 
   /// The anchor point this message list starts from in the message history.
   ///
@@ -1101,10 +1110,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     switch (propagateMode) {
       case PropagateMode.changeAll:
       case PropagateMode.changeLater:
-        _narrow = newNarrow;
-        _reset();
-        notifyListeners();
-        fetchInitial();
+        renarrowAndFetch(newNarrow);
       case PropagateMode.changeOne:
     }
   }
