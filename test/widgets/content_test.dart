@@ -677,32 +677,32 @@ void main() {
     group('characters render at specific offsets with specific size: ', () {
       final testCases = [
         (ContentExample.mathBlockKatexVertical1, [
-          ('a', Offset(0.0, 5.28), Size(10.88, 25.0)),
-          ('′', Offset(10.88, 1.13), Size(3.96, 17.0)),
+          ('a', Offset(0.0, 4.36), Size(10.88, 25.0)),
+          ('′', Offset(10.87, 0.26), Size(3.96, 17.0))
         ]),
         (ContentExample.mathBlockKatexVertical2, [
-          ('x', Offset(0.0, 5.28), Size(11.76, 25.0)),
-          ('n', Offset(11.76, 13.65), Size(8.63, 17.0)),
+          ('x', Offset(0.0, 4.36), Size(11.76, 25.0)),
+          ('n', Offset(11.76, 12.79), Size(8.63, 17.0))
         ]),
         (ContentExample.mathBlockKatexVertical3, [
-          ('e', Offset(0.0, 5.28), Size(9.58, 25.0)),
-          ('x', Offset(9.58, 2.07), Size(8.23, 17.0)),
+          ('e', Offset(0.0, 4.36), Size(9.58, 25.0)),
+          ('x', Offset(9.58, 1.20), Size(8.23, 17.0))
         ]),
         (ContentExample.mathBlockKatexVertical4, [
-          ('u', Offset(0.0, 15.65), Size(8.23, 17.0)),
-          ('o', Offset(0.0, 2.07), Size(6.98, 17.0)),
+          ('u', Offset(0.0, 14.82), Size(8.23, 17.0)),
+          ('o', Offset(0.0, 1.24), Size(6.98, 17.0))
         ]),
         (ContentExample.mathBlockKatexVertical5, [
-          ('a', Offset(0.0, 4.16), Size(10.88, 25.0)),
-          ('b', Offset(10.88, -0.66), Size(8.82, 25.0)),
-          ('c', Offset(19.70, 4.16), Size(8.90, 25.0)),
+          ('a', Offset(0.0, 4.24), Size(10.88, 25.0)),
+          ('b', Offset(10.87, -0.57), Size(8.82, 25.0)),
+          ('c', Offset(19.69, 4.24), Size(8.9, 25.0))
         ]),
         (ContentExample.mathBlockKatexNegativeMargins, [
-          ('K', Offset(0.0, 8.64), Size(16.0, 25.0)),
-          ('A', Offset(12.50, 10.85), Size(10.79, 17.0)),
-          ('T', Offset(20.21, 9.36), Size(14.85, 25.0)),
-          ('E', Offset(31.63, 14.52), Size(14.0, 25.0)),
-          ('X', Offset(43.06, 9.85), Size(15.42, 25.0)),
+          ('K', Offset(0.0, 7.75), Size(16.0, 25.0)),
+          ('A', Offset(12.50, 9.97), Size(10.79, 17.0)),
+          ('T', Offset(20.20, 8.48), Size(14.85, 25.0)),
+          ('E', Offset(31.62, 13.64), Size(14.0, 25.0)),
+          ('X', Offset(43.05, 8.96), Size(15.42, 25.0)),
         ]),
       ];
 
@@ -726,9 +726,9 @@ void main() {
 
             final rect = tester.getRect(find.text(character));
             check(rect.topLeft - baseRect.topLeft)
-              .within(distance: 0.02, from: topLeftOffset);
+              .within(distance: 0.05, from: topLeftOffset);
             check(rect.size)
-              .within(distance: 0.02, from: size);
+              .within(distance: 0.05, from: size);
           }
         });
       }

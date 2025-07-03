@@ -1027,11 +1027,20 @@ class _KatexVlist extends StatelessWidget {
   Widget build(BuildContext context) {
     final em = DefaultTextStyle.of(context).style.fontSize!;
 
-    return Stack(children: List.unmodifiable(node.rows.map((row) {
-      return Transform.translate(
-        offset: Offset(0, row.verticalOffsetEm * em),
-        child: _KatexSpan(row.node));
-    })));
+    return IntrinsicWidth(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        textBaseline: TextBaseline.alphabetic,
+        children: List.unmodifiable(node.rows.map((row) {
+          return SizedBox(
+            height: 0,
+            child: OverflowBox(
+              maxHeight: double.infinity,
+              child: Transform.translate(
+                offset: Offset(0, row.verticalOffsetEm * em),
+                child: _KatexSpan(row.node),
+              )));
+        }))));
   }
 }
 
