@@ -69,11 +69,11 @@ Future<void> setupPage(WidgetTester tester, {
 void main() {
   TestZulipBinding.ensureInitialized();
 
-  group('RecentDmConversationsPage', () {
-    Finder findConversationItem(Narrow narrow) => find.byWidgetPredicate(
-      (widget) => widget is RecentDmConversationsItem && widget.narrow == narrow,
-    );
+  Finder findConversationItem(Narrow narrow) => find.byWidgetPredicate(
+    (widget) => widget is RecentDmConversationsItem && widget.narrow == narrow,
+  );
 
+  group('RecentDmConversationsPage', () {
     testWidgets('appearance when empty', (tester) async {
       await setupPage(tester, users: [], dmMessages: []);
       check(find.text('You have no direct messages yet! Why not start the conversation?'))
@@ -260,8 +260,8 @@ void main() {
               mutedUserIds: [user.userId],
               dmMessages: [message]);
 
-            checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-            checkTitle(tester, 'Muted user');
+            final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
+            check(findConversationItem(narrow)).findsNothing();
           });
         });
 
@@ -346,8 +346,8 @@ void main() {
               mutedUserIds: [user0.userId, user1.userId],
               dmMessages: [message]);
 
-            checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-            checkTitle(tester, 'Muted user, Muted user');
+            final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
+            check(findConversationItem(narrow)).findsNothing();
           });
         });
 

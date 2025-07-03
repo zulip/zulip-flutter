@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -68,7 +69,9 @@ class _NewDmPickerState extends State<NewDmPicker> with PerAccountStoreAwareStat
   }
 
   void _initSortedUsers(PerAccountStore store) {
-    sortedUsers = List<User>.from(store.allUsers)
+    final sansMuted = store.allUsers
+      .whereNot((User user) => store.isUserMuted(user.userId));
+    sortedUsers = List<User>.from(sansMuted)
       ..sort((a, b) => MentionAutocompleteView.compareByDms(a, b, store: store));
     _updateFilteredUsers(store);
   }

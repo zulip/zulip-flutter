@@ -404,19 +404,33 @@ void main() {
   });
 
   group('MentionAutocompleteQuery.testUser', () {
+    late PerAccountStore store;
+
     void doCheck(String rawQuery, User user, bool expected) {
       final result = MentionAutocompleteQuery(rawQuery)
-        .testUser(user, AutocompleteDataCache());
+        .testUser(user, AutocompleteDataCache(), store);
       expected ? check(result).isTrue() : check(result).isFalse();
     }
 
     test('user is always excluded when not active regardless of other criteria', () {
+      store = eg.store();
+
       doCheck('Full Name', eg.user(fullName: 'Full Name', isActive: false), false);
       // When active then other criteria will be checked
       doCheck('Full Name', eg.user(fullName: 'Full Name', isActive: true), true);
     });
 
+    test('user is always excluded when muted, regardless of other criteria', () async {
+      store = eg.store();
+      await store.setMutedUsers([1]);
+      doCheck('Full Name', eg.user(userId: 1, fullName: 'Full Name'), false);
+      // When not muted, then other criteria will be checked
+      doCheck('Full Name', eg.user(userId: 2, fullName: 'Full Name'), true);
+    });
+
     test('user is included if fullname words match the query', () {
+      store = eg.store();
+
       doCheck('', eg.user(fullName: 'Full Name'), true);
       doCheck('', eg.user(fullName: ''), true); // Unlikely case, but should not crash
       doCheck('Full Name', eg.user(fullName: 'Full Name'), true);
