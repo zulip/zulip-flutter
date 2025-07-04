@@ -4,10 +4,11 @@ import '../api/model/model.dart';
 import 'algorithms.dart';
 import 'localizations.dart';
 import 'narrow.dart';
+import 'realm.dart';
 import 'store.dart';
 
 /// The portion of [PerAccountStore] describing the users in the realm.
-mixin UserStore on PerAccountStoreBase {
+mixin UserStore on PerAccountStoreBase, RealmStore {
   /// The user with the given ID, if that user is known.
   ///
   /// There may be other users that are perfectly real but are
@@ -131,9 +132,9 @@ enum MutedUsersVisibilityEffect {
 /// Generally the only code that should need this class is [PerAccountStore]
 /// itself.  Other code accesses this functionality through [PerAccountStore],
 /// or through the mixin [UserStore] which describes its interface.
-class UserStoreImpl extends PerAccountStoreBase with UserStore {
+class UserStoreImpl extends HasRealmStore with UserStore {
   UserStoreImpl({
-    required super.core,
+    required super.realm,
     required InitialSnapshot initialSnapshot,
   }) : _users = Map.fromEntries(
          initialSnapshot.realmUsers

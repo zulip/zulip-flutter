@@ -495,7 +495,7 @@ class PerAccountStore extends PerAccountStoreBase with
       savedSnippets: SavedSnippetStoreImpl(core: core,
         savedSnippets: initialSnapshot.savedSnippets ?? []),
       typingNotifier: TypingNotifier(realm: realm),
-      users: UserStoreImpl(core: core, initialSnapshot: initialSnapshot),
+      users: UserStoreImpl(realm: realm, initialSnapshot: initialSnapshot),
       typingStatus: TypingStatus(realm: realm),
       presence: Presence(realm: realm,
         initial: initialSnapshot.presences),
