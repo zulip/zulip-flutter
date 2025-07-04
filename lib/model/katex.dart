@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:convert/convert.dart';
 import 'package:csslib/parser.dart' as css_parser;
 import 'package:csslib/visitor.dart' as css_visitor;
 import 'package:flutter/foundation.dart';
@@ -629,6 +630,7 @@ class _KatexParser {
       topEm: _takeStyleEm(inlineStyles, 'top'),
       marginLeftEm: _takeStyleEm(inlineStyles, 'margin-left'),
       marginRightEm: _takeStyleEm(inlineStyles, 'margin-right'),
+      color: _takeStyleColor(inlineStyles, 'color'),
       // TODO handle more CSS properties
     );
     if (inlineStyles != null && inlineStyles.isNotEmpty) {
@@ -715,6 +717,54 @@ class _KatexParser {
     _hasError = true;
     return null;
   }
+
+  /// Remove the given property from the given style map,
+  /// and parse as a color value.
+  ///
+  /// If the property is present but is not a valid CSS Hex color,
+  /// or is not one of the CSS named color, record an error
+  /// and return null.
+  ///
+  /// If the property is absent, return null with no error.
+  ///
+  /// If the map is null, treat it as empty.
+  ///
+  /// To produce the map this method expects, see [_parseInlineStyles].
+  KatexSpanColor? _takeStyleColor(Map<String, css_visitor.Expression>? styles, String property) {
+    final expression = styles?.remove(property);
+    if (expression == null) return null;
+
+    // `package:csslib` parser emits a HexColorTerm for the `color`
+    // attribute. It automatically resolves the named CSS colors to
+    // their hex values. The `HexColorTerm.value` is the hex
+    // encoded in an integer in the same sequence as the input hex
+    // string. But it also allows some non-conformant CSS hex color
+    // notations, like #f, #ff, #fffff, #fffffff.
+    // See:
+    //   https://drafts.csswg.org/css-color/#hex-notation.
+    //   https://github.com/dart-lang/tools/blob/2a2a2d611/pkgs/csslib/lib/parser.dart#L2714-L2743
+    //
+    // So, we try to parse the value of `color` attribute ourselves
+    // only allowing conformant CSS hex color notations, mapping
+    // named CSS colors to their corresponding values, generating a
+    // typed result (KatexSpanColor(r, g, b, a)) to be used later
+    // while rendering.
+    final valueStr = expression.span?.text;
+    if (valueStr != null) {
+      if (valueStr.startsWith('#')) {
+        final color = parseCssHexColor(valueStr);
+        if (color != null) return color;
+      } else {
+        final color = _cssNamedColorsMap[valueStr];
+        if (color != null) return color;
+      }
+    }
+    assert(debugLog('KaTeX: Unsupported value for CSS property $property,'
+      ' expected a color: ${expression.toDebugString()}'));
+    unsupportedInlineCssProperties.add(property);
+    _hasError = true;
+    return null;
+  }
 }
 
 enum KatexSpanFontWeight {
@@ -730,6 +780,32 @@ enum KatexSpanTextAlign {
   left,
   center,
   right,
+}
+
+class KatexSpanColor {
+  const KatexSpanColor(this.r, this.g, this.b, this.a);
+
+  final int r;
+  final int g;
+  final int b;
+  final int a;
+
+  @override
+  bool operator ==(Object other) {
+    return other is KatexSpanColor &&
+      other.r == r &&
+      other.g == g &&
+      other.b == b &&
+      other.a == a;
+  }
+
+  @override
+  int get hashCode => Object.hash('KatexSpanColor', r, g, b, a);
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'KatexSpanColor')}($r, $g, $b, $a)';
+  }
 }
 
 @immutable
@@ -755,6 +831,8 @@ class KatexSpanStyles {
   final KatexSpanFontStyle? fontStyle;
   final KatexSpanTextAlign? textAlign;
 
+  final KatexSpanColor? color;
+
   const KatexSpanStyles({
     this.heightEm,
     this.topEm,
@@ -765,6 +843,7 @@ class KatexSpanStyles {
     this.fontWeight,
     this.fontStyle,
     this.textAlign,
+    this.color,
   });
 
   @override
@@ -779,6 +858,7 @@ class KatexSpanStyles {
     fontWeight,
     fontStyle,
     textAlign,
+    color,
   );
 
   @override
@@ -792,7 +872,8 @@ class KatexSpanStyles {
       other.fontSizeEm == fontSizeEm &&
       other.fontWeight == fontWeight &&
       other.fontStyle == fontStyle &&
-      other.textAlign == textAlign;
+      other.textAlign == textAlign &&
+      other.color == color;
   }
 
   @override
@@ -807,6 +888,7 @@ class KatexSpanStyles {
     if (fontWeight != null) args.add('fontWeight: $fontWeight');
     if (fontStyle != null) args.add('fontStyle: $fontStyle');
     if (textAlign != null) args.add('textAlign: $textAlign');
+    if (color != null) args.add('color: $color');
     return '${objectRuntimeType(this, 'KatexSpanStyles')}(${args.join(', ')})';
   }
 
@@ -821,6 +903,7 @@ class KatexSpanStyles {
     bool fontWeight = true,
     bool fontStyle = true,
     bool textAlign = true,
+    bool color = true,
   }) {
     return KatexSpanStyles(
       heightEm: heightEm ? this.heightEm : null,
@@ -832,9 +915,200 @@ class KatexSpanStyles {
       fontWeight: fontWeight ? this.fontWeight : null,
       fontStyle: fontStyle ? this.fontStyle : null,
       textAlign: textAlign ? this.textAlign : null,
+      color: color ? this.color : null,
     );
   }
 }
+
+final _hexColorRegExp =
+  RegExp(r'^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$');
+
+/// Parses the CSS hex color notation.
+///
+/// See: https://drafts.csswg.org/css-color/#hex-notation
+@visibleForTesting
+KatexSpanColor? parseCssHexColor(String hexStr) {
+  final match = _hexColorRegExp.firstMatch(hexStr);
+  if (match == null) return null;
+
+  String hexValue = match.group(1)!;
+  switch (hexValue.length) {
+    case 3:
+      hexValue = '${hexValue[0]}${hexValue[0]}'
+        '${hexValue[1]}${hexValue[1]}'
+        '${hexValue[2]}${hexValue[2]}'
+        'ff';
+    case 4:
+      hexValue = '${hexValue[0]}${hexValue[0]}'
+        '${hexValue[1]}${hexValue[1]}'
+        '${hexValue[2]}${hexValue[2]}'
+        '${hexValue[3]}${hexValue[3]}';
+    case 6:
+      hexValue += 'ff';
+  }
+
+  try {
+    final [r, g, b, a] = hex.decode(hexValue);
+    return KatexSpanColor(r, g, b, a);
+  } catch (_) {
+    return null; // TODO(log)
+  }
+}
+
+// CSS named colors: https://drafts.csswg.org/css-color/#named-colors
+// Map adapted from the following source file:
+//   https://github.com/w3c/csswg-drafts/blob/1942d0918/css-color-4/Overview.bs#L1562-L1859
+const _cssNamedColorsMap = {
+  'transparent': KatexSpanColor(0, 0, 0, 0), // https://drafts.csswg.org/css-color/#transparent-color
+  'aliceblue': KatexSpanColor(240, 248, 255, 255),
+  'antiquewhite': KatexSpanColor(250, 235, 215, 255),
+  'aqua': KatexSpanColor(0, 255, 255, 255),
+  'aquamarine': KatexSpanColor(127, 255, 212, 255),
+  'azure': KatexSpanColor(240, 255, 255, 255),
+  'beige': KatexSpanColor(245, 245, 220, 255),
+  'bisque': KatexSpanColor(255, 228, 196, 255),
+  'black': KatexSpanColor(0, 0, 0, 255),
+  'blanchedalmond': KatexSpanColor(255, 235, 205, 255),
+  'blue': KatexSpanColor(0, 0, 255, 255),
+  'blueviolet': KatexSpanColor(138, 43, 226, 255),
+  'brown': KatexSpanColor(165, 42, 42, 255),
+  'burlywood': KatexSpanColor(222, 184, 135, 255),
+  'cadetblue': KatexSpanColor(95, 158, 160, 255),
+  'chartreuse': KatexSpanColor(127, 255, 0, 255),
+  'chocolate': KatexSpanColor(210, 105, 30, 255),
+  'coral': KatexSpanColor(255, 127, 80, 255),
+  'cornflowerblue': KatexSpanColor(100, 149, 237, 255),
+  'cornsilk': KatexSpanColor(255, 248, 220, 255),
+  'crimson': KatexSpanColor(220, 20, 60, 255),
+  'cyan': KatexSpanColor(0, 255, 255, 255),
+  'darkblue': KatexSpanColor(0, 0, 139, 255),
+  'darkcyan': KatexSpanColor(0, 139, 139, 255),
+  'darkgoldenrod': KatexSpanColor(184, 134, 11, 255),
+  'darkgray': KatexSpanColor(169, 169, 169, 255),
+  'darkgreen': KatexSpanColor(0, 100, 0, 255),
+  'darkgrey': KatexSpanColor(169, 169, 169, 255),
+  'darkkhaki': KatexSpanColor(189, 183, 107, 255),
+  'darkmagenta': KatexSpanColor(139, 0, 139, 255),
+  'darkolivegreen': KatexSpanColor(85, 107, 47, 255),
+  'darkorange': KatexSpanColor(255, 140, 0, 255),
+  'darkorchid': KatexSpanColor(153, 50, 204, 255),
+  'darkred': KatexSpanColor(139, 0, 0, 255),
+  'darksalmon': KatexSpanColor(233, 150, 122, 255),
+  'darkseagreen': KatexSpanColor(143, 188, 143, 255),
+  'darkslateblue': KatexSpanColor(72, 61, 139, 255),
+  'darkslategray': KatexSpanColor(47, 79, 79, 255),
+  'darkslategrey': KatexSpanColor(47, 79, 79, 255),
+  'darkturquoise': KatexSpanColor(0, 206, 209, 255),
+  'darkviolet': KatexSpanColor(148, 0, 211, 255),
+  'deeppink': KatexSpanColor(255, 20, 147, 255),
+  'deepskyblue': KatexSpanColor(0, 191, 255, 255),
+  'dimgray': KatexSpanColor(105, 105, 105, 255),
+  'dimgrey': KatexSpanColor(105, 105, 105, 255),
+  'dodgerblue': KatexSpanColor(30, 144, 255, 255),
+  'firebrick': KatexSpanColor(178, 34, 34, 255),
+  'floralwhite': KatexSpanColor(255, 250, 240, 255),
+  'forestgreen': KatexSpanColor(34, 139, 34, 255),
+  'fuchsia': KatexSpanColor(255, 0, 255, 255),
+  'gainsboro': KatexSpanColor(220, 220, 220, 255),
+  'ghostwhite': KatexSpanColor(248, 248, 255, 255),
+  'gold': KatexSpanColor(255, 215, 0, 255),
+  'goldenrod': KatexSpanColor(218, 165, 32, 255),
+  'gray': KatexSpanColor(128, 128, 128, 255),
+  'green': KatexSpanColor(0, 128, 0, 255),
+  'greenyellow': KatexSpanColor(173, 255, 47, 255),
+  'grey': KatexSpanColor(128, 128, 128, 255),
+  'honeydew': KatexSpanColor(240, 255, 240, 255),
+  'hotpink': KatexSpanColor(255, 105, 180, 255),
+  'indianred': KatexSpanColor(205, 92, 92, 255),
+  'indigo': KatexSpanColor(75, 0, 130, 255),
+  'ivory': KatexSpanColor(255, 255, 240, 255),
+  'khaki': KatexSpanColor(240, 230, 140, 255),
+  'lavender': KatexSpanColor(230, 230, 250, 255),
+  'lavenderblush': KatexSpanColor(255, 240, 245, 255),
+  'lawngreen': KatexSpanColor(124, 252, 0, 255),
+  'lemonchiffon': KatexSpanColor(255, 250, 205, 255),
+  'lightblue': KatexSpanColor(173, 216, 230, 255),
+  'lightcoral': KatexSpanColor(240, 128, 128, 255),
+  'lightcyan': KatexSpanColor(224, 255, 255, 255),
+  'lightgoldenrodyellow': KatexSpanColor(250, 250, 210, 255),
+  'lightgray': KatexSpanColor(211, 211, 211, 255),
+  'lightgreen': KatexSpanColor(144, 238, 144, 255),
+  'lightgrey': KatexSpanColor(211, 211, 211, 255),
+  'lightpink': KatexSpanColor(255, 182, 193, 255),
+  'lightsalmon': KatexSpanColor(255, 160, 122, 255),
+  'lightseagreen': KatexSpanColor(32, 178, 170, 255),
+  'lightskyblue': KatexSpanColor(135, 206, 250, 255),
+  'lightslategray': KatexSpanColor(119, 136, 153, 255),
+  'lightslategrey': KatexSpanColor(119, 136, 153, 255),
+  'lightsteelblue': KatexSpanColor(176, 196, 222, 255),
+  'lightyellow': KatexSpanColor(255, 255, 224, 255),
+  'lime': KatexSpanColor(0, 255, 0, 255),
+  'limegreen': KatexSpanColor(50, 205, 50, 255),
+  'linen': KatexSpanColor(250, 240, 230, 255),
+  'magenta': KatexSpanColor(255, 0, 255, 255),
+  'maroon': KatexSpanColor(128, 0, 0, 255),
+  'mediumaquamarine': KatexSpanColor(102, 205, 170, 255),
+  'mediumblue': KatexSpanColor(0, 0, 205, 255),
+  'mediumorchid': KatexSpanColor(186, 85, 211, 255),
+  'mediumpurple': KatexSpanColor(147, 112, 219, 255),
+  'mediumseagreen': KatexSpanColor(60, 179, 113, 255),
+  'mediumslateblue': KatexSpanColor(123, 104, 238, 255),
+  'mediumspringgreen': KatexSpanColor(0, 250, 154, 255),
+  'mediumturquoise': KatexSpanColor(72, 209, 204, 255),
+  'mediumvioletred': KatexSpanColor(199, 21, 133, 255),
+  'midnightblue': KatexSpanColor(25, 25, 112, 255),
+  'mintcream': KatexSpanColor(245, 255, 250, 255),
+  'mistyrose': KatexSpanColor(255, 228, 225, 255),
+  'moccasin': KatexSpanColor(255, 228, 181, 255),
+  'navajowhite': KatexSpanColor(255, 222, 173, 255),
+  'navy': KatexSpanColor(0, 0, 128, 255),
+  'oldlace': KatexSpanColor(253, 245, 230, 255),
+  'olive': KatexSpanColor(128, 128, 0, 255),
+  'olivedrab': KatexSpanColor(107, 142, 35, 255),
+  'orange': KatexSpanColor(255, 165, 0, 255),
+  'orangered': KatexSpanColor(255, 69, 0, 255),
+  'orchid': KatexSpanColor(218, 112, 214, 255),
+  'palegoldenrod': KatexSpanColor(238, 232, 170, 255),
+  'palegreen': KatexSpanColor(152, 251, 152, 255),
+  'paleturquoise': KatexSpanColor(175, 238, 238, 255),
+  'palevioletred': KatexSpanColor(219, 112, 147, 255),
+  'papayawhip': KatexSpanColor(255, 239, 213, 255),
+  'peachpuff': KatexSpanColor(255, 218, 185, 255),
+  'peru': KatexSpanColor(205, 133, 63, 255),
+  'pink': KatexSpanColor(255, 192, 203, 255),
+  'plum': KatexSpanColor(221, 160, 221, 255),
+  'powderblue': KatexSpanColor(176, 224, 230, 255),
+  'purple': KatexSpanColor(128, 0, 128, 255),
+  'rebeccapurple': KatexSpanColor(102, 51, 153, 255),
+  'red': KatexSpanColor(255, 0, 0, 255),
+  'rosybrown': KatexSpanColor(188, 143, 143, 255),
+  'royalblue': KatexSpanColor(65, 105, 225, 255),
+  'saddlebrown': KatexSpanColor(139, 69, 19, 255),
+  'salmon': KatexSpanColor(250, 128, 114, 255),
+  'sandybrown': KatexSpanColor(244, 164, 96, 255),
+  'seagreen': KatexSpanColor(46, 139, 87, 255),
+  'seashell': KatexSpanColor(255, 245, 238, 255),
+  'sienna': KatexSpanColor(160, 82, 45, 255),
+  'silver': KatexSpanColor(192, 192, 192, 255),
+  'skyblue': KatexSpanColor(135, 206, 235, 255),
+  'slateblue': KatexSpanColor(106, 90, 205, 255),
+  'slategray': KatexSpanColor(112, 128, 144, 255),
+  'slategrey': KatexSpanColor(112, 128, 144, 255),
+  'snow': KatexSpanColor(255, 250, 250, 255),
+  'springgreen': KatexSpanColor(0, 255, 127, 255),
+  'steelblue': KatexSpanColor(70, 130, 180, 255),
+  'tan': KatexSpanColor(210, 180, 140, 255),
+  'teal': KatexSpanColor(0, 128, 128, 255),
+  'thistle': KatexSpanColor(216, 191, 216, 255),
+  'tomato': KatexSpanColor(255, 99, 71, 255),
+  'turquoise': KatexSpanColor(64, 224, 208, 255),
+  'violet': KatexSpanColor(238, 130, 238, 255),
+  'wheat': KatexSpanColor(245, 222, 179, 255),
+  'white': KatexSpanColor(255, 255, 255, 255),
+  'whitesmoke': KatexSpanColor(245, 245, 245, 255),
+  'yellow': KatexSpanColor(255, 255, 0, 255),
+  'yellowgreen': KatexSpanColor(154, 205, 50, 255),
+};
 
 class _KatexHtmlParseError extends Error {
   final String? message;

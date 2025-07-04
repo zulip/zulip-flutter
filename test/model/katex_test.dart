@@ -566,6 +566,83 @@ class KatexExample extends ContentExample {
         ]),
       ]),
     ]);
+
+  static final color = KatexExample.block(
+    r'\color: 3-digit hex color',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2232197
+    r'\color{#f00} 0',
+    '<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mstyle mathcolor="#f00"><mn>0</mn></mstyle></mrow><annotation encoding="application/x-tex">\\color{#f00} 0</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base">'
+            '<span class="strut" style="height:0.6444em;"></span>'
+            '<span class="mord" style="color:#f00;">0</span></span></span></span></span></p>', [
+      KatexSpanNode(nodes: [
+        KatexStrutNode(heightEm: 0.6444, verticalAlignEm: null),
+        KatexSpanNode(
+          styles: KatexSpanStyles(color: KatexSpanColor(255, 0, 0, 255)),
+          text: '0'),
+      ]),
+    ]);
+
+  static final textColor = KatexExample.block(
+    r'\textcolor: CSS named color',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2232198
+    r'\textcolor{red} 1',
+    '<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mstyle mathcolor="red"><mn>1</mn></mstyle></mrow><annotation encoding="application/x-tex">\\textcolor{red} 1</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base">'
+            '<span class="strut" style="height:0.6444em;"></span>'
+            '<span class="mord" style="color:red;">1</span></span></span></span></span></p>', [
+      KatexSpanNode(nodes: [
+        KatexStrutNode(heightEm: 0.6444, verticalAlignEm: null),
+        KatexSpanNode(
+          styles: KatexSpanStyles(color: KatexSpanColor(255, 0, 0, 255)),
+          text: '1'),
+      ]),
+    ]);
+
+  // KaTeX custom color macros, see https://github.com/KaTeX/KaTeX/blob/9fb63136e/src/macros.js#L977-L1033
+  static final customColorMacro = KatexExample.block(
+    r'\red, custom KaTeX color macro: CSS 6-digit hex color',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2232199
+    r'\red 2',
+    '<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mstyle mathcolor="#df0030"><mn>2</mn></mstyle></mrow><annotation encoding="application/x-tex">\\red 2</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base">'
+            '<span class="strut" style="height:0.6444em;"></span>'
+            '<span class="mord" style="color:#df0030;">2</span></span></span></span></span></p>', [
+      KatexSpanNode(nodes: [
+        KatexStrutNode(heightEm: 0.6444, verticalAlignEm: null),
+        KatexSpanNode(
+          styles: KatexSpanStyles(color: KatexSpanColor(223, 0, 48, 255)),
+          text: '2'),
+      ]),
+    ]);
+
+  static final phantom = KatexExample.block(
+    r'\phantom: span with "color: transparent"',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2229515
+    r'\phantom{*}',
+    '<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mphantom><mo>∗</mo></mphantom></mrow><annotation encoding="application/x-tex">\\phantom{*}</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base">'
+            '<span class="strut" style="height:0.4653em;"></span>'
+            '<span class="mord" style="color:transparent;">∗</span></span></span></span></span></p>', [
+      KatexSpanNode(nodes: [
+        KatexStrutNode(heightEm: 0.4653, verticalAlignEm: null),
+        KatexSpanNode(
+          styles: KatexSpanStyles(color: KatexSpanColor(0, 0, 0, 0)),
+          text: '∗'),
+      ]),
+    ]);
 }
 
 void main() async {
@@ -582,6 +659,55 @@ void main() async {
   testParseExample(KatexExample.negativeMargin);
   testParseExample(KatexExample.katexLogo);
   testParseExample(KatexExample.vlistNegativeMargin);
+  testParseExample(KatexExample.color);
+  testParseExample(KatexExample.textColor);
+  testParseExample(KatexExample.customColorMacro);
+  testParseExample(KatexExample.phantom);
+
+  group('parseCssHexColor', () {
+    const testCases = [
+      ('#c0c0c0ff', KatexSpanColor(192, 192, 192, 255)),
+      ('#f00ba4',   KatexSpanColor(240, 11, 164, 255)),
+      ('#cafe',     KatexSpanColor(204, 170, 255, 238)),
+
+      ('#ffffffff', KatexSpanColor(255, 255, 255, 255)),
+      ('#ffffff',   KatexSpanColor(255, 255, 255, 255)),
+      ('#ffff',     KatexSpanColor(255, 255, 255, 255)),
+      ('#fff',      KatexSpanColor(255, 255, 255, 255)),
+      ('#00ffffff', KatexSpanColor(0, 255, 255, 255)),
+      ('#00ffff',   KatexSpanColor(0, 255, 255, 255)),
+      ('#0fff',     KatexSpanColor(0, 255, 255, 255)),
+      ('#0ff',      KatexSpanColor(0, 255, 255, 255)),
+      ('#ff00ffff', KatexSpanColor(255, 0, 255, 255)),
+      ('#ff00ff',   KatexSpanColor(255, 0, 255, 255)),
+      ('#f0ff',     KatexSpanColor(255, 0, 255, 255)),
+      ('#f0f',      KatexSpanColor(255, 0, 255, 255)),
+      ('#ffff00ff', KatexSpanColor(255, 255, 0, 255)),
+      ('#ffff00',   KatexSpanColor(255, 255, 0, 255)),
+      ('#ff0f',     KatexSpanColor(255, 255, 0, 255)),
+      ('#ff0',      KatexSpanColor(255, 255, 0, 255)),
+      ('#ffffff00', KatexSpanColor(255, 255, 255, 0)),
+      ('#fff0',     KatexSpanColor(255, 255, 255, 0)),
+
+      ('#FF00FFFF', KatexSpanColor(255, 0, 255, 255)),
+      ('#FF00FF',   KatexSpanColor(255, 0, 255, 255)),
+
+      ('#ff00FFff', KatexSpanColor(255, 0, 255, 255)),
+      ('#ff00FF',   KatexSpanColor(255, 0, 255, 255)),
+
+      ('#F',        null),
+      ('#FF',       null),
+      ('#FFFFF',    null),
+      ('#FFFFFFF',  null),
+      ('FFF',       null),
+    ];
+
+    for (final testCase in testCases) {
+      test(testCase.$1, () {
+        check(parseCssHexColor(testCase.$1)).equals(testCase.$2);
+      });
+    }
+  });
 
   test('all KaTeX content examples are tested', () {
     // Check that every KatexExample defined above has a corresponding

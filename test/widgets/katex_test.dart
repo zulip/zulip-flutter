@@ -1,4 +1,5 @@
 import 'package:checks/checks.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -97,6 +98,39 @@ void main() {
             .within(distance: 0.05, from: expectedSize);
         }
       }, skip: testCase.skip);
+    }
+  });
+
+  group('characters are rendered in specific color', () {
+    final testCases = <(KatexExample, List<(String, Color)>)>[
+      (KatexExample.color, [
+        ('0', Color.fromARGB(255, 255, 0, 0))
+      ]),
+      (KatexExample.textColor, [
+        ('1', Color.fromARGB(255, 255, 0, 0))
+      ]),
+      (KatexExample.customColorMacro, [
+        ('2', Color.fromARGB(255, 223, 0, 48))
+      ]),
+      (KatexExample.phantom, [
+        ('∗', Color.fromARGB(0, 0, 0, 0))
+      ])
+    ];
+
+    for (final testCase in testCases) {
+      testWidgets(testCase.$1.description, (tester) async {
+        await prepareContent(tester, plainContent(testCase.$1.html));
+
+        for (final characterData in testCase.$2) {
+          final character = characterData.$1;
+          final expectedColor = characterData.$2;
+
+          final renderParagraph =
+            tester.renderObject<RenderParagraph>(find.text(character));
+          final color = renderParagraph.text.style?.color;
+          check(color).equals(expectedColor);
+        }
+      });
     }
   });
 }
