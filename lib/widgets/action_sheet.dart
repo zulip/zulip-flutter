@@ -17,6 +17,7 @@ import '../model/emoji.dart';
 import '../model/internal_link.dart';
 import '../model/narrow.dart';
 import 'actions.dart';
+import 'button.dart';
 import 'color.dart';
 import 'compose_box.dart';
 import 'dialog.dart';
@@ -60,10 +61,7 @@ void _showActionSheet(
                   color: DesignVariables.of(context).bgContextMenu,
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.only(top: 16, bottom: 8),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(7),
-                      child: Column(spacing: 1,
-                        children: optionButtons))))),
+                    child: MenuButtonsShape(buttons: optionButtons)))),
                 const ActionSheetCancelButton(),
               ]))));
     });
@@ -122,22 +120,12 @@ abstract class ActionSheetMenuItemButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-    return MenuItemButton(
-      trailingIcon: Icon(icon, color: designVariables.contextMenuItemText),
-      style: MenuItemButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        foregroundColor: designVariables.contextMenuItemText,
-        splashFactory: NoSplash.splashFactory,
-      ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
-          designVariables.contextMenuItemBg.withFadedAlpha(
-            states.contains(WidgetState.pressed) ? 0.20 : 0.12))),
+    return MenuButton(
+      icon: icon,
+      label: label(zulipLocalizations),
       onPressed: () => _handlePressed(context),
-      child: Text(label(zulipLocalizations),
-        style: const TextStyle(fontSize: 20, height: 24 / 20)
-          .merge(weightVariableTextStyle(context, wght: 600)),
-      ));
+    );
   }
 }
 

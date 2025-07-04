@@ -1173,6 +1173,24 @@ abstract class ZulipLocalizations {
   /// **'Yesterday'**
   String get yesterday;
 
+  /// Label for the 'Invisible mode' switch on the profile page.
+  ///
+  /// In en, this message translates to:
+  /// **'Invisible mode'**
+  String get invisibleMode;
+
+  /// Error title when turning on invisible mode failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Error turning on invisible mode. Please try again.'**
+  String get turnOnInvisibleModeErrorTitle;
+
+  /// Error title when turning off invisible mode failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Error turning off invisible mode. Please try again.'**
+  String get turnOffInvisibleModeErrorTitle;
+
   /// Label for UserRole.owner
   ///
   /// In en, this message translates to:
