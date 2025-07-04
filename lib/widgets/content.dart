@@ -911,12 +911,14 @@ class _KatexSpan extends StatelessWidget {
       KatexSpanFontStyle.italic => FontStyle.italic,
       null => null,
     };
+    final color = styles.color;
 
     TextStyle? textStyle;
     if (fontFamily != null ||
         fontSize != null ||
         fontWeight != null ||
-        fontStyle != null) {
+        fontStyle != null ||
+        color != null) {
       // TODO(upstream) remove this workaround when upstream fixes the broken
       //   rendering of KaTeX_Math font with italic font style on Android:
       //     https://github.com/flutter/flutter/issues/167474
@@ -930,6 +932,9 @@ class _KatexSpan extends StatelessWidget {
         fontSize: fontSize,
         fontWeight: fontWeight,
         fontStyle: fontStyle,
+        color: color != null
+          ? Color.fromARGB(color.a, color.r, color.g, color.b)
+          : null,
       );
     }
     final textAlign = switch (styles.textAlign) {
