@@ -83,6 +83,36 @@ mixin UserStore on PerAccountStoreBase, RealmStore {
     return getUser(senderId)?.fullName ?? message.senderFullName;
   }
 
+  /// The user's real email address, if known, for displaying in the UI.
+  ///
+  /// Returns null if self-user isn't able to see the user's real email address,
+  /// or if the user isn't actually a user we know about.
+  String? userDisplayEmail(int userId) {
+    final user = getUser(userId);
+    if (user == null) return null;
+    if (zulipFeatureLevel >= 163) { // TODO(server-7)
+      // A non-null value means self-user has access to [user]'s real email,
+      // while a null value means it doesn't have access to the email.
+      // Search for "delivery_email" in https://zulip.com/api/register-queue.
+      return user.deliveryEmail;
+    } else {
+      if (user.deliveryEmail != null) {
+        // A non-null value means self-user has access to [user]'s real email,
+        // while a null value doesn't necessarily mean it doesn't have access
+        // to the email, ....
+        return user.deliveryEmail;
+      } else if (emailAddressVisibility == EmailAddressVisibility.everyone) {
+        // ... we have to also check for [PerAccountStore.emailAddressVisibility].
+        // See:
+        //   * https://github.com/zulip/zulip-mobile/pull/5515#discussion_r997731727
+        //   * https://chat.zulip.org/#narrow/stream/378-api-design/topic/email.20address.20visibility/near/1296133
+        return user.email;
+      } else {
+        return null;
+      }
+    }
+  }
+
   /// Whether [user] has passed the realm's waiting period to be a full member.
   ///
   /// See:
