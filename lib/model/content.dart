@@ -1927,3 +1927,9 @@ class _ZulipContentParser {
 ZulipContent parseContent(String html) {
   return _ZulipContentParser().parse(html);
 }
+
+ZulipMessageContent parseMessageContent(Message message) {
+  final poll = message.poll;
+  if (poll != null) return PollContent(poll);
+  return parseContent(message.content);
+}

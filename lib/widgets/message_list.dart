@@ -175,19 +175,19 @@ class MessageListPage extends StatefulWidget {
         initNarrow: narrow, initAnchorMessageId: initAnchorMessageId));
   }
 
-  /// The "revealed" state of a message from a muted sender.
+  /// The "revealed" state of a message from a muted sender,
+  /// if there is a [MessageListPage] ancestor, else null.
   ///
   /// This is updated via [MessageListPageState.revealMutedMessage]
   /// and [MessageListPageState.unrevealMutedMessage].
   ///
   /// Uses the efficient [BuildContext.dependOnInheritedWidgetOfExactType],
   /// so this is safe to call in a build method.
-  static RevealedMutedMessagesState revealedMutedMessagesOf(BuildContext context) {
+  static RevealedMutedMessagesState? maybeRevealedMutedMessagesOf(BuildContext context) {
     final state =
       context.dependOnInheritedWidgetOfExactType<_RevealedMutedMessagesProvider>()
       ?.state;
-    assert(state != null, 'No MessageListPage ancestor');
-    return state!;
+    return state;
   }
 
   /// The [MessageListPageState] above this context in the tree.
@@ -1885,21 +1885,23 @@ String formatHeaderDate(
   }
 }
 
-// TODO(i18n): web seems to ignore locale in formatting time, but we could do better
-final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
-
-class _SenderRow extends StatelessWidget {
-  const _SenderRow({required this.message, required this.showTimestamp});
+class SenderRow extends StatelessWidget {
+  const SenderRow({super.key, required this.message, required this.timestampDisplay});
 
   final MessageBase message;
-  final bool showTimestamp;
+  final MessageTimestampDisplay? timestampDisplay;
 
   bool _showAsMuted(BuildContext context, PerAccountStore store) {
     final message = this.message;
     if (!store.isUserMuted(message.senderId)) return false;
     if (message is! Message) return false; // i.e., if an outbox message
-    return !MessageListPage.revealedMutedMessagesOf(context)
-      .isMutedMessageRevealed(message.id);
+    final revealedMutedMessagesState =
+      MessageListPage.maybeRevealedMutedMessagesOf(context);
+    // The "unrevealed" state only exists in the message list,
+    // and we show a sender row in at least one place outside the message list
+    // (the message action sheet).
+    if (revealedMutedMessagesState == null) return false;
+    return !revealedMutedMessagesState.isMutedMessageRevealed(message.id);
   }
 
   @override
@@ -1909,8 +1911,7 @@ class _SenderRow extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final sender = store.getUser(message.senderId);
-    final time = _kMessageTimestampFormat
-      .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
+    final timestamp = timestampDisplay?.format(message.timestamp);
 
     final showAsMuted = _showAsMuted(context, store);
 
@@ -1956,9 +1957,9 @@ class _SenderRow extends StatelessWidget {
                     ),
                   ],
                 ]))),
-          if (showTimestamp) ...[
+          if (timestamp != null) ...[
             const SizedBox(width: 4),
-            Text(time,
+            Text(timestamp,
               style: TextStyle(
                 color: messageListTheme.labelTime,
                 fontSize: 16,
@@ -1967,6 +1968,38 @@ class _SenderRow extends StatelessWidget {
               ).merge(weightVariableTextStyle(context))),
           ],
         ]));
+  }
+}
+
+// TODO centralize on this for wherever we show message timestamps
+enum MessageTimestampDisplay {
+  timeOnly,
+
+  /// The longest format, with full date and time as numbers, not "Today"/etc.
+  ///
+  /// For UI contexts focused just on the one message,
+  /// or as a tooltip on a shorter-formatted timestamp.
+  ///
+  /// The detail won't always be needed, but this format makes mental timezone
+  /// conversions easier, which is helpful when the user is thinking about
+  /// business hours on a different continent,
+  /// or traveling and they know their device timezone setting is wrong, etc.
+  full,
+  ;
+
+  static final _timeOnlyFormat = DateFormat('h:mm aa', 'en_US');
+  static final _fullFormat = DateFormat.yMMMd().add_jm();
+
+  /// Format a [Message.timestamp] for this mode.
+  // TODO(i18n): locale-specific formatting (see #45 for a plan with ffi)
+  String? format(int messageTimestamp) {
+    final asDateTime =
+      DateTime.fromMillisecondsSinceEpoch(1000 * messageTimestamp);
+
+    switch (this) {
+      case timeOnly: return _timeOnlyFormat.format(asDateTime);
+      case full: return _fullFormat.format(asDateTime);
+    }
   }
 }
 
@@ -2041,7 +2074,7 @@ class MessageWithPossibleSender extends StatelessWidget {
     };
 
     final showAsMuted = store.isUserMuted(message.senderId)
-      && !MessageListPage.revealedMutedMessagesOf(context)
+      && !MessageListPage.maybeRevealedMutedMessagesOf(context)!
                          .isMutedMessageRevealed(message.id);
 
     return GestureDetector(
@@ -2060,7 +2093,8 @@ class MessageWithPossibleSender extends StatelessWidget {
         padding: const EdgeInsets.only(top: 4),
         child: Column(children: [
           if (item.showSender)
-            _SenderRow(message: message, showTimestamp: true),
+            SenderRow(message: message,
+              timestampDisplay: MessageTimestampDisplay.timeOnly),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: localizedTextBaseline(context),
@@ -2223,7 +2257,7 @@ class OutboxMessageWithPossibleSender extends StatelessWidget {
       padding: const EdgeInsets.only(top: 4),
       child: Column(children: [
         if (item.showSender)
-          _SenderRow(message: message, showTimestamp: false),
+          SenderRow(message: message, timestampDisplay: null),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
