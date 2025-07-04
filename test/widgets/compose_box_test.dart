@@ -761,7 +761,7 @@ void main() {
       await checkStartTyping(tester, narrow);
 
       connection.prepare(json: {});
-      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      await tester.pump(store.serverTypingStoppedWaitPeriod);
       checkTypingRequest(TypingOp.stop, narrow);
     });
 
@@ -773,7 +773,7 @@ void main() {
       await checkStartTyping(tester, narrow);
 
       connection.prepare(json: {});
-      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      await tester.pump(store.serverTypingStoppedWaitPeriod);
       checkTypingRequest(TypingOp.stop, narrow);
     });
 
@@ -786,7 +786,7 @@ void main() {
       await checkStartTyping(tester, destinationNarrow);
 
       connection.prepare(json: {});
-      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      await tester.pump(store.serverTypingStoppedWaitPeriod);
       checkTypingRequest(TypingOp.stop, destinationNarrow);
     });
 
@@ -866,7 +866,7 @@ void main() {
       await checkStartTyping(tester, narrow);
 
       connection.prepare(json: {});
-      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      await tester.pump(store.serverTypingStoppedWaitPeriod);
       checkTypingRequest(TypingOp.stop, narrow);
 
       connection.prepare(json: {});
@@ -876,7 +876,7 @@ void main() {
 
       // Ensures that a "typing stopped" notice is sent when the test ends.
       connection.prepare(json: {});
-      await tester.pump(store.typingNotifier.typingStoppedWaitPeriod);
+      await tester.pump(store.serverTypingStoppedWaitPeriod);
       checkTypingRequest(TypingOp.stop, narrow);
     });
 

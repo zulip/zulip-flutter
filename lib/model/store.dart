@@ -494,16 +494,9 @@ class PerAccountStore extends PerAccountStoreBase with
       userSettings: initialSnapshot.userSettings,
       savedSnippets: SavedSnippetStoreImpl(
         core: core, savedSnippets: initialSnapshot.savedSnippets ?? []),
-      typingNotifier: TypingNotifier(
-        core: core,
-        typingStoppedWaitPeriod: Duration(
-          milliseconds: initialSnapshot.serverTypingStoppedWaitPeriodMilliseconds),
-        typingStartedWaitPeriod: Duration(
-          milliseconds: initialSnapshot.serverTypingStartedWaitPeriodMilliseconds),
-      ),
+      typingNotifier: TypingNotifier(realm: realm),
       users: UserStoreImpl(core: core, initialSnapshot: initialSnapshot),
-      typingStatus: TypingStatus(core: core,
-        typingStartedExpiryPeriod: Duration(milliseconds: initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds)),
+      typingStatus: TypingStatus(realm: realm),
       presence: Presence(realm: realm,
         initial: initialSnapshot.presences),
       channels: channels,

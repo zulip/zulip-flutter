@@ -297,7 +297,7 @@ void main() {
       const waitTime = Duration(milliseconds: 100);
       // [waitTime] should not be long enough
       // to trigger a "typing stopped" notice.
-      assert(waitTime < model.typingStoppedWaitPeriod);
+      assert(waitTime < store.serverTypingStoppedWaitPeriod);
 
       async.elapse(waitTime);
       // t = 100ms: The idle timer is reset to typingStoppedWaitPeriod.
@@ -306,7 +306,7 @@ void main() {
       check(connection.lastRequest).isNull();
       check(async.pendingTimers).single;
 
-      async.elapse(model.typingStoppedWaitPeriod - const Duration(milliseconds: 1));
+      async.elapse(store.serverTypingStoppedWaitPeriod - const Duration(milliseconds: 1));
       // t = typingStoppedWaitPeriod + 99ms:
       //   Since the timer was reset at t = 100ms, the "typing stopped" notice has
       //   not been sent yet.
@@ -326,12 +326,12 @@ void main() {
       const waitInterval = Duration(milliseconds: 2000);
       // [waitInterval] should not be long enough
       // to trigger a "typing stopped" notice.
-      assert(waitInterval < model.typingStoppedWaitPeriod);
+      assert(waitInterval < store.serverTypingStoppedWaitPeriod);
       // [waitInterval] should be short enough
       // that the loop below runs more than once.
-      assert(waitInterval < model.typingStartedWaitPeriod);
+      assert(waitInterval < store.serverTypingStartedWaitPeriod);
 
-      while (async.elapsed <= model.typingStartedWaitPeriod) {
+      while (async.elapsed <= store.serverTypingStartedWaitPeriod) {
         // t <= typingStartedWaitPeriod: "Typing started" notices are throttled.
         model.keystroke(narrow);
         check(connection.lastRequest).isNull();
@@ -354,7 +354,7 @@ void main() {
       await prepareStartTyping(async);
 
       connection.prepare(json: {});
-      async.elapse(model.typingStoppedWaitPeriod);
+      async.elapse(store.serverTypingStoppedWaitPeriod);
       checkTypingRequest(TypingOp.stop, narrow);
       check(async.pendingTimers).isEmpty();
     }));
@@ -406,7 +406,7 @@ void main() {
       const waitTime = Duration(milliseconds: 100);
       // [waitTime] should not be long enough
       // to trigger a "typing stopped" notice.
-      assert(waitTime < model.typingStoppedWaitPeriod);
+      assert(waitTime < store.serverTypingStoppedWaitPeriod);
 
       // t = 0ms: Start typing. The idle timer is set to typingStoppedWaitPeriod.
       connection.prepare(json: {});
@@ -429,7 +429,7 @@ void main() {
       async.elapse(Duration.zero);
       check(async.pendingTimers).single;
 
-      async.elapse(model.typingStoppedWaitPeriod - waitTime);
+      async.elapse(store.serverTypingStoppedWaitPeriod - waitTime);
       // t = typingStoppedPeriod:
       //   Because the old timer has been canceled at t = 100ms,
       //   no "typing stopped" notice has been sent yet.
@@ -452,7 +452,7 @@ void main() {
       const waitInterval = Duration(milliseconds: 2000);
       // [waitInterval] should not be long enough
       // to trigger a "typing stopped" notice.
-      assert(waitInterval < model.typingStoppedWaitPeriod);
+      assert(waitInterval < store.serverTypingStoppedWaitPeriod);
 
       // t = 0ms: Start typing. The typing started time is set to 0ms.
       connection.prepare(json: {});
@@ -471,7 +471,7 @@ void main() {
       checkSetTypingStatusRequests(connection.takeRequests(),
         [(TypingOp.stop, topicNarrow), (TypingOp.start, dmNarrow)]);
 
-      while (async.elapsed <= model.typingStartedWaitPeriod) {
+      while (async.elapsed <= store.serverTypingStartedWaitPeriod) {
         // t <= typingStartedWaitPeriod: "still typing" requests are throttled.
         model.keystroke(dmNarrow);
         check(connection.lastRequest).isNull();
@@ -479,8 +479,8 @@ void main() {
         async.elapse(waitInterval);
       }
 
-      assert(async.elapsed > model.typingStartedWaitPeriod);
-      assert(async.elapsed <= model.typingStartedWaitPeriod + waitInterval);
+      assert(async.elapsed > store.serverTypingStartedWaitPeriod);
+      assert(async.elapsed <= store.serverTypingStartedWaitPeriod + waitInterval);
       // typingStartedWaitPeriod < t <= typingStartedWaitPeriod + waitInterval * 1:
       //   The "still typing" requests are still throttled, because it hasn't
       //   been a full typingStartedWaitPeriod since the last time we sent
