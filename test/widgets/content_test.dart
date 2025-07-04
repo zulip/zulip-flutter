@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -595,16 +596,20 @@ void main() {
       final content = ContentExample.mathBlockKatexSizing;
       await prepareContent(tester, plainContent(content.html));
 
+      final context = tester.element(find.byType(MathBlock));
+      final baseTextStyle =
+        mkBaseKatexTextStyle(ContentTheme.of(context).textStylePlainParagraph);
+
       final mathBlockNode = content.expectedNodes.single as MathBlockNode;
       final baseNode = mathBlockNode.nodes!.single as KatexSpanNode;
       final nodes = baseNode.nodes!.skip(1); // Skip .strut node.
       for (var katexNode in nodes) {
         katexNode = katexNode as KatexSpanNode;
-        final fontSize = katexNode.styles.fontSizeEm! * kBaseKatexTextStyle.fontSize!;
+        final fontSize = katexNode.styles.fontSizeEm! * baseTextStyle.fontSize!;
         checkKatexText(tester, katexNode.text!,
           fontFamily: 'KaTeX_Main',
           fontSize: fontSize,
-          fontHeight: kBaseKatexTextStyle.height!);
+          fontHeight: baseTextStyle.height!);
       }
     });
 
@@ -617,17 +622,21 @@ void main() {
       final content = ContentExample.mathBlockKatexNestedSizing;
       await prepareContent(tester, plainContent(content.html));
 
-      var fontSize = 0.5 * kBaseKatexTextStyle.fontSize!;
+      final context = tester.element(find.byType(MathBlock));
+      final baseTextStyle =
+        mkBaseKatexTextStyle(ContentTheme.of(context).textStylePlainParagraph);
+
+      var fontSize = 0.5 * baseTextStyle.fontSize!;
       checkKatexText(tester, '1',
         fontFamily: 'KaTeX_Main',
         fontSize: fontSize,
-        fontHeight: kBaseKatexTextStyle.height!);
+        fontHeight: baseTextStyle.height!);
 
       fontSize = 4.976 * fontSize;
       checkKatexText(tester, '2',
         fontFamily: 'KaTeX_Main',
         fontSize: fontSize,
-        fontHeight: kBaseKatexTextStyle.height!);
+        fontHeight: baseTextStyle.height!);
     });
 
     testWidgets('displays KaTeX content with different delimiter sizing', (tester) async {
@@ -643,13 +652,15 @@ void main() {
       final baseNode = mathBlockNode.nodes!.single as KatexSpanNode;
       var nodes = baseNode.nodes!.skip(1); // Skip .strut node.
 
-      final fontSize = kBaseKatexTextStyle.fontSize!;
+      final context = tester.element(find.byType(MathBlock));
+      final baseTextStyle =
+        mkBaseKatexTextStyle(ContentTheme.of(context).textStylePlainParagraph);
 
       final firstNode = nodes.first as KatexSpanNode;
       checkKatexText(tester, firstNode.text!,
         fontFamily: 'KaTeX_Main',
-        fontSize: fontSize,
-        fontHeight: kBaseKatexTextStyle.height!);
+        fontSize: baseTextStyle.fontSize!,
+        fontHeight: baseTextStyle.height!);
       nodes = nodes.skip(1);
 
       for (var katexNode in nodes) {
@@ -658,12 +669,63 @@ void main() {
         final fontFamily = katexNode.styles.fontFamily!;
         checkKatexText(tester, katexNode.text!,
           fontFamily: fontFamily,
-          fontSize: fontSize,
-          fontHeight: kBaseKatexTextStyle.height!);
+          fontSize: baseTextStyle.fontSize!,
+          fontHeight: baseTextStyle.height!);
       }
-    }, skip: true); // TODO: Re-enable this test after adding support for parsing
-                    // `vertical-align` in inline styles. Currently it fails
-                    // because `strut` span has `vertical-align`.
+    });
+
+    group('characters render at specific offsets with specific size: ', () {
+      final testCases = [
+        (ContentExample.mathBlockKatexVertical1, [
+          ('a', Offset(0.0, 5.28), Size(10.88, 25.0)),
+          ('′', Offset(10.88, 1.13), Size(3.96, 17.0)),
+        ]),
+        (ContentExample.mathBlockKatexVertical2, [
+          ('x', Offset(0.0, 5.28), Size(11.76, 25.0)),
+          ('n', Offset(11.76, 13.65), Size(8.63, 17.0)),
+        ]),
+        (ContentExample.mathBlockKatexVertical3, [
+          ('e', Offset(0.0, 5.28), Size(9.58, 25.0)),
+          ('x', Offset(9.58, 2.07), Size(8.23, 17.0)),
+        ]),
+        (ContentExample.mathBlockKatexVertical4, [
+          ('u', Offset(0.0, 15.65), Size(8.23, 17.0)),
+          ('o', Offset(0.0, 2.07), Size(6.98, 17.0)),
+        ]),
+        (ContentExample.mathBlockKatexVertical5, [
+          ('a', Offset(0.0, 4.16), Size(10.88, 25.0)),
+          ('b', Offset(10.88, -0.66), Size(8.82, 25.0)),
+          ('c', Offset(19.70, 4.16), Size(8.90, 25.0)),
+        ]),
+      ];
+
+      for (final testCase in testCases) {
+        testWidgets(testCase.$1.description, (tester) async {
+          await _loadKatexFonts();
+
+          addTearDown(testBinding.reset);
+          final globalSettings = testBinding.globalStore.settings;
+          await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
+          check(globalSettings).getBool(BoolGlobalSetting.renderKatex).isTrue();
+
+          await prepareContent(tester, plainContent(testCase.$1.html));
+
+          final baseRect = tester.getRect(find.byType(Katex));
+
+          for (final characterData in testCase.$2) {
+            final character = characterData.$1;
+            final topLeftOffset = characterData.$2;
+            final size = characterData.$3;
+
+            final rect = tester.getRect(find.text(character));
+            check(rect.topLeft - baseRect.topLeft)
+              .within(distance: 0.02, from: topLeftOffset);
+            check(rect.size)
+              .within(distance: 0.02, from: size);
+          }
+        });
+      }
+    });
   });
 
   /// Make a [TargetFontSizeFinder] to pass to [checkFontSizeRatio],
@@ -1431,4 +1493,49 @@ void main() {
       check(linkText.textAlign).equals(TextAlign.center);
     });
   });
+}
+
+Future<void> _loadKatexFonts() async {
+  const fonts = {
+    'KaTeX_AMS': ['KaTeX_AMS-Regular.ttf'],
+    'KaTeX_Caligraphic': [
+      'KaTeX_Caligraphic-Regular.ttf',
+      'KaTeX_Caligraphic-Bold.ttf',
+    ],
+    'KaTeX_Fraktur': [
+      'KaTeX_Fraktur-Regular.ttf',
+      'KaTeX_Fraktur-Bold.ttf',
+    ],
+    'KaTeX_Main': [
+      'KaTeX_Main-Regular.ttf',
+      'KaTeX_Main-Bold.ttf',
+      'KaTeX_Main-Italic.ttf',
+      'KaTeX_Main-BoldItalic.ttf',
+    ],
+    'KaTeX_Math': [
+      'KaTeX_Math-Italic.ttf',
+      'KaTeX_Math-BoldItalic.ttf',
+    ],
+    'KaTeX_SansSerif': [
+      'KaTeX_SansSerif-Regular.ttf',
+      'KaTeX_SansSerif-Bold.ttf',
+      'KaTeX_SansSerif-Italic.ttf',
+    ],
+    'KaTeX_Script': ['KaTeX_Script-Regular.ttf'],
+    'KaTeX_Size1': ['KaTeX_Size1-Regular.ttf'],
+    'KaTeX_Size2': ['KaTeX_Size2-Regular.ttf'],
+    'KaTeX_Size3': ['KaTeX_Size3-Regular.ttf'],
+    'KaTeX_Size4': ['KaTeX_Size4-Regular.ttf'],
+    'KaTeX_Typewriter': ['KaTeX_Typewriter-Regular.ttf'],
+  };
+  for (final entry in fonts.entries) {
+    final fontFamily = entry.key;
+    final fontFiles = entry.value;
+
+    final fontLoader = FontLoader(fontFamily);
+    for (final fontFile in fontFiles) {
+      fontLoader.addFont(rootBundle.load('assets/KaTeX/$fontFile'));
+    }
+    await fontLoader.load();
+  }
 }
