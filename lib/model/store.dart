@@ -433,7 +433,13 @@ Uri? tryResolveUrl(Uri baseUrl, String reference) {
 /// This class does not attempt to poll an event queue
 /// to keep the data up to date.  For that behavior, see
 /// [UpdateMachine].
-class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStore, SavedSnippetStore, UserStore, ChannelStore, MessageStore {
+class PerAccountStore extends PerAccountStoreBase with
+    ChangeNotifier,
+    EmojiStore,
+    SavedSnippetStore,
+    UserStore,
+    ChannelStore,
+    MessageStore {
   /// Construct a store for the user's data, starting from the given snapshot.
   ///
   /// The global store must already have been updated with
