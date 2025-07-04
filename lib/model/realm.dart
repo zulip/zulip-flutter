@@ -17,6 +17,13 @@ mixin RealmStore on PerAccountStoreBase {
   Duration get serverPresenceOfflineThreshold => Duration(seconds: serverPresenceOfflineThresholdSeconds);
   int get serverPresenceOfflineThresholdSeconds;
 
+  Duration get serverTypingStartedExpiryPeriod => Duration(milliseconds: serverTypingStartedExpiryPeriodMilliseconds);
+  int get serverTypingStartedExpiryPeriodMilliseconds;
+  Duration get serverTypingStoppedWaitPeriod => Duration(milliseconds: serverTypingStoppedWaitPeriodMilliseconds);
+  int get serverTypingStoppedWaitPeriodMilliseconds;
+  Duration get serverTypingStartedWaitPeriod => Duration(milliseconds: serverTypingStartedWaitPeriodMilliseconds);
+  int get serverTypingStartedWaitPeriodMilliseconds;
+
   RealmWildcardMentionPolicy get realmWildcardMentionPolicy;
   bool get realmMandatoryTopics;
   /// For docs, please see [InitialSnapshot.realmWaitingPeriodThreshold].
@@ -96,6 +103,12 @@ mixin ProxyRealmStore on RealmStore {
   @override
   int get serverPresenceOfflineThresholdSeconds => realmStore.serverPresenceOfflineThresholdSeconds;
   @override
+  int get serverTypingStartedExpiryPeriodMilliseconds => realmStore.serverTypingStartedExpiryPeriodMilliseconds;
+  @override
+  int get serverTypingStoppedWaitPeriodMilliseconds => realmStore.serverTypingStoppedWaitPeriodMilliseconds;
+  @override
+  int get serverTypingStartedWaitPeriodMilliseconds => realmStore.serverTypingStartedWaitPeriodMilliseconds;
+  @override
   RealmWildcardMentionPolicy get realmWildcardMentionPolicy => realmStore.realmWildcardMentionPolicy;
   @override
   bool get realmMandatoryTopics => realmStore.realmMandatoryTopics;
@@ -138,6 +151,9 @@ class RealmStoreImpl extends PerAccountStoreBase with RealmStore {
   }) :
     serverPresencePingIntervalSeconds = initialSnapshot.serverPresencePingIntervalSeconds,
     serverPresenceOfflineThresholdSeconds = initialSnapshot.serverPresenceOfflineThresholdSeconds,
+    serverTypingStartedExpiryPeriodMilliseconds = initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds,
+    serverTypingStoppedWaitPeriodMilliseconds = initialSnapshot.serverTypingStoppedWaitPeriodMilliseconds,
+    serverTypingStartedWaitPeriodMilliseconds = initialSnapshot.serverTypingStartedWaitPeriodMilliseconds,
     realmWildcardMentionPolicy = initialSnapshot.realmWildcardMentionPolicy,
     realmMandatoryTopics = initialSnapshot.realmMandatoryTopics,
     realmWaitingPeriodThreshold = initialSnapshot.realmWaitingPeriodThreshold,
@@ -154,6 +170,13 @@ class RealmStoreImpl extends PerAccountStoreBase with RealmStore {
   final int serverPresencePingIntervalSeconds;
   @override
   final int serverPresenceOfflineThresholdSeconds;
+
+  @override
+  final int serverTypingStartedExpiryPeriodMilliseconds;
+  @override
+  final int serverTypingStoppedWaitPeriodMilliseconds;
+  @override
+  final int serverTypingStartedWaitPeriodMilliseconds;
 
   @override
   final RealmWildcardMentionPolicy realmWildcardMentionPolicy; // TODO(#668): update this realm setting
