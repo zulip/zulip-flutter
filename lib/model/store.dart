@@ -364,19 +364,19 @@ class CorePerAccountStore {
 /// A base class for [PerAccountStore] and its substores,
 /// with getters providing the items in [CorePerAccountStore].
 abstract class PerAccountStoreBase {
-  PerAccountStoreBase({required CorePerAccountStore core})
-    : _core = core;
+  PerAccountStoreBase({required this.core});
 
-  final CorePerAccountStore _core;
+  @protected
+  final CorePerAccountStore core;
 
   ////////////////////////////////
   // Where data comes from in the first place.
 
-  GlobalStore get _globalStore => _core._globalStore;
+  GlobalStore get _globalStore => core._globalStore;
 
-  ApiConnection get connection => _core.connection;
+  ApiConnection get connection => core.connection;
 
-  String get queueId => _core.queueId;
+  String get queueId => core.queueId;
 
   ////////////////////////////////
   // Data attached to the realm or the server.
@@ -398,7 +398,7 @@ abstract class PerAccountStoreBase {
   ////////////////////////////////
   // Data attached to the self-account on the realm.
 
-  int get accountId => _core.accountId;
+  int get accountId => core.accountId;
 
   /// The [Account] this store belongs to.
   ///
@@ -413,7 +413,7 @@ abstract class PerAccountStoreBase {
   /// This always equals the [Account.userId] on [account].
   ///
   /// For the corresponding [User] object, see [UserStore.selfUser].
-  int get selfUserId => _core.selfUserId;
+  int get selfUserId => core.selfUserId;
 }
 
 const _tryResolveUrl = tryResolveUrl;
