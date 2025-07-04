@@ -487,19 +487,6 @@ class PerAccountStore extends PerAccountStoreBase with
       core: core,
       groups: UserGroupStoreImpl(core: core,
         groups: initialSnapshot.realmUserGroups),
-      serverPresencePingIntervalSeconds: initialSnapshot.serverPresencePingIntervalSeconds,
-      serverPresenceOfflineThresholdSeconds: initialSnapshot.serverPresenceOfflineThresholdSeconds,
-      realmWildcardMentionPolicy: initialSnapshot.realmWildcardMentionPolicy,
-      realmMandatoryTopics: initialSnapshot.realmMandatoryTopics,
-      realmWaitingPeriodThreshold: initialSnapshot.realmWaitingPeriodThreshold,
-      realmPresenceDisabled: initialSnapshot.realmPresenceDisabled,
-      maxFileUploadSizeMib: initialSnapshot.maxFileUploadSizeMib,
-      realmEmptyTopicDisplayName: initialSnapshot.realmEmptyTopicDisplayName,
-      realmAllowMessageEditing: initialSnapshot.realmAllowMessageEditing,
-      realmMessageContentEditLimitSeconds: initialSnapshot.realmMessageContentEditLimitSeconds,
-      realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
-      customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
-      emailAddressVisibility: initialSnapshot.emailAddressVisibility,
       realm: RealmStoreImpl(core: core, initialSnapshot: initialSnapshot),
       emoji: EmojiStoreImpl(
         core: core, allRealmEmoji: initialSnapshot.realmEmoji),
@@ -538,19 +525,6 @@ class PerAccountStore extends PerAccountStoreBase with
   PerAccountStore._({
     required super.core,
     required UserGroupStoreImpl groups,
-    required this.serverPresencePingIntervalSeconds,
-    required this.serverPresenceOfflineThresholdSeconds,
-    required this.realmWildcardMentionPolicy,
-    required this.realmMandatoryTopics,
-    required this.realmWaitingPeriodThreshold,
-    required this.realmPresenceDisabled,
-    required this.maxFileUploadSizeMib,
-    required String? realmEmptyTopicDisplayName,
-    required this.realmAllowMessageEditing,
-    required this.realmMessageContentEditLimitSeconds,
-    required this.realmDefaultExternalAccounts,
-    required this.customProfileFields,
-    required this.emailAddressVisibility,
     required RealmStoreImpl realm,
     required EmojiStoreImpl emoji,
     required this.userSettings,
@@ -565,7 +539,6 @@ class PerAccountStore extends PerAccountStoreBase with
     required this.recentDmConversationsView,
     required this.recentSenders,
   }) : _groups = groups,
-       _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
        _realm = realm,
        _emoji = emoji,
        _savedSnippets = savedSnippets,
@@ -606,36 +579,34 @@ class PerAccountStore extends PerAccountStoreBase with
   UserGroupStore get userGroupStore => _groups;
   final UserGroupStoreImpl _groups;
 
-  final int serverPresencePingIntervalSeconds;
-  final int serverPresenceOfflineThresholdSeconds;
+  @override
+  int get serverPresencePingIntervalSeconds => _realm.serverPresencePingIntervalSeconds;
+  @override
+  int get serverPresenceOfflineThresholdSeconds => _realm.serverPresenceOfflineThresholdSeconds;
+  @override
+  RealmWildcardMentionPolicy get realmWildcardMentionPolicy => _realm.realmWildcardMentionPolicy;
+  @override
+  bool get realmMandatoryTopics => _realm.realmMandatoryTopics;
+  @override
+  int get realmWaitingPeriodThreshold => _realm.realmWaitingPeriodThreshold;
+  @override
+  bool get realmAllowMessageEditing => _realm.realmAllowMessageEditing;
+  @override
+  int? get realmMessageContentEditLimitSeconds => _realm.realmMessageContentEditLimitSeconds;
+  @override
+  bool get realmPresenceDisabled => _realm.realmPresenceDisabled;
+  @override
+  int get maxFileUploadSizeMib => _realm.maxFileUploadSizeMib;
+  @override
+  String get realmEmptyTopicDisplayName => _realm.realmEmptyTopicDisplayName;
+  @override
+  Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts => _realm.realmDefaultExternalAccounts;
+  @override
+  List<CustomProfileField> get customProfileFields => _realm.customProfileFields;
+  @override
+  EmailAddressVisibility? get emailAddressVisibility => _realm.emailAddressVisibility;
 
-  final RealmWildcardMentionPolicy realmWildcardMentionPolicy; // TODO(#668): update this realm setting
-  final bool realmMandatoryTopics;  // TODO(#668): update this realm setting
-  /// For docs, please see [InitialSnapshot.realmWaitingPeriodThreshold].
-  final int realmWaitingPeriodThreshold;  // TODO(#668): update this realm setting
-  final bool realmAllowMessageEditing; // TODO(#668): update this realm setting
-  final int? realmMessageContentEditLimitSeconds; // TODO(#668): update this realm setting
-  final bool realmPresenceDisabled; // TODO(#668): update this realm setting
-  final int maxFileUploadSizeMib; // No event for this.
-
-  /// The display name to use for empty topics.
-  ///
-  /// This should only be accessed when FL >= 334, since topics cannot
-  /// be empty otherwise.
-  // TODO(server-10) simplify this
-  String get realmEmptyTopicDisplayName {
-    assert(zulipFeatureLevel >= 334);
-    assert(_realmEmptyTopicDisplayName != null); // TODO(log)
-    return _realmEmptyTopicDisplayName ?? 'general chat';
-  }
-  final String? _realmEmptyTopicDisplayName; // TODO(#668): update this realm setting
-
-  final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
-  List<CustomProfileField> customProfileFields;
-  /// For docs, please see [InitialSnapshot.emailAddressVisibility].
-  final EmailAddressVisibility? emailAddressVisibility; // TODO(#668): update this realm setting
-
-  final RealmStoreImpl _realm; // ignore: unused_field // TODO
+  final RealmStoreImpl _realm;
 
   ////////////////////////////////
   // The realm's repertoire of available emoji.
@@ -930,7 +901,7 @@ class PerAccountStore extends PerAccountStoreBase with
 
       case CustomProfileFieldsEvent():
         assert(debugLog("server event: custom_profile_fields"));
-        customProfileFields = _sortCustomProfileFields(event.fields);
+        _realm.handleCustomProfileFieldsEvent(event);
         notifyListeners();
 
       case UserGroupEvent():
@@ -1041,21 +1012,6 @@ class PerAccountStore extends PerAccountStoreBase with
       case UnexpectedEvent():
         assert(debugLog("server event: ${jsonEncode(event.toJson())}")); // TODO log better
     }
-  }
-
-  static List<CustomProfileField> _sortCustomProfileFields(List<CustomProfileField> initialCustomProfileFields) {
-    // TODO(server): The realm-wide field objects have an `order` property,
-    //   but the actual API appears to be that the fields should be shown in
-    //   the order they appear in the array (`custom_profile_fields` in the
-    //   API; our `realmFields` array here.)  See chat thread:
-    //     https://chat.zulip.org/#narrow/stream/378-api-design/topic/custom.20profile.20fields/near/1382982
-    //
-    // We go on to put at the start of the list any fields that are marked for
-    // displaying in the "profile summary".  (Possibly they should be at the
-    // start of the list in the first place, but make sure just in case.)
-    final displayFields = initialCustomProfileFields.where((e) => e.displayInProfileSummary == true);
-    final nonDisplayFields = initialCustomProfileFields.where((e) => e.displayInProfileSummary != true);
-    return displayFields.followedBy(nonDisplayFields).toList();
   }
 
   @override
