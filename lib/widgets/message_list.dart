@@ -1950,6 +1950,12 @@ class _SenderRow extends StatelessWidget {
                           : designVariables.title,
                       ).merge(weightVariableTextStyle(context, wght: 600)),
                       overflow: TextOverflow.ellipsis)),
+                  if (sender != null)
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(start: 5.0),
+                      child: UserStatusEmoji(userId: sender.userId,
+                        size: 18, notoColorEmojiTextSize: 15),
+                    ),
                   if (sender?.isBot ?? false) ...[
                     const SizedBox(width: 5),
                     Icon(

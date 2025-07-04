@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/basic.dart';
 import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/emoji.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/new_dm_sheet.dart';
@@ -22,6 +24,7 @@ import 'test_app.dart';
 Future<void> setupSheet(WidgetTester tester, {
   required List<User> users,
   List<int>? mutedUserIds,
+  List<(int userId, UserStatusChange change)>? userStatuses,
 }) async {
   addTearDown(testBinding.reset);
 
@@ -35,6 +38,7 @@ Future<void> setupSheet(WidgetTester tester, {
   if (mutedUserIds != null) {
     await store.setMutedUsers(mutedUserIds);
   }
+  await store.changeUserStatuses(userStatuses ?? []);
 
   await tester.pumpWidget(TestZulipApp(
     navigatorObservers: [testNavObserver],
@@ -65,7 +69,8 @@ void main() {
   }
 
   Finder findUserTile(User user) =>
-    find.widgetWithText(InkWell, user.fullName).first;
+    find.ancestor(of: find.textContaining(user.fullName),
+      matching: find.byType(InkWell)).first;
 
   Finder findUserChip(User user) {
     final findAvatar = find.byWidgetPredicate((widget) =>
@@ -120,23 +125,23 @@ void main() {
 
     testWidgets('shows all non-muted users initially', (tester) async {
       await setupSheet(tester, users: testUsers, mutedUserIds: [mutedUser.userId]);
-      check(find.text('Alice Anderson')).findsOne();
-      check(find.text('Bob Brown')).findsOne();
-      check(find.text('Charlie Carter')).findsOne();
+      check(find.textContaining('Alice Anderson')).findsOne();
+      check(find.textContaining('Bob Brown')).findsOne();
+      check(find.textContaining('Charlie Carter')).findsOne();
 
       check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(3);
       check(find.byIcon(ZulipIcons.check_circle_checked)).findsNothing();
-      check(find.text('Someone Muted')).findsNothing();
-      check(find.text('Muted user')).findsNothing();
+      check(find.textContaining('Someone Muted')).findsNothing();
+      check(find.textContaining('Muted user')).findsNothing();
     });
 
     testWidgets('shows filtered users based on search', (tester) async {
       await setupSheet(tester, users: testUsers);
       await tester.enterText(find.byType(TextField), 'Alice');
       await tester.pump();
-      check(find.text('Alice Anderson')).findsOne();
-      check(find.text('Charlie Carter')).findsNothing();
-      check(find.text('Bob Brown')).findsNothing();
+      check(find.textContaining('Alice Anderson')).findsOne();
+      check(find.textContaining('Charlie Carter')).findsNothing();
+      check(find.textContaining('Bob Brown')).findsNothing();
     });
 
     // TODO test sorting by recent-DMs
@@ -146,11 +151,11 @@ void main() {
       await setupSheet(tester, users: testUsers);
       await tester.enterText(find.byType(TextField), 'alice');
       await tester.pump();
-      check(find.text('Alice Anderson')).findsOne();
+      check(find.textContaining('Alice Anderson')).findsOne();
 
       await tester.enterText(find.byType(TextField), 'ALICE');
       await tester.pump();
-      check(find.text('Alice Anderson')).findsOne();
+      check(find.textContaining('Alice Anderson')).findsOne();
     });
 
     testWidgets('partial name and last name search handling', (tester) async {
@@ -158,31 +163,31 @@ void main() {
 
       await tester.enterText(find.byType(TextField), 'Ali');
       await tester.pump();
-      check(find.text('Alice Anderson')).findsOne();
-      check(find.text('Bob Brown')).findsNothing();
-      check(find.text('Charlie Carter')).findsNothing();
+      check(find.textContaining('Alice Anderson')).findsOne();
+      check(find.textContaining('Bob Brown')).findsNothing();
+      check(find.textContaining('Charlie Carter')).findsNothing();
 
       await tester.enterText(find.byType(TextField), 'Anderson');
       await tester.pump();
-      check(find.text('Alice Anderson')).findsOne();
-      check(find.text('Charlie Carter')).findsNothing();
-      check(find.text('Bob Brown')).findsNothing();
+      check(find.textContaining('Alice Anderson')).findsOne();
+      check(find.textContaining('Charlie Carter')).findsNothing();
+      check(find.textContaining('Bob Brown')).findsNothing();
 
       await tester.enterText(find.byType(TextField), 'son');
       await tester.pump();
-      check(find.text('Alice Anderson')).findsOne();
-      check(find.text('Charlie Carter')).findsNothing();
-      check(find.text('Bob Brown')).findsNothing();
+      check(find.textContaining('Alice Anderson')).findsOne();
+      check(find.textContaining('Charlie Carter')).findsNothing();
+      check(find.textContaining('Bob Brown')).findsNothing();
     });
 
     testWidgets('shows empty state when no users match', (tester) async {
       await setupSheet(tester, users: testUsers);
       await tester.enterText(find.byType(TextField), 'Zebra');
       await tester.pump();
-      check(find.text('No users found')).findsOne();
-      check(find.text('Alice Anderson')).findsNothing();
-      check(find.text('Bob Brown')).findsNothing();
-      check(find.text('Charlie Carter')).findsNothing();
+      check(find.textContaining('No users found')).findsOne();
+      check(find.textContaining('Alice Anderson')).findsNothing();
+      check(find.textContaining('Bob Brown')).findsNothing();
+      check(find.textContaining('Charlie Carter')).findsNothing();
     });
 
     testWidgets('search text clears when user is selected', (tester) async {
@@ -252,7 +257,7 @@ void main() {
       await tester.tap(findUserTile(eg.selfUser));
       await tester.pump();
       checkUserSelected(tester, eg.selfUser, true);
-      check(find.text(eg.selfUser.fullName)).findsExactly(2);
+      check(find.textContaining(eg.selfUser.fullName)).findsExactly(2);
 
       await tester.tap(findUserTile(otherUser));
       await tester.pump();
@@ -264,7 +269,7 @@ void main() {
       final otherUser = eg.user(fullName: 'Other User');
       await setupSheet(tester, users: [eg.selfUser, otherUser]);
 
-      check(find.text(eg.selfUser.fullName)).findsOne();
+      check(find.textContaining(eg.selfUser.fullName)).findsOne();
 
       await tester.tap(findUserTile(otherUser));
       await tester.pump();
@@ -283,6 +288,54 @@ void main() {
       checkUserSelected(tester, user1, true);
       checkUserSelected(tester, user2, true);
     });
+  });
+
+  testWidgets('status emoji is set -> emoji is displayed', (tester) async {
+    void checkTileStatusEmoji(User user, {required bool isPresent}) {
+      final statusEmojiFinder = find.ancestor(of: find.byType(UnicodeEmojiWidget),
+        matching: find.byType(UserStatusEmoji));
+
+      final tileStatusFinder = find.descendant(of: findUserTile(user),
+        matching: statusEmojiFinder);
+      check(tileStatusFinder).findsExactly(isPresent ? 1 : 0);
+    }
+
+    void checkChipStatusEmoji(User user, {required bool isPresent}) {
+      final statusEmojiFinder = find.ancestor(of: find.byType(UnicodeEmojiWidget),
+        matching: find.byType(UserStatusEmoji));
+
+      final chipStatusFinder = find.descendant(of: findUserChip(user),
+        matching: statusEmojiFinder);
+      check(chipStatusFinder).findsExactly(isPresent ? 1 : 0);
+    }
+
+    final user1 = eg.user(userId: 1, fullName: 'User 1');
+    final user2 = eg.user(userId: 2, fullName: 'User 2');
+    await setupSheet(tester, users: [user1, user2], userStatuses: [
+      (
+        user1.userId,
+        UserStatusChange(
+          text: OptionSome('Busy'),
+          emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+            emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji)))
+      ),
+    ]);
+
+    checkTileStatusEmoji(user1, isPresent: true);
+    checkTileStatusEmoji(user2, isPresent: false);
+    check(findUserChip(user1)).findsNothing();
+    check(findUserChip(user2)).findsNothing();
+
+    await tester.tap(findUserTile(user1));
+    await tester.tap(findUserTile(user2));
+    await tester.pump();
+
+    checkTileStatusEmoji(user1, isPresent: true);
+    checkTileStatusEmoji(user2, isPresent: false);
+    check(findUserChip(user1)).findsOne();
+    check(findUserChip(user2)).findsOne();
+    checkChipStatusEmoji(user1, isPresent: true);
+    checkChipStatusEmoji(user2, isPresent: false);
   });
 
   group('navigation to DM Narrow', () {

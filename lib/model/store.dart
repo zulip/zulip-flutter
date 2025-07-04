@@ -669,6 +669,9 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
   MutedUsersVisibilityEffect mightChangeShouldMuteDmConversation(MutedUsersEvent event) =>
     _users.mightChangeShouldMuteDmConversation(event);
 
+  @override
+  UserStatus getUserStatus(int userId) => _users.getUserStatus(userId);
+
   final UserStoreImpl _users;
 
   final TypingStatus typingStatus;
@@ -931,6 +934,11 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
       case SubscriptionEvent():
         assert(debugLog("server event: subscription/${event.op}"));
         _channels.handleSubscriptionEvent(event);
+        notifyListeners();
+
+      case UserStatusEvent():
+        assert(debugLog("server event: user_status"));
+        _users.handleUserStatusEvent(event);
         notifyListeners();
 
       case UserTopicEvent():
