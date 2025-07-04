@@ -6,7 +6,7 @@ import 'package:flutter/widgets.dart';
 import '../api/model/events.dart';
 import '../api/model/model.dart';
 import '../api/route/users.dart';
-import 'store.dart';
+import 'realm.dart';
 
 /// The model for tracking which users are online, idle, and offline.
 ///
@@ -16,20 +16,11 @@ import 'store.dart';
 /// so callers need to remember to add a listener (and remove it on dispose).
 /// In particular, [PerAccountStoreWidget] doesn't subscribe a widget subtree
 /// to updates.
-class Presence extends PerAccountStoreBase with ChangeNotifier {
+class Presence extends HasRealmStore with ChangeNotifier {
   Presence({
-    required super.core,
-    required this.serverPresencePingInterval,
-    required this.serverPresenceOfflineThresholdSeconds,
-    required this.realmPresenceDisabled,
+    required super.realm,
     required Map<int, PerUserPresence> initial,
   }) : _map = initial;
-
-  final Duration serverPresencePingInterval;
-  final int serverPresenceOfflineThresholdSeconds;
-  // TODO(#668): update this realm setting (probably by accessing it from a new
-  //   realm/server-settings substore that gets passed to Presence)
-  final bool realmPresenceDisabled;
 
   Map<int, PerUserPresence> _map;
 
