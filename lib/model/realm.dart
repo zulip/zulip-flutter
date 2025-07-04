@@ -12,6 +12,9 @@ import 'store.dart';
 ///  * [RealmStoreImpl] for the implementation of this that does the work.
 ///  * [HasRealmStore] for an implementation useful for other substores.
 mixin RealmStore on PerAccountStoreBase {
+  //|//////////////////////////////////////////////////////////////
+  // Server settings, explicitly so named.
+
   Duration get serverPresencePingInterval => Duration(seconds: serverPresencePingIntervalSeconds);
   int get serverPresencePingIntervalSeconds;
   Duration get serverPresenceOfflineThreshold => Duration(seconds: serverPresenceOfflineThresholdSeconds);
@@ -24,17 +27,35 @@ mixin RealmStore on PerAccountStoreBase {
   Duration get serverTypingStartedWaitPeriod => Duration(milliseconds: serverTypingStartedWaitPeriodMilliseconds);
   int get serverTypingStartedWaitPeriodMilliseconds;
 
-  RealmWildcardMentionPolicy get realmWildcardMentionPolicy;
-  bool get realmMandatoryTopics;
-  /// For docs, please see [InitialSnapshot.realmWaitingPeriodThreshold].
-  int get realmWaitingPeriodThreshold;
+  //|//////////////////////////////////////////////////////////////
+  // Realm settings.
+
+  //|//////////////////////////////
+  // Realm settings found in realm/update_dict events:
+  //   https://zulip.com/api/get-events#realm-update_dict
+  // TODO(#668): update all these realm settings on events.
+
   bool get realmAllowMessageEditing;
+  bool get realmMandatoryTopics;
+  int get maxFileUploadSizeMib;
   Duration? get realmMessageContentEditLimit =>
     realmMessageContentEditLimitSeconds == null ? null
       : Duration(seconds: realmMessageContentEditLimitSeconds!);
   int? get realmMessageContentEditLimitSeconds;
   bool get realmPresenceDisabled;
-  int get maxFileUploadSizeMib;
+  int get realmWaitingPeriodThreshold;
+
+  //|//////////////////////////////
+  // Realm settings previously found in realm/update_dict events,
+  // but now deprecated.
+
+  RealmWildcardMentionPolicy get realmWildcardMentionPolicy; // TODO(#662): replaced by can_mention_many_users_group
+
+  EmailAddressVisibility? get emailAddressVisibility; // TODO: replaced at FL-163 by a user setting
+
+  //|//////////////////////////////
+  // Realm settings that lack events.
+  // (Each of these is probably secretly a server setting.)
 
   /// The display name to use for empty topics.
   ///
@@ -44,9 +65,14 @@ mixin RealmStore on PerAccountStoreBase {
   String get realmEmptyTopicDisplayName;
 
   Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts;
+
+  //|//////////////////////////////
+  // Realm settings with their own events.
+
   List<CustomProfileField> get customProfileFields;
-  /// For docs, please see [InitialSnapshot.emailAddressVisibility].
-  EmailAddressVisibility? get emailAddressVisibility;
+
+  //|//////////////////////////////////////////////////////////////
+  // Methods that examine the settings.
 
   /// Process the given topic to match how it would appear
   /// on a message object from the server.
@@ -109,27 +135,27 @@ mixin ProxyRealmStore on RealmStore {
   @override
   int get serverTypingStartedWaitPeriodMilliseconds => realmStore.serverTypingStartedWaitPeriodMilliseconds;
   @override
-  RealmWildcardMentionPolicy get realmWildcardMentionPolicy => realmStore.realmWildcardMentionPolicy;
+  bool get realmAllowMessageEditing => realmStore.realmAllowMessageEditing;
   @override
   bool get realmMandatoryTopics => realmStore.realmMandatoryTopics;
   @override
-  int get realmWaitingPeriodThreshold => realmStore.realmWaitingPeriodThreshold;
-  @override
-  bool get realmAllowMessageEditing => realmStore.realmAllowMessageEditing;
+  int get maxFileUploadSizeMib => realmStore.maxFileUploadSizeMib;
   @override
   int? get realmMessageContentEditLimitSeconds => realmStore.realmMessageContentEditLimitSeconds;
   @override
   bool get realmPresenceDisabled => realmStore.realmPresenceDisabled;
   @override
-  int get maxFileUploadSizeMib => realmStore.maxFileUploadSizeMib;
+  int get realmWaitingPeriodThreshold => realmStore.realmWaitingPeriodThreshold;
+  @override
+  RealmWildcardMentionPolicy get realmWildcardMentionPolicy => realmStore.realmWildcardMentionPolicy;
+  @override
+  EmailAddressVisibility? get emailAddressVisibility => realmStore.emailAddressVisibility;
   @override
   String get realmEmptyTopicDisplayName => realmStore.realmEmptyTopicDisplayName;
   @override
   Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts => realmStore.realmDefaultExternalAccounts;
   @override
   List<CustomProfileField> get customProfileFields => realmStore.customProfileFields;
-  @override
-  EmailAddressVisibility? get emailAddressVisibility => realmStore.emailAddressVisibility;
 }
 
 /// A base class for [PerAccountStore] substores that need access to [RealmStore]
@@ -154,17 +180,17 @@ class RealmStoreImpl extends PerAccountStoreBase with RealmStore {
     serverTypingStartedExpiryPeriodMilliseconds = initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds,
     serverTypingStoppedWaitPeriodMilliseconds = initialSnapshot.serverTypingStoppedWaitPeriodMilliseconds,
     serverTypingStartedWaitPeriodMilliseconds = initialSnapshot.serverTypingStartedWaitPeriodMilliseconds,
-    realmWildcardMentionPolicy = initialSnapshot.realmWildcardMentionPolicy,
-    realmMandatoryTopics = initialSnapshot.realmMandatoryTopics,
-    realmWaitingPeriodThreshold = initialSnapshot.realmWaitingPeriodThreshold,
-    realmPresenceDisabled = initialSnapshot.realmPresenceDisabled,
-    maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib,
-    _realmEmptyTopicDisplayName = initialSnapshot.realmEmptyTopicDisplayName,
     realmAllowMessageEditing = initialSnapshot.realmAllowMessageEditing,
+    realmMandatoryTopics = initialSnapshot.realmMandatoryTopics,
+    maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib,
     realmMessageContentEditLimitSeconds = initialSnapshot.realmMessageContentEditLimitSeconds,
+    realmPresenceDisabled = initialSnapshot.realmPresenceDisabled,
+    realmWaitingPeriodThreshold = initialSnapshot.realmWaitingPeriodThreshold,
+    realmWildcardMentionPolicy = initialSnapshot.realmWildcardMentionPolicy,
+    emailAddressVisibility = initialSnapshot.emailAddressVisibility,
+    _realmEmptyTopicDisplayName = initialSnapshot.realmEmptyTopicDisplayName,
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
-    customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields),
-    emailAddressVisibility = initialSnapshot.emailAddressVisibility;
+    customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields);
 
   @override
   final int serverPresencePingIntervalSeconds;
@@ -179,19 +205,23 @@ class RealmStoreImpl extends PerAccountStoreBase with RealmStore {
   final int serverTypingStartedWaitPeriodMilliseconds;
 
   @override
-  final RealmWildcardMentionPolicy realmWildcardMentionPolicy; // TODO(#668): update this realm setting
+  final bool realmAllowMessageEditing; // TODO(#668): update this realm setting
   @override
   final bool realmMandatoryTopics;  // TODO(#668): update this realm setting
   @override
-  final int realmWaitingPeriodThreshold;  // TODO(#668): update this realm setting
-  @override
-  final bool realmAllowMessageEditing; // TODO(#668): update this realm setting
+  final int maxFileUploadSizeMib; // No event for this.
   @override
   final int? realmMessageContentEditLimitSeconds; // TODO(#668): update this realm setting
   @override
   final bool realmPresenceDisabled; // TODO(#668): update this realm setting
   @override
-  final int maxFileUploadSizeMib; // No event for this.
+  final int realmWaitingPeriodThreshold;  // TODO(#668): update this realm setting
+
+  @override
+  final RealmWildcardMentionPolicy realmWildcardMentionPolicy; // TODO(#668): update this realm setting
+
+  @override
+  final EmailAddressVisibility? emailAddressVisibility; // TODO(#668): update this realm setting
 
   @override
   String get realmEmptyTopicDisplayName {
@@ -221,9 +251,6 @@ class RealmStoreImpl extends PerAccountStoreBase with RealmStore {
     final nonDisplayFields = initialCustomProfileFields.where((e) => e.displayInProfileSummary != true);
     return displayFields.followedBy(nonDisplayFields).toList();
   }
-
-  @override
-  final EmailAddressVisibility? emailAddressVisibility; // TODO(#668): update this realm setting
 
   void handleCustomProfileFieldsEvent(CustomProfileFieldsEvent event) {
     customProfileFields = _sortCustomProfileFields(event.fields);
