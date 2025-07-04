@@ -618,28 +618,6 @@ class PerAccountStore extends PerAccountStoreBase with
 
   final Presence presence;
 
-  /// Whether [user] has passed the realm's waiting period to be a full member.
-  ///
-  /// See:
-  ///   https://zulip.com/api/roles-and-permissions#determining-if-a-user-is-a-full-member
-  ///
-  /// To determine if a user is a full member, callers must also check that the
-  /// user's role is at least [UserRole.member].
-  bool hasPassedWaitingPeriod(User user, {required DateTime byDate}) {
-    // [User.dateJoined] is in UTC. For logged-in users, the format is:
-    // YYYY-MM-DDTHH:mm+00:00, which includes the timezone offset for UTC.
-    // For logged-out spectators, the format is: YYYY-MM-DD, which doesn't
-    // include the timezone offset. In the later case, [DateTime.parse] will
-    // interpret it as the client's local timezone, which could lead to
-    // incorrect results; but that's acceptable for now because the app
-    // doesn't support viewing as a spectator.
-    //
-    // See the related discussion:
-    //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/provide.20an.20explicit.20format.20for.20.60realm_user.2Edate_joined.60/near/1980194
-    final dateJoined = DateTime.parse(user.dateJoined);
-    return byDate.difference(dateJoined).inDays >= realmWaitingPeriodThreshold;
-  }
-
   /// The user's real email address, if known, for displaying in the UI.
   ///
   /// Returns null if self-user isn't able to see the user's real email address,

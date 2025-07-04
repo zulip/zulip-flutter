@@ -58,6 +58,28 @@ void main() {
     });
   });
 
+  group('hasPassedWaitingPeriod', () {
+    final store = eg.store(initialSnapshot:
+      eg.initialSnapshot(realmWaitingPeriodThreshold: 2));
+
+    final testCases = [
+      ('2024-11-25T10:00+00:00', DateTime.utc(2024, 11, 25 + 0, 10, 00), false),
+      ('2024-11-25T10:00+00:00', DateTime.utc(2024, 11, 25 + 1, 10, 00), false),
+      ('2024-11-25T10:00+00:00', DateTime.utc(2024, 11, 25 + 2, 09, 59), false),
+      ('2024-11-25T10:00+00:00', DateTime.utc(2024, 11, 25 + 2, 10, 00), true),
+      ('2024-11-25T10:00+00:00', DateTime.utc(2024, 11, 25 + 1000, 07, 00), true),
+    ];
+
+    for (final (String dateJoined, DateTime currentDate, bool hasPassedWaitingPeriod) in testCases) {
+      test('user joined at $dateJoined ${hasPassedWaitingPeriod ? 'has' : "hasn't"} '
+          'passed waiting period by $currentDate', () {
+        final user = eg.user(dateJoined: dateJoined);
+        check(store.hasPassedWaitingPeriod(user, byDate: currentDate))
+          .equals(hasPassedWaitingPeriod);
+      });
+    }
+  });
+
   group('RealmUserUpdateEvent', () {
     // TODO write more tests for handling RealmUserUpdateEvent
 
