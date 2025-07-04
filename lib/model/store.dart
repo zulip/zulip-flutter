@@ -14,7 +14,6 @@ import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/route/events.dart';
-import '../api/route/messages.dart';
 import '../api/backoff.dart';
 import '../api/route/realm.dart';
 import '../log.dart';
@@ -25,7 +24,6 @@ import 'database.dart';
 import 'emoji.dart';
 import 'localizations.dart';
 import 'message.dart';
-import 'message_list.dart';
 import 'presence.dart';
 import 'realm.dart';
 import 'recent_dm_conversations.dart';
@@ -443,7 +441,7 @@ class PerAccountStore extends PerAccountStoreBase with
     SavedSnippetStore,
     UserStore, ProxyUserStore,
     ChannelStore, ProxyChannelStore,
-    MessageStore {
+    MessageStore, ProxyMessageStore {
   /// Construct a store for the user's data, starting from the given snapshot.
   ///
   /// The global store must already have been updated with
@@ -617,27 +615,6 @@ class PerAccountStore extends PerAccountStoreBase with
   //|//////////////////////////////
   // Messages, and summaries of messages.
 
-  @override
-  Map<int, Message> get messages => _messages.messages;
-  @override
-  Map<int, OutboxMessage> get outboxMessages => _messages.outboxMessages;
-  @override
-  void registerMessageList(MessageListView view) =>
-    _messages.registerMessageList(view);
-  @override
-  void unregisterMessageList(MessageListView view) =>
-    _messages.unregisterMessageList(view);
-  @override
-  void markReadFromScroll(Iterable<int> messageIds) =>
-    _messages.markReadFromScroll(messageIds);
-  @override
-  Future<void> sendMessage({required MessageDestination destination, required String content}) {
-    return _messages.sendMessage(destination: destination, content: content);
-  }
-  @override
-  OutboxMessage takeOutboxMessage(int localMessageId) =>
-    _messages.takeOutboxMessage(localMessageId);
-
   /// Reconcile a batch of just-fetched messages with the store,
   /// mutating the list.
   ///
@@ -661,27 +638,9 @@ class PerAccountStore extends PerAccountStoreBase with
     // TODO(#650) notify [recentDmConversationsView] of the just-fetched messages
   }
 
+  @protected
   @override
-  bool? getEditMessageErrorStatus(int messageId) {
-    return _messages.getEditMessageErrorStatus(messageId);
-  }
-  @override
-  void editMessage({
-    required int messageId,
-    required String originalRawContent,
-    required String newContent,
-  }) {
-    return _messages.editMessage(messageId: messageId,
-      originalRawContent: originalRawContent, newContent: newContent);
-  }
-  @override
-  ({String originalRawContent, String newContent}) takeFailedMessageEdit(int messageId) {
-    return _messages.takeFailedMessageEdit(messageId);
-  }
-
-  @override
-  Set<MessageListView> get debugMessageListViews => _messages.debugMessageListViews;
-
+  MessageStore get messageStore => _messages;
   final MessageStoreImpl _messages;
 
   final Unreads unreads;

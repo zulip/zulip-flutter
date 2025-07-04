@@ -74,6 +74,53 @@ mixin MessageStore {
   ({String originalRawContent, String newContent}) takeFailedMessageEdit(int messageId);
 }
 
+mixin ProxyMessageStore on MessageStore {
+  @protected
+  MessageStore get messageStore;
+
+  @override
+  Map<int, Message> get messages => messageStore.messages;
+  @override
+  Map<int, OutboxMessage> get outboxMessages => messageStore.outboxMessages;
+  @override
+  void registerMessageList(MessageListView view) =>
+    messageStore.registerMessageList(view);
+  @override
+  void unregisterMessageList(MessageListView view) =>
+    messageStore.unregisterMessageList(view);
+  @override
+  void markReadFromScroll(Iterable<int> messageIds) =>
+    messageStore.markReadFromScroll(messageIds);
+  @override
+  Future<void> sendMessage({required MessageDestination destination, required String content}) {
+    return messageStore.sendMessage(destination: destination, content: content);
+  }
+  @override
+  OutboxMessage takeOutboxMessage(int localMessageId) =>
+    messageStore.takeOutboxMessage(localMessageId);
+
+  @override
+  bool? getEditMessageErrorStatus(int messageId) {
+    return messageStore.getEditMessageErrorStatus(messageId);
+  }
+  @override
+  void editMessage({
+    required int messageId,
+    required String originalRawContent,
+    required String newContent,
+  }) {
+    return messageStore.editMessage(messageId: messageId,
+      originalRawContent: originalRawContent, newContent: newContent);
+  }
+  @override
+  ({String originalRawContent, String newContent}) takeFailedMessageEdit(int messageId) {
+    return messageStore.takeFailedMessageEdit(messageId);
+  }
+
+  @override
+  Set<MessageListView> get debugMessageListViews => messageStore.debugMessageListViews;
+}
+
 class _EditMessageRequestStatus {
   _EditMessageRequestStatus({
     required this.hasError,
