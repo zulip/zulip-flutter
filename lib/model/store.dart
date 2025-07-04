@@ -482,8 +482,10 @@ class PerAccountStore extends PerAccountStoreBase with
       accountId: accountId,
       selfUserId: account.userId,
     );
-    final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     final realm = RealmStoreImpl(core: core, initialSnapshot: initialSnapshot);
+    final users = UserStoreImpl(realm: realm, initialSnapshot: initialSnapshot);
+    final channels = ChannelStoreImpl(users: users,
+      initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       core: core,
       groups: UserGroupStoreImpl(core: core,
@@ -495,7 +497,7 @@ class PerAccountStore extends PerAccountStoreBase with
       savedSnippets: SavedSnippetStoreImpl(core: core,
         savedSnippets: initialSnapshot.savedSnippets ?? []),
       typingNotifier: TypingNotifier(realm: realm),
-      users: UserStoreImpl(realm: realm, initialSnapshot: initialSnapshot),
+      users: users,
       typingStatus: TypingStatus(realm: realm),
       presence: Presence(realm: realm,
         initial: initialSnapshot.presences),

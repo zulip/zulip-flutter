@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
+import 'store.dart';
+import 'user.dart';
 
 /// The portion of [PerAccountStore] for channels, topics, and stuff about them.
 ///
@@ -12,7 +14,7 @@ import '../api/model/model.dart';
 /// implementation of [PerAccountStore], to avoid circularity.
 ///
 /// The data structures described here are implemented at [ChannelStoreImpl].
-mixin ChannelStore {
+mixin ChannelStore on UserStore {
   /// All known channels/streams, indexed by [ZulipStream.streamId].
   ///
   /// The same [ZulipStream] objects also appear in [streamsByName].
@@ -165,8 +167,11 @@ enum UserTopicVisibilityEffect {
 /// Generally the only code that should need this class is [PerAccountStore]
 /// itself.  Other code accesses this functionality through [PerAccountStore],
 /// or through the mixin [ChannelStore] which describes its interface.
-class ChannelStoreImpl with ChannelStore {
-  factory ChannelStoreImpl({required InitialSnapshot initialSnapshot}) {
+class ChannelStoreImpl extends HasUserStore with ChannelStore {
+  factory ChannelStoreImpl({
+    required UserStore users,
+    required InitialSnapshot initialSnapshot,
+  }) {
     final subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
       (subscription) => MapEntry(subscription.streamId, subscription)));
 
@@ -186,6 +191,7 @@ class ChannelStoreImpl with ChannelStore {
     }
 
     return ChannelStoreImpl._(
+      users: users,
       streams: streams,
       streamsByName: streams.map((_, stream) => MapEntry(stream.name, stream)),
       subscriptions: subscriptions,
@@ -194,6 +200,7 @@ class ChannelStoreImpl with ChannelStore {
   }
 
   ChannelStoreImpl._({
+    required super.users,
     required this.streams,
     required this.streamsByName,
     required this.subscriptions,
