@@ -438,7 +438,7 @@ Uri? tryResolveUrl(Uri baseUrl, String reference) {
 class PerAccountStore extends PerAccountStoreBase with
     ChangeNotifier,
     UserGroupStore, ProxyUserGroupStore,
-    RealmStore,
+    RealmStore, ProxyRealmStore,
     EmojiStore,
     SavedSnippetStore,
     UserStore,
@@ -579,33 +579,9 @@ class PerAccountStore extends PerAccountStoreBase with
   UserGroupStore get userGroupStore => _groups;
   final UserGroupStoreImpl _groups;
 
+  @protected
   @override
-  int get serverPresencePingIntervalSeconds => _realm.serverPresencePingIntervalSeconds;
-  @override
-  int get serverPresenceOfflineThresholdSeconds => _realm.serverPresenceOfflineThresholdSeconds;
-  @override
-  RealmWildcardMentionPolicy get realmWildcardMentionPolicy => _realm.realmWildcardMentionPolicy;
-  @override
-  bool get realmMandatoryTopics => _realm.realmMandatoryTopics;
-  @override
-  int get realmWaitingPeriodThreshold => _realm.realmWaitingPeriodThreshold;
-  @override
-  bool get realmAllowMessageEditing => _realm.realmAllowMessageEditing;
-  @override
-  int? get realmMessageContentEditLimitSeconds => _realm.realmMessageContentEditLimitSeconds;
-  @override
-  bool get realmPresenceDisabled => _realm.realmPresenceDisabled;
-  @override
-  int get maxFileUploadSizeMib => _realm.maxFileUploadSizeMib;
-  @override
-  String get realmEmptyTopicDisplayName => _realm.realmEmptyTopicDisplayName;
-  @override
-  Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts => _realm.realmDefaultExternalAccounts;
-  @override
-  List<CustomProfileField> get customProfileFields => _realm.customProfileFields;
-  @override
-  EmailAddressVisibility? get emailAddressVisibility => _realm.emailAddressVisibility;
-
+  RealmStore get realmStore => _realm;
   final RealmStoreImpl _realm;
 
   ////////////////////////////////

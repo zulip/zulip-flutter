@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
@@ -32,6 +34,38 @@ mixin RealmStore {
   List<CustomProfileField> get customProfileFields;
   /// For docs, please see [InitialSnapshot.emailAddressVisibility].
   EmailAddressVisibility? get emailAddressVisibility;
+}
+
+mixin ProxyRealmStore on RealmStore {
+  @protected
+  RealmStore get realmStore;
+
+  @override
+  int get serverPresencePingIntervalSeconds => realmStore.serverPresencePingIntervalSeconds;
+  @override
+  int get serverPresenceOfflineThresholdSeconds => realmStore.serverPresenceOfflineThresholdSeconds;
+  @override
+  RealmWildcardMentionPolicy get realmWildcardMentionPolicy => realmStore.realmWildcardMentionPolicy;
+  @override
+  bool get realmMandatoryTopics => realmStore.realmMandatoryTopics;
+  @override
+  int get realmWaitingPeriodThreshold => realmStore.realmWaitingPeriodThreshold;
+  @override
+  bool get realmAllowMessageEditing => realmStore.realmAllowMessageEditing;
+  @override
+  int? get realmMessageContentEditLimitSeconds => realmStore.realmMessageContentEditLimitSeconds;
+  @override
+  bool get realmPresenceDisabled => realmStore.realmPresenceDisabled;
+  @override
+  int get maxFileUploadSizeMib => realmStore.maxFileUploadSizeMib;
+  @override
+  String get realmEmptyTopicDisplayName => realmStore.realmEmptyTopicDisplayName;
+  @override
+  Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts => realmStore.realmDefaultExternalAccounts;
+  @override
+  List<CustomProfileField> get customProfileFields => realmStore.customProfileFields;
+  @override
+  EmailAddressVisibility? get emailAddressVisibility => realmStore.emailAddressVisibility;
 }
 
 /// The implementation of [RealmStore] that does the work.
