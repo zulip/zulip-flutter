@@ -1196,5 +1196,21 @@
   "revealButtonLabel": "Odsłoń wiadomość",
   "@revealButtonLabel": {
     "description": "Label for the button revealing hidden message from a muted sender in message list."
+  },
+  "emptyMessageListSearch": "Brak wyników wyszukiwania.",
+  "@emptyMessageListSearch": {
+    "description": "Placeholder for the 'Search' page when there are no messages."
+  },
+  "searchMessagesPageTitle": "Szukaj",
+  "@searchMessagesPageTitle": {
+    "description": "Page title for the 'Search' message view."
+  },
+  "searchMessagesHintText": "Szukaj",
+  "@searchMessagesHintText": {
+    "description": "Hint text for the message search text field."
+  },
+  "searchMessagesClearButtonTooltip": "Wyczyść",
+  "@searchMessagesClearButtonTooltip": {
+    "description": "Tooltip for the 'x' button in the search text field."
   }
 }
