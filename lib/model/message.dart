@@ -12,6 +12,7 @@ import '../api/route/messages.dart';
 import '../log.dart';
 import 'binding.dart';
 import 'message_list.dart';
+import 'realm.dart';
 import 'store.dart';
 
 const _apiSendMessage = sendMessage; // Bit ugly; for alternatives, see: https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20PerAccountStore.20methods/near/1545809
@@ -102,19 +103,11 @@ class _EditMessageRequestStatus {
   final String newContent;
 }
 
-class MessageStoreImpl extends PerAccountStoreBase with MessageStore, _OutboxMessageStore {
-  MessageStoreImpl({required super.core, required String? realmEmptyTopicDisplayName})
-    : _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
-      // There are no messages in InitialSnapshot, so we don't have
+class MessageStoreImpl extends HasRealmStore with MessageStore, _OutboxMessageStore {
+  MessageStoreImpl({required super.realm})
+    : // There are no messages in InitialSnapshot, so we don't have
       // a use case for initializing MessageStore with nonempty [messages].
       messages = {};
-
-  // This copy of the realm setting is here to bypass the feature-level check
-  // on the usual getter for it.  See discussion:
-  //   https://github.com/zulip/zulip-flutter/pull/1472#discussion_r2099069276
-  // TODO move [TopicName.processLikeServer] to a substore, eliminating this
-  @override
-  final String? _realmEmptyTopicDisplayName; // TODO(#668): update this realm setting
 
   @override
   final Map<int, Message> messages;
@@ -771,9 +764,7 @@ class DmOutboxMessage extends OutboxMessage<DmConversation> {
 }
 
 /// Manages the outbox messages portion of [MessageStore].
-mixin _OutboxMessageStore on PerAccountStoreBase {
-  String? get _realmEmptyTopicDisplayName;
-
+mixin _OutboxMessageStore on HasRealmStore {
   late final UnmodifiableMapView<int, OutboxMessage> outboxMessages =
     UnmodifiableMapView(_outboxMessages);
   final Map<int, OutboxMessage> _outboxMessages = {};
@@ -918,22 +909,21 @@ mixin _OutboxMessageStore on PerAccountStoreBase {
   }
 
   TopicName _processTopicLikeServer(TopicName topic) {
-    return topic.processLikeServer(
-      // Processing this just once on creating the outbox message
-      // allows an uncommon bug, because either of these values can change.
-      // During the outbox message's life, a topic processed from
-      // "(no topic)" could become stale/wrong when zulipFeatureLevel
-      // changes; a topic processed from "general chat" could become
-      // stale/wrong when realmEmptyTopicDisplayName changes.
-      //
-      // Shrug. The same effect is caused by an unavoidable race:
-      // an admin could change the name of "general chat"
-      // (i.e. the value of realmEmptyTopicDisplayName)
-      // concurrently with the user making the send request,
-      // so that the setting in effect by the time the request arrives
-      // is different from the setting the client last heard about.
-      zulipFeatureLevel: zulipFeatureLevel,
-      realmEmptyTopicDisplayName: _realmEmptyTopicDisplayName);
+    // Processing this just once on creating the outbox message
+    // allows an uncommon bug, because either of the values
+    // [zulipFeatureLevel] or [realmEmptyTopicDisplayName] can change.
+    // During the outbox message's life, a topic processed from
+    // "(no topic)" could become stale/wrong when zulipFeatureLevel
+    // changes; a topic processed from "general chat" could become
+    // stale/wrong when realmEmptyTopicDisplayName changes.
+    //
+    // Shrug. The same effect is caused by an unavoidable race:
+    // an admin could change the name of "general chat"
+    // (i.e. the value of realmEmptyTopicDisplayName)
+    // concurrently with the user making the send request,
+    // so that the setting in effect by the time the request arrives
+    // is different from the setting the client last heard about.
+    return processTopicLikeServer(topic);
   }
 
   void _handleOutboxDebounce(int localMessageId) {

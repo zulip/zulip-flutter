@@ -35,6 +35,51 @@ mixin RealmStore on PerAccountStoreBase {
   List<CustomProfileField> get customProfileFields;
   /// For docs, please see [InitialSnapshot.emailAddressVisibility].
   EmailAddressVisibility? get emailAddressVisibility;
+
+  /// Process the given topic to match how it would appear
+  /// on a message object from the server.
+  ///
+  /// This returns the [TopicName] the server would be predicted to include
+  /// in a message object resulting from sending to the given [TopicName]
+  /// in a [sendMessage] request.
+  ///
+  /// The [TopicName] is required to have no leading or trailing whitespace.
+  ///
+  /// For a client that supports empty topics, when FL>=334, the server converts
+  /// `store.realmEmptyTopicDisplayName` to an empty string; when FL>=370,
+  /// the server converts "(no topic)" to an empty string as well.
+  ///
+  /// See API docs:
+  ///   https://zulip.com/api/send-message#parameter-topic
+  TopicName processTopicLikeServer(TopicName topic) {
+    final apiName = topic.apiName;
+    assert(apiName.trim() == apiName);
+    // TODO(server-10) simplify this away
+    if (zulipFeatureLevel < 334) {
+      // From the API docs:
+      // > Before Zulip 10.0 (feature level 334), empty string was not a valid
+      // > topic name for channel messages.
+      assert(apiName.isNotEmpty);
+      return topic;
+    }
+
+    // TODO(server-10) simplify this away
+    if (zulipFeatureLevel < 370 && apiName == kNoTopicTopic) {
+      // From the API docs:
+      // > Before Zulip 10.0 (feature level 370), "(no topic)" was not
+      // > interpreted as an empty string.
+      return TopicName(kNoTopicTopic);
+    }
+
+    if (apiName == kNoTopicTopic || apiName == realmEmptyTopicDisplayName) {
+      // From the API docs:
+      // > When "(no topic)" or the value of realm_empty_topic_display_name
+      // > found in the POST /register response is used for [topic],
+      // > it is interpreted as an empty string.
+      return TopicName('');
+    }
+    return topic;
+  }
 }
 
 mixin ProxyRealmStore on RealmStore {

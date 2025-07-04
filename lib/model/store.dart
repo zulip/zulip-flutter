@@ -483,11 +483,12 @@ class PerAccountStore extends PerAccountStoreBase with
       selfUserId: account.userId,
     );
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
+    final realm = RealmStoreImpl(core: core, initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       core: core,
       groups: UserGroupStoreImpl(core: core,
         groups: initialSnapshot.realmUserGroups),
-      realm: RealmStoreImpl(core: core, initialSnapshot: initialSnapshot),
+      realm: realm,
       emoji: EmojiStoreImpl(
         core: core, allRealmEmoji: initialSnapshot.realmEmoji),
       userSettings: initialSnapshot.userSettings,
@@ -509,8 +510,7 @@ class PerAccountStore extends PerAccountStoreBase with
         realmPresenceDisabled: initialSnapshot.realmPresenceDisabled,
         initial: initialSnapshot.presences),
       channels: channels,
-      messages: MessageStoreImpl(core: core,
-        realmEmptyTopicDisplayName: initialSnapshot.realmEmptyTopicDisplayName),
+      messages: MessageStoreImpl(realm: realm),
       unreads: Unreads(
         initial: initialSnapshot.unreadMsgs,
         core: core,

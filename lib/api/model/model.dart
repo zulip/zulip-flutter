@@ -837,53 +837,6 @@ extension type const TopicName(String _value) {
   /// using [canonicalize].
   bool isSameAs(TopicName other) => canonicalize() == other.canonicalize();
 
-  /// Process this topic to match how it would appear on a message object from
-  /// the server.
-  ///
-  /// This returns the [TopicName] the server would be predicted to include
-  /// in a message object resulting from sending to this [TopicName]
-  /// in a [sendMessage] request.
-  ///
-  /// This [TopicName] is required to have no leading or trailing whitespace.
-  ///
-  /// For a client that supports empty topics, when FL>=334, the server converts
-  /// `store.realmEmptyTopicDisplayName` to an empty string; when FL>=370,
-  /// the server converts "(no topic)" to an empty string as well.
-  ///
-  /// See API docs:
-  ///   https://zulip.com/api/send-message#parameter-topic
-  TopicName processLikeServer({
-    required int zulipFeatureLevel,
-    required String? realmEmptyTopicDisplayName,
-  }) {
-    assert(_value.trim() == _value);
-    // TODO(server-10) simplify this away
-    if (zulipFeatureLevel < 334) {
-      // From the API docs:
-      // > Before Zulip 10.0 (feature level 334), empty string was not a valid
-      // > topic name for channel messages.
-      assert(_value.isNotEmpty);
-      return this;
-    }
-
-    // TODO(server-10) simplify this away
-    if (zulipFeatureLevel < 370 && _value == kNoTopicTopic) {
-      // From the API docs:
-      // > Before Zulip 10.0 (feature level 370), "(no topic)" was not
-      // > interpreted as an empty string.
-      return TopicName(kNoTopicTopic);
-    }
-
-    if (_value == kNoTopicTopic || _value == realmEmptyTopicDisplayName) {
-      // From the API docs:
-      // > When "(no topic)" or the value of realm_empty_topic_display_name
-      // > found in the POST /register response is used for [topic],
-      // > it is interpreted as an empty string.
-      return TopicName('');
-    }
-    return TopicName(_value);
-  }
-
   TopicName.fromJson(this._value);
 
   String toJson() => apiName;

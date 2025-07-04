@@ -778,11 +778,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     if (narrow is TopicNarrow) {
       // Normalize topic name.  See #1717.
       narrow = TopicNarrow(narrow.streamId,
-        narrow.topic.processLikeServer(
-          zulipFeatureLevel: store.zulipFeatureLevel,
-          realmEmptyTopicDisplayName: store.zulipFeatureLevel > 334
-            ? store.realmEmptyTopicDisplayName
-            : null),
+        store.processTopicLikeServer(narrow.topic),
         with_: narrow.with_);
       if (narrow != widget.narrow) {
         SchedulerBinding.instance.scheduleFrameCallback((_) {
