@@ -205,23 +205,23 @@ class RealmStoreImpl extends PerAccountStoreBase with RealmStore {
   final int serverTypingStartedWaitPeriodMilliseconds;
 
   @override
-  final bool realmAllowMessageEditing; // TODO(#668): update this realm setting
+  final bool realmAllowMessageEditing;
   @override
-  final bool realmMandatoryTopics;  // TODO(#668): update this realm setting
+  final bool realmMandatoryTopics;
   @override
-  final int maxFileUploadSizeMib; // No event for this.
+  final int maxFileUploadSizeMib;
   @override
-  final int? realmMessageContentEditLimitSeconds; // TODO(#668): update this realm setting
+  final int? realmMessageContentEditLimitSeconds;
   @override
-  final bool realmPresenceDisabled; // TODO(#668): update this realm setting
+  final bool realmPresenceDisabled;
   @override
-  final int realmWaitingPeriodThreshold;  // TODO(#668): update this realm setting
+  final int realmWaitingPeriodThreshold;
 
   @override
-  final RealmWildcardMentionPolicy realmWildcardMentionPolicy; // TODO(#668): update this realm setting
+  final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
 
   @override
-  final EmailAddressVisibility? emailAddressVisibility; // TODO(#668): update this realm setting
+  final EmailAddressVisibility? emailAddressVisibility;
 
   @override
   String get realmEmptyTopicDisplayName {
@@ -229,7 +229,7 @@ class RealmStoreImpl extends PerAccountStoreBase with RealmStore {
     assert(_realmEmptyTopicDisplayName != null); // TODO(log)
     return _realmEmptyTopicDisplayName ?? 'general chat';
   }
-  final String? _realmEmptyTopicDisplayName; // TODO(#668): update this realm setting
+  final String? _realmEmptyTopicDisplayName;
 
   @override
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
