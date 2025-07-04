@@ -27,6 +27,7 @@ import 'localizations.dart';
 import 'message.dart';
 import 'message_list.dart';
 import 'presence.dart';
+import 'realm.dart';
 import 'recent_dm_conversations.dart';
 import 'recent_senders.dart';
 import 'channel.dart';
@@ -437,6 +438,7 @@ Uri? tryResolveUrl(Uri baseUrl, String reference) {
 class PerAccountStore extends PerAccountStoreBase with
     ChangeNotifier,
     UserGroupStore, ProxyUserGroupStore,
+    RealmStore,
     EmojiStore,
     SavedSnippetStore,
     UserStore,
@@ -498,6 +500,7 @@ class PerAccountStore extends PerAccountStoreBase with
       realmDefaultExternalAccounts: initialSnapshot.realmDefaultExternalAccounts,
       customProfileFields: _sortCustomProfileFields(initialSnapshot.customProfileFields),
       emailAddressVisibility: initialSnapshot.emailAddressVisibility,
+      realm: RealmStoreImpl(core: core, initialSnapshot: initialSnapshot),
       emoji: EmojiStoreImpl(
         core: core, allRealmEmoji: initialSnapshot.realmEmoji),
       userSettings: initialSnapshot.userSettings,
@@ -548,6 +551,7 @@ class PerAccountStore extends PerAccountStoreBase with
     required this.realmDefaultExternalAccounts,
     required this.customProfileFields,
     required this.emailAddressVisibility,
+    required RealmStoreImpl realm,
     required EmojiStoreImpl emoji,
     required this.userSettings,
     required SavedSnippetStoreImpl savedSnippets,
@@ -562,6 +566,7 @@ class PerAccountStore extends PerAccountStoreBase with
     required this.recentSenders,
   }) : _groups = groups,
        _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
+       _realm = realm,
        _emoji = emoji,
        _savedSnippets = savedSnippets,
        _users = users,
@@ -629,6 +634,8 @@ class PerAccountStore extends PerAccountStoreBase with
   List<CustomProfileField> customProfileFields;
   /// For docs, please see [InitialSnapshot.emailAddressVisibility].
   final EmailAddressVisibility? emailAddressVisibility; // TODO(#668): update this realm setting
+
+  final RealmStoreImpl _realm; // ignore: unused_field // TODO
 
   ////////////////////////////////
   // The realm's repertoire of available emoji.
