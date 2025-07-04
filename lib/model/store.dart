@@ -632,7 +632,6 @@ class PerAccountStore extends PerAccountStoreBase with
     _messages.markReadFromScroll(messageIds);
   @override
   Future<void> sendMessage({required MessageDestination destination, required String content}) {
-    assert(!_disposed);
     return _messages.sendMessage(destination: destination, content: content);
   }
   @override
@@ -646,7 +645,6 @@ class PerAccountStore extends PerAccountStoreBase with
   }
   @override
   bool? getEditMessageErrorStatus(int messageId) {
-    assert(!_disposed);
     return _messages.getEditMessageErrorStatus(messageId);
   }
   @override
@@ -655,13 +653,11 @@ class PerAccountStore extends PerAccountStoreBase with
     required String originalRawContent,
     required String newContent,
   }) {
-    assert(!_disposed);
     return _messages.editMessage(messageId: messageId,
       originalRawContent: originalRawContent, newContent: newContent);
   }
   @override
   ({String originalRawContent, String newContent}) takeFailedMessageEdit(int messageId) {
-    assert(!_disposed);
     return _messages.takeFailedMessageEdit(messageId);
   }
 

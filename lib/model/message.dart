@@ -278,8 +278,10 @@ class MessageStoreImpl extends HasRealmStore with MessageStore, _OutboxMessageSt
   }
 
   @override
-  bool? getEditMessageErrorStatus(int messageId) =>
-    _editMessageRequests[messageId]?.hasError;
+  bool? getEditMessageErrorStatus(int messageId) {
+    assert(!_disposed);
+    return _editMessageRequests[messageId]?.hasError;
+  }
 
   final Map<int, _EditMessageRequestStatus> _editMessageRequests = {};
 
