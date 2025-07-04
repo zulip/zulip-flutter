@@ -185,9 +185,122 @@ class _KatexParser {
   KatexNode _parseSpan(dom.Element element) {
     // TODO maybe check if the sequence of ancestors matter for spans.
 
+    if (element.className.startsWith('strut')) {
+      if (element.className == 'strut' && element.nodes.isEmpty) {
+        final styles = _parseSpanInlineStyles(element);
+        if (styles == null) throw _KatexHtmlParseError();
+
+        final heightEm = styles.heightEm;
+        if (heightEm == null) throw _KatexHtmlParseError();
+        final verticalAlignEm = styles.verticalAlignEm;
+
+        // Ensure only `height` and `vertical-align` inline styles are present.
+        if (styles.filter(heightEm: false, verticalAlignEm: false) !=
+            KatexSpanStyles()) {
+          throw _KatexHtmlParseError();
+        }
+
+        return KatexStrutNode(
+          heightEm: heightEm,
+          verticalAlignEm: verticalAlignEm);
+      } else {
+        throw _KatexHtmlParseError();
+      }
+    }
+
+    if (element.className.startsWith('vlist')) {
+      if (element case dom.Element(
+        localName: 'span',
+        className: 'vlist-t' || 'vlist-t vlist-t2',
+        nodes: [...],
+      ) && final vlistT) {
+        if (vlistT.attributes.containsKey('style')) throw _KatexHtmlParseError();
+
+        final hasTwoVlistR = vlistT.className == 'vlist-t vlist-t2';
+        if (!hasTwoVlistR && vlistT.nodes.length != 1) throw _KatexHtmlParseError();
+
+        if (hasTwoVlistR) {
+          if (vlistT.nodes case [
+            _,
+            dom.Element(localName: 'span', className: 'vlist-r', nodes: [
+              dom.Element(localName: 'span', className: 'vlist', nodes: [
+                dom.Element(localName: 'span', className: '', nodes: []),
+              ]),
+            ]),
+          ]) {
+            // Do nothing.
+          } else {
+            throw _KatexHtmlParseError();
+          }
+        }
+
+        if (vlistT.nodes.first
+            case dom.Element(localName: 'span', className: 'vlist-r') &&
+                final vlistR) {
+          if (vlistR.attributes.containsKey('style')) throw _KatexHtmlParseError();
+
+          if (vlistR.nodes.first
+              case dom.Element(localName: 'span', className: 'vlist') &&
+                  final vlist) {
+            final rows = <KatexVlistRowNode>[];
+
+            for (final innerSpan in vlist.nodes) {
+              if (innerSpan case dom.Element(
+                localName: 'span',
+                nodes: [
+                  dom.Element(localName: 'span', className: 'pstrut') &&
+                      final pstrutSpan,
+                  ...final otherSpans,
+                ],
+              )) {
+                if (innerSpan.className != '') {
+                  throw _KatexHtmlParseError('unexpected CSS class for '
+                    'vlist inner span: ${innerSpan.className}');
+                }
+
+                var styles = _parseSpanInlineStyles(innerSpan)!;
+                final topEm = styles.topEm ?? 0;
+
+                styles = styles.filter(topEm: false);
+
+                final pstrutStyles = _parseSpanInlineStyles(pstrutSpan)!;
+                final pstrutHeight = pstrutStyles.heightEm ?? 0;
+
+                rows.add(KatexVlistRowNode(
+                  verticalOffsetEm: topEm + pstrutHeight,
+                  debugHtmlNode: kDebugMode ? innerSpan : null,
+                  node: KatexSpanNode(
+                    styles: styles,
+                    text: null,
+                    nodes: _parseChildSpans(otherSpans))));
+              } else {
+                throw _KatexHtmlParseError();
+              }
+            }
+
+            return KatexVlistNode(
+              rows: rows,
+              debugHtmlNode: kDebugMode ? vlistT : null,
+            );
+          } else {
+            throw _KatexHtmlParseError();
+          }
+        } else {
+          throw _KatexHtmlParseError();
+        }
+      } else {
+        throw _KatexHtmlParseError();
+      }
+    }
+
     final debugHtmlNode = kDebugMode ? element : null;
 
     final inlineStyles = _parseSpanInlineStyles(element);
+    if (inlineStyles != null) {
+      // We expect `vertical-align` inline style to be only present on a
+      // `strut` span, for which we emit `KatexStrutNode` separately.
+      if (inlineStyles.verticalAlignEm != null) throw _KatexHtmlParseError();
+    }
 
     // Aggregate the CSS styles that apply, in the same order as the CSS
     // classes specified for this span, mimicking the behaviour on web.
@@ -197,7 +310,9 @@ class _KatexParser {
     //   https://github.com/KaTeX/KaTeX/blob/2fe1941b/src/styles/katex.scss
     // A copy of class definition (where possible) is accompanied in a comment
     // with each case statement to keep track of updates.
-    final spanClasses = List<String>.unmodifiable(element.className.split(' '));
+    final spanClasses = element.className != ''
+      ? List<String>.unmodifiable(element.className.split(' '))
+      : const <String>[];
     String? fontFamily;
     double? fontSizeEm;
     KatexSpanFontWeight? fontWeight;
@@ -214,8 +329,9 @@ class _KatexParser {
 
         case 'strut':
           // .strut { ... }
-          // Do nothing, it has properties that don't need special handling.
-          break;
+          // We expect the 'strut' class to be the only class in a span,
+          // in which case we handle it separately and emit `KatexStrutNode`.
+          throw _KatexHtmlParseError();
 
         case 'textbf':
           // .textbf { font-weight: bold; }
@@ -398,6 +514,19 @@ class _KatexParser {
             _ => throw _KatexHtmlParseError(),
           };
 
+          // Some .op-symbol spans can have `position: relative` with some
+          // `top` offset as inline styles. We expect that if position is
+          // present it is always `relative` and be accompanying with some
+          // `top` offset.
+          if (inlineStyles case KatexSpanStyles(
+            :final position,
+            :final topEm,
+          ) when position != null) {
+            if (position != KatexSpanPosition.relative || topEm == null) {
+              throw _KatexHtmlParseError();
+            }
+          }
+
         // TODO handle more classes from katex.scss
 
         case 'mord':
@@ -463,6 +592,11 @@ class _KatexParser {
       final stylesheet = css_parser.parse('*{$styleStr}');
       if (stylesheet.topLevels case [css_visitor.RuleSet() && final rule]) {
         double? heightEm;
+        double? verticalAlignEm;
+        double? topEm;
+        double? marginRightEm;
+        double? marginLeftEm;
+        KatexSpanPosition? position;
 
         for (final declaration in rule.declarationGroup.declarations) {
           if (declaration case css_visitor.Declaration(
@@ -474,6 +608,35 @@ class _KatexParser {
               case 'height':
                 heightEm = _getEm(expression);
                 if (heightEm != null) continue;
+
+              case 'vertical-align':
+                verticalAlignEm = _getEm(expression);
+                if (verticalAlignEm != null) continue;
+
+              case 'top':
+                topEm = _getEm(expression);
+                if (topEm != null) continue;
+
+              case 'margin-right':
+                marginRightEm = _getEm(expression);
+                if (marginRightEm != null) {
+                  if (marginRightEm < 0) throw _KatexHtmlParseError();
+                  continue;
+                }
+
+              case 'margin-left':
+                marginLeftEm = _getEm(expression);
+                if (marginLeftEm != null) {
+                  if (marginLeftEm < 0) throw _KatexHtmlParseError();
+                  continue;
+                }
+
+              case 'position':
+                position = switch (_getLiteral(expression)) {
+                  'relative' => KatexSpanPosition.relative,
+                  _ => null,
+                };
+                if (position != null) continue;
             }
 
             // TODO handle more CSS properties
@@ -488,6 +651,11 @@ class _KatexParser {
 
         return KatexSpanStyles(
           heightEm: heightEm,
+          topEm: topEm,
+          verticalAlignEm: verticalAlignEm,
+          marginRightEm: marginRightEm,
+          marginLeftEm: marginLeftEm,
+          position: position,
         );
       } else {
         throw _KatexHtmlParseError();
@@ -501,6 +669,17 @@ class _KatexParser {
   double? _getEm(css_visitor.Expression expression) {
     if (expression is css_visitor.EmTerm && expression.value is num) {
       return (expression.value as num).toDouble();
+    }
+    return null;
+  }
+
+  /// Returns the CSS literal string value if the given [expression] is
+  /// actually a literal expression, else returns null.
+  String? _getLiteral(css_visitor.Expression expression) {
+    if (expression case css_visitor.LiteralTerm(:final value)) {
+      if (value case css_visitor.Identifier(:final name)) {
+        return name;
+      }
     }
     return null;
   }
@@ -521,9 +700,19 @@ enum KatexSpanTextAlign {
   right,
 }
 
+enum KatexSpanPosition {
+  relative,
+}
+
 @immutable
 class KatexSpanStyles {
   final double? heightEm;
+  final double? verticalAlignEm;
+
+  final double? topEm;
+
+  final double? marginRightEm;
+  final double? marginLeftEm;
 
   final String? fontFamily;
   final double? fontSizeEm;
@@ -531,46 +720,68 @@ class KatexSpanStyles {
   final KatexSpanFontStyle? fontStyle;
   final KatexSpanTextAlign? textAlign;
 
+  final KatexSpanPosition? position;
+
   const KatexSpanStyles({
     this.heightEm,
+    this.verticalAlignEm,
+    this.topEm,
+    this.marginRightEm,
+    this.marginLeftEm,
     this.fontFamily,
     this.fontSizeEm,
     this.fontWeight,
     this.fontStyle,
     this.textAlign,
+    this.position,
   });
 
   @override
   int get hashCode => Object.hash(
     'KatexSpanStyles',
     heightEm,
+    verticalAlignEm,
+    topEm,
+    marginRightEm,
+    marginLeftEm,
     fontFamily,
     fontSizeEm,
     fontWeight,
     fontStyle,
     textAlign,
+    position,
   );
 
   @override
   bool operator ==(Object other) {
     return other is KatexSpanStyles &&
       other.heightEm == heightEm &&
+      other.verticalAlignEm == verticalAlignEm &&
+      other.topEm == topEm &&
+      other.marginRightEm == marginRightEm &&
+      other.marginLeftEm == marginLeftEm &&
       other.fontFamily == fontFamily &&
       other.fontSizeEm == fontSizeEm &&
       other.fontWeight == fontWeight &&
       other.fontStyle == fontStyle &&
-      other.textAlign == textAlign;
+      other.textAlign == textAlign &&
+      other.position == position;
   }
 
   @override
   String toString() {
     final args = <String>[];
     if (heightEm != null) args.add('heightEm: $heightEm');
+    if (verticalAlignEm != null) args.add('verticalAlignEm: $verticalAlignEm');
+    if (topEm != null) args.add('topEm: $topEm');
+    if (marginRightEm != null) args.add('marginRightEm: $marginRightEm');
+    if (marginLeftEm != null) args.add('marginLeftEm: $marginLeftEm');
     if (fontFamily != null) args.add('fontFamily: $fontFamily');
     if (fontSizeEm != null) args.add('fontSizeEm: $fontSizeEm');
     if (fontWeight != null) args.add('fontWeight: $fontWeight');
     if (fontStyle != null) args.add('fontStyle: $fontStyle');
     if (textAlign != null) args.add('textAlign: $textAlign');
+    if (position != null) args.add('position: $position');
     return '${objectRuntimeType(this, 'KatexSpanStyles')}(${args.join(', ')})';
   }
 
@@ -584,11 +795,44 @@ class KatexSpanStyles {
   KatexSpanStyles merge(KatexSpanStyles other) {
     return KatexSpanStyles(
       heightEm: other.heightEm ?? heightEm,
+      verticalAlignEm: other.verticalAlignEm ?? verticalAlignEm,
+      topEm: other.topEm ?? topEm,
+      marginRightEm: other.marginRightEm ?? marginRightEm,
+      marginLeftEm: other.marginLeftEm ?? marginLeftEm,
       fontFamily: other.fontFamily ?? fontFamily,
       fontSizeEm: other.fontSizeEm ?? fontSizeEm,
       fontStyle: other.fontStyle ?? fontStyle,
       fontWeight: other.fontWeight ?? fontWeight,
       textAlign: other.textAlign ?? textAlign,
+      position: other.position ?? position,
+    );
+  }
+
+  KatexSpanStyles filter({
+    bool heightEm = true,
+    bool verticalAlignEm = true,
+    bool topEm = true,
+    bool marginRightEm = true,
+    bool marginLeftEm = true,
+    bool fontFamily = true,
+    bool fontSizeEm = true,
+    bool fontWeight = true,
+    bool fontStyle = true,
+    bool textAlign = true,
+    bool position = true,
+  }) {
+    return KatexSpanStyles(
+      heightEm: heightEm ? this.heightEm : null,
+      verticalAlignEm: verticalAlignEm ? this.verticalAlignEm : null,
+      topEm: topEm ? this.topEm : null,
+      marginRightEm: marginRightEm ? this.marginRightEm : null,
+      marginLeftEm: marginLeftEm ? this.marginLeftEm : null,
+      fontFamily: fontFamily ? this.fontFamily : null,
+      fontSizeEm: fontSizeEm ? this.fontSizeEm : null,
+      fontWeight: fontWeight ? this.fontWeight : null,
+      fontStyle: fontStyle ? this.fontStyle : null,
+      textAlign: textAlign ? this.textAlign : null,
+      position: position ? this.position : null,
     );
   }
 }
