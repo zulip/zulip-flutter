@@ -203,7 +203,17 @@ class DmNarrow extends Narrow implements SendableNarrow {
     required int selfUserId,
   }) {
     return DmNarrow(
+      // TODO should this really be making a copy of `allRecipientIds`?
       allRecipientIds: List.unmodifiable(message.conversation.allRecipientIds),
+      selfUserId: selfUserId,
+    );
+  }
+
+  factory DmNarrow.ofConversation(DmConversation conversation, {
+    required int selfUserId,
+  }) {
+    return DmNarrow(
+      allRecipientIds: conversation.allRecipientIds,
       selfUserId: selfUserId,
     );
   }
