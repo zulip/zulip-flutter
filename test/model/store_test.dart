@@ -821,14 +821,14 @@ void main() {
       await preparePoll();
 
       // Pick some arbitrary event and check it gets processed on the store.
-      check(store.userSettings!.twentyFourHourTime).isFalse();
+      check(store.userSettings.twentyFourHourTime).isFalse();
       connection.prepare(json: GetEventsResult(events: [
         UserSettingsUpdateEvent(id: 2,
           property: UserSettingName.twentyFourHourTime, value: true),
       ], queueId: null).toJson());
       updateMachine.debugAdvanceLoop();
       async.elapse(Duration.zero);
-      check(store.userSettings!.twentyFourHourTime).isTrue();
+      check(store.userSettings.twentyFourHourTime).isTrue();
     }));
 
     void checkReload(FutureOr<void> Function() prepareError, {
@@ -858,14 +858,14 @@ void main() {
         // The new UpdateMachine updates the new store.
         updateMachine.debugPauseLoop();
         updateMachine.poll();
-        check(store.userSettings!.twentyFourHourTime).isFalse();
+        check(store.userSettings.twentyFourHourTime).isFalse();
         connection.prepare(json: GetEventsResult(events: [
           UserSettingsUpdateEvent(id: 2,
             property: UserSettingName.twentyFourHourTime, value: true),
         ], queueId: null).toJson());
         updateMachine.debugAdvanceLoop();
         async.elapse(Duration.zero);
-        check(store.userSettings!.twentyFourHourTime).isTrue();
+        check(store.userSettings.twentyFourHourTime).isTrue();
       });
     }
 
