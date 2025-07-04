@@ -10,7 +10,8 @@ import 'store.dart';
 ///
 /// See also:
 ///  * [RealmStoreImpl] for the implementation of this that does the work.
-mixin RealmStore {
+///  * [HasRealmStore] for an implementation useful for other substores.
+mixin RealmStore on PerAccountStoreBase {
   int get serverPresencePingIntervalSeconds;
   int get serverPresenceOfflineThresholdSeconds;
 
@@ -66,6 +67,17 @@ mixin ProxyRealmStore on RealmStore {
   List<CustomProfileField> get customProfileFields => realmStore.customProfileFields;
   @override
   EmailAddressVisibility? get emailAddressVisibility => realmStore.emailAddressVisibility;
+}
+
+/// A base class for [PerAccountStore] substores that need access to [RealmStore]
+/// as well as to [CorePerAccountStore].
+abstract class HasRealmStore extends PerAccountStoreBase with RealmStore, ProxyRealmStore {
+  HasRealmStore({required RealmStore realm})
+    : realmStore = realm, super(core: realm.core);
+
+  @protected
+  @override
+  final RealmStore realmStore;
 }
 
 /// The implementation of [RealmStore] that does the work.
