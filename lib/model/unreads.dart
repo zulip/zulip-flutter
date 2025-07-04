@@ -37,9 +37,9 @@ import 'store.dart';
 //   messages and refresh [mentions] (see [mentions] dartdoc).
 class Unreads extends PerAccountStoreBase with ChangeNotifier {
   factory Unreads({
-    required UnreadMessagesSnapshot initial,
     required CorePerAccountStore core,
     required ChannelStore channelStore,
+    required UnreadMessagesSnapshot initial,
   }) {
     final streams = <int, TopicKeyedMap<QueueList<int>>>{};
     final dms = <DmNarrow, QueueList<int>>{};
