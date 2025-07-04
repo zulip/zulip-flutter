@@ -455,6 +455,82 @@ void main() {
     });
   });
 
+  group('hasPostingPermission', () {
+    final testCases = [
+      (ChannelPostPolicy.unknown,        UserRole.unknown,       true),
+      (ChannelPostPolicy.unknown,        UserRole.guest,         true),
+      (ChannelPostPolicy.unknown,        UserRole.member,        true),
+      (ChannelPostPolicy.unknown,        UserRole.moderator,     true),
+      (ChannelPostPolicy.unknown,        UserRole.administrator, true),
+      (ChannelPostPolicy.unknown,        UserRole.owner,         true),
+      (ChannelPostPolicy.any,            UserRole.unknown,       true),
+      (ChannelPostPolicy.any,            UserRole.guest,         true),
+      (ChannelPostPolicy.any,            UserRole.member,        true),
+      (ChannelPostPolicy.any,            UserRole.moderator,     true),
+      (ChannelPostPolicy.any,            UserRole.administrator, true),
+      (ChannelPostPolicy.any,            UserRole.owner,         true),
+      (ChannelPostPolicy.fullMembers,    UserRole.unknown,       true),
+      (ChannelPostPolicy.fullMembers,    UserRole.guest,         false),
+      // The fullMembers/member case gets its own tests further below.
+      // (ChannelPostPolicy.fullMembers,    UserRole.member,        /* complicated */),
+      (ChannelPostPolicy.fullMembers,    UserRole.moderator,     true),
+      (ChannelPostPolicy.fullMembers,    UserRole.administrator, true),
+      (ChannelPostPolicy.fullMembers,    UserRole.owner,         true),
+      (ChannelPostPolicy.moderators,     UserRole.unknown,       true),
+      (ChannelPostPolicy.moderators,     UserRole.guest,         false),
+      (ChannelPostPolicy.moderators,     UserRole.member,        false),
+      (ChannelPostPolicy.moderators,     UserRole.moderator,     true),
+      (ChannelPostPolicy.moderators,     UserRole.administrator, true),
+      (ChannelPostPolicy.moderators,     UserRole.owner,         true),
+      (ChannelPostPolicy.administrators, UserRole.unknown,       true),
+      (ChannelPostPolicy.administrators, UserRole.guest,         false),
+      (ChannelPostPolicy.administrators, UserRole.member,        false),
+      (ChannelPostPolicy.administrators, UserRole.moderator,     false),
+      (ChannelPostPolicy.administrators, UserRole.administrator, true),
+      (ChannelPostPolicy.administrators, UserRole.owner,         true),
+    ];
+
+    for (final (ChannelPostPolicy policy, UserRole role, bool canPost) in testCases) {
+      test('"${role.name}" user ${canPost ? 'can' : "can't"} post in channel '
+          'with "${policy.name}" policy', () {
+        final store = eg.store();
+        final actual = store.hasPostingPermission(
+          inChannel: eg.stream(channelPostPolicy: policy), user: eg.user(role: role),
+          // [byDate] is not actually relevant for these test cases; for the
+          // ones which it is, they're practiced below.
+          byDate: DateTime.now());
+        check(actual).equals(canPost);
+      });
+    }
+
+    group('"member" user posting in a channel with "fullMembers" policy', () {
+      PerAccountStore localStore({required int realmWaitingPeriodThreshold}) =>
+        eg.store(initialSnapshot: eg.initialSnapshot(
+          realmWaitingPeriodThreshold: realmWaitingPeriodThreshold));
+
+      User memberUser({required String dateJoined}) => eg.user(
+        role: UserRole.member, dateJoined: dateJoined);
+
+      test('a "full" member -> can post in the channel', () {
+        final store = localStore(realmWaitingPeriodThreshold: 3);
+        final hasPermission = store.hasPostingPermission(
+          inChannel: eg.stream(channelPostPolicy: ChannelPostPolicy.fullMembers),
+          user: memberUser(dateJoined: '2024-11-25T10:00+00:00'),
+          byDate: DateTime.utc(2024, 11, 28, 10, 00));
+        check(hasPermission).isTrue();
+      });
+
+      test('not a "full" member -> cannot post in the channel', () {
+        final store = localStore(realmWaitingPeriodThreshold: 3);
+        final actual = store.hasPostingPermission(
+          inChannel: eg.stream(channelPostPolicy: ChannelPostPolicy.fullMembers),
+          user: memberUser(dateJoined: '2024-11-25T10:00+00:00'),
+          byDate: DateTime.utc(2024, 11, 28, 09, 59));
+        check(actual).isFalse();
+      });
+    });
+  });
+
   group('makeTopicKeyedMap', () {
     test('"a" equals "A"', () {
       final map = makeTopicKeyedMap<int>()

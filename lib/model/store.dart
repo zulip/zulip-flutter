@@ -624,30 +624,6 @@ class PerAccountStore extends PerAccountStoreBase with
 
   final ChannelStoreImpl _channels;
 
-  bool hasPostingPermission({
-    required ZulipStream inChannel,
-    required User user,
-    required DateTime byDate,
-  }) {
-    final role = user.role;
-    // We let the users with [unknown] role to send the message, then the server
-    // will decide to accept it or not based on its actual role.
-    if (role == UserRole.unknown) return true;
-
-    switch (inChannel.channelPostPolicy) {
-      case ChannelPostPolicy.any:             return true;
-      case ChannelPostPolicy.fullMembers:     {
-        if (!role.isAtLeast(UserRole.member)) return false;
-        return role == UserRole.member
-          ? hasPassedWaitingPeriod(user, byDate: byDate)
-          : true;
-      }
-      case ChannelPostPolicy.moderators:      return role.isAtLeast(UserRole.moderator);
-      case ChannelPostPolicy.administrators:  return role.isAtLeast(UserRole.administrator);
-      case ChannelPostPolicy.unknown:         return true;
-    }
-  }
-
   //|//////////////////////////////
   // Messages, and summaries of messages.
 
