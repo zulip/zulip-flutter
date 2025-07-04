@@ -271,6 +271,16 @@ extension PerAccountStoreTestExtension on PerAccountStore {
     await handleEvent(eg.mutedUsersEvent(userIds));
   }
 
+  Future<void> changeUserStatus(int userId, UserStatusChange change) async {
+    await handleEvent(UserStatusEvent(id: 1, userId: userId, change: change));
+  }
+
+  Future<void> changeUserStatuses(List<(int userId, UserStatusChange change)> changes) async {
+    for (final (userId, change) in changes) {
+      await changeUserStatus(userId, change);
+    }
+  }
+
   Future<void> addStream(ZulipStream stream) async {
     await addStreams([stream]);
   }

@@ -314,7 +314,12 @@ class _MentionAutocompleteItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            labelWidget,
+            Row(children: [
+              Flexible(child: labelWidget),
+              if (option case UserMentionAutocompleteResult(:var userId))
+                Padding(padding: const EdgeInsetsDirectional.only(start: 5.0),
+                  child: UserStatusEmoji(userId: userId, size: 18,
+                    notoColorEmojiTextSize: 15))]),
             if (sublabelWidget != null) sublabelWidget,
           ])),
       ]));
