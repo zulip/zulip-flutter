@@ -12,7 +12,9 @@ import 'store.dart';
 ///  * [RealmStoreImpl] for the implementation of this that does the work.
 ///  * [HasRealmStore] for an implementation useful for other substores.
 mixin RealmStore on PerAccountStoreBase {
+  Duration get serverPresencePingInterval => Duration(seconds: serverPresencePingIntervalSeconds);
   int get serverPresencePingIntervalSeconds;
+  Duration get serverPresenceOfflineThreshold => Duration(seconds: serverPresenceOfflineThresholdSeconds);
   int get serverPresenceOfflineThresholdSeconds;
 
   RealmWildcardMentionPolicy get realmWildcardMentionPolicy;
@@ -20,6 +22,9 @@ mixin RealmStore on PerAccountStoreBase {
   /// For docs, please see [InitialSnapshot.realmWaitingPeriodThreshold].
   int get realmWaitingPeriodThreshold;
   bool get realmAllowMessageEditing;
+  Duration? get realmMessageContentEditLimit =>
+    realmMessageContentEditLimitSeconds == null ? null
+      : Duration(seconds: realmMessageContentEditLimitSeconds!);
   int? get realmMessageContentEditLimitSeconds;
   bool get realmPresenceDisabled;
   int get maxFileUploadSizeMib;
