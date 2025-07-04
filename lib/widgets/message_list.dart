@@ -1885,14 +1885,11 @@ String formatHeaderDate(
   }
 }
 
-// TODO(i18n): web seems to ignore locale in formatting time, but we could do better
-final _kMessageTimestampFormat = DateFormat('h:mm aa', 'en_US');
-
 class SenderRow extends StatelessWidget {
-  const SenderRow({super.key, required this.message, required this.showTimestamp});
+  const SenderRow({super.key, required this.message, required this.timestampDisplay});
 
   final MessageBase message;
-  final bool showTimestamp;
+  final MessageTimestampDisplay? timestampDisplay;
 
   bool _showAsMuted(BuildContext context, PerAccountStore store) {
     final message = this.message;
@@ -1913,8 +1910,7 @@ class SenderRow extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final sender = store.getUser(message.senderId);
-    final time = _kMessageTimestampFormat
-      .format(DateTime.fromMillisecondsSinceEpoch(1000 * message.timestamp));
+    final timestamp = timestampDisplay?.format(message.timestamp);
 
     final showAsMuted = _showAsMuted(context, store);
 
@@ -1960,9 +1956,9 @@ class SenderRow extends StatelessWidget {
                     ),
                   ],
                 ]))),
-          if (showTimestamp) ...[
+          if (timestamp != null) ...[
             const SizedBox(width: 4),
-            Text(time,
+            Text(timestamp,
               style: TextStyle(
                 color: messageListTheme.labelTime,
                 fontSize: 16,
@@ -1971,6 +1967,26 @@ class SenderRow extends StatelessWidget {
               ).merge(weightVariableTextStyle(context))),
           ],
         ]));
+  }
+}
+
+// TODO centralize on this for wherever we show message timestamps
+enum MessageTimestampDisplay {
+  timeOnly,
+  // TODO more
+  ;
+
+  static final _timeOnlyFormat = DateFormat('h:mm aa', 'en_US');
+
+  /// Format a [Message.timestamp] for this mode.
+  // TODO(i18n): locale-specific formatting (see #45 for a plan with ffi)
+  String? format(int messageTimestamp) {
+    final asDateTime =
+      DateTime.fromMillisecondsSinceEpoch(1000 * messageTimestamp);
+
+    switch (this) {
+      case timeOnly: return _timeOnlyFormat.format(asDateTime);
+    }
   }
 }
 
@@ -2064,7 +2080,8 @@ class MessageWithPossibleSender extends StatelessWidget {
         padding: const EdgeInsets.only(top: 4),
         child: Column(children: [
           if (item.showSender)
-            SenderRow(message: message, showTimestamp: true),
+            SenderRow(message: message,
+              timestampDisplay: MessageTimestampDisplay.timeOnly),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: localizedTextBaseline(context),
@@ -2227,7 +2244,7 @@ class OutboxMessageWithPossibleSender extends StatelessWidget {
       padding: const EdgeInsets.only(top: 4),
       child: Column(children: [
         if (item.showSender)
-          SenderRow(message: message, showTimestamp: false),
+          SenderRow(message: message, timestampDisplay: null),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
