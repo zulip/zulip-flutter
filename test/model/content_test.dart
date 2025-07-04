@@ -893,6 +893,81 @@ class ContentExample {
         ]),
     ]);
 
+  static const mathBlockKatexColoredText = ContentExample(
+    'math block; KaTeX colored text',
+    '```math\n\\color{#f00} 0\n\n\\textcolor{red} 1\n\n\\red 2\n```',
+    '<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mstyle mathcolor="#f00"><mn>0</mn></mstyle></mrow><annotation encoding="application/x-tex">\\color{#f00} 0</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base">'
+            '<span class="strut" style="height:0.6444em;"></span>'
+            '<span class="mord" style="color:#f00;">0</span></span></span></span></span>\n\n'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mstyle mathcolor="red"><mn>1</mn></mstyle></mrow><annotation encoding="application/x-tex">\\textcolor{red} 1</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base">'
+            '<span class="strut" style="height:0.6444em;"></span>'
+            '<span class="mord" style="color:red;">1</span></span></span></span></span>\n\n'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mstyle mathcolor="#df0030"><mn>2</mn></mstyle></mrow><annotation encoding="application/x-tex">\\red 2</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base">'
+            '<span class="strut" style="height:0.6444em;"></span>'
+            '<span class="mord" style="color:#df0030;">2</span></span></span></span></span></p>', [
+      MathBlockNode(
+        texSource: '\\color{#f00} 0',
+        nodes: [
+          KatexSpanNode(
+            styles: KatexSpanStyles(),
+            text: null,
+            nodes: [
+              KatexSpanNode(
+                styles: KatexSpanStyles(heightEm: 0.6444),
+                text: null,
+                nodes: []),
+              KatexSpanNode(
+                styles: KatexSpanStyles(color: KatexSpanColor(255, 0, 0, 255)),
+                text: '0',
+                nodes: null),
+            ]),
+        ]),
+      MathBlockNode(
+        texSource: '\\textcolor{red} 1',
+        nodes: [
+          KatexSpanNode(
+            styles: KatexSpanStyles(),
+            text: null,
+            nodes: [
+              KatexSpanNode(
+                styles: KatexSpanStyles(heightEm: 0.6444),
+                text: null,
+                nodes: []),
+              KatexSpanNode(
+                styles: KatexSpanStyles(color: KatexSpanColor(255, 0, 0, 255)),
+                text: '1',
+                nodes: null),
+            ]),
+        ]),
+      MathBlockNode(
+        texSource: '\\red 2',
+        nodes: [
+          KatexSpanNode(
+            styles: KatexSpanStyles(),
+            text: null,
+            nodes: [
+              KatexSpanNode(
+                styles: KatexSpanStyles(heightEm: 0.6444),
+                text: null,
+                nodes: []),
+              KatexSpanNode(
+                styles: KatexSpanStyles(color: KatexSpanColor(223, 0, 48, 255)),
+                text: '2',
+                nodes: null),
+            ]),
+        ]),
+    ]);
+
   static const imageSingle = ContentExample(
     'single image',
     // https://chat.zulip.org/#narrow/stream/7-test-here/topic/Thumbnails/near/1900103
@@ -1985,6 +2060,7 @@ void main() async {
   //       `vertical-align` in inline styles. Currently it fails
   //       because `strut` span has `vertical-align`.
   testParseExample(ContentExample.mathBlockKatexDelimSizing, skip: true);
+  testParseExample(ContentExample.mathBlockKatexColoredText);
 
   testParseExample(ContentExample.imageSingle);
   testParseExample(ContentExample.imageSingleNoDimensions);
