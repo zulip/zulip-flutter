@@ -42,7 +42,7 @@ void main() {
     await store.addStream(channel);
     await store.addSubscription(eg.subscription(channel));
     for (final userTopic in userTopics) {
-      await store.addUserTopic(
+      await store.setUserTopic(
         channel, userTopic.topicName.apiName, userTopic.visibilityPolicy);
     }
     topics ??= [eg.getStreamTopicsEntry()];
