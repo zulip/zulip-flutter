@@ -703,6 +703,15 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get userRoleUnknown => 'Neznano';
 
   @override
+  String get statusButtonLabelStatusSet => 'Status';
+
+  @override
+  String get statusButtonLabelStatusUnset => 'Set status';
+
+  @override
+  String get noStatusText => 'No status text';
+
+  @override
   String get searchMessagesPageTitle => 'Search';
 
   @override
