@@ -290,6 +290,7 @@ class ZulipMenuItemButton extends StatelessWidget {
     super.key,
     this.style = ZulipMenuItemButtonStyle.menu,
     required this.label,
+    this.subLabel,
     required this.onPressed,
     this.icon,
     this.toggle,
@@ -297,6 +298,7 @@ class ZulipMenuItemButton extends StatelessWidget {
 
   final ZulipMenuItemButtonStyle style;
   final String label;
+  final TextSpan? subLabel;
   final VoidCallback onPressed;
   final IconData? icon;
 
@@ -396,10 +398,23 @@ class ZulipMenuItemButton extends StatelessWidget {
       onPressed: onPressed,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
-        // TODO sublabel, for [ZulipMenuItemButtonStyle.list]
-        child: Text(label,
-          style: const TextStyle(fontSize: 20, height: 24 / 20)
-            .merge(weightVariableTextStyle(context, wght: _labelWght())))));
+        child: Row(
+          spacing: 8,
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: localizedTextBaseline(context),
+          children: [
+            Text(label,
+              style: const TextStyle(fontSize: 20, height: 24 / 20)
+                .merge(weightVariableTextStyle(context, wght: _labelWght()))),
+            if (subLabel != null)
+              Text.rich(subLabel!,
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 16 / 16,
+                  color: _labelColor(designVariables).withFadedAlpha(0.70),
+                ).merge(weightVariableTextStyle(context, wght: _labelWght()))),
+          ],
+        )));
   }
 }
 
