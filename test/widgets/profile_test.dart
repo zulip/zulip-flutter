@@ -84,7 +84,7 @@ CustomProfileField mkCustomProfileField(
     name: 'field$id',
     hint: 'hint$id',
     fieldData: fieldData ?? '',
-    displayInProfileSummary: displayInProfileSummary ?? true,
+    displayInProfileSummary: displayInProfileSummary ?? false,
   );
 }
 
