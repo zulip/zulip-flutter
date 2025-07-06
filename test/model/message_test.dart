@@ -118,6 +118,29 @@ void main() {
   }));
 
   group('sendMessage', () {
+    test('smoke', () async {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        queueId: 'fb67bf8a-c031-47cc-84cf-ed80accacda8'));
+      final connection = store.connection as FakeApiConnection;
+      final stream = eg.stream();
+      connection.prepare(json: SendMessageResult(id: 12345).toJson());
+      await store.sendMessage(
+        destination: StreamDestination(stream.streamId, eg.t('world')),
+        content: 'hello');
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields.deepEquals({
+          'type': 'stream',
+          'to': stream.streamId.toString(),
+          'topic': 'world',
+          'content': 'hello',
+          'read_by_sender': 'true',
+          'queue_id': 'fb67bf8a-c031-47cc-84cf-ed80accacda8',
+          'local_id': store.outboxMessages.keys.single.toString(),
+        });
+    });
+
     final stream = eg.stream();
     final streamDestination = StreamDestination(stream.streamId, eg.t('some topic'));
     late StreamMessage message;

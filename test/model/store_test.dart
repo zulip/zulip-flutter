@@ -13,7 +13,6 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/events.dart';
-import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/log.dart';
 import 'package:zulip/model/actions.dart';
@@ -469,31 +468,6 @@ void main() {
     // Mostly this method just dispatches to ChannelStore and MessageStore etc.,
     // and so its tests generally live in the test files for those
     // (but they call the handleEvent method because it's the entry point).
-  });
-
-  group('PerAccountStore.sendMessage', () {
-    test('smoke', () async {
-      final store = eg.store(initialSnapshot: eg.initialSnapshot(
-        queueId: 'fb67bf8a-c031-47cc-84cf-ed80accacda8'));
-      final connection = store.connection as FakeApiConnection;
-      final stream = eg.stream();
-      connection.prepare(json: SendMessageResult(id: 12345).toJson());
-      await store.sendMessage(
-        destination: StreamDestination(stream.streamId, eg.t('world')),
-        content: 'hello');
-      check(connection.takeRequests()).single.isA<http.Request>()
-        ..method.equals('POST')
-        ..url.path.equals('/api/v1/messages')
-        ..bodyFields.deepEquals({
-          'type': 'stream',
-          'to': stream.streamId.toString(),
-          'topic': 'world',
-          'content': 'hello',
-          'read_by_sender': 'true',
-          'queue_id': 'fb67bf8a-c031-47cc-84cf-ed80accacda8',
-          'local_id': store.outboxMessages.keys.single.toString(),
-        });
-    });
   });
 
   group('UpdateMachine.load', () {
