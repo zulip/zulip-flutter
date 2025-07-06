@@ -378,10 +378,8 @@ class BlockContentList extends StatelessWidget {
             return const SizedBox.shrink();
           }(),
           WebsitePreviewNode() => WebsitePreview(node: node),
-          UnimplementedBlockContentNode() =>
-            Text.rich(_errorUnimplemented(node, context: context)),
+          UnimplementedBlockContentNode() => ErrorUnimplemented(node: node),
         };
-
       }),
     ]);
   }
@@ -528,16 +526,29 @@ class ListNodeWidget extends StatelessWidget {
   }
 }
 
-class Spoiler extends StatefulWidget {
-  const Spoiler({super.key, required this.node});
+class Modal extends StatefulWidget {
+  const Modal({
+    super.key,
+    required this.header,
+    required this.content,
+    required this.borderColor,
+    required this.expandIconColor,
+    this.bgColor,
+    this.textColor,
+  });
 
-  final SpoilerNode node;
+  final List<BlockContentNode> header;
+  final List<BlockContentNode> content;
+  final Color borderColor;
+  final Color expandIconColor;
+  final Color? bgColor;
+  final Color? textColor;
 
   @override
-  State<Spoiler> createState() => _SpoilerState();
+  State<Modal> createState() => _ModalState();
 }
 
-class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
+class _ModalState extends State<Modal> with TickerProviderStateMixin {
   bool expanded = false;
 
   late final AnimationController _controller = AnimationController(
@@ -565,56 +576,73 @@ class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    final header = widget.node.header;
-    final effectiveHeader = header.isNotEmpty
-      ? header
-      : [ParagraphNode(links: null,
-           nodes: [TextNode(zulipLocalizations.spoilerDefaultHeaderText)])];
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 5, 0, 15),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          // Web has the same color in light and dark mode.
-          border: Border.all(color: const Color(0xff808080)),
+          border: Border.all(color: widget.borderColor),
+          color: widget.bgColor,
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(10, 2, 8, 2),
-          child: Column(
-            children: [
-              GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: _handleTap,
-                child: Padding(
-                  padding: const EdgeInsets.all(5),
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                    Expanded(
-                      child: DefaultTextStyle.merge(
-                        style: weightVariableTextStyle(context, wght: 700),
-                        child: BlockContentList(
-                          nodes: effectiveHeader))),
-                    RotationTransition(
-                      turns: _animation.drive(Tween(begin: 0, end: 0.5)),
-                      // Web has the same color in light and dark mode.
-                      child: const Icon(color: Color(0xffd4d4d4), size: 25,
-                        Icons.expand_more)),
-                  ]))),
-              FadeTransition(
-                opacity: _animation,
-                child: const SizedBox(height: 0, width: double.infinity,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        // Web has the same color in light and dark mode.
-                        bottom: BorderSide(width: 1, color: Color(0xff808080))))))),
-              SizeTransition(
-                sizeFactor: _animation,
-                axis: Axis.vertical,
-                axisAlignment: -1,
-                child: Padding(
-                  padding: const EdgeInsets.all(5),
-                  child: BlockContentList(nodes: widget.node.content))),
-            ]))));
+        child: DefaultTextStyle.merge(
+          style: TextStyle(color: widget.textColor),
+          child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(10, 2, 8, 2),
+            child: Column(
+              children: [
+                GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: _handleTap,
+                  child: Padding(
+                    padding: const EdgeInsets.all(5),
+                    child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                      Expanded(
+                        child: DefaultTextStyle.merge(
+                          style: weightVariableTextStyle(context, wght: 700),
+                          child: BlockContentList(
+                            nodes: widget.header))),
+                      RotationTransition(
+                        turns: _animation.drive(Tween(begin: 0, end: 0.5)),
+                        child: Icon(color: widget.expandIconColor, size: 25,
+                          Icons.expand_more)),
+                    ]))),
+                FadeTransition(
+                  opacity: _animation,
+                  child: SizedBox(height: 0, width: double.infinity,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(width: 1, color: widget.borderColor)))))),
+                SizeTransition(
+                  sizeFactor: _animation,
+                  axis: Axis.vertical,
+                  axisAlignment: -1,
+                  child: Padding(
+                    padding: const EdgeInsets.all(5),
+                    child: BlockContentList(nodes: widget.content))),
+              ])),
+        )));
+  }
+}
+
+class Spoiler extends StatelessWidget {
+  const Spoiler({super.key, required this.node});
+
+  final SpoilerNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final header = node.header;
+    final effectiveHeader = header.isNotEmpty
+      ? header
+      : [ParagraphNode(links: null,
+           nodes: [TextNode(zulipLocalizations.spoilerDefaultHeaderText)])];
+    return Modal(
+      header: effectiveHeader,
+      content: node.content,
+      borderColor: const Color(0xff808080), // Web has the same color in light and dark mode.
+      expandIconColor: const Color(0xffd4d4d4), // Web has the same color in light and dark mode.
+    );
   }
 }
 
@@ -1279,7 +1307,8 @@ class _InlineContentBuilder {
           child: GlobalTime(node: node, ambientTextStyle: widget.style));
 
       case UnimplementedInlineContentNode():
-        return _errorUnimplemented(node, context: _context!);
+        return WidgetSpan(alignment: PlaceholderAlignment.middle,
+          child: ErrorUnimplemented(node: node));
     }
   }
 
@@ -1940,35 +1969,52 @@ class _PresenceCircleState extends State<PresenceCircle> with PerAccountStoreAwa
   }
 }
 
-//
-// Small helpers.
-//
+class ErrorUnimplemented extends StatelessWidget {
+  const ErrorUnimplemented({
+    super.key,
+    required this.node,
+  });
 
-InlineSpan _errorUnimplemented(UnimplementedNode node, {required BuildContext context}) {
-  final contentTheme = ContentTheme.of(context);
-  final errorStyle = contentTheme.textStyleError;
-  final errorCodeStyle = contentTheme.textStyleErrorCode;
-  // For now this shows error-styled HTML code even in release mode,
-  // because release mode isn't yet about general users but developer demos,
-  // and we want to keep the demos honest.
-  // TODO(#194) think through UX for general release
-  // TODO(#1285) translate this
-  final htmlNode = node.htmlNode;
-  if (htmlNode is dom.Element) {
-    return TextSpan(children: [
-      TextSpan(text: "(unimplemented:", style: errorStyle),
-      TextSpan(text: htmlNode.outerHtml, style: errorCodeStyle),
-      TextSpan(text: ")", style: errorStyle),
-    ]);
-  } else if (htmlNode is dom.Text) {
-    return TextSpan(children: [
-      TextSpan(text: "(unimplemented: text «", style: errorStyle),
-      TextSpan(text: htmlNode.text, style: errorCodeStyle),
-      TextSpan(text: "»)", style: errorStyle),
-    ]);
-  } else {
-    return TextSpan(
-      text: "(unimplemented: DOM node type ${htmlNode.nodeType})",
-      style: errorStyle);
+  final UnimplementedNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final htmlNode = node.htmlNode;
+    final text = htmlNode is dom.Element ? htmlNode.outerHtml : htmlNode.text ?? '';
+    final header = [
+      ParagraphNode(
+        links: null,
+        nodes: [TextNode(zulipLocalizations.errorUnimplementedHeader)],
+      ),
+    ];
+    final content = [
+      HeadingNode(
+        links: null,
+        nodes: [TextNode(zulipLocalizations.errorUnimplementedWhatHappened)],
+        level: HeadingLevel.h3,
+      ),
+      ParagraphNode(
+        links: null,
+        nodes: [TextNode(zulipLocalizations.errorUnimplementedDescription)],
+      ),
+      HeadingNode(
+        links: null,
+        nodes: [TextNode(zulipLocalizations.errorUnimplementedHtmlHeading)],
+        level: HeadingLevel.h3,
+      ),
+      ParagraphNode(
+        links: null,
+        nodes: [InlineCodeNode(nodes: [TextNode(text)])],
+      ),
+    ];
+    return Modal(
+      borderColor: const Color(0xffbb0000),
+      expandIconColor: const Color(0xffffff00),
+      textColor: const Color(0xffffff00),
+      bgColor: const Color(0xffff0000),
+      header: header,
+      content: content,
+    );
   }
 }
