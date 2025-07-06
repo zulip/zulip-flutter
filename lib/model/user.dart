@@ -11,6 +11,9 @@ import 'store.dart';
 
 /// The portion of [PerAccountStore] describing the users in the realm.
 mixin UserStore on PerAccountStoreBase, RealmStore {
+  @protected
+  RealmStore get realmStore;
+
   /// The user with the given ID, if that user is known.
   ///
   /// There may be other users that are perfectly real but are
@@ -201,6 +204,17 @@ mixin ProxyUserStore on UserStore {
 
   @override
   UserStatus getUserStatus(int userId) => userStore.getUserStatus(userId);
+}
+
+/// A base class for [PerAccountStore] substores that need access to [UserStore]
+/// as well as to its prerequisites [CorePerAccountStore] and [RealmStore].
+abstract class HasUserStore extends HasRealmStore with UserStore, ProxyUserStore {
+  HasUserStore({required UserStore users})
+    : userStore = users, super(realm: users.realmStore);
+
+  @protected
+  @override
+  final UserStore userStore;
 }
 
 /// The implementation of [UserStore] that does the work.
