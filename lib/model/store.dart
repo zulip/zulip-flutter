@@ -588,16 +588,15 @@ class PerAccountStore extends PerAccountStoreBase with
   Map<String, List<String>>? get debugServerEmojiData => _emoji.debugServerEmojiData;
 
   @override
-  void setServerEmojiData(ServerEmojiData data) {
-    _emoji.setServerEmojiData(data);
-    notifyListeners();
-  }
-
-  @override
   Iterable<EmojiCandidate> popularEmojiCandidates() => _emoji.popularEmojiCandidates();
 
   @override
   Iterable<EmojiCandidate> allEmojiCandidates() => _emoji.allEmojiCandidates();
+
+  void setServerEmojiData(ServerEmojiData data) {
+    _emoji.setServerEmojiData(data);
+    notifyListeners();
+  }
 
   EmojiStoreImpl _emoji;
 

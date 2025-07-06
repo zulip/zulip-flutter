@@ -122,8 +122,6 @@ mixin EmojiStore {
   // TODO cut debugServerEmojiData once we can query for lists of emoji;
   //   have tests make those queries end-to-end
   Map<String, List<String>>? get debugServerEmojiData;
-
-  void setServerEmojiData(ServerEmojiData data);
 }
 
 /// The implementation of [EmojiStore] that does the work.
@@ -374,7 +372,6 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
     return _allEmojiCandidates ??= _generateAllCandidates();
   }
 
-  @override
   void setServerEmojiData(ServerEmojiData data) {
     _serverEmojiData = data.codeToNames;
     _popularCandidates = null;
