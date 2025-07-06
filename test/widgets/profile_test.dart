@@ -70,24 +70,6 @@ Future<void> setupPage(WidgetTester tester, {
   await tester.pumpAndSettle();
 }
 
-CustomProfileField mkCustomProfileField(
-  int id,
-  CustomProfileFieldType type, {
-  int? order,
-  bool? displayInProfileSummary,
-  String? fieldData,
-}) {
-  return CustomProfileField(
-    id: id,
-    type: type,
-    order: order ?? id,
-    name: 'field$id',
-    hint: 'hint$id',
-    fieldData: fieldData ?? '',
-    displayInProfileSummary: displayInProfileSummary ?? false,
-  );
-}
-
 void main() {
   TestZulipBinding.ensureInitialized();
 
@@ -153,16 +135,16 @@ void main() {
         ],
         pageUserId: 1,
         customProfileFields: [
-          mkCustomProfileField(0, CustomProfileFieldType.shortText),
-          mkCustomProfileField(1, CustomProfileFieldType.longText),
-          mkCustomProfileField(2, CustomProfileFieldType.choice,
+          eg.customProfileField(0, CustomProfileFieldType.shortText),
+          eg.customProfileField(1, CustomProfileFieldType.longText),
+          eg.customProfileField(2, CustomProfileFieldType.choice,
             fieldData: '{"x": {"text": "choiceValue", "order": "1"}}'),
-          mkCustomProfileField(3, CustomProfileFieldType.date),
-          mkCustomProfileField(4, CustomProfileFieldType.link),
-          mkCustomProfileField(5, CustomProfileFieldType.user),
-          mkCustomProfileField(6, CustomProfileFieldType.externalAccount,
+          eg.customProfileField(3, CustomProfileFieldType.date),
+          eg.customProfileField(4, CustomProfileFieldType.link),
+          eg.customProfileField(5, CustomProfileFieldType.user),
+          eg.customProfileField(6, CustomProfileFieldType.externalAccount,
             fieldData: '{"subtype": "external1"}'),
-          mkCustomProfileField(7, CustomProfileFieldType.pronouns),
+          eg.customProfileField(7, CustomProfileFieldType.pronouns),
         ], realmDefaultExternalAccounts: {
           'external1': RealmDefaultExternalAccount(
             name: 'external1',
@@ -207,7 +189,7 @@ void main() {
       await setupPage(tester,
         users: [user],
         pageUserId: user.userId,
-        customProfileFields: [mkCustomProfileField(0, CustomProfileFieldType.link)],
+        customProfileFields: [eg.customProfileField(0, CustomProfileFieldType.link)],
       );
 
       await tester.tap(find.text(testUrl));
@@ -226,7 +208,7 @@ void main() {
         users: [user],
         pageUserId: user.userId,
         customProfileFields: [
-          mkCustomProfileField(0, CustomProfileFieldType.externalAccount,
+          eg.customProfileField(0, CustomProfileFieldType.externalAccount,
             fieldData: '{"subtype": "external1"}')
         ],
         realmDefaultExternalAccounts: {
@@ -258,7 +240,7 @@ void main() {
       await setupPage(tester,
         users: users,
         pageUserId: 1,
-        customProfileFields: [mkCustomProfileField(0, CustomProfileFieldType.user)],
+        customProfileFields: [eg.customProfileField(0, CustomProfileFieldType.user)],
         navigatorObserver: testNavObserver,
       );
 
@@ -279,7 +261,7 @@ void main() {
       await setupPage(tester,
         users: users,
         pageUserId: 1,
-        customProfileFields: [mkCustomProfileField(0, CustomProfileFieldType.user)],
+        customProfileFields: [eg.customProfileField(0, CustomProfileFieldType.user)],
       );
 
       final textFinder = find.text('(unknown user)');
@@ -310,7 +292,7 @@ void main() {
         users: users,
         mutedUserIds: [2],
         pageUserId: 1,
-        customProfileFields: [mkCustomProfileField(0, CustomProfileFieldType.user)]);
+        customProfileFields: [eg.customProfileField(0, CustomProfileFieldType.user)]);
 
       check(find.text('Muted user')).findsOne();
       check(mutedAvatarFinder(2)).findsOne();
@@ -335,7 +317,7 @@ void main() {
       await setupPage(tester,
         users: users,
         pageUserId: 1,
-        customProfileFields: [mkCustomProfileField(0, CustomProfileFieldType.user)],
+        customProfileFields: [eg.customProfileField(0, CustomProfileFieldType.user)],
       );
 
       final avatars = tester.widgetList<Avatar>(find.byType(Avatar));
@@ -358,16 +340,16 @@ void main() {
 
       await setupPage(tester, users: [user, user2], pageUserId: user.userId,
         customProfileFields: [
-          mkCustomProfileField(0, CustomProfileFieldType.shortText),
-          mkCustomProfileField(1, CustomProfileFieldType.longText),
-          mkCustomProfileField(2, CustomProfileFieldType.choice,
+          eg.customProfileField(0, CustomProfileFieldType.shortText),
+          eg.customProfileField(1, CustomProfileFieldType.longText),
+          eg.customProfileField(2, CustomProfileFieldType.choice,
             fieldData: '{"x": {"text": "$longString", "order": "1"}}'),
           // no [CustomProfileFieldType.date] because those can't be made long
-          mkCustomProfileField(3, CustomProfileFieldType.link),
-          mkCustomProfileField(4, CustomProfileFieldType.user),
-          mkCustomProfileField(5, CustomProfileFieldType.externalAccount,
+          eg.customProfileField(3, CustomProfileFieldType.link),
+          eg.customProfileField(4, CustomProfileFieldType.user),
+          eg.customProfileField(5, CustomProfileFieldType.externalAccount,
             fieldData: '{"subtype": "external1"}'),
-          mkCustomProfileField(6, CustomProfileFieldType.pronouns),
+          eg.customProfileField(6, CustomProfileFieldType.pronouns),
         ], realmDefaultExternalAccounts: {
           'external1': RealmDefaultExternalAccount(
             name: 'external1',

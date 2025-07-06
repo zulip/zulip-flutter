@@ -131,6 +131,24 @@ GetServerSettingsResult serverSettings({
   );
 }
 
+CustomProfileField customProfileField(
+  int id,
+  CustomProfileFieldType type, {
+  int? order,
+  bool? displayInProfileSummary,
+  String? fieldData,
+}) {
+  return CustomProfileField(
+    id: id,
+    type: type,
+    order: order ?? id,
+    name: 'field$id',
+    hint: 'hint$id',
+    fieldData: fieldData ?? '',
+    displayInProfileSummary: displayInProfileSummary ?? false,
+  );
+}
+
 ServerEmojiData _immutableServerEmojiData({
     required Map<String, List<String>> codeToNames}) {
   return ServerEmojiData(
