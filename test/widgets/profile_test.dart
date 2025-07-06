@@ -10,6 +10,7 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/basic.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/button.dart';
@@ -29,6 +30,7 @@ import '../stdlib_checks.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
 import 'checks.dart';
+import 'finders.dart';
 import 'test_app.dart';
 
 late PerAccountStore store;
@@ -362,13 +364,24 @@ void main() {
   });
 
   group('user status', () {
-    testWidgets('non-self profile, status set: status info appears', (tester) async {
-      await setupPage(tester, users: [eg.otherUser], pageUserId: eg.otherUser.userId);
+    final localizations = GlobalLocalizations.zulipLocalizations;
+
+    Finder findStatusButton({required bool statusSet}) {
+      return find.widgetWithText(ZulipMenuItemButton,
+        statusSet
+          ? localizations.statusButtonLabelStatusSet
+          : localizations.statusButtonLabelStatusUnset);
+    }
+
+    testWidgets('non-self profile, status set: no status button, status info appears', (tester) async {
+      await setupPage(tester, pageUserId: eg.otherUser.userId, users: [eg.otherUser]);
       await store.changeUserStatus(eg.otherUser.userId, UserStatusChange(
         text: OptionSome('Busy'),
         emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
           emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
       await tester.pump();
+
+      check(findStatusButton(statusSet: true)).findsNothing();
 
       final statusEmojiFinder = find.ancestor(of: find.text('\u{1f6e0}'),
         matching: find.byType(UserStatusEmoji));
@@ -378,20 +391,54 @@ void main() {
       check(find.text('Busy')).findsOne();
     });
 
-    testWidgets('self-profile, status set: status info appears', (tester) async {
-      await setupPage(tester, users: [eg.selfUser], pageUserId: eg.selfUser.userId);
-      await store.changeUserStatus(eg.selfUser.userId, UserStatusChange(
-        text: OptionSome('Busy'),
-        emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-          emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
-      await tester.pump();
+    group('self-profile', () {
+      testWidgets('no status set: status button appears', (tester) async {
+        await setupPage(tester, pageUserId: eg.selfUser.userId, users: [eg.selfUser]);
+        check(findStatusButton(statusSet: false)).findsOne();
+      });
 
-      final statusEmojiFinder = find.ancestor(of: find.text('\u{1f6e0}'),
-        matching: find.byType(UserStatusEmoji));
-      check(statusEmojiFinder).findsOne();
-      check(tester.widget<UserStatusEmoji>(statusEmojiFinder)
-        .neverAnimate).isFalse();
-      check(find.text('Busy')).findsOne();
+      testWidgets('status set: status button appears with status info inside it', (tester) async {
+        await setupPage(tester, pageUserId: eg.selfUser.userId, users: [eg.selfUser]);
+        await store.changeUserStatus(eg.selfUser.userId, UserStatusChange(
+          text: OptionSome('Busy'),
+          emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+            emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+        await tester.pump();
+
+        final statusButtonFinder = findStatusButton(statusSet: true);
+        final statusEmojiFinder = find.ancestor(of: find.text('\u{1f6e0}'),
+          matching: find.byType(UserStatusEmoji));
+        final statusTextFinder = findText(includePlaceholders: false, 'Busy');
+
+        check(statusButtonFinder).findsOne();
+        check(statusEmojiFinder).findsOne();
+        check(tester.widget<UserStatusEmoji>(statusEmojiFinder)
+          .neverAnimate).isFalse();
+        check(statusTextFinder).findsOne();
+
+        check(find.descendant(of: statusButtonFinder,
+          matching: statusEmojiFinder)).findsOne();
+        check(find.descendant(of: statusButtonFinder,
+          matching: statusTextFinder)).findsOne();
+      });
+
+      testWidgets('not status text set: status button appears with a placeholder text inside it', (tester) async {
+        await setupPage(tester, pageUserId: eg.selfUser.userId, users: [eg.selfUser]);
+        await store.changeUserStatus(eg.selfUser.userId, UserStatusChange(
+          text: OptionNone(),
+          emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+            emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+        await tester.pump();
+
+        final statusButtonFinder = findStatusButton(statusSet: true);
+        final textPlaceholderFinder = findText(
+          includePlaceholders: false, localizations.noStatusText);
+
+        check(statusButtonFinder).findsOne();
+        check(textPlaceholderFinder).findsOne();
+        check(find.descendant(of: statusButtonFinder,
+          matching: textPlaceholderFinder)).findsOne();
+      });
     });
   });
 
