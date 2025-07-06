@@ -679,6 +679,15 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get userRoleUnknown => 'Неизвестно';
 
   @override
+  String get status => 'Status';
+
+  @override
+  String get setStatus => 'Set status';
+
+  @override
+  String get noStatusText => 'Not status text';
+
+  @override
   String get searchMessagesPageTitle => 'Поиск';
 
   @override

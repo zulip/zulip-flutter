@@ -1227,6 +1227,24 @@ abstract class ZulipLocalizations {
   /// **'Unknown'**
   String get userRoleUnknown;
 
+  /// The status button label in self-user profile page when status is set.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get status;
+
+  /// The status button label in self-user profile page when status is not set.
+  ///
+  /// In en, this message translates to:
+  /// **'Set status'**
+  String get setStatus;
+
+  /// The text part of the status button sub-label in self-user profile page when status text is not set.
+  ///
+  /// In en, this message translates to:
+  /// **'Not status text'**
+  String get noStatusText;
+
   /// Page title for the 'Search' message view.
   ///
   /// In en, this message translates to:

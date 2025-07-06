@@ -686,6 +686,15 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get userRoleUnknown => 'Unbekannt';
 
   @override
+  String get status => 'Status';
+
+  @override
+  String get setStatus => 'Set status';
+
+  @override
+  String get noStatusText => 'Not status text';
+
+  @override
   String get searchMessagesPageTitle => 'Search';
 
   @override

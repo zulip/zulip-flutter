@@ -809,6 +809,18 @@
   "@userRoleUnknown": {
     "description": "Label for UserRole.unknown"
   },
+  "status": "Status",
+  "@status": {
+    "description": "The status button label in self-user profile page when status is set."
+  },
+  "setStatus": "Set status",
+  "@setStatus": {
+    "description": "The status button label in self-user profile page when status is not set."
+  },
+  "noStatusText": "Not status text",
+  "@noStatusText": {
+    "description": "The text part of the status button sub-label in self-user profile page when status text is not set."
+  },
   "searchMessagesPageTitle": "Search",
   "@searchMessagesPageTitle": {
     "description": "Page title for the 'Search' message view."
