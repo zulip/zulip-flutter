@@ -422,7 +422,7 @@ class TestZulipBinding extends ZulipBinding {
 }
 
 class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
-  ////////////////////////////////
+  //|//////////////////////////////
   // Permissions.
 
   NotificationSettings requestPermissionResult = const NotificationSettings(
@@ -471,7 +471,7 @@ class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
     return requestPermissionResult;
   }
 
-  ////////////////////////////////
+  //|//////////////////////////////
   // Tokens.
 
   String? _initialToken;
@@ -527,7 +527,7 @@ class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
     }
   }
 
-  ////////////////////////////////
+  //|//////////////////////////////
   // Messages.
 
   StreamController<RemoteMessage> onMessage = StreamController.broadcast();

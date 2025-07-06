@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
-////////////////////////////////////////////////////////////////
+//|//////////////////////////////////////////////////////////////
 // From the Flutter engine, i.e. from dart:ui.
 //
 
@@ -40,7 +40,7 @@ extension FontVariationChecks on Subject<FontVariation> {
   Subject<double> get value => has((x) => x.value, 'value');
 }
 
-////////////////////////////////////////////////////////////////
+//|//////////////////////////////////////////////////////////////
 // From 'package:flutter/foundation.dart'.
 //
 
@@ -48,7 +48,7 @@ extension ValueListenableChecks<T> on Subject<ValueListenable<T>> {
   Subject<T> get value => has((c) => c.value, 'value');
 }
 
-////////////////////////////////////////////////////////////////
+//|//////////////////////////////////////////////////////////////
 // From 'package:flutter/services.dart'.
 //
 
@@ -62,7 +62,7 @@ extension TextEditingValueChecks on Subject<TextEditingValue> {
   Subject<TextRange> get composing => has((x) => x.composing, 'composing');
 }
 
-////////////////////////////////////////////////////////////////
+//|//////////////////////////////////////////////////////////////
 // From 'package:flutter/animation.dart'.
 //
 
@@ -71,7 +71,7 @@ extension AnimationChecks<T> on Subject<Animation<T>> {
   Subject<T> get value => has((d) => d.value, 'value');
 }
 
-////////////////////////////////////////////////////////////////
+//|//////////////////////////////////////////////////////////////
 // From 'package:flutter/painting.dart'.
 //
 
@@ -97,7 +97,7 @@ extension InlineSpanChecks on Subject<InlineSpan> {
   Subject<TextStyle?> get style => has((x) => x.style, 'style');
 }
 
-////////////////////////////////////////////////////////////////
+//|//////////////////////////////////////////////////////////////
 // From 'package:flutter/rendering.dart'.
 //
 
@@ -110,7 +110,7 @@ extension RenderParagraphChecks on Subject<RenderParagraph> {
   Subject<bool> get didExceedMaxLines => has((x) => x.didExceedMaxLines, 'didExceedMaxLines');
 }
 
-////////////////////////////////////////////////////////////////
+//|//////////////////////////////////////////////////////////////
 // From 'package:flutter/widgets.dart'.
 //
 
@@ -192,7 +192,7 @@ extension PageRouteChecks<T> on Subject<PageRoute<T>> {
   Subject<bool> get fullscreenDialog => has((x) => x.fullscreenDialog, 'fullscreenDialog');
 }
 
-////////////////////////////////////////////////////////////////
+//|//////////////////////////////////////////////////////////////
 // From 'package:flutter/material.dart'.
 //
 

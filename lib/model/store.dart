@@ -369,7 +369,7 @@ abstract class PerAccountStoreBase {
   @protected
   final CorePerAccountStore core;
 
-  ////////////////////////////////
+  //|//////////////////////////////
   // Where data comes from in the first place.
 
   GlobalStore get _globalStore => core._globalStore;
@@ -378,7 +378,7 @@ abstract class PerAccountStoreBase {
 
   String get queueId => core.queueId;
 
-  ////////////////////////////////
+  //|//////////////////////////////
   // Data attached to the realm or the server.
 
   /// Always equal to `account.realmUrl` and `connection.realmUrl`.
@@ -395,7 +395,7 @@ abstract class PerAccountStoreBase {
 
   String get zulipVersion => account.zulipVersion;
 
-  ////////////////////////////////
+  //|//////////////////////////////
   // Data attached to the self-account on the realm.
 
   int get accountId => core.accountId;
@@ -536,10 +536,10 @@ class PerAccountStore extends PerAccountStoreBase with
        _channels = channels,
        _messages = messages;
 
-  ////////////////////////////////////////////////////////////////
+  //|//////////////////////////////////////////////////////////////
   // Data.
 
-  ////////////////////////////////
+  //|//////////////////////////////
   // Where data comes from in the first place.
 
   UpdateMachine? get updateMachine => _updateMachine;
@@ -559,7 +559,7 @@ class PerAccountStore extends PerAccountStoreBase with
     notifyListeners();
   }
 
-  ////////////////////////////////
+  //|//////////////////////////////
   // Data attached to the realm or the server.
 
   // (User groups come before even realm settings,
@@ -574,7 +574,7 @@ class PerAccountStore extends PerAccountStoreBase with
   RealmStore get realmStore => _realm;
   final RealmStoreImpl _realm;
 
-  ////////////////////////////////
+  //|//////////////////////////////
   // The realm's repertoire of available emoji.
 
   @override
@@ -604,7 +604,7 @@ class PerAccountStore extends PerAccountStoreBase with
 
   EmojiStoreImpl _emoji;
 
-  ////////////////////////////////
+  //|//////////////////////////////
   // Data attached to the self-account on the realm.
 
   final UserSettings userSettings;
@@ -615,7 +615,7 @@ class PerAccountStore extends PerAccountStoreBase with
 
   final TypingNotifier typingNotifier;
 
-  ////////////////////////////////
+  //|//////////////////////////////
   // Users and data about them.
 
   @override
@@ -693,7 +693,7 @@ class PerAccountStore extends PerAccountStoreBase with
     }
   }
 
-  ////////////////////////////////
+  //|//////////////////////////////
   // Streams, topics, and stuff about them.
 
   @override
@@ -735,7 +735,7 @@ class PerAccountStore extends PerAccountStoreBase with
     }
   }
 
-  ////////////////////////////////
+  //|//////////////////////////////
   // Messages, and summaries of messages.
 
   @override
@@ -797,13 +797,13 @@ class PerAccountStore extends PerAccountStoreBase with
 
   final RecentSenders recentSenders;
 
-  ////////////////////////////////
+  //|//////////////////////////////
   // Other digests of data.
 
   final AutocompleteViewManager autocompleteViewManager = AutocompleteViewManager();
 
   // End of data.
-  ////////////////////////////////////////////////////////////////
+  //|//////////////////////////////////////////////////////////////
 
   /// Called when the app is reassembled during debugging, e.g. for hot reload.
   ///
