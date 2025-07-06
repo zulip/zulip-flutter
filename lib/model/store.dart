@@ -637,12 +637,30 @@ class PerAccountStore extends PerAccountStoreBase with
   @override
   OutboxMessage takeOutboxMessage(int localMessageId) =>
     _messages.takeOutboxMessage(localMessageId);
-  @override
+
+  /// Reconcile a batch of just-fetched messages with the store,
+  /// mutating the list.
+  ///
+  /// This is called after a [getMessages] request to report the result
+  /// to the store.
+  ///
+  /// The list's length will not change, but some entries may be replaced
+  /// by a different [Message] object with the same [Message.id],
+  /// and the store will also be updated.
+  /// When this method returns, all [Message] objects in the list
+  /// will be present in the map `this.messages`.
+  ///
+  /// The list entries may be mutated to remove
+  /// [Message.matchContent] and [Message.matchTopic]
+  /// (since these are appropriate for search views but not the central store).
+  /// The values of those fields should therefore be captured,
+  /// as needed for search, before this is called.
   void reconcileMessages(List<Message> messages) {
     _messages.reconcileMessages(messages);
     // TODO(#649) notify [unreads] of the just-fetched messages
     // TODO(#650) notify [recentDmConversationsView] of the just-fetched messages
   }
+
   @override
   bool? getEditMessageErrorStatus(int messageId) {
     return _messages.getEditMessageErrorStatus(messageId);

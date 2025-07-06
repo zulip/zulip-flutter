@@ -46,23 +46,6 @@ mixin MessageStore {
   /// or [OutboxMessageState.waitPeriodExpired].
   OutboxMessage takeOutboxMessage(int localMessageId);
 
-  /// Reconcile a batch of just-fetched messages with the store,
-  /// mutating the list.
-  ///
-  /// This is called after a [getMessages] request to report the result
-  /// to the store.
-  ///
-  /// The list's length will not change, but some entries may be replaced
-  /// by a different [Message] object with the same [Message.id],
-  /// or mutated to remove [Message.matchContent] and [Message.matchTopic]
-  /// (since these are appropriate for search views but not the central store).
-  /// All [Message] objects in the resulting list will be present in
-  /// [this.messages].
-  ///
-  /// [Message.matchTopic] and [Message.matchContent] should be captured,
-  /// as needed for search, before this is called.
-  void reconcileMessages(List<Message> messages);
-
   /// Whether the current edit request for the given message, if any, has failed.
   ///
   /// Will be null if there is no current edit request.
@@ -249,7 +232,6 @@ class MessageStoreImpl extends HasRealmStore with MessageStore, _OutboxMessageSt
     return _outboxSendMessage(destination: destination, content: content);
   }
 
-  @override
   void reconcileMessages(List<Message> messages) {
     assert(!_disposed);
     // What to do when some of the just-fetched messages are already known?
