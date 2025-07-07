@@ -873,9 +873,15 @@ class _KatexNodeList extends StatelessWidget {
         return WidgetSpan(
           alignment: PlaceholderAlignment.baseline,
           baseline: TextBaseline.alphabetic,
-          child: switch (e) {
-            KatexSpanNode() => _KatexSpan(e),
-          });
+          // Work around a bug where text inside a WidgetSpan could be scaled
+          // multiple times incorrectly, if the system font scale is larger
+          // than 1x.
+          // See: https://github.com/flutter/flutter/issues/126962
+          child: MediaQuery(
+            data: MediaQueryData(textScaler: TextScaler.noScaling),
+            child: switch (e) {
+              KatexSpanNode() => _KatexSpan(e),
+            }));
       }))));
   }
 }
