@@ -2,6 +2,14 @@ import 'package:checks/checks.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/submessage.dart';
 
+extension UserGroupChecks on Subject<UserGroup> {
+  Subject<int> get id => has((x) => x.id, 'id');
+  Subject<String> get name => has((x) => x.name, 'name');
+  Subject<String> get description => has((x) => x.description, 'description');
+  Subject<bool> get isSystemGroup => has((x) => x.isSystemGroup, 'isSystemGroup');
+  Subject<bool> get deactivated => has((x) => x.deactivated, 'deactivated');
+}
+
 extension UserChecks on Subject<User> {
   Subject<int> get userId => has((x) => x.userId, 'userId');
   Subject<String?> get deliveryEmail => has((x) => x.deliveryEmail, 'deliveryEmail');

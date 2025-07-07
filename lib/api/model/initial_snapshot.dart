@@ -56,6 +56,8 @@ class InitialSnapshot {
 
   final Map<String, RealmEmojiItem> realmEmoji;
 
+  final List<UserGroup> realmUserGroups;
+
   final List<RecentDmConversation> recentPrivateConversations;
 
   final List<SavedSnippet>? savedSnippets; // TODO(server-10)
@@ -149,6 +151,7 @@ class InitialSnapshot {
     required this.mutedUsers,
     required this.presences,
     required this.realmEmoji,
+    required this.realmUserGroups,
     required this.recentPrivateConversations,
     required this.savedSnippets,
     required this.subscriptions,

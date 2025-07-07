@@ -199,6 +199,41 @@ enum Emojiset {
     .map((key, value) => MapEntry(value, key));
 }
 
+/// As in [InitialSnapshot.realmUserGroups].
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserGroup {
+  final int id;
+
+  // List<int> members; // TODO(#1687) track group members
+  // List<int> directSubgroupIds; // TODO(#1687) track group members
+
+  String name;
+  String description;
+
+  // final int? dateCreated; // not using; ignore
+  // final int? creatorId; // not using; ignore
+
+  final bool isSystemGroup;
+
+  // TODO(server-10): [deactivated] new in FL 290; previously no groups were deactivated
+  @JsonKey(defaultValue: false)
+  bool deactivated;
+
+  // TODO(#814): GroupSettingValue canAddMembersGroup, etc.
+
+  UserGroup({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.isSystemGroup,
+    required this.deactivated,
+  });
+
+  factory UserGroup.fromJson(Map<String, dynamic> json) => _$UserGroupFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserGroupToJson(this);
+}
+
 /// As in [InitialSnapshot.realmUsers], [InitialSnapshot.realmNonActiveUsers], and [InitialSnapshot.crossRealmBots].
 ///
 /// In the Zulip API, the items in realm_users, realm_non_active_users, and

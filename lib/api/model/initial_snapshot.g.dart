@@ -54,6 +54,9 @@ InitialSnapshot _$InitialSnapshotFromJson(
   realmEmoji: (json['realm_emoji'] as Map<String, dynamic>).map(
     (k, e) => MapEntry(k, RealmEmojiItem.fromJson(e as Map<String, dynamic>)),
   ),
+  realmUserGroups: (json['realm_user_groups'] as List<dynamic>)
+      .map((e) => UserGroup.fromJson(e as Map<String, dynamic>))
+      .toList(),
   recentPrivateConversations:
       (json['recent_private_conversations'] as List<dynamic>)
           .map((e) => RecentDmConversation.fromJson(e as Map<String, dynamic>))
@@ -143,6 +146,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(InitialSnapshot instance) =>
       'muted_users': instance.mutedUsers,
       'presences': instance.presences.map((k, e) => MapEntry(k.toString(), e)),
       'realm_emoji': instance.realmEmoji,
+      'realm_user_groups': instance.realmUserGroups,
       'recent_private_conversations': instance.recentPrivateConversations,
       'saved_snippets': instance.savedSnippets,
       'subscriptions': instance.subscriptions,

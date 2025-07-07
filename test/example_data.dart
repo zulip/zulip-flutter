@@ -166,6 +166,26 @@ ServerEmojiData serverEmojiDataPopularLegacy = ServerEmojiData(codeToNames: {
   '1f419': ['octopus'],
 });
 
+/// A fresh user-group ID, from a random but always strictly increasing sequence.
+int _nextUserGroupId() => (_lastUserGroupId += 1 + Random().nextInt(10));
+int _lastUserGroupId = 100;
+
+UserGroup userGroup({
+  int? id,
+  String? name,
+  String? description,
+  bool isSystemGroup = false,
+  bool deactivated = false,
+}) {
+  return UserGroup(
+    id: id ??= _nextUserGroupId(),
+    name: name ??= 'group-$id',
+    description: description ?? 'A group named $name',
+    isSystemGroup: isSystemGroup,
+    deactivated: deactivated,
+  );
+}
+
 RealmEmojiItem realmEmojiItem({
   required String emojiCode,
   required String emojiName,
@@ -1112,6 +1132,7 @@ InitialSnapshot initialSnapshot({
   List<MutedUserItem>? mutedUsers,
   Map<int, PerUserPresence>? presences,
   Map<String, RealmEmojiItem>? realmEmoji,
+  List<UserGroup>? realmUserGroups,
   List<RecentDmConversation>? recentPrivateConversations,
   List<SavedSnippet>? savedSnippets,
   List<Subscription>? subscriptions,
@@ -1153,6 +1174,7 @@ InitialSnapshot initialSnapshot({
     mutedUsers: mutedUsers ?? [],
     presences: presences ?? {},
     realmEmoji: realmEmoji ?? {},
+    realmUserGroups: realmUserGroups ?? [],
     recentPrivateConversations: recentPrivateConversations ?? [],
     savedSnippets: savedSnippets ?? [],
     subscriptions: subscriptions ?? [], // TODO add subscriptions to default

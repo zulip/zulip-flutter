@@ -94,6 +94,22 @@ Map<String, dynamic> _$RealmEmojiItemToJson(RealmEmojiItem instance) =>
       'author_id': instance.authorId,
     };
 
+UserGroup _$UserGroupFromJson(Map<String, dynamic> json) => UserGroup(
+  id: (json['id'] as num).toInt(),
+  name: json['name'] as String,
+  description: json['description'] as String,
+  isSystemGroup: json['is_system_group'] as bool,
+  deactivated: json['deactivated'] as bool? ?? false,
+);
+
+Map<String, dynamic> _$UserGroupToJson(UserGroup instance) => <String, dynamic>{
+  'id': instance.id,
+  'name': instance.name,
+  'description': instance.description,
+  'is_system_group': instance.isSystemGroup,
+  'deactivated': instance.deactivated,
+};
+
 User _$UserFromJson(Map<String, dynamic> json) => User(
   userId: (json['user_id'] as num).toInt(),
   deliveryEmail: json['delivery_email'] as String?,
