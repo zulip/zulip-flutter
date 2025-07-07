@@ -168,9 +168,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         message: zulipLocalizations.inboxEmptyPlaceholder);
     }
 
-    return SafeArea(
-      // Don't pad the bottom here; we want the list content to do that.
-      bottom: false,
+    return SafeArea( // horizontal insets
       child: StickyHeaderListView.builder(
         itemCount: sections.length,
         itemBuilder: (context, index) {

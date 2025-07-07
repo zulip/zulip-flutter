@@ -64,9 +64,7 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
           PageBodyEmptyContentPlaceholder(
             message: zulipLocalizations.recentDmConversationsEmptyPlaceholder)
         else
-          SafeArea(
-            // Don't pad the bottom here; we want the list content to do that.
-            bottom: false,
+          SafeArea( // horizontal insets
             child: ListView.builder(
               padding: EdgeInsets.only(bottom: 90),
               itemCount: sorted.length,
