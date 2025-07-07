@@ -35,6 +35,7 @@ import 'settings.dart';
 import 'typing_status.dart';
 import 'unreads.dart';
 import 'user.dart';
+import 'user_group.dart';
 
 export 'package:drift/drift.dart' show Value;
 export 'database.dart' show Account, AccountsCompanion, AccountAlreadyExistsException;
@@ -435,6 +436,7 @@ Uri? tryResolveUrl(Uri baseUrl, String reference) {
 /// [UpdateMachine].
 class PerAccountStore extends PerAccountStoreBase with
     ChangeNotifier,
+    UserGroupStore, ProxyUserGroupStore,
     EmojiStore,
     SavedSnippetStore,
     UserStore,
@@ -481,6 +483,8 @@ class PerAccountStore extends PerAccountStoreBase with
     final channels = ChannelStoreImpl(initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       core: core,
+      groups: UserGroupStoreImpl(core: core,
+        groups: initialSnapshot.realmUserGroups),
       serverPresencePingIntervalSeconds: initialSnapshot.serverPresencePingIntervalSeconds,
       serverPresenceOfflineThresholdSeconds: initialSnapshot.serverPresenceOfflineThresholdSeconds,
       realmWildcardMentionPolicy: initialSnapshot.realmWildcardMentionPolicy,
@@ -530,6 +534,7 @@ class PerAccountStore extends PerAccountStoreBase with
 
   PerAccountStore._({
     required super.core,
+    required UserGroupStoreImpl groups,
     required this.serverPresencePingIntervalSeconds,
     required this.serverPresenceOfflineThresholdSeconds,
     required this.realmWildcardMentionPolicy,
@@ -555,7 +560,8 @@ class PerAccountStore extends PerAccountStoreBase with
     required this.unreads,
     required this.recentDmConversationsView,
     required this.recentSenders,
-  }) : _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
+  }) : _groups = groups,
+       _realmEmptyTopicDisplayName = realmEmptyTopicDisplayName,
        _emoji = emoji,
        _savedSnippets = savedSnippets,
        _users = users,
@@ -587,6 +593,13 @@ class PerAccountStore extends PerAccountStoreBase with
 
   ////////////////////////////////
   // Data attached to the realm or the server.
+
+  // (User groups come before even realm settings,
+  // because they'll be used for interpreting many realm settings.)
+  @protected
+  @override
+  UserGroupStore get userGroupStore => _groups;
+  final UserGroupStoreImpl _groups;
 
   final int serverPresencePingIntervalSeconds;
   final int serverPresenceOfflineThresholdSeconds;
@@ -909,7 +922,8 @@ class PerAccountStore extends PerAccountStoreBase with
 
       case UserGroupEvent():
         assert(debugLog("server event: user_group/${event.op}"));
-        // TODO(#662) handle
+        _groups.handleUserGroupEvent(event);
+        notifyListeners();
 
       case RealmUserAddEvent():
         assert(debugLog("server event: realm_user/add"));
