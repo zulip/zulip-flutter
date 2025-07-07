@@ -327,7 +327,6 @@ class _EmojiAutocompleteItem extends StatelessWidget {
   final EmojiAutocompleteResult option;
 
   static const _size = 24.0;
-  static const _notoColorEmojiTextSize = 19.3;
 
   @override
   Widget build(BuildContext context) {
@@ -341,9 +340,7 @@ class _EmojiAutocompleteItem extends StatelessWidget {
       ImageEmojiDisplay() =>
         ImageEmojiWidget(size: _size, emojiDisplay: emojiDisplay),
       UnicodeEmojiDisplay() =>
-        UnicodeEmojiWidget(
-          size: _size, notoColorEmojiTextSize: _notoColorEmojiTextSize,
-          emojiDisplay: emojiDisplay),
+        UnicodeEmojiWidget(size: _size, emojiDisplay: emojiDisplay),
       TextEmojiDisplay() => null, // The text is already shown separately.
     };
 

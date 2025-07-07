@@ -774,7 +774,6 @@ class ReactionButtons extends StatelessWidget {
           : null,
         child: UnicodeEmojiWidget(
           emojiDisplay: emoji.emojiDisplay as UnicodeEmojiDisplay,
-          notoColorEmojiTextSize: 20.1,
           size: 24))));
   }
 

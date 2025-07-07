@@ -9,7 +9,6 @@ class UnicodeEmojiWidget extends StatelessWidget {
     super.key,
     required this.emojiDisplay,
     required this.size,
-    required this.notoColorEmojiTextSize,
     this.textScaler = TextScaler.noScaling,
   });
 
@@ -19,12 +18,6 @@ class UnicodeEmojiWidget extends StatelessWidget {
   ///
   /// This will be scaled by [textScaler].
   final double size;
-
-  /// A font size that, with Noto Color Emoji and our line-height config,
-  /// causes a Unicode emoji to occupy a square of size [size] in the layout.
-  ///
-  /// This has to be determined experimentally, as far as we know.
-  final double notoColorEmojiTextSize;
 
   /// The text scaler to apply to [size].
   ///
@@ -38,6 +31,15 @@ class UnicodeEmojiWidget extends StatelessWidget {
       case TargetPlatform.fuchsia:
       case TargetPlatform.linux:
       case TargetPlatform.windows:
+        // A font size that, with Noto Color Emoji and our line-height
+        // config (the use of `forceStrutHeight: true`), causes a Unicode emoji
+        // to occupy a square of size [size] in the layout.
+        //
+        // Determined experimentally:
+        //   <https://github.com/zulip/zulip-flutter/pull/410#discussion_r1402808701>
+        //   <https://github.com/zulip/zulip-flutter/pull/1629#discussion_r2188037245>
+        final double notoColorEmojiTextSize = size * (14.5 / 17);
+
         return Text(
           textScaler: textScaler,
           style: TextStyle(
@@ -45,7 +47,10 @@ class UnicodeEmojiWidget extends StatelessWidget {
             fontSize: notoColorEmojiTextSize,
           ),
           strutStyle: StrutStyle(
-            fontSize: notoColorEmojiTextSize, forceStrutHeight: true),
+            fontSize: notoColorEmojiTextSize,
+            // Responsible for keeping the line height constant, even
+            // with ambient DefaultTextStyle.
+            forceStrutHeight: true),
           emojiDisplay.emojiUnicode);
 
       case TargetPlatform.iOS:
@@ -74,7 +79,11 @@ class UnicodeEmojiWidget extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'Apple Color Emoji',
               fontSize: size),
-            strutStyle: StrutStyle(fontSize: size, forceStrutHeight: true),
+            strutStyle: StrutStyle(
+              fontSize: size,
+              // Responsible for keeping the line height constant, even
+              // with ambient DefaultTextStyle.
+              forceStrutHeight: true),
             emojiDisplay.emojiUnicode)),
         ]);
     }

@@ -270,13 +270,6 @@ class ReactionChip extends StatelessWidget {
 /// Should be scaled by [_emojiTextScalerClamped].
 const _squareEmojiSize = 17.0;
 
-/// A font size that, with Noto Color Emoji and our line-height config,
-/// causes a Unicode emoji to occupy a [_squareEmojiSize] square in the layout.
-///
-/// Determined experimentally:
-///   <https://github.com/zulip/zulip-flutter/pull/410#discussion_r1402808701>
-const _notoColorEmojiTextSize = 14.5;
-
 /// A [TextScaler] that limits Unicode and image emojis' max scale factor,
 /// to leave space for the label.
 ///
@@ -306,7 +299,6 @@ class _UnicodeEmoji extends StatelessWidget {
   Widget build(BuildContext context) {
     return UnicodeEmojiWidget(
       size: _squareEmojiSize,
-      notoColorEmojiTextSize: _notoColorEmojiTextSize,
       textScaler: _squareEmojiScalerClamped(context),
       emojiDisplay: emojiDisplay);
   }
@@ -563,7 +555,6 @@ class EmojiPickerListEntry extends StatelessWidget {
   final Message message;
 
   static const _emojiSize = 24.0;
-  static const _notoColorEmojiTextSize = 20.1;
 
   void _onPressed() {
     // Dismiss the enclosing action sheet immediately,
@@ -590,9 +581,7 @@ class EmojiPickerListEntry extends StatelessWidget {
       ImageEmojiDisplay() =>
         ImageEmojiWidget(size: _emojiSize, emojiDisplay: emojiDisplay),
       UnicodeEmojiDisplay() =>
-        UnicodeEmojiWidget(
-          size: _emojiSize, notoColorEmojiTextSize: _notoColorEmojiTextSize,
-          emojiDisplay: emojiDisplay),
+        UnicodeEmojiWidget(size: _emojiSize, emojiDisplay: emojiDisplay),
       TextEmojiDisplay() => null, // The text is already shown separately.
     };
 
