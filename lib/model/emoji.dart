@@ -124,6 +124,30 @@ mixin EmojiStore {
   Map<String, List<String>>? get debugServerEmojiData;
 }
 
+mixin ProxyEmojiStore on EmojiStore {
+  @protected
+  EmojiStore get emojiStore;
+
+  @override
+  EmojiDisplay emojiDisplayFor({
+    required ReactionType emojiType,
+    required String emojiCode,
+    required String emojiName
+  }) {
+    return emojiStore.emojiDisplayFor(
+      emojiType: emojiType, emojiCode: emojiCode, emojiName: emojiName);
+  }
+
+  @override
+  Iterable<EmojiCandidate> popularEmojiCandidates() => emojiStore.popularEmojiCandidates();
+
+  @override
+  Iterable<EmojiCandidate> allEmojiCandidates() => emojiStore.allEmojiCandidates();
+
+  @override
+  Map<String, List<String>>? get debugServerEmojiData => emojiStore.debugServerEmojiData;
+}
+
 /// The implementation of [EmojiStore] that does the work.
 ///
 /// Generally the only code that should need this class is [PerAccountStore]

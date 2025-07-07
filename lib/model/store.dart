@@ -439,7 +439,7 @@ class PerAccountStore extends PerAccountStoreBase with
     ChangeNotifier,
     UserGroupStore, ProxyUserGroupStore,
     RealmStore, ProxyRealmStore,
-    EmojiStore,
+    EmojiStore, ProxyEmojiStore,
     SavedSnippetStore,
     UserStore,
     ChannelStore,
@@ -571,34 +571,15 @@ class PerAccountStore extends PerAccountStoreBase with
   RealmStore get realmStore => _realm;
   final RealmStoreImpl _realm;
 
-  //|//////////////////////////////
-  // The realm's repertoire of available emoji.
-
-  @override
-  EmojiDisplay emojiDisplayFor({
-    required ReactionType emojiType,
-    required String emojiCode,
-    required String emojiName
-  }) {
-    return _emoji.emojiDisplayFor(
-      emojiType: emojiType, emojiCode: emojiCode, emojiName: emojiName);
-  }
-
-  @override
-  Map<String, List<String>>? get debugServerEmojiData => _emoji.debugServerEmojiData;
-
-  @override
-  Iterable<EmojiCandidate> popularEmojiCandidates() => _emoji.popularEmojiCandidates();
-
-  @override
-  Iterable<EmojiCandidate> allEmojiCandidates() => _emoji.allEmojiCandidates();
-
   void setServerEmojiData(ServerEmojiData data) {
     _emoji.setServerEmojiData(data);
     notifyListeners();
   }
 
-  EmojiStoreImpl _emoji;
+  @protected
+  @override
+  EmojiStore get emojiStore => _emoji;
+  final EmojiStoreImpl _emoji;
 
   //|//////////////////////////////
   // Data attached to the self-account on the realm.
