@@ -782,13 +782,14 @@ void main() {
       updateMachine.poll();
     }
 
-    void checkLastRequest({required int lastEventId}) {
+    void checkLastRequest({required int lastEventId, bool expectDontBlock = false}) {
       check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('GET')
         ..url.path.equals('/api/v1/events')
         ..url.queryParameters.deepEquals({
           'queue_id': store.queueId,
           'last_event_id': lastEventId.toString(),
+          if (expectDontBlock) 'dont_block': 'true',
         });
     }
 
@@ -878,7 +879,7 @@ void main() {
         prepareError();
         updateMachine.debugAdvanceLoop();
         async.elapse(Duration.zero);
-        checkLastRequest(lastEventId: 1);
+        checkLastRequest(lastEventId: 1, expectDontBlock: false);
         check(store).isRecoveringEventStream.isTrue();
 
         // Polling doesn't resume immediately; there's a timer.
@@ -893,7 +894,7 @@ void main() {
           HeartbeatEvent(id: 2),
         ], queueId: null).toJson());
         async.flushTimers();
-        checkLastRequest(lastEventId: 1);
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
         check(updateMachine.lastEventId).equals(2);
         check(store).isRecoveringEventStream.isFalse();
       });
@@ -1032,10 +1033,12 @@ void main() {
         await preparePoll(lastEventId: 1);
       }
 
-      void pollAndFail(FakeAsync async, {bool shouldCheckRequest = true}) {
+      void pollAndFail(FakeAsync async, {bool shouldCheckRequest = true, bool expectDontBlock = false}) {
         updateMachine.debugAdvanceLoop();
         async.elapse(Duration.zero);
-        if (shouldCheckRequest) checkLastRequest(lastEventId: 1);
+        if (shouldCheckRequest) {
+          checkLastRequest(lastEventId: 1, expectDontBlock: expectDontBlock);
+        }
         check(store).isRecoveringEventStream.isTrue();
       }
 
@@ -1054,9 +1057,11 @@ void main() {
         return awaitFakeAsync((async) async {
           await prepare();
 
+          bool expectDontBlock = false;
           for (int i = 0; i < UpdateMachine.transientFailureCountNotifyThreshold; i++) {
             prepareError();
-            pollAndFail(async);
+            pollAndFail(async, expectDontBlock: expectDontBlock);
+            expectDontBlock = true;
             check(takeLastReportedError()).isNull();
             async.flushTimers();
             if (!identical(store, globalStore.perAccountSync(store.accountId))) {
@@ -1064,11 +1069,14 @@ void main() {
               updateFromGlobalStore();
               updateMachine.debugPauseLoop();
               updateMachine.poll();
+              // Loading indicator is cleared on successful /register;
+              // we don't need dont_block for the new queue's first poll.
+              expectDontBlock = false;
             }
           }
 
           prepareError();
-          pollAndFail(async);
+          pollAndFail(async, expectDontBlock: expectDontBlock);
           return check(takeLastReportedError()).isNotNull();
         });
       }
@@ -1077,9 +1085,11 @@ void main() {
         return awaitFakeAsync((async) async {
           await prepare();
 
+          bool expectDontBlock = false;
           for (int i = 0; i < UpdateMachine.transientFailureCountNotifyThreshold; i++) {
             prepareError();
-            pollAndFail(async);
+            pollAndFail(async, expectDontBlock: expectDontBlock);
+            expectDontBlock = true;
             check(takeLastReportedError()).isNull();
             async.flushTimers();
             if (!identical(store, globalStore.perAccountSync(store.accountId))) {
@@ -1087,11 +1097,14 @@ void main() {
               updateFromGlobalStore();
               updateMachine.debugPauseLoop();
               updateMachine.poll();
+              // Loading indicator is cleared on successful /register;
+              // we don't need dont_block for the new queue's first poll.
+              expectDontBlock = false;
             }
           }
 
           prepareError();
-          pollAndFail(async);
+          pollAndFail(async, expectDontBlock: expectDontBlock);
           // Still no error reported, even after the same number of iterations
           // where other errors get reported (as [checkLateReported] checks).
           check(takeLastReportedError()).isNull();

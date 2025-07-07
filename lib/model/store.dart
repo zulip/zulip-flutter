@@ -1437,7 +1437,13 @@ class UpdateMachine {
         final GetEventsResult result;
         try {
           result = await getEvents(store.connection,
-            queueId: store.queueId, lastEventId: lastEventId);
+            queueId: store.queueId,
+            lastEventId: lastEventId,
+            // If the UI shows we're busy getting event-polling to work again,
+            // ask the server to tell us immediately that it's working again,
+            // rather than waiting for an event, which could take up to a minute
+            // in the case of a heartbeat event. See #979.
+            dontBlock: store.isRecoveringEventStream ? true : null);
           if (_disposed) return;
         } catch (e, stackTrace) {
           if (_disposed) return;
@@ -1504,11 +1510,11 @@ class UpdateMachine {
     // if we stayed at the max backoff interval; partway toward what would
     // happen if we weren't backing off at all.
     //
-    // But at least for [getEvents] requests, as here, it should be OK,
-    // because this is a long-poll.  That means a typical successful request
-    // takes a long time to come back; in fact longer than our max backoff
-    // duration (which is 10 seconds).  So if we're getting a mix of successes
-    // and failures, the successes themselves should space out the requests.
+    // Successful retries won't actually space out the requests, because retries
+    // are done with the `dont_block` param, asking the server to respond
+    // immediately instead of waiting through the long-poll period.
+    // (See comments on that code for why this behavior is helpful.)
+    // If server logs show pressure from too many requests, we can investigate.
     _pollBackoffMachine = null;
 
     store.isRecoveringEventStream = false;
