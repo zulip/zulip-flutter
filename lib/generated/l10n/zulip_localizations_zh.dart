@@ -674,6 +674,45 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get noStatusText => 'Not status text';
 
   @override
+  String get myStatus => 'My status';
+
+  @override
+  String get statusClear => 'Clear';
+
+  @override
+  String get statusSave => 'Save';
+
+  @override
+  String get statusSaving => 'Saving';
+
+  @override
+  String get emoji => 'Emoji';
+
+  @override
+  String get yourStatus => 'Your status';
+
+  @override
+  String get userStatusBusy => 'Busy';
+
+  @override
+  String get userStatusInAMeeting => 'In a meeting';
+
+  @override
+  String get userStatusCommuting => 'Commuting';
+
+  @override
+  String get userStatusOutSick => 'Out sick';
+
+  @override
+  String get userStatusVacationing => 'Vacationing';
+
+  @override
+  String get userStatusWorkingRemotely => 'Working remotely';
+
+  @override
+  String get userStatusAtTheOffice => 'At the office';
+
+  @override
   String get searchMessagesPageTitle => 'Search';
 
   @override

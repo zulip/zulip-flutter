@@ -15,6 +15,7 @@ import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'remote_settings.dart';
+import 'set_status.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -170,7 +171,10 @@ class _SetStatusButton extends StatelessWidget {
         ],
       ) : null,
       icon: ZulipIcons.chevron_right,
-      onPressed: () {},
+      onPressed: () {
+        Navigator.push(context, SetStatusPage.buildRoute(
+          context: context, oldStatus: userStatus));
+      },
     );
   }
 }
