@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -572,98 +573,65 @@ void main() {
       tester.widget(find.text('λ', findRichText: true));
     });
 
-    void checkKatexText(
-      WidgetTester tester,
-      String text, {
-      required String fontFamily,
-      required double fontSize,
-      required double fontHeight,
-    }) {
-      check(mergedStyleOf(tester, text)).isNotNull()
-        ..fontFamily.equals(fontFamily)
-        ..fontSize.equals(fontSize);
-      check(tester.getSize(find.text(text)))
-        .height.isCloseTo(fontSize * fontHeight, 0.5);
-    }
+    group('characters render at specific offsets with specific size', () {
+      const testCases = <(ContentExample, List<(String, Offset, Size)>, {bool? skip})>[
+        (ContentExample.mathBlockKatexSizing, skip: false, [
+          ('1', Offset(0.00, 2.24), Size(25.59, 61.00)),
+          ('2', Offset(25.59, 9.90), Size(21.33, 51.00)),
+          ('3', Offset(46.91, 16.30), Size(17.77, 43.00)),
+          ('4', Offset(64.68, 21.63), Size(14.80, 36.00)),
+          ('5', Offset(79.48, 26.07), Size(12.34, 30.00)),
+          ('6', Offset(91.82, 29.77), Size(10.28, 25.00)),
+          ('7', Offset(102.10, 31.62), Size(9.25, 22.00)),
+          ('8', Offset(111.35, 33.47), Size(8.23, 20.00)),
+          ('9', Offset(119.58, 35.32), Size(7.20, 17.00)),
+          ('0', Offset(126.77, 39.02), Size(5.14, 12.00)),
+        ]),
+        (ContentExample.mathBlockKatexNestedSizing, skip: false, [
+          ('1', Offset(0.00, 39.58), Size(5.14, 12.00)),
+          ('2', Offset(5.14, 2.80), Size(25.59, 61.00)),
+        ]),
+        // TODO: Re-enable this test after adding support for parsing
+        // `vertical-align` in inline styles. Currently it fails
+        // because `strut` span has `vertical-align`.
+        (ContentExample.mathBlockKatexDelimSizing, skip: true, [
+          ('(', Offset(8.00, 46.36), Size(9.42, 25.00)),
+          ('[', Offset(17.42, 48.36), Size(9.71, 25.00)),
+          ('⌈', Offset(27.12, 49.36), Size(11.99, 25.00)),
+          ('⌊', Offset(39.11, 49.36), Size(13.14, 25.00)),
+        ]),
+      ];
 
-    testWidgets('displays KaTeX content with different sizing', (tester) async {
-      addTearDown(testBinding.reset);
-      final globalSettings = testBinding.globalStore.settings;
-      await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
-      check(globalSettings).getBool(BoolGlobalSetting.renderKatex).isTrue();
+      for (final testCase in testCases) {
+        testWidgets(testCase.$1.description, (tester) async {
+          await _loadKatexFonts();
 
-      final content = ContentExample.mathBlockKatexSizing;
-      await prepareContent(tester, plainContent(content.html));
+          addTearDown(testBinding.reset);
+          final globalSettings = testBinding.globalStore.settings;
+          await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
+          check(globalSettings).getBool(BoolGlobalSetting.renderKatex).isTrue();
 
-      final mathBlockNode = content.expectedNodes.single as MathBlockNode;
-      final baseNode = mathBlockNode.nodes!.single as KatexSpanNode;
-      final nodes = baseNode.nodes!.skip(1); // Skip .strut node.
-      for (var katexNode in nodes) {
-        katexNode = katexNode as KatexSpanNode;
-        final fontSize = katexNode.styles.fontSizeEm! * kBaseKatexTextStyle.fontSize!;
-        checkKatexText(tester, katexNode.text!,
-          fontFamily: 'KaTeX_Main',
-          fontSize: fontSize,
-          fontHeight: kBaseKatexTextStyle.height!);
+          await prepareContent(tester, plainContent(testCase.$1.html));
+
+          final baseRect = tester.getRect(find.byType(KatexWidget));
+
+          for (final characterData in testCase.$2) {
+            final character = characterData.$1;
+            final expectedTopLeftOffset = characterData.$2;
+            final expectedSize = characterData.$3;
+
+            final rect = tester.getRect(find.text(character));
+            final topLeftOffset = rect.topLeft - baseRect.topLeft;
+            final size = rect.size;
+
+            check(topLeftOffset)
+              .within(distance: 0.05, from: expectedTopLeftOffset);
+            check(size)
+              .within(distance: 0.05, from: expectedSize);
+          }
+        }, skip: testCase.skip);
       }
     });
-
-    testWidgets('displays KaTeX content with nested sizing', (tester) async {
-      addTearDown(testBinding.reset);
-      final globalSettings = testBinding.globalStore.settings;
-      await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
-      check(globalSettings).getBool(BoolGlobalSetting.renderKatex).isTrue();
-
-      final content = ContentExample.mathBlockKatexNestedSizing;
-      await prepareContent(tester, plainContent(content.html));
-
-      var fontSize = 0.5 * kBaseKatexTextStyle.fontSize!;
-      checkKatexText(tester, '1',
-        fontFamily: 'KaTeX_Main',
-        fontSize: fontSize,
-        fontHeight: kBaseKatexTextStyle.height!);
-
-      fontSize = 4.976 * fontSize;
-      checkKatexText(tester, '2',
-        fontFamily: 'KaTeX_Main',
-        fontSize: fontSize,
-        fontHeight: kBaseKatexTextStyle.height!);
-    });
-
-    testWidgets('displays KaTeX content with different delimiter sizing', (tester) async {
-      addTearDown(testBinding.reset);
-      final globalSettings = testBinding.globalStore.settings;
-      await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
-      check(globalSettings).getBool(BoolGlobalSetting.renderKatex).isTrue();
-
-      final content = ContentExample.mathBlockKatexDelimSizing;
-      await prepareContent(tester, plainContent(content.html));
-
-      final mathBlockNode = content.expectedNodes.single as MathBlockNode;
-      final baseNode = mathBlockNode.nodes!.single as KatexSpanNode;
-      var nodes = baseNode.nodes!.skip(1); // Skip .strut node.
-
-      final fontSize = kBaseKatexTextStyle.fontSize!;
-
-      final firstNode = nodes.first as KatexSpanNode;
-      checkKatexText(tester, firstNode.text!,
-        fontFamily: 'KaTeX_Main',
-        fontSize: fontSize,
-        fontHeight: kBaseKatexTextStyle.height!);
-      nodes = nodes.skip(1);
-
-      for (var katexNode in nodes) {
-        katexNode = katexNode as KatexSpanNode;
-        katexNode = katexNode.nodes!.single as KatexSpanNode; // Skip empty .mord parent.
-        final fontFamily = katexNode.styles.fontFamily!;
-        checkKatexText(tester, katexNode.text!,
-          fontFamily: fontFamily,
-          fontSize: fontSize,
-          fontHeight: kBaseKatexTextStyle.height!);
-      }
-    }, skip: true); // TODO: Re-enable this test after adding support for parsing
-                    // `vertical-align` in inline styles. Currently it fails
-                    // because `strut` span has `vertical-align`.
   });
 
   /// Make a [TargetFontSizeFinder] to pass to [checkFontSizeRatio],
@@ -1431,4 +1399,46 @@ void main() {
       check(linkText.textAlign).equals(TextAlign.center);
     });
   });
+}
+
+Future<void> _loadKatexFonts() async {
+  const fonts = {
+    'KaTeX_AMS': ['KaTeX_AMS-Regular.ttf'],
+    'KaTeX_Caligraphic': [
+      'KaTeX_Caligraphic-Regular.ttf',
+      'KaTeX_Caligraphic-Bold.ttf',
+    ],
+    'KaTeX_Fraktur': [
+      'KaTeX_Fraktur-Regular.ttf',
+      'KaTeX_Fraktur-Bold.ttf',
+    ],
+    'KaTeX_Main': [
+      'KaTeX_Main-Regular.ttf',
+      'KaTeX_Main-Bold.ttf',
+      'KaTeX_Main-Italic.ttf',
+      'KaTeX_Main-BoldItalic.ttf',
+    ],
+    'KaTeX_Math': [
+      'KaTeX_Math-Italic.ttf',
+      'KaTeX_Math-BoldItalic.ttf',
+    ],
+    'KaTeX_SansSerif': [
+      'KaTeX_SansSerif-Regular.ttf',
+      'KaTeX_SansSerif-Bold.ttf',
+      'KaTeX_SansSerif-Italic.ttf',
+    ],
+    'KaTeX_Script': ['KaTeX_Script-Regular.ttf'],
+    'KaTeX_Size1': ['KaTeX_Size1-Regular.ttf'],
+    'KaTeX_Size2': ['KaTeX_Size2-Regular.ttf'],
+    'KaTeX_Size3': ['KaTeX_Size3-Regular.ttf'],
+    'KaTeX_Size4': ['KaTeX_Size4-Regular.ttf'],
+    'KaTeX_Typewriter': ['KaTeX_Typewriter-Regular.ttf'],
+  };
+  for (final MapEntry(key: fontFamily, value: fontFiles) in fonts.entries) {
+    final fontLoader = FontLoader(fontFamily);
+    for (final fontFile in fontFiles) {
+      fontLoader.addFont(rootBundle.load('assets/KaTeX/$fontFile'));
+    }
+    await fontLoader.load();
+  }
 }
