@@ -110,7 +110,10 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore, _OutboxMes
       messages = {};
 
   // This copy of the realm setting is here to bypass the feature-level check
-  // on the usual getter for it.  See the one access site of this field.
+  // on the usual getter for it.  See discussion:
+  //   https://github.com/zulip/zulip-flutter/pull/1472#discussion_r2099069276
+  // TODO move [TopicName.processLikeServer] to a substore, eliminating this
+  @override
   final String? _realmEmptyTopicDisplayName; // TODO(#668): update this realm setting
 
   @override
@@ -250,11 +253,7 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore, _OutboxMes
         content: content,
         readBySender: true);
     }
-    return _outboxSendMessage(
-      destination: destination, content: content,
-      // TODO move [TopicName.processLikeServer] to a substore, eliminating this
-      //   see https://github.com/zulip/zulip-flutter/pull/1472#discussion_r2099069276
-      realmEmptyTopicDisplayName: _realmEmptyTopicDisplayName);
+    return _outboxSendMessage(destination: destination, content: content);
   }
 
   @override
@@ -773,6 +772,8 @@ class DmOutboxMessage extends OutboxMessage<DmConversation> {
 
 /// Manages the outbox messages portion of [MessageStore].
 mixin _OutboxMessageStore on PerAccountStoreBase {
+  String? get _realmEmptyTopicDisplayName;
+
   late final UnmodifiableMapView<int, OutboxMessage> outboxMessages =
     UnmodifiableMapView(_outboxMessages);
   final Map<int, OutboxMessage> _outboxMessages = {};
@@ -848,7 +849,6 @@ mixin _OutboxMessageStore on PerAccountStoreBase {
   Future<void> _outboxSendMessage({
     required MessageDestination destination,
     required String content,
-    required String? realmEmptyTopicDisplayName,
   }) async {
     assert(!_disposed);
     final localMessageId = _nextLocalMessageId++;
@@ -858,8 +858,7 @@ mixin _OutboxMessageStore on PerAccountStoreBase {
       StreamDestination(:final streamId, :final topic) =>
         StreamConversation(
           streamId,
-          _processTopicLikeServer(
-            topic, realmEmptyTopicDisplayName: realmEmptyTopicDisplayName),
+          _processTopicLikeServer(topic),
           displayRecipient: null),
       DmDestination(:final userIds) => DmConversation(allRecipientIds: userIds),
     };
@@ -918,9 +917,7 @@ mixin _OutboxMessageStore on PerAccountStoreBase {
     }
   }
 
-  TopicName _processTopicLikeServer(TopicName topic, {
-    required String? realmEmptyTopicDisplayName,
-  }) {
+  TopicName _processTopicLikeServer(TopicName topic) {
     return topic.processLikeServer(
       // Processing this just once on creating the outbox message
       // allows an uncommon bug, because either of these values can change.
@@ -936,7 +933,7 @@ mixin _OutboxMessageStore on PerAccountStoreBase {
       // so that the setting in effect by the time the request arrives
       // is different from the setting the client last heard about.
       zulipFeatureLevel: zulipFeatureLevel,
-      realmEmptyTopicDisplayName: realmEmptyTopicDisplayName);
+      realmEmptyTopicDisplayName: _realmEmptyTopicDisplayName);
   }
 
   void _handleOutboxDebounce(int localMessageId) {
