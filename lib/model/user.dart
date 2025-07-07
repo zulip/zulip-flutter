@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
@@ -177,6 +179,28 @@ enum MutedUsersVisibilityEffect {
   /// The event may change some visibility results from false to true,
   /// and some from true to false.
   mixed;
+}
+
+mixin ProxyUserStore on UserStore {
+  @protected
+  UserStore get userStore;
+
+  @override
+  User? getUser(int userId) => userStore.getUser(userId);
+
+  @override
+  Iterable<User> get allUsers => userStore.allUsers;
+
+  @override
+  bool isUserMuted(int userId, {MutedUsersEvent? event}) =>
+    userStore.isUserMuted(userId, event: event);
+
+  @override
+  MutedUsersVisibilityEffect mightChangeShouldMuteDmConversation(MutedUsersEvent event) =>
+    userStore.mightChangeShouldMuteDmConversation(event);
+
+  @override
+  UserStatus getUserStatus(int userId) => userStore.getUserStatus(userId);
 }
 
 /// The implementation of [UserStore] that does the work.

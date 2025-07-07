@@ -441,7 +441,7 @@ class PerAccountStore extends PerAccountStoreBase with
     RealmStore, ProxyRealmStore,
     EmojiStore, ProxyEmojiStore,
     SavedSnippetStore,
-    UserStore,
+    UserStore, ProxyUserStore,
     ChannelStore,
     MessageStore {
   /// Construct a store for the user's data, starting from the given snapshot.
@@ -595,23 +595,9 @@ class PerAccountStore extends PerAccountStoreBase with
   //|//////////////////////////////
   // Users and data about them.
 
+  @protected
   @override
-  User? getUser(int userId) => _users.getUser(userId);
-
-  @override
-  Iterable<User> get allUsers => _users.allUsers;
-
-  @override
-  bool isUserMuted(int userId, {MutedUsersEvent? event}) =>
-    _users.isUserMuted(userId, event: event);
-
-  @override
-  MutedUsersVisibilityEffect mightChangeShouldMuteDmConversation(MutedUsersEvent event) =>
-    _users.mightChangeShouldMuteDmConversation(event);
-
-  @override
-  UserStatus getUserStatus(int userId) => _users.getUserStatus(userId);
-
+  UserStore get userStore => _users;
   final UserStoreImpl _users;
 
   final TypingStatus typingStatus;
