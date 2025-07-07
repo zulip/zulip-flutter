@@ -223,6 +223,10 @@ class UserStatusChange {
     return UserStatus(text: text.or(old.text), emoji: emoji.or(old.emoji));
   }
 
+  UserStatusChange copyWith({Option<String?>? text, Option<StatusEmoji?>? emoji}) {
+    return UserStatusChange(text: text ?? this.text, emoji: emoji ?? this.emoji);
+  }
+
   factory UserStatusChange.fromJson(Map<String, dynamic> json) {
     return UserStatusChange(
       text: _textFromJson(json), emoji: _emojiFromJson(json));
