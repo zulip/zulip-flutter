@@ -398,12 +398,11 @@ Future<void> doAddOrRemoveReaction({
 }
 
 /// Opens a browsable and searchable emoji picker bottom sheet.
-void showEmojiPickerSheet({
+Future<EmojiCandidate?> showEmojiPickerSheet({
   required BuildContext pageContext,
-  required Message message,
-}) {
+}) async {
   final store = PerAccountStoreWidget.of(pageContext);
-  showModalBottomSheet<void>(
+  return showModalBottomSheet<EmojiCandidate>(
     context: pageContext,
     // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
     // on my iPhone 13 Pro but is marked as "much slower":
@@ -423,20 +422,15 @@ void showEmojiPickerSheet({
         // For _EmojiPickerItem, and RealmContentNetworkImage used in ImageEmojiWidget.
         child: PerAccountStoreWidget(
           accountId: store.accountId,
-          child: EmojiPicker(pageContext: pageContext, message: message)));
+          child: EmojiPicker(pageContext: pageContext)));
     });
 }
 
 @visibleForTesting
 class EmojiPicker extends StatefulWidget {
-  const EmojiPicker({
-    super.key,
-    required this.pageContext,
-    required this.message,
-  });
+  const EmojiPicker({super.key, required this.pageContext});
 
   final BuildContext pageContext;
-  final Message message;
 
   @override
   State<EmojiPicker> createState() => _EmojiPickerState();
@@ -534,8 +528,7 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
                   itemCount: _resultsToDisplay.length,
                   itemBuilder: (context, i) => EmojiPickerListEntry(
                     pageContext: widget.pageContext,
-                    emoji: _resultsToDisplay[i].candidate,
-                    message: widget.message)))),
+                    emoji: _resultsToDisplay[i].candidate)))),
           ]))),
     ]);
   }
@@ -547,27 +540,15 @@ class EmojiPickerListEntry extends StatelessWidget {
     super.key,
     required this.pageContext,
     required this.emoji,
-    required this.message,
   });
 
   final BuildContext pageContext;
   final EmojiCandidate emoji;
-  final Message message;
 
   static const _emojiSize = 24.0;
 
   void _onPressed() {
-    // Dismiss the enclosing action sheet immediately,
-    // for swift UI feedback that the user's selection was received.
-    Navigator.pop(pageContext);
-
-    doAddOrRemoveReaction(
-      context: pageContext,
-      doRemoveReaction: false,
-      messageId: message.id,
-      emoji: emoji,
-      errorDialogTitle:
-        ZulipLocalizations.of(pageContext).errorReactionAddingFailedTitle);
+    Navigator.pop(pageContext, emoji);
   }
 
   @override
