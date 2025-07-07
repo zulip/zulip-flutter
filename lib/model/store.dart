@@ -901,6 +901,10 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
         customProfileFields = _sortCustomProfileFields(event.fields);
         notifyListeners();
 
+      case UserGroupEvent():
+        assert(debugLog("server event: user_group/${event.op}"));
+        // TODO(#662) handle
+
       case RealmUserAddEvent():
         assert(debugLog("server event: realm_user/add"));
         _users.handleRealmUserEvent(event);

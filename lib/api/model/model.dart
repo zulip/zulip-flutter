@@ -199,11 +199,12 @@ enum Emojiset {
     .map((key, value) => MapEntry(value, key));
 }
 
-/// As in [InitialSnapshot.realmUserGroups].
+/// As in [InitialSnapshot.realmUserGroups] or [UserGroupAddEvent].
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UserGroup {
   final int id;
 
+  // TODO(#1687) to maintain members, also act on user deactivation: https://github.com/zulip/zulip-flutter/issues/662#issuecomment-2405845356
   // List<int> members; // TODO(#1687) track group members
   // List<int> directSubgroupIds; // TODO(#1687) track group members
 
@@ -219,7 +220,7 @@ class UserGroup {
   @JsonKey(defaultValue: false)
   bool deactivated;
 
-  // TODO(#814): GroupSettingValue canAddMembersGroup, etc.
+  // TODO(#814): GroupSettingValue canAddMembersGroup, etc.; add to update event too
 
   UserGroup({
     required this.id,

@@ -86,6 +86,69 @@ Map<String, dynamic> _$CustomProfileFieldsEventToJson(
   'fields': instance.fields,
 };
 
+UserGroupAddEvent _$UserGroupAddEventFromJson(Map<String, dynamic> json) =>
+    UserGroupAddEvent(
+      id: (json['id'] as num).toInt(),
+      group: UserGroup.fromJson(json['group'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$UserGroupAddEventToJson(UserGroupAddEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'op': instance.op,
+      'group': instance.group,
+    };
+
+UserGroupUpdateEvent _$UserGroupUpdateEventFromJson(
+  Map<String, dynamic> json,
+) => UserGroupUpdateEvent(
+  id: (json['id'] as num).toInt(),
+  groupId: (json['group_id'] as num).toInt(),
+  data: UserGroupUpdateData.fromJson(json['data'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$UserGroupUpdateEventToJson(
+  UserGroupUpdateEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'group_id': instance.groupId,
+  'data': instance.data,
+};
+
+UserGroupUpdateData _$UserGroupUpdateDataFromJson(Map<String, dynamic> json) =>
+    UserGroupUpdateData(
+      name: json['name'] as String?,
+      description: json['description'] as String?,
+      deactivated: json['deactivated'] as bool?,
+    );
+
+Map<String, dynamic> _$UserGroupUpdateDataToJson(
+  UserGroupUpdateData instance,
+) => <String, dynamic>{
+  'name': instance.name,
+  'description': instance.description,
+  'deactivated': instance.deactivated,
+};
+
+UserGroupRemoveEvent _$UserGroupRemoveEventFromJson(
+  Map<String, dynamic> json,
+) => UserGroupRemoveEvent(
+  id: (json['id'] as num).toInt(),
+  groupId: (json['group_id'] as num).toInt(),
+);
+
+Map<String, dynamic> _$UserGroupRemoveEventToJson(
+  UserGroupRemoveEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'group_id': instance.groupId,
+};
+
 RealmUserAddEvent _$RealmUserAddEventFromJson(Map<String, dynamic> json) =>
     RealmUserAddEvent(
       id: (json['id'] as num).toInt(),

@@ -30,6 +30,14 @@ sealed class Event {
           default: return UnexpectedEvent.fromJson(json);
         }
       case 'custom_profile_fields': return CustomProfileFieldsEvent.fromJson(json);
+      case 'user_group':
+        switch (json['op'] as String) {
+          case 'add': return UserGroupAddEvent.fromJson(json);
+          case 'update': return UserGroupUpdateEvent.fromJson(json);
+          // TODO(#1687): add_members, remove_members, add_subgroups, remove_subgroups
+          case 'remove': return UserGroupRemoveEvent.fromJson(json);
+          default: return UnexpectedEvent.fromJson(json);
+        }
       case 'realm_user':
         switch (json['op'] as String) {
           case 'add': return RealmUserAddEvent.fromJson(json);
@@ -204,6 +212,85 @@ class CustomProfileFieldsEvent extends Event {
 
   @override
   Map<String, dynamic> toJson() => _$CustomProfileFieldsEventToJson(this);
+}
+
+/// A Zulip event of type `user_group`.
+///
+/// See API docs starting at:
+///   https://zulip.com/api/get-events#user_group-add
+sealed class UserGroupEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'user_group';
+
+  String get op;
+
+  UserGroupEvent({required super.id});
+}
+
+/// A [UserGroupEvent] with op `add`: https://zulip.com/api/get-events#user_group-add
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserGroupAddEvent extends UserGroupEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'add';
+
+  final UserGroup group;
+
+  UserGroupAddEvent({required super.id, required this.group});
+
+  factory UserGroupAddEvent.fromJson(Map<String, dynamic> json) => _$UserGroupAddEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$UserGroupAddEventToJson(this);
+}
+
+/// A [UserGroupEvent] with op `update`: https://zulip.com/api/get-events#user_group-update
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserGroupUpdateEvent extends UserGroupEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'update';
+
+  final int groupId;
+  final UserGroupUpdateData data;
+
+  UserGroupUpdateEvent({required super.id, required this.groupId, required this.data});
+
+  factory UserGroupUpdateEvent.fromJson(Map<String, dynamic> json) => _$UserGroupUpdateEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$UserGroupUpdateEventToJson(this);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserGroupUpdateData {
+  final String? name;
+  final String? description;
+  final bool? deactivated;
+
+  UserGroupUpdateData({required this.name, required this.description, required this.deactivated});
+
+  factory UserGroupUpdateData.fromJson(Map<String, dynamic> json) => _$UserGroupUpdateDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserGroupUpdateDataToJson(this);
+}
+
+/// A [UserGroupEvent] with op `remove`: https://zulip.com/api/get-events#user_group-remove
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserGroupRemoveEvent extends UserGroupEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'remove';
+
+  final int groupId;
+
+  UserGroupRemoveEvent({required super.id, required this.groupId});
+
+  factory UserGroupRemoveEvent.fromJson(Map<String, dynamic> json) => _$UserGroupRemoveEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$UserGroupRemoveEventToJson(this);
 }
 
 /// A Zulip event of type `realm_user`.
