@@ -6,9 +6,8 @@ import 'package:clock/clock.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
-import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 import 'package:video_player/video_player.dart';
+import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/localizations.dart';
@@ -32,16 +31,14 @@ const kTestVideoUrl = "https://a/video.mp4";
 const kTestUnsupportedVideoUrl = "https://a/unsupported.mp4";
 const kTestVideoDuration = Duration(seconds: 10);
 
-class FakeVideoPlayerPlatform extends Fake
-    with MockPlatformInterfaceMixin
-    implements VideoPlayerPlatform {
+class FakeVideoPlayerPlatform extends VideoPlayerPlatform {
   static final FakeVideoPlayerPlatform instance = FakeVideoPlayerPlatform();
 
   static void registerWith() {
     VideoPlayerPlatform.instance = instance;
   }
 
-  static const int _kTextureId = 0xffffffff;
+  static const int _kPlayerId = 0xffffffff;
 
   StreamController<VideoEvent> _streamController = StreamController<VideoEvent>();
   bool _hasError = false;
@@ -104,21 +101,21 @@ class FakeVideoPlayerPlatform extends Fake
   Future<void> init() async {}
 
   @override
-  Future<void> dispose(int textureId) async {
+  Future<void> dispose(int playerId) async {
     if (_hasError) {
       assert(!initialized);
-      assert(textureId == VideoPlayerController.kUninitializedTextureId);
+      assert(playerId == VideoPlayerController.kUninitializedPlayerId);
       return;
     }
 
     assert(initialized);
-    assert(textureId == _kTextureId);
+    assert(playerId == _kPlayerId);
   }
 
   @override
-  Future<int?> create(DataSource dataSource) async  {
+  Future<int?> createWithOptions(VideoCreationOptions options) async  {
     assert(!initialized);
-    if (dataSource.uri == kTestUnsupportedVideoUrl) {
+    if (options.dataSource.uri == kTestUnsupportedVideoUrl) {
       _hasError = true;
       _streamController.addError(
         PlatformException(
@@ -135,24 +132,24 @@ class FakeVideoPlayerPlatform extends Fake
       size: const Size(100, 100),
       rotationCorrection: 0,
     ));
-    return _kTextureId;
+    return _kPlayerId;
   }
 
   @override
-  Stream<VideoEvent> videoEventsFor(int textureId) {
-    assert(textureId == _kTextureId);
+  Stream<VideoEvent> videoEventsFor(int playerId) {
+    assert(playerId == _kPlayerId);
     return _streamController.stream;
   }
 
   @override
-  Future<void> setLooping(int textureId, bool looping) async {
-    assert(textureId == _kTextureId);
+  Future<void> setLooping(int playerId, bool looping) async {
+    assert(playerId == _kPlayerId);
     assert(!looping);
   }
 
   @override
-  Future<void> play(int textureId) async {
-    assert(textureId == _kTextureId);
+  Future<void> play(int playerId) async {
+    assert(playerId == _kPlayerId);
     _stopwatch?.start();
     _streamController.add(VideoEvent(
       eventType: VideoEventType.isPlayingStateUpdate,
@@ -161,8 +158,8 @@ class FakeVideoPlayerPlatform extends Fake
   }
 
   @override
-  Future<void> pause(int textureId) async {
-    assert(textureId == _kTextureId);
+  Future<void> pause(int playerId) async {
+    assert(playerId == _kPlayerId);
     _stopwatch?.stop();
     _streamController.add(VideoEvent(
       eventType: VideoEventType.isPlayingStateUpdate,
@@ -171,33 +168,33 @@ class FakeVideoPlayerPlatform extends Fake
   }
 
   @override
-  Future<void> setVolume(int textureId, double volume) async {
-    assert(textureId == _kTextureId);
+  Future<void> setVolume(int playerId, double volume) async {
+    assert(playerId == _kPlayerId);
   }
 
   @override
-  Future<void> seekTo(int textureId, Duration pos) async {
+  Future<void> seekTo(int playerId, Duration pos) async {
     _callLog.add('seekTo');
-    assert(textureId == _kTextureId);
+    assert(playerId == _kPlayerId);
 
     _lastSetPosition = pos >= kTestVideoDuration ? kTestVideoDuration : pos;
     _stopwatch?.reset();
   }
 
   @override
-  Future<void> setPlaybackSpeed(int textureId, double speed) async {
-    assert(textureId == _kTextureId);
+  Future<void> setPlaybackSpeed(int playerId, double speed) async {
+    assert(playerId == _kPlayerId);
   }
 
   @override
-  Future<Duration> getPosition(int textureId) async {
-    assert(textureId == _kTextureId);
+  Future<Duration> getPosition(int playerId) async {
+    assert(playerId == _kPlayerId);
     return position;
   }
 
   @override
-  Widget buildView(int textureId) {
-    assert(textureId == _kTextureId);
+  Widget buildViewWithOptions(VideoViewOptions options) {
+    assert(options.playerId == _kPlayerId);
     return const SizedBox(width: 100, height: 100);
   }
 }
