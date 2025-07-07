@@ -289,6 +289,11 @@ class _PresenceCircleState extends State<PresenceCircle> with PerAccountStoreAwa
 
 /// A user status emoji to be displayed in different parts of the app.
 ///
+/// Use [userId] to show status emoji for that user.
+/// Use [emoji] to show the specific emoji passed.
+///
+/// Only one of [userId] or [emoji] should be passed.
+///
 /// Use [padding] to control the padding of status emoji from neighboring
 /// widgets.
 /// When there is no status emoji to be shown, the padding will be omitted too.
@@ -298,13 +303,16 @@ class _PresenceCircleState extends State<PresenceCircle> with PerAccountStoreAwa
 class UserStatusEmoji extends StatelessWidget {
   const UserStatusEmoji({
     super.key,
-    required this.userId,
+    this.userId,
+    this.emoji,
     required this.size,
     this.padding = EdgeInsets.zero,
     this.neverAnimate = true,
-  });
+  }) : assert((userId == null) != (emoji == null),
+              'Only one of the userId or emoji should be provided.');
 
-  final int userId;
+  final int? userId;
+  final StatusEmoji? emoji;
   final double size;
   final EdgeInsetsGeometry padding;
   final bool neverAnimate;
@@ -317,7 +325,8 @@ class UserStatusEmoji extends StatelessWidget {
   /// Use [position] to tell the emoji span where it is located relative to
   /// another span, so that it can adjust the necessary padding from it.
   static InlineSpan asWidgetSpan({
-    required int userId,
+    int? userId,
+    StatusEmoji? emoji,
     required double fontSize,
     required TextScaler textScaler,
     StatusEmojiPosition position = StatusEmojiPosition.after,
@@ -330,7 +339,7 @@ class UserStatusEmoji extends StatelessWidget {
     final size = textScaler.scale(fontSize);
     return WidgetSpan(
       alignment: PlaceholderAlignment.middle,
-      child: UserStatusEmoji(userId: userId, size: size,
+      child: UserStatusEmoji(userId: userId, emoji: emoji, size: size,
         padding: EdgeInsetsDirectional.only(start: paddingStart, end: paddingEnd),
         neverAnimate: neverAnimate));
   }
@@ -338,15 +347,15 @@ class UserStatusEmoji extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final emoji = store.getUserStatus(userId).emoji;
+    final effectiveEmoji = emoji ?? store.getUserStatus(userId!).emoji;
 
     final placeholder = SizedBox.shrink();
-    if (emoji == null) return placeholder;
+    if (effectiveEmoji == null) return placeholder;
 
     final emojiDisplay = store.emojiDisplayFor(
-      emojiType: emoji.reactionType,
-      emojiCode: emoji.emojiCode,
-      emojiName: emoji.emojiName)
+      emojiType: effectiveEmoji.reactionType,
+      emojiCode: effectiveEmoji.emojiCode,
+      emojiName: effectiveEmoji.emojiName)
         // Web doesn't seem to respect the emojiset user settings for user status.
         // .resolve(store.userSettings)
     ;
