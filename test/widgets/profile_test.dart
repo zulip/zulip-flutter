@@ -79,18 +79,50 @@ CustomProfileField mkCustomProfileField(
 void main() {
   TestZulipBinding.ensureInitialized();
 
-  group('ProfilePage', () {
-    testWidgets('page builds; profile page renders', (tester) async {
-      final user = eg.user(userId: 1, fullName: 'test user',
-        deliveryEmail: 'testuser@example.com');
+  testWidgets('page builds; profile page renders', (tester) async {
+    final user = eg.user(userId: 1, fullName: 'test user',
+      deliveryEmail: 'testuser@example.com');
 
-      await setupPage(tester, users: [user], pageUserId: user.userId);
+    await setupPage(tester, users: [user], pageUserId: user.userId);
 
-      check(because: 'find user avatar', find.byType(Avatar).evaluate()).length.equals(1);
-      check(because: 'find user name', find.text('test user').evaluate()).isNotEmpty();
-      check(because: 'find user delivery email', find.text('testuser@example.com').evaluate()).isNotEmpty();
-    });
+    check(because: 'find user avatar', find.byType(Avatar).evaluate()).length.equals(1);
+    check(because: 'find user name', find.text('test user').evaluate()).isNotEmpty();
+    check(because: 'find user delivery email', find.text('testuser@example.com').evaluate()).isNotEmpty();
+  });
 
+  testWidgets('page builds; error page shows up if data is missing', (tester) async {
+    await setupPage(tester, pageUserId: eg.selfUser.userId + 1989);
+    check(because: 'find no user avatar', find.byType(Avatar).evaluate()).isEmpty();
+    check(because: 'find error icon', find.byIcon(Icons.error).evaluate()).isNotEmpty();
+  });
+
+  testWidgets('page builds; dm links to correct narrow', (tester) async {
+    final pushedRoutes = <Route<dynamic>>[];
+    final testNavObserver = TestNavigatorObserver()
+      ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+    await setupPage(tester,
+      users: [eg.user(userId: 1)],
+      pageUserId: 1,
+      navigatorObserver: testNavObserver,
+    );
+
+    final targetWidget = find.byIcon(Icons.email);
+    await tester.ensureVisible(targetWidget);
+    await tester.tap(targetWidget);
+    check(pushedRoutes).last.isA<WidgetRoute>().page
+      .isA<MessageListPage>()
+      .initNarrow.equals(DmNarrow.withUser(1, selfUserId: eg.selfUser.userId));
+  });
+
+  testWidgets('page builds; ensure long name does not overflow', (tester) async {
+    final longString = 'X' * 400;
+    final user = eg.user(userId: 1, fullName: longString);
+    await setupPage(tester, users: [user], pageUserId: user.userId);
+    check(find.text(longString).evaluate()).isNotEmpty();
+  });
+
+  group('custom profile fields', () {
     testWidgets('page builds; profile page renders with profileData', (tester) async {
       await setupPage(tester,
         users: [
@@ -151,12 +183,6 @@ void main() {
       final avatars = tester.widgetList<Avatar>(find.byType(Avatar));
       check(avatars.map((w) => w.userId).toList())
         .deepEquals([1, 2]);
-    });
-
-    testWidgets('page builds; error page shows up if data is missing', (tester) async {
-      await setupPage(tester, pageUserId: eg.selfUser.userId + 1989);
-      check(because: 'find no user avatar', find.byType(Avatar).evaluate()).isEmpty();
-      check(because: 'find error icon', find.byIcon(Icons.error).evaluate()).isNotEmpty();
     });
 
     testWidgets('page builds; link type will navigate', (tester) async {
@@ -284,25 +310,6 @@ void main() {
       debugNetworkImageHttpClientProvider = null;
     });
 
-    testWidgets('page builds; dm links to correct narrow', (tester) async {
-      final pushedRoutes = <Route<dynamic>>[];
-      final testNavObserver = TestNavigatorObserver()
-        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
-
-      await setupPage(tester,
-        users: [eg.user(userId: 1)],
-        pageUserId: 1,
-        navigatorObserver: testNavObserver,
-      );
-
-      final targetWidget = find.byIcon(Icons.email);
-      await tester.ensureVisible(targetWidget);
-      await tester.tap(targetWidget);
-      check(pushedRoutes).last.isA<WidgetRoute>().page
-        .isA<MessageListPage>()
-        .initNarrow.equals(DmNarrow.withUser(1, selfUserId: eg.selfUser.userId));
-    });
-
     testWidgets('page builds; user links render multiple avatars', (tester) async {
       final users = [
         eg.user(userId: 1, profileData: {
@@ -321,13 +328,6 @@ void main() {
       final avatars = tester.widgetList<Avatar>(find.byType(Avatar));
       check(avatars.map((w) => w.userId).toList())
         .deepEquals([1, 2, 3]);
-    });
-
-    testWidgets('page builds; ensure long name does not overflow', (tester) async {
-      final longString = 'X' * 400;
-      final user = eg.user(userId: 1, fullName: longString);
-      await setupPage(tester, users: [user], pageUserId: user.userId);
-      check(find.text(longString).evaluate()).isNotEmpty();
     });
 
     testWidgets('page builds; ensure long customProfileFields do not overflow', (tester) async {
