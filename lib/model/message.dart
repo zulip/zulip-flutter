@@ -109,16 +109,8 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore, _OutboxMes
       // a use case for initializing MessageStore with nonempty [messages].
       messages = {};
 
-  /// The display name to use for empty topics.
-  ///
-  /// This should only be accessed when FL >= 334, since topics cannot
-  /// be empty otherwise.
-  // TODO(server-10) simplify this
-  String get realmEmptyTopicDisplayName {
-    assert(zulipFeatureLevel >= 334);
-    assert(_realmEmptyTopicDisplayName != null); // TODO(log)
-    return _realmEmptyTopicDisplayName ?? 'general chat';
-  }
+  // This copy of the realm setting is here to bypass the feature-level check
+  // on the usual getter for it.  See the one access site of this field.
   final String? _realmEmptyTopicDisplayName; // TODO(#668): update this realm setting
 
   @override
