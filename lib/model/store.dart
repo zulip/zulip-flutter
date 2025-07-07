@@ -582,12 +582,12 @@ class PerAccountStore extends PerAccountStoreBase with
     _updateMachine = value;
   }
 
-  bool get isLoading => _isLoading;
-  bool _isLoading = false;
+  bool get isRecoveringEventStream => _isRecoveringEventStream;
+  bool _isRecoveringEventStream = false;
   @visibleForTesting
-  set isLoading(bool value) {
-    if (_isLoading == value) return;
-    _isLoading = value;
+  set isRecoveringEventStream(bool value) {
+    if (_isRecoveringEventStream == value) return;
+    _isRecoveringEventStream = value;
     notifyListeners();
   }
 
@@ -1511,7 +1511,7 @@ class UpdateMachine {
     // and failures, the successes themselves should space out the requests.
     _pollBackoffMachine = null;
 
-    store.isLoading = false;
+    store.isRecoveringEventStream = false;
     _accumulatedTransientFailureCount = 0;
     reportErrorToUserBriefly(null);
   }
@@ -1530,7 +1530,7 @@ class UpdateMachine {
   ///  * [_handlePollError], which handles errors from the rest of [poll]
   ///    and errors this method rethrows.
   Future<void> _handlePollRequestError(Object error, StackTrace stackTrace) async {
-    store.isLoading = true;
+    store.isRecoveringEventStream = true;
 
     if (error is! ApiRequestException) {
       // Some unexpected error, outside even making the HTTP request.
@@ -1588,7 +1588,7 @@ class UpdateMachine {
     // or an unexpected exception representing a bug in our code or the server.
     // Either way, the show must go on.  So reload server data from scratch.
 
-    store.isLoading = true;
+    store.isRecoveringEventStream = true;
 
     bool isUnexpected;
     // TODO(#1054): handle auth failure

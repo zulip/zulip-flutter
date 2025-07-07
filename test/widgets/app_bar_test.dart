@@ -31,7 +31,7 @@ void main() {
     await tester.pumpAndSettle();
     final rectBefore = tester.getRect(find.byType(ZulipAppBar));
     check(finder.evaluate()).isEmpty();
-    store.isLoading = true;
+    store.isRecoveringEventStream = true;
 
     await tester.pump();
     check(tester.getRect(find.byType(ZulipAppBar))).equals(rectBefore);

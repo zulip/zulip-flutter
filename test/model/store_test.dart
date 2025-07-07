@@ -841,7 +841,7 @@ void main() {
         await prepareError();
         updateMachine.debugAdvanceLoop();
         async.elapse(Duration.zero);
-        check(store).isLoading.isTrue();
+        check(store).isRecoveringEventStream.isTrue();
 
         if (expectBackoff) {
           // The reload doesn't happen immediately; there's a timer.
@@ -853,7 +853,7 @@ void main() {
         // The global store has a new store.
         check(globalStore.perAccountSync(store.accountId)).not((it) => it.identicalTo(store));
         updateFromGlobalStore();
-        check(store).isLoading.isFalse();
+        check(store).isRecoveringEventStream.isFalse();
 
         // The new UpdateMachine updates the new store.
         updateMachine.debugPauseLoop();
@@ -879,7 +879,7 @@ void main() {
         updateMachine.debugAdvanceLoop();
         async.elapse(Duration.zero);
         checkLastRequest(lastEventId: 1);
-        check(store).isLoading.isTrue();
+        check(store).isRecoveringEventStream.isTrue();
 
         // Polling doesn't resume immediately; there's a timer.
         check(async.pendingTimers).length.equals(1);
@@ -895,7 +895,7 @@ void main() {
         async.flushTimers();
         checkLastRequest(lastEventId: 1);
         check(updateMachine.lastEventId).equals(2);
-        check(store).isLoading.isFalse();
+        check(store).isRecoveringEventStream.isFalse();
       });
     }
 
@@ -1036,7 +1036,7 @@ void main() {
         updateMachine.debugAdvanceLoop();
         async.elapse(Duration.zero);
         if (shouldCheckRequest) checkLastRequest(lastEventId: 1);
-        check(store).isLoading.isTrue();
+        check(store).isRecoveringEventStream.isTrue();
       }
 
       Subject<String> checkReported(void Function() prepareError) {
@@ -1186,7 +1186,7 @@ void main() {
       globalStore.clearCachedApiConnections();
       updateMachine.debugAdvanceLoop();
       async.elapse(Duration.zero); // the bad-event-queue error arrives
-      check(store).isLoading.isTrue();
+      check(store).isRecoveringEventStream.isTrue();
     }
 
     test('user logged out before new store is loaded', () => awaitFakeAsync((async) async {
