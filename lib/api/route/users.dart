@@ -34,6 +34,18 @@ class GetOwnUserResult {
   Map<String, dynamic> toJson() => _$GetOwnUserResultToJson(this);
 }
 
+/// https://zulip.com/api/update-status
+Future<void> updateStatus(ApiConnection connection, {
+  required UserStatus status,
+}) {
+  return connection.post('updateStatus', (_) {}, 'users/me/status', {
+    'status_text': RawParameter(status.text ?? ''),
+    'emoji_name': RawParameter(status.emoji?.emojiName ?? ''),
+    'emoji_code': RawParameter(status.emoji?.emojiCode ?? ''),
+    'reaction_type': RawParameter(status.emoji?.reactionType.toJson() ?? ''),
+  });
+}
+
 /// https://zulip.com/api/update-presence
 ///
 /// Passes true for `slim_presence` to avoid getting an ancient data format
