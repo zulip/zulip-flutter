@@ -577,18 +577,18 @@ void main() {
       const testCases = <(ContentExample, List<(String, Offset, Size)>, {bool? skip})>[
         (ContentExample.mathBlockKatexSizing, skip: false, [
           ('1', Offset(0.00, 2.24), Size(25.59, 61.00)),
-          ('2', Offset(25.59, 9.90), Size(21.33, 51.00)),
-          ('3', Offset(46.91, 16.30), Size(17.77, 43.00)),
-          ('4', Offset(64.68, 21.63), Size(14.80, 36.00)),
-          ('5', Offset(79.48, 26.07), Size(12.34, 30.00)),
-          ('6', Offset(91.82, 29.77), Size(10.28, 25.00)),
-          ('7', Offset(102.10, 31.62), Size(9.25, 22.00)),
-          ('8', Offset(111.35, 33.47), Size(8.23, 20.00)),
-          ('9', Offset(119.58, 35.32), Size(7.20, 17.00)),
-          ('0', Offset(126.77, 39.02), Size(5.14, 12.00)),
+          ('2', Offset(25.59, 10.04), Size(21.33, 51.00)),
+          ('3', Offset(46.91, 16.55), Size(17.77, 43.00)),
+          ('4', Offset(64.68, 21.98), Size(14.80, 36.00)),
+          ('5', Offset(79.48, 26.50), Size(12.34, 30.00)),
+          ('6', Offset(91.82, 30.26), Size(10.28, 25.00)),
+          ('7', Offset(102.10, 32.15), Size(9.25, 22.00)),
+          ('8', Offset(111.35, 34.03), Size(8.23, 20.00)),
+          ('9', Offset(119.58, 35.91), Size(7.20, 17.00)),
+          ('0', Offset(126.77, 39.68), Size(5.14, 12.00)),
         ]),
         (ContentExample.mathBlockKatexNestedSizing, skip: false, [
-          ('1', Offset(0.00, 39.58), Size(5.14, 12.00)),
+          ('1', Offset(0.00, 40.24), Size(5.14, 12.00)),
           ('2', Offset(5.14, 2.80), Size(25.59, 61.00)),
         ]),
         // TODO: Re-enable this test after adding support for parsing
@@ -596,9 +596,9 @@ void main() {
         // because `strut` span has `vertical-align`.
         (ContentExample.mathBlockKatexDelimSizing, skip: true, [
           ('(', Offset(8.00, 46.36), Size(9.42, 25.00)),
-          ('[', Offset(17.42, 48.36), Size(9.71, 25.00)),
-          ('⌈', Offset(27.12, 49.36), Size(11.99, 25.00)),
-          ('⌊', Offset(39.11, 49.36), Size(13.14, 25.00)),
+          ('[', Offset(17.42, 46.36), Size(9.71, 25.00)),
+          ('⌈', Offset(27.12, 46.36), Size(11.99, 25.00)),
+          ('⌊', Offset(39.11, 46.36), Size(13.14, 25.00)),
         ]),
       ];
 

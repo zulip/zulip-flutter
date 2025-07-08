@@ -837,7 +837,13 @@ class MathBlock extends StatelessWidget {
 const kBaseKatexTextStyle = TextStyle(
   fontSize: kBaseFontSize * 1.21,
   fontFamily: 'KaTeX_Main',
-  height: 1.2);
+  height: 1.2,
+  fontWeight: FontWeight.normal,
+  fontStyle: FontStyle.normal,
+  textBaseline: TextBaseline.alphabetic,
+  leadingDistribution: TextLeadingDistribution.even,
+  decoration: TextDecoration.none,
+  fontFamilyFallback: []);
 
 @visibleForTesting
 class KatexWidget extends StatelessWidget {
