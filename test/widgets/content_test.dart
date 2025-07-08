@@ -664,6 +664,23 @@ void main() {
     }, skip: true); // TODO: Re-enable this test after adding support for parsing
                     // `vertical-align` in inline styles. Currently it fails
                     // because `strut` span has `vertical-align`.
+
+    testWidgets('displays KaTeX content with colored text', (tester) async {
+      addTearDown(testBinding.reset);
+      final globalSettings = testBinding.globalStore.settings;
+      await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
+      check(globalSettings).getBool(BoolGlobalSetting.renderKatex).isTrue();
+
+      final content = ContentExample.mathBlockKatexColoredText;
+      await prepareContent(tester, plainContent(content.html));
+
+      check(mergedStyleOf(tester, '0')).isNotNull()
+        .color.equals(Color(0xFFFF0000));
+      check(mergedStyleOf(tester, '1')).isNotNull()
+        .color.equals(Color(0xFFFF0000));
+      check(mergedStyleOf(tester, '2')).isNotNull()
+        .color.equals(Color(0xFFDF0030));
+    });
   });
 
   /// Make a [TargetFontSizeFinder] to pass to [checkFontSizeRatio],
