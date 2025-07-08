@@ -288,7 +288,7 @@ void main() {
       connection.prepare(json: GetStreamTopicsResult(topics: [
         eg.getStreamTopicsEntry(name: 'topic foo'),
       ]).toJson());
-      await tester.tap(find.text('TOPICS'));
+      await tester.tap(find.byIcon(ZulipIcons.topics));
       await tester.pump(); // tap the button
       await tester.pump(Duration.zero); // wait for request
       check(find.descendant(
@@ -323,7 +323,7 @@ void main() {
       connection.prepare(json: GetStreamTopicsResult(topics: [
         eg.getStreamTopicsEntry(name: 'topic foo'),
       ]).toJson());
-      await tester.tap(find.text('TOPICS'));
+      await tester.tap(find.byIcon(ZulipIcons.topics));
       await tester.pump(); // tap the button
       await tester.pump(Duration.zero); // wait for request
       check(find.descendant(

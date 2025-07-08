@@ -459,24 +459,12 @@ class _TopicListButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final designVariables = DesignVariables.of(context);
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(TopicListPage.buildRoute(
-          context: context, streamId: streamId));
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(12, 8, 12, 8),
-        child: Center(child: Text(zulipLocalizations.topicsButtonLabel,
-          style: TextStyle(
-            color: designVariables.icon,
-            fontSize: 18,
-            height: 19 / 18,
-            // This is equivalent to css `all-small-caps`, see:
-            //   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps#all-small-caps
-            fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
-          ).merge(weightVariableTextStyle(context, wght: 600))))));
+    return IconButton(
+      icon: const Icon(ZulipIcons.topics),
+      tooltip: zulipLocalizations.topicsButtonTooltip,
+      onPressed: () => Navigator.push(context,
+        TopicListPage.buildRoute(context: context,
+          streamId: streamId)));
   }
 }
 

@@ -1083,9 +1083,9 @@
   "@mainMenuMyProfile": {
     "description": "Label for main-menu button leading to the user's own profile."
   },
-  "topicsButtonLabel": "话题",
-  "@topicsButtonLabel": {
-    "description": "Label for message list button leading to topic-list page. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  "topicsButtonTooltip": "话题",
+  "@topicsButtonTooltip": {
+    "description": "Tooltip for button to navigate to topic-list page."
   },
   "notifSelfUser": "您",
   "@notifSelfUser": {

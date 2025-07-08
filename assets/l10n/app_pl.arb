@@ -1061,9 +1061,9 @@
   "@composeBoxBannerButtonSave": {
     "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
   },
-  "topicsButtonLabel": "WĄTKI",
-  "@topicsButtonLabel": {
-    "description": "Label for message list button leading to topic-list page. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  "topicsButtonTooltip": "Wątki",
+  "@topicsButtonTooltip": {
+    "description": "Tooltip for button to navigate to topic-list page."
   },
   "actionSheetOptionListOfTopics": "Lista wątków",
   "@actionSheetOptionListOfTopics": {

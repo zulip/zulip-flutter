@@ -427,9 +427,9 @@
       }
     }
   },
-  "topicsButtonLabel": "THEMEN",
-  "@topicsButtonLabel": {
-    "description": "Label for message list button leading to topic-list page. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  "topicsButtonTooltip": "Themen",
+  "@topicsButtonTooltip": {
+    "description": "Tooltip for button to navigate to topic-list page."
   },
   "markReadOnScrollSettingTitle": "Nachrichten beim Scrollen als gelesen markieren",
   "@markReadOnScrollSettingTitle": {

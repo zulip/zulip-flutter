@@ -699,7 +699,7 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get mainMenuMyProfile => 'My profile';
 
   @override
-  String get topicsButtonLabel => 'TOPICS';
+  String get topicsButtonTooltip => 'Topics';
 
   @override
   String get channelFeedButtonTooltip => 'Channel feed';
@@ -1534,7 +1534,7 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get mainMenuMyProfile => '个人资料';
 
   @override
-  String get topicsButtonLabel => '话题';
+  String get topicsButtonTooltip => '话题';
 
   @override
   String get channelFeedButtonTooltip => '频道订阅';
@@ -2084,7 +2084,7 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get channelsPageTitle => '頻道';
 
   @override
-  String get topicsButtonLabel => '話題';
+  String get topicsButtonTooltip => '話題';
 
   @override
   String get channelFeedButtonTooltip => '頻道饋給';
