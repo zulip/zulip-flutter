@@ -52,9 +52,14 @@ mixin MessageStore {
   /// to the store.
   ///
   /// The list's length will not change, but some entries may be replaced
-  /// by a different [Message] object with the same [Message.id].
+  /// by a different [Message] object with the same [Message.id],
+  /// or mutated to remove [Message.matchContent] and [Message.matchTopic]
+  /// (since these are appropriate for search views but not the central store).
   /// All [Message] objects in the resulting list will be present in
   /// [this.messages].
+  ///
+  /// [Message.matchTopic] and [Message.matchContent] should be captured,
+  /// as needed for search, before this is called.
   void reconcileMessages(List<Message> messages);
 
   /// Whether the current edit request for the given message, if any, has failed.
@@ -280,7 +285,11 @@ class MessageStoreImpl extends PerAccountStoreBase with MessageStore, _OutboxMes
     // those events' changes.  So we always stick with the version we have.
     for (int i = 0; i < messages.length; i++) {
       final message = messages[i];
-      messages[i] = this.messages.putIfAbsent(message.id, () => message);
+      messages[i] = this.messages.putIfAbsent(message.id, () {
+        message.matchContent = null;
+        message.matchTopic = null;
+        return message;
+      });
     }
   }
 

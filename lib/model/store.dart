@@ -942,6 +942,10 @@ class PerAccountStore extends PerAccountStoreBase with ChangeNotifier, EmojiStor
 
       case MessageEvent():
         assert(debugLog("server event: message ${jsonEncode(event.message.toJson())}"));
+        // Assert against malformed events that might be created in test code.
+        assert(event.message.matchContent == null);
+        assert(event.message.matchTopic == null);
+
         _messages.handleMessageEvent(event);
         unreads.handleMessageEvent(event);
         recentDmConversationsView.handleMessageEvent(event);

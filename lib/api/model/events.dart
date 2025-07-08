@@ -763,6 +763,11 @@ class MessageEvent extends Event {
   // In the server API, the `flags` field appears directly on the event rather
   // than on the message object.  To avoid proliferating message types, we
   // normalize that away in deserialization.
+  //
+  // The other difference in the server API between message objects in these
+  // events and in the get-messages results is that `matchContent` and
+  // `matchTopic` are absent here.  Already [Message.matchContent] and
+  // [Message.matchTopic] are optional, so no action is needed on that.
   @JsonKey(readValue: _readMessageValue, fromJson: Message.fromJson, includeToJson: false)
   final Message message;
 

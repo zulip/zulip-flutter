@@ -518,6 +518,37 @@ void main() {
       check(messages).single.identicalTo(message);
       check(store.messages).deepEquals({1: message});
     });
+
+    test('matchContent and matchTopic are removed', () async {
+      await prepare();
+      final message1 = eg.streamMessage(id: 1, content: '<p>foo</p>');
+      await addMessages([message1]);
+      check(store.messages).deepEquals({1: message1});
+      final otherMessage1 = eg.streamMessage(id: 1, content: '<p>foo</p>',
+        matchContent: 'some highlighted content',
+        matchTopic: 'some highlighted topic');
+      final message2 = eg.streamMessage(id: 2, content: '<p>bar</p>',
+        matchContent: 'some highlighted content',
+        matchTopic: 'some highlighted topic');
+      final messages = [otherMessage1, message2];
+      store.reconcileMessages(messages);
+
+      Condition<Object?> conditionIdenticalAndNullMatchFields(Message message) {
+        return (it) => it.isA<Message>()
+                         ..identicalTo(message)
+                         ..matchContent.isNull()..matchTopic.isNull();
+      }
+
+      check(messages).deepEquals([
+        conditionIdenticalAndNullMatchFields(message1),
+        conditionIdenticalAndNullMatchFields(message2),
+      ]);
+
+      check(store.messages).deepEquals({
+        1: conditionIdenticalAndNullMatchFields(message1),
+        2: conditionIdenticalAndNullMatchFields(message2),
+      });
+    });
   });
 
   group('edit-message methods', () {

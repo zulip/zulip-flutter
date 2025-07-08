@@ -865,8 +865,9 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   // final string type; // handled by runtime type of object
   @JsonKey(fromJson: _flagsFromJson)
   List<MessageFlag> flags; // Unrecognized flags won't roundtrip through {to,from}Json.
-  // TODO(#1663) Add matchContent and matchTopic back again;
-  //   revert the commit that removed these and related test/comment changes.
+  String? matchContent;
+  @JsonKey(name: 'match_subject')
+  String? matchTopic;
 
   static MessageEditState _messageEditStateFromJson(Object? json) {
     // This is a no-op so that [MessageEditState._readFromMessage]
@@ -911,6 +912,8 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
     required this.senderRealmStr,
     required super.timestamp,
     required this.flags,
+    required this.matchContent,
+    required this.matchTopic,
   });
 
   // TODO(dart): This has to be a static method, because factories/constructors
@@ -994,6 +997,8 @@ class StreamMessage extends Message<StreamConversation> {
     required super.senderRealmStr,
     required super.timestamp,
     required super.flags,
+    required super.matchContent,
+    required super.matchTopic,
     required this.conversation,
   });
 
@@ -1054,6 +1059,8 @@ class DmMessage extends Message<DmConversation> {
     required super.senderRealmStr,
     required super.timestamp,
     required super.flags,
+    required super.matchContent,
+    required super.matchTopic,
     required this.conversation,
   });
 

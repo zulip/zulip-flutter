@@ -522,6 +522,8 @@ StreamMessage streamMessage({
   List<Reaction>? reactions,
   int? timestamp,
   List<MessageFlag>? flags,
+  String? matchContent,
+  String? matchTopic,
   List<Submessage>? submessages,
 }) {
   _checkPositive(id, 'message ID');
@@ -545,6 +547,8 @@ StreamMessage streamMessage({
     'submessages': submessages ?? [],
     'timestamp': timestamp ?? 1678139636,
     'type': 'stream',
+    'match_content': matchContent,
+    'match_subject': matchTopic,
   }) as Map<String, dynamic>);
 }
 
