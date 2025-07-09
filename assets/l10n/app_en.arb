@@ -140,6 +140,37 @@
   "@errorUnresolveTopicFailedTitle": {
     "description": "Error title when marking a topic as unresolved failed."
   },
+  "actionSheetOptionSeeWhoReacted": "See who reacted",
+  "@actionSheetOptionSeeWhoReacted":  {
+    "description": "Label for the 'See who reacted' button in the message action sheet."
+  },
+  "seeWhoReactedSheetNoReactions": "This message has no reactions.",
+  "@seeWhoReactedSheetNoReactions":  {
+    "description": "Explanation on the 'See who reacted' sheet when the message has no reactions (because they were removed after the sheet was opened)."
+  },
+  "seeWhoReactedSheetHeaderLabel": "Emoji reactions ({num} total)",
+  "@seeWhoReactedSheetHeaderLabel":  {
+    "description": "In the 'See who reacted' sheet, a label for the list of emoji reactions at the top, with the total number of reactions. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "num": {"type": "int", "example": "2"}
+    }
+  },
+  "seeWhoReactedSheetEmojiNameWithVoteCount": "{emojiName}: {num, plural, =1{1 vote} other{{num} votes}}",
+  "@seeWhoReactedSheetEmojiNameWithVoteCount":  {
+    "description": "In the 'See who reacted' sheet, an emoji reaction's name and how many votes it has. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "emojiName": {"type": "String", "example": "working_on_it"},
+      "num": {"type": "int", "example": "2"}
+    }
+  },
+  "seeWhoReactedSheetUserListLabel": "Votes for {emojiName} ({num})",
+  "@seeWhoReactedSheetUserListLabel":  {
+    "description": "In the 'See who reacted' sheet, a label for the list of users who chose an emoji reaction, with the emoji's name and how many votes it has. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "emojiName": {"type": "String", "example": "working_on_it"},
+      "num": {"type": "int", "example": "2"}
+    }
+  },
   "actionSheetOptionCopyMessageText": "Copy message text",
   "@actionSheetOptionCopyMessageText":  {
     "description": "Label for copy message text button on action sheet."

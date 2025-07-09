@@ -341,6 +341,36 @@ abstract class ZulipLocalizations {
   /// **'Failed to mark topic as unresolved'**
   String get errorUnresolveTopicFailedTitle;
 
+  /// Label for the 'See who reacted' button in the message action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'See who reacted'**
+  String get actionSheetOptionSeeWhoReacted;
+
+  /// Explanation on the 'See who reacted' sheet when the message has no reactions (because they were removed after the sheet was opened).
+  ///
+  /// In en, this message translates to:
+  /// **'This message has no reactions.'**
+  String get seeWhoReactedSheetNoReactions;
+
+  /// In the 'See who reacted' sheet, a label for the list of emoji reactions at the top, with the total number of reactions. (An accessibility label for assistive technology.)
+  ///
+  /// In en, this message translates to:
+  /// **'Emoji reactions ({num} total)'**
+  String seeWhoReactedSheetHeaderLabel(int num);
+
+  /// In the 'See who reacted' sheet, an emoji reaction's name and how many votes it has. (An accessibility label for assistive technology.)
+  ///
+  /// In en, this message translates to:
+  /// **'{emojiName}: {num, plural, =1{1 vote} other{{num} votes}}'**
+  String seeWhoReactedSheetEmojiNameWithVoteCount(String emojiName, int num);
+
+  /// In the 'See who reacted' sheet, a label for the list of users who chose an emoji reaction, with the emoji's name and how many votes it has. (An accessibility label for assistive technology.)
+  ///
+  /// In en, this message translates to:
+  /// **'Votes for {emojiName} ({num})'**
+  String seeWhoReactedSheetUserListLabel(String emojiName, int num);
+
   /// Label for copy message text button on action sheet.
   ///
   /// In en, this message translates to:

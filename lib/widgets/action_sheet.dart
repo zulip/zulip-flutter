@@ -693,6 +693,9 @@ void showMessageActionSheet({required BuildContext context, required Message mes
 
   final popularEmojiLoaded = store.popularEmojiCandidates().isNotEmpty;
 
+  final reactions = message.reactions;
+  final hasReactions = reactions != null && reactions.total > 0;
+
   // The UI that's conditioned on this won't live-update during this appearance
   // of the action sheet (we avoid calling composeBoxControllerOf in a build
   // method; see its doc).
@@ -710,6 +713,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final optionButtons = [
     if (popularEmojiLoaded)
       ReactionButtons(message: message, pageContext: pageContext),
+    if (hasReactions)
+      ViewReactionsButton(message: message, pageContext: pageContext),
     StarButton(message: message, pageContext: pageContext),
     if (isComposeBoxOffered)
       QuoteAndReplyButton(message: message, pageContext: pageContext),
@@ -941,6 +946,21 @@ class ReactionButtons extends StatelessWidget {
           )),
       ]),
     );
+  }
+}
+
+class ViewReactionsButton extends MessageActionSheetMenuItemButton {
+  ViewReactionsButton({super.key, required super.message, required super.pageContext});
+
+  @override IconData get icon => ZulipIcons.see_who_reacted;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionSeeWhoReacted;
+  }
+
+  @override void onPressed() {
+    showViewReactionsSheet(pageContext, messageId: message.id);
   }
 }
 

@@ -26,6 +26,7 @@ import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/emoji_reaction.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
@@ -50,6 +51,7 @@ import 'test_app.dart';
 
 late PerAccountStore store;
 late FakeApiConnection connection;
+late TransitionDurationObserver transitionDurationObserver;
 
 /// Simulates loading a [MessageListPage] and long-pressing on [message].
 Future<void> setupToMessageActionSheet(WidgetTester tester, {
@@ -98,9 +100,13 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
       : eg.serverEmojiDataPopular);
   }
 
+  transitionDurationObserver = TransitionDurationObserver();
+
   connection.prepare(json: eg.newestGetMessagesResult(
     foundOldest: true, messages: [message]).toJson());
-  await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
+  await tester.pumpWidget(TestZulipApp(
+    accountId: selfAccount.id,
+    navigatorObservers: [transitionDurationObserver],
     child: MessageListPage(initNarrow: narrow)));
 
   // global store, per-account store, and message list get loaded
@@ -1106,6 +1112,47 @@ void main() {
           });
         }
       }
+    });
+
+    group('ViewReactionsButton', () {
+      final findButtonInSheet = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byIcon(ZulipIcons.see_who_reacted));
+
+      testWidgets('not visible if message has no reactions', (tester) async {
+        final message = eg.streamMessage(reactions: []);
+        await setupToMessageActionSheet(tester,
+          message: message, narrow: CombinedFeedNarrow());
+
+        check(findButtonInSheet).findsNothing();
+      });
+
+      Future<void> tapButton(WidgetTester tester) async {
+        await tester.ensureVisible(findButtonInSheet);
+        await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+        await tester.tap(findButtonInSheet);
+      }
+
+      testWidgets('smoke', (tester) async {
+        final message = eg.streamMessage(reactions: [eg.unicodeEmojiReaction]);
+        await setupToMessageActionSheet(tester,
+          message: message, narrow: CombinedFeedNarrow());
+
+        await tapButton(tester);
+
+        // The message action sheet exits and the view-reactions sheet enters.
+        //
+        // This just pumps through twice the duration of the latest transition.
+        // Ideally we'd check that the two expected transitions were triggered
+        // and that they started at the same time, and pump through the
+        // longer of the two durations.
+        // TODO(upstream) support this in TransitionDurationObserver
+        await transitionDurationObserver.pumpPastTransition(tester);
+        await transitionDurationObserver.pumpPastTransition(tester);
+
+        check(findButtonInSheet).findsNothing(); // the message action sheet exited
+        check(find.byType(ViewReactions)).findsOne();
+      });
     });
 
     group('StarButton', () {

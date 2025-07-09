@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 import '../api/exception.dart';
 import '../api/model/model.dart';
@@ -8,13 +9,17 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../model/autocomplete.dart';
 import '../model/emoji.dart';
 import '../model/store.dart';
+import 'action_sheet.dart';
 import 'color.dart';
 import 'dialog.dart';
 import 'emoji.dart';
 import 'inset_shadow.dart';
+import 'page.dart';
+import 'profile.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'user.dart';
 
 /// Emoji-reaction styles that differ between light and dark themes.
 class EmojiReactionTheme extends ThemeExtension<EmojiReactionTheme> {
@@ -234,6 +239,12 @@ class ReactionChip extends StatelessWidget {
         customBorder: shape,
         splashColor: splashColor,
         highlightColor: highlightColor,
+        onLongPress: () {
+          showViewReactionsSheet(PageRoot.contextOf(context),
+            messageId: messageId,
+            initialReactionType: reactionType,
+            initialEmojiCode: emojiCode);
+        },
         onTap: () {
           (selfVoted ? removeReaction : addReaction).call(store.connection,
             messageId: messageId,
@@ -627,5 +638,419 @@ class EmojiPickerListEntry extends StatelessWidget {
               color: designVariables.textMessage)))
         ]),
       ));
+  }
+}
+
+/// Opens a bottom sheet showing who reacted to the message.
+void showViewReactionsSheet(BuildContext pageContext, {
+  required int messageId,
+  ReactionType? initialReactionType,
+  String? initialEmojiCode,
+}) {
+  final accountId = PerAccountStoreWidget.accountIdOf(pageContext);
+
+  showModalBottomSheet<void>(
+    context: pageContext,
+    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
+    // on my iPhone 13 Pro but is marked as "much slower":
+    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
+    clipBehavior: Clip.antiAlias,
+    useSafeArea: true,
+    isScrollControlled: true,
+    builder: (_) {
+      return PerAccountStoreWidget(
+        accountId: accountId,
+        child: SafeArea(
+          minimum: const EdgeInsets.only(bottom: 16),
+          child: ViewReactions(
+            messageId: messageId,
+            initialEmojiCode: initialEmojiCode,
+            initialReactionType: initialReactionType)));
+    });
+}
+
+class ViewReactions extends StatefulWidget {
+  const ViewReactions({
+    super.key,
+    required this.messageId,
+    this.initialReactionType,
+    this.initialEmojiCode,
+  });
+
+  final int messageId;
+  final ReactionType? initialReactionType;
+  final String? initialEmojiCode;
+
+  @override
+  State<ViewReactions> createState() => _ViewReactionsState();
+}
+
+class _ViewReactionsState extends State<ViewReactions> with PerAccountStoreAwareStateMixin<ViewReactions> {
+  ReactionType? reactionType;
+  String? emojiCode;
+  String? emojiName;
+
+  PerAccountStore? store;
+
+  void _setSelection(ReactionWithVotes? selection) {
+    setState(() {
+      reactionType = selection?.reactionType;
+      emojiCode = selection?.emojiCode;
+      emojiName = selection?.emojiName;
+    });
+  }
+
+  void _storeChanged() {
+    _reconcile();
+  }
+
+  /// Check that the given reaction still has votes;
+  /// if not, select a different one if possible or clear the selection.
+  void _reconcile() {
+    // TODO scroll into view
+    _setSelection(_findMatchingReaction());
+  }
+
+  ReactionWithVotes? _findMatchingReaction() {
+    final message = PerAccountStoreWidget.of(context).messages[widget.messageId];
+
+    final reactions = message?.reactions?.aggregated;
+
+    if (reactions == null || reactions.isEmpty) {
+      return null;
+    }
+
+    return reactions
+      .firstWhereOrNull((x) =>
+        x.reactionType == reactionType && x.emojiCode == emojiCode)
+      // first item will exist; early-return above on reactions.isEmpty
+      ?? reactions.first;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialReactionType != null) {
+      assert(widget.initialEmojiCode != null);
+      reactionType = widget.initialReactionType!;
+      emojiCode = widget.initialEmojiCode!;
+    }
+  }
+
+  @override
+  void onNewStore() {
+    // TODO(#1747) listen for changes in the message's reactions
+    store?.removeListener(_storeChanged);
+    store = PerAccountStoreWidget.of(context);
+    store!.addListener(_storeChanged);
+    _reconcile();
+  }
+
+  @override
+  void dispose() {
+    store?.removeListener(_storeChanged);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO could pull out this layout/appearance code,
+    //   focusing this widget only on state management
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ViewReactionsHeader(
+          messageId: widget.messageId,
+          reactionType: reactionType,
+          emojiCode: emojiCode,
+          onRequestSelect: _setSelection,
+        ),
+        // TODO if all reactions (or whole message) disappeared,
+        //   we show a message saying there are no reactions,
+        //   but the layout shifts (the sheet's height changes dramatically);
+        //   we should avoid this.
+        if (reactionType != null && emojiCode != null) Flexible(
+          child: ViewReactionsUserList(
+            messageId: widget.messageId,
+            reactionType: reactionType!,
+            emojiCode: emojiCode!,
+            emojiName: emojiName!)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.close))
+      ]);
+  }
+}
+
+class ViewReactionsHeader extends StatelessWidget {
+  const ViewReactionsHeader({
+    super.key,
+    required this.messageId,
+    required this.reactionType,
+    required this.emojiCode,
+    required this.onRequestSelect,
+  });
+
+  final int messageId;
+  final ReactionType? reactionType;
+  final String? emojiCode;
+  final void Function(ReactionWithVotes) onRequestSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final message = PerAccountStoreWidget.of(context).messages[messageId];
+
+    final reactions = message?.reactions;
+
+    if (reactions == null || reactions.aggregated.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: BottomSheetHeaderPlainText(text: zulipLocalizations.seeWhoReactedSheetNoReactions),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 16, bottom: 4),
+      child: InsetShadowBox(start: 8, end: 8,
+        color: designVariables.bgContextMenu,
+        child: SingleChildScrollView(
+          // TODO(upstream) we want to pass excludeFromSemantics: true
+          //    to the underlying Scrollable to remove an unwanted node
+          //    in accessibility focus traversal when there are many items.
+          scrollDirection: Axis.horizontal,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Semantics(
+              role: SemanticsRole.tabBar,
+              container: true,
+              explicitChildNodes: true,
+              label: zulipLocalizations.seeWhoReactedSheetHeaderLabel(reactions.total),
+              child: Row(
+                children: reactions.aggregated.map((r) =>
+                  _ViewReactionsEmojiItem(
+                    reactionWithVotes: r,
+                    selected: r.reactionType == reactionType && r.emojiCode == emojiCode,
+                    onRequestSelect: onRequestSelect),
+                ).toList()))))));
+  }
+}
+
+class _ViewReactionsEmojiItem extends StatelessWidget {
+  const _ViewReactionsEmojiItem({
+    required this.reactionWithVotes,
+    required this.selected,
+    required this.onRequestSelect,
+  });
+
+  final ReactionWithVotes reactionWithVotes;
+  final bool selected;
+  final void Function(ReactionWithVotes) onRequestSelect;
+
+  static const double emojiSize = 24;
+
+  void _scrollIntoView(BuildContext context) {
+    Scrollable.ensureVisible(context,
+      alignment: 0.5, duration: Duration(milliseconds: 200));
+  }
+
+  void _handleTap(BuildContext context) {
+    _scrollIntoView(context);
+    onRequestSelect(reactionWithVotes);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    final count = reactionWithVotes.userIds.length;
+
+    final emojiName = reactionWithVotes.emojiName;
+    final emojiDisplay = store.emojiDisplayFor(
+      emojiType: reactionWithVotes.reactionType,
+      emojiCode: reactionWithVotes.emojiCode,
+      emojiName: emojiName);
+
+    // Don't use a :text_emoji:-style display here.
+    final placeholder = SizedBox.square(dimension: emojiSize);
+
+    // TODO make a helper widget for this
+    final emoji = switch (emojiDisplay) {
+      UnicodeEmojiDisplay() => UnicodeEmojiWidget(
+        size: emojiSize,
+        emojiDisplay: emojiDisplay),
+      ImageEmojiDisplay() => ImageEmojiWidget(
+        size: emojiSize,
+        emojiDisplay: emojiDisplay,
+        // If image emoji fails to load, show nothing.
+        errorBuilder: (_, _, _) => placeholder),
+      TextEmojiDisplay() => placeholder,
+    };
+
+    Widget result = Tooltip(
+      message: emojiName,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _handleTap(context),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            border: selected
+              ? Border.all(color: designVariables.borderBar)
+              : null,
+            borderRadius: BorderRadius.circular(10),
+            color: selected ? designVariables.background : null,
+          ),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(14, 4.5, 14, 4.5),
+            child: Center(
+              child: Column(
+                spacing: 3,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  emoji,
+                  Text(
+                    style: TextStyle(
+                      color: designVariables.title,
+                      fontSize: 14,
+                      height: 14 / 14),
+                    count.toString()), // TODO(i18n) number formatting?
+                ])),
+          ))));
+
+    return Semantics(
+      role: SemanticsRole.tab,
+      onDidGainAccessibilityFocus: () => _scrollIntoView(context),
+
+      // I *think* we're following the doc with this but it's hard to tell;
+      // I've only tested on iOS and I didn't notice a behavior change.
+      controlsNodes: {ViewReactionsUserList.semanticsIdentifier},
+
+      selected: selected,
+      label: zulipLocalizations.seeWhoReactedSheetEmojiNameWithVoteCount(emojiName, count),
+      onTap: () => _handleTap(context),
+      child: ExcludeSemantics(
+        child: result));
+  }
+}
+
+
+@visibleForTesting
+class ViewReactionsUserList extends StatelessWidget {
+  const ViewReactionsUserList({
+    super.key,
+    required this.messageId,
+    required this.reactionType,
+    required this.emojiCode,
+    required this.emojiName,
+  });
+
+  final int messageId;
+  final ReactionType reactionType;
+  final String emojiCode;
+  final String emojiName;
+
+  static const semanticsIdentifier = 'view-reactions-user-list';
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
+
+    final message = store.messages[messageId];
+
+    final userIds = message?.reactions?.aggregated.firstWhereOrNull(
+      (x) => x.reactionType == reactionType && x.emojiCode == emojiCode
+    )?.userIds.toList();
+
+    // (No filtering of muted or deactivated users.
+    //  Muted users will be shown as muted.)
+
+    if (userIds == null) {
+      // This reaction lost all its votes, or the message was deleted.
+      return SizedBox.shrink();
+    }
+
+    Widget result = SizedBox(
+      height: 400, // TODO(design) tune
+      child: InsetShadowBox(
+        top: 8,
+        bottom: 8,
+        color: designVariables.bgContextMenu,
+        // TODO(upstream) we want to pass excludeFromSemantics: true
+        //    to the underlying Scrollable to remove an unwanted node
+        //    in accessibility focus traversal when there are many items.
+        child: ListView.builder(
+          padding: EdgeInsets.only(
+            // The Figma excludes the 8px top padding, which is unusual with the
+            // shadow effect (our InsetShadowBox). We include it so that the
+            // first item's touch feedback is shadow-free in the item's initial/
+            // scrolled-to-top position.
+            top: 8,
+            bottom: 8,
+          ),
+          itemCount: userIds.length,
+          itemBuilder: (_, index) =>
+            ViewReactionsUserItem(userId: userIds[index]))));
+
+    return Semantics(
+      identifier: semanticsIdentifier, // See note on `controlsNodes` on the tab.
+      label: zulipLocalizations.seeWhoReactedSheetUserListLabel(emojiName, userIds.length),
+      role: SemanticsRole.tabPanel,
+      container: true,
+      child: result);
+  }
+}
+
+@visibleForTesting
+class ViewReactionsUserItem extends StatelessWidget {
+  const ViewReactionsUserItem({
+    super.key,
+    required this.userId,
+  });
+
+  final int userId;
+
+  void _onPressed(BuildContext context) {
+    // Dismiss the action sheet.
+    Navigator.pop(context);
+
+    Navigator.push(context,
+      ProfilePage.buildRoute(context: context, userId: userId));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
+
+    return InkWell(
+      onTap: () => _onPressed(context),
+      splashFactory: NoSplash.splashFactory,
+      overlayColor: WidgetStateColor.fromMap({
+        WidgetState.pressed: designVariables.contextMenuItemBg.withFadedAlpha(0.20),
+      }),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(spacing: 8, children: [
+          Avatar(
+            size: 32,
+            borderRadius: 3,
+            backgroundColor: designVariables.bgContextMenu,
+            userId: userId),
+          Flexible(
+            child: Text(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 17,
+                height: 17 / 17,
+                color: designVariables.textMessage,
+              ).merge(weightVariableTextStyle(context, wght: 500)),
+              store.userDisplayName(userId))),
+        ])));
   }
 }
