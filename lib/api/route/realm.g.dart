@@ -24,7 +24,7 @@ GetServerSettingsResult _$GetServerSettingsResultFromJson(
           .toList(),
   zulipFeatureLevel: (json['zulip_feature_level'] as num).toInt(),
   zulipVersion: json['zulip_version'] as String,
-  zulipMergeBase: json['zulip_merge_base'] as String?,
+  zulipMergeBase: json['zulip_merge_base'] as String,
   pushNotificationsEnabled: json['push_notifications_enabled'] as bool,
   isIncompatible: json['is_incompatible'] as bool,
   emailAuthEnabled: json['email_auth_enabled'] as bool,
@@ -33,7 +33,7 @@ GetServerSettingsResult _$GetServerSettingsResultFromJson(
   realmName: json['realm_name'] as String,
   realmIcon: json['realm_icon'] as String,
   realmDescription: json['realm_description'] as String,
-  realmWebPublicAccessEnabled: json['realm_web_public_access_enabled'] as bool?,
+  realmWebPublicAccessEnabled: json['realm_web_public_access_enabled'] as bool,
 );
 
 Map<String, dynamic> _$GetServerSettingsResultToJson(
