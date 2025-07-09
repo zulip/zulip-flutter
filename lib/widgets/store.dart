@@ -19,7 +19,7 @@ class GlobalStoreWidget extends StatefulWidget {
   const GlobalStoreWidget({
     super.key,
     this.blockingFuture,
-    this.placeholder = const LoadingPlaceholder(),
+    this.placeholder = const BlankLoadingPlaceholder(),
     required this.child,
   });
 
@@ -339,6 +339,15 @@ class _PerAccountStoreInheritedWidget extends InheritedNotifier<PerAccountStore>
   @override
   bool updateShouldNotify(covariant _PerAccountStoreInheritedWidget oldWidget) =>
     store != oldWidget.store;
+}
+
+class BlankLoadingPlaceholder extends StatelessWidget {
+  const BlankLoadingPlaceholder({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox.shrink();
+  }
 }
 
 class LoadingPlaceholder extends StatelessWidget {

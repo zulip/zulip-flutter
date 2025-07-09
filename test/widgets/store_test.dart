@@ -70,12 +70,12 @@ void main() {
             return const SizedBox.shrink();
           })));
     // First, shows a loading page instead of child.
-    check(find.byType(CircularProgressIndicator)).findsOne();
+    check(find.byType(BlankLoadingPlaceholder)).findsOne();
     check(globalStore).isNull();
 
     await tester.pump();
     // Then after loading, mounts child instead, with provided store.
-    check(find.byType(CircularProgressIndicator)).findsNothing();
+    check(find.byType(BlankLoadingPlaceholder)).findsNothing();
     check(globalStore).identicalTo(testBinding.globalStore);
 
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
@@ -98,14 +98,15 @@ void main() {
     await tester.pump();
     // Even after the store must have loaded,
     // still shows loading page while blockingFuture is pending.
-    check(find.byType(CircularProgressIndicator)).findsOne();
+    check(find.byType(BlankLoadingPlaceholder)).findsOne();
     check(find.text('done')).findsNothing();
 
     // Once blockingFuture completes…
     completer.complete();
     await tester.pump();
+    await tester.pump(); // TODO why does GlobalStoreWidget need this extra frame?
     // … mounts child instead of the loading page.
-    check(find.byType(CircularProgressIndicator)).findsNothing();
+    check(find.byType(BlankLoadingPlaceholder)).findsNothing();
     check(find.text('done')).findsOne();
   });
 
@@ -123,14 +124,15 @@ void main() {
     await tester.pump();
     // Even after the store must have loaded,
     // still shows loading page while blockingFuture is pending.
-    check(find.byType(CircularProgressIndicator)).findsOne();
+    check(find.byType(BlankLoadingPlaceholder)).findsOne();
     check(find.text('done')).findsNothing();
 
     // Once blockingFuture completes, even with an error…
     completer.completeError(Exception('oops'));
     await tester.pump();
+    await tester.pump(); // TODO why does GlobalStoreWidget need this extra frame?
     // … mounts child instead of the loading page.
-    check(find.byType(CircularProgressIndicator)).findsNothing();
+    check(find.byType(BlankLoadingPlaceholder)).findsNothing();
     check(find.text('done')).findsOne();
   });
 
