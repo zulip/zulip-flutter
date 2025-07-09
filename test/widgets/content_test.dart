@@ -1167,6 +1167,8 @@ void main() {
     });
   });
 
+  testContentSmoke(ContentExample.highlight);
+
   group('InlineAudio', () {
     Future<void> prepare(WidgetTester tester, String html) async {
       await prepareContent(tester, plainContent(html),

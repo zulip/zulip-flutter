@@ -261,6 +261,13 @@ class ContentExample {
     GlobalTimeNode(
       datetime: DateTime.parse("2024-03-07T23:00:00Z")));
 
+  static final highlight = ContentExample.inline(
+    'highlight (for search)',
+    null, // keyword highlighting is done by the server; no Markdown representation
+    expectedText: 'keyword',
+    '<p><span class="highlight">keyword</span></p>',
+    const HighlightNode(nodes: [TextNode('keyword')]));
+
   static final messageLink = ContentExample.inline(
     'message link',
     '#**api design>notation for near links@1972281**',
@@ -1822,6 +1829,8 @@ void main() async {
       inlineUnimplemented('<time datetime="2024-01-30T17:33:00">2024-01-30T17:33:00</time>'),
     );
   });
+
+  testParseExample(ContentExample.highlight);
 
   //
   // Block content.

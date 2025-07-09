@@ -118,6 +118,12 @@ mixin _MessageSequence {
   @visibleForTesting
   bool get oneMessagePerBlock;
 
+  /// Whether the narrow includes a keyword search.
+  ///
+  /// If false, messages won't be expected to have
+  /// [Message.matchContent] or [Message.matchTopic].
+  bool get hasKeywordSearchFilter;
+
   /// A sequence number for invalidating stale fetches.
   int generation = 0;
 
@@ -257,10 +263,25 @@ mixin _MessageSequence {
     }
   }
 
+  final Map<int, String> _matchContentByMessageId = {};
+
+  void _captureMatchContentAndTopic(List<Message> messages) {
+    if (!hasKeywordSearchFilter) return;
+
+    for (final message in messages) {
+      final Message(:matchContent, :matchTopic) = message;
+      if (matchContent != null) {
+        _matchContentByMessageId[message.id] = matchContent;
+      }
+      // TODO matchTopic
+    }
+  }
+
   ZulipMessageContent _parseMessageContent(Message message) {
     final poll = message.poll;
     if (poll != null) return PollContent(poll);
-    return parseContent(message.content);
+    final content = _matchContentByMessageId[message.id] ?? message.content;
+    return parseContent(content);
   }
 
   /// Update data derived from the content of the index-th message.
@@ -419,6 +440,7 @@ mixin _MessageSequence {
     contents.clear();
     items.clear();
     middleItem = 0;
+    _matchContentByMessageId.clear();
   }
 
   /// Redo all computations from scratch, based on [messages].
@@ -659,6 +681,16 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       || KeywordSearchNarrow() => true,
   };
 
+  @override bool get hasKeywordSearchFilter => switch (narrow) {
+    CombinedFeedNarrow()
+      || ChannelNarrow()
+      || TopicNarrow()
+      || DmNarrow()
+      || MentionsNarrow()
+      || StarredMessagesNarrow() => false,
+      KeywordSearchNarrow() => true,
+  };
+
   /// Whether [message] should actually appear in this message list,
   /// given that it does belong to the narrow.
   ///
@@ -793,6 +825,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
     _adjustNarrowForTopicPermalink(result.messages.firstOrNull);
 
+    _captureMatchContentAndTopic(result.messages);
+
     store.reconcileMessages(result.messages);
     store.recentSenders.handleMessages(result.messages); // TODO(#824)
 
@@ -877,6 +911,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
           result.messages.removeLast();
         }
 
+        _captureMatchContentAndTopic(result.messages);
+
         store.reconcileMessages(result.messages);
         store.recentSenders.handleMessages(result.messages); // TODO(#824)
 
@@ -912,6 +948,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
           // TODO(server-6): includeAnchor should make this impossible
           result.messages.removeAt(0);
         }
+
+        _captureMatchContentAndTopic(result.messages);
 
         store.reconcileMessages(result.messages);
         store.recentSenders.handleMessages(result.messages); // TODO(#824)
@@ -1149,6 +1187,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   void messageContentChanged(int messageId) {
     final index = _findMessageWithId(messageId);
     if (index != -1) {
+      _matchContentByMessageId.remove(messageId);
       _reparseContent(index);
     }
   }
