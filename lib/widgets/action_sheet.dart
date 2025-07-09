@@ -92,7 +92,7 @@ void _showActionSheet(
                           child: SingleChildScrollView(
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             child: MenuButtonsShape(buttons: optionButtons)))),
-                        const ActionSheetCancelButton(),
+                        const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.cancel),
                       ]))),
               ]))));
     });
@@ -160,12 +160,22 @@ abstract class ActionSheetMenuItemButton extends StatelessWidget {
   }
 }
 
-class ActionSheetCancelButton extends StatelessWidget {
-  const ActionSheetCancelButton({super.key});
+/// A stretched gray "Cancel" / "Close" button for the bottom of a bottom sheet.
+class BottomSheetDismissButton extends StatelessWidget {
+  const BottomSheetDismissButton({super.key, required this.style});
+
+  final BottomSheetDismissButtonStyle style;
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final label = switch (style) {
+      BottomSheetDismissButtonStyle.cancel => zulipLocalizations.dialogCancel,
+      BottomSheetDismissButtonStyle.close => zulipLocalizations.dialogClose,
+    };
+
     return TextButton(
       style: TextButton.styleFrom(
         minimumSize: const Size.fromHeight(44),
@@ -180,10 +190,18 @@ class ActionSheetCancelButton extends StatelessWidget {
       onPressed: () {
         Navigator.pop(context);
       },
-      child: Text(ZulipLocalizations.of(context).dialogCancel,
+      child: Text(label,
         style: const TextStyle(fontSize: 20, height: 24 / 20)
           .merge(weightVariableTextStyle(context, wght: 600))));
   }
+}
+
+enum BottomSheetDismissButtonStyle {
+  /// The "Cancel" label, for action sheets.
+  cancel,
+
+  /// The "Close" label, for bottom sheets that are read-only or for navigation.
+  close,
 }
 
 /// Show a sheet of actions you can take on a channel.

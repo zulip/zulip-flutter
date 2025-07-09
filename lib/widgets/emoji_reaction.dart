@@ -512,7 +512,7 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
               states.contains(WidgetState.pressed)
                 ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
                 : Colors.transparent)),
-            child: Text(zulipLocalizations.dialogClose,
+            child: Text(zulipLocalizations.dialogCancel,
               style: const TextStyle(fontSize: 20, height: 30 / 20))),
         ])),
       Expanded(child: InsetShadowBox(
