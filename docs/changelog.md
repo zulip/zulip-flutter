@@ -3,6 +3,44 @@
 ## Unreleased
 
 
+## 30.0.260 (2025-07-03)
+
+This release branch includes some experimental changes
+not yet merged to the main branch.
+
+
+### Highlights for users
+
+* (iOS) Fixed a bug causing duplicate notifications. (#1617)
+* The app offers a search view. (#252)
+* See the status emoji and status messages of other users. (#197)
+* Initial support for showing audio files in messages,
+  an upcoming Zulip feature. (#1665)
+* Translation updates. (PR #1642)
+
+
+### Highlights for developers
+
+* User-visible changes not described above:
+  * More recipient headers in mentions/starred. (#1637)
+  * Tap message in starred/mentions to open conversation. (#1621)
+  * Clearer placeholder text when no messages. (#1555)
+  * Correctly apply font-size to "em" on the same KaTeX span
+    (if that situation is possible). (f003f58ed, in PR #1609)
+
+* Resolved by server-side changes: #1617
+
+* Resolved in main: #1637, #1621, PR #1560 (toward #296), #1555,
+  PR #1609 (toward #46), PR #1601 (toward #46),
+  PR #1600 (toward #46), PR #1658, #1665, #252, PR #1642
+
+* Resolved in the experimental branch:
+  * more toward #46 via PR #1452
+  * further toward #46 via PR #1559
+  * #296 via PR #1561
+  * #197 via PR #1629
+
+
 ## 30.0.259 (2025-06-23)
 
 This release branch includes some experimental changes
