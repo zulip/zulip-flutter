@@ -926,7 +926,7 @@ class UpdateMessageEvent extends Event {
   @JsonKey(includeToJson: true)
   String get type => 'update_message';
 
-  final int? userId; // TODO(server-5)
+  final int? userId;
   final bool? renderingOnly; // TODO(server-5)
   final int messageId;
   final List<int> messageIds;
