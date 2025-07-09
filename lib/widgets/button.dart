@@ -339,7 +339,7 @@ class MenuButton extends StatelessWidget {
               spacing: itemSpacing,
               children: [
                 if (toggle != null) toggle!,
-                if (icon != null) Icon(icon!, color: designVariables.contextMenuItemText),
+                if (icon != null) Icon(icon!, color: designVariables.contextMenuItemIcon),
               ]))
         : null,
       style: MenuItemButton.styleFrom(
