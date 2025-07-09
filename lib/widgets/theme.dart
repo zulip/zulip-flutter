@@ -174,7 +174,12 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     listMenuItemBg: const Color(0xffcbcdd6),
     listMenuItemIcon: const Color(0xff9194a3),
     listMenuItemText: const Color(0xff2d303c),
+
+    // Keep the color here and the corresponding non-dark mode entry in
+    // ios/Runner/Assets.xcassets/LaunchBackground.colorset/Contents.json
+    // in sync.
     mainBackground: const Color(0xfff0f0f0),
+
     neutralButtonBg: const Color(0xff8c84ae),
     neutralButtonLabel: const Color(0xff433d5c),
     radioBorder: Color(0xffbbbdc8),
@@ -257,7 +262,12 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     listMenuItemBg: const Color(0xff2d303c),
     listMenuItemIcon: const Color(0xff767988),
     listMenuItemText: const Color(0xffcbcdd6),
+
+    // Keep the color here and the corresponding dark mode entry in
+    // ios/Runner/Assets.xcassets/LaunchBackground.colorset/Contents.json
+    // in sync.
     mainBackground: const Color(0xff1d1d1d),
+
     neutralButtonBg: const Color(0xffd4d1e0),
     neutralButtonLabel: const Color(0xffa9a3c2),
     radioBorder: Color(0xff626573),

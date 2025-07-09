@@ -10,6 +10,11 @@ import Flutter
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
+
+    // Use `DesignVariables.mainBackground` color as the background color
+    // of the default UIView.
+    window?.backgroundColor = UIColor(named: "LaunchBackground");
+
     let controller = window?.rootViewController as! FlutterViewController
 
     // Retrieve the remote notification payload from launch options;
