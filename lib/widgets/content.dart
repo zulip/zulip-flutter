@@ -48,6 +48,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorDirectMentionBackground: const HSLColor.fromAHSL(0.2, 240, 0.7, 0.7).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(1, 0, 0, 0.8).toColor(),
+      colorHighlightBackground: const Color(0xfffcef9f),
       colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(),
       colorMathBlockBorder: const HSLColor.fromAHSL(0.15, 240, 0.8, 0.5).toColor(),
       colorMessageMediaContainerBackground: const Color.fromRGBO(0, 0, 0, 0.03),
@@ -82,6 +83,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorDirectMentionBackground: const HSLColor.fromAHSL(0.25, 240, 0.52, 0.6).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(0.2, 0, 0, 0).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(0.4, 0, 0, 0).toColor(),
+      colorHighlightBackground: const Color(0xffffe757).withValues(alpha: 0.35),
       colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(), // the same as light in Web
       colorMathBlockBorder: const HSLColor.fromAHSL(1, 240, 0.4, 0.4).toColor(),
       colorMessageMediaContainerBackground: const HSLColor.fromAHSL(0.03, 0, 0, 1).toColor(),
@@ -115,6 +117,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     required this.colorDirectMentionBackground,
     required this.colorGlobalTimeBackground,
     required this.colorGlobalTimeBorder,
+    required this.colorHighlightBackground,
     required this.colorLink,
     required this.colorMathBlockBorder,
     required this.colorMessageMediaContainerBackground,
@@ -148,6 +151,10 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   final Color colorDirectMentionBackground;
   final Color colorGlobalTimeBackground;
   final Color colorGlobalTimeBorder;
+
+  // From Figma: https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=10904-102278&m=dev
+  final Color colorHighlightBackground;
+
   final Color colorLink;
   final Color colorMathBlockBorder; // TODO(#46) this won't be needed
   final Color colorMessageMediaContainerBackground;
@@ -209,6 +216,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     Color? colorDirectMentionBackground,
     Color? colorGlobalTimeBackground,
     Color? colorGlobalTimeBorder,
+    Color? colorHighlightBackground,
     Color? colorLink,
     Color? colorMathBlockBorder,
     Color? colorMessageMediaContainerBackground,
@@ -232,6 +240,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorDirectMentionBackground: colorDirectMentionBackground ?? this.colorDirectMentionBackground,
       colorGlobalTimeBackground: colorGlobalTimeBackground ?? this.colorGlobalTimeBackground,
       colorGlobalTimeBorder: colorGlobalTimeBorder ?? this.colorGlobalTimeBorder,
+      colorHighlightBackground: colorHighlightBackground ?? this.colorHighlightBackground,
       colorLink: colorLink ?? this.colorLink,
       colorMathBlockBorder: colorMathBlockBorder ?? this.colorMathBlockBorder,
       colorMessageMediaContainerBackground: colorMessageMediaContainerBackground ?? this.colorMessageMediaContainerBackground,
@@ -262,6 +271,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorDirectMentionBackground: Color.lerp(colorDirectMentionBackground, other.colorDirectMentionBackground, t)!,
       colorGlobalTimeBackground: Color.lerp(colorGlobalTimeBackground, other.colorGlobalTimeBackground, t)!,
       colorGlobalTimeBorder: Color.lerp(colorGlobalTimeBorder, other.colorGlobalTimeBorder, t)!,
+      colorHighlightBackground: Color.lerp(colorHighlightBackground, other.colorHighlightBackground, t)!,
       colorLink: Color.lerp(colorLink, other.colorLink, t)!,
       colorMathBlockBorder: Color.lerp(colorMathBlockBorder, other.colorMathBlockBorder, t)!,
       colorMessageMediaContainerBackground: Color.lerp(colorMessageMediaContainerBackground, other.colorMessageMediaContainerBackground, t)!,
@@ -1277,6 +1287,10 @@ class _InlineContentBuilder {
       case GlobalTimeNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
           child: GlobalTime(node: node, ambientTextStyle: widget.style));
+
+      case HighlightNode():
+        return _buildNodes(node.nodes,
+          style: TextStyle(backgroundColor: ContentTheme.of(_context!).colorHighlightBackground));
 
       case UnimplementedInlineContentNode():
         return _errorUnimplemented(node, context: _context!);

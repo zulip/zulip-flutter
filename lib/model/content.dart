@@ -913,6 +913,10 @@ class GlobalTimeNode extends InlineContentNode {
   }
 }
 
+class HighlightNode extends InlineContainerNode {
+  const HighlightNode({super.debugHtmlNode, required super.nodes});
+}
+
 ////////////////////////////////////////////////////////////////
 
 /// Parser for the inline-content subtrees within Zulip content HTML.
@@ -1085,6 +1089,10 @@ class _ZulipInlineContentParser {
       if (!datetime.isUtc) return unimplemented();
 
       return GlobalTimeNode(datetime: datetime, debugHtmlNode: debugHtmlNode);
+    }
+
+    if (localName == 'span' && className == 'highlight') {
+      return HighlightNode(nodes: nodes(), debugHtmlNode: debugHtmlNode);
     }
 
     if (localName == 'audio' && className.isEmpty) {
