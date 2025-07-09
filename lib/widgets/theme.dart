@@ -171,6 +171,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
     labelMenuButton: const Color(0xff222222),
     labelSearchPrompt: const Color(0xff000000).withValues(alpha: 0.5),
+    listMenuItemBg: const Color(0xffcbcdd6),
+    listMenuItemIcon: const Color(0xff9194a3),
+    listMenuItemText: const Color(0xff2d303c),
     mainBackground: const Color(0xfff0f0f0),
     neutralButtonBg: const Color(0xff8c84ae),
     neutralButtonLabel: const Color(0xff433d5c),
@@ -251,6 +254,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
     labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
     labelSearchPrompt: const Color(0xffffffff).withValues(alpha: 0.5),
+    listMenuItemBg: const Color(0xff2d303c),
+    listMenuItemIcon: const Color(0xff767988),
+    listMenuItemText: const Color(0xffcbcdd6),
     mainBackground: const Color(0xff1d1d1d),
     neutralButtonBg: const Color(0xffd4d1e0),
     neutralButtonLabel: const Color(0xffa9a3c2),
@@ -339,6 +345,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.labelEdited,
     required this.labelMenuButton,
     required this.labelSearchPrompt,
+    required this.listMenuItemBg,
+    required this.listMenuItemIcon,
+    required this.listMenuItemText,
     required this.mainBackground,
     required this.neutralButtonBg,
     required this.neutralButtonLabel,
@@ -424,6 +433,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color labelEdited;
   final Color labelMenuButton;
   final Color labelSearchPrompt;
+  final Color listMenuItemBg;
+  final Color listMenuItemIcon;
+  final Color listMenuItemText;
   final Color mainBackground;
   final Color neutralButtonBg;
   final Color neutralButtonLabel;
@@ -504,6 +516,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? labelEdited,
     Color? labelMenuButton,
     Color? labelSearchPrompt,
+    Color? listMenuItemBg,
+    Color? listMenuItemIcon,
+    Color? listMenuItemText,
     Color? mainBackground,
     Color? neutralButtonBg,
     Color? neutralButtonLabel,
@@ -579,6 +594,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelEdited: labelEdited ?? this.labelEdited,
       labelMenuButton: labelMenuButton ?? this.labelMenuButton,
       labelSearchPrompt: labelSearchPrompt ?? this.labelSearchPrompt,
+      listMenuItemBg: listMenuItemBg ?? this.listMenuItemBg,
+      listMenuItemIcon: listMenuItemIcon ?? this.listMenuItemIcon,
+      listMenuItemText: listMenuItemText ?? this.listMenuItemText,
       mainBackground: mainBackground ?? this.mainBackground,
       neutralButtonBg: neutralButtonBg ?? this.neutralButtonBg,
       neutralButtonLabel: neutralButtonLabel ?? this.neutralButtonLabel,
@@ -661,6 +679,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelEdited: Color.lerp(labelEdited, other.labelEdited, t)!,
       labelMenuButton: Color.lerp(labelMenuButton, other.labelMenuButton, t)!,
       labelSearchPrompt: Color.lerp(labelSearchPrompt, other.labelSearchPrompt, t)!,
+      listMenuItemBg: Color.lerp(listMenuItemBg, other.listMenuItemBg, t)!,
+      listMenuItemIcon: Color.lerp(listMenuItemIcon, other.listMenuItemIcon, t)!,
+      listMenuItemText: Color.lerp(listMenuItemText, other.listMenuItemText, t)!,
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
       neutralButtonBg: Color.lerp(neutralButtonBg, other.neutralButtonBg, t)!,
       neutralButtonLabel: Color.lerp(neutralButtonLabel, other.neutralButtonLabel, t)!,

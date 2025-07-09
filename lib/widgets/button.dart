@@ -259,7 +259,7 @@ class _AnimatedScaleOnTapState extends State<AnimatedScaleOnTap> {
   }
 }
 
-/// The rounded-rectangle shape and 1-pixel spacing for a run of [MenuButton]s.
+/// The rounded-rectangle shape and 1-pixel spacing for a run of [ZulipMenuItemButton]s.
 class MenuButtonsShape extends StatelessWidget {
   const MenuButtonsShape({
     super.key,
@@ -277,21 +277,25 @@ class MenuButtonsShape extends StatelessWidget {
   }
 }
 
-/// The "menu button" component in Figma.
+/// The "menu button" or "list button" component in Figma.
+///
+/// Use [ZulipMenuItemButtonStyle] to choose between components.
 ///
 /// Must have a [MenuButtonsShape] ancestor.
 ///
 /// See Figma:
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6070-60681&m=dev
-class MenuButton extends StatelessWidget {
-  const MenuButton({
+class ZulipMenuItemButton extends StatelessWidget {
+  const ZulipMenuItemButton({
     super.key,
+    this.style = ZulipMenuItemButtonStyle.menu,
     required this.label,
     required this.onPressed,
     this.icon,
     this.toggle,
   });
 
+  final ZulipMenuItemButtonStyle style;
   final String label;
   final VoidCallback onPressed;
   final IconData? icon;
@@ -300,9 +304,14 @@ class MenuButton extends StatelessWidget {
   ///
   /// See Figma:
   ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6070-60682&m=dev
+  // TODO(design) Is the toggle option meant only for
+  //   [ZulipMenuItemButtonStyle.menu]?
   final Widget? toggle;
 
-  static double itemSpacing = 16;
+  double get itemSpacingAndEndPadding => switch (style) {
+    ZulipMenuItemButtonStyle.menu => 16,
+    ZulipMenuItemButtonStyle.list => 12,
+  };
 
   static bool _debugCheckShapeAncestor(BuildContext context) {
     final ancestor = context.findAncestorWidgetOfExactType<MenuButtonsShape>();
@@ -310,10 +319,46 @@ class MenuButton extends StatelessWidget {
       if (ancestor != null) return true;
       throw FlutterError.fromParts([
         ErrorSummary('No MenuButtonsShape ancestor found.'),
-        ErrorDescription('MenuButton widgets require a MenuButtonsShape ancestor.'),
+        ErrorDescription('ZulipMenuItemButton widgets require a MenuButtonsShape ancestor.'),
       ]);
     }());
     return true;
+  }
+
+  WidgetStateColor _backgroundColor(DesignVariables designVariables) {
+    switch (style) {
+      case ZulipMenuItemButtonStyle.menu:
+        return WidgetStateColor.fromMap({
+          WidgetState.pressed: designVariables.contextMenuItemBg.withFadedAlpha(0.20),
+          ~WidgetState.pressed: designVariables.contextMenuItemBg.withFadedAlpha(0.12),
+        });
+      case ZulipMenuItemButtonStyle.list:
+        return WidgetStateColor.fromMap({
+          WidgetState.pressed: designVariables.listMenuItemBg.withFadedAlpha(0.7),
+          ~WidgetState.pressed: designVariables.listMenuItemBg.withFadedAlpha(0.35),
+        });
+    }
+  }
+
+  Color _labelColor(DesignVariables designVariables) {
+    return switch (style) {
+      ZulipMenuItemButtonStyle.menu => designVariables.contextMenuItemText,
+      ZulipMenuItemButtonStyle.list => designVariables.listMenuItemText,
+    };
+  }
+
+  double _labelWght() {
+    return switch (style) {
+      ZulipMenuItemButtonStyle.menu => 600,
+      ZulipMenuItemButtonStyle.list => 500,
+    };
+  }
+
+  Color _iconColor(DesignVariables designVariables) {
+    return switch (style) {
+      ZulipMenuItemButtonStyle.menu => designVariables.contextMenuItemIcon,
+      ZulipMenuItemButtonStyle.list => designVariables.listMenuItemIcon,
+    };
   }
 
   @override
@@ -331,33 +376,46 @@ class MenuButton extends StatelessWidget {
             // This Material widget gives us 12px padding before the icon --
             // or more or less, depending on Theme.of(context).visualDensity,
             // hence the `assert` above.
-            padding: EdgeInsetsDirectional.only(start: itemSpacing - 12),
+            padding: EdgeInsetsDirectional.only(start: itemSpacingAndEndPadding - 12),
 
             child: Row(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
-              spacing: itemSpacing,
+              spacing: itemSpacingAndEndPadding,
               children: [
                 if (toggle != null) toggle!,
-                if (icon != null) Icon(icon!, color: designVariables.contextMenuItemIcon),
+                if (icon != null) Icon(icon!, color: _iconColor(designVariables)),
               ]))
         : null,
       style: MenuItemButton.styleFrom(
         minimumSize: Size.fromHeight(48),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        foregroundColor: designVariables.contextMenuItemText,
+        padding: EdgeInsetsDirectional.only(start: 16, end: itemSpacingAndEndPadding),
+        foregroundColor: _labelColor(designVariables),
         splashFactory: NoSplash.splashFactory,
-      ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
-          designVariables.contextMenuItemBg.withFadedAlpha(
-            states.contains(WidgetState.pressed) ? 0.20 : 0.12))),
+      ).copyWith(backgroundColor: _backgroundColor(designVariables)),
       onPressed: onPressed,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
+        // TODO sublabel, for [ZulipMenuItemButtonStyle.list]
         child: Text(label,
           style: const TextStyle(fontSize: 20, height: 24 / 20)
-            .merge(weightVariableTextStyle(context, wght: 600))),
-      ));
+            .merge(weightVariableTextStyle(context, wght: _labelWght())))));
   }
+}
+
+/// The style of a [ZulipMenuItemButton].
+enum ZulipMenuItemButtonStyle {
+  /// The purple "menu button" component in Figma, with 16px end padding.
+  ///
+  /// See Figma:
+  ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3302-20443&m=dev
+  menu,
+
+  /// The gray "list button" component in Figma, with 12px end padding.
+  ///
+  /// See Figma:
+  ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=5000-52868&m=dev
+  list,
 }
 
 /// The "toggle" component in Figma.

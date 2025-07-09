@@ -379,7 +379,7 @@ void main() {
   });
 
   group('invisible mode', () {
-    final findRow = find.widgetWithText(MenuButton, 'Invisible mode');
+    final findRow = find.widgetWithText(ZulipMenuItemButton, 'Invisible mode');
     final findToggle = find.descendant(of: findRow, matching: find.byType(Toggle));
 
     void checkDoesNotAppear(WidgetTester tester) {

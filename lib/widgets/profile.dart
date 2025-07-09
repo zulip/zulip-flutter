@@ -139,7 +139,7 @@ class _InvisibleModeToggle extends StatelessWidget {
           requestedValue
             ? zulipLocalizations.turnOnInvisibleModeErrorTitle
             : zulipLocalizations.turnOffInvisibleModeErrorTitle),
-        builder: (value, handleRequestNewValue) => MenuButton(
+        builder: (value, handleRequestNewValue) => ZulipMenuItemButton(
           label: zulipLocalizations.invisibleMode,
           onPressed: () => handleRequestNewValue(!value),
           toggle: Toggle(value: value, onChanged: handleRequestNewValue))),
