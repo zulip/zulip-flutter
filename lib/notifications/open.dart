@@ -239,9 +239,6 @@ class NotificationOpenPayload {
       final narrow = switch (zulipData) {
         {
           'recipient_type': 'stream',
-          // TODO(server-5) remove this comment.
-          // We require 'stream_id' here but that is new from Server 5.0,
-          // resulting in failure on pre-5.0 servers.
           'stream_id': final int streamId,
           'topic': final String topic,
         } =>
