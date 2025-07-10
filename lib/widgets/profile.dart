@@ -16,6 +16,7 @@ import 'page.dart';
 import 'remote_settings.dart';
 import 'store.dart';
 import 'text.dart';
+import 'theme.dart';
 
 class _TextStyles {
   static const primaryFieldText = TextStyle(fontSize: 20);
@@ -47,6 +48,7 @@ class ProfilePage extends StatelessWidget {
     if (user == null) {
       return const _ProfileErrorPage();
     }
+    final userStatus = store.getUserStatus(userId);
 
     final nameStyle = _TextStyles.primaryFieldText
       .merge(weightVariableTextStyle(context, wght: 700));
@@ -73,9 +75,21 @@ class ProfilePage extends StatelessWidget {
           ),
           // TODO write a test where the user is muted; check this and avatar
           TextSpan(text: store.userDisplayName(userId, replaceIfMuted: false)),
+          UserStatusEmoji.asWidgetSpan(
+            userId: userId,
+            fontSize: 20,
+            textScaler: MediaQuery.textScalerOf(context),
+            neverAnimate: false,
+          ),
         ]),
         textAlign: TextAlign.center,
         style: nameStyle),
+      if (userStatus.text != null)
+        Text(userStatus.text!,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 18, height: 22 / 18,
+            color: DesignVariables.of(context).userStatusText)),
+
       if (displayEmail != null)
         Text(displayEmail,
           textAlign: TextAlign.center,
@@ -83,7 +97,6 @@ class ProfilePage extends StatelessWidget {
       Text(roleToLabel(user.role, zulipLocalizations),
         textAlign: TextAlign.center,
         style: _TextStyles.primaryFieldText),
-      // TODO(#197) render user status
       // TODO(#196) render active status
       // TODO(#292) render user local time
 
