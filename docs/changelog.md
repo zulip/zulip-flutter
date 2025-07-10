@@ -2,6 +2,57 @@
 
 ## Unreleased
 
+This release branch includes some experimental changes
+not yet merged to the main branch.
+
+
+### Highlights for users
+
+* See who reacted to a message. (#740)
+* Turn invisible mode on and off. (#1578)
+* Less empty space at end of message feed. (PR #1628)
+* After you return to the app, it resumes its connection
+  more quickly. (#979)
+* The message long-press menu shows the message and
+  when it was sent. (#217)
+* (iOS) Fixed white flash on opening app in dark mode. (#1149)
+
+
+### Highlights for developers
+
+* User-visible changes not described above:
+  * Upgraded Flutter and other dependencies. (#1684)
+  * Case-insensitive topics in unreads and other data
+    structures. (#980)
+  * Icon for topic-list button, rather than "TOPICS". (#1532)
+  * Status emoji properly follow system text-scale setting.
+    (revision to PR #1629, for #197)
+  * Status text's font size increased.
+    (revision to PR #1629, for #197)
+  * Fixed scroll behavior of math blocks in RTL locales.
+    (revision to PR #1452, at 5677317bc, for #46)
+  * Fixed vertical alignment within TeX math expressions.
+    (e8e8f4105; revision to PR #1452, for #46)
+  * Adjusted color of icons in action sheets.
+    (included in PR #1631, for #1578)
+  * Removed blank space for absent status emoji.
+    (revision to PR #1629, for #197)
+  * Adjusted choice of "Close" vs "Cancel" in action sheets.
+    (included in PR #1700, for #740)
+  * Translation updates. (PR #1682)
+
+* Workarounds in our CI for a Flutter infra issue with the
+  "main" branch. (PR #1690, PR #1691; flutter/flutter#171833)
+
+* Resolved in main: #296, PR #1684, PR #1628, #980, #1532, #662,
+  #217, #1578, #1149, PR #1629, #979, PR #1682, PR #1452
+
+* Resolved in the experimental branch:
+  * more toward #46 via PR #1698
+  * further toward #46 via PR #1559
+  * #197 via PR #1702
+  * #740 via PR #1700
+
 
 ## 30.0.260 (2025-07-03)
 
