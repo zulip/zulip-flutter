@@ -122,6 +122,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Nie udało się oznaczyć brak rozwiązania';
 
   @override
+  String get actionSheetOptionSeeWhoReacted => 'See who reacted';
+
+  @override
+  String get seeWhoReactedSheetNoReactions => 'This message has no reactions.';
+
+  @override
   String get actionSheetOptionCopyMessageText => 'Skopiuj tekst wiadomości';
 
   @override

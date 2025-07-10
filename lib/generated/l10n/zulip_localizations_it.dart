@@ -121,6 +121,12 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Impossibile contrassegnare l\'argomento come irrisolto';
 
   @override
+  String get actionSheetOptionSeeWhoReacted => 'See who reacted';
+
+  @override
+  String get seeWhoReactedSheetNoReactions => 'This message has no reactions.';
+
+  @override
   String get actionSheetOptionCopyMessageText => 'Copia il testo del messaggio';
 
   @override
