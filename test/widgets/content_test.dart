@@ -602,6 +602,27 @@ void main() {
           (':', Offset(16.00, 2.24), Size(5.72, 25.00)),
           ('2', Offset(27.43, 2.24), Size(10.28, 25.00)),
         ]),
+        (ContentExample.mathBlockKatexVertical1, skip: false, [
+          ('a', Offset(0.00, 5.28), Size(10.88, 25.00)),
+          ('′', Offset(10.88, 1.13), Size(3.96, 17.00)),
+        ]),
+        (ContentExample.mathBlockKatexVertical2, skip: false, [
+          ('x', Offset(0.00, 5.28), Size(11.76, 25.00)),
+          ('n', Offset(11.76, 13.65), Size(8.63, 17.00)),
+        ]),
+        (ContentExample.mathBlockKatexVertical3, skip: false, [
+          ('e', Offset(0.00, 5.28), Size(9.58, 25.00)),
+          ('x', Offset(9.58, 2.07), Size(8.23, 17.00)),
+        ]),
+        (ContentExample.mathBlockKatexVertical4, skip: false, [
+          ('u', Offset(0.00, 15.65), Size(8.23, 17.00)),
+          ('o', Offset(0.00, 2.07), Size(6.98, 17.00)),
+        ]),
+        (ContentExample.mathBlockKatexVertical5, skip: false, [
+          ('a', Offset(0.00, 4.16), Size(10.88, 25.00)),
+          ('b', Offset(10.88, -0.66), Size(8.82, 25.00)),
+          ('c', Offset(19.70, 4.16), Size(8.90, 25.00)),
+        ]),
       ];
 
       for (final testCase in testCases) {
