@@ -24,6 +24,7 @@ import 'dialog.dart';
 import 'emoji.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
+import 'katex.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
@@ -897,6 +898,8 @@ class _KatexNodeList extends StatelessWidget {
             child: switch (e) {
               KatexSpanNode() => _KatexSpan(e),
               KatexStrutNode() => _KatexStrut(e),
+              KatexVlistNode() => _KatexVlist(e),
+              KatexNegativeMarginNode() => _KatexNegativeMargin(e),
             }));
       }))));
   }
@@ -923,6 +926,10 @@ class _KatexSpan extends StatelessWidget {
     // `strut` span, for which parser explicitly emits `KatexStrutNode`.
     // So, this should always be null for non `strut` spans.
     assert(styles.verticalAlignEm == null);
+
+    // Currently, we expect `top` to be only present with the
+    // vlist inner row span, and parser handles that explicitly.
+    assert(styles.topEm == null);
 
     final fontFamily = styles.fontFamily;
     final fontSize = switch (styles.fontSizeEm) {
@@ -1021,6 +1028,38 @@ class _KatexStrut extends StatelessWidget {
         baselineType: TextBaseline.alphabetic,
         child: const Text('')),
     );
+  }
+}
+
+class _KatexVlist extends StatelessWidget {
+  const _KatexVlist(this.node);
+
+  final KatexVlistNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    return Stack(children: List.unmodifiable(node.rows.map((row) {
+      return Transform.translate(
+        offset: Offset(0, row.verticalOffsetEm * em),
+        child: _KatexSpan(row.node));
+    })));
+  }
+}
+
+class _KatexNegativeMargin extends StatelessWidget {
+  const _KatexNegativeMargin(this.node);
+
+  final KatexNegativeMarginNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    return NegativeLeftOffset(
+      leftOffset: node.leftOffsetEm * em,
+      child: _KatexNodeList(nodes: node.nodes));
   }
 }
 
