@@ -24,6 +24,7 @@ import 'dialog.dart';
 import 'emoji.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
+import 'katex.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
@@ -898,6 +899,7 @@ class _KatexNodeList extends StatelessWidget {
               KatexSpanNode() => _KatexSpan(e),
               KatexStrutNode() => _KatexStrut(e),
               KatexVlistNode() => _KatexVlist(e),
+              KatexNegativeMarginNode() => _KatexNegativeMargin(e),
             }));
       }))));
   }
@@ -1043,6 +1045,21 @@ class _KatexVlist extends StatelessWidget {
         offset: Offset(0, row.verticalOffsetEm * em),
         child: _KatexSpan(row.node));
     })));
+  }
+}
+
+class _KatexNegativeMargin extends StatelessWidget {
+  const _KatexNegativeMargin(this.node);
+
+  final KatexNegativeMarginNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final em = DefaultTextStyle.of(context).style.fontSize!;
+
+    return NegativeLeftOffset(
+      leftOffset: node.leftOffsetEm * em,
+      child: _KatexNodeList(nodes: node.nodes));
   }
 }
 
