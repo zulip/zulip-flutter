@@ -1227,6 +1227,102 @@ abstract class ZulipLocalizations {
   /// **'Unknown'**
   String get userRoleUnknown;
 
+  /// The status button label in self-user profile page when status is set.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get status;
+
+  /// The status button label in self-user profile page when status is not set.
+  ///
+  /// In en, this message translates to:
+  /// **'Set status'**
+  String get setStatus;
+
+  /// The text part of the status button sub-label in self-user profile page when status text is not set.
+  ///
+  /// In en, this message translates to:
+  /// **'Not status text'**
+  String get noStatusText;
+
+  /// Title for the page where user status is set.
+  ///
+  /// In en, this message translates to:
+  /// **'My status'**
+  String get myStatus;
+
+  /// Label for the button that clears the user status.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get statusClear;
+
+  /// Label for the button that saves the user status.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get statusSave;
+
+  /// Label for the button that saves the user status when saving is in progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving'**
+  String get statusSaving;
+
+  /// Label for the button that opens up emoji picker in setting user status page.
+  ///
+  /// In en, this message translates to:
+  /// **'Emoji'**
+  String get emoji;
+
+  /// Hint text for the status text input field in setting user status page.
+  ///
+  /// In en, this message translates to:
+  /// **'Your status'**
+  String get yourStatus;
+
+  /// Label for one of the suggested user statuses with status text 'Busy', in setting user status page.
+  ///
+  /// In en, this message translates to:
+  /// **'Busy'**
+  String get userStatusBusy;
+
+  /// Label for one of the suggested user statuses with status text 'In a meeting', in setting user status page.
+  ///
+  /// In en, this message translates to:
+  /// **'In a meeting'**
+  String get userStatusInAMeeting;
+
+  /// Label for one of the suggested user statuses with status text 'Commuting', in setting user status page.
+  ///
+  /// In en, this message translates to:
+  /// **'Commuting'**
+  String get userStatusCommuting;
+
+  /// Label for one of the suggested user statuses with status text 'Out sick', in setting user status page.
+  ///
+  /// In en, this message translates to:
+  /// **'Out sick'**
+  String get userStatusOutSick;
+
+  /// Label for one of the suggested user statuses with status text 'Vacationing', in setting user status page.
+  ///
+  /// In en, this message translates to:
+  /// **'Vacationing'**
+  String get userStatusVacationing;
+
+  /// Label for one of the suggested user statuses with status text 'Working remotely', in setting user status page.
+  ///
+  /// In en, this message translates to:
+  /// **'Working remotely'**
+  String get userStatusWorkingRemotely;
+
+  /// Label for one of the suggested user statuses with status text 'At the office', in setting user status page.
+  ///
+  /// In en, this message translates to:
+  /// **'At the office'**
+  String get userStatusAtTheOffice;
+
   /// Page title for the 'Search' message view.
   ///
   /// In en, this message translates to:

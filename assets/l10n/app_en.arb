@@ -809,6 +809,70 @@
   "@userRoleUnknown": {
     "description": "Label for UserRole.unknown"
   },
+  "status": "Status",
+  "@status": {
+    "description": "The status button label in self-user profile page when status is set."
+  },
+  "setStatus": "Set status",
+  "@setStatus": {
+    "description": "The status button label in self-user profile page when status is not set."
+  },
+  "noStatusText": "Not status text",
+  "@noStatusText": {
+    "description": "The text part of the status button sub-label in self-user profile page when status text is not set."
+  },
+  "myStatus": "My status",
+  "@myStatus": {
+    "description": "Title for the page where user status is set."
+  },
+  "statusClear": "Clear",
+  "@statusClear": {
+    "description": "Label for the button that clears the user status."
+  },
+  "statusSave": "Save",
+  "@statusSave": {
+    "description": "Label for the button that saves the user status."
+  },
+  "statusSaving": "Saving",
+  "@statusSaving": {
+    "description": "Label for the button that saves the user status when saving is in progress."
+  },
+  "emoji": "Emoji",
+  "@emoji": {
+    "description": "Label for the button that opens up emoji picker in setting user status page."
+  },
+  "yourStatus": "Your status",
+  "@yourStatus": {
+    "description": "Hint text for the status text input field in setting user status page."
+  },
+  "userStatusBusy": "Busy",
+  "@userStatusBusy": {
+    "description": "Label for one of the suggested user statuses with status text 'Busy', in setting user status page."
+  },
+  "userStatusInAMeeting": "In a meeting",
+  "@userStatusInAMeeting": {
+    "description": "Label for one of the suggested user statuses with status text 'In a meeting', in setting user status page."
+  },
+  "userStatusCommuting": "Commuting",
+  "@userStatusCommuting": {
+    "description": "Label for one of the suggested user statuses with status text 'Commuting', in setting user status page."
+  },
+  "userStatusOutSick": "Out sick",
+  "@userStatusOutSick": {
+    "description": "Label for one of the suggested user statuses with status text 'Out sick', in setting user status page."
+  },
+  "userStatusVacationing": "Vacationing",
+  "@userStatusVacationing": {
+    "description": "Label for one of the suggested user statuses with status text 'Vacationing', in setting user status page."
+  },
+  "userStatusWorkingRemotely": "Working remotely",
+  "@userStatusWorkingRemotely": {
+    "description": "Label for one of the suggested user statuses with status text 'Working remotely', in setting user status page."
+  },
+  "userStatusAtTheOffice": "At the office",
+  "@userStatusAtTheOffice": {
+    "description": "Label for one of the suggested user statuses with status text 'At the office', in setting user status page."
+  },
   "searchMessagesPageTitle": "Search",
   "@searchMessagesPageTitle": {
     "description": "Page title for the 'Search' message view."

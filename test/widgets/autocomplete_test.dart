@@ -7,6 +7,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/realm.dart';
+import 'package:zulip/basic.dart';
 import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/localizations.dart';
@@ -15,6 +16,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/emoji.dart';
 import 'package:zulip/widgets/message_list.dart';
 
 import '../api/fake_api.dart';
@@ -23,6 +25,7 @@ import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../test_images.dart';
+import 'message_list_test.dart';
 import 'test_app.dart';
 
 /// Simulates loading a [MessageListPage] and tapping to focus the compose input.
@@ -36,6 +39,7 @@ import 'test_app.dart';
 /// before the end of the test.
 Future<Finder> setupToComposeInput(WidgetTester tester, {
   List<User> users = const [],
+  List<(int userId, UserStatusChange change)>? userStatuses,
   Narrow? narrow,
 }) async {
   assert(narrow is ChannelNarrow? || narrow is SendableNarrow?);
@@ -47,6 +51,7 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
   final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
   await store.addUsers([eg.selfUser, eg.otherUser]);
   await store.addUsers(users);
+  await store.changeUserStatuses(userStatuses ?? []);
   final connection = store.connection as FakeApiConnection;
 
   narrow ??= DmNarrow(
@@ -152,9 +157,24 @@ void main() {
     Finder findAvatarImage(int userId) =>
       find.byWidgetPredicate((widget) => widget is AvatarImage && widget.userId == userId);
 
-    void checkUserShown(User user, {required bool expected}) {
-      check(find.text(user.fullName)).findsExactly(expected ? 1 : 0);
-      check(findAvatarImage(user.userId)).findsExactly(expected ? 1 : 0);
+    void checkUserShown(User user, {required bool expected, bool withStatusEmoji = false}) {
+      assert(expected || !withStatusEmoji);
+
+      final nameFinder = find.text(user.fullName);
+      check(nameFinder).findsExactly(expected ? 1 : 0);
+
+      final avatarFinder = findAvatarImage(user.userId);
+      check(avatarFinder).findsExactly(expected ? 1 : 0);
+
+      final statusEmojiFinder = findStatusEmoji(UnicodeEmojiWidget);
+      if (withStatusEmoji) {
+        checkUserStatusEmoji(statusEmojiFinder, isAnimated: false);
+      }
+      final rowFinder = find.ancestor(of: nameFinder,
+        matching: find.ancestor(of: avatarFinder,
+          matching: find.ancestor(of: statusEmojiFinder,
+            matching: find.byType(Row))));
+      check(rowFinder).findsExactly(expected && withStatusEmoji ? 1 : 0);
     }
 
     testWidgets('user options appear, disappear, and change correctly', (tester) async {
@@ -198,6 +218,31 @@ void main() {
       checkUserShown(user1, expected: false);
       checkUserShown(user2, expected: false);
       checkUserShown(user3, expected: false);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('status emoji is set -> emoji is displayed', (tester) async {
+      final user1 = eg.user(userId: 1, fullName: 'User One', avatarUrl: 'user1.png');
+      final user2 = eg.user(userId: 2, fullName: 'User Two', avatarUrl: 'user2.png');
+      final composeInputFinder = await setupToComposeInput(tester,
+        users: [user1, user2], userStatuses: [
+          (
+            user1.userId,
+            UserStatusChange(
+              text: OptionSome('Busy'),
+              emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+                emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji)))
+          ),
+        ]);
+
+      // // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'hello @u');
+      await tester.enterText(composeInputFinder, 'hello @');
+      await tester.pumpAndSettle(); // async computation; options appear
+
+      checkUserShown(user1, expected: true, withStatusEmoji: true);
+      checkUserShown(user2, expected: true, withStatusEmoji: false);
 
       debugNetworkImageHttpClientProvider = null;
     });
