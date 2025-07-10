@@ -324,7 +324,8 @@ void _showMainMenu(BuildContext context, {
                 child: AnimatedScaleOnTap(
                   scaleEnd: 0.95,
                   duration: Duration(milliseconds: 100),
-                  child: ActionSheetCancelButton())),
+                  child: BottomSheetDismissButton(
+                    style: BottomSheetDismissButtonStyle.close))),
             ])));
     });
 }

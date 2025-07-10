@@ -122,6 +122,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Не удалось отметить тему как нерешенную';
 
   @override
+  String get actionSheetOptionSeeWhoReacted => 'See who reacted';
+
+  @override
+  String get seeWhoReactedSheetNoReactions => 'This message has no reactions.';
+
+  @override
   String get actionSheetOptionCopyMessageText => 'Скопировать текст сообщения';
 
   @override

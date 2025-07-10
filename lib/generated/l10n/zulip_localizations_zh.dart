@@ -119,6 +119,12 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
       'Failed to mark topic as unresolved';
 
   @override
+  String get actionSheetOptionSeeWhoReacted => 'See who reacted';
+
+  @override
+  String get seeWhoReactedSheetNoReactions => 'This message has no reactions.';
+
+  @override
   String get actionSheetOptionCopyMessageText => 'Copy message text';
 
   @override

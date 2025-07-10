@@ -120,6 +120,12 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
       'Neuspela označitev teme kot nerazrešene';
 
   @override
+  String get actionSheetOptionSeeWhoReacted => 'See who reacted';
+
+  @override
+  String get seeWhoReactedSheetNoReactions => 'This message has no reactions.';
+
+  @override
   String get actionSheetOptionCopyMessageText => 'Kopiraj besedilo sporočila';
 
   @override
