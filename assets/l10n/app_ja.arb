@@ -1,0 +1,20 @@
+{
+  "chooseAccountPageTitle": "アカウントを選択",
+  "@chooseAccountPageTitle": {},
+  "chooseAccountButtonAddAnAccount": "新しいアカウントを追加",
+  "@chooseAccountButtonAddAnAccount": {},
+  "profileButtonSendDirectMessage": "ダイレクトメッセージを送信",
+  "@profileButtonSendDirectMessage": {},
+  "userRoleOwner": "オーナー",
+  "@userRoleOwner": {},
+  "userRoleAdministrator": "管理者",
+  "@userRoleAdministrator": {},
+  "userRoleModerator": "モデレータ",
+  "@userRoleModerator": {},
+  "userRoleMember": "メンバー",
+  "@userRoleMember": {},
+  "userRoleGuest": "ゲスト",
+  "@userRoleGuest": {},
+  "userRoleUnknown": "不明",
+  "@userRoleUnknown": {}
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This file is necessary for notifications to work in release builds.
+
+     The issue is that the Pigeon bindings for notifications API has us
+     identify which icon we want to use via a string name, in Dart code,
+     and that's invisible to the resource shrinker:
+       https://developer.android.com/build/shrink-code#keep-resources
+     If the icon isn't named in this file, it gets removed in release builds
+     (more precisely, replaced with a 0-byte file, which is invalid for its
+     image format).  The system then discards notifications that try to use
+     the invalid icon file:
+       https://github.com/zulip/zulip-flutter/issues/528
+     -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/zulip_notification,@raw/chime2,@raw/chime3,@raw/chime4"
+    />

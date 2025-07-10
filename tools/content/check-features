@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+default_steps=(fetch check)
+
+usage() {
+    cat <<EOF
+usage: tools/content/check-features [OPTION]... [STEP]... <CORPUS_DIR>
+
+Fetch messages from a Zulip server and check the content parser for
+unimplemented features.
+
+By default, run the following steps:
+  ${default_steps[*]}
+
+CORPUS_DIR is required.  It is the directory to store or read corpus files.
+This directory will be created if it does not exist already.
+
+The steps are:
+
+  fetch     Fetch the corpus needed from the server specified via the config
+            file into \`CORPUS_DIR\` incrementally.  This step can take a long
+            time on servers with a lot of public messages when starting from
+            scratch.
+            This wraps around tools/content/fetch_messages.dart.
+
+  check     Check for unimplemented content parser features.  This requires
+            the corpus directory \`CORPUS_DIR\` to contain at least one corpus
+            file.
+            This wraps around tools/content/unimplemented_features_test.dart.
+
+  katex-check
+            Check for unimplemented KaTeX features.  This requires the corpus
+            directory \`CORPUS_DIR\` to contain at least one corpus file.
+            This wraps around tools/content/unimplemented_katex_test.dart.
+
+Options:
+
+  --config <FILE>
+            A zuliprc file with identity information including email, API key
+            and the Zulip server URL to fetch the messages from.
+            Mandatory if running step \`fetch\`.  To get the file, see
+            https://zulip.com/api/configuring-python-bindings#download-a-zuliprc-file.
+
+  --verbose Print more details about everything, especially when checking for
+            unsupported features.
+
+  --help    Show this help message.
+EOF
+}
+
+opt_corpus_dir=
+opt_zuliprc=
+opt_verbose=
+opt_steps=()
+while (( $# )); do
+    case "$1" in
+        fetch|check|katex-check) opt_steps+=("$1"); shift;;
+        --config) shift; opt_zuliprc="$1"; shift;;
+        --verbose) opt_verbose=1; shift;;
+        --help) usage; exit 0;;
+        *)
+            if [ -n "$opt_corpus_dir" ]; then
+                # Forbid passing multiple corpus directories.
+                usage >&2; exit 2
+            fi
+            opt_corpus_dir="$1"; shift;;
+    esac
+done
+
+if [ -z "$opt_corpus_dir" ]; then
+    echo  >&2 "Error: Positional argument CORPUS_DIR is required."
+    echo  >&2
+    usage >&2; exit 2
+fi
+
+if (( ! "${#opt_steps[@]}" )); then
+    opt_steps=( "${default_steps[@]}" )
+fi
+
+run_fetch() {
+    if [ -z "$opt_zuliprc" ]; then
+        echo >&2 "Error: Option \`--config\` is required for step \`fetch\`."
+        echo >&2
+        usage >&2; exit 2
+    fi
+
+    if [ -n "$opt_verbose" ]; then
+        echo "Fetching all public messages using API config \"$opt_zuliprc\"." \
+             " This can take a long time."
+    fi
+    # This may have a side effect of creating or modifying the corpus
+    # file named after the Zulip server's host name.
+    dart tools/content/fetch_messages.dart --config-file "$opt_zuliprc" \
+        --corpus-dir "$opt_corpus_dir" \
+    || return 1
+}
+
+run_check() {
+    flutter test tools/content/unimplemented_features_test.dart \
+        --dart-define=corpusDir="$opt_corpus_dir" \
+        --dart-define=verbose="$opt_verbose" \
+    || return 1
+}
+
+run_katex_check() {
+    flutter test tools/content/unimplemented_katex_test.dart \
+        --dart-define=corpusDir="$opt_corpus_dir" \
+        --dart-define=verbose="$opt_verbose" \
+    || return 1
+}
+
+for step in "${opt_steps[@]}"; do
+    echo "Running ${step}"
+    case "${step}" in
+        fetch) run_fetch ;;
+        check) run_check ;;
+        katex-check) run_katex_check ;;
+        *)     echo >&2 "Internal error: unknown step ${step}" ;;
+    esac
+done

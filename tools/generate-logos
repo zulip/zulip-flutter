@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+set -eu
+
+# Generate the many different versions of our logo we need across the app.
+#
+# This script is not run as part of the build, in order to avoid introducing
+# its somewhat specialized dependencies as requirements for normal
+# development.  Instead, we keep its outputs checked into the repo.
+
+# Because this script isn't meant to be run routinely, we let it be a bit
+# rough-and-ready in its interface.  But it should error early if it's
+# missing anything it needs.
+#
+# Much of the knowledge it encodes -- what contexts call for which
+# graphical variation of the logo, in what sizes and what format --
+# was compiled at https://github.com/zulip/zulip-mobile/issues/4200
+# before being turned into this executable form (first for zulip-mobile).
+
+# TIP: Everything in this script has the handy property that its
+# outputs are reproducible.  That means that if you run it and
+# `git status` shows that it's changed any of the files in the
+# tree... then either the source images, or something in the
+# script itself, has changed since the run reflected in your
+# current tree.
+
+this_dir=${BASH_SOURCE[0]%/*}
+# shellcheck source=tools/lib/ensure-coreutils.sh
+. "${this_dir}"/lib/ensure-coreutils.sh
+root_dir=$(readlink -f "${this_dir}"/..)
+
+tmpdir=$(mktemp -d)
+
+die() {
+    echo >&2 "$1"
+    exit 1
+}
+
+rsvg-convert --version >/dev/null 2>&1 \
+    || die "Need rsvg-convert -- try 'apt install librsvg2-bin'."
+
+cwebp -version >/dev/null 2>&1 \
+    || die "Need cwebp -- try 'apt install webp'."
+
+jq --version >/dev/null 2>&1 \
+    || die "Need jq -- try 'apt install jq'."
+
+
+# White Z, on transparent background.
+src_icon_foreground="${root_dir}"/assets/app-icons/zulip-white-z-on-transparent.svg
+
+# Gradient-colored square, full-bleed.
+src_icon_background="${root_dir}"/assets/app-icons/zulip-gradient.svg
+
+# Combination of ${src_icon_foreground} upon ${src_icon_background}...
+# more or less.  (The foreground layer is larger, with less padding,
+# and the SVG is different in random other ways.)
+src_icon_combined="${root_dir}"/assets/app-icons/zulip-combined.svg
+
+
+make_one_ios_app_icon() {
+    # SET BY CALLER: contents iconset
+    local size_pt="$1" scale="$2" idiom="$3"
+    local size_px="${4-$(( size_pt * scale ))}"
+
+    local output_basename=Icon-"${size_pt}x${size_pt}@${scale}x".png
+    local output="${iconset}"/"${output_basename}"
+    if [ ! -f "${output}" ]; then
+        rsvg-convert "${src_icon_combined}" -w "${size_px}" -o "${output}"
+    fi
+
+    printf >>"${contents}" \
+      '  { "size": "%s", "idiom": "%s", "filename": "%s", "scale": "%s" }\n' \
+      "${size_pt}x${size_pt}" "${idiom}" "${output_basename}" "${scale}x"
+}
+
+make_ios_app_icon() {
+    local iconset=ios/Runner/Assets.xcassets/AppIcon.appiconset
+    rm -rf "${iconset}"
+    mkdir -p "${iconset}"
+
+    local contents="${tmpdir}"/Contents.json.in
+    rm -f "${contents}"
+
+    # Handy command for a compact view of what's in the contents:
+    #   $ jq '.images[] | "\(.size) \(.scale) \(.idiom)"' -r \
+    #       <"${iconset}"/Contents.json
+
+    # From "App Icon Sizes" at:
+    #   https://developer.apple.com/design/human-interface-guidelines/ios/icons-and-images/app-icon/
+    make_one_ios_app_icon 60 3 iphone
+    make_one_ios_app_icon 60 2 iphone
+    make_one_ios_app_icon 83.5 2 ipad 167
+    make_one_ios_app_icon 76 2 ipad
+    make_one_ios_app_icon 1024 1 ios-marketing
+
+    # From "Spotlight, Settings, and Notification Icons"
+    # in the same iOS doc
+    make_one_ios_app_icon 40 3 iphone
+    make_one_ios_app_icon 40 2 iphone
+    make_one_ios_app_icon 40 2 ipad
+    make_one_ios_app_icon 29 3 iphone
+    make_one_ios_app_icon 29 2 iphone
+    make_one_ios_app_icon 29 2 ipad
+    make_one_ios_app_icon 20 3 iphone
+    make_one_ios_app_icon 20 2 iphone
+    make_one_ios_app_icon 20 2 ipad
+
+    jq <"${contents}" \
+       -s '{ "images": ., "info": { "version": 1, "author": "xcode" } }' \
+       >"${iconset}"/Contents.json
+}
+
+make_ios() {
+    make_ios_app_icon
+}
+
+
+make_webp() {
+    local input="$1" size="$2" output="$3"
+    rsvg-convert "${input}" -w "${size}" -o "${tmpdir}"/tmp.png
+    # `cwebp -z 9` means lossless, and max/slowest compression
+    cwebp -z 9 "${tmpdir}"/tmp.png -o "${output}"
+}
+
+make_one_android_icon() {
+    # SET BY CALLER: src sourceset restype name
+    local size_px="$1" density="$2"
+    local output=android/app/src/"${sourceset}"/res/"${restype}"-"${density}"/"${name}".webp
+    mkdir -p "${output%/*}"
+    make_webp "${src}" "${size_px}" "${output}"
+}
+
+make_android_icon() {
+    local src="$1" size_dp="$2" sourceset="$3" restype="$4" name="$5"
+
+    rm -f android/app/src/"${sourceset}"/res/*/"${name}".*
+
+    # Scale factors from:
+    #   https://developer.android.com/training/multiscreen/screendensities#TaskProvideAltBmp
+    make_one_android_icon  "${size_dp}"          mdpi
+    make_one_android_icon $(( size_dp * 3 / 2 )) hdpi
+    make_one_android_icon $(( size_dp *   2   )) xhdpi
+    make_one_android_icon $(( size_dp *   3   )) xxhdpi
+    make_one_android_icon $(( size_dp *   4   )) xxxhdpi
+}
+
+make_android() {
+    # Launcher icons go into mipmaps:
+    #   https://developer.android.com/training/multiscreen/screendensities#mipmap
+    make_android_icon "${src_icon_background}" 108 main mipmap ic_launcher_background
+    make_android_icon "${src_icon_foreground}" 48 main mipmap ic_launcher_monochrome
+}
+
+make_ios
+
+make_android
+
+cat <<'EOF'
+
+Done!
+
+If `git status` shows any changes in this script's outputs, be sure to
+commit those alongside your changes to the script itself.
+EOF

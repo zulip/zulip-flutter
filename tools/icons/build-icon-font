@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Rebuild our custom icon font ZulipIcons.ttf, and the ZulipIcons class.
+#
+# To use these icons, use the ZulipIcons class in the same way
+# as one uses the Flutter Material library's Icons class.
+#
+# To add a new icon, see comments on the ZulipIcons class.
+
+set -euo pipefail
+
+this_dir=${BASH_SOURCE[0]%/*}
+
+cd "${this_dir}"
+
+# `npm install` is painfully verbose, so we dial that back.
+npm install --no-fund --no-audit \
+  | grep -v '^up to date in '
+
+node build-icon-font.js
