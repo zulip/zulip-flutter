@@ -78,6 +78,7 @@ void main() {
     assert(Set.of(messages.map((m) => m.id)).length == messages.length,
       'checkMatchesMessages: duplicate messages in test input');
 
+    final Map<int, SendableNarrow> expectedLocatorMap = {};
     final Map<int, TopicKeyedMap<QueueList<int>>> expectedStreams = {};
     final Map<DmNarrow, QueueList<int>> expectedDms = {};
     final Set<int> expectedMentions = {};
@@ -87,10 +88,12 @@ void main() {
       }
       switch (message) {
         case StreamMessage():
+          expectedLocatorMap[message.id] = TopicNarrow.ofMessage(message);
           final perTopic = expectedStreams[message.streamId] ??= makeTopicKeyedMap();
           final messageIds = perTopic[message.topic] ??= QueueList();
           messageIds.add(message.id);
         case DmMessage():
+          expectedLocatorMap[message.id] = DmNarrow.ofMessage(message, selfUserId: store.selfUserId);
           final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
           final messageIds = expectedDms[narrow] ??= QueueList();
           messageIds.add(message.id);
@@ -112,6 +115,7 @@ void main() {
     }
 
     check(model)
+      ..locatorMap.deepEquals(expectedLocatorMap)
       ..streams.deepEquals(expectedStreams)
       ..dms.deepEquals(expectedDms)
       ..mentions.unorderedEquals(expectedMentions);
