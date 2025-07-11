@@ -83,14 +83,17 @@ void main() {
     final Set<int> expectedMentions = {};
     for (final message in messages) {
       if (message.flags.contains(MessageFlag.read)) {
+        check(model.locatorMap).not((it) => it.containsKey(message.id));
         continue;
       }
       switch (message) {
         case StreamMessage():
+          check(model.locatorMap)[message.id].equals(TopicNarrow.ofMessage(message));
           final perTopic = expectedStreams[message.streamId] ??= makeTopicKeyedMap();
           final messageIds = perTopic[message.topic] ??= QueueList();
           messageIds.add(message.id);
         case DmMessage():
+          check(model.locatorMap)[message.id].equals(DmNarrow.ofMessage(message, selfUserId: store.selfUserId));
           final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
           final messageIds = expectedDms[narrow] ??= QueueList();
           messageIds.add(message.id);

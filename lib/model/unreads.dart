@@ -41,6 +41,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
     required CorePerAccountStore core,
     required ChannelStore channelStore,
   }) {
+    final locatorMap = <int, Narrow>{};
     final streams = <int, TopicKeyedMap<QueueList<int>>>{};
     final dms = <DmNarrow, QueueList<int>>{};
     final mentions = Set.of(initial.mentions);
@@ -57,23 +58,34 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
         // TODO(server-10) simplify away
         (value) => setUnion(value, unreadChannelSnapshot.unreadMessageIds),
         ifAbsent: () => QueueList.from(unreadChannelSnapshot.unreadMessageIds));
+      final narrow = TopicNarrow(streamId, topic);
+      for (final messageId in unreadChannelSnapshot.unreadMessageIds) {
+        locatorMap[messageId] = narrow;
+      }
     }
 
     for (final unreadDmSnapshot in initial.dms) {
       final otherUserId = unreadDmSnapshot.otherUserId;
       final narrow = DmNarrow.withUser(otherUserId, selfUserId: core.selfUserId);
       dms[narrow] = QueueList.from(unreadDmSnapshot.unreadMessageIds);
+      for (final messageId in dms[narrow]!) {
+        locatorMap[messageId] = narrow;
+      }
     }
 
     for (final unreadHuddleSnapshot in initial.huddles) {
       final narrow = DmNarrow.ofUnreadHuddleSnapshot(unreadHuddleSnapshot,
           selfUserId: core.selfUserId);
       dms[narrow] = QueueList.from(unreadHuddleSnapshot.unreadMessageIds);
+      for (final messageId in dms[narrow]!) {
+        locatorMap[messageId] = narrow;
+      }
     }
 
     return Unreads._(
       core: core,
       channelStore: channelStore,
+      locatorMap: locatorMap,
       streams: streams,
       dms: dms,
       mentions: mentions,
@@ -84,6 +96,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   Unreads._({
     required super.core,
     required this.channelStore,
+    required this.locatorMap,
     required this.streams,
     required this.dms,
     required this.mentions,
@@ -91,6 +104,11 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   });
 
   final ChannelStore channelStore;
+
+  /// All unread messages, as: message ID → narrow ([TopicNarrow] or [DmNarrow]).
+  ///
+  /// Enables efficient [isUnread] and efficient lookups in [streams] and [dms].
+  final Map<int, Narrow> locatorMap;
 
   // TODO excluded for now; would need to handle nuances around muting etc.
   // int count;
@@ -233,11 +251,8 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   /// The unread state for [messageId], or null if unknown.
   ///
   /// May be unknown only if [oldUnreadsMissing].
-  ///
-  /// This is inefficient; it iterates through [dms] and [channels].
-  // TODO implement efficiently
   bool? isUnread(int messageId) {
-    final isPresent = _slowIsPresentInDms(messageId) || _slowIsPresentInStreams(messageId);
+    final isPresent = locatorMap.containsKey(messageId);
     if (oldUnreadsMissing && !isPresent) return null;
     return isPresent;
   }
@@ -250,9 +265,12 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
 
     switch (message) {
       case StreamMessage():
+        final narrow = TopicNarrow.ofMessage(message);
+        locatorMap[event.message.id] = narrow;
         _addLastInStreamTopic(message.id, message.streamId, message.topic);
       case DmMessage():
         final narrow = DmNarrow.ofMessage(message, selfUserId: selfUserId);
+        locatorMap[event.message.id] = narrow;
         _addLastInDm(message.id, narrow);
     }
     if (
@@ -346,9 +364,16 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
       // Unreads moved to an unsubscribed channel; just drop them.
       // See also:
       //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/mark-as-read.20events.20with.20message.20moves.3F/near/2101926
+      for (final messageId in messageToMoveIds) {
+        locatorMap.remove(messageId);
+      }
       return true;
     }
 
+    final narrow = TopicNarrow(newStreamId, newTopic);
+    for (final messageId in messageToMoveIds) {
+      locatorMap[messageId] = narrow;
+    }
     _addAllInStreamTopic(messageToMoveIds, newStreamId, newTopic);
 
     return true;
@@ -363,7 +388,10 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
         final topic = event.topic!;
         _removeAllInStreamTopic(messageIdsSet, streamId, topic);
       case MessageType.direct:
-        _slowRemoveAllInDms(messageIdsSet);
+        _removeAllInDms(messageIdsSet);
+    }
+    for (final messageId in event.messageIds) {
+      locatorMap.remove(messageId);
     }
 
     // TODO skip notifyListeners if unchanged?
@@ -405,6 +433,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
         switch (event) {
           case UpdateMessageFlagsAddEvent():
             if (event.all) {
+              locatorMap.clear();
               streams.clear();
               dms.clear();
               mentions.clear();
@@ -412,8 +441,11 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
             } else {
               final messageIdsSet = Set.of(event.messages);
               mentions.removeAll(messageIdsSet);
-              _slowRemoveAllInStreams(messageIdsSet);
-              _slowRemoveAllInDms(messageIdsSet);
+              _removeAllInStreams(messageIdsSet);
+              _removeAllInDms(messageIdsSet);
+              for (final messageId in event.messages) {
+                locatorMap.remove(messageId);
+              }
             }
           case UpdateMessageFlagsRemoveEvent():
             final newlyUnreadInStreams = <int, TopicKeyedMap<QueueList<int>>>{};
@@ -431,12 +463,15 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
               }
               switch (detail.type) {
                 case MessageType.stream:
-                  final topics = (newlyUnreadInStreams[detail.streamId!] ??= makeTopicKeyedMap());
-                  final messageIds = (topics[detail.topic!] ??= QueueList());
+                  final UpdateMessageFlagsMessageDetail(:streamId, :topic) = detail;
+                  locatorMap[messageId] = TopicNarrow(streamId!, topic!);
+                  final topics = (newlyUnreadInStreams[streamId] ??= makeTopicKeyedMap());
+                  final messageIds = (topics[topic] ??= QueueList());
                   messageIds.add(messageId);
                 case MessageType.direct:
                   final narrow = DmNarrow.ofUpdateMessageFlagsMessageDetail(selfUserId: selfUserId,
                     detail);
+                  locatorMap[messageId] = narrow;
                   (newlyUnreadInDms[narrow] ??= QueueList())
                     .add(messageId);
               }
@@ -489,15 +524,6 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
     notifyListeners();
   }
 
-  // TODO use efficient lookups
-  bool _slowIsPresentInStreams(int messageId) {
-    return streams.values.any(
-      (topics) => topics.values.any(
-        (messageIds) => messageIds.contains(messageId),
-      ),
-    );
-  }
-
   void _addLastInStreamTopic(int messageId, int streamId, TopicName topic) {
     ((streams[streamId] ??= makeTopicKeyedMap())[topic] ??= QueueList())
       .addLast(messageId);
@@ -517,26 +543,23 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
     );
   }
 
-  // TODO use efficient model lookups
-  void _slowRemoveAllInStreams(Set<int> idsToRemove) {
-    final newlyEmptyStreams = <int>[];
-    for (final MapEntry(key: streamId, value: topics) in streams.entries) {
-      final newlyEmptyTopics = <TopicName>[];
-      for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
-        messageIds.removeWhere((id) => idsToRemove.contains(id));
-        if (messageIds.isEmpty) {
-          newlyEmptyTopics.add(topic);
-        }
+  /// Remove any of [idsToRemove] that are in [streams].
+  void _removeAllInStreams(Set<int> idsToRemove) {
+    for (final messageId in idsToRemove) {
+      final narrow = locatorMap[messageId];
+      if (narrow == null) continue;
+      if (narrow is! TopicNarrow) continue;
+
+      final messageIds = streams[narrow.streamId]?[narrow.topic];
+      if (messageIds == null) continue;
+
+      messageIds.remove(messageId);
+      if (messageIds.isEmpty) {
+        streams[narrow.streamId]!.remove(narrow.topic);
       }
-      for (final topic in newlyEmptyTopics) {
-        topics.remove(topic);
+      if (streams[narrow.streamId]!.isEmpty) {
+        streams.remove(narrow.streamId);
       }
-      if (topics.isEmpty) {
-        newlyEmptyStreams.add(streamId);
-      }
-    }
-    for (final streamId in newlyEmptyStreams) {
-      streams.remove(streamId);
     }
   }
 
@@ -599,11 +622,6 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
     return poppedMessageIds;
   }
 
-  // TODO use efficient model lookups
-  bool _slowIsPresentInDms(int messageId) {
-    return dms.values.any((ids) => ids.contains(messageId));
-  }
-
   void _addLastInDm(int messageId, DmNarrow narrow) {
     (dms[narrow] ??= QueueList()).addLast(messageId);
   }
@@ -619,17 +637,19 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
     );
   }
 
-  // TODO use efficient model lookups
-  void _slowRemoveAllInDms(Set<int> idsToRemove) {
-    final newlyEmptyDms = <DmNarrow>[];
-    for (final MapEntry(key: dmNarrow, value: messageIds) in dms.entries) {
-      messageIds.removeWhere((id) => idsToRemove.contains(id));
+  /// Remove any of [idsToRemove] that are in [dms].
+  void _removeAllInDms(Set<int> idsToRemove) {
+    for (final messageId in idsToRemove) {
+      final narrow = locatorMap[messageId];
+      if (narrow == null) continue;
+      if (narrow is! DmNarrow) continue;
+
+      final messageIds = dms[narrow];
+      if (messageIds == null) continue;
+      messageIds.remove(messageId);
       if (messageIds.isEmpty) {
-        newlyEmptyDms.add(dmNarrow);
+        dms.remove(narrow);
       }
-    }
-    for (final dmNarrow in newlyEmptyDms) {
-      dms.remove(dmNarrow);
     }
   }
 }
