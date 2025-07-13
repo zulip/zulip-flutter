@@ -1987,6 +1987,9 @@ enum MessageTimestampStyle {
   none,
   timeOnly,
 
+  // TODO(#45): E.g. "Yesterday at 4:47 PM"; see details in #45
+  lightbox,
+
   /// The longest format, with full date and time as numbers, not "Today"/etc.
   ///
   /// For UI contexts focused just on the one message,
@@ -2002,6 +2005,7 @@ enum MessageTimestampStyle {
   ;
 
   static final _timeOnlyFormat = DateFormat('h:mm aa', 'en_US');
+  static final _lightboxFormat = DateFormat.yMMMd().add_Hms();
   static final _fullFormat = DateFormat.yMMMd().add_jm();
 
   /// Format a [Message.timestamp] for this mode.
@@ -2013,6 +2017,7 @@ enum MessageTimestampStyle {
     switch (this) {
       case none:     return null;
       case timeOnly: return _timeOnlyFormat.format(asDateTime);
+      case lightbox: return _lightboxFormat.format(asDateTime);
       case full: return _fullFormat.format(asDateTime);
     }
   }

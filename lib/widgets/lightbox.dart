@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
 
 import '../api/core.dart';
@@ -12,6 +11,7 @@ import '../model/binding.dart';
 import 'actions.dart';
 import 'content.dart';
 import 'dialog.dart';
+import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
 import 'user.dart';
@@ -176,11 +176,8 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
 
     PreferredSizeWidget? appBar;
     if (_headerFooterVisible) {
-      // TODO(#45): Format with e.g. "Yesterday at 4:47 PM"
-      final timestampText = DateFormat
-        .yMMMd(/* TODO(#278): Pass selected language here, I think? */)
-        .add_Hms()
-        .format(DateTime.fromMillisecondsSinceEpoch(widget.message.timestamp * 1000));
+      final timestampText = MessageTimestampStyle.lightbox
+        .format(widget.message.timestamp);
 
       // We use plain [AppBar] instead of [ZulipAppBar], even though this page
       // has a [PerAccountStore], because:
