@@ -259,7 +259,12 @@ class RecentDmConversation {
 /// in <https://zulip.com/api/register-queue>.
 @JsonSerializable(fieldRename: FieldRename.snake, createFieldMap: true)
 class UserSettings {
-  bool twentyFourHourTime;
+  @JsonKey(
+    fromJson: TwentyFourHourTimeMode.fromApiValue,
+    toJson: TwentyFourHourTimeMode.staticToJson,
+  )
+  TwentyFourHourTimeMode twentyFourHourTime;
+
   bool? displayEmojiReactionUsers; // TODO(server-6)
   Emojiset emojiset;
   bool presenceEnabled;

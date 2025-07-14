@@ -298,6 +298,35 @@ enum UserSettingName {
   String toJson() => _$UserSettingNameEnumMap[this]!;
 }
 
+/// A value from [UserSettings.twentyFourHourTime].
+enum TwentyFourHourTimeMode {
+  twelveHour(apiValue: false),
+  twentyFourHour(apiValue: true),
+
+  /// The locale's default format (12-hour for en_US, 24-hour for fr_FR, etc.).
+  // TODO(#1727) actually follow this
+  // Not sent by current servers, but planned when most client installs accept it:
+  //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/.60user_settings.2Etwenty_four_hour_time.60/near/2220696
+  // TODO(server-future) Write down what server N starts sending null;
+  //   adjust the comment; leave a TODO(server-N) to delete the comment
+  localeDefault(apiValue: null),
+  ;
+
+  const TwentyFourHourTimeMode({required this.apiValue});
+
+  final bool? apiValue;
+
+  static bool? staticToJson(TwentyFourHourTimeMode instance) => instance.apiValue;
+
+  bool? toJson() => TwentyFourHourTimeMode.staticToJson(this);
+
+  static TwentyFourHourTimeMode fromApiValue(bool? value) => switch (value) {
+    false => twelveHour,
+    true => twentyFourHour,
+    null => localeDefault,
+  };
+}
+
 /// As in [UserSettings.emojiset].
 @JsonEnum(fieldRename: FieldRename.kebab, alwaysCreate: true)
 enum Emojiset {

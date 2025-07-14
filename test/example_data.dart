@@ -1262,7 +1262,7 @@ InitialSnapshot initialSnapshot({
     streams: streams ?? [], // TODO add streams to default
     userStatuses: userStatuses ?? {},
     userSettings: userSettings ?? UserSettings(
-      twentyFourHourTime: false,
+      twentyFourHourTime: TwentyFourHourTimeMode.twelveHour,
       displayEmojiReactionUsers: true,
       emojiset: Emojiset.google,
       presenceEnabled: true,

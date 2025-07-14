@@ -17,8 +17,8 @@ void main() {
       for (final name in UserSettingName.values) {
         switch (name) {
           case UserSettingName.twentyFourHourTime:
-            newSettings[name] = true;
-            expectedBodyFields['twenty_four_hour_time'] = 'true';
+            newSettings[name] = TwentyFourHourTimeMode.twelveHour;
+            expectedBodyFields['twenty_four_hour_time'] = 'false';
           case UserSettingName.displayEmojiReactionUsers:
             newSettings[name] = false;
             expectedBodyFields['display_emoji_reaction_users'] = 'false';
@@ -36,6 +36,18 @@ void main() {
         ..method.equals('PATCH')
         ..url.path.equals('/api/v1/settings')
         ..bodyFields.deepEquals(expectedBodyFields);
+    });
+  });
+
+  test('TwentyFourHourTime.localeDefault', () async {
+    return FakeApiConnection.with_((connection) async {
+      connection.prepare(json: {});
+
+      // TODO(server-future) instead, check for twenty_four_hour_time: null
+      //   (could be an error-prone part of the JSONification)
+      check(() => updateSettings(connection,
+        newSettings: {UserSettingName.twentyFourHourTime: TwentyFourHourTimeMode.localeDefault})
+      ).throws<AssertionError>();
     });
   });
 }

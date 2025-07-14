@@ -9,12 +9,20 @@ Future<void> updateSettings(ApiConnection connection, {
   for (final entry in newSettings.entries) {
     final name = entry.key;
     final valueRaw = entry.value;
-    final value = switch (name) {
-      UserSettingName.twentyFourHourTime => valueRaw as bool,
-      UserSettingName.displayEmojiReactionUsers => valueRaw as bool,
-      UserSettingName.emojiset => RawParameter((valueRaw as Emojiset).toJson()),
-      UserSettingName.presenceEnabled => valueRaw as bool,
-    };
+    final Object? value;
+    switch (name) {
+      case UserSettingName.twentyFourHourTime:
+        final mode = (valueRaw as TwentyFourHourTimeMode);
+        // TODO(server-future) allow localeDefault for servers that support it
+        assert(mode != TwentyFourHourTimeMode.localeDefault);
+        value = mode.toJson();
+      case UserSettingName.displayEmojiReactionUsers:
+        value = valueRaw as bool;
+      case UserSettingName.emojiset:
+        value = RawParameter((valueRaw as Emojiset).toJson());
+      case UserSettingName.presenceEnabled:
+        value = valueRaw as bool;
+    }
     params[name.toJson()] = value;
   }
 

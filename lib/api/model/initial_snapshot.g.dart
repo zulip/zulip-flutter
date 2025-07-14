@@ -230,7 +230,9 @@ Map<String, dynamic> _$RecentDmConversationToJson(
 };
 
 UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
-  twentyFourHourTime: json['twenty_four_hour_time'] as bool,
+  twentyFourHourTime: TwentyFourHourTimeMode.fromApiValue(
+    json['twenty_four_hour_time'] as bool?,
+  ),
   displayEmojiReactionUsers: json['display_emoji_reaction_users'] as bool?,
   emojiset: $enumDecode(_$EmojisetEnumMap, json['emojiset']),
   presenceEnabled: json['presence_enabled'] as bool,
@@ -245,7 +247,9 @@ const _$UserSettingsFieldMap = <String, String>{
 
 Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
     <String, dynamic>{
-      'twenty_four_hour_time': instance.twentyFourHourTime,
+      'twenty_four_hour_time': TwentyFourHourTimeMode.staticToJson(
+        instance.twentyFourHourTime,
+      ),
       'display_emoji_reaction_users': instance.displayEmojiReactionUsers,
       'emojiset': instance.emojiset,
       'presence_enabled': instance.presenceEnabled,

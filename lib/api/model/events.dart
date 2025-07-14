@@ -175,6 +175,7 @@ class UserSettingsUpdateEvent extends Event {
     final value = json['value'];
     switch (UserSettingName.fromRawString(json['property'] as String)) {
       case UserSettingName.twentyFourHourTime:
+        return TwentyFourHourTimeMode.fromApiValue(value as bool?);
       case UserSettingName.displayEmojiReactionUsers:
         return value as bool;
       case UserSettingName.emojiset:
