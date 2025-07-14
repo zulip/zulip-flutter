@@ -144,6 +144,10 @@
   "@seeWhoReactedSheetNoReactions":  {
     "description": "Explanation on the 'See who reacted' sheet when the message has no reactions (because they were removed after the sheet was opened)."
   },
+  "actionSheetOptionViewReadReceipts": "View read receipts",
+  "@actionSheetOptionViewReadReceipts": {
+    "description": "Label for the 'View read receipts' button in the message action sheet."
+  },
   "actionSheetOptionCopyMessageText": "Copy message text",
   "@actionSheetOptionCopyMessageText":  {
     "description": "Label for copy message text button on action sheet."

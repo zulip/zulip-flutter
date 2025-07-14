@@ -128,6 +128,9 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get seeWhoReactedSheetNoReactions => 'This message has no reactions.';
 
   @override
+  String get actionSheetOptionViewReadReceipts => 'View read receipts';
+
+  @override
   String get actionSheetOptionCopyMessageText => 'Nachrichtentext kopieren';
 
   @override

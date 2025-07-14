@@ -345,6 +345,12 @@ abstract class ZulipLocalizations {
   /// **'This message has no reactions.'**
   String get seeWhoReactedSheetNoReactions;
 
+  /// Label for the 'View read receipts' button in the message action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'View read receipts'**
+  String get actionSheetOptionViewReadReceipts;
+
   /// Label for copy message text button on action sheet.
   ///
   /// In en, this message translates to:

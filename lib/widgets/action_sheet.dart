@@ -661,6 +661,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
     if (popularEmojiLoaded)
       ReactionButtons(message: message, pageContext: pageContext),
     ViewReactionsButton(message: message, pageContext: pageContext),
+    ViewReadReceiptsButton(message: message, pageContext: pageContext),
     StarButton(message: message, pageContext: pageContext),
     if (isComposeBoxOffered)
       QuoteAndReplyButton(message: message, pageContext: pageContext),
@@ -899,6 +900,21 @@ class ViewReactionsButton extends MessageActionSheetMenuItemButton {
 
   @override void onPressed() {
     showViewReactionsSheet(pageContext, messageId: message.id);
+  }
+}
+
+class ViewReadReceiptsButton extends MessageActionSheetMenuItemButton {
+  ViewReadReceiptsButton({super.key, required super.message, required super.pageContext});
+
+  @override IconData get icon => ZulipIcons.check_check;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionViewReadReceipts;
+  }
+
+  @override void onPressed() {
+    // TODO: open read receipts sheet
   }
 }
 
