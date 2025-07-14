@@ -1915,12 +1915,14 @@ class SenderRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
     final messageListTheme = MessageListTheme.of(context);
     final designVariables = DesignVariables.of(context);
 
     final sender = store.getUser(message.senderId);
-    final timestamp = timestampStyle.format(message.timestamp);
+    final timestamp = timestampStyle.format(
+      message.timestamp, now: DateTime.now(), zulipLocalizations: zulipLocalizations);
 
     final showAsMuted = _showAsMuted(context, store);
 
@@ -2010,7 +2012,11 @@ enum MessageTimestampStyle {
 
   /// Format a [Message.timestamp] for this mode.
   // TODO(i18n): locale-specific formatting (see #45 for a plan with ffi)
-  String? format(int messageTimestamp) {
+  String? format(
+    int messageTimestamp, {
+    required DateTime now,
+    required ZulipLocalizations zulipLocalizations,
+  }) {
     final asDateTime =
       DateTime.fromMillisecondsSinceEpoch(1000 * messageTimestamp);
 

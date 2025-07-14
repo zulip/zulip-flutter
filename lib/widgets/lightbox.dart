@@ -167,6 +167,7 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
     final themeData = Theme.of(context);
 
@@ -176,8 +177,8 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
 
     PreferredSizeWidget? appBar;
     if (_headerFooterVisible) {
-      final timestampText = MessageTimestampStyle.lightbox
-        .format(widget.message.timestamp);
+      final timestampText = MessageTimestampStyle.lightbox.format(
+        widget.message.timestamp, now: DateTime.now(), zulipLocalizations: zulipLocalizations);
 
       // We use plain [AppBar] instead of [ZulipAppBar], even though this page
       // has a [PerAccountStore], because:
