@@ -1638,35 +1638,39 @@ void main() {
     });
   });
 
-  group('formatHeaderDate', () {
-    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-    final now = DateTime.parse("2023-01-10 12:00");
-    final testCases = [
-      ("2023-01-10 12:00", zulipLocalizations.today),
-      ("2023-01-10 00:00", zulipLocalizations.today),
-      ("2023-01-10 23:59", zulipLocalizations.today),
-      ("2023-01-09 23:59", zulipLocalizations.yesterday),
-      ("2023-01-09 00:00", zulipLocalizations.yesterday),
-      ("2023-01-08 00:00", "Jan 8"),
-      ("2022-12-31 00:00", "Dec 31, 2022"),
-      // Future times
-      ("2023-01-10 19:00", zulipLocalizations.today),
-      ("2023-01-11 00:00", "Jan 11, 2023"),
-    ];
-    for (final (dateTime, expected) in testCases) {
-      test('$dateTime returns $expected', () {
-        addTearDown(testBinding.reset);
+  group('MessageTimestampStyle', () {
+    group('dateOnlyRelative', () {
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      final now = DateTime.parse("2023-01-10 12:00");
+      final testCases = [
+        ("2023-01-10 12:00", zulipLocalizations.today),
+        ("2023-01-10 00:00", zulipLocalizations.today),
+        ("2023-01-10 23:59", zulipLocalizations.today),
+        ("2023-01-09 23:59", zulipLocalizations.yesterday),
+        ("2023-01-09 00:00", zulipLocalizations.yesterday),
+        ("2023-01-08 00:00", "Jan 8"),
+        ("2022-12-31 00:00", "Dec 31, 2022"),
+        // Future times
+        ("2023-01-10 19:00", zulipLocalizations.today),
+        ("2023-01-11 00:00", "Jan 11, 2023"),
+      ];
+      for (final (dateTime, expected) in testCases) {
+        test('$dateTime returns $expected', () {
+          addTearDown(testBinding.reset);
 
-        withClock(Clock.fixed(now), () {
-          check(formatHeaderDate(
-            zulipLocalizations,
-            DateTime.parse(dateTime),
-            now: testBinding.utcNow().toLocal(),
-          ))
-            .equals(expected);
+          withClock(Clock.fixed(now), () {
+            final timestamp = DateTime.parse(dateTime).millisecondsSinceEpoch ~/ 1000;
+            final result = MessageTimestampStyle.dateOnlyRelative.format(
+              timestamp,
+              now: testBinding.utcNow().toLocal(),
+              zulipLocalizations: zulipLocalizations);
+            check(result).equals(expected);
+          });
         });
-      });
-    }
+      }
+    });
+
+    // TODO others
   });
 
   group('MessageWithPossibleSender', () {

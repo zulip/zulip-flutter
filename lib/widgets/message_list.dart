@@ -1843,6 +1843,10 @@ class DateText extends StatelessWidget {
   Widget build(BuildContext context) {
     final messageListTheme = MessageListTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final formattedTimestamp = MessageTimestampStyle.dateOnlyRelative.format(
+      timestamp,
+      now: ZulipBinding.instance.utcNow().toLocal(),
+      zulipLocalizations: zulipLocalizations)!;
     return Text(
       style: TextStyle(
         color: messageListTheme.labelTime,
@@ -1852,46 +1856,7 @@ class DateText extends StatelessWidget {
         //   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps#all-small-caps
         fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
       ),
-      formatHeaderDate(
-        zulipLocalizations,
-        DateTime.fromMillisecondsSinceEpoch(timestamp * 1000),
-        now: ZulipBinding.instance.utcNow().toLocal()));
-  }
-}
-
-@visibleForTesting
-String formatHeaderDate(
-  ZulipLocalizations zulipLocalizations,
-  DateTime dateTime, {
-  required DateTime now,
-}) {
-  assert(!dateTime.isUtc && !now.isUtc,
-    '`dateTime` and `now` need to be in local time.');
-
-  if (dateTime.year == now.year &&
-      dateTime.month == now.month &&
-      dateTime.day == now.day) {
-    return zulipLocalizations.today;
-  }
-
-  final yesterday = now
-    .copyWith(hour: 12, minute: 0, second: 0, millisecond: 0, microsecond: 0)
-    .add(const Duration(days: -1));
-  if (dateTime.year == yesterday.year &&
-      dateTime.month == yesterday.month &&
-      dateTime.day == yesterday.day) {
-    return zulipLocalizations.yesterday;
-  }
-
-  // If it is Dec 1 and you see a label that says `Dec 2`
-  // it could be misinterpreted as Dec 2 of the previous
-  // year. For times in the future, those still on the
-  // current day will show as today (handled above) and
-  // any dates beyond that show up with the year.
-  if (dateTime.year == now.year && dateTime.isBefore(now)) {
-    return DateFormat.MMMd().format(dateTime);
-  } else {
-    return DateFormat.yMMMd().format(dateTime);
+      formattedTimestamp);
   }
 }
 
@@ -1985,9 +1950,9 @@ class SenderRow extends StatelessWidget {
   }
 }
 
-// TODO centralize on this for wherever we show message timestamps
 enum MessageTimestampStyle {
   none,
+  dateOnlyRelative,
   timeOnly,
 
   // TODO(#45): E.g. "Yesterday at 4:47 PM"; see details in #45
@@ -2007,6 +1972,40 @@ enum MessageTimestampStyle {
   full,
   ;
 
+  static String _formatDateOnlyRelative(
+    DateTime dateTime, {
+    required DateTime now,
+    required ZulipLocalizations zulipLocalizations,
+  }) {
+    assert(!dateTime.isUtc && !now.isUtc,
+      '`dateTime` and `now` need to be in local time.');
+
+    if (dateTime.year == now.year &&
+        dateTime.month == now.month &&
+        dateTime.day == now.day) {
+      return zulipLocalizations.today;
+    }
+
+    final yesterday = now
+      .copyWith(hour: 12, minute: 0, second: 0, millisecond: 0, microsecond: 0)
+      .add(const Duration(days: -1));
+    if (dateTime.year == yesterday.year &&
+        dateTime.month == yesterday.month &&
+        dateTime.day == yesterday.day) {
+      return zulipLocalizations.yesterday;
+    }
+
+    // If it is Dec 1 and you see a label that says `Dec 2`
+    // it could be misinterpreted as Dec 2 of the previous
+    // year. For times in the future, those still on the
+    // current day will show as today (handled above) and
+    // any dates beyond that show up with the year.
+    if (dateTime.year == now.year && dateTime.isBefore(now)) {
+      return DateFormat.MMMd().format(dateTime);
+    } else {
+      return DateFormat.yMMMd().format(dateTime);
+    }
+  }
   static final _timeOnlyFormat = DateFormat('h:mm aa', 'en_US');
   static final _lightboxFormat = DateFormat.yMMMd().add_Hms();
   static final _fullFormat = DateFormat.yMMMd().add_jm();
@@ -2023,6 +2022,9 @@ enum MessageTimestampStyle {
 
     switch (this) {
       case none:     return null;
+      case dateOnlyRelative:
+        return _formatDateOnlyRelative(asDateTime,
+          now: now, zulipLocalizations: zulipLocalizations);
       case timeOnly: return _timeOnlyFormat.format(asDateTime);
       case lightbox: return _lightboxFormat.format(asDateTime);
       case full: return _fullFormat.format(asDateTime);
