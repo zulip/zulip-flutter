@@ -29,6 +29,7 @@ import 'icons.dart';
 import 'inset_shadow.dart';
 import 'message_list.dart';
 import 'page.dart';
+import 'read_receipts.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -720,6 +721,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       ReactionButtons(message: message, pageContext: pageContext),
     if (hasReactions)
       ViewReactionsButton(message: message, pageContext: pageContext),
+    ViewReadReceiptsButton(message: message, pageContext: pageContext),
     StarButton(message: message, pageContext: pageContext),
     if (isComposeBoxOffered)
       QuoteAndReplyButton(message: message, pageContext: pageContext),
@@ -966,6 +968,21 @@ class ViewReactionsButton extends MessageActionSheetMenuItemButton {
 
   @override void onPressed() {
     showViewReactionsSheet(pageContext, messageId: message.id);
+  }
+}
+
+class ViewReadReceiptsButton extends MessageActionSheetMenuItemButton {
+  ViewReadReceiptsButton({super.key, required super.message, required super.pageContext});
+
+  @override IconData get icon => ZulipIcons.check_check;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionViewReadReceipts;
+  }
+
+  @override void onPressed() {
+    showReadReceiptsSheet(pageContext, messageId: message.id);
   }
 }
 
