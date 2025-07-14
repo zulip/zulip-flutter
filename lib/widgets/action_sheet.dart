@@ -29,6 +29,7 @@ import 'icons.dart';
 import 'inset_shadow.dart';
 import 'message_list.dart';
 import 'page.dart';
+import 'read_receipts.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -916,7 +917,7 @@ class ViewReadReceiptsButton extends MessageActionSheetMenuItemButton {
   }
 
   @override void onPressed() {
-    // TODO: open read receipts sheet
+    showReadReceiptsSheet(pageContext, messageId: message.id);
   }
 }
 
