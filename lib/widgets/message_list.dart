@@ -2012,7 +2012,8 @@ enum MessageTimestampStyle {
     }
   }
   static final _timeFormat = DateFormat('h:mm aa');
-  static final _lightboxFormat = DateFormat.yMMMd().add_Hms();
+  static final _timeFormatWithSeconds = DateFormat('Hms');
+  static final _lightboxFormat = DateFormat.yMMMd().addPattern(_timeFormatWithSeconds.pattern);
   static final _fullFormat = DateFormat.yMMMd().add_jm();
 
   /// Format a [Message.timestamp] for this mode.
