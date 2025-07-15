@@ -1656,6 +1656,7 @@ void main() {
             final result = style.format(
               timestamp,
               now: testBinding.utcNow().toLocal(),
+              twentyFourHourTimeMode: TwentyFourHourTimeMode.localeDefault,
               zulipLocalizations: zulipLocalizations);
             check(result).equals(expected);
           });

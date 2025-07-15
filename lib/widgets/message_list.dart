@@ -1841,11 +1841,13 @@ class DateText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     final messageListTheme = MessageListTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     final formattedTimestamp = MessageTimestampStyle.dateOnlyRelative.format(
       timestamp,
       now: ZulipBinding.instance.utcNow().toLocal(),
+      twentyFourHourTimeMode: store.userSettings.twentyFourHourTime,
       zulipLocalizations: zulipLocalizations)!;
     return Text(
       style: TextStyle(
@@ -1887,8 +1889,11 @@ class SenderRow extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final sender = store.getUser(message.senderId);
-    final timestamp = timestampStyle.format(
-      message.timestamp, now: DateTime.now(), zulipLocalizations: zulipLocalizations);
+    final timestamp = timestampStyle
+      .format(message.timestamp,
+        now: DateTime.now(),
+        twentyFourHourTimeMode: store.userSettings.twentyFourHourTime,
+        zulipLocalizations: zulipLocalizations);
 
     final showAsMuted = _showAsMuted(context, store);
 
@@ -2016,6 +2021,7 @@ enum MessageTimestampStyle {
     int messageTimestamp, {
     required DateTime now,
     required ZulipLocalizations zulipLocalizations,
+    required TwentyFourHourTimeMode twentyFourHourTimeMode,
   }) {
     final asDateTime =
       DateTime.fromMillisecondsSinceEpoch(1000 * messageTimestamp);

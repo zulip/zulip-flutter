@@ -177,8 +177,11 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
 
     PreferredSizeWidget? appBar;
     if (_headerFooterVisible) {
-      final timestampText = MessageTimestampStyle.lightbox.format(
-        widget.message.timestamp, now: DateTime.now(), zulipLocalizations: zulipLocalizations);
+      final timestampText = MessageTimestampStyle.lightbox
+        .format(widget.message.timestamp,
+          now: DateTime.now(),
+          twentyFourHourTimeMode: store.userSettings.twentyFourHourTime,
+          zulipLocalizations: zulipLocalizations);
 
       // We use plain [AppBar] instead of [ZulipAppBar], even though this page
       // has a [PerAccountStore], because:
