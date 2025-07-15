@@ -375,7 +375,7 @@ class ContentExample {
       QuotationNode([ParagraphNode(links: null, nodes: [TextNode('words')])])
     ]);
 
-  static final codeBlockPlain = ContentExample(
+  static const codeBlockPlain = ContentExample(
     'code block without syntax highlighting',
     "```\nverb\natim\n```",
     expectedText: 'verb\natim',
@@ -387,7 +387,7 @@ class ContentExample {
       ]),
     ]);
 
-  static final codeBlockHighlightedShort = ContentExample(
+  static const codeBlockHighlightedShort = ContentExample(
     'code block with syntax highlighting',
     "```dart\nclass A {}\n```",
     expectedText: 'class A {}',
@@ -408,7 +408,7 @@ class ContentExample {
       ]),
     ]);
 
-  static final codeBlockHighlightedMultiline = ContentExample(
+  static const codeBlockHighlightedMultiline = ContentExample(
     'code block, multiline, with syntax highlighting',
     '```rust\nfn main() {\n    print!("Hello ");\n\n    print!("world!\\n");\n}\n```',
     expectedText: 'fn main() {\n    print!("Hello ");\n\n    print!("world!\\n");\n}',
@@ -459,7 +459,7 @@ class ContentExample {
       ]),
     ]);
 
-  static final codeBlockSpansWithMultipleClasses = ContentExample(
+  static const codeBlockSpansWithMultipleClasses = ContentExample(
     'code block spans with multiple CSS classes',
     '```yaml\n- item\n```',
     expectedText: '- item',
@@ -492,18 +492,22 @@ class ContentExample {
     'code block, with syntax highlighting and highlighted lines',
     '```\n::markdown hl_lines="2 4"\n# he\n## llo\n### world\n```',
     '<div class="codehilite"><pre>'
-        '<span></span><code>::markdown hl_lines=&quot;2 4&quot;\n'
-        '<span class="hll"><span class="gh"># he</span>\n'
-        '</span><span class="gu">## llo</span>\n'
-        '<span class="hll"><span class="gu">### world</span>\n'
-        '</span></code></pre></div>', [
-      // TODO: Fix this, see comment under `CodeBlockSpanType.highlightedLines` case in lib/model/content.dart.
-      blockUnimplemented('<div class="codehilite"><pre>'
-        '<span></span><code>::markdown hl_lines=&quot;2 4&quot;\n'
-        '<span class="hll"><span class="gh"># he</span>\n'
-        '</span><span class="gu">## llo</span>\n'
-        '<span class="hll"><span class="gu">### world</span>\n'
-        '</span></code></pre></div>'),
+        '<span></span>'
+        '<code>'
+          '::markdown hl_lines=&quot;2 4&quot;\n'
+          '<span class="hll">'
+            '<span class="gh"># he</span>\n</span>'
+          '<span class="gu">## llo</span>\n'
+          '<span class="hll">'
+            '<span class="gu">### world</span>\n</span></code></pre></div>', [
+      CodeBlockNode([
+        CodeBlockSpanNode(text: '::markdown hl_lines="2 4"\n', spanTypes: [CodeBlockSpanType.text]),
+        CodeBlockSpanNode(text: '# he', spanTypes: [CodeBlockSpanType.highlightedLines, CodeBlockSpanType.genericHeading]),
+        CodeBlockSpanNode(text: '\n', spanTypes: [CodeBlockSpanType.highlightedLines]),
+        CodeBlockSpanNode(text: '## llo', spanTypes: [CodeBlockSpanType.genericSubheading]),
+        CodeBlockSpanNode(text: '\n', spanTypes: [CodeBlockSpanType.text]),
+        CodeBlockSpanNode(text: '### world', spanTypes: [CodeBlockSpanType.highlightedLines, CodeBlockSpanType.genericSubheading]),
+      ]),
     ]);
 
   static final codeBlockWithUnknownSpanType = ContentExample(
@@ -517,7 +521,7 @@ class ContentExample {
         '\n</code></pre></div>'),
     ]);
 
-  static final codeBlockFollowedByMultipleLineBreaks = ContentExample(
+  static const codeBlockFollowedByMultipleLineBreaks = ContentExample(
     'blank text nodes after code blocks',
     '    code block.\n\nsome content',
     // https://chat.zulip.org/#narrow/stream/7-test-here/near/1774823
@@ -2099,7 +2103,7 @@ void main() async {
     // "1. > ###### two\n   > * three\n\n      four"
     '<ol>\n<li>\n<blockquote>\n<h6>two</h6>\n<ul>\n<li>three</li>\n'
         '</ul>\n</blockquote>\n<div class="codehilite"><pre><span></span>'
-        '<code>four\n</code></pre></div>\n\n</li>\n</ol>', [
+        '<code>four\n</code></pre></div>\n\n</li>\n</ol>', const [
       OrderedListNode(start: 1, [[
         QuotationNode([
           HeadingNode(level: HeadingLevel.h6, links: null, nodes: [TextNode('two')]),
