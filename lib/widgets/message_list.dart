@@ -2011,7 +2011,7 @@ enum MessageTimestampStyle {
       return DateFormat.yMMMd().format(dateTime);
     }
   }
-  static final _timeOnlyFormat = DateFormat('h:mm aa');
+  static final _timeFormat = DateFormat('h:mm aa');
   static final _lightboxFormat = DateFormat.yMMMd().add_Hms();
   static final _fullFormat = DateFormat.yMMMd().add_jm();
 
@@ -2031,7 +2031,7 @@ enum MessageTimestampStyle {
       case dateOnlyRelative:
         return _formatDateOnlyRelative(asDateTime,
           now: now, zulipLocalizations: zulipLocalizations);
-      case timeOnly: return _timeOnlyFormat.format(asDateTime);
+      case timeOnly: return _timeFormat.format(asDateTime);
       case lightbox: return _lightboxFormat.format(asDateTime);
       case full: return _fullFormat.format(asDateTime);
     }
