@@ -2011,7 +2011,7 @@ enum MessageTimestampStyle {
       return DateFormat.yMMMd().format(dateTime);
     }
   }
-  static final _timeOnlyFormat = DateFormat('h:mm aa', 'en_US');
+  static final _timeOnlyFormat = DateFormat('h:mm aa');
   static final _lightboxFormat = DateFormat.yMMMd().add_Hms();
   static final _fullFormat = DateFormat.yMMMd().add_jm();
 
