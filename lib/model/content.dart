@@ -320,24 +320,30 @@ class CodeBlockNode extends BlockContentNode {
 }
 
 class CodeBlockSpanNode extends ContentNode {
-  const CodeBlockSpanNode({super.debugHtmlNode, required this.text, required this.type});
+  const CodeBlockSpanNode({
+    super.debugHtmlNode,
+    required this.text,
+    required this.spanTypes,
+  }) : assert(spanTypes.length == 1);
 
   final String text;
-  final CodeBlockSpanType type;
+  final List<CodeBlockSpanType> spanTypes;
 
   @override
   bool operator ==(Object other) {
-    return other is CodeBlockSpanNode && other.text == text && other.type == type;
+    return other is CodeBlockSpanNode &&
+      other.text == text &&
+      other.spanTypes == spanTypes;
   }
 
   @override
-  int get hashCode => Object.hash('CodeBlockSpanNode', text, type);
+  int get hashCode => Object.hash('CodeBlockSpanNode', text, spanTypes);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(StringProperty('text', text));
-    properties.add(EnumProperty('type', type));
+    properties.add(StringProperty('spanTypes', spanTypes.toString()));
   }
 }
 
@@ -1247,7 +1253,7 @@ class _ZulipContentParser {
           if (text.isEmpty) {
             continue;
           }
-          span = CodeBlockSpanNode(text: text, type: CodeBlockSpanType.text);
+          span = CodeBlockSpanNode(text: text, spanTypes: const [CodeBlockSpanType.text]);
 
         case dom.Element(localName: 'span', :final text, :final className):
           // Empirically, when a Pygments node has multiple classes, the first
@@ -1268,7 +1274,7 @@ class _ZulipContentParser {
               //       inherited styles for `span.hll` nodes.
               return UnimplementedBlockContentNode(htmlNode: divElement);
             default:
-              span = CodeBlockSpanNode(text: text, type: spanType);
+              span = CodeBlockSpanNode(text: text, spanTypes: [spanType]);
           }
 
         default:

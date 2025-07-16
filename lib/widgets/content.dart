@@ -776,7 +776,7 @@ class CodeBlock extends StatelessWidget {
       child: Text.rich(TextSpan(
         style: styles.plain,
         children: node.spans
-          .map((node) => TextSpan(style: styles.forSpan(node.type), text: node.text))
+          .map((node) => TextSpan(style: styles.forSpan(node.spanTypes.single), text: node.text))
           .toList(growable: false))));
   }
 }
