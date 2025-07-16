@@ -8,6 +8,11 @@ enum CodeBlockSpanType {
   unknown,
   /// A run of unstyled text in a code block.
   text,
+  /// A code-block span with CSS class `highlight`.
+  ///
+  /// This span is emitted by server for content matching
+  /// used for displaying keyword search highlighting.
+  highlight,
   /// A code-block span with CSS class `hll`.
   ///
   /// Unlike most `CodeBlockSpanToken` values, this does not correspond to
@@ -174,6 +179,7 @@ enum CodeBlockSpanType {
 
 CodeBlockSpanType codeBlockSpanTypeFromClassName(String className) {
   return switch (className) {
+    'highlight' => CodeBlockSpanType.highlight,
     'hll' => CodeBlockSpanType.highlightedLines,
     'w' => CodeBlockSpanType.whitespace,
     'esc' => CodeBlockSpanType.escape,

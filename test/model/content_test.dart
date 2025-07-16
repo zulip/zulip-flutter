@@ -533,6 +533,49 @@ class ContentExample {
       ParagraphNode(links: null, nodes: [TextNode("some content")]),
     ]);
 
+  static const codeBlockSearchHighlight = ContentExample(
+    'code block, search highlight',
+    '```dart\nclass A {}\n```',
+    '<div class="codehilite" data-code-language="Dart">'
+      '<pre>'
+        '<span></span>'
+        '<code>'
+          '<span class="kd">'
+            '<span class="highlight">class</span></span>'
+          '<span class="w"> </span>'
+          '<span class="nc">A</span>'
+          '<span class="w"> </span>'
+          '<span class="p">{}</span>\n</code></pre></div>', [
+      CodeBlockNode([
+        CodeBlockSpanNode(text: 'class', spanTypes: [CodeBlockSpanType.keywordDeclaration, CodeBlockSpanType.highlight]),
+        CodeBlockSpanNode(text: ' ', spanTypes: [CodeBlockSpanType.whitespace]),
+        CodeBlockSpanNode(text: 'A', spanTypes: [CodeBlockSpanType.nameClass]),
+        CodeBlockSpanNode(text: ' ', spanTypes: [CodeBlockSpanType.whitespace]),
+        CodeBlockSpanNode(text: '{}', spanTypes: [CodeBlockSpanType.punctuation]),
+      ]),
+    ]);
+
+  static const codeBlockSearchHighlightBetweenText = ContentExample(
+    'code block, search highlight between text',
+    '```console\n# postgresql\nThe World\'s Most Advanced Open Source Relational Database\n```',
+    '<div class="codehilite" data-code-language="Bash Session">'
+      '<pre>'
+        '<span></span>'
+        '<code>'
+          '<span class="gp"># </span>postgresql\n'
+          '<span class="go">'
+            'The '
+            '<span class="highlight">World</span>'
+            '\'s Most Advanced Open Source Relational Database</span>\n</code></pre></div>', [
+      CodeBlockNode([
+        CodeBlockSpanNode(text: '# ', spanTypes: [CodeBlockSpanType.genericPrompt]),
+        CodeBlockSpanNode(text: "postgresql\n", spanTypes: [CodeBlockSpanType.text]),
+        CodeBlockSpanNode(text: 'The ', spanTypes: [CodeBlockSpanType.genericOutput]),
+        CodeBlockSpanNode(text: 'World', spanTypes: [CodeBlockSpanType.genericOutput, CodeBlockSpanType.highlight]),
+        CodeBlockSpanNode(text: '\'s Most Advanced Open Source Relational Database', spanTypes: [CodeBlockSpanType.genericOutput]),
+      ]),
+    ]);
+
   static final mathInline = ContentExample.inline(
     'inline math',
     r"$$ \lambda $$",
@@ -2047,6 +2090,8 @@ void main() async {
   testParseExample(ContentExample.codeBlockWithHighlightedLines);
   testParseExample(ContentExample.codeBlockWithUnknownSpanType);
   testParseExample(ContentExample.codeBlockFollowedByMultipleLineBreaks);
+  testParseExample(ContentExample.codeBlockSearchHighlight);
+  testParseExample(ContentExample.codeBlockSearchHighlightBetweenText);
 
   testParseExample(ContentExample.mathBlock);
   testParseExample(ContentExample.mathBlocksMultipleInParagraph);
