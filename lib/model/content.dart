@@ -458,6 +458,11 @@ class KatexVlistRowNode extends ContentNode {
     super.debugFillProperties(properties);
     properties.add(DoubleProperty('verticalOffsetEm', verticalOffsetEm));
   }
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return [node.toDiagnosticsNode()];
+  }
 }
 
 class MathBlockNode extends MathNode implements BlockContentNode {
