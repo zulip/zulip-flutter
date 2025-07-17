@@ -275,8 +275,8 @@ extension PerAccountStoreTestExtension on PerAccountStore {
     await handleEvent(UserStatusEvent(id: 1, userId: userId, change: change));
   }
 
-  Future<void> changeUserStatuses(List<(int userId, UserStatusChange change)> changes) async {
-    for (final (userId, change) in changes) {
+  Future<void> changeUserStatuses(Map<int, UserStatusChange> changes) async {
+    for (final MapEntry(key: userId, value: change) in changes.entries) {
       await changeUserStatus(userId, change);
     }
   }
