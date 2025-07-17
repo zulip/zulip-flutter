@@ -22,13 +22,17 @@ jobs:
       # so that Flutter knows its version and sees the constraint in our
       # pubspec is satisfied.  It's uncommon for flutter/flutter to go
       # more than 100 commits between tags.  Fetch 1000 for good measure.
+      # TODO(upstream): Around 2025-05, Flutter upstream stopped making
+      #   tags within the main/master branch.  Get that fixed:
+      #     https://github.com/zulip/zulip-flutter/issues/1710
+      #   Pending that, fetch more than 1000 commits.
       run: |
         # TODO temp hack 2025-07-08 as Flutter's `main` is broken but `master` works:
         #   https://github.com/zulip/zulip-flutter/pull/1688#issuecomment-3050661097
         #   https://discord.com/channels/608014603317936148/608021351567065092/1392301750383415376
         #   https://github.com/flutter/flutter/issues/171833
         #   (See also "temp hack" items below.)
-        git clone --depth=1000 -b master https://github.com/flutter/flutter ~/flutter
+        git clone --depth=3000 -b master https://github.com/flutter/flutter ~/flutter
         TZ=UTC git --git-dir ~/flutter/.git log -1 --format='%h | %ci | %s' --date=iso8601-local
         echo ~/flutter/bin >> "$GITHUB_PATH"
 
