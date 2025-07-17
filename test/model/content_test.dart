@@ -1280,6 +1280,70 @@ class ContentExample {
       ]),
     ]);
 
+  static const mathBlockKatexNegativeMarginsOnVlistRow = ContentExample(
+    'math block, KaTeX negative margins on a vlist row',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2224918
+    '```math\nX_n\n```',
+    '<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>X</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">X_n</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base">'
+            '<span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span>'
+            '<span class="mord">'
+              '<span class="mord mathnormal" style="margin-right:0.07847em;">X</span>'
+              '<span class="msupsub">'
+                '<span class="vlist-t vlist-t2">'
+                  '<span class="vlist-r">'
+                    '<span class="vlist" style="height:0.1514em;">'
+                      '<span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;">'
+                        '<span class="pstrut" style="height:2.7em;"></span>'
+                        '<span class="sizing reset-size6 size3 mtight">'
+                          '<span class="mord mathnormal mtight">n</span></span></span></span>'
+                    '<span class="vlist-s">​</span></span>'
+                  '<span class="vlist-r">'
+                    '<span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></p>', [
+      MathBlockNode(texSource: 'X_n', nodes: [
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexStrutNode(heightEm: 0.8333, verticalAlignEm: -0.15),
+          KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+            KatexSpanNode(
+              styles: KatexSpanStyles(
+                marginRightEm: 0.07847,
+                fontFamily: 'KaTeX_Math', fontStyle: KatexSpanFontStyle.italic),
+              text: 'X', nodes: null),
+            KatexSpanNode(
+              styles: KatexSpanStyles(textAlign: KatexSpanTextAlign.left),
+              text: null, nodes: [
+                KatexVlistNode(rows: [
+                  KatexVlistRowNode(
+                    verticalOffsetEm: -2.55 + 2.7,
+                    node: KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+                      KatexNegativeMarginNode(leftOffsetEm: -0.0785, nodes: [
+                        KatexSpanNode(
+                          styles: KatexSpanStyles(
+                            marginRightEm: 0.05,
+                            // TODO parser should not emit this `marginLeftEm` here because
+                            //   it already generates `KatexNegativeMarginNode` for handling it.
+                            marginLeftEm: -0.0785),
+                          text: null, nodes: [
+                            KatexSpanNode(
+                              styles: KatexSpanStyles(fontSizeEm: 0.7), // .reset-size6.size3
+                              text: null, nodes: [
+                                KatexSpanNode(
+                                  styles: KatexSpanStyles(fontFamily: 'KaTeX_Math', fontStyle: KatexSpanFontStyle.italic),
+                                  text: 'n', nodes: null),
+                              ]),
+                          ]),
+                      ]),
+                    ])),
+                ]),
+              ]),
+          ]),
+        ]),
+      ]),
+    ]);
+
   static const imageSingle = ContentExample(
     'single image',
     // https://chat.zulip.org/#narrow/stream/7-test-here/topic/Thumbnails/near/1900103
@@ -2376,6 +2440,7 @@ void main() async {
   testParseExample(ContentExample.mathBlockKatexRaisebox);
   testParseExample(ContentExample.mathBlockKatexNegativeMargin);
   testParseExample(ContentExample.mathBlockKatexLogo);
+  testParseExample(ContentExample.mathBlockKatexNegativeMarginsOnVlistRow);
 
   testParseExample(ContentExample.imageSingle);
   testParseExample(ContentExample.imageSingleNoDimensions);

@@ -630,6 +630,13 @@ void main() {
           ('E', Offset(31.63, 14.52), Size(14.0, 25.0)),
           ('X', Offset(43.06, 9.85), Size(15.42, 25.0)),
         ]),
+        // TODO re-enable this test when parser fixes a bug where
+        //    it emits negative margin in styles, allowing widget
+        //    code to hit an assert.
+        (ContentExample.mathBlockKatexNegativeMarginsOnVlistRow, skip: true, [
+          ('X', Offset(0.00, 7.04), Size(17.03, 25.00)),
+          ('n', Offset(17.03, 15.90), Size(8.63, 17.00)),
+        ]),
       ];
 
       for (final testCase in testCases) {
@@ -659,7 +666,7 @@ void main() {
             check(size)
               .within(distance: 0.05, from: expectedSize);
           }
-        });
+        }, skip: testCase.skip);
       }
     });
   });
