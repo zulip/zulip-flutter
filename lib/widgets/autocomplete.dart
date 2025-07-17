@@ -223,7 +223,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
     final designVariables = DesignVariables.of(context);
 
     final child = switch (option) {
-      MentionAutocompleteResult() => _MentionAutocompleteItem(
+      MentionAutocompleteResult() => MentionAutocompleteItem(
         option: option, narrow: narrow),
       EmojiAutocompleteResult() => _EmojiAutocompleteItem(option: option),
     };
@@ -238,8 +238,13 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
   }
 }
 
-class _MentionAutocompleteItem extends StatelessWidget {
-  const _MentionAutocompleteItem({required this.option, required this.narrow});
+@visibleForTesting
+class MentionAutocompleteItem extends StatelessWidget {
+  const MentionAutocompleteItem({
+    super.key,
+    required this.option,
+    required this.narrow,
+  });
 
   final MentionAutocompleteResult option;
   final Narrow narrow;
