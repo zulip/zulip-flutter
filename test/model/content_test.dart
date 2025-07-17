@@ -1321,11 +1321,7 @@ class ContentExample {
                     node: KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
                       KatexNegativeMarginNode(leftOffsetEm: -0.0785, nodes: [
                         KatexSpanNode(
-                          styles: KatexSpanStyles(
-                            marginRightEm: 0.05,
-                            // TODO parser should not emit this `marginLeftEm` here because
-                            //   it already generates `KatexNegativeMarginNode` for handling it.
-                            marginLeftEm: -0.0785),
+                          styles: KatexSpanStyles(marginRightEm: 0.05),
                           text: null, nodes: [
                             KatexSpanNode(
                               styles: KatexSpanStyles(fontSizeEm: 0.7), // .reset-size6.size3

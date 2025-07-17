@@ -332,10 +332,7 @@ class _KatexParser {
               }
               final pstrutHeight = pstrutStyles.heightEm ?? 0;
 
-              KatexSpanNode innerSpanNode = KatexSpanNode(
-                styles: styles,
-                text: null,
-                nodes: _parseChildSpans(otherSpans));
+              final KatexSpanNode innerSpanNode;
 
               final marginRightEm = styles.marginRightEm;
               final marginLeftEm = styles.marginLeftEm;
@@ -346,11 +343,17 @@ class _KatexParser {
                 innerSpanNode = KatexSpanNode(
                   styles: KatexSpanStyles(),
                   text: null,
-                  nodes: [
-                    KatexNegativeMarginNode(
-                      leftOffsetEm: marginLeftEm,
-                      nodes: [innerSpanNode]),
-                  ]);
+                  nodes: [KatexNegativeMarginNode(
+                    leftOffsetEm: marginLeftEm,
+                    nodes: [KatexSpanNode(
+                      styles: styles.filter(marginLeftEm: false),
+                      text: null,
+                      nodes: _parseChildSpans(otherSpans))])]);
+              } else {
+                innerSpanNode = KatexSpanNode(
+                  styles: styles,
+                  text: null,
+                  nodes: _parseChildSpans(otherSpans));
               }
 
               rows.add(KatexVlistRowNode(
