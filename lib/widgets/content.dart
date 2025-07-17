@@ -925,10 +925,6 @@ class _KatexSpan extends StatelessWidget {
     // So, this should always be null for non `strut` spans.
     assert(styles.verticalAlignEm == null);
 
-    // Currently, we expect `top` to be only present with the
-    // vlist inner row span, and parser handles that explicitly.
-    assert(styles.topEm == null);
-
     final fontFamily = styles.fontFamily;
     final fontSize = switch (styles.fontSizeEm) {
       double fontSizeEm => fontSizeEm * em,
@@ -999,6 +995,13 @@ class _KatexSpan extends StatelessWidget {
     if (margin != null) {
       assert(margin.isNonNegative);
       widget = Padding(padding: margin, child: widget);
+    }
+
+    if (styles.topEm != null) {
+      assert(styles.position == KatexSpanPosition.relative);
+      widget = Transform.translate(
+        offset: Offset(0, styles.topEm! * em),
+        child: widget);
     }
 
     return widget;

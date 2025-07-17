@@ -619,6 +619,9 @@ void main() {
           ('b', Offset(10.88, -0.66), Size(8.82, 25.00)),
           ('c', Offset(19.70, 4.16), Size(8.90, 25.00)),
         ]),
+        (ContentExample.mathBlockKatexBigOperators, skip: false, [
+          ('⨆', Offset(0.00, 6.46), Size(22.84, 25.00)),
+        ]),
       ];
 
       for (final testCase in testCases) {
