@@ -224,10 +224,18 @@ class _KatexParser {
           dom.Element(localName: 'span', className: 'vlist-r', nodes: [
             dom.Element(localName: 'span', className: 'vlist', nodes: [
               dom.Element(localName: 'span', className: '', nodes: []),
-            ]),
+            ]) && final vlist,
           ]),
         ]) {
-          // Do nothing.
+          // In the generated HTML the .vlist in second .vlist-r span will have
+          // a "height" inline style which we ignore, because it doesn't seem
+          // to have any effect in rendering on the web.
+          // But also make sure there aren't any other inline styles present.
+          final vlistStyles = _parseSpanInlineStyles(vlist);
+          if (vlistStyles != null
+            && vlistStyles.filter(heightEm: false) != const KatexSpanStyles()) {
+            throw _KatexHtmlParseError();
+          }
         } else {
           throw _KatexHtmlParseError();
         }
@@ -241,6 +249,17 @@ class _KatexParser {
         if (vlistR.nodes.first
             case dom.Element(localName: 'span', className: 'vlist') &&
                 final vlist) {
+          // Same as above for the second .vlist-r span, .vlist span in first
+          // .vlist-r span will have "height" inline style which we ignore,
+          // because it doesn't seem to have any effect in rendering on
+          // the web.
+          // But also make sure there aren't any other inline styles present.
+          final vlistStyles = _parseSpanInlineStyles(vlist);
+          if (vlistStyles != null
+            && vlistStyles.filter(heightEm: false) != const KatexSpanStyles()) {
+            throw _KatexHtmlParseError();
+          }
+
           final rows = <KatexVlistRowNode>[];
 
           for (final innerSpan in vlist.nodes) {
