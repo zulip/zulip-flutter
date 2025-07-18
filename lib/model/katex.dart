@@ -329,7 +329,7 @@ class _KatexParser {
                   != const KatexSpanStyles()) {
                 throw _KatexHtmlParseError();
               }
-              final pstrutHeight = pstrutStyles.heightEm ?? 0;
+              final pstrutHeightEm = pstrutStyles.heightEm ?? 0;
 
               final KatexSpanNode innerSpanNode;
 
@@ -356,7 +356,7 @@ class _KatexParser {
               }
 
               rows.add(KatexVlistRowNode(
-                verticalOffsetEm: topEm + pstrutHeight,
+                verticalOffsetEm: topEm + pstrutHeightEm,
                 debugHtmlNode: kDebugMode ? innerSpan : null,
                 node: innerSpanNode));
             } else {
