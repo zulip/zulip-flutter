@@ -11,9 +11,11 @@ import '../model/narrow.dart';
 import 'app_bar.dart';
 import 'button.dart';
 import 'content.dart';
+import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'remote_settings.dart';
+import 'set_status.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -164,6 +166,11 @@ class _SetStatusButton extends StatelessWidget {
               style: TextStyle(fontStyle: FontStyle.italic))
           : TextSpan(text: userStatus.text),
       ]),
+      icon: ZulipIcons.chevron_right,
+      onPressed: () {
+        Navigator.push(context, SetStatusPage.buildRoute(
+          context: context, oldStatus: userStatus));
+      },
     );
   }
 }

@@ -695,6 +695,43 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get noStatusText => 'No status text';
 
   @override
+  String get setStatusPageTitle => 'Set status';
+
+  @override
+  String get statusClearButtonLabel => 'Clear';
+
+  @override
+  String get statusSaveButtonLabel => 'Save';
+
+  @override
+  String get statusTextHint => 'Your status';
+
+  @override
+  String get userStatusBusy => 'Busy';
+
+  @override
+  String get userStatusInAMeeting => 'In a meeting';
+
+  @override
+  String get userStatusCommuting => 'Commuting';
+
+  @override
+  String get userStatusOutSick => 'Out sick';
+
+  @override
+  String get userStatusVacationing => 'Vacationing';
+
+  @override
+  String get userStatusWorkingRemotely => 'Working remotely';
+
+  @override
+  String get userStatusAtTheOffice => 'At the office';
+
+  @override
+  String get updateStatusErrorTitle =>
+      'Error updating user status. Please try again.';
+
+  @override
   String get searchMessagesPageTitle => 'Search';
 
   @override
