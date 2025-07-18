@@ -612,23 +612,32 @@ class _KatexParser {
           _hasError = true;
       }
     }
-    final classStyles = KatexSpanStyles(
+
+    final inlineStyles = _parseInlineStyles(element);
+    final styles = KatexSpanStyles(
       fontFamily: fontFamily,
       fontSizeEm: fontSizeEm,
       fontWeight: fontWeight,
       fontStyle: fontStyle,
       textAlign: textAlign,
+      heightEm: _takeStyleEm(inlineStyles, 'height'),
+      topEm: _takeStyleEm(inlineStyles, 'top'),
+      marginLeftEm: _takeStyleEm(inlineStyles, 'margin-left'),
+      marginRightEm: _takeStyleEm(inlineStyles, 'margin-right'),
+      // TODO handle more CSS properties
     );
-    final inlineStyles = _parseSpanInlineStyles(element);
-    if (inlineStyles != null) {
-      // Currently, we expect `top` to only be inside a vlist, and
-      // we handle that case separately above.
-      if (inlineStyles.topEm != null) {
-        throw _KatexHtmlParseError('unsupported inline CSS property: top');
+    if (inlineStyles != null && inlineStyles.isNotEmpty) {
+      for (final property in inlineStyles.keys) {
+        assert(debugLog('KaTeX: Unexpected inline CSS property: $property'));
+        unsupportedInlineCssProperties.add(property);
+        _hasError = true;
       }
     }
-    final styles = inlineStyles == null ? classStyles
-      : classStyles.merge(inlineStyles);
+    // Currently, we expect `top` to only be inside a vlist, and
+    // we handle that case separately above.
+    if (styles.topEm != null) {
+      throw _KatexHtmlParseError('unsupported inline CSS property: top');
+    }
 
     String? text;
     List<KatexNode>? spans;
@@ -644,34 +653,6 @@ class _KatexParser {
       text: text,
       nodes: spans,
       debugHtmlNode: debugHtmlNode);
-  }
-
-  /// Parse the inline CSS styles from the given element,
-  /// and look for the styles we know how to interpret for a generic KaTeX span.
-  ///
-  /// TODO: This has a number of call sites that aren't acting on a generic
-  ///   KaTeX span, but instead on spans in particular roles where we have
-  ///   much more specific expectations on the inline styles.
-  ///   For those, switch to [_parseInlineStyles] and inspect the styles directly.
-  KatexSpanStyles? _parseSpanInlineStyles(dom.Element element) {
-    final declarations = _parseInlineStyles(element);
-    if (declarations == null) return null;
-
-    final result = KatexSpanStyles(
-      heightEm: _takeStyleEm(declarations, 'height'),
-      topEm: _takeStyleEm(declarations, 'top'),
-      marginRightEm: _takeStyleEm(declarations, 'margin-right'),
-      marginLeftEm: _takeStyleEm(declarations, 'margin-left'),
-      // TODO handle more CSS properties
-    );
-
-    for (final property in declarations.keys) {
-      assert(debugLog('KaTeX: Unexpected inline CSS property: $property'));
-      unsupportedInlineCssProperties.add(property);
-      _hasError = true;
-    }
-
-    return result;
   }
 
   /// Parse the inline CSS styles from the given element.
@@ -818,27 +799,6 @@ class KatexSpanStyles {
     if (fontStyle != null) args.add('fontStyle: $fontStyle');
     if (textAlign != null) args.add('textAlign: $textAlign');
     return '${objectRuntimeType(this, 'KatexSpanStyles')}(${args.join(', ')})';
-  }
-
-  /// Creates a new [KatexSpanStyles] with current and [other]'s styles merged.
-  ///
-  /// The styles in [other] take precedence and any missing styles in [other]
-  /// are filled in with current styles, if present.
-  ///
-  /// This similar to the behaviour of [TextStyle.merge], if the given style
-  /// had `inherit` set to true.
-  KatexSpanStyles merge(KatexSpanStyles other) {
-    return KatexSpanStyles(
-      heightEm: other.heightEm ?? heightEm,
-      topEm: other.topEm ?? topEm,
-      marginRightEm: other.marginRightEm ?? marginRightEm,
-      marginLeftEm: other.marginLeftEm ?? marginLeftEm,
-      fontFamily: other.fontFamily ?? fontFamily,
-      fontSizeEm: other.fontSizeEm ?? fontSizeEm,
-      fontStyle: other.fontStyle ?? fontStyle,
-      fontWeight: other.fontWeight ?? fontWeight,
-      textAlign: other.textAlign ?? textAlign,
-    );
   }
 
   KatexSpanStyles filter({
