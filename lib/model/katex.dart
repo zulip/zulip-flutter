@@ -660,64 +660,79 @@ class _KatexParser {
       debugHtmlNode: debugHtmlNode);
   }
 
+  /// Parse the inline CSS styles from the given element,
+  /// and look for the styles we know how to interpret for a generic KaTeX span.
+  ///
+  /// TODO: This has a number of call sites that aren't acting on a generic
+  ///   KaTeX span, but instead on spans in particular roles where we have
+  ///   much more specific expectations on the inline styles.
+  ///   For those, switch to [_parseInlineStyles] and inspect the styles directly.
   KatexSpanStyles? _parseSpanInlineStyles(dom.Element element) {
+    final declarations = _parseInlineStyles(element);
+    if (declarations == null) return null;
+
+    double? heightEm;
+    double? verticalAlignEm;
+    double? topEm;
+    double? marginRightEm;
+    double? marginLeftEm;
+
+    for (final declaration in declarations) {
+      if (declaration case css_visitor.Declaration(
+        :final property,
+        expression: css_visitor.Expressions(
+          expressions: [css_visitor.Expression() && final expression]),
+      )) {
+        switch (property) {
+          case 'height':
+            heightEm = _getEm(expression);
+            if (heightEm != null) continue;
+
+          case 'vertical-align':
+            verticalAlignEm = _getEm(expression);
+            if (verticalAlignEm != null) continue;
+
+          case 'top':
+            topEm = _getEm(expression);
+            if (topEm != null) continue;
+
+          case 'margin-right':
+            marginRightEm = _getEm(expression);
+            if (marginRightEm != null) continue;
+
+          case 'margin-left':
+            marginLeftEm = _getEm(expression);
+            if (marginLeftEm != null) continue;
+        }
+
+        // TODO handle more CSS properties
+        assert(debugLog('KaTeX: Unsupported CSS expression:'
+          ' ${expression.toDebugString()}'));
+        unsupportedInlineCssProperties.add(property);
+        _hasError = true;
+      } else {
+        throw _KatexHtmlParseError('unexpected shape of inline CSS');
+      }
+    }
+
+    return KatexSpanStyles(
+      heightEm: heightEm,
+      topEm: topEm,
+      verticalAlignEm: verticalAlignEm,
+      marginRightEm: marginRightEm,
+      marginLeftEm: marginLeftEm,
+    );
+  }
+
+  /// Parse the inline CSS styles from the given element.
+  static Iterable<css_visitor.TreeNode>? _parseInlineStyles(dom.Element element) {
     if (element.attributes case {'style': final styleStr}) {
       // `package:csslib` doesn't seem to have a way to parse inline styles:
       //   https://github.com/dart-lang/tools/issues/1173
       // So, work around that by wrapping it in a universal declaration.
       final stylesheet = css_parser.parse('*{$styleStr}');
-      if (stylesheet.topLevels case [css_visitor.RuleSet() && final rule]) {
-        double? heightEm;
-        double? verticalAlignEm;
-        double? topEm;
-        double? marginRightEm;
-        double? marginLeftEm;
-
-        for (final declaration in rule.declarationGroup.declarations) {
-          if (declaration case css_visitor.Declaration(
-            :final property,
-            expression: css_visitor.Expressions(
-              expressions: [css_visitor.Expression() && final expression]),
-          )) {
-            switch (property) {
-              case 'height':
-                heightEm = _getEm(expression);
-                if (heightEm != null) continue;
-
-              case 'vertical-align':
-                verticalAlignEm = _getEm(expression);
-                if (verticalAlignEm != null) continue;
-
-              case 'top':
-                topEm = _getEm(expression);
-                if (topEm != null) continue;
-
-              case 'margin-right':
-                marginRightEm = _getEm(expression);
-                if (marginRightEm != null) continue;
-
-              case 'margin-left':
-                marginLeftEm = _getEm(expression);
-                if (marginLeftEm != null) continue;
-            }
-
-            // TODO handle more CSS properties
-            assert(debugLog('KaTeX: Unsupported CSS expression:'
-              ' ${expression.toDebugString()}'));
-            unsupportedInlineCssProperties.add(property);
-            _hasError = true;
-          } else {
-            throw _KatexHtmlParseError('unexpected shape of inline CSS');
-          }
-        }
-
-        return KatexSpanStyles(
-          heightEm: heightEm,
-          topEm: topEm,
-          verticalAlignEm: verticalAlignEm,
-          marginRightEm: marginRightEm,
-          marginLeftEm: marginLeftEm,
-        );
+      if (stylesheet.topLevels case [css_visitor.RuleSet() && final ruleSet]) {
+        return ruleSet.declarationGroup.declarations;
       } else {
         throw _KatexHtmlParseError();
       }
