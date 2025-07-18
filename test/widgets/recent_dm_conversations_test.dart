@@ -27,16 +27,18 @@ import 'test_app.dart';
 Future<void> setupPage(WidgetTester tester, {
   required List<DmMessage> dmMessages,
   required List<User> users,
+  User? selfUser,
   List<int>? mutedUserIds,
   NavigatorObserver? navigatorObserver,
-  String? newNameForSelfUser,
 }) async {
   addTearDown(testBinding.reset);
 
-  await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-  final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+  selfUser ??= eg.selfUser;
+  final selfAccount = eg.account(user: selfUser);
+  await testBinding.globalStore.add(selfAccount, eg.initialSnapshot());
+  final store = await testBinding.globalStore.perAccount(selfAccount.id);
 
-  await store.addUser(eg.selfUser);
+  await store.addUser(selfUser);
   for (final user in users) {
     await store.addUser(user);
   }
@@ -46,13 +48,8 @@ Future<void> setupPage(WidgetTester tester, {
 
   await store.addMessages(dmMessages);
 
-  if (newNameForSelfUser != null) {
-    await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: eg.selfUser.userId,
-      fullName: newNameForSelfUser));
-  }
-
   await tester.pumpWidget(TestZulipApp(
-    accountId: eg.selfAccount.id,
+    accountId: selfAccount.id,
     navigatorObservers: navigatorObserver != null ? [navigatorObserver] : [],
     child: const HomePage()));
 
@@ -187,7 +184,8 @@ void main() {
       }
 
       Future<void> markMessageAsRead(WidgetTester tester, Message message) async {
-        final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+        final store = await testBinding.globalStore.perAccount(
+          testBinding.globalStore.accounts.single.id);
         await store.handleEvent(UpdateMessageFlagsAddEvent(
           id: 1, flag: MessageFlag.read, all: false, messages: [message.id]));
         await tester.pump();
@@ -216,18 +214,18 @@ void main() {
         });
 
         testWidgets('short name takes one line', (tester) async {
-          final message = eg.dmMessage(from: eg.selfUser, to: []);
           const name = 'Short name';
-          await setupPage(tester, users: [], dmMessages: [message],
-            newNameForSelfUser: name);
+          final selfUser = eg.user(fullName: name);
+          await setupPage(tester, selfUser: selfUser, users: [],
+            dmMessages: [eg.dmMessage(from: selfUser, to: [])]);
           checkTitle(tester, name, 1);
         });
 
         testWidgets('very long name takes two lines (must be ellipsized)', (tester) async {
-          final message = eg.dmMessage(from: eg.selfUser, to: []);
           const name = 'Long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name';
-          await setupPage(tester, users: [], dmMessages: [message],
-            newNameForSelfUser: name);
+          final selfUser = eg.user(fullName: name);
+          await setupPage(tester, selfUser: selfUser, users: [],
+            dmMessages: [eg.dmMessage(from: selfUser, to: [])]);
           checkTitle(tester, name, 2);
         });
 
