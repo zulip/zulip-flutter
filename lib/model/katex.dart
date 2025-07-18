@@ -369,15 +369,6 @@ class _KatexParser {
       }
     }
 
-    final inlineStyles = _parseSpanInlineStyles(element);
-    if (inlineStyles != null) {
-      // Currently, we expect `top` to only be inside a vlist, and
-      // we handle that case separately above.
-      if (inlineStyles.topEm != null) {
-        throw _KatexHtmlParseError('unsupported inline CSS property: top');
-      }
-    }
-
     // Aggregate the CSS styles that apply, in the same order as the CSS
     // classes specified for this span, mimicking the behaviour on web.
     //
@@ -621,13 +612,23 @@ class _KatexParser {
           _hasError = true;
       }
     }
-    final styles = KatexSpanStyles(
+    final classStyles = KatexSpanStyles(
       fontFamily: fontFamily,
       fontSizeEm: fontSizeEm,
       fontWeight: fontWeight,
       fontStyle: fontStyle,
       textAlign: textAlign,
     );
+    final inlineStyles = _parseSpanInlineStyles(element);
+    if (inlineStyles != null) {
+      // Currently, we expect `top` to only be inside a vlist, and
+      // we handle that case separately above.
+      if (inlineStyles.topEm != null) {
+        throw _KatexHtmlParseError('unsupported inline CSS property: top');
+      }
+    }
+    final styles = inlineStyles == null ? classStyles
+      : classStyles.merge(inlineStyles);
 
     String? text;
     List<KatexNode>? spans;
@@ -639,9 +640,7 @@ class _KatexParser {
     if (text == null && spans == null) throw _KatexHtmlParseError();
 
     return KatexSpanNode(
-      styles: inlineStyles != null
-        ? styles.merge(inlineStyles)
-        : styles,
+      styles: styles,
       text: text,
       nodes: spans,
       debugHtmlNode: debugHtmlNode);
