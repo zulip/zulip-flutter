@@ -131,7 +131,14 @@ GetServerSettingsResult serverSettings({
   );
 }
 
-final ServerEmojiData serverEmojiDataPopular = ServerEmojiData(codeToNames: {
+ServerEmojiData _immutableServerEmojiData({
+    required Map<String, List<String>> codeToNames}) {
+  return ServerEmojiData(
+    codeToNames: Map.unmodifiable(codeToNames.map(
+      (k, v) => MapEntry(k, List<String>.unmodifiable(v)))));
+}
+
+final ServerEmojiData serverEmojiDataPopular = _immutableServerEmojiData(codeToNames: {
   '1f44d': ['+1', 'thumbs_up', 'like'],
   '1f389': ['tada'],
   '1f642': ['slight_smile'],
@@ -158,7 +165,7 @@ ServerEmojiData serverEmojiDataPopularPlus(ServerEmojiData data) {
 ///
 /// zulip/zulip@9feba0f16f is a Server 11 commit.
 // TODO(server-11) can drop this
-final ServerEmojiData serverEmojiDataPopularLegacy = ServerEmojiData(codeToNames: {
+final ServerEmojiData serverEmojiDataPopularLegacy = _immutableServerEmojiData(codeToNames: {
   '1f44d': ['+1', 'thumbs_up', 'like'],
   '1f389': ['tada'],
   '1f642': ['smile'],
