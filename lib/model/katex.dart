@@ -308,11 +308,15 @@ class _KatexParser {
                   'vlist inner span: ${innerSpan.className}');
               }
 
-              var styles = _parseSpanInlineStyles(innerSpan);
-              if (styles == null) throw _KatexHtmlParseError();
-              final topEm = styles.topEm ?? 0;
-
-              styles = styles.filter(topEm: false);
+              final inlineStyles = _parseInlineStyles(innerSpan);
+              if (inlineStyles == null) throw _KatexHtmlParseError();
+              final styles = KatexSpanStyles(
+                heightEm: _takeStyleEm(inlineStyles, 'height'),
+                marginLeftEm: _takeStyleEm(inlineStyles, 'margin-left'),
+                marginRightEm: _takeStyleEm(inlineStyles, 'margin-right'),
+              );
+              final topEm = _takeStyleEm(inlineStyles, 'top');
+              if (inlineStyles.isNotEmpty) throw _KatexHtmlParseError();
 
               final pstrutStyles = _parseInlineStyles(pstrutSpan);
               if (pstrutStyles == null) throw _KatexHtmlParseError();
@@ -345,7 +349,7 @@ class _KatexParser {
               }
 
               rows.add(KatexVlistRowNode(
-                verticalOffsetEm: topEm + pstrutHeightEm,
+                verticalOffsetEm: (topEm ?? 0) + pstrutHeightEm,
                 debugHtmlNode: kDebugMode ? innerSpan : null,
                 node: innerSpanNode));
             } else {
