@@ -55,6 +55,7 @@ late FakeApiConnection connection;
 Future<void> setupToMessageActionSheet(WidgetTester tester, {
   required Message message,
   required Narrow narrow,
+  User? selfUser,
   User? sender,
   List<int>? mutedUserIds,
   bool? realmAllowMessageEditing,
@@ -67,15 +68,17 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   // TODO(#1667) will be null in a search narrow; remove `!`.
   assert(narrow.containsMessage(message)!);
 
+  selfUser ??= eg.selfUser;
+  final selfAccount = eg.account(user: selfUser);
   await testBinding.globalStore.add(
-    eg.selfAccount,
+    selfAccount,
     eg.initialSnapshot(
       realmAllowMessageEditing: realmAllowMessageEditing,
       realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
     ));
-  store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+  store = await testBinding.globalStore.perAccount(selfAccount.id);
   await store.addUsers([
-    eg.selfUser,
+    selfUser,
     sender ?? eg.user(userId: message.senderId),
     if (narrow is DmNarrow)
       ...narrow.otherRecipientIds.map((id) => eg.user(userId: id)),
@@ -97,7 +100,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
 
   connection.prepare(json: eg.newestGetMessagesResult(
     foundOldest: true, messages: [message]).toJson());
-  await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+  await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
     child: MessageListPage(initNarrow: narrow)));
 
   // global store, per-account store, and message list get loaded
@@ -1204,11 +1207,13 @@ void main() {
         });
 
         testWidgets('no error if user lost posting permission after action sheet opened', (tester) async {
+          final selfUser = eg.user(role: UserRole.member);
           final stream = eg.stream();
           final message = eg.streamMessage(stream: stream);
-          await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+          await setupToMessageActionSheet(tester, selfUser: selfUser,
+            message: message, narrow: TopicNarrow.ofMessage(message));
 
-          await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: eg.selfUser.userId,
+          await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: selfUser.userId,
             role: UserRole.guest));
           await store.handleEvent(eg.channelUpdateEvent(stream,
             property: ChannelPropertyName.channelPostPolicy,
@@ -1240,7 +1245,8 @@ void main() {
         });
 
         testWidgets('no error if recipient was deactivated while raw-content request in progress', (tester) async {
-          final message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+          final otherUser = eg.user();
+          final message = eg.dmMessage(from: eg.selfUser, to: [otherUser]);
           await setupToMessageActionSheet(tester,
             message: message,
             narrow: DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
@@ -1253,7 +1259,7 @@ void main() {
           await tapQuoteAndReplyButton(tester);
           await tester.pump(const Duration(seconds: 1)); // message not yet fetched
 
-          await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: eg.otherUser.userId,
+          await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: otherUser.userId,
             isActive: false));
           await tester.pump();
           // no error
