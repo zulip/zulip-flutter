@@ -1693,15 +1693,18 @@ void main() {
         }
       }
 
+      final user = eg.user();
+
       Future<void> handleNewAvatarEventAndPump(WidgetTester tester, String avatarUrl) async {
-        await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: eg.selfUser.userId, avatarUrl: avatarUrl));
+        await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId, avatarUrl: avatarUrl));
         await tester.pump();
       }
 
       prepareBoringImageHttpClient();
 
-      await setupMessageListPage(tester, messageCount: 10);
-      checkResultForSender(eg.selfUser.avatarUrl);
+      await setupMessageListPage(tester, users: [user],
+        messages: [eg.streamMessage(sender: user)]);
+      checkResultForSender(user.avatarUrl);
 
       await handleNewAvatarEventAndPump(tester, '/foo.png');
       checkResultForSender('/foo.png');
