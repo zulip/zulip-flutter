@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../basic.dart';
 import '../core.dart';
 import '../model/model.dart';
 
@@ -32,6 +33,21 @@ class GetOwnUserResult {
     _$GetOwnUserResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$GetOwnUserResultToJson(this);
+}
+
+/// https://zulip.com/api/update-status
+Future<void> updateStatus(ApiConnection connection, {
+  required UserStatusChange change,
+}) {
+  return connection.post('updateStatus', (_) {}, 'users/me/status', {
+    if (change.text case OptionSome(:var value))
+      'status_text': RawParameter(value ?? ''),
+    if (change.emoji case OptionSome(:var value)) ...{
+      'emoji_name': RawParameter(value?.emojiName ?? ''),
+      'emoji_code': RawParameter(value?.emojiCode ?? ''),
+      'reaction_type': RawParameter(value?.reactionType.toJson() ?? ''),
+    }
+  });
 }
 
 /// https://zulip.com/api/update-presence
