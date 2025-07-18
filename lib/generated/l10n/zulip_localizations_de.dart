@@ -122,6 +122,12 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Thema konnte nicht als ungelöst markiert werden';
 
   @override
+  String get actionSheetOptionSeeWhoReacted => 'See who reacted';
+
+  @override
+  String get seeWhoReactedSheetNoReactions => 'This message has no reactions.';
+
+  @override
   String get actionSheetOptionCopyMessageText => 'Nachrichtentext kopieren';
 
   @override

@@ -123,6 +123,12 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Не вдалося позначити тему як невирішену';
 
   @override
+  String get actionSheetOptionSeeWhoReacted => 'See who reacted';
+
+  @override
+  String get seeWhoReactedSheetNoReactions => 'This message has no reactions.';
+
+  @override
   String get actionSheetOptionCopyMessageText => 'Копіювати текст повідомлення';
 
   @override
