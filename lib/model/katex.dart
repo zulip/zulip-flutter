@@ -671,55 +671,31 @@ class _KatexParser {
     final declarations = _parseInlineStyles(element);
     if (declarations == null) return null;
 
-    double? heightEm;
-    double? verticalAlignEm;
-    double? topEm;
-    double? marginRightEm;
-    double? marginLeftEm;
+    final result = KatexSpanStyles(
+      heightEm: _takeStyleEm(declarations, 'height'),
+      topEm: _takeStyleEm(declarations, 'top'),
+      verticalAlignEm: _takeStyleEm(declarations, 'vertical-align'),
+      marginRightEm: _takeStyleEm(declarations, 'margin-right'),
+      marginLeftEm: _takeStyleEm(declarations, 'margin-left'),
+      // TODO handle more CSS properties
+    );
 
     for (final declaration in declarations.entries) {
       final property = declaration.key;
       final expression = declaration.value;
 
-      switch (property) {
-        case 'height':
-          heightEm = _getEm(expression);
-          if (heightEm != null) continue;
-
-        case 'vertical-align':
-          verticalAlignEm = _getEm(expression);
-          if (verticalAlignEm != null) continue;
-
-        case 'top':
-          topEm = _getEm(expression);
-          if (topEm != null) continue;
-
-        case 'margin-right':
-          marginRightEm = _getEm(expression);
-          if (marginRightEm != null) continue;
-
-        case 'margin-left':
-          marginLeftEm = _getEm(expression);
-          if (marginLeftEm != null) continue;
-      }
-
-      // TODO handle more CSS properties
       assert(debugLog('KaTeX: Unsupported CSS expression:'
         ' ${expression.toDebugString()}'));
       unsupportedInlineCssProperties.add(property);
       _hasError = true;
     }
 
-    return KatexSpanStyles(
-      heightEm: heightEm,
-      topEm: topEm,
-      verticalAlignEm: verticalAlignEm,
-      marginRightEm: marginRightEm,
-      marginLeftEm: marginLeftEm,
-    );
+    return result;
   }
 
   /// Parse the inline CSS styles from the given element.
+  ///
+  /// To interpret the resulting map, consider [_takeStyleEm].
   static Map<String, css_visitor.Expression>? _parseInlineStyles(dom.Element element) {
     if (element.attributes case {'style': final styleStr}) {
       // `package:csslib` doesn't seem to have a way to parse inline styles:
@@ -749,12 +725,27 @@ class _KatexParser {
     return null;
   }
 
-  /// Returns the CSS `em` unit value if the given [expression] is actually an
-  /// `em` unit expression, else returns null.
-  double? _getEm(css_visitor.Expression expression) {
+  /// Remove the given property from the given style map,
+  /// and parse as a length in ems.
+  ///
+  /// If the property is present but is not a length in ems,
+  /// record an error and return null.
+  ///
+  /// If the property is absent, return null with no error.
+  ///
+  /// If the map is null, treat it as empty.
+  ///
+  /// To produce the map this method expects, see [_parseInlineStyles].
+  double? _takeStyleEm(Map<String, css_visitor.Expression>? styles, String property) {
+    final expression = styles?.remove(property);
+    if (expression == null) return null;
     if (expression is css_visitor.EmTerm && expression.value is num) {
       return (expression.value as num).toDouble();
     }
+    assert(debugLog('KaTeX: Unsupported value for CSS property $property,'
+      ' expected a length in em: ${expression.toDebugString()}'));
+    unsupportedInlineCssProperties.add(property);
+    _hasError = true;
     return null;
   }
 }
