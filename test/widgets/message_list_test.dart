@@ -158,6 +158,17 @@ void main() {
       check(state.narrow).equals(ChannelNarrow(stream.streamId));
     });
 
+    testWidgets('MessageListPageState.narrow (general chat)', (tester) async {
+      final stream = eg.stream();
+      final topic = eg.defaultRealmEmptyTopicDisplayName;
+      final topicNarrow = eg.topicNarrow(stream.streamId, topic);
+      await setupMessageListPage(tester, narrow: topicNarrow,
+        streams: [stream],
+        messages: [eg.streamMessage(stream: stream, topic: topic, content: "<p>a message</p>")]);
+      final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
+      check(state.narrow).equals(eg.topicNarrow(stream.streamId, ''));
+    });
+
     testWidgets('composeBoxState finds compose box', (tester) async {
       final stream = eg.stream();
       await setupMessageListPage(tester, narrow: ChannelNarrow(stream.streamId),

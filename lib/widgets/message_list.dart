@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
@@ -772,8 +773,22 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   void _initModel(PerAccountStore store, Anchor anchor) {
+    // Normalize topic name if this is a TopicNarrow. See #1717.
+    var narrow = widget.narrow;
+    if (narrow is TopicNarrow) {
+      narrow = narrow.processTopicLikeServer(
+        zulipFeatureLevel: store.zulipFeatureLevel,
+        realmEmptyTopicDisplayName: store.zulipFeatureLevel > 334
+          ? store.realmEmptyTopicDisplayName
+          : null);
+      if (narrow != widget.narrow) {
+        SchedulerBinding.instance.scheduleFrameCallback((_) {
+          widget.onNarrowChanged(narrow);
+        });
+      }
+    }
     _model = MessageListView.init(store: store,
-      narrow: widget.narrow, anchor: anchor);
+      narrow: narrow, anchor: anchor);
     model.addListener(_modelChanged);
     model.fetchInitial();
   }
