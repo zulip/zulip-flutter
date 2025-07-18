@@ -131,7 +131,7 @@ GetServerSettingsResult serverSettings({
   );
 }
 
-ServerEmojiData serverEmojiDataPopular = ServerEmojiData(codeToNames: {
+final ServerEmojiData serverEmojiDataPopular = ServerEmojiData(codeToNames: {
   '1f44d': ['+1', 'thumbs_up', 'like'],
   '1f389': ['tada'],
   '1f642': ['slight_smile'],
@@ -158,7 +158,7 @@ ServerEmojiData serverEmojiDataPopularPlus(ServerEmojiData data) {
 ///
 /// zulip/zulip@9feba0f16f is a Server 11 commit.
 // TODO(server-11) can drop this
-ServerEmojiData serverEmojiDataPopularLegacy = ServerEmojiData(codeToNames: {
+final ServerEmojiData serverEmojiDataPopularLegacy = ServerEmojiData(codeToNames: {
   '1f44d': ['+1', 'thumbs_up', 'like'],
   '1f389': ['tada'],
   '1f642': ['smile'],
@@ -502,21 +502,21 @@ UserTopicItem userTopicItem(
 // Messages, and pieces of messages.
 //
 
-Reaction unicodeEmojiReaction = Reaction(
+final Reaction unicodeEmojiReaction = Reaction(
   emojiName: 'thumbs_up',
   emojiCode: '1f44d',
   reactionType: ReactionType.unicodeEmoji,
   userId: selfUser.userId,
 );
 
-Reaction realmEmojiReaction = Reaction(
+final Reaction realmEmojiReaction = Reaction(
   emojiName: 'twocents',
   emojiCode: '181',
   reactionType: ReactionType.realmEmoji,
   userId: selfUser.userId,
 );
 
-Reaction zulipExtraEmojiReaction = Reaction(
+final Reaction zulipExtraEmojiReaction = Reaction(
   emojiName: 'zulip',
   emojiCode: 'zulip',
   reactionType: ReactionType.zulipExtraEmoji,
