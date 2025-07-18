@@ -922,10 +922,6 @@ class _KatexSpan extends StatelessWidget {
     }
 
     final styles = node.styles;
-    // We expect vertical-align to be only present with the
-    // `strut` span, for which parser explicitly emits `KatexStrutNode`.
-    // So, this should always be null for non `strut` spans.
-    assert(styles.verticalAlignEm == null);
 
     // Currently, we expect `top` to be only present with the
     // vlist inner row span, and parser handles that explicitly.

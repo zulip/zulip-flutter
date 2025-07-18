@@ -312,7 +312,6 @@ class _KatexParser {
 
               var styles = _parseSpanInlineStyles(innerSpan);
               if (styles == null) throw _KatexHtmlParseError();
-              if (styles.verticalAlignEm != null) throw _KatexHtmlParseError();
               final topEm = styles.topEm ?? 0;
 
               styles = styles.filter(topEm: false);
@@ -374,10 +373,6 @@ class _KatexParser {
 
     final inlineStyles = _parseSpanInlineStyles(element);
     if (inlineStyles != null) {
-      // We expect `vertical-align` inline style to be only present on a
-      // `strut` span, for which we emit `KatexStrutNode` separately.
-      if (inlineStyles.verticalAlignEm != null) throw _KatexHtmlParseError();
-
       // Currently, we expect `top` to only be inside a vlist, and
       // we handle that case separately above.
       if (inlineStyles.topEm != null) {
@@ -668,7 +663,6 @@ class _KatexParser {
     final result = KatexSpanStyles(
       heightEm: _takeStyleEm(declarations, 'height'),
       topEm: _takeStyleEm(declarations, 'top'),
-      verticalAlignEm: _takeStyleEm(declarations, 'vertical-align'),
       marginRightEm: _takeStyleEm(declarations, 'margin-right'),
       marginLeftEm: _takeStyleEm(declarations, 'margin-left'),
       // TODO handle more CSS properties
@@ -758,7 +752,10 @@ enum KatexSpanTextAlign {
 @immutable
 class KatexSpanStyles {
   final double? heightEm;
-  final double? verticalAlignEm;
+
+  // We expect `vertical-align` inline style to be only present on a
+  // `strut` span, for which we emit `KatexStrutNode` separately.
+  // final double? verticalAlignEm;
 
   final double? topEm;
 
@@ -773,7 +770,6 @@ class KatexSpanStyles {
 
   const KatexSpanStyles({
     this.heightEm,
-    this.verticalAlignEm,
     this.topEm,
     this.marginRightEm,
     this.marginLeftEm,
@@ -788,7 +784,6 @@ class KatexSpanStyles {
   int get hashCode => Object.hash(
     'KatexSpanStyles',
     heightEm,
-    verticalAlignEm,
     topEm,
     marginRightEm,
     marginLeftEm,
@@ -803,7 +798,6 @@ class KatexSpanStyles {
   bool operator ==(Object other) {
     return other is KatexSpanStyles &&
       other.heightEm == heightEm &&
-      other.verticalAlignEm == verticalAlignEm &&
       other.topEm == topEm &&
       other.marginRightEm == marginRightEm &&
       other.marginLeftEm == marginLeftEm &&
@@ -818,7 +812,6 @@ class KatexSpanStyles {
   String toString() {
     final args = <String>[];
     if (heightEm != null) args.add('heightEm: $heightEm');
-    if (verticalAlignEm != null) args.add('verticalAlignEm: $verticalAlignEm');
     if (topEm != null) args.add('topEm: $topEm');
     if (marginRightEm != null) args.add('marginRightEm: $marginRightEm');
     if (marginLeftEm != null) args.add('marginLeftEm: $marginLeftEm');
@@ -840,7 +833,6 @@ class KatexSpanStyles {
   KatexSpanStyles merge(KatexSpanStyles other) {
     return KatexSpanStyles(
       heightEm: other.heightEm ?? heightEm,
-      verticalAlignEm: other.verticalAlignEm ?? verticalAlignEm,
       topEm: other.topEm ?? topEm,
       marginRightEm: other.marginRightEm ?? marginRightEm,
       marginLeftEm: other.marginLeftEm ?? marginLeftEm,
@@ -866,7 +858,6 @@ class KatexSpanStyles {
   }) {
     return KatexSpanStyles(
       heightEm: heightEm ? this.heightEm : null,
-      verticalAlignEm: verticalAlignEm ? this.verticalAlignEm : null,
       topEm: topEm ? this.topEm : null,
       marginRightEm: marginRightEm ? this.marginRightEm : null,
       marginLeftEm: marginLeftEm ? this.marginLeftEm : null,
