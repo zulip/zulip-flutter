@@ -265,9 +265,8 @@ class _KatexParser {
           // a "height" inline style which we ignore, because it doesn't seem
           // to have any effect in rendering on the web.
           // But also make sure there aren't any other inline styles present.
-          final vlistStyles = _parseSpanInlineStyles(vlist);
-          if (vlistStyles != null
-            && vlistStyles.filter(heightEm: false) != const KatexSpanStyles()) {
+          final vlistStyles = _parseInlineStyles(vlist);
+          if (vlistStyles != null && vlistStyles.keys.any((p) => p != 'height')) {
             throw _KatexHtmlParseError();
           }
         } else {
@@ -288,9 +287,8 @@ class _KatexParser {
           // because it doesn't seem to have any effect in rendering on
           // the web.
           // But also make sure there aren't any other inline styles present.
-          final vlistStyles = _parseSpanInlineStyles(vlist);
-          if (vlistStyles != null
-            && vlistStyles.filter(heightEm: false) != const KatexSpanStyles()) {
+          final vlistStyles = _parseInlineStyles(vlist);
+          if (vlistStyles != null && vlistStyles.keys.any((p) => p != 'height')) {
             throw _KatexHtmlParseError();
           }
 
