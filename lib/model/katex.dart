@@ -680,12 +680,8 @@ class _KatexParser {
       // TODO handle more CSS properties
     );
 
-    for (final declaration in declarations.entries) {
-      final property = declaration.key;
-      final expression = declaration.value;
-
-      assert(debugLog('KaTeX: Unsupported CSS expression:'
-        ' ${expression.toDebugString()}'));
+    for (final property in declarations.keys) {
+      assert(debugLog('KaTeX: Unexpected inline CSS property: $property'));
       unsupportedInlineCssProperties.add(property);
       _hasError = true;
     }
