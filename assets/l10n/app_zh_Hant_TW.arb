@@ -586,5 +586,17 @@
   "combinedFeedPageTitle": "綜合饋給",
   "@combinedFeedPageTitle": {
     "description": "Page title for the 'Combined feed' message view."
+  },
+  "searchMessagesPageTitle": "搜尋",
+  "@searchMessagesPageTitle": {
+    "description": "Page title for the 'Search' message view."
+  },
+  "searchMessagesHintText": "搜尋",
+  "@searchMessagesHintText": {
+    "description": "Hint text for the message search text field."
+  },
+  "searchMessagesClearButtonTooltip": "清除",
+  "@searchMessagesClearButtonTooltip": {
+    "description": "Tooltip for the 'x' button in the search text field."
   }
 }

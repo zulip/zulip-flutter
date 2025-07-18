@@ -1212,5 +1212,17 @@
   "revealButtonLabel": "Показать сообщение",
   "@revealButtonLabel": {
     "description": "Label for the button revealing hidden message from a muted sender in message list."
+  },
+  "invisibleMode": "Режим невидимости",
+  "@invisibleMode": {
+    "description": "Label for the 'Invisible mode' switch on the profile page."
+  },
+  "turnOnInvisibleModeErrorTitle": "Не удалось включить режим невидимости. Повторите попытку позже.",
+  "@turnOnInvisibleModeErrorTitle": {
+    "description": "Error title when turning on invisible mode failed."
+  },
+  "turnOffInvisibleModeErrorTitle": "Не удалось отключить режим невидимости. Повторите попытку позже.",
+  "@turnOffInvisibleModeErrorTitle": {
+    "description": "Error title when turning off invisible mode failed."
   }
 }

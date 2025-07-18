@@ -2077,6 +2077,15 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get userRoleGuest => '訪客';
 
   @override
+  String get searchMessagesPageTitle => '搜尋';
+
+  @override
+  String get searchMessagesHintText => '搜尋';
+
+  @override
+  String get searchMessagesClearButtonTooltip => '清除';
+
+  @override
   String get inboxPageTitle => '收件匣';
 
   @override

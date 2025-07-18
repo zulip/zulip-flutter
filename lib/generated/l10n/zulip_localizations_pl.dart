@@ -647,15 +647,15 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get yesterday => 'Wczoraj';
 
   @override
-  String get invisibleMode => 'Invisible mode';
+  String get invisibleMode => 'Tryb ukrycia';
 
   @override
   String get turnOnInvisibleModeErrorTitle =>
-      'Error turning on invisible mode. Please try again.';
+      'Problem z włączeniem trybu ukrycia. Spróbuj ponownie.';
 
   @override
   String get turnOffInvisibleModeErrorTitle =>
-      'Error turning off invisible mode. Please try again.';
+      'Problem z wyłączeniem trybu ukrycia. Spróbuj ponownie.';
 
   @override
   String get userRoleOwner => 'Właściciel';

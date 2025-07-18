@@ -16,5 +16,177 @@
   "userRoleGuest": "ゲスト",
   "@userRoleGuest": {},
   "userRoleUnknown": "不明",
-  "@userRoleUnknown": {}
+  "@userRoleUnknown": {},
+  "aboutPageTitle": "Zulipについて",
+  "@aboutPageTitle": {
+    "description": "Title for About Zulip page."
+  },
+  "aboutPageAppVersion": "アプリのバージョン",
+  "@aboutPageAppVersion": {
+    "description": "Label for Zulip app version in About Zulip page"
+  },
+  "aboutPageOpenSourceLicenses": "オープンソースライセンス",
+  "@aboutPageOpenSourceLicenses": {
+    "description": "Item title in About Zulip page to navigate to Licenses page"
+  },
+  "upgradeWelcomeDialogTitle": "新しいZulipアプリへようこそ！",
+  "@upgradeWelcomeDialogTitle": {
+    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "aboutPageTapToView": "タップして表示",
+  "@aboutPageTapToView": {
+    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
+  },
+  "upgradeWelcomeDialogMessage": "より速く、洗練されたデザインで、これまでと同じ使い心地をお楽しみいただけます。",
+  "@upgradeWelcomeDialogMessage": {
+    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogLinkText": "お知らせブログ記事をご確認ください！",
+  "@upgradeWelcomeDialogLinkText": {
+    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogDismiss": "はじめよう",
+  "@upgradeWelcomeDialogDismiss": {
+    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "settingsPageTitle": "設定",
+  "@settingsPageTitle": {
+    "description": "Title for the settings page."
+  },
+  "switchAccountButton": "アカウントを切り替える",
+  "@switchAccountButton": {
+    "description": "Label for main-menu button leading to the choose-account page."
+  },
+  "chooseAccountPageLogOutButton": "ログアウト",
+  "@chooseAccountPageLogOutButton": {
+    "description": "Label for the 'Log out' button for an account on the choose-account page"
+  },
+  "logOutConfirmationDialogTitle": "ログアウトしますか？",
+  "@logOutConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for logging out."
+  },
+  "actionSheetOptionListOfTopics": "トピック一覧",
+  "@actionSheetOptionListOfTopics": {
+    "description": "Label for navigating to a channel's topic-list page."
+  },
+  "actionSheetOptionMarkChannelAsRead": "チャンネルを既読にする",
+  "@actionSheetOptionMarkChannelAsRead": {
+    "description": "Label for marking a channel as read."
+  },
+  "actionSheetOptionMuteTopic": "トピックをミュート",
+  "@actionSheetOptionMuteTopic": {
+    "description": "Label for muting a topic on action sheet."
+  },
+  "actionSheetOptionUnmuteTopic": "トピックのミュートを解除",
+  "@actionSheetOptionUnmuteTopic": {
+    "description": "Label for unmuting a topic on action sheet."
+  },
+  "actionSheetOptionFollowTopic": "トピックをフォロー",
+  "@actionSheetOptionFollowTopic": {
+    "description": "Label for following a topic on action sheet."
+  },
+  "actionSheetOptionUnfollowTopic": "トピックのフォローを解除",
+  "@actionSheetOptionUnfollowTopic": {
+    "description": "Label for unfollowing a topic on action sheet."
+  },
+  "actionSheetOptionResolveTopic": "解決済みにする",
+  "@actionSheetOptionResolveTopic": {
+    "description": "Label for the 'Mark as resolved' button on the topic action sheet."
+  },
+  "actionSheetOptionUnresolveTopic": "未解決にする",
+  "@actionSheetOptionUnresolveTopic": {
+    "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
+  },
+  "errorResolveTopicFailedTitle": "トピックを解決済みにできませんでした",
+  "@errorResolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as resolved failed."
+  },
+  "errorUnresolveTopicFailedTitle": "トピックを未解決にできませんでした",
+  "@errorUnresolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as unresolved failed."
+  },
+  "actionSheetOptionCopyMessageText": "メッセージ本文をコピー",
+  "@actionSheetOptionCopyMessageText": {
+    "description": "Label for copy message text button on action sheet."
+  },
+  "actionSheetOptionCopyMessageLink": "メッセージへのリンクをコピー",
+  "@actionSheetOptionCopyMessageLink": {
+    "description": "Label for copy message link button on action sheet."
+  },
+  "actionSheetOptionMarkAsUnread": "ここから未読にする",
+  "@actionSheetOptionMarkAsUnread": {
+    "description": "Label for mark as unread button on action sheet."
+  },
+  "actionSheetOptionHideMutedMessage": "ミュートしたメッセージを再び非表示にする",
+  "@actionSheetOptionHideMutedMessage": {
+    "description": "Label for hide muted message again button on action sheet."
+  },
+  "actionSheetOptionShare": "共有",
+  "@actionSheetOptionShare": {
+    "description": "Label for share button on action sheet."
+  },
+  "actionSheetOptionQuoteMessage": "メッセージを引用",
+  "@actionSheetOptionQuoteMessage": {
+    "description": "Label for the 'Quote message' button in the message action sheet."
+  },
+  "actionSheetOptionStarMessage": "メッセージにスターを付ける",
+  "@actionSheetOptionStarMessage": {
+    "description": "Label for star button on action sheet."
+  },
+  "actionSheetOptionUnstarMessage": "メッセージのスターを外す",
+  "@actionSheetOptionUnstarMessage": {
+    "description": "Label for unstar button on action sheet."
+  },
+  "actionSheetOptionEditMessage": "メッセージを編集",
+  "@actionSheetOptionEditMessage": {
+    "description": "Label for the 'Edit message' button in the message action sheet."
+  },
+  "actionSheetOptionMarkTopicAsRead": "トピックを既読にする",
+  "@actionSheetOptionMarkTopicAsRead": {
+    "description": "Option to mark a specific topic as read in the action sheet."
+  },
+  "errorWebAuthOperationalErrorTitle": "問題が発生しました",
+  "@errorWebAuthOperationalErrorTitle": {
+    "description": "Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "errorWebAuthOperationalError": "予期しないエラーが発生しました。",
+  "@errorWebAuthOperationalError": {
+    "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "errorAccountLoggedInTitle": "このアカウントはすでにログインしています",
+  "@errorAccountLoggedInTitle": {
+    "description": "Error title on attempting to log into an account that's already logged in."
+  },
+  "errorCouldNotFetchMessageSource": "メッセージのソースを取得できませんでした。",
+  "@errorCouldNotFetchMessageSource": {
+    "description": "Error message when the source of a message could not be fetched."
+  },
+  "errorCopyingFailed": "コピーに失敗しました",
+  "@errorCopyingFailed": {
+    "description": "Error message when copying the text of a message to the user's system clipboard failed."
+  },
+  "errorFailedToUploadFileTitle": "ファイルのアップロードに失敗しました: {filename}",
+  "@errorFailedToUploadFileTitle": {
+    "description": "Error title when the specified file failed to upload.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "file.txt"
+      }
+    }
+  },
+  "filenameAndSizeInMiB": "{filename}: {size} MiB",
+  "@filenameAndSizeInMiB": {
+    "description": "The name of a file, and its size in mebibytes.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "foo.txt"
+      },
+      "size": {
+        "type": "String",
+        "example": "20.2"
+      }
+    }
+  }
 }

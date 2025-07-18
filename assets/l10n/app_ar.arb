@@ -1,11 +1,20 @@
 {
   "wildcardMentionAll": "الجميع",
+  "@wildcardMentionAll": {},
   "wildcardMentionEveryone": "الكل",
+  "@wildcardMentionEveryone": {},
   "wildcardMentionChannel": "القناة",
+  "@wildcardMentionChannel": {},
   "wildcardMentionStream": "الدفق",
+  "@wildcardMentionStream": {},
   "wildcardMentionTopic": "الموضوع",
+  "@wildcardMentionTopic": {},
   "wildcardMentionChannelDescription": "إخطار القناة",
+  "@wildcardMentionChannelDescription": {},
   "wildcardMentionStreamDescription": "إخطار الدفق",
+  "@wildcardMentionStreamDescription": {},
   "wildcardMentionAllDmDescription": "إخطار المستلمين",
-  "wildcardMentionTopicDescription": "إخطار الموضوع"
+  "@wildcardMentionAllDmDescription": {},
+  "wildcardMentionTopicDescription": "إخطار الموضوع",
+  "@wildcardMentionTopicDescription": {}
 }

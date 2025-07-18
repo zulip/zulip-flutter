@@ -1212,5 +1212,17 @@
   "searchMessagesClearButtonTooltip": "Wyczyść",
   "@searchMessagesClearButtonTooltip": {
     "description": "Tooltip for the 'x' button in the search text field."
+  },
+  "invisibleMode": "Tryb ukrycia",
+  "@invisibleMode": {
+    "description": "Label for the 'Invisible mode' switch on the profile page."
+  },
+  "turnOnInvisibleModeErrorTitle": "Problem z włączeniem trybu ukrycia. Spróbuj ponownie.",
+  "@turnOnInvisibleModeErrorTitle": {
+    "description": "Error title when turning on invisible mode failed."
+  },
+  "turnOffInvisibleModeErrorTitle": "Problem z wyłączeniem trybu ukrycia. Spróbuj ponownie.",
+  "@turnOffInvisibleModeErrorTitle": {
+    "description": "Error title when turning off invisible mode failed."
   }
 }

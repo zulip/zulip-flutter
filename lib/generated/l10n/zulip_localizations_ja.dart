@@ -9,39 +9,38 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   ZulipLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get aboutPageTitle => 'About Zulip';
+  String get aboutPageTitle => 'Zulipについて';
 
   @override
-  String get aboutPageAppVersion => 'App version';
+  String get aboutPageAppVersion => 'アプリのバージョン';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Open-source licenses';
+  String get aboutPageOpenSourceLicenses => 'オープンソースライセンス';
 
   @override
-  String get aboutPageTapToView => 'Tap to view';
+  String get aboutPageTapToView => 'タップして表示';
 
   @override
-  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
+  String get upgradeWelcomeDialogTitle => '新しいZulipアプリへようこそ！';
 
   @override
   String get upgradeWelcomeDialogMessage =>
-      'You’ll find a familiar experience in a faster, sleeker package.';
+      'より速く、洗練されたデザインで、これまでと同じ使い心地をお楽しみいただけます。';
 
   @override
-  String get upgradeWelcomeDialogLinkText =>
-      'Check out the announcement blog post!';
+  String get upgradeWelcomeDialogLinkText => 'お知らせブログ記事をご確認ください！';
 
   @override
-  String get upgradeWelcomeDialogDismiss => 'Let\'s go';
+  String get upgradeWelcomeDialogDismiss => 'はじめよう';
 
   @override
   String get chooseAccountPageTitle => 'アカウントを選択';
 
   @override
-  String get settingsPageTitle => 'Settings';
+  String get settingsPageTitle => '設定';
 
   @override
-  String get switchAccountButton => 'Switch account';
+  String get switchAccountButton => 'アカウントを切り替える';
 
   @override
   String tryAnotherAccountMessage(Object url) {
@@ -52,10 +51,10 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get tryAnotherAccountButton => 'Try another account';
 
   @override
-  String get chooseAccountPageLogOutButton => 'Log out';
+  String get chooseAccountPageLogOutButton => 'ログアウト';
 
   @override
-  String get logOutConfirmationDialogTitle => 'Log out?';
+  String get logOutConfirmationDialogTitle => 'ログアウトしますか？';
 
   @override
   String get logOutConfirmationDialogMessage =>
@@ -88,74 +87,73 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
       'To upload files, please grant Zulip additional permissions in Settings.';
 
   @override
-  String get actionSheetOptionMarkChannelAsRead => 'Mark channel as read';
+  String get actionSheetOptionMarkChannelAsRead => 'チャンネルを既読にする';
 
   @override
-  String get actionSheetOptionListOfTopics => 'List of topics';
+  String get actionSheetOptionListOfTopics => 'トピック一覧';
 
   @override
-  String get actionSheetOptionMuteTopic => 'Mute topic';
+  String get actionSheetOptionMuteTopic => 'トピックをミュート';
 
   @override
-  String get actionSheetOptionUnmuteTopic => 'Unmute topic';
+  String get actionSheetOptionUnmuteTopic => 'トピックのミュートを解除';
 
   @override
-  String get actionSheetOptionFollowTopic => 'Follow topic';
+  String get actionSheetOptionFollowTopic => 'トピックをフォロー';
 
   @override
-  String get actionSheetOptionUnfollowTopic => 'Unfollow topic';
+  String get actionSheetOptionUnfollowTopic => 'トピックのフォローを解除';
 
   @override
-  String get actionSheetOptionResolveTopic => 'Mark as resolved';
+  String get actionSheetOptionResolveTopic => '解決済みにする';
 
   @override
-  String get actionSheetOptionUnresolveTopic => 'Mark as unresolved';
+  String get actionSheetOptionUnresolveTopic => '未解決にする';
 
   @override
-  String get errorResolveTopicFailedTitle => 'Failed to mark topic as resolved';
+  String get errorResolveTopicFailedTitle => 'トピックを解決済みにできませんでした';
 
   @override
-  String get errorUnresolveTopicFailedTitle =>
-      'Failed to mark topic as unresolved';
+  String get errorUnresolveTopicFailedTitle => 'トピックを未解決にできませんでした';
 
   @override
-  String get actionSheetOptionCopyMessageText => 'Copy message text';
+  String get actionSheetOptionCopyMessageText => 'メッセージ本文をコピー';
 
   @override
-  String get actionSheetOptionCopyMessageLink => 'Copy link to message';
+  String get actionSheetOptionCopyMessageLink => 'メッセージへのリンクをコピー';
 
   @override
-  String get actionSheetOptionMarkAsUnread => 'Mark as unread from here';
+  String get actionSheetOptionMarkAsUnread => 'ここから未読にする';
 
   @override
-  String get actionSheetOptionHideMutedMessage => 'Hide muted message again';
+  String get actionSheetOptionHideMutedMessage => 'ミュートしたメッセージを再び非表示にする';
 
   @override
-  String get actionSheetOptionShare => 'Share';
+  String get actionSheetOptionShare => '共有';
 
   @override
-  String get actionSheetOptionQuoteMessage => 'Quote message';
+  String get actionSheetOptionQuoteMessage => 'メッセージを引用';
 
   @override
-  String get actionSheetOptionStarMessage => 'Star message';
+  String get actionSheetOptionStarMessage => 'メッセージにスターを付ける';
 
   @override
-  String get actionSheetOptionUnstarMessage => 'Unstar message';
+  String get actionSheetOptionUnstarMessage => 'メッセージのスターを外す';
 
   @override
-  String get actionSheetOptionEditMessage => 'Edit message';
+  String get actionSheetOptionEditMessage => 'メッセージを編集';
 
   @override
-  String get actionSheetOptionMarkTopicAsRead => 'Mark topic as read';
+  String get actionSheetOptionMarkTopicAsRead => 'トピックを既読にする';
 
   @override
-  String get errorWebAuthOperationalErrorTitle => 'Something went wrong';
+  String get errorWebAuthOperationalErrorTitle => '問題が発生しました';
 
   @override
-  String get errorWebAuthOperationalError => 'An unexpected error occurred.';
+  String get errorWebAuthOperationalError => '予期しないエラーが発生しました。';
 
   @override
-  String get errorAccountLoggedInTitle => 'Account already logged in';
+  String get errorAccountLoggedInTitle => 'このアカウントはすでにログインしています';
 
   @override
   String errorAccountLoggedIn(String email, String server) {
@@ -163,15 +161,14 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   }
 
   @override
-  String get errorCouldNotFetchMessageSource =>
-      'Could not fetch message source.';
+  String get errorCouldNotFetchMessageSource => 'メッセージのソースを取得できませんでした。';
 
   @override
-  String get errorCopyingFailed => 'Copying failed';
+  String get errorCopyingFailed => 'コピーに失敗しました';
 
   @override
   String errorFailedToUploadFileTitle(String filename) {
-    return 'Failed to upload file: $filename';
+    return 'ファイルのアップロードに失敗しました: $filename';
   }
 
   @override
