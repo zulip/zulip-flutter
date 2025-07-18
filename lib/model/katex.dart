@@ -329,7 +329,8 @@ class _KatexParser {
                   != const KatexSpanStyles()) {
                 throw _KatexHtmlParseError();
               }
-              final pstrutHeightEm = pstrutStyles.heightEm ?? 0;
+              final pstrutHeightEm = pstrutStyles.heightEm;
+              if (pstrutHeightEm == null) throw _KatexHtmlParseError();
 
               final KatexSpanNode innerSpanNode;
 
