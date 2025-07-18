@@ -230,18 +230,12 @@ class _KatexParser {
     if (element.className == 'strut') {
       if (element.nodes.isNotEmpty) throw _KatexHtmlParseError();
 
-      final styles = _parseSpanInlineStyles(element);
+      final styles = _parseInlineStyles(element);
       if (styles == null) throw _KatexHtmlParseError();
-
-      final heightEm = styles.heightEm;
+      final heightEm = _takeStyleEm(styles, 'height');
       if (heightEm == null) throw _KatexHtmlParseError();
-      final verticalAlignEm = styles.verticalAlignEm;
-
-      // Ensure only `height` and `vertical-align` inline styles are present.
-      if (styles.filter(heightEm: false, verticalAlignEm: false)
-          != const KatexSpanStyles()) {
-        throw _KatexHtmlParseError();
-      }
+      final verticalAlignEm = _takeStyleEm(styles, 'vertical-align');
+      if (styles.isNotEmpty) throw _KatexHtmlParseError();
 
       return KatexStrutNode(
         heightEm: heightEm,
