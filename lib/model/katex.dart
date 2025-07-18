@@ -310,9 +310,13 @@ class _KatexParser {
 
               final inlineStyles = _parseInlineStyles(innerSpan);
               if (inlineStyles == null) throw _KatexHtmlParseError();
+              final marginLeftEm = _takeStyleEm(inlineStyles, 'margin-left');
+              final marginLeftIsNegative = marginLeftEm?.isNegative ?? false;
+              final marginRightEm = _takeStyleEm(inlineStyles, 'margin-right');
+              if (marginRightEm?.isNegative ?? false) throw _KatexHtmlParseError();
               final styles = KatexSpanStyles(
-                marginLeftEm: _takeStyleEm(inlineStyles, 'margin-left'),
-                marginRightEm: _takeStyleEm(inlineStyles, 'margin-right'),
+                marginLeftEm: marginLeftIsNegative ? null : marginLeftEm,
+                marginRightEm: marginRightEm,
               );
               final topEm = _takeStyleEm(inlineStyles, 'top');
               if (inlineStyles.isNotEmpty) throw _KatexHtmlParseError();
@@ -325,19 +329,14 @@ class _KatexParser {
 
               final KatexSpanNode innerSpanNode;
 
-              final marginRightEm = styles.marginRightEm;
-              final marginLeftEm = styles.marginLeftEm;
-              if (marginRightEm != null && marginRightEm.isNegative) {
-                throw _KatexHtmlParseError();
-              }
-              if (marginLeftEm != null && marginLeftEm.isNegative) {
+              if (marginLeftIsNegative) {
                 innerSpanNode = KatexSpanNode(
                   styles: KatexSpanStyles(),
                   text: null,
                   nodes: [KatexNegativeMarginNode(
-                    leftOffsetEm: marginLeftEm,
+                    leftOffsetEm: marginLeftEm!,
                     nodes: [KatexSpanNode(
-                      styles: styles.filter(marginLeftEm: false),
+                      styles: styles,
                       text: null,
                       nodes: _parseChildSpans(otherSpans))])]);
               } else {
