@@ -327,29 +327,24 @@ class _KatexParser {
               if (pstrutHeightEm == null) throw _KatexHtmlParseError();
               if (pstrutStyles.isNotEmpty) throw _KatexHtmlParseError();
 
-              final KatexSpanNode innerSpanNode;
+              KatexSpanNode child = KatexSpanNode(
+                styles: styles,
+                text: null,
+                nodes: _parseChildSpans(otherSpans));
 
               if (marginLeftIsNegative) {
-                innerSpanNode = KatexSpanNode(
+                child = KatexSpanNode(
                   styles: KatexSpanStyles(),
                   text: null,
                   nodes: [KatexNegativeMarginNode(
                     leftOffsetEm: marginLeftEm!,
-                    nodes: [KatexSpanNode(
-                      styles: styles,
-                      text: null,
-                      nodes: _parseChildSpans(otherSpans))])]);
-              } else {
-                innerSpanNode = KatexSpanNode(
-                  styles: styles,
-                  text: null,
-                  nodes: _parseChildSpans(otherSpans));
+                    nodes: [child])]);
               }
 
               rows.add(KatexVlistRowNode(
                 verticalOffsetEm: (topEm ?? 0) + pstrutHeightEm,
                 debugHtmlNode: kDebugMode ? innerSpan : null,
-                node: innerSpanNode));
+                node: child));
             } else {
               throw _KatexHtmlParseError();
             }
