@@ -314,14 +314,11 @@ class _KatexParser {
 
               styles = styles.filter(topEm: false);
 
-              final pstrutStyles = _parseSpanInlineStyles(pstrutSpan);
+              final pstrutStyles = _parseInlineStyles(pstrutSpan);
               if (pstrutStyles == null) throw _KatexHtmlParseError();
-              if (pstrutStyles.filter(heightEm: false)
-                  != const KatexSpanStyles()) {
-                throw _KatexHtmlParseError();
-              }
-              final pstrutHeightEm = pstrutStyles.heightEm;
+              final pstrutHeightEm = _takeStyleEm(pstrutStyles, 'height');
               if (pstrutHeightEm == null) throw _KatexHtmlParseError();
+              if (pstrutStyles.isNotEmpty) throw _KatexHtmlParseError();
 
               final KatexSpanNode innerSpanNode;
 
