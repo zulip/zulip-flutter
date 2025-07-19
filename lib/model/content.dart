@@ -341,6 +341,11 @@ class CodeBlockSpanNode extends ContentNode {
   }
 }
 
+/// A complete KaTeX math expression within Zulip content,
+/// whether block or inline.
+///
+/// The content nodes that are descendants of this node
+/// will all be of KaTeX-specific types, such as [KatexNode].
 sealed class MathNode extends ContentNode {
   const MathNode({
     super.debugHtmlNode,
@@ -374,10 +379,15 @@ sealed class MathNode extends ContentNode {
   }
 }
 
+/// A content node that expects a generic KaTeX context from its parent.
+///
+/// Each of these will have a [MathNode] as an ancestor.
 sealed class KatexNode extends ContentNode {
   const KatexNode({super.debugHtmlNode});
 }
 
+/// A generic KaTeX content node, corresponding to any span in KaTeX HTML
+/// that we don't otherwise specially handle.
 class KatexSpanNode extends KatexNode {
   const KatexSpanNode({
     this.styles = const KatexSpanStyles(),
@@ -411,6 +421,7 @@ class KatexSpanNode extends KatexNode {
   }
 }
 
+/// A KaTeX strut, corresponding to a `span.strut` node in KaTeX HTML.
 class KatexStrutNode extends KatexNode {
   const KatexStrutNode({
     required this.heightEm,
@@ -429,6 +440,12 @@ class KatexStrutNode extends KatexNode {
   }
 }
 
+/// A KaTeX "vertical list", corresponding to a `span.vlist-t` in KaTeX HTML.
+///
+/// These nodes in KaTeX HTML have a very specific structure.
+/// The children of these nodes in our tree correspond in the HTML to
+/// certain great-grandchildren (certain `> .vlist-r > .vlist > span`)
+/// of the `.vlist-t` node.
 class KatexVlistNode extends KatexNode {
   const KatexVlistNode({
     required this.rows,
@@ -443,6 +460,11 @@ class KatexVlistNode extends KatexNode {
   }
 }
 
+/// An element of a KaTeX "vertical list"; a child of a [KatexVlistNode].
+///
+/// These correspond to certain `.vlist-t > .vlist-r > .vlist > span` nodes
+/// in KaTeX HTML.  The [KatexVlistNode] parent in our tree
+/// corresponds to the `.vlist-t` great-grandparent in the HTML.
 class KatexVlistRowNode extends ContentNode {
   const KatexVlistRowNode({
     required this.verticalOffsetEm,
@@ -465,6 +487,11 @@ class KatexVlistRowNode extends ContentNode {
   }
 }
 
+/// A KaTeX node corresponding to negative values for `margin-left`
+/// or `margin-right` in the inline CSS style of a KaTeX HTML node.
+///
+/// The parser synthesizes these as additional nodes, not corresponding
+/// directly to any node in the HTML.
 class KatexNegativeMarginNode extends KatexNode {
   const KatexNegativeMarginNode({
     required this.leftOffsetEm,
