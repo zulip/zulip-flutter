@@ -34,7 +34,7 @@ class FigmaToggle extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Figma-specified dimensions
+    // Exact Figma-specified dimensions
     final trackWidth = value ? 48.0 : 46.0;
     final trackHeight = value ? 28.0 : 26.0;
     final thumbRadius = value ? 10.0 : 7.0;
@@ -47,6 +47,13 @@ class FigmaToggle extends StatelessWidget {
 
     final trackColor = value ? effectiveActiveColor : effectiveInactiveColor;
     final thumbColor = value ? effectiveActiveThumbColor : effectiveInactiveThumbColor;
+
+    // Calculate thumb positioning with proper padding
+    final thumbDiameter = thumbRadius * 2;
+    final horizontalPadding = 4.0;
+    final thumbLeftPosition = value
+        ? trackWidth - thumbDiameter - horizontalPadding
+        : horizontalPadding;
 
     return GestureDetector(
       onTap: onChanged != null ? () => onChanged!(!value) : null,
@@ -64,21 +71,19 @@ class FigmaToggle extends StatelessWidget {
             AnimatedPositioned(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
-              left: value
-                ? trackWidth - (thumbRadius * 2) - 4.0  // 4px padding from edge
-                : 4.0,  // 4px padding from edge
-              top: (trackHeight - (thumbRadius * 2)) / 2,
+              left: thumbLeftPosition,
+              top: (trackHeight - thumbDiameter) / 2,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOut,
-                width: thumbRadius * 2,
-                height: thumbRadius * 2,
+                width: thumbDiameter,
+                height: thumbDiameter,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: thumbColor,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -105,7 +110,9 @@ class SettingsPage extends StatelessWidget {
 
   static AccountRoute<void> buildRoute({required BuildContext context}) {
     return MaterialAccountWidgetRoute(
-      context: context, page: const SettingsPage());
+      context: context,
+      page: const SettingsPage(),
+    );
   }
 
   @override
@@ -113,24 +120,36 @@ class SettingsPage extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return Scaffold(
       appBar: ZulipAppBar(
-        title: Text(zulipLocalizations.settingsPageTitle)),
-      body: Column(children: [
-        const _ThemeSetting(),
-        const _BrowserPreferenceSetting(),
-        const _VisitFirstUnreadSetting(),
-        const _MarkReadOnScrollSetting(),
-        if (GlobalSettingsStore.experimentalFeatureFlags.isNotEmpty)
-          ListTile(
-            title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
-            onTap: () => Navigator.push(context,
-              ExperimentalFeaturesPage.buildRoute()))
-      ]));
+        title: Text(zulipLocalizations.settingsPageTitle),
+      ),
+      body: Column(
+        children: [
+          const _ThemeSetting(),
+          const _BrowserPreferenceSetting(),
+          const _VisitFirstUnreadSetting(),
+          const _MarkReadOnScrollSetting(),
+          if (GlobalSettingsStore.experimentalFeatureFlags.isNotEmpty)
+            ListTile(
+              title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
+              onTap: () => Navigator.push(
+                context,
+                ExperimentalFeaturesPage.buildRoute(),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 
-class _ThemeSetting extends StatelessWidget {
+class _ThemeSetting extends StatefulWidget {
   const _ThemeSetting();
 
+  @override
+  State<_ThemeSetting> createState() => _ThemeSettingState();
+}
+
+class _ThemeSettingState extends State<_ThemeSetting> {
   void _handleChange(BuildContext context, ThemeSetting? newThemeSetting) {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
     globalSettings.setThemeSetting(newThemeSetting);
@@ -143,18 +162,24 @@ class _ThemeSetting extends StatelessWidget {
     return Column(
       children: [
         ListTile(title: Text(zulipLocalizations.themeSettingTitle)),
-        for (final themeSettingOption in [null, ...ThemeSetting.values])
-          RadioListTile<ThemeSetting?>.adaptive(
-            title: Text(ThemeSetting.displayName(
-              themeSetting: themeSettingOption,
-              zulipLocalizations: zulipLocalizations)),
-            value: themeSettingOption,
-            // TODO(#1545) stop using the deprecated members
-            // ignore: deprecated_member_use
-            groupValue: globalSettings.themeSetting,
-            // ignore: deprecated_member_use
-            onChanged: (newValue) => _handleChange(context, newValue)),
-      ]);
+        RadioGroup<ThemeSetting?>(
+          groupValue: globalSettings.themeSetting,
+          onChanged: (newValue) => _handleChange(context, newValue),
+          child: Column(
+            children: [
+              for (final themeSettingOption in [null, ...ThemeSetting.values])
+                RadioListTile<ThemeSetting?>(
+                  title: Text(ThemeSetting.displayName(
+                    themeSetting: themeSettingOption,
+                    zulipLocalizations: zulipLocalizations,
+                  )),
+                  value: themeSettingOption,
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -165,7 +190,8 @@ class _BrowserPreferenceSetting extends StatelessWidget {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
     globalSettings.setBrowserPreference(
       newOpenLinksWithInAppBrowser ? BrowserPreference.inApp
-                                   : BrowserPreference.external);
+                                   : BrowserPreference.external,
+    );
   }
 
   @override
@@ -194,9 +220,14 @@ class _VisitFirstUnreadSetting extends StatelessWidget {
     return ListTile(
       title: Text(zulipLocalizations.initialAnchorSettingTitle),
       subtitle: Text(VisitFirstUnreadSettingPage._valueDisplayName(
-        globalSettings.visitFirstUnread, zulipLocalizations: zulipLocalizations)),
-      onTap: () => Navigator.push(context,
-        VisitFirstUnreadSettingPage.buildRoute()));
+        globalSettings.visitFirstUnread,
+        zulipLocalizations: zulipLocalizations,
+      )),
+      onTap: () => Navigator.push(
+        context,
+        VisitFirstUnreadSettingPage.buildRoute(),
+      ),
+    );
   }
 }
 
@@ -207,7 +238,8 @@ class VisitFirstUnreadSettingPage extends StatelessWidget {
     return MaterialWidgetRoute(page: const VisitFirstUnreadSettingPage());
   }
 
-  static String _valueDisplayName(VisitFirstUnreadSetting value, {
+  static String _valueDisplayName(
+    VisitFirstUnreadSetting value, {
     required ZulipLocalizations zulipLocalizations,
   }) {
     return switch (value) {
@@ -221,7 +253,7 @@ class VisitFirstUnreadSettingPage extends StatelessWidget {
   }
 
   void _handleChange(BuildContext context, VisitFirstUnreadSetting? value) {
-    if (value == null) return; // TODO(log); can this actually happen? how?
+    if (value == null) return;
     final globalSettings = GlobalStoreWidget.settingsOf(context);
     globalSettings.setVisitFirstUnread(value);
   }
@@ -232,19 +264,28 @@ class VisitFirstUnreadSettingPage extends StatelessWidget {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.initialAnchorSettingTitle)),
-      body: Column(children: [
-        ListTile(title: Text(zulipLocalizations.initialAnchorSettingDescription)),
-        for (final value in VisitFirstUnreadSetting.values)
-          RadioListTile.adaptive(
-            title: Text(_valueDisplayName(value,
-              zulipLocalizations: zulipLocalizations)),
-            value: value,
-            // TODO(#1545) stop using the deprecated members
-            // ignore: deprecated_member_use
+      body: Column(
+        children: [
+          ListTile(title: Text(zulipLocalizations.initialAnchorSettingDescription)),
+          RadioGroup<VisitFirstUnreadSetting>(
             groupValue: globalSettings.visitFirstUnread,
-            // ignore: deprecated_member_use
-            onChanged: (newValue) => _handleChange(context, newValue)),
-      ]));
+            onChanged: (newValue) => _handleChange(context, newValue),
+            child: Column(
+              children: [
+                for (final value in VisitFirstUnreadSetting.values)
+                  RadioListTile.adaptive(
+                    title: Text(_valueDisplayName(
+                      value,
+                      zulipLocalizations: zulipLocalizations,
+                    )),
+                    value: value,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -258,9 +299,14 @@ class _MarkReadOnScrollSetting extends StatelessWidget {
     return ListTile(
       title: Text(zulipLocalizations.markReadOnScrollSettingTitle),
       subtitle: Text(MarkReadOnScrollSettingPage._valueDisplayName(
-        globalSettings.markReadOnScroll, zulipLocalizations: zulipLocalizations)),
-      onTap: () => Navigator.push(context,
-        MarkReadOnScrollSettingPage.buildRoute()));
+        globalSettings.markReadOnScroll,
+        zulipLocalizations: zulipLocalizations,
+      )),
+      onTap: () => Navigator.push(
+        context,
+        MarkReadOnScrollSettingPage.buildRoute(),
+      ),
+    );
   }
 }
 
@@ -271,7 +317,8 @@ class MarkReadOnScrollSettingPage extends StatelessWidget {
     return MaterialWidgetRoute(page: const MarkReadOnScrollSettingPage());
   }
 
-  static String _valueDisplayName(MarkReadOnScrollSetting value, {
+  static String _valueDisplayName(
+    MarkReadOnScrollSetting value, {
     required ZulipLocalizations zulipLocalizations,
   }) {
     return switch (value) {
@@ -284,7 +331,8 @@ class MarkReadOnScrollSettingPage extends StatelessWidget {
     };
   }
 
-  static String? _valueDescription(MarkReadOnScrollSetting value, {
+  static String? _valueDescription(
+    MarkReadOnScrollSetting value, {
     required ZulipLocalizations zulipLocalizations,
   }) {
     return switch (value) {
@@ -296,7 +344,7 @@ class MarkReadOnScrollSettingPage extends StatelessWidget {
   }
 
   void _handleChange(BuildContext context, MarkReadOnScrollSetting? value) {
-    if (value == null) return; // TODO(log); can this actually happen? how?
+    if (value == null) return;
     final globalSettings = GlobalStoreWidget.settingsOf(context);
     globalSettings.setMarkReadOnScroll(value);
   }
@@ -307,24 +355,35 @@ class MarkReadOnScrollSettingPage extends StatelessWidget {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.markReadOnScrollSettingTitle)),
-      body: Column(children: [
-        ListTile(title: Text(zulipLocalizations.markReadOnScrollSettingDescription)),
-        for (final value in MarkReadOnScrollSetting.values)
-          RadioListTile.adaptive(
-            title: Text(_valueDisplayName(value,
-              zulipLocalizations: zulipLocalizations)),
-            subtitle: () {
-              final result = _valueDescription(value,
-                zulipLocalizations: zulipLocalizations);
-              return result == null ? null : Text(result);
-            }(),
-            value: value,
-            // TODO(#1545) stop using the deprecated members
-            // ignore: deprecated_member_use
+      body: Column(
+        children: [
+          ListTile(title: Text(zulipLocalizations.markReadOnScrollSettingDescription)),
+          RadioGroup<MarkReadOnScrollSetting>(
             groupValue: globalSettings.markReadOnScroll,
-            // ignore: deprecated_member_use
-            onChanged: (newValue) => _handleChange(context, newValue)),
-      ]));
+            onChanged: (newValue) => _handleChange(context, newValue),
+            child: Column(
+              children: [
+                for (final value in MarkReadOnScrollSetting.values)
+                  RadioListTile.adaptive(
+                    title: Text(_valueDisplayName(
+                      value,
+                      zulipLocalizations: zulipLocalizations,
+                    )),
+                    subtitle: () {
+                      final result = _valueDescription(
+                        value,
+                        zulipLocalizations: zulipLocalizations,
+                      );
+                      return result == null ? null : Text(result);
+                    }(),
+                    value: value,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -343,18 +402,23 @@ class ExperimentalFeaturesPage extends StatelessWidget {
     assert(flags.isNotEmpty);
     return Scaffold(
       appBar: AppBar(
-        title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle)),
-      body: Column(children: [
-        ListTile(
-          title: Text(zulipLocalizations.experimentalFeatureSettingsWarning)),
-        for (final flag in flags)
+        title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
+      ),
+      body: Column(
+        children: [
           ListTile(
-            title: Text(flag.name), // no i18n; these are developer-facing settings
-            trailing: FigmaToggle(
-              value: globalSettings.getBool(flag),
-              onChanged: (value) => globalSettings.setBool(flag, value),
-            ),
+            title: Text(zulipLocalizations.experimentalFeatureSettingsWarning),
           ),
-      ]));
+          for (final flag in flags)
+            ListTile(
+              title: Text(flag.name), // no i18n; these are developer-facing settings
+              trailing: FigmaToggle(
+                value: globalSettings.getBool(flag),
+                onChanged: (value) => globalSettings.setBool(flag, value),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
