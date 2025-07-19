@@ -103,9 +103,13 @@ void main() async {
     buf.writeln('There were $totalMathInlineNodes math inline nodes out of which $failedMathInlineNodes failed.');
     buf.writeln();
 
-    for (final MapEntry(key: reason, value: messageIds) in failedMessageIdsByReason.entries.sorted(
-      (a, b) => b.value.length.compareTo(a.value.length),
-    )) {
+    for (final MapEntry(key: reason, value: messageIds)
+         in failedMessageIdsByReason.entries.sorted((a, b) {
+           // Sort by number of failed messages descending, then by reason.
+           final r = - a.value.length.compareTo(b.value.length);
+           if (r != 0) return r;
+           return a.key.compareTo(b.key);
+         })) {
       final failedMathNodes = failedMathNodesByReason[reason]!.toList();
       failedMathNodes.shuffle();
       final oldestId = messageIds.reduce(min);
