@@ -119,6 +119,8 @@ mixin EmojiStore {
 
   Iterable<EmojiCandidate> allEmojiCandidates();
 
+  String? getUnicodeEmojiNameByCode(String emojiCode);
+
   // TODO cut debugServerEmojiData once we can query for lists of emoji;
   //   have tests make those queries end-to-end
   Map<String, List<String>>? get debugServerEmojiData;
@@ -143,6 +145,10 @@ mixin ProxyEmojiStore on EmojiStore {
 
   @override
   Iterable<EmojiCandidate> allEmojiCandidates() => emojiStore.allEmojiCandidates();
+
+  @override
+  String? getUnicodeEmojiNameByCode(String emojiCode) =>
+    emojiStore.getUnicodeEmojiNameByCode(emojiCode);
 
   @override
   Map<String, List<String>>? get debugServerEmojiData => emojiStore.debugServerEmojiData;
@@ -395,6 +401,10 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
   Iterable<EmojiCandidate> allEmojiCandidates() {
     return _allEmojiCandidates ??= _generateAllCandidates();
   }
+
+  @override
+  String? getUnicodeEmojiNameByCode(String emojiCode) =>
+    _serverEmojiData?[emojiCode]?.first;
 
   void setServerEmojiData(ServerEmojiData data) {
     _serverEmojiData = data.codeToNames;
