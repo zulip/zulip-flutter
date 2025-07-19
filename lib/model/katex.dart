@@ -2,7 +2,6 @@ import 'package:collection/collection.dart';
 import 'package:csslib/parser.dart' as css_parser;
 import 'package:csslib/visitor.dart' as css_visitor;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
 import 'package:html/dom.dart' as dom;
 
 import '../log.dart';
@@ -18,11 +17,11 @@ import 'settings.dart';
 /// a specific node.
 class KatexParserHardFailReason {
   const KatexParserHardFailReason({
-    required this.error,
+    required this.message,
     required this.stackTrace,
   });
 
-  final String error;
+  final String? message;
   final StackTrace stackTrace;
 }
 
@@ -132,7 +131,7 @@ MathParserResult? parseMath(dom.Element element, { required bool block }) {
       } on _KatexHtmlParseError catch (e, st) {
         assert(debugLog('$e\n$st'));
         hardFailReason = KatexParserHardFailReason(
-          error: e.message ?? 'unknown',
+          message: e.message,
           stackTrace: st);
       }
 
@@ -220,157 +219,66 @@ class _KatexParser {
     return resultSpans;
   }
 
-  static final _resetSizeClassRegExp = RegExp(r'^reset-size(\d\d?)$');
-  static final _sizeClassRegExp = RegExp(r'^size(\d\d?)$');
-
   KatexNode _parseSpan(dom.Element element) {
+    assert(element.localName == 'span');
     // TODO maybe check if the sequence of ancestors matter for spans.
 
-    final debugHtmlNode = kDebugMode ? element : null;
-
     if (element.className == 'strut') {
-      if (element.nodes.isNotEmpty) throw _KatexHtmlParseError();
-
-      final styles = _parseSpanInlineStyles(element);
-      if (styles == null) throw _KatexHtmlParseError();
-
-      final heightEm = styles.heightEm;
-      if (heightEm == null) throw _KatexHtmlParseError();
-      final verticalAlignEm = styles.verticalAlignEm;
-
-      // Ensure only `height` and `vertical-align` inline styles are present.
-      if (styles.filter(heightEm: false, verticalAlignEm: false)
-          != const KatexSpanStyles()) {
-        throw _KatexHtmlParseError();
-      }
-
-      return KatexStrutNode(
-        heightEm: heightEm,
-        verticalAlignEm: verticalAlignEm,
-        debugHtmlNode: debugHtmlNode);
+      return _parseStrut(element);
     }
 
     if (element.className == 'vlist-t'
         || element.className == 'vlist-t vlist-t2') {
-      final vlistT = element;
-      if (vlistT.nodes.isEmpty) throw _KatexHtmlParseError();
-      if (vlistT.attributes.containsKey('style')) throw _KatexHtmlParseError();
+      return _parseVlist(element);
+    }
 
-      final hasTwoVlistR = vlistT.className == 'vlist-t vlist-t2';
-      if (!hasTwoVlistR && vlistT.nodes.length != 1) throw _KatexHtmlParseError();
+    return _parseGenericSpan(element);
+  }
 
-      if (hasTwoVlistR) {
-        if (vlistT.nodes case [
-          _,
-          dom.Element(localName: 'span', className: 'vlist-r', nodes: [
-            dom.Element(localName: 'span', className: 'vlist', nodes: [
-              dom.Element(localName: 'span', className: '', nodes: []),
-            ]) && final vlist,
-          ]),
-        ]) {
-          // In the generated HTML the .vlist in second .vlist-r span will have
-          // a "height" inline style which we ignore, because it doesn't seem
-          // to have any effect in rendering on the web.
-          // But also make sure there aren't any other inline styles present.
-          final vlistStyles = _parseSpanInlineStyles(vlist);
-          if (vlistStyles != null
-            && vlistStyles.filter(heightEm: false) != const KatexSpanStyles()) {
-            throw _KatexHtmlParseError();
-          }
-        } else {
-          throw _KatexHtmlParseError();
-        }
-      }
+  KatexNode _parseStrut(dom.Element element) {
+    assert(element.localName == 'span');
+    assert(element.className == 'strut');
+    if (element.nodes.isNotEmpty) throw _KatexHtmlParseError();
 
-      if (vlistT.nodes.first
-          case dom.Element(localName: 'span', className: 'vlist-r') &&
-              final vlistR) {
-        if (vlistR.attributes.containsKey('style')) throw _KatexHtmlParseError();
+    final styles = _parseInlineStyles(element);
+    if (styles == null) throw _KatexHtmlParseError();
+    final heightEm = _takeStyleEm(styles, 'height');
+    if (heightEm == null) throw _KatexHtmlParseError();
+    final verticalAlignEm = _takeStyleEm(styles, 'vertical-align');
+    if (styles.isNotEmpty) throw _KatexHtmlParseError();
 
-        if (vlistR.nodes.first
-            case dom.Element(localName: 'span', className: 'vlist') &&
-                final vlist) {
-          // Same as above for the second .vlist-r span, .vlist span in first
-          // .vlist-r span will have "height" inline style which we ignore,
-          // because it doesn't seem to have any effect in rendering on
-          // the web.
-          // But also make sure there aren't any other inline styles present.
-          final vlistStyles = _parseSpanInlineStyles(vlist);
-          if (vlistStyles != null
-            && vlistStyles.filter(heightEm: false) != const KatexSpanStyles()) {
-            throw _KatexHtmlParseError();
-          }
+    return KatexStrutNode(
+      heightEm: heightEm,
+      verticalAlignEm: verticalAlignEm,
+      debugHtmlNode: kDebugMode ? element : null);
+  }
 
-          final rows = <KatexVlistRowNode>[];
+  KatexNode _parseVlist(dom.Element element) {
+    assert(element.localName == 'span');
+    assert(element.className == 'vlist-t'
+      || element.className == 'vlist-t vlist-t2');
+    final vlistT = element;
+    if (vlistT.nodes.isEmpty) throw _KatexHtmlParseError();
+    if (vlistT.attributes.containsKey('style')) throw _KatexHtmlParseError();
 
-          for (final innerSpan in vlist.nodes) {
-            if (innerSpan case dom.Element(
-              localName: 'span',
-              nodes: [
-                dom.Element(localName: 'span', className: 'pstrut') &&
-                    final pstrutSpan,
-                ...final otherSpans,
-              ],
-            )) {
-              if (innerSpan.className != '') {
-                throw _KatexHtmlParseError('unexpected CSS class for '
-                  'vlist inner span: ${innerSpan.className}');
-              }
+    final hasTwoVlistR = vlistT.className == 'vlist-t vlist-t2';
+    if (!hasTwoVlistR && vlistT.nodes.length != 1) throw _KatexHtmlParseError();
 
-              var styles = _parseSpanInlineStyles(innerSpan);
-              if (styles == null) throw _KatexHtmlParseError();
-              if (styles.verticalAlignEm != null) throw _KatexHtmlParseError();
-              final topEm = styles.topEm ?? 0;
-
-              styles = styles.filter(topEm: false);
-
-              final pstrutStyles = _parseSpanInlineStyles(pstrutSpan);
-              if (pstrutStyles == null) throw _KatexHtmlParseError();
-              if (pstrutStyles.filter(heightEm: false)
-                  != const KatexSpanStyles()) {
-                throw _KatexHtmlParseError();
-              }
-              final pstrutHeight = pstrutStyles.heightEm ?? 0;
-
-              final KatexSpanNode innerSpanNode;
-
-              final marginRightEm = styles.marginRightEm;
-              final marginLeftEm = styles.marginLeftEm;
-              if (marginRightEm != null && marginRightEm.isNegative) {
-                throw _KatexHtmlParseError();
-              }
-              if (marginLeftEm != null && marginLeftEm.isNegative) {
-                innerSpanNode = KatexSpanNode(
-                  styles: KatexSpanStyles(),
-                  text: null,
-                  nodes: [KatexNegativeMarginNode(
-                    leftOffsetEm: marginLeftEm,
-                    nodes: [KatexSpanNode(
-                      styles: styles.filter(marginLeftEm: false),
-                      text: null,
-                      nodes: _parseChildSpans(otherSpans))])]);
-              } else {
-                innerSpanNode = KatexSpanNode(
-                  styles: styles,
-                  text: null,
-                  nodes: _parseChildSpans(otherSpans));
-              }
-
-              rows.add(KatexVlistRowNode(
-                verticalOffsetEm: topEm + pstrutHeight,
-                debugHtmlNode: kDebugMode ? innerSpan : null,
-                node: innerSpanNode));
-            } else {
-              throw _KatexHtmlParseError();
-            }
-          }
-
-          // TODO(#1716) Handle styling for .vlist-t2 spans
-          return KatexVlistNode(
-            rows: rows,
-            debugHtmlNode: debugHtmlNode,
-          );
-        } else {
+    if (hasTwoVlistR) {
+      if (vlistT.nodes case [
+        _,
+        dom.Element(localName: 'span', className: 'vlist-r', nodes: [
+          dom.Element(localName: 'span', className: 'vlist', nodes: [
+            dom.Element(localName: 'span', className: '', nodes: []),
+          ]) && final vlist,
+        ]),
+      ]) {
+        // In the generated HTML the .vlist in second .vlist-r span will have
+        // a "height" inline style which we ignore, because it doesn't seem
+        // to have any effect in rendering on the web.
+        // But also make sure there aren't any other inline styles present.
+        final vlistStyles = _parseInlineStyles(vlist);
+        if (vlistStyles != null && vlistStyles.keys.any((p) => p != 'height')) {
           throw _KatexHtmlParseError();
         }
       } else {
@@ -378,16 +286,100 @@ class _KatexParser {
       }
     }
 
-    final inlineStyles = _parseSpanInlineStyles(element);
-    if (inlineStyles != null) {
-      // We expect `vertical-align` inline style to be only present on a
-      // `strut` span, for which we emit `KatexStrutNode` separately.
-      if (inlineStyles.verticalAlignEm != null) throw _KatexHtmlParseError();
+    if (vlistT.nodes.first
+        case dom.Element(localName: 'span', className: 'vlist-r') &&
+            final vlistR) {
+      if (vlistR.attributes.containsKey('style')) throw _KatexHtmlParseError();
 
-      // Currently, we expect `top` to only be inside a vlist, and
-      // we handle that case separately above.
-      if (inlineStyles.topEm != null) throw _KatexHtmlParseError();
+      if (vlistR.nodes.first
+          case dom.Element(localName: 'span', className: 'vlist') &&
+              final vlist) {
+        // Same as above for the second .vlist-r span, .vlist span in first
+        // .vlist-r span will have "height" inline style which we ignore,
+        // because it doesn't seem to have any effect in rendering on
+        // the web.
+        // But also make sure there aren't any other inline styles present.
+        final vlistStyles = _parseInlineStyles(vlist);
+        if (vlistStyles != null && vlistStyles.keys.any((p) => p != 'height')) {
+          throw _KatexHtmlParseError();
+        }
+
+        final rows = <KatexVlistRowNode>[];
+
+        for (final innerSpan in vlist.nodes) {
+          if (innerSpan case dom.Element(
+            localName: 'span',
+            nodes: [
+              dom.Element(localName: 'span', className: 'pstrut') &&
+                  final pstrutSpan,
+              ...final otherSpans,
+            ],
+          )) {
+            if (innerSpan.className != '') {
+              throw _KatexHtmlParseError('unexpected CSS class for '
+                'vlist inner span: ${innerSpan.className}');
+            }
+
+            final inlineStyles = _parseInlineStyles(innerSpan);
+            if (inlineStyles == null) throw _KatexHtmlParseError();
+            final marginLeftEm = _takeStyleEm(inlineStyles, 'margin-left');
+            final marginLeftIsNegative = marginLeftEm?.isNegative ?? false;
+            final marginRightEm = _takeStyleEm(inlineStyles, 'margin-right');
+            if (marginRightEm?.isNegative ?? false) throw _KatexHtmlParseError();
+            final styles = KatexSpanStyles(
+              marginLeftEm: marginLeftIsNegative ? null : marginLeftEm,
+              marginRightEm: marginRightEm,
+            );
+            final topEm = _takeStyleEm(inlineStyles, 'top');
+            if (inlineStyles.isNotEmpty) throw _KatexHtmlParseError();
+
+            final pstrutStyles = _parseInlineStyles(pstrutSpan);
+            if (pstrutStyles == null) throw _KatexHtmlParseError();
+            final pstrutHeightEm = _takeStyleEm(pstrutStyles, 'height');
+            if (pstrutHeightEm == null) throw _KatexHtmlParseError();
+            if (pstrutStyles.isNotEmpty) throw _KatexHtmlParseError();
+
+            KatexSpanNode child = KatexSpanNode(
+              styles: styles,
+              text: null,
+              nodes: _parseChildSpans(otherSpans));
+
+            if (marginLeftIsNegative) {
+              child = KatexSpanNode(
+                styles: KatexSpanStyles(),
+                text: null,
+                nodes: [KatexNegativeMarginNode(
+                  leftOffsetEm: marginLeftEm!,
+                  nodes: [child])]);
+            }
+
+            rows.add(KatexVlistRowNode(
+              verticalOffsetEm: (topEm ?? 0) + pstrutHeightEm,
+              debugHtmlNode: kDebugMode ? innerSpan : null,
+              node: child));
+          } else {
+            throw _KatexHtmlParseError();
+          }
+        }
+
+        // TODO(#1716) Handle styling for .vlist-t2 spans
+        return KatexVlistNode(
+          rows: rows,
+          debugHtmlNode: kDebugMode ? element : null,
+        );
+      } else {
+        throw _KatexHtmlParseError();
+      }
+    } else {
+      throw _KatexHtmlParseError();
     }
+  }
+
+  static final _resetSizeClassRegExp = RegExp(r'^reset-size(\d\d?)$');
+  static final _sizeClassRegExp = RegExp(r'^size(\d\d?)$');
+
+  KatexNode _parseGenericSpan(dom.Element element) {
+    assert(element.localName == 'span');
 
     // Aggregate the CSS styles that apply, in the same order as the CSS
     // classes specified for this span, mimicking the behaviour on web.
@@ -586,7 +578,7 @@ class _KatexParser {
             'size4' => 'KaTeX_Size4',
             'mult' =>
               // TODO handle nested spans with `.delim-size{1,4}` class.
-              throw _KatexHtmlParseError(),
+              throw _KatexHtmlParseError('unimplemented CSS class pair: .delimsizing.mult'),
             _ => throw _KatexHtmlParseError(),
           };
 
@@ -632,13 +624,32 @@ class _KatexParser {
           _hasError = true;
       }
     }
+
+    final inlineStyles = _parseInlineStyles(element);
     final styles = KatexSpanStyles(
       fontFamily: fontFamily,
       fontSizeEm: fontSizeEm,
       fontWeight: fontWeight,
       fontStyle: fontStyle,
       textAlign: textAlign,
+      heightEm: _takeStyleEm(inlineStyles, 'height'),
+      topEm: _takeStyleEm(inlineStyles, 'top'),
+      marginLeftEm: _takeStyleEm(inlineStyles, 'margin-left'),
+      marginRightEm: _takeStyleEm(inlineStyles, 'margin-right'),
+      // TODO handle more CSS properties
     );
+    if (inlineStyles != null && inlineStyles.isNotEmpty) {
+      for (final property in inlineStyles.keys) {
+        assert(debugLog('KaTeX: Unexpected inline CSS property: $property'));
+        unsupportedInlineCssProperties.add(property);
+        _hasError = true;
+      }
+    }
+    // Currently, we expect `top` to only be inside a vlist, and
+    // we handle that case separately above.
+    if (styles.topEm != null) {
+      throw _KatexHtmlParseError('unsupported inline CSS property: top');
+    }
 
     String? text;
     List<KatexNode>? spans;
@@ -650,85 +661,65 @@ class _KatexParser {
     if (text == null && spans == null) throw _KatexHtmlParseError();
 
     return KatexSpanNode(
-      styles: inlineStyles != null
-        ? styles.merge(inlineStyles)
-        : styles,
+      styles: styles,
       text: text,
       nodes: spans,
-      debugHtmlNode: debugHtmlNode);
+      debugHtmlNode: kDebugMode ? element : null);
   }
 
-  KatexSpanStyles? _parseSpanInlineStyles(dom.Element element) {
-    if (element.attributes case {'style': final styleStr}) {
-      // `package:csslib` doesn't seem to have a way to parse inline styles:
-      //   https://github.com/dart-lang/tools/issues/1173
-      // So, work around that by wrapping it in a universal declaration.
-      final stylesheet = css_parser.parse('*{$styleStr}');
-      if (stylesheet.topLevels case [css_visitor.RuleSet() && final rule]) {
-        double? heightEm;
-        double? verticalAlignEm;
-        double? topEm;
-        double? marginRightEm;
-        double? marginLeftEm;
+  /// Parse the inline CSS styles from the given element.
+  ///
+  /// To interpret the resulting map, consider [_takeStyleEm].
+  static Map<String, css_visitor.Expression>? _parseInlineStyles(dom.Element element) {
+    final styleStr = element.attributes['style'];
+    if (styleStr == null) return null;
 
-        for (final declaration in rule.declarationGroup.declarations) {
-          if (declaration case css_visitor.Declaration(
-            :final property,
-            expression: css_visitor.Expressions(
-              expressions: [css_visitor.Expression() && final expression]),
-          )) {
-            switch (property) {
-              case 'height':
-                heightEm = _getEm(expression);
-                if (heightEm != null) continue;
-
-              case 'vertical-align':
-                verticalAlignEm = _getEm(expression);
-                if (verticalAlignEm != null) continue;
-
-              case 'top':
-                topEm = _getEm(expression);
-                if (topEm != null) continue;
-
-              case 'margin-right':
-                marginRightEm = _getEm(expression);
-                if (marginRightEm != null) continue;
-
-              case 'margin-left':
-                marginLeftEm = _getEm(expression);
-                if (marginLeftEm != null) continue;
-            }
-
-            // TODO handle more CSS properties
-            assert(debugLog('KaTeX: Unsupported CSS expression:'
-              ' ${expression.toDebugString()}'));
-            unsupportedInlineCssProperties.add(property);
-            _hasError = true;
-          } else {
-            throw _KatexHtmlParseError();
-          }
+    // `package:csslib` doesn't seem to have a way to parse inline styles:
+    //   https://github.com/dart-lang/tools/issues/1173
+    // So, work around that by wrapping it in a universal declaration.
+    final stylesheet = css_parser.parse('*{$styleStr}');
+    if (stylesheet.topLevels case [css_visitor.RuleSet() && final ruleSet]) {
+      final result = <String, css_visitor.Expression>{};
+      for (final declaration in ruleSet.declarationGroup.declarations) {
+        if (declaration case css_visitor.Declaration(
+          :final property,
+          expression: css_visitor.Expressions(
+            expressions: [css_visitor.Expression() && final expression]),
+        )) {
+          result.update(property, ifAbsent: () => expression,
+            (_) => throw _KatexHtmlParseError(
+              'duplicate inline CSS property: $property'));
+        } else {
+          throw _KatexHtmlParseError('unexpected shape of inline CSS');
         }
-
-        return KatexSpanStyles(
-          heightEm: heightEm,
-          topEm: topEm,
-          verticalAlignEm: verticalAlignEm,
-          marginRightEm: marginRightEm,
-          marginLeftEm: marginLeftEm,
-        );
-      } else {
-        throw _KatexHtmlParseError();
       }
+      return result;
+    } else {
+      throw _KatexHtmlParseError();
     }
-    return null;
   }
 
-  /// Returns the CSS `em` unit value if the given [expression] is actually an
-  /// `em` unit expression, else returns null.
-  double? _getEm(css_visitor.Expression expression) {
+  /// Remove the given property from the given style map,
+  /// and parse as a length in ems.
+  ///
+  /// If the property is present but is not a length in ems,
+  /// record an error and return null.
+  ///
+  /// If the property is absent, return null with no error.
+  ///
+  /// If the map is null, treat it as empty.
+  ///
+  /// To produce the map this method expects, see [_parseInlineStyles].
+  double? _takeStyleEm(Map<String, css_visitor.Expression>? styles, String property) {
+    final expression = styles?.remove(property);
+    if (expression == null) return null;
     if (expression is css_visitor.EmTerm && expression.value is num) {
       return (expression.value as num).toDouble();
     }
+    assert(debugLog('KaTeX: Unsupported value for CSS property $property,'
+      ' expected a length in em: ${expression.toDebugString()}'));
+    unsupportedInlineCssProperties.add(property);
+    _hasError = true;
     return null;
   }
 }
@@ -750,8 +741,15 @@ enum KatexSpanTextAlign {
 
 @immutable
 class KatexSpanStyles {
+  // TODO(#1674) does height actually appear on generic spans?
+  //   In a corpus, the only occurrences that we don't already handle separately
+  //   (i.e. occurrences other than on struts, vlists, etc) seem to be within
+  //   accents; so after #1674 we might be handling those separately too.
   final double? heightEm;
-  final double? verticalAlignEm;
+
+  // We expect `vertical-align` inline style to be only present on a
+  // `strut` span, for which we emit `KatexStrutNode` separately.
+  // final double? verticalAlignEm;
 
   final double? topEm;
 
@@ -766,7 +764,6 @@ class KatexSpanStyles {
 
   const KatexSpanStyles({
     this.heightEm,
-    this.verticalAlignEm,
     this.topEm,
     this.marginRightEm,
     this.marginLeftEm,
@@ -781,7 +778,6 @@ class KatexSpanStyles {
   int get hashCode => Object.hash(
     'KatexSpanStyles',
     heightEm,
-    verticalAlignEm,
     topEm,
     marginRightEm,
     marginLeftEm,
@@ -796,7 +792,6 @@ class KatexSpanStyles {
   bool operator ==(Object other) {
     return other is KatexSpanStyles &&
       other.heightEm == heightEm &&
-      other.verticalAlignEm == verticalAlignEm &&
       other.topEm == topEm &&
       other.marginRightEm == marginRightEm &&
       other.marginLeftEm == marginLeftEm &&
@@ -811,7 +806,6 @@ class KatexSpanStyles {
   String toString() {
     final args = <String>[];
     if (heightEm != null) args.add('heightEm: $heightEm');
-    if (verticalAlignEm != null) args.add('verticalAlignEm: $verticalAlignEm');
     if (topEm != null) args.add('topEm: $topEm');
     if (marginRightEm != null) args.add('marginRightEm: $marginRightEm');
     if (marginLeftEm != null) args.add('marginLeftEm: $marginLeftEm');
@@ -821,28 +815,6 @@ class KatexSpanStyles {
     if (fontStyle != null) args.add('fontStyle: $fontStyle');
     if (textAlign != null) args.add('textAlign: $textAlign');
     return '${objectRuntimeType(this, 'KatexSpanStyles')}(${args.join(', ')})';
-  }
-
-  /// Creates a new [KatexSpanStyles] with current and [other]'s styles merged.
-  ///
-  /// The styles in [other] take precedence and any missing styles in [other]
-  /// are filled in with current styles, if present.
-  ///
-  /// This similar to the behaviour of [TextStyle.merge], if the given style
-  /// had `inherit` set to true.
-  KatexSpanStyles merge(KatexSpanStyles other) {
-    return KatexSpanStyles(
-      heightEm: other.heightEm ?? heightEm,
-      verticalAlignEm: other.verticalAlignEm ?? verticalAlignEm,
-      topEm: other.topEm ?? topEm,
-      marginRightEm: other.marginRightEm ?? marginRightEm,
-      marginLeftEm: other.marginLeftEm ?? marginLeftEm,
-      fontFamily: other.fontFamily ?? fontFamily,
-      fontSizeEm: other.fontSizeEm ?? fontSizeEm,
-      fontStyle: other.fontStyle ?? fontStyle,
-      fontWeight: other.fontWeight ?? fontWeight,
-      textAlign: other.textAlign ?? textAlign,
-    );
   }
 
   KatexSpanStyles filter({
@@ -859,7 +831,6 @@ class KatexSpanStyles {
   }) {
     return KatexSpanStyles(
       heightEm: heightEm ? this.heightEm : null,
-      verticalAlignEm: verticalAlignEm ? this.verticalAlignEm : null,
       topEm: topEm ? this.topEm : null,
       marginRightEm: marginRightEm ? this.marginRightEm : null,
       marginLeftEm: marginLeftEm ? this.marginLeftEm : null,

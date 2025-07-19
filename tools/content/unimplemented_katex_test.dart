@@ -59,8 +59,9 @@ void main() async {
       int failureCount = 0;
 
       if (hardFailReason != null) {
-        final firstLine = hardFailReason.stackTrace.toString().split('\n').first;
-        final reason = 'hard fail: ${hardFailReason.error} "$firstLine"';
+        final message = hardFailReason.message
+          ?? 'unknown reason at ${_inmostFrame(hardFailReason.stackTrace)}';
+        final reason = 'hard fail: $message';
         (failedMessageIdsByReason[reason] ??= {}).add(messageId);
         (failedMathNodesByReason[reason] ??= {}).add(value);
         failureCount++;
@@ -102,9 +103,13 @@ void main() async {
     buf.writeln('There were $totalMathInlineNodes math inline nodes out of which $failedMathInlineNodes failed.');
     buf.writeln();
 
-    for (final MapEntry(key: reason, value: messageIds) in failedMessageIdsByReason.entries.sorted(
-      (a, b) => b.value.length.compareTo(a.value.length),
-    )) {
+    for (final MapEntry(key: reason, value: messageIds)
+         in failedMessageIdsByReason.entries.sorted((a, b) {
+           // Sort by number of failed messages descending, then by reason.
+           final r = - a.value.length.compareTo(b.value.length);
+           if (r != 0) return r;
+           return a.key.compareTo(b.key);
+         })) {
       final failedMathNodes = failedMathNodesByReason[reason]!.toList();
       failedMathNodes.shuffle();
       final oldestId = messageIds.reduce(min);
@@ -154,6 +159,16 @@ void main() async {
       test(file.path, () => checkForKatexFailuresInFile(file));
     }
   });
+}
+
+/// The innermost frame of the given stack trace,
+/// e.g. the line where an exception was thrown.
+///
+/// Inevitably this is a bit heuristic, given the lack of any API guarantees
+/// on the structure of [StackTrace].
+String _inmostFrame(StackTrace stackTrace) {
+  final firstLine = stackTrace.toString().split('\n').first;
+  return firstLine.replaceFirst(RegExp(r'^#\d+\s+'), '');
 }
 
 const String _corpusDirPath = String.fromEnvironment('corpusDir');

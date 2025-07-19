@@ -13,7 +13,6 @@ import 'package:wakelock_plus/wakelock_plus.dart' as wakelock_plus;
 import '../host/android_notifications.dart';
 import '../host/notifications.dart' as notif_pigeon;
 import '../log.dart';
-import '../widgets/store.dart';
 import 'store.dart';
 
 export 'package:file_picker/file_picker.dart' show FilePickerResult, FileType, PlatformFile;
