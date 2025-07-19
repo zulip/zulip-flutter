@@ -18,11 +18,11 @@ import 'settings.dart';
 /// a specific node.
 class KatexParserHardFailReason {
   const KatexParserHardFailReason({
-    required this.error,
+    required this.message,
     required this.stackTrace,
   });
 
-  final String error;
+  final String? message;
   final StackTrace stackTrace;
 }
 
@@ -132,7 +132,7 @@ MathParserResult? parseMath(dom.Element element, { required bool block }) {
       } on _KatexHtmlParseError catch (e, st) {
         assert(debugLog('$e\n$st'));
         hardFailReason = KatexParserHardFailReason(
-          error: e.message ?? 'unknown',
+          message: e.message,
           stackTrace: st);
       }
 
