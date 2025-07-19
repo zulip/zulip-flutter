@@ -379,9 +379,11 @@ class ContentExample {
     'code block without syntax highlighting',
     "```\nverb\natim\n```",
     expectedText: 'verb\natim',
-    '<div class="codehilite"><pre><span></span><code>verb\natim\n</code></pre></div>', [
+    '<div class="codehilite">'
+      '<pre><span></span>'
+        '<code>verb\natim\n</code></pre></div>', [
       CodeBlockNode([
-        CodeBlockSpanNode(text: 'verb\natim', type: CodeBlockSpanType.text),
+        CodeBlockSpanNode(text: 'verb\natim', spanTypes: [CodeBlockSpanType.text]),
       ]),
     ]);
 
@@ -389,16 +391,20 @@ class ContentExample {
     'code block with syntax highlighting',
     "```dart\nclass A {}\n```",
     expectedText: 'class A {}',
-    '<div class="codehilite" data-code-language="Dart"><pre>'
-        '<span></span><code><span class="kd">class</span><span class="w"> </span>'
-        '<span class="nc">A</span><span class="w"> </span><span class="p">{}</span>'
-        '\n</code></pre></div>', [
+    '<div class="codehilite" data-code-language="Dart">'
+      '<pre><span></span>'
+        '<code>'
+          '<span class="kd">class</span>'
+          '<span class="w"> </span>'
+          '<span class="nc">A</span>'
+          '<span class="w"> </span>'
+          '<span class="p">{}</span>\n</code></pre></div>', [
       CodeBlockNode([
-        CodeBlockSpanNode(text: 'class', type: CodeBlockSpanType.keywordDeclaration),
-        CodeBlockSpanNode(text: ' ', type: CodeBlockSpanType.whitespace),
-        CodeBlockSpanNode(text: 'A', type: CodeBlockSpanType.nameClass),
-        CodeBlockSpanNode(text: ' ', type: CodeBlockSpanType.whitespace),
-        CodeBlockSpanNode(text: '{}', type: CodeBlockSpanType.punctuation),
+        CodeBlockSpanNode(text: 'class', spanTypes: [CodeBlockSpanType.keywordDeclaration]),
+        CodeBlockSpanNode(text: ' ', spanTypes: [CodeBlockSpanType.whitespace]),
+        CodeBlockSpanNode(text: 'A', spanTypes: [CodeBlockSpanType.nameClass]),
+        CodeBlockSpanNode(text: ' ', spanTypes: [CodeBlockSpanType.whitespace]),
+        CodeBlockSpanNode(text: '{}', spanTypes: [CodeBlockSpanType.punctuation]),
       ]),
     ]);
 
@@ -406,38 +412,50 @@ class ContentExample {
     'code block, multiline, with syntax highlighting',
     '```rust\nfn main() {\n    print!("Hello ");\n\n    print!("world!\\n");\n}\n```',
     expectedText: 'fn main() {\n    print!("Hello ");\n\n    print!("world!\\n");\n}',
-    '<div class="codehilite" data-code-language="Rust"><pre>'
-        '<span></span><code><span class="k">fn</span> <span class="nf">main</span>'
-        '<span class="p">()</span><span class="w"> </span><span class="p">{</span>\n'
-        '<span class="w">    </span><span class="fm">print!</span><span class="p">(</span>'
-        '<span class="s">"Hello "</span><span class="p">);</span>\n\n'
-        '<span class="w">    </span><span class="fm">print!</span><span class="p">(</span>'
-        '<span class="s">"world!</span><span class="se">\\n</span><span class="s">"</span>'
-        '<span class="p">);</span>\n<span class="p">}</span>\n'
-        '</code></pre></div>', [
+    '<div class="codehilite" data-code-language="Rust">'
+      '<pre><span></span>'
+        '<code>'
+          '<span class="k">fn</span> '
+          '<span class="nf">main</span>'
+          '<span class="p">()</span>'
+          '<span class="w"> </span>'
+          '<span class="p">{</span>\n'
+          '<span class="w">    </span>'
+          '<span class="fm">print!</span>'
+          '<span class="p">(</span>'
+          '<span class="s">"Hello "</span>'
+          '<span class="p">);</span>\n\n'
+          '<span class="w">    </span>'
+          '<span class="fm">print!</span>'
+          '<span class="p">(</span>'
+          '<span class="s">"world!</span>'
+          '<span class="se">\\n</span>'
+          '<span class="s">"</span>'
+          '<span class="p">);</span>\n'
+          '<span class="p">}</span>\n</code></pre></div>', [
       CodeBlockNode([
-        CodeBlockSpanNode(text: 'fn', type: CodeBlockSpanType.keyword),
-        CodeBlockSpanNode(text: ' ', type: CodeBlockSpanType.text),
-        CodeBlockSpanNode(text: 'main', type: CodeBlockSpanType.nameFunction),
-        CodeBlockSpanNode(text: '()', type: CodeBlockSpanType.punctuation),
-        CodeBlockSpanNode(text: ' ', type: CodeBlockSpanType.whitespace),
-        CodeBlockSpanNode(text: '{', type: CodeBlockSpanType.punctuation),
-        CodeBlockSpanNode(text: '\n', type: CodeBlockSpanType.text),
-        CodeBlockSpanNode(text: '    ', type: CodeBlockSpanType.whitespace),
-        CodeBlockSpanNode(text: 'print!', type: CodeBlockSpanType.nameFunctionMagic),
-        CodeBlockSpanNode(text: '(', type: CodeBlockSpanType.punctuation),
-        CodeBlockSpanNode(text: '"Hello "', type: CodeBlockSpanType.string),
-        CodeBlockSpanNode(text: ');', type: CodeBlockSpanType.punctuation),
-        CodeBlockSpanNode(text: '\n\n', type: CodeBlockSpanType.text),
-        CodeBlockSpanNode(text: '    ', type: CodeBlockSpanType.whitespace),
-        CodeBlockSpanNode(text: 'print!', type: CodeBlockSpanType.nameFunctionMagic),
-        CodeBlockSpanNode(text: '(', type: CodeBlockSpanType.punctuation),
-        CodeBlockSpanNode(text: '"world!', type: CodeBlockSpanType.string),
-        CodeBlockSpanNode(text: '\\n', type: CodeBlockSpanType.stringEscape),
-        CodeBlockSpanNode(text: '"', type: CodeBlockSpanType.string),
-        CodeBlockSpanNode(text: ');', type: CodeBlockSpanType.punctuation),
-        CodeBlockSpanNode(text: '\n', type: CodeBlockSpanType.text),
-        CodeBlockSpanNode(text: '}', type: CodeBlockSpanType.punctuation),
+        CodeBlockSpanNode(text: 'fn', spanTypes: [CodeBlockSpanType.keyword]),
+        CodeBlockSpanNode(text: ' ', spanTypes: [CodeBlockSpanType.text]),
+        CodeBlockSpanNode(text: 'main', spanTypes: [CodeBlockSpanType.nameFunction]),
+        CodeBlockSpanNode(text: '()', spanTypes: [CodeBlockSpanType.punctuation]),
+        CodeBlockSpanNode(text: ' ', spanTypes: [CodeBlockSpanType.whitespace]),
+        CodeBlockSpanNode(text: '{', spanTypes: [CodeBlockSpanType.punctuation]),
+        CodeBlockSpanNode(text: '\n', spanTypes: [CodeBlockSpanType.text]),
+        CodeBlockSpanNode(text: '    ', spanTypes: [CodeBlockSpanType.whitespace]),
+        CodeBlockSpanNode(text: 'print!', spanTypes: [CodeBlockSpanType.nameFunctionMagic]),
+        CodeBlockSpanNode(text: '(', spanTypes: [CodeBlockSpanType.punctuation]),
+        CodeBlockSpanNode(text: '"Hello "', spanTypes: [CodeBlockSpanType.string]),
+        CodeBlockSpanNode(text: ');', spanTypes: [CodeBlockSpanType.punctuation]),
+        CodeBlockSpanNode(text: '\n\n', spanTypes: [CodeBlockSpanType.text]),
+        CodeBlockSpanNode(text: '    ', spanTypes: [CodeBlockSpanType.whitespace]),
+        CodeBlockSpanNode(text: 'print!', spanTypes: [CodeBlockSpanType.nameFunctionMagic]),
+        CodeBlockSpanNode(text: '(', spanTypes: [CodeBlockSpanType.punctuation]),
+        CodeBlockSpanNode(text: '"world!', spanTypes: [CodeBlockSpanType.string]),
+        CodeBlockSpanNode(text: '\\n', spanTypes: [CodeBlockSpanType.stringEscape]),
+        CodeBlockSpanNode(text: '"', spanTypes: [CodeBlockSpanType.string]),
+        CodeBlockSpanNode(text: ');', spanTypes: [CodeBlockSpanType.punctuation]),
+        CodeBlockSpanNode(text: '\n', spanTypes: [CodeBlockSpanType.text]),
+        CodeBlockSpanNode(text: '}', spanTypes: [CodeBlockSpanType.punctuation]),
       ]),
     ]);
 
@@ -447,14 +465,15 @@ class ContentExample {
     expectedText: '- item',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Greg/near/1949014
     '<div class="codehilite" data-code-language="YAML">'
-        '<pre><span></span><code><span class="p p-Indicator">-</span>'
-        '<span class="w"> </span>'
-        '<span class="l l-Scalar l-Scalar-Plain">item</span>\n'
-        '</code></pre></div>', [
+        '<pre><span></span>'
+          '<code>'
+            '<span class="p p-Indicator">-</span>'
+            '<span class="w"> </span>'
+            '<span class="l l-Scalar l-Scalar-Plain">item</span>\n</code></pre></div>', [
       CodeBlockNode([
-        CodeBlockSpanNode(text: "-", type: CodeBlockSpanType.punctuation),
-        CodeBlockSpanNode(text: " ", type: CodeBlockSpanType.whitespace),
-        CodeBlockSpanNode(text: "item", type: CodeBlockSpanType.literal)
+        CodeBlockSpanNode(text: "-", spanTypes: [CodeBlockSpanType.punctuation]),
+        CodeBlockSpanNode(text: " ", spanTypes: [CodeBlockSpanType.whitespace]),
+        CodeBlockSpanNode(text: "item", spanTypes: [CodeBlockSpanType.literal])
       ]),
     ]);
 
@@ -473,18 +492,22 @@ class ContentExample {
     'code block, with syntax highlighting and highlighted lines',
     '```\n::markdown hl_lines="2 4"\n# he\n## llo\n### world\n```',
     '<div class="codehilite"><pre>'
-        '<span></span><code>::markdown hl_lines=&quot;2 4&quot;\n'
-        '<span class="hll"><span class="gh"># he</span>\n'
-        '</span><span class="gu">## llo</span>\n'
-        '<span class="hll"><span class="gu">### world</span>\n'
-        '</span></code></pre></div>', [
-      // TODO: Fix this, see comment under `CodeBlockSpanType.highlightedLines` case in lib/model/content.dart.
-      blockUnimplemented('<div class="codehilite"><pre>'
-        '<span></span><code>::markdown hl_lines=&quot;2 4&quot;\n'
-        '<span class="hll"><span class="gh"># he</span>\n'
-        '</span><span class="gu">## llo</span>\n'
-        '<span class="hll"><span class="gu">### world</span>\n'
-        '</span></code></pre></div>'),
+        '<span></span>'
+        '<code>'
+          '::markdown hl_lines=&quot;2 4&quot;\n'
+          '<span class="hll">'
+            '<span class="gh"># he</span>\n</span>'
+          '<span class="gu">## llo</span>\n'
+          '<span class="hll">'
+            '<span class="gu">### world</span>\n</span></code></pre></div>', [
+      CodeBlockNode([
+        CodeBlockSpanNode(text: '::markdown hl_lines="2 4"\n', spanTypes: [CodeBlockSpanType.text]),
+        CodeBlockSpanNode(text: '# he', spanTypes: [CodeBlockSpanType.highlightedLines, CodeBlockSpanType.genericHeading]),
+        CodeBlockSpanNode(text: '\n', spanTypes: [CodeBlockSpanType.highlightedLines]),
+        CodeBlockSpanNode(text: '## llo', spanTypes: [CodeBlockSpanType.genericSubheading]),
+        CodeBlockSpanNode(text: '\n', spanTypes: [CodeBlockSpanType.text]),
+        CodeBlockSpanNode(text: '### world', spanTypes: [CodeBlockSpanType.highlightedLines, CodeBlockSpanType.genericSubheading]),
+      ]),
     ]);
 
   static final codeBlockWithUnknownSpanType = ContentExample(
@@ -503,10 +526,54 @@ class ContentExample {
     '    code block.\n\nsome content',
     // https://chat.zulip.org/#narrow/stream/7-test-here/near/1774823
     '<div class="codehilite">'
-      '<pre><span></span><code>code block.\n</code></pre></div>\n\n'
+      '<pre><span></span>'
+        '<code>code block.\n</code></pre></div>\n\n'
     '<p>some content</p>', [
-      CodeBlockNode([CodeBlockSpanNode(text: "code block.", type: CodeBlockSpanType.text)]),
+      CodeBlockNode([CodeBlockSpanNode(text: "code block.", spanTypes: [CodeBlockSpanType.text])]),
       ParagraphNode(links: null, nodes: [TextNode("some content")]),
+    ]);
+
+  static const codeBlockSearchHighlight = ContentExample(
+    'code block, search highlight',
+    '```dart\nclass A {}\n```',
+    '<div class="codehilite" data-code-language="Dart">'
+      '<pre>'
+        '<span></span>'
+        '<code>'
+          '<span class="kd">'
+            '<span class="highlight">class</span></span>'
+          '<span class="w"> </span>'
+          '<span class="nc">A</span>'
+          '<span class="w"> </span>'
+          '<span class="p">{}</span>\n</code></pre></div>', [
+      CodeBlockNode([
+        CodeBlockSpanNode(text: 'class', spanTypes: [CodeBlockSpanType.keywordDeclaration, CodeBlockSpanType.highlight]),
+        CodeBlockSpanNode(text: ' ', spanTypes: [CodeBlockSpanType.whitespace]),
+        CodeBlockSpanNode(text: 'A', spanTypes: [CodeBlockSpanType.nameClass]),
+        CodeBlockSpanNode(text: ' ', spanTypes: [CodeBlockSpanType.whitespace]),
+        CodeBlockSpanNode(text: '{}', spanTypes: [CodeBlockSpanType.punctuation]),
+      ]),
+    ]);
+
+  static const codeBlockSearchHighlightBetweenText = ContentExample(
+    'code block, search highlight between text',
+    '```console\n# postgresql\nThe World\'s Most Advanced Open Source Relational Database\n```',
+    '<div class="codehilite" data-code-language="Bash Session">'
+      '<pre>'
+        '<span></span>'
+        '<code>'
+          '<span class="gp"># </span>postgresql\n'
+          '<span class="go">'
+            'The '
+            '<span class="highlight">World</span>'
+            '\'s Most Advanced Open Source Relational Database</span>\n</code></pre></div>', [
+      CodeBlockNode([
+        CodeBlockSpanNode(text: '# ', spanTypes: [CodeBlockSpanType.genericPrompt]),
+        CodeBlockSpanNode(text: "postgresql\n", spanTypes: [CodeBlockSpanType.text]),
+        CodeBlockSpanNode(text: 'The ', spanTypes: [CodeBlockSpanType.genericOutput]),
+        CodeBlockSpanNode(text: 'World', spanTypes: [CodeBlockSpanType.genericOutput, CodeBlockSpanType.highlight]),
+        CodeBlockSpanNode(text: '\'s Most Advanced Open Source Relational Database', spanTypes: [CodeBlockSpanType.genericOutput]),
+      ]),
     ]);
 
   static final mathInline = ContentExample.inline(
@@ -2420,6 +2487,8 @@ void main() async {
   testParseExample(ContentExample.codeBlockWithHighlightedLines);
   testParseExample(ContentExample.codeBlockWithUnknownSpanType);
   testParseExample(ContentExample.codeBlockFollowedByMultipleLineBreaks);
+  testParseExample(ContentExample.codeBlockSearchHighlight);
+  testParseExample(ContentExample.codeBlockSearchHighlightBetweenText);
 
   testParseExample(ContentExample.mathBlock);
   testParseExample(ContentExample.mathBlocksMultipleInParagraph);
@@ -2492,7 +2561,7 @@ void main() async {
           ]]),
         ]),
         CodeBlockNode([
-          CodeBlockSpanNode(text: 'four', type: CodeBlockSpanType.text),
+          CodeBlockSpanNode(text: 'four', spanTypes: [CodeBlockSpanType.text]),
         ]),
         ParagraphNode(wasImplicit: true, links: null, nodes: [TextNode('\n\n')]), // TODO avoid this; it renders wrong
       ]]),

@@ -320,24 +320,30 @@ class CodeBlockNode extends BlockContentNode {
 }
 
 class CodeBlockSpanNode extends ContentNode {
-  const CodeBlockSpanNode({super.debugHtmlNode, required this.text, required this.type});
+  const CodeBlockSpanNode({
+    super.debugHtmlNode,
+    required this.text,
+    required this.spanTypes,
+  });
 
   final String text;
-  final CodeBlockSpanType type;
+  final List<CodeBlockSpanType> spanTypes;
 
   @override
   bool operator ==(Object other) {
-    return other is CodeBlockSpanNode && other.text == text && other.type == type;
+    return other is CodeBlockSpanNode &&
+      other.text == text &&
+      other.spanTypes == spanTypes;
   }
 
   @override
-  int get hashCode => Object.hash('CodeBlockSpanNode', text, type);
+  int get hashCode => Object.hash('CodeBlockSpanNode', text, spanTypes);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(StringProperty('text', text));
-    properties.add(EnumProperty('type', type));
+    properties.add(StringProperty('spanTypes', spanTypes.toString()));
   }
 }
 
@@ -1290,50 +1296,68 @@ class _ZulipContentParser {
       return UnimplementedBlockContentNode(htmlNode: divElement);
     }
 
-    final spans = <CodeBlockSpanNode>[];
+    // Empirically, when a Pygments node has multiple classes, the first
+    // class names a standard token type and the rest are for non-standard
+    // token types specific to the language.  Zulip web only styles the
+    // standard token classes and ignores the others, so we do the same.
+    // See: https://github.com/zulip/zulip-flutter/issues/933
+    CodeBlockSpanType? parseCodeBlockSpanType(String className) {
+      return className.split(' ')
+      .map(codeBlockSpanTypeFromClassName)
+      .firstWhereOrNull((e) => e != CodeBlockSpanType.unknown);
+    }
+
+    List<CodeBlockSpanNode> spans = [];
+    List<CodeBlockSpanType> spanTypes = [];
+    bool hasFailed = false;
+
     for (int i = 0; i < mainElement.nodes.length; i++) {
       final child = mainElement.nodes[i];
 
-      final CodeBlockSpanNode span;
-      switch (child) {
-        case dom.Text(:var text):
-          if (i == mainElement.nodes.length - 1) {
-            // The HTML tends to have a final newline here.  If included in the
-            // [Text] widget, that would make a trailing blank line.  So cut it out.
-            text = text.replaceFirst(RegExp(r'\n$'), '');
-          }
-          if (text.isEmpty) {
-            continue;
-          }
-          span = CodeBlockSpanNode(text: text, type: CodeBlockSpanType.text);
+      void parseCodeBlockSpan(dom.Node child, bool isLastNode) {
+        switch (child) {
+          case dom.Text(:var text):
+            if (isLastNode) {
+              // The HTML tends to have a final newline here.  If included in the
+              // [Text] widget, that would make a trailing blank line.  So cut it out.
+              text = text.replaceFirst(RegExp(r'\n$'), '');
+            }
+            if (text.isEmpty) {
+              break;
+            }
+            spans.add(CodeBlockSpanNode(
+              text: text,
+              spanTypes: spanTypes.isEmpty
+                ? const [CodeBlockSpanType.text]
+                : List.unmodifiable(spanTypes)));
 
-        case dom.Element(localName: 'span', :final text, :final className):
-          // Empirically, when a Pygments node has multiple classes, the first
-          // class names a standard token type and the rest are for non-standard
-          // token types specific to the language.  Zulip web only styles the
-          // standard token classes and ignores the others, so we do the same.
-          // See: https://github.com/zulip/zulip-flutter/issues/933
-          final spanType = className.split(' ')
-            .map(codeBlockSpanTypeFromClassName)
-            .firstWhereOrNull((e) => e != CodeBlockSpanType.unknown);
-
-          switch (spanType) {
-            case null:
+          case dom.Element(localName: 'span', :final className):
+            final spanType = parseCodeBlockSpanType(className);
+            if (spanType == null) {
               // TODO(#194): Show these as un-syntax-highlighted code, in production.
-              return UnimplementedBlockContentNode(htmlNode: divElement);
-            case CodeBlockSpanType.highlightedLines:
-              // TODO: Implement nesting in CodeBlockSpanNode to support hierarchically
-              //       inherited styles for `span.hll` nodes.
-              return UnimplementedBlockContentNode(htmlNode: divElement);
-            default:
-              span = CodeBlockSpanNode(text: text, type: spanType);
-          }
+              hasFailed = true;
+              return;
+            }
 
-        default:
-          return UnimplementedBlockContentNode(htmlNode: divElement);
+            spanTypes.add(spanType);
+
+            for (int i = 0; i < child.nodes.length; i++) {
+              final grandchild = child.nodes[i];
+              parseCodeBlockSpan(grandchild,
+                isLastNode ? i == child.nodes.length - 1 : false);
+              if (hasFailed) return;
+            }
+
+            assert(spanTypes.removeLast() == spanType);
+
+          default:
+            hasFailed = true;
+            return;
+        }
       }
 
-      spans.add(span);
+      parseCodeBlockSpan(child, i == mainElement.nodes.length - 1);
+      if (hasFailed) return UnimplementedBlockContentNode(htmlNode: divElement);
     }
 
     return CodeBlockNode(spans, debugHtmlNode: debugHtmlNode);
