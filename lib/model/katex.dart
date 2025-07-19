@@ -311,7 +311,6 @@ class _KatexParser {
               final inlineStyles = _parseInlineStyles(innerSpan);
               if (inlineStyles == null) throw _KatexHtmlParseError();
               final styles = KatexSpanStyles(
-                heightEm: _takeStyleEm(inlineStyles, 'height'),
                 marginLeftEm: _takeStyleEm(inlineStyles, 'margin-left'),
                 marginRightEm: _takeStyleEm(inlineStyles, 'margin-right'),
               );
