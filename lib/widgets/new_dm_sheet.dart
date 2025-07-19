@@ -317,6 +317,8 @@ class _SelectedUserChip extends StatelessWidget {
                   fontSize: 16,
                   height: 16 / 16,
                   color: designVariables.labelMenuButton)))),
+          UserStatusEmoji(userId: userId, size: 16,
+            padding: EdgeInsetsDirectional.only(end: 4)),
         ])));
   }
 }
@@ -415,7 +417,11 @@ class _NewDmUserListItem extends StatelessWidget {
             Avatar(userId: userId, size: 32, borderRadius: 3),
             SizedBox(width: 8),
             Expanded(
-              child: Text(store.userDisplayName(userId),
+              child: Text.rich(
+                TextSpan(text: store.userDisplayName(userId), children: [
+                  UserStatusEmoji.asWidgetSpan(userId: userId, fontSize: 17,
+                    textScaler: MediaQuery.textScalerOf(context)),
+                ]),
                 style: TextStyle(
                   fontSize: 17,
                   height: 19 / 17,
