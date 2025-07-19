@@ -158,14 +158,17 @@ void main() {
       check(state.narrow).equals(ChannelNarrow(stream.streamId));
     });
 
-    testWidgets('MessageListPageState.narrow (general chat)', (tester) async {
+    testWidgets('narrow gets normalized from "general chat"', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/1717
       final stream = eg.stream();
+      // Open the page on a topic with the literal name "general chat".
       final topic = eg.defaultRealmEmptyTopicDisplayName;
       final topicNarrow = eg.topicNarrow(stream.streamId, topic);
       await setupMessageListPage(tester, narrow: topicNarrow,
         streams: [stream],
         messages: [eg.streamMessage(stream: stream, topic: topic, content: "<p>a message</p>")]);
       final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
+      // The page's narrow has been updated; the topic is "", not "general chat".
       check(state.narrow).equals(eg.topicNarrow(stream.streamId, ''));
     });
 
