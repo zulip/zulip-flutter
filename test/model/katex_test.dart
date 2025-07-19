@@ -10,14 +10,17 @@ import 'package:zulip/model/katex.dart';
 import 'binding.dart';
 import 'content_test.dart';
 
-/// Holds examples of KaTeX Zulip content for test cases.
+/// An example of KaTeX Zulip content for test cases.
 ///
 /// For guidance on writing examples, see comments on [ContentExample].
-abstract class KatexExample {
+class KatexExample extends ContentExample {
+  const KatexExample(super.description, super.markdown, super.html,
+    super.expectedNodes, {super.expectedText});
+
   // The font sizes can be compared using the katex.css generated
   // from katex.scss :
   //   https://unpkg.com/katex@0.16.21/dist/katex.css
-  static const mathBlockKatexSizing = ContentExample(
+  static const mathBlockKatexSizing = KatexExample(
     'math block; KaTeX different sizing',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2155476
     '```math\n\\Huge 1\n\\huge 2\n\\LARGE 3\n\\Large 4\n\\large 5\n\\normalsize 6\n\\small 7\n\\footnotesize 8\n\\scriptsize 9\n\\tiny 0\n```',
@@ -91,7 +94,7 @@ abstract class KatexExample {
         ]),
     ]);
 
-  static const mathBlockKatexNestedSizing = ContentExample(
+  static const mathBlockKatexNestedSizing = KatexExample(
     'math block; KaTeX nested sizing',
     '```math\n\\tiny {1 \\Huge 2}\n```',
     '<p>'
@@ -130,7 +133,7 @@ abstract class KatexExample {
         ]),
     ]);
 
-  static const mathBlockKatexDelimSizing = ContentExample(
+  static const mathBlockKatexDelimSizing = KatexExample(
     'math block; KaTeX delimiter sizing',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2147135
     '```math\n⟨ \\big( \\Big[ \\bigg⌈ \\Bigg⌊\n```',
@@ -199,7 +202,7 @@ abstract class KatexExample {
         ]),
     ]);
 
-  static const mathBlockKatexSpace = ContentExample(
+  static const mathBlockKatexSpace = KatexExample(
     'math block; KaTeX space',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2214883
     '```math\n1:2\n```',
@@ -258,7 +261,7 @@ abstract class KatexExample {
         ]),
     ]);
 
-  static const mathBlockKatexSuperscript = ContentExample(
+  static const mathBlockKatexSuperscript = KatexExample(
     'math block, KaTeX superscript; single vlist-r, single vertical offset row',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2176734
     '```math\na\'\n```',
@@ -310,7 +313,7 @@ abstract class KatexExample {
       ]),
     ]);
 
-  static const mathBlockKatexSubscript = ContentExample(
+  static const mathBlockKatexSubscript = KatexExample(
     'math block, KaTeX subscript; two vlist-r, single vertical offset row',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2176735
     '```math\nx_n\n```',
@@ -366,7 +369,7 @@ abstract class KatexExample {
       ]),
     ]);
 
-  static const mathBlockKatexSubSuperScript = ContentExample(
+  static const mathBlockKatexSubSuperScript = KatexExample(
     'math block, KaTeX subsup script; two vlist-r, multiple vertical offset rows',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2176738
     '```math\n_u^o\n```',
@@ -436,7 +439,7 @@ abstract class KatexExample {
       ]),
     ]);
 
-  static const mathBlockKatexRaisebox = ContentExample(
+  static const mathBlockKatexRaisebox = KatexExample(
     'math block, KaTeX raisebox; single vlist-r, single vertical offset row',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2176739
     '```math\na\\raisebox{0.25em}{\$b\$}c\n```',
@@ -480,7 +483,7 @@ abstract class KatexExample {
       ]),
     ]);
 
-  static const mathBlockKatexNegativeMargin = ContentExample(
+  static const mathBlockKatexNegativeMargin = KatexExample(
     'math block, KaTeX negative margin',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2223563
     '```math\n1 \\! 2\n```',
@@ -505,7 +508,7 @@ abstract class KatexExample {
       ]),
     ]);
 
-  static const mathBlockKatexLogo = ContentExample(
+  static const mathBlockKatexLogo = KatexExample(
     'math block, KaTeX logo',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2141902
     '```math\n\\KaTeX\n```',
@@ -595,7 +598,7 @@ abstract class KatexExample {
       ]),
     ]);
 
-  static const mathBlockKatexNegativeMarginsOnVlistRow = ContentExample(
+  static const mathBlockKatexNegativeMarginsOnVlistRow = KatexExample(
     'math block, KaTeX negative margins on a vlist row',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2224918
     '```math\nX_n\n```',
@@ -675,7 +678,7 @@ void main() async {
   testParseExample(KatexExample.mathBlockKatexNegativeMarginsOnVlistRow);
 
   test('all KaTeX content examples are tested', () {
-    // Check that every ContentExample defined above has a corresponding
+    // Check that every KatexExample defined above has a corresponding
     // actual test case that runs on it.  If you've added a new example
     // and this test breaks, remember to add a `testParseExample` call for it.
 
@@ -686,7 +689,7 @@ void main() async {
     final thisFilename = Trace.current().frames[0].uri.path;
     final source = File(thisFilename).readAsStringSync();
     final declaredExamples = RegExp(multiLine: true,
-      r'^\s*static\s+(?:const|final)\s+(\w+)\s*=\s*ContentExample\s*(?:\.\s*inline\s*)?\(',
+      r'^\s*static\s+(?:const|final)\s+(\w+)\s*=\s*KatexExample\s*(?:\.\s*inline\s*)?\(',
     ).allMatches(source).map((m) => m.group(1));
     final testedExamples = RegExp(multiLine: true,
       r'^\s*testParseExample\s*\(\s*KatexExample\s*\.\s*(\w+)(?:,\s*skip:\s*true)?\s*\);',
