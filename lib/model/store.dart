@@ -878,6 +878,7 @@ class PerAccountStore extends PerAccountStoreBase with
     recentDmConversationsView.dispose();
     unreads.dispose();
     _messages.dispose();
+    presence.dispose();
     typingStatus.dispose();
     typingNotifier.dispose();
     updateMachine?.dispose();
