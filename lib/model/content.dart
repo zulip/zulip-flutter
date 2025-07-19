@@ -381,8 +381,8 @@ sealed class KatexNode extends ContentNode {
 class KatexSpanNode extends KatexNode {
   const KatexSpanNode({
     required this.styles,
-    required this.text,
-    required this.nodes,
+    this.text,
+    this.nodes,
     super.debugHtmlNode,
   }) : assert((text != null) ^ (nodes != null));
 
