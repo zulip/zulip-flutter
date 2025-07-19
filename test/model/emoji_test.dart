@@ -331,6 +331,30 @@ void main() {
     });
   });
 
+  group('getUnicodeEmojiNameByCode', () {
+    test('happy path', () {
+      final store = prepare(unicodeEmoji: {
+        '1f4c5': ['calendar'],
+        '1f34a': ['orange', 'tangerine', 'mandarin'],
+      });
+      check(store.getUnicodeEmojiNameByCode('1f4c5')).equals('calendar');
+      check(store.getUnicodeEmojiNameByCode('1f34a')).equals('orange');
+    });
+
+    test('server emoji data present, emoji code not present', () {
+      final store = prepare(unicodeEmoji: {
+        '1f4c5': ['calendar'],
+      });
+      check(store.getUnicodeEmojiNameByCode('1f34a')).isNull();
+    });
+
+    test('server emoji data is not present', () {
+      final store = prepare(addServerDataForPopular: false);
+      check(store.debugServerEmojiData).isNull();
+      check(store.getUnicodeEmojiNameByCode('1f516')).isNull();
+    });
+  });
+
   group('EmojiAutocompleteView', () {
     Condition<Object?> isUnicodeResult({String? emojiCode, List<String>? names}) {
       return (it) => it.isA<EmojiAutocompleteResult>().candidate.which(
