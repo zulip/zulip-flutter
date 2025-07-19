@@ -380,7 +380,7 @@ sealed class KatexNode extends ContentNode {
 
 class KatexSpanNode extends KatexNode {
   const KatexSpanNode({
-    required this.styles,
+    this.styles = const KatexSpanStyles(),
     this.text,
     this.nodes,
     super.debugHtmlNode,

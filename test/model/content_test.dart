@@ -518,7 +518,7 @@ class ContentExample {
         '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></p>',
     MathInlineNode(texSource: r'\lambda', nodes: [
-      KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+      KatexSpanNode(nodes: [
         KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
         KatexSpanNode(
           styles: KatexSpanStyles(
@@ -537,7 +537,7 @@ class ContentExample {
         '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
     [MathBlockNode(texSource: r'\lambda', nodes: [
-      KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+      KatexSpanNode(nodes: [
         KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
         KatexSpanNode(
           styles: KatexSpanStyles(
@@ -561,7 +561,7 @@ class ContentExample {
           '<annotation encoding="application/x-tex">b</annotation></semantics></math></span>'
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span></p>', [
       MathBlockNode(texSource: 'a', nodes: [
-        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+        KatexSpanNode(nodes: [
           KatexStrutNode(heightEm: 0.4306, verticalAlignEm: null),
           KatexSpanNode(
             styles: KatexSpanStyles(
@@ -571,7 +571,7 @@ class ContentExample {
         ]),
       ]),
       MathBlockNode(texSource: 'b', nodes: [
-        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+        KatexSpanNode(nodes: [
           KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
           KatexSpanNode(
             styles: KatexSpanStyles(
@@ -598,7 +598,7 @@ class ContentExample {
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([
       MathBlockNode(texSource: r'\lambda', nodes: [
-        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+        KatexSpanNode(nodes: [
           KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
           KatexSpanNode(
             styles: KatexSpanStyles(
@@ -626,7 +626,7 @@ class ContentExample {
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([
       MathBlockNode(texSource: 'a', nodes: [
-        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+        KatexSpanNode(nodes: [
           KatexStrutNode(heightEm: 0.4306, verticalAlignEm: null),
           KatexSpanNode(
             styles: KatexSpanStyles(
@@ -636,7 +636,7 @@ class ContentExample {
         ]),
       ]),
       MathBlockNode(texSource: 'b', nodes: [
-        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+        KatexSpanNode(nodes: [
           KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
           KatexSpanNode(
             styles: KatexSpanStyles(
@@ -673,7 +673,7 @@ class ContentExample {
           originalHeight: null),
       ]),
       MathBlockNode(texSource: 'a', nodes: [
-        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+        KatexSpanNode(nodes: [
           KatexStrutNode(heightEm: 0.4306, verticalAlignEm: null),
           KatexSpanNode(
             styles: KatexSpanStyles(

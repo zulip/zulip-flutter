@@ -345,7 +345,6 @@ class _KatexParser {
 
             if (marginLeftIsNegative) {
               child = KatexSpanNode(
-                styles: KatexSpanStyles(),
                 nodes: [KatexNegativeMarginNode(
                   leftOffsetEm: marginLeftEm!,
                   nodes: [child])]);

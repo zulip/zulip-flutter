@@ -48,7 +48,7 @@ class KatexExample extends ContentExample {
             '<span class="mord sizing reset-size6 size4">8</span>'
             '<span class="mord sizing reset-size6 size3">9</span>'
             '<span class="mord sizing reset-size6 size1">0</span></span></span></span></span></p>', [
-      KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+      KatexSpanNode(nodes: [
         KatexStrutNode(heightEm: 1.6034, verticalAlignEm: null),
         KatexSpanNode(
           styles: KatexSpanStyles(fontSizeEm: 2.488), // .reset-size6.size11
@@ -96,13 +96,12 @@ class KatexExample extends ContentExample {
             '<span class="mord sizing reset-size6 size1">'
               '<span class="mord">1</span>'
               '<span class="mord sizing reset-size1 size11">2</span></span></span></span></span></span></p>', [
-      KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+      KatexSpanNode(nodes: [
         KatexStrutNode(heightEm: 1.6034, verticalAlignEm: null),
         KatexSpanNode(
           styles: KatexSpanStyles(fontSizeEm: 0.5), // reset-size6 size1
           nodes: [
-            KatexSpanNode(styles: KatexSpanStyles(),
-              text: '1'),
+            KatexSpanNode(text: '1'),
             KatexSpanNode(
               styles: KatexSpanStyles(fontSizeEm: 4.976), // reset-size1 size11
               text: '2'),
@@ -126,26 +125,25 @@ class KatexExample extends ContentExample {
             '<span class="mord"><span class="delimsizing size2">[</span></span>'
             '<span class="mord"><span class="delimsizing size3">⌈</span></span>'
             '<span class="mord"><span class="delimsizing size4">⌊</span></span></span></span></span></span></p>', [
-      KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+      KatexSpanNode(nodes: [
         KatexStrutNode(heightEm: 3, verticalAlignEm: -1.25),
-        KatexSpanNode(styles: KatexSpanStyles(),
-          text: '⟨'),
-        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+        KatexSpanNode(text: '⟨'),
+        KatexSpanNode(nodes: [
           KatexSpanNode(
             styles: KatexSpanStyles(fontFamily: 'KaTeX_Size1'),
             text: '('),
         ]),
-        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+        KatexSpanNode(nodes: [
           KatexSpanNode(
             styles: KatexSpanStyles(fontFamily: 'KaTeX_Size2'),
             text: '['),
         ]),
-        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+        KatexSpanNode(nodes: [
           KatexSpanNode(
             styles: KatexSpanStyles(fontFamily: 'KaTeX_Size3'),
             text: '⌈'),
         ]),
-        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+        KatexSpanNode(nodes: [
           KatexSpanNode(
             styles: KatexSpanStyles(fontFamily: 'KaTeX_Size4'),
             text: '⌊'),
@@ -170,23 +168,20 @@ class KatexExample extends ContentExample {
           '<span class="base">'
             '<span class="strut" style="height:0.6444em;"></span>'
             '<span class="mord">2</span></span></span></span></span></p>', [
-      KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+      KatexSpanNode(nodes: [
         KatexStrutNode(heightEm: 0.6444, verticalAlignEm: null),
-        KatexSpanNode(styles: KatexSpanStyles(),
-          text: '1'),
+        KatexSpanNode(text: '1'),
         KatexSpanNode(
           styles: KatexSpanStyles(marginRightEm: 0.2778),
           nodes: []),
-        KatexSpanNode(styles: KatexSpanStyles(),
-          text: ':'),
+        KatexSpanNode(text: ':'),
         KatexSpanNode(
           styles: KatexSpanStyles(marginRightEm: 0.2778),
           nodes: []),
       ]),
-      KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+      KatexSpanNode(nodes: [
         KatexStrutNode(heightEm: 0.6444, verticalAlignEm: null),
-        KatexSpanNode(styles: KatexSpanStyles(),
-          text: '2'),
+        KatexSpanNode(text: '2'),
       ]),
     ]);
 
@@ -212,9 +207,9 @@ class KatexExample extends ContentExample {
                         '<span class="sizing reset-size6 size3 mtight">'
                           '<span class="mord mtight">'
                             '<span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span></span></p>', [
-      KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+      KatexSpanNode(nodes: [
         KatexStrutNode(heightEm: 0.8019, verticalAlignEm: null),
-        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+        KatexSpanNode(nodes: [
           KatexSpanNode(
             styles: KatexSpanStyles(
               fontFamily: 'KaTeX_Math', fontStyle: KatexSpanFontStyle.italic),
@@ -229,8 +224,8 @@ class KatexExample extends ContentExample {
                     styles: KatexSpanStyles(marginRightEm: 0.05),
                     nodes: [
                       KatexSpanNode(styles: KatexSpanStyles(fontSizeEm: 0.7), nodes: [
-                        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
-                          KatexSpanNode(styles: KatexSpanStyles(), text: '′'),
+                        KatexSpanNode(nodes: [
+                          KatexSpanNode(text: '′'),
                         ]),
                       ]),
                     ])),
@@ -264,9 +259,9 @@ class KatexExample extends ContentExample {
                     '<span class="vlist-s">​</span></span>'
                   '<span class="vlist-r">'
                     '<span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></p>', [
-      KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+      KatexSpanNode(nodes: [
         KatexStrutNode(heightEm: 0.5806, verticalAlignEm: -0.15),
-        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+        KatexSpanNode(nodes: [
           KatexSpanNode(
             styles: KatexSpanStyles(
               fontFamily: 'KaTeX_Math', fontStyle: KatexSpanFontStyle.italic),
@@ -322,10 +317,10 @@ class KatexExample extends ContentExample {
                     '<span class="vlist-s">​</span></span>'
                   '<span class="vlist-r">'
                     '<span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span></span></span></span></span></p>', [
-      KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+      KatexSpanNode(nodes: [
         KatexStrutNode(heightEm: 0.9614, verticalAlignEm: -0.247),
-        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
-          KatexSpanNode(styles: KatexSpanStyles(), nodes: []),
+        KatexSpanNode(nodes: [
+          KatexSpanNode(nodes: []),
           KatexSpanNode(
             styles: KatexSpanStyles(textAlign: KatexSpanTextAlign.left),
             nodes: [
@@ -382,7 +377,7 @@ class KatexExample extends ContentExample {
                     '<span class="mord">'
                       '<span class="mord mathnormal">b</span></span></span></span></span></span>'
             '<span class="mord mathnormal">c</span></span></span></span></span></p>', [
-      KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+      KatexSpanNode(nodes: [
         KatexStrutNode(heightEm: 0.9444, verticalAlignEm: null),
         KatexSpanNode(
           styles: KatexSpanStyles(fontFamily: 'KaTeX_Math', fontStyle: KatexSpanFontStyle.italic),
@@ -390,8 +385,8 @@ class KatexExample extends ContentExample {
         KatexVlistNode(rows: [
           KatexVlistRowNode(
             verticalOffsetEm: -3.25 + 3,
-            node: KatexSpanNode(styles: KatexSpanStyles(), nodes: [
-              KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+            node: KatexSpanNode(nodes: [
+              KatexSpanNode(nodes: [
                 KatexSpanNode(
                   styles: KatexSpanStyles(fontFamily: 'KaTeX_Math', fontStyle: KatexSpanFontStyle.italic),
                   text: 'b'),
@@ -417,12 +412,12 @@ class KatexExample extends ContentExample {
             '<span class="mord">1</span>'
             '<span class="mspace" style="margin-right:-0.1667em;"></span>'
             '<span class="mord">2</span></span></span></span></span></p>', [
-      KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+      KatexSpanNode(nodes: [
         KatexStrutNode(heightEm: 0.6444, verticalAlignEm: null),
-        KatexSpanNode(styles: KatexSpanStyles(), text: '1'),
-        KatexSpanNode(styles: KatexSpanStyles(), nodes: []),
+        KatexSpanNode(text: '1'),
+        KatexSpanNode(nodes: []),
         KatexNegativeMarginNode(leftOffsetEm: -0.1667, nodes: [
-          KatexSpanNode(styles: KatexSpanStyles(), text: '2'),
+          KatexSpanNode(text: '2'),
         ]),
       ]),
     ]);
@@ -463,45 +458,45 @@ class KatexExample extends ContentExample {
                     '<span class="vlist" style="height:0.2155em;"><span></span></span></span></span>'
                 '<span class="mspace" style="margin-right:-0.125em;"></span>'
                 '<span class="mord textrm">X</span></span></span></span></span></span></span></p>', [
-      KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+      KatexSpanNode(nodes: [
         KatexStrutNode(heightEm: 0.8988, verticalAlignEm: -0.2155),
-        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+        KatexSpanNode(nodes: [
           KatexSpanNode(
             styles: KatexSpanStyles(fontFamily: 'KaTeX_Main'),
             text: 'K'),
-          KatexSpanNode(styles: KatexSpanStyles(), nodes: []),
+          KatexSpanNode(nodes: []),
           KatexNegativeMarginNode(leftOffsetEm: -0.17, nodes: [
             KatexVlistNode(rows: [
               KatexVlistRowNode(
                 verticalOffsetEm: -2.905 + 2.7,
-                node: KatexSpanNode(styles: KatexSpanStyles(), nodes: [
-                  KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+                node: KatexSpanNode(nodes: [
+                  KatexSpanNode(nodes: [
                     KatexSpanNode(
                       styles: KatexSpanStyles(fontFamily: 'KaTeX_Main', fontSizeEm: 0.7), // .reset-size6.size3
                       text: 'A'),
                   ]),
                 ])),
             ]),
-            KatexSpanNode(styles: KatexSpanStyles(), nodes: []),
+            KatexSpanNode(nodes: []),
             KatexNegativeMarginNode(leftOffsetEm: -0.15, nodes: [
-              KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+              KatexSpanNode(nodes: [
                 KatexSpanNode(
                   styles: KatexSpanStyles(fontFamily: 'KaTeX_Main'),
                   text: 'T'),
-                KatexSpanNode(styles: KatexSpanStyles(), nodes: []),
+                KatexSpanNode(nodes: []),
                 KatexNegativeMarginNode(leftOffsetEm: -0.1667, nodes: [
                   KatexVlistNode(rows: [
                     KatexVlistRowNode(
                       verticalOffsetEm: -2.7845 + 3,
-                      node: KatexSpanNode(styles: KatexSpanStyles(), nodes: [
-                        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+                      node: KatexSpanNode(nodes: [
+                        KatexSpanNode(nodes: [
                           KatexSpanNode(
                             styles: KatexSpanStyles(fontFamily: 'KaTeX_Main'),
                             text: 'E'),
                         ]),
                       ])),
                   ]),
-                  KatexSpanNode(styles: KatexSpanStyles(), nodes: []),
+                  KatexSpanNode(nodes: []),
                   KatexNegativeMarginNode(leftOffsetEm: -0.125, nodes: [
                     KatexSpanNode(
                       styles: KatexSpanStyles(fontFamily: 'KaTeX_Main'),
@@ -538,9 +533,9 @@ class KatexExample extends ContentExample {
                     '<span class="vlist-s">​</span></span>'
                   '<span class="vlist-r">'
                     '<span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></p>', [
-      KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+      KatexSpanNode(nodes: [
         KatexStrutNode(heightEm: 0.8333, verticalAlignEm: -0.15),
-        KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+        KatexSpanNode(nodes: [
           KatexSpanNode(
             styles: KatexSpanStyles(
               marginRightEm: 0.07847,
@@ -552,7 +547,7 @@ class KatexExample extends ContentExample {
               KatexVlistNode(rows: [
                 KatexVlistRowNode(
                   verticalOffsetEm: -2.55 + 2.7,
-                  node: KatexSpanNode(styles: KatexSpanStyles(), nodes: [
+                  node: KatexSpanNode(nodes: [
                     KatexNegativeMarginNode(leftOffsetEm: -0.0785, nodes: [
                       KatexSpanNode(
                         styles: KatexSpanStyles(marginRightEm: 0.05),
