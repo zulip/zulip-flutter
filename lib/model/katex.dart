@@ -2,7 +2,6 @@ import 'package:collection/collection.dart';
 import 'package:csslib/parser.dart' as css_parser;
 import 'package:csslib/visitor.dart' as css_visitor;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
 import 'package:html/dom.dart' as dom;
 
 import '../log.dart';
