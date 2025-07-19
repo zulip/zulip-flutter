@@ -6,6 +6,100 @@ import 'app_bar.dart';
 import 'page.dart';
 import 'store.dart';
 
+/// A custom toggle widget that matches Figma specifications exactly.
+///
+/// This widget provides precise control over dimensions and styling
+/// to match the design requirements that Flutter's built-in Switch
+/// widget cannot currently accommodate.
+class FigmaToggle extends StatelessWidget {
+  const FigmaToggle({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    this.activeColor,
+    this.inactiveColor,
+    this.activeThumbColor,
+    this.inactiveThumbColor,
+  });
+
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+  final Color? activeColor;
+  final Color? inactiveColor;
+  final Color? activeThumbColor;
+  final Color? inactiveThumbColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    // Figma-specified dimensions
+    final trackWidth = value ? 48.0 : 46.0;
+    final trackHeight = value ? 28.0 : 26.0;
+    final thumbRadius = value ? 10.0 : 7.0;
+
+    // Colors with fallbacks to theme defaults
+    final effectiveActiveColor = activeColor ?? colorScheme.primary;
+    final effectiveInactiveColor = inactiveColor ?? colorScheme.outline;
+    final effectiveActiveThumbColor = activeThumbColor ?? colorScheme.onPrimary;
+    final effectiveInactiveThumbColor = inactiveThumbColor ?? colorScheme.outline;
+
+    final trackColor = value ? effectiveActiveColor : effectiveInactiveColor;
+    final thumbColor = value ? effectiveActiveThumbColor : effectiveInactiveThumbColor;
+
+    return GestureDetector(
+      onTap: onChanged != null ? () => onChanged!(!value) : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        width: trackWidth,
+        height: trackHeight,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(trackHeight / 2),
+          color: trackColor,
+        ),
+        child: Stack(
+          children: [
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              left: value
+                ? trackWidth - (thumbRadius * 2) - 4.0  // 4px padding from edge
+                : 4.0,  // 4px padding from edge
+              top: (trackHeight - (thumbRadius * 2)) / 2,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                width: thumbRadius * 2,
+                height: thumbRadius * 2,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: thumbColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: value
+                  ? Icon(
+                      Icons.check,
+                      size: thumbRadius * 1.2,
+                      color: effectiveActiveColor,
+                    )
+                  : null,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
@@ -80,10 +174,13 @@ class _BrowserPreferenceSetting extends StatelessWidget {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
     final openLinksWithInAppBrowser =
       globalSettings.effectiveBrowserPreference == BrowserPreference.inApp;
-    return SwitchListTile.adaptive(
+    return ListTile(
       title: Text(zulipLocalizations.openLinksWithInAppBrowser),
-      value: openLinksWithInAppBrowser,
-      onChanged: (newValue) => _handleChange(context, newValue));
+      trailing: FigmaToggle(
+        value: openLinksWithInAppBrowser,
+        onChanged: (newValue) => _handleChange(context, newValue),
+      ),
+    );
   }
 }
 
@@ -251,10 +348,13 @@ class ExperimentalFeaturesPage extends StatelessWidget {
         ListTile(
           title: Text(zulipLocalizations.experimentalFeatureSettingsWarning)),
         for (final flag in flags)
-          SwitchListTile.adaptive(
+          ListTile(
             title: Text(flag.name), // no i18n; these are developer-facing settings
-            value: globalSettings.getBool(flag),
-            onChanged: (value) => globalSettings.setBool(flag, value)),
+            trailing: FigmaToggle(
+              value: globalSettings.getBool(flag),
+              onChanged: (value) => globalSettings.setBool(flag, value),
+            ),
+          ),
       ]));
   }
 }
