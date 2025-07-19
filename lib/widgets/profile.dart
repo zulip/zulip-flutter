@@ -11,11 +11,14 @@ import '../model/narrow.dart';
 import 'app_bar.dart';
 import 'button.dart';
 import 'content.dart';
+import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'remote_settings.dart';
+import 'set_status.dart';
 import 'store.dart';
 import 'text.dart';
+import 'theme.dart';
 
 class _TextStyles {
   static const primaryFieldText = TextStyle(fontSize: 20);
@@ -51,6 +54,7 @@ class ProfilePage extends StatelessWidget {
     final nameStyle = _TextStyles.primaryFieldText
       .merge(weightVariableTextStyle(context, wght: 700));
 
+    final userStatus = store.getUserStatus(userId);
     final displayEmail = store.userDisplayEmail(userId);
     final items = [
       Center(
@@ -73,9 +77,21 @@ class ProfilePage extends StatelessWidget {
           ),
           // TODO write a test where the user is muted; check this and avatar
           TextSpan(text: store.userDisplayName(userId, replaceIfMuted: false)),
+          if (userId != store.selfUserId)
+            UserStatusEmoji.asWidgetSpan(
+              userId: userId,
+              fontSize: nameStyle.fontSize!,
+              textScaler: MediaQuery.textScalerOf(context),
+              neverAnimate: false,
+            ),
         ]),
         textAlign: TextAlign.center,
         style: nameStyle),
+      if (userId != store.selfUserId && userStatus.text != null)
+        Text(userStatus.text!,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 18, height: 22 / 18,
+            color: DesignVariables.of(context).userStatusText)),
       if (displayEmail != null)
         Text(displayEmail,
           textAlign: TextAlign.center,
@@ -83,13 +99,16 @@ class ProfilePage extends StatelessWidget {
       Text(roleToLabel(user.role, zulipLocalizations),
         textAlign: TextAlign.center,
         style: _TextStyles.primaryFieldText),
-      // TODO(#197) render user status
       // TODO(#196) render active status
       // TODO(#292) render user local time
 
-      if (!store.realmPresenceDisabled && userId == store.selfUserId) ...[
+      if (userId == store.selfUserId) ...[
         const SizedBox(height: 16),
-        _InvisibleModeToggle(),
+        MenuButtonsShape(buttons: [
+          _SetStatusButton(),
+          if (!store.realmPresenceDisabled)
+            _InvisibleModeToggle(),
+        ]),
         const SizedBox(height: 16),
       ],
 
@@ -119,6 +138,42 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
+class _SetStatusButton extends StatelessWidget {
+  const _SetStatusButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    final userStatus = store.getUserStatus(store.selfUserId);
+
+    return ZulipMenuItemButton(
+      style: ZulipMenuItemButtonStyle.list,
+      label: userStatus == UserStatus.zero
+        ? localizations.statusButtonLabelStatusUnset
+        : localizations.statusButtonLabelStatusSet,
+      subLabel: userStatus == UserStatus.zero ? null : TextSpan(children: [
+        UserStatusEmoji.asWidgetSpan(
+          userId: store.selfUserId,
+          fontSize: 16,
+          textScaler: MediaQuery.textScalerOf(context),
+          position: StatusEmojiPosition.before,
+          neverAnimate: false,
+        ),
+        userStatus.text == null
+          ? TextSpan(text: localizations.noStatusText,
+              style: TextStyle(fontStyle: FontStyle.italic))
+          : TextSpan(text: userStatus.text),
+      ]),
+      icon: ZulipIcons.chevron_right,
+      onPressed: () {
+        Navigator.push(context, SetStatusPage.buildRoute(
+          context: context, oldStatus: userStatus));
+      },
+    );
+  }
+}
+
 class _InvisibleModeToggle extends StatelessWidget {
   const _InvisibleModeToggle();
 
@@ -127,24 +182,22 @@ class _InvisibleModeToggle extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
 
-    return MenuButtonsShape(buttons: [
-      // `value: true` means invisible mode is on,
-      // i.e., that presenceEnabled is false.
-      RemoteSettingBuilder<bool>(
-        findValueInStore: (store) => !store.userSettings.presenceEnabled,
-        sendValueToServer: (value) => updateSettings(store.connection,
-          newSettings: {UserSettingName.presenceEnabled: !value}),
-        // TODO(#741) interpret API errors for user
-        onError: (e, requestedValue) => reportErrorToUserBriefly(
-          requestedValue
-            ? zulipLocalizations.turnOnInvisibleModeErrorTitle
-            : zulipLocalizations.turnOffInvisibleModeErrorTitle),
-        builder: (value, handleRequestNewValue) => ZulipMenuItemButton(
-          style: ZulipMenuItemButtonStyle.list,
-          label: zulipLocalizations.invisibleMode,
-          onPressed: () => handleRequestNewValue(!value),
-          toggle: Toggle(value: value, onChanged: handleRequestNewValue))),
-    ]);
+    // `value: true` means invisible mode is on,
+    // i.e., that presenceEnabled is false.
+    return RemoteSettingBuilder<bool>(
+      findValueInStore: (store) => !store.userSettings.presenceEnabled,
+      sendValueToServer: (value) => updateSettings(store.connection,
+        newSettings: {UserSettingName.presenceEnabled: !value}),
+      // TODO(#741) interpret API errors for user
+      onError: (e, requestedValue) => reportErrorToUserBriefly(
+        requestedValue
+          ? zulipLocalizations.turnOnInvisibleModeErrorTitle
+          : zulipLocalizations.turnOffInvisibleModeErrorTitle),
+      builder: (value, handleRequestNewValue) => ZulipMenuItemButton(
+        style: ZulipMenuItemButtonStyle.list,
+        label: zulipLocalizations.invisibleMode,
+        onPressed: () => handleRequestNewValue(!value),
+        toggle: Toggle(value: value, onChanged: handleRequestNewValue)));
   }
 }
 

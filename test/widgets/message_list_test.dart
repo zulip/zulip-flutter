@@ -14,6 +14,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/basic.dart';
 import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/message.dart';
@@ -26,6 +27,7 @@ import 'package:zulip/widgets/autocomplete.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/emoji.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
@@ -1770,6 +1772,104 @@ void main() {
       checkUser(users[2], isBot: false);
 
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    group('User status', () {
+      void checkStatusEmoji(WidgetTester tester,
+          {required Type type, required bool isPresent}) {
+        final statusEmojiFinder = find.ancestor(of: find.byType(type),
+          matching: find.byType(UserStatusEmoji));
+        if (isPresent) {
+          check(statusEmojiFinder).findsOne();
+          check(tester.firstWidget<UserStatusEmoji>(statusEmojiFinder)
+            .neverAnimate).isTrue();
+
+          final senderRowFinder = find.ancestor(of: statusEmojiFinder,
+              matching: find.byType(SenderRow));
+          check(senderRowFinder).findsOne();
+        } else {
+          check(statusEmojiFinder).findsNothing();
+        }
+      }
+
+      testWidgets('status emoji (unicode) & text are set -> emoji is displayed, text is not', (tester) async {
+        final user = eg.user();
+        await setupMessageListPage(tester,
+          users: [user],
+          messages: [eg.streamMessage(sender: user)],
+        );
+        await store.changeUserStatuses({
+          user.userId: UserStatusChange(
+            text: OptionSome('Busy'),
+            emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+              emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))),
+        });
+        await tester.pump();
+
+        checkStatusEmoji(tester, type: UnicodeEmojiWidget, isPresent: true);
+        check(find.text('Busy')).findsNothing();
+      });
+
+      testWidgets('status emoji (image) & text are set -> emoji is displayed, text is not', (tester) async {
+        final user = eg.user();
+        await setupMessageListPage(tester,
+          users: [user],
+          messages: [eg.streamMessage(sender: user)],
+        );
+        await store.changeUserStatuses({
+          user.userId: UserStatusChange(
+            text: OptionSome('Coding'),
+            emoji: OptionSome(StatusEmoji(emojiName: 'zulip',
+              emojiCode: 'zulip', reactionType: ReactionType.zulipExtraEmoji))),
+        });
+        await tester.pump();
+
+        checkStatusEmoji(tester, type: ImageEmojiWidget, isPresent: true);
+        check(find.text('Coding')).findsNothing();
+      });
+
+      testWidgets('longer user name -> emoji stays visible', (tester) async {
+        final user = eg.user(fullName: 'User with a very very very long name to check if emoji is still visible');
+        await setupMessageListPage(tester,
+          users: [user],
+          messages: [eg.streamMessage(sender: user)],
+        );
+        await store.changeUserStatuses({
+          user.userId: UserStatusChange(
+            text: OptionNone(),
+            emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+              emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))),
+        });
+        await tester.pump();
+
+        checkStatusEmoji(tester, type: UnicodeEmojiWidget, isPresent: true);
+      });
+
+      testWidgets('status emoji is not set, text is set -> none of them is displayed', (tester) async {
+        final user = eg.user();
+        await setupMessageListPage(tester,
+          users: [user],
+          messages: [eg.streamMessage(sender: user)],
+        );
+        await store.changeUserStatuses({
+          user.userId: UserStatusChange(
+            text: OptionSome('Busy'),
+            emoji: OptionNone()),
+        });
+        await tester.pump();
+
+        checkStatusEmoji(tester, type: UnicodeEmojiWidget, isPresent: false);
+        check(find.text('Busy')).findsNothing();
+      });
+
+      testWidgets('status is not set -> emoji is not displayed', (tester) async {
+        final user = eg.user();
+        await setupMessageListPage(tester,
+          users: [user],
+          messages: [eg.streamMessage(sender: user)],
+        );
+        checkStatusEmoji(tester, type: UnicodeEmojiWidget, isPresent: false);
+      });
     });
 
     group('Muted sender', () {
