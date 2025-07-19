@@ -40,57 +40,43 @@ class KatexExample extends ContentExample {
             '<span class="mord sizing reset-size6 size5">7</span>'
             '<span class="mord sizing reset-size6 size4">8</span>'
             '<span class="mord sizing reset-size6 size3">9</span>'
-            '<span class="mord sizing reset-size6 size1">0</span></span></span></span></span></p>',
-    [
+            '<span class="mord sizing reset-size6 size1">0</span></span></span></span></span></p>', [
       MathBlockNode(
         texSource: "\\Huge 1\n\\huge 2\n\\LARGE 3\n\\Large 4\n\\large 5\n\\normalsize 6\n\\small 7\n\\footnotesize 8\n\\scriptsize 9\n\\tiny 0",
         nodes: [
-          KatexSpanNode(
-            styles: KatexSpanStyles(),
-            text: null,
-            nodes: [
-              KatexStrutNode(heightEm: 1.6034, verticalAlignEm: null),
-              KatexSpanNode(
-                styles: KatexSpanStyles(fontSizeEm: 2.488), // .reset-size6.size11
-                text: '1',
-                nodes: null),
-              KatexSpanNode(
-                styles: KatexSpanStyles(fontSizeEm: 2.074), // .reset-size6.size10
-                text: '2',
-                nodes: null),
-              KatexSpanNode(
-                styles: KatexSpanStyles(fontSizeEm: 1.728), // .reset-size6.size9
-                text: '3',
-                nodes: null),
-              KatexSpanNode(
-                styles: KatexSpanStyles(fontSizeEm: 1.44), // .reset-size6.size8
-                text: '4',
-                nodes: null),
-              KatexSpanNode(
-                styles: KatexSpanStyles(fontSizeEm: 1.2), // .reset-size6.size7
-                text: '5',
-                nodes: null),
-              KatexSpanNode(
-                styles: KatexSpanStyles(fontSizeEm: 1.0), // .reset-size6.size6
-                text: '6',
-                nodes: null),
-              KatexSpanNode(
-                styles: KatexSpanStyles(fontSizeEm: 0.9), // .reset-size6.size5
-                text: '7',
-                nodes: null),
-              KatexSpanNode(
-                styles: KatexSpanStyles(fontSizeEm: 0.8), // .reset-size6.size4
-                text: '8',
-                nodes: null),
-              KatexSpanNode(
-                styles: KatexSpanStyles(fontSizeEm: 0.7), // .reset-size6.size3
-                text: '9',
-                nodes: null),
-              KatexSpanNode(
-                styles: KatexSpanStyles(fontSizeEm: 0.5), // .reset-size6.size1
-                text: '0',
-                nodes: null),
-            ]),
+          KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+            KatexStrutNode(heightEm: 1.6034, verticalAlignEm: null),
+            KatexSpanNode(
+              styles: KatexSpanStyles(fontSizeEm: 2.488), // .reset-size6.size11
+              text: '1', nodes: null),
+            KatexSpanNode(
+              styles: KatexSpanStyles(fontSizeEm: 2.074), // .reset-size6.size10
+              text: '2', nodes: null),
+            KatexSpanNode(
+              styles: KatexSpanStyles(fontSizeEm: 1.728), // .reset-size6.size9
+              text: '3', nodes: null),
+            KatexSpanNode(
+              styles: KatexSpanStyles(fontSizeEm: 1.44), // .reset-size6.size8
+              text: '4', nodes: null),
+            KatexSpanNode(
+              styles: KatexSpanStyles(fontSizeEm: 1.2), // .reset-size6.size7
+              text: '5', nodes: null),
+            KatexSpanNode(
+              styles: KatexSpanStyles(fontSizeEm: 1.0), // .reset-size6.size6
+              text: '6', nodes: null),
+            KatexSpanNode(
+              styles: KatexSpanStyles(fontSizeEm: 0.9), // .reset-size6.size5
+              text: '7', nodes: null),
+            KatexSpanNode(
+              styles: KatexSpanStyles(fontSizeEm: 0.8), // .reset-size6.size4
+              text: '8', nodes: null),
+            KatexSpanNode(
+              styles: KatexSpanStyles(fontSizeEm: 0.7), // .reset-size6.size3
+              text: '9', nodes: null),
+            KatexSpanNode(
+              styles: KatexSpanStyles(fontSizeEm: 0.5), // .reset-size6.size1
+              text: '0', nodes: null),
+          ]),
         ]),
     ]);
 
@@ -106,31 +92,21 @@ class KatexExample extends ContentExample {
             '<span class="strut" style="height:1.6034em;"></span>'
             '<span class="mord sizing reset-size6 size1">'
               '<span class="mord">1</span>'
-              '<span class="mord sizing reset-size1 size11">2</span></span></span></span></span></span></p>',
-    [
-      MathBlockNode(
-        texSource: '\\tiny {1 \\Huge 2}',
-        nodes: [
+              '<span class="mord sizing reset-size1 size11">2</span></span></span></span></span></span></p>', [
+      MathBlockNode(texSource: '\\tiny {1 \\Huge 2}', nodes: [
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexStrutNode(heightEm: 1.6034, verticalAlignEm: null),
           KatexSpanNode(
-            styles: KatexSpanStyles(),
-            text: null,
-            nodes: [
-              KatexStrutNode(heightEm: 1.6034, verticalAlignEm: null),
+            styles: KatexSpanStyles(fontSizeEm: 0.5), // reset-size6 size1
+            text: null, nodes: [
+              KatexSpanNode(styles: KatexSpanStyles(),
+                text: '1', nodes: null),
               KatexSpanNode(
-                styles: KatexSpanStyles(fontSizeEm: 0.5), // reset-size6 size1
-                text: null,
-                nodes: [
-                  KatexSpanNode(
-                    styles: KatexSpanStyles(),
-                    text: '1',
-                    nodes: null),
-                  KatexSpanNode(
-                    styles: KatexSpanStyles(fontSizeEm: 4.976), // reset-size1 size11
-                    text: '2',
-                    nodes: null),
-                ]),
+                styles: KatexSpanStyles(fontSizeEm: 4.976), // reset-size1 size11
+                text: '2', nodes: null),
             ]),
         ]),
+      ]),
     ]);
 
   static const mathBlockKatexDelimSizing = KatexExample(
@@ -148,58 +124,34 @@ class KatexExample extends ContentExample {
             '<span class="mord"><span class="delimsizing size1">(</span></span>'
             '<span class="mord"><span class="delimsizing size2">[</span></span>'
             '<span class="mord"><span class="delimsizing size3">⌈</span></span>'
-            '<span class="mord"><span class="delimsizing size4">⌊</span></span></span></span></span></span></p>',
-    [
-      MathBlockNode(
-        texSource: '⟨ \\big( \\Big[ \\bigg⌈ \\Bigg⌊',
-        nodes: [
-          KatexSpanNode(
-            styles: KatexSpanStyles(),
-            text: null,
-            nodes: [
-              KatexStrutNode(heightEm: 3, verticalAlignEm: -1.25),
-              KatexSpanNode(
-                styles: KatexSpanStyles(),
-                text: '⟨',
-                nodes: null),
-              KatexSpanNode(
-                styles: KatexSpanStyles(),
-                text: null,
-                nodes: [
-                  KatexSpanNode(
-                    styles: KatexSpanStyles(fontFamily: 'KaTeX_Size1'),
-                    text: '(',
-                    nodes: null),
-                ]),
-              KatexSpanNode(
-                styles: KatexSpanStyles(),
-                text: null,
-                nodes: [
-                  KatexSpanNode(
-                    styles: KatexSpanStyles(fontFamily: 'KaTeX_Size2'),
-                    text: '[',
-                    nodes: null),
-                ]),
-              KatexSpanNode(
-                styles: KatexSpanStyles(),
-                text: null,
-                nodes: [
-                  KatexSpanNode(
-                    styles: KatexSpanStyles(fontFamily: 'KaTeX_Size3'),
-                    text: '⌈',
-                    nodes: null),
-                ]),
-              KatexSpanNode(
-                styles: KatexSpanStyles(),
-                text: null,
-                nodes: [
-                  KatexSpanNode(
-                    styles: KatexSpanStyles(fontFamily: 'KaTeX_Size4'),
-                    text: '⌊',
-                    nodes: null),
-                ]),
-            ]),
+            '<span class="mord"><span class="delimsizing size4">⌊</span></span></span></span></span></span></p>', [
+      MathBlockNode(texSource: '⟨ \\big( \\Big[ \\bigg⌈ \\Bigg⌊', nodes: [
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexStrutNode(heightEm: 3, verticalAlignEm: -1.25),
+          KatexSpanNode(styles: KatexSpanStyles(),
+            text: '⟨', nodes: null),
+          KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+            KatexSpanNode(
+              styles: KatexSpanStyles(fontFamily: 'KaTeX_Size1'),
+              text: '(', nodes: null),
+          ]),
+          KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+            KatexSpanNode(
+              styles: KatexSpanStyles(fontFamily: 'KaTeX_Size2'),
+              text: '[', nodes: null),
+          ]),
+          KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+            KatexSpanNode(
+              styles: KatexSpanStyles(fontFamily: 'KaTeX_Size3'),
+              text: '⌈', nodes: null),
+          ]),
+          KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+            KatexSpanNode(
+              styles: KatexSpanStyles(fontFamily: 'KaTeX_Size4'),
+              text: '⌊', nodes: null),
+          ]),
         ]),
+      ]),
     ]);
 
   static const mathBlockKatexSpace = KatexExample(
@@ -219,46 +171,26 @@ class KatexExample extends ContentExample {
           '<span class="base">'
             '<span class="strut" style="height:0.6444em;"></span>'
             '<span class="mord">2</span></span></span></span></span></p>', [
-      MathBlockNode(
-        texSource: '1:2',
-        nodes: [
+      MathBlockNode(texSource: '1:2', nodes: [
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexStrutNode(heightEm: 0.6444, verticalAlignEm: null),
+          KatexSpanNode(styles: KatexSpanStyles(),
+            text: '1', nodes: null),
           KatexSpanNode(
-            styles: KatexSpanStyles(),
-            text: null,
-            nodes: [
-              KatexStrutNode(
-                heightEm: 0.6444,
-                verticalAlignEm: null),
-              KatexSpanNode(
-                styles: KatexSpanStyles(),
-                text: '1',
-                nodes: null),
-              KatexSpanNode(
-                styles: KatexSpanStyles(marginRightEm: 0.2778),
-                text: null,
-                nodes: []),
-              KatexSpanNode(
-                styles: KatexSpanStyles(),
-                text: ':',
-                nodes: null),
-              KatexSpanNode(
-                styles: KatexSpanStyles(marginRightEm: 0.2778),
-                text: null,
-                nodes: []),
-            ]),
+            styles: KatexSpanStyles(marginRightEm: 0.2778),
+            text: null, nodes: []),
+          KatexSpanNode(styles: KatexSpanStyles(),
+            text: ':', nodes: null),
           KatexSpanNode(
-            styles: KatexSpanStyles(),
-            text: null,
-            nodes: [
-              KatexStrutNode(
-                heightEm: 0.6444,
-                verticalAlignEm: null),
-              KatexSpanNode(
-                styles: KatexSpanStyles(),
-                text: '2',
-                nodes: null),
-            ]),
+            styles: KatexSpanStyles(marginRightEm: 0.2778),
+            text: null, nodes: []),
         ]),
+        KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+          KatexStrutNode(heightEm: 0.6444, verticalAlignEm: null),
+          KatexSpanNode(styles: KatexSpanStyles(),
+            text: '2', nodes: null),
+        ]),
+      ]),
     ]);
 
   static const mathBlockKatexSuperscript = KatexExample(
@@ -553,46 +485,46 @@ class KatexExample extends ContentExample {
               text: 'K', nodes: null),
             KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: []),
             KatexNegativeMarginNode(leftOffsetEm: -0.17, nodes: [
-                KatexVlistNode(rows: [
-                  KatexVlistRowNode(
-                    verticalOffsetEm: -2.905 + 2.7,
-                    node: KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
-                      KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
-                        KatexSpanNode(
-                          styles: KatexSpanStyles(fontFamily: 'KaTeX_Main', fontSizeEm: 0.7), // .reset-size6.size3
-                          text: 'A', nodes: null),
-                      ]),
-                    ])),
-                ]),
-                KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: []),
-                KatexNegativeMarginNode(leftOffsetEm: -0.15, nodes: [
-                  KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
-                    KatexSpanNode(
-                      styles: KatexSpanStyles(fontFamily: 'KaTeX_Main'),
-                      text: 'T', nodes: null),
+              KatexVlistNode(rows: [
+                KatexVlistRowNode(
+                  verticalOffsetEm: -2.905 + 2.7,
+                  node: KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+                    KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+                      KatexSpanNode(
+                        styles: KatexSpanStyles(fontFamily: 'KaTeX_Main', fontSizeEm: 0.7), // .reset-size6.size3
+                        text: 'A', nodes: null),
+                    ]),
+                  ])),
+              ]),
+              KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: []),
+              KatexNegativeMarginNode(leftOffsetEm: -0.15, nodes: [
+                KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+                  KatexSpanNode(
+                    styles: KatexSpanStyles(fontFamily: 'KaTeX_Main'),
+                    text: 'T', nodes: null),
+                  KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: []),
+                  KatexNegativeMarginNode(leftOffsetEm: -0.1667, nodes: [
+                    KatexVlistNode(rows: [
+                      KatexVlistRowNode(
+                        verticalOffsetEm: -2.7845 + 3,
+                        node: KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+                          KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
+                            KatexSpanNode(
+                              styles: KatexSpanStyles(fontFamily: 'KaTeX_Main'),
+                              text: 'E', nodes: null),
+                          ]),
+                        ])),
+                    ]),
                     KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: []),
-                    KatexNegativeMarginNode(leftOffsetEm: -0.1667, nodes: [
-                      KatexVlistNode(rows: [
-                        KatexVlistRowNode(
-                          verticalOffsetEm: -2.7845 + 3,
-                          node: KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
-                            KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: [
-                              KatexSpanNode(
-                                styles: KatexSpanStyles(fontFamily: 'KaTeX_Main'),
-                                text: 'E', nodes: null),
-                            ]),
-                          ])),
-                      ]),
-                      KatexSpanNode(styles: KatexSpanStyles(), text: null, nodes: []),
-                      KatexNegativeMarginNode(leftOffsetEm: -0.125, nodes: [
-                        KatexSpanNode(
-                          styles: KatexSpanStyles(fontFamily: 'KaTeX_Main'),
-                          text: 'X', nodes: null),
-                      ]),
+                    KatexNegativeMarginNode(leftOffsetEm: -0.125, nodes: [
+                      KatexSpanNode(
+                        styles: KatexSpanStyles(fontFamily: 'KaTeX_Main'),
+                        text: 'X', nodes: null),
                     ]),
                   ]),
                 ]),
               ]),
+            ]),
           ]),
         ]),
       ]),
