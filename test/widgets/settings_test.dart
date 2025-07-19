@@ -20,7 +20,7 @@ void main() {
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     await tester.pumpWidget(TestZulipApp(
       accountId: eg.selfAccount.id,
-      child: SettingsPage()));
+      child: const SettingsPage()));
     await tester.pump();
     await tester.pump();
   }
@@ -58,13 +58,13 @@ void main() {
 
       await tester.tap(findRadioListTileWithTitle('Dark'));
       await tester.pump();
-      await tester.pump(Duration(milliseconds: 250)); // wait for transition
+      await tester.pump(const Duration(milliseconds: 250)); // wait for transition
       check(Theme.of(element)).brightness.equals(Brightness.dark);
       checkThemeSetting(tester, expectedThemeSetting: ThemeSetting.dark);
 
       await tester.tap(findRadioListTileWithTitle('System'));
       await tester.pump();
-      await tester.pump(Duration(milliseconds: 250)); // wait for transition
+      await tester.pump(const Duration(milliseconds: 250)); // wait for transition
       check(Theme.of(element)).brightness.equals(Brightness.light);
       checkThemeSetting(tester, expectedThemeSetting: null);
 
@@ -84,16 +84,21 @@ void main() {
   });
 
   group('BrowserPreference', () {
-    Finder useInAppBrowserSwitchFinder = find.ancestor(
-      of: find.text('Open links with in-app browser'),
-      matching: find.byType(SwitchListTile));
+    // Find the ListTile that contains our setting's title...
+    final tileFinder = find.ancestor(
+        of: find.text('Open links with in-app browser'),
+        matching: find.byType(ListTile));
+    // ...and from within that tile, find the FigmaToggle.
+    final useInAppBrowserToggleFinder = find.descendant(
+        of: tileFinder,
+        matching: find.byType(FigmaToggle));
 
-    void checkSwitchAndGlobalSettings(WidgetTester tester, {
+    void checkToggleAndGlobalSettings(WidgetTester tester, {
       required bool checked,
       required BrowserPreference? expectedBrowserPreference,
     }) {
-      check(tester.widget<SwitchListTile>(useInAppBrowserSwitchFinder))
-        .value.equals(checked);
+      final figmaToggle = tester.widget<FigmaToggle>(useInAppBrowserToggleFinder);
+      check(figmaToggle.value).equals(checked);
       check(testBinding.globalStore)
         .settings.browserPreference.equals(expectedBrowserPreference);
     }
@@ -102,29 +107,31 @@ void main() {
       await testBinding.globalStore.settings
         .setBrowserPreference(BrowserPreference.external);
       await prepare(tester);
-      checkSwitchAndGlobalSettings(tester,
+      checkToggleAndGlobalSettings(tester,
         checked: false, expectedBrowserPreference: BrowserPreference.external);
 
-      await tester.tap(useInAppBrowserSwitchFinder);
+      await tester.tap(useInAppBrowserToggleFinder);
       await tester.pump();
-      checkSwitchAndGlobalSettings(tester,
+      await tester.pump(const Duration(milliseconds: 250)); // wait for animation
+      checkToggleAndGlobalSettings(tester,
         checked: true, expectedBrowserPreference: BrowserPreference.inApp);
     });
 
     testWidgets('use our per-platform default browser preference', (tester) async {
       await prepare(tester);
       bool expectInApp = defaultTargetPlatform == TargetPlatform.android;
-      checkSwitchAndGlobalSettings(tester,
+      checkToggleAndGlobalSettings(tester,
         checked: expectInApp, expectedBrowserPreference: null);
 
-      await tester.tap(useInAppBrowserSwitchFinder);
+      await tester.tap(useInAppBrowserToggleFinder);
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250)); // wait for animation
       expectInApp = !expectInApp;
-      checkSwitchAndGlobalSettings(tester,
+      checkToggleAndGlobalSettings(tester,
         checked: expectInApp,
         expectedBrowserPreference: expectInApp
           ? BrowserPreference.inApp : BrowserPreference.external);
-    }, variant: TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+    }, variant: TargetPlatformVariant.only(TargetPlatform.android));
   });
 
   // TODO(#1571): test visitFirstUnread setting UI

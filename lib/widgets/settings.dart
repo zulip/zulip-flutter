@@ -78,7 +78,7 @@ class FigmaToggle extends StatelessWidget {
                   color: thumbColor,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -105,7 +105,9 @@ class SettingsPage extends StatelessWidget {
 
   static AccountRoute<void> buildRoute({required BuildContext context}) {
     return MaterialAccountWidgetRoute(
-      context: context, page: const SettingsPage());
+      context: context,
+      page: const SettingsPage(),
+    );
   }
 
   @override
@@ -113,18 +115,25 @@ class SettingsPage extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return Scaffold(
       appBar: ZulipAppBar(
-        title: Text(zulipLocalizations.settingsPageTitle)),
-      body: Column(children: [
-        const _ThemeSetting(),
-        const _BrowserPreferenceSetting(),
-        const _VisitFirstUnreadSetting(),
-        const _MarkReadOnScrollSetting(),
-        if (GlobalSettingsStore.experimentalFeatureFlags.isNotEmpty)
-          ListTile(
-            title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
-            onTap: () => Navigator.push(context,
-              ExperimentalFeaturesPage.buildRoute()))
-      ]));
+        title: Text(zulipLocalizations.settingsPageTitle),
+      ),
+      body: Column(
+        children: [
+          const _ThemeSetting(),
+          const _BrowserPreferenceSetting(),
+          const _VisitFirstUnreadSetting(),
+          const _MarkReadOnScrollSetting(),
+          if (GlobalSettingsStore.experimentalFeatureFlags.isNotEmpty)
+            ListTile(
+              title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
+              onTap: () => Navigator.push(
+                context,
+                ExperimentalFeaturesPage.buildRoute(),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 
@@ -147,14 +156,14 @@ class _ThemeSetting extends StatelessWidget {
           RadioListTile<ThemeSetting?>.adaptive(
             title: Text(ThemeSetting.displayName(
               themeSetting: themeSettingOption,
-              zulipLocalizations: zulipLocalizations)),
+              zulipLocalizations: zulipLocalizations,
+            )),
             value: themeSettingOption,
-            // TODO(#1545) stop using the deprecated members
-            // ignore: deprecated_member_use
             groupValue: globalSettings.themeSetting,
-            // ignore: deprecated_member_use
-            onChanged: (newValue) => _handleChange(context, newValue)),
-      ]);
+            onChanged: (newValue) => _handleChange(context, newValue),
+          ),
+      ],
+    );
   }
 }
 
@@ -165,7 +174,8 @@ class _BrowserPreferenceSetting extends StatelessWidget {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
     globalSettings.setBrowserPreference(
       newOpenLinksWithInAppBrowser ? BrowserPreference.inApp
-                                   : BrowserPreference.external);
+                                   : BrowserPreference.external,
+    );
   }
 
   @override
@@ -194,9 +204,14 @@ class _VisitFirstUnreadSetting extends StatelessWidget {
     return ListTile(
       title: Text(zulipLocalizations.initialAnchorSettingTitle),
       subtitle: Text(VisitFirstUnreadSettingPage._valueDisplayName(
-        globalSettings.visitFirstUnread, zulipLocalizations: zulipLocalizations)),
-      onTap: () => Navigator.push(context,
-        VisitFirstUnreadSettingPage.buildRoute()));
+        globalSettings.visitFirstUnread,
+        zulipLocalizations: zulipLocalizations,
+      )),
+      onTap: () => Navigator.push(
+        context,
+        VisitFirstUnreadSettingPage.buildRoute(),
+      ),
+    );
   }
 }
 
@@ -207,7 +222,8 @@ class VisitFirstUnreadSettingPage extends StatelessWidget {
     return MaterialWidgetRoute(page: const VisitFirstUnreadSettingPage());
   }
 
-  static String _valueDisplayName(VisitFirstUnreadSetting value, {
+  static String _valueDisplayName(
+    VisitFirstUnreadSetting value, {
     required ZulipLocalizations zulipLocalizations,
   }) {
     return switch (value) {
@@ -232,19 +248,22 @@ class VisitFirstUnreadSettingPage extends StatelessWidget {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.initialAnchorSettingTitle)),
-      body: Column(children: [
-        ListTile(title: Text(zulipLocalizations.initialAnchorSettingDescription)),
-        for (final value in VisitFirstUnreadSetting.values)
-          RadioListTile.adaptive(
-            title: Text(_valueDisplayName(value,
-              zulipLocalizations: zulipLocalizations)),
-            value: value,
-            // TODO(#1545) stop using the deprecated members
-            // ignore: deprecated_member_use
-            groupValue: globalSettings.visitFirstUnread,
-            // ignore: deprecated_member_use
-            onChanged: (newValue) => _handleChange(context, newValue)),
-      ]));
+      body: Column(
+        children: [
+          ListTile(title: Text(zulipLocalizations.initialAnchorSettingDescription)),
+          for (final value in VisitFirstUnreadSetting.values)
+            RadioListTile.adaptive(
+              title: Text(_valueDisplayName(
+                value,
+                zulipLocalizations: zulipLocalizations,
+              )),
+              value: value,
+              groupValue: globalSettings.visitFirstUnread,
+              onChanged: (newValue) => _handleChange(context, newValue),
+            ),
+        ],
+      ),
+    );
   }
 }
 
@@ -258,9 +277,14 @@ class _MarkReadOnScrollSetting extends StatelessWidget {
     return ListTile(
       title: Text(zulipLocalizations.markReadOnScrollSettingTitle),
       subtitle: Text(MarkReadOnScrollSettingPage._valueDisplayName(
-        globalSettings.markReadOnScroll, zulipLocalizations: zulipLocalizations)),
-      onTap: () => Navigator.push(context,
-        MarkReadOnScrollSettingPage.buildRoute()));
+        globalSettings.markReadOnScroll,
+        zulipLocalizations: zulipLocalizations,
+      )),
+      onTap: () => Navigator.push(
+        context,
+        MarkReadOnScrollSettingPage.buildRoute(),
+      ),
+    );
   }
 }
 
@@ -271,7 +295,8 @@ class MarkReadOnScrollSettingPage extends StatelessWidget {
     return MaterialWidgetRoute(page: const MarkReadOnScrollSettingPage());
   }
 
-  static String _valueDisplayName(MarkReadOnScrollSetting value, {
+  static String _valueDisplayName(
+    MarkReadOnScrollSetting value, {
     required ZulipLocalizations zulipLocalizations,
   }) {
     return switch (value) {
@@ -284,7 +309,8 @@ class MarkReadOnScrollSettingPage extends StatelessWidget {
     };
   }
 
-  static String? _valueDescription(MarkReadOnScrollSetting value, {
+  static String? _valueDescription(
+    MarkReadOnScrollSetting value, {
     required ZulipLocalizations zulipLocalizations,
   }) {
     return switch (value) {
@@ -307,24 +333,29 @@ class MarkReadOnScrollSettingPage extends StatelessWidget {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.markReadOnScrollSettingTitle)),
-      body: Column(children: [
-        ListTile(title: Text(zulipLocalizations.markReadOnScrollSettingDescription)),
-        for (final value in MarkReadOnScrollSetting.values)
-          RadioListTile.adaptive(
-            title: Text(_valueDisplayName(value,
-              zulipLocalizations: zulipLocalizations)),
-            subtitle: () {
-              final result = _valueDescription(value,
-                zulipLocalizations: zulipLocalizations);
-              return result == null ? null : Text(result);
-            }(),
-            value: value,
-            // TODO(#1545) stop using the deprecated members
-            // ignore: deprecated_member_use
-            groupValue: globalSettings.markReadOnScroll,
-            // ignore: deprecated_member_use
-            onChanged: (newValue) => _handleChange(context, newValue)),
-      ]));
+      body: Column(
+        children: [
+          ListTile(title: Text(zulipLocalizations.markReadOnScrollSettingDescription)),
+          for (final value in MarkReadOnScrollSetting.values)
+            RadioListTile.adaptive(
+              title: Text(_valueDisplayName(
+                value,
+                zulipLocalizations: zulipLocalizations,
+              )),
+              subtitle: () {
+                final result = _valueDescription(
+                  value,
+                  zulipLocalizations: zulipLocalizations,
+                );
+                return result == null ? null : Text(result);
+              }(),
+              value: value,
+              groupValue: globalSettings.markReadOnScroll,
+              onChanged: (newValue) => _handleChange(context, newValue),
+            ),
+        ],
+      ),
+    );
   }
 }
 
@@ -343,18 +374,23 @@ class ExperimentalFeaturesPage extends StatelessWidget {
     assert(flags.isNotEmpty);
     return Scaffold(
       appBar: AppBar(
-        title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle)),
-      body: Column(children: [
-        ListTile(
-          title: Text(zulipLocalizations.experimentalFeatureSettingsWarning)),
-        for (final flag in flags)
+        title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
+      ),
+      body: Column(
+        children: [
           ListTile(
-            title: Text(flag.name), // no i18n; these are developer-facing settings
-            trailing: FigmaToggle(
-              value: globalSettings.getBool(flag),
-              onChanged: (value) => globalSettings.setBool(flag, value),
-            ),
+            title: Text(zulipLocalizations.experimentalFeatureSettingsWarning),
           ),
-      ]));
+          for (final flag in flags)
+            ListTile(
+              title: Text(flag.name), // no i18n; these are developer-facing settings
+              trailing: FigmaToggle(
+                value: globalSettings.getBool(flag),
+                onChanged: (value) => globalSettings.setBool(flag, value),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
