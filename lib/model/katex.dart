@@ -723,6 +723,10 @@ enum KatexSpanTextAlign {
 
 @immutable
 class KatexSpanStyles {
+  // TODO(#1674) does height actually appear on generic spans?
+  //   In a corpus, the only occurrences that we don't already handle separately
+  //   (i.e. occurrences other than on struts, vlists, etc) seem to be within
+  //   accents; so after #1674 we might be handling those separately too.
   final double? heightEm;
 
   // We expect `vertical-align` inline style to be only present on a
