@@ -653,32 +653,32 @@ class _KatexParser {
   ///
   /// To interpret the resulting map, consider [_takeStyleEm].
   static Map<String, css_visitor.Expression>? _parseInlineStyles(dom.Element element) {
-    if (element.attributes case {'style': final styleStr}) {
-      // `package:csslib` doesn't seem to have a way to parse inline styles:
-      //   https://github.com/dart-lang/tools/issues/1173
-      // So, work around that by wrapping it in a universal declaration.
-      final stylesheet = css_parser.parse('*{$styleStr}');
-      if (stylesheet.topLevels case [css_visitor.RuleSet() && final ruleSet]) {
-        final result = <String, css_visitor.Expression>{};
-        for (final declaration in ruleSet.declarationGroup.declarations) {
-          if (declaration case css_visitor.Declaration(
-            :final property,
-            expression: css_visitor.Expressions(
-              expressions: [css_visitor.Expression() && final expression]),
-          )) {
-            result.update(property, ifAbsent: () => expression,
-              (_) => throw _KatexHtmlParseError(
-                'duplicate inline CSS property: $property'));
-          } else {
-            throw _KatexHtmlParseError('unexpected shape of inline CSS');
-          }
+    final styleStr = element.attributes['style'];
+    if (styleStr == null) return null;
+
+    // `package:csslib` doesn't seem to have a way to parse inline styles:
+    //   https://github.com/dart-lang/tools/issues/1173
+    // So, work around that by wrapping it in a universal declaration.
+    final stylesheet = css_parser.parse('*{$styleStr}');
+    if (stylesheet.topLevels case [css_visitor.RuleSet() && final ruleSet]) {
+      final result = <String, css_visitor.Expression>{};
+      for (final declaration in ruleSet.declarationGroup.declarations) {
+        if (declaration case css_visitor.Declaration(
+          :final property,
+          expression: css_visitor.Expressions(
+            expressions: [css_visitor.Expression() && final expression]),
+        )) {
+          result.update(property, ifAbsent: () => expression,
+            (_) => throw _KatexHtmlParseError(
+              'duplicate inline CSS property: $property'));
+        } else {
+          throw _KatexHtmlParseError('unexpected shape of inline CSS');
         }
-        return result;
-      } else {
-        throw _KatexHtmlParseError();
       }
+      return result;
+    } else {
+      throw _KatexHtmlParseError();
     }
-    return null;
   }
 
   /// Remove the given property from the given style map,
