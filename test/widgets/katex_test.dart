@@ -15,7 +15,7 @@ void main() {
 
   group('MathBlock', () {
     group('characters render at specific offsets with specific size', () {
-      const testCases = <(KatexExample, List<(String, Offset, Size)>, {bool? skip})>[
+  final testCases = <(KatexExample, List<(String, Offset, Size)>, {bool? skip})>[
         (KatexExample.mathBlockKatexSizing, skip: false, [
           ('1', Offset(0.00, 2.24), Size(25.59, 61.00)),
           ('2', Offset(25.59, 10.04), Size(21.33, 51.00)),
