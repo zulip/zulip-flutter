@@ -386,7 +386,9 @@ class _KatexParser {
 
       // Currently, we expect `top` to only be inside a vlist, and
       // we handle that case separately above.
-      if (inlineStyles.topEm != null) throw _KatexHtmlParseError();
+      if (inlineStyles.topEm != null) {
+        throw _KatexHtmlParseError('unsupported inline CSS property: top');
+      }
     }
 
     // Aggregate the CSS styles that apply, in the same order as the CSS
@@ -586,7 +588,7 @@ class _KatexParser {
             'size4' => 'KaTeX_Size4',
             'mult' =>
               // TODO handle nested spans with `.delim-size{1,4}` class.
-              throw _KatexHtmlParseError(),
+              throw _KatexHtmlParseError('unimplemented CSS class pair: .delimsizing.mult'),
             _ => throw _KatexHtmlParseError(),
           };
 
@@ -705,7 +707,7 @@ class _KatexParser {
             unsupportedInlineCssProperties.add(property);
             _hasError = true;
           } else {
-            throw _KatexHtmlParseError();
+            throw _KatexHtmlParseError('unexpected shape of inline CSS');
           }
         }
 
