@@ -108,6 +108,40 @@ TextStyle? mergedStyleOf(WidgetTester tester, Pattern spanPattern, {
 /// and reports the target's font size.
 typedef TargetFontSizeFinder = double Function(InlineSpan rootSpan);
 
+Widget plainContent(String html) {
+  return Builder(builder: (context) =>
+    DefaultTextStyle(
+      style: ContentTheme.of(context).textStylePlainParagraph,
+      child: BlockContentList(nodes: parseContent(html).nodes)));
+}
+
+// TODO(#488) For content that we need to show outside a per-message context
+//   or a context without a full PerAccountStore, make sure to include tests
+//   that don't provide such context.
+Future<void> prepareContent(WidgetTester tester, Widget child, {
+  List<NavigatorObserver> navObservers = const [],
+  bool wrapWithPerAccountStoreWidget = false,
+}) async {
+  if (wrapWithPerAccountStoreWidget) {
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+  }
+
+  addTearDown(testBinding.reset);
+
+  prepareBoringImageHttpClient();
+
+  await tester.pumpWidget(TestZulipApp(
+    accountId: wrapWithPerAccountStoreWidget ? eg.selfAccount.id : null,
+    navigatorObservers: navObservers,
+    child: child));
+  await tester.pump(); // global store
+  if (wrapWithPerAccountStoreWidget) {
+    await tester.pump();
+  }
+
+  debugNetworkImageHttpClientProvider = null;
+}
+
 void main() {
   // For testing a new content feature:
   //
@@ -122,43 +156,9 @@ void main() {
 
   TestZulipBinding.ensureInitialized();
 
-  Widget plainContent(String html) {
-    return Builder(builder: (context) =>
-      DefaultTextStyle(
-        style: ContentTheme.of(context).textStylePlainParagraph,
-        child: BlockContentList(nodes: parseContent(html).nodes)));
-  }
-
   Widget messageContent(String html) {
     return MessageContent(message: eg.streamMessage(content: html),
        content: parseContent(html));
-  }
-
-  // TODO(#488) For content that we need to show outside a per-message context
-  //   or a context without a full PerAccountStore, make sure to include tests
-  //   that don't provide such context.
-  Future<void> prepareContent(WidgetTester tester, Widget child, {
-    List<NavigatorObserver> navObservers = const [],
-    bool wrapWithPerAccountStoreWidget = false,
-  }) async {
-    if (wrapWithPerAccountStoreWidget) {
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-    }
-
-    addTearDown(testBinding.reset);
-
-    prepareBoringImageHttpClient();
-
-    await tester.pumpWidget(TestZulipApp(
-      accountId: wrapWithPerAccountStoreWidget ? eg.selfAccount.id : null,
-      navigatorObservers: navObservers,
-      child: child));
-    await tester.pump(); // global store
-    if (wrapWithPerAccountStoreWidget) {
-      await tester.pump();
-    }
-
-    debugNetworkImageHttpClientProvider = null;
   }
 
   /// Test that the given content example renders without throwing an exception.
