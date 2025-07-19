@@ -80,7 +80,7 @@ class KatexExample extends ContentExample {
 
   static final mathBlockKatexNestedSizing = KatexExample.block(
     'math block; KaTeX nested sizing',
-    '\\tiny {1 \\Huge 2}',
+    r'\tiny {1 \Huge 2}',
     '<p>'
       '<span class="katex-display"><span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mstyle mathsize="0.5em"><mrow><mn>1</mn><mstyle mathsize="2.488em"><mn>2</mn></mstyle></mrow></mstyle></mrow>'
@@ -108,7 +108,7 @@ class KatexExample extends ContentExample {
   static final mathBlockKatexDelimSizing = KatexExample.block(
     'math block; KaTeX delimiter sizing',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2147135
-    '⟨ \\big( \\Big[ \\bigg⌈ \\Bigg⌊',
+    r'⟨ \big( \Big[ \bigg⌈ \Bigg⌊',
     '<p>'
       '<span class="katex-display"><span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">⟨</mo><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">[</mo><mo fence="false" stretchy="true" minsize="2.4em" maxsize="2.4em">⌈</mo><mo fence="false" stretchy="true" minsize="3em" maxsize="3em">⌊</mo></mrow>'
@@ -188,7 +188,7 @@ class KatexExample extends ContentExample {
   static final mathBlockKatexSuperscript = KatexExample.block(
     'math block, KaTeX superscript; single vlist-r, single vertical offset row',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2176734
-    'a\'',
+    "a'",
     '<p>'
       '<span class="katex-display"><span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>a</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup></mrow>'
@@ -360,7 +360,7 @@ class KatexExample extends ContentExample {
   static final mathBlockKatexRaisebox = KatexExample.block(
     'math block, KaTeX raisebox; single vlist-r, single vertical offset row',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2176739
-    'a\\raisebox{0.25em}{\$b\$}c',
+    r'a\raisebox{0.25em}{$b$}c',
     '<p>'
       '<span class="katex-display"><span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>a</mi><mpadded voffset="0.25em"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mi>b</mi></mstyle></mstyle></mpadded><mi>c</mi></mrow>'
@@ -402,7 +402,7 @@ class KatexExample extends ContentExample {
   static final mathBlockKatexNegativeMargin = KatexExample.block(
     'math block, KaTeX negative margin',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2223563
-    '1 \\! 2',
+    r'1 \! 2',
     '<p>'
       '<span class="katex-display"><span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mn>1</mn><mtext> ⁣</mtext><mn>2</mn></mrow><annotation encoding="application/x-tex">1 \\! 2</annotation></semantics></math></span>'
@@ -425,7 +425,7 @@ class KatexExample extends ContentExample {
   static final mathBlockKatexLogo = KatexExample.block(
     'math block, KaTeX logo',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2141902
-    '\\KaTeX',
+    r'\KaTeX',
     '<p>'
       '<span class="katex-display"><span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>KaTeX</mtext></mrow>'
