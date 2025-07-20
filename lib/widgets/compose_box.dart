@@ -1799,14 +1799,24 @@ class _EditMessageBanner extends _Banner {
   @override
   Widget buildTrailing(context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final controller = composeBoxState.controller as EditMessageComposeBoxController;
     return Row(mainAxisSize: MainAxisSize.min, spacing: 8, children: [
       ZulipWebUiKitButton(label: zulipLocalizations.composeBoxBannerButtonCancel,
         onPressed: composeBoxState.endEditInteraction),
-      // TODO(#1481) disabled appearance when there are validation errors
-      //   or the original raw content hasn't loaded yet
-      ZulipWebUiKitButton(label: zulipLocalizations.composeBoxBannerButtonSave,
-        attention: ZulipWebUiKitButtonAttention.high,
-        onPressed: () => _handleTapSave(context)),
+      ValueListenableBuilder<bool>(
+        valueListenable: controller.content.hasValidationErrors,
+        builder: (context, hasErrors, child) {
+          final bool disabled = hasErrors || controller.originalRawContent == null;
+          return Opacity(
+            opacity: disabled ? 0.5 : 1.0,
+            child: ZulipWebUiKitButton(
+              label: zulipLocalizations.composeBoxBannerButtonSave,
+              attention: ZulipWebUiKitButtonAttention.high,
+              onPressed: disabled ? () {} : () => _handleTapSave(context),
+            ),
+          );
+        },
+      ),
     ]);
   }
 }
