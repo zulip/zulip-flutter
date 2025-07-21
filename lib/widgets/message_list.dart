@@ -2019,24 +2019,17 @@ enum MessageTimestampStyle {
   static final _timeFormat24WithSeconds =            DateFormat('Hms');
   static final _timeFormatLocaleDefaultWithSeconds = DateFormat('jms');
 
-  // ignore: unused_element
   static DateFormat _resolveTimeFormat(TwentyFourHourTimeMode mode) => switch (mode) {
     TwentyFourHourTimeMode.twelveHour => _timeFormat12,
     TwentyFourHourTimeMode.twentyFourHour => _timeFormat24,
     TwentyFourHourTimeMode.localeDefault => _timeFormatLocaleDefault,
   };
 
-  // ignore: unused_element
   static DateFormat _resolveTimeFormatWithSeconds(TwentyFourHourTimeMode mode) => switch (mode) {
     TwentyFourHourTimeMode.twelveHour => _timeFormat12WithSeconds,
     TwentyFourHourTimeMode.twentyFourHour => _timeFormat24WithSeconds,
     TwentyFourHourTimeMode.localeDefault => _timeFormatLocaleDefaultWithSeconds,
   };
-
-  static final _lightboxFormat =
-    DateFormat.yMMMd().addPattern(_timeFormat24WithSeconds.pattern);
-  static final _fullFormat =
-    DateFormat.yMMMd().addPattern(_timeFormatLocaleDefault.pattern);
 
   /// Format a [Message.timestamp] for this mode.
   // TODO(i18n): locale-specific formatting (see #45 for a plan with ffi)
@@ -2054,9 +2047,18 @@ enum MessageTimestampStyle {
       case dateOnlyRelative:
         return _formatDateOnlyRelative(asDateTime,
           now: now, zulipLocalizations: zulipLocalizations);
-      case timeOnly: return _timeFormat12.format(asDateTime);
-      case lightbox: return _lightboxFormat.format(asDateTime);
-      case full: return _fullFormat.format(asDateTime);
+      case timeOnly:
+        return _resolveTimeFormat(twentyFourHourTimeMode).format(asDateTime);
+      case lightbox:
+        return DateFormat
+          .yMMMd()
+          .addPattern(_resolveTimeFormatWithSeconds(twentyFourHourTimeMode).pattern)
+          .format(asDateTime);
+      case full:
+        return DateFormat
+          .yMMMd()
+          .addPattern(_resolveTimeFormat(twentyFourHourTimeMode).pattern)
+          .format(asDateTime);
     }
   }
 }
