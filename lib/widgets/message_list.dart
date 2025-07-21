@@ -2011,9 +2011,30 @@ enum MessageTimestampStyle {
       return DateFormat.yMMMd().format(dateTime);
     }
   }
-  static final _timeFormat = DateFormat('h:mm aa');
-  static final _timeFormatWithSeconds = DateFormat('Hms');
-  static final _lightboxFormat = DateFormat.yMMMd().addPattern(_timeFormatWithSeconds.pattern);
+
+  static final _timeFormat12 =                       DateFormat('h:mm aa');
+  static final _timeFormat24 =                       DateFormat('Hm');
+  static final _timeFormatLocaleDefault =            DateFormat('jm');
+  static final _timeFormat12WithSeconds =            DateFormat('h:mm:ss aa');
+  static final _timeFormat24WithSeconds =            DateFormat('Hms');
+  static final _timeFormatLocaleDefaultWithSeconds = DateFormat('jms');
+
+  // ignore: unused_element
+  static DateFormat _resolveTimeFormat(TwentyFourHourTimeMode mode) => switch (mode) {
+    TwentyFourHourTimeMode.twelveHour => _timeFormat12,
+    TwentyFourHourTimeMode.twentyFourHour => _timeFormat24,
+    TwentyFourHourTimeMode.localeDefault => _timeFormatLocaleDefault,
+  };
+
+  // ignore: unused_element
+  static DateFormat _resolveTimeFormatWithSeconds(TwentyFourHourTimeMode mode) => switch (mode) {
+    TwentyFourHourTimeMode.twelveHour => _timeFormat12WithSeconds,
+    TwentyFourHourTimeMode.twentyFourHour => _timeFormat24WithSeconds,
+    TwentyFourHourTimeMode.localeDefault => _timeFormatLocaleDefaultWithSeconds,
+  };
+
+  static final _lightboxFormat =
+    DateFormat.yMMMd().addPattern(_timeFormat24WithSeconds.pattern);
   static final _fullFormat = DateFormat.yMMMd().add_jm();
 
   /// Format a [Message.timestamp] for this mode.
@@ -2032,7 +2053,7 @@ enum MessageTimestampStyle {
       case dateOnlyRelative:
         return _formatDateOnlyRelative(asDateTime,
           now: now, zulipLocalizations: zulipLocalizations);
-      case timeOnly: return _timeFormat.format(asDateTime);
+      case timeOnly: return _timeFormat12.format(asDateTime);
       case lightbox: return _lightboxFormat.format(asDateTime);
       case full: return _fullFormat.format(asDateTime);
     }
