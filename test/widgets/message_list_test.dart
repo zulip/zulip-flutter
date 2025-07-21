@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:checks/checks.dart';
+import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -1654,8 +1655,16 @@ void main() {
     ];
     for (final (dateTime, expected) in testCases) {
       test('$dateTime returns $expected', () {
-        check(formatHeaderDate(zulipLocalizations, DateTime.parse(dateTime), now: now))
-          .equals(expected);
+        addTearDown(testBinding.reset);
+
+        withClock(Clock.fixed(now), () {
+          check(formatHeaderDate(
+            zulipLocalizations,
+            DateTime.parse(dateTime),
+            now: testBinding.utcNow().toLocal(),
+          ))
+            .equals(expected);
+        });
       });
     }
   });

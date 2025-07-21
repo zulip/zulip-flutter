@@ -8,6 +8,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/binding.dart';
 import '../model/database.dart';
 import '../model/message.dart';
 import '../model/message_list.dart';
@@ -1854,7 +1855,7 @@ class DateText extends StatelessWidget {
       formatHeaderDate(
         zulipLocalizations,
         DateTime.fromMillisecondsSinceEpoch(timestamp * 1000),
-        now: DateTime.now()));
+        now: ZulipBinding.instance.utcNow().toLocal()));
   }
 }
 
