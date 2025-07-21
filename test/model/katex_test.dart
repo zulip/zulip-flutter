@@ -14,6 +14,11 @@ import 'content_test.dart';
 ///
 /// For guidance on writing examples, see comments on [ContentExample].
 class KatexExample extends ContentExample {
+  KatexExample.inline(String description, String texSource, String html,
+      List<KatexNode>? expectedNodes)
+    : super.inline(description, '\$\$ $texSource \$\$', html,
+        MathInlineNode(texSource: texSource, nodes: expectedNodes));
+
   KatexExample.block(String description, String texSource, String html,
       List<KatexNode>? expectedNodes)
     : super(description, '```math\n$texSource\n```', html,
