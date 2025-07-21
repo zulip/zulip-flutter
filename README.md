@@ -42,7 +42,7 @@ browsing through recent commits and the codebase,
 and the Zulip guide to Git.
 
 To find possible issues to work on, see our [project board][].
-Look for issues up through the "Launch" milestone,
+Look for issues in the earliest milestone,
 and that aren't already assigned.
 
 Follow the Zulip guide to [picking an issue to work on][],
