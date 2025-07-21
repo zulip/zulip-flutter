@@ -2035,7 +2035,8 @@ enum MessageTimestampStyle {
 
   static final _lightboxFormat =
     DateFormat.yMMMd().addPattern(_timeFormat24WithSeconds.pattern);
-  static final _fullFormat = DateFormat.yMMMd().add_jm();
+  static final _fullFormat =
+    DateFormat.yMMMd().addPattern(_timeFormatLocaleDefault.pattern);
 
   /// Format a [Message.timestamp] for this mode.
   // TODO(i18n): locale-specific formatting (see #45 for a plan with ffi)
