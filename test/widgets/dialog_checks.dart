@@ -13,10 +13,15 @@ import 'package:zulip/widgets/dialog.dart';
 ///
 /// On success, returns the widget's "OK" button.
 /// Dismiss the dialog by calling `tester.tap(find.byWidget(okButton))`.
+///
+/// See also:
+///  - [checkNoDialog]
 Widget checkErrorDialog(WidgetTester tester, {
   required String expectedTitle,
   String? expectedMessage,
 }) {
+  // TODO if a dialog was found but it doesn't match expectations,
+  //   show its details; see checkNoDialog for how to do that
   switch (defaultTargetPlatform) {
     case TargetPlatform.android:
     case TargetPlatform.fuchsia:
@@ -46,12 +51,47 @@ Widget checkErrorDialog(WidgetTester tester, {
   }
 }
 
-/// Checks that there is no dialog.
-/// Fails if one is found.
+
+/// In a widget test, check that there aren't any alert dialogs.
+///
+/// See also:
+///  - [checkErrorDialog]
 void checkNoDialog(WidgetTester tester) {
+  final List<Widget> alertDialogs = [
+    ...tester.widgetList(find.bySubtype<AlertDialog>()),
+    ...tester.widgetList(find.byType(CupertinoAlertDialog)),
+  ];
+
+  if (alertDialogs.isNotEmpty) {
+    final message = StringBuffer()..write('Found dialog(s) when none were expected:\n');
+    for (final alertDialog in alertDialogs) {
+      final (title, content) = switch (alertDialog) {
+        AlertDialog()          => (alertDialog.title, alertDialog.content),
+        CupertinoAlertDialog() => (alertDialog.title, alertDialog.content),
+        _ => throw UnimplementedError(),
+      };
+
+      message.write('Dialog:\n'
+                 '  title: ${title is Text ? title.data : title.toString()}\n');
+
+      if (content != null) {
+        final contentTexts = tester.widgetList<Text>(find.descendant(
+          matchRoot: true,
+          of: find.byWidget(content),
+          matching: find.byType(Text)));
+        message.write('  content: ');
+        if (contentTexts.isNotEmpty) {
+          message.write(contentTexts.map((t) => t.data).join('\n    '));
+        } else {
+          // (Could show more detail here as necessary.)
+          message.write(content.toString());
+        }
+      }
+    }
+    throw TestFailure(message.toString());
+  }
+
   check(find.byType(Dialog)).findsNothing();
-  check(find.bySubtype<AlertDialog>()).findsNothing();
-  check(find.byType(CupertinoAlertDialog)).findsNothing();
 }
 
 /// In a widget test, check that [showSuggestedActionDialog] was called
