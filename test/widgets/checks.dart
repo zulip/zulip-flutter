@@ -13,6 +13,7 @@ import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/profile.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/unread_count_badge.dart';
+import 'package:zulip/widgets/user.dart';
 
 extension ChannelColorSwatchChecks on Subject<ChannelColorSwatch> {
   Subject<Color> get base => has((s) => s.base, 'base');

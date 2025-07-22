@@ -6,13 +6,13 @@ import '../model/autocomplete.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
 import 'color.dart';
-import 'content.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'user.dart';
 
 void showNewDmSheet(BuildContext context) {
   final pageContext = PageRoot.contextOf(context);

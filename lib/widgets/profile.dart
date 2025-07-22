@@ -17,6 +17,7 @@ import 'remote_settings.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'user.dart';
 
 class _TextStyles {
   static const primaryFieldText = TextStyle(fontSize: 20);

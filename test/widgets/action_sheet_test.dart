@@ -32,6 +32,7 @@ import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:share_plus_platform_interface/method_channel/method_channel_share.dart';
 import 'package:zulip/widgets/subscription_list.dart';
+import 'package:zulip/widgets/user.dart';
 import '../api/fake_api.dart';
 
 import '../example_data.dart' as eg;

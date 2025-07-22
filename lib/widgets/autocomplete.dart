@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/emoji.dart';
 import '../model/store.dart';
-import 'content.dart';
 import 'emoji.dart';
 import 'icons.dart';
 import 'store.dart';
@@ -13,6 +12,7 @@ import '../model/narrow.dart';
 import 'compose_box.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'user.dart';
 
 abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends StatefulWidget {
   const AutocompleteField({

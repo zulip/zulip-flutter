@@ -8,13 +8,13 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/basic.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/new_dm_sheet.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/recent_dm_conversations.dart';
+import 'package:zulip/widgets/user.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';

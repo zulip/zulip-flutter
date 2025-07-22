@@ -14,6 +14,7 @@ import 'content.dart';
 import 'dialog.dart';
 import 'page.dart';
 import 'store.dart';
+import 'user.dart';
 
 /// Identifies which [LightboxHero]s should match up with each other
 /// to produce a hero animation.

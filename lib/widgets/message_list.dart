@@ -31,6 +31,7 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 import 'topic_list.dart';
+import 'user.dart';
 
 /// Message-list styles that differ between light and dark themes.
 class MessageListTheme extends ThemeExtension<MessageListTheme> {

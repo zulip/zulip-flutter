@@ -4,7 +4,6 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
-import 'content.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'new_dm_sheet.dart';
@@ -13,6 +12,7 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 import 'unread_count_badge.dart';
+import 'user.dart';
 
 class RecentDmConversationsPageBody extends StatefulWidget {
   const RecentDmConversationsPageBody({super.key});
