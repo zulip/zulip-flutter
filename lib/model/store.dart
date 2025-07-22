@@ -21,6 +21,7 @@ import '../log.dart';
 import '../notifications/receive.dart';
 import 'actions.dart';
 import 'autocomplete.dart';
+import 'binding.dart';
 import 'database.dart';
 import 'emoji.dart';
 import 'localizations.dart';
@@ -704,7 +705,7 @@ class PerAccountStore extends PerAccountStoreBase with
   ///
   /// To determine if a user is a full member, callers must also check that the
   /// user's role is at least [UserRole.member].
-  bool hasPassedWaitingPeriod(User user, {required DateTime byDate}) {
+  bool hasPassedWaitingPeriod(User user) {
     // [User.dateJoined] is in UTC. For logged-in users, the format is:
     // YYYY-MM-DDTHH:mm+00:00, which includes the timezone offset for UTC.
     // For logged-out spectators, the format is: YYYY-MM-DD, which doesn't
@@ -716,7 +717,8 @@ class PerAccountStore extends PerAccountStoreBase with
     // See the related discussion:
     //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/provide.20an.20explicit.20format.20for.20.60realm_user.2Edate_joined.60/near/1980194
     final dateJoined = DateTime.parse(user.dateJoined);
-    return byDate.difference(dateJoined).inDays >= realmWaitingPeriodThreshold;
+    final now = ZulipBinding.instance.utcNow();
+    return now.difference(dateJoined).inDays >= realmWaitingPeriodThreshold;
   }
 
   /// The user's real email address, if known, for displaying in the UI.
@@ -770,7 +772,6 @@ class PerAccountStore extends PerAccountStoreBase with
   bool hasPostingPermission({
     required ZulipStream inChannel,
     required User user,
-    required DateTime byDate,
   }) {
     final role = user.role;
     // We let the users with [unknown] role to send the message, then the server
@@ -782,7 +783,7 @@ class PerAccountStore extends PerAccountStoreBase with
       case ChannelPostPolicy.fullMembers:     {
         if (!role.isAtLeast(UserRole.member)) return false;
         return role == UserRole.member
-          ? hasPassedWaitingPeriod(user, byDate: byDate)
+          ? hasPassedWaitingPeriod(user)
           : true;
       }
       case ChannelPostPolicy.moderators:      return role.isAtLeast(UserRole.moderator);

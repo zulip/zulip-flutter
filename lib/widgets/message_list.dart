@@ -10,6 +10,7 @@ import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/database.dart';
 import '../model/message.dart';
+import '../model/binding.dart';
 import '../model/message_list.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
@@ -1854,19 +1855,19 @@ class DateText extends StatelessWidget {
       ),
       formatHeaderDate(
         zulipLocalizations,
-        DateTime.fromMillisecondsSinceEpoch(timestamp * 1000),
-        now: DateTime.now()));
+        DateTime.fromMillisecondsSinceEpoch(timestamp * 1000)));
   }
 }
 
 @visibleForTesting
 String formatHeaderDate(
   ZulipLocalizations zulipLocalizations,
-  DateTime dateTime, {
-  required DateTime now,
-}) {
-  assert(!dateTime.isUtc && !now.isUtc,
-    '`dateTime` and `now` need to be in local time.');
+  DateTime dateTime,
+) {
+  assert(!dateTime.isUtc,
+    '`dateTime` need to be in local time.');
+
+  final now = ZulipBinding.instance.utcNow().toLocal();
 
   if (dateTime.year == now.year &&
       dateTime.month == now.month &&
