@@ -58,6 +58,7 @@ void main() {
     User? selfUser,
     List<User> otherUsers = const [],
     List<ZulipStream> streams = const [],
+    List<Subscription> subscriptions = const [],
     List<Message>? messages,
     bool? mandatoryTopics,
     int? zulipFeatureLevel,
@@ -81,6 +82,7 @@ void main() {
     await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
       realmUsers: [selfUser, ...otherUsers],
       streams: streams,
+      subscriptions: subscriptions,
       zulipFeatureLevel: zulipFeatureLevel,
       realmMandatoryTopics: mandatoryTopics,
       realmAllowMessageEditing: true,
@@ -1281,7 +1283,7 @@ void main() {
       });
     });
 
-    group('in channel/topic narrow according to channel post policy', () {
+    group('in channel/topic narrow according to channel post policy and privacy/subscribed', () {
       void checkComposeBox({required bool isShown}) => checkComposeBoxIsShown(isShown,
         bannerLabel: zulipLocalizations.errorBannerCannotPostInChannelLabel);
 
@@ -1300,12 +1302,23 @@ void main() {
           checkComposeBox(isShown: true);
         });
 
-        testWidgets('error banner is shown in $narrowType narrow', (tester) async {
+        testWidgets('error banner is shown in $narrowType narrow without posting permission', (tester) async {
           await prepareComposeBox(tester,
             narrow: narrow,
             selfUser: eg.user(role: UserRole.moderator),
             streams: [eg.stream(streamId: 1,
               channelPostPolicy: ChannelPostPolicy.administrators)]);
+          checkComposeBox(isShown: false);
+        });
+
+        testWidgets('error banner is shown in $narrowType when private and unsubscribed', (tester) async {
+          await prepareComposeBox(tester,
+            narrow: narrow,
+            selfUser: eg.user(role: UserRole.moderator),
+            streams: [eg.stream(streamId: 1,
+              channelPostPolicy: ChannelPostPolicy.any,
+              inviteOnly: true)]);
+          check(store.subscriptions[1]).isNull();
           checkComposeBox(isShown: false);
         });
       }
@@ -1374,6 +1387,80 @@ void main() {
           value: ChannelPostPolicy.moderators));
         await tester.pump();
         checkComposeBox(isShown: true);
+      });
+
+      testWidgets('unsubscribed private channel becomes public -> banner is replaced with the compose box', (tester) async {
+        final selfUser = eg.user(role: UserRole.moderator);
+        final channel = eg.stream(streamId: 1, inviteOnly: true,
+          channelPostPolicy: ChannelPostPolicy.any);
+
+        await prepareComposeBox(tester,
+          narrow: const ChannelNarrow(1),
+          selfUser: selfUser,
+          streams: [channel]);
+        check(store.subscriptions[1]).isNull();
+        checkComposeBox(isShown: false);
+
+        await store.handleEvent(eg.channelUpdateEvent(channel,
+          property: ChannelPropertyName.inviteOnly,
+          value: false));
+        await tester.pump();
+        checkComposeBox(isShown: true);
+      });
+
+      testWidgets('unsubscribed public channel becomes private -> compose box is replaced with the banner', (tester) async {
+        final selfUser = eg.user(role: UserRole.moderator);
+        final channel = eg.stream(streamId: 1, inviteOnly: false,
+          channelPostPolicy: ChannelPostPolicy.any);
+
+        await prepareComposeBox(tester,
+          narrow: const ChannelNarrow(1),
+          selfUser: selfUser,
+          streams: [channel]);
+        check(store.subscriptions[1]).isNull();
+        checkComposeBox(isShown: true);
+
+        await store.handleEvent(eg.channelUpdateEvent(channel,
+          property: ChannelPropertyName.inviteOnly,
+          value: true));
+        await tester.pump();
+        checkComposeBox(isShown: false);
+      });
+
+      testWidgets('unsubscribed private channel becomes subscribed -> banner is replaced with the compose box', (tester) async {
+        final selfUser = eg.user(role: UserRole.moderator);
+        final channel = eg.stream(streamId: 1, inviteOnly: true,
+          channelPostPolicy: ChannelPostPolicy.any);
+
+        await prepareComposeBox(tester,
+          narrow: const ChannelNarrow(1),
+          selfUser: selfUser,
+          streams: [channel]);
+        check(store.subscriptions[1]).isNull();
+        checkComposeBox(isShown: false);
+
+        await store.handleEvent(SubscriptionAddEvent(id: 1,
+          subscriptions: [eg.subscription(channel)]));
+        await tester.pump();
+        checkComposeBox(isShown: true);
+      });
+
+      testWidgets('subscribed private channel becomes unsubscribed -> compose box is replaced with the banner', (tester) async {
+        final selfUser = eg.user(role: UserRole.moderator);
+        final channel = eg.stream(streamId: 1, inviteOnly: true,
+          channelPostPolicy: ChannelPostPolicy.any);
+
+        await prepareComposeBox(tester,
+          narrow: const ChannelNarrow(1),
+          selfUser: selfUser,
+          streams: [channel],
+          subscriptions: [eg.subscription(channel)]);
+        checkComposeBox(isShown: true);
+
+        await store.handleEvent(SubscriptionRemoveEvent(id: 1,
+          streamIds: [channel.streamId]));
+        await tester.pump();
+        checkComposeBox(isShown: false);
       });
     });
   });
