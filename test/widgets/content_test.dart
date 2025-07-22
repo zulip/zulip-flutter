@@ -7,6 +7,8 @@ import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/core.dart';
+import 'package:zulip/api/model/initial_snapshot.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/content.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/settings.dart';
@@ -118,9 +120,13 @@ Widget plainContent(String html) {
 Future<void> prepareContent(WidgetTester tester, Widget child, {
   List<NavigatorObserver> navObservers = const [],
   bool wrapWithPerAccountStoreWidget = false,
+  InitialSnapshot? initialSnapshot,
 }) async {
   if (wrapWithPerAccountStoreWidget) {
-    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    initialSnapshot ??= eg.initialSnapshot();
+    await testBinding.globalStore.add(eg.selfAccount, initialSnapshot);
+  } else {
+    assert(initialSnapshot == null);
   }
 
   addTearDown(testBinding.reset);
@@ -598,10 +604,12 @@ void main() {
   Future<void> checkFontSizeRatio(WidgetTester tester, {
     required String targetHtml,
     required TargetFontSizeFinder targetFontSizeFinder,
+    bool wrapWithPerAccountStoreWidget = false,
   }) async {
-    await prepareContent(tester, plainContent(
-      '<h1>header-plain $targetHtml</h1>\n'
-      '<p>paragraph-plain $targetHtml</p>'));
+    await prepareContent(tester, wrapWithPerAccountStoreWidget: wrapWithPerAccountStoreWidget,
+      plainContent(
+        '<h1>header-plain $targetHtml</h1>\n'
+        '<p>paragraph-plain $targetHtml</p>'));
 
     final headerRootSpan = tester.renderObject<RenderParagraph>(find.textContaining('header')).text;
     final headerPlainStyle = mergedStyleOfSubstring(headerRootSpan, 'header-plain ');
@@ -1071,16 +1079,52 @@ void main() {
     // the timezone of the environment running these tests. Accept here a wide
     // range of times. See comments in "show dates" test in
     // `test/widgets/message_list_test.dart`.
-    final renderedTextRegexp = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d [AP]M$');
+    final renderedTextRegexp = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d(?: [AP]M)?$');
+    final renderedTextRegexpTwelveHour = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d [AP]M$');
+    final renderedTextRegexpTwentyFourHour = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d$');
+
+    Future<void> prepare(
+      WidgetTester tester,
+      [TwentyFourHourTimeMode twentyFourHourTimeMode = TwentyFourHourTimeMode.localeDefault]
+    ) async {
+      final initialSnapshot = eg.initialSnapshot()
+        ..userSettings.twentyFourHourTime = twentyFourHourTimeMode;
+      await prepareContent(tester,
+        // We use the self-account's time-format setting.
+        wrapWithPerAccountStoreWidget: true,
+        initialSnapshot: initialSnapshot,
+        plainContent('<p>$timeSpanHtml</p>'));
+    }
 
     testWidgets('smoke', (tester) async {
-      await prepareContent(tester, plainContent('<p>$timeSpanHtml</p>'));
+      await prepare(tester);
       tester.widget(find.textContaining(renderedTextRegexp));
+    });
+
+    testWidgets('TwentyFourHourTimeMode.twelveHour', (tester) async {
+      await prepare(tester, TwentyFourHourTimeMode.twelveHour);
+      check(find.textContaining(renderedTextRegexpTwelveHour)).findsOne();
+    });
+
+    testWidgets('TwentyFourHourTimeMode.twentyFourHour', (tester) async {
+      await prepare(tester, TwentyFourHourTimeMode.twentyFourHour);
+      check(find.textContaining(renderedTextRegexpTwentyFourHour)).findsOne();
+    });
+
+    testWidgets('TwentyFourHourTimeMode.localeDefault', (tester) async {
+      await prepare(tester, TwentyFourHourTimeMode.localeDefault);
+      // This expectation holds as long as we're always formatting in en_US,
+      // the default locale, which uses the twelve-hour format.
+      // TODO(#1727) follow the actual locale; test with different locales
+      check(find.textContaining(renderedTextRegexpTwelveHour)).findsOne();
     });
 
     void testIconAndTextSameColor(String description, String html) {
       testWidgets('clock icon and text are the same color: $description', (tester) async {
-        await prepareContent(tester, plainContent(html));
+        await prepareContent(tester,
+          // We use the self-account's time-format setting.
+          wrapWithPerAccountStoreWidget: true,
+          plainContent(html));
 
         final icon = tester.widget<Icon>(
           find.descendant(of: find.byType(GlobalTime),
@@ -1100,6 +1144,8 @@ void main() {
     group('maintains font-size ratio with surrounding text', () {
       Future<void> doCheck(WidgetTester tester, double Function(GlobalTime widget) sizeFromWidget) async {
         await checkFontSizeRatio(tester,
+          // We use the self-account's time-format setting.
+          wrapWithPerAccountStoreWidget: true,
           targetHtml: '<time datetime="2024-01-30T17:33:00Z">2024-01-30T17:33:00Z</time>',
           targetFontSizeFinder: (rootSpan) {
             late final double result;

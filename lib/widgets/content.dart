@@ -1304,13 +1304,26 @@ class GlobalTime extends StatelessWidget {
   final GlobalTimeNode node;
   final TextStyle ambientTextStyle;
 
-  static final _dateFormat = intl.DateFormat('EEE, MMM d, y, h:mm a'); // TODO(i18n): localize date
+  static final _format12 =
+    intl.DateFormat('EEE, MMM d, y').addPattern('h:mm aa', ', ');
+  static final _format24 =
+    intl.DateFormat('EEE, MMM d, y').addPattern('Hm', ', ');
+  static final _formatLocaleDefault =
+    intl.DateFormat('EEE, MMM d, y').addPattern('jm', ', ');
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final twentyFourHourTimeMode = store.userSettings.twentyFourHourTime;
     // Design taken from css for `.rendered_markdown & time` in web,
     //   see zulip:web/styles/rendered_markdown.css .
-    final text = _dateFormat.format(node.datetime.toLocal());
+    // TODO(i18n): localize; see plan with ffi in #45
+    final format = switch (twentyFourHourTimeMode) {
+      TwentyFourHourTimeMode.twelveHour => _format12,
+      TwentyFourHourTimeMode.twentyFourHour => _format24,
+      TwentyFourHourTimeMode.localeDefault => _formatLocaleDefault,
+    };
+    final text = format.format(node.datetime.toLocal());
     final contentTheme = ContentTheme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2),
