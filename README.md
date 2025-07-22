@@ -109,7 +109,7 @@ Two specific points to expand on:
 [commit-style]: https://zulip.readthedocs.io/en/latest/contributing/commit-discipline.html
 
 
-## Getting started in developing this beta app
+## Getting started in developing
 
 ### Setting up
 
