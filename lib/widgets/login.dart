@@ -184,9 +184,8 @@ class _AddAccountPageState extends State<AddAccountPage> {
           connection.close();
         }
       } catch (e) {
-        if (!context.mounted) {
-          return;
-        }
+        if (!context.mounted) return;
+
         // TODO(#105) give more helpful feedback; see `fetchServerSettings`
         //   in zulip-mobile's src/message/fetchActions.js.
         showErrorDialog(context: context,
@@ -194,11 +193,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
           message: zulipLocalizations.errorLoginCouldNotConnect(url.toString()));
         return;
       }
-      // https://github.com/dart-lang/linter/issues/4007
-      // ignore: use_build_context_synchronously
-      if (!context.mounted) {
-        return;
-      }
+      if (!context.mounted) return;
 
       unawaited(Navigator.push(context,
         LoginPage.buildRoute(serverSettings: serverSettings)));
