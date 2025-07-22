@@ -29,13 +29,13 @@ import Flutter
     UNUserNotificationCenter.current().delegate = self
 
     // This is needed to get a push token from APNs.
-    // The user will be prompted for permission only the first time.
+    // The user will be prompted for permission only the first timee.
     application.registerForRemoteNotifications()
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  // This method will be called when an app receives a notification in the foreground.
+  // This method will hopefully be called when an app receives a notification in the foreground.
   override func userNotificationCenter(
     _ center: UNUserNotificationCenter,
     willPresent notification: UNNotification,
