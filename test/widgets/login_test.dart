@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:zulip/api/core.dart';
 import 'package:zulip/api/model/web_auth.dart';
 import 'package:zulip/api/route/account.dart';
 import 'package:zulip/api/route/realm.dart';
@@ -120,6 +121,59 @@ void main() {
       check(takePushedRoutes()).single.isA<WidgetRoute>().page.isA<LoginPage>()
         .serverSettings.realmUrl.equals(serverSettings.realmUrl);
     });
+
+    testWidgets('Server too old, well-formed response', (tester) async {
+      await prepare(tester);
+
+      final serverSettings = eg.serverSettings(
+        zulipFeatureLevel: 1, zulipVersion: '3.0');
+
+      await attempt(tester, serverSettings.realmUrl, serverSettings.toJson());
+      checkErrorDialog(tester,
+        expectedTitle: 'Could not connect',
+        expectedMessage: '${serverSettings.realmUrl} is running Zulip Server 3.0, which is unsupported. The minimum supported version is Zulip Server $kMinSupportedZulipVersion.');
+      // i.e., not the login route
+      check(takePushedRoutes()).single.isA<DialogRoute<void>>();
+    });
+
+    testWidgets('Server too old, malformed response', (tester) async {
+      await prepare(tester);
+
+      final serverSettings = eg.serverSettings(
+        zulipFeatureLevel: 1, zulipVersion: '3.0');
+      final serverSettingsMalformedJson =
+        serverSettings.toJson()..['push_notifications_enabled'] = 'abcd';
+      check(() => GetServerSettingsResult.fromJson(serverSettingsMalformedJson))
+        .throws<void>();
+
+      await attempt(tester, serverSettings.realmUrl, serverSettingsMalformedJson);
+      checkErrorDialog(tester,
+        expectedTitle: 'Could not connect',
+        expectedMessage: '${serverSettings.realmUrl} is running Zulip Server 3.0, which is unsupported. The minimum supported version is Zulip Server $kMinSupportedZulipVersion.');
+      // i.e., not the login route
+      check(takePushedRoutes()).single.isA<DialogRoute<void>>();
+    });
+
+    testWidgets('Malformed response, server not too old', (tester) async {
+      await prepare(tester);
+
+      final serverSettings = eg.serverSettings(
+        zulipVersion: eg.recentZulipVersion,
+        zulipFeatureLevel: eg.recentZulipFeatureLevel);
+      final serverSettingsMalformedJson =
+        serverSettings.toJson()..['push_notifications_enabled'] = 'abcd';
+      check(() => GetServerSettingsResult.fromJson(serverSettingsMalformedJson))
+        .throws<void>();
+
+      await attempt(tester, serverSettings.realmUrl, serverSettingsMalformedJson);
+      checkErrorDialog(tester,
+        expectedTitle: 'Could not connect',
+        expectedMessage: 'Failed to connect to server:\n${serverSettings.realmUrl}');
+      // i.e., not the login route
+      check(takePushedRoutes()).single.isA<DialogRoute<void>>();
+    });
+
+    // TODO other errors
   });
 
   group('LoginPage', () {

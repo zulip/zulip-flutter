@@ -1,16 +1,23 @@
 import '../api/core.dart';
 import '../api/exception.dart';
 import '../api/model/initial_snapshot.dart';
+import '../api/route/realm.dart';
 import 'database.dart';
 
 /// The fields 'zulip_version', 'zulip_merge_base', and 'zulip_feature_level'
-/// from a /register response.
+/// from a /server_settings or /register response.
 class ZulipVersionData {
   const ZulipVersionData({
     required this.zulipVersion,
     required this.zulipMergeBase,
     required this.zulipFeatureLevel,
   });
+
+  factory ZulipVersionData.fromServerSettings(GetServerSettingsResult serverSettings) =>
+    ZulipVersionData(
+      zulipVersion: serverSettings.zulipVersion,
+      zulipMergeBase: serverSettings.zulipMergeBase,
+      zulipFeatureLevel: serverSettings.zulipFeatureLevel);
 
   factory ZulipVersionData.fromInitialSnapshot(InitialSnapshot initialSnapshot) =>
     ZulipVersionData(
@@ -20,6 +27,8 @@ class ZulipVersionData {
 
   /// Make a [ZulipVersionData] from a [MalformedServerResponseException],
   /// if the body was readable/valid JSON and contained the data, else null.
+  ///
+  /// May be used for the /server_settings or the /register response.
   ///
   /// If there's a zulip_version but no zulip_feature_level,
   /// we infer it's indeed a Zulip server,

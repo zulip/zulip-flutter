@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../api/core.dart';
 import '../api/exception.dart';
 import '../api/model/web_auth.dart';
 import '../api/route/account.dart';
@@ -13,6 +14,7 @@ import '../api/route/users.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/binding.dart';
+import '../model/server_support.dart';
 import '../model/store.dart';
 import 'dialog.dart';
 import 'home.dart';
@@ -180,17 +182,40 @@ class _AddAccountPageState extends State<AddAccountPage> {
         final connection = globalStore.apiConnection(realmUrl: url!, zulipFeatureLevel: null);
         try {
           serverSettings = await getServerSettings(connection);
+          final zulipVersionData = ZulipVersionData.fromServerSettings(serverSettings);
+          if (zulipVersionData.isUnsupported) {
+            throw ServerVersionUnsupportedException(zulipVersionData);
+          }
+        } on MalformedServerResponseException catch (e) {
+          final zulipVersionData = ZulipVersionData.fromMalformedServerResponseException(e);
+          if (zulipVersionData != null && zulipVersionData.isUnsupported) {
+            throw ServerVersionUnsupportedException(zulipVersionData);
+          }
+          rethrow;
         } finally {
           connection.close();
         }
       } catch (e) {
         if (!context.mounted) return;
 
-        // TODO(#105) give more helpful feedback; see `fetchServerSettings`
-        //   in zulip-mobile's src/message/fetchActions.js.
+        String? message;
+        Uri? learnMoreButtonUrl;
+        switch (e) {
+          case ServerVersionUnsupportedException(:final data):
+            message = zulipLocalizations.errorServerVersionUnsupportedMessage(
+              url.toString(),
+              data.zulipVersion,
+              kMinSupportedZulipVersion);
+            learnMoreButtonUrl = kServerSupportDocUrl;
+          default:
+            // TODO(#105) give more helpful feedback; see `fetchServerSettings`
+            //   in zulip-mobile's src/message/fetchActions.js.
+            message = zulipLocalizations.errorLoginCouldNotConnect(url.toString());
+        }
         showErrorDialog(context: context,
           title: zulipLocalizations.errorCouldNotConnectTitle,
-          message: zulipLocalizations.errorLoginCouldNotConnect(url.toString()));
+          message: message,
+          learnMoreButtonUrl: learnMoreButtonUrl);
         return;
       }
       if (!context.mounted) return;
