@@ -13,7 +13,6 @@ import 'package:legacy_checks/legacy_checks.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/realm.dart';
-import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
@@ -29,6 +28,7 @@ import '../model/emoji_test.dart';
 import '../model/test_store.dart';
 import '../stdlib_checks.dart';
 import '../test_images.dart';
+import 'checks.dart';
 import 'content_test.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
@@ -581,8 +581,4 @@ void main() {
       });
     });
   });
-}
-
-extension EmojiPickerListItemChecks on Subject<EmojiPickerListEntry> {
-  Subject<EmojiCandidate> get emoji => has((x) => x.emoji, 'emoji');
 }

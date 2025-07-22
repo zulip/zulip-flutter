@@ -1,10 +1,13 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/widgets.dart';
 
+import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/emoji.dart';
+import 'package:zulip/widgets/emoji_reaction.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/profile.dart';
@@ -83,4 +86,12 @@ extension UnreadCountBadgeChecks on Subject<UnreadCountBadge> {
   Subject<int> get count => has((b) => b.count, 'count');
   Subject<bool> get bold => has((b) => b.bold, 'bold');
   Subject<Color?> get backgroundColor => has((b) => b.backgroundColor, 'backgroundColor');
+}
+
+extension UnicodeEmojiWidgetChecks on Subject<UnicodeEmojiWidget> {
+  Subject<UnicodeEmojiDisplay> get emojiDisplay => has((x) => x.emojiDisplay, 'emojiDisplay');
+}
+
+extension EmojiPickerListEntryChecks on Subject<EmojiPickerListEntry> {
+  Subject<EmojiCandidate> get emoji => has((x) => x.emoji, 'emoji');
 }

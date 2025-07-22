@@ -24,10 +24,10 @@ class MyWidgetWithMixin extends StatefulWidget {
   const MyWidgetWithMixin({super.key});
 
   @override
-  State<MyWidgetWithMixin> createState() => MyWidgetWithMixinState();
+  State<MyWidgetWithMixin> createState() => _MyWidgetWithMixinState();
 }
 
-class MyWidgetWithMixinState extends State<MyWidgetWithMixin> with PerAccountStoreAwareStateMixin<MyWidgetWithMixin> {
+class _MyWidgetWithMixinState extends State<MyWidgetWithMixin> with PerAccountStoreAwareStateMixin<MyWidgetWithMixin> {
   int anyDepChangeCounter = 0;
   int storeChangeCounter = 0;
 
@@ -50,7 +50,7 @@ class MyWidgetWithMixinState extends State<MyWidgetWithMixin> with PerAccountSto
   }
 }
 
-extension MyWidgetWithMixinStateChecks on Subject<MyWidgetWithMixinState> {
+extension _MyWidgetWithMixinStateChecks on Subject<_MyWidgetWithMixinState> {
   Subject<int> get anyDepChangeCounter => has((w) => w.anyDepChangeCounter, 'anyDepChangeCounter');
   Subject<int> get storeChangeCounter => has((w) => w.storeChangeCounter, 'storeChangeCounter');
 }
@@ -334,7 +334,7 @@ void main() {
   });
 
   testWidgets('PerAccountStoreAwareStateMixin', (tester) async {
-    final widgetWithMixinKey = GlobalKey<MyWidgetWithMixinState>();
+    final widgetWithMixinKey = GlobalKey<_MyWidgetWithMixinState>();
     final accountId = eg.selfAccount.id;
 
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
