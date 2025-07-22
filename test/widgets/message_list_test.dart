@@ -44,11 +44,8 @@ import '../flutter_checks.dart';
 import '../stdlib_checks.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
-import 'compose_box_checks.dart';
-import 'content_checks.dart';
+import 'checks.dart';
 import 'dialog_checks.dart';
-import 'message_list_checks.dart';
-import 'page_checks.dart';
 import 'test_app.dart';
 
 void main() {

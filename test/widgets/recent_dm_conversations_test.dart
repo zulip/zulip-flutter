@@ -21,10 +21,8 @@ import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../test_navigation.dart';
-import 'content_checks.dart';
+import 'checks.dart';
 import 'finders.dart';
-import 'message_list_checks.dart';
-import 'page_checks.dart';
 import 'test_app.dart';
 
 late PerAccountStore store;

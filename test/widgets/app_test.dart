@@ -17,7 +17,7 @@ import '../model/store_checks.dart';
 import '../model/test_store.dart';
 import '../test_navigation.dart';
 import 'dialog_checks.dart';
-import 'page_checks.dart';
+import 'checks.dart';
 import 'test_app.dart';
 
 void main() {

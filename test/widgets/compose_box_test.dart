@@ -37,7 +37,7 @@ import '../model/store_checks.dart';
 import '../model/test_store.dart';
 import '../model/typing_status_test.dart';
 import '../stdlib_checks.dart';
-import 'compose_box_checks.dart';
+import 'checks.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
 

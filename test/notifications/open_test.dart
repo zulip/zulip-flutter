@@ -22,9 +22,8 @@ import '../model/binding.dart';
 import '../model/narrow_checks.dart';
 import '../stdlib_checks.dart';
 import '../test_navigation.dart';
+import '../widgets/checks.dart';
 import '../widgets/dialog_checks.dart';
-import '../widgets/message_list_checks.dart';
-import '../widgets/page_checks.dart';
 import 'display_test.dart';
 
 Map<String, Object?> messageApnsPayload(

@@ -23,7 +23,7 @@ import '../stdlib_checks.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
 import 'dialog_checks.dart';
-import 'page_checks.dart';
+import 'checks.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();

@@ -28,9 +28,8 @@ import '../model/test_store.dart';
 import '../stdlib_checks.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
+import 'checks.dart';
 import 'dialog_checks.dart';
-import 'message_list_checks.dart';
-import 'page_checks.dart';
 import 'test_app.dart';
 
 /// Simulate a nested "inner" span's style by merging all ancestor-span
