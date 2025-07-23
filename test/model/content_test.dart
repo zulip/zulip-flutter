@@ -500,13 +500,18 @@ class ContentExample {
           '<span class="gu">## llo</span>\n'
           '<span class="hll">'
             '<span class="gu">### world</span>\n</span></code></pre></div>', [
-      // TODO: Fix this, see comment under `CodeBlockSpanType.highlightedLines` case in lib/model/content.dart.
-      blockUnimplemented('<div class="codehilite"><pre>'
-        '<span></span><code>::markdown hl_lines=&quot;2 4&quot;\n'
-        '<span class="hll"><span class="gh"># he</span>\n'
-        '</span><span class="gu">## llo</span>\n'
-        '<span class="hll"><span class="gu">### world</span>\n'
-        '</span></code></pre></div>'),
+      CodeBlockNode([
+        CodeBlockSpanNode(text: '::markdown hl_lines="2 4"\n', type: CodeBlockSpanType.text),
+        CodeBlockSpanNode(type: CodeBlockSpanType.highlightedLines, spans: [
+          CodeBlockSpanNode(text: '# he', type: CodeBlockSpanType.genericHeading),
+          CodeBlockSpanNode(text: '\n', type: CodeBlockSpanType.text),
+        ]),
+        CodeBlockSpanNode(text: '## llo', type: CodeBlockSpanType.genericSubheading),
+        CodeBlockSpanNode(text: '\n', type: CodeBlockSpanType.text),
+        CodeBlockSpanNode(type: CodeBlockSpanType.highlightedLines, spans: [
+          CodeBlockSpanNode(text: '### world', type: CodeBlockSpanType.genericSubheading),
+        ]),
+      ]),
     ]);
 
   static final codeBlockWithUnknownSpanType = ContentExample(
