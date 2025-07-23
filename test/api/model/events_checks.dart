@@ -23,7 +23,6 @@ extension RealmUserUpdateEventChecks on Subject<RealmUserUpdateEvent> {
   Subject<String?> get timezone => has((e) => e.timezone, 'timezone');
   Subject<int?> get botOwnerId => has((e) => e.botOwnerId, 'botOwnerId');
   Subject<UserRole?> get role => has((e) => e.role, 'role');
-  Subject<bool?> get isBillingAdmin => has((e) => e.isBillingAdmin, 'isBillingAdmin');
   Subject<RealmUserUpdateCustomProfileField?> get customProfileField => has((e) => e.customProfileField, 'customProfileField');
   Subject<String?> get newEmail => has((e) => e.newEmail, 'newEmail');
   Subject<JsonNullable<String>?> get deliveryEmail => has((e) => e.deliveryEmail, 'deliveryEmail');

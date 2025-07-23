@@ -270,7 +270,6 @@ class UserStoreImpl extends HasRealmStore with UserStore {
         if (event.timezone != null)       user.timezone       = event.timezone!;
         if (event.botOwnerId != null)     user.botOwnerId     = event.botOwnerId!;
         if (event.role != null)           user.role           = event.role!;
-        if (event.isBillingAdmin != null) user.isBillingAdmin = event.isBillingAdmin!;
         if (event.deliveryEmail != null)  user.deliveryEmail  = event.deliveryEmail!.value;
         if (event.newEmail != null)       user.email          = event.newEmail!;
         if (event.isActive != null)       user.isActive       = event.isActive!;

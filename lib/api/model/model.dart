@@ -414,7 +414,6 @@ class User {
   // bool isOwner; // obsoleted by [role]; ignore
   // bool isAdmin; // obsoleted by [role]; ignore
   // bool isGuest; // obsoleted by [role]; ignore
-  bool? isBillingAdmin; // TODO(server-10)
   final bool isBot;
   final int? botType; // TODO enum
   int? botOwnerId;
@@ -457,7 +456,6 @@ class User {
     required this.fullName,
     required this.dateJoined,
     required this.isActive,
-    required this.isBillingAdmin,
     required this.isBot,
     required this.botType,
     required this.botOwnerId,

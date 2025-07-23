@@ -383,7 +383,6 @@ class RealmUserUpdateEvent extends RealmUserEvent {
   @JsonKey(readValue: _readFromPerson) final String? timezone;
   @JsonKey(readValue: _readFromPerson) final int? botOwnerId;
   @JsonKey(readValue: _readFromPerson, unknownEnumValue: UserRole.unknown) final UserRole? role;
-  @JsonKey(readValue: _readFromPerson) final bool? isBillingAdmin;
 
   @JsonKey(readValue: _readNullableStringFromPerson)
   @NullableStringJsonConverter()
@@ -421,7 +420,6 @@ class RealmUserUpdateEvent extends RealmUserEvent {
     this.timezone,
     this.botOwnerId,
     this.role,
-    this.isBillingAdmin,
     this.deliveryEmail,
     this.customProfileField,
     this.newEmail,
