@@ -201,8 +201,6 @@ RealmUserUpdateEvent _$RealmUserUpdateEventFromJson(
     RealmUserUpdateEvent._readFromPerson(json, 'role'),
     unknownValue: UserRole.unknown,
   ),
-  isBillingAdmin:
-      RealmUserUpdateEvent._readFromPerson(json, 'is_billing_admin') as bool?,
   deliveryEmail:
       _$JsonConverterFromJson<JsonNullable<String>, JsonNullable<String>>(
         RealmUserUpdateEvent._readNullableStringFromPerson(
@@ -235,7 +233,6 @@ Map<String, dynamic> _$RealmUserUpdateEventToJson(
   'timezone': instance.timezone,
   'bot_owner_id': instance.botOwnerId,
   'role': instance.role,
-  'is_billing_admin': instance.isBillingAdmin,
   'delivery_email':
       _$JsonConverterToJson<JsonNullable<String>, JsonNullable<String>>(
         instance.deliveryEmail,

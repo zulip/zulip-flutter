@@ -256,7 +256,6 @@ User user({
     fullName: fullName ?? 'A user', // TODO generate example names
     dateJoined: dateJoined ?? '2024-02-24T11:18+00:00',
     isActive: isActive ?? true,
-    isBillingAdmin: false,
     isBot: isBot ?? false,
     botType: null,
     botOwnerId: null,
@@ -313,7 +312,6 @@ class _ImmutableUser extends User {
     fullName: user.fullName,
     dateJoined: user.dateJoined,
     isActive: user.isActive,
-    isBillingAdmin: user.isBillingAdmin,
     isBot: user.isBot,
     botType: user.botType,
     botOwnerId: user.botOwnerId,
@@ -338,7 +336,6 @@ class _ImmutableUser extends User {
   @override set fullName(_) => throw _error;
   // dateJoined already immutable
   @override set isActive(_) => throw _error;
-  @override set isBillingAdmin(_) => throw _error;
   // isBot already immutable
   // botType already immutable
   @override set botOwnerId(_) => throw _error;

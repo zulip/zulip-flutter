@@ -102,7 +102,6 @@ void main() {
       'is_owner': false,
       'is_admin': false,
       'is_guest': false,
-      'is_billing_admin': false,
       'is_bot': false,
       'role': 400,
       'timezone': 'UTC',
