@@ -774,14 +774,16 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   void _initModel(PerAccountStore store, Anchor anchor) {
-    // Normalize topic name if this is a TopicNarrow. See #1717.
     var narrow = widget.narrow;
     if (narrow is TopicNarrow) {
-      narrow = narrow.processTopicLikeServer(
-        zulipFeatureLevel: store.zulipFeatureLevel,
-        realmEmptyTopicDisplayName: store.zulipFeatureLevel > 334
-          ? store.realmEmptyTopicDisplayName
-          : null);
+      // Normalize topic name.  See #1717.
+      narrow = TopicNarrow(narrow.streamId,
+        narrow.topic.processLikeServer(
+          zulipFeatureLevel: store.zulipFeatureLevel,
+          realmEmptyTopicDisplayName: store.zulipFeatureLevel > 334
+            ? store.realmEmptyTopicDisplayName
+            : null),
+        with_: narrow.with_);
       if (narrow != widget.narrow) {
         SchedulerBinding.instance.scheduleFrameCallback((_) {
           widget.onNarrowChanged(narrow);
