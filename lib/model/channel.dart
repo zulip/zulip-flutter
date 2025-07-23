@@ -153,9 +153,10 @@ mixin ChannelStore on UserStore {
       case ChannelPostPolicy.any:             return true;
       case ChannelPostPolicy.fullMembers:     {
         if (!role.isAtLeast(UserRole.member)) return false;
-        return role == UserRole.member
-          ? hasPassedWaitingPeriod(user, byDate: byDate)
-          : true;
+        if (role == UserRole.member) {
+          return hasPassedWaitingPeriod(user, byDate: byDate);
+        }
+        return true;
       }
       case ChannelPostPolicy.moderators:      return role.isAtLeast(UserRole.moderator);
       case ChannelPostPolicy.administrators:  return role.isAtLeast(UserRole.administrator);
