@@ -536,6 +536,82 @@ class ContentExample {
       ParagraphNode(links: null, nodes: [TextNode("some content")]),
     ]);
 
+  static const codeBlockKeywordHighlight = ContentExample(
+    'code block, search highlight',
+    '```dart\nclass A {}\n```',
+    '<div class="codehilite" data-code-language="Dart">'
+      '<pre><span></span>'
+        '<code>'
+          '<span class="kd">'
+            '<span class="highlight">class</span></span>'
+          '<span class="w"> </span>'
+          '<span class="nc">A</span>'
+          '<span class="w"> </span>'
+          '<span class="p">{}</span>\n</code></pre></div>', [
+      CodeBlockNode([
+        CodeBlockSpanNode(type: CodeBlockSpanType.keywordDeclaration, spans: [
+          CodeBlockSpanNode(text: 'class', type: CodeBlockSpanType.highlight),
+        ]),
+        CodeBlockSpanNode(text: ' ', type: CodeBlockSpanType.whitespace),
+        CodeBlockSpanNode(text: 'A', type: CodeBlockSpanType.nameClass),
+        CodeBlockSpanNode(text: ' ', type: CodeBlockSpanType.whitespace),
+        CodeBlockSpanNode(text: '{}', type: CodeBlockSpanType.punctuation),
+      ]),
+    ]);
+
+  static const codeBlockKeywordHighlightBetweenText = ContentExample(
+    'code block, search highlight between text',
+    '```console\n# postgresql\nThe World\'s Most Advanced Open Source Relational Database\n```',
+    '<div class="codehilite" data-code-language="Bash Session">'
+      '<pre><span></span>'
+        '<code>'
+          '<span class="gp"># </span>postgresql\n'
+          '<span class="go">'
+            'The '
+            '<span class="highlight">World</span>'
+            '\'s Most Advanced Open Source Relational Database</span>\n</code></pre></div>', [
+      CodeBlockNode([
+        CodeBlockSpanNode(text: '# ', type: CodeBlockSpanType.genericPrompt),
+        CodeBlockSpanNode(text: "postgresql\n", type: CodeBlockSpanType.text),
+        CodeBlockSpanNode(type: CodeBlockSpanType.genericOutput, spans: [
+          CodeBlockSpanNode(text: 'The ', type: CodeBlockSpanType.text),
+          CodeBlockSpanNode(text: 'World', type: CodeBlockSpanType.highlight),
+          CodeBlockSpanNode(text: '\'s Most Advanced Open Source Relational Database', type: CodeBlockSpanType.text),
+        ]),
+      ]),
+    ]);
+
+  static const codeBlockWithHighlightedLinesAndKeywordHighlight = ContentExample(
+    'code block with highlighted lines and keyword highlight',
+     '```\n::markdown hl_lines="2 4"\n# he\n## llo\n### world\n```',
+    '<div class="codehilite">'
+      '<pre><span></span>'
+        '<code>'
+          '::markdown hl_lines=&quot;2 4&quot;\n'
+          '<span class="hll">'
+            '<span class="gh"># he</span>\n</span>'
+          '<span class="gu">## llo</span>\n'
+          '<span class="hll">'
+            '<span class="gu">'
+              '### '
+              '<span class="highlight">world</span></span>\n</span></code></pre></div>', [
+      CodeBlockNode([
+        CodeBlockSpanNode(text: '::markdown hl_lines="2 4"\n', type: CodeBlockSpanType.text),
+        CodeBlockSpanNode(type: CodeBlockSpanType.highlightedLines, spans: [
+          CodeBlockSpanNode(text: '# he', type: CodeBlockSpanType.genericHeading),
+          CodeBlockSpanNode(text: '\n', type: CodeBlockSpanType.text),
+        ]),
+        CodeBlockSpanNode(text: '## llo', type: CodeBlockSpanType.genericSubheading),
+        CodeBlockSpanNode(text: '\n', type: CodeBlockSpanType.text),
+        CodeBlockSpanNode(type: CodeBlockSpanType.highlightedLines, spans: [
+          CodeBlockSpanNode(type: CodeBlockSpanType.genericSubheading, spans: [
+            CodeBlockSpanNode(text: '### ', type: CodeBlockSpanType.text),
+            CodeBlockSpanNode(text: 'world', type: CodeBlockSpanType.highlight),
+          ]),
+        ]),
+      ]),
+    ]);
+
   static final mathInline = ContentExample.inline(
     'inline math',
     r"$$ \lambda $$",
@@ -1799,6 +1875,9 @@ void main() async {
   testParseExample(ContentExample.codeBlockWithHighlightedLines);
   testParseExample(ContentExample.codeBlockWithUnknownSpanType);
   testParseExample(ContentExample.codeBlockFollowedByMultipleLineBreaks);
+  testParseExample(ContentExample.codeBlockKeywordHighlight);
+  testParseExample(ContentExample.codeBlockKeywordHighlightBetweenText);
+  testParseExample(ContentExample.codeBlockWithHighlightedLinesAndKeywordHighlight);
 
   // The math examples in this file are about how math blocks and spans fit
   // into the context of a Zulip message.

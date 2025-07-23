@@ -19,6 +19,10 @@ class CodeBlockTextStyles {
           height: 1.4))
         .merge(weightVariableTextStyle(context)),
 
+      // .highlight { background-color: hsl(51deg 100% 79%); }
+      // See https://github.com/zulip/zulip/blob/f87479703/web/styles/rendered_markdown.css#L1037-L1039
+      highlight: TextStyle(backgroundColor: const HSLColor.fromAHSL(1, 51, 1, 0.79).toColor()),
+
       // .hll { background-color: hsl(60deg 100% 90%); }
       hll: TextStyle(backgroundColor: const HSLColor.fromAHSL(1, 60, 1, 0.90).toColor()),
 
@@ -258,6 +262,10 @@ class CodeBlockTextStyles {
           fontSize: 0.825 * kBaseFontSize,
           height: 1.4))
         .merge(weightVariableTextStyle(context)),
+
+      // .highlight { background-color: hsl(51deg 100% 23%); }
+      // See https://github.com/zulip/zulip/blob/f87479703/web/styles/dark_theme.css#L410-L412
+      highlight: TextStyle(backgroundColor: const HSLColor.fromAHSL(1, 51, 1, 0.23).toColor()),
 
       // .hll { background-color: #49483e; }
       hll: const TextStyle(backgroundColor: Color(0xff49483e)),
@@ -500,6 +508,7 @@ class CodeBlockTextStyles {
 
   CodeBlockTextStyles._({
     required this.plain,
+    required TextStyle highlight,
     required TextStyle hll,
     required TextStyle c,
     required TextStyle err,
@@ -580,6 +589,7 @@ class CodeBlockTextStyles {
     required TextStyle? vm,
     required TextStyle il,
   }) :
+    _highlight = highlight,
     _hll = hll,
     _c = c,
     _err = err,
@@ -663,6 +673,7 @@ class CodeBlockTextStyles {
   /// The baseline style that the [forSpan] styles get applied on top of.
   final TextStyle plain;
 
+  final TextStyle _highlight;
   final TextStyle _hll;
   final TextStyle _c;
   final TextStyle _err;
@@ -751,6 +762,7 @@ class CodeBlockTextStyles {
   TextStyle? forSpan(CodeBlockSpanType type) {
     return switch (type) {
       CodeBlockSpanType.text => null, // A span with type of text is always unstyled.
+      CodeBlockSpanType.highlight => _highlight,
       CodeBlockSpanType.highlightedLines => _hll,
       CodeBlockSpanType.comment => _c,
       CodeBlockSpanType.error => _err,
@@ -839,6 +851,7 @@ class CodeBlockTextStyles {
 
     return CodeBlockTextStyles._(
       plain: TextStyle.lerp(a.plain, b.plain, t)!,
+      highlight: TextStyle.lerp(a._highlight, b._highlight, t)!,
       hll: TextStyle.lerp(a._hll, b._hll, t)!,
       c: TextStyle.lerp(a._c, b._c, t)!,
       err: TextStyle.lerp(a._err, b._err, t)!,
