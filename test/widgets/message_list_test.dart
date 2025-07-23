@@ -1639,28 +1639,21 @@ void main() {
   });
 
   group('MessageTimestampStyle', () {
-    group('dateOnlyRelative', () {
-      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      final now = DateTime.parse("2023-01-10 12:00");
-      final testCases = [
-        ("2023-01-10 12:00", zulipLocalizations.today),
-        ("2023-01-10 00:00", zulipLocalizations.today),
-        ("2023-01-10 23:59", zulipLocalizations.today),
-        ("2023-01-09 23:59", zulipLocalizations.yesterday),
-        ("2023-01-09 00:00", zulipLocalizations.yesterday),
-        ("2023-01-08 00:00", "Jan 8"),
-        ("2022-12-31 00:00", "Dec 31, 2022"),
-        // Future times
-        ("2023-01-10 19:00", zulipLocalizations.today),
-        ("2023-01-11 00:00", "Jan 11, 2023"),
-      ];
-      for (final (dateTime, expected) in testCases) {
-        test('$dateTime returns $expected', () {
+    void doTests(
+      MessageTimestampStyle style,
+      List<(String timestampStr, String? expected)> cases, {
+      DateTime? now,
+    }) {
+      now ??= DateTime.parse("2023-01-10 12:00");
+      for (final (timestampStr, expected) in cases) {
+        test('${style.name}: $timestampStr returns $expected', () {
           addTearDown(testBinding.reset);
+          final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
-          withClock(Clock.fixed(now), () {
-            final timestamp = DateTime.parse(dateTime).millisecondsSinceEpoch ~/ 1000;
-            final result = MessageTimestampStyle.dateOnlyRelative.format(
+          withClock(Clock.fixed(now!), () {
+            final timestamp = DateTime.parse(timestampStr)
+              .millisecondsSinceEpoch ~/ 1000;
+            final result = style.format(
               timestamp,
               now: testBinding.utcNow().toLocal(),
               zulipLocalizations: zulipLocalizations);
@@ -1668,9 +1661,36 @@ void main() {
           });
         });
       }
-    });
+    }
 
-    // TODO others
+    for (final style in MessageTimestampStyle.values) {
+      switch (style) {
+        case MessageTimestampStyle.none:
+          doTests(style, [('2023-01-10 12:00', null)]);
+        case MessageTimestampStyle.dateOnlyRelative:
+          final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+          doTests(style,
+            now: DateTime.parse("2023-01-10 12:00"),
+            [
+              ("2023-01-10 12:00", zulipLocalizations.today),
+              ("2023-01-10 00:00", zulipLocalizations.today),
+              ("2023-01-10 23:59", zulipLocalizations.today),
+              ("2023-01-09 23:59", zulipLocalizations.yesterday),
+              ("2023-01-09 00:00", zulipLocalizations.yesterday),
+              ("2023-01-08 00:00", "Jan 8"),
+              ("2022-12-31 00:00", "Dec 31, 2022"),
+              // Future times
+              ("2023-01-10 19:00", zulipLocalizations.today),
+              ("2023-01-11 00:00", "Jan 11, 2023"),
+            ]);
+        case MessageTimestampStyle.timeOnly:
+          doTests(style, [('2023-01-10 12:00', '12:00 PM')]);
+        case MessageTimestampStyle.lightbox:
+          doTests(style, [('2023-01-10 12:00', 'Jan 10, 2023 12:00:00')]);
+        case MessageTimestampStyle.full:
+          doTests(style, [('2023-01-10 12:00', 'Jan 10, 2023 12:00 PM')]);
+      }
+    }
   });
 
   group('MessageWithPossibleSender', () {
