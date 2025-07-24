@@ -98,6 +98,34 @@ void _showActionSheet(
     });
 }
 
+/// A header for a bottom sheet with a multiline UI string.
+///
+/// Assumes 8px padding below the top of the bottom sheet.
+///
+/// Figma:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3481-26993&m=dev
+class BottomSheetHeaderPlainText extends StatelessWidget {
+  const BottomSheetHeaderPlainText({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: SizedBox(
+        width: double.infinity,
+        child: Text(
+          style: TextStyle(
+            color: designVariables.labelTime,
+            fontSize: 17,
+            height: 22 / 17),
+          text)));
+  }
+}
+
 /// A button in an action sheet.
 ///
 /// When built from server data, the action sheet ignores changes in that data;
