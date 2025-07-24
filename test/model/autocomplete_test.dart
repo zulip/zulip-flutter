@@ -813,11 +813,15 @@ void main() {
         return results;
       }
 
-      Iterable<int> getUsersFromResults(Iterable<MentionAutocompleteResult> results)
-        => results.map((e) => (e as UserMentionAutocompleteResult).userId);
+      Condition<Object?> isUser(int userId) {
+        return (it) => it.isA<UserMentionAutocompleteResult>()
+          .userId.equals(userId);
+      }
 
-      Iterable<WildcardMentionOption> getWildcardOptionsFromResults(Iterable<MentionAutocompleteResult> results)
-        => results.map((e) => (e as WildcardMentionAutocompleteResult).wildcardOption);
+      Condition<Object?> isWildcard(WildcardMentionOption option) {
+        return (it) => it.isA<WildcardMentionAutocompleteResult>()
+          .wildcardOption.equals(option);
+      }
 
       final stream = eg.stream();
       const topic = 'topic';
@@ -848,20 +852,21 @@ void main() {
       // 3. Users most recent in the DM conversations.
       // 4. Human vs. Bot users (human users come first).
       // 5. Users by name alphabetical order.
-      final results1 = await getResults(topicNarrow, MentionAutocompleteQuery(''));
-      check(getWildcardOptionsFromResults(results1.take(2)))
-        .deepEquals([WildcardMentionOption.all, WildcardMentionOption.topic]);
-      check(getUsersFromResults(results1.skip(2)))
-        .deepEquals([1, 5, 4, 2, 7, 3, 6]);
+      check(await getResults(topicNarrow, MentionAutocompleteQuery(''))).deepEquals([
+        isWildcard(WildcardMentionOption.all),
+        isWildcard(WildcardMentionOption.topic),
+        ...[1, 5, 4, 2, 7, 3, 6].map(isUser),
+      ]);
 
       // Check the ranking applies also to results filtered by a query.
-      final results2 = await getResults(topicNarrow, MentionAutocompleteQuery('t'));
-      check(getWildcardOptionsFromResults(results2.take(2)))
-        .deepEquals([WildcardMentionOption.stream, WildcardMentionOption.topic]);
-      check(getUsersFromResults(results2.skip(2))).deepEquals([2, 3]);
-      final results3 = await getResults(topicNarrow, MentionAutocompleteQuery('f'));
-      check(getWildcardOptionsFromResults(results3.take(0))).deepEquals([]);
-      check(getUsersFromResults(results3.skip(0))).deepEquals([5, 4]);
+      check(await getResults(topicNarrow, MentionAutocompleteQuery('t'))).deepEquals([
+        isWildcard(WildcardMentionOption.stream),
+        isWildcard(WildcardMentionOption.topic),
+        isUser(2), isUser(3),
+      ]);
+      check(await getResults(topicNarrow, MentionAutocompleteQuery('f'))).deepEquals([
+        isUser(5), isUser(4),
+      ]);
     });
   });
 
