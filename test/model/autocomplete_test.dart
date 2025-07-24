@@ -972,6 +972,50 @@ void main() {
     });
   });
 
+  group('MentionAutocompleteQuery ranking', () {
+    // This gets filled lazily, but never reset.
+    // We're counting on this group's tests never doing anything to mutate it.
+    PerAccountStore? store;
+
+    int? rankOf(String queryStr, Object candidate) {
+      final query = MentionAutocompleteQuery(queryStr);
+      final result = switch (candidate) {
+        WildcardMentionOption() => query.testWildcardOption(candidate,
+          localizations: GlobalLocalizations.zulipLocalizations),
+        User() => query.testUser(candidate, (store ??= eg.store())),
+        _ => throw StateError('invalid candidate'),
+      };
+      return result?.rank;
+    }
+
+    void checkPrecedes(String query, Object a, Object b) {
+      check(rankOf(query, a)!).isLessThan(rankOf(query, b)!);
+    }
+
+    void checkSameRank(String query, Object a, Object b) {
+      check(rankOf(query, a)!).equals(rankOf(query, b)!);
+    }
+
+    test('wildcards, then users', () {
+      checkSameRank('', WildcardMentionOption.all, WildcardMentionOption.topic);
+      checkPrecedes('', WildcardMentionOption.topic, eg.user());
+      checkSameRank('', eg.user(), eg.user());
+    });
+
+    test('wildcard-vs-user more significant than match quality', () {
+      // Make the query an exact match for the user's name.
+      final user = eg.user(fullName: 'Ann');
+      checkPrecedes(user.fullName, WildcardMentionOption.channel, user);
+    });
+
+    test('full list of ranks', () {
+      check([
+        rankOf('', WildcardMentionOption.all), // wildcard
+        rankOf('', eg.user()),                 // user
+      ]).deepEquals([0, 1]);
+    });
+  });
+
   group('ComposeTopicAutocomplete.autocompleteIntent', () {
     void doTest(String markedText, TopicAutocompleteQuery? expectedQuery) {
       final parsed = parseMarkedText(markedText);
