@@ -116,24 +116,19 @@ void main() {
   });
 
   group('user filtering', () {
-    final mutedUser = eg.user(fullName: 'Someone Muted');
     final testUsers = [
       eg.user(fullName: 'Alice Anderson'),
       eg.user(fullName: 'Bob Brown'),
       eg.user(fullName: 'Charlie Carter'),
-      mutedUser,
     ];
 
-    testWidgets('shows all non-muted users initially', (tester) async {
-      await setupSheet(tester, users: testUsers, mutedUserIds: [mutedUser.userId]);
+    testWidgets('shows full list initially', (tester) async {
+      await setupSheet(tester, users: testUsers);
       check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
       check(findText(includePlaceholders: false, 'Bob Brown')).findsOne();
       check(findText(includePlaceholders: false, 'Charlie Carter')).findsOne();
-
       check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(3);
       check(find.byIcon(ZulipIcons.check_circle_checked)).findsNothing();
-      check(findText(includePlaceholders: false, 'Someone Muted')).findsNothing();
-      check(findText(includePlaceholders: false, 'Muted user')).findsNothing();
     });
 
     testWidgets('shows filtered users based on search', (tester) async {
@@ -143,6 +138,27 @@ void main() {
       check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
       check(findText(includePlaceholders: false, 'Charlie Carter')).findsNothing();
       check(findText(includePlaceholders: false, 'Bob Brown')).findsNothing();
+    });
+
+    testWidgets('muted users excluded', (tester) async {
+      // Omit muted users both before there's a query…
+      final mutedUser = eg.user(fullName: 'Someone Muted');
+      await setupSheet(tester,
+        users: [...testUsers, mutedUser], mutedUserIds: [mutedUser.userId]);
+      check(findText(includePlaceholders: false, 'Someone Muted')).findsNothing();
+      check(findText(includePlaceholders: false, 'Muted user')).findsNothing();
+      check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
+      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(3);
+
+      // … and after a query.  One which matches both the user's actual name and
+      // the replacement text "Muted user", for good measure.
+      await tester.enterText(find.byType(TextField), 'e');
+      await tester.pump();
+      check(findText(includePlaceholders: false, 'Someone Muted')).findsNothing();
+      check(findText(includePlaceholders: false, 'Muted user')).findsNothing();
+      check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
+      check(findText(includePlaceholders: false, 'Charlie Carter')).findsOne();
+      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(2);
     });
 
     // TODO test sorting by recent-DMs
