@@ -1172,10 +1172,7 @@ class UpdateMessageFlagsRemoveEvent extends UpdateMessageFlagsEvent {
   factory UpdateMessageFlagsRemoveEvent.fromJson(Map<String, dynamic> json) {
     final result = _$UpdateMessageFlagsRemoveEventFromJson(json);
     // Crunchy-shell validation
-    if (
-      result.flag == MessageFlag.read
-      && true // (we assume `event_types` has `message` and `update_message_flags`)
-    ) {
+    if (result.flag == MessageFlag.read) {
       result.messageDetails as Map<int, UpdateMessageFlagsMessageDetail>;
     }
     return result;
