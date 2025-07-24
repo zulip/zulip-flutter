@@ -177,9 +177,6 @@ enum BoolGlobalSetting {
   /// welcome dialog for upgrading from the legacy app.
   upgradeWelcomeDialogShown(GlobalSettingType.internal, false),
 
-  /// An experimental flag to toggle rendering KaTeX content in messages.
-  renderKatex(GlobalSettingType.experimentalFeatureFlag, true),
-
   /// An experimental flag to enable rendering KaTeX even when some
   /// errors are encountered.
   forceRenderKatex(GlobalSettingType.experimentalFeatureFlag, false),
@@ -187,6 +184,7 @@ enum BoolGlobalSetting {
   // Former settings which might exist in the database,
   // whose names should therefore not be reused:
   //   openFirstUnread  // v0.0.30
+  //   renderKatex      // v0.0.29 - v30.0.261
   ;
 
   const BoolGlobalSetting(this.type, this.default_);

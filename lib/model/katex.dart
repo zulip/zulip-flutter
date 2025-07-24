@@ -116,31 +116,27 @@ MathParserResult? parseMath(dom.Element element, { required bool block }) {
     // content parsing stage here, thus the `!` here.
     final globalStore = ZulipBinding.instance.getGlobalStoreSync()!;
     final globalSettings = globalStore.settings;
-    final flagRenderKatex =
-      globalSettings.getBool(BoolGlobalSetting.renderKatex);
     final flagForceRenderKatex =
       globalSettings.getBool(BoolGlobalSetting.forceRenderKatex);
 
     KatexParserHardFailReason? hardFailReason;
     KatexParserSoftFailReason? softFailReason;
     List<KatexNode>? nodes;
-    if (flagRenderKatex) {
-      final parser = _KatexParser();
-      try {
-        nodes = parser.parseKatexHtml(katexHtmlElement);
-      } on _KatexHtmlParseError catch (e, st) {
-        assert(debugLog('$e\n$st'));
-        hardFailReason = KatexParserHardFailReason(
-          message: e.message,
-          stackTrace: st);
-      }
+    final parser = _KatexParser();
+    try {
+      nodes = parser.parseKatexHtml(katexHtmlElement);
+    } on _KatexHtmlParseError catch (e, st) {
+      assert(debugLog('$e\n$st'));
+      hardFailReason = KatexParserHardFailReason(
+        message: e.message,
+        stackTrace: st);
+    }
 
-      if (parser.hasError && !flagForceRenderKatex) {
-        nodes = null;
-        softFailReason = KatexParserSoftFailReason(
-          unsupportedCssClasses: parser.unsupportedCssClasses,
-          unsupportedInlineCssProperties: parser.unsupportedInlineCssProperties);
-      }
+    if (parser.hasError && !flagForceRenderKatex) {
+      nodes = null;
+      softFailReason = KatexParserSoftFailReason(
+        unsupportedCssClasses: parser.unsupportedCssClasses,
+        unsupportedInlineCssProperties: parser.unsupportedInlineCssProperties);
     }
 
     return MathParserResult(

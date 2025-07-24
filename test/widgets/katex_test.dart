@@ -2,12 +2,10 @@ import 'package:checks/checks.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/katex.dart';
 
 import '../model/binding.dart';
 import '../model/katex_test.dart';
-import '../model/store_checks.dart';
 import 'content_test.dart';
 
 void main() {
@@ -80,11 +78,6 @@ void main() {
       for (final testCase in testCases) {
         testWidgets(testCase.$1.description, (tester) async {
           await _loadKatexFonts();
-
-          addTearDown(testBinding.reset);
-          final globalSettings = testBinding.globalStore.settings;
-          await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
-          check(globalSettings).getBool(BoolGlobalSetting.renderKatex).isTrue();
 
           await prepareContent(tester, plainContent(testCase.$1.html));
 
