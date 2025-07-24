@@ -140,6 +140,22 @@ void main() {
       check(findText(includePlaceholders: false, 'Bob Brown')).findsNothing();
     });
 
+    testWidgets('deactivated users excluded', (tester) async {
+      // Omit a deactivated user both before there's a query…
+      final deactivatedUser = eg.user(fullName: 'Impostor Charlie', isActive: false);
+      await setupSheet(tester, users: [...testUsers, deactivatedUser]);
+      check(findText(includePlaceholders: false, 'Impostor Charlie')).findsNothing();
+      check(findText(includePlaceholders: false, 'Charlie Carter')).findsOne();
+      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(3);
+
+      // … and after a query that would match their name.
+      await tester.enterText(find.byType(TextField), 'Charlie');
+      await tester.pump();
+      check(findText(includePlaceholders: false, 'Impostor Charlie')).findsNothing();
+      check(findText(includePlaceholders: false, 'Charlie Carter')).findsOne();
+      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(1);
+    });
+
     testWidgets('muted users excluded', (tester) async {
       // Omit muted users both before there's a query…
       final mutedUser = eg.user(fullName: 'Someone Muted');
