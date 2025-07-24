@@ -566,15 +566,6 @@ void main() {
 
     testContentSmoke(ContentExample.mathBlock);
 
-    testWidgets('displays KaTeX source; experimental flag disabled', (tester) async {
-      addTearDown(testBinding.reset);
-      final globalSettings = testBinding.globalStore.settings;
-      await globalSettings.setBool(BoolGlobalSetting.renderKatex, false);
-
-      await prepareContent(tester, plainContent(ContentExample.mathBlock.html));
-      tester.widget(find.text(r'\lambda', findRichText: true));
-    });
-
     testWidgets('displays KaTeX content; experimental flag enabled', (tester) async {
       addTearDown(testBinding.reset);
       final globalSettings = testBinding.globalStore.settings;
@@ -583,6 +574,15 @@ void main() {
 
       await prepareContent(tester, plainContent(ContentExample.mathBlock.html));
       tester.widget(find.text('λ', findRichText: true));
+    });
+
+    testWidgets('displays KaTeX source; experimental flag disabled', (tester) async {
+      addTearDown(testBinding.reset);
+      final globalSettings = testBinding.globalStore.settings;
+      await globalSettings.setBool(BoolGlobalSetting.renderKatex, false);
+
+      await prepareContent(tester, plainContent(ContentExample.mathBlock.html));
+      tester.widget(find.text(r'\lambda', findRichText: true));
     });
   });
 
@@ -1039,15 +1039,6 @@ void main() {
         targetFontSizeFinder: mkTargetFontSizeFinderFromPattern(r'\lambda'));
     });
 
-    testWidgets('displays KaTeX source; experimental flag disabled', (tester) async {
-      addTearDown(testBinding.reset);
-      final globalSettings = testBinding.globalStore.settings;
-      await globalSettings.setBool(BoolGlobalSetting.renderKatex, false);
-
-      await prepareContent(tester, plainContent(ContentExample.mathInline.html));
-      tester.widget(find.text(r'\lambda', findRichText: true));
-    });
-
     testWidgets('displays KaTeX content; experimental flag enabled', (tester) async {
       addTearDown(testBinding.reset);
       final globalSettings = testBinding.globalStore.settings;
@@ -1056,6 +1047,15 @@ void main() {
 
       await prepareContent(tester, plainContent(ContentExample.mathInline.html));
       tester.widget(find.text('λ', findRichText: true));
+    });
+
+    testWidgets('displays KaTeX source; experimental flag disabled', (tester) async {
+      addTearDown(testBinding.reset);
+      final globalSettings = testBinding.globalStore.settings;
+      await globalSettings.setBool(BoolGlobalSetting.renderKatex, false);
+
+      await prepareContent(tester, plainContent(ContentExample.mathInline.html));
+      tester.widget(find.text(r'\lambda', findRichText: true));
     });
   });
 
