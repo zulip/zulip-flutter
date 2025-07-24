@@ -409,7 +409,9 @@ void main() {
     void doCheck(String rawQuery, User user, bool expected) {
       final result = MentionAutocompleteQuery(rawQuery)
         .testUser(user, AutocompleteDataCache(), store);
-      expected ? check(result).isTrue() : check(result).isFalse();
+      expected
+        ? check(result).isA<UserMentionAutocompleteResult>()
+        : check(result).isNull();
     }
 
     test('user is always excluded when not active regardless of other criteria', () {

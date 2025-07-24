@@ -650,10 +650,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   }
 
   MentionAutocompleteResult? _testUser(MentionAutocompleteQuery query, User user) {
-    if (query.testUser(user, store.autocompleteViewManager.autocompleteDataCache, store)) {
-      return UserMentionAutocompleteResult(userId: user.userId);
-    }
-    return null;
+    return query.testUser(user, store.autocompleteViewManager.autocompleteDataCache, store);
   }
 
   @override
@@ -755,12 +752,14 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
       || wildcardOption.localizedCanonicalString(localizations).contains(_lowercase);
   }
 
-  bool testUser(User user, AutocompleteDataCache cache, UserStore store) {
-    if (!user.isActive) return false;
-    if (store.isUserMuted(user.userId)) return false;
+  MentionAutocompleteResult? testUser(User user, AutocompleteDataCache cache, UserStore store) {
+    if (!user.isActive) return null;
+    if (store.isUserMuted(user.userId)) return null;
 
     // TODO(#236) test email too, not just name
-    return _testName(user, cache);
+    if (!_testName(user, cache)) return null;
+
+    return UserMentionAutocompleteResult(userId: user.userId);
   }
 
   bool _testName(User user, AutocompleteDataCache cache) {
