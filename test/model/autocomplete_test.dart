@@ -407,8 +407,7 @@ void main() {
     late PerAccountStore store;
 
     void doCheck(String rawQuery, User user, bool expected) {
-      final result = MentionAutocompleteQuery(rawQuery)
-        .testUser(user, AutocompleteDataCache(), store);
+      final result = MentionAutocompleteQuery(rawQuery).testUser(user, store);
       expected
         ? check(result).isA<UserMentionAutocompleteResult>()
         : check(result).isNull();

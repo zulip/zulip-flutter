@@ -13,7 +13,6 @@ import 'compose.dart';
 import 'emoji.dart';
 import 'narrow.dart';
 import 'store.dart';
-import 'user.dart';
 
 extension ComposeContentAutocomplete on ComposeContentController {
   AutocompleteIntent<ComposeAutocompleteQuery>? autocompleteIntent() {
@@ -652,7 +651,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   }
 
   MentionAutocompleteResult? _testUser(MentionAutocompleteQuery query, User user) {
-    return query.testUser(user, store.autocompleteViewManager.autocompleteDataCache, store);
+    return query.testUser(user, store);
   }
 
   @override
@@ -757,10 +756,11 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
       wildcardOption: wildcardOption, rank: _rankWildcardResult);
   }
 
-  MentionAutocompleteResult? testUser(User user, AutocompleteDataCache cache, UserStore store) {
+  MentionAutocompleteResult? testUser(User user, PerAccountStore store) {
     if (!user.isActive) return null;
     if (store.isUserMuted(user.userId)) return null;
 
+    final cache = store.autocompleteViewManager.autocompleteDataCache;
     // TODO(#236) test email too, not just name
     if (!_testName(user, cache)) return null;
 
