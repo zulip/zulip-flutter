@@ -275,6 +275,7 @@ void main() {
     });
 
     testWidgets('no hero animation occurs between different message list pages for same image', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/930
       Rect getElementRect(Element element) =>
         tester.getRect(find.byElementPredicate((e) => e == element));
 
@@ -310,7 +311,13 @@ void main() {
       }
 
       debugNetworkImageHttpClientProvider = null;
-    });
+    }, skip: true, // TODO get this no-hero test to work again with new page transitions;
+      //   see https://github.com/flutter/flutter/pull/165832#issuecomment-3111641360 .
+      //   Perhaps specify the old default, of ZoomPageTransitionsBuilder?
+      //   Or make getElementRect work relative to the enclosing page,
+      //   rather than the whole screen, so that the test becomes robust to
+      //   the whole pages moving around.
+    );
   });
 
   group('_ImageLightboxPage', () {
