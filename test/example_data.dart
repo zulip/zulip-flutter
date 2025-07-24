@@ -166,16 +166,9 @@ final ServerEmojiData serverEmojiDataPopular = _immutableServerEmojiData(codeToN
 });
 
 ServerEmojiData serverEmojiDataPopularPlus(ServerEmojiData data) {
-  final a = serverEmojiDataPopular;
-  final b = data;
-  final result = ServerEmojiData(
-    codeToNames: {...a.codeToNames, ...b.codeToNames},
+  return ServerEmojiData(
+    codeToNames: {...data.codeToNames, ...serverEmojiDataPopular.codeToNames},
   );
-  assert(
-    result.codeToNames.length == a.codeToNames.length + b.codeToNames.length,
-    'eg.serverEmojiDataPopularPlus called with data that collides with eg.serverEmojiDataPopular',
-  );
-  return result;
 }
 
 /// Like [serverEmojiDataPopular], but with the legacy '1f642': ['smile']
