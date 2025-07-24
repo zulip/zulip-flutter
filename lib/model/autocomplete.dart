@@ -770,7 +770,7 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
     if (!_testName(user, cache)) return null;
 
     return UserMentionAutocompleteResult(
-      userId: user.userId, rank: _rankUserResult);
+      userId: user.userId, rank: _rankUserResult(user));
   }
 
   bool _testName(User user, AutocompleteDataCache cache) {
@@ -787,7 +787,7 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
   /// from 0 (best) to one less than [_numResultRanks].
   ///
   /// See also [_rankWildcardResult].
-  static const _rankUserResult = 1;
+  static int _rankUserResult(User user) => 1;
 
   /// The number of possible values returned by
   /// [_rankWildcardResult] and [_rankUserResult].
