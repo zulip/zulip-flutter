@@ -29,20 +29,20 @@ void main() {
     check(childRect).equals(parentRect);
   });
 
-  testWidgets('render shadow correctly', (tester) async {
-    PaintPatternPredicate paintGradient({required Rect rect}) {
-      // This is inspired by
-      //   https://github.com/flutter/flutter/blob/7b5462cc34af903e2f2de4be7540ff858685cdfc/packages/flutter/test/cupertino/route_test.dart#L1449-L1475
-      return (Symbol methodName, List<dynamic> arguments) {
-        check(methodName).equals(#drawRect);
-        check(arguments[0]).isA<Rect>().equals(rect);
-        // We can't further check [ui.Gradient] because it is opaque:
-        //   https://github.com/flutter/engine/blob/07d01ad1199522fa5889a10c1688c4e1812b6625/lib/ui/painting.dart#L4487
-        check(arguments[1]).isA<Paint>().shader.isA<ui.Gradient>();
-        return true;
-      };
-    }
+  PaintPatternPredicate paintGradient({required Rect rect}) {
+    // This is inspired by
+    //   https://github.com/flutter/flutter/blob/7b5462cc34af903e2f2de4be7540ff858685cdfc/packages/flutter/test/cupertino/route_test.dart#L1449-L1475
+    return (Symbol methodName, List<dynamic> arguments) {
+      check(methodName).equals(#drawRect);
+      check(arguments[0]).isA<Rect>().equals(rect);
+      // We can't further check [ui.Gradient] because it is opaque:
+      //   https://github.com/flutter/engine/blob/07d01ad1199522fa5889a10c1688c4e1812b6625/lib/ui/painting.dart#L4487
+      check(arguments[1]).isA<Paint>().shader.isA<ui.Gradient>();
+      return true;
+    };
+  }
 
+  testWidgets('render shadow correctly', (tester) async {
     await tester.pumpWidget(const Directionality(
       textDirection: TextDirection.ltr,
       child: Center(
