@@ -17,6 +17,8 @@ class InsetShadowBox extends StatelessWidget {
     super.key,
     this.top = 0,
     this.bottom = 0,
+    this.start = 0,
+    this.end = 0,
     required this.color,
     required this.child,
   });
@@ -31,7 +33,17 @@ class InsetShadowBox extends StatelessWidget {
   /// This does not pad the child widget.
   final double bottom;
 
-  /// The shadow color to fade into transparency from the top and bottom borders.
+  /// The distance that the shadow from the child's start edge grows endwards.
+  ///
+  /// This does not pad the child widget.
+  final double start;
+
+  /// The distance that the shadow from the child's end edge grows startwards.
+  ///
+  /// This does not pad the child widget.
+  final double end;
+
+  /// The shadow color to fade into transparency from the edges, inward.
   final Color color;
 
   final Widget child;
@@ -50,10 +62,14 @@ class InsetShadowBox extends StatelessWidget {
       fit: StackFit.passthrough,
       children: [
         child,
-        Positioned(top: 0, height: top, left: 0, right: 0,
+        if (top != 0) Positioned(top: 0, height: top, left: 0, right: 0,
           child: DecoratedBox(decoration: _shadowFrom(Alignment.topCenter))),
-        Positioned(bottom: 0, height: bottom, left: 0, right: 0,
+        if (bottom != 0) Positioned(bottom: 0, height: bottom, left: 0, right: 0,
           child: DecoratedBox(decoration: _shadowFrom(Alignment.bottomCenter))),
+        if (start != 0) PositionedDirectional(start: 0, width: start, top: 0, bottom: 0,
+          child: DecoratedBox(decoration: _shadowFrom(AlignmentDirectional.centerStart))),
+        if (end != 0) PositionedDirectional(end: 0, width: end, top: 0, bottom: 0,
+          child: DecoratedBox(decoration: _shadowFrom(AlignmentDirectional.centerEnd))),
       ]);
   }
 }
