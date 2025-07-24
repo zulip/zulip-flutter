@@ -599,26 +599,6 @@ void main() {
       });
     });
 
-    group('compareByBotStatus', () {
-      final humanUser = eg.user(isBot: false);
-      final botUser = eg.user(isBot: true);
-
-      int compareAB(User a, User b) => MentionAutocompleteView.compareByBotStatus(a, b);
-
-      test('userA is human, userB is bot -> favor userA', () {
-        check(compareAB(humanUser, botUser)).isLessThan(0);
-      });
-
-      test('userA is bot, userB is human -> favor userB', () {
-        check(compareAB(botUser, humanUser)).isGreaterThan(0);
-      });
-
-      test('both users have the same bot status -> favor none', () {
-        check(compareAB(humanUser, humanUser)).equals(0);
-        check(compareAB(botUser, botUser)).equals(0);
-      });
-    });
-
     group('compareByAlphabeticalOrder', () {
       int compareAB(String aName, String bName) => MentionAutocompleteView.compareByAlphabeticalOrder(
         eg.user(fullName: aName), eg.user(fullName: bName), store: store);
@@ -669,17 +649,17 @@ void main() {
         }
       }
 
-      test('TopicNarrow: topic recency > stream recency > DM recency > human/bot > name', () async {
-        // The user with the greatest topic recency ranks last on each of the
-        // other criteria, but comes out first in the end, showing that
-        // topic recency comes first.  Then among the remaining users, the one
-        // with the greatest stream recency ranks last on each of the remaining
-        // criteria, but comes out second in the end; and so on.
+      test('TopicNarrow: human/bot > topic recency > stream recency > DM recency > name', () async {
+        // The non-bot user ranks last on each of the other criteria, but
+        // comes out first in the end, showing that human-vs-bot comes first.
+        // Then among the remaining users, the one with the greatest
+        // topic recency ranks last on each of the remaining criteria, but
+        // comes out second in the end; and so on.
         final users = [
-          eg.user(fullName: 'Z', isBot: true), // wins by topic recency
-          eg.user(fullName: 'Y', isBot: true), // runner-up, by stream recency
-          eg.user(fullName: 'X', isBot: true), // runner-up, by DM recency
-          eg.user(fullName: 'W', isBot: false), // runner-up, by human-vs-bot
+          eg.user(fullName: 'Z', isBot: false), // wins by human-vs-bot
+          eg.user(fullName: 'Y', isBot: true), // runner-up, by topic recency
+          eg.user(fullName: 'X', isBot: true), // runner-up, by stream recency
+          eg.user(fullName: 'W', isBot: true), // runner-up, by DM recency
           eg.user(fullName: 'A', isBot: true), // runner-up, by name
           eg.user(fullName: 'B', isBot: true), // tied because no remaining criteria
           eg.user(fullName: 'b', isBot: true),
@@ -687,12 +667,12 @@ void main() {
         final stream = eg.stream();
         final narrow = eg.topicNarrow(stream.streamId, 'this');
         await prepare(users: users, messages: [
+          eg.streamMessage(sender: users[2], stream: stream, topic: 'this'),
           eg.streamMessage(sender: users[1], stream: stream, topic: 'this'),
-          eg.streamMessage(sender: users[0], stream: stream, topic: 'this'),
+          eg.streamMessage(sender: users[3], stream: stream, topic: 'other'),
           eg.streamMessage(sender: users[2], stream: stream, topic: 'other'),
-          eg.streamMessage(sender: users[1], stream: stream, topic: 'other'),
-          eg.dmMessage(from: users[3], to: [...users.skip(4), eg.selfUser]),
-          eg.dmMessage(from: users[2], to: [eg.selfUser]),
+          eg.dmMessage(from: users[4], to: [...users.skip(5), eg.selfUser]),
+          eg.dmMessage(from: users[3], to: [eg.selfUser]),
         ]);
         checkPrecedes(narrow, users[0], users.skip(1));
         checkPrecedes(narrow, users[1], users.skip(2));
@@ -702,12 +682,12 @@ void main() {
         checkRankEqual(narrow, [users[5], users[6]]);
       });
 
-      test('ChannelNarrow: stream recency > DM recency > human/bot > name', () async {
+      test('ChannelNarrow: human/bot > stream recency > DM recency > name', () async {
         // Same principle as for TopicNarrow; see that test case above.
         final users = [
-          eg.user(fullName: 'Z', isBot: true), // wins by stream recency
-          eg.user(fullName: 'Y', isBot: true), // runner-up, by DM recency
-          eg.user(fullName: 'X', isBot: false), // runner-up, by human-vs-bot
+          eg.user(fullName: 'Z', isBot: false), // wins by human-vs-bot
+          eg.user(fullName: 'Y', isBot: true), // runner-up, by stream recency
+          eg.user(fullName: 'X', isBot: true), // runner-up, by DM recency
           eg.user(fullName: 'A', isBot: true), // runner-up, by name
           eg.user(fullName: 'B', isBot: true), // tied because no remaining criteria
           eg.user(fullName: 'b', isBot: true),
@@ -715,10 +695,10 @@ void main() {
         final stream = eg.stream();
         final narrow = ChannelNarrow(stream.streamId);
         await prepare(users: users, messages: [
+          eg.streamMessage(sender: users[2], stream: stream),
           eg.streamMessage(sender: users[1], stream: stream),
-          eg.streamMessage(sender: users[0], stream: stream),
-          eg.dmMessage(from: users[2], to: [...users.skip(3), eg.selfUser]),
-          eg.dmMessage(from: users[1], to: [eg.selfUser]),
+          eg.dmMessage(from: users[3], to: [...users.skip(4), eg.selfUser]),
+          eg.dmMessage(from: users[2], to: [eg.selfUser]),
         ]);
         checkPrecedes(narrow, users[0], users.skip(1));
         checkPrecedes(narrow, users[1], users.skip(2));
@@ -727,10 +707,12 @@ void main() {
         checkRankEqual(narrow, [users[4], users[5]]);
       });
 
-      test('DmNarrow: DM recency > human/bot > name, ignore this-conversation recency and stream recency', () async {
+      test('DmNarrow: human/bot > DM recency > name, ignore this-conversation recency and stream recency', () async {
         // Same principle as for TopicNarrow; see that test case above.
         final users = [
-          // First user wins by DM recency.
+          // First user wins by human-vs-bot.
+          eg.user(fullName: 'W', isBot: false),
+          // Next user is the runner-up due to DM recency.
           eg.user(fullName: 'Z', isBot: true),
           // Next two are runners-up by DM recency, and have a two-way tie
           // despite different this-conversation recency (because that doesn't count).
@@ -741,8 +723,6 @@ void main() {
           // (because that doesn't count).
           eg.user(fullName: 'X', isBot: true),
           // Remainder have no DM recency and so come later.
-          // Next user is the runner-up due to human-vs-bot.
-          eg.user(fullName: 'W', isBot: false),
           // Next user is the runner-up due to name.
           eg.user(fullName: 'A', isBot: true),
           // Remaining users are tied, even though they differ in stream recency
@@ -751,22 +731,22 @@ void main() {
           eg.user(fullName: 'b', isBot: true),
         ];
         await prepare(users: users, messages: [
-          eg.dmMessage(from: users[3], to: [eg.selfUser]),
-          eg.dmMessage(from: users[1], to: [users[2], eg.selfUser]),
-          eg.dmMessage(from: users[0], to: [eg.selfUser]),
-          for (final user in users.skip(1))
+          eg.dmMessage(from: users[4], to: [eg.selfUser]),
+          eg.dmMessage(from: users[2], to: [users[3], eg.selfUser]),
+          eg.dmMessage(from: users[1], to: [eg.selfUser]),
+          for (final user in users.skip(2))
             eg.streamMessage(sender: user),
         ]);
         for (final narrow in [
-          DmNarrow.withUser(users[3].userId, selfUserId: eg.selfUser.userId),
-          DmNarrow.withOtherUsers([users[1].userId, users[2].userId],
+          DmNarrow.withUser(users[4].userId, selfUserId: eg.selfUser.userId),
+          DmNarrow.withOtherUsers([users[2].userId, users[3].userId],
             selfUserId: eg.selfUser.userId),
-          DmNarrow.withUser(users[1].userId, selfUserId: eg.selfUser.userId),
+          DmNarrow.withUser(users[2].userId, selfUserId: eg.selfUser.userId),
         ]) {
           checkPrecedes(narrow, users[0], users.skip(1));
-          checkRankEqual(narrow, [users[1], users[2]]);
-          checkPrecedes(narrow, users[1], users.skip(3));
-          checkPrecedes(narrow, users[2], users.skip(3));
+          checkPrecedes(narrow, users[1], users.skip(2));
+          checkRankEqual(narrow, [users[2], users[3]]);
+          checkPrecedes(narrow, users[2], users.skip(4));
           checkPrecedes(narrow, users[3], users.skip(4));
           checkPrecedes(narrow, users[4], users.skip(5));
           checkPrecedes(narrow, users[5], users.skip(6));
@@ -1000,15 +980,15 @@ void main() {
       check(rankOf(query, a)!).equals(rankOf(query, b)!);
     }
 
-    test('wildcards, then users', () {
+    test('wildcards, non-bot users, then bots', () {
       checkSameRank('', WildcardMentionOption.all, WildcardMentionOption.topic);
-      checkPrecedes('', WildcardMentionOption.topic, eg.user());
-      checkSameRank('', eg.user(), eg.user());
+      checkPrecedes('', WildcardMentionOption.topic, eg.user(isBot: false));
+      checkPrecedes('', eg.user(isBot: false), eg.user(isBot: true));
     });
 
     test('wildcard-vs-user more significant than match quality', () {
       // Make the query an exact match for the user's name.
-      final user = eg.user(fullName: 'Ann');
+      final user = eg.user(fullName: 'Ann', isBot: false);
       checkPrecedes(user.fullName, WildcardMentionOption.channel, user);
     });
   });

@@ -517,9 +517,6 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     final dmsResult = compareByDms(userA, userB, store: store);
     if (dmsResult != 0) return dmsResult;
 
-    final botStatusResult = compareByBotStatus(userA, userB);
-    if (botStatusResult != 0) return botStatusResult;
-
     return compareByAlphabeticalOrder(userA, userB, store: store);
   }
 
@@ -584,16 +581,6 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
       (int(),     _) => 1,
       (_,     int()) => -1,
       _              => 0,
-    };
-  }
-
-  /// Comparator that puts non-bots before bots.
-  @visibleForTesting
-  static int compareByBotStatus(User userA, User userB) {
-    return switch ((userA.isBot, userB.isBot)) {
-      (false, true) => -1,
-      (true, false) => 1,
-      _             => 0,
     };
   }
 
@@ -787,11 +774,13 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
   /// from 0 (best) to one less than [_numResultRanks].
   ///
   /// See also [_rankWildcardResult].
-  static int _rankUserResult(User user) => 1;
+  static int _rankUserResult(User user) {
+    return user.isBot ? 2 : 1;
+  }
 
   /// The number of possible values returned by
   /// [_rankWildcardResult] and [_rankUserResult].
-  static const _numResultRanks = 2;
+  static const _numResultRanks = 3;
 
   @override
   String toString() {
