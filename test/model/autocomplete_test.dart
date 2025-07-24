@@ -834,12 +834,11 @@ void main() {
       ];
 
       await prepare(users: users, messages: [
-        eg.streamMessage(id: 50, sender: users[1-1], stream: stream, topic: topic),
-        eg.streamMessage(id: 60, sender: users[5-1], stream: stream, topic: 'other $topic'),
-      ], dmConversations: [
-        RecentDmConversation(userIds: [4],    maxMessageId: 300),
-        RecentDmConversation(userIds: [1],    maxMessageId: 200),
-        RecentDmConversation(userIds: [1, 2], maxMessageId: 100),
+        eg.streamMessage(sender: users[1-1], stream: stream, topic: topic),
+        eg.streamMessage(sender: users[5-1], stream: stream, topic: 'other $topic'),
+        eg.dmMessage(from: users[1-1], to: [users[2-1], eg.selfUser]),
+        eg.dmMessage(from: users[1-1], to: [eg.selfUser]),
+        eg.dmMessage(from: users[4-1], to: [eg.selfUser]),
       ]);
 
       // Check the ranking of the full list of mentions.
