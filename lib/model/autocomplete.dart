@@ -479,6 +479,9 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     required PerAccountStore store,
     required Narrow narrow,
   }) {
+    // See also [MentionAutocompleteQuery._rankUserResult];
+    // that ranking takes precedence over this.
+
     int? streamId;
     TopicName? topic;
     switch (narrow) {
@@ -725,6 +728,23 @@ abstract class AutocompleteQuery {
   }
 }
 
+/// The match quality of a [User.fullName] to a mention autocomplete query.
+///
+/// All matches are case-insensitive.
+enum NameMatchQuality {
+  /// The query matches the whole name exactly.
+  exact,
+
+  /// The name starts with the query.
+  totalPrefix,
+
+  /// All of the query's words have matches in the words of the name
+  /// that appear in order.
+  ///
+  /// A "match" means the word in the name starts with the query word.
+  wordPrefixes,
+}
+
 /// Any autocomplete query in the compose box's content input.
 abstract class ComposeAutocompleteQuery extends AutocompleteQuery {
   ComposeAutocompleteQuery(super.raw);
@@ -771,14 +791,33 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
 
     final cache = store.autocompleteViewManager.autocompleteDataCache;
     // TODO(#236) test email too, not just name
-    if (!_testName(user, cache)) return null;
+    final nameMatchQuality = _matchName(
+      normalizedName: cache.normalizedNameForUser(user),
+      normalizedNameWords: cache.normalizedNameWordsForUser(user));
+    if (nameMatchQuality == null) return null;
 
     return UserMentionAutocompleteResult(
-      userId: user.userId, rank: _rankUserResult(user));
+      userId: user.userId,
+      rank: _rankUserResult(user, nameMatchQuality: nameMatchQuality));
   }
 
-  bool _testName(User user, AutocompleteDataCache cache) {
-    return _testContainsQueryWords(cache.normalizedNameWordsForUser(user));
+  NameMatchQuality? _matchName({
+    required String normalizedName,
+    required List<String> normalizedNameWords,
+  }) {
+    if (normalizedName.startsWith(_lowercase)) {
+      if (normalizedName.length == _lowercase.length) {
+        return NameMatchQuality.exact;
+      } else {
+        return NameMatchQuality.totalPrefix;
+      }
+    }
+
+    if (_testContainsQueryWords(normalizedNameWords)) {
+      return NameMatchQuality.wordPrefixes;
+    }
+
+    return null;
   }
 
   /// A measure of a wildcard result's quality in the context of the query,
@@ -791,11 +830,17 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
   /// from 0 (best) to one less than [_numResultRanks].
   ///
   /// See also [_rankWildcardResult].
-  static int _rankUserResult(User user) => 1;
+  static int _rankUserResult(User user, {required NameMatchQuality nameMatchQuality}) {
+    return switch (nameMatchQuality) {
+      NameMatchQuality.exact =>        1,
+      NameMatchQuality.totalPrefix =>  2,
+      NameMatchQuality.wordPrefixes => 3,
+    };
+  }
 
   /// The number of possible values returned by
   /// [_rankWildcardResult] and [_rankUserResult].
-  static const _numResultRanks = 2;
+  static const _numResultRanks = 4;
 
   @override
   String toString() {
@@ -888,6 +933,30 @@ sealed class MentionAutocompleteResult extends ComposeAutocompleteResult {
   /// A measure of the result's quality in the context of the query.
   ///
   /// Used internally by [MentionAutocompleteView] for ranking the results.
+  // See also [MentionAutocompleteView._usersByRelevance];
+  // results with equal [rank] will appear in the order they were put in
+  // by that method.
+  //
+  // Compare sort_recipients in Zulip web:
+  //   https://github.com/zulip/zulip/blob/afdf20c67/web/src/typeahead_helper.ts#L472
+  //
+  // Behavior we have that web doesn't and might like to follow:
+  // - A "word-prefixes" match quality on user names:
+  //   see [NameMatchQuality.wordPrefixes], which we rank on.
+  //
+  // Behavior web has that seems undesired, which we don't plan to follow:
+  // - Ranking humans above bots, even when the bots have higher relevance
+  //   and better match quality. If there's a bot participating in the
+  //   current conversation and I start typing its name, why wouldn't we want
+  //   that as a top result? Issue: https://github.com/zulip/zulip/issues/35467
+  // - A "word-boundary" match quality on user and user-group names:
+  //   special rank when the whole query appears contiguously
+  //   right after a word-boundary character.
+  //   Our [NameMatchQuality.wordPrefixes] seems smarter.
+  // - A "word-boundary" match quality on user emails:
+  //   "words" is a wrong abstraction when matching on emails.
+  // - Ranking some case-sensitive matches differently from case-insensitive
+  //   matches. Users will expect a lowercase query to be adequate.
   int get rank;
 }
 

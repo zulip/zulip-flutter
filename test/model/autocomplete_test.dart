@@ -785,7 +785,8 @@ void main() {
         eg.dmMessage(from: users[4-1], to: [eg.selfUser]),
       ]);
 
-      // Check the ranking of the full list of mentions.
+      // Check the ranking of the full list of mentions,
+      // i.e. the results for an empty query.
       // The order should be:
       // 1. Wildcards before individual users.
       // 2. Users most recent in the current topic/stream.
@@ -1012,11 +1013,37 @@ void main() {
       checkPrecedes(user.fullName, WildcardMentionOption.channel, user);
     });
 
+    test('user name matched case-insensitively', () {
+      final user1 = eg.user(fullName: 'Chris Bobbe');
+      final user2 = eg.user(fullName: 'chris bobbe');
+
+      checkSameRank('chris bobbe', user1, user2); // exact
+      checkSameRank('chris bo',    user1, user2); // total-prefix
+      checkSameRank('chr bo',      user1, user2); // word-prefixes
+    });
+
+    test('user name match: exact over total-prefix', () {
+      final user1 = eg.user(fullName: 'Chris');
+      final user2 = eg.user(fullName: 'Chris Bobbe');
+
+      checkPrecedes('chris', user1, user2);
+    });
+
+    test('user name match: total-prefix over word-prefixes', () {
+      final user1 = eg.user(fullName: 'So Many Ideas');
+      final user2 = eg.user(fullName: 'Some Merry User');
+
+      checkPrecedes('so m', user1, user2);
+    });
+
     test('full list of ranks', () {
+      final user1 = eg.user(fullName: 'some user');
       check([
         rankOf('', WildcardMentionOption.all), // wildcard
-        rankOf('', eg.user()),                 // user
-      ]).deepEquals([0, 1]);
+        rankOf('some user', user1),            // user, exact name match
+        rankOf('some us', user1),              // user, total-prefix name match
+        rankOf('so us', user1),                // user, word-prefixes name match
+      ]).deepEquals([0, 1, 2, 3]);
     });
   });
 
