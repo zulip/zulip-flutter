@@ -35,7 +35,10 @@ mixin UserStore on PerAccountStoreBase, RealmStore {
   /// Consider using [userDisplayName].
   User? getUser(int userId);
 
-  /// All known users in the realm.
+  /// All known users in the realm, including deactivated users.
+  ///
+  /// Before presenting these users in the UI, consider whether to exclude
+  /// users who are deactivated (see [User.isActive]) or muted ([isUserMuted]).
   ///
   /// This may have a large number of elements, like tens of thousands.
   /// Consider [getUser] or other alternatives to iterating through this.
