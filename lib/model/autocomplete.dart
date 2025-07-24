@@ -610,11 +610,10 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     if (query.silent) return;
 
     bool tryOption(WildcardMentionOption option) {
-      if (query.testWildcardOption(option, localizations: localizations)) {
-        results.add(WildcardMentionAutocompleteResult(wildcardOption: option));
-        return true;
-      }
-      return false;
+      final result = query.testWildcardOption(option, localizations: localizations);
+      if (result == null) return false;
+      results.add(result);
+      return true;
     }
 
     // Only one of the (all, everyone, channel, stream) channel wildcards are
@@ -745,11 +744,13 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
       store: store, localizations: localizations, narrow: narrow, query: this);
   }
 
-  bool testWildcardOption(WildcardMentionOption wildcardOption, {
+  WildcardMentionAutocompleteResult? testWildcardOption(WildcardMentionOption wildcardOption, {
       required ZulipLocalizations localizations}) {
     // TODO(#237): match insensitively to diacritics
-    return wildcardOption.canonicalString.contains(_lowercase)
+    final matches = wildcardOption.canonicalString.contains(_lowercase)
       || wildcardOption.localizedCanonicalString(localizations).contains(_lowercase);
+    if (!matches) return null;
+    return WildcardMentionAutocompleteResult(wildcardOption: wildcardOption);
   }
 
   MentionAutocompleteResult? testUser(User user, AutocompleteDataCache cache, UserStore store) {
