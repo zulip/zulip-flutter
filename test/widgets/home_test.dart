@@ -230,7 +230,7 @@ void main () {
       await tapOpenMenuAndAwait(tester);
       checkIconSelected(tester, inboxMenuIconFinder);
       checkIconNotSelected(tester, channelsMenuIconFinder);
-      await tapButtonAndAwaitTransition(tester, find.text('Cancel'));
+      await tapButtonAndAwaitTransition(tester, find.text('Close'));
 
       await tester.tap(find.byIcon(ZulipIcons.hash_italic));
       await tester.pump();
@@ -264,10 +264,10 @@ void main () {
       await tapButtonAndAwaitTransition(tester, channelsMenuIconFinder);
     });
 
-    testWidgets('cancel button dismisses the menu', (tester) async {
+    testWidgets('close button dismisses the menu', (tester) async {
       await prepare(tester);
       await tapOpenMenuAndAwait(tester);
-      await tapButtonAndAwaitTransition(tester, find.text('Cancel'));
+      await tapButtonAndAwaitTransition(tester, find.text('Close'));
     });
 
     testWidgets('menu buttons dismiss the menu', (tester) async {
