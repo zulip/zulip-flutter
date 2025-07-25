@@ -698,11 +698,15 @@ abstract class AutocompleteQuery {
 
   late final List<String> _lowercaseWords;
 
-  /// Whether all of this query's words have matches in [words] that appear in order.
+  /// Whether all of this query's words have matches in [words],
+  /// modulo case, that appear in order.
   ///
   /// A "match" means the word in [words] starts with the query word.
+  ///
+  /// [words] must all be lowercased.
   bool _testContainsQueryWords(List<String> words) {
-    // TODO(#237) test with diacritics stripped, where appropriate
+    // TODO(#237) test with diacritics stripped, where appropriate,
+    //   and update dartdoc's summary line and its restriction about [words].
     int wordsIndex = 0;
     int queryWordsIndex = 0;
     while (true) {
@@ -774,7 +778,7 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
   }
 
   bool _testName(User user, AutocompleteDataCache cache) {
-    return _testContainsQueryWords(cache.nameWordsForUser(user));
+    return _testContainsQueryWords(cache.normalizedNameWordsForUser(user));
   }
 
   /// A measure of a wildcard result's quality in the context of the query,
@@ -827,20 +831,21 @@ extension WildcardMentionOptionExtension on WildcardMentionOption {
 class AutocompleteDataCache {
   final Map<int, String> _normalizedNamesByUser = {};
 
-  /// The lowercase `fullName` of [user].
+  /// The normalized `fullName` of [user].
   String normalizedNameForUser(User user) {
     return _normalizedNamesByUser[user.userId] ??= user.fullName.toLowerCase();
   }
 
-  final Map<int, List<String>> _nameWordsByUser = {};
+  final Map<int, List<String>> _normalizedNameWordsByUser = {};
 
-  List<String> nameWordsForUser(User user) {
-    return _nameWordsByUser[user.userId] ??= normalizedNameForUser(user).split(' ');
+  List<String> normalizedNameWordsForUser(User user) {
+    return _normalizedNameWordsByUser[user.userId]
+      ??= normalizedNameForUser(user).split(' ');
   }
 
   void invalidateUser(int userId) {
     _normalizedNamesByUser.remove(userId);
-    _nameWordsByUser.remove(userId);
+    _normalizedNameWordsByUser.remove(userId);
   }
 }
 
