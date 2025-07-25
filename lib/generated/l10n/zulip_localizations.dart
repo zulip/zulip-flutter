@@ -335,6 +335,18 @@ abstract class ZulipLocalizations {
   /// **'Failed to mark topic as unresolved'**
   String get errorUnresolveTopicFailedTitle;
 
+  /// Label for the 'See who reacted' button in the message action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'See who reacted'**
+  String get actionSheetOptionSeeWhoReacted;
+
+  /// Explanation on the 'See who reacted' sheet when the message has no reactions (because they were removed after the sheet was opened).
+  ///
+  /// In en, this message translates to:
+  /// **'This message has no reactions.'**
+  String get seeWhoReactedSheetNoReactions;
+
   /// Label for copy message text button on action sheet.
   ///
   /// In en, this message translates to:

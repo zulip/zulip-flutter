@@ -92,11 +92,40 @@ void _showActionSheet(
                           child: SingleChildScrollView(
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             child: MenuButtonsShape(buttons: optionButtons)))),
-                        const ActionSheetCancelButton(),
+                        const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.cancel),
                       ]))),
               ]))));
     });
 }
+
+/// A header for a bottom sheet with a multiline UI string.
+///
+/// Assumes 8px padding below the top of the bottom sheet.
+///
+/// Figma:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3481-26993&m=dev
+class BottomSheetHeaderPlainText extends StatelessWidget {
+  const BottomSheetHeaderPlainText({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: SizedBox(
+        width: double.infinity,
+        child: Text(
+          style: TextStyle(
+            color: designVariables.labelTime,
+            fontSize: 17,
+            height: 22 / 17),
+          text)));
+  }
+}
+
 
 /// A button in an action sheet.
 ///
@@ -160,12 +189,22 @@ abstract class ActionSheetMenuItemButton extends StatelessWidget {
   }
 }
 
-class ActionSheetCancelButton extends StatelessWidget {
-  const ActionSheetCancelButton({super.key});
+/// A stretched gray "Cancel" / "Close" button for the bottom of a bottom sheet.
+class BottomSheetDismissButton extends StatelessWidget {
+  const BottomSheetDismissButton({super.key, required this.style});
+
+  final BottomSheetDismissButtonStyle style;
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final label = switch (style) {
+      BottomSheetDismissButtonStyle.cancel => zulipLocalizations.dialogCancel,
+      BottomSheetDismissButtonStyle.close => zulipLocalizations.dialogClose,
+    };
+
     return TextButton(
       style: TextButton.styleFrom(
         minimumSize: const Size.fromHeight(44),
@@ -180,10 +219,18 @@ class ActionSheetCancelButton extends StatelessWidget {
       onPressed: () {
         Navigator.pop(context);
       },
-      child: Text(ZulipLocalizations.of(context).dialogCancel,
+      child: Text(label,
         style: const TextStyle(fontSize: 20, height: 24 / 20)
           .merge(weightVariableTextStyle(context, wght: 600))));
   }
+}
+
+enum BottomSheetDismissButtonStyle {
+  /// The "Cancel" label, for action sheets.
+  cancel,
+
+  /// The "Close" label, for bottom sheets that are read-only or for navigation.
+  close,
 }
 
 /// Show a sheet of actions you can take on a channel.
@@ -613,6 +660,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final optionButtons = [
     if (popularEmojiLoaded)
       ReactionButtons(message: message, pageContext: pageContext),
+    ViewReactionsButton(message: message, pageContext: pageContext),
     StarButton(message: message, pageContext: pageContext),
     if (isComposeBoxOffered)
       QuoteAndReplyButton(message: message, pageContext: pageContext),
@@ -836,6 +884,21 @@ class ReactionButtons extends StatelessWidget {
           )),
       ]),
     );
+  }
+}
+
+class ViewReactionsButton extends MessageActionSheetMenuItemButton {
+  ViewReactionsButton({super.key, required super.message, required super.pageContext});
+
+  @override IconData get icon => ZulipIcons.see_who_reacted;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionSeeWhoReacted;
+  }
+
+  @override void onPressed() {
+    showViewReactionsSheet(pageContext, messageId: message.id);
   }
 }
 

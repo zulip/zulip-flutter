@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import '../api/exception.dart';
@@ -6,13 +7,18 @@ import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/autocomplete.dart';
 import '../model/emoji.dart';
+import '../model/store.dart';
+import 'action_sheet.dart';
 import 'color.dart';
 import 'dialog.dart';
 import 'emoji.dart';
 import 'inset_shadow.dart';
+import 'page.dart';
+import 'profile.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'user.dart';
 
 /// Emoji-reaction styles that differ between light and dark themes.
 class EmojiReactionTheme extends ThemeExtension<EmojiReactionTheme> {
@@ -205,6 +211,12 @@ class ReactionChip extends StatelessWidget {
           customBorder: shape,
           splashColor: splashColor,
           highlightColor: highlightColor,
+          onLongPress: () {
+            showViewReactionsSheet(PageRoot.contextOf(context),
+              messageId: messageId,
+              initialReactionType: reactionType,
+              initialEmojiCode: emojiCode);
+          },
           onTap: () {
             (selfVoted ? removeReaction : addReaction).call(store.connection,
               messageId: messageId,
@@ -518,7 +530,7 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
               states.contains(WidgetState.pressed)
                 ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
                 : Colors.transparent)),
-            child: Text(zulipLocalizations.dialogClose,
+            child: Text(zulipLocalizations.dialogCancel,
               style: const TextStyle(fontSize: 20, height: 30 / 20))),
         ])),
       Expanded(child: InsetShadowBox(
@@ -612,5 +624,357 @@ class EmojiPickerListEntry extends StatelessWidget {
               color: designVariables.textMessage)))
         ]),
       ));
+  }
+}
+
+/// Opens a bottom sheet showing who reacted to the message.
+void showViewReactionsSheet(BuildContext pageContext, {
+  required int messageId,
+  ReactionType? initialReactionType,
+  String? initialEmojiCode,
+}) {
+  final accountId = PerAccountStoreWidget.accountIdOf(pageContext);
+
+  showModalBottomSheet<void>(
+    context: pageContext,
+    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
+    // on my iPhone 13 Pro but is marked as "much slower":
+    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
+    clipBehavior: Clip.antiAlias,
+    useSafeArea: true,
+    isScrollControlled: true,
+    builder: (_) {
+      return PerAccountStoreWidget(
+        accountId: accountId,
+        child: SafeArea(
+          minimum: const EdgeInsets.only(bottom: 16),
+          child: ViewReactions(pageContext,
+            messageId: messageId,
+            initialEmojiCode: initialEmojiCode,
+            initialReactionType: initialReactionType)));
+    });
+}
+
+class ViewReactions extends StatefulWidget {
+  const ViewReactions(this.pageContext, {
+    super.key,
+    required this.messageId,
+    this.initialReactionType,
+    this.initialEmojiCode,
+  });
+
+  final BuildContext pageContext;
+  final int messageId;
+  final ReactionType? initialReactionType;
+  final String? initialEmojiCode;
+
+  @override
+  State<ViewReactions> createState() => _ViewReactionsState();
+}
+
+class _ViewReactionsState extends State<ViewReactions> with PerAccountStoreAwareStateMixin<ViewReactions> {
+  ReactionType? reactionType;
+  String? emojiCode;
+
+  PerAccountStore? store;
+
+  void _setSelection(ReactionWithVotes? selection) {
+    setState(() {
+      reactionType = selection?.reactionType;
+      emojiCode = selection?.emojiCode;
+    });
+  }
+
+  void _storeChanged() {
+    _reconcile();
+  }
+
+  /// Check that the given reaction still has votes;
+  /// if not, select a different one if possible or clear the selection.
+  void _reconcile() {
+    final message = PerAccountStoreWidget.of(context).messages[widget.messageId];
+
+    final reactions = message?.reactions?.aggregated;
+
+    if (reactions == null || reactions.isEmpty) {
+      _setSelection(null);
+      return;
+    }
+
+    final selectedReaction = reactions.firstWhereOrNull(
+      (x) => x.reactionType == reactionType && x.emojiCode == emojiCode);
+
+    // TODO scroll into view
+    _setSelection(selectedReaction
+      // first item will exist; early-return above on reactions.isEmpty
+      ?? reactions.first);
+  }
+
+  @override
+  void onNewStore() {
+    store?.removeListener(_storeChanged);
+    store = PerAccountStoreWidget.of(context);
+    store!.addListener(_storeChanged);
+    if (reactionType == null && widget.initialReactionType != null) {
+      assert(emojiCode == null);
+      assert(widget.initialEmojiCode != null);
+      reactionType = widget.initialReactionType!;
+      emojiCode = widget.initialEmojiCode!;
+    }
+    _reconcile();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO could pull out this layout/appearance code,
+    //   focusing this widget only on state management
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ViewReactionsHeader(widget.pageContext,
+            messageId: widget.messageId,
+            reactionType: reactionType,
+            emojiCode: emojiCode,
+            onRequestSelect: (r) => _setSelection(r),
+          ),
+          // TODO if all reactions (or whole message) disappeared,
+          //   we show a message saying there are no reactions,
+          //   but the layout shifts (the sheet's height changes dramatically);
+          //   we should avoid this.
+          if (reactionType != null && emojiCode != null) Flexible(
+            child: ViewReactionsUserList(widget.pageContext,
+              messageId: widget.messageId,
+              reactionType: reactionType!,
+              emojiCode: emojiCode!)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.close))
+        ]));
+  }
+}
+
+class ViewReactionsHeader extends StatelessWidget {
+  const ViewReactionsHeader(
+    this.pageContext, {
+    super.key,
+    required this.messageId,
+    required this.reactionType,
+    required this.emojiCode,
+    required this.onRequestSelect,
+  });
+
+  final BuildContext pageContext;
+  final int messageId;
+  final ReactionType? reactionType;
+  final String? emojiCode;
+  final void Function(ReactionWithVotes) onRequestSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final message = PerAccountStoreWidget.of(context).messages[messageId];
+
+    final reactionsWithVotes = message?.reactions?.aggregated;
+
+    if (reactionsWithVotes == null || reactionsWithVotes.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: BottomSheetHeaderPlainText(text: zulipLocalizations.seeWhoReactedSheetNoReactions),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 16, bottom: 4),
+      child: InsetShadowBox(start: 8, end: 8,
+        color: designVariables.bgContextMenu,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              children: reactionsWithVotes.map((r) =>
+                _ViewReactionsEmojiItem(
+                  reactionWithVotes: r,
+                  selected: r.reactionType == reactionType && r.emojiCode == emojiCode,
+                  onRequestSelect: () => onRequestSelect(r)),
+              ).toList())))));
+  }
+}
+
+class _ViewReactionsEmojiItem extends StatelessWidget {
+  const _ViewReactionsEmojiItem({
+    required this.reactionWithVotes,
+    required this.selected,
+    required this.onRequestSelect,
+  });
+
+  final ReactionWithVotes reactionWithVotes;
+  final bool selected;
+  final void Function() onRequestSelect;
+
+  static const double emojiSize = 24;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    final count = reactionWithVotes.userIds.length;
+
+    final emojiDisplay = store.emojiDisplayFor(
+      emojiType: reactionWithVotes.reactionType,
+      emojiCode: reactionWithVotes.emojiCode,
+      emojiName: reactionWithVotes.emojiName);
+
+    // Don't use a :text_emoji:-style display here.
+    final placeholder = SizedBox.fromSize(size: Size.square(emojiSize));
+
+    // TODO make a helper widget for this
+    final emoji = switch (emojiDisplay) {
+      UnicodeEmojiDisplay() => UnicodeEmojiWidget(
+        size: emojiSize,
+        emojiDisplay: emojiDisplay),
+      ImageEmojiDisplay() => ImageEmojiWidget(
+        size: emojiSize,
+        emojiDisplay: emojiDisplay,
+        // If image emoji fails to load, show nothing.
+        errorBuilder: (_, _, _) => placeholder),
+      TextEmojiDisplay() => placeholder,
+    };
+
+    return Tooltip(
+      message: reactionWithVotes.emojiName,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onRequestSelect,
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+              // This border seems to affect the layout
+              // (I thought it was normally paint-only?),
+              // so always include a border, so positions don't shift.
+              color: selected
+                ? designVariables.borderBar
+                : Colors.transparent),
+            borderRadius: BorderRadius.circular(10),
+            color: selected ? designVariables.background : null,
+          ),
+          padding: EdgeInsets.fromLTRB(14, 4.5, 14, 4.5),
+          child: Center(
+            child: Column(
+              spacing: 3,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                emoji,
+                Text(
+                  style: TextStyle(
+                    color: designVariables.title,
+                    fontSize: 14,
+                    height: 14 / 14),
+                  count.toString()) // TODO(i18n) number formatting?
+              ])))));
+  }
+}
+
+
+@visibleForTesting
+class ViewReactionsUserList extends StatelessWidget {
+  const ViewReactionsUserList(this.pageContext, {
+    super.key,
+    required this.messageId,
+    required this.reactionType,
+    required this.emojiCode,
+  });
+
+  final BuildContext pageContext;
+  final int messageId;
+  final ReactionType reactionType;
+  final String emojiCode;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
+
+    final message = store.messages[messageId];
+
+    final userIds = message?.reactions?.aggregated.firstWhereOrNull(
+      (x) => x.reactionType == reactionType && x.emojiCode == emojiCode
+    )?.userIds.toList();
+
+    // (No filtering of muted or deactivated users.)
+
+    if (userIds == null) {
+      // This reaction lost all its votes, or the message was deleted.
+      return SizedBox.shrink();
+    }
+
+    // TODO sort userIds?
+
+    return InsetShadowBox(
+      top: 8, bottom: 8,
+      color: designVariables.bgContextMenu,
+      child: SizedBox(
+        height: 400, // TODO(design) tune
+        child: ListView.builder(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          itemCount: userIds.length,
+          itemBuilder: (context, index) =>
+            ViewReactionsUserItem(context, userId: userIds[index]))));
+  }
+}
+
+@visibleForTesting
+class ViewReactionsUserItem extends StatelessWidget {
+  const ViewReactionsUserItem(this.pageContext, {
+    super.key,
+    required this.userId,
+  });
+
+  final BuildContext pageContext;
+  final int userId;
+
+  void _onPressed() {
+    // Dismiss the action sheet.
+    Navigator.pop(pageContext);
+
+    Navigator.push(pageContext,
+      ProfilePage.buildRoute(context: pageContext, userId: userId));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
+
+    return InkWell(
+      onTap: _onPressed,
+      splashFactory: NoSplash.splashFactory,
+      overlayColor: WidgetStateColor.resolveWith((states) =>
+        states.any((e) => e == WidgetState.pressed)
+          ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+          : Colors.transparent),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(spacing: 8, children: [
+          Avatar(
+            size: 32,
+            borderRadius: 3,
+            backgroundColor: designVariables.bgContextMenu,
+            userId: userId),
+          Flexible(
+            child: Text(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 17,
+                height: 17 / 17,
+                color: designVariables.textMessage,
+              ).merge(weightVariableTextStyle(context, wght: 500)),
+              store.userDisplayName(userId))),
+        ])));
   }
 }
