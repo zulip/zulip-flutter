@@ -606,7 +606,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
 
   final isMessageRead = message.flags.contains(MessageFlag.read);
   final markAsUnreadSupported = store.zulipFeatureLevel >= 155; // TODO(server-6)
-  final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
+  final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead
+  && (message is! StreamMessage || store.subscriptions[message.streamId] != null);
 
   final isSenderMuted = store.isUserMuted(message.senderId);
 
