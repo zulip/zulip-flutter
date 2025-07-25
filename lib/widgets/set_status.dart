@@ -328,7 +328,7 @@ class _StatusSuggestionsListEntry extends StatelessWidget {
         child: Row(
           spacing: 8,
           children: [
-            UserStatusEmoji(emoji: status.emoji!, size: 19),
+            UserStatusEmoji(emoji: status.emoji!, size: 24),
             Flexible(child: Text(status.text!,
               style: TextStyle(fontSize: 19, height: 24 / 19),
               maxLines: 1,
