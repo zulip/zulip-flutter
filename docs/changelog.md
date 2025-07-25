@@ -2,6 +2,41 @@
 
 ## Unreleased
 
+This release branch includes some experimental changes
+not yet merged to the main branch.
+
+
+### Highlights for users
+
+* Fix "general chat" to show new messages as normal
+  after opening via a notification. (#1717)
+* Set your status emoji and status message. (#198)
+* Fix deactivated users appearing in "New DM" screen. (#1743)
+* Follow your personal setting for 24-hour or 12-hour time
+  format. (#1015)
+* Translation updates. (PR #1726, PR #1750)
+
+
+### Highlights for developers
+
+* User-visible changes not described above:
+  * Avoid showing potentially wrong result if encountering
+    a KaTeX vlist with unexpected inline style properties.
+    (c4503b492; revision to PR #1698, for #46)
+  * Fix double-application of negative margin on KaTeX vlist items.
+    (64956b8f0; revision to PR #1559, for #46)
+  * Better semantics on settings radio buttons, for a11y. (#1545)
+
+* Store and substore refactors: RealmStore; proxy mixins;
+  move more methods to individual substores. (PR #1736)
+
+* Resolved in main: #1710, #1712, PR #1698, #1717, PR #1559, #46,
+  PR #1719, PR #1726, #197, #1545, PR #1736, #1743, #1015, PR #1750
+
+* Resolved in the experimental branch:
+  * #740 via PR #1700
+  * #198 via PR #1701
+
 
 ## 30.0.261 (2025-07-09)
 
