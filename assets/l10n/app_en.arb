@@ -817,6 +817,66 @@
   "@userRoleUnknown": {
     "description": "Label for UserRole.unknown"
   },
+  "statusButtonLabelStatusSet": "Status",
+  "@statusButtonLabelStatusSet": {
+    "description": "The status button label in self-user profile page when status is set."
+  },
+  "statusButtonLabelStatusUnset": "Set status",
+  "@statusButtonLabelStatusUnset": {
+    "description": "The status button label in self-user profile page when status is not set."
+  },
+  "noStatusText": "No status text",
+  "@noStatusText": {
+    "description": "The text part of the status button sub-label in self-user profile page when status text is not set."
+  },
+  "setStatusPageTitle": "Set status",
+  "@setStatusPageTitle": {
+    "description": "Title for the 'Set status' page."
+  },
+  "statusClearButtonLabel": "Clear",
+  "@statusClearButtonLabel": {
+    "description": "Label for the button that clears the user status, in 'Set status' page."
+  },
+  "statusSaveButtonLabel": "Save",
+  "@statusSaveButtonLabel": {
+    "description": "Label for the button that saves the user status, in 'Set status' page."
+  },
+  "statusTextHint": "Your status",
+  "@statusTextHint": {
+    "description": "Hint text for the status text input field in 'Set status' page."
+  },
+  "userStatusBusy": "Busy",
+  "@userStatusBusy": {
+    "description": "A suggested user status text, 'Busy'."
+  },
+  "userStatusInAMeeting": "In a meeting",
+  "@userStatusInAMeeting": {
+    "description": "A suggested user status text, 'In a meeting'."
+  },
+  "userStatusCommuting": "Commuting",
+  "@userStatusCommuting": {
+    "description": "A suggested user status text, 'Commuting'."
+  },
+  "userStatusOutSick": "Out sick",
+  "@userStatusOutSick": {
+    "description": "A suggested user status text, 'Out sick'."
+  },
+  "userStatusVacationing": "Vacationing",
+  "@userStatusVacationing": {
+    "description": "A suggested user status text, 'Vacationing'."
+  },
+  "userStatusWorkingRemotely": "Working remotely",
+  "@userStatusWorkingRemotely": {
+    "description": "A suggested user status text, 'Working remotely'."
+  },
+  "userStatusAtTheOffice": "At the office",
+  "@userStatusAtTheOffice": {
+    "description": "A suggested user status text, 'At the office'."
+  },
+  "updateStatusErrorTitle": "Error updating user status. Please try again.",
+  "@updateStatusErrorTitle": {
+    "description": "Error title when updating user status failed."
+  },
   "searchMessagesPageTitle": "Search",
   "@searchMessagesPageTitle": {
     "description": "Page title for the 'Search' message view."

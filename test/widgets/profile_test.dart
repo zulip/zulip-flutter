@@ -29,6 +29,7 @@ import '../stdlib_checks.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
 import 'checks.dart';
+import 'finders.dart';
 import 'test_app.dart';
 
 late PerAccountStore store;
@@ -391,7 +392,7 @@ void main() {
       check(statusEmojiFinder).findsOne();
       check(tester.widget<UserStatusEmoji>(statusEmojiFinder)
         .neverAnimate).isFalse();
-      check(find.text('Busy')).findsOne();
+      check(findText(includePlaceholders: false, 'Busy')).findsOne();
     });
   });
 

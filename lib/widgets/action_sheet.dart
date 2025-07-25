@@ -786,14 +786,22 @@ class ReactionButtons extends StatelessWidget {
         : zulipLocalizations.errorReactionAddingFailedTitle);
   }
 
-  void _handleTapMore() {
+  void _handleTapMore() async {
     // TODO(design): have emoji picker slide in from right and push
     //   action sheet off to the left
 
     // Dismiss current action sheet before opening emoji picker sheet.
     Navigator.of(pageContext).pop();
 
-    showEmojiPickerSheet(pageContext: pageContext, message: message);
+    final emoji = await showEmojiPickerSheet(pageContext: pageContext);
+    if (emoji == null || !pageContext.mounted) return;
+    unawaited(doAddOrRemoveReaction(
+      context: pageContext,
+      doRemoveReaction: false,
+      messageId: message.id,
+      emoji: emoji,
+      errorDialogTitle:
+        ZulipLocalizations.of(pageContext).errorReactionAddingFailedTitle));
   }
 
   Widget _buildButton({

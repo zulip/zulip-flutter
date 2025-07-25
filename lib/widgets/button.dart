@@ -290,14 +290,16 @@ class ZulipMenuItemButton extends StatelessWidget {
     super.key,
     this.style = ZulipMenuItemButtonStyle.menu,
     required this.label,
-    required this.onPressed,
+    this.subLabel,
+    this.onPressed,
     this.icon,
     this.toggle,
   });
 
   final ZulipMenuItemButtonStyle style;
   final String label;
-  final VoidCallback onPressed;
+  final TextSpan? subLabel;
+  final VoidCallback? onPressed;
   final IconData? icon;
 
   /// A [Toggle] to go before [icon], or in its place if it's null.
@@ -393,13 +395,29 @@ class ZulipMenuItemButton extends StatelessWidget {
         foregroundColor: _labelColor(designVariables),
         splashFactory: NoSplash.splashFactory,
       ).copyWith(backgroundColor: _backgroundColor(designVariables)),
+      overflowAxis: Axis.vertical,
       onPressed: onPressed,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
-        // TODO sublabel, for [ZulipMenuItemButtonStyle.list]
-        child: Text(label,
-          style: const TextStyle(fontSize: 20, height: 24 / 20)
-            .merge(weightVariableTextStyle(context, wght: _labelWght())))));
+        child: Row(
+          spacing: 8,
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: localizedTextBaseline(context),
+          children: [
+            Flexible(child: Text(label,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 20, height: 24 / 20)
+                .merge(weightVariableTextStyle(context, wght: _labelWght())))),
+            if (subLabel != null)
+              Flexible(child: Text.rich(subLabel!,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 16 / 16,
+                  color: _labelColor(designVariables).withFadedAlpha(0.70),
+                ).merge(weightVariableTextStyle(context, wght: _labelWght())))),
+          ],
+        )));
   }
 }
 

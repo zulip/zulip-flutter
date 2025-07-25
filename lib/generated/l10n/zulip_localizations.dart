@@ -1241,6 +1241,96 @@ abstract class ZulipLocalizations {
   /// **'Unknown'**
   String get userRoleUnknown;
 
+  /// The status button label in self-user profile page when status is set.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get statusButtonLabelStatusSet;
+
+  /// The status button label in self-user profile page when status is not set.
+  ///
+  /// In en, this message translates to:
+  /// **'Set status'**
+  String get statusButtonLabelStatusUnset;
+
+  /// The text part of the status button sub-label in self-user profile page when status text is not set.
+  ///
+  /// In en, this message translates to:
+  /// **'No status text'**
+  String get noStatusText;
+
+  /// Title for the 'Set status' page.
+  ///
+  /// In en, this message translates to:
+  /// **'Set status'**
+  String get setStatusPageTitle;
+
+  /// Label for the button that clears the user status, in 'Set status' page.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get statusClearButtonLabel;
+
+  /// Label for the button that saves the user status, in 'Set status' page.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get statusSaveButtonLabel;
+
+  /// Hint text for the status text input field in 'Set status' page.
+  ///
+  /// In en, this message translates to:
+  /// **'Your status'**
+  String get statusTextHint;
+
+  /// A suggested user status text, 'Busy'.
+  ///
+  /// In en, this message translates to:
+  /// **'Busy'**
+  String get userStatusBusy;
+
+  /// A suggested user status text, 'In a meeting'.
+  ///
+  /// In en, this message translates to:
+  /// **'In a meeting'**
+  String get userStatusInAMeeting;
+
+  /// A suggested user status text, 'Commuting'.
+  ///
+  /// In en, this message translates to:
+  /// **'Commuting'**
+  String get userStatusCommuting;
+
+  /// A suggested user status text, 'Out sick'.
+  ///
+  /// In en, this message translates to:
+  /// **'Out sick'**
+  String get userStatusOutSick;
+
+  /// A suggested user status text, 'Vacationing'.
+  ///
+  /// In en, this message translates to:
+  /// **'Vacationing'**
+  String get userStatusVacationing;
+
+  /// A suggested user status text, 'Working remotely'.
+  ///
+  /// In en, this message translates to:
+  /// **'Working remotely'**
+  String get userStatusWorkingRemotely;
+
+  /// A suggested user status text, 'At the office'.
+  ///
+  /// In en, this message translates to:
+  /// **'At the office'**
+  String get userStatusAtTheOffice;
+
+  /// Error title when updating user status failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Error updating user status. Please try again.'**
+  String get updateStatusErrorTitle;
+
   /// Page title for the 'Search' message view.
   ///
   /// In en, this message translates to:
