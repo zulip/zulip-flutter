@@ -54,6 +54,20 @@ void main() {
     await fontLoader.load();
   }
 
+  // Base JSON for various unicode emoji reactions. Just missing user_id.
+  final u1 = {'emoji_name': '+1', 'emoji_code': '1f44d', 'reaction_type': 'unicode_emoji'};
+  final u2 = {'emoji_name': 'family_man_man_girl_boy', 'emoji_code': '1f468-200d-1f468-200d-1f467-200d-1f466', 'reaction_type': 'unicode_emoji'};
+  final u3 = {'emoji_name': 'slight_smile', 'emoji_code': '1f642', 'reaction_type': 'unicode_emoji'};
+  final u4 = {'emoji_name': 'tada', 'emoji_code': '1f389', 'reaction_type': 'unicode_emoji'};
+  final u5 = {'emoji_name': 'exploding_head', 'emoji_code': '1f92f', 'reaction_type': 'unicode_emoji'};
+
+  // Base JSON for various realm-emoji reactions. Just missing user_id.
+  final i1 = {'emoji_name': 'twocents', 'emoji_code': '181', 'reaction_type': 'realm_emoji'};
+  final i2 = {'emoji_name': 'threecents', 'emoji_code': '182', 'reaction_type': 'realm_emoji'};
+
+  // Base JSON for the one "Zulip extra emoji" reaction. Just missing user_id.
+  final z1 = {'emoji_name': 'zulip', 'emoji_code': 'zulip', 'reaction_type': 'zulip_extra_emoji'};
+
   Future<void> setupChipsInBox(WidgetTester tester, {
     required List<Reaction> reactions,
     double width = 245.0, // (seen in context on an iPhone 13 Pro)
@@ -158,20 +172,6 @@ void main() {
               // So, skip on macOS.
               skip: io.Platform.isMacOS);
             }
-
-            // Base JSON for various unicode emoji reactions. Just missing user_id.
-            final u1 = {'emoji_name': '+1', 'emoji_code': '1f44d', 'reaction_type': 'unicode_emoji'};
-            final u2 = {'emoji_name': 'family_man_man_girl_boy', 'emoji_code': '1f468-200d-1f468-200d-1f467-200d-1f466', 'reaction_type': 'unicode_emoji'};
-            final u3 = {'emoji_name': 'slight_smile', 'emoji_code': '1f642', 'reaction_type': 'unicode_emoji'};
-            final u4 = {'emoji_name': 'tada', 'emoji_code': '1f389', 'reaction_type': 'unicode_emoji'};
-            final u5 = {'emoji_name': 'exploding_head', 'emoji_code': '1f92f', 'reaction_type': 'unicode_emoji'};
-
-            // Base JSON for various realm-emoji reactions. Just missing user_id.
-            final i1 = {'emoji_name': 'twocents', 'emoji_code': '181', 'reaction_type': 'realm_emoji'};
-            final i2 = {'emoji_name': 'threecents', 'emoji_code': '182', 'reaction_type': 'realm_emoji'};
-
-            // Base JSON for the one "Zulip extra emoji" reaction. Just missing user_id.
-            final z1 = {'emoji_name': 'zulip', 'emoji_code': 'zulip', 'reaction_type': 'zulip_extra_emoji'};
 
             final user1 = eg.user(fullName: 'abc');
             final user2 = eg.user(fullName: 'Long Name With Many Words In It');
