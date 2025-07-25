@@ -455,18 +455,23 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   }
 
   /// Compare the users the same way they would be sorted as
-  /// autocomplete candidates.
+  /// autocomplete candidates, given [query].
+  ///
+  /// The users must both match the query.
   ///
   /// This behaves the same as the comparator used for sorting in
-  /// [_usersByRelevance], but calling this for each comparison would be a bit
-  /// less efficient because some of the logic is independent of the users and
-  /// can be precomputed.
+  /// [_usersByRelevance], combined with the ranking applied at the end
+  /// of [computeResults].
   ///
   /// This is useful for tests in order to distinguish "A comes before B"
   /// from "A ranks equal to B, and the sort happened to put A before B",
   /// particularly because [List.sort] makes no guarantees about the order
   /// of items that compare equal.
   int debugCompareUsers(User userA, User userB) {
+    final rankA = query.testUser(userA, store)!.rank;
+    final rankB = query.testUser(userB, store)!.rank;
+    if (rankA != rankB) return rankA.compareTo(rankB);
+
     return _comparator(store: store, narrow: narrow)(userA, userB);
   }
 
