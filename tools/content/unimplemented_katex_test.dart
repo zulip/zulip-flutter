@@ -10,15 +10,12 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/model/content.dart';
-import 'package:zulip/model/settings.dart';
 
 import '../../test/model/binding.dart';
 import 'model.dart';
 
 void main() async {
   TestZulipBinding.ensureInitialized();
-  await testBinding.globalStore.settings.setBool(
-    BoolGlobalSetting.renderKatex, true);
 
   Future<void> checkForKatexFailuresInFile(File file) async {
     int totalMessageCount = 0;

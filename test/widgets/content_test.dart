@@ -25,7 +25,6 @@ import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/content_test.dart';
-import '../model/store_checks.dart';
 import '../model/test_store.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
@@ -566,23 +565,14 @@ void main() {
 
     testContentSmoke(ContentExample.mathBlock);
 
-    testWidgets('displays KaTeX source; experimental flag disabled', (tester) async {
-      addTearDown(testBinding.reset);
-      final globalSettings = testBinding.globalStore.settings;
-      await globalSettings.setBool(BoolGlobalSetting.renderKatex, false);
-
-      await prepareContent(tester, plainContent(ContentExample.mathBlock.html));
-      tester.widget(find.text(r'\lambda', findRichText: true));
-    });
-
-    testWidgets('displays KaTeX content; experimental flag enabled', (tester) async {
-      addTearDown(testBinding.reset);
-      final globalSettings = testBinding.globalStore.settings;
-      await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
-      check(globalSettings).getBool(BoolGlobalSetting.renderKatex).isTrue();
-
+    testWidgets('displays KaTeX content', (tester) async {
       await prepareContent(tester, plainContent(ContentExample.mathBlock.html));
       tester.widget(find.text('λ', findRichText: true));
+    });
+
+    testWidgets('fallback to displaying KaTeX source if unsupported KaTeX HTML', (tester) async {
+      await prepareContent(tester, plainContent(ContentExample.mathBlockUnknown.html));
+      tester.widget(find.text(r'\lambda', findRichText: true));
     });
   });
 
@@ -1000,11 +990,6 @@ void main() {
     testContentSmoke(ContentExample.mathInline);
 
     testWidgets('maintains font-size ratio with surrounding text', (tester) async {
-      addTearDown(testBinding.reset);
-      final globalSettings = testBinding.globalStore.settings;
-      await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
-      check(globalSettings.getBool(BoolGlobalSetting.renderKatex)).isTrue();
-
       const html = '<span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
           '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
@@ -1025,50 +1010,27 @@ void main() {
         });
     });
 
-    testWidgets('maintains font-size ratio with surrounding text, when showing TeX source', (tester) async {
-      const html = '<span class="katex">'
+    testWidgets('maintains font-size ratio with surrounding text, when falling back to TeX source', (tester) async {
+      const unsupportedHtml = '<span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
           '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
-        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span>';
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base unknown">' // Server doesn't generate this 'unknown' class.
+          '<span class="strut" style="height:0.6944em;"></span>'
+          '<span class="mord mathnormal">λ</span></span></span></span>';
       await checkFontSizeRatio(tester,
-        targetHtml: html,
-        targetFontSizeFinder: mkTargetFontSizeFinderFromPattern(r'λ'));
-    }, skip: true // TODO(#46): adapt this test
-                  //   (it needs a more complex targetFontSizeFinder;
-                  //    see other uses in this file for examples.)
-    );
-
-    testWidgets('maintains font-size ratio with surrounding text, when showing TeX source', (tester) async {
-      addTearDown(testBinding.reset);
-      final globalSettings = testBinding.globalStore.settings;
-      await globalSettings.setBool(BoolGlobalSetting.renderKatex, false);
-
-      const html = '<span class="katex">'
-        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
-          '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
-        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span>';
-      await checkFontSizeRatio(tester,
-        targetHtml: html,
+        targetHtml: unsupportedHtml,
         targetFontSizeFinder: mkTargetFontSizeFinderFromPattern(r'\lambda'));
     });
 
-    testWidgets('displays KaTeX source; experimental flag disabled', (tester) async {
-      addTearDown(testBinding.reset);
-      final globalSettings = testBinding.globalStore.settings;
-      await globalSettings.setBool(BoolGlobalSetting.renderKatex, false);
-
-      await prepareContent(tester, plainContent(ContentExample.mathInline.html));
-      tester.widget(find.text(r'\lambda', findRichText: true));
-    });
-
-    testWidgets('displays KaTeX content; experimental flag enabled', (tester) async {
-      addTearDown(testBinding.reset);
-      final globalSettings = testBinding.globalStore.settings;
-      await globalSettings.setBool(BoolGlobalSetting.renderKatex, true);
-      check(globalSettings.getBool(BoolGlobalSetting.renderKatex)).isTrue();
-
+    testWidgets('displays KaTeX content', (tester) async {
       await prepareContent(tester, plainContent(ContentExample.mathInline.html));
       tester.widget(find.text('λ', findRichText: true));
+    });
+
+    testWidgets('fallback to displaying KaTeX source if unsupported KaTeX HTML', (tester) async {
+      await prepareContent(tester, plainContent(ContentExample.mathInlineUnknown.html));
+      tester.widget(find.text(r'\lambda'));
     });
   });
 

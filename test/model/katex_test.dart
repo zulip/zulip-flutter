@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:zulip/model/settings.dart';
 import 'package:checks/checks.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:test_api/scaffolding.dart';
@@ -571,9 +570,6 @@ class KatexExample extends ContentExample {
 
 void main() async {
   TestZulipBinding.ensureInitialized();
-
-  await testBinding.globalStore.settings.setBool(
-    BoolGlobalSetting.renderKatex, true);
 
   testParseExample(KatexExample.mathBlockKatexSizing);
   testParseExample(KatexExample.mathBlockKatexNestedSizing);

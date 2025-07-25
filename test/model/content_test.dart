@@ -6,7 +6,6 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/code_block.dart';
 import 'package:zulip/model/content.dart';
-import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/katex.dart';
 
 import 'binding.dart';
@@ -528,6 +527,20 @@ class ContentExample {
       ]),
     ]));
 
+  // A test message to test the fallback behaviour of KaTeX implementation.
+  static final mathInlineUnknown = ContentExample.inline(
+    'inline math',
+    null, // r"$$ \lambda $$" (hypothetical server variation)
+    expectedText: r'\lambda',
+    '<p><span class="katex">'
+      '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
+        '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
+      '<span class="katex-html" aria-hidden="true">'
+        '<span class="base unknown">' // Server doesn't generate this 'unknown' class.
+        '<span class="strut" style="height:0.6944em;"></span>'
+        '<span class="mord mathnormal">λ</span></span></span></span></p>',
+    MathInlineNode(texSource: r'\lambda', nodes: null));
+
   static const mathBlock = ContentExample(
     'math block',
     "```math\n\\lambda\n```",
@@ -546,6 +559,20 @@ class ContentExample {
           text: 'λ'),
       ]),
     ])]);
+
+  // A test message to test the fallback behaviour of KaTeX implementation.
+  static const mathBlockUnknown = ContentExample(
+    'math block unknown, fallback to TeX source',
+    null, // r"```math\n\lambda\n```" (hypothetical server variation)
+    expectedText: r'\lambda',
+    '<p><span class="katex-display"><span class="katex">'
+      '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
+        '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
+      '<span class="katex-html" aria-hidden="true">'
+        '<span class="base unknown">' // Server doesn't generate this 'unknown' class.
+          '<span class="strut" style="height:0.6944em;"></span>'
+          '<span class="mord mathnormal">λ</span></span></span></span></span></p>',
+    [MathBlockNode(texSource: r'\lambda', nodes: null)]);
 
   static const mathBlocksMultipleInParagraph = ContentExample(
     'math blocks, multiple in paragraph',
@@ -1484,10 +1511,6 @@ void main() async {
 
   TestZulipBinding.ensureInitialized();
 
-  // We need this to be able to test the currently experimental KaTeX code.
-  await testBinding.globalStore.settings.setBool(
-    BoolGlobalSetting.renderKatex, true);
-
   //
   // Inline content.
   //
@@ -1599,6 +1622,7 @@ void main() async {
   testParseExample(ContentExample.emojiZulipExtra);
 
   testParseExample(ContentExample.mathInline);
+  testParseExample(ContentExample.mathInlineUnknown);
 
   group('global times', () {
     testParseExample(ContentExample.globalTime);
@@ -1777,6 +1801,8 @@ void main() async {
   // into the context of a Zulip message.
   // For tests going deeper inside KaTeX content, see katex_test.dart.
   testParseExample(ContentExample.mathBlock);
+  testParseExample(ContentExample.mathBlockUnknown);
+
   testParseExample(ContentExample.mathBlocksMultipleInParagraph);
   testParseExample(ContentExample.mathBlockInQuote);
   testParseExample(ContentExample.mathBlocksMultipleInQuote);
