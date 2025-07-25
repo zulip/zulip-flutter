@@ -1746,6 +1746,15 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get upgradeWelcomeDialogTitle => '歡迎使用新 Zulip 應用程式！';
 
   @override
+  String get upgradeWelcomeDialogMessage => '您將在更快、更流暢的版本中享受熟悉的體驗。';
+
+  @override
+  String get upgradeWelcomeDialogLinkText => '查看公告部落格文章！';
+
+  @override
+  String get upgradeWelcomeDialogDismiss => '開始吧';
+
+  @override
   String get chooseAccountPageTitle => '選取帳號';
 
   @override
@@ -1769,6 +1778,10 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get logOutConfirmationDialogTitle => '登出？';
 
   @override
+  String get logOutConfirmationDialogMessage =>
+      '要在未來使用此帳號，您將需要重新輸入您組織的網址和您的帳號資訊。';
+
+  @override
   String get logOutConfirmationDialogConfirmButton => '登出';
 
   @override
@@ -1778,16 +1791,26 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get profileButtonSendDirectMessage => '發送私訊';
 
   @override
+  String get errorCouldNotShowUserProfile => '無法顯示使用者設定檔。';
+
+  @override
   String get permissionsNeededTitle => '需要的權限';
 
   @override
   String get permissionsNeededOpenSettings => '開啟設定';
 
   @override
+  String get permissionsDeniedCameraAccess => '要上傳圖片，請在設定中授予 Zulip 額外權限。';
+
+  @override
+  String get permissionsDeniedReadExternalStorage =>
+      '要上傳檔案，請在設定中授予 Zulip 額外權限。';
+
+  @override
   String get actionSheetOptionMarkChannelAsRead => '標註頻道為已讀';
 
   @override
-  String get actionSheetOptionListOfTopics => '話題列表';
+  String get actionSheetOptionListOfTopics => '議題列表';
 
   @override
   String get actionSheetOptionMuteTopic => '靜音話題';
@@ -1858,10 +1881,58 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   }
 
   @override
+  String get errorCouldNotFetchMessageSource => '無法取得訊息來源。';
+
+  @override
   String get errorCopyingFailed => '複製失敗';
 
   @override
+  String errorFailedToUploadFileTitle(String filename) {
+    return '上傳檔案失敗：$filename';
+  }
+
+  @override
+  String filenameAndSizeInMiB(String filename, String size) {
+    return '$filename： $size MiB';
+  }
+
+  @override
+  String errorFilesTooLarge(
+    int num,
+    int maxFileUploadSizeMib,
+    String listMessage,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      num,
+      locale: localeName,
+      other: '$num 個檔案',
+      one: '檔案',
+    );
+    return '$_temp0超過伺服器 $maxFileUploadSizeMib MiB 的限制，將不會上傳：\n\n$listMessage';
+  }
+
+  @override
+  String errorFilesTooLargeTitle(int num) {
+    String _temp0 = intl.Intl.pluralLogic(
+      num,
+      locale: localeName,
+      other: '檔案',
+      one: '檔案',
+    );
+    return '$_temp0太大';
+  }
+
+  @override
+  String get errorLoginInvalidInputTitle => '無效的輸入';
+
+  @override
   String get errorLoginFailedTitle => '登入失敗';
+
+  @override
+  String get errorMessageNotSent => '訊息沒有送出';
+
+  @override
+  String get errorMessageEditNotSaved => '訊息沒有儲存';
 
   @override
   String errorLoginCouldNotConnect(String url) {
@@ -1876,6 +1947,31 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get errorQuotationFailed => '引述失敗';
+
+  @override
+  String errorServerMessage(String message) {
+    return '伺服器回應：\n\n$message';
+  }
+
+  @override
+  String get errorConnectingToServerShort => '連接 Zulip 時發生錯誤。重試中…';
+
+  @override
+  String errorConnectingToServerDetails(String serverUrl, String error) {
+    return '連接 Zulip $serverUrl 時發生錯誤。將重試：\n\n$error';
+  }
+
+  @override
+  String get errorHandlingEventTitle => '處理 Zulip 事件時發生錯誤。重新連線中…';
+
+  @override
+  String errorHandlingEventDetails(
+    String serverUrl,
+    String error,
+    String event,
+  ) {
+    return '處理來自 $serverUrl 的 Zulip 事件時發生錯誤；將重試。\n\n錯誤：$error\n\n事件：$event';
+  }
 
   @override
   String get errorCouldNotOpenLinkTitle => '無法開啟連結';
@@ -1919,19 +2015,60 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get successMessageLinkCopied => '已複製訊息連結';
 
   @override
+  String get errorBannerDeactivatedDmLabel => '您無法向已停用的使用者發送訊息。';
+
+  @override
+  String get errorBannerCannotPostInChannelLabel => '您沒有權限在此頻道發佈訊息。';
+
+  @override
   String get composeBoxBannerLabelEditMessage => '編輯訊息';
 
   @override
   String get composeBoxBannerButtonCancel => '取消';
 
   @override
+  String get composeBoxBannerButtonSave => '儲存';
+
+  @override
   String get editAlreadyInProgressTitle => '無法編輯訊息';
+
+  @override
+  String get editAlreadyInProgressMessage => '編輯已在進行中。請等待其完成。';
+
+  @override
+  String get savingMessageEditLabel => '儲存編輯中…';
+
+  @override
+  String get savingMessageEditFailedLabel => '編輯未儲存';
+
+  @override
+  String get discardDraftConfirmationDialogTitle => '要捨棄您正在編寫的訊息嗎？';
+
+  @override
+  String get discardDraftForEditConfirmationDialogMessage =>
+      '當您編輯訊息時，編輯框中原有的內容將被捨棄。';
+
+  @override
+  String get discardDraftForOutboxConfirmationDialogMessage =>
+      '當您還原未發送的訊息時，編輯框中原有的內容將被捨棄。';
+
+  @override
+  String get discardDraftConfirmationDialogConfirmButton => '捨棄';
 
   @override
   String get composeBoxAttachFilesTooltip => '附加檔案';
 
   @override
   String get composeBoxAttachMediaTooltip => '附加圖片或影片';
+
+  @override
+  String get composeBoxAttachFromCameraTooltip => '拍照';
+
+  @override
+  String get composeBoxGenericContentHint => '輸入訊息';
+
+  @override
+  String get newDmSheetComposeButtonLabel => '編寫';
 
   @override
   String get newDmSheetScreenTitle => '新增私訊';
@@ -1946,6 +2083,9 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get newDmSheetSearchHintSomeSelected => '增添其他使用者…';
 
   @override
+  String get newDmSheetNoUsersFound => '找不到使用者';
+
+  @override
   String composeBoxDmContentHint(String user) {
     return '訊息 @$user';
   }
@@ -1954,17 +2094,70 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get composeBoxGroupDmContentHint => '訊息群組';
 
   @override
+  String get composeBoxSelfDmContentHint => '記下些什麼';
+
+  @override
   String composeBoxChannelContentHint(String destination) {
     return '訊息 $destination';
   }
 
   @override
-  String get composeBoxTopicHintText => '話題';
+  String get preparingEditMessageContentInput => '準備中…';
+
+  @override
+  String get composeBoxSendTooltip => '發送';
+
+  @override
+  String get unknownChannelName => '(未知頻道)';
+
+  @override
+  String get composeBoxTopicHintText => '議題';
+
+  @override
+  String composeBoxEnterTopicOrSkipHintText(String defaultTopicName) {
+    return '輸入議題（留空則使用「$defaultTopicName」）';
+  }
 
   @override
   String composeBoxUploadingFilename(String filename) {
     return '正在上傳 $filename…';
   }
+
+  @override
+  String composeBoxLoadingMessage(int messageId) {
+    return '(載入訊息 $messageId 中)';
+  }
+
+  @override
+  String get unknownUserName => '(未知使用者)';
+
+  @override
+  String get dmsWithYourselfPageTitle => '私訊給自己';
+
+  @override
+  String messageListGroupYouAndOthers(String others) {
+    return '您與 $others';
+  }
+
+  @override
+  String dmsWithOthersPageTitle(String others) {
+    return '與 $others 的私訊';
+  }
+
+  @override
+  String get emptyMessageList => '這裡沒有訊息。';
+
+  @override
+  String get emptyMessageListSearch => '沒有搜尋結果。';
+
+  @override
+  String get messageListGroupYouWithYourself => '與自己的訊息';
+
+  @override
+  String get contentValidationErrorTooLong => '訊息長度不應超過 10000 個字元。';
+
+  @override
+  String get contentValidationErrorEmpty => '您沒有要發送的內容！';
 
   @override
   String get contentValidationErrorQuoteAndReplyInProgress => '請等待引述完成。';
@@ -1985,16 +2178,31 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get errorDialogLearnMore => '了解更多';
 
   @override
+  String get errorDialogContinue => 'OK';
+
+  @override
   String get errorDialogTitle => '錯誤';
 
   @override
+  String get snackBarDetails => '詳細資訊';
+
+  @override
   String get lightboxCopyLinkTooltip => '複製連結';
+
+  @override
+  String get lightboxVideoCurrentPosition => '目前位置';
+
+  @override
+  String get lightboxVideoDuration => '影片長度';
 
   @override
   String get loginPageTitle => '登入';
 
   @override
   String get loginFormSubmitLabel => '登入';
+
+  @override
+  String get loginMethodDivider => '或';
 
   @override
   String signInWithFoo(String method) {
@@ -2029,10 +2237,45 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get loginErrorMissingUsername => '請輸入您的使用者名稱。';
 
   @override
+  String get topicValidationErrorTooLong => '議題長度不得超過 60 個字元。';
+
+  @override
+  String get topicValidationErrorMandatoryButEmpty => '此組織要求必須填寫議題。';
+
+  @override
+  String errorServerVersionUnsupportedMessage(
+    String url,
+    String zulipVersion,
+    String minSupportedZulipVersion,
+  ) {
+    return '$url 執行的 Zulip Server 為 $zulipVersion，此版本已不受支援。最低支援版本為 Zulip Server $minSupportedZulipVersion。';
+  }
+
+  @override
+  String errorInvalidApiKeyMessage(String url) {
+    return '您在 $url 的帳號無法通過驗證。請重新登入或使用其他帳號。';
+  }
+
+  @override
   String get errorInvalidResponse => '伺服器傳送了無效的請求。';
 
   @override
   String get errorNetworkRequestFailed => '網路請求失敗';
+
+  @override
+  String errorMalformedResponse(int httpStatus) {
+    return '伺服器回傳了格式錯誤的回應；HTTP 狀態碼為 $httpStatus';
+  }
+
+  @override
+  String errorMalformedResponseWithCause(int httpStatus, String details) {
+    return '伺服器回傳了格式錯誤的回應；HTTP 狀態碼為 $httpStatus；$details';
+  }
+
+  @override
+  String errorRequestFailed(int httpStatus) {
+    return '網路請求失敗：HTTP 狀態碼為 $httpStatus';
+  }
 
   @override
   String get errorVideoPlayerFailed => '無法播放影片。';
@@ -2047,19 +2290,63 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get serverUrlValidationErrorNoUseEmail => '請輸入伺服器網址，而非您的電子郵件。';
 
   @override
+  String get serverUrlValidationErrorUnsupportedScheme =>
+      '伺服器 URL 必須以 http:// 或 https:// 開頭。';
+
+  @override
   String get spoilerDefaultHeaderText => '劇透';
 
   @override
   String get markAllAsReadLabel => '標註所有訊息為已讀';
 
   @override
+  String markAsReadComplete(int num) {
+    String _temp0 = intl.Intl.pluralLogic(
+      num,
+      locale: localeName,
+      other: '$num 則訊息',
+      one: '1 則訊息',
+    );
+    return '已標為已讀：$_temp0。';
+  }
+
+  @override
+  String get markAsReadInProgress => '正在標記訊息為已讀…';
+
+  @override
+  String get errorMarkAsReadFailedTitle => '標記為已讀失敗';
+
+  @override
+  String markAsUnreadComplete(int num) {
+    String _temp0 = intl.Intl.pluralLogic(
+      num,
+      locale: localeName,
+      other: '$num 則訊息',
+      one: '1 則訊息',
+    );
+    return '已標為未讀：$_temp0。';
+  }
+
+  @override
   String get markAsUnreadInProgress => '正在標註訊息為未讀…';
+
+  @override
+  String get errorMarkAsUnreadFailedTitle => '標記為未讀失敗';
 
   @override
   String get today => '今天';
 
   @override
   String get yesterday => '昨天';
+
+  @override
+  String get invisibleMode => '隱身模式';
+
+  @override
+  String get turnOnInvisibleModeErrorTitle => '啟用隱身模式時發生錯誤。請再試一次。';
+
+  @override
+  String get turnOffInvisibleModeErrorTitle => '關閉隱身模式時發生錯誤。請再試一次。';
 
   @override
   String get userRoleOwner => '擁有者';
@@ -2077,6 +2364,9 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get userRoleGuest => '訪客';
 
   @override
+  String get userRoleUnknown => '未知';
+
+  @override
   String get searchMessagesPageTitle => '搜尋';
 
   @override
@@ -2089,10 +2379,16 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get inboxPageTitle => '收件匣';
 
   @override
+  String get inboxEmptyPlaceholder => '您的收件匣中沒有未讀訊息。請使用下方按鈕檢視整合訊息流或頻道清單。';
+
+  @override
   String get recentDmConversationsPageTitle => '私人訊息';
 
   @override
   String get recentDmConversationsSectionHeader => '私人訊息';
+
+  @override
+  String get recentDmConversationsEmptyPlaceholder => '您尚未有任何私人訊息！不如開始一段對話吧？';
 
   @override
   String get combinedFeedPageTitle => '綜合饋給';
@@ -2101,7 +2397,16 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get mentionsPageTitle => '提及';
 
   @override
+  String get starredMessagesPageTitle => '已加星號的訊息';
+
+  @override
   String get channelsPageTitle => '頻道';
+
+  @override
+  String get channelsEmptyPlaceholder => '您尚未訂閱任何頻道。';
+
+  @override
+  String get mainMenuMyProfile => '我的設定檔';
 
   @override
   String get topicsButtonTooltip => '話題';
@@ -2110,13 +2415,52 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get channelFeedButtonTooltip => '頻道饋給';
 
   @override
+  String notifGroupDmConversationLabel(String senderFullName, int numOthers) {
+    String _temp0 = intl.Intl.pluralLogic(
+      numOthers,
+      locale: localeName,
+      other: '$numOthers 位其他對象',
+      one: '1 位其他對象、',
+    );
+    return '$senderFullName 傳送給您和 $_temp0';
+  }
+
+  @override
   String get pinnedSubscriptionsLabel => '已釘選';
 
   @override
   String get unpinnedSubscriptionsLabel => '未釘選';
 
   @override
+  String get notifSelfUser => '您';
+
+  @override
+  String get reactedEmojiSelfUser => '您';
+
+  @override
+  String onePersonTyping(String typist) {
+    return '$typist 正在輸入…';
+  }
+
+  @override
+  String twoPeopleTyping(String typist, String otherTypist) {
+    return '$typist 和 $otherTypist 正在輸入…';
+  }
+
+  @override
+  String get manyPeopleTyping => '有些人正在輸入…';
+
+  @override
+  String get wildcardMentionAll => '全部';
+
+  @override
+  String get wildcardMentionEveryone => '所有人';
+
+  @override
   String get wildcardMentionChannel => 'channel';
+
+  @override
+  String get wildcardMentionStream => '串流';
 
   @override
   String get wildcardMentionTopic => 'topic';
@@ -2125,7 +2469,27 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get wildcardMentionChannelDescription => '通知頻道';
 
   @override
+  String get wildcardMentionStreamDescription => '通知串流';
+
+  @override
+  String get wildcardMentionAllDmDescription => '通知收件人';
+
+  @override
   String get wildcardMentionTopicDescription => '通知話題';
+
+  @override
+  String get messageIsEditedLabel => '已編輯';
+
+  @override
+  String get messageIsMovedLabel => '已移動';
+
+  @override
+  String get messageNotSentLabel => '訊息未送出';
+
+  @override
+  String pollVoterNames(String voterNames) {
+    return '($voterNames)';
+  }
 
   @override
   String get themeSettingTitle => '主題';
@@ -2140,10 +2504,38 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get themeSettingSystem => '系統主題';
 
   @override
+  String get openLinksWithInAppBrowser => '使用應用程式內建瀏覽器開啟連結';
+
+  @override
+  String get pollWidgetQuestionMissing => '沒有問題。';
+
+  @override
+  String get pollWidgetOptionsMissing => '此投票尚未有任何選項。';
+
+  @override
+  String get initialAnchorSettingTitle => '開啟訊息串於';
+
+  @override
+  String get initialAnchorSettingDescription => '您可以選擇將訊息串開啟在第一則未讀訊息，或是最新的訊息。';
+
+  @override
   String get initialAnchorSettingFirstUnreadAlways => '第一則未讀訊息';
 
   @override
+  String get initialAnchorSettingFirstUnreadConversations =>
+      '在對話檢視中開啟第一則未讀訊息，其餘情況則開啟最新訊息';
+
+  @override
   String get initialAnchorSettingNewestAlways => '最新訊息';
+
+  @override
+  String get markReadOnScrollSettingTitle => '捲動時將訊息標記為已讀';
+
+  @override
+  String get markReadOnScrollSettingDescription => '在捲動瀏覽訊息時，是否要自動將其標記為已讀？';
+
+  @override
+  String get markReadOnScrollSettingAlways => '總是';
 
   @override
   String get experimentalFeatureSettingsPageTitle => '實驗性功能';

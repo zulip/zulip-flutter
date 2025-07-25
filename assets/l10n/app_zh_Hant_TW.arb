@@ -29,7 +29,7 @@
   "@switchAccountButton": {
     "description": "Label for main-menu button leading to the choose-account page."
   },
-  "actionSheetOptionListOfTopics": "話題列表",
+  "actionSheetOptionListOfTopics": "議題列表",
   "@actionSheetOptionListOfTopics": {
     "description": "Label for navigating to a channel's topic-list page."
   },
@@ -363,7 +363,7 @@
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
   },
-  "composeBoxTopicHintText": "話題",
+  "composeBoxTopicHintText": "議題",
   "@composeBoxTopicHintText": {
     "description": "Hint text for topic input widget in compose box."
   },
@@ -598,5 +598,581 @@
   "searchMessagesClearButtonTooltip": "清除",
   "@searchMessagesClearButtonTooltip": {
     "description": "Tooltip for the 'x' button in the search text field."
+  },
+  "upgradeWelcomeDialogMessage": "您將在更快、更流暢的版本中享受熟悉的體驗。",
+  "@upgradeWelcomeDialogMessage": {
+    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogLinkText": "查看公告部落格文章！",
+  "@upgradeWelcomeDialogLinkText": {
+    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogDismiss": "開始吧",
+  "@upgradeWelcomeDialogDismiss": {
+    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "logOutConfirmationDialogMessage": "要在未來使用此帳號，您將需要重新輸入您組織的網址和您的帳號資訊。",
+  "@logOutConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for logging out."
+  },
+  "errorCouldNotShowUserProfile": "無法顯示使用者設定檔。",
+  "@errorCouldNotShowUserProfile": {
+    "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
+  "permissionsDeniedCameraAccess": "要上傳圖片，請在設定中授予 Zulip 額外權限。",
+  "@permissionsDeniedCameraAccess": {
+    "description": "Message for dialog asking the user to grant permissions for camera access."
+  },
+  "permissionsDeniedReadExternalStorage": "要上傳檔案，請在設定中授予 Zulip 額外權限。",
+  "@permissionsDeniedReadExternalStorage": {
+    "description": "Message for dialog asking the user to grant permissions for external storage read access."
+  },
+  "errorCouldNotFetchMessageSource": "無法取得訊息來源。",
+  "@errorCouldNotFetchMessageSource": {
+    "description": "Error message when the source of a message could not be fetched."
+  },
+  "errorFailedToUploadFileTitle": "上傳檔案失敗：{filename}",
+  "@errorFailedToUploadFileTitle": {
+    "description": "Error title when the specified file failed to upload.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "file.txt"
+      }
+    }
+  },
+  "filenameAndSizeInMiB": "{filename}： {size} MiB",
+  "@filenameAndSizeInMiB": {
+    "description": "The name of a file, and its size in mebibytes.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "foo.txt"
+      },
+      "size": {
+        "type": "String",
+        "example": "20.2"
+      }
+    }
+  },
+  "errorFilesTooLarge": "{num, plural, =1{檔案} other{{num} 個檔案}}超過伺服器 {maxFileUploadSizeMib} MiB 的限制，將不會上傳：\n\n{listMessage}",
+  "@errorFilesTooLarge": {
+    "description": "Error message when attached files are too large in size.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "2"
+      },
+      "maxFileUploadSizeMib": {
+        "type": "int",
+        "example": "15"
+      },
+      "listMessage": {
+        "type": "String",
+        "example": "foo.txt: 10.1 MiB\nbar.txt 20.2 MiB"
+      }
+    }
+  },
+  "errorFilesTooLargeTitle": "{num, plural, =1{檔案} other{檔案}}太大",
+  "@errorFilesTooLargeTitle": {
+    "description": "Error title when attached files are too large in size.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "errorLoginInvalidInputTitle": "無效的輸入",
+  "@errorLoginInvalidInputTitle": {
+    "description": "Error title for login when input is invalid."
+  },
+  "errorMessageNotSent": "訊息沒有送出",
+  "@errorMessageNotSent": {
+    "description": "Error message for compose box when a message could not be sent."
+  },
+  "errorMessageEditNotSaved": "訊息沒有儲存",
+  "@errorMessageEditNotSaved": {
+    "description": "Error message for compose box when a message edit could not be saved."
+  },
+  "errorServerMessage": "伺服器回應：\n\n{message}",
+  "@errorServerMessage": {
+    "description": "Error message that quotes an error from the server.",
+    "placeholders": {
+      "message": {
+        "type": "String",
+        "example": "Invalid format"
+      }
+    }
+  },
+  "errorConnectingToServerShort": "連接 Zulip 時發生錯誤。重試中…",
+  "@errorConnectingToServerShort": {
+    "description": "Short error message for a generic unknown error connecting to the server."
+  },
+  "errorConnectingToServerDetails": "連接 Zulip {serverUrl} 時發生錯誤。將重試：\n\n{error}",
+  "@errorConnectingToServerDetails": {
+    "description": "Dialog error message for a generic unknown error connecting to the server with details.",
+    "placeholders": {
+      "serverUrl": {
+        "type": "String",
+        "example": "http://example.com/"
+      },
+      "error": {
+        "type": "String",
+        "example": "Invalid format"
+      }
+    }
+  },
+  "errorHandlingEventTitle": "處理 Zulip 事件時發生錯誤。重新連線中…",
+  "@errorHandlingEventTitle": {
+    "description": "Error title on failing to handle a Zulip server event."
+  },
+  "errorHandlingEventDetails": "處理來自 {serverUrl} 的 Zulip 事件時發生錯誤；將重試。\n\n錯誤：{error}\n\n事件：{event}",
+  "@errorHandlingEventDetails": {
+    "description": "Error details on failing to handle a Zulip server event.",
+    "placeholders": {
+      "serverUrl": {
+        "type": "String",
+        "example": "https://chat.example.com"
+      },
+      "error": {
+        "type": "String",
+        "example": "Unexpected null value"
+      },
+      "event": {
+        "type": "String",
+        "example": "UpdateMessageEvent(id: 123, messageIds: [2345, 3456], newTopic: 'dinner')"
+      }
+    }
+  },
+  "errorBannerDeactivatedDmLabel": "您無法向已停用的使用者發送訊息。",
+  "@errorBannerDeactivatedDmLabel": {
+    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  },
+  "errorBannerCannotPostInChannelLabel": "您沒有權限在此頻道發佈訊息。",
+  "@errorBannerCannotPostInChannelLabel": {
+    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "composeBoxBannerButtonSave": "儲存",
+  "@composeBoxBannerButtonSave": {
+    "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
+  },
+  "editAlreadyInProgressMessage": "編輯已在進行中。請等待其完成。",
+  "@editAlreadyInProgressMessage": {
+    "description": "Error message when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "savingMessageEditLabel": "儲存編輯中…",
+  "@savingMessageEditLabel": {
+    "description": "Text on a message in the message list saying that a message edit request is processing. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "savingMessageEditFailedLabel": "編輯未儲存",
+  "@savingMessageEditFailedLabel": {
+    "description": "Text on a message in the message list saying that a message edit request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "composeBoxAttachFromCameraTooltip": "拍照",
+  "@composeBoxAttachFromCameraTooltip": {
+    "description": "Tooltip for compose box icon to attach an image from the camera to the message."
+  },
+  "composeBoxGenericContentHint": "輸入訊息",
+  "@composeBoxGenericContentHint": {
+    "description": "Hint text for content input when sending a message."
+  },
+  "newDmSheetComposeButtonLabel": "編寫",
+  "@newDmSheetComposeButtonLabel": {
+    "description": "Label for the compose button in the new DM sheet that starts composing a message to the selected users."
+  },
+  "newDmSheetNoUsersFound": "找不到使用者",
+  "@newDmSheetNoUsersFound": {
+    "description": "Message shown in the new DM sheet when no users match the search."
+  },
+  "composeBoxSelfDmContentHint": "記下些什麼",
+  "@composeBoxSelfDmContentHint": {
+    "description": "Hint text for content input when sending a message to yourself."
+  },
+  "preparingEditMessageContentInput": "準備中…",
+  "@preparingEditMessageContentInput": {
+    "description": "Hint text for content input when the compose box is preparing to edit a message."
+  },
+  "composeBoxSendTooltip": "發送",
+  "@composeBoxSendTooltip": {
+    "description": "Tooltip for send button in compose box."
+  },
+  "unknownChannelName": "(未知頻道)",
+  "@unknownChannelName": {
+    "description": "Replacement name for channel when it cannot be found in the store."
+  },
+  "composeBoxEnterTopicOrSkipHintText": "輸入議題（留空則使用「{defaultTopicName}」）",
+  "@composeBoxEnterTopicOrSkipHintText": {
+    "description": "Hint text for topic input widget in compose box when topics are optional.",
+    "placeholders": {
+      "defaultTopicName": {
+        "type": "String",
+        "example": "general chat"
+      }
+    }
+  },
+  "composeBoxLoadingMessage": "(載入訊息 {messageId} 中)",
+  "@composeBoxLoadingMessage": {
+    "description": "Placeholder in compose box showing the quoted message is currently loading.",
+    "placeholders": {
+      "messageId": {
+        "type": "int",
+        "example": "1234"
+      }
+    }
+  },
+  "unknownUserName": "(未知使用者)",
+  "@unknownUserName": {
+    "description": "Name placeholder to use for a user when we don't know their name."
+  },
+  "dmsWithYourselfPageTitle": "私訊給自己",
+  "@dmsWithYourselfPageTitle": {
+    "description": "Message list page title for a DM group that only includes yourself."
+  },
+  "messageListGroupYouAndOthers": "您與 {others}",
+  "@messageListGroupYouAndOthers": {
+    "description": "Message list recipient header for a DM group with others.",
+    "placeholders": {
+      "others": {
+        "type": "String",
+        "example": "Alice, Bob"
+      }
+    }
+  },
+  "dmsWithOthersPageTitle": "與 {others} 的私訊",
+  "@dmsWithOthersPageTitle": {
+    "description": "Message list page title for a DM group with others.",
+    "placeholders": {
+      "others": {
+        "type": "String",
+        "example": "Alice, Bob"
+      }
+    }
+  },
+  "emptyMessageList": "這裡沒有訊息。",
+  "@emptyMessageList": {
+    "description": "Placeholder for some message-list pages when there are no messages."
+  },
+  "emptyMessageListSearch": "沒有搜尋結果。",
+  "@emptyMessageListSearch": {
+    "description": "Placeholder for the 'Search' page when there are no messages."
+  },
+  "messageListGroupYouWithYourself": "與自己的訊息",
+  "@messageListGroupYouWithYourself": {
+    "description": "Message list recipient header for a DM group that only includes yourself."
+  },
+  "contentValidationErrorTooLong": "訊息長度不應超過 10000 個字元。",
+  "@contentValidationErrorTooLong": {
+    "description": "Content validation error message when the message is too long."
+  },
+  "contentValidationErrorEmpty": "您沒有要發送的內容！",
+  "@contentValidationErrorEmpty": {
+    "description": "Content validation error message when the message is empty."
+  },
+  "discardDraftConfirmationDialogTitle": "要捨棄您正在編寫的訊息嗎？",
+  "@discardDraftConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "discardDraftForEditConfirmationDialogMessage": "當您編輯訊息時，編輯框中原有的內容將被捨棄。",
+  "@discardDraftForEditConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box, when editing a message."
+  },
+  "discardDraftForOutboxConfirmationDialogMessage": "當您還原未發送的訊息時，編輯框中原有的內容將被捨棄。",
+  "@discardDraftForOutboxConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog when restoring an outbox message, for discarding message text that was typed into the compose box."
+  },
+  "discardDraftConfirmationDialogConfirmButton": "捨棄",
+  "@discardDraftConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "errorDialogContinue": "OK",
+  "@errorDialogContinue": {
+    "description": "Button label in error dialogs to acknowledge the error and close the dialog."
+  },
+  "snackBarDetails": "詳細資訊",
+  "@snackBarDetails": {
+    "description": "Button label for snack bar button that opens a dialog with more details."
+  },
+  "lightboxVideoCurrentPosition": "目前位置",
+  "@lightboxVideoCurrentPosition": {
+    "description": "The current playback position of the video playing in the lightbox."
+  },
+  "lightboxVideoDuration": "影片長度",
+  "@lightboxVideoDuration": {
+    "description": "The total duration of the video playing in the lightbox."
+  },
+  "loginMethodDivider": "或",
+  "@loginMethodDivider": {
+    "description": "Text on the divider between the username/password form and the third-party login options. Uppercase (for languages with letter case)."
+  },
+  "topicValidationErrorTooLong": "議題長度不得超過 60 個字元。",
+  "@topicValidationErrorTooLong": {
+    "description": "Topic validation error when topic is too long."
+  },
+  "topicValidationErrorMandatoryButEmpty": "此組織要求必須填寫議題。",
+  "@topicValidationErrorMandatoryButEmpty": {
+    "description": "Topic validation error when topic is required but was empty."
+  },
+  "errorServerVersionUnsupportedMessage": "{url} 執行的 Zulip Server 為 {zulipVersion}，此版本已不受支援。最低支援版本為 Zulip Server {minSupportedZulipVersion}。",
+  "@errorServerVersionUnsupportedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "http://chat.example.com/"
+      },
+      "zulipVersion": {
+        "type": "String",
+        "example": "3.2"
+      },
+      "minSupportedZulipVersion": {
+        "type": "String",
+        "example": "4.0"
+      }
+    }
+  },
+  "errorInvalidApiKeyMessage": "您在 {url} 的帳號無法通過驗證。請重新登入或使用其他帳號。",
+  "@errorInvalidApiKeyMessage": {
+    "description": "Error message in the dialog for invalid API key.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "http://chat.example.com/"
+      }
+    }
+  },
+  "errorMalformedResponse": "伺服器回傳了格式錯誤的回應；HTTP 狀態碼為 {httpStatus}",
+  "@errorMalformedResponse": {
+    "description": "Error message when an API call fails because we could not parse the response.",
+    "placeholders": {
+      "httpStatus": {
+        "type": "int",
+        "example": "200"
+      }
+    }
+  },
+  "errorMalformedResponseWithCause": "伺服器回傳了格式錯誤的回應；HTTP 狀態碼為 {httpStatus}；{details}",
+  "@errorMalformedResponseWithCause": {
+    "description": "Error message when an API call fails because we could not parse the response, with details of the failure.",
+    "placeholders": {
+      "httpStatus": {
+        "type": "int",
+        "example": "200"
+      },
+      "details": {
+        "type": "String",
+        "example": "type 'Null' is not a subtype of type 'String' in type cast"
+      }
+    }
+  },
+  "errorRequestFailed": "網路請求失敗：HTTP 狀態碼為 {httpStatus}",
+  "@errorRequestFailed": {
+    "description": "Error message when an API call fails.",
+    "placeholders": {
+      "httpStatus": {
+        "type": "int",
+        "example": "500"
+      }
+    }
+  },
+  "serverUrlValidationErrorUnsupportedScheme": "伺服器 URL 必須以 http:// 或 https:// 開頭。",
+  "@serverUrlValidationErrorUnsupportedScheme": {
+    "description": "Error message when URL has an unsupported scheme."
+  },
+  "markAsReadComplete": "已標為已讀：{num, plural, =1{1 則訊息} other{{num} 則訊息}}。",
+  "@markAsReadComplete": {
+    "description": "Message when marking messages as read has completed.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "markAsReadInProgress": "正在標記訊息為已讀…",
+  "@markAsReadInProgress": {
+    "description": "Progress message when marking messages as read."
+  },
+  "errorMarkAsReadFailedTitle": "標記為已讀失敗",
+  "@errorMarkAsReadFailedTitle": {
+    "description": "Error title when mark as read action failed."
+  },
+  "markAsUnreadComplete": "已標為未讀：{num, plural, =1{1 則訊息} other{{num} 則訊息}}。",
+  "@markAsUnreadComplete": {
+    "description": "Message when marking messages as unread has completed.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "errorMarkAsUnreadFailedTitle": "標記為未讀失敗",
+  "@errorMarkAsUnreadFailedTitle": {
+    "description": "Error title when mark as unread action failed."
+  },
+  "invisibleMode": "隱身模式",
+  "@invisibleMode": {
+    "description": "Label for the 'Invisible mode' switch on the profile page."
+  },
+  "turnOnInvisibleModeErrorTitle": "啟用隱身模式時發生錯誤。請再試一次。",
+  "@turnOnInvisibleModeErrorTitle": {
+    "description": "Error title when turning on invisible mode failed."
+  },
+  "turnOffInvisibleModeErrorTitle": "關閉隱身模式時發生錯誤。請再試一次。",
+  "@turnOffInvisibleModeErrorTitle": {
+    "description": "Error title when turning off invisible mode failed."
+  },
+  "userRoleUnknown": "未知",
+  "@userRoleUnknown": {
+    "description": "Label for UserRole.unknown"
+  },
+  "inboxEmptyPlaceholder": "您的收件匣中沒有未讀訊息。請使用下方按鈕檢視整合訊息流或頻道清單。",
+  "@inboxEmptyPlaceholder": {
+    "description": "Centered text on the 'Inbox' page saying that there is no content to show."
+  },
+  "recentDmConversationsEmptyPlaceholder": "您尚未有任何私人訊息！不如開始一段對話吧？",
+  "@recentDmConversationsEmptyPlaceholder": {
+    "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "starredMessagesPageTitle": "已加星號的訊息",
+  "@starredMessagesPageTitle": {
+    "description": "Page title for the 'Starred messages' message view."
+  },
+  "channelsEmptyPlaceholder": "您尚未訂閱任何頻道。",
+  "@channelsEmptyPlaceholder": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show."
+  },
+  "mainMenuMyProfile": "我的設定檔",
+  "@mainMenuMyProfile": {
+    "description": "Label for main-menu button leading to the user's own profile."
+  },
+  "notifGroupDmConversationLabel": "{senderFullName} 傳送給您和 {numOthers, plural, =1{1 位其他對象、} other{{numOthers} 位其他對象}}",
+  "@notifGroupDmConversationLabel": {
+    "description": "Label for a group DM conversation notification.",
+    "placeholders": {
+      "senderFullName": {
+        "type": "String",
+        "example": "Alice"
+      },
+      "numOthers": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "notifSelfUser": "您",
+  "@notifSelfUser": {
+    "description": "Display name for the user themself, to show after replying in an Android notification"
+  },
+  "reactedEmojiSelfUser": "您",
+  "@reactedEmojiSelfUser": {
+    "description": "Display name for the user themself, to show on an emoji reaction added by the user."
+  },
+  "onePersonTyping": "{typist} 正在輸入…",
+  "@onePersonTyping": {
+    "description": "Text to display when there is one user typing.",
+    "placeholders": {
+      "typist": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  "twoPeopleTyping": "{typist} 和 {otherTypist} 正在輸入…",
+  "@twoPeopleTyping": {
+    "description": "Text to display when there are two users typing.",
+    "placeholders": {
+      "typist": {
+        "type": "String",
+        "example": "Alice"
+      },
+      "otherTypist": {
+        "type": "String",
+        "example": "Bob"
+      }
+    }
+  },
+  "manyPeopleTyping": "有些人正在輸入…",
+  "@manyPeopleTyping": {
+    "description": "Text to display when there are multiple users typing."
+  },
+  "wildcardMentionAll": "全部",
+  "@wildcardMentionAll": {
+    "description": "Text for \"@all\" wildcard-mention autocomplete option when writing a channel or DM message."
+  },
+  "wildcardMentionEveryone": "所有人",
+  "@wildcardMentionEveryone": {
+    "description": "Text for \"@everyone\" wildcard-mention autocomplete option when writing a channel or DM message."
+  },
+  "wildcardMentionStream": "串流",
+  "@wildcardMentionStream": {
+    "description": "Text for \"@stream\" wildcard-mention autocomplete option when writing a channel message in older servers."
+  },
+  "wildcardMentionStreamDescription": "通知串流",
+  "@wildcardMentionStreamDescription": {
+    "description": "Description for \"@all\", \"@everyone\", and \"@stream\" wildcard-mention autocomplete options when writing a channel message in older servers."
+  },
+  "wildcardMentionAllDmDescription": "通知收件人",
+  "@wildcardMentionAllDmDescription": {
+    "description": "Description for \"@all\" and \"@everyone\" wildcard-mention autocomplete options when writing a DM message."
+  },
+  "messageIsEditedLabel": "已編輯",
+  "@messageIsEditedLabel": {
+    "description": "Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "messageIsMovedLabel": "已移動",
+  "@messageIsMovedLabel": {
+    "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "messageNotSentLabel": "訊息未送出",
+  "@messageNotSentLabel": {
+    "description": "Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "pollVoterNames": "({voterNames})",
+  "@pollVoterNames": {
+    "description": "The list of people who voted for a poll option, wrapped in parentheses.",
+    "placeholders": {
+      "voterNames": {
+        "type": "String",
+        "example": "Alice, Bob, Chad"
+      }
+    }
+  },
+  "openLinksWithInAppBrowser": "使用應用程式內建瀏覽器開啟連結",
+  "@openLinksWithInAppBrowser": {
+    "description": "Label for toggling setting to open links with in-app browser"
+  },
+  "pollWidgetQuestionMissing": "沒有問題。",
+  "@pollWidgetQuestionMissing": {
+    "description": "Text to display for a poll when the question is missing"
+  },
+  "pollWidgetOptionsMissing": "此投票尚未有任何選項。",
+  "@pollWidgetOptionsMissing": {
+    "description": "Text to display for a poll when it has no options"
+  },
+  "initialAnchorSettingTitle": "開啟訊息串於",
+  "@initialAnchorSettingTitle": {
+    "description": "Title of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingDescription": "您可以選擇將訊息串開啟在第一則未讀訊息，或是最新的訊息。",
+  "@initialAnchorSettingDescription": {
+    "description": "Description of setting controlling initial anchor of message list."
+  },
+  "initialAnchorSettingFirstUnreadConversations": "在對話檢視中開啟第一則未讀訊息，其餘情況則開啟最新訊息",
+  "@initialAnchorSettingFirstUnreadConversations": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "markReadOnScrollSettingTitle": "捲動時將訊息標記為已讀",
+  "@markReadOnScrollSettingTitle": {
+    "description": "Title of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingDescription": "在捲動瀏覽訊息時，是否要自動將其標記為已讀？",
+  "@markReadOnScrollSettingDescription": {
+    "description": "Description of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingAlways": "總是",
+  "@markReadOnScrollSettingAlways": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
   }
 }
