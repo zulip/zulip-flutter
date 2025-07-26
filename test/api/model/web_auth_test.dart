@@ -23,19 +23,6 @@ void main() {
       check(payload.decodeApiKey(otp)).equals(eg.selfAccount.apiKey);
     });
 
-    // TODO(server-5) remove
-    test('legacy: no userId', () {
-      final queryParams = {...wellFormed.queryParameters}..remove('user_id');
-      final payload = WebAuthPayload.parse(
-        wellFormed.replace(queryParameters: queryParams));
-      check(payload)
-        ..otpEncryptedApiKey.equals(encryptedApiKey)
-        ..email.equals('self@example')
-        ..userId.isNull()
-        ..realm.equals(Uri.parse('https://chat.example/'));
-      check(payload.decodeApiKey(otp)).equals(eg.selfAccount.apiKey);
-    });
-
     test('parse fails when an expected field is missing', () {
       final queryParams = {...wellFormed.queryParameters}..remove('email');
       final input = wellFormed.replace(queryParameters: queryParams);
@@ -93,6 +80,6 @@ void main() {
 extension WebAuthPayloadChecks on Subject<WebAuthPayload> {
   Subject<String> get otpEncryptedApiKey => has((x) => x.otpEncryptedApiKey, 'otpEncryptedApiKey');
   Subject<String> get email => has((x) => x.email, 'email');
-  Subject<int?> get userId => has((x) => x.userId, 'userId');
+  Subject<int> get userId => has((x) => x.userId, 'userId');
   Subject<Uri> get realm => has((x) => x.realm, 'realm');
 }
