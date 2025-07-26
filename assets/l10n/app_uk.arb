@@ -1059,7 +1059,7 @@
   "@newDmSheetNoUsersFound": {
     "description": "Message shown in the new DM sheet when no users match the search."
   },
-  "revealButtonLabel": "Показати повідомлення заглушеного відправника",
+  "revealButtonLabel": "Показати повідомлення",
   "@revealButtonLabel": {
     "description": "Label for the button revealing hidden message from a muted sender in message list."
   },
@@ -1192,5 +1192,37 @@
   "markReadOnScrollSettingConversationsDescription": "Повідомлення будуть автоматично помічатися як прочитані тільки при перегляді окремої теми або особистої бесіди.",
   "@markReadOnScrollSettingConversationsDescription": {
     "description": "Description for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "emptyMessageList": "Тут немає повідомлень.",
+  "@emptyMessageList": {
+    "description": "Placeholder for some message-list pages when there are no messages."
+  },
+  "emptyMessageListSearch": "Немає результатів пошуку.",
+  "@emptyMessageListSearch": {
+    "description": "Placeholder for the 'Search' page when there are no messages."
+  },
+  "invisibleMode": "Невидимий режим",
+  "@invisibleMode": {
+    "description": "Label for the 'Invisible mode' switch on the profile page."
+  },
+  "turnOnInvisibleModeErrorTitle": "Помилка ввімкнення режиму невидимості. Спробуйте ще раз.",
+  "@turnOnInvisibleModeErrorTitle": {
+    "description": "Error title when turning on invisible mode failed."
+  },
+  "turnOffInvisibleModeErrorTitle": "Помилка вимкнення режиму невидимості. Спробуйте ще раз.",
+  "@turnOffInvisibleModeErrorTitle": {
+    "description": "Error title when turning off invisible mode failed."
+  },
+  "searchMessagesPageTitle": "Пошук",
+  "@searchMessagesPageTitle": {
+    "description": "Page title for the 'Search' message view."
+  },
+  "searchMessagesHintText": "Пошук",
+  "@searchMessagesHintText": {
+    "description": "Hint text for the message search text field."
+  },
+  "searchMessagesClearButtonTooltip": "Очистити",
+  "@searchMessagesClearButtonTooltip": {
+    "description": "Tooltip for the 'x' button in the search text field."
   }
 }

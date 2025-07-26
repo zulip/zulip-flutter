@@ -459,7 +459,7 @@
   "@emojiReactionsMore": {
     "description": "Label for a button opening the emoji picker."
   },
-  "errorSharingFailed": "分享失敗。",
+  "errorSharingFailed": "分享失敗",
   "@errorSharingFailed": {
     "description": "Error message when sharing a message failed."
   },
@@ -1174,5 +1174,53 @@
   "markReadOnScrollSettingAlways": "總是",
   "@markReadOnScrollSettingAlways": {
     "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingNever": "從不",
+  "@markReadOnScrollSettingNever": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingConversations": "僅在對話檢視中",
+  "@markReadOnScrollSettingConversations": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "markReadOnScrollSettingConversationsDescription": "只有在檢視單一議題或私人訊息對話時，訊息才會自動標記為已讀。",
+  "@markReadOnScrollSettingConversationsDescription": {
+    "description": "Description for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "experimentalFeatureSettingsWarning": "這些選項啟用的功能仍在開發中，尚未完善。它們可能無法正常運作，且可能導致應用程式其他部分出現問題。\n\n這些設定的目的是供參與 Zulip 開發的人員進行試驗使用。",
+  "@experimentalFeatureSettingsWarning": {
+    "description": "Warning text on settings page for experimental, in-development features"
+  },
+  "errorNotificationOpenAccountNotFound": "找不到與此通知相關聯的帳號。",
+  "@errorNotificationOpenAccountNotFound": {
+    "description": "Error message when the account associated with the notification could not be found"
+  },
+  "errorReactionAddingFailedTitle": "新增表情反應失敗",
+  "@errorReactionAddingFailedTitle": {
+    "description": "Error title when adding a message reaction fails"
+  },
+  "errorReactionRemovingFailedTitle": "移除表情反應失敗",
+  "@errorReactionRemovingFailedTitle": {
+    "description": "Error title when removing a message reaction fails"
+  },
+  "noEarlierMessages": "沒有更早的訊息",
+  "@noEarlierMessages": {
+    "description": "Text to show at the start of a message list if there are no earlier messages."
+  },
+  "revealButtonLabel": "顯示訊息",
+  "@revealButtonLabel": {
+    "description": "Label for the button revealing hidden message from a muted sender in message list."
+  },
+  "scrollToBottomTooltip": "捲動至底部",
+  "@scrollToBottomTooltip": {
+    "description": "Tooltip for button to scroll to bottom."
+  },
+  "appVersionUnknownPlaceholder": "(…)",
+  "@appVersionUnknownPlaceholder": {
+    "description": "Placeholder to show in place of the app version when it is unknown."
+  },
+  "zulipAppTitle": "Zulip",
+  "@zulipAppTitle": {
+    "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
   }
 }

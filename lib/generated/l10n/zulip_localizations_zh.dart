@@ -1994,7 +1994,7 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get errorUnfollowTopicFailed => '無法取消跟隨話題';
 
   @override
-  String get errorSharingFailed => '分享失敗。';
+  String get errorSharingFailed => '分享失敗';
 
   @override
   String get errorStarMessageFailedTitle => '無法收藏訊息';
@@ -2538,10 +2538,33 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get markReadOnScrollSettingAlways => '總是';
 
   @override
+  String get markReadOnScrollSettingNever => '從不';
+
+  @override
+  String get markReadOnScrollSettingConversations => '僅在對話檢視中';
+
+  @override
+  String get markReadOnScrollSettingConversationsDescription =>
+      '只有在檢視單一議題或私人訊息對話時，訊息才會自動標記為已讀。';
+
+  @override
   String get experimentalFeatureSettingsPageTitle => '實驗性功能';
 
   @override
+  String get experimentalFeatureSettingsWarning =>
+      '這些選項啟用的功能仍在開發中，尚未完善。它們可能無法正常運作，且可能導致應用程式其他部分出現問題。\n\n這些設定的目的是供參與 Zulip 開發的人員進行試驗使用。';
+
+  @override
   String get errorNotificationOpenTitle => '無法開啟通知';
+
+  @override
+  String get errorNotificationOpenAccountNotFound => '找不到與此通知相關聯的帳號。';
+
+  @override
+  String get errorReactionAddingFailedTitle => '新增表情反應失敗';
+
+  @override
+  String get errorReactionRemovingFailedTitle => '移除表情反應失敗';
 
   @override
   String get emojiReactionsMore => '更多';
@@ -2550,5 +2573,20 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get emojiPickerSearchEmoji => '搜尋表情符號';
 
   @override
+  String get noEarlierMessages => '沒有更早的訊息';
+
+  @override
+  String get revealButtonLabel => '顯示訊息';
+
+  @override
   String get mutedUser => '已靜音的使用者';
+
+  @override
+  String get scrollToBottomTooltip => '捲動至底部';
+
+  @override
+  String get appVersionUnknownPlaceholder => '(…)';
+
+  @override
+  String get zulipAppTitle => 'Zulip';
 }
