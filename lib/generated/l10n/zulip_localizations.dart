@@ -401,6 +401,12 @@ abstract class ZulipLocalizations {
   /// **'Mark topic as read'**
   String get actionSheetOptionMarkTopicAsRead;
 
+  /// Label for copy topic link button in action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link to topic'**
+  String get actionSheetOptionCopyTopicLink;
+
   /// Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials).
   ///
   /// In en, this message translates to:
@@ -624,6 +630,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Message link copied'**
   String get successMessageLinkCopied;
+
+  /// Message when link of a topic was copied to the user's system clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Topic link copied'**
+  String get successTopicLinkCopied;
 
   /// Message when link of a channel was copied to the user's system clipboard.
   ///

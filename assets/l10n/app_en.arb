@@ -180,6 +180,10 @@
   "@actionSheetOptionMarkTopicAsRead": {
     "description": "Option to mark a specific topic as read in the action sheet."
   },
+  "actionSheetOptionCopyTopicLink": "Copy link to topic",
+  "@actionSheetOptionCopyTopicLink": {
+    "description": "Label for copy topic link button in action sheet."
+  },
   "errorWebAuthOperationalErrorTitle": "Something went wrong",
   "@errorWebAuthOperationalErrorTitle": {
     "description": "Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
@@ -360,6 +364,10 @@
   "successMessageLinkCopied": "Message link copied",
   "@successMessageLinkCopied": {
     "description": "Message when link of a message was copied to the user's system clipboard."
+  },
+  "successTopicLinkCopied": "Topic link copied",
+  "@successTopicLinkCopied": {
+    "description": "Message when link of a topic was copied to the user's system clipboard."
   },
   "successChannelLinkCopied": "Channel link copied",
   "@successChannelLinkCopied": {

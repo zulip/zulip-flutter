@@ -157,6 +157,9 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Segna l\'argomento come letto';
 
   @override
+  String get actionSheetOptionCopyTopicLink => 'Copy link to topic';
+
+  @override
   String get errorWebAuthOperationalErrorTitle => 'Qualcosa è andato storto';
 
   @override
@@ -312,6 +315,9 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
 
   @override
   String get successMessageLinkCopied => 'Collegamento messaggio copiato';
+
+  @override
+  String get successTopicLinkCopied => 'Topic link copied';
 
   @override
   String get successChannelLinkCopied => 'Channel link copied';

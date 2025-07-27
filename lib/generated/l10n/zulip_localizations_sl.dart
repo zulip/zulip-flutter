@@ -156,6 +156,9 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get actionSheetOptionMarkTopicAsRead => 'Označi temo kot prebrano';
 
   @override
+  String get actionSheetOptionCopyTopicLink => 'Copy link to topic';
+
+  @override
   String get errorWebAuthOperationalErrorTitle => 'Nekaj je šlo narobe';
 
   @override
@@ -322,6 +325,9 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   @override
   String get successMessageLinkCopied =>
       'Povezava do sporočila je bila kopirana';
+
+  @override
+  String get successTopicLinkCopied => 'Topic link copied';
 
   @override
   String get successChannelLinkCopied => 'Channel link copied';

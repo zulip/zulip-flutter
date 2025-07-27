@@ -389,15 +389,9 @@ void showTopicActionSheet(BuildContext context, {
       pageContext: context));
   }
 
-  if (optionButtons.isEmpty) {
-    // TODO(a11y): This case makes a no-op gesture handler; as a consequence,
-    //   we're presenting some UI (to people who use screen-reader software) as
-    //   though it offers a gesture interaction that it doesn't meaningfully
-    //   offer, which is confusing. The solution here is probably to remove this
-    //   is-empty case by having at least one button that's always present,
-    //   such as "copy link to topic".
-    return;
-  }
+  optionButtons.add(CopyTopicLinkButton(
+    narrow: TopicNarrow(channelId, topic, with_: someMessageIdInTopic),
+    pageContext: context));
 
   _showActionSheet(pageContext, optionButtons: optionButtons);
 }
@@ -615,6 +609,32 @@ class MarkTopicAsReadButton extends ActionSheetMenuItemButton {
 
   @override void onPressed() async {
     await ZulipAction.markNarrowAsRead(pageContext, TopicNarrow(channelId, topic));
+  }
+}
+
+class CopyTopicLinkButton extends ActionSheetMenuItemButton {
+  const CopyTopicLinkButton({
+    super.key,
+    required this.narrow,
+    required super.pageContext,
+  });
+
+  final TopicNarrow narrow;
+
+  @override IconData get icon => ZulipIcons.link;
+
+  @override
+  String label(ZulipLocalizations localizations) {
+    return localizations.actionSheetOptionCopyTopicLink;
+  }
+
+  @override void onPressed() async {
+    final localizations = ZulipLocalizations.of(pageContext);
+    final store = PerAccountStoreWidget.of(pageContext);
+
+    PlatformActions.copyWithPopup(context: pageContext,
+      successContent: Text(localizations.successTopicLinkCopied),
+      data: ClipboardData(text: narrowLink(store, narrow).toString()));
   }
 }
 

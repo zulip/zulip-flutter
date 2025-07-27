@@ -493,6 +493,7 @@ void main() {
 
         checkButton('Follow topic');
         checkButton('Mark as resolved');
+        checkButton('Copy link to topic');
       }
 
       testWidgets('show from inbox; message in Unreads but not in MessageStore', (tester) async {
@@ -886,6 +887,53 @@ void main() {
             ]))
           ..bodyFields['op'].equals('add')
           ..bodyFields['flag'].equals('read');
+      });
+    });
+
+    group('CopyTopicLinkButton', () {
+      setUp(() async {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          MockClipboard().handleMethodCall,
+        );
+      });
+
+      Future<void> tapCopyTopicLinkButton(WidgetTester tester) async {
+        await tester.ensureVisible(find.byIcon(ZulipIcons.link, skipOffstage: false));
+        await tester.tap(find.byIcon(ZulipIcons.link));
+        await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+      }
+
+      testWidgets('copies topic link to clipboard', (tester) async {
+        final message = eg.streamMessage(stream: someChannel, topic: someTopic);
+        await prepare(channel: someChannel, topic: someTopic,
+          zulipFeatureLevel: eg.recentZulipFeatureLevel);
+        await showFromAppBar(tester, channel: someChannel,
+          topic: TopicName(someTopic), messages: [message]);
+
+        await tapCopyTopicLinkButton(tester);
+        await tester.pump(Duration.zero);
+        final expectedLink = narrowLink(store,
+          TopicNarrow(someChannel.streamId, TopicName(someTopic), with_: message.id));
+        check(expectedLink.toString().contains('/with/')).isTrue();
+        check((await Clipboard.getData('text/plain'))!)
+          .text.equals(expectedLink.toString());
+      });
+
+      testWidgets('FL < 271 -> link doesn\'t contain "with" operator', (tester) async {
+        final message = eg.streamMessage(stream: someChannel, topic: someTopic);
+        await prepare(channel: someChannel, topic: someTopic,
+          zulipFeatureLevel: 270);
+        await showFromAppBar(tester, channel: someChannel,
+          topic: TopicName(someTopic), messages: [message]);
+
+        await tapCopyTopicLinkButton(tester);
+        await tester.pump(Duration.zero);
+        final expectedLink = narrowLink(store,
+          TopicNarrow(someChannel.streamId, TopicName(someTopic)));
+        check(expectedLink.toString().contains('/with/')).isFalse();
+        check((await Clipboard.getData('text/plain'))!)
+          .text.equals(expectedLink.toString());
       });
     });
   });

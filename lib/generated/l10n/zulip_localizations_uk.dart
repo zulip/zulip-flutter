@@ -159,6 +159,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get actionSheetOptionMarkTopicAsRead => 'Позначити тему як прочитану';
 
   @override
+  String get actionSheetOptionCopyTopicLink => 'Copy link to topic';
+
+  @override
   String get errorWebAuthOperationalErrorTitle => 'Щось пішло не так';
 
   @override
@@ -313,6 +316,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   @override
   String get successMessageLinkCopied =>
       'Посилання на повідомлення скопійовано';
+
+  @override
+  String get successTopicLinkCopied => 'Topic link copied';
 
   @override
   String get successChannelLinkCopied => 'Channel link copied';
