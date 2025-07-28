@@ -446,10 +446,10 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   }
 
   @override
-  String get emptyMessageList => 'There are no messages here.';
+  String get emptyMessageList => 'Тут немає повідомлень.';
 
   @override
-  String get emptyMessageListSearch => 'No search results.';
+  String get emptyMessageListSearch => 'Немає результатів пошуку.';
 
   @override
   String get messageListGroupYouWithYourself => 'Повідомлення з собою';
@@ -650,15 +650,15 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get yesterday => 'Учора';
 
   @override
-  String get invisibleMode => 'Invisible mode';
+  String get invisibleMode => 'Невидимий режим';
 
   @override
   String get turnOnInvisibleModeErrorTitle =>
-      'Error turning on invisible mode. Please try again.';
+      'Помилка ввімкнення режиму невидимості. Спробуйте ще раз.';
 
   @override
   String get turnOffInvisibleModeErrorTitle =>
-      'Error turning off invisible mode. Please try again.';
+      'Помилка вимкнення режиму невидимості. Спробуйте ще раз.';
 
   @override
   String get userRoleOwner => 'Власник';
@@ -679,13 +679,13 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get userRoleUnknown => 'Невідомо';
 
   @override
-  String get searchMessagesPageTitle => 'Search';
+  String get searchMessagesPageTitle => 'Пошук';
 
   @override
-  String get searchMessagesHintText => 'Search';
+  String get searchMessagesHintText => 'Пошук';
 
   @override
-  String get searchMessagesClearButtonTooltip => 'Clear';
+  String get searchMessagesClearButtonTooltip => 'Очистити';
 
   @override
   String get inboxPageTitle => 'Вхідні';
@@ -898,8 +898,7 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get noEarlierMessages => 'Немає попередніх повідомлень';
 
   @override
-  String get revealButtonLabel =>
-      'Показати повідомлення заглушеного відправника';
+  String get revealButtonLabel => 'Показати повідомлення';
 
   @override
   String get mutedUser => 'Заглушений користувач';
