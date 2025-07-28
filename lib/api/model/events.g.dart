@@ -201,8 +201,6 @@ RealmUserUpdateEvent _$RealmUserUpdateEventFromJson(
     RealmUserUpdateEvent._readFromPerson(json, 'role'),
     unknownValue: UserRole.unknown,
   ),
-  isBillingAdmin:
-      RealmUserUpdateEvent._readFromPerson(json, 'is_billing_admin') as bool?,
   deliveryEmail:
       _$JsonConverterFromJson<JsonNullable<String>, JsonNullable<String>>(
         RealmUserUpdateEvent._readNullableStringFromPerson(
@@ -235,7 +233,6 @@ Map<String, dynamic> _$RealmUserUpdateEventToJson(
   'timezone': instance.timezone,
   'bot_owner_id': instance.botOwnerId,
   'role': instance.role,
-  'is_billing_admin': instance.isBillingAdmin,
   'delivery_email':
       _$JsonConverterToJson<JsonNullable<String>, JsonNullable<String>>(
         instance.deliveryEmail,
@@ -575,7 +572,7 @@ UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
     UpdateMessageEvent(
       id: (json['id'] as num).toInt(),
       userId: (json['user_id'] as num?)?.toInt(),
-      renderingOnly: json['rendering_only'] as bool?,
+      renderingOnly: json['rendering_only'] as bool,
       messageId: (json['message_id'] as num).toInt(),
       messageIds: (json['message_ids'] as List<dynamic>)
           .map((e) => (e as num).toInt())
@@ -583,7 +580,7 @@ UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
       flags: (json['flags'] as List<dynamic>)
           .map((e) => $enumDecode(_$MessageFlagEnumMap, e))
           .toList(),
-      editTimestamp: (json['edit_timestamp'] as num?)?.toInt(),
+      editTimestamp: (json['edit_timestamp'] as num).toInt(),
       moveData: UpdateMessageMoveData.tryParseFromJson(
         UpdateMessageEvent._readMoveData(json, 'move_data')
             as Map<String, Object?>,
