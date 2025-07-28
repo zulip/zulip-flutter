@@ -584,7 +584,7 @@ class MessageListAppBarTitle extends StatelessWidget {
               behavior: HitTestBehavior.translucent,
               onLongPress: () {
                 final someMessage = MessageListPage.ancestorOf(context)
-                  .model?.messages.firstOrNull;
+                  .model?.messages.lastOrNull;
                 // If someMessage is null, the topic action sheet won't have a
                 // resolve/unresolve button. That seems OK; in that case we're
                 // either still fetching messages (and the user can reopen the
