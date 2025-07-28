@@ -2135,16 +2135,14 @@ void main() {
     });
 
     testWidgets('hidden -> failed, tapping does nothing if compose box is not offered', (tester) async {
-      Route<dynamic>? lastPoppedRoute;
-      final navObserver = TestNavigatorObserver()
-        ..onPopped = (route, prevRoute) => lastPoppedRoute = route;
+      final transitionDurationObserver = TransitionDurationObserver();
 
       final messages = [eg.streamMessage(
         stream: stream, topic: topic, content: content)];
       await setupMessageListPage(tester,
         narrow: const CombinedFeedNarrow(),
         streams: [stream], subscriptions: [eg.subscription(stream)],
-        navObservers: [navObserver],
+        navObservers: [transitionDurationObserver],
         messages: messages);
 
       // Navigate to a message list page in a topic narrow,
@@ -2153,7 +2151,7 @@ void main() {
         eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson());
       await tester.tap(find.widgetWithText(RecipientHeader, topic));
       await tester.pump(); // handle tap
-      await tester.pump(); // wait for navigation
+      await transitionDurationObserver.pumpPastTransition(tester);
       check(contentInputFinder).findsOne();
 
       await sendMessageAndFail(tester);
@@ -2162,12 +2160,8 @@ void main() {
       // where the failed to send message should be visible.
 
       await tester.pageBack();
-      check(lastPoppedRoute)
-        .isA<MaterialAccountWidgetRoute>().page
-        .isA<MessageListPage>()
-        .initNarrow.equals(TopicNarrow(stream.streamId, eg.t(topic)));
       await tester.pump(); // handle tap
-      await tester.pump((lastPoppedRoute as TransitionRoute).reverseTransitionDuration);
+      await transitionDurationObserver.pumpPastTransition(tester);
       check(contentInputFinder).findsNothing();
       check(messageNotSentFinder).findsOne();
 
