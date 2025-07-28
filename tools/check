@@ -261,7 +261,7 @@ run_flutter_version() {
              # If we find cases where it fails, we can study
              # how the `flutter` tool actually decides the version name.
              <^(\d+\.\d+\.\d+-) (\d+) (\.\d+\.pre) -(\d+) -g[0-9a-f]+$>
-             <$1 . ($2 + 1) . $3 . "." . $4>xe)'
+             <$1 . ($2 + 1) . $3 . "-" . $4>xe)'
     ) || return
     if [ -z "${predicted_version}" ]; then
         cat >&2 <<EOF
@@ -271,13 +271,19 @@ EOF
         return 1
     fi
     if [ "${flutter_version}" != "${predicted_version}" ]; then
-        cat >&2 <<EOF
+        # Before 2025-07 (https://github.com/flutter/flutter/pull/172141),
+        # the version name ended like ".123" instead of "-123".
+        local alternate_predicted_version;
+        alternate_predicted_version="${predicted_version%-*}.${predicted_version##*-}"
+        if [ "${flutter_version}" != "${alternate_predicted_version}" ]; then
+            cat >&2 <<EOF
 error: Flutter commit in pubspec.yaml seems to differ from version bound
 Commit ${flutter_commit} was described as: ${commit_described}
 We therefore expect the Flutter version name to be: ${predicted_version}
 But the Flutter version bound in pubspec.yaml is: ${flutter_version}
 EOF
-        return 1
+            return 1
+        fi
     fi
 
     # Check the commit is an acceptable commit.
