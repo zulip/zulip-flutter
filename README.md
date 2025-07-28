@@ -97,6 +97,8 @@ Two specific points to expand on:
  * Your changes will need to be organized into
    [clear and coherent commits][commit-style],
    following [Zulip's commit style guide][commit-style].
+   (Use Greg's ["secret" to using `git log -p`][git-log-p-secret]
+   and/or a graphical Git client to see examples of mergeable commits.)
 
    This is always required before we can merge your PR.  Depending on
    your changes' complexity, it may also be required before we can
@@ -107,6 +109,7 @@ Two specific points to expand on:
 [working on an issue]: https://zulip.readthedocs.io/en/latest/contributing/contributing.html#working-on-an-issue
 [submitting a pull request]: https://zulip.readthedocs.io/en/latest/contributing/review-process.html
 [commit-style]: https://zulip.readthedocs.io/en/latest/contributing/commit-discipline.html
+[git-log-p-secret]: https://github.com/zulip/zulip-mobile/blob/main/docs/howto/git.md#git-log-secret
 
 
 ## Getting started in developing
