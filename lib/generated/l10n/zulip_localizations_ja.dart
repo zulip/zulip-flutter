@@ -90,6 +90,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get actionSheetOptionMarkChannelAsRead => 'チャンネルを既読にする';
 
   @override
+  String get actionSheetOptionCopyChannelLink => 'Copy link to channel';
+
+  @override
   String get actionSheetOptionListOfTopics => 'トピック一覧';
 
   @override
@@ -296,6 +299,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get successMessageLinkCopied => 'Message link copied';
+
+  @override
+  String get successChannelLinkCopied => 'Channel link copied';
 
   @override
   String get errorBannerDeactivatedDmLabel =>

@@ -91,6 +91,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get actionSheetOptionMarkChannelAsRead => 'Mark channel as read';
 
   @override
+  String get actionSheetOptionCopyChannelLink => 'Copy link to channel';
+
+  @override
   String get actionSheetOptionListOfTopics => 'List of topics';
 
   @override
@@ -299,6 +302,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
 
   @override
   String get successMessageLinkCopied => 'Message link copied';
+
+  @override
+  String get successChannelLinkCopied => 'Channel link copied';
 
   @override
   String get errorBannerDeactivatedDmLabel =>

@@ -93,6 +93,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Oznacz kanał jako przeczytany';
 
   @override
+  String get actionSheetOptionCopyChannelLink => 'Copy link to channel';
+
+  @override
   String get actionSheetOptionListOfTopics => 'Lista wątków';
 
   @override
@@ -307,6 +310,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get successMessageLinkCopied => 'Skopiowano odnośnik wiadomości';
+
+  @override
+  String get successChannelLinkCopied => 'Channel link copied';
 
   @override
   String get errorBannerDeactivatedDmLabel =>

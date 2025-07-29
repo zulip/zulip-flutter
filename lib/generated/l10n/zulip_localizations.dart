@@ -281,6 +281,12 @@ abstract class ZulipLocalizations {
   /// **'Mark channel as read'**
   String get actionSheetOptionMarkChannelAsRead;
 
+  /// Label for copy channel link button on action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link to channel'**
+  String get actionSheetOptionCopyChannelLink;
+
   /// Label for navigating to a channel's topic-list page.
   ///
   /// In en, this message translates to:
@@ -618,6 +624,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Message link copied'**
   String get successMessageLinkCopied;
+
+  /// Message when link of a channel was copied to the user's system clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel link copied'**
+  String get successChannelLinkCopied;
 
   /// Label text for error banner when sending a message to one or multiple deactivated users.
   ///

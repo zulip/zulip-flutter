@@ -100,6 +100,10 @@
   "@actionSheetOptionMarkChannelAsRead": {
     "description": "Label for marking a channel as read."
   },
+  "actionSheetOptionCopyChannelLink": "Copy link to channel",
+  "@actionSheetOptionCopyChannelLink": {
+    "description": "Label for copy channel link button on action sheet."
+  },
   "actionSheetOptionListOfTopics": "List of topics",
   "@actionSheetOptionListOfTopics": {
     "description": "Label for navigating to a channel's topic-list page."
@@ -356,6 +360,10 @@
   "successMessageLinkCopied": "Message link copied",
   "@successMessageLinkCopied": {
     "description": "Message when link of a message was copied to the user's system clipboard."
+  },
+  "successChannelLinkCopied": "Channel link copied",
+  "@successChannelLinkCopied": {
+    "description": "Message when link of a channel was copied to the user's system clipboard."
   },
   "errorBannerDeactivatedDmLabel": "You cannot send messages to deactivated users.",
   "@errorBannerDeactivatedDmLabel": {

@@ -205,6 +205,9 @@ void showChannelActionSheet(BuildContext context, {
       MarkChannelAsReadButton(pageContext: pageContext, channelId: channelId));
   }
 
+  optionButtons.add(
+    CopyChannelLinkButton(channelId: channelId, pageContext: pageContext));
+
   _showActionSheet(pageContext, optionButtons: optionButtons);
 }
 
@@ -253,6 +256,34 @@ class MarkChannelAsReadButton extends ActionSheetMenuItemButton {
   void onPressed() async {
     final narrow = ChannelNarrow(channelId);
     await ZulipAction.markNarrowAsRead(pageContext, narrow);
+  }
+}
+
+class CopyChannelLinkButton extends ActionSheetMenuItemButton {
+  const CopyChannelLinkButton({
+    super.key,
+    required this.channelId,
+    required super.pageContext,
+  });
+
+  final int channelId;
+
+  @override
+  IconData get icon => ZulipIcons.link;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionCopyChannelLink;
+  }
+
+  @override
+  void onPressed() async {
+    final localizations = ZulipLocalizations.of(pageContext);
+    final store = PerAccountStoreWidget.of(pageContext);
+
+    PlatformActions.copyWithPopup(context: pageContext,
+      successContent: Text(localizations.successChannelLinkCopied),
+      data: ClipboardData(text: narrowLink(store, ChannelNarrow(channelId)).toString()));
   }
 }
 

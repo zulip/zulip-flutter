@@ -91,6 +91,9 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get actionSheetOptionMarkChannelAsRead => 'Označi kanal kot prebran';
 
   @override
+  String get actionSheetOptionCopyChannelLink => 'Copy link to channel';
+
+  @override
   String get actionSheetOptionListOfTopics => 'Seznam tem';
 
   @override
@@ -319,6 +322,9 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   @override
   String get successMessageLinkCopied =>
       'Povezava do sporočila je bila kopirana';
+
+  @override
+  String get successChannelLinkCopied => 'Channel link copied';
 
   @override
   String get errorBannerDeactivatedDmLabel =>

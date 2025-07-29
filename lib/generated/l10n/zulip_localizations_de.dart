@@ -93,6 +93,9 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Kanal als gelesen markieren';
 
   @override
+  String get actionSheetOptionCopyChannelLink => 'Copy link to channel';
+
+  @override
   String get actionSheetOptionListOfTopics => 'Themenliste';
 
   @override
@@ -312,6 +315,9 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get successMessageLinkCopied => 'Nachrichtenlink kopiert';
+
+  @override
+  String get successChannelLinkCopied => 'Channel link copied';
 
   @override
   String get errorBannerDeactivatedDmLabel =>

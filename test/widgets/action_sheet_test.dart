@@ -243,6 +243,7 @@ void main() {
         check(actionSheetFinder).findsOne();
         checkButton('List of topics');
         checkButton('Mark channel as read');
+        checkButton('Copy link to channel');
       }
 
       testWidgets('show from inbox', (tester) async {
@@ -340,6 +341,32 @@ void main() {
         checkRequest(someChannel.streamId);
         checkErrorDialog(tester,
           expectedTitle: "Mark as read failed");
+      });
+    });
+
+    group('CopyChannelLinkButton', () {
+      setUp(() async {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          MockClipboard().handleMethodCall,
+        );
+      });
+
+      Future<void> tapCopyChannelLinkButton(WidgetTester tester) async {
+        await tester.ensureVisible(find.byIcon(ZulipIcons.link, skipOffstage: false));
+        await tester.tap(find.byIcon(ZulipIcons.link));
+        await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+      }
+
+      testWidgets('copies channel link to clipboard', (tester) async {
+        await prepare();
+        final narrow = ChannelNarrow(someChannel.streamId);
+        await showFromAppBar(tester, narrow: narrow);
+
+        await tapCopyChannelLinkButton(tester);
+        await tester.pump(Duration.zero);
+        final expectedLink = narrowLink(store, narrow).toString();
+        check(await Clipboard.getData('text/plain')).isNotNull().text.equals(expectedLink);
       });
     });
   });
