@@ -198,6 +198,8 @@ int _lastUserGroupId = 100;
 
 UserGroup userGroup({
   int? id,
+  Iterable<int>? members,
+  Iterable<int>? directSubgroupIds,
   String? name,
   String? description,
   bool isSystemGroup = false,
@@ -205,6 +207,8 @@ UserGroup userGroup({
 }) {
   return UserGroup(
     id: id ??= _nextUserGroupId(),
+    members: Set.of(members ?? []),
+    directSubgroupIds: Set.of(directSubgroupIds ?? []),
     name: name ??= 'group-$id',
     description: description ?? 'A group named $name',
     isSystemGroup: isSystemGroup,

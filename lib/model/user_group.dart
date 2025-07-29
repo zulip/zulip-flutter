@@ -74,6 +74,12 @@ class UserGroupStoreImpl extends PerAccountStoreBase with UserGroupStore {
         if (data.name != null)        group.name        = data.name!;
         if (data.description != null) group.description = data.description!;
         if (data.deactivated != null) group.deactivated = data.deactivated!;
+
+      case UserGroupAddMembersEvent():
+      case UserGroupRemoveMembersEvent():
+      case UserGroupAddSubgroupsEvent():
+      case UserGroupRemoveSubgroupsEvent():
+        break; // TODO(#1687): update group memberships on event
     }
   }
 }

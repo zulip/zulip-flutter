@@ -96,6 +96,12 @@ Map<String, dynamic> _$RealmEmojiItemToJson(RealmEmojiItem instance) =>
 
 UserGroup _$UserGroupFromJson(Map<String, dynamic> json) => UserGroup(
   id: (json['id'] as num).toInt(),
+  members: (json['members'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toSet(),
+  directSubgroupIds: (json['direct_subgroup_ids'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toSet(),
   name: json['name'] as String,
   description: json['description'] as String,
   isSystemGroup: json['is_system_group'] as bool,
@@ -104,6 +110,8 @@ UserGroup _$UserGroupFromJson(Map<String, dynamic> json) => UserGroup(
 
 Map<String, dynamic> _$UserGroupToJson(UserGroup instance) => <String, dynamic>{
   'id': instance.id,
+  'members': instance.members.toList(),
+  'direct_subgroup_ids': instance.directSubgroupIds.toList(),
   'name': instance.name,
   'description': instance.description,
   'is_system_group': instance.isSystemGroup,

@@ -134,6 +134,86 @@ Map<String, dynamic> _$UserGroupUpdateDataToJson(
   'deactivated': instance.deactivated,
 };
 
+UserGroupAddMembersEvent _$UserGroupAddMembersEventFromJson(
+  Map<String, dynamic> json,
+) => UserGroupAddMembersEvent(
+  id: (json['id'] as num).toInt(),
+  groupId: (json['group_id'] as num).toInt(),
+  userIds: (json['user_ids'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+);
+
+Map<String, dynamic> _$UserGroupAddMembersEventToJson(
+  UserGroupAddMembersEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'group_id': instance.groupId,
+  'user_ids': instance.userIds,
+};
+
+UserGroupRemoveMembersEvent _$UserGroupRemoveMembersEventFromJson(
+  Map<String, dynamic> json,
+) => UserGroupRemoveMembersEvent(
+  id: (json['id'] as num).toInt(),
+  groupId: (json['group_id'] as num).toInt(),
+  userIds: (json['user_ids'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+);
+
+Map<String, dynamic> _$UserGroupRemoveMembersEventToJson(
+  UserGroupRemoveMembersEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'group_id': instance.groupId,
+  'user_ids': instance.userIds,
+};
+
+UserGroupAddSubgroupsEvent _$UserGroupAddSubgroupsEventFromJson(
+  Map<String, dynamic> json,
+) => UserGroupAddSubgroupsEvent(
+  id: (json['id'] as num).toInt(),
+  groupId: (json['group_id'] as num).toInt(),
+  directSubgroupIds: (json['direct_subgroup_ids'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+);
+
+Map<String, dynamic> _$UserGroupAddSubgroupsEventToJson(
+  UserGroupAddSubgroupsEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'group_id': instance.groupId,
+  'direct_subgroup_ids': instance.directSubgroupIds,
+};
+
+UserGroupRemoveSubgroupsEvent _$UserGroupRemoveSubgroupsEventFromJson(
+  Map<String, dynamic> json,
+) => UserGroupRemoveSubgroupsEvent(
+  id: (json['id'] as num).toInt(),
+  groupId: (json['group_id'] as num).toInt(),
+  directSubgroupIds: (json['direct_subgroup_ids'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+);
+
+Map<String, dynamic> _$UserGroupRemoveSubgroupsEventToJson(
+  UserGroupRemoveSubgroupsEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'group_id': instance.groupId,
+  'direct_subgroup_ids': instance.directSubgroupIds,
+};
+
 UserGroupRemoveEvent _$UserGroupRemoveEventFromJson(
   Map<String, dynamic> json,
 ) => UserGroupRemoveEvent(

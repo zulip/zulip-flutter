@@ -358,8 +358,8 @@ class UserGroup {
   final int id;
 
   // TODO(#1687) to maintain members, also act on user deactivation: https://github.com/zulip/zulip-flutter/issues/662#issuecomment-2405845356
-  // List<int> members; // TODO(#1687) track group members
-  // List<int> directSubgroupIds; // TODO(#1687) track group members
+  final Set<int> members;
+  final Set<int> directSubgroupIds;
 
   String name;
   String description;
@@ -377,6 +377,8 @@ class UserGroup {
 
   UserGroup({
     required this.id,
+    required this.members,
+    required this.directSubgroupIds,
     required this.name,
     required this.description,
     required this.isSystemGroup,
