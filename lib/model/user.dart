@@ -91,12 +91,6 @@ mixin UserStore on PerAccountStoreBase, RealmStore {
     return getUser(senderId)?.fullName ?? message.senderFullName;
   }
 
-  /// The user's real email address, if known, for displaying in the UI.
-  ///
-  /// Returns null if self-user isn't able to see the user's real email address,
-  /// or if the user isn't actually a user we know about.
-  String? userDisplayEmail(int userId) => getUser(userId)?.deliveryEmail;
-
   /// Whether [user] has passed the realm's waiting period to be a full member.
   ///
   /// See:

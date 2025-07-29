@@ -285,7 +285,7 @@ class MentionAutocompleteItem extends StatelessWidget {
         label = store.userDisplayName(userId);
         emoji = UserStatusEmoji(userId: userId, size: 18,
           padding: const EdgeInsetsDirectional.only(start: 5.0));
-        sublabel = store.userDisplayEmail(userId);
+        sublabel = store.getUser(userId)?.deliveryEmail;
       case WildcardMentionAutocompleteResult(:var wildcardOption):
         avatar = SizedBox.square(dimension: 36,
           child: const Icon(ZulipIcons.three_person, size: 24));

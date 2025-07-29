@@ -56,7 +56,7 @@ class ProfilePage extends StatelessWidget {
       .merge(weightVariableTextStyle(context, wght: 700));
 
     final userStatus = store.getUserStatus(userId);
-    final displayEmail = store.userDisplayEmail(userId);
+    final displayEmail = user.deliveryEmail;
     final items = [
       Center(
         child: Avatar(
