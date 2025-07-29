@@ -1573,8 +1573,8 @@ void main() {
       });
 
       Future<void> tapCopyMessageLinkButton(WidgetTester tester) async {
-        await tester.ensureVisible(find.byIcon(Icons.link, skipOffstage: false));
-        await tester.tap(find.byIcon(Icons.link));
+        await tester.ensureVisible(find.byIcon(ZulipIcons.link, skipOffstage: false));
+        await tester.tap(find.byIcon(ZulipIcons.link));
         await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
       }
 

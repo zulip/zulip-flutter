@@ -1023,7 +1023,7 @@ class CopyMessageTextButton extends MessageActionSheetMenuItemButton {
 class CopyMessageLinkButton extends MessageActionSheetMenuItemButton {
   CopyMessageLinkButton({super.key, required super.message, required super.pageContext});
 
-  @override IconData get icon => Icons.link;
+  @override IconData get icon => ZulipIcons.link;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
