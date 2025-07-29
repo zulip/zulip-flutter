@@ -111,71 +111,74 @@ abstract final class ZulipIcons {
   /// The Zulip custom icon "language".
   static const IconData language = IconData(0xf11d, fontFamily: "Zulip Icons");
 
+  /// The Zulip custom icon "link".
+  static const IconData link = IconData(0xf11e, fontFamily: "Zulip Icons");
+
   /// The Zulip custom icon "lock".
-  static const IconData lock = IconData(0xf11e, fontFamily: "Zulip Icons");
+  static const IconData lock = IconData(0xf11f, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "menu".
-  static const IconData menu = IconData(0xf11f, fontFamily: "Zulip Icons");
+  static const IconData menu = IconData(0xf120, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "message_checked".
-  static const IconData message_checked = IconData(0xf120, fontFamily: "Zulip Icons");
+  static const IconData message_checked = IconData(0xf121, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "message_feed".
-  static const IconData message_feed = IconData(0xf121, fontFamily: "Zulip Icons");
+  static const IconData message_feed = IconData(0xf122, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "mute".
-  static const IconData mute = IconData(0xf122, fontFamily: "Zulip Icons");
+  static const IconData mute = IconData(0xf123, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "person".
-  static const IconData person = IconData(0xf123, fontFamily: "Zulip Icons");
+  static const IconData person = IconData(0xf124, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "plus".
-  static const IconData plus = IconData(0xf124, fontFamily: "Zulip Icons");
+  static const IconData plus = IconData(0xf125, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "read_receipts".
-  static const IconData read_receipts = IconData(0xf125, fontFamily: "Zulip Icons");
+  static const IconData read_receipts = IconData(0xf126, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "remove".
-  static const IconData remove = IconData(0xf126, fontFamily: "Zulip Icons");
+  static const IconData remove = IconData(0xf127, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "search".
-  static const IconData search = IconData(0xf127, fontFamily: "Zulip Icons");
+  static const IconData search = IconData(0xf128, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "send".
-  static const IconData send = IconData(0xf128, fontFamily: "Zulip Icons");
+  static const IconData send = IconData(0xf129, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "settings".
-  static const IconData settings = IconData(0xf129, fontFamily: "Zulip Icons");
+  static const IconData settings = IconData(0xf12a, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "share".
-  static const IconData share = IconData(0xf12a, fontFamily: "Zulip Icons");
+  static const IconData share = IconData(0xf12b, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "share_ios".
-  static const IconData share_ios = IconData(0xf12b, fontFamily: "Zulip Icons");
+  static const IconData share_ios = IconData(0xf12c, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "smile".
-  static const IconData smile = IconData(0xf12c, fontFamily: "Zulip Icons");
+  static const IconData smile = IconData(0xf12d, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "star".
-  static const IconData star = IconData(0xf12d, fontFamily: "Zulip Icons");
+  static const IconData star = IconData(0xf12e, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "star_filled".
-  static const IconData star_filled = IconData(0xf12e, fontFamily: "Zulip Icons");
+  static const IconData star_filled = IconData(0xf12f, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "three_person".
-  static const IconData three_person = IconData(0xf12f, fontFamily: "Zulip Icons");
+  static const IconData three_person = IconData(0xf130, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "topic".
-  static const IconData topic = IconData(0xf130, fontFamily: "Zulip Icons");
+  static const IconData topic = IconData(0xf131, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "topics".
-  static const IconData topics = IconData(0xf131, fontFamily: "Zulip Icons");
+  static const IconData topics = IconData(0xf132, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "two_person".
-  static const IconData two_person = IconData(0xf132, fontFamily: "Zulip Icons");
+  static const IconData two_person = IconData(0xf133, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "unmute".
-  static const IconData unmute = IconData(0xf133, fontFamily: "Zulip Icons");
+  static const IconData unmute = IconData(0xf134, fontFamily: "Zulip Icons");
 
   // END GENERATED ICON DATA
 }
