@@ -57,6 +57,12 @@ class UserGroupStoreImpl extends PerAccountStoreBase with UserGroupStore {
 
   final Map<int, UserGroup> _groups;
 
+  UserGroup? _expectGroup(int groupId) {
+    final group = _groups[groupId];
+    // TODO(log) if group not found
+    return group;
+  }
+
   void handleUserGroupEvent(UserGroupEvent event) {
     switch (event) {
       case UserGroupAddEvent():
@@ -66,20 +72,42 @@ class UserGroupStoreImpl extends PerAccountStoreBase with UserGroupStore {
         _groups.remove(event.groupId);
 
       case UserGroupUpdateEvent():
-        final group = _groups[event.groupId];
-        if (group == null) {
-          return; // TODO log
-        }
+        final group = _expectGroup(event.groupId);
+        if (group == null) return;
         final data = event.data;
         if (data.name != null)        group.name        = data.name!;
         if (data.description != null) group.description = data.description!;
         if (data.deactivated != null) group.deactivated = data.deactivated!;
 
+      // TODO(#1687): test handling the four membership-related events
       case UserGroupAddMembersEvent():
+        final group = _expectGroup(event.groupId);
+        if (group == null) return;
+        group.members.addAll(event.userIds);
+
       case UserGroupRemoveMembersEvent():
+        final group = _expectGroup(event.groupId);
+        if (group == null) return;
+        group.members.removeAll(event.userIds);
+
       case UserGroupAddSubgroupsEvent():
+        final group = _expectGroup(event.groupId);
+        if (group == null) return;
+        group.directSubgroupIds.addAll(event.directSubgroupIds);
+
       case UserGroupRemoveSubgroupsEvent():
-        break; // TODO(#1687): update group memberships on event
+        final group = _expectGroup(event.groupId);
+        if (group == null) return;
+        group.directSubgroupIds.removeAll(event.directSubgroupIds);
+    }
+  }
+
+  void handleRealmUserUpdateEvent(RealmUserUpdateEvent event) {
+    if (event.isActive == false) {
+      // TODO(#1687): test handling user deactivation
+      for (final group in _groups.values) {
+        group.members.remove(event.userId);
+      }
     }
   }
 }

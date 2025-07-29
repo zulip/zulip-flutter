@@ -757,6 +757,7 @@ class PerAccountStore extends PerAccountStoreBase with
 
       case RealmUserUpdateEvent():
         assert(debugLog("server event: realm_user/update"));
+        _groups.handleRealmUserUpdateEvent(event);
         _users.handleRealmUserEvent(event);
         autocompleteViewManager.handleRealmUserUpdateEvent(event);
         notifyListeners();
