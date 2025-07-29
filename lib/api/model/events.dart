@@ -674,6 +674,9 @@ class ChannelUpdateEvent extends ChannelEvent {
         return value as int?;
       case ChannelPropertyName.channelPostPolicy:
         return ChannelPostPolicy.fromApiValue(value as int);
+      case ChannelPropertyName.canAddSubscribersGroup:
+      case ChannelPropertyName.canSubscribeGroup:
+        return GroupSettingValue.fromJson(value);
       case ChannelPropertyName.streamWeeklyTraffic:
         return value as int?;
       case null:

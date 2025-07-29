@@ -250,6 +250,12 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
     _$ChannelPostPolicyEnumMap,
     json['stream_post_policy'],
   ),
+  canAddSubscribersGroup: json['can_add_subscribers_group'] == null
+      ? null
+      : GroupSettingValue.fromJson(json['can_add_subscribers_group']),
+  canSubscribeGroup: json['can_subscribe_group'] == null
+      ? null
+      : GroupSettingValue.fromJson(json['can_subscribe_group']),
   streamWeeklyTraffic: (json['stream_weekly_traffic'] as num?)?.toInt(),
 );
 
@@ -266,6 +272,8 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
       'message_retention_days': instance.messageRetentionDays,
       'stream_post_policy': instance.channelPostPolicy,
+      'can_add_subscribers_group': instance.canAddSubscribersGroup,
+      'can_subscribe_group': instance.canSubscribeGroup,
       'stream_weekly_traffic': instance.streamWeeklyTraffic,
     };
 
@@ -292,6 +300,12 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
     _$ChannelPostPolicyEnumMap,
     json['stream_post_policy'],
   ),
+  canAddSubscribersGroup: json['can_add_subscribers_group'] == null
+      ? null
+      : GroupSettingValue.fromJson(json['can_add_subscribers_group']),
+  canSubscribeGroup: json['can_subscribe_group'] == null
+      ? null
+      : GroupSettingValue.fromJson(json['can_subscribe_group']),
   streamWeeklyTraffic: (json['stream_weekly_traffic'] as num?)?.toInt(),
   desktopNotifications: json['desktop_notifications'] as bool?,
   emailNotifications: json['email_notifications'] as bool?,
@@ -316,6 +330,8 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
       'message_retention_days': instance.messageRetentionDays,
       'stream_post_policy': instance.channelPostPolicy,
+      'can_add_subscribers_group': instance.canAddSubscribersGroup,
+      'can_subscribe_group': instance.canSubscribeGroup,
       'stream_weekly_traffic': instance.streamWeeklyTraffic,
       'desktop_notifications': instance.desktopNotifications,
       'email_notifications': instance.emailNotifications,
@@ -475,6 +491,8 @@ const _$ChannelPropertyNameEnumMap = {
   ChannelPropertyName.inviteOnly: 'invite_only',
   ChannelPropertyName.messageRetentionDays: 'message_retention_days',
   ChannelPropertyName.channelPostPolicy: 'stream_post_policy',
+  ChannelPropertyName.canAddSubscribersGroup: 'can_add_subscribers_group',
+  ChannelPropertyName.canSubscribeGroup: 'can_subscribe_group',
   ChannelPropertyName.streamWeeklyTraffic: 'stream_weekly_traffic',
 };
 
