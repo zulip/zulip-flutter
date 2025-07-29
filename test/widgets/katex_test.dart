@@ -14,7 +14,7 @@ void main() {
   group('MathBlock', () {
     group('characters render at specific offsets with specific size', () {
   final testCases = <(KatexExample, List<(String, Offset, Size)>, {bool? skip})>[
-        (KatexExample.mathBlockKatexSizing, skip: false, [
+        (KatexExample.sizing, skip: false, [
           ('1', Offset(0.00, 2.24), Size(25.59, 61.00)),
           ('2', Offset(25.59, 10.04), Size(21.33, 51.00)),
           ('3', Offset(46.91, 16.55), Size(17.77, 43.00)),
@@ -26,50 +26,50 @@ void main() {
           ('9', Offset(119.58, 35.91), Size(7.20, 17.00)),
           ('0', Offset(126.77, 39.68), Size(5.14, 12.00)),
         ]),
-        (KatexExample.mathBlockKatexNestedSizing, skip: false, [
+        (KatexExample.nestedSizing, skip: false, [
           ('1', Offset(0.00, 40.24), Size(5.14, 12.00)),
           ('2', Offset(5.14, 2.80), Size(25.59, 61.00)),
         ]),
-        (KatexExample.mathBlockKatexDelimSizing, skip: false, [
+        (KatexExample.delimsizing, skip: false, [
           ('(', Offset(8.00, 20.14), Size(9.42, 25.00)),
           ('[', Offset(17.42, 20.14), Size(9.71, 25.00)),
           ('⌈', Offset(27.12, 20.14), Size(11.99, 25.00)),
           ('⌊', Offset(39.11, 20.14), Size(13.14, 25.00)),
         ]),
-        (KatexExample.mathBlockKatexSpace, skip: false, [
+        (KatexExample.spacing, skip: false, [
           ('1', Offset(0.00, 2.24), Size(10.28, 25.00)),
           (':', Offset(16.00, 2.24), Size(5.72, 25.00)),
           ('2', Offset(27.43, 2.24), Size(10.28, 25.00)),
         ]),
-        (KatexExample.mathBlockKatexSuperscript, skip: false, [
+        (KatexExample.vlistSuperscript, skip: false, [
           ('a', Offset(0.00, 5.28), Size(10.88, 25.00)),
           ('′', Offset(10.88, 1.13), Size(3.96, 17.00)),
         ]),
-        (KatexExample.mathBlockKatexSubscript, skip: false, [
+        (KatexExample.vlistSubscript, skip: false, [
           ('x', Offset(0.00, 5.28), Size(11.76, 25.00)),
           ('n', Offset(11.76, 13.65), Size(8.63, 17.00)),
         ]),
-        (KatexExample.mathBlockKatexSubSuperScript, skip: false, [
+        (KatexExample.vlistSubAndSuperscript, skip: false, [
           ('u', Offset(0.00, 15.65), Size(8.23, 17.00)),
           ('o', Offset(0.00, 2.07), Size(6.98, 17.00)),
         ]),
-        (KatexExample.mathBlockKatexRaisebox, skip: false, [
+        (KatexExample.vlistRaisebox, skip: false, [
           ('a', Offset(0.00, 4.16), Size(10.88, 25.00)),
           ('b', Offset(10.88, -0.66), Size(8.82, 25.00)),
           ('c', Offset(19.70, 4.16), Size(8.90, 25.00)),
         ]),
-        (KatexExample.mathBlockKatexNegativeMargin, skip: false, [
+        (KatexExample.negativeMargin, skip: false, [
           ('1', Offset(0.00, 3.12), Size(10.28, 25.00)),
           ('2', Offset(6.85, 3.36), Size(10.28, 25.00)),
         ]),
-        (KatexExample.mathBlockKatexLogo, skip: false, [
+        (KatexExample.katexLogo, skip: false, [
           ('K', Offset(0.0, 8.64), Size(16.0, 25.0)),
           ('A', Offset(12.50, 10.85), Size(10.79, 17.0)),
           ('T', Offset(20.21, 9.36), Size(14.85, 25.0)),
           ('E', Offset(31.63, 14.52), Size(14.0, 25.0)),
           ('X', Offset(43.06, 9.85), Size(15.42, 25.0)),
         ]),
-        (KatexExample.mathBlockKatexNegativeMarginsOnVlistRow, skip: false, [
+        (KatexExample.vlistNegativeMargin, skip: false, [
           ('X', Offset(0.00, 7.04), Size(17.03, 25.00)),
           ('n', Offset(17.03, 15.90), Size(8.63, 17.00)),
         ]),

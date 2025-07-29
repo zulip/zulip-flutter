@@ -26,8 +26,8 @@ class KatexExample extends ContentExample {
   // The font sizes can be compared using the katex.css generated
   // from katex.scss :
   //   https://unpkg.com/katex@0.16.21/dist/katex.css
-  static final mathBlockKatexSizing = KatexExample.block(
-    'math block; KaTeX different sizing',
+  static final sizing = KatexExample.block(
+    'different font sizes',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2155476
     '\\Huge 1\n\\huge 2\n\\LARGE 3\n\\Large 4\n\\large 5\n\\normalsize 6\n\\small 7\n\\footnotesize 8\n\\scriptsize 9\n\\tiny 0',
     '<p>'
@@ -82,8 +82,8 @@ class KatexExample extends ContentExample {
       ]),
     ]);
 
-  static final mathBlockKatexNestedSizing = KatexExample.block(
-    'math block; KaTeX nested sizing',
+  static final nestedSizing = KatexExample.block(
+    'sizing spans nested',
     r'\tiny {1 \Huge 2}',
     '<p>'
       '<span class="katex-display"><span class="katex">'
@@ -108,8 +108,8 @@ class KatexExample extends ContentExample {
       ]),
     ]);
 
-  static final mathBlockKatexDelimSizing = KatexExample.block(
-    'math block; KaTeX delimiter sizing',
+  static final delimsizing = KatexExample.block(
+    'delimsizing spans, big delimiters',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2147135
     r'⟨ \big( \Big[ \bigg⌈ \Bigg⌊',
     '<p>'
@@ -150,8 +150,8 @@ class KatexExample extends ContentExample {
       ]),
     ]);
 
-  static final mathBlockKatexSpace = KatexExample.block(
-    'math block; KaTeX space',
+  static final spacing = KatexExample.block(
+    'positive horizontal spacing with margin-right',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2214883
     '1:2',
     '<p>'
@@ -184,8 +184,8 @@ class KatexExample extends ContentExample {
       ]),
     ]);
 
-  static final mathBlockKatexSuperscript = KatexExample.block(
-    'math block, KaTeX superscript; single vlist-r, single vertical offset row',
+  static final vlistSuperscript = KatexExample.block(
+    'superscript: single vlist-r, single vertical offset row',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2176734
     "a'",
     '<p>'
@@ -234,8 +234,8 @@ class KatexExample extends ContentExample {
       ]),
     ]);
 
-  static final mathBlockKatexSubscript = KatexExample.block(
-    'math block, KaTeX subscript; two vlist-r, single vertical offset row',
+  static final vlistSubscript = KatexExample.block(
+    'subscript: two vlist-r, single vertical offset row',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2176735
     'x_n',
     '<p>'
@@ -288,8 +288,8 @@ class KatexExample extends ContentExample {
       ]),
     ]);
 
-  static final mathBlockKatexSubSuperScript = KatexExample.block(
-    'math block, KaTeX subsup script; two vlist-r, multiple vertical offset rows',
+  static final vlistSubAndSuperscript = KatexExample.block(
+    'subscript and superscript: two vlist-r, multiple vertical offset rows',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2176738
     '_u^o',
     '<p>'
@@ -356,8 +356,8 @@ class KatexExample extends ContentExample {
       ]),
     ]);
 
-  static final mathBlockKatexRaisebox = KatexExample.block(
-    'math block, KaTeX raisebox; single vlist-r, single vertical offset row',
+  static final vlistRaisebox = KatexExample.block(
+    r'\raisebox: single vlist-r, single vertical offset row',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2176739
     r'a\raisebox{0.25em}{$b$}c',
     '<p>'
@@ -398,8 +398,8 @@ class KatexExample extends ContentExample {
       ]),
     ]);
 
-  static final mathBlockKatexNegativeMargin = KatexExample.block(
-    'math block, KaTeX negative margin',
+  static final negativeMargin = KatexExample.block(
+    r'negative horizontal margin (\!)',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2223563
     r'1 \! 2',
     '<p>'
@@ -421,8 +421,8 @@ class KatexExample extends ContentExample {
       ]),
     ]);
 
-  static final mathBlockKatexLogo = KatexExample.block(
-    'math block, KaTeX logo',
+  static final katexLogo = KatexExample.block(
+    'KaTeX logo: vlists, negative margins',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2141902
     r'\KaTeX',
     '<p>'
@@ -509,8 +509,8 @@ class KatexExample extends ContentExample {
       ]),
     ]);
 
-  static final mathBlockKatexNegativeMarginsOnVlistRow = KatexExample.block(
-    'math block, KaTeX negative margins on a vlist row',
+  static final vlistNegativeMargin = KatexExample.block(
+    'vlist using negative margin (subscript X_n)',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2224918
     'X_n',
     '<p>'
@@ -571,17 +571,17 @@ class KatexExample extends ContentExample {
 void main() async {
   TestZulipBinding.ensureInitialized();
 
-  testParseExample(KatexExample.mathBlockKatexSizing);
-  testParseExample(KatexExample.mathBlockKatexNestedSizing);
-  testParseExample(KatexExample.mathBlockKatexDelimSizing);
-  testParseExample(KatexExample.mathBlockKatexSpace);
-  testParseExample(KatexExample.mathBlockKatexSuperscript);
-  testParseExample(KatexExample.mathBlockKatexSubscript);
-  testParseExample(KatexExample.mathBlockKatexSubSuperScript);
-  testParseExample(KatexExample.mathBlockKatexRaisebox);
-  testParseExample(KatexExample.mathBlockKatexNegativeMargin);
-  testParseExample(KatexExample.mathBlockKatexLogo);
-  testParseExample(KatexExample.mathBlockKatexNegativeMarginsOnVlistRow);
+  testParseExample(KatexExample.sizing);
+  testParseExample(KatexExample.nestedSizing);
+  testParseExample(KatexExample.delimsizing);
+  testParseExample(KatexExample.spacing);
+  testParseExample(KatexExample.vlistSuperscript);
+  testParseExample(KatexExample.vlistSubscript);
+  testParseExample(KatexExample.vlistSubAndSuperscript);
+  testParseExample(KatexExample.vlistRaisebox);
+  testParseExample(KatexExample.negativeMargin);
+  testParseExample(KatexExample.katexLogo);
+  testParseExample(KatexExample.vlistNegativeMargin);
 
   test('all KaTeX content examples are tested', () {
     // Check that every KatexExample defined above has a corresponding
