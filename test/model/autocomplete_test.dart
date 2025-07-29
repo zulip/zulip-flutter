@@ -1036,14 +1036,37 @@ void main() {
       checkPrecedes('so m', user1, user2);
     });
 
+    test('email matched case-insensitively', () {
+      // "z" name to prevent accidental name match with example data
+      final user1 = eg.user(fullName: 'z', deliveryEmail: 'email@example.com');
+      final user2 = eg.user(fullName: 'z', deliveryEmail: 'EmAiL@ExAmPlE.com');
+
+      checkSameRank('email@example.com', user1, user2);
+      checkSameRank('email@e',           user1, user2);
+      checkSameRank('email@',            user1, user2);
+      checkSameRank('email',             user1, user2);
+      checkSameRank('ema',               user1, user2);
+    });
+
+    test('email match is by prefix only', () {
+      // "z" name to prevent accidental name match with example data
+      final user = eg.user(fullName: 'z', deliveryEmail: 'email@example.com');
+
+      check(rankOf('e',           user)).isNotNull();
+      check(rankOf('mail',        user)).isNull();
+      check(rankOf('example',     user)).isNull();
+      check(rankOf('example.com', user)).isNull();
+    });
+
     test('full list of ranks', () {
-      final user1 = eg.user(fullName: 'some user');
+      final user1 = eg.user(fullName: 'some user', deliveryEmail: 'email@example.com');
       check([
         rankOf('', WildcardMentionOption.all), // wildcard
         rankOf('some user', user1),            // user, exact name match
         rankOf('some us', user1),              // user, total-prefix name match
         rankOf('so us', user1),                // user, word-prefixes name match
-      ]).deepEquals([0, 1, 2, 3]);
+        rankOf('email', user1),                // user, no name match, email match
+      ]).deepEquals([0, 1, 2, 3, 4]);
     });
   });
 

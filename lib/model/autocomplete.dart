@@ -790,15 +790,19 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
     if (store.isUserMuted(user.userId)) return null;
 
     final cache = store.autocompleteViewManager.autocompleteDataCache;
-    // TODO(#236) test email too, not just name
     final nameMatchQuality = _matchName(
       normalizedName: cache.normalizedNameForUser(user),
       normalizedNameWords: cache.normalizedNameWordsForUser(user));
-    if (nameMatchQuality == null) return null;
+    bool? matchesEmail;
+    if (nameMatchQuality == null) {
+      matchesEmail = _matchEmail(user, cache);
+      if (!matchesEmail) return null;
+    }
 
     return UserMentionAutocompleteResult(
       userId: user.userId,
-      rank: _rankUserResult(user, nameMatchQuality: nameMatchQuality));
+      rank: _rankUserResult(user,
+        nameMatchQuality: nameMatchQuality, matchesEmail: matchesEmail));
   }
 
   NameMatchQuality? _matchName({
@@ -820,6 +824,12 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
     return null;
   }
 
+  bool _matchEmail(User user, AutocompleteDataCache cache) {
+    final lowercaseEmail = cache.normalizedEmailForUser(user);
+    if (lowercaseEmail == null) return false; // Email not known
+    return lowercaseEmail.startsWith(_lowercase);
+  }
+
   /// A measure of a wildcard result's quality in the context of the query,
   /// from 0 (best) to one less than [_numResultRanks].
   ///
@@ -829,18 +839,29 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
   /// A measure of a user result's quality in the context of the query,
   /// from 0 (best) to one less than [_numResultRanks].
   ///
+  /// When [nameMatchQuality] is non-null (the name matches),
+  /// callers should skip computing [matchesEmail] and pass null for that.
+  ///
   /// See also [_rankWildcardResult].
-  static int _rankUserResult(User user, {required NameMatchQuality nameMatchQuality}) {
-    return switch (nameMatchQuality) {
-      NameMatchQuality.exact =>        1,
-      NameMatchQuality.totalPrefix =>  2,
-      NameMatchQuality.wordPrefixes => 3,
-    };
+  static int _rankUserResult(User user, {
+    required NameMatchQuality? nameMatchQuality,
+    required bool? matchesEmail,
+  }) {
+    if (nameMatchQuality != null) {
+      assert(matchesEmail == null);
+      return switch (nameMatchQuality) {
+        NameMatchQuality.exact =>        1,
+        NameMatchQuality.totalPrefix =>  2,
+        NameMatchQuality.wordPrefixes => 3,
+      };
+    }
+    assert(matchesEmail == true);
+    return 4;
   }
 
   /// The number of possible values returned by
   /// [_rankWildcardResult] and [_rankUserResult].
-  static const _numResultRanks = 4;
+  static const _numResultRanks = 5;
 
   @override
   String toString() {
@@ -888,9 +909,17 @@ class AutocompleteDataCache {
       ??= normalizedNameForUser(user).split(' ');
   }
 
+  final Map<int, String?> _normalizedEmailsByUser = {};
+
+  /// The normalized `deliveryEmail` of [user], or null if that's null.
+  String? normalizedEmailForUser(User user) {
+    return _normalizedEmailsByUser[user.userId] ??= user.deliveryEmail?.toLowerCase();
+  }
+
   void invalidateUser(int userId) {
     _normalizedNamesByUser.remove(userId);
     _normalizedNameWordsByUser.remove(userId);
+    _normalizedEmailsByUser.remove(userId);
   }
 }
 
@@ -953,6 +982,12 @@ sealed class MentionAutocompleteResult extends ComposeAutocompleteResult {
   //   special rank when the whole query appears contiguously
   //   right after a word-boundary character.
   //   Our [NameMatchQuality.wordPrefixes] seems smarter.
+  // - An "exact" match quality on emails: probably not worth its complexity.
+  //   Emails are much more uniform in their endings than users' names are,
+  //   so a prefix match should be adequate. (If I've typed "email@example.co",
+  //   that'll probably be the only result. There might be an "email@example.com",
+  //   and an "exact" match would downrank that, but still that's just two items
+  //   to scan through.)
   // - A "word-boundary" match quality on user emails:
   //   "words" is a wrong abstraction when matching on emails.
   // - Ranking some case-sensitive matches differently from case-insensitive
