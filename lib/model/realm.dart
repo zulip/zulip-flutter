@@ -51,8 +51,6 @@ mixin RealmStore on PerAccountStoreBase {
 
   RealmWildcardMentionPolicy get realmWildcardMentionPolicy; // TODO(#662): replaced by can_mention_many_users_group
 
-  EmailAddressVisibility? get emailAddressVisibility; // TODO: replaced at FL-163 by a user setting
-
   //|//////////////////////////////
   // Realm settings that lack events.
   // (Each of these is probably secretly a server setting.)
@@ -149,8 +147,6 @@ mixin ProxyRealmStore on RealmStore {
   @override
   RealmWildcardMentionPolicy get realmWildcardMentionPolicy => realmStore.realmWildcardMentionPolicy;
   @override
-  EmailAddressVisibility? get emailAddressVisibility => realmStore.emailAddressVisibility;
-  @override
   String get realmEmptyTopicDisplayName => realmStore.realmEmptyTopicDisplayName;
   @override
   Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts => realmStore.realmDefaultExternalAccounts;
@@ -187,7 +183,6 @@ class RealmStoreImpl extends PerAccountStoreBase with RealmStore {
     realmPresenceDisabled = initialSnapshot.realmPresenceDisabled,
     realmWaitingPeriodThreshold = initialSnapshot.realmWaitingPeriodThreshold,
     realmWildcardMentionPolicy = initialSnapshot.realmWildcardMentionPolicy,
-    emailAddressVisibility = initialSnapshot.emailAddressVisibility,
     _realmEmptyTopicDisplayName = initialSnapshot.realmEmptyTopicDisplayName,
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
     customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields);
@@ -219,9 +214,6 @@ class RealmStoreImpl extends PerAccountStoreBase with RealmStore {
 
   @override
   final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
-
-  @override
-  final EmailAddressVisibility? emailAddressVisibility;
 
   @override
   String get realmEmptyTopicDisplayName {

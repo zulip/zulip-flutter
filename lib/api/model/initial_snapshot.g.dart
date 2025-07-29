@@ -22,10 +22,6 @@ InitialSnapshot _$InitialSnapshotFromJson(
   customProfileFields: (json['custom_profile_fields'] as List<dynamic>)
       .map((e) => CustomProfileField.fromJson(e as Map<String, dynamic>))
       .toList(),
-  emailAddressVisibility: $enumDecodeNullable(
-    _$EmailAddressVisibilityEnumMap,
-    json['email_address_visibility'],
-  ),
   serverPresencePingIntervalSeconds:
       (json['server_presence_ping_interval_seconds'] as num).toInt(),
   serverPresenceOfflineThresholdSeconds:
@@ -138,8 +134,6 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'zulip_merge_base': instance.zulipMergeBase,
   'alert_words': instance.alertWords,
   'custom_profile_fields': instance.customProfileFields,
-  'email_address_visibility':
-      _$EmailAddressVisibilityEnumMap[instance.emailAddressVisibility],
   'server_presence_ping_interval_seconds':
       instance.serverPresencePingIntervalSeconds,
   'server_presence_offline_threshold_seconds':
@@ -176,14 +170,6 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'realm_users': instance.realmUsers,
   'realm_non_active_users': instance.realmNonActiveUsers,
   'cross_realm_bots': instance.crossRealmBots,
-};
-
-const _$EmailAddressVisibilityEnumMap = {
-  EmailAddressVisibility.everyone: 1,
-  EmailAddressVisibility.members: 2,
-  EmailAddressVisibility.admins: 3,
-  EmailAddressVisibility.nobody: 4,
-  EmailAddressVisibility.moderators: 5,
 };
 
 const _$RealmWildcardMentionPolicyEnumMap = {

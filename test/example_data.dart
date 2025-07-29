@@ -251,7 +251,7 @@ int _lastEmailSuffix = 1000;
 /// other data in the test, or if the IDs need to increase in a different order
 /// from the calls to [user].
 ///
-/// If `email` is not given, it defaults to `deliveryEmail` if given,
+/// If `email` is not given, it defaults to `deliveryEmail` if given and non-null,
 /// or else to a value resembling the Zulip server's generated fake emails.
 User user({
   int? userId,
@@ -1202,7 +1202,6 @@ InitialSnapshot initialSnapshot({
   String? zulipMergeBase,
   List<String>? alertWords,
   List<CustomProfileField>? customProfileFields,
-  EmailAddressVisibility? emailAddressVisibility,
   int? serverPresencePingIntervalSeconds,
   int? serverPresenceOfflineThresholdSeconds,
   int? serverTypingStartedExpiryPeriodMilliseconds,
@@ -1242,7 +1241,6 @@ InitialSnapshot initialSnapshot({
     zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
     alertWords: alertWords ?? ['klaxon'],
     customProfileFields: customProfileFields ?? [],
-    emailAddressVisibility: emailAddressVisibility ?? EmailAddressVisibility.everyone,
     serverPresencePingIntervalSeconds: serverPresencePingIntervalSeconds ?? 60,
     serverPresenceOfflineThresholdSeconds: serverPresenceOfflineThresholdSeconds ?? 140,
     serverTypingStartedExpiryPeriodMilliseconds:
