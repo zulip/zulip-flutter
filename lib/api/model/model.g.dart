@@ -8,6 +8,24 @@ part of 'model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+GroupSettingValueNameless _$GroupSettingValueNamelessFromJson(
+  Map<String, dynamic> json,
+) => GroupSettingValueNameless(
+  directMembers: (json['direct_members'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+  directSubgroups: (json['direct_subgroups'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+);
+
+Map<String, dynamic> _$GroupSettingValueNamelessToJson(
+  GroupSettingValueNameless instance,
+) => <String, dynamic>{
+  'direct_members': instance.directMembers,
+  'direct_subgroups': instance.directSubgroups,
+};
+
 CustomProfileField _$CustomProfileFieldFromJson(Map<String, dynamic> json) =>
     CustomProfileField(
       id: (json['id'] as num).toInt(),

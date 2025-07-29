@@ -12,6 +12,50 @@ export 'reaction.dart';
 
 part 'model.g.dart';
 
+/// A Zulip "group-setting value": https://zulip.com/api/group-setting-values
+sealed class GroupSettingValue {
+  const GroupSettingValue();
+
+  factory GroupSettingValue.fromJson(Object? json) {
+    return switch (json) {
+      int() => GroupSettingValueNamed.fromJson(json),
+      Map<String, dynamic>() => GroupSettingValueNameless.fromJson(json),
+      _ => throw FormatException(),
+    };
+  }
+
+  Object? toJson();
+}
+
+class GroupSettingValueNamed extends GroupSettingValue {
+  final int groupId;
+
+  const GroupSettingValueNamed(this.groupId);
+
+  factory GroupSettingValueNamed.fromJson(int json) => GroupSettingValueNamed(json);
+
+  @override
+  int toJson() => groupId;
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class GroupSettingValueNameless extends GroupSettingValue {
+  // TODO(server): The API docs say these should be "direct_member_ids" and
+  //   "direct_subgroup_ids", but empirically they're "direct_members"
+  //   and "direct_subgroups".  Discussion:
+  //     https://chat.zulip.org/#narrow/channel/378-api-design/topic/groups.20redesign/near/2247218
+  final List<int> directMembers;
+  final List<int> directSubgroups;
+
+  GroupSettingValueNameless({required this.directMembers, required this.directSubgroups});
+
+  factory GroupSettingValueNameless.fromJson(Map<String, dynamic> json) =>
+    _$GroupSettingValueNamelessFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$GroupSettingValueNamelessToJson(this);
+}
+
 /// As in [InitialSnapshot.customProfileFields].
 ///
 /// For docs, search for "custom_profile_fields:"
