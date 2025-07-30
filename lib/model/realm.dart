@@ -4,6 +4,7 @@ import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import 'store.dart';
+import 'user_group.dart';
 
 /// The portion of [PerAccountStore] for realm settings, server settings,
 /// and similar data about the whole realm or server.
@@ -11,7 +12,10 @@ import 'store.dart';
 /// See also:
 ///  * [RealmStoreImpl] for the implementation of this that does the work.
 ///  * [HasRealmStore] for an implementation useful for other substores.
-mixin RealmStore on PerAccountStoreBase {
+mixin RealmStore on PerAccountStoreBase, UserGroupStore {
+  @protected
+  UserGroupStore get userGroupStore;
+
   //|//////////////////////////////////////////////////////////////
   // Server settings, explicitly so named.
 
@@ -159,9 +163,9 @@ mixin ProxyRealmStore on RealmStore {
 
 /// A base class for [PerAccountStore] substores that need access to [RealmStore]
 /// as well as to [CorePerAccountStore].
-abstract class HasRealmStore extends PerAccountStoreBase with RealmStore, ProxyRealmStore {
+abstract class HasRealmStore extends HasUserGroupStore with RealmStore, ProxyRealmStore {
   HasRealmStore({required RealmStore realm})
-    : realmStore = realm, super(core: realm.core);
+    : realmStore = realm, super(groups: realm.userGroupStore);
 
   @protected
   @override
@@ -169,9 +173,9 @@ abstract class HasRealmStore extends PerAccountStoreBase with RealmStore, ProxyR
 }
 
 /// The implementation of [RealmStore] that does the work.
-class RealmStoreImpl extends PerAccountStoreBase with RealmStore {
+class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   RealmStoreImpl({
-    required super.core,
+    required super.groups,
     required InitialSnapshot initialSnapshot,
   }) :
     serverPresencePingIntervalSeconds = initialSnapshot.serverPresencePingIntervalSeconds,

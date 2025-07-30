@@ -496,15 +496,16 @@ class PerAccountStore extends PerAccountStoreBase with
       throw Exception("bad initial snapshot: self-user missing from user list");
     }
 
-    final realm = RealmStoreImpl(core: core, initialSnapshot: initialSnapshot);
+    final groups = UserGroupStoreImpl(core: core,
+      groups: initialSnapshot.realmUserGroups);
+    final realm = RealmStoreImpl(groups: groups, initialSnapshot: initialSnapshot);
     final users = UserStoreImpl(realm: realm, initialSnapshot: initialSnapshot,
       userMap: userMap);
     final channels = ChannelStoreImpl(users: users,
       initialSnapshot: initialSnapshot);
     return PerAccountStore._(
       core: core,
-      groups: UserGroupStoreImpl(core: core,
-        groups: initialSnapshot.realmUserGroups),
+      groups: groups,
       realm: realm,
       emoji: EmojiStoreImpl(core: core,
         allRealmEmoji: initialSnapshot.realmEmoji),
