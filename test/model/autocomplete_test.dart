@@ -403,7 +403,7 @@ void main() {
       ..not((results) => results.contains(11000));
   });
 
-  group('MentionAutocompleteView sorting users results', () {
+  group('MentionAutocompleteView sorting results', () {
     late PerAccountStore store;
 
     Future<void> prepare({
