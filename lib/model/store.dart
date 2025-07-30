@@ -498,7 +498,8 @@ class PerAccountStore extends PerAccountStoreBase with
 
     final groups = UserGroupStoreImpl(core: core,
       groups: initialSnapshot.realmUserGroups);
-    final realm = RealmStoreImpl(groups: groups, initialSnapshot: initialSnapshot);
+    final realm = RealmStoreImpl(groups: groups, initialSnapshot: initialSnapshot,
+      selfUser: selfUser);
     final users = UserStoreImpl(realm: realm, initialSnapshot: initialSnapshot,
       userMap: userMap);
     final channels = ChannelStoreImpl(users: users,
@@ -759,6 +760,7 @@ class PerAccountStore extends PerAccountStoreBase with
       case RealmUserUpdateEvent():
         assert(debugLog("server event: realm_user/update"));
         _groups.handleRealmUserUpdateEvent(event);
+        _realm.handleRealmUserUpdateEvent(event);
         _users.handleRealmUserEvent(event);
         autocompleteViewManager.handleRealmUserUpdateEvent(event);
         notifyListeners();

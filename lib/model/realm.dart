@@ -177,7 +177,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   RealmStoreImpl({
     required super.groups,
     required InitialSnapshot initialSnapshot,
+    required User selfUser,
   }) :
+    _selfUserRole = selfUser.role,
     serverPresencePingIntervalSeconds = initialSnapshot.serverPresencePingIntervalSeconds,
     serverPresenceOfflineThresholdSeconds = initialSnapshot.serverPresenceOfflineThresholdSeconds,
     serverTypingStartedExpiryPeriodMilliseconds = initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds,
@@ -194,6 +196,13 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     _realmEmptyTopicDisplayName = initialSnapshot.realmEmptyTopicDisplayName,
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
     customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields);
+
+  /// The [User.role] of the self-user.
+  ///
+  /// The main home of this information is [UserStore]: `store.selfUser.role`.
+  /// We need it here for interpreting some permission settings;
+  /// so we denormalize it here to avoid a cycle between substores.
+  UserRole _selfUserRole; // ignore: unused_field  // TODO(#814)
 
   @override
   final int serverPresencePingIntervalSeconds;
@@ -256,5 +265,12 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
 
   void handleCustomProfileFieldsEvent(CustomProfileFieldsEvent event) {
     customProfileFields = _sortCustomProfileFields(event.fields);
+  }
+
+  void handleRealmUserUpdateEvent(RealmUserUpdateEvent event) {
+    // Compare [UserStoreImpl.handleRealmUserEvent].
+    if (event.userId == selfUserId) {
+      if (event.role != null) _selfUserRole = event.role!;
+    }
   }
 }
