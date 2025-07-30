@@ -445,10 +445,11 @@ void showChannelActionSheet(BuildContext context, {
     && messageListPageNarrow.streamId == channelId;
 
   final unreadCount = store.unreads.countInChannelNarrow(channelId);
-  final isSubscribed = store.subscriptions[channelId] != null;
+  final channel = store.streams[channelId];
+  final isSubscribed = channel is Subscription;
   final buttonSections = [
-    if (!isSubscribed)
-      // TODO(#1786) check group-based can-subscribe permission
+    if (!isSubscribed
+        && channel != null && store.selfHasContentAccess(channel))
       [SubscribeButton(pageContext: pageContext, channelId: channelId)],
     [
       if (unreadCount > 0)
