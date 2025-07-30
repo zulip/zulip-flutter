@@ -39,6 +39,15 @@ mixin ProxyUserGroupStore on UserGroupStore {
     => userGroupStore.selfInGroupSetting(value);
 }
 
+abstract class HasUserGroupStore extends PerAccountStoreBase with UserGroupStore, ProxyUserGroupStore {
+  HasUserGroupStore({required UserGroupStore groups})
+    : userGroupStore = groups, super(core: groups.core);
+
+  @protected
+  @override
+  final UserGroupStore userGroupStore;
+}
+
 /// The implementation of [UserGroupStore] that does the work.
 class UserGroupStoreImpl extends PerAccountStoreBase with UserGroupStore {
   UserGroupStoreImpl({required super.core, required List<UserGroup> groups})
