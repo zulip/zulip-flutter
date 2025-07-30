@@ -121,7 +121,13 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
     }
     return topic;
   }
+
+  /// Whether the self-user has the given (group-based) permission.
+  bool selfHasPermissionForGroupSetting(GroupSettingValue value,
+      GroupSettingType type, String name);
 }
+
+enum GroupSettingType { realm, stream, group }
 
 mixin ProxyRealmStore on RealmStore {
   @protected
@@ -159,6 +165,9 @@ mixin ProxyRealmStore on RealmStore {
   Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts => realmStore.realmDefaultExternalAccounts;
   @override
   List<CustomProfileField> get customProfileFields => realmStore.customProfileFields;
+  @override
+  bool selfHasPermissionForGroupSetting(GroupSettingValue value, GroupSettingType type, String name) =>
+    realmStore.selfHasPermissionForGroupSetting(value, type, name);
 }
 
 /// A base class for [PerAccountStore] substores that need access to [RealmStore]
@@ -197,12 +206,45 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
     customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields);
 
+  @override
+  bool selfHasPermissionForGroupSetting(GroupSettingValue value,
+      GroupSettingType type, String name) {
+    // Compare web's settings_data.user_has_permission_for_group_setting.
+    //
+    // In the whole web app, there's just one caller for that function with
+    // a user other than the self user: stream_data.can_post_messages_in_stream,
+    // and only for get_current_user_and_their_bots_with_post_messages_permission,
+    // with only the self-user's own bots as the arguments.
+    // That exists for deciding whether to offer the "Generate email address"
+    // button, and if so then which users to offer in the dropdown;
+    // it's predicting whether /api/get-stream-email-address would succeed.
+    if (_selfUserRole == UserRole.guest) {
+      final config = _groupSettingConfig(type, name);
+      if (!config.allowEveryoneGroup) return false;
+    }
+    return selfInGroupSetting(value);
+  }
+
+  /// The metadata for how to interpret the given group-based permission setting.
+  PermissionSettingsItem _groupSettingConfig(GroupSettingType type, String name) {
+    final supportedSettings = SupportedPermissionSettings.fixture;
+
+    // Compare web's group_permission_settings.get_group_permission_setting_config.
+    final configGroup = switch (type) {
+      GroupSettingType.realm => supportedSettings.realm,
+      GroupSettingType.stream => supportedSettings.stream,
+      GroupSettingType.group => supportedSettings.group,
+    };
+    final config = configGroup[name];
+    return config!; // TODO(log)
+  }
+
   /// The [User.role] of the self-user.
   ///
   /// The main home of this information is [UserStore]: `store.selfUser.role`.
   /// We need it here for interpreting some permission settings;
   /// so we denormalize it here to avoid a cycle between substores.
-  UserRole _selfUserRole; // ignore: unused_field  // TODO(#814)
+  UserRole _selfUserRole;
 
   @override
   final int serverPresencePingIntervalSeconds;
