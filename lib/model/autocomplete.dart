@@ -249,6 +249,14 @@ class AutocompleteViewManager {
     autocompleteDataCache.invalidateUser(event.userId);
   }
 
+  void handleUserGroupRemoveEvent(UserGroupRemoveEvent event) {
+    autocompleteDataCache.invalidateUserGroup(event.groupId);
+  }
+
+  void handleUserGroupUpdateEvent(UserGroupUpdateEvent event) {
+    autocompleteDataCache.invalidateUserGroup(event.groupId);
+  }
+
   /// Called when the app is reassembled during debugging, e.g. for hot reload.
   ///
   /// Calls [AutocompleteView.reassemble] for all that are registered.
@@ -423,6 +431,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     required this.localizations,
     required this.narrow,
     required this.sortedUsers,
+    required this.sortedUserGroups,
   });
 
   factory MentionAutocompleteView.init({
@@ -437,6 +446,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
       localizations: localizations,
       narrow: narrow,
       sortedUsers: _usersByRelevance(store: store, narrow: narrow),
+      sortedUserGroups: _userGroupsByRelevance(store: store),
     );
     store.autocompleteViewManager.registerMentionAutocomplete(view);
     return view;
@@ -444,6 +454,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
 
   final Narrow narrow;
   final List<User> sortedUsers;
+  final List<UserGroup> sortedUserGroups;
   final ZulipLocalizations localizations;
 
   static List<User> _usersByRelevance({
@@ -611,6 +622,33 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     return userAName.compareTo(userBName); // TODO(i18n): add locale-aware sorting
   }
 
+  static List<UserGroup> _userGroupsByRelevance({required PerAccountStore store}) {
+    return store.activeGroups
+      // TODO(#1776) Follow new "Who can mention this group" setting instead
+      .where((userGroup) => !userGroup.isSystemGroup)
+      .toList()
+      ..sort(_userGroupComparator(store: store));
+  }
+
+  static int Function(UserGroup, UserGroup) _userGroupComparator({
+    required PerAccountStore store,
+  }) {
+    // See also [MentionAutocompleteQuery._rankUserGroupResult];
+    // that ranking takes precedence over this.
+
+    return (userGroupA, userGroupB) =>
+      compareGroupsByAlphabeticalOrder(userGroupA, userGroupB, store: store);
+  }
+
+  static int compareGroupsByAlphabeticalOrder(UserGroup userGroupA, UserGroup userGroupB,
+      {required PerAccountStore store}) {
+    final groupAName = store.autocompleteViewManager.autocompleteDataCache
+      .lowercaseNameForUserGroup(userGroupA);
+    final groupBName = store.autocompleteViewManager.autocompleteDataCache
+      .lowercaseNameForUserGroup(userGroupB);
+    return groupAName.compareTo(groupBName); // TODO(i18n): add locale-aware sorting
+  }
+
   void computeWildcardMentionResults({
     required List<MentionAutocompleteResult> results,
     required bool isComposingChannelMessage,
@@ -654,12 +692,21 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
       return null;
     }
 
+    if (await filterCandidates(filter: _testUserGroup,
+        candidates: sortedUserGroups, results: unsorted)) {
+      return null;
+    }
+
     return bucketSort(unsorted,
       (r) => r.rank, numBuckets: MentionAutocompleteQuery._numResultRanks);
   }
 
   MentionAutocompleteResult? _testUser(MentionAutocompleteQuery query, User user) {
     return query.testUser(user, store);
+  }
+
+  MentionAutocompleteResult? _testUserGroup(MentionAutocompleteQuery query, UserGroup userGroup) {
+    return query.testUserGroup(userGroup, store);
   }
 
   @override
@@ -728,7 +775,8 @@ abstract class AutocompleteQuery {
   }
 }
 
-/// The match quality of a [User.fullName] to a mention autocomplete query.
+/// The match quality of a [User.fullName] or [UserGroup.name]
+/// to a mention autocomplete query.
 ///
 /// All matches are case-insensitive.
 enum NameMatchQuality {
@@ -830,10 +878,24 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
     return lowercaseEmail.startsWith(_lowercase);
   }
 
+  MentionAutocompleteResult? testUserGroup(UserGroup userGroup, PerAccountStore store) {
+    final cache = store.autocompleteViewManager.autocompleteDataCache;
+
+    final nameMatchQuality = _matchName(
+      normalizedName: cache.lowercaseNameForUserGroup(userGroup),
+      normalizedNameWords: cache.lowercaseNameWordsForUserGroup(userGroup));
+
+    if (nameMatchQuality == null) return null;
+
+    return UserGroupMentionAutocompleteResult(
+      groupId: userGroup.id,
+      rank: _rankUserGroupResult(userGroup, nameMatchQuality: nameMatchQuality));
+  }
+
   /// A measure of a wildcard result's quality in the context of the query,
   /// from 0 (best) to one less than [_numResultRanks].
   ///
-  /// See also [_rankUserResult].
+  /// See also [_rankUserResult] and [_rankUserGroupResult].
   static const _rankWildcardResult = 0;
 
   /// A measure of a user result's quality in the context of the query,
@@ -842,7 +904,7 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
   /// When [nameMatchQuality] is non-null (the name matches),
   /// callers should skip computing [matchesEmail] and pass null for that.
   ///
-  /// See also [_rankWildcardResult].
+  /// See also [_rankWildcardResult] and [_rankUserGroupResult].
   static int _rankUserResult(User user, {
     required NameMatchQuality? nameMatchQuality,
     required bool? matchesEmail,
@@ -856,12 +918,26 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
       };
     }
     assert(matchesEmail == true);
-    return 4;
+    return 7;
+  }
+
+  /// A measure of a user-group result's quality in the context of the query,
+  /// from 0 (best) to one less than [_numResultRanks].
+  ///
+  /// See also [_rankWildcardResult] and [_rankUserResult].
+  static int _rankUserGroupResult(UserGroup userGroup, {
+    required NameMatchQuality nameMatchQuality,
+  }) {
+    return switch (nameMatchQuality) {
+      NameMatchQuality.exact =>        4,
+      NameMatchQuality.totalPrefix =>  5,
+      NameMatchQuality.wordPrefixes => 6,
+    };
   }
 
   /// The number of possible values returned by
-  /// [_rankWildcardResult] and [_rankUserResult].
-  static const _numResultRanks = 5;
+  /// [_rankWildcardResult], [_rankUserResult], and [_rankUserGroupResult]..
+  static const _numResultRanks = 8;
 
   @override
   String toString() {
@@ -916,10 +992,29 @@ class AutocompleteDataCache {
     return _normalizedEmailsByUser[user.userId] ??= user.deliveryEmail?.toLowerCase();
   }
 
+  final Map<int, String> _lowercaseNamesByUserGroup = {};
+
+  /// The normalized `name` of [userGroup].
+  String lowercaseNameForUserGroup(UserGroup userGroup) {
+    return _lowercaseNamesByUserGroup[userGroup.id] ??= userGroup.name.toLowerCase();
+  }
+
+  final Map<int, List<String>> _lowercaseNameWordsByUserGroup = {};
+
+  List<String> lowercaseNameWordsForUserGroup(UserGroup userGroup) {
+    return _lowercaseNameWordsByUserGroup[userGroup.id]
+      ??= lowercaseNameForUserGroup(userGroup).split(' ');
+  }
+
   void invalidateUser(int userId) {
     _normalizedNamesByUser.remove(userId);
     _normalizedNameWordsByUser.remove(userId);
     _normalizedEmailsByUser.remove(userId);
+  }
+
+  void invalidateUserGroup(int id) {
+    _lowercaseNamesByUserGroup.remove(id);
+    _lowercaseNameWordsByUserGroup.remove(id);
   }
 }
 
@@ -970,7 +1065,7 @@ sealed class MentionAutocompleteResult extends ComposeAutocompleteResult {
   //   https://github.com/zulip/zulip/blob/afdf20c67/web/src/typeahead_helper.ts#L472
   //
   // Behavior we have that web doesn't and might like to follow:
-  // - A "word-prefixes" match quality on user names:
+  // - A "word-prefixes" match quality on user and user-group names:
   //   see [NameMatchQuality.wordPrefixes], which we rank on.
   //
   // Behavior web has that seems undesired, which we don't plan to follow:
@@ -1015,7 +1110,15 @@ class WildcardMentionAutocompleteResult extends MentionAutocompleteResult {
   final int rank;
 }
 
-// TODO(#233): // class UserGroupMentionAutocompleteResult extends MentionAutocompleteResult {
+/// An autocomplete result for an @-mention of a user group.
+class UserGroupMentionAutocompleteResult extends MentionAutocompleteResult {
+  UserGroupMentionAutocompleteResult({required this.groupId, required this.rank});
+
+  final int groupId;
+
+  @override
+  final int rank;
+}
 
 /// An autocomplete interaction for choosing a topic for a message.
 class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, TopicAutocompleteResult> {

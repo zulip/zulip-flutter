@@ -267,6 +267,16 @@ extension PerAccountStoreTestExtension on PerAccountStore {
     }
   }
 
+  Future<void> addUserGroup(UserGroup userGroup) async {
+    await handleEvent(UserGroupAddEvent(id: 1, group: userGroup));
+  }
+
+  Future<void> addUserGroups(Iterable<UserGroup> userGroups) async {
+    for (final userGroup in userGroups) {
+      await addUserGroup(userGroup);
+    }
+  }
+
   Future<void> setMutedUsers(List<int> userIds) async {
     await handleEvent(eg.mutedUsersEvent(userIds));
   }

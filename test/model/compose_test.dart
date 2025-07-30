@@ -316,6 +316,22 @@ hello
       check(wildcardMention(WildcardMentionOption.topic, store: store()))
         .equals('@**topic**');
     });
+
+    group('user group', () {
+      final userGroup = eg.userGroup(name: 'Group Name');
+      test('not silent', () async {
+        final store = eg.store();
+        await store.addUserGroup(userGroup);
+        check(userGroupMention(userGroup.name, silent: false))
+          .equals('@*Group Name*');
+      });
+      test('silent', () async {
+        final store = eg.store();
+        await store.addUserGroup(userGroup);
+        check(userGroupMention(userGroup.name, silent: true))
+          .equals('@_*Group Name*');
+      });
+    });
   });
 
   test('inlineLink', () {

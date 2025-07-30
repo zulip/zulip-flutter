@@ -213,6 +213,19 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
         replacementString = '${userMention(user, silent: query.silent, users: store)} ';
       case WildcardMentionAutocompleteResult(:var wildcardOption):
         replacementString = '${wildcardMention(wildcardOption, store: store)} ';
+      case UserGroupMentionAutocompleteResult(:final groupId):
+        if (query is! MentionAutocompleteQuery) {
+          return; // Shrug; similar to `intent == null` case above.
+        }
+        final userGroup = store.getGroup(groupId);
+        if (userGroup == null) {
+          // Don't crash on theoretical race between async results-filtering
+          // and losing data for the group.
+          return;
+        }
+        // TODO(i18n) language-appropriate space character; check active keyboard?
+        //   (maybe handle centrally in `controller`)
+        replacementString = '${userGroupMention(userGroup.name, silent: query.silent)} ';
     }
 
     controller.value = intent.textEditingValue.replaced(
@@ -291,6 +304,16 @@ class MentionAutocompleteItem extends StatelessWidget {
         emoji = UserStatusEmoji(userId: userId, size: 18,
           padding: const EdgeInsetsDirectional.only(start: 5.0));
         sublabel = store.getUser(userId)?.deliveryEmail;
+      case UserGroupMentionAutocompleteResult(:final groupId):
+        final group = store.getGroup(groupId);
+        avatar = SizedBox.square(dimension: 36,
+          child: const Icon(ZulipIcons.three_person, size: 24));
+        label = group?.name
+          // Don't crash on theoretical race between async results-filtering
+          // and losing data for the group.
+          ?? '';
+        emoji = null;
+        sublabel = group?.description;
       case WildcardMentionAutocompleteResult(:var wildcardOption):
         avatar = SizedBox.square(dimension: 36,
           child: const Icon(ZulipIcons.three_person, size: 24));

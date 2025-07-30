@@ -181,6 +181,10 @@ String wildcardMention(WildcardMentionOption wildcardOption, {
   return '@**$name**';
 }
 
+/// An @-mention of a user group, like @*mobile*.
+String userGroupMention(String userGroupName, {bool silent = false}) =>
+  '@${silent ? '_' : ''}*$userGroupName*';
+
 /// https://spec.commonmark.org/0.30/#inline-link
 ///
 /// The "link text" is made by enclosing [visibleText] in square brackets.

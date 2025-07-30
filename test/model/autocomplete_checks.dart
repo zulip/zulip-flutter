@@ -25,6 +25,10 @@ extension WildcardMentionAutocompleteResultChecks on Subject<WildcardMentionAuto
   Subject<WildcardMentionOption> get wildcardOption => has((x) => x.wildcardOption, 'wildcardOption');
 }
 
+extension UserGroupMentionAutocompleteResultChecks on Subject<UserGroupMentionAutocompleteResult> {
+  Subject<int> get groupId => has((r) => r.groupId, 'groupId');
+}
+
 extension TopicAutocompleteResultChecks on Subject<TopicAutocompleteResult> {
   Subject<TopicName> get topic => has((r) => r.topic, 'topic');
 }

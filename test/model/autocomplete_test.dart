@@ -320,21 +320,39 @@ void main() {
     for (int i = 1; i <= 2500; i++) {
       await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
     }
+    for (int i = 1; i <= 2500; i++) {
+      await store.addUserGroup(eg.userGroup(id: i, name: 'User Group $i'));
+    }
 
     bool done = false;
     final view = MentionAutocompleteView.init(store: store, localizations: zulipLocalizations,
       narrow: narrow, query: MentionAutocompleteQuery('User 2222'));
     view.addListener(() { done = true; });
 
+    // three batches for users
+    await Future(() {});
+    check(done).isFalse();
+    await Future(() {});
+    check(done).isFalse();
+    await Future(() {});
+    check(done).isFalse();
+
+    // three batches for user groups
     await Future(() {});
     check(done).isFalse();
     await Future(() {});
     check(done).isFalse();
     await Future(() {});
     check(done).isTrue();
-    check(view.results).single
-      .isA<UserMentionAutocompleteResult>()
-      .userId.equals(2222);
+
+    check(view.results).deepEquals(<Condition<Object?>>[
+      (it) => it
+        .isA<UserMentionAutocompleteResult>()
+        .userId.equals(2222),
+      (it) => it
+        .isA<UserGroupMentionAutocompleteResult>()
+        .groupId.equals(2222),
+    ]);
   });
 
   test('MentionAutocompleteView new query during computation replaces old', () async {
@@ -342,6 +360,9 @@ void main() {
     final store = eg.store();
     for (int i = 1; i <= 1500; i++) {
       await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
+    }
+    for (int i = 1; i <= 1500; i++) {
+      await store.addUserGroup(eg.userGroup(id: i, name: 'User Group $i'));
     }
 
     bool done = false;
@@ -353,21 +374,33 @@ void main() {
     check(done).isFalse();
     view.query = MentionAutocompleteQuery('User 234');
 
-    // …new query goes through all batches
+    // …new query goes through all user batches
+    await Future(() {});
+    check(done).isFalse();
+    await Future(() {});
+    check(done).isFalse();
+    // …and all user-group batches
     await Future(() {});
     check(done).isFalse();
     await Future(() {});
     check(done).isTrue(); // new result is set
-    check(view.results).single
-      .isA<UserMentionAutocompleteResult>()
-      .userId.equals(234);
+
+    void checkResult() {
+      check(view.results).deepEquals(<Condition<Object?>>[
+        (it) => it
+          .isA<UserMentionAutocompleteResult>()
+          .userId.equals(234),
+        (it) => it
+          .isA<UserGroupMentionAutocompleteResult>()
+          .groupId.equals(234),
+      ]);
+    }
+    checkResult();
 
     // new result sticks; it isn't clobbered with old query's result
     for (int i = 0; i < 10; i++) { // for good measure
       await Future(() {});
-      check(view.results).single
-        .isA<UserMentionAutocompleteResult>()
-        .userId.equals(234);
+      checkResult();
     }
   });
 
@@ -408,12 +441,14 @@ void main() {
 
     Future<void> prepare({
       List<User> users = const [],
+      List<UserGroup> userGroups = const [],
       List<RecentDmConversation> dmConversations = const [],
       List<Message> messages = const [],
     }) async {
       store = eg.store(initialSnapshot: eg.initialSnapshot(
         recentPrivateConversations: dmConversations));
       await store.addUsers(users);
+      await store.addUserGroups(userGroups);
       await store.addMessages(messages);
     }
 
@@ -746,7 +781,8 @@ void main() {
         final view = MentionAutocompleteView.init(store: store,
           localizations: zulipLocalizations, narrow: narrow, query: query);
         view.addListener(() { done = true; });
-        await Future(() {});
+        await Future(() {}); // users
+        await Future(() {}); // groups
         check(done).isTrue();
         final results = view.results;
         view.dispose();
@@ -756,6 +792,11 @@ void main() {
       Condition<Object?> isUser(int userId) {
         return (it) => it.isA<UserMentionAutocompleteResult>()
           .userId.equals(userId);
+      }
+
+      Condition<Object?> isUserGroup(int id) {
+        return (it) => it.isA<UserGroupMentionAutocompleteResult>()
+          .groupId.equals(id);
       }
 
       Condition<Object?> isWildcard(WildcardMentionOption option) {
@@ -777,7 +818,14 @@ void main() {
         eg.user(userId: 7, fullName: 'User Seven'),
       ];
 
-      await prepare(users: users, messages: [
+      final userGroups = [
+        eg.userGroup(id: 1, name: 'User Group One'),
+        eg.userGroup(id: 2, name: 'User Group Two'),
+        eg.userGroup(id: 3, name: 'User Group Three'),
+        eg.userGroup(id: 4, name: 'User Group Four'),
+      ];
+
+      await prepare(users: users, userGroups: userGroups, messages: [
         eg.streamMessage(sender: users[1-1], stream: stream, topic: topic),
         eg.streamMessage(sender: users[5-1], stream: stream, topic: 'other $topic'),
         eg.dmMessage(from: users[1-1], to: [users[2-1], eg.selfUser]),
@@ -788,25 +836,29 @@ void main() {
       // Check the ranking of the full list of mentions,
       // i.e. the results for an empty query.
       // The order should be:
-      // 1. Wildcards before individual users.
+      // 1. Wildcards before individual users; user groups (alphabetically) after.
       // 2. Users most recent in the current topic/stream.
       // 3. Users most recent in the DM conversations.
       // 4. Human vs. Bot users (human users come first).
       // 5. Users by name alphabetical order.
+      // 6. User groups by name alphabetical order.
       check(await getResults(topicNarrow, MentionAutocompleteQuery(''))).deepEquals([
         isWildcard(WildcardMentionOption.all),
         isWildcard(WildcardMentionOption.topic),
         ...[1, 5, 4, 2, 7, 3, 6].map(isUser),
+        ...[4, 1, 3, 2].map(isUserGroup),
       ]);
 
       // Check the ranking applies also to results filtered by a query.
       check(await getResults(topicNarrow, MentionAutocompleteQuery('t'))).deepEquals([
         isWildcard(WildcardMentionOption.stream),
         isWildcard(WildcardMentionOption.topic),
-        isUser(2), isUser(3),
+        isUser(2), isUser(3), // 2 before 3 by DM recency
+        isUserGroup(3), isUserGroup(2), // 3 before 2 by alphabet ("…Three" before "…Two")
       ]);
       check(await getResults(topicNarrow, MentionAutocompleteQuery('f'))).deepEquals([
         isUser(5), isUser(4),
+        isUserGroup(4),
       ]);
     });
   });
@@ -988,6 +1040,7 @@ void main() {
         WildcardMentionOption() => query.testWildcardOption(candidate,
           localizations: GlobalLocalizations.zulipLocalizations),
         User() => query.testUser(candidate, (store ??= eg.store())),
+        UserGroup() => query.testUserGroup(candidate, (store ??= eg.store())),
         _ => throw StateError('invalid candidate'),
       };
       return result?.rank;
@@ -1036,6 +1089,29 @@ void main() {
       checkPrecedes('so m', user1, user2);
     });
 
+    test('group name matched case-insensitively', () {
+      final userGroup1 = eg.userGroup(name: 'Mobile Team');
+      final userGroup2 = eg.userGroup(name: 'mobile team');
+
+      checkSameRank('mobile team', userGroup1, userGroup2); // exact
+      checkSameRank('mobile te',   userGroup1, userGroup2); // total-prefix
+      checkSameRank('mob te',      userGroup1, userGroup2); // word-prefixes
+    });
+
+    test('group name match: exact over total-prefix', () {
+      final userGroup1 = eg.userGroup(name: 'Mobile');
+      final userGroup2 = eg.userGroup(name: 'Mobile Team');
+
+      checkPrecedes('mobile', userGroup1, userGroup2);
+    });
+
+    test('group name match: total-prefix over word-prefixes', () {
+      final userGroup1 = eg.userGroup(name: 'So Many Ideas');
+      final userGroup2 = eg.userGroup(name: 'Some Merry Group');
+
+      checkPrecedes('so m', userGroup1, userGroup2);
+    });
+
     test('email matched case-insensitively', () {
       // "z" name to prevent accidental name match with example data
       final user1 = eg.user(fullName: 'z', deliveryEmail: 'email@example.com');
@@ -1060,13 +1136,17 @@ void main() {
 
     test('full list of ranks', () {
       final user1 = eg.user(fullName: 'some user', deliveryEmail: 'email@example.com');
+      final userGroup1 = eg.userGroup(name: 'some user group');
       check([
         rankOf('', WildcardMentionOption.all), // wildcard
         rankOf('some user', user1),            // user, exact name match
         rankOf('some us', user1),              // user, total-prefix name match
         rankOf('so us', user1),                // user, word-prefixes name match
+        rankOf('some user group', userGroup1), // user group, exact name match
+        rankOf('some us', userGroup1),         // user group, total-prefix name match
+        rankOf('so us gr', userGroup1),        // user group, word-prefixes name match
         rankOf('email', user1),                // user, no name match, email match
-      ]).deepEquals([0, 1, 2, 3, 4]);
+      ]).deepEquals([0, 1, 2, 3, 4, 5, 6, 7]);
     });
   });
 
