@@ -1341,6 +1341,38 @@ void main() {
         check(find.byIcon(Icons.mark_chat_unread_outlined).evaluate()).single;
       });
 
+      testWidgets('not visible if message is in unsubscribed stream', (tester) async {
+        // Setup with a read message, so the button is potentially visible.
+        final readMessage = eg.streamMessage(flags: [MessageFlag.read]);
+
+        // this will use the common helper function .
+        // This will subscribe to the stream and open the action sheet .
+        await setupToMessageActionSheet(tester,
+          message: readMessage, narrow: TopicNarrow.ofMessage(readMessage));
+
+        // Initially, the button should be visible because the helper subscribes to the stream.
+        check(find.byIcon(Icons.mark_chat_unread_outlined).evaluate()).single;
+
+        // Close the action sheet
+        await tester.tapAt(const Offset(0, 0)); // Tap outside to dismiss it
+        await tester.pumpAndSettle();
+
+        // Now, we will fire an event to unsubscribe from the stream.
+        await store.handleEvent(SubscriptionRemoveEvent(
+          id: 999, // dummy event ID
+          streamIds: [readMessage.streamId]));
+
+        // this will Process the state change
+        await tester.pump();
+
+        // Open the action sheet again after unsubscribing from the stream
+        await tester.longPress(find.byType(MessageContent), warnIfMissed: false);
+        await tester.pump(const Duration(milliseconds: 250));
+
+        // After the rebuild, the button should be gone.
+        check(find.byIcon(Icons.mark_chat_unread_outlined).evaluate()).isEmpty();
+      });
+
       group('onPressed', () {
         testWidgets('smoke test', (tester) async {
           final message = eg.streamMessage(flags: [MessageFlag.read]);
@@ -1547,7 +1579,6 @@ void main() {
           of: find.byWidget(snackbar.content),
           matching: find.text(zulipLocalizations.successMessageTextCopied)));
       });
-
       testWidgets('request has an error', (tester) async {
         final message = eg.streamMessage();
         await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
