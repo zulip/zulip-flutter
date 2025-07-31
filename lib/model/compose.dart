@@ -188,8 +188,8 @@ String wildcardMention(WildcardMentionOption wildcardOption, {
 /// result may be surprising.
 ///
 /// The part between "(" and ")" is just a "link destination" (no "link title").
-/// That destination is simply the stringified [destination], if provided.
-/// If that has parentheses in it, the result may be surprising.
+/// That destination is the string [destination], if provided.
+/// If [destination] has parentheses in it, the result may be surprising.
 // TODO: Try harder to guarantee output that creates an inline link,
 //   and in particular, the intended one. We could help with this by escaping
 //   square brackets, perhaps with HTML character references:
@@ -199,8 +199,8 @@ String wildcardMention(WildcardMentionOption wildcardOption, {
 //   > Backtick code spans, autolinks, and raw HTML tags bind more tightly
 //   > than the brackets in link text. Thus, for example, [foo`]` could not be
 //   > a link text, since the second ] is part of a code span.
-String inlineLink(String visibleText, Uri? destination) {
-  return '[$visibleText](${destination?.toString() ?? ''})';
+String inlineLink(String visibleText, String? destination) {
+  return '[$visibleText](${destination ?? ''})';
 }
 
 /// What we show while fetching the target message's raw Markdown.
@@ -213,7 +213,7 @@ String quoteAndReplyPlaceholder(
     SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
     nearMessageId: message.id);
   return '${userMentionFromMessage(message, silent: true, users: store)} '
-    '${inlineLink('said', url)}: ' // TODO(#1285)
+    '${inlineLink('said', url.toString())}: ' // TODO(#1285)
     '*${zulipLocalizations.composeBoxLoadingMessage(message.id)}*\n';
 }
 
@@ -237,6 +237,6 @@ String quoteAndReply(PerAccountStore store, {
   // and the extra noise won't much matter with the already probably-long
   // message link in there too.
   return '${userMentionFromMessage(message, silent: true, users: store)} '
-    '${inlineLink('said', url)}:\n' // TODO(#1285)
+    '${inlineLink('said', url.toString())}:\n' // TODO(#1285)
     '${wrapWithBacktickFence(content: rawContent, infoString: 'quote')}';
 }

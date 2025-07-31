@@ -319,9 +319,9 @@ hello
   });
 
   test('inlineLink', () {
-    check(inlineLink('CZO', Uri.parse('https://chat.zulip.org/'))).equals('[CZO](https://chat.zulip.org/)');
+    check(inlineLink('CZO', 'https://chat.zulip.org/')).equals('[CZO](https://chat.zulip.org/)');
     check(inlineLink('Uploading file.txt…', null)).equals('[Uploading file.txt…]()');
-    check(inlineLink('IMG_2488.png', Uri.parse('/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png')))
+    check(inlineLink('IMG_2488.png', '/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png'))
       .equals('[IMG_2488.png](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png)');
   });
 

@@ -372,7 +372,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
 
     value = value.replaced(
       replacementRange,
-      url == null ? '' : inlineLink(filename, url));
+      url == null ? '' : inlineLink(filename, url.toString()));
     _uploads.remove(tag);
     notifyListeners(); // _uploads change could affect validationErrors
   }
