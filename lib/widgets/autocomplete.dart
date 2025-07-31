@@ -202,7 +202,12 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
         if (query is! MentionAutocompleteQuery) {
           return; // Shrug; similar to `intent == null` case above.
         }
-        final user = store.getUser(userId)!; // must exist because UserMentionAutocompleteResult
+        final user = store.getUser(userId);
+        if (user == null) {
+          // Don't crash on theoretical race between async results-filtering
+          // and losing data for the user.
+          return;
+        }
         // TODO(i18n) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
         replacementString = '${userMention(user, silent: query.silent, users: store)} ';
