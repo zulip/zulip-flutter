@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import '../api/exception.dart';
@@ -6,6 +7,7 @@ import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/autocomplete.dart';
 import '../model/emoji.dart';
+import '../model/store.dart';
 import 'color.dart';
 import 'dialog.dart';
 import 'emoji.dart';
@@ -144,6 +146,22 @@ class ReactionChip extends StatelessWidget {
     required this.reactionWithVotes,
   });
 
+  // Linear in the number of voters (of course);
+  // best to avoid calling this unless we know there are few voters.
+  String _voterNames(PerAccountStore store, ZulipLocalizations zulipLocalizations) {
+    final selfUserId = store.selfUserId;
+    final userIds = reactionWithVotes.userIds;
+    final result = <String>[];
+    if (userIds.contains(selfUserId)) {
+      result.add(zulipLocalizations.reactedEmojiSelfUser);
+    }
+    result.addAll(userIds.whereNot((userId) => userId == selfUserId).map(store.userDisplayName));
+    // TODO(i18n): List formatting, like you can do in JavaScript:
+    //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Shu'])
+    //   // 'Chris、Greg、Alya、Shu'
+    return result.join(', ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
@@ -156,14 +174,7 @@ class ReactionChip extends StatelessWidget {
 
     final selfVoted = userIds.contains(store.selfUserId);
     final label = showName
-      // TODO(i18n): List formatting, like you can do in JavaScript:
-      //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Shu'])
-      //   // 'Chris、Greg、Alya、Shu'
-      ? userIds.map((id) {
-          return id == store.selfUserId
-            ? zulipLocalizations.reactedEmojiSelfUser
-            : store.userDisplayName(id);
-        }).join(', ')
+      ? _voterNames(store, zulipLocalizations)
       : userIds.length.toString();
 
     final reactionTheme = EmojiReactionTheme.of(context);
