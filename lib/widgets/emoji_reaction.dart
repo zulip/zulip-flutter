@@ -153,6 +153,7 @@ class ReactionChip extends StatelessWidget {
     final userIds = reactionWithVotes.userIds;
     final result = <String>[];
     if (userIds.contains(selfUserId)) {
+      // Putting "You" first is helpful when this is used in the semantics label.
       result.add(zulipLocalizations.reactedEmojiSelfUser);
     }
     result.addAll(userIds.whereNot((userId) => userId == selfUserId).map(store.userDisplayName));
@@ -173,9 +174,23 @@ class ReactionChip extends StatelessWidget {
     final userIds = reactionWithVotes.userIds;
 
     final selfVoted = userIds.contains(store.selfUserId);
-    final label = showName
-      ? _voterNames(store, zulipLocalizations)
-      : userIds.length.toString();
+    final String label;
+    final String semanticsLabel;
+    if (showName) {
+      final names = _voterNames(store, zulipLocalizations);
+      label = names;
+      semanticsLabel = zulipLocalizations.reactionChipLabel(emojiName, names);
+    } else {
+      final count = userIds.length;
+      final countStr = count.toString(); // TODO(i18n) number formatting?
+      label = countStr;
+      semanticsLabel = zulipLocalizations.reactionChipLabel(emojiName,
+        selfVoted
+          ? count == 1
+            ? zulipLocalizations.reactedEmojiSelfUser
+            : zulipLocalizations.reactionChipVotesYouAndOthers(count - 1)
+          : countStr);
+    }
 
     final reactionTheme = EmojiReactionTheme.of(context);
     final borderColor =     selfVoted ? reactionTheme.borderSelected : reactionTheme.borderUnselected;
@@ -205,74 +220,75 @@ class ReactionChip extends StatelessWidget {
         emojiDisplay: emojiDisplay, selected: selfVoted),
     };
 
-    return Tooltip(
-      // TODO(#434): Semantics with eg "Reaction: <emoji name>; you and N others: <names>"
-      excludeFromSemantics: true,
-      message: emojiName,
-      child: Material(
-        color: backgroundColor,
-        shape: shape,
-        child: InkWell(
-          customBorder: shape,
-          splashColor: splashColor,
-          highlightColor: highlightColor,
-          onTap: () {
-            (selfVoted ? removeReaction : addReaction).call(store.connection,
-              messageId: messageId,
-              reactionType: reactionType,
-              emojiCode: emojiCode,
-              emojiName: emojiName,
-            );
-          },
-          child: Padding(
-            // 1px of this padding accounts for the border, which Flutter
-            // just paints without changing size.
-            padding: const EdgeInsetsDirectional.fromSTEB(4, 3, 5, 3),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final maxRowWidth = constraints.maxWidth;
-                // To give text emojis some room so they need fewer line breaks
-                // when the label is long.
-                // TODO(#433) This is a bit overzealous. The shorter width
-                //   won't be necessary when the text emoji is very short, or
-                //   in the near-universal case of small, square emoji (i.e.
-                //   Unicode and image emoji). But it's not simple to recognize
-                //   those cases here: we don't know at this point whether we'll
-                //   be showing a text emoji, because we use that for various
-                //   error conditions (including when an image fails to load,
-                //   which we learn about especially late).
-                final maxLabelWidth = (maxRowWidth - 6) * 0.75; // 6 is padding
+    Widget result = Material(
+      color: backgroundColor,
+      shape: shape,
+      child: InkWell(
+        customBorder: shape,
+        splashColor: splashColor,
+        highlightColor: highlightColor,
+        onTap: () {
+          (selfVoted ? removeReaction : addReaction).call(store.connection,
+            messageId: messageId,
+            reactionType: reactionType,
+            emojiCode: emojiCode,
+            emojiName: emojiName,
+          );
+        },
+        child: Padding(
+          // 1px of this padding accounts for the border, which Flutter
+          // just paints without changing size.
+          padding: const EdgeInsetsDirectional.fromSTEB(4, 3, 5, 3),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final maxRowWidth = constraints.maxWidth;
+              // To give text emojis some room so they need fewer line breaks
+              // when the label is long.
+              // TODO(#433) This is a bit overzealous. The shorter width
+              //   won't be necessary when the text emoji is very short, or
+              //   in the near-universal case of small, square emoji (i.e.
+              //   Unicode and image emoji). But it's not simple to recognize
+              //   those cases here: we don't know at this point whether we'll
+              //   be showing a text emoji, because we use that for various
+              //   error conditions (including when an image fails to load,
+              //   which we learn about especially late).
+              final maxLabelWidth = (maxRowWidth - 6) * 0.75; // 6 is padding
 
-                final labelScaler = _labelTextScalerClamped(context);
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // So text-emoji chips are at least as tall as square-emoji
-                    // ones (probably a good thing).
-                    SizedBox(height: _squareEmojiScalerClamped(context).scale(_squareEmojiSize)),
-                    Flexible( // [Flexible] to let text emojis expand if they can
-                      child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3),
-                        child: emoji)),
-                    Padding(padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: Container(
-                        constraints: BoxConstraints(maxWidth: maxLabelWidth),
-                        child: Text(
-                          textWidthBasis: TextWidthBasis.longestLine,
-                          textScaler: labelScaler,
-                          style: TextStyle(
-                            fontSize: (14 * 0.90),
-                            letterSpacing: proportionalLetterSpacing(context,
-                              kButtonTextLetterSpacingProportion,
-                              baseFontSize: (14 * 0.90),
-                              textScaler: labelScaler),
-                            height: 13 / (14 * 0.90),
-                            color: labelColor,
-                          ).merge(weightVariableTextStyle(context,
-                              wght: selfVoted ? 600 : null)),
-                          label))),
-                  ]);
-                })))));
+              final labelScaler = _labelTextScalerClamped(context);
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // So text-emoji chips are at least as tall as square-emoji
+                  // ones (probably a good thing).
+                  SizedBox(height: _squareEmojiScalerClamped(context).scale(_squareEmojiSize)),
+                  Flexible( // [Flexible] to let text emojis expand if they can
+                    child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: emoji)),
+                  Padding(padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: Container(
+                      constraints: BoxConstraints(maxWidth: maxLabelWidth),
+                      child: Text(
+                        textWidthBasis: TextWidthBasis.longestLine,
+                        textScaler: labelScaler,
+                        style: TextStyle(
+                          fontSize: (14 * 0.90),
+                          letterSpacing: proportionalLetterSpacing(context,
+                            kButtonTextLetterSpacingProportion,
+                            baseFontSize: (14 * 0.90),
+                            textScaler: labelScaler),
+                          height: 13 / (14 * 0.90),
+                          color: labelColor,
+                        ).merge(weightVariableTextStyle(context,
+                            wght: selfVoted ? 600 : null)),
+                        label))),
+                ]);
+              }))));
+
+    return Semantics(
+      label: semanticsLabel,
+      container: true,
+      child: ExcludeSemantics(child: result));
   }
 }
 

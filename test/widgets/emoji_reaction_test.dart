@@ -74,6 +74,10 @@ void main() {
   }) async {
     final message = eg.streamMessage(reactions: reactions);
 
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+      FakeAccessibilityFeatures(accessibleNavigation: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
       child: Center(
         child: ColoredBox(
@@ -269,7 +273,8 @@ void main() {
 
     Color? backgroundColor(String emojiName) {
       final material = tester.widget<Material>(find.descendant(
-        of: find.byTooltip(emojiName), matching: find.byType(Material)));
+        of: find.bySemanticsLabel(RegExp(r'^' + RegExp.escape(emojiName) + r':\ ')),
+        matching: find.byType(Material)));
       return material.color;
     }
 

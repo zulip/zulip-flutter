@@ -973,6 +973,21 @@
   "@reactedEmojiSelfUser": {
     "description": "Display name for the user themself, to show on an emoji reaction added by the user."
   },
+  "reactionChipLabel": "{emojiName}: {votes}",
+  "@reactionChipLabel": {
+    "description": "Text describing a reaction chip, with the emoji name and a list or number of votes. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "emojiName": {"type": "String", "example": "working_on_it"},
+      "votes": {"type": "String", "example": "You, Chris, Greg"}
+    }
+  },
+  "reactionChipVotesYouAndOthers": "{otherUsersCount, plural, =1{You and 1 other} other{You and {otherUsersCount} others}}",
+  "@reactionChipVotesYouAndOthers": {
+    "description": "The number of votes on a reaction chip, where the self-user and at least one other user has voted. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "otherUsersCount": {"type": "int", "example": "4"}
+    }
+  },
   "onePersonTyping": "{typist} is typing…",
   "@onePersonTyping": {
     "description": "Text to display when there is one user typing.",

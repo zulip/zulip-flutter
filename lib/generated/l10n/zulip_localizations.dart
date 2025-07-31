@@ -1469,6 +1469,18 @@ abstract class ZulipLocalizations {
   /// **'You'**
   String get reactedEmojiSelfUser;
 
+  /// Text describing a reaction chip, with the emoji name and a list or number of votes. (An accessibility label for assistive technology.)
+  ///
+  /// In en, this message translates to:
+  /// **'{emojiName}: {votes}'**
+  String reactionChipLabel(String emojiName, String votes);
+
+  /// The number of votes on a reaction chip, where the self-user and at least one other user has voted. (An accessibility label for assistive technology.)
+  ///
+  /// In en, this message translates to:
+  /// **'{otherUsersCount, plural, =1{You and 1 other} other{You and {otherUsersCount} others}}'**
+  String reactionChipVotesYouAndOthers(int otherUsersCount);
+
   /// Text to display when there is one user typing.
   ///
   /// In en, this message translates to:

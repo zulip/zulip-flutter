@@ -812,6 +812,22 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get reactedEmojiSelfUser => 'Tu';
 
   @override
+  String reactionChipLabel(String emojiName, String votes) {
+    return '$emojiName: $votes';
+  }
+
+  @override
+  String reactionChipVotesYouAndOthers(int otherUsersCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      otherUsersCount,
+      locale: localeName,
+      other: 'You and $otherUsersCount others',
+      one: 'You and 1 other',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String onePersonTyping(String typist) {
     return '$typist sta scrivendo…';
   }
