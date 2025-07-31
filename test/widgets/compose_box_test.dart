@@ -1168,6 +1168,34 @@ void main() {
     // target platform the test is simulating.
     // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
     skip: Platform.isWindows);
+
+    testWidgets('use verbatim URL string from server, not re-encoded', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/1709
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
+      final channel = eg.stream();
+      final narrow = eg.topicNarrow(channel.streamId, 'a topic');
+      await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+
+      testBinding.pickFilesResult = FilePickerResult([PlatformFile(
+        readStream: Stream.fromIterable(['asdf'.codeUnits]),
+        path: '/some/path/한국어 파일.txt',
+        name: '한국어 파일.txt',
+        size: 4,
+      )]);
+      connection.prepare(json: UploadFileResult(url:
+        '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/한국어 파일.txt').toJson());
+      await tester.tap(find.byIcon(ZulipIcons.image));
+      await tester.pump();
+      check(controller!.content.text)
+        .equals('[Uploading 한국어 파일.txt…]()\n\n');
+
+      await tester.pump(Duration.zero);
+      check(controller!.content.text)
+        .equals('[한국어 파일.txt]('
+          '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/한국어 파일.txt)\n\n');
+    });
   });
 
   group('error banner', () {

@@ -359,9 +359,9 @@ class ComposeContentController extends ComposeController<ContentValidationError>
 
   /// Tells the controller that a file upload has ended, with success or error.
   ///
-  /// To indicate success, pass the URL to be used for the Markdown link.
+  /// To indicate success, pass the URL string to be used for the Markdown link.
   /// If `url` is null, failure is assumed.
-  void registerUploadEnd(int tag, Uri? url) {
+  void registerUploadEnd(int tag, String? url) {
     final val = _uploads[tag];
     assert(val != null, 'registerUploadEnd called twice for same tag');
     final (:filename, :placeholder) = val!;
@@ -372,7 +372,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
 
     value = value.replaced(
       replacementRange,
-      url == null ? '' : inlineLink(filename, url.toString()));
+      url == null ? '' : inlineLink(filename, url));
     _uploads.remove(tag);
     notifyListeners(); // _uploads change could affect validationErrors
   }
@@ -971,7 +971,7 @@ Future<void> _uploadFiles({
 
   for (final (tag, file) in uploadsInProgress) {
     final _File(:content, :length, :filename, :mimeType) = file;
-    Uri? url;
+    String? url;
     try {
       final result = await uploadFile(store.connection,
         content: content,
@@ -979,7 +979,7 @@ Future<void> _uploadFiles({
         filename: filename,
         contentType: mimeType,
       );
-      url = Uri.parse(result.url);
+      url = result.url;
     } catch (e) {
       if (!context.mounted) return;
       // TODO(#741): Specifically handle `413 Payload Too Large`
