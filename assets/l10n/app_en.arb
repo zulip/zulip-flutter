@@ -874,6 +874,50 @@
   "@yesterday": {
     "description": "Term to use to reference the previous day."
   },
+  "userActiveNow": "Active now",
+  "@userActiveNow": {
+    "description": "Indicates a user is currently active on Zulip (not idle or offline)"
+  },
+  "userIdle": "Idle",
+  "@userIdle": {
+    "description": "Indicates a user is currently idle on Zulip (not active, but not offline)"
+  },
+  "userActiveMinutesAgo": "Active {minutes, plural, =1{1 minute} other{{minutes} minutes}} ago",
+  "@userActiveMinutesAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "minutes": {"type": "int", "example": "5"}
+    }
+  },
+  "userActiveHoursAgo": "Active {hours, plural, =1{1 hour} other{{hours} hours}} ago",
+  "@userActiveHoursAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "hours": {"type": "int", "example": "5"}
+    }
+  },
+  "userActiveYesterday": "Active yesterday",
+  "@userActiveYesterday": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)"
+  },
+  "userActiveDaysAgo": "Active {days, plural, =1{1 day} other{{days} days}} ago",
+  "@userActiveDaysAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "days": {"type": "int", "example": "5"}
+    }
+  },
+  "userActiveDate": "Active {date}",
+  "@userActiveDate": {
+    "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
+    "placeholders": {
+      "date": {"type": "String", "example": "Aug 1, 2024"}
+    }
+  },
+  "userNotActiveInYear": "Not active in the last year",
+  "@userNotActiveInYear": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)"
+  },
   "invisibleMode": "Invisible mode",
   "@invisibleMode": {
     "description": "Label for the 'Invisible mode' switch on the profile page."
