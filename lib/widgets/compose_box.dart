@@ -350,7 +350,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
     final tag = _nextUploadTag;
     _nextUploadTag += 1;
     final linkText = zulipLocalizations.composeBoxUploadingFilename(filename);
-    final placeholder = inlineLink(linkText, null);
+    final placeholder = inlineLink(linkText, '');
     _uploads[tag] = (filename: filename, placeholder: placeholder);
     notifyListeners(); // _uploads change could affect validationErrors
     value = value.replaced(insertionIndex(), '$placeholder\n\n');

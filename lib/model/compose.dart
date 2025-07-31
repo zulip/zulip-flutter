@@ -188,7 +188,7 @@ String wildcardMention(WildcardMentionOption wildcardOption, {
 /// result may be surprising.
 ///
 /// The part between "(" and ")" is just a "link destination" (no "link title").
-/// That destination is the string [destination], if provided.
+/// That destination is the string [destination].
 /// If [destination] has parentheses in it, the result may be surprising.
 // TODO: Try harder to guarantee output that creates an inline link,
 //   and in particular, the intended one. We could help with this by escaping
@@ -199,8 +199,8 @@ String wildcardMention(WildcardMentionOption wildcardOption, {
 //   > Backtick code spans, autolinks, and raw HTML tags bind more tightly
 //   > than the brackets in link text. Thus, for example, [foo`]` could not be
 //   > a link text, since the second ] is part of a code span.
-String inlineLink(String visibleText, String? destination) {
-  return '[$visibleText](${destination ?? ''})';
+String inlineLink(String visibleText, String destination) {
+  return '[$visibleText]($destination)';
 }
 
 /// What we show while fetching the target message's raw Markdown.
