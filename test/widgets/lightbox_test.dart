@@ -366,6 +366,16 @@ void main() {
       debugNetworkImageHttpClientProvider = null;
     });
 
+    testWidgets('image can zoom up to 10x', (tester) async {
+      prepareBoringImageHttpClient();
+      await setupPage(tester, thumbnailUrl: null);
+
+      check(tester.widget<InteractiveViewer>(find.byType(InteractiveViewer)).maxScale)
+        .equals(10);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
     void checkAppBarNameAndDate(WidgetTester tester, String expectedName, String expectedDate) {
       final labelTextWidget = tester.widget<RichText>(
         find.descendant(of: find.byType(AppBar).last,
