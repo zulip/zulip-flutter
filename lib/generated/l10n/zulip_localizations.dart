@@ -1301,6 +1301,56 @@ abstract class ZulipLocalizations {
   /// **'Yesterday'**
   String get yesterday;
 
+  /// Indicates a user is currently active on Zulip (not idle or offline)
+  ///
+  /// In en, this message translates to:
+  /// **'Active now'**
+  String get userActiveNow;
+
+  /// Indicates a user is currently idle on Zulip (not active, but not offline)
+  ///
+  /// In en, this message translates to:
+  /// **'Idle'**
+  String get userIdle;
+
+  /// Indicates when a user was last active on Zulip (who is currently offline)
+  ///
+  /// In en, this message translates to:
+  /// **'Active {minutes, plural, =1{1 minute} other{{minutes} minutes}} ago'**
+  String userActiveMinutesAgo(int minutes);
+
+  /// Indicates when a user was last active on Zulip (who is currently offline)
+  ///
+  /// In en, this message translates to:
+  /// **'Active {hours, plural, =1{1 hour} other{{hours} hours}} ago'**
+  String userActiveHoursAgo(int hours);
+
+  /// Indicates when a user was last active on Zulip (who is currently offline)
+  ///
+  /// In en, this message translates to:
+  /// **'Active yesterday'**
+  String get userActiveYesterday;
+
+  /// Indicates when a user was last active on Zulip (who is currently offline)
+  ///
+  /// In en, this message translates to:
+  /// **'Active {days, plural, =1{1 day} other{{days} days}} ago'**
+  String userActiveDaysAgo(int days);
+
+  /// Indicates the date when a user was last active on Zulip (who is currently offline).
+  ///
+  /// The date might be day and month if recent, or day, month, and year if less recent.
+  ///
+  /// In en, this message translates to:
+  /// **'Active {date}'**
+  String userActiveDate(String date);
+
+  /// Indicates when a user was last active on Zulip (who is currently offline)
+  ///
+  /// In en, this message translates to:
+  /// **'Not active in the last year'**
+  String get userNotActiveInYear;
+
   /// Label for the 'Invisible mode' switch on the profile page.
   ///
   /// In en, this message translates to:

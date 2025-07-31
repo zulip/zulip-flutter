@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:checks/checks.dart';
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -117,6 +118,87 @@ void main() {
     final user = eg.user(userId: 1, fullName: longString);
     await setupPage(tester, users: [user], pageUserId: user.userId);
     check(find.text(longString).evaluate()).isNotEmpty();
+  });
+
+  group('_LastActiveTime', () {
+    Future<void> update(WidgetTester tester, User user, {
+      required int activeSeconds,
+      int? idleSeconds,
+    }) async {
+      idleSeconds ??= activeSeconds + 3600;
+      final now = clock.now().millisecondsSinceEpoch ~/ 1000;
+      final presence = PerUserPresence(
+        activeTimestamp: now - activeSeconds,
+        idleTimestamp: now - idleSeconds,
+      );
+      store.presence.debugHandlePresenceResponse({user.userId: presence});
+      await tester.pump();
+    }
+
+    testWidgets('active, idle, never', (tester) async {
+      final user = eg.user();
+      await setupPage(tester, users: [user], pageUserId: user.userId);
+      check(find.text('Not active in the last year')).findsOne();
+
+      await update(tester, user, activeSeconds: 3600, idleSeconds: 30);
+      check(find.text('Idle')).findsOne();
+
+      await update(tester, user, activeSeconds: 30);
+      check(find.text('Active now')).findsOne();
+    });
+
+    testWidgets('various ages', (tester) async {
+      final user = eg.user();
+      await setupPage(tester, users: [user], pageUserId: user.userId);
+
+      // These tests could be more detailed in making sure the behavior is
+      // exactly the way it currently is.  But save that for a future where
+      // we've made a pass over the logic to ensure we're happy with that spec.
+
+      await update(tester, user, activeSeconds: 10 * 60);
+      check(find.text('Active 10 minutes ago')).findsOne();
+
+      await update(tester, user, activeSeconds: 61 * 60);
+      check(find.text('Active 1 hour ago')).findsOne();
+
+      await update(tester, user, activeSeconds: 20 * 60 * 60);
+      check(find.text('Active 20 hours ago')).findsOne();
+
+      await update(tester, user, activeSeconds: 24 * 60 * 60);
+      check(find.text('Active yesterday')).findsOne();
+
+      await update(tester, user, activeSeconds: 2 * 24 * 60 * 60);
+      check(find.text('Active 2 days ago')).findsOne();
+
+      await update(tester, user, activeSeconds: 80 * 24 * 60 * 60);
+      check(find.text('Active 80 days ago')).findsOne();
+    });
+
+    testWidgets('dates', (tester) async {
+      final user = eg.user();
+      await setupPage(tester, users: [user], pageUserId: user.userId);
+
+      final now = DateTime.parse('2025-08-01 12:00');
+      await withClock(Clock.fixed(now), () async {
+        await update(tester, user, activeSeconds: now.difference(
+          DateTime.parse('2025-04-01 12:00')).inSeconds);
+        check(find.text('Active Apr 1')).findsOne();
+
+        await update(tester, user, activeSeconds: now.difference(
+          DateTime.parse('2024-04-01 12:00')).inSeconds);
+        check(find.text('Active Apr 1, 2024')).findsOne();
+      });
+    });
+
+    testWidgets('omit for bots', (tester) async {
+      final user = eg.user(isBot: true);
+      await setupPage(tester, users: [user], pageUserId: user.userId);
+      await update(tester, user, activeSeconds: 30);
+      check(find.text('Active now')).findsNothing();
+      check(find.textContaining('Active')).findsNothing();
+      check(find.textContaining('Idle')).findsNothing();
+      check(find.textContaining('Not active')).findsNothing();
+    });
   });
 
   group('custom profile fields', () {
