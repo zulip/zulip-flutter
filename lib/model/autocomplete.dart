@@ -8,6 +8,7 @@ import '../api/model/model.dart';
 import '../api/route/channels.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../widgets/compose_box.dart';
+import 'algorithms.dart';
 import 'compose.dart';
 import 'emoji.dart';
 import 'narrow.dart';
@@ -610,11 +611,10 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     if (query.silent) return;
 
     bool tryOption(WildcardMentionOption option) {
-      if (query.testWildcardOption(option, localizations: localizations)) {
-        results.add(WildcardMentionAutocompleteResult(wildcardOption: option));
-        return true;
-      }
-      return false;
+      final result = query.testWildcardOption(option, localizations: localizations);
+      if (result == null) return false;
+      results.add(result);
+      return true;
     }
 
     // Only one of the (all, everyone, channel, stream) channel wildcards are
@@ -637,23 +637,22 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
 
   @override
   Future<List<MentionAutocompleteResult>?> computeResults() async {
-    final results = <MentionAutocompleteResult>[];
+    final unsorted = <MentionAutocompleteResult>[];
     // Give priority to wildcard mentions.
-    computeWildcardMentionResults(results: results,
+    computeWildcardMentionResults(results: unsorted,
       isComposingChannelMessage: narrow is ChannelNarrow || narrow is TopicNarrow);
 
     if (await filterCandidates(filter: _testUser,
-        candidates: sortedUsers, results: results)) {
+        candidates: sortedUsers, results: unsorted)) {
       return null;
     }
-    return results;
+
+    return bucketSort(unsorted,
+      (r) => r.rank, numBuckets: MentionAutocompleteQuery._numResultRanks);
   }
 
   MentionAutocompleteResult? _testUser(MentionAutocompleteQuery query, User user) {
-    if (query.testUser(user, store.autocompleteViewManager.autocompleteDataCache, store)) {
-      return UserMentionAutocompleteResult(userId: user.userId);
-    }
-    return null;
+    return query.testUser(user, store.autocompleteViewManager.autocompleteDataCache, store);
   }
 
   @override
@@ -748,24 +747,46 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
       store: store, localizations: localizations, narrow: narrow, query: this);
   }
 
-  bool testWildcardOption(WildcardMentionOption wildcardOption, {
+  WildcardMentionAutocompleteResult? testWildcardOption(WildcardMentionOption wildcardOption, {
       required ZulipLocalizations localizations}) {
     // TODO(#237): match insensitively to diacritics
-    return wildcardOption.canonicalString.contains(_lowercase)
+    final matches = wildcardOption.canonicalString.contains(_lowercase)
       || wildcardOption.localizedCanonicalString(localizations).contains(_lowercase);
+    if (!matches) return null;
+    return WildcardMentionAutocompleteResult(
+      wildcardOption: wildcardOption, rank: _rankWildcardResult);
   }
 
-  bool testUser(User user, AutocompleteDataCache cache, UserStore store) {
-    if (!user.isActive) return false;
-    if (store.isUserMuted(user.userId)) return false;
+  MentionAutocompleteResult? testUser(User user, AutocompleteDataCache cache, UserStore store) {
+    if (!user.isActive) return null;
+    if (store.isUserMuted(user.userId)) return null;
 
     // TODO(#236) test email too, not just name
-    return _testName(user, cache);
+    if (!_testName(user, cache)) return null;
+
+    return UserMentionAutocompleteResult(
+      userId: user.userId, rank: _rankUserResult);
   }
 
   bool _testName(User user, AutocompleteDataCache cache) {
     return _testContainsQueryWords(cache.nameWordsForUser(user));
   }
+
+  /// A measure of a wildcard result's quality in the context of the query,
+  /// from 0 (best) to one less than [_numResultRanks].
+  ///
+  /// See also [_rankUserResult].
+  static const _rankWildcardResult = 0;
+
+  /// A measure of a user result's quality in the context of the query,
+  /// from 0 (best) to one less than [_numResultRanks].
+  ///
+  /// See also [_rankWildcardResult].
+  static const _rankUserResult = 1;
+
+  /// The number of possible values returned by
+  /// [_rankWildcardResult] and [_rankUserResult].
+  static const _numResultRanks = 2;
 
   @override
   String toString() {
@@ -853,20 +874,31 @@ class EmojiAutocompleteResult extends ComposeAutocompleteResult {
 /// This is abstract because there are several kinds of result
 /// that can all be offered in the same @-mention autocomplete interaction:
 /// a user, a wildcard, or a user group.
-sealed class MentionAutocompleteResult extends ComposeAutocompleteResult {}
+sealed class MentionAutocompleteResult extends ComposeAutocompleteResult {
+  /// A measure of the result's quality in the context of the query.
+  ///
+  /// Used internally by [MentionAutocompleteView] for ranking the results.
+  int get rank;
+}
 
 /// An autocomplete result for an @-mention of an individual user.
 class UserMentionAutocompleteResult extends MentionAutocompleteResult {
-  UserMentionAutocompleteResult({required this.userId});
+  UserMentionAutocompleteResult({required this.userId, required this.rank});
 
   final int userId;
+
+  @override
+  final int rank;
 }
 
 /// An autocomplete result for an @-mention of all the users in a conversation.
 class WildcardMentionAutocompleteResult extends MentionAutocompleteResult {
-  WildcardMentionAutocompleteResult({required this.wildcardOption});
+  WildcardMentionAutocompleteResult({required this.wildcardOption, required this.rank});
 
   final WildcardMentionOption wildcardOption;
+
+  @override
+  final int rank;
 }
 
 // TODO(#233): // class UserGroupMentionAutocompleteResult extends MentionAutocompleteResult {
