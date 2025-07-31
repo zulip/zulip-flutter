@@ -1,6 +1,7 @@
+import 'dart:ui';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 
 import '../api/exception.dart';
 import '../api/model/model.dart';
@@ -797,6 +798,19 @@ class ViewReactionsHeader extends StatelessWidget {
   final String? emojiCode;
   final void Function(ReactionWithVotes) onRequestSelect;
 
+  /// A [double] between 0.0 and 1.0 for an emoji's position in the list.
+  ///
+  /// When auto-scrolling an emoji into view,
+  /// this is where the scroll position will land
+  /// (the min- and max- scroll extent lerped at this value).
+  double _emojiItemPosition(int index, int aggregatedLength) {
+    if (aggregatedLength == 1) {
+      assert(index == 0);
+      return 0.5;
+    }
+    return index / (aggregatedLength - 1);
+  }
+
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
@@ -829,9 +843,10 @@ class ViewReactionsHeader extends StatelessWidget {
               explicitChildNodes: true,
               label: zulipLocalizations.seeWhoReactedSheetHeaderLabel(reactions.total),
               child: Row(
-                children: reactions.aggregated.map((r) =>
+                children: reactions.aggregated.mapIndexed((i, r) =>
                   _ViewReactionsEmojiItem(
                     reactionWithVotes: r,
+                    position: _emojiItemPosition(i, reactions.aggregated.length),
                     selected: r.reactionType == reactionType && r.emojiCode == emojiCode,
                     onRequestSelect: onRequestSelect),
                 ).toList()))))));
@@ -841,19 +856,35 @@ class ViewReactionsHeader extends StatelessWidget {
 class _ViewReactionsEmojiItem extends StatelessWidget {
   const _ViewReactionsEmojiItem({
     required this.reactionWithVotes,
+    required this.position,
     required this.selected,
     required this.onRequestSelect,
   });
 
   final ReactionWithVotes reactionWithVotes;
+  final double position;
   final bool selected;
   final void Function(ReactionWithVotes) onRequestSelect;
 
   static const double emojiSize = 24;
 
+  /// Animates the list's scroll position for this item.
+  ///
+  /// This serves two purposes when the list is longer than the viewport width:
+  /// - Ensures the item is in view
+  /// - By animating, draws attention to the fact that this is a scrollable list
+  ///   and there may be more items in view. (In particular, does this when
+  ///   any item is tapped, because each item has a different [position].)
   void _scrollIntoView(BuildContext context) {
-    Scrollable.ensureVisible(context,
-      alignment: 0.5, duration: Duration(milliseconds: 200));
+    final scrollPosition = Scrollable.of(context, axis: Axis.horizontal).position;
+    final destination = lerpDouble(
+      scrollPosition.minScrollExtent,
+      scrollPosition.maxScrollExtent,
+      position)!;
+
+    scrollPosition.animateTo(destination,
+      duration: Duration(milliseconds: 200),
+      curve: Curves.ease);
   }
 
   void _handleTap(BuildContext context) {
