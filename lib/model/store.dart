@@ -814,7 +814,8 @@ class PerAccountStore extends PerAccountStoreBase with
         typingStatus.handleTypingEvent(event);
 
       case PresenceEvent():
-        // TODO handle
+        assert(debugLog("server event: presence ${event.userId}"));
+        // TODO(#1618) handle
         break;
 
       case ReactionEvent():
