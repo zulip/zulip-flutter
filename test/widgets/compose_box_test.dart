@@ -1070,7 +1070,7 @@ void main() {
           size: 12345,
         )]);
         connection.prepare(delay: const Duration(seconds: 1), json:
-          UploadFileResult(uri: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+          UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
 
         await tester.tap(find.byIcon(ZulipIcons.image));
         await tester.pump();
@@ -1129,7 +1129,7 @@ void main() {
           path: '/private/var/mobile/Containers/Data/Application/foo/tmp/image.jpg',
         );
         connection.prepare(delay: const Duration(seconds: 1), json:
-          UploadFileResult(uri: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+          UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
 
         await tester.tap(find.byIcon(ZulipIcons.camera));
         await tester.pump();
@@ -1833,7 +1833,7 @@ void main() {
         testBinding.pickFilesResult = FilePickerResult([
           PlatformFile(name: 'file.jpg', size: 1000, readStream: Stream.fromIterable(['asdf'.codeUnits]))]);
         connection.prepare(json:
-          UploadFileResult(uri: '/path/file.jpg').toJson());
+          UploadFileResult(url: '/path/file.jpg').toJson());
         await tester.tap(find.byIcon(ZulipIcons.attach_file), warnIfMissed: false);
         await tester.pump(Duration.zero);
         checkNoErrorDialog(tester);

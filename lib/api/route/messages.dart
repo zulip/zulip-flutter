@@ -315,10 +315,11 @@ Future<UploadFileResult> uploadFile(
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UploadFileResult {
-  final String uri;
+  @JsonKey(name: 'uri')
+  final String url;
 
   UploadFileResult({
-    required this.uri,
+    required this.url,
   });
 
   factory UploadFileResult.fromJson(Map<String, dynamic> json) =>

@@ -979,7 +979,7 @@ Future<void> _uploadFiles({
         filename: filename,
         contentType: mimeType,
       );
-      url = Uri.parse(result.uri);
+      url = Uri.parse(result.url);
     } catch (e) {
       if (!context.mounted) return;
       // TODO(#741): Specifically handle `413 Payload Too Large`

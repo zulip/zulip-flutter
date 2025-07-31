@@ -50,10 +50,10 @@ Map<String, dynamic> _$UpdateMessageResultToJson(
 ) => <String, dynamic>{};
 
 UploadFileResult _$UploadFileResultFromJson(Map<String, dynamic> json) =>
-    UploadFileResult(uri: json['uri'] as String);
+    UploadFileResult(url: json['uri'] as String);
 
 Map<String, dynamic> _$UploadFileResultToJson(UploadFileResult instance) =>
-    <String, dynamic>{'uri': instance.uri};
+    <String, dynamic>{'uri': instance.url};
 
 UpdateMessageFlagsResult _$UpdateMessageFlagsResultFromJson(
   Map<String, dynamic> json,

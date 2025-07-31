@@ -567,7 +567,7 @@ void main() {
       required String? contentType,
     }) async {
       connection.prepare(json:
-        UploadFileResult(uri: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/$filename').toJson());
+        UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/$filename').toJson());
       await uploadFile(connection,
         content: Stream.fromIterable(content),
         length: length,
