@@ -93,6 +93,8 @@ class ProfilePage extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 18, height: 22 / 18,
             color: DesignVariables.of(context).userStatusText)),
+
+      const SizedBox(height: 8),
       if (displayEmail != null)
         Text(displayEmail,
           textAlign: TextAlign.center,
