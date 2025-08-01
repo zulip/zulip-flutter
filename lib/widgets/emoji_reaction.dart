@@ -563,7 +563,7 @@ class EmojiPickerListEntry extends StatelessWidget {
         ImageEmojiWidget(size: _emojiSize, emojiDisplay: emojiDisplay),
       UnicodeEmojiDisplay() =>
         UnicodeEmojiWidget(size: _emojiSize, emojiDisplay: emojiDisplay),
-      TextEmojiDisplay() => null, // The text is already shown separately.
+      TextEmojiDisplay() => null,
     };
 
     final label = emoji.aliases.isEmpty
@@ -583,7 +583,9 @@ class EmojiPickerListEntry extends StatelessWidget {
           if (glyph != null)
             Padding(
               padding: const EdgeInsets.all(10),
-              child: glyph),
+              child: glyph)
+          else
+            const SizedBox(height: 40.0, width: 0),
           Flexible(child: Text(label,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,

@@ -377,7 +377,7 @@ class _EmojiAutocompleteItem extends StatelessWidget {
         ImageEmojiWidget(size: _size, emojiDisplay: emojiDisplay),
       UnicodeEmojiDisplay() =>
         UnicodeEmojiWidget(size: _size, emojiDisplay: emojiDisplay),
-      TextEmojiDisplay() => null, // The text is already shown separately.
+      TextEmojiDisplay() => null,
     };
 
     final label = candidate.aliases.isEmpty
@@ -395,11 +395,12 @@ class _EmojiAutocompleteItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(children: [
-        if (glyph != null) ...[
+        if (glyph != null)
           Padding(padding: const EdgeInsets.all(6),
-            child: glyph),
-          const SizedBox(width: 6),
-        ],
+            child: glyph)
+        else
+          const SizedBox(height: 36.0, width: 0),
+        const SizedBox(width: 6),
         Expanded(
           child: Text(
             style: TextStyle(fontSize: 17, height: 18 / 17,
