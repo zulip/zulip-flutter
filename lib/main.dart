@@ -6,6 +6,7 @@ import 'log.dart';
 import 'model/binding.dart';
 import 'notifications/receive.dart';
 import 'widgets/app.dart';
+import 'widgets/share.dart';
 
 void main() {
   assert(() {
@@ -16,5 +17,6 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   LiveZulipBinding.ensureInitialized();
   NotificationService.instance.start();
+  ShareService.start();
   runApp(const ZulipApp());
 }

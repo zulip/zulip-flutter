@@ -933,6 +933,10 @@
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
   },
+  "sharePageTitle": "Share",
+  "@sharePageTitle": {
+    "description": "Title for the page about sharing content received from other apps."
+  },
   "channelsEmptyPlaceholder": "You are not subscribed to any channels yet.",
   "@channelsEmptyPlaceholder": {
     "description": "Centered text on the 'Channels' page saying that there is no content to show."
@@ -1142,6 +1146,14 @@
   "errorReactionRemovingFailedTitle": "Removing reaction failed",
   "@errorReactionRemovingFailedTitle": {
     "description": "Error title when removing a message reaction fails"
+  },
+  "errorSharingTitle": "Failed to share content",
+  "@errorSharingTitle": {
+    "description": "Error title when sharing content received from other apps fails"
+  },
+  "errorSharingAccountNotLoggedIn": "There was no account logged in. Please login to an account and try again.",
+  "@errorSharingAccountNotLoggedIn": {
+    "description": "Error title when sharing content received from other apps fails, when there was no account logged in"
   },
   "emojiReactionsMore": "more",
   "@emojiReactionsMore": {
