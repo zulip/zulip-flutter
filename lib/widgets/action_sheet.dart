@@ -336,6 +336,7 @@ enum BottomSheetDismissButtonStyle {
 /// Needs a [PageRoot] ancestor.
 void showChannelActionSheet(BuildContext context, {
   required int channelId,
+  bool showTopicListButton = true,
 }) {
   final pageContext = PageRoot.contextOf(context);
   final store = PerAccountStoreWidget.of(pageContext);
@@ -349,7 +350,8 @@ void showChannelActionSheet(BuildContext context, {
     [
       if (unreadCount > 0)
         MarkChannelAsReadButton(pageContext: pageContext, channelId: channelId),
-      TopicListButton(pageContext: pageContext, channelId: channelId),
+      if (showTopicListButton)
+        TopicListButton(pageContext: pageContext, channelId: channelId),
       CopyChannelLinkButton(channelId: channelId, pageContext: pageContext)
     ],
     if (isSubscribed)

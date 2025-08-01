@@ -15,7 +15,12 @@ import 'unread_count_badge.dart';
 
 /// Scrollable listing of subscribed streams.
 class SubscriptionListPageBody extends StatefulWidget {
-  const SubscriptionListPageBody({super.key});
+  const SubscriptionListPageBody({
+    super.key,
+    this.showTopicListButtonInActionSheet = true,
+  });
+
+  final bool showTopicListButtonInActionSheet;
 
   @override
   State<SubscriptionListPageBody> createState() => _SubscriptionListPageBodyState();
@@ -106,11 +111,17 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
         slivers: [
           if (pinned.isNotEmpty) ...[
             _SubscriptionListHeader(label: zulipLocalizations.pinnedSubscriptionsLabel),
-            _SubscriptionList(unreadsModel: unreadsModel, subscriptions: pinned),
+            _SubscriptionList(
+              unreadsModel: unreadsModel,
+              subscriptions: pinned,
+              showTopicListButtonInActionSheet: widget.showTopicListButtonInActionSheet),
           ],
           if (unpinned.isNotEmpty) ...[
             _SubscriptionListHeader(label: zulipLocalizations.unpinnedSubscriptionsLabel),
-            _SubscriptionList(unreadsModel: unreadsModel, subscriptions: unpinned),
+            _SubscriptionList(
+              unreadsModel: unreadsModel,
+              subscriptions: unpinned,
+              showTopicListButtonInActionSheet: widget.showTopicListButtonInActionSheet),
           ],
 
           // TODO(#188): add button leading to "All Streams" page with ability to subscribe
@@ -160,10 +171,12 @@ class _SubscriptionList extends StatelessWidget {
   const _SubscriptionList({
     required this.unreadsModel,
     required this.subscriptions,
+    required this.showTopicListButtonInActionSheet,
   });
 
   final Unreads? unreadsModel;
   final List<Subscription> subscriptions;
+  final bool showTopicListButtonInActionSheet;
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +189,8 @@ class _SubscriptionList extends StatelessWidget {
           && unreadsModel!.countInChannelNarrow(subscription.streamId) > 0;
         return SubscriptionItem(subscription: subscription,
           unreadCount: unreadCount,
-          showMutedUnreadBadge: showMutedUnreadBadge);
+          showMutedUnreadBadge: showMutedUnreadBadge,
+          showTopicListButtonInActionSheet: showTopicListButtonInActionSheet);
     });
   }
 }
@@ -188,11 +202,13 @@ class SubscriptionItem extends StatelessWidget {
     required this.subscription,
     required this.unreadCount,
     required this.showMutedUnreadBadge,
+    required this.showTopicListButtonInActionSheet,
   });
 
   final Subscription subscription;
   final int unreadCount;
   final bool showMutedUnreadBadge;
+  final bool showTopicListButtonInActionSheet;
 
   @override
   Widget build(BuildContext context) {
@@ -210,7 +226,9 @@ class SubscriptionItem extends StatelessWidget {
             MessageListPage.buildRoute(context: context,
               narrow: ChannelNarrow(subscription.streamId)));
         },
-        onLongPress: () => showChannelActionSheet(context, channelId: subscription.streamId),
+        onLongPress: () => showChannelActionSheet(context,
+          channelId: subscription.streamId,
+          showTopicListButton: showTopicListButtonInActionSheet),
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           const SizedBox(width: 16),
           Padding(
