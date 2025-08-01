@@ -929,6 +929,7 @@ Future<void> _uploadFiles({
   required BuildContext context,
   required ComposeContentController contentController,
   required FocusNode contentFocusNode,
+  bool shouldRequestFocus = true,
   required Iterable<FileToUpload> files,
 }) async {
   assert(context.mounted);
@@ -965,7 +966,7 @@ Future<void> _uploadFiles({
       zulipLocalizations);
     uploadsInProgress.add((tag, file));
   }
-  if (!contentFocusNode.hasFocus) {
+  if (shouldRequestFocus && !contentFocusNode.hasFocus) {
     contentFocusNode.requestFocus();
   }
 
@@ -1869,6 +1870,24 @@ abstract class ComposeBoxState extends State<ComposeBox> {
 
   /// Switch the compose box back to regular non-edit mode, with no content.
   void endEditInteraction();
+
+  /// Uploads the provided files, populating the content input with their links.
+  ///
+  /// If any of the files are larger than maximum file size allowed by the
+  /// server, an error dialog is shown mentioning their names and actual
+  /// file sizes.
+  ///
+  /// While uploading, a placeholder link is inserted in the content input and
+  /// if [shouldRequestFocus] is true it will be focused. And then after
+  /// uploading completes successfully the placeholder link will be replaced
+  /// with an actual link.
+  ///
+  /// If there is an error while uploading a file, then an error dialog is
+  /// shown mentioning the corresponding file name.
+  Future<void> uploadFiles({
+    required Iterable<FileToUpload> files,
+    required bool shouldRequestFocus,
+  });
 }
 
 class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateMixin<ComposeBox> implements ComposeBoxState {
@@ -2019,6 +2038,19 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       controller.dispose();
       _setNewController(store);
     });
+  }
+
+  @override
+  Future<void> uploadFiles({
+    required Iterable<FileToUpload> files,
+    required bool shouldRequestFocus,
+  }) async {
+    await _uploadFiles(
+      context: context,
+      contentController: controller.content,
+      contentFocusNode: controller.contentFocusNode,
+      shouldRequestFocus: shouldRequestFocus,
+      files: files);
   }
 
   @override
