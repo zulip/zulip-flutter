@@ -179,6 +179,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelMenuButton: const Color(0xff222222),
     labelSearchPrompt: const Color(0xff000000).withValues(alpha: 0.5),
     labelTime: const Color(0x00000000).withValues(alpha: 0.49),
+    link: const Color(0xff066bd0), // from "Zulip Web UI kit"
     listMenuItemBg: const Color(0xffcbcdd6),
     listMenuItemIcon: const Color(0xff9194a3),
     listMenuItemText: const Color(0xff2d303c),
@@ -269,6 +270,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
     labelSearchPrompt: const Color(0xffffffff).withValues(alpha: 0.5),
     labelTime: const Color(0xffffffff).withValues(alpha: 0.50),
+    link: const Color(0xff00aaff), // from "Zulip Web UI kit"
     listMenuItemBg: const Color(0xff2d303c),
     listMenuItemIcon: const Color(0xff767988),
     listMenuItemText: const Color(0xffcbcdd6),
@@ -368,6 +370,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.labelMenuButton,
     required this.labelSearchPrompt,
     required this.labelTime,
+    required this.link,
     required this.listMenuItemBg,
     required this.listMenuItemIcon,
     required this.listMenuItemText,
@@ -458,6 +461,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color labelMenuButton;
   final Color labelSearchPrompt;
   final Color labelTime;
+  final Color link;
   final Color listMenuItemBg;
   final Color listMenuItemIcon;
   final Color listMenuItemText;
@@ -543,6 +547,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? labelMenuButton,
     Color? labelSearchPrompt,
     Color? labelTime,
+    Color? link,
     Color? listMenuItemBg,
     Color? listMenuItemIcon,
     Color? listMenuItemText,
@@ -623,6 +628,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelMenuButton: labelMenuButton ?? this.labelMenuButton,
       labelSearchPrompt: labelSearchPrompt ?? this.labelSearchPrompt,
       labelTime: labelTime ?? this.labelTime,
+      link: link ?? this.link,
       listMenuItemBg: listMenuItemBg ?? this.listMenuItemBg,
       listMenuItemIcon: listMenuItemIcon ?? this.listMenuItemIcon,
       listMenuItemText: listMenuItemText ?? this.listMenuItemText,
@@ -710,6 +716,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       labelMenuButton: Color.lerp(labelMenuButton, other.labelMenuButton, t)!,
       labelSearchPrompt: Color.lerp(labelSearchPrompt, other.labelSearchPrompt, t)!,
       labelTime: Color.lerp(labelTime, other.labelTime, t)!,
+      link: Color.lerp(link, other.link, t)!,
       listMenuItemBg: Color.lerp(listMenuItemBg, other.listMenuItemBg, t)!,
       listMenuItemIcon: Color.lerp(listMenuItemIcon, other.listMenuItemIcon, t)!,
       listMenuItemText: Color.lerp(listMenuItemText, other.listMenuItemText, t)!,
