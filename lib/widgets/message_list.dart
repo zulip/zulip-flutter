@@ -133,7 +133,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
 /// The interface for the state of a [MessageListPage].
 ///
 /// To obtain one of these, see [MessageListPage.ancestorOf].
-abstract class MessageListPageState {
+abstract class MessageListPageState extends State<MessageListPage> {
   /// The narrow for this page's message list.
   Narrow get narrow;
 
@@ -171,11 +171,20 @@ class MessageListPage extends StatefulWidget {
     this.initAnchorMessageId,
   });
 
-  static AccountRoute<void> buildRoute({int? accountId, BuildContext? context,
-      required Narrow narrow, int? initAnchorMessageId}) {
-    return MaterialAccountWidgetRoute(accountId: accountId, context: context,
+  static AccountRoute<void> buildRoute({
+    int? accountId,
+    BuildContext? context,
+    GlobalKey<MessageListPageState>? key,
+    required Narrow narrow,
+    int? initAnchorMessageId,
+  }) {
+    return MaterialAccountWidgetRoute(
+      accountId: accountId,
+      context: context,
       page: MessageListPage(
-        initNarrow: narrow, initAnchorMessageId: initAnchorMessageId));
+        key: key,
+        initNarrow: narrow,
+        initAnchorMessageId: initAnchorMessageId));
   }
 
   /// The "revealed" state of a message from a muted sender,
