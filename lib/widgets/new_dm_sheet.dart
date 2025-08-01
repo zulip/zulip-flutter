@@ -6,14 +6,14 @@ import '../model/narrow.dart';
 import '../model/store.dart';
 import 'color.dart';
 import 'icons.dart';
-import 'message_list.dart';
 import 'page.dart';
+import 'recent_dm_conversations.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 import 'user.dart';
 
-void showNewDmSheet(BuildContext context) {
+void showNewDmSheet(BuildContext context, OnDmSelectCallback onDmSelect) {
   final pageContext = PageRoot.contextOf(context);
   final store = PerAccountStoreWidget.of(context);
   showModalBottomSheet<void>(
@@ -29,12 +29,14 @@ void showNewDmSheet(BuildContext context) {
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: PerAccountStoreWidget(
         accountId: store.accountId,
-        child: NewDmPicker())));
+        child: NewDmPicker(onDmSelect: onDmSelect))));
 }
 
 @visibleForTesting
 class NewDmPicker extends StatefulWidget {
-  const NewDmPicker({super.key});
+  const NewDmPicker({super.key, required this.onDmSelect});
+
+  final OnDmSelectCallback onDmSelect;
 
   @override
   State<NewDmPicker> createState() => _NewDmPickerState();
@@ -132,7 +134,7 @@ class _NewDmPickerState extends State<NewDmPicker> with PerAccountStoreAwareStat
   @override
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      _NewDmHeader(selectedUserIds: selectedUserIds),
+      _NewDmHeader(selectedUserIds: selectedUserIds, onDmSelect: widget.onDmSelect),
       _NewDmSearchBar(
         controller: searchController,
         selectedUserIds: selectedUserIds,
@@ -148,9 +150,10 @@ class _NewDmPickerState extends State<NewDmPicker> with PerAccountStoreAwareStat
 }
 
 class _NewDmHeader extends StatelessWidget {
-  const _NewDmHeader({required this.selectedUserIds});
+  const _NewDmHeader({required this.selectedUserIds, required this.onDmSelect});
 
   final Set<int> selectedUserIds;
+  final OnDmSelectCallback onDmSelect;
 
   Widget _buildCancelButton(BuildContext context) {
     final designVariables = DesignVariables.of(context);
@@ -178,8 +181,7 @@ class _NewDmHeader extends StatelessWidget {
         final narrow = DmNarrow.withUsers(
           selectedUserIds.toList(),
           selfUserId: store.selfUserId);
-        Navigator.pushReplacement(context,
-          MessageListPage.buildRoute(context: context, narrow: narrow));
+        onDmSelect(narrow);
       },
       child: Text(zulipLocalizations.newDmSheetComposeButtonLabel,
         style: TextStyle(
