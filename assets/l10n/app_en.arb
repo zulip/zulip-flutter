@@ -973,6 +973,10 @@
   "@reactedEmojiSelfUser": {
     "description": "Display name for the user themself, to show on an emoji reaction added by the user."
   },
+  "reactionChipsLabel": "Reactions",
+  "@reactionChipsLabel": {
+    "description": "Text identifying the container of reaction chips on a message. (An accessibility label for assistive technology.)"
+  },
   "reactionChipLabel": "{emojiName}: {votes}",
   "@reactionChipLabel": {
     "description": "Text describing a reaction chip, with the emoji name and a list or number of votes. (An accessibility label for assistive technology.)",

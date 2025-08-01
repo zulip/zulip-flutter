@@ -810,6 +810,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get reactedEmojiSelfUser => 'Ви';
 
   @override
+  String get reactionChipsLabel => 'Reactions';
+
+  @override
   String reactionChipLabel(String emojiName, String votes) {
     return '$emojiName: $votes';
   }

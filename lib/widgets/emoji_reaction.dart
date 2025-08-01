@@ -122,15 +122,22 @@ class ReactionChipsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
     final displayEmojiReactionUsers = store.userSettings.displayEmojiReactionUsers ?? false;
     final showNames = displayEmojiReactionUsers && reactions.total <= 3;
 
-    return Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center,
+    Widget result = Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center,
       children: reactions.aggregated.map((reactionVotes) => ReactionChip(
         showName: showNames,
         messageId: messageId, reactionWithVotes: reactionVotes),
       ).toList());
+
+    return Semantics(
+      label: zulipLocalizations.reactionChipsLabel,
+      container: true,
+      explicitChildNodes: true,
+      child: result);
   }
 }
 

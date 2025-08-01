@@ -1469,6 +1469,12 @@ abstract class ZulipLocalizations {
   /// **'You'**
   String get reactedEmojiSelfUser;
 
+  /// Text identifying the container of reaction chips on a message. (An accessibility label for assistive technology.)
+  ///
+  /// In en, this message translates to:
+  /// **'Reactions'**
+  String get reactionChipsLabel;
+
   /// Text describing a reaction chip, with the emoji name and a list or number of votes. (An accessibility label for assistive technology.)
   ///
   /// In en, this message translates to:
