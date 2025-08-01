@@ -911,8 +911,8 @@ class _EditMessageContentInput extends StatelessWidget {
 ///
 /// A convenience class to represent data from the generic file picker,
 /// the media library, and the camera, in a single form.
-class _File {
-  _File({
+class FileToUpload {
+  FileToUpload({
     required this.content,
     required this.length,
     required this.filename,
@@ -929,14 +929,14 @@ Future<void> _uploadFiles({
   required BuildContext context,
   required ComposeContentController contentController,
   required FocusNode contentFocusNode,
-  required Iterable<_File> files,
+  required Iterable<FileToUpload> files,
 }) async {
   assert(context.mounted);
   final store = PerAccountStoreWidget.of(context);
   final zulipLocalizations = ZulipLocalizations.of(context);
 
-  final List<_File> tooLargeFiles = [];
-  final List<_File> rightSizeFiles = [];
+  final List<FileToUpload> tooLargeFiles = [];
+  final List<FileToUpload> rightSizeFiles = [];
   for (final file in files) {
     if ((file.length / (1 << 20)) > store.maxFileUploadSizeMib) {
       tooLargeFiles.add(file);
@@ -959,7 +959,7 @@ Future<void> _uploadFiles({
         listMessage));
   }
 
-  final List<(int, _File)> uploadsInProgress = [];
+  final List<(int, FileToUpload)> uploadsInProgress = [];
   for (final file in rightSizeFiles) {
     final tag = contentController.registerUploadStart(file.filename,
       zulipLocalizations);
@@ -970,7 +970,7 @@ Future<void> _uploadFiles({
   }
 
   for (final (tag, file) in uploadsInProgress) {
-    final _File(:content, :length, :filename, :mimeType) = file;
+    final FileToUpload(:content, :length, :filename, :mimeType) = file;
     String? url;
     try {
       final result = await uploadFile(store.connection,
@@ -1009,7 +1009,7 @@ abstract class _AttachUploadsButton extends StatelessWidget {
   ///
   /// To signal exiting the interaction with no files chosen,
   /// return an empty [Iterable] after showing user feedback as appropriate.
-  Future<Iterable<_File>> getFiles(BuildContext context);
+  Future<Iterable<FileToUpload>> getFiles(BuildContext context);
 
   void _handlePress(BuildContext context) async {
     final files = await getFiles(context);
@@ -1043,7 +1043,7 @@ abstract class _AttachUploadsButton extends StatelessWidget {
   }
 }
 
-Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type) async {
+Future<Iterable<FileToUpload>> _getFilePickerFiles(BuildContext context, FileType type) async {
   FilePickerResult? result;
   try {
     result = await ZulipBinding.instance
@@ -1088,7 +1088,7 @@ Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type)
       f.path ?? '',
       headerBytes: f.bytes?.take(defaultMagicNumbersMaxLength).toList(),
     );
-    return _File(
+    return FileToUpload(
       content: f.readStream!,
       length: f.size,
       filename: f.name,
@@ -1108,7 +1108,7 @@ class _AttachFileButton extends _AttachUploadsButton {
     zulipLocalizations.composeBoxAttachFilesTooltip;
 
   @override
-  Future<Iterable<_File>> getFiles(BuildContext context) async {
+  Future<Iterable<FileToUpload>> getFiles(BuildContext context) async {
     return _getFilePickerFiles(context, FileType.any);
   }
 }
@@ -1124,7 +1124,7 @@ class _AttachMediaButton extends _AttachUploadsButton {
     zulipLocalizations.composeBoxAttachMediaTooltip;
 
   @override
-  Future<Iterable<_File>> getFiles(BuildContext context) async {
+  Future<Iterable<FileToUpload>> getFiles(BuildContext context) async {
     // TODO(#114): This doesn't give quite the right UI on Android.
     return _getFilePickerFiles(context, FileType.media);
   }
@@ -1141,7 +1141,7 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
       zulipLocalizations.composeBoxAttachFromCameraTooltip;
 
   @override
-  Future<Iterable<_File>> getFiles(BuildContext context) async {
+  Future<Iterable<FileToUpload>> getFiles(BuildContext context) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final XFile? result;
     try {
@@ -1192,7 +1192,7 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
     } catch (e) {
       // TODO(log)
     }
-    return [_File(
+    return [FileToUpload(
       content: result.openRead(),
       length: length,
       filename: result.name,
