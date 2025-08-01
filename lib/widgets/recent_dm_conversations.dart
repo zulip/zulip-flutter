@@ -15,7 +15,12 @@ import 'unread_count_badge.dart';
 import 'user.dart';
 
 class RecentDmConversationsPageBody extends StatefulWidget {
-  const RecentDmConversationsPageBody({super.key});
+  const RecentDmConversationsPageBody({
+    super.key,
+    this.hideDmsIfUserCantPost = false,
+  });
+
+  final bool hideDmsIfUserCantPost;
 
   @override
   State<RecentDmConversationsPageBody> createState() => _RecentDmConversationsPageBodyState();
@@ -75,6 +80,15 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
                   // TODO should we offer a "spam folder"-style summary screen
                   //   for these conversations we're filtering out?
                   return SizedBox.shrink();
+                }
+                if (widget.hideDmsIfUserCantPost) {
+                  // TODO(#791) handle other cases where user can't post
+                  final hasDeactivatedUser =
+                    narrow.otherRecipientIds.any(
+                      (id) => !(store.getUser(id)?.isActive ?? true));
+                  if (hasDeactivatedUser) {
+                    return SizedBox.shrink();
+                  }
                 }
                 return RecentDmConversationsItem(
                   narrow: narrow,
