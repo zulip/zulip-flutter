@@ -10,6 +10,7 @@ import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:wakelock_plus/wakelock_plus.dart' as wakelock_plus;
 
+import '../host/android_intents.dart' as android_intents_pigeon;
 import '../host/android_notifications.dart';
 import '../host/notifications.dart' as notif_pigeon;
 import '../log.dart';
@@ -182,6 +183,8 @@ abstract class ZulipBinding {
 
   /// Wraps the [notif_pigeon.NotificationHostApi] class.
   NotificationPigeonApi get notificationPigeonApi;
+
+  Stream<android_intents_pigeon.AndroidIntentEvent> get androidIntentEvents;
 
   /// Pick files from the media library, via package:file_picker.
   ///
@@ -487,6 +490,9 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   NotificationPigeonApi get notificationPigeonApi => NotificationPigeonApi();
+
+  @override
+  Stream<android_intents_pigeon.AndroidIntentEvent> get androidIntentEvents => android_intents_pigeon.androidIntentEvents();
 
   @override
   Future<file_picker.FilePickerResult?> pickFiles({

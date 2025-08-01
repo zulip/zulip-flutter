@@ -857,6 +857,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Вы ещё не подписаны ни на один канал.';
 
   @override
+  String get sharePageTitle => 'Share';
+
+  @override
   String get mainMenuMyProfile => 'Мой профиль';
 
   @override
@@ -1044,6 +1047,13 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get errorReactionRemovingFailedTitle => 'Не удалось удалить реакцию';
+
+  @override
+  String get errorSharingTitle => 'Failed to share content';
+
+  @override
+  String get errorSharingAccountNotLoggedIn =>
+      'There is no account logged in. Please log in to an account and try again.';
 
   @override
   String get emojiReactionsMore => 'ещё';

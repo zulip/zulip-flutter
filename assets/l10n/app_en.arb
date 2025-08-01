@@ -1022,6 +1022,10 @@
   "@channelsEmptyPlaceholder": {
     "description": "Centered text on the 'Channels' page saying that there is no content to show."
   },
+  "sharePageTitle": "Share",
+  "@sharePageTitle": {
+    "description": "Title for the page about sharing content received from other apps."
+  },
   "mainMenuMyProfile": "My profile",
   "@mainMenuMyProfile": {
     "description": "Label for main-menu button leading to the user's own profile."
@@ -1246,6 +1250,14 @@
   "errorReactionRemovingFailedTitle": "Removing reaction failed",
   "@errorReactionRemovingFailedTitle": {
     "description": "Error title when removing a message reaction fails"
+  },
+  "errorSharingTitle": "Failed to share content",
+  "@errorSharingTitle": {
+    "description": "Error title when sharing content received from other apps fails"
+  },
+  "errorSharingAccountNotLoggedIn": "There is no account logged in. Please log in to an account and try again.",
+  "@errorSharingAccountNotLoggedIn": {
+    "description": "Error title when sharing content received from other apps fails, when there is no account logged in"
   },
   "emojiReactionsMore": "more",
   "@emojiReactionsMore": {

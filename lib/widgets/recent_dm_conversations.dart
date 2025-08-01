@@ -23,6 +23,11 @@ class RecentDmConversationsPageBody extends StatefulWidget {
     this.onDmSelect,
   });
 
+  // TODO refactor this widget to avoid reuse of the whole page,
+  //   avoiding the need for these flags, callback, and the below
+  //   handling of safe-area at this level of abstraction.
+  //   See discussion:
+  //     https://github.com/zulip/zulip-flutter/pull/1774#discussion_r2249032503
   final bool hideDmsIfUserCantPost;
 
   /// Callback to invoke when the user selects a DM conversation from the list.
@@ -111,11 +116,11 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
             // param and the below use of `MediaQuery.paddingOf(context).bottom`
             // via `bottomInsets` would be noop, because
             // `Scaffold.bottomNavigationBar` in the home page handles that for
-            // us. But this page is planned to be used for share-to-zulip page,
-            // so we need this to be handled here.
+            // us. But this page is also used for share-to-zulip page, so we
+            // need this to be handled here.
             //
             // Other *PageBody widgets don't handle this because they aren't
-            // planned to be (re-)used outside the context of the home page.
+            // (re-)used outside the context of the home page.
             bottom: false,
             child: ListView.builder(
               padding: EdgeInsets.only(bottom: bottomInsets + 90),

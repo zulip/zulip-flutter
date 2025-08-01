@@ -851,6 +851,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get channelsEmptyPlaceholder => 'Nie śledzisz żadnego z kanałów.';
 
   @override
+  String get sharePageTitle => 'Share';
+
+  @override
   String get mainMenuMyProfile => 'Mój profil';
 
   @override
@@ -1036,6 +1039,13 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   @override
   String get errorReactionRemovingFailedTitle =>
       'Usuwanie reakcji bez powodzenia';
+
+  @override
+  String get errorSharingTitle => 'Failed to share content';
+
+  @override
+  String get errorSharingAccountNotLoggedIn =>
+      'There is no account logged in. Please log in to an account and try again.';
 
   @override
   String get emojiReactionsMore => 'więcej';
