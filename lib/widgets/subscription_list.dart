@@ -13,16 +13,26 @@ import 'text.dart';
 import 'theme.dart';
 import 'unread_count_badge.dart';
 
+typedef OnChannelSelectCallback = void Function(ChannelNarrow narrow);
+
 /// Scrollable listing of subscribed streams.
 class SubscriptionListPageBody extends StatefulWidget {
   const SubscriptionListPageBody({
     super.key,
     this.disableChannelActionSheet = false,
     this.hideChannelsIfUserCantPost = false,
+    this.onChannelSelect,
   });
 
   final bool disableChannelActionSheet;
   final bool hideChannelsIfUserCantPost;
+
+  /// Callback to invoke when the user selects a channel from the list.
+  ///
+  /// If null, the default behavior is to navigate to the channel feed.
+  final OnChannelSelectCallback? onChannelSelect;
+
+  // TODO(#412) add onTopicSelect
 
   @override
   State<SubscriptionListPageBody> createState() => _SubscriptionListPageBodyState();
@@ -72,6 +82,12 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     });
   }
 
+  void _handleChannelSelect(ChannelNarrow narrow) {
+    Navigator.push(context,
+      MessageListPage.buildRoute(context: context,
+        narrow: narrow));
+  }
+
   @override
   Widget build(BuildContext context) {
     // Design referenced from:
@@ -114,6 +130,8 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
         message: zulipLocalizations.channelsEmptyPlaceholder);
     }
 
+    final onChannelSelect = widget.onChannelSelect ?? _handleChannelSelect;
+
     return SafeArea( // horizontal insets
       child: CustomScrollView(
         slivers: [
@@ -122,14 +140,16 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
             _SubscriptionList(
               unreadsModel: unreadsModel,
               subscriptions: pinned,
-              disableChannelActionSheet: widget.disableChannelActionSheet),
+              disableChannelActionSheet: widget.disableChannelActionSheet,
+              onChannelSelect: onChannelSelect),
           ],
           if (unpinned.isNotEmpty) ...[
             _SubscriptionListHeader(label: zulipLocalizations.unpinnedSubscriptionsLabel),
             _SubscriptionList(
               unreadsModel: unreadsModel,
               subscriptions: unpinned,
-              disableChannelActionSheet: widget.disableChannelActionSheet),
+              disableChannelActionSheet: widget.disableChannelActionSheet,
+              onChannelSelect: onChannelSelect),
           ],
 
           // TODO(#188): add button leading to "All Streams" page with ability to subscribe
@@ -180,11 +200,13 @@ class _SubscriptionList extends StatelessWidget {
     required this.unreadsModel,
     required this.subscriptions,
     required this.disableChannelActionSheet,
+    required this.onChannelSelect,
   });
 
   final Unreads? unreadsModel;
   final List<Subscription> subscriptions;
   final bool disableChannelActionSheet;
+  final OnChannelSelectCallback onChannelSelect;
 
   @override
   Widget build(BuildContext context) {
@@ -198,7 +220,8 @@ class _SubscriptionList extends StatelessWidget {
         return SubscriptionItem(subscription: subscription,
           unreadCount: unreadCount,
           showMutedUnreadBadge: showMutedUnreadBadge,
-          disableChannelActionSheet: disableChannelActionSheet);
+          disableChannelActionSheet: disableChannelActionSheet,
+          onChannelSelect: onChannelSelect);
     });
   }
 }
@@ -211,12 +234,14 @@ class SubscriptionItem extends StatelessWidget {
     required this.unreadCount,
     required this.showMutedUnreadBadge,
     required this.disableChannelActionSheet,
+    required this.onChannelSelect,
   });
 
   final Subscription subscription;
   final int unreadCount;
   final bool showMutedUnreadBadge;
   final bool disableChannelActionSheet;
+  final OnChannelSelectCallback onChannelSelect;
 
   @override
   Widget build(BuildContext context) {
@@ -229,11 +254,7 @@ class SubscriptionItem extends StatelessWidget {
       // TODO(design) check if this is the right variable
       color: designVariables.background,
       child: InkWell(
-        onTap: () {
-          Navigator.push(context,
-            MessageListPage.buildRoute(context: context,
-              narrow: ChannelNarrow(subscription.streamId)));
-        },
+        onTap: () => onChannelSelect(ChannelNarrow(subscription.streamId)),
         onLongPress: !disableChannelActionSheet
           ? () => showChannelActionSheet(context, channelId: subscription.streamId)
           : null,
