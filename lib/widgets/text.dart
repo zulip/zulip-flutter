@@ -1,7 +1,10 @@
 import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+
+import 'theme.dart';
 
 /// An app-wide [Typography] for Zulip, customized from the Material default.
 ///
@@ -414,4 +417,109 @@ TextBaseline localizedTextBaseline(BuildContext context) {
     ScriptCategory.englishLike => TextBaseline.alphabetic,
     ScriptCategory.tall => TextBaseline.alphabetic,
   };
+}
+
+/// A text widget with an embedded link.
+///
+/// The text and link are given in [markup], in a simple HTML-like markup.
+/// The markup string must not contain arbitrary user-controlled text.
+///
+/// The portion of the text that is the link will be styled as a link,
+/// and will respond to taps by calling the [onTap] callback.
+///
+/// If the entire text is meant to be a link, there's no need for this widget;
+/// instead, use [Text] inside a [GestureDetector], with [GestureDetector.onTap]
+/// invoking [PlatformActions.launchUrl].
+///
+/// TODO(#1285): Integrate this with l10n so that the markup can be parsed
+///   from the constant translated string, with placeholders for any variables,
+///   rather than the string that results from interpolating variables.
+///   That way it'll be fine to interpolate variables with arbitrary text.
+/// TODO(#1285): Generalize this to other styling, like code font and italics.
+/// TODO(#1553): Generalize this to multiple links in one string.
+class TextWithLink extends StatefulWidget {
+  const TextWithLink({super.key, this.style, required this.onTap, required this.markup});
+
+  final TextStyle? style;
+
+  /// A callback to be called when the user taps the link.
+  ///
+  /// Consider using [PlatformActions.launchUrl] to open a web page,
+  /// or [Navigator.push] to open a page of the app.
+  final VoidCallback onTap;
+
+  /// The text to display, in a simple HTML-like markup.
+  ///
+  /// This string must contain the tags `<z-link>` and `</z-link>` as substrings,
+  /// in that order, and must contain no other `<` characters.
+  ///
+  /// In particular this means the string must not contain any arbitrary
+  /// user-controlled text, which might have '<' characters.
+  ///
+  /// The contents other than the two tags will be shown as text.
+  /// The portion between the tags will be the link.
+  //
+  // (Why the name `<z-link>`?  Well, it matches Zulip web's practice;
+  // and here's the reasoning for that name there:
+  //   https://github.com/zulip/zulip/pull/18075#discussion_r611067127
+  // )
+  final String markup;
+
+  @override
+  State<TextWithLink> createState() => _TextWithLinkState();
+}
+
+class _TextWithLinkState extends State<TextWithLink> {
+  late final GestureRecognizer _recognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _recognizer = TapGestureRecognizer()
+      ..onTap = widget.onTap;
+  }
+
+  @override
+  void dispose() {
+    _recognizer.dispose();
+    super.dispose();
+  }
+
+  static final _markupPattern = RegExp(r'^([^<]*)<z-link>([^<]*)</z-link>([^<]*)$');
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    final match = _markupPattern.firstMatch(widget.markup);
+    final InlineSpan span;
+    if (match == null) {
+      // TODO(log): The markup text was invalid.
+      // Probably a translation (used by this widget's caller) didn't carry the
+      // syntax through correctly.
+      // This can also happen if the markup string contains user-controlled
+      // text (which is a bug) and that introduced a '<' character.
+      // Fall back to showing plain text.
+      // (It's important not to try to interpret any markup here, in case it
+      // comes buggily from user-controlled text.)
+      span = TextSpan(text: widget.markup);
+    } else {
+      span = TextSpan(children: [
+        TextSpan(text: match.group(1)),
+        TextSpan(text: match.group(2), recognizer: _recognizer,
+          style: TextStyle(
+            decoration: TextDecoration.underline,
+            // TODO(design): work out what decorationThickness to use;
+            //   the Figma design calls for 4% of the font size, but Flutter
+            //   expects it as a ratio of the font's default stroke thickness.
+            // decorationThickness: 1, // (the default)
+            // decorationOffset: // TODO(upstream): https://github.com/flutter/flutter/issues/30541
+            color: designVariables.link,
+            decorationColor: designVariables.link)),
+        TextSpan(text: match.group(3)),
+      ]);
+    }
+
+    return Text.rich(span, style: widget.style);
+  }
 }
