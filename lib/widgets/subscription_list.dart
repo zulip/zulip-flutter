@@ -18,9 +18,11 @@ class SubscriptionListPageBody extends StatefulWidget {
   const SubscriptionListPageBody({
     super.key,
     this.showTopicListButtonInActionSheet = true,
+    this.hideChannelsIfUserCantPost = false,
   });
 
   final bool showTopicListButtonInActionSheet;
+  final bool hideChannelsIfUserCantPost;
 
   @override
   State<SubscriptionListPageBody> createState() => _SubscriptionListPageBodyState();
@@ -90,7 +92,14 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
 
     final List<Subscription> pinned = [];
     final List<Subscription> unpinned = [];
+    final now = DateTime.now();
     for (final subscription in store.subscriptions.values) {
+      if (widget.hideChannelsIfUserCantPost) {
+        if (!store.hasPostingPermission(inChannel: subscription,
+              user: store.selfUser, byDate: now)) {
+          continue;
+        }
+      }
       if (subscription.pinToTop) {
         pinned.add(subscription);
       } else {
