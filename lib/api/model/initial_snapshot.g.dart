@@ -91,6 +91,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
   realmAllowMessageEditing: json['realm_allow_message_editing'] as bool,
   realmMessageContentEditLimitSeconds:
       (json['realm_message_content_edit_limit_seconds'] as num?)?.toInt(),
+  realmEnableReadReceipts: json['realm_enable_read_receipts'] as bool,
   realmPresenceDisabled: json['realm_presence_disabled'] as bool,
   realmDefaultExternalAccounts:
       (json['realm_default_external_accounts'] as Map<String, dynamic>).map(
@@ -162,6 +163,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'realm_allow_message_editing': instance.realmAllowMessageEditing,
   'realm_message_content_edit_limit_seconds':
       instance.realmMessageContentEditLimitSeconds,
+  'realm_enable_read_receipts': instance.realmEnableReadReceipts,
   'realm_presence_disabled': instance.realmPresenceDisabled,
   'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
   'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
