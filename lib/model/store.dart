@@ -28,6 +28,7 @@ import 'presence.dart';
 import 'realm.dart';
 import 'recent_dm_conversations.dart';
 import 'recent_senders.dart';
+import 'server_support.dart';
 import 'channel.dart';
 import 'saved_snippet.dart';
 import 'settings.dart';
@@ -208,7 +209,7 @@ abstract class GlobalStore extends ChangeNotifier {
       assert(account != null); // doLoadPerAccount would have thrown AccountNotFoundException
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       switch (e) {
-        case _ServerVersionUnsupportedException():
+        case ServerVersionUnsupportedException():
           reportErrorToUserModally(
             zulipLocalizations.errorCouldNotConnectTitle,
             message: zulipLocalizations.errorServerVersionUnsupportedMessage(
@@ -1026,9 +1027,9 @@ class UpdateMachine {
     try {
       initialSnapshot = await _registerQueueWithRetry(connection,
         stopAndThrowIfNoAccount: stopAndThrowIfNoAccount);
-    } on _ServerVersionUnsupportedException catch (e) {
+    } on ServerVersionUnsupportedException catch (e) {
       // `!` is OK because _registerQueueWithRetry would have thrown a
-      // not-_ServerVersionUnsupportedException if no account
+      // not-ServerVersionUnsupportedException if no account
       final account = globalStore.getAccount(accountId)!;
       if (!e.data.matchesAccount(account)) {
         await globalStore.updateZulipVersionData(accountId, e.data);
@@ -1094,7 +1095,7 @@ class UpdateMachine {
           case MalformedServerResponseException()
             when (zulipVersionData = ZulipVersionData.fromMalformedServerResponseException(e))
               ?.isUnsupported == true:
-            throw _ServerVersionUnsupportedException(zulipVersionData!);
+            throw ServerVersionUnsupportedException(zulipVersionData!);
           case HttpException(httpStatus: 401):
             // We cannot recover from this error through retrying.
             // Leave it to [GlobalStore.loadPerAccount].
@@ -1114,7 +1115,7 @@ class UpdateMachine {
         stopAndThrowIfNoAccount();
         final zulipVersionData = ZulipVersionData.fromInitialSnapshot(result);
         if (zulipVersionData.isUnsupported) {
-          throw _ServerVersionUnsupportedException(zulipVersionData);
+          throw ServerVersionUnsupportedException(zulipVersionData);
         }
         return result;
       }
@@ -1527,58 +1528,6 @@ class UpdateMachine {
 
   @override
   String toString() => '${objectRuntimeType(this, 'UpdateMachine')}#${shortHash(this)}';
-}
-
-/// The fields 'zulip_version', 'zulip_merge_base', and 'zulip_feature_level'
-/// from a /register response.
-class ZulipVersionData {
-  const ZulipVersionData({
-    required this.zulipVersion,
-    required this.zulipMergeBase,
-    required this.zulipFeatureLevel,
-  });
-
-  factory ZulipVersionData.fromInitialSnapshot(InitialSnapshot initialSnapshot) =>
-    ZulipVersionData(
-      zulipVersion: initialSnapshot.zulipVersion,
-      zulipMergeBase: initialSnapshot.zulipMergeBase,
-      zulipFeatureLevel: initialSnapshot.zulipFeatureLevel);
-
-  /// Make a [ZulipVersionData] from a [MalformedServerResponseException],
-  /// if the body was readable/valid JSON and contained the data, else null.
-  ///
-  /// If there's a zulip_version but no zulip_feature_level,
-  /// we infer it's indeed a Zulip server,
-  /// just an ancient one before feature levels were introduced in Zulip 3.0,
-  /// and we set 0 for zulipFeatureLevel.
-  static ZulipVersionData? fromMalformedServerResponseException(MalformedServerResponseException e) {
-    try {
-      final data = e.data!;
-      return ZulipVersionData(
-        zulipVersion: data['zulip_version'] as String,
-        zulipMergeBase: data['zulip_merge_base'] as String?,
-        zulipFeatureLevel: data['zulip_feature_level'] as int? ?? 0);
-    } catch (inner) {
-      return null;
-    }
-  }
-
-  final String zulipVersion;
-  final String? zulipMergeBase;
-  final int zulipFeatureLevel;
-
-  bool matchesAccount(Account account) =>
-    zulipVersion == account.zulipVersion
-    && zulipMergeBase == account.zulipMergeBase
-    && zulipFeatureLevel == account.zulipFeatureLevel;
-
-  bool get isUnsupported => zulipFeatureLevel < kMinSupportedZulipFeatureLevel;
-}
-
-class _ServerVersionUnsupportedException implements Exception {
-  final ZulipVersionData data;
-
-  _ServerVersionUnsupportedException(this.data);
 }
 
 class _EventHandlingException implements Exception {

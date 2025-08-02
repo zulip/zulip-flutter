@@ -6,6 +6,7 @@ import 'package:zulip/model/autocomplete.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/recent_dm_conversations.dart';
+import 'package:zulip/model/server_support.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/unreads.dart';
