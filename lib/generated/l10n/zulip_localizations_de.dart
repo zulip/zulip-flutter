@@ -809,6 +809,9 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get channelsPageTitle => 'Kanäle';
 
   @override
+  String get sharePageTitle => 'Share';
+
+  @override
   String get channelsEmptyPlaceholder => 'Du hast noch keine Kanäle abonniert.';
 
   @override
@@ -1001,6 +1004,13 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   @override
   String get errorReactionRemovingFailedTitle =>
       'Entfernen der Reaktion fehlgeschlagen';
+
+  @override
+  String get errorSharingTitle => 'Failed to share content';
+
+  @override
+  String get errorSharingAccountNotLoggedIn =>
+      'There was no account logged in. Please login to an account and try again.';
 
   @override
   String get emojiReactionsMore => 'mehr';

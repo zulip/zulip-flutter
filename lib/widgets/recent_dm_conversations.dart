@@ -14,8 +14,17 @@ import 'theme.dart';
 import 'unread_count_badge.dart';
 import 'user.dart';
 
+typedef OnDmSelectCallback = void Function(BuildContext context, DmNarrow narrow);
+
 class RecentDmConversationsPageBody extends StatefulWidget {
-  const RecentDmConversationsPageBody({super.key});
+  const RecentDmConversationsPageBody({
+    super.key,
+    this.hideDmsIfUserCantPost = false,
+    this.onDmSelect,
+  });
+
+  final bool hideDmsIfUserCantPost;
+  final OnDmSelectCallback? onDmSelect;
 
   @override
   State<RecentDmConversationsPageBody> createState() => _RecentDmConversationsPageBodyState();
@@ -76,13 +85,27 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
                   //   for these conversations we're filtering out?
                   return SizedBox.shrink();
                 }
+                if (widget.hideDmsIfUserCantPost) {
+                  final hasDeactivatedUser =
+                    narrow.otherRecipientIds.any(
+                      (id) => !(store.getUser(id)?.isActive ?? true));
+                  if (hasDeactivatedUser) {
+                    return SizedBox.shrink();
+                  }
+                }
                 return RecentDmConversationsItem(
                   narrow: narrow,
-                  unreadCount: unreadsModel!.countInDmNarrow(narrow));
+                  unreadCount: unreadsModel!.countInDmNarrow(narrow),
+                  onDmSelect: widget.onDmSelect
+                    ?? (context, narrow) {
+                      Navigator.push(context,
+                        MessageListPage.buildRoute(context: context,
+                          narrow: narrow));
+                    });
               })),
         Positioned(
           bottom: 21,
-          child: _NewDmButton()),
+          child: _NewDmButton(onDmSelect: widget.onDmSelect)),
       ]);
   }
 }
@@ -92,10 +115,12 @@ class RecentDmConversationsItem extends StatelessWidget {
     super.key,
     required this.narrow,
     required this.unreadCount,
+    required this.onDmSelect,
   });
 
   final DmNarrow narrow;
   final int unreadCount;
+  final OnDmSelectCallback onDmSelect;
 
   static const double _avatarSize = 32;
 
@@ -138,10 +163,7 @@ class RecentDmConversationsItem extends StatelessWidget {
     return Material(
       color: backgroundColor,
       child: InkWell(
-        onTap: () {
-          Navigator.push(context,
-            MessageListPage.buildRoute(context: context, narrow: narrow));
-        },
+        onTap: () => onDmSelect(context, narrow),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 48),
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
             Padding(padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 0, 8),
@@ -175,7 +197,11 @@ class RecentDmConversationsItem extends StatelessWidget {
 }
 
 class _NewDmButton extends StatefulWidget {
-  const _NewDmButton();
+  const _NewDmButton({
+    required this.onDmSelect,
+  });
+
+  final OnDmSelectCallback? onDmSelect;
 
   @override
   State<_NewDmButton> createState() => _NewDmButtonState();
@@ -197,7 +223,7 @@ class _NewDmButtonState extends State<_NewDmButton> {
       : designVariables.fabLabel;
 
     return GestureDetector(
-      onTap: () => showNewDmSheet(context),
+      onTap: () => showNewDmSheet(context, widget.onDmSelect),
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
       onTapCancel: () => setState(() => _pressed = false),
