@@ -17,6 +17,7 @@ import 'package:zulip/widgets/login.dart';
 import 'package:zulip/widgets/page.dart';
 
 import '../api/fake_api.dart';
+import '../api/route/route_checks.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../stdlib_checks.dart';
@@ -65,7 +66,61 @@ void main() {
     expectErrorFromText('email@example.com', ServerUrlValidationError.noUseEmail);
   });
 
-  // TODO test AddAccountPage
+  group('AddAccountPage', () {
+    late FakeApiConnection connection;
+    List<Route<dynamic>> pushedRoutes = [];
+    List<Route<dynamic>> poppedRoutes = [];
+
+    List<Route<dynamic>> takePushedRoutes() {
+      final routes = pushedRoutes.toList();
+      pushedRoutes.clear();
+      return routes;
+    }
+
+    Future<void> prepare(WidgetTester tester) async {
+      addTearDown(testBinding.reset);
+
+      pushedRoutes = [];
+      poppedRoutes = [];
+      final testNavObserver = TestNavigatorObserver();
+      testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      testNavObserver.onPopped = (route, prevRoute) => poppedRoutes.add(route);
+      testNavObserver.onReplaced = (route, prevRoute) {
+        poppedRoutes.add(prevRoute!);
+        pushedRoutes.add(route!);
+      };
+
+      await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
+      await tester.pump();
+      check(takePushedRoutes()).single.isA<WidgetRoute>().page.isA<ChooseAccountPage>();
+      await tester.tap(find.text('Add an account'));
+      check(takePushedRoutes()).single.isA<WidgetRoute>().page.isA<AddAccountPage>();
+      await testNavObserver.pumpPastTransition(tester);
+    }
+
+    Future<void> attempt(WidgetTester tester,
+        Uri realmUrl, Map<String, Object?> responseJson) async {
+      await tester.enterText(find.byType(TextField), realmUrl.toString());
+      testBinding.globalStore.useCachedApiConnections = true;
+      connection = testBinding.globalStore.apiConnection(
+        realmUrl: realmUrl,
+        zulipFeatureLevel: null);
+      connection.prepare(json: responseJson);
+      await tester.tap(find.text('Continue'));
+      await tester.pump(Duration.zero);
+    }
+
+    testWidgets('happy path', (tester) async {
+      await prepare(tester);
+
+      final serverSettings = eg.serverSettings();
+
+      await attempt(tester, serverSettings.realmUrl, serverSettings.toJson());
+      checkNoDialog(tester);
+      check(takePushedRoutes()).single.isA<WidgetRoute>().page.isA<LoginPage>()
+        .serverSettings.realmUrl.equals(serverSettings.realmUrl);
+    });
+  });
 
   group('LoginPage', () {
     late FakeApiConnection connection;
