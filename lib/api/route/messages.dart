@@ -327,6 +327,51 @@ class UploadFileResult {
   Map<String, dynamic> toJson() => _$UploadFileResultToJson(this);
 }
 
+/// Get a temporary, authless partial URL to a realm-uploaded file.
+///
+/// The URL returned allows a file to be viewed without requiring authentication,
+/// but it doesn't include secrets like the API key. This URL remains valid for
+/// 60 seconds.
+///
+/// This endpoint is documented in the OpenAPI description:
+/// https://github.com/zulip/zulip/blob/main/zerver/openapi/zulip.yaml
+/// under the name `get-file-temporary-url`.
+Future<Uri> getFileTemporaryUrl(ApiConnection connection, {
+  required String filePath,
+}) async {
+  final response = await connection.get('getFileTemporaryUrl',
+    (json) => json['url'],
+    filePath.substring(1), // remove leading slash to avoid duplicate
+    {},
+  );
+
+  return Uri.parse('${connection.realmUrl}$response');
+}
+
+/// A wrapper for [getFileTemporaryUrl] that returns null on failure.
+///
+/// Validates that the URL is a realm-uploaded file before proceeding.
+Future<Uri?> tryGetFileTemporaryUrl(
+  ApiConnection connection, {
+  required Uri url,
+  required Uri realmUrl,
+}) async {
+  if (url.origin != realmUrl.origin) {
+    return null;
+  }
+
+  final filePath = url.path;
+  if (!RegExp(r'^/user_uploads/[0-9]+/.+$').hasMatch(filePath)) {
+    return null;
+  }
+
+  try {
+    return await getFileTemporaryUrl(connection, filePath: filePath);
+  } catch (e) {
+    return null;
+  }
+}
+
 /// https://zulip.com/api/add-reaction
 Future<void> addReaction(ApiConnection connection, {
   required int messageId,

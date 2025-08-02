@@ -608,6 +608,78 @@ void main() {
     });
   });
 
+  group('getFileTemporaryUrl', () {
+    test('constructs URL correctly from response', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: {
+          'url': '/user_uploads/temporary/abc123',
+          'result': 'success',
+          'msg': '',
+        });
+
+        final result = await getFileTemporaryUrl(connection,
+          filePath: '/user_uploads/1/2/testfile.jpg');
+
+        check(result.toString()).equals('${connection.realmUrl}/user_uploads/temporary/abc123');
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('GET')
+          ..url.path.equals('/api/v1/user_uploads/1/2/testfile.jpg');
+      });
+    });
+
+    test('returns temporary URL for valid realm file', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: {
+          'url': '/user_uploads/temporary/abc123',
+          'result': 'success',
+          'msg': '',
+        });
+
+        final result = await tryGetFileTemporaryUrl(connection,
+          url: Uri.parse('${connection.realmUrl}user_uploads/123/testfile.jpg'),
+          realmUrl: connection.realmUrl);
+
+        check(result).isNotNull();
+        check(result.toString()).equals('${connection.realmUrl}/user_uploads/temporary/abc123');
+      });
+    });
+
+    test('returns null for non-realm URL', () {
+      return FakeApiConnection.with_((connection) async {
+        final result = await tryGetFileTemporaryUrl(connection,
+          url: Uri.parse('https://example.com/user_uploads/123/testfile.jpg'),
+          realmUrl: connection.realmUrl);
+
+        check(result).isNull();
+        check(connection.lastRequest).isNull();
+      });
+    });
+
+    test('returns null for non-matching URL pattern', () {
+      return FakeApiConnection.with_((connection) async {
+        final result = await tryGetFileTemporaryUrl(connection,
+          url: Uri.parse('${connection.realmUrl}/invalid/path/file.jpg'),
+          realmUrl: connection.realmUrl);
+
+        check(result).isNull();
+        check(connection.lastRequest).isNull();
+      });
+    });
+
+    test('returns null when API request fails', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(
+          apiException: eg.apiBadRequest(message: 'Not found'));
+
+        final result = await tryGetFileTemporaryUrl(connection,
+          url: Uri.parse('${connection.realmUrl}/user_uploads/1/2/testfile.jpg'),
+          realmUrl: connection.realmUrl);
+
+        check(result).isNull();
+      });
+    });
+  });
+
   group('addReaction', () {
     Future<void> checkAddReaction(FakeApiConnection connection, {
       required int messageId,
