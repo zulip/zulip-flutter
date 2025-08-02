@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 import '../api/exception.dart';
 import '../api/model/model.dart';
@@ -822,7 +823,7 @@ class ViewReactionsHeader extends StatelessWidget {
     if (reactions == null || reactions.aggregated.isEmpty) {
       return Padding(
         padding: const EdgeInsets.only(top: 8),
-        child: BottomSheetHeaderPlainText(text: zulipLocalizations.seeWhoReactedSheetNoReactions),
+        child: BottomSheetInfoText(text: zulipLocalizations.seeWhoReactedSheetNoReactions),
       );
     }
 

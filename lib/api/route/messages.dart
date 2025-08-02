@@ -436,3 +436,23 @@ class UpdateMessageFlagsForNarrowResult {
 
   Map<String, dynamic> toJson() => _$UpdateMessageFlagsForNarrowResultToJson(this);
 }
+
+/// https://zulip.com/api/get-read-receipts
+Future<GetReadReceiptsResult> getReadReceipts(ApiConnection connection, {
+  required int messageId,
+}) {
+  return connection.get('getReadReceipts', GetReadReceiptsResult.fromJson,
+    'messages/$messageId/read_receipts', null);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class GetReadReceiptsResult {
+  const GetReadReceiptsResult({required this.userIds});
+
+  final List<int> userIds;
+
+  factory GetReadReceiptsResult.fromJson(Map<String, dynamic> json) =>
+    _$GetReadReceiptsResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$GetReadReceiptsResultToJson(this);
+}

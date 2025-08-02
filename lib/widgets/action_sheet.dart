@@ -29,6 +29,7 @@ import 'icons.dart';
 import 'inset_shadow.dart';
 import 'message_list.dart';
 import 'page.dart';
+import 'read_receipts.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -98,26 +99,31 @@ void _showActionSheet(
     });
 }
 
-/// A header for a bottom sheet with a multiline UI string.
+/// A plain text widget for a bottom sheet with a multiline UI string.
 ///
-/// Assumes 8px padding below the top of the bottom sheet.
+/// Use it to present short, non-interactive explanatory messages to the user,
+/// such as an error message or other feedback.
+///
+/// Comes with built-in 16px horizontal padding.
 ///
 /// Figma:
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3481-26993&m=dev
-class BottomSheetHeaderPlainText extends StatelessWidget {
-  const BottomSheetHeaderPlainText({super.key, required this.text});
+class BottomSheetInfoText extends StatelessWidget {
+  const BottomSheetInfoText({super.key, required this.text, this.textAlign});
 
   final String text;
+  final TextAlign? textAlign;
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: EdgeInsets.symmetric(horizontal: 16),
       child: SizedBox(
         width: double.infinity,
         child: Text(
+          textAlign: textAlign,
           style: TextStyle(
             color: designVariables.labelTime,
             fontSize: 17,
@@ -715,6 +721,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       ReactionButtons(message: message, pageContext: pageContext),
     if (hasReactions)
       ViewReactionsButton(message: message, pageContext: pageContext),
+    ViewReadReceiptsButton(message: message, pageContext: pageContext),
     StarButton(message: message, pageContext: pageContext),
     if (isComposeBoxOffered)
       QuoteAndReplyButton(message: message, pageContext: pageContext),
@@ -961,6 +968,21 @@ class ViewReactionsButton extends MessageActionSheetMenuItemButton {
 
   @override void onPressed() {
     showViewReactionsSheet(pageContext, messageId: message.id);
+  }
+}
+
+class ViewReadReceiptsButton extends MessageActionSheetMenuItemButton {
+  ViewReadReceiptsButton({super.key, required super.message, required super.pageContext});
+
+  @override IconData get icon => ZulipIcons.check_check;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionViewReadReceipts;
+  }
+
+  @override void onPressed() {
+    showReadReceiptsSheet(pageContext, messageId: message.id);
   }
 }
 

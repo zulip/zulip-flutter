@@ -89,6 +89,18 @@ Map<String, dynamic> _$UpdateMessageFlagsForNarrowResultToJson(
   'found_newest': instance.foundNewest,
 };
 
+GetReadReceiptsResult _$GetReadReceiptsResultFromJson(
+  Map<String, dynamic> json,
+) => GetReadReceiptsResult(
+  userIds: (json['user_ids'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+);
+
+Map<String, dynamic> _$GetReadReceiptsResultToJson(
+  GetReadReceiptsResult instance,
+) => <String, dynamic>{'user_ids': instance.userIds};
+
 const _$AnchorCodeEnumMap = {
   AnchorCode.newest: 'newest',
   AnchorCode.oldest: 'oldest',
