@@ -93,7 +93,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Отметить канал как прочитанный';
 
   @override
-  String get actionSheetOptionCopyChannelLink => 'Copy link to channel';
+  String get actionSheetOptionCopyChannelLink => 'Скопировать ссылку на канал';
 
   @override
   String get actionSheetOptionListOfTopics => 'Список тем';
@@ -125,14 +125,14 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Не удалось отметить тему как нерешенную';
 
   @override
-  String get actionSheetOptionSeeWhoReacted => 'See who reacted';
+  String get actionSheetOptionSeeWhoReacted => 'Посмотреть отреагировавших';
 
   @override
-  String get seeWhoReactedSheetNoReactions => 'This message has no reactions.';
+  String get seeWhoReactedSheetNoReactions => 'На это сообщение нет реакций.';
 
   @override
   String seeWhoReactedSheetHeaderLabel(int num) {
-    return 'Emoji reactions ($num total)';
+    return 'Эмодзи-реакции (всего: $num)';
   }
 
   @override
@@ -140,15 +140,17 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num votes',
-      one: '1 vote',
+      other: '$num голосов',
+      many: '$num голосов',
+      few: '$num голоса',
+      one: '1 голос',
     );
     return '$emojiName: $_temp0';
   }
 
   @override
   String seeWhoReactedSheetUserListLabel(String emojiName, int num) {
-    return 'Votes for $emojiName ($num)';
+    return 'Голоса за $emojiName ($num)';
   }
 
   @override
@@ -186,7 +188,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Отметить тему как прочитанную';
 
   @override
-  String get actionSheetOptionCopyTopicLink => 'Copy link to topic';
+  String get actionSheetOptionCopyTopicLink => 'Скопировать ссылку на тему';
 
   @override
   String get errorWebAuthOperationalErrorTitle => 'Что-то пошло не так';
@@ -343,10 +345,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get successMessageLinkCopied => 'Ссылка на сообщение скопирована';
 
   @override
-  String get successTopicLinkCopied => 'Topic link copied';
+  String get successTopicLinkCopied => 'Ссылка на тему скопирована';
 
   @override
-  String get successChannelLinkCopied => 'Channel link copied';
+  String get successChannelLinkCopied => 'Ссылка на канал скопирована';
 
   @override
   String get errorBannerDeactivatedDmLabel =>
@@ -418,7 +420,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get newDmSheetSearchHintEmpty => 'Добавить пользователей';
 
   @override
-  String get newDmSheetSearchHintSomeSelected => 'Добавить еще…';
+  String get newDmSheetSearchHintSomeSelected => 'Добавить ещё…';
 
   @override
   String get newDmSheetNoUsersFound => 'Никто не найден';
@@ -598,7 +600,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String errorInvalidApiKeyMessage(String url) {
-    return 'Не удалось войти в вашу учетную запись $url. Попробуйте еще раз или используйте другую учетную запись.';
+    return 'Не удалось войти в вашу учётную запись $url. Попробуйте ещё раз или используйте другую учётную запись.';
   }
 
   @override
@@ -651,8 +653,8 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num шт. сообщений',
-      one: '1 сообщения',
+      other: '$num сообщений',
+      one: '$num сообщения',
     );
     return 'Отметка прочтения установлена для $_temp0.';
   }
@@ -669,8 +671,8 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num шт. сообщений',
-      one: '1 сообщения',
+      other: '$num сообщений',
+      one: '$num сообщения',
     );
     return 'Отметка прочтения снята для $_temp0.';
   }
@@ -718,50 +720,50 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get userRoleUnknown => 'Неизвестно';
 
   @override
-  String get statusButtonLabelStatusSet => 'Status';
+  String get statusButtonLabelStatusSet => 'Статус';
 
   @override
-  String get statusButtonLabelStatusUnset => 'Set status';
+  String get statusButtonLabelStatusUnset => 'Установить статус';
 
   @override
-  String get noStatusText => 'No status text';
+  String get noStatusText => 'Нет текста статуса';
 
   @override
-  String get setStatusPageTitle => 'Set status';
+  String get setStatusPageTitle => 'Установить статус';
 
   @override
-  String get statusClearButtonLabel => 'Clear';
+  String get statusClearButtonLabel => 'Очистить';
 
   @override
-  String get statusSaveButtonLabel => 'Save';
+  String get statusSaveButtonLabel => 'Сохранить';
 
   @override
-  String get statusTextHint => 'Your status';
+  String get statusTextHint => 'Ваш статус';
 
   @override
-  String get userStatusBusy => 'Busy';
+  String get userStatusBusy => 'Занят/а';
 
   @override
-  String get userStatusInAMeeting => 'In a meeting';
+  String get userStatusInAMeeting => 'На встрече';
 
   @override
-  String get userStatusCommuting => 'Commuting';
+  String get userStatusCommuting => 'В дороге';
 
   @override
-  String get userStatusOutSick => 'Out sick';
+  String get userStatusOutSick => 'Болею';
 
   @override
-  String get userStatusVacationing => 'Vacationing';
+  String get userStatusVacationing => 'В отпуске';
 
   @override
-  String get userStatusWorkingRemotely => 'Working remotely';
+  String get userStatusWorkingRemotely => 'Работаю дистанционно';
 
   @override
-  String get userStatusAtTheOffice => 'At the office';
+  String get userStatusAtTheOffice => 'В офисе';
 
   @override
   String get updateStatusErrorTitle =>
-      'Error updating user status. Please try again.';
+      'Ошибка обновления статуса пользователя. Попробуйте ещё раз.';
 
   @override
   String get searchMessagesPageTitle => 'Поиск';
@@ -803,7 +805,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get channelsEmptyPlaceholder =>
-      'Вы еще не подписаны ни на один канал.';
+      'Вы ещё не подписаны ни на один канал.';
 
   @override
   String get mainMenuMyProfile => 'Мой профиль';
@@ -819,10 +821,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       numOthers,
       locale: localeName,
-      other: '$numOthers чел.',
-      one: '1 чел.',
+      other: '$numOthers другим',
+      one: '$numOthers другому',
     );
-    return '$senderFullName вам и еще $_temp0';
+    return '$senderFullName вам и ещё $_temp0';
   }
 
   @override
@@ -838,7 +840,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get reactedEmojiSelfUser => 'Вы';
 
   @override
-  String get reactionChipsLabel => 'Reactions';
+  String get reactionChipsLabel => 'Реакции';
 
   @override
   String reactionChipLabel(String emojiName, String votes) {
@@ -850,8 +852,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       otherUsersCount,
       locale: localeName,
-      other: 'You and $otherUsersCount others',
-      one: 'You and 1 other',
+      other: 'Вы и еще $otherUsersCount человек',
+      many: 'Вы и еще $otherUsersCount человек',
+      few: 'Вы и еще $otherUsersCount человека',
+      one: 'Вы и еще $otherUsersCount человек',
     );
     return '$_temp0';
   }
@@ -977,7 +981,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get experimentalFeatureSettingsWarning =>
-      'Эти параметры включают функции, которые все еще находятся в стадии разработки и не готовы. Они могут не работать и вызывать проблемы в других местах приложения.\n\nЦель этих настроек — экспериментирование людьми, работающими над разработкой Zulip.';
+      'Эти параметры включают возможности, которые все ещё находятся в разработке и не готовы. Они могут не работать и вызывать проблемы в других местах приложения.\n\nЦель этих настроек — экспериментирование людьми, работающими над разработкой Zulip.';
 
   @override
   String get errorNotificationOpenTitle => 'Не удалось открыть оповещения';
@@ -993,7 +997,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get errorReactionRemovingFailedTitle => 'Не удалось удалить реакцию';
 
   @override
-  String get emojiReactionsMore => 'еще';
+  String get emojiReactionsMore => 'ещё';
 
   @override
   String get emojiPickerSearchEmoji => 'Поиск эмодзи';
