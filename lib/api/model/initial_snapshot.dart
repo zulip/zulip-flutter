@@ -90,6 +90,8 @@ class InitialSnapshot {
   final bool realmAllowMessageEditing;
   final int? realmMessageContentEditLimitSeconds;
 
+  final bool realmEnableReadReceipts;
+
   final bool realmPresenceDisabled;
 
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
@@ -158,6 +160,7 @@ class InitialSnapshot {
     required this.realmWaitingPeriodThreshold,
     required this.realmAllowMessageEditing,
     required this.realmMessageContentEditLimitSeconds,
+    required this.realmEnableReadReceipts,
     required this.realmPresenceDisabled,
     required this.realmDefaultExternalAccounts,
     required this.maxFileUploadSizeMib,
