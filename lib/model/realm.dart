@@ -42,6 +42,7 @@ mixin RealmStore on PerAccountStoreBase {
     realmMessageContentEditLimitSeconds == null ? null
       : Duration(seconds: realmMessageContentEditLimitSeconds!);
   int? get realmMessageContentEditLimitSeconds;
+  bool get realmEnableReadReceipts;
   bool get realmPresenceDisabled;
   int get realmWaitingPeriodThreshold;
 
@@ -141,6 +142,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   int? get realmMessageContentEditLimitSeconds => realmStore.realmMessageContentEditLimitSeconds;
   @override
+  bool get realmEnableReadReceipts => realmStore.realmEnableReadReceipts;
+  @override
   bool get realmPresenceDisabled => realmStore.realmPresenceDisabled;
   @override
   int get realmWaitingPeriodThreshold => realmStore.realmWaitingPeriodThreshold;
@@ -180,6 +183,7 @@ class RealmStoreImpl extends PerAccountStoreBase with RealmStore {
     realmMandatoryTopics = initialSnapshot.realmMandatoryTopics,
     maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib,
     realmMessageContentEditLimitSeconds = initialSnapshot.realmMessageContentEditLimitSeconds,
+    realmEnableReadReceipts = initialSnapshot.realmEnableReadReceipts,
     realmPresenceDisabled = initialSnapshot.realmPresenceDisabled,
     realmWaitingPeriodThreshold = initialSnapshot.realmWaitingPeriodThreshold,
     realmWildcardMentionPolicy = initialSnapshot.realmWildcardMentionPolicy,
@@ -207,6 +211,8 @@ class RealmStoreImpl extends PerAccountStoreBase with RealmStore {
   final int maxFileUploadSizeMib;
   @override
   final int? realmMessageContentEditLimitSeconds;
+  @override
+  final bool realmEnableReadReceipts;
   @override
   final bool realmPresenceDisabled;
   @override
