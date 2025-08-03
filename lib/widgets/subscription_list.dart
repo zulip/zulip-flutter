@@ -135,7 +135,18 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
         message: zulipLocalizations.channelsEmptyPlaceholder);
     }
 
-    return SafeArea( // horizontal insets
+    return SafeArea(
+      // Don't pad the bottom here; we want the list content to do that.
+      //
+      // When this page is used in the context of the home page, this
+      // param and the below use of `SliverSafeArea` would be noop, because
+      // `Scaffold.bottomNavigationBar` in the home page handles that for us.
+      // But this page is planned to be used for share-to-zulip page, so we
+      // need this to be handled here.
+      //
+      // Other *PageBody widgets don't handle this because they aren't
+      // planned to be (re-)used outside the context of the home page.
+      bottom: false,
       child: CustomScrollView(
         slivers: [
           if (pinned.isNotEmpty) ...[
@@ -156,6 +167,11 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
           ],
 
           // TODO(#188): add button leading to "All Streams" page with ability to subscribe
+
+          // This ensures last item in scrollable can settle in an unobstructed area.
+          // (Noop in the home-page case; see comment on `bottom: false` arg in
+          // use of `SafeArea` above.)
+          const SliverSafeArea(sliver: SliverToBoxAdapter(child: SizedBox.shrink())),
         ]));
   }
 }
