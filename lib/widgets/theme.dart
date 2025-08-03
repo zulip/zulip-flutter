@@ -59,6 +59,13 @@ ThemeData zulipThemeData(BuildContext context) {
     brightness: brightness,
     typography: zulipTypography(context),
     extensions: themeExtensions,
+
+    // Use "standard" visual density (the default for mobile platforms)
+    // on all platforms.  That helps the desktop builds of the app be faithful
+    // previews of how the app behaves on mobile -- which is the only purpose
+    // we use the desktop builds for.
+    visualDensity: VisualDensity.standard,
+
     iconButtonTheme: IconButtonThemeData(style: IconButton.styleFrom(
       foregroundColor: designVariables.icon,
     )),
