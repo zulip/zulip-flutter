@@ -34,6 +34,27 @@ Widget _adaptiveAction({required VoidCallback onPressed, required String text}) 
   }
 }
 
+/// Platform-appropriate content for [AlertDialog.adaptive]'s [content] param.
+Widget? _adaptiveContent(Widget? content) {
+  if (content == null) return null;
+
+  switch (defaultTargetPlatform) {
+    case TargetPlatform.android:
+    case TargetPlatform.fuchsia:
+    case TargetPlatform.linux:
+    case TargetPlatform.windows:
+      // [AlertDialog] does not create a [SingleChildScrollView];
+      // callers are asked to do that themselves, to handle long content.
+      return SingleChildScrollView(child: content);
+
+    case TargetPlatform.iOS:
+    case TargetPlatform.macOS:
+      // A [SingleChildScrollView] (wrapping both title and content) is already
+      // created by [CupertinoAlertDialog].
+      return content;
+  }
+}
+
 /// Tracks the status of a dialog, in being still open or already closed.
 ///
 /// Use [T] to identify the outcome of the interaction:
@@ -86,7 +107,7 @@ DialogStatus<void> showErrorDialog({
     context: context,
     builder: (BuildContext context) => AlertDialog.adaptive(
       title: Text(title),
-      content: message != null ? SingleChildScrollView(child: Text(message)) : null,
+      content: message != null ? _adaptiveContent(Text(message)) : null,
       actions: [
         if (learnMoreButtonUrl != null)
           _adaptiveAction(
@@ -118,7 +139,7 @@ DialogStatus<bool> showSuggestedActionDialog({
     context: context,
     builder: (BuildContext context) => AlertDialog.adaptive(
       title: Text(title),
-      content: SingleChildScrollView(child: Text(message)),
+      content: _adaptiveContent(Text(message)),
       actions: [
         _adaptiveAction(
           onPressed: () => Navigator.pop<bool>(context, null),
@@ -179,8 +200,8 @@ class UpgradeWelcomeDialog extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return AlertDialog.adaptive(
       title: Text(zulipLocalizations.upgradeWelcomeDialogTitle),
-      content: SingleChildScrollView(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      content: _adaptiveContent(
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(zulipLocalizations.upgradeWelcomeDialogMessage),
           GestureDetector(
             onTap: () => PlatformActions.launchUrl(context,

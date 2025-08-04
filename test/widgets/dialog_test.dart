@@ -1,9 +1,13 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zulip/model/settings.dart';
+import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/dialog.dart';
+import 'package:zulip/widgets/store.dart';
 
 import '../model/binding.dart';
 import 'dialog_checks.dart';
@@ -64,6 +68,17 @@ void main() {
       check(testBinding.takeLaunchUrlCalls()).single
         .equals((url: learnMoreButtonUrl, mode: expectedMode));
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+
+    testWidgets('only one SingleChildScrollView created', (tester) async {
+      await prepare(tester);
+
+      showErrorDialog(context: context, title: title, message: message);
+      await tester.pump();
+      checkErrorDialog(tester, expectedTitle: title, expectedMessage: message);
+
+      check(find.ancestor(of: find.text(message),
+        matching: find.byType(SingleChildScrollView))).findsOne();
+    }, variant: TargetPlatformVariant.all());
   });
 
   group('showSuggestedActionDialog', () {
@@ -113,5 +128,43 @@ void main() {
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
   });
 
-  // TODO(#1594): test UpgradeWelcomeDialog
+  testWidgets('only one SingleChildScrollView created', (tester) async {
+    addTearDown(testBinding.reset);
+    await tester.pumpWidget(TestZulipApp());
+    await tester.pump();
+    final element = tester.element(find.byType(Placeholder));
+
+    showSuggestedActionDialog(context: element,
+      title: 'Continue?',
+      message: 'Do the thing?',
+      actionButtonText: 'Sure');
+    await tester.pump();
+
+    check(find.ancestor(of: find.text('Do the thing?'),
+      matching: find.byType(SingleChildScrollView))).findsOne();
+  }, variant: TargetPlatformVariant.all());
+
+  group('UpgradeWelcomeDialog', () {
+    // TODO(#1594): test LegacyUpgradeState and BoolGlobalSetting.upgradeWelcomeDialogShown
+
+    testWidgets('only one SingleChildScrollView created', (tester) async {
+      final transitionDurationObserver = TransitionDurationObserver();
+      addTearDown(testBinding.reset);
+
+      // Real ZulipApp needed because the show-dialog function calls
+      // `await ZulipApp.navigator`.
+      await tester.pumpWidget(ZulipApp(navigatorObservers: [transitionDurationObserver]));
+      await tester.pump();
+
+      await testBinding.globalStore.settings
+        .debugSetLegacyUpgradeState(LegacyUpgradeState.found);
+
+      UpgradeWelcomeDialog.maybeShow();
+      await transitionDurationObserver.pumpPastTransition(tester);
+
+      final expectedMessage = 'You’ll find a familiar experience in a faster, sleeker package.';
+      check(find.ancestor(of: find.text(expectedMessage),
+        matching: find.byType(SingleChildScrollView))).findsOne();
+    }, variant: TargetPlatformVariant.all());
+  });
 }

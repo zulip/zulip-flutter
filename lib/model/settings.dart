@@ -354,6 +354,12 @@ class GlobalSettingsStore extends ChangeNotifier {
     return _data.legacyUpgradeState ?? LegacyUpgradeState._default;
   }
 
+  /// Set [legacyUpgradeState], persistently for future runs of the app.
+  @visibleForTesting
+  Future<void> debugSetLegacyUpgradeState(LegacyUpgradeState value) async {
+    await _update(GlobalSettingsCompanion(legacyUpgradeState: Value(value)));
+  }
+
   /// The user's choice of the given bool-valued setting, or our default for it.
   ///
   /// See also [setBool].
