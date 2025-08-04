@@ -1,1 +1,458 @@
-{}
+{
+  "aboutPageTitle": "À propos de Zulip",
+  "@aboutPageTitle": {
+    "description": "Title for About Zulip page."
+  },
+  "aboutPageAppVersion": "Version de l'application",
+  "@aboutPageAppVersion": {
+    "description": "Label for Zulip app version in About Zulip page"
+  },
+  "aboutPageOpenSourceLicenses": "Licences de logiciel libre",
+  "@aboutPageOpenSourceLicenses": {
+    "description": "Item title in About Zulip page to navigate to Licenses page"
+  },
+  "aboutPageTapToView": "Toucher pour voir",
+  "@aboutPageTapToView": {
+    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
+  },
+  "upgradeWelcomeDialogTitle": "Bienvenue dans la nouvelle application Zulip !",
+  "@upgradeWelcomeDialogTitle": {
+    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogDismiss": "Allons-y",
+  "@upgradeWelcomeDialogDismiss": {
+    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "chooseAccountPageTitle": "Choisir un compte",
+  "@chooseAccountPageTitle": {
+    "description": "Title for the page to choose between Zulip accounts."
+  },
+  "settingsPageTitle": "Paramètres",
+  "@settingsPageTitle": {
+    "description": "Title for the settings page."
+  },
+  "tryAnotherAccountMessage": "Votre compte à {url} prend du temps à se charger.",
+  "@tryAnotherAccountMessage": {
+    "description": "Message that appears on the loading screen after waiting for some time.",
+    "url": {
+      "type": "String",
+      "example": "http://chat.example.com/"
+    }
+  },
+  "tryAnotherAccountButton": "Essayer un autre compte",
+  "@tryAnotherAccountButton": {
+    "description": "Label for loading screen button prompting user to try another account."
+  },
+  "chooseAccountPageLogOutButton": "Déconnexion",
+  "@chooseAccountPageLogOutButton": {
+    "description": "Label for the 'Log out' button for an account on the choose-account page"
+  },
+  "logOutConfirmationDialogTitle": "Se déconnecter?",
+  "@logOutConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for logging out."
+  },
+  "logOutConfirmationDialogMessage": "Pour utiliser ce compte à l'avenir, vous devrez ré-entrer l'adresse pour votre organisation et les informations de votre compte.",
+  "@logOutConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for logging out."
+  },
+  "logOutConfirmationDialogConfirmButton": "Déconnexion",
+  "@logOutConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Log out' button on a confirmation dialog for logging out."
+  },
+  "chooseAccountButtonAddAnAccount": "Ajouter un compte",
+  "@chooseAccountButtonAddAnAccount": {
+    "description": "Label for ChooseAccountPage button to add an account"
+  },
+  "profileButtonSendDirectMessage": "Envoyer un message direct",
+  "@profileButtonSendDirectMessage": {
+    "description": "Label for button in profile screen to navigate to DMs with the shown user."
+  },
+  "errorCouldNotShowUserProfile": "Impossible de montrer le profil de l'utilisateur.",
+  "@errorCouldNotShowUserProfile": {
+    "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
+  "upgradeWelcomeDialogMessage": "Vous retrouverez une expérience familière dans un logiciel plus rapide et plus élégant.",
+  "@upgradeWelcomeDialogMessage": {
+    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "upgradeWelcomeDialogLinkText": "Allez voir les articles sur le blog des annonces !",
+  "@upgradeWelcomeDialogLinkText": {
+    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "switchAccountButton": "Changer de compte",
+  "@switchAccountButton": {
+    "description": "Label for main-menu button leading to the choose-account page."
+  },
+  "permissionsNeededTitle": "Permissions requises",
+  "@permissionsNeededTitle": {
+    "description": "Title for dialog asking the user to grant additional permissions."
+  },
+  "permissionsNeededOpenSettings": "Ouvrir les préférences",
+  "@permissionsNeededOpenSettings": {
+    "description": "Button label for permissions dialog button that opens the system settings screen."
+  },
+  "permissionsDeniedCameraAccess": "Pour charger une image, merci d'accorder des autorisations supplémentaires à Zulip, dans les préférences.",
+  "@permissionsDeniedCameraAccess": {
+    "description": "Message for dialog asking the user to grant permissions for camera access."
+  },
+  "permissionsDeniedReadExternalStorage": "Pour charger des fichiers, merci d'accorder des autorisations supplémentaires à Zulip, dans les préférences.",
+  "@permissionsDeniedReadExternalStorage": {
+    "description": "Message for dialog asking the user to grant permissions for external storage read access."
+  },
+  "actionSheetOptionMarkChannelAsRead": "Marquer le canal comme lu",
+  "@actionSheetOptionMarkChannelAsRead": {
+    "description": "Label for marking a channel as read."
+  },
+  "actionSheetOptionListOfTopics": "Liste des sujets",
+  "@actionSheetOptionListOfTopics": {
+    "description": "Label for navigating to a channel's topic-list page."
+  },
+  "actionSheetOptionMuteTopic": "Rendre le sujet silencieux",
+  "@actionSheetOptionMuteTopic": {
+    "description": "Label for muting a topic on action sheet."
+  },
+  "actionSheetOptionUnmuteTopic": "Rendre le sujet non silencieux",
+  "@actionSheetOptionUnmuteTopic": {
+    "description": "Label for unmuting a topic on action sheet."
+  },
+  "actionSheetOptionFollowTopic": "Suivre le sujet",
+  "@actionSheetOptionFollowTopic": {
+    "description": "Label for following a topic on action sheet."
+  },
+  "actionSheetOptionUnfollowTopic": "Ne plus suivre le sujet",
+  "@actionSheetOptionUnfollowTopic": {
+    "description": "Label for unfollowing a topic on action sheet."
+  },
+  "actionSheetOptionResolveTopic": "Marquer comme résolu",
+  "@actionSheetOptionResolveTopic": {
+    "description": "Label for the 'Mark as resolved' button on the topic action sheet."
+  },
+  "actionSheetOptionUnresolveTopic": "Marquer comme non résolu",
+  "@actionSheetOptionUnresolveTopic": {
+    "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
+  },
+  "errorResolveTopicFailedTitle": "Impossible de marquer le sujet comme résolu",
+  "@errorResolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as resolved failed."
+  },
+  "errorUnresolveTopicFailedTitle": "Impossible de marquer le sujet comme non résolu",
+  "@errorUnresolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as unresolved failed."
+  },
+  "actionSheetOptionCopyMessageText": "Copier le contenu du message",
+  "@actionSheetOptionCopyMessageText": {
+    "description": "Label for copy message text button on action sheet."
+  },
+  "actionSheetOptionCopyMessageLink": "Copier le lien au message",
+  "@actionSheetOptionCopyMessageLink": {
+    "description": "Label for copy message link button on action sheet."
+  },
+  "actionSheetOptionMarkAsUnread": "Marquer non lu à partir d'ici",
+  "@actionSheetOptionMarkAsUnread": {
+    "description": "Label for mark as unread button on action sheet."
+  },
+  "actionSheetOptionHideMutedMessage": "Cacher à nouveau le message silencieux",
+  "@actionSheetOptionHideMutedMessage": {
+    "description": "Label for hide muted message again button on action sheet."
+  },
+  "actionSheetOptionShare": "Partager",
+  "@actionSheetOptionShare": {
+    "description": "Label for share button on action sheet."
+  },
+  "actionSheetOptionQuoteMessage": "Citer le message",
+  "@actionSheetOptionQuoteMessage": {
+    "description": "Label for the 'Quote message' button in the message action sheet."
+  },
+  "actionSheetOptionStarMessage": "Mettre le message en favori",
+  "@actionSheetOptionStarMessage": {
+    "description": "Label for star button on action sheet."
+  },
+  "actionSheetOptionUnstarMessage": "Retirer ce message de la liste des favoris",
+  "@actionSheetOptionUnstarMessage": {
+    "description": "Label for unstar button on action sheet."
+  },
+  "actionSheetOptionEditMessage": "Modifier le message",
+  "@actionSheetOptionEditMessage": {
+    "description": "Label for the 'Edit message' button in the message action sheet."
+  },
+  "actionSheetOptionMarkTopicAsRead": "Marquer le sujet comme lu",
+  "@actionSheetOptionMarkTopicAsRead": {
+    "description": "Option to mark a specific topic as read in the action sheet."
+  },
+  "errorWebAuthOperationalErrorTitle": "Une erreur s'est produite",
+  "@errorWebAuthOperationalErrorTitle": {
+    "description": "Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "errorWebAuthOperationalError": "Oups, une erreur s'est produite.",
+  "@errorWebAuthOperationalError": {
+    "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "errorAccountLoggedInTitle": "Vous êtes déjà connecté à ce compte.",
+  "@errorAccountLoggedInTitle": {
+    "description": "Error title on attempting to log into an account that's already logged in."
+  },
+  "errorAccountLoggedIn": "Le compte {email} at {server} figure déjà dans votre liste de comptes.",
+  "@errorAccountLoggedIn": {
+    "description": "Error message on attempting to log into an account that's already logged in.",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "user@example.com"
+      },
+      "server": {
+        "type": "String",
+        "example": "https://example.com"
+      }
+    }
+  },
+  "errorCouldNotFetchMessageSource": "Impossible d'atteindre le message source.",
+  "@errorCouldNotFetchMessageSource": {
+    "description": "Error message when the source of a message could not be fetched."
+  },
+  "errorCopyingFailed": "Échec de la copie",
+  "@errorCopyingFailed": {
+    "description": "Error message when copying the text of a message to the user's system clipboard failed."
+  },
+  "errorFailedToUploadFileTitle": "Impossible de charger le fichier {filename}",
+  "@errorFailedToUploadFileTitle": {
+    "description": "Error title when the specified file failed to upload.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "file.txt"
+      }
+    }
+  },
+  "filenameAndSizeInMiB": "{filename} : {size} MiB",
+  "@filenameAndSizeInMiB": {
+    "description": "The name of a file, and its size in mebibytes.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "foo.txt"
+      },
+      "size": {
+        "type": "String",
+        "example": "20.2"
+      }
+    }
+  },
+  "errorFilesTooLarge": "{num, plural, =1{Fichier est} other{{num} fichiers sont}}  plus gros que la limite de capacité du serveur ({maxFileUploadSizeMib} MO) et ne peu(ven)t pas être chargé(s) :\n\n{listMessage}",
+  "@errorFilesTooLarge": {
+    "description": "Error message when attached files are too large in size.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "2"
+      },
+      "maxFileUploadSizeMib": {
+        "type": "int",
+        "example": "15"
+      },
+      "listMessage": {
+        "type": "String",
+        "example": "foo.txt: 10.1 MiB\nbar.txt 20.2 MiB"
+      }
+    }
+  },
+  "errorFilesTooLargeTitle": "{num, plural, =1{Le fichier est trop lourd} other{Les fichier sont trop lourds}}",
+  "@errorFilesTooLargeTitle": {
+    "description": "Error title when attached files are too large in size.",
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "errorLoginInvalidInputTitle": "Identifiant incorrect",
+  "@errorLoginInvalidInputTitle": {
+    "description": "Error title for login when input is invalid."
+  },
+  "errorLoginFailedTitle": "La connexion a échoué.",
+  "@errorLoginFailedTitle": {
+    "description": "Error title for login when signing into a Zulip server fails."
+  },
+  "errorMessageNotSent": "Le message n'a pas pu être envoyé.",
+  "@errorMessageNotSent": {
+    "description": "Error message for compose box when a message could not be sent."
+  },
+  "errorMessageEditNotSaved": "Le message n'a pas pu être sauvegardé.",
+  "@errorMessageEditNotSaved": {
+    "description": "Error message for compose box when a message edit could not be saved."
+  },
+  "errorLoginCouldNotConnect": "La connexion au serveur a échoué :\n{url}",
+  "@errorLoginCouldNotConnect": {
+    "description": "Error message when the app could not connect to the server.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "http://example.com/"
+      }
+    }
+  },
+  "errorCouldNotConnectTitle": "Impossible de se connecter au serveur",
+  "@errorCouldNotConnectTitle": {
+    "description": "Error title when the app could not connect to the server."
+  },
+  "errorMessageDoesNotSeemToExist": "Ce message est introuvable.",
+  "@errorMessageDoesNotSeemToExist": {
+    "description": "Error message when loading a message that does not exist."
+  },
+  "errorQuotationFailed": "Échec de la citation",
+  "@errorQuotationFailed": {
+    "description": "Error message when quoting a message failed."
+  },
+  "errorServerMessage": "Message d'erreur du serveur :\n\n{message}",
+  "@errorServerMessage": {
+    "description": "Error message that quotes an error from the server.",
+    "placeholders": {
+      "message": {
+        "type": "String",
+        "example": "Invalid format"
+      }
+    }
+  },
+  "errorConnectingToServerShort": "Une erreur s'est produite lors de la connexion au serveur. Nouvelle tentative en cours…",
+  "@errorConnectingToServerShort": {
+    "description": "Short error message for a generic unknown error connecting to the server."
+  },
+  "errorConnectingToServerDetails": "Une erreur s'est produite lors de la connexion à Zulip sur {serverUrl}. Nouvelle tentative imminente :\n\n{error}",
+  "@errorConnectingToServerDetails": {
+    "description": "Dialog error message for a generic unknown error connecting to the server with details.",
+    "placeholders": {
+      "serverUrl": {
+        "type": "String",
+        "example": "http://example.com/"
+      },
+      "error": {
+        "type": "String",
+        "example": "Invalid format"
+      }
+    }
+  },
+  "errorHandlingEventTitle": "Une erreur s'est produite sur le serveur. Reconnexion en cours…",
+  "@errorHandlingEventTitle": {
+    "description": "Error title on failing to handle a Zulip server event."
+  },
+  "errorHandlingEventDetails": "Une erreur s'est produite sur le serveur {serverUrl} ; tentative de reconnexion imminente.\n\nErreur : {error}\n\nÉvénement : {event}",
+  "@errorHandlingEventDetails": {
+    "description": "Error details on failing to handle a Zulip server event.",
+    "placeholders": {
+      "serverUrl": {
+        "type": "String",
+        "example": "https://chat.example.com"
+      },
+      "error": {
+        "type": "String",
+        "example": "Unexpected null value"
+      },
+      "event": {
+        "type": "String",
+        "example": "UpdateMessageEvent(id: 123, messageIds: [2345, 3456], newTopic: 'dinner')"
+      }
+    }
+  },
+  "errorCouldNotOpenLinkTitle": "Impossible d'ouvrir le lien",
+  "@errorCouldNotOpenLinkTitle": {
+    "description": "Error title when opening a link failed."
+  },
+  "errorCouldNotOpenLink": "Le lien suivant n'a pas pu être ouvert : {url}",
+  "@errorCouldNotOpenLink": {
+    "description": "Error message when opening a link failed.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "https://chat.example.com"
+      }
+    }
+  },
+  "errorMuteTopicFailed": "Le sujet n'a pas pu être rendu silencieux",
+  "@errorMuteTopicFailed": {
+    "description": "Error message when muting a topic failed."
+  },
+  "actionSheetOptionCopyChannelLink": "Copier le lien du canal",
+  "@actionSheetOptionCopyChannelLink": {
+    "description": "Label for copy channel link button on action sheet."
+  },
+  "actionSheetOptionCopyTopicLink": "Copier le lien sur le sujet",
+  "@actionSheetOptionCopyTopicLink": {
+    "description": "Label for copy topic link button in action sheet."
+  },
+  "errorStarMessageFailedTitle": "Échec de marquage du message en favori",
+  "@errorStarMessageFailedTitle": {
+    "description": "Error title when starring a message failed."
+  },
+  "errorUnstarMessageFailedTitle": "Échec de la tentative d'enlever le message des favoris",
+  "@errorUnstarMessageFailedTitle": {
+    "description": "Error title when unstarring a message failed."
+  },
+  "errorCouldNotEditMessageTitle": "Le message n'a pas pu être modifié",
+  "@errorCouldNotEditMessageTitle": {
+    "description": "Error title when an exception prevented us from opening the compose box for editing a message."
+  },
+  "successLinkCopied": "Lien copié",
+  "@successLinkCopied": {
+    "description": "Success message after copy link action completed."
+  },
+  "successMessageTextCopied": "Texte du message copié",
+  "@successMessageTextCopied": {
+    "description": "Message when content of a message was copied to the user's system clipboard."
+  },
+  "successMessageLinkCopied": "Lien sur le message copié",
+  "@successMessageLinkCopied": {
+    "description": "Message when link of a message was copied to the user's system clipboard."
+  },
+  "successTopicLinkCopied": "Lien sur le sujet copié",
+  "@successTopicLinkCopied": {
+    "description": "Message when link of a topic was copied to the user's system clipboard."
+  },
+  "successChannelLinkCopied": "Lien sur le canal copié",
+  "@successChannelLinkCopied": {
+    "description": "Message when link of a channel was copied to the user's system clipboard."
+  },
+  "errorBannerDeactivatedDmLabel": "Vous ne pouvez pas envoyer de messages aux utilisateurs désactivés.",
+  "@errorBannerDeactivatedDmLabel": {
+    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  },
+  "errorBannerCannotPostInChannelLabel": "Vous n'avez pas l'autorisation de poster sur ce canal.",
+  "@errorBannerCannotPostInChannelLabel": {
+    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "composeBoxBannerLabelEditMessage": "Editer le message",
+  "@composeBoxBannerLabelEditMessage": {
+    "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "composeBoxBannerButtonCancel": "Annuler",
+  "@composeBoxBannerButtonCancel": {
+    "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
+  },
+  "composeBoxBannerButtonSave": "Sauvegarder",
+  "@composeBoxBannerButtonSave": {
+    "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
+  },
+  "errorUnmuteTopicFailed": "Impossible de ne plus mettre le sujet en sourdine",
+  "@errorUnmuteTopicFailed": {
+    "description": "Error message when unmuting a topic failed."
+  },
+  "errorFollowTopicFailed": "Échec du suivi du sujet",
+  "@errorFollowTopicFailed": {
+    "description": "Error message when following a topic failed."
+  },
+  "errorUnfollowTopicFailed": "Échec de la tentative de ne plus suivre le sujet",
+  "@errorUnfollowTopicFailed": {
+    "description": "Error message when unfollowing a topic failed."
+  },
+  "errorSharingFailed": "Échec du partage",
+  "@errorSharingFailed": {
+    "description": "Error message when sharing a message failed."
+  },
+  "editAlreadyInProgressTitle": "Impossible de modifier le message",
+  "@editAlreadyInProgressTitle": {
+    "description": "Error title when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "editAlreadyInProgressMessage": "Une modification est déjà en cours. Merci d'attendre qu'elle soit terminée.",
+  "@editAlreadyInProgressMessage": {
+    "description": "Error message when a message edit cannot be saved because there is another edit already in progress."
+  }
+}
