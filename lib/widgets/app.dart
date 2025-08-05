@@ -8,6 +8,7 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/actions.dart';
 import '../model/localizations.dart';
+import '../model/settings.dart';
 import '../model/store.dart';
 import '../notifications/open.dart';
 import 'about_zulip.dart';
@@ -254,6 +255,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
             if (widget.navigatorObservers != null)
               ...widget.navigatorObservers!,
             _PreventEmptyStack(),
+            _UpdateLastVisitedAccount(GlobalStoreWidget.settingsOf(context)),
           ],
           builder: (BuildContext context, Widget? child) {
             if (!ZulipApp.ready.value) {
@@ -302,6 +304,20 @@ class _PreventEmptyStack extends NavigatorObserver {
   @override
   void didPop(Route<void> route, Route<void>? previousRoute) async {
     _pushRouteIfEmptyStack();
+  }
+}
+
+class _UpdateLastVisitedAccount extends NavigatorObserver {
+  _UpdateLastVisitedAccount(this.globalSettings);
+
+  final GlobalSettingsStore globalSettings;
+
+  @override
+  void didChangeTop(Route<void> topRoute, Route<void>? previousTopRoute) {
+    final old = globalSettings.getInt(IntGlobalSetting.lastVisitedAccountId);
+    if (topRoute case AccountPageRouteMixin(accountId: var new_) when new_ != old) {
+      globalSettings.setInt(IntGlobalSetting.lastVisitedAccountId, new_);
+    }
   }
 }
 
