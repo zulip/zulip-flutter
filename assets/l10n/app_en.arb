@@ -202,6 +202,29 @@
       "num": {"type": "int", "example": "2"}
     }
   },
+  "actionSheetOptionViewReadReceipts": "View read receipts",
+  "@actionSheetOptionViewReadReceipts": {
+    "description": "Label for the 'View read receipts' button in the message action sheet."
+  },
+  "actionSheetReadReceipts": "Read receipts",
+  "@actionSheetReadReceipts": {
+    "description": "Title for the \"Read receipts\" bottom sheet."
+  },
+  "actionSheetReadReceiptsReadCount": "{count, plural, =1{This message has been <z-link>read</z-link> by {count} person:} other{This message has been <z-link>read</z-link> by {count} people:}}",
+  "@actionSheetReadReceiptsReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when one or more people have read the message.",
+    "placeholders": {
+      "count": {"type": "int", "example": "1"}
+    }
+  },
+  "actionSheetReadReceiptsZeroReadCount": "No one has read this message yet.",
+  "@actionSheetReadReceiptsZeroReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
+  },
+  "actionSheetReadReceiptsErrorReadCount": "Failed to load read receipts.",
+  "@actionSheetReadReceiptsErrorReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when loading read receipts failed."
+  },
   "actionSheetOptionCopyMessageText": "Copy message text",
   "@actionSheetOptionCopyMessageText":  {
     "description": "Label for copy message text button on action sheet."

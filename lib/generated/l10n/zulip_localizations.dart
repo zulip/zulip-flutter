@@ -413,6 +413,36 @@ abstract class ZulipLocalizations {
   /// **'Votes for {emojiName} ({num})'**
   String seeWhoReactedSheetUserListLabel(String emojiName, int num);
 
+  /// Label for the 'View read receipts' button in the message action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'View read receipts'**
+  String get actionSheetOptionViewReadReceipts;
+
+  /// Title for the "Read receipts" bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Read receipts'**
+  String get actionSheetReadReceipts;
+
+  /// Label in the "Read receipts" bottom sheet when one or more people have read the message.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This message has been <z-link>read</z-link> by {count} person:} other{This message has been <z-link>read</z-link> by {count} people:}}'**
+  String actionSheetReadReceiptsReadCount(int count);
+
+  /// Label in the "Read receipts" bottom sheet when no one has read the message.
+  ///
+  /// In en, this message translates to:
+  /// **'No one has read this message yet.'**
+  String get actionSheetReadReceiptsZeroReadCount;
+
+  /// Label in the "Read receipts" bottom sheet when loading read receipts failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load read receipts.'**
+  String get actionSheetReadReceiptsErrorReadCount;
+
   /// Label for copy message text button on action sheet.
   ///
   /// In en, this message translates to:

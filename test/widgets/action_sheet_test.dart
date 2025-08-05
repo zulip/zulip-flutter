@@ -32,6 +32,7 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:share_plus_platform_interface/method_channel/method_channel_share.dart';
+import 'package:zulip/widgets/read_receipts.dart';
 import 'package:zulip/widgets/subscription_list.dart';
 import 'package:zulip/widgets/user.dart';
 import '../api/fake_api.dart';
@@ -62,6 +63,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   List<int>? mutedUserIds,
   bool? realmAllowMessageEditing,
   int? realmMessageContentEditLimitSeconds,
+  bool? realmEnableReadReceipts,
   bool shouldSetServerEmojiData = true,
   bool useLegacyServerEmojiData = false,
   Future<void> Function()? beforeLongPress,
@@ -77,6 +79,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
     eg.initialSnapshot(
       realmAllowMessageEditing: realmAllowMessageEditing,
       realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
+      realmEnableReadReceipts: realmEnableReadReceipts,
     ));
   store = await testBinding.globalStore.perAccount(selfAccount.id);
   await store.addUsers([
@@ -1275,6 +1278,52 @@ void main() {
 
         check(findButtonInSheet).findsNothing(); // the message action sheet exited
         check(find.byType(ViewReactions)).findsOne();
+      });
+    });
+
+    group('ViewReadReceiptsButton', () {
+      final findButtonInSheet = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byIcon(ZulipIcons.check_check));
+
+      Future<void> tapButton(WidgetTester tester) async {
+        await tester.ensureVisible(findButtonInSheet);
+        await tester.tap(findButtonInSheet);
+        await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+      }
+
+      testWidgets('smoke', (tester) async {
+        await setupToMessageActionSheet(tester,
+          message: eg.streamMessage(), narrow: CombinedFeedNarrow());
+
+        await tapButton(tester);
+
+        // The message action sheet exits and the view-reactions sheet enters.
+        //
+        // This just pumps through twice the duration of the latest transition.
+        // Ideally we'd check that the two expected transitions were triggered
+        // and that they started at the same time, and pump through the
+        // longer of the two durations.
+        // TODO(upstream) support this in TransitionDurationObserver
+        await transitionDurationObserver.pumpPastTransition(tester);
+        await transitionDurationObserver.pumpPastTransition(tester);
+
+        // message action sheet exited
+        check(find.ancestor(of: find.byIcon(ZulipIcons.check_check),
+          matching: find.byType(BottomSheet))).findsNothing();
+
+        // receipts sheet opened
+        check(find.ancestor(of: find.byType(ReadReceipts),
+          matching: find.byType(BottomSheet))).findsOne();
+      });
+
+      testWidgets('realm-level read receipts disabled -> button is absent', (tester) async {
+        await setupToMessageActionSheet(tester,
+          message: eg.streamMessage(),
+          narrow: CombinedFeedNarrow(),
+          realmEnableReadReceipts: false);
+
+        check(findButtonInSheet).findsNothing();
       });
     });
 

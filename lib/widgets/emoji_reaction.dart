@@ -1036,6 +1036,7 @@ class ViewReactionsUserList extends StatelessWidget {
   }
 }
 
+// TODO: deduplicate the code with [ReadReceiptsUserItem]
 @visibleForTesting
 class ViewReactionsUserItem extends StatelessWidget {
   const ViewReactionsUserItem({
