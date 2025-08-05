@@ -212,13 +212,15 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     }
 
     final globalStore = GlobalStoreWidget.of(context);
-    // TODO(#524) choose initial account as last one used
-    final initialAccountId = globalStore.accounts.firstOrNull?.id;
+    final lastAccountId = globalStore.settings.getInt(IntGlobalSetting.lastVisitedAccountId);
+    final lastAccountMissing =
+      lastAccountId == null || globalStore.getAccount(lastAccountId) == null;
+
     return [
-      if (initialAccountId == null)
+      if (lastAccountMissing)
         MaterialWidgetRoute(page: const ChooseAccountPage())
       else
-        HomePage.buildRoute(accountId: initialAccountId),
+        HomePage.buildRoute(accountId: lastAccountId),
     ];
   }
 

@@ -12,6 +12,7 @@ import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/localizations.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/login.dart';
@@ -262,6 +263,8 @@ void main() {
 
       testWidgets('logging into a second account', (tester) async {
         await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        await testBinding.globalStore.settings
+          .setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
         final serverSettings = eg.serverSettings();
         await prepare(tester, serverSettings);
         check(poppedRoutes).isEmpty();
