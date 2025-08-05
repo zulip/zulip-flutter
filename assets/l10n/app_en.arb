@@ -96,6 +96,14 @@
   "@permissionsDeniedReadExternalStorage": {
     "description": "Message for dialog asking the user to grant permissions for external storage read access."
   },
+  "actionSheetOptionSubscribe": "Subscribe",
+  "@actionSheetOptionSubscribe": {
+    "description": "Label in the channel action sheet for subscribing to the channel."
+  },
+  "subscribeFailedTitle": "Failed to subscribe",
+  "@subscribeFailedTitle": {
+    "description": "Error title when subscribing to a channel failed."
+  },
   "actionSheetOptionMarkChannelAsRead": "Mark channel as read",
   "@actionSheetOptionMarkChannelAsRead": {
     "description": "Label for marking a channel as read."
@@ -107,6 +115,29 @@
   "actionSheetOptionListOfTopics": "List of topics",
   "@actionSheetOptionListOfTopics": {
     "description": "Label for navigating to a channel's topic-list page."
+  },
+  "actionSheetOptionUnsubscribe": "Unsubscribe",
+  "@actionSheetOptionUnsubscribe": {
+    "description": "Label in the channel action sheet for unsubscribing from the channel."
+  },
+  "unsubscribeConfirmationDialogTitle": "Unsubscribe from {channelName}?",
+  "@unsubscribeConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for unsubscribing from a channel.",
+    "placeholders": {
+      "channelName": {"type": "String", "example": "mobile"}
+    }
+  },
+  "unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": "Once you leave this channel, you might not be able to rejoin.",
+  "@unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": {
+    "description": "Message for a confirmation dialog for unsubscribing from a channel when you might not have permission to resubscribe."
+  },
+  "unsubscribeConfirmationDialogConfirmButton": "Unsubscribe",
+  "@unsubscribeConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
+  },
+  "unsubscribeFailedTitle": "Failed to unsubscribe",
+  "@unsubscribeFailedTitle": {
+    "description": "Error title when unsubscribing from a channel failed."
   },
   "actionSheetOptionMuteTopic": "Mute topic",
   "@actionSheetOptionMuteTopic":  {

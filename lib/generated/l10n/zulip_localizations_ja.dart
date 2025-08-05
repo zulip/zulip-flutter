@@ -87,6 +87,12 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
       'To upload files, please grant Zulip additional permissions in Settings.';
 
   @override
+  String get actionSheetOptionSubscribe => 'Subscribe';
+
+  @override
+  String get subscribeFailedTitle => 'Failed to subscribe';
+
+  @override
   String get actionSheetOptionMarkChannelAsRead => 'チャンネルを既読にする';
 
   @override
@@ -94,6 +100,24 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get actionSheetOptionListOfTopics => 'トピック一覧';
+
+  @override
+  String get actionSheetOptionUnsubscribe => 'Unsubscribe';
+
+  @override
+  String unsubscribeConfirmationDialogTitle(String channelName) {
+    return 'Unsubscribe from $channelName?';
+  }
+
+  @override
+  String get unsubscribeConfirmationDialogMessageMaybeCannotResubscribe =>
+      'Once you leave this channel, you might not be able to rejoin.';
+
+  @override
+  String get unsubscribeConfirmationDialogConfirmButton => 'Unsubscribe';
+
+  @override
+  String get unsubscribeFailedTitle => 'Failed to unsubscribe';
 
   @override
   String get actionSheetOptionMuteTopic => 'トピックをミュート';

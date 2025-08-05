@@ -307,6 +307,14 @@ extension PerAccountStoreTestExtension on PerAccountStore {
     await handleEvent(SubscriptionAddEvent(id: 1, subscriptions: subscriptions));
   }
 
+  Future<void> removeSubscription(int channelId) async {
+    await removeSubscriptions([channelId]);
+  }
+
+  Future<void> removeSubscriptions(List<int> channelIds) async {
+    await handleEvent(SubscriptionRemoveEvent(id: 1, streamIds: channelIds));
+  }
+
   Future<void> setUserTopic(ZulipStream stream, String topic, UserTopicVisibilityPolicy visibilityPolicy) async {
     await handleEvent(eg.userTopicEvent(stream.streamId, topic, visibilityPolicy));
   }

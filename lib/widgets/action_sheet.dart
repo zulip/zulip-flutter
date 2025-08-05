@@ -246,16 +246,65 @@ void showChannelActionSheet(BuildContext context, {
   final store = PerAccountStoreWidget.of(pageContext);
 
   final unreadCount = store.unreads.countInChannelNarrow(channelId);
+  final isSubscribed = store.subscriptions[channelId] != null;
   final buttonSections = [
+    if (!isSubscribed)
+      // TODO(#1786) check group-based can-subscribe permission
+      [SubscribeButton(pageContext: pageContext, channelId: channelId)],
     [
       if (unreadCount > 0)
         MarkChannelAsReadButton(pageContext: pageContext, channelId: channelId),
       TopicListButton(pageContext: pageContext, channelId: channelId),
       CopyChannelLinkButton(channelId: channelId, pageContext: pageContext)
-    ]
+    ],
+    if (isSubscribed)
+      [UnsubscribeButton(pageContext: pageContext, channelId: channelId)],
   ];
 
   _showActionSheet(pageContext, buttonSections: buttonSections);
+}
+
+class SubscribeButton extends ActionSheetMenuItemButton {
+  const SubscribeButton({
+    super.key,
+    required this.channelId,
+    required super.pageContext,
+  });
+
+  final int channelId;
+
+  @override
+  IconData get icon => ZulipIcons.plus;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionSubscribe;
+  }
+
+  @override
+  void onPressed() async {
+    final store = PerAccountStoreWidget.of(pageContext);
+    final channel = store.streams[channelId];
+    if (channel == null || channel is Subscription) return; // TODO could give feedback
+
+    try {
+      await subscribeToChannel(store.connection, subscriptions: [channel.name]);
+    } catch (e) {
+      if (!pageContext.mounted) return;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      final title = ZulipLocalizations.of(pageContext).subscribeFailedTitle;
+      showErrorDialog(context: pageContext, title: title, message: errorMessage);
+    }
+  }
 }
 
 class MarkChannelAsReadButton extends ActionSheetMenuItemButton {
@@ -331,6 +380,66 @@ class CopyChannelLinkButton extends ActionSheetMenuItemButton {
     PlatformActions.copyWithPopup(context: pageContext,
       successContent: Text(localizations.successChannelLinkCopied),
       data: ClipboardData(text: narrowLink(store, ChannelNarrow(channelId)).toString()));
+  }
+}
+
+class UnsubscribeButton extends ActionSheetMenuItemButton {
+  const UnsubscribeButton({
+    super.key,
+    required this.channelId,
+    required super.pageContext,
+  });
+
+  final int channelId;
+
+  @override
+  IconData get icon => ZulipIcons.circle_x;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionUnsubscribe;
+  }
+
+  @override
+  void onPressed() async {
+    final subscription = PerAccountStoreWidget.of(pageContext).subscriptions[channelId];
+    if (subscription == null) return; // TODO could give feedback
+
+    // TODO(#1786) check group-based permission to subscribe, then replace
+    //   error message with a new one saying "will not" instead of "might not"
+    // TODO(future) check if the self-user is a guest and the channel is not web-public
+    final couldResubscribe = !subscription.inviteOnly;
+    if (!couldResubscribe) {
+      // TODO(#1788) warn if org would lose content access (nobody can subscribe)
+      final zulipLocalizations = ZulipLocalizations.of(pageContext);
+
+      final dialog = showSuggestedActionDialog(context: pageContext,
+        title: zulipLocalizations.unsubscribeConfirmationDialogTitle(subscription.name),
+        message: zulipLocalizations.unsubscribeConfirmationDialogMessageMaybeCannotResubscribe,
+        // TODO(#1032) "destructive" style for action button
+        actionButtonText: zulipLocalizations.unsubscribeConfirmationDialogConfirmButton);
+      if (await dialog.result != true) return;
+      if (!pageContext.mounted) return;
+    }
+
+    try {
+      await unsubscribeFromChannel(PerAccountStoreWidget.of(pageContext).connection,
+        subscriptions: [subscription.name]);
+    } catch (e) {
+      if (!pageContext.mounted) return;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      final title = ZulipLocalizations.of(pageContext).unsubscribeFailedTitle;
+      showErrorDialog(context: pageContext, title: title, message: errorMessage);
+    }
   }
 }
 

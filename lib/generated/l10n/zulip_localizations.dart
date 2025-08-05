@@ -275,6 +275,18 @@ abstract class ZulipLocalizations {
   /// **'To upload files, please grant Zulip additional permissions in Settings.'**
   String get permissionsDeniedReadExternalStorage;
 
+  /// Label in the channel context menu for subscribing to the channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe'**
+  String get actionSheetOptionSubscribe;
+
+  /// Error title when subscribing to a channel failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to subscribe'**
+  String get subscribeFailedTitle;
+
   /// Label for marking a channel as read.
   ///
   /// In en, this message translates to:
@@ -292,6 +304,36 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'List of topics'**
   String get actionSheetOptionListOfTopics;
+
+  /// Label in the channel context menu for unsubscribing from the channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsubscribe'**
+  String get actionSheetOptionUnsubscribe;
+
+  /// Title for a confirmation dialog for unsubscribing from a channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsubscribe from {channelName}?'**
+  String unsubscribeConfirmationDialogTitle(String channelName);
+
+  /// Message for a confirmation dialog for unsubscribing from a channel when you might not have permission to resubscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Once you leave this channel, you might not be able to rejoin.'**
+  String get unsubscribeConfirmationDialogMessageMaybeCannotResubscribe;
+
+  /// Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsubscribe'**
+  String get unsubscribeConfirmationDialogConfirmButton;
+
+  /// Error title when unsubscribing from a channel failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to unsubscribe'**
+  String get unsubscribeFailedTitle;
 
   /// Label for muting a topic on action sheet.
   ///
