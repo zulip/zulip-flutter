@@ -888,13 +888,18 @@ const kSendMessageOfferRestoreWaitPeriod = Duration(seconds: 10);  // TODO(#1441
 ///         timed out.   not finished when
 ///                      wait period timed out.
 ///
-///              Event received.
-/// (any state) ─────────────────► (delete)
+///              Event received.  Or [sendMessage]
+///              request succeeds and we're sending to
+///              an unsubscribed channel.
+/// (any state) ───────────────────────────────────────► (delete)
 /// ```
 ///
 /// During its lifecycle, it is guaranteed that the outbox message is deleted
 /// as soon a message event with a matching [MessageEvent.localMessageId]
 /// arrives.
+/// If we're sending to an unsubscribed channel, we don't expect an event
+/// (see "third buggy behavior" in #1798) so in that case
+/// the outbox message is deleted when the [sendMessage] request succeeds.
 enum OutboxMessageState {
   /// The [sendMessage] HTTP request has started but the resulting
   /// [MessageEvent] hasn't arrived, and nor has the request failed.  In this
@@ -1147,6 +1152,22 @@ mixin _OutboxMessageStore on HasChannelStore {
       // The message event already arrived; nothing to do.
       return;
     }
+
+    if (destination is StreamDestination && subscriptions[destination.streamId] == null) {
+      // We don't expect an event (we're sending to an unsubscribed channel);
+      // clear the loading spinner.
+      // We simultaneously reload the affected message lists from scratch, so
+      // the user won't see a state where the message appears to have vanished.
+      // (See _SendButtonState._send in lib/widgets/compose_box.dart.)
+      _outboxMessages.remove(localMessageId);
+      _outboxMessageDebounceTimers.remove(localMessageId)?.cancel();
+      _outboxMessageWaitPeriodTimers.remove(localMessageId)?.cancel();
+      for (final view in _messageListViews) {
+        view.notifyListenersIfOutboxMessagePresent(localMessageId);
+      }
+      return;
+    }
+
     // The send request succeeded, so the message was definitely sent.
     // Cancel the timer that would have had us start presuming that the
     // send might have failed.

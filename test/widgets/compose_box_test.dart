@@ -1025,9 +1025,9 @@ void main() {
         of: find.byType(MessageWithPossibleSender),
         matching: find.text('hello world'))
       ).findsOne();
-      // TODO(#1798) There's actually a lingering OutboxMessageWithPossibleSender,
-      //   too (the "third buggy behavior" in #1798). We'll fix that soon,
-      //   and it'll be convenient to test that here too.
+      // Regression coverage for the "third buggy behavior"
+      // in https://github.com/zulip/zulip-flutter/issues/1798 .
+      check(find.byType(OutboxMessageWithPossibleSender)).findsNothing();
     });
   });
 
