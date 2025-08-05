@@ -8,6 +8,7 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/actions.dart';
 import '../model/localizations.dart';
+import '../model/settings.dart';
 import '../model/store.dart';
 import '../notifications/open.dart';
 import 'about_zulip.dart';
@@ -254,6 +255,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
             if (widget.navigatorObservers != null)
               ...widget.navigatorObservers!,
             _PreventEmptyStack(),
+            _UpdateLastVisitedAccount(GlobalStoreWidget.settingsOf(context)),
           ],
           builder: (BuildContext context, Widget? child) {
             if (!ZulipApp.ready.value) {
@@ -305,6 +307,39 @@ class _PreventEmptyStack extends NavigatorObserver {
   }
 }
 
+class _UpdateLastVisitedAccount extends NavigatorObserver {
+  _UpdateLastVisitedAccount(this.globalSettings);
+
+  final GlobalSettingsStore globalSettings;
+
+  void _changeLastVisitedAccountIfNecessary(Route<dynamic>? route) {
+    final old = globalSettings.getInt(IntGlobalSetting.lastVisitedAccountId);
+    if (route case AccountPageRouteMixin(accountId: var new_) when new_ != old) {
+      globalSettings.setInt(IntGlobalSetting.lastVisitedAccountId, new_);
+    }
+  }
+
+  @override
+  void didPush(Route<void> route, Route<void>? previousRoute) {
+    _changeLastVisitedAccountIfNecessary(route);
+  }
+
+  @override
+  void didPop(Route<void> route, Route<void>? previousRoute) {
+    _changeLastVisitedAccountIfNecessary(previousRoute);
+  }
+
+  @override
+  void didRemove(Route<void> route, Route<void>? previousRoute) {
+    _changeLastVisitedAccountIfNecessary(previousRoute);
+  }
+
+  @override
+  void didReplace({Route<void>? newRoute, Route<void>? oldRoute}) {
+    _changeLastVisitedAccountIfNecessary(newRoute);
+  }
+}
+
 class ChooseAccountPage extends StatelessWidget {
   const ChooseAccountPage({super.key});
 
@@ -337,7 +372,13 @@ class ChooseAccountPage extends StatelessWidget {
                 if (await dialog.result == true) {
                   if (!context.mounted) return;
                   // TODO error handling if db write fails?
-                  unawaited(logOutAccount(GlobalStoreWidget.of(context), accountId));
+                  unawaited(Future(() async {
+                    if (!context.mounted) return;
+                    await logOutAccount(GlobalStoreWidget.of(context), accountId);
+                    if (!context.mounted) return;
+                    await removeLastVisitedAccountIfNecessary(
+                      GlobalStoreWidget.of(context), accountId);
+                  }));
                 }
               },
               child: Text(zulipLocalizations.chooseAccountPageLogOutButton)),

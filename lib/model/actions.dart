@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../notifications/display.dart';
 import '../notifications/receive.dart';
+import 'settings.dart';
 import 'store.dart';
 
 // TODO: Make this a part of GlobalStore
@@ -19,6 +20,18 @@ Future<void> logOutAccount(GlobalStore globalStore, int accountId) async {
   }
 
   await globalStore.removeAccount(accountId);
+}
+
+Future<void> removeLastVisitedAccountIfNecessary(GlobalStore store, int loggedOutAccountId) async {
+  // If account is not logged out yet, do nothing.
+  if (store.getAccount(loggedOutAccountId) != null) return;
+
+  // If the logged-out account is different than the last visited one, do nothing.
+  if (loggedOutAccountId != store.settings.getInt(IntGlobalSetting.lastVisitedAccountId)) {
+    return;
+  }
+
+  await store.settings.setInt(IntGlobalSetting.lastVisitedAccountId, null);
 }
 
 Future<void> unregisterToken(GlobalStore globalStore, int accountId) async {
