@@ -91,6 +91,11 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
     final zulipLocalizations = ZulipLocalizations.of(context);
     final sorted = model!.sorted;
 
+    // This value will be zero when this page is used in the context of
+    // home-page, see comment on `bottom: false` arg in use of `SafeArea`
+    // below.
+    final bottomInsets = MediaQuery.paddingOf(context).bottom;
+
     return Stack(
       alignment: Alignment.bottomCenter,
       clipBehavior: Clip.none,
@@ -99,9 +104,21 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
           PageBodyEmptyContentPlaceholder(
             message: zulipLocalizations.recentDmConversationsEmptyPlaceholder)
         else
-          SafeArea( // horizontal insets
+          SafeArea(
+            // Don't pad the bottom here; we want the list content to do that.
+            //
+            // When this page is used in the context of the home page, this
+            // param and the below use of `MediaQuery.paddingOf(context).bottom`
+            // via `bottomInsets` would be noop, because
+            // `Scaffold.bottomNavigationBar` in the home page handles that for
+            // us. But this page is planned to be used for share-to-zulip page,
+            // so we need this to be handled here.
+            //
+            // Other *PageBody widgets don't handle this because they aren't
+            // planned to be (re-)used outside the context of the home page.
+            bottom: false,
             child: ListView.builder(
-              padding: EdgeInsets.only(bottom: 90),
+              padding: EdgeInsets.only(bottom: bottomInsets + 90),
               itemCount: sorted.length,
               itemBuilder: (context, index) {
                 final narrow = sorted[index];
@@ -126,7 +143,7 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
                   onDmSelect: _handleDmSelect);
               })),
         Positioned(
-          bottom: 21,
+          bottom: bottomInsets + 21,
           child: _NewDmButton(onDmSelect: _handleDmSelectForNewDms)),
       ]);
   }
