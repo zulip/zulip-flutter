@@ -241,9 +241,7 @@ void showChannelActionSheet(BuildContext context, {
   final pageContext = PageRoot.contextOf(context);
   final store = PerAccountStoreWidget.of(pageContext);
 
-  final optionButtons = <ActionSheetMenuItemButton>[
-    TopicListButton(pageContext: pageContext, channelId: channelId),
-  ];
+  final optionButtons = <ActionSheetMenuItemButton>[];
 
   final unreadCount = store.unreads.countInChannelNarrow(channelId);
   if (unreadCount > 0) {
@@ -252,33 +250,12 @@ void showChannelActionSheet(BuildContext context, {
   }
 
   optionButtons.add(
+    TopicListButton(pageContext: pageContext, channelId: channelId));
+
+  optionButtons.add(
     CopyChannelLinkButton(channelId: channelId, pageContext: pageContext));
 
   _showActionSheet(pageContext, optionButtons: optionButtons);
-}
-
-class TopicListButton extends ActionSheetMenuItemButton {
-  const TopicListButton({
-    super.key,
-    required this.channelId,
-    required super.pageContext,
-  });
-
-  final int channelId;
-
-  @override
-  IconData get icon => ZulipIcons.topics;
-
-  @override
-  String label(ZulipLocalizations zulipLocalizations) {
-    return zulipLocalizations.actionSheetOptionListOfTopics;
-  }
-
-  @override
-  void onPressed() {
-    Navigator.push(pageContext,
-      TopicListPage.buildRoute(context: pageContext, streamId: channelId));
-  }
 }
 
 class MarkChannelAsReadButton extends ActionSheetMenuItemButton {
@@ -302,6 +279,30 @@ class MarkChannelAsReadButton extends ActionSheetMenuItemButton {
   void onPressed() async {
     final narrow = ChannelNarrow(channelId);
     await ZulipAction.markNarrowAsRead(pageContext, narrow);
+  }
+}
+
+class TopicListButton extends ActionSheetMenuItemButton {
+  const TopicListButton({
+    super.key,
+    required this.channelId,
+    required super.pageContext,
+  });
+
+  final int channelId;
+
+  @override
+  IconData get icon => ZulipIcons.topics;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionListOfTopics;
+  }
+
+  @override
+  void onPressed() {
+    Navigator.push(pageContext,
+      TopicListPage.buildRoute(context: pageContext, streamId: channelId));
   }
 }
 

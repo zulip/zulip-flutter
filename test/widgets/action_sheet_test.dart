@@ -247,8 +247,8 @@ void main() {
     group('showChannelActionSheet', () {
       void checkButtons() {
         check(actionSheetFinder).findsOne();
-        checkButton('List of topics');
         checkButton('Mark channel as read');
+        checkButton('List of topics');
         checkButton('Copy link to channel');
       }
 
@@ -289,19 +289,6 @@ void main() {
         await showFromRecipientHeader(tester, message: someMessage);
         checkButtons();
       });
-    });
-
-    testWidgets('TopicListButton', (tester) async {
-      await prepare();
-      await showFromAppBar(tester,
-        narrow: ChannelNarrow(someChannel.streamId));
-
-      connection.prepare(json: GetStreamTopicsResult(topics: [
-        eg.getStreamTopicsEntry(name: 'some topic foo'),
-      ]).toJson());
-      await tester.tap(findButtonForLabel('List of topics'));
-      await tester.pumpAndSettle();
-      check(find.text('some topic foo')).findsOne();
     });
 
     group('MarkChannelAsReadButton', () {
@@ -348,6 +335,19 @@ void main() {
         checkErrorDialog(tester,
           expectedTitle: "Mark as read failed");
       });
+    });
+
+    testWidgets('TopicListButton', (tester) async {
+      await prepare();
+      await showFromAppBar(tester,
+        narrow: ChannelNarrow(someChannel.streamId));
+
+      connection.prepare(json: GetStreamTopicsResult(topics: [
+        eg.getStreamTopicsEntry(name: 'some topic foo'),
+      ]).toJson());
+      await tester.tap(findButtonForLabel('List of topics'));
+      await tester.pumpAndSettle();
+      check(find.text('some topic foo')).findsOne();
     });
 
     group('CopyChannelLinkButton', () {
