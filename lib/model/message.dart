@@ -34,6 +34,14 @@ mixin MessageStore on ChannelStore {
 
   void markReadFromScroll(Iterable<int> messageIds);
 
+  /// Makes a send-message request and starts an outbox lifecycle.
+  ///
+  /// The returned [Future] settles when the send-message response is received.
+  /// The [Future] resolves if the request succeeded and rejects if it failed,
+  /// unless the event already arrived, in which case it resolves.
+  ///
+  /// See [takeOutboxMessage] for a way to restore a composing session
+  /// when it seems like the request might fail, or it has failed.
   Future<void> sendMessage({
     required MessageDestination destination,
     required String content,
