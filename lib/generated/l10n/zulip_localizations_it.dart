@@ -420,6 +420,16 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Non hai l\'autorizzazione per postare su questo canale.';
 
   @override
+  String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
+      'New messages will not appear automatically.';
+
+  @override
+  String get composeBoxBannerButtonRefresh => 'Refresh';
+
+  @override
+  String get composeBoxBannerButtonSubscribe => 'Subscribe';
+
+  @override
   String get composeBoxBannerLabelEditMessage => 'Modifica messaggio';
 
   @override
