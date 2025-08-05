@@ -34,6 +34,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/message_list_test.dart';
 import '../model/store_checks.dart';
 import '../model/test_store.dart';
 import '../model/typing_status_test.dart';
@@ -1416,43 +1417,119 @@ void main() {
 
       void testComposeBoxShown({
         required Narrow narrow,
+        required bool isChannelSubscribed,
         required bool canSend,
         required bool expected,
       }) {
         final description = [
           narrow.toString(),
+          'channel subscribed? $isChannelSubscribed',
           'can send?: $canSend',
         ].join(', ');
         testWidgets(description, (tester) async {
+          final channel = eg.stream(streamId: 1,
+            channelPostPolicy: ChannelPostPolicy.moderators);
           await prepareComposeBox(tester,
             narrow: narrow,
             selfUser: eg.user(
               role: canSend ? UserRole.administrator : UserRole.member),
-            subscriptions: [eg.subscription(eg.stream(streamId: 1,
-              channelPostPolicy: ChannelPostPolicy.moderators))]);
-          checkComposeBox(isShown: expected);
+            streams: [channel],
+            subscriptions: isChannelSubscribed ? [eg.subscription(channel)] : []);
+          checkComposeBoxIsShown(expected,
+            bannerLabel: isChannelSubscribed
+              ? zulipLocalizations.errorBannerCannotPostInChannelLabel
+              : zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend);
         });
       }
 
       testComposeBoxShown(
         narrow: channelNarrow,
-        canSend: true,
-        expected: true);
-
-      testComposeBoxShown(
-        narrow: topicNarrow,
+        isChannelSubscribed: true,
         canSend: true,
         expected: true);
 
       testComposeBoxShown(
         narrow: channelNarrow,
+        isChannelSubscribed: false,
+        canSend: true,
+        expected: true);
+
+      testComposeBoxShown(
+        narrow: channelNarrow,
+        isChannelSubscribed: true,
+        canSend: false,
+        expected: false);
+
+      testComposeBoxShown(
+        narrow: channelNarrow,
+        isChannelSubscribed: false,
         canSend: false,
         expected: false);
 
       testComposeBoxShown(
         narrow: topicNarrow,
+        isChannelSubscribed: false,
         canSend: false,
         expected: false);
+
+      void testRefreshSubscribeButtons({required Narrow narrow}) {
+        testWidgets('Refresh/Subscribe buttons when cannot send and channel unsubscribed, $narrow', (tester) async {
+          final channel = eg.stream(streamId: 1,
+            channelPostPolicy: ChannelPostPolicy.administrators);
+          final messages = List.generate(100, (i) => eg.streamMessage(id: 1000 + i,
+            stream: channel, topic: topicNarrow.topic.apiName));
+
+          await prepareComposeBox(tester,
+            narrow: ChannelNarrow(channel.streamId),
+            selfUser: eg.user(role: UserRole.member),
+            streams: [channel],
+            subscriptions: [],
+            messages: messages);
+          checkComposeBoxIsShown(false,
+            bannerLabel: zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend);
+          final model = MessageListPage.ancestorOf(state.context).model!;
+          check(model)
+            ..fetched.isTrue()..messages.length.equals(100);
+
+          connection.prepare(json:
+            eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson(),
+            delay: Duration(seconds: 1));
+          await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Refresh'));
+          await tester.pump();
+          check(model)
+            ..fetched.isFalse()..messages.length.equals(0);
+          await tester.pump(Duration(seconds: 1));
+          check(model)
+            ..fetched.isTrue()..messages.length.equals(100);
+
+          connection.takeRequests();
+
+          // prepare subscribe request, then refresh (get-messages) request
+          connection
+            ..prepare(json: {}, delay: Duration(milliseconds: 500))
+            ..prepare(json:
+                eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson(),
+                delay: Duration(seconds: 1));
+          await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Subscribe'));
+          await tester.pump();
+          await tester.pump(Duration.zero);
+          check(connection.lastRequest).isA<http.Request>()
+            ..method.equals('POST')
+            ..url.path.equals('/api/v1/users/me/subscriptions')
+            ..bodyFields.deepEquals({
+              'subscriptions': jsonEncode([{'name': channel.name}]),
+            });
+          await tester.pump(Duration(milliseconds: 500));
+          check(model)
+            ..fetched.isFalse()..messages.length.equals(0);
+          await tester.pump(Duration(seconds: 1));
+          check(model)
+            ..fetched.isTrue()..messages.length.equals(100);
+        });
+      }
+
+      testRefreshSubscribeButtons(narrow: channelNarrow);
+      testRefreshSubscribeButtons(narrow: topicNarrow);
 
       testWidgets('user loses privilege -> compose box is replaced with the banner', (tester) async {
         final selfUser = eg.user(role: UserRole.administrator);

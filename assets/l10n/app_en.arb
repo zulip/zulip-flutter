@@ -502,6 +502,18 @@
   "@errorBannerCannotPostInChannelLabel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
   },
+  "composeBoxBannerLabelUnsubscribedWhenCannotSend": "New messages will not appear automatically.",
+  "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages."
+  },
+  "composeBoxBannerButtonRefresh": "Refresh",
+  "@composeBoxBannerButtonRefresh": {
+    "description": "Label text for the 'Refresh' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
+  "composeBoxBannerButtonSubscribe": "Subscribe",
+  "@composeBoxBannerButtonSubscribe": {
+    "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "composeBoxBannerLabelEditMessage": "Edit message",
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."

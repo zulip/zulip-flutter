@@ -438,6 +438,16 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Nie masz uprawnień do dodawania wpisów w tym kanale.';
 
   @override
+  String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
+      'New messages will not appear automatically.';
+
+  @override
+  String get composeBoxBannerButtonRefresh => 'Refresh';
+
+  @override
+  String get composeBoxBannerButtonSubscribe => 'Subscribe';
+
+  @override
   String get composeBoxBannerLabelEditMessage => 'Zmień wiadomość';
 
   @override

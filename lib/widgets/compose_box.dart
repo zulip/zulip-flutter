@@ -24,6 +24,7 @@ import 'color.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
+import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
@@ -1768,6 +1769,8 @@ class _Banner extends StatelessWidget {
     final (labelColor, backgroundColor) = switch (intent) {
       _BannerIntent.info =>
         (designVariables.bannerTextIntInfo, designVariables.bannerBgIntInfo),
+      _BannerIntent.warning =>
+        (designVariables.btnLabelAttMediumIntWarning, designVariables.bannerBgIntWarning),
       _BannerIntent.danger =>
         (designVariables.btnLabelAttMediumIntDanger, designVariables.bannerBgIntDanger),
     };
@@ -1805,7 +1808,40 @@ class _Banner extends StatelessWidget {
 
 enum _BannerIntent {
   info,
+  warning,
   danger,
+}
+
+class _UnsubscribedChannelBannerTrailing extends StatelessWidget {
+  const _UnsubscribedChannelBannerTrailing({required this.channelId});
+
+  final int channelId;
+
+  @override
+  Widget build(BuildContext context) {
+    // (A BuildContext that's expected to remain mounted until the whole page
+    // disappears, which may be long after the banner disappears.)
+    final pageContext = PageRoot.contextOf(context);
+
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
+    return Row(mainAxisSize: MainAxisSize.min, spacing: 8, children: [
+      ZulipWebUiKitButton(
+        label: zulipLocalizations.composeBoxBannerButtonRefresh,
+        intent: ZulipWebUiKitButtonIntent.warning,
+        onPressed: () {
+          MessageListPage.ancestorOf(pageContext).refresh();
+        }),
+      ZulipWebUiKitButton(
+        label: zulipLocalizations.composeBoxBannerButtonSubscribe,
+        intent: ZulipWebUiKitButtonIntent.warning,
+        attention: ZulipWebUiKitButtonAttention.high,
+        onPressed: () async {
+          await ZulipAction.subscribeToChannel(pageContext, channelId: channelId);
+          if (!pageContext.mounted) return;
+          MessageListPage.ancestorOf(pageContext).refresh();
+        }),
+    ]);
+  }
 }
 
 class _EditMessageBannerTrailing extends StatelessWidget {
@@ -2147,9 +2183,14 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         }
 
         if (!store.selfCanSendMessage(inChannel: channel, byDate: DateTime.now())) {
-          return _Banner(
-            intent: _BannerIntent.info,
-            label: zulipLocalizations.errorBannerCannotPostInChannelLabel);
+          return (channel is Subscription)
+            ? _Banner(
+                intent: _BannerIntent.info,
+                label: zulipLocalizations.errorBannerCannotPostInChannelLabel)
+            : _Banner(
+                intent: _BannerIntent.warning,
+                label: zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend,
+                trailing: _UnsubscribedChannelBannerTrailing(channelId: streamId));
         }
 
       case DmNarrow(:final otherRecipientIds):

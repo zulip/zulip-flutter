@@ -811,6 +811,24 @@ abstract class ZulipLocalizations {
   /// **'You do not have permission to post in this channel.'**
   String get errorBannerCannotPostInChannelLabel;
 
+  /// Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages.
+  ///
+  /// In en, this message translates to:
+  /// **'New messages will not appear automatically.'**
+  String get composeBoxBannerLabelUnsubscribedWhenCannotSend;
+
+  /// Label text for the 'Refresh' button in the compose-box banner when you are viewing an unsubscribed channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get composeBoxBannerButtonRefresh;
+
+  /// Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe'**
+  String get composeBoxBannerButtonSubscribe;
+
   /// Label text for the compose-box banner when you are editing a message.
   ///
   /// In en, this message translates to:

@@ -440,6 +440,16 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Ви не маєте дозволу на публікацію в цьому каналі.';
 
   @override
+  String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
+      'New messages will not appear automatically.';
+
+  @override
+  String get composeBoxBannerButtonRefresh => 'Refresh';
+
+  @override
+  String get composeBoxBannerButtonSubscribe => 'Subscribe';
+
+  @override
   String get composeBoxBannerLabelEditMessage => 'Редагування повідомлення';
 
   @override
