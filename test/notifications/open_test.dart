@@ -10,6 +10,7 @@ import 'package:zulip/host/notifications.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/notifications/open.dart';
 import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/app.dart';
@@ -20,6 +21,7 @@ import 'package:zulip/widgets/page.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../model/narrow_checks.dart';
+import '../model/store_checks.dart';
 import '../stdlib_checks.dart';
 import '../test_navigation.dart';
 import '../widgets/checks.dart';
@@ -113,11 +115,12 @@ void main() {
       }
       await tester.pump();
       final accountIds = testBinding.globalStore.accountIds;
-      final initialAccountId = accountIds.firstOrNull;
-      if (initialAccountId == null) {
-        takeChooseAccountPageRoute();
+      final lastVisitedAccountId = testBinding.globalStore.settings.getInt(
+        IntGlobalSetting.lastVisitedAccountId);
+      if (lastVisitedAccountId != null && accountIds.contains(lastVisitedAccountId)) {
+        takeHomePageRouteForAccount(lastVisitedAccountId);
       } else {
-        takeHomePageRouteForAccount(initialAccountId);
+        takeChooseAccountPageRoute();
       }
       check(pushedRoutes).isEmpty();
     }
@@ -204,6 +207,22 @@ void main() {
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]));
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
+    testWidgets('changes last visited account', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(
+        eg.selfAccount, eg.initialSnapshot(realmUsers: [eg.selfUser]),
+        markLastVisited: true);
+      await testBinding.globalStore.add(
+        eg.otherAccount, eg.initialSnapshot(realmUsers: [eg.otherUser]));
+      await prepare(tester);
+      check(testBinding.globalStore.settings)
+        .getInt(IntGlobalSetting.lastVisitedAccountId).equals(eg.selfAccount.id);
+
+      await checkOpenNotification(tester, eg.otherAccount, eg.streamMessage());
+      check(testBinding.globalStore.settings)
+        .getInt(IntGlobalSetting.lastVisitedAccountId).equals(eg.otherAccount.id);
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+
     testWidgets('account queried by realmUrl origin component', (tester) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(
@@ -286,7 +305,7 @@ void main() {
       // Now let the GlobalStore get loaded and the app's main UI get mounted.
       await tester.pump();
       // The navigator first pushes the starting routes…
-      takeHomePageRouteForAccount(eg.selfAccount.id); // because first in list
+      takeChooseAccountPageRoute(); // (no lastVisitedAccountId in this test)
       // … and then the one the notification leads to.
       matchesNavigation(check(pushedRoutes).single, eg.selfAccount, message);
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
