@@ -89,9 +89,20 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
           PageBodyEmptyContentPlaceholder(
             message: zulipLocalizations.recentDmConversationsEmptyPlaceholder)
         else
-          SafeArea( // horizontal insets
+          SafeArea(
+            // Don't pad the bottom here; we want the list content to do that.
+            //
+            // When this page is used in the context of the home page, this
+            // param and the below use of `MediaQuery.paddingOf(context).bottom`
+            // would be noop, because `Scaffold.bottomNavigationBar` in the
+            // home page handles that for us. But this page is planned to be
+            // used for share-to-zulip page, so we need this to be handled here.
+            //
+            // Other *PageBody widgets don't handle this because they aren't
+            // planned to be (re-)used outside the context of the home page.
+            bottom: false,
             child: ListView.builder(
-              padding: EdgeInsets.only(bottom: 90),
+              padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom + 90),
               itemCount: sorted.length,
               itemBuilder: (context, index) {
                 final narrow = sorted[index];
@@ -115,7 +126,7 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
                   onDmSelect: widget.onDmSelect ?? _handleDmSelect);
               })),
         Positioned(
-          bottom: 21,
+          bottom: MediaQuery.paddingOf(context).bottom + 21,
           child: _NewDmButton(onDmSelect: (narrow) {
             if (widget.onDmSelect case final onDmSelect?) {
               // Pop the new DMs action sheet.
