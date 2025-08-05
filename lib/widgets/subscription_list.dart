@@ -66,6 +66,9 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     });
   }
 
+  // TODO(linter): The linter incorrectly flags the following regexp string
+  //    as invalid. See: https://github.com/dart-lang/sdk/issues/61246
+  // ignore: valid_regexps
   static final _startsWithEmojiRegex = RegExp(r'^\p{Emoji}', unicode: true);
 
   void _sortSubs(List<Subscription> list) {
