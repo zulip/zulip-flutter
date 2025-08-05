@@ -4,6 +4,42 @@ import '../core.dart';
 import '../model/model.dart';
 part 'channels.g.dart';
 
+/// https://zulip.com/api/subscribe
+///
+/// [subscriptions] is a list of channel names.
+/// (This is one of the few remaining areas where the Zulip API hasn't migrated
+/// to using IDs.)
+Future<void> subscribeToChannel(ApiConnection connection, {
+  // TODO(server-future): This should use a stream ID, not stream name.
+  //   (Keep dartdoc up to date.)
+  //   Server issue: https://github.com/zulip/zulip/issues/10744
+  required List<String> subscriptions,
+  List<int>? principals,
+}) {
+  return connection.post('subscribeToChannel', (_) {}, 'users/me/subscriptions', {
+    'subscriptions': subscriptions.map((name) => {'name': name}).toList(),
+    if (principals != null) 'principals': principals,
+  });
+}
+
+/// https://zulip.com/api/unsubscribe
+///
+/// [subscriptions] is a list of channel names.
+/// (This is one of the few remaining areas where the Zulip API hasn't migrated
+/// to using IDs.)
+Future<void> unsubscribeFromChannel(ApiConnection connection, {
+  // TODO(server-future): This should use a stream ID, not stream name.
+  //   (Keep dartdoc up to date.)
+  //   Server issue: https://github.com/zulip/zulip/issues/10744
+  required List<String> subscriptions,
+  List<int>? principals,
+}) {
+  return connection.delete('unsubscribeFromChannel', (_) {}, 'users/me/subscriptions', {
+    'subscriptions': subscriptions,
+    if (principals != null) 'principals': principals,
+  });
+}
+
 /// https://zulip.com/api/get-stream-topics
 Future<GetStreamTopicsResult> getStreamTopics(ApiConnection connection, {
   required int streamId,
