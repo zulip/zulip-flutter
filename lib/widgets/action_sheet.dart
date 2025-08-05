@@ -37,7 +37,7 @@ import 'topic_list.dart';
 void _showActionSheet(
   BuildContext pageContext, {
   Widget? header,
-  required List<Widget> optionButtons,
+  required List<List<Widget>> buttonSections,
 }) {
   // Could omit this if we need _showActionSheet outside a per-account context.
   final accountId = PerAccountStoreWidget.accountIdOf(pageContext);
@@ -91,7 +91,11 @@ void _showActionSheet(
                           color: designVariables.bgContextMenu,
                           child: SingleChildScrollView(
                             padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: MenuButtonsShape(buttons: optionButtons)))),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: 8,
+                              children: buttonSections.map((buttons) =>
+                                MenuButtonsShape(buttons: buttons)).toList())))),
                         const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.cancel),
                       ]))),
               ]))));
@@ -255,7 +259,7 @@ void showChannelActionSheet(BuildContext context, {
   optionButtons.add(
     CopyChannelLinkButton(channelId: channelId, pageContext: pageContext));
 
-  _showActionSheet(pageContext, optionButtons: optionButtons);
+  _showActionSheet(pageContext, buttonSections: [optionButtons]);
 }
 
 class MarkChannelAsReadButton extends ActionSheetMenuItemButton {
@@ -440,7 +444,7 @@ void showTopicActionSheet(BuildContext context, {
     narrow: TopicNarrow(channelId, topic, with_: someMessageIdInTopic),
     pageContext: context));
 
-  _showActionSheet(pageContext, optionButtons: optionButtons);
+  _showActionSheet(pageContext, buttonSections: [optionButtons]);
 }
 
 class UserTopicUpdateButton extends ActionSheetMenuItemButton {
@@ -732,7 +736,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   ];
 
   _showActionSheet(pageContext,
-    optionButtons: optionButtons,
+    buttonSections: [optionButtons],
     header: _MessageActionSheetHeader(message: message));
 }
 
