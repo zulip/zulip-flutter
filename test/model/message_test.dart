@@ -53,6 +53,7 @@ void main() {
 
   /// Initialize [store] and the rest of the test state.
   Future<void> prepare({
+    Narrow narrow = const CombinedFeedNarrow(),
     ZulipStream? stream,
     bool isChannelSubscribed = true,
     int? zulipFeatureLevel,
@@ -71,7 +72,7 @@ void main() {
     connection = store.connection as FakeApiConnection;
     notifiedCount = 0;
     messageList = MessageListView.init(store: store,
-        narrow: const CombinedFeedNarrow(),
+        narrow: narrow,
         anchor: AnchorCode.newest)
       ..addListener(() {
         notifiedCount++;
@@ -172,11 +173,17 @@ void main() {
       check(store.outboxMessages).values.single.state;
 
     Future<void> prepareOutboxMessage({
+      Narrow narrow = const CombinedFeedNarrow(),
       MessageDestination? destination,
+      bool isChannelSubscribed = true,
       int? zulipFeatureLevel,
     }) async {
       message = eg.streamMessage(stream: stream);
-      await prepare(stream: stream, zulipFeatureLevel: zulipFeatureLevel);
+      await prepare(
+        narrow: narrow,
+        stream: stream,
+        isChannelSubscribed: isChannelSubscribed,
+        zulipFeatureLevel: zulipFeatureLevel);
       await prepareMessages([eg.streamMessage(stream: stream)]);
       connection.prepare(json: SendMessageResult(id: 1).toJson());
       await store.sendMessage(
@@ -368,6 +375,16 @@ void main() {
         checkNotNotified();
       }));
 
+      test('hidden -> (delete) because send succeeded in unsubscribed channel', () => awaitFakeAsync((async) async {
+        await prepareOutboxMessage(
+          // Not CombinedFeedNarrow,
+          // which always hides outbox messages in unsubscribed channels.
+          narrow: ChannelNarrow(stream.streamId),
+          isChannelSubscribed: false);
+        check(store.outboxMessages).isEmpty();
+        checkNotNotified();
+      }));
+
       test('waiting -> (delete) because event received', () => awaitFakeAsync((async) async {
         await prepareOutboxMessage();
         async.elapse(kLocalEchoDebounceDuration);
@@ -398,6 +415,28 @@ void main() {
         // in the store any more.
         await check(outboxMessageFailFuture).completes();
         checkNotNotified();
+      }));
+
+      test('waiting -> (delete) because send succeeded in unsubscribed channel', () => awaitFakeAsync((async) async {
+        await prepare(
+          // Not CombinedFeedNarrow,
+          // which always hides outbox messages in unsubscribed channels.
+          narrow: ChannelNarrow(stream.streamId),
+          stream: stream,
+          isChannelSubscribed: false);
+        await prepareMessages([eg.streamMessage(stream: stream)]);
+        connection.prepare(json: SendMessageResult(id: 1).toJson(),
+          delay: kLocalEchoDebounceDuration + Duration(seconds: 1));
+        final future = store.sendMessage(
+          destination: streamDestination, content: 'content');
+        async.elapse(kLocalEchoDebounceDuration);
+        checkState().equals(OutboxMessageState.waiting);
+        checkNotifiedOnce();
+
+        async.elapse(Duration(seconds: 1));
+        await check(future).completes();
+        check(store.outboxMessages).isEmpty();
+        checkNotifiedOnce();
       }));
 
       test('waitPeriodExpired -> (delete) when event arrives before send request fails', () => awaitFakeAsync((async) async {
@@ -431,6 +470,27 @@ void main() {
         checkNotified(count: 2);
 
         store.takeOutboxMessage(store.outboxMessages.keys.single);
+        check(store.outboxMessages).isEmpty();
+        checkNotifiedOnce();
+      }));
+
+      test('waitPeriodExpired -> (delete) because send succeeded in unsubscribed channel', () => awaitFakeAsync((async) async {
+        await prepare(
+          // Not CombinedFeedNarrow,
+          // which always hides outbox messages in unsubscribed channels.
+          narrow: ChannelNarrow(stream.streamId),
+          isChannelSubscribed: false);
+        await prepareMessages([eg.streamMessage(stream: stream)]);
+        connection.prepare(json: SendMessageResult(id: 1).toJson(),
+          delay: kSendMessageOfferRestoreWaitPeriod + Duration(seconds: 1));
+        final future = store.sendMessage(
+          destination: streamDestination, content: 'content');
+        async.elapse(kSendMessageOfferRestoreWaitPeriod);
+        checkState().equals(OutboxMessageState.waitPeriodExpired);
+        checkNotified(count: 2);
+
+        async.elapse(Duration(seconds: 1));
+        await check(future).completes();
         check(store.outboxMessages).isEmpty();
         checkNotifiedOnce();
       }));
