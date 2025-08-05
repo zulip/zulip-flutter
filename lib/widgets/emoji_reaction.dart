@@ -597,49 +597,53 @@ class EmojiPickerListEntry extends StatelessWidget {
     Navigator.pop(pageContext, emoji);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
-    final designVariables = DesignVariables.of(context);
+@override
+Widget build(BuildContext context) {
+  final store = PerAccountStoreWidget.of(context);
+  final designVariables = DesignVariables.of(context);
 
-    // TODO deduplicate this logic with [_EmojiAutocompleteItem]
-    final emojiDisplay = emoji.emojiDisplay.resolve(store.userSettings);
-    final Widget? glyph = switch (emojiDisplay) {
-      ImageEmojiDisplay() =>
-        ImageEmojiWidget(size: _emojiSize, emojiDisplay: emojiDisplay),
-      UnicodeEmojiDisplay() =>
-        UnicodeEmojiWidget(size: _emojiSize, emojiDisplay: emojiDisplay),
-      TextEmojiDisplay() => null, // The text is already shown separately.
-    };
+  // TODO deduplicate this logic with [_EmojiAutocompleteItem]
+  final emojiDisplay = emoji.emojiDisplay.resolve(store.userSettings);
+  final Widget? glyph = switch (emojiDisplay) {
+    ImageEmojiDisplay() =>
+      ImageEmojiWidget(size: _emojiSize, emojiDisplay: emojiDisplay),
+    UnicodeEmojiDisplay() =>
+      UnicodeEmojiWidget(size: _emojiSize, emojiDisplay: emojiDisplay),
+    TextEmojiDisplay() => null,// The text is already shown separately.
+  };
 
-    final label = emoji.aliases.isEmpty
-      ? emoji.emojiName
-      : [emoji.emojiName, ...emoji.aliases].join(", "); // TODO(#1080)
+  final label = emoji.aliases.isEmpty
+    ? emoji.emojiName
+    : [emoji.emojiName, ...emoji.aliases].join(", ");// TODO(#1080)
 
-    return InkWell(
-      onTap: _onPressed,
-      splashFactory: NoSplash.splashFactory,
-      overlayColor: WidgetStateColor.resolveWith((states) =>
-        states.any((e) => e == WidgetState.pressed)
-          ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
-          : Colors.transparent),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Row(spacing: 4, children: [
-          if (glyph != null)
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: glyph),
-          Flexible(child: Text(label,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 17,
-              height: 18 / 17,
-              color: designVariables.textMessage)))
-        ]),
-      ));
-  }
+  return InkWell(
+    onTap: _onPressed,
+    splashFactory: NoSplash.splashFactory,
+    overlayColor: WidgetStateColor.resolveWith((states) =>
+      states.any((e) => e == WidgetState.pressed)
+        ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+        : Colors.transparent),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(spacing: 4, children: [
+        if (glyph != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10.0),
+            child: glyph)
+        else
+          SizedBox(
+            height: _emojiSize + 8.0 + 8.0,
+          ),
+        Flexible(child: Text(label,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 17,
+            height: 18 / 17,
+            color: designVariables.textMessage)))
+      ]),
+    ));
+}
 }
 
 /// Opens a bottom sheet showing who reacted to the message.
