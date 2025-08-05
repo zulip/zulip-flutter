@@ -245,21 +245,17 @@ void showChannelActionSheet(BuildContext context, {
   final pageContext = PageRoot.contextOf(context);
   final store = PerAccountStoreWidget.of(pageContext);
 
-  final optionButtons = <ActionSheetMenuItemButton>[];
-
   final unreadCount = store.unreads.countInChannelNarrow(channelId);
-  if (unreadCount > 0) {
-    optionButtons.add(
-      MarkChannelAsReadButton(pageContext: pageContext, channelId: channelId));
-  }
+  final buttonSections = [
+    [
+      if (unreadCount > 0)
+        MarkChannelAsReadButton(pageContext: pageContext, channelId: channelId),
+      TopicListButton(pageContext: pageContext, channelId: channelId),
+      CopyChannelLinkButton(channelId: channelId, pageContext: pageContext)
+    ]
+  ];
 
-  optionButtons.add(
-    TopicListButton(pageContext: pageContext, channelId: channelId));
-
-  optionButtons.add(
-    CopyChannelLinkButton(channelId: channelId, pageContext: pageContext));
-
-  _showActionSheet(pageContext, buttonSections: [optionButtons]);
+  _showActionSheet(pageContext, buttonSections: buttonSections);
 }
 
 class MarkChannelAsReadButton extends ActionSheetMenuItemButton {
