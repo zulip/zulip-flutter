@@ -7,7 +7,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/dialog.dart';
-import 'package:zulip/widgets/store.dart';
 
 import '../model/binding.dart';
 import 'dialog_checks.dart';
