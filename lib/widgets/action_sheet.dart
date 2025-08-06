@@ -102,31 +102,79 @@ void _showActionSheet(
     });
 }
 
-/// A header for a bottom sheet with a multiline UI string.
+typedef WidgetBuilderFromTextStyle = Widget Function(TextStyle);
+
+/// A header for a bottom sheet with an optional title and multiline message.
+///
+/// A title, message, or both must be provided.
+///
+/// Provide a title by passing [title] or [buildTitle] (not both).
+/// Provide a message by passing [message] or [buildMessage] (not both).
+/// The "build" params support richer content, such as [TextWithLink],
+/// and the callback is passed a [TextStyle] which is the base style.
 ///
 /// Assumes 8px padding below the top of the bottom sheet.
 ///
-/// Figma:
+/// Figma; just message no title:
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3481-26993&m=dev
-class BottomSheetHeaderPlainText extends StatelessWidget {
-  const BottomSheetHeaderPlainText({super.key, required this.text});
+///
+/// Figma; title and message:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6326-96125&m=dev
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=11367-20898&m=dev
+/// The latter example (read receipts) has more horizontal and bottom padding;
+/// that looks like an accident that we don't need to follow.
+/// It also colors the message text more opaquely…that difference might be
+/// intentional, but Vlad's time is limited and I prefer consistency.
+class BottomSheetHeader extends StatelessWidget {
+  const BottomSheetHeader({
+    super.key,
+    this.title,
+    this.buildTitle,
+    this.message,
+    this.buildMessage,
+  }) : assert(message == null || buildMessage == null),
+       assert(title == null || buildTitle == null),
+       assert((message != null || buildMessage != null)
+              || (title != null || buildTitle != null));
 
-  final String text;
+  final String? title;
+  final Widget Function(TextStyle)? buildTitle;
+  final String? message;
+  final Widget Function(TextStyle)? buildMessage;
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
+    final baseTitleStyle = TextStyle(
+      fontSize: 20,
+      height: 20 / 20,
+      color: designVariables.title,
+    ).merge(weightVariableTextStyle(context, wght: 600));
+
+    final effectiveTitle = switch ((buildTitle, title)) {
+      (final build?, null) => build(baseTitleStyle),
+      (null,  final data?) => Text(style: baseTitleStyle, data),
+      _                    => null,
+    };
+
+    final baseMessageStyle = TextStyle(
+      color: designVariables.labelTime,
+      fontSize: 17,
+      height: 22 / 17);
+
+    final effectiveMessage = switch ((buildMessage, message)) {
+      (final build?, null) => build(baseMessageStyle),
+      (null,  final data?) => Text(style: baseMessageStyle, data),
+      _                    => null,
+    };
+
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-      child: SizedBox(
-        width: double.infinity,
-        child: Text(
-          style: TextStyle(
-            color: designVariables.labelTime,
-            fontSize: 17,
-            height: 22 / 17),
-          text)));
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 8,
+        children: [?effectiveTitle, ?effectiveMessage]));
   }
 }
 
