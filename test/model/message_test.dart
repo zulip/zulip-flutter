@@ -7,6 +7,7 @@ import 'package:crypto/crypto.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
+import 'package:zulip/api/exception.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/submessage.dart';
@@ -682,8 +683,8 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
 
       connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
-      unawaited(store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content'));
+      unawaited(check(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content')).throws<ZulipApiException>());
       checkNotifiedOnce();
       async.elapse(Duration(seconds: 1));
       check(store.getEditMessageErrorStatus(message.id)).isNotNull().isTrue();
@@ -695,8 +696,8 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
 
       connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
-      unawaited(store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content'));
+      unawaited(check(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content')).throws<ZulipApiException>());
       checkNotifiedOnce();
       async.elapse(Duration(seconds: 1));
       check(store.getEditMessageErrorStatus(message.id)).isNotNull().isTrue();
@@ -760,8 +761,8 @@ void main() {
 
       connection.prepare(
         httpException: const SocketException('failed'), delay: Duration(seconds: 1));
-      unawaited(store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content'));
+      unawaited(check(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content')).throws<NetworkException>());
       checkNotifiedOnce();
 
       async.elapse(Duration(seconds: 1));
@@ -781,8 +782,8 @@ void main() {
 
       connection.prepare(
         httpException: const SocketException('failed'), delay: Duration(seconds: 1));
-      unawaited(store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content'));
+      unawaited(check(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content')).throws<NetworkException>());
       checkNotifiedOnce();
 
       async.elapse(Duration(seconds: 1));
@@ -801,8 +802,8 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
 
       connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
-      unawaited(store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content'));
+      unawaited(check(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content')).throws<ZulipApiException>());
       checkNotifiedOnce();
       async.elapse(Duration(seconds: 1));
       check(store.getEditMessageErrorStatus(message.id)).isNotNull().isTrue();

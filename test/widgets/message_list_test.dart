@@ -10,6 +10,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:zulip/api/exception.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -2292,12 +2293,14 @@ void main() {
         messages: [message]);
 
       connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
-      unawaited(store.editMessage(messageId: message.id,
+      unawaited(check(store.editMessage(messageId: message.id,
         originalRawContent: 'foo',
-        newContent: 'bar'));
+        newContent: 'bar')).throws<ZulipApiException>());
       await tester.pump(Duration.zero);
       checkEditInProgress(tester);
       await tester.pump(Duration(seconds: 1));
+      // (the error dialog is tested elsewhere;
+      // it's triggered in the "Save" tap handler, not store.editMessage)
       checkEditFailed(tester);
 
       connection.prepare(json: GetMessageResult(

@@ -352,6 +352,7 @@ class MessageStoreImpl extends HasRealmStore with MessageStore, _OutboxMessageSt
       }
       status.hasError = true;
       _notifyMessageListViewsForOneMessage(messageId);
+      rethrow;
     }
   }
 
