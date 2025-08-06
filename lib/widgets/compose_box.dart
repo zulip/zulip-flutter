@@ -1815,11 +1815,13 @@ class _EditMessageBanner extends _Banner {
       return;
     }
 
-    store.editMessage(
-      messageId: controller.messageId,
-      originalRawContent: originalRawContent,
-      newContent: controller.content.textNormalized);
+    final messageId = controller.messageId;
+    final newContent = controller.content.textNormalized;
     composeBoxState.endEditInteraction();
+    store.editMessage(
+      messageId: messageId,
+      originalRawContent: originalRawContent,
+      newContent: newContent);
   }
 
   @override
