@@ -603,8 +603,8 @@ void main() {
 
       connection.prepare(
         json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
-      store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content');
+      unawaited(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content'));
       checkRequest(message.id,
         prevContent: 'old content',
         content: 'new content');
@@ -634,8 +634,8 @@ void main() {
 
       connection.prepare(
         json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
-      store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content');
+      unawaited(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content'));
       checkRequest(message.id,
         prevContent: 'old content',
         content: 'new content');
@@ -647,8 +647,8 @@ void main() {
       check(store.getEditMessageErrorStatus(otherMessage.id)).isNull();
       connection.prepare(
         json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
-      store.editMessage(messageId: otherMessage.id,
-        originalRawContent: 'other message old content', newContent: 'other message new content');
+      unawaited(store.editMessage(messageId: otherMessage.id,
+        originalRawContent: 'other message old content', newContent: 'other message new content'));
       checkRequest(otherMessage.id,
         prevContent: 'other message old content',
         content: 'other message new content');
@@ -682,8 +682,8 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
 
       connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
-      store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content');
+      unawaited(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content'));
       checkNotifiedOnce();
       async.elapse(Duration(seconds: 1));
       check(store.getEditMessageErrorStatus(message.id)).isNotNull().isTrue();
@@ -695,8 +695,8 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
 
       connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
-      store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content');
+      unawaited(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content'));
       checkNotifiedOnce();
       async.elapse(Duration(seconds: 1));
       check(store.getEditMessageErrorStatus(message.id)).isNotNull().isTrue();
@@ -718,8 +718,8 @@ void main() {
 
       connection.prepare(
         json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
-      store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content');
+      unawaited(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content'));
       async.elapse(Duration(milliseconds: 500));
       check(connection.takeRequests()).length.equals(1);
       checkNotifiedOnce();
@@ -738,8 +738,8 @@ void main() {
 
       connection.prepare(
         httpException: const SocketException('failed'), delay: Duration(seconds: 1));
-      store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content');
+      unawaited(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content'));
       checkNotifiedOnce();
 
       async.elapse(Duration(milliseconds: 500));
@@ -760,8 +760,8 @@ void main() {
 
       connection.prepare(
         httpException: const SocketException('failed'), delay: Duration(seconds: 1));
-      store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content');
+      unawaited(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content'));
       checkNotifiedOnce();
 
       async.elapse(Duration(seconds: 1));
@@ -781,8 +781,8 @@ void main() {
 
       connection.prepare(
         httpException: const SocketException('failed'), delay: Duration(seconds: 1));
-      store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content');
+      unawaited(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content'));
       checkNotifiedOnce();
 
       async.elapse(Duration(seconds: 1));
@@ -801,8 +801,8 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
 
       connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
-      store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content');
+      unawaited(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content'));
       checkNotifiedOnce();
       async.elapse(Duration(seconds: 1));
       check(store.getEditMessageErrorStatus(message.id)).isNotNull().isTrue();
@@ -818,8 +818,8 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
 
       connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
-      store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content');
+      unawaited(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content'));
       checkNotifiedOnce();
 
       async.elapse(Duration(milliseconds: 500));
@@ -843,8 +843,8 @@ void main() {
 
       connection.prepare(
         json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
-      store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content');
+      unawaited(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content'));
       checkNotifiedOnce();
 
       async.elapse(Duration(milliseconds: 500));

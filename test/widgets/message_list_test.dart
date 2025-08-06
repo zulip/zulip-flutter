@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -2274,9 +2275,9 @@ void main() {
         messages: [message]);
 
       connection.prepare(json: UpdateMessageResult().toJson());
-      store.editMessage(messageId: message.id,
+      unawaited(store.editMessage(messageId: message.id,
         originalRawContent: 'foo',
-        newContent: 'bar');
+        newContent: 'bar'));
       await tester.pump(Duration.zero);
       checkEditInProgress(tester);
       await store.handleEvent(eg.updateMessageEditEvent(message));
@@ -2291,9 +2292,9 @@ void main() {
         messages: [message]);
 
       connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
-      store.editMessage(messageId: message.id,
+      unawaited(store.editMessage(messageId: message.id,
         originalRawContent: 'foo',
-        newContent: 'bar');
+        newContent: 'bar'));
       await tester.pump(Duration.zero);
       checkEditInProgress(tester);
       await tester.pump(Duration(seconds: 1));
