@@ -1748,6 +1748,12 @@ void main() {
       await tester.pump(); // message list updates
     }
 
+    Future<void> takeErrorDialogAndPump(WidgetTester tester) async {
+      final errorDialog = checkErrorDialog(tester, expectedTitle: 'Message not saved');
+      await tester.tap(find.byWidget(errorDialog));
+      await tester.pump();
+    }
+
     /// Check that the compose box is in the "Preparing…" state,
     /// awaiting the fetch-raw-content request.
     Future<void> checkAwaitingRawMessageContent(WidgetTester tester) async {
@@ -1770,6 +1776,7 @@ void main() {
       await tester.tap(
         find.widgetWithText(ZulipWebUiKitButton, 'Save'), warnIfMissed: false);
       await tester.pump(Duration.zero);
+      checkNoDialog(tester);
       check(connection.lastRequest).equals(lastRequest);
     }
 
@@ -1788,6 +1795,7 @@ void main() {
       connection.prepare(apiException: eg.apiBadRequest());
       await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
       await tester.pump(Duration.zero);
+      await takeErrorDialogAndPump(tester);
       await tester.tap(find.text('EDIT NOT SAVED'));
       await tester.pump();
       connection.takeRequests();
@@ -1966,6 +1974,7 @@ void main() {
         await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
         connection.takeRequests();
         await tester.pump(Duration.zero);
+        await takeErrorDialogAndPump(tester);
         checkNotInEditingMode(tester, narrow: narrow);
         check(find.text('EDIT NOT SAVED')).findsOne();
 

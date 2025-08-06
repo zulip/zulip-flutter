@@ -2299,6 +2299,8 @@ void main() {
       await tester.pump(Duration.zero);
       checkEditInProgress(tester);
       await tester.pump(Duration(seconds: 1));
+      // (the error dialog is tested elsewhere;
+      // it's triggered in the "Save" tap handler, not store.editMessage)
       checkEditFailed(tester);
 
       connection.prepare(json: GetMessageResult(

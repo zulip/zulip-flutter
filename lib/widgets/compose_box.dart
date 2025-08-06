@@ -1800,7 +1800,7 @@ class _EditMessageBanner extends _Banner {
   Color getBackgroundColor(DesignVariables designVariables) =>
     designVariables.bannerBgIntInfo;
 
-  void _handleTapSave (BuildContext pageContext) {
+  void _handleTapSave (BuildContext pageContext) async {
     final store = PerAccountStoreWidget.of(pageContext);
     final controller = composeBoxState.controller;
     if (controller is! EditMessageComposeBoxController) return; // TODO(log)
@@ -1826,10 +1826,24 @@ class _EditMessageBanner extends _Banner {
     final messageId = controller.messageId;
     final newContent = controller.content.textNormalized;
     composeBoxState.endEditInteraction();
-    store.editMessage(
-      messageId: messageId,
-      originalRawContent: originalRawContent,
-      newContent: newContent).onError((_, _) {}); // TODO show error feedback
+
+    try {
+      await store.editMessage(
+        messageId: messageId,
+        originalRawContent: originalRawContent,
+        newContent: newContent);
+    } on ApiRequestException catch (e) {
+      if (!pageContext.mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(pageContext);
+      final message = switch (e) {
+        ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
+        _ => e.message,
+      };
+      showErrorDialog(context: pageContext,
+        title: zulipLocalizations.errorMessageEditNotSaved,
+        message: message);
+      return;
+    }
   }
 
   @override
