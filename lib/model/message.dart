@@ -519,7 +519,8 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
         content: newContent,
         prevContentSha256: sha256.convert(utf8.encode(originalRawContent)).toString());
       // On success, we'll clear the status from _editMessageRequests
-      // when we get the event.
+      // when we get the event (or below, if in an unsubscribed channel).
+      if (_disposed) return;
     } catch (e) {
       // TODO(log) if e is something unexpected
 
@@ -535,6 +536,19 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
       status.hasError = true;
       _notifyMessageListViewsForOneMessage(messageId);
       rethrow;
+    }
+
+    final message = messages[messageId];
+    if (message is StreamMessage && subscriptions[message.streamId] == null) {
+      // The message is in an unsubscribed channel.
+      // We don't expect an event (see "third buggy behavior" in #1798)
+      // but we know the edit request succeeded, so, clear the pending-edit state.
+      // We simultaneously reload the affected message lists from scratch, so
+      // the user won't see a state where the edit appears to be forgotten.
+      // (See _EditMessageBannerTrailing._handleTapSave in
+      // lib/widgets/compose_box.dart.)
+      _editMessageRequests.remove(messageId);
+      _notifyMessageListViewsForOneMessage(messageId);
     }
   }
 
