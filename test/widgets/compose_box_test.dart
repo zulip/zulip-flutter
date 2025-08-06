@@ -2110,6 +2110,21 @@ void main() {
       checkContentInputValue(tester, expectedContentText);
     }
 
+    /// Check whether the message in the message list says "SAVING EDIT…".
+    ///
+    /// This state is tested more thoroughly
+    /// in test/widgets/message_list_test.dart, naturally.
+    void checkEditInProgressInMsglist(WidgetTester tester,
+        {required int messageId, required bool expected}) {
+      final messageFinder = find.byWidgetPredicate((widget) =>
+        widget is MessageWithPossibleSender && widget.item.message.id == messageId);
+
+      check(find.descendant(
+        of: messageFinder,
+        matching: find.text('SAVING EDIT…'),
+      ).evaluate().length).equals(expected ? 1 : 0);
+    }
+
     void testSmoke({required Narrow narrow, required _EditInteractionStart start}) {
       testWidgets('smoke: $narrow, ${start.message()}', (tester) async {
         await prepareEditMessage(tester, narrow: narrow);
@@ -2160,6 +2175,10 @@ void main() {
           prevContent: 'foo', content: 'some new content[file.jpg](/path/file.jpg)');
         await tester.pump(Duration.zero);
         checkNotInEditingMode(tester, narrow: narrow);
+
+        // We'll say "SAVING EDIT…" in the message list until the event arrives.
+        // (No need to make the event arrive here; message-list tests do that.)
+        checkEditInProgressInMsglist(tester, messageId: messageId, expected: true);
       });
     }
     testSmoke(narrow: channelNarrow, start: _EditInteractionStart.actionSheet);
@@ -2464,9 +2483,9 @@ void main() {
         of: find.byType(MessageWithPossibleSender),
         matching: find.text(ContentExample.emojiUnicode.expectedText!))
       ).findsOne();
-      // TODO(#1798) The message actually appears in the "SAVING EDIT…" state
-      //   (the "third buggy behavior" in #1798). We'll fix that soon,
-      //   and it'll be convenient to test that here too.
+      // Regression coverage for the "third buggy behavior"
+      // in https://github.com/zulip/zulip-flutter/issues/1798 .
+      checkEditInProgressInMsglist(tester, messageId: message.id, expected: false);
     });
   });
 }

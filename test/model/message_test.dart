@@ -1053,6 +1053,30 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
       checkNotNotified();
     }));
+
+    test('request succeeds, in unsubscribed channel', () => awaitFakeAsync((async) async {
+      final channel = eg.stream();
+      message = eg.streamMessage(stream: channel, sender: eg.selfUser);
+      await prepare(
+        narrow: ChannelNarrow(channel.streamId),
+        stream: channel,
+        isChannelSubscribed: false,
+      );
+      await prepareMessages([message]);
+      check(connection.takeRequests()).length.equals(1); // message-list fetchInitial
+
+      connection.prepare(
+        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+      unawaited(store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content'));
+      checkRequest(message.id, prevContent: 'old content', content: 'new content');
+      checkNotifiedOnce();
+
+      async.elapse(Duration(seconds: 1));
+      // Outbox status cleared already (we don't expect an edit-message event).
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+      checkNotifiedOnce();
+    }));
   });
 
   group('selfCanDeleteMessage', () {
