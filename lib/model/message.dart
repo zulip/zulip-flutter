@@ -53,7 +53,7 @@ mixin MessageStore {
   /// and the update-message event hasn't arrived.
   bool? getEditMessageErrorStatus(int messageId);
 
-  /// Edit a message's content, via a request to the server.
+  /// Makes an edit-message request and starts an edit-outbox lifecycle.
   ///
   /// Should only be called when there is no current edit request for [messageId],
   /// i.e., [getEditMessageErrorStatus] returns null for [messageId].
