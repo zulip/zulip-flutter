@@ -58,10 +58,15 @@ mixin MessageStore {
   /// Should only be called when there is no current edit request for [messageId],
   /// i.e., [getEditMessageErrorStatus] returns null for [messageId].
   ///
+  /// The returned [Future] settles when the edit-message response is received.
+  /// The [Future] resolves if the request succeeded and rejects if it failed,
+  /// unless the event already arrived or the message was deleted,
+  /// in which case it resolves.
+  ///
   /// See also:
   ///   * [getEditMessageErrorStatus]
   ///   * [takeFailedMessageEdit]
-  void editMessage({
+  Future<void> editMessage({
     required int messageId,
     required String originalRawContent,
     required String newContent,
@@ -104,7 +109,7 @@ mixin ProxyMessageStore on MessageStore {
     return messageStore.getEditMessageErrorStatus(messageId);
   }
   @override
-  void editMessage({
+  Future<void> editMessage({
     required int messageId,
     required String originalRawContent,
     required String newContent,
@@ -315,7 +320,7 @@ class MessageStoreImpl extends HasRealmStore with MessageStore, _OutboxMessageSt
   final Map<int, _EditMessageRequestStatus> _editMessageRequests = {};
 
   @override
-  void editMessage({
+  Future<void> editMessage({
     required int messageId,
     required String originalRawContent,
     required String newContent,
@@ -349,6 +354,7 @@ class MessageStoreImpl extends HasRealmStore with MessageStore, _OutboxMessageSt
       }
       status.hasError = true;
       _notifyMessageListViewsForOneMessage(messageId);
+      rethrow;
     }
   }
 

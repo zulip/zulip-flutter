@@ -1821,7 +1821,7 @@ class _EditMessageBanner extends _Banner {
     store.editMessage(
       messageId: messageId,
       originalRawContent: originalRawContent,
-      newContent: newContent);
+      newContent: newContent).onError((_, _) {}); // TODO show error feedback
   }
 
   @override
