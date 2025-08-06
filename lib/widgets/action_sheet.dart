@@ -178,6 +178,52 @@ class BottomSheetHeader extends StatelessWidget {
   }
 }
 
+/// A placeholder for when a bottom sheet has no content to show.
+///
+/// Pass [message] for a "no-content-here" message,
+/// or pass true for [loading] if the content hasn't finished loading yet,
+/// but don't pass both.
+///
+/// Show this below a [BottomSheetHeader] if present.
+///
+/// See also:
+///  * [PageBodyEmptyContentPlaceholder], for a similar element to use in
+///    pages on the home screen.
+// TODO(design) we don't yet have a design for this;
+//   it was ad-hoc and modeled on [PageBodyEmptyContentPlaceholder].
+class BottomSheetEmptyContentPlaceholder extends StatelessWidget {
+  const BottomSheetEmptyContentPlaceholder({
+    super.key,
+    this.message,
+    this.loading = false,
+  }) : assert((message != null) ^ loading);
+
+  final String? message;
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    final child = loading
+      ? CircularProgressIndicator()
+      : Text(
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: designVariables.labelSearchPrompt,
+            fontSize: 17,
+            height: 23 / 17,
+          ).merge(weightVariableTextStyle(context, wght: 500)),
+          message!);
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(24, 48, 24, 16),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: child));
+  }
+}
+
 /// A button in an action sheet.
 ///
 /// When built from server data, the action sheet ignores changes in that data;
