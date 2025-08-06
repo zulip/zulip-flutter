@@ -220,6 +220,10 @@ class LoadingPlaceholderPage extends StatelessWidget {
 /// This handles the horizontal device insets
 /// and the bottom inset when needed (in a message list with no compose box).
 /// The top inset is handled externally by the app bar.
+///
+/// See also:
+///  * [BottomSheetEmptyContentPlaceholder], for a similar element to use in
+///    a bottom sheet.
 // TODO(#311) If the message list gets a bottom nav, the bottom inset will
 //   always be handled externally too; simplify implementation and dartdoc.
 class PageBodyEmptyContentPlaceholder extends StatelessWidget {
