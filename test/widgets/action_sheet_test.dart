@@ -203,14 +203,17 @@ void main() {
 
     Future<void> showFromAppBar(WidgetTester tester, {
       ZulipStream? channel,
-      List<StreamMessage>? messages,
       required Narrow narrow,
     }) async {
       channel ??= someChannel;
-      messages ??= [someMessage];
 
       connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: true, messages: messages).toJson());
+        foundOldest: true, messages: []).toJson());
+      if (narrow case ChannelNarrow()) {
+        // We auto-focus the topic input when there are no messages;
+        // this is for topic autocomplete.
+        connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+      }
       await tester.pumpWidget(TestZulipApp(
         accountId: eg.selfAccount.id,
         child: MessageListPage(
@@ -450,13 +453,11 @@ void main() {
 
       testWidgets('smoke, public channel', (tester) async {
         final channel = eg.stream(inviteOnly: false);
-        final message = eg.streamMessage(stream: channel);
         await prepare();
         await store.addStream(channel);
         await store.addSubscription(eg.subscription(channel));
         final narrow = ChannelNarrow(channel.streamId);
-        await showFromAppBar(tester,
-          channel: channel, narrow: narrow, messages: [message]);
+        await showFromAppBar(tester, channel: channel, narrow: narrow);
 
         connection.prepare(json: {});
         await tapButton(tester);
@@ -474,13 +475,11 @@ void main() {
 
       testWidgets('smoke, private channel', (tester) async {
         final channel = eg.stream(inviteOnly: true);
-        final message = eg.streamMessage(stream: channel);
         await prepare();
         await store.addStream(channel);
         await store.addSubscription(eg.subscription(channel));
         final narrow = ChannelNarrow(channel.streamId);
-        await showFromAppBar(tester,
-          channel: channel, narrow: narrow, messages: [message]);
+        await showFromAppBar(tester, channel: channel, narrow: narrow);
         connection.takeRequests();
 
         connection.prepare(json: {});
