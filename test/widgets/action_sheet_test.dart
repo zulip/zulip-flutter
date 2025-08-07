@@ -350,7 +350,7 @@ void main() {
             'num_before': '0',
             'num_after': '1000',
             'narrow': jsonEncode([
-              {'operator': 'stream', 'operand': channelId},
+              {'operator': 'channel', 'operand': channelId},
               {'operator': 'is', 'operand': 'unread'},
             ]),
             'op': 'add',
@@ -1014,7 +1014,9 @@ void main() {
         check(connection.lastRequest).isA<http.Request>()
           ..url.path.equals('/api/v1/messages/flags/narrow')
           ..bodyFields['narrow'].equals(jsonEncode([
-              ...eg.topicNarrow(someChannel.streamId, someTopic).apiEncode(),
+              ...resolveApiNarrowForServer(
+                eg.topicNarrow(someChannel.streamId, someTopic).apiEncode(),
+                connection.zulipFeatureLevel!),
               ApiNarrowIs(IsOperand.unread),
             ]))
           ..bodyFields['op'].equals('add')
@@ -1656,7 +1658,9 @@ void main() {
                 'include_anchor': 'true',
                 'num_before': '0',
                 'num_after': '1000',
-                'narrow': jsonEncode(TopicNarrow.ofMessage(message).apiEncode()),
+                'narrow': jsonEncode(resolveApiNarrowForServer(
+                  TopicNarrow.ofMessage(message).apiEncode(),
+                  connection.zulipFeatureLevel!)),
                 'op': 'remove',
                 'flag': 'read',
               });
@@ -1701,7 +1705,9 @@ void main() {
             ..method.equals('POST')
             ..url.path.equals('/api/v1/messages/flags/narrow')
             ..bodyFields['narrow'].equals(
-                jsonEncode(eg.topicNarrow(newStream.streamId, newTopic).apiEncode()));
+                jsonEncode(resolveApiNarrowForServer(
+                  eg.topicNarrow(newStream.streamId, newTopic).apiEncode(),
+                  connection.zulipFeatureLevel!)));
         });
 
         testWidgets('shows error when fails', (tester) async {

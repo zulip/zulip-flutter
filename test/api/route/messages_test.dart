@@ -92,14 +92,14 @@ void main() {
 
       checkNarrow(const CombinedFeedNarrow().apiEncode(), jsonEncode([]));
       checkNarrow(const ChannelNarrow(12).apiEncode(), jsonEncode([
-        {'operator': 'stream', 'operand': 12},
+        {'operator': 'channel', 'operand': 12},
       ]));
       checkNarrow(eg.topicNarrow(12, 'stuff').apiEncode(), jsonEncode([
-        {'operator': 'stream', 'operand': 12},
+        {'operator': 'channel', 'operand': 12},
         {'operator': 'topic', 'operand': 'stuff'},
       ]));
       checkNarrow(eg.topicNarrow(12, 'stuff', with_: 1).apiEncode(), jsonEncode([
-        {'operator': 'stream', 'operand': 12},
+        {'operator': 'channel', 'operand': 12},
         {'operator': 'topic', 'operand': 'stuff'},
         {'operator': 'with', 'operand': 1},
       ]));
@@ -113,7 +113,7 @@ void main() {
 
       connection.zulipFeatureLevel = 270;
       checkNarrow(eg.topicNarrow(12, 'stuff', with_: 1).apiEncode(), jsonEncode([
-        {'operator': 'stream', 'operand': 12},
+        {'operator': 'channel', 'operand': 12},
         {'operator': 'topic', 'operand': 'stuff'},
       ]));
       checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
@@ -121,6 +121,19 @@ void main() {
       ]));
       checkNarrow([ApiNarrowDm([123, 234]), ApiNarrowWith(1)], jsonEncode([
         {'operator': 'dm', 'operand': [123, 234]},
+      ]));
+
+      connection.zulipFeatureLevel = 249;
+      checkNarrow(const ChannelNarrow(12).apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+      ]));
+      checkNarrow(eg.topicNarrow(12, 'stuff').apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+        {'operator': 'topic', 'operand': 'stuff'},
+      ]));
+      checkNarrow(eg.topicNarrow(12, 'stuff', with_: 1).apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+        {'operator': 'topic', 'operand': 'stuff'},
       ]));
 
       connection.zulipFeatureLevel = 176;

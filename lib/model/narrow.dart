@@ -80,7 +80,7 @@ class ChannelNarrow extends Narrow {
   }
 
   @override
-  ApiNarrow apiEncode() => [ApiNarrowStream(streamId)];
+  ApiNarrow apiEncode() => [ApiNarrowChannel(streamId)];
 
   @override
   String toString() => 'ChannelNarrow($streamId)';
@@ -117,7 +117,7 @@ class TopicNarrow extends Narrow implements SendableNarrow {
 
   @override
   ApiNarrow apiEncode() => [
-    ApiNarrowStream(streamId),
+    ApiNarrowChannel(streamId),
     ApiNarrowTopic(topic),
     if (with_ != null) ApiNarrowWith(with_!),
   ];
