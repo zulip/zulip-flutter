@@ -71,11 +71,14 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
     fragment.write('${element.operator}/');
 
     switch (element) {
+      case ApiNarrowChannelModern():
       case ApiNarrowStream():
         final streamId = element.operand;
         final name = store.streams[streamId]?.name ?? 'unknown';
         final slugifiedName = _encodeHashComponent(name.replaceAll(' ', '-'));
         fragment.write('$streamId-$slugifiedName');
+      case ApiNarrowChannel():
+        assert(false, 'ApiNarrowChannel should have been resolved');
       case ApiNarrowTopic():
         fragment.write(_encodeHashComponent(element.operand.apiName));
       case ApiNarrowDmModern():
@@ -182,7 +185,7 @@ NarrowLink? _interpretNarrowSegments(List<String> segments, PerAccountStore stor
   assert(segments.isNotEmpty);
   assert(segments.length.isEven);
 
-  ApiNarrowStream? streamElement;
+  ApiNarrowChannel? channelElement;
   ApiNarrowTopic? topicElement;
   ApiNarrowDm? dmElement;
   ApiNarrowWith? withElement;
@@ -196,10 +199,10 @@ NarrowLink? _interpretNarrowSegments(List<String> segments, PerAccountStore stor
     switch (operator) {
       case _NarrowOperator.stream:
       case _NarrowOperator.channel:
-        if (streamElement != null) return null;
+        if (channelElement != null) return null;
         final streamId = _parseStreamOperand(operand, store);
         if (streamId == null) return null;
-        streamElement = ApiNarrowStream(streamId, negated: negated);
+        channelElement = ApiNarrowChannel(streamId, negated: negated);
 
       case _NarrowOperator.topic:
       case _NarrowOperator.subject:
@@ -238,7 +241,7 @@ NarrowLink? _interpretNarrowSegments(List<String> segments, PerAccountStore stor
 
   final Narrow? narrow;
   if (isElementOperands.isNotEmpty) {
-    if (streamElement != null || topicElement != null || dmElement != null || withElement != null) {
+    if (channelElement != null || topicElement != null || dmElement != null || withElement != null) {
       return null;
     }
     if (isElementOperands.length > 1) return null;
@@ -257,10 +260,10 @@ NarrowLink? _interpretNarrowSegments(List<String> segments, PerAccountStore stor
         return null;
     }
   } else if (dmElement != null) {
-    if (streamElement != null || topicElement != null || withElement != null) return null;
+    if (channelElement != null || topicElement != null || withElement != null) return null;
     narrow = DmNarrow.withUsers(dmElement.operand, selfUserId: store.selfUserId);
-  } else if (streamElement != null) {
-    final streamId = streamElement.operand;
+  } else if (channelElement != null) {
+    final streamId = channelElement.operand;
     if (topicElement != null) {
       narrow = TopicNarrow(streamId, topicElement.operand, with_: withElement?.operand);
     } else {
