@@ -34,6 +34,7 @@ import 'package:zulip/widgets/message_list.dart';
 import 'package:share_plus_platform_interface/method_channel/method_channel_share.dart';
 import 'package:zulip/widgets/read_receipts.dart';
 import 'package:zulip/widgets/subscription_list.dart';
+import 'package:zulip/widgets/topic_list.dart';
 import 'package:zulip/widgets/user.dart';
 import '../api/fake_api.dart';
 
@@ -201,7 +202,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
     }
 
-    Future<void> showFromAppBar(WidgetTester tester, {
+    Future<void> showFromMsglistAppBar(WidgetTester tester, {
       ZulipStream? channel,
       required Narrow narrow,
     }) async {
@@ -243,6 +244,22 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
     }
 
+    Future<void> showFromTopicListAppBar(WidgetTester tester) async {
+      final transitionDurationObserver = TransitionDurationObserver();
+
+      connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+      await tester.pumpWidget(TestZulipApp(
+        navigatorObservers: [transitionDurationObserver],
+        accountId: eg.selfAccount.id,
+        child: TopicListPage(streamId: someChannel.streamId)));
+      await tester.pump();
+
+      await tester.longPress(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.text(someChannel.name)));
+      await transitionDurationObserver.pumpPastTransition(tester);
+    }
+
     final actionSheetFinder = find.byType(BottomSheet);
     Finder findButtonForLabel(String label) =>
       find.descendant(of: actionSheetFinder, matching: find.text(label));
@@ -281,23 +298,29 @@ void main() {
         check(findButtonForLabel('Mark channel as read')).findsNothing();
       });
 
-      testWidgets('show from app bar in channel narrow', (tester) async {
+      testWidgets('show from message-list app bar in channel narrow', (tester) async {
         await prepare();
         final narrow = ChannelNarrow(someChannel.streamId);
-        await showFromAppBar(tester, narrow: narrow);
+        await showFromMsglistAppBar(tester, narrow: narrow);
         checkButtons();
       });
 
-      testWidgets('show from app bar in topic narrow', (tester) async {
+      testWidgets('show from message-list app bar in topic narrow', (tester) async {
         await prepare();
         final narrow = eg.topicNarrow(someChannel.streamId, someTopic);
-        await showFromAppBar(tester, narrow: narrow);
+        await showFromMsglistAppBar(tester, narrow: narrow);
         checkButtons();
       });
 
       testWidgets('show from recipient header', (tester) async {
         await prepare();
         await showFromRecipientHeader(tester, message: someMessage);
+        checkButtons();
+      });
+
+      testWidgets('show from topic-list app bar', (tester) async {
+        await prepare();
+        await showFromTopicListAppBar(tester);
         checkButtons();
       });
     });
@@ -312,7 +335,7 @@ void main() {
         await prepare();
         final narrow = ChannelNarrow(someChannel.streamId);
         await store.removeSubscription(narrow.streamId);
-        await showFromAppBar(tester, narrow: narrow);
+        await showFromMsglistAppBar(tester, narrow: narrow);
         checkButton('Subscribe');
       });
 
@@ -320,7 +343,7 @@ void main() {
         await prepare();
         final narrow = ChannelNarrow(someChannel.streamId);
         check(store.subscriptions[narrow.streamId]).isNotNull();
-        await showFromAppBar(tester, narrow: narrow);
+        await showFromMsglistAppBar(tester, narrow: narrow);
         checkNoButton('Subscribe');
       });
 
@@ -328,7 +351,7 @@ void main() {
         await prepare();
         final narrow = ChannelNarrow(someChannel.streamId);
         await store.removeSubscription(narrow.streamId);
-        await showFromAppBar(tester, narrow: narrow);
+        await showFromMsglistAppBar(tester, narrow: narrow);
 
         connection.prepare(json: {});
         await tapButton(tester);
@@ -391,7 +414,7 @@ void main() {
 
     testWidgets('TopicListButton', (tester) async {
       await prepare();
-      await showFromAppBar(tester,
+      await showFromMsglistAppBar(tester,
         narrow: ChannelNarrow(someChannel.streamId));
 
       connection.prepare(json: GetStreamTopicsResult(topics: [
@@ -419,7 +442,7 @@ void main() {
       testWidgets('copies channel link to clipboard', (tester) async {
         await prepare();
         final narrow = ChannelNarrow(someChannel.streamId);
-        await showFromAppBar(tester, narrow: narrow);
+        await showFromMsglistAppBar(tester, narrow: narrow);
 
         await tapCopyChannelLinkButton(tester);
         await tester.pump(Duration.zero);
@@ -439,7 +462,7 @@ void main() {
         await prepare();
         final narrow = ChannelNarrow(someChannel.streamId);
         check(store.subscriptions[narrow.streamId]).isNotNull();
-        await showFromAppBar(tester, narrow: narrow);
+        await showFromMsglistAppBar(tester, narrow: narrow);
         checkButton('Unsubscribe');
       });
 
@@ -447,7 +470,7 @@ void main() {
         await prepare();
         final narrow = ChannelNarrow(someChannel.streamId);
         await store.removeSubscription(narrow.streamId);
-        await showFromAppBar(tester, narrow: narrow);
+        await showFromMsglistAppBar(tester, narrow: narrow);
         checkNoButton('Unsubscribe');
       });
 
@@ -457,7 +480,7 @@ void main() {
         await store.addStream(channel);
         await store.addSubscription(eg.subscription(channel));
         final narrow = ChannelNarrow(channel.streamId);
-        await showFromAppBar(tester, channel: channel, narrow: narrow);
+        await showFromMsglistAppBar(tester, channel: channel, narrow: narrow);
 
         connection.prepare(json: {});
         await tapButton(tester);
@@ -479,7 +502,7 @@ void main() {
         await store.addStream(channel);
         await store.addSubscription(eg.subscription(channel));
         final narrow = ChannelNarrow(channel.streamId);
-        await showFromAppBar(tester, channel: channel, narrow: narrow);
+        await showFromMsglistAppBar(tester, channel: channel, narrow: narrow);
         connection.takeRequests();
 
         connection.prepare(json: {});
