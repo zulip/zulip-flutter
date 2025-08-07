@@ -116,6 +116,10 @@
   "@actionSheetOptionListOfTopics": {
     "description": "Label for navigating to a channel's topic-list page."
   },
+  "actionSheetOptionChannelFeed": "Channel feed",
+  "@actionSheetOptionChannelFeed": {
+    "description": "Label for navigating to a channel's channel-feed page."
+  },
   "actionSheetOptionUnsubscribe": "Unsubscribe",
   "@actionSheetOptionUnsubscribe": {
     "description": "Label in the channel action sheet for unsubscribing from the channel."

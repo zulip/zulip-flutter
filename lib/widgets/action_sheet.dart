@@ -239,11 +239,18 @@ enum BottomSheetDismissButtonStyle {
 /// Show a sheet of actions you can take on a channel.
 ///
 /// Needs a [PageRoot] ancestor.
+/// May or may not have a [MessageListPage] ancestor;
+/// some callers are on that page and some aren't.
 void showChannelActionSheet(BuildContext context, {
   required int channelId,
 }) {
   final pageContext = PageRoot.contextOf(context);
   final store = PerAccountStoreWidget.of(pageContext);
+  final messageListPageState = MessageListPage.maybeAncestorOf(pageContext);
+
+  final messageListPageNarrow = messageListPageState?.narrow;
+  final isOnChannelFeed = messageListPageNarrow is ChannelNarrow
+    && messageListPageNarrow.streamId == channelId;
 
   final unreadCount = store.unreads.countInChannelNarrow(channelId);
   final isSubscribed = store.subscriptions[channelId] != null;
@@ -255,6 +262,8 @@ void showChannelActionSheet(BuildContext context, {
       if (unreadCount > 0)
         MarkChannelAsReadButton(pageContext: pageContext, channelId: channelId),
       TopicListButton(pageContext: pageContext, channelId: channelId),
+      if (!isOnChannelFeed)
+        ChannelFeedButton(pageContext: pageContext, channelId: channelId),
       CopyChannelLinkButton(channelId: channelId, pageContext: pageContext)
     ],
     if (isSubscribed)
@@ -352,6 +361,30 @@ class TopicListButton extends ActionSheetMenuItemButton {
   void onPressed() {
     Navigator.push(pageContext,
       TopicListPage.buildRoute(context: pageContext, streamId: channelId));
+  }
+}
+
+class ChannelFeedButton extends ActionSheetMenuItemButton {
+  const ChannelFeedButton({
+    super.key,
+    required this.channelId,
+    required super.pageContext,
+  });
+
+  final int channelId;
+
+  @override
+  IconData get icon => ZulipIcons.message_feed;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionChannelFeed;
+  }
+
+  @override
+  void onPressed() {
+    Navigator.push(pageContext,
+      MessageListPage.buildRoute(context: pageContext, narrow: ChannelNarrow(channelId)));
   }
 }
 
