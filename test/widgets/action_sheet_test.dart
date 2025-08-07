@@ -181,7 +181,9 @@ void main() {
     }
 
     Future<void> showFromInbox(WidgetTester tester) async {
+      transitionDurationObserver = TransitionDurationObserver();
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        navigatorObservers: [transitionDurationObserver],
         child: const HomePage()));
       await tester.pump();
       check(find.byType(InboxPageBody)).findsOne();
@@ -423,6 +425,61 @@ void main() {
       await tester.tap(findButtonForLabel('List of topics'));
       await tester.pumpAndSettle();
       check(find.text('some topic foo')).findsOne();
+    });
+
+    group('ChannelFeedButton', () {
+      Future<void> tapButtonAndPump(WidgetTester tester) async {
+        await tester.tap(findButtonForLabel('Channel feed'));
+        await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+      }
+
+      testWidgets('from inbox: visible', (tester) async {
+        await prepare();
+        await showFromInbox(tester);
+        checkButton('Channel feed');
+      });
+
+      testWidgets('from subscription list: visible', (tester) async {
+        await prepare();
+        await showFromSubscriptionList(tester);
+        checkButton('Channel feed');
+      });
+
+      testWidgets('from recipient header in combined feed: visible', (tester) async {
+        await prepare();
+        await showFromRecipientHeader(tester);
+        checkButton('Channel feed');
+      });
+
+      testWidgets('from app bar on topic list: visible', (tester) async {
+        await prepare();
+        await showFromTopicListAppBar(tester);
+        checkButton('Channel feed');
+      });
+
+      testWidgets('from msglist app bar on channel feed: not visible', (tester) async {
+        await prepare();
+        await showFromMsglistAppBar(tester, narrow: ChannelNarrow(someChannel.streamId));
+        checkNoButton('Channel feed');
+      });
+
+      // (The channel action sheet isn't reached from a recipient header
+      // in the channel feed.)
+
+      testWidgets('navigates to channel feed', (tester) async {
+        await prepare();
+        await showFromInbox(tester);
+
+        connection.prepare(json: eg.newestGetMessagesResult(
+          foundOldest: true, messages: []).toJson());
+        // for topic autocomplete
+        connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+        await tapButtonAndPump(tester);
+        await transitionDurationObserver.pumpPastTransition(tester);
+
+        final appBar = tester.widget(find.byType(MessageListAppBarTitle)) as MessageListAppBarTitle;
+        check(appBar.narrow).equals(ChannelNarrow(someChannel.streamId));
+      });
     });
 
     group('CopyChannelLinkButton', () {

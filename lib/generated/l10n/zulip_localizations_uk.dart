@@ -106,6 +106,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get actionSheetOptionListOfTopics => 'Список тем';
 
   @override
+  String get actionSheetOptionChannelFeed => 'Channel feed';
+
+  @override
   String get actionSheetOptionUnsubscribe => 'Скасувати підписку';
 
   @override

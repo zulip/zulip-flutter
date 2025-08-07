@@ -102,6 +102,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get actionSheetOptionListOfTopics => 'トピック一覧';
 
   @override
+  String get actionSheetOptionChannelFeed => 'Channel feed';
+
+  @override
   String get actionSheetOptionUnsubscribe => 'Unsubscribe';
 
   @override

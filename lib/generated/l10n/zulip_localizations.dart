@@ -305,6 +305,12 @@ abstract class ZulipLocalizations {
   /// **'List of topics'**
   String get actionSheetOptionListOfTopics;
 
+  /// Label for navigating to a channel's channel-feed page.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel feed'**
+  String get actionSheetOptionChannelFeed;
+
   /// Label in the channel action sheet for unsubscribing from the channel.
   ///
   /// In en, this message translates to:
