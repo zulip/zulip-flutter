@@ -206,12 +206,28 @@ class MessageListPage extends StatefulWidget {
   ///
   /// Uses the inefficient [BuildContext.findAncestorStateOfType];
   /// don't call this in a build method.
-  // If we do find ourselves wanting this in a build method, it won't be hard
-  // to enable that: we'd just need to add an [InheritedWidget] here.
+  ///
+  /// See also:
+  ///  * [maybeAncestorOf], which returns null instead of throwing
+  ///    when an ancestor [MessageListPageState] is not found.
   static MessageListPageState ancestorOf(BuildContext context) {
-    final state = context.findAncestorStateOfType<_MessageListPageState>();
+    final state = maybeAncestorOf(context);
     assert(state != null, 'No MessageListPage ancestor');
     return state!;
+  }
+
+  /// The [MessageListPageState] above this context in the tree, if any.
+  ///
+  /// Uses the inefficient [BuildContext.findAncestorStateOfType];
+  /// don't call this in a build method.
+  ///
+  /// See also:
+  ///  * [ancestorOf], which throws instead of returning null
+  ///    when an ancestor [MessageListPageState] is not found.
+  // If we do find ourselves wanting this in a build method, it won't be hard
+  // to enable that: we'd just need to add an [InheritedWidget] here.
+  static MessageListPageState? maybeAncestorOf(BuildContext context) {
+    return context.findAncestorStateOfType<_MessageListPageState>();
   }
 
   final Narrow initNarrow;
