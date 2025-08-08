@@ -1182,11 +1182,13 @@ ChannelUpdateEvent channelUpdateEvent(
 TestGlobalStore globalStore({
   GlobalSettingsData? globalSettings,
   Map<BoolGlobalSetting, bool>? boolGlobalSettings,
+  Map<IntGlobalSetting, int>? intGlobalSettings,
   List<Account> accounts = const [],
 }) {
   return TestGlobalStore(
     globalSettings: globalSettings,
     boolGlobalSettings: boolGlobalSettings,
+    intGlobalSettings: intGlobalSettings,
     accounts: accounts,
   );
 }
