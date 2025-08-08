@@ -275,7 +275,7 @@ abstract class ZulipLocalizations {
   /// **'To upload files, please grant Zulip additional permissions in Settings.'**
   String get permissionsDeniedReadExternalStorage;
 
-  /// Label in the channel context menu for subscribing to the channel.
+  /// Label in the channel action sheet for subscribing to the channel.
   ///
   /// In en, this message translates to:
   /// **'Subscribe'**
@@ -305,7 +305,7 @@ abstract class ZulipLocalizations {
   /// **'List of topics'**
   String get actionSheetOptionListOfTopics;
 
-  /// Label in the channel context menu for unsubscribing from the channel.
+  /// Label in the channel action sheet for unsubscribing from the channel.
   ///
   /// In en, this message translates to:
   /// **'Unsubscribe'**
