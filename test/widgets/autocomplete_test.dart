@@ -372,6 +372,42 @@ void main() {
       expected ? displaySubject.findsOne(): displaySubject.findsNothing();
     }
 
+   testWidgets('text emoji autocomplete item must have correct height', (tester) async {
+      // Regression test for #1587
+      final composeInputFinder = await setupToComposeInput(tester);
+
+      await store.handleEvent(RealmEmojiUpdateEvent(id: 1, realmEmoji: {
+        '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'an_image_emoji'),
+      }));
+      await tester.pump();
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, ':an_imag');
+      await tester.enterText(composeInputFinder, ':an_image');
+      await tester.pumpAndSettle();
+
+      final imageItemFinder = find.widgetWithText(InkWell, 'an_image_emoji');
+      check(imageItemFinder).findsOne();
+      final imageItemHeight = tester.getSize(imageItemFinder).height;
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await store.handleEvent(UserSettingsUpdateEvent(id: 1,
+        property: UserSettingName.emojiset,
+        value: Emojiset.text));
+
+      await tester.enterText(composeInputFinder, ':an_imag');
+      await tester.enterText(composeInputFinder, ':an_image');
+      await tester.pumpAndSettle();
+
+      final textItemFinder = find.widgetWithText(InkWell, 'an_image_emoji');
+      check(textItemFinder).findsOne();
+      final textItemHeight = tester.getSize(textItemFinder).height;
+
+      check(textItemHeight).isCloseTo(imageItemHeight, 1.0);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
     testWidgets('show, update, choose', (tester) async {
       final composeInputFinder = await setupToComposeInput(tester);
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
