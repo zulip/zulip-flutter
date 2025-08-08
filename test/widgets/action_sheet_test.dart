@@ -1903,6 +1903,12 @@ void main() {
         await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
       }
 
+      Future<void> takeErrorDialogAndPump(WidgetTester tester) async {
+        final errorDialog = checkErrorDialog(tester, expectedTitle: 'Message not saved');
+        await tester.tap(find.byWidget(errorDialog));
+        await tester.pump();
+      }
+
       group('present/absent appropriately', () {
         /// Test whether the edit-message button is visible, given params.
         ///
@@ -1993,6 +1999,7 @@ void main() {
               connection.prepare(apiException: eg.apiBadRequest());
               await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
               await tester.pump(Duration.zero);
+              await takeErrorDialogAndPump(tester);
             } else if (errorStatus == false) {
               // We're testing the request-in-progress state. Prepare a delay,
               // tap Save, and wait through only part of the delay.

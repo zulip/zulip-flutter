@@ -23,6 +23,7 @@ import 'color.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
+import 'page.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -1659,6 +1660,9 @@ class EditMessageComposeBoxController extends ComposeBoxController {
   String? originalRawContent;
 }
 
+/// A banner to display over or instead of interactive compose-box content.
+///
+/// Must have a [PageRoot] ancestor.
 abstract class _Banner extends StatelessWidget {
   const _Banner();
 
@@ -1675,7 +1679,11 @@ abstract class _Banner extends StatelessWidget {
   ///   https://github.com/zulip/zulip-flutter/pull/1432#discussion_r2023907300
   ///
   /// To control the element's distance from the end edge, override [padEnd].
-  Widget? buildTrailing(BuildContext context);
+  ///
+  /// The passed [BuildContext] will be the result of [PageRoot.contextOf],
+  /// so it's expected to remain mounted until the whole page disappears,
+  /// which may be long after the banner disappears.
+  Widget? buildTrailing(BuildContext pageContext);
 
   /// Whether to apply `end: 8` in [SafeArea.minimum].
   ///
@@ -1694,7 +1702,7 @@ abstract class _Banner extends StatelessWidget {
       color: getLabelColor(designVariables),
     ).merge(weightVariableTextStyle(context, wght: 600));
 
-    final trailing = buildTrailing(context);
+    final trailing = buildTrailing(PageRoot.contextOf(context));
     return DecoratedBox(
       decoration: BoxDecoration(
         color: getBackgroundColor(designVariables)),
@@ -1740,7 +1748,7 @@ class _ErrorBanner extends _Banner {
     designVariables.bannerBgIntDanger;
 
   @override
-  Widget? buildTrailing(context) {
+  Widget? buildTrailing(pageContext) {
     // An "x" button can go here.
     // 24px square with 8px touchable padding in all directions?
     // and `bool get padEnd => false`; see Figma:
@@ -1766,17 +1774,17 @@ class _EditMessageBanner extends _Banner {
   Color getBackgroundColor(DesignVariables designVariables) =>
     designVariables.bannerBgIntInfo;
 
-  void _handleTapSave (BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+  void _handleTapSave (BuildContext pageContext) async {
+    final store = PerAccountStoreWidget.of(pageContext);
     final controller = composeBoxState.controller;
     if (controller is! EditMessageComposeBoxController) return; // TODO(log)
-    final zulipLocalizations = ZulipLocalizations.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
 
     if (controller.content.hasValidationErrors.value) {
       final validationErrorMessages =
         controller.content.validationErrors.map((error) =>
           error.message(zulipLocalizations));
-      showErrorDialog(context: context,
+      showErrorDialog(context: pageContext,
         title: zulipLocalizations.errorMessageEditNotSaved,
         message: validationErrorMessages.join('\n\n'));
       return;
@@ -1789,16 +1797,32 @@ class _EditMessageBanner extends _Banner {
       return;
     }
 
-    store.editMessage(
-      messageId: controller.messageId,
-      originalRawContent: originalRawContent,
-      newContent: controller.content.textNormalized);
+    final messageId = controller.messageId;
+    final newContent = controller.content.textNormalized;
     composeBoxState.endEditInteraction();
+
+    try {
+      await store.editMessage(
+        messageId: messageId,
+        originalRawContent: originalRawContent,
+        newContent: newContent);
+    } on ApiRequestException catch (e) {
+      if (!pageContext.mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(pageContext);
+      final message = switch (e) {
+        ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
+        _ => e.message,
+      };
+      showErrorDialog(context: pageContext,
+        title: zulipLocalizations.errorMessageEditNotSaved,
+        message: message);
+      return;
+    }
   }
 
   @override
-  Widget buildTrailing(context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
+  Widget buildTrailing(pageContext) {
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
     return Row(mainAxisSize: MainAxisSize.min, spacing: 8, children: [
       ZulipWebUiKitButton(label: zulipLocalizations.composeBoxBannerButtonCancel,
         onPressed: composeBoxState.endEditInteraction),
@@ -1806,7 +1830,7 @@ class _EditMessageBanner extends _Banner {
       //   or the original raw content hasn't loaded yet
       ZulipWebUiKitButton(label: zulipLocalizations.composeBoxBannerButtonSave,
         attention: ZulipWebUiKitButtonAttention.high,
-        onPressed: () => _handleTapSave(context)),
+        onPressed: () => _handleTapSave(pageContext)),
     ]);
   }
 }

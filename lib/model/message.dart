@@ -53,15 +53,18 @@ mixin MessageStore {
   /// and the update-message event hasn't arrived.
   bool? getEditMessageErrorStatus(int messageId);
 
-  /// Edit a message's content, via a request to the server.
+  /// Makes an edit-message request and starts an edit-outbox lifecycle.
   ///
   /// Should only be called when there is no current edit request for [messageId],
   /// i.e., [getEditMessageErrorStatus] returns null for [messageId].
   ///
+  /// The returned [Future] resolves or rejects with the edit-message request,
+  /// irrespective of when the edit-message event arrives (if it does).
+  ///
   /// See also:
   ///   * [getEditMessageErrorStatus]
   ///   * [takeFailedMessageEdit]
-  void editMessage({
+  Future<void> editMessage({
     required int messageId,
     required String originalRawContent,
     required String newContent,
@@ -104,7 +107,7 @@ mixin ProxyMessageStore on MessageStore {
     return messageStore.getEditMessageErrorStatus(messageId);
   }
   @override
-  void editMessage({
+  Future<void> editMessage({
     required int messageId,
     required String originalRawContent,
     required String newContent,
@@ -315,7 +318,7 @@ class MessageStoreImpl extends HasRealmStore with MessageStore, _OutboxMessageSt
   final Map<int, _EditMessageRequestStatus> _editMessageRequests = {};
 
   @override
-  void editMessage({
+  Future<void> editMessage({
     required int messageId,
     required String originalRawContent,
     required String newContent,
@@ -349,6 +352,7 @@ class MessageStoreImpl extends HasRealmStore with MessageStore, _OutboxMessageSt
       }
       status.hasError = true;
       _notifyMessageListViewsForOneMessage(messageId);
+      rethrow;
     }
   }
 
