@@ -96,8 +96,7 @@ class Presence extends HasRealmStore with ChangeNotifier {
           newUserInput: false);
     }
     if (!pingOnly) {
-      _map = result.presences!;
-      notifyListeners();
+      _handlePresenceResponse(result.presences!);
     }
   }
 
@@ -122,6 +121,16 @@ class Presence extends HasRealmStore with ChangeNotifier {
     _appLifecycleListener?.dispose();
     _disposed = true;
     super.dispose();
+  }
+
+  @visibleForTesting
+  void debugHandlePresenceResponse(Map<int, PerUserPresence> presences) {
+    _handlePresenceResponse(presences);
+  }
+
+  void _handlePresenceResponse(Map<int, PerUserPresence> presences) {
+    _map = presences;
+    notifyListeners();
   }
 
   /// The [PresenceStatus] for [userId], or null if the user is offline.
