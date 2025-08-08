@@ -143,6 +143,31 @@ class Presence extends HasRealmStore with ChangeNotifier {
     }
   }
 
+  /// The timestamp when the given user was "last active", if any.
+  ///
+  /// This is meaningful only when [presenceStatusForUser] is null.
+  /// When that method returns active or idle, the user should be displayed
+  /// with a description like "Active now" or "Idle" rather than
+  /// one like "Last active $duration ago" that uses this timestamp.
+  int? userLastActive(int userId) {
+    // The corresponding implementation on web is complicated;
+    // but the actual behavior seems to be this simple.
+    //
+    // In web, see buddy_data.user_last_seen_time_status; the last-active time
+    // is used only when the status is offline (vs active or idle).
+    // The timestamp comes via presence.last_active_date from the data structure
+    // fed by presence.status_from_raw.
+    //
+    // That status_from_raw function sometimes uses idle_timestamp;
+    // but only when status idle, where the timestamp will be ignored anyway.
+    // It also consults the equivalent of [User.dateJoined] as a fallback,
+    // for when processing a user who has "never logged in"... but it's
+    // not clear that function ever gets called in such a case.
+    // Those wrinkles aside, it always uses active_timestamp.
+
+    return _map[userId]?.activeTimestamp;
+  }
+
   void handlePresenceEvent(PresenceEvent event) {
     // TODO(#1618)
   }

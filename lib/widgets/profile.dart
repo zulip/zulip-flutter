@@ -1,13 +1,16 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../api/model/model.dart';
 import '../api/route/settings.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
+import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/narrow.dart';
+import '../model/store.dart';
 import 'app_bar.dart';
 import 'button.dart';
 import 'content.dart';
@@ -42,7 +45,6 @@ class ProfilePage extends StatelessWidget {
       page: ProfilePage(userId: userId));
   }
 
-
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -56,7 +58,9 @@ class ProfilePage extends StatelessWidget {
       .merge(weightVariableTextStyle(context, wght: 700));
 
     final userStatus = store.getUserStatus(userId);
+
     final displayEmail = user.deliveryEmail;
+
     final items = [
       Center(
         child: Avatar(
@@ -93,6 +97,9 @@ class ProfilePage extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 18, height: 22 / 18,
             color: DesignVariables.of(context).userStatusText)),
+      _LastActiveTime(userId: userId),
+
+      const SizedBox(height: 8),
       if (displayEmail != null)
         Text(displayEmail,
           textAlign: TextAlign.center,
@@ -136,6 +143,72 @@ class ProfilePage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: items))))));
+  }
+}
+
+class _LastActiveTime extends StatelessWidget {
+  const _LastActiveTime({required this.userId});
+
+  final int userId;
+
+  String _lastActiveText(PerAccountStore store, ZulipLocalizations zulipLocalizations) {
+    final nowDate = ZulipBinding.instance.utcNow();
+    final status = store.presence.presenceStatusForUser(userId, utcNow: nowDate);
+    switch (status) {
+      case PresenceStatus.active: return zulipLocalizations.userActiveNow;
+      case PresenceStatus.idle:   return zulipLocalizations.userIdle;
+      case null:                  break; // handle below
+    }
+
+    final timestamp = store.presence.userLastActive(userId);
+    if (timestamp == null) return zulipLocalizations.userNotActiveInYear;
+
+    // Compare web's timerender.last_seen_status_from_date.
+    final now = nowDate.millisecondsSinceEpoch ~/ 1000;
+    final ageSeconds = now - timestamp;
+    if (ageSeconds <= 0) {
+      return zulipLocalizations.userActiveNow;
+    } else if (ageSeconds < 60 * 60) {
+      return zulipLocalizations.userActiveMinutesAgo(ageSeconds ~/ 60);
+    } else if (ageSeconds < 24 * 60 * 60) {
+      return zulipLocalizations.userActiveHoursAgo(ageSeconds ~/ (60 * 60));
+    }
+
+    final todayNoon = nowDate.toLocal()
+      .copyWith(hour: 12, minute: 0, second: 0, millisecond: 0, microsecond: 0);
+    final presenceNoon = DateTime.fromMillisecondsSinceEpoch(
+        timestamp, isUtc: false)
+      .copyWith(hour: 12, minute: 0, second: 0, millisecond: 0, microsecond: 0);
+    final ageCalendarDays = (todayNoon.difference(presenceNoon)
+      .inSeconds / 24 * 60 * 60).round();
+    if (ageCalendarDays <= 0) {
+      // The timestamp was at least 24 hours ago.
+      // If it's somehow the same or a future calendar day, then this must be a
+      // really messy time zone.  Hopefully no real time zone makes this possible.
+      return zulipLocalizations.userActiveYesterday;
+    } else if (ageCalendarDays == 1) {
+      return zulipLocalizations.userActiveYesterday;
+    } else if (ageCalendarDays < 90) {
+      return zulipLocalizations.userActiveDaysAgo(ageCalendarDays);
+    }
+
+    final DateFormat format;
+    if (presenceNoon.year == todayNoon.year) {
+      format = DateFormat.MMMd();
+    } else {
+      format = DateFormat.yMMMd();
+    }
+    return zulipLocalizations.userActiveDate(format.format(presenceNoon));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    return Text(_lastActiveText(store, zulipLocalizations),
+      textAlign: TextAlign.center,
+      style: TextStyle(fontSize: 18, height: 22 / 18,
+        color: DesignVariables.of(context).userStatusText));
   }
 }
 
