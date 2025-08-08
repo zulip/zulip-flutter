@@ -453,14 +453,19 @@ void main() {
 
       // Start the renarrowAndFetch.
       final newNarrow = ChannelNarrow(channel.streamId);
+      final newAnchor = NumericAnchor(messages[3].id);
+
       final result = eg.getMessagesResult(
-        anchor: model.anchor, foundOldest: false, messages: messages);
+        anchor: newAnchor,
+        foundOldest: false, foundNewest: false,
+        messages: messages.sublist(3, 5));
       connection.prepare(json: result.toJson(), delay: Duration(seconds: 1));
-      model.renarrowAndFetch(newNarrow);
+      model.renarrowAndFetch(newNarrow, newAnchor);
       checkNotifiedOnce();
       check(model)
         ..fetched.isFalse()
         ..narrow.equals(newNarrow)
+        ..anchor.equals(newAnchor)
         ..messages.isEmpty();
 
       // Elapse until the fetchOlder is done but renarrowAndFetch is still
@@ -476,7 +481,8 @@ void main() {
       check(model)
         ..fetched.isTrue()
         ..narrow.equals(newNarrow)
-        ..messages.length.equals(100);
+        ..anchor.equals(newAnchor)
+        ..messages.length.equals(2);
     }));
   });
 
@@ -3380,6 +3386,7 @@ extension MessageListMessageItemChecks on Subject<MessageListMessageItem> {
 extension MessageListViewChecks on Subject<MessageListView> {
   Subject<PerAccountStore> get store => has((x) => x.store, 'store');
   Subject<Narrow> get narrow => has((x) => x.narrow, 'narrow');
+  Subject<Anchor> get anchor => has((x) => x.anchor, 'anchor');
   Subject<List<Message>> get messages => has((x) => x.messages, 'messages');
   Subject<List<OutboxMessage>> get outboxMessages => has((x) => x.outboxMessages, 'outboxMessages');
   Subject<int> get middleMessage => has((x) => x.middleMessage, 'middleMessage');

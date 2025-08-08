@@ -639,7 +639,8 @@ class MessageListAppBarTitle extends StatelessWidget {
       case KeywordSearchNarrow():
         assert(!willCenterTitle);
         return _SearchBar(onSubmitted: (narrow) {
-          MessageListPage.ancestorOf(context).model!.renarrowAndFetch(narrow);
+          MessageListPage.ancestorOf(context).model!
+            .renarrowAndFetch(narrow, AnchorCode.newest);
         });
     }
   }
