@@ -1487,6 +1487,12 @@ abstract class ZulipLocalizations {
   /// **'Channels'**
   String get channelsPageTitle;
 
+  /// Title for the page about sharing content received from other apps.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get sharePageTitle;
+
   /// Centered text on the 'Channels' page saying that there is no content to show.
   ///
   /// In en, this message translates to:
@@ -1798,6 +1804,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Removing reaction failed'**
   String get errorReactionRemovingFailedTitle;
+
+  /// Error title when sharing content received from other apps fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to share content'**
+  String get errorSharingTitle;
+
+  /// Error title when sharing content received from other apps fails, when there is no account logged in
+  ///
+  /// In en, this message translates to:
+  /// **'There is no account logged in. Please log in to an account and try again.'**
+  String get errorSharingAccountNotLoggedIn;
 
   /// Label for a button opening the emoji picker.
   ///

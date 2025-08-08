@@ -838,6 +838,9 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get channelsPageTitle => 'Kanali';
 
   @override
+  String get sharePageTitle => 'Share';
+
+  @override
   String get channelsEmptyPlaceholder => 'Niste še naročeni na noben kanal.';
 
   @override
@@ -1027,6 +1030,13 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   @override
   String get errorReactionRemovingFailedTitle =>
       'Reakcije ni bilo mogoče odstraniti';
+
+  @override
+  String get errorSharingTitle => 'Failed to share content';
+
+  @override
+  String get errorSharingAccountNotLoggedIn =>
+      'There is no account logged in. Please log in to an account and try again.';
 
   @override
   String get emojiReactionsMore => 'več';

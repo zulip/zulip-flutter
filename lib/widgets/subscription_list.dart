@@ -13,9 +13,31 @@ import 'text.dart';
 import 'theme.dart';
 import 'unread_count_badge.dart';
 
+typedef OnChannelSelectCallback = void Function(ChannelNarrow narrow);
+
 /// Scrollable listing of subscribed streams.
 class SubscriptionListPageBody extends StatefulWidget {
-  const SubscriptionListPageBody({super.key});
+  const SubscriptionListPageBody({
+    super.key,
+    this.disableChannelActionSheet = false,
+    this.hideChannelsIfUserCantPost = false,
+    this.onChannelSelect,
+  });
+
+  // TODO refactor this widget to avoid reuse of the whole page,
+  //   avoiding the need for these flags, callback(s), and the below
+  //   handling of safe-area at this level of abstraction.
+  //   See discussion:
+  //     https://github.com/zulip/zulip-flutter/pull/1774#discussion_r2249032503
+  final bool disableChannelActionSheet;
+  final bool hideChannelsIfUserCantPost;
+
+  /// Callback to invoke when the user selects a channel from the list.
+  ///
+  /// If null, the default behavior is to navigate to the channel feed.
+  final OnChannelSelectCallback? onChannelSelect;
+
+  // TODO(#412) add onTopicSelect
 
   @override
   State<SubscriptionListPageBody> createState() => _SubscriptionListPageBodyState();
@@ -65,6 +87,12 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     });
   }
 
+  void _handleChannelSelect(ChannelNarrow narrow) {
+    Navigator.push(context,
+      MessageListPage.buildRoute(context: context,
+        narrow: narrow));
+  }
+
   @override
   Widget build(BuildContext context) {
     // Design referenced from:
@@ -86,6 +114,12 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     final List<Subscription> pinned = [];
     final List<Subscription> unpinned = [];
     for (final subscription in store.subscriptions.values) {
+      if (widget.hideChannelsIfUserCantPost) {
+        if (!store.hasPostingPermission(inChannel: subscription,
+            user: store.selfUser, byDate: DateTime.now())) {
+          continue;
+        }
+      }
       if (subscription.pinToTop) {
         pinned.add(subscription);
       } else {
@@ -101,19 +135,43 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
         message: zulipLocalizations.channelsEmptyPlaceholder);
     }
 
-    return SafeArea( // horizontal insets
+    final onChannelSelect = widget.onChannelSelect ?? _handleChannelSelect;
+
+    return SafeArea(
+      // Don't pad the bottom here; we want the list content to do that.
+      //
+      // When this page is used in the context of the home page, this
+      // param and the below use of `SliverSafeArea` would be noop, because
+      // `Scaffold.bottomNavigationBar` in the home page handles that for us.
+      // But this page is also used for share-to-zulip page, so we need this
+      // to be handled here.
+      //
+      // Other *PageBody widgets don't handle this because they aren't
+      // (re-)used outside the context of the home page.
+      bottom: false,
       child: CustomScrollView(
         slivers: [
           if (pinned.isNotEmpty) ...[
             _SubscriptionListHeader(label: zulipLocalizations.pinnedSubscriptionsLabel),
-            _SubscriptionList(unreadsModel: unreadsModel, subscriptions: pinned),
+            _SubscriptionList(
+              unreadsModel: unreadsModel,
+              subscriptions: pinned,
+              disableChannelActionSheet: widget.disableChannelActionSheet,
+              onChannelSelect: onChannelSelect),
           ],
           if (unpinned.isNotEmpty) ...[
             _SubscriptionListHeader(label: zulipLocalizations.unpinnedSubscriptionsLabel),
-            _SubscriptionList(unreadsModel: unreadsModel, subscriptions: unpinned),
+            _SubscriptionList(
+              unreadsModel: unreadsModel,
+              subscriptions: unpinned,
+              disableChannelActionSheet: widget.disableChannelActionSheet,
+              onChannelSelect: onChannelSelect),
           ],
 
           // TODO(#188): add button leading to "All Streams" page with ability to subscribe
+
+          // This ensures last item in scrollable can settle in an unobstructed area.
+          const SliverSafeArea(sliver: SliverToBoxAdapter(child: SizedBox.shrink())),
         ]));
   }
 }
@@ -160,10 +218,14 @@ class _SubscriptionList extends StatelessWidget {
   const _SubscriptionList({
     required this.unreadsModel,
     required this.subscriptions,
+    required this.disableChannelActionSheet,
+    required this.onChannelSelect,
   });
 
   final Unreads? unreadsModel;
   final List<Subscription> subscriptions;
+  final bool disableChannelActionSheet;
+  final OnChannelSelectCallback onChannelSelect;
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +238,9 @@ class _SubscriptionList extends StatelessWidget {
           && unreadsModel!.countInChannelNarrow(subscription.streamId) > 0;
         return SubscriptionItem(subscription: subscription,
           unreadCount: unreadCount,
-          showMutedUnreadBadge: showMutedUnreadBadge);
+          showMutedUnreadBadge: showMutedUnreadBadge,
+          disableChannelActionSheet: disableChannelActionSheet,
+          onChannelSelect: onChannelSelect);
     });
   }
 }
@@ -188,11 +252,15 @@ class SubscriptionItem extends StatelessWidget {
     required this.subscription,
     required this.unreadCount,
     required this.showMutedUnreadBadge,
+    required this.disableChannelActionSheet,
+    required this.onChannelSelect,
   });
 
   final Subscription subscription;
   final int unreadCount;
   final bool showMutedUnreadBadge;
+  final bool disableChannelActionSheet;
+  final OnChannelSelectCallback onChannelSelect;
 
   @override
   Widget build(BuildContext context) {
@@ -205,12 +273,10 @@ class SubscriptionItem extends StatelessWidget {
       // TODO(design) check if this is the right variable
       color: designVariables.background,
       child: InkWell(
-        onTap: () {
-          Navigator.push(context,
-            MessageListPage.buildRoute(context: context,
-              narrow: ChannelNarrow(subscription.streamId)));
-        },
-        onLongPress: () => showChannelActionSheet(context, channelId: subscription.streamId),
+        onTap: () => onChannelSelect(ChannelNarrow(subscription.streamId)),
+        onLongPress: !disableChannelActionSheet
+          ? () => showChannelActionSheet(context, channelId: subscription.streamId)
+          : null,
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           const SizedBox(width: 16),
           Padding(
