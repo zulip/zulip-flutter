@@ -15,7 +15,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
   lastEventId: (json['last_event_id'] as num).toInt(),
   zulipFeatureLevel: (json['zulip_feature_level'] as num).toInt(),
   zulipVersion: json['zulip_version'] as String,
-  zulipMergeBase: json['zulip_merge_base'] as String?,
+  zulipMergeBase: json['zulip_merge_base'] as String,
   alertWords: (json['alert_words'] as List<dynamic>)
       .map((e) => e as String)
       .toList(),
@@ -308,9 +308,7 @@ Map<String, dynamic> _$UnreadMessagesSnapshotToJson(
 
 UnreadDmSnapshot _$UnreadDmSnapshotFromJson(Map<String, dynamic> json) =>
     UnreadDmSnapshot(
-      otherUserId:
-          (UnreadDmSnapshot._readOtherUserId(json, 'other_user_id') as num)
-              .toInt(),
+      otherUserId: (json['other_user_id'] as num).toInt(),
       unreadMessageIds: (json['unread_message_ids'] as List<dynamic>)
           .map((e) => (e as num).toInt())
           .toList(),

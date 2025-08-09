@@ -18,7 +18,7 @@ class InitialSnapshot {
   final int lastEventId;
   final int zulipFeatureLevel;
   final String zulipVersion;
-  final String? zulipMergeBase; // TODO(server-5)
+  final String zulipMergeBase;
 
   final List<String> alertWords;
 
@@ -337,14 +337,8 @@ class UnreadMessagesSnapshot {
 /// An item in [UnreadMessagesSnapshot.dms].
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UnreadDmSnapshot {
-  @JsonKey(readValue: _readOtherUserId)
   final int otherUserId;
   final List<int> unreadMessageIds;
-
-  // TODO(server-5): Simplify away.
-  static dynamic _readOtherUserId(Map<dynamic, dynamic> json, String key) {
-    return json[key] ?? json['sender_id'];
-  }
 
   UnreadDmSnapshot({
     required this.otherUserId,

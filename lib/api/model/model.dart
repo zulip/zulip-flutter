@@ -414,7 +414,6 @@ class User {
   // bool isOwner; // obsoleted by [role]; ignore
   // bool isAdmin; // obsoleted by [role]; ignore
   // bool isGuest; // obsoleted by [role]; ignore
-  bool? isBillingAdmin; // TODO(server-5)
   final bool isBot;
   final int? botType; // TODO enum
   int? botOwnerId;
@@ -430,7 +429,9 @@ class User {
   @JsonKey(readValue: _readProfileData)
   Map<int, ProfileFieldUserData>? profileData;
 
-  @JsonKey(readValue: _readIsSystemBot)
+  // This field is absent in `realm_users` and `realm_non_active_users`,
+  // which contain no system bots; it's present in `cross_realm_bots`.
+  @JsonKey(defaultValue: false)
   final bool isSystemBot;
 
   static Map<String, dynamic>? _readProfileData(Map<dynamic, dynamic> json, String key) {
@@ -442,14 +443,6 @@ class User {
     return (value != null && value.isNotEmpty) ? value : null;
   }
 
-  static bool _readIsSystemBot(Map<dynamic, dynamic> json, String key) {
-    // This field is absent in `realm_users` and `realm_non_active_users`,
-    // which contain no system bots; it's present in `cross_realm_bots`.
-    return (json[key] as bool?)
-        ?? (json['is_cross_realm_bot'] as bool?) // TODO(server-5): renamed to `is_system_bot`
-        ?? false;
-  }
-
   User({
     required this.userId,
     required this.deliveryEmail,
@@ -457,7 +450,6 @@ class User {
     required this.fullName,
     required this.dateJoined,
     required this.isActive,
-    required this.isBillingAdmin,
     required this.isBot,
     required this.botType,
     required this.botOwnerId,
@@ -1271,18 +1263,11 @@ enum MessageEditState {
         continue;
       }
 
-      // TODO(server-5) prev_subject was the old name of prev_topic on pre-5.0 servers
-      final prevTopicStr = (entry['prev_topic'] ?? entry['prev_subject']) as String?;
-      final prevTopic = prevTopicStr == null ? null : TopicName.fromJson(prevTopicStr);
-      final topicStr = entry['topic'] as String?;
-      final topic = topicStr == null ? null : TopicName.fromJson(topicStr);
-      if (prevTopic != null) {
-        // TODO(server-5) pre-5.0 servers do not have the 'topic' field
-        if (topic == null) {
-          hasMoved = true;
-        } else {
-          hasMoved |= !topicMoveWasResolveOrUnresolve(topic, prevTopic);
-        }
+      final prevTopicStr = entry['prev_topic'] as String?;
+      if (prevTopicStr != null) {
+        final prevTopic = TopicName.fromJson(prevTopicStr);
+        final topic = TopicName.fromJson(entry['topic'] as String);
+        hasMoved |= !topicMoveWasResolveOrUnresolve(topic, prevTopic);
       }
     }
 
