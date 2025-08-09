@@ -1076,7 +1076,7 @@ void main() {
         await tester.pump();
         final call = testBinding.takePickFilesCalls().single;
         check(call.allowMultiple).equals(true);
-        check(call.type).equals(FileType.media);
+        check(call.type).equals(FileType.image);
 
         checkNoDialog(tester);
 

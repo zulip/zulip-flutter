@@ -1043,11 +1043,15 @@ abstract class _AttachUploadsButton extends StatelessWidget {
   }
 }
 
-Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type) async {
+Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type, {bool withReadStream= false,}) async {
   FilePickerResult? result;
   try {
     result = await ZulipBinding.instance
-      .pickFiles(allowMultiple: true, withReadStream: true, type: type);
+      .pickFiles(
+        allowMultiple: true,
+        withReadStream: withReadStream,
+        type: type,
+        );
   } catch (e) {
     if (!context.mounted) return [];
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -1126,7 +1130,7 @@ class _AttachMediaButton extends _AttachUploadsButton {
   @override
   Future<Iterable<_File>> getFiles(BuildContext context) async {
     // TODO(#114): This doesn't give quite the right UI on Android.
-    return _getFilePickerFiles(context, FileType.media);
+    return _getFilePickerFiles(context, FileType.image,withReadStream: true);
   }
 }
 

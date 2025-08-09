@@ -184,21 +184,21 @@ abstract class ZulipBinding {
   NotificationPigeonApi get notificationPigeonApi;
 
   /// Pick files from the media library, via package:file_picker.
-  ///
-  /// This wraps [file_picker.pickFiles].
-  Future<file_picker.FilePickerResult?> pickFiles({
-    bool allowMultiple,
-    bool withReadStream,
-    file_picker.FileType type,
-  });
+    ///
+    /// This wraps [file_picker.pickFiles].
+    Future<file_picker.FilePickerResult?> pickFiles({
+      bool allowMultiple,
+      bool withReadStream,
+      file_picker.FileType type,
+    });
 
-  /// Pick files from the camera or media library, via package:image_picker.
-  ///
-  /// This wraps [image_picker.pickImage].
-  Future<image_picker.XFile?> pickImage({
-    required image_picker.ImageSource source,
-    bool requestFullMetadata,
-  });
+    /// Pick files from the camera or media library, via package:image_picker.
+    ///
+    /// This wraps [image_picker.pickImage].
+    Future<image_picker.XFile?> pickImage({
+      required image_picker.ImageSource source,
+      bool requestFullMetadata,
+    });
 
   /// Enables or disables keeping the screen on, via package:wakelock_plus.
   ///
@@ -492,12 +492,12 @@ class LiveZulipBinding extends ZulipBinding {
   Future<file_picker.FilePickerResult?> pickFiles({
     bool allowMultiple = false,
     bool withReadStream = false,
-    file_picker.FileType type = file_picker.FileType.any,
+    file_picker.FileType type = file_picker.FileType.image,  // Allow any type of file for attachment icon
   }) async {
     return file_picker.FilePicker.platform.pickFiles(
       allowMultiple: allowMultiple,
       withReadStream: withReadStream,
-      type: type,
+      type: type,  // This allows multiple types of files (images, documents, etc.)
     );
   }
 
@@ -506,9 +506,12 @@ class LiveZulipBinding extends ZulipBinding {
     required image_picker.ImageSource source,
     bool requestFullMetadata = true,
   }) async {
-    return image_picker.ImagePicker()
-      .pickImage(source: source, requestFullMetadata: requestFullMetadata);
+    return image_picker.ImagePicker().pickImage(
+      source: source, // Only images can be selected, from gallery or camera
+      requestFullMetadata: requestFullMetadata,
+    );
   }
+
 
   @override
   Future<void> toggleWakelock({required bool enable}) async {
