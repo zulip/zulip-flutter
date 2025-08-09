@@ -47,71 +47,73 @@ void main() {
       check(await db.getGlobalSettings()).themeSetting.equals(ThemeSetting.dark);
     });
 
-    test('BoolGlobalSettings get ignores unknown names', () async {
-      await db.into(db.boolGlobalSettings)
-        .insert(BoolGlobalSettingRow(name: 'nonsense', value: true));
-      check(await db.getBoolGlobalSettings()).isEmpty();
+    group('BoolGlobalSettings', () {
+      test('get ignores unknown names', () async {
+        await db.into(db.boolGlobalSettings)
+          .insert(BoolGlobalSettingRow(name: 'nonsense', value: true));
+        check(await db.getBoolGlobalSettings()).isEmpty();
 
-      final setting = BoolGlobalSetting.placeholderIgnore;
-      await db.into(db.boolGlobalSettings)
-        .insert(BoolGlobalSettingRow(name: setting.name, value: true));
-      check(await db.getBoolGlobalSettings())
-        .deepEquals({setting: true});
-    });
+        final setting = BoolGlobalSetting.placeholderIgnore;
+        await db.into(db.boolGlobalSettings)
+          .insert(BoolGlobalSettingRow(name: setting.name, value: true));
+        check(await db.getBoolGlobalSettings())
+          .deepEquals({setting: true});
+      });
 
-    test('BoolGlobalSettings insert, then get', () async {
-      check(await db.getBoolGlobalSettings()).isEmpty();
+      test('insert, then get', () async {
+        check(await db.getBoolGlobalSettings()).isEmpty();
 
-      // As in doSetBoolGlobalSetting for `value` non-null.
-      final setting = BoolGlobalSetting.placeholderIgnore;
-      await db.into(db.boolGlobalSettings).insertOnConflictUpdate(
-        BoolGlobalSettingRow(name: setting.name, value: true));
-      check(await db.getBoolGlobalSettings())
-        .deepEquals({setting: true});
-      check(await db.select(db.boolGlobalSettings).get()).length.equals(1);
-    });
+        // As in doSetBoolGlobalSetting for `value` non-null.
+        final setting = BoolGlobalSetting.placeholderIgnore;
+        await db.into(db.boolGlobalSettings).insertOnConflictUpdate(
+          BoolGlobalSettingRow(name: setting.name, value: true));
+        check(await db.getBoolGlobalSettings())
+          .deepEquals({setting: true});
+        check(await db.select(db.boolGlobalSettings).get()).length.equals(1);
+      });
 
-    test('BoolGlobalSettings delete, then get', () async {
-      final setting = BoolGlobalSetting.placeholderIgnore;
-      await db.into(db.boolGlobalSettings).insertOnConflictUpdate(
-        BoolGlobalSettingRow(name: setting.name, value: true));
-      check(await db.getBoolGlobalSettings())
-        .deepEquals({setting: true});
+      test('delete, then get', () async {
+        final setting = BoolGlobalSetting.placeholderIgnore;
+        await db.into(db.boolGlobalSettings).insertOnConflictUpdate(
+          BoolGlobalSettingRow(name: setting.name, value: true));
+        check(await db.getBoolGlobalSettings())
+          .deepEquals({setting: true});
 
-      // As in doSetBoolGlobalSetting for `value` null.
-      final query = db.delete(db.boolGlobalSettings)
-        ..where((r) => r.name.equals(setting.name));
-      await query.go();
-      check(await db.getBoolGlobalSettings()).isEmpty();
-      check(await db.select(db.boolGlobalSettings).get()).isEmpty();
-    });
+        // As in doSetBoolGlobalSetting for `value` null.
+        final query = db.delete(db.boolGlobalSettings)
+          ..where((r) => r.name.equals(setting.name));
+        await query.go();
+        check(await db.getBoolGlobalSettings()).isEmpty();
+        check(await db.select(db.boolGlobalSettings).get()).isEmpty();
+      });
 
-    test('BoolGlobalSettings insert replaces', () async {
-      final setting = BoolGlobalSetting.placeholderIgnore;
-      await db.into(db.boolGlobalSettings).insertOnConflictUpdate(
-        BoolGlobalSettingRow(name: setting.name, value: true));
-      check(await db.getBoolGlobalSettings())
-        .deepEquals({setting: true});
+      test('insert replaces', () async {
+        final setting = BoolGlobalSetting.placeholderIgnore;
+        await db.into(db.boolGlobalSettings).insertOnConflictUpdate(
+          BoolGlobalSettingRow(name: setting.name, value: true));
+        check(await db.getBoolGlobalSettings())
+          .deepEquals({setting: true});
 
-      // As in doSetBoolGlobalSetting for `value` non-null.
-      await db.into(db.boolGlobalSettings).insertOnConflictUpdate(
-        BoolGlobalSettingRow(name: setting.name, value: false));
-      check(await db.getBoolGlobalSettings())
-        .deepEquals({setting: false});
-      check(await db.select(db.boolGlobalSettings).get()).length.equals(1);
-    });
+        // As in doSetBoolGlobalSetting for `value` non-null.
+        await db.into(db.boolGlobalSettings).insertOnConflictUpdate(
+          BoolGlobalSettingRow(name: setting.name, value: false));
+        check(await db.getBoolGlobalSettings())
+          .deepEquals({setting: false});
+        check(await db.select(db.boolGlobalSettings).get()).length.equals(1);
+      });
 
-    test('BoolGlobalSettings delete is idempotent', () async {
-      check(await db.getBoolGlobalSettings()).isEmpty();
+      test('delete is idempotent', () async {
+        check(await db.getBoolGlobalSettings()).isEmpty();
 
-      // As in doSetBoolGlobalSetting for `value` null.
-      final setting = BoolGlobalSetting.placeholderIgnore;
-      final query = db.delete(db.boolGlobalSettings)
-        ..where((r) => r.name.equals(setting.name));
-      await query.go();
-      // (No error occurred, even though there was nothing to delete.)
-      check(await db.getBoolGlobalSettings()).isEmpty();
-      check(await db.select(db.boolGlobalSettings).get()).isEmpty();
+        // As in doSetBoolGlobalSetting for `value` null.
+        final setting = BoolGlobalSetting.placeholderIgnore;
+        final query = db.delete(db.boolGlobalSettings)
+          ..where((r) => r.name.equals(setting.name));
+        await query.go();
+        // (No error occurred, even though there was nothing to delete.)
+        check(await db.getBoolGlobalSettings()).isEmpty();
+        check(await db.select(db.boolGlobalSettings).get()).isEmpty();
+      });
     });
 
     test('create account', () async {
