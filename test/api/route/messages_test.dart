@@ -829,4 +829,15 @@ void main() {
       });
     });
   });
+
+  test('smoke getReadReceipts', () {
+    return FakeApiConnection.with_((connection) async {
+      final response = GetReadReceiptsResult(userIds: [7, 6543, 210]);
+      connection.prepare(json: response.toJson());
+      await getReadReceipts(connection, messageId: 123321);
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('GET')
+        ..url.path.equals('/api/v1/messages/123321/read_receipts');
+    });
+  });
 }

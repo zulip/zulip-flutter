@@ -29,6 +29,7 @@ import 'icons.dart';
 import 'inset_shadow.dart';
 import 'message_list.dart';
 import 'page.dart';
+import 'read_receipts.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -102,31 +103,125 @@ void _showActionSheet(
     });
 }
 
-/// A header for a bottom sheet with a multiline UI string.
+typedef WidgetBuilderFromTextStyle = Widget Function(TextStyle);
+
+/// A header for a bottom sheet with an optional title and multiline message.
+///
+/// A title, message, or both must be provided.
+///
+/// Provide a title by passing [title] or [buildTitle] (not both).
+/// Provide a message by passing [message] or [buildMessage] (not both).
+/// The "build" params support richer content, such as [TextWithLink],
+/// and the callback is passed a [TextStyle] which is the base style.
 ///
 /// Assumes 8px padding below the top of the bottom sheet.
 ///
-/// Figma:
+/// Figma; just message no title:
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3481-26993&m=dev
-class BottomSheetHeaderPlainText extends StatelessWidget {
-  const BottomSheetHeaderPlainText({super.key, required this.text});
+///
+/// Figma; title and message:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6326-96125&m=dev
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=11367-20898&m=dev
+/// The latter example (read receipts) has more horizontal and bottom padding;
+/// that looks like an accident that we don't need to follow.
+/// It also colors the message text more opaquely…that difference might be
+/// intentional, but Vlad's time is limited and I prefer consistency.
+class BottomSheetHeader extends StatelessWidget {
+  const BottomSheetHeader({
+    super.key,
+    this.title,
+    this.buildTitle,
+    this.message,
+    this.buildMessage,
+  }) : assert(message == null || buildMessage == null),
+       assert(title == null || buildTitle == null),
+       assert((message != null || buildMessage != null)
+              || (title != null || buildTitle != null));
 
-  final String text;
+  final String? title;
+  final Widget Function(TextStyle)? buildTitle;
+  final String? message;
+  final Widget Function(TextStyle)? buildMessage;
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
+    final baseTitleStyle = TextStyle(
+      fontSize: 20,
+      height: 20 / 20,
+      color: designVariables.title,
+    ).merge(weightVariableTextStyle(context, wght: 600));
+
+    final effectiveTitle = switch ((buildTitle, title)) {
+      (final build?, null) => build(baseTitleStyle),
+      (null,  final data?) => Text(style: baseTitleStyle, data),
+      _                    => null,
+    };
+
+    final baseSubtitleStyle = TextStyle(
+      color: designVariables.labelTime,
+      fontSize: 17,
+      height: 22 / 17);
+
+    final effectiveMessage = switch ((buildMessage, message)) {
+      (final build?, null) => build(baseSubtitleStyle),
+      (null,  final data?) => Text(style: baseSubtitleStyle, data),
+      _                    => null,
+    };
+
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-      child: SizedBox(
-        width: double.infinity,
-        child: Text(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 8,
+        children: [?effectiveTitle, ?effectiveMessage]));
+  }
+}
+
+/// A placeholder for when a bottom sheet has no content to show.
+///
+/// Pass [message] for a "no-content-here" message,
+/// or pass true for [loading] if the content hasn't finished loading yet,
+/// but don't pass both.
+///
+/// Show this below a [BottomSheetHeader] if present.
+///
+/// See also:
+///  * [PageBodyEmptyContentPlaceholder], for a similar element to use in
+///    pages on the home screen.
+// TODO(design) we don't yet have a design for this;
+//   it was ad-hoc and modeled on [PageBodyEmptyContentPlaceholder].
+class BottomSheetEmptyContentPlaceholder extends StatelessWidget {
+  const BottomSheetEmptyContentPlaceholder({
+    super.key,
+    this.message,
+    this.loading = false,
+  }) : assert((message != null) ^ loading);
+
+  final String? message;
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    final child = loading
+      ? CircularProgressIndicator()
+      : Text(
+          textAlign: TextAlign.center,
           style: TextStyle(
-            color: designVariables.labelTime,
+            color: designVariables.labelSearchPrompt,
             fontSize: 17,
-            height: 22 / 17),
-          text)));
+            height: 23 / 17,
+          ).merge(weightVariableTextStyle(context, wght: 500)),
+          message!);
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(24, 48, 24, 16),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: child));
   }
 }
 
@@ -806,6 +901,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final reactions = message.reactions;
   final hasReactions = reactions != null && reactions.total > 0;
 
+  final readReceiptsEnabled = store.realmEnableReadReceipts;
+
   // The UI that's conditioned on this won't live-update during this appearance
   // of the action sheet (we avoid calling composeBoxControllerOf in a build
   // method; see its doc).
@@ -825,6 +922,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       ReactionButtons(message: message, pageContext: pageContext),
     if (hasReactions)
       ViewReactionsButton(message: message, pageContext: pageContext),
+    if (readReceiptsEnabled)
+      ViewReadReceiptsButton(message: message, pageContext: pageContext),
     StarButton(message: message, pageContext: pageContext),
     if (isComposeBoxOffered)
       QuoteAndReplyButton(message: message, pageContext: pageContext),
@@ -1071,6 +1170,21 @@ class ViewReactionsButton extends MessageActionSheetMenuItemButton {
 
   @override void onPressed() {
     showViewReactionsSheet(pageContext, messageId: message.id);
+  }
+}
+
+class ViewReadReceiptsButton extends MessageActionSheetMenuItemButton {
+  ViewReadReceiptsButton({super.key, required super.message, required super.pageContext});
+
+  @override IconData get icon => ZulipIcons.check_check;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionViewReadReceipts;
+  }
+
+  @override void onPressed() {
+    showReadReceiptsSheet(pageContext, messageId: message.id);
   }
 }
 

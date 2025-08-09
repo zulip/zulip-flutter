@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/widgets/text.dart';
 
@@ -417,5 +418,54 @@ void main() {
 
     // "und" is a special language code meaning undefined; see [Locale]
     testLocalizedTextBaseline(const Locale('und'), TextBaseline.alphabetic);
+  });
+
+  group('TextWithLink', () {
+    testWidgets('responds correctly to taps', (tester) async {
+      int calls = 0;
+      addTearDown(testBinding.reset);
+      await tester.pumpWidget(TestZulipApp(
+        child: Center(
+          child: TextWithLink(onTap: () => calls++,
+            markup: 'asd <z-link>fgh</z-link> jkl'))));
+      await tester.pump();
+
+      final findText = find.text('asd fgh jkl', findRichText: true);
+      final center = tester.getCenter(findText);
+      final width = tester.getSize(findText).width;
+
+      // No response to tapping the words not in the link.
+      await tester.tapAt(center + Offset(-0.3 * width, 0));
+      check(calls).equals(0);
+      await tester.tapAt(center + Offset(0.3 * width, 0));
+      check(calls).equals(0);
+
+      // Tapping the word in the link calls the callback.
+      await tester.tapAt(center);
+      check(calls).equals(1);
+      await tester.tapAt(center);
+      check(calls).equals(2);
+    });
+
+    testWidgets('rejects extra tags', (tester) async {
+      final markup = '<z-link>spurious</z-link><z-link>markup</z-link>';
+      final plainText = 'spuriousmarkup';
+
+      int calls = 0;
+      addTearDown(testBinding.reset);
+      await tester.pumpWidget(TestZulipApp(
+        child: Center(
+          child: TextWithLink(onTap: () => calls++,
+            markup: markup))));
+      await tester.pump();
+
+      // The widget appears with the markup string as plain text.
+      check(find.text(plainText, findRichText: true)).findsNothing();
+      check(find.text(markup)).findsOne();
+
+      // Nothing happens on tapping it.
+      await tester.tap(find.text(markup));
+      check(calls).equals(0);
+    });
   });
 }

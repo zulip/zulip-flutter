@@ -822,7 +822,7 @@ class ViewReactionsHeader extends StatelessWidget {
     if (reactions == null || reactions.aggregated.isEmpty) {
       return Padding(
         padding: const EdgeInsets.only(top: 8),
-        child: BottomSheetHeaderPlainText(text: zulipLocalizations.seeWhoReactedSheetNoReactions),
+        child: BottomSheetHeader(message: zulipLocalizations.seeWhoReactedSheetNoReactions),
       );
     }
 
@@ -1036,7 +1036,8 @@ class ViewReactionsUserList extends StatelessWidget {
   }
 }
 
-@visibleForTesting
+// TODO: deduplicate the code with [ReadReceiptsUserItem]
+  @visibleForTesting
 class ViewReactionsUserItem extends StatelessWidget {
   const ViewReactionsUserItem({
     super.key,
