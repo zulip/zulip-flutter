@@ -9,83 +9,85 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   ZulipLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get aboutPageTitle => 'About Zulip';
+  String get aboutPageTitle => 'À propos de Zulip';
 
   @override
-  String get aboutPageAppVersion => 'App version';
+  String get aboutPageAppVersion => 'Version de l\'application';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Open-source licenses';
+  String get aboutPageOpenSourceLicenses => 'Licences de logiciel libre';
 
   @override
-  String get aboutPageTapToView => 'Tap to view';
+  String get aboutPageTapToView => 'Toucher pour voir';
 
   @override
-  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
+  String get upgradeWelcomeDialogTitle =>
+      'Bienvenue dans la nouvelle application Zulip !';
 
   @override
   String get upgradeWelcomeDialogMessage =>
-      'You’ll find a familiar experience in a faster, sleeker package.';
+      'Vous retrouverez une expérience familière dans un logiciel plus rapide et plus élégant.';
 
   @override
   String get upgradeWelcomeDialogLinkText =>
-      'Check out the announcement blog post!';
+      'Allez voir les articles sur le blog des annonces !';
 
   @override
-  String get upgradeWelcomeDialogDismiss => 'Let\'s go';
+  String get upgradeWelcomeDialogDismiss => 'Allons-y';
 
   @override
-  String get chooseAccountPageTitle => 'Choose account';
+  String get chooseAccountPageTitle => 'Choisir un compte';
 
   @override
-  String get settingsPageTitle => 'Settings';
+  String get settingsPageTitle => 'Paramètres';
 
   @override
-  String get switchAccountButton => 'Switch account';
+  String get switchAccountButton => 'Changer de compte';
 
   @override
   String tryAnotherAccountMessage(Object url) {
-    return 'Your account at $url is taking a while to load.';
+    return 'Votre compte à $url prend du temps à se charger.';
   }
 
   @override
-  String get tryAnotherAccountButton => 'Try another account';
+  String get tryAnotherAccountButton => 'Essayer un autre compte';
 
   @override
-  String get chooseAccountPageLogOutButton => 'Log out';
+  String get chooseAccountPageLogOutButton => 'Déconnexion';
 
   @override
-  String get logOutConfirmationDialogTitle => 'Log out?';
+  String get logOutConfirmationDialogTitle => 'Se déconnecter?';
 
   @override
   String get logOutConfirmationDialogMessage =>
-      'To use this account in the future, you will have to re-enter the URL for your organization and your account information.';
+      'Pour utiliser ce compte à l\'avenir, vous devrez ré-entrer l\'adresse pour votre organisation et les informations de votre compte.';
 
   @override
-  String get logOutConfirmationDialogConfirmButton => 'Log out';
+  String get logOutConfirmationDialogConfirmButton => 'Déconnexion';
 
   @override
-  String get chooseAccountButtonAddAnAccount => 'Add an account';
+  String get chooseAccountButtonAddAnAccount => 'Ajouter un compte';
 
   @override
-  String get profileButtonSendDirectMessage => 'Send direct message';
+  String get profileButtonSendDirectMessage => 'Envoyer un message direct';
 
   @override
-  String get errorCouldNotShowUserProfile => 'Could not show user profile.';
+  String get errorCouldNotShowUserProfile =>
+      'Impossible de montrer le profil de l\'utilisateur.';
 
   @override
-  String get permissionsNeededTitle => 'Permissions needed';
+  String get permissionsNeededTitle => 'Permissions requises';
 
   @override
-  String get permissionsNeededOpenSettings => 'Open settings';
+  String get permissionsNeededOpenSettings => 'Ouvrir les préférences';
 
   @override
   String get permissionsDeniedCameraAccess =>
-      'To upload an image, please grant Zulip additional permissions in Settings.';
+      'Pour charger une image, merci d\'accorder des autorisations supplémentaires à Zulip, dans les préférences.';
 
   @override
   String get permissionsDeniedReadExternalStorage =>
-      'To upload files, please grant Zulip additional permissions in Settings.';
+      'Pour charger des fichiers, merci d\'accorder des autorisations supplémentaires à Zulip, dans les préférences.';
 
   @override
   String get actionSheetOptionSubscribe => 'Subscribe';
@@ -94,13 +96,13 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get subscribeFailedTitle => 'Failed to subscribe';
 
   @override
-  String get actionSheetOptionMarkChannelAsRead => 'Mark channel as read';
+  String get actionSheetOptionMarkChannelAsRead => 'Marquer le canal comme lu';
 
   @override
-  String get actionSheetOptionCopyChannelLink => 'Copy link to channel';
+  String get actionSheetOptionCopyChannelLink => 'Copier le lien du canal';
 
   @override
-  String get actionSheetOptionListOfTopics => 'List of topics';
+  String get actionSheetOptionListOfTopics => 'Liste des sujets';
 
   @override
   String get actionSheetOptionUnsubscribe => 'Unsubscribe';
@@ -121,29 +123,30 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get unsubscribeFailedTitle => 'Failed to unsubscribe';
 
   @override
-  String get actionSheetOptionMuteTopic => 'Mute topic';
+  String get actionSheetOptionMuteTopic => 'Rendre le sujet silencieux';
 
   @override
-  String get actionSheetOptionUnmuteTopic => 'Unmute topic';
+  String get actionSheetOptionUnmuteTopic => 'Rendre le sujet non silencieux';
 
   @override
-  String get actionSheetOptionFollowTopic => 'Follow topic';
+  String get actionSheetOptionFollowTopic => 'Suivre le sujet';
 
   @override
-  String get actionSheetOptionUnfollowTopic => 'Unfollow topic';
+  String get actionSheetOptionUnfollowTopic => 'Ne plus suivre le sujet';
 
   @override
-  String get actionSheetOptionResolveTopic => 'Mark as resolved';
+  String get actionSheetOptionResolveTopic => 'Marquer comme résolu';
 
   @override
-  String get actionSheetOptionUnresolveTopic => 'Mark as unresolved';
+  String get actionSheetOptionUnresolveTopic => 'Marquer comme non résolu';
 
   @override
-  String get errorResolveTopicFailedTitle => 'Failed to mark topic as resolved';
+  String get errorResolveTopicFailedTitle =>
+      'Impossible de marquer le sujet comme résolu';
 
   @override
   String get errorUnresolveTopicFailedTitle =>
-      'Failed to mark topic as unresolved';
+      'Impossible de marquer le sujet comme non résolu';
 
   @override
   String get actionSheetOptionSeeWhoReacted => 'See who reacted';
@@ -173,67 +176,71 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   }
 
   @override
-  String get actionSheetOptionCopyMessageText => 'Copy message text';
+  String get actionSheetOptionCopyMessageText => 'Copier le contenu du message';
 
   @override
-  String get actionSheetOptionCopyMessageLink => 'Copy link to message';
+  String get actionSheetOptionCopyMessageLink => 'Copier le lien au message';
 
   @override
-  String get actionSheetOptionMarkAsUnread => 'Mark as unread from here';
+  String get actionSheetOptionMarkAsUnread => 'Marquer non lu à partir d\'ici';
 
   @override
-  String get actionSheetOptionHideMutedMessage => 'Hide muted message again';
+  String get actionSheetOptionHideMutedMessage =>
+      'Cacher à nouveau le message silencieux';
 
   @override
-  String get actionSheetOptionShare => 'Share';
+  String get actionSheetOptionShare => 'Partager';
 
   @override
-  String get actionSheetOptionQuoteMessage => 'Quote message';
+  String get actionSheetOptionQuoteMessage => 'Citer le message';
 
   @override
-  String get actionSheetOptionStarMessage => 'Star message';
+  String get actionSheetOptionStarMessage => 'Mettre le message en favori';
 
   @override
-  String get actionSheetOptionUnstarMessage => 'Unstar message';
+  String get actionSheetOptionUnstarMessage =>
+      'Retirer ce message de la liste des favoris';
 
   @override
-  String get actionSheetOptionEditMessage => 'Edit message';
+  String get actionSheetOptionEditMessage => 'Modifier le message';
 
   @override
-  String get actionSheetOptionMarkTopicAsRead => 'Mark topic as read';
+  String get actionSheetOptionMarkTopicAsRead => 'Marquer le sujet comme lu';
 
   @override
-  String get actionSheetOptionCopyTopicLink => 'Copy link to topic';
+  String get actionSheetOptionCopyTopicLink => 'Copier le lien sur le sujet';
 
   @override
-  String get errorWebAuthOperationalErrorTitle => 'Something went wrong';
+  String get errorWebAuthOperationalErrorTitle => 'Une erreur s\'est produite';
 
   @override
-  String get errorWebAuthOperationalError => 'An unexpected error occurred.';
+  String get errorWebAuthOperationalError =>
+      'Oups, une erreur s\'est produite.';
 
   @override
-  String get errorAccountLoggedInTitle => 'Account already logged in';
+  String get errorAccountLoggedInTitle =>
+      'Vous êtes déjà connecté à ce compte.';
 
   @override
   String errorAccountLoggedIn(String email, String server) {
-    return 'The account $email at $server is already in your list of accounts.';
+    return 'Le compte $email at $server figure déjà dans votre liste de comptes.';
   }
 
   @override
   String get errorCouldNotFetchMessageSource =>
-      'Could not fetch message source.';
+      'Impossible d\'atteindre le message source.';
 
   @override
-  String get errorCopyingFailed => 'Copying failed';
+  String get errorCopyingFailed => 'Échec de la copie';
 
   @override
   String errorFailedToUploadFileTitle(String filename) {
-    return 'Failed to upload file: $filename';
+    return 'Impossible de charger le fichier $filename';
   }
 
   @override
   String filenameAndSizeInMiB(String filename, String size) {
-    return '$filename: $size MiB';
+    return '$filename : $size MiB';
   }
 
   @override
@@ -245,10 +252,10 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num files are',
-      one: 'File is',
+      other: '$num fichiers sont',
+      one: 'Fichier est',
     );
-    return '$_temp0 larger than the server\'s limit of $maxFileUploadSizeMib MiB and will not be uploaded:\n\n$listMessage';
+    return '$_temp0 plus gros que la limite de capacité du serveur ($maxFileUploadSizeMib MO) et ne peu(ven)t pas être chargé(s) :\n\n$listMessage';
   }
 
   @override
@@ -256,56 +263,57 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: 'Files',
-      one: 'File',
+      other: 'Les fichier sont trop lourds',
+      one: 'Le fichier est trop lourd',
     );
-    return '$_temp0 too large';
+    return '$_temp0';
   }
 
   @override
-  String get errorLoginInvalidInputTitle => 'Invalid input';
+  String get errorLoginInvalidInputTitle => 'Identifiant incorrect';
 
   @override
-  String get errorLoginFailedTitle => 'Login failed';
+  String get errorLoginFailedTitle => 'La connexion a échoué.';
 
   @override
-  String get errorMessageNotSent => 'Message not sent';
+  String get errorMessageNotSent => 'Le message n\'a pas pu être envoyé.';
 
   @override
-  String get errorMessageEditNotSaved => 'Message not saved';
+  String get errorMessageEditNotSaved =>
+      'Le message n\'a pas pu être sauvegardé.';
 
   @override
   String errorLoginCouldNotConnect(String url) {
-    return 'Failed to connect to server:\n$url';
+    return 'La connexion au serveur a échoué :\n$url';
   }
 
   @override
-  String get errorCouldNotConnectTitle => 'Could not connect';
+  String get errorCouldNotConnectTitle =>
+      'Impossible de se connecter au serveur';
 
   @override
-  String get errorMessageDoesNotSeemToExist =>
-      'That message does not seem to exist.';
+  String get errorMessageDoesNotSeemToExist => 'Ce message est introuvable.';
 
   @override
-  String get errorQuotationFailed => 'Quotation failed';
+  String get errorQuotationFailed => 'Échec de la citation';
 
   @override
   String errorServerMessage(String message) {
-    return 'The server said:\n\n$message';
+    return 'Message d\'erreur du serveur :\n\n$message';
   }
 
   @override
   String get errorConnectingToServerShort =>
-      'Error connecting to Zulip. Retrying…';
+      'Une erreur s\'est produite lors de la connexion au serveur. Nouvelle tentative en cours…';
 
   @override
   String errorConnectingToServerDetails(String serverUrl, String error) {
-    return 'Error connecting to Zulip at $serverUrl. Will retry:\n\n$error';
+    return 'Une erreur s\'est produite lors de la connexion à Zulip sur $serverUrl. Nouvelle tentative imminente :\n\n$error';
   }
 
   @override
   String get errorHandlingEventTitle =>
-      'Error handling a Zulip event. Retrying connection…';
+      'Une erreur s\'est produite sur le serveur. Reconnexion en cours…';
 
   @override
   String errorHandlingEventDetails(
@@ -313,79 +321,85 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
     String error,
     String event,
   ) {
-    return 'Error handling a Zulip event from $serverUrl; will retry.\n\nError: $error\n\nEvent: $event';
+    return 'Une erreur s\'est produite sur le serveur $serverUrl ; tentative de reconnexion imminente.\n\nErreur : $error\n\nÉvénement : $event';
   }
 
   @override
-  String get errorCouldNotOpenLinkTitle => 'Unable to open link';
+  String get errorCouldNotOpenLinkTitle => 'Impossible d\'ouvrir le lien';
 
   @override
   String errorCouldNotOpenLink(String url) {
-    return 'Link could not be opened: $url';
+    return 'Le lien suivant n\'a pas pu être ouvert : $url';
   }
 
   @override
-  String get errorMuteTopicFailed => 'Failed to mute topic';
+  String get errorMuteTopicFailed =>
+      'Le sujet n\'a pas pu être rendu silencieux';
 
   @override
-  String get errorUnmuteTopicFailed => 'Failed to unmute topic';
+  String get errorUnmuteTopicFailed =>
+      'Impossible de ne plus mettre le sujet en sourdine';
 
   @override
-  String get errorFollowTopicFailed => 'Failed to follow topic';
+  String get errorFollowTopicFailed => 'Échec du suivi du sujet';
 
   @override
-  String get errorUnfollowTopicFailed => 'Failed to unfollow topic';
+  String get errorUnfollowTopicFailed =>
+      'Échec de la tentative de ne plus suivre le sujet';
 
   @override
-  String get errorSharingFailed => 'Sharing failed';
+  String get errorSharingFailed => 'Échec du partage';
 
   @override
-  String get errorStarMessageFailedTitle => 'Failed to star message';
+  String get errorStarMessageFailedTitle =>
+      'Échec de marquage du message en favori';
 
   @override
-  String get errorUnstarMessageFailedTitle => 'Failed to unstar message';
+  String get errorUnstarMessageFailedTitle =>
+      'Échec de la tentative d\'enlever le message des favoris';
 
   @override
-  String get errorCouldNotEditMessageTitle => 'Could not edit message';
+  String get errorCouldNotEditMessageTitle =>
+      'Le message n\'a pas pu être modifié';
 
   @override
-  String get successLinkCopied => 'Link copied';
+  String get successLinkCopied => 'Lien copié';
 
   @override
-  String get successMessageTextCopied => 'Message text copied';
+  String get successMessageTextCopied => 'Texte du message copié';
 
   @override
-  String get successMessageLinkCopied => 'Message link copied';
+  String get successMessageLinkCopied => 'Lien sur le message copié';
 
   @override
-  String get successTopicLinkCopied => 'Topic link copied';
+  String get successTopicLinkCopied => 'Lien sur le sujet copié';
 
   @override
-  String get successChannelLinkCopied => 'Channel link copied';
+  String get successChannelLinkCopied => 'Lien sur le canal copié';
 
   @override
   String get errorBannerDeactivatedDmLabel =>
-      'You cannot send messages to deactivated users.';
+      'Vous ne pouvez pas envoyer de messages aux utilisateurs désactivés.';
 
   @override
   String get errorBannerCannotPostInChannelLabel =>
-      'You do not have permission to post in this channel.';
+      'Vous n\'avez pas l\'autorisation de poster sur ce canal.';
 
   @override
-  String get composeBoxBannerLabelEditMessage => 'Edit message';
+  String get composeBoxBannerLabelEditMessage => 'Editer le message';
 
   @override
-  String get composeBoxBannerButtonCancel => 'Cancel';
+  String get composeBoxBannerButtonCancel => 'Annuler';
 
   @override
-  String get composeBoxBannerButtonSave => 'Save';
+  String get composeBoxBannerButtonSave => 'Sauvegarder';
 
   @override
-  String get editAlreadyInProgressTitle => 'Cannot edit message';
+  String get editAlreadyInProgressTitle => 'Impossible de modifier le message';
 
   @override
   String get editAlreadyInProgressMessage =>
-      'An edit is already in progress. Please wait for it to complete.';
+      'Une modification est déjà en cours. Merci d\'attendre qu\'elle soit terminée.';
 
   @override
   String get savingMessageEditLabel => 'SAVING EDIT…';

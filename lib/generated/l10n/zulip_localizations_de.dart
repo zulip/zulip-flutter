@@ -21,7 +21,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get aboutPageTapToView => 'Antippen zum Ansehen';
 
   @override
-  String get upgradeWelcomeDialogTitle => 'Willkommen bei der neuen Zulip-App!';
+  String get upgradeWelcomeDialogTitle => 'Willkommen in der neuen Zulip-App!';
 
   @override
   String get upgradeWelcomeDialogMessage =>
@@ -89,38 +89,38 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Bitte gewähre Zulip zusätzliche Berechtigungen in den Einstellungen, um Dateien hochzuladen.';
 
   @override
-  String get actionSheetOptionSubscribe => 'Subscribe';
+  String get actionSheetOptionSubscribe => 'Abonnieren';
 
   @override
-  String get subscribeFailedTitle => 'Failed to subscribe';
+  String get subscribeFailedTitle => 'Konnte nicht abonnieren';
 
   @override
   String get actionSheetOptionMarkChannelAsRead =>
       'Kanal als gelesen markieren';
 
   @override
-  String get actionSheetOptionCopyChannelLink => 'Copy link to channel';
+  String get actionSheetOptionCopyChannelLink => 'Link zum Kanal kopieren';
 
   @override
   String get actionSheetOptionListOfTopics => 'Themenliste';
 
   @override
-  String get actionSheetOptionUnsubscribe => 'Unsubscribe';
+  String get actionSheetOptionUnsubscribe => 'Deabonnieren';
 
   @override
   String unsubscribeConfirmationDialogTitle(String channelName) {
-    return 'Unsubscribe from $channelName?';
+    return '$channelName deabonnieren?';
   }
 
   @override
   String get unsubscribeConfirmationDialogMessageMaybeCannotResubscribe =>
-      'Once you leave this channel, you might not be able to rejoin.';
+      'Wenn du diesen Kanal verlässt, kannst du sich vielleicht nicht wieder beitreten.';
 
   @override
-  String get unsubscribeConfirmationDialogConfirmButton => 'Unsubscribe';
+  String get unsubscribeConfirmationDialogConfirmButton => 'Deabonnieren';
 
   @override
-  String get unsubscribeFailedTitle => 'Failed to unsubscribe';
+  String get unsubscribeFailedTitle => 'Konnte nicht deabonnieren';
 
   @override
   String get actionSheetOptionMuteTopic => 'Thema stummschalten';
@@ -149,14 +149,15 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Thema konnte nicht als ungelöst markiert werden';
 
   @override
-  String get actionSheetOptionSeeWhoReacted => 'See who reacted';
+  String get actionSheetOptionSeeWhoReacted => 'Wer hat reagiert';
 
   @override
-  String get seeWhoReactedSheetNoReactions => 'This message has no reactions.';
+  String get seeWhoReactedSheetNoReactions =>
+      'Diese Nachricht hat keine Reaktionen.';
 
   @override
   String seeWhoReactedSheetHeaderLabel(int num) {
-    return 'Emoji reactions ($num total)';
+    return 'Emoji-Reaktionen (insgesamt $num)';
   }
 
   @override
@@ -164,15 +165,15 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num votes',
-      one: '1 vote',
+      other: '$num Stimmen',
+      one: '1 Stimme',
     );
     return '$emojiName: $_temp0';
   }
 
   @override
   String seeWhoReactedSheetUserListLabel(String emojiName, int num) {
-    return 'Votes for $emojiName ($num)';
+    return 'Stimmen für $emojiName ($num)';
   }
 
   @override
@@ -207,7 +208,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get actionSheetOptionMarkTopicAsRead => 'Thema als gelesen markieren';
 
   @override
-  String get actionSheetOptionCopyTopicLink => 'Copy link to topic';
+  String get actionSheetOptionCopyTopicLink => 'Link zum Thema kopieren';
 
   @override
   String get errorWebAuthOperationalErrorTitle => 'Etwas ist schiefgelaufen';
@@ -371,7 +372,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get successMessageLinkCopied => 'Nachrichtenlink kopiert';
 
   @override
-  String get successTopicLinkCopied => 'Topic link copied';
+  String get successTopicLinkCopied => 'Link zum Thema kopiert';
 
   @override
   String get successChannelLinkCopied => 'Channel link copied';
@@ -758,57 +759,57 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get noStatusText => 'No status text';
 
   @override
-  String get setStatusPageTitle => 'Set status';
+  String get setStatusPageTitle => 'Status setzen';
 
   @override
-  String get statusClearButtonLabel => 'Clear';
+  String get statusClearButtonLabel => 'Leeren';
 
   @override
-  String get statusSaveButtonLabel => 'Save';
+  String get statusSaveButtonLabel => 'Speichern';
 
   @override
-  String get statusTextHint => 'Your status';
+  String get statusTextHint => 'Dein Status';
 
   @override
-  String get userStatusBusy => 'Busy';
+  String get userStatusBusy => 'Beschäftigt';
 
   @override
-  String get userStatusInAMeeting => 'In a meeting';
+  String get userStatusInAMeeting => 'In einem Meeting';
 
   @override
-  String get userStatusCommuting => 'Commuting';
+  String get userStatusCommuting => 'Unterwegs';
 
   @override
-  String get userStatusOutSick => 'Out sick';
+  String get userStatusOutSick => 'Krankgemeldet';
 
   @override
-  String get userStatusVacationing => 'Vacationing';
+  String get userStatusVacationing => 'Im Urlaub';
 
   @override
-  String get userStatusWorkingRemotely => 'Working remotely';
+  String get userStatusWorkingRemotely => 'Arbeitet von zu Hause';
 
   @override
-  String get userStatusAtTheOffice => 'At the office';
+  String get userStatusAtTheOffice => 'Im Büro';
 
   @override
   String get updateStatusErrorTitle =>
-      'Error updating user status. Please try again.';
+      'Fehler beim Update des Benutzerstatus. Bitte versuche es nochmal.';
 
   @override
-  String get searchMessagesPageTitle => 'Search';
+  String get searchMessagesPageTitle => 'Suche';
 
   @override
-  String get searchMessagesHintText => 'Search';
+  String get searchMessagesHintText => 'Suche';
 
   @override
-  String get searchMessagesClearButtonTooltip => 'Clear';
+  String get searchMessagesClearButtonTooltip => 'Leeren';
 
   @override
   String get inboxPageTitle => 'Eingang';
 
   @override
   String get inboxEmptyPlaceholder =>
-      'Es sind keine ungelesenen Nachrichten in deinem Eingang. Verwende die Buttons unten um den kombinierten Feed oder die Kanalliste anzusehen.';
+      'Es sind keine ungelesenen Nachrichten in deinem Eingang. Verwende die Buttons unten, um den kombinierten Feed oder die Kanalliste anzusehen.';
 
   @override
   String get recentDmConversationsPageTitle => 'Direktnachrichten';

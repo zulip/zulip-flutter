@@ -99,7 +99,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Oznacz kanał jako przeczytany';
 
   @override
-  String get actionSheetOptionCopyChannelLink => 'Copy link to channel';
+  String get actionSheetOptionCopyChannelLink => 'Skopiuj odnośnik do kanału';
 
   @override
   String get actionSheetOptionListOfTopics => 'Lista wątków';
@@ -149,14 +149,14 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Nie udało się oznaczyć brak rozwiązania';
 
   @override
-  String get actionSheetOptionSeeWhoReacted => 'See who reacted';
+  String get actionSheetOptionSeeWhoReacted => 'Pokaż kto zareagował';
 
   @override
-  String get seeWhoReactedSheetNoReactions => 'This message has no reactions.';
+  String get seeWhoReactedSheetNoReactions => 'Brak reakcji na tę wiadomość.';
 
   @override
   String seeWhoReactedSheetHeaderLabel(int num) {
-    return 'Emoji reactions ($num total)';
+    return 'Reakcje emoji (łącznie $num)';
   }
 
   @override
@@ -164,15 +164,15 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num votes',
-      one: '1 vote',
+      other: '$num głosów',
+      one: '1 głos',
     );
     return '$emojiName: $_temp0';
   }
 
   @override
   String seeWhoReactedSheetUserListLabel(String emojiName, int num) {
-    return 'Votes for $emojiName ($num)';
+    return 'Głosów $emojiName ($num)';
   }
 
   @override
@@ -210,7 +210,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Oznacz wątek jako przeczytany';
 
   @override
-  String get actionSheetOptionCopyTopicLink => 'Copy link to topic';
+  String get actionSheetOptionCopyTopicLink => 'Skopiuj odnośnik do wątku';
 
   @override
   String get errorWebAuthOperationalErrorTitle => 'Coś poszło nie tak';
@@ -366,10 +366,10 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get successMessageLinkCopied => 'Skopiowano odnośnik wiadomości';
 
   @override
-  String get successTopicLinkCopied => 'Topic link copied';
+  String get successTopicLinkCopied => 'Skopiowano odnośnik do wątku';
 
   @override
-  String get successChannelLinkCopied => 'Channel link copied';
+  String get successChannelLinkCopied => 'Skopiowano odnośnik do kanału';
 
   @override
   String get errorBannerDeactivatedDmLabel =>
@@ -739,50 +739,50 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get userRoleUnknown => 'Nieznany';
 
   @override
-  String get statusButtonLabelStatusSet => 'Status';
+  String get statusButtonLabelStatusSet => 'Stan';
 
   @override
-  String get statusButtonLabelStatusUnset => 'Set status';
+  String get statusButtonLabelStatusUnset => 'Ustaw stan';
 
   @override
-  String get noStatusText => 'No status text';
+  String get noStatusText => 'Brak tekstu stanu';
 
   @override
-  String get setStatusPageTitle => 'Set status';
+  String get setStatusPageTitle => 'Ustaw stan';
 
   @override
-  String get statusClearButtonLabel => 'Clear';
+  String get statusClearButtonLabel => 'Wyczyść';
 
   @override
-  String get statusSaveButtonLabel => 'Save';
+  String get statusSaveButtonLabel => 'Zapisz';
 
   @override
-  String get statusTextHint => 'Your status';
+  String get statusTextHint => 'Twój stan';
 
   @override
-  String get userStatusBusy => 'Busy';
+  String get userStatusBusy => 'Zajęty';
 
   @override
-  String get userStatusInAMeeting => 'In a meeting';
+  String get userStatusInAMeeting => 'Na spotkaniu';
 
   @override
-  String get userStatusCommuting => 'Commuting';
+  String get userStatusCommuting => 'W drodze';
 
   @override
-  String get userStatusOutSick => 'Out sick';
+  String get userStatusOutSick => 'Chorobowe';
 
   @override
-  String get userStatusVacationing => 'Vacationing';
+  String get userStatusVacationing => 'Na urlopie';
 
   @override
-  String get userStatusWorkingRemotely => 'Working remotely';
+  String get userStatusWorkingRemotely => 'Praca zdalna';
 
   @override
-  String get userStatusAtTheOffice => 'At the office';
+  String get userStatusAtTheOffice => 'W biurze';
 
   @override
   String get updateStatusErrorTitle =>
-      'Error updating user status. Please try again.';
+      'Błąd aktualizacji stanu. Spróbuj ponownie.';
 
   @override
   String get searchMessagesPageTitle => 'Szukaj';
@@ -858,7 +858,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get reactedEmojiSelfUser => 'Ty';
 
   @override
-  String get reactionChipsLabel => 'Reactions';
+  String get reactionChipsLabel => 'Reakcje';
 
   @override
   String reactionChipLabel(String emojiName, String votes) {
@@ -870,8 +870,8 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       otherUsersCount,
       locale: localeName,
-      other: 'You and $otherUsersCount others',
-      one: 'You and 1 other',
+      other: 'Ty i $otherUsersCount innych',
+      one: 'Ty i 1 inny',
     );
     return '$_temp0';
   }

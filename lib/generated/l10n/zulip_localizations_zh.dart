@@ -1893,7 +1893,7 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String tryAnotherAccountMessage(Object url) {
-    return '你在 $url 的帳號載入的比較久';
+    return '您在 $url 的帳號載入的比較久。';
   }
 
   @override
@@ -1935,10 +1935,37 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
       '要上傳檔案，請在設定中授予 Zulip 額外權限。';
 
   @override
+  String get actionSheetOptionSubscribe => '訂閱';
+
+  @override
+  String get subscribeFailedTitle => '訂閱失敗';
+
+  @override
   String get actionSheetOptionMarkChannelAsRead => '標註頻道為已讀';
 
   @override
+  String get actionSheetOptionCopyChannelLink => '複製頻道連結';
+
+  @override
   String get actionSheetOptionListOfTopics => '議題列表';
+
+  @override
+  String get actionSheetOptionUnsubscribe => '取消訂閱';
+
+  @override
+  String unsubscribeConfirmationDialogTitle(String channelName) {
+    return '確定要取消訂閱 $channelName 嗎？';
+  }
+
+  @override
+  String get unsubscribeConfirmationDialogMessageMaybeCannotResubscribe =>
+      '一旦您離開此頻道，可能無法重新加入。';
+
+  @override
+  String get unsubscribeConfirmationDialogConfirmButton => '取消訂閱';
+
+  @override
+  String get unsubscribeFailedTitle => '取消訂閱失敗';
 
   @override
   String get actionSheetOptionMuteTopic => '靜音話題';
@@ -1963,6 +1990,33 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get errorUnresolveTopicFailedTitle => '無法標註話題為未解決';
+
+  @override
+  String get actionSheetOptionSeeWhoReacted => '查看誰有回應';
+
+  @override
+  String get seeWhoReactedSheetNoReactions => '此訊息尚無任何回應。';
+
+  @override
+  String seeWhoReactedSheetHeaderLabel(int num) {
+    return '表情符號回應 (共 $num 個)';
+  }
+
+  @override
+  String seeWhoReactedSheetEmojiNameWithVoteCount(String emojiName, int num) {
+    String _temp0 = intl.Intl.pluralLogic(
+      num,
+      locale: localeName,
+      other: '$num 票',
+      one: '1 票',
+    );
+    return '$emojiName：$_temp0';
+  }
+
+  @override
+  String seeWhoReactedSheetUserListLabel(String emojiName, int num) {
+    return '$emojiName 的投票數（$num）';
+  }
 
   @override
   String get actionSheetOptionCopyMessageText => '複製訊息文字';
@@ -1993,6 +2047,9 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get actionSheetOptionMarkTopicAsRead => '標註話題為已讀';
+
+  @override
+  String get actionSheetOptionCopyTopicLink => '複製議題的連結';
 
   @override
   String get errorWebAuthOperationalErrorTitle => '出錯了';
@@ -2122,7 +2179,7 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get errorUnfollowTopicFailed => '無法取消跟隨話題';
 
   @override
-  String get errorSharingFailed => '分享失敗。';
+  String get errorSharingFailed => '分享失敗';
 
   @override
   String get errorStarMessageFailedTitle => '無法收藏訊息';
@@ -2141,6 +2198,12 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get successMessageLinkCopied => '已複製訊息連結';
+
+  @override
+  String get successTopicLinkCopied => '議題連結已複製';
+
+  @override
+  String get successChannelLinkCopied => '頻道連結已複製';
 
   @override
   String get errorBannerDeactivatedDmLabel => '您無法向已停用的使用者發送訊息。';
@@ -2495,6 +2558,51 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get userRoleUnknown => '未知';
 
   @override
+  String get statusButtonLabelStatusSet => '狀態';
+
+  @override
+  String get statusButtonLabelStatusUnset => '設定狀態';
+
+  @override
+  String get noStatusText => '無狀態文字';
+
+  @override
+  String get setStatusPageTitle => '設定狀態';
+
+  @override
+  String get statusClearButtonLabel => '清除';
+
+  @override
+  String get statusSaveButtonLabel => '儲存';
+
+  @override
+  String get statusTextHint => '您的狀態';
+
+  @override
+  String get userStatusBusy => '忙碌';
+
+  @override
+  String get userStatusInAMeeting => '會議中';
+
+  @override
+  String get userStatusCommuting => '通勤中';
+
+  @override
+  String get userStatusOutSick => '請病假';
+
+  @override
+  String get userStatusVacationing => '休假中';
+
+  @override
+  String get userStatusWorkingRemotely => '遠端工作中';
+
+  @override
+  String get userStatusAtTheOffice => '在辦公室';
+
+  @override
+  String get updateStatusErrorTitle => '更新使用者狀態時發生錯誤。請再試一次。';
+
+  @override
   String get searchMessagesPageTitle => '搜尋';
 
   @override
@@ -2507,7 +2615,7 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get inboxPageTitle => '收件匣';
 
   @override
-  String get inboxEmptyPlaceholder => '您的收件匣中沒有未讀訊息。請使用下方按鈕檢視整合訊息流或頻道清單。';
+  String get inboxEmptyPlaceholder => '您的收件匣中沒有未讀訊息。請使用下方按鈕查看整合訊息流或頻道清單。';
 
   @override
   String get recentDmConversationsPageTitle => '私人訊息';
@@ -2566,6 +2674,25 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get reactedEmojiSelfUser => '您';
 
   @override
+  String get reactionChipsLabel => '反應';
+
+  @override
+  String reactionChipLabel(String emojiName, String votes) {
+    return '$emojiName： $votes';
+  }
+
+  @override
+  String reactionChipVotesYouAndOthers(int otherUsersCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      otherUsersCount,
+      locale: localeName,
+      other: '你與其他 $otherUsersCount 人',
+      one: '你與其他 1 人',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String onePersonTyping(String typist) {
     return '$typist 正在輸入…';
   }
@@ -2585,13 +2712,13 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get wildcardMentionEveryone => '所有人';
 
   @override
-  String get wildcardMentionChannel => 'channel';
+  String get wildcardMentionChannel => '頻道';
 
   @override
   String get wildcardMentionStream => '串流';
 
   @override
-  String get wildcardMentionTopic => 'topic';
+  String get wildcardMentionTopic => '議題';
 
   @override
   String get wildcardMentionChannelDescription => '通知頻道';
@@ -2666,10 +2793,33 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get markReadOnScrollSettingAlways => '總是';
 
   @override
+  String get markReadOnScrollSettingNever => '從不';
+
+  @override
+  String get markReadOnScrollSettingConversations => '僅在對話檢視中';
+
+  @override
+  String get markReadOnScrollSettingConversationsDescription =>
+      '只有在查看單一議題或私人訊息對話時，訊息才會自動標記為已讀。';
+
+  @override
   String get experimentalFeatureSettingsPageTitle => '實驗性功能';
 
   @override
+  String get experimentalFeatureSettingsWarning =>
+      '這些選項啟用的功能仍在開發中，尚未完善。它們可能無法正常運作，且可能導致應用程式其他部分出現問題。\n\n這些設定的目的是供參與 Zulip 開發的人員進行試驗使用。';
+
+  @override
   String get errorNotificationOpenTitle => '無法開啟通知';
+
+  @override
+  String get errorNotificationOpenAccountNotFound => '找不到與此通知相關聯的帳號。';
+
+  @override
+  String get errorReactionAddingFailedTitle => '新增表情反應失敗';
+
+  @override
+  String get errorReactionRemovingFailedTitle => '移除表情反應失敗';
 
   @override
   String get emojiReactionsMore => '更多';
@@ -2678,5 +2828,20 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get emojiPickerSearchEmoji => '搜尋表情符號';
 
   @override
+  String get noEarlierMessages => '沒有更早的訊息';
+
+  @override
+  String get revealButtonLabel => '顯示訊息';
+
+  @override
   String get mutedUser => '已靜音的使用者';
+
+  @override
+  String get scrollToBottomTooltip => '捲動至底部';
+
+  @override
+  String get appVersionUnknownPlaceholder => '(…)';
+
+  @override
+  String get zulipAppTitle => 'Zulip';
 }
