@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/log.dart';
 import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/database.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/page.dart';
@@ -47,6 +48,7 @@ void main() {
       // We'll need per-account data for the account that a page will be opened
       // for, but not for the other account.
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.settings.setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
       await testBinding.globalStore.insertAccount(eg.otherAccount.toCompanion(false));
       await prepare(tester);
 
@@ -82,6 +84,7 @@ void main() {
 
     testWidgets('push route when removing last route on stack', (tester) async {
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.settings.setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
       await prepare(tester);
       // The navigator stack should contain only a home page route.
 
@@ -99,6 +102,7 @@ void main() {
     testWidgets('push route when popping last route on stack', (tester) async {
       // Set up the loading of per-account data to fail.
       await testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      await testBinding.globalStore.settings.setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
       testBinding.globalStore.loadPerAccountDuration = Duration.zero;
       testBinding.globalStore.loadPerAccountException = eg.apiExceptionUnauthorized();
       await prepare(tester);
@@ -133,6 +137,7 @@ void main() {
       const loadPerAccountDuration = Duration(seconds: 30);
       assert(loadPerAccountDuration > kTryAnotherAccountWaitPeriod);
       await testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      await testBinding.globalStore.settings.setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
       testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
       testBinding.globalStore.loadPerAccountException = eg.apiExceptionUnauthorized();
       await prepare(tester);
@@ -281,6 +286,7 @@ void main() {
     testWidgets('choosing an account clears the navigator stack', (tester) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.settings.setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
       await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot());
 
       final pushedRoutes = <Route<void>>[];

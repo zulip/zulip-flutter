@@ -73,6 +73,34 @@ class BoolGlobalSettings extends Table {
   Set<Column<Object>>? get primaryKey => {name};
 }
 
+/// The table of the user's int-valued, account-independent settings.
+///
+/// These apply across all the user's accounts on this client
+/// (i.e. on this install of the app on this device).
+///
+/// Each row is a [IntGlobalSettingRow],
+/// referring to a possible setting from [IntGlobalSetting].
+/// For settings in [IntGlobalSetting] without a row in this table,
+/// the setting's value is `null`.
+@DataClassName('IntGlobalSettingRow')
+class IntGlobalSettings extends Table {
+  /// The setting's name, a possible name from [IntGlobalSetting].
+  ///
+  /// The table may have rows where [name] is not the name of any
+  /// enum value in [IntGlobalSetting].
+  /// This happens if the app has previously run at a future or modified
+  /// version which had additional values in that enum,
+  /// and the user set one of those additional settings.
+  /// The app ignores any such unknown rows.
+  TextColumn get name => text()();
+
+  /// The user's chosen value for the setting.
+  IntColumn get value => integer()();
+
+  @override
+  Set<Column<Object>>? get primaryKey => {name};
+}
+
 /// The table of [Account] records in the app's database.
 class Accounts extends Table {
   /// The ID of this account in the app's local database.
@@ -116,7 +144,7 @@ class UriConverter extends TypeConverter<Uri, String> {
   @override Uri fromSql(String fromDb) => Uri.parse(fromDb);
 }
 
-@DriftDatabase(tables: [GlobalSettings, BoolGlobalSettings, Accounts])
+@DriftDatabase(tables: [GlobalSettings, BoolGlobalSettings, IntGlobalSettings, Accounts])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
@@ -129,7 +157,7 @@ class AppDatabase extends _$AppDatabase {
   //    information on using the build_runner.
   //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 9; // See note.
+  static const int latestSchemaVersion = 10; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -200,7 +228,10 @@ class AppDatabase extends _$AppDatabase {
       // assume there wasn't also the legacy app before that.
       await m.database.update(schema.globalSettings).write(
         RawValuesInsertable({'legacy_upgrade_state': Constant('noLegacy')}));
-    }
+    },
+    from9To10: (m, schema) async {
+      await m.createTable(schema.intGlobalSettings);
+    },
   );
 
   Future<void> _createLatestSchema(Migrator m) async {
@@ -254,6 +285,14 @@ class AppDatabase extends _$AppDatabase {
       result[setting] = row.value;
     }
     return result;
+  }
+
+  Future<Map<IntGlobalSetting, int>> getIntGlobalSettings() async {
+    return {
+      for (final row in await select(intGlobalSettings).get())
+        if (IntGlobalSetting.byName(row.name) case final setting?)
+          setting: row.value
+    };
   }
 
   Future<int> createAccount(AccountsCompanion values) async {

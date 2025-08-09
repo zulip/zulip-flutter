@@ -10,6 +10,7 @@ import 'package:zulip/host/notifications.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/notifications/open.dart';
 import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/app.dart';
@@ -190,6 +191,7 @@ void main() {
     testWidgets('stream message', (tester) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.settings.setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
       await prepare(tester);
       await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage());
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
@@ -197,6 +199,7 @@ void main() {
     testWidgets('direct message', (tester) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.settings.setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
       await prepare(tester);
       await checkOpenNotification(tester, eg.selfAccount,
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]));
@@ -207,6 +210,7 @@ void main() {
       await testBinding.globalStore.add(
         eg.selfAccount.copyWith(realmUrl: Uri.parse('http://chat.example')),
         eg.initialSnapshot());
+      await testBinding.globalStore.settings.setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
       await prepare(tester);
 
       await checkOpenNotification(tester,
@@ -230,6 +234,7 @@ void main() {
     testWidgets('mismatching account', (tester) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.settings.setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
       await prepare(tester);
       await openNotification(tester, eg.otherAccount, eg.streamMessage());
       await tester.pump();
@@ -254,6 +259,7 @@ void main() {
       for (final account in accounts) {
         await testBinding.globalStore.add(account, eg.initialSnapshot());
       }
+      await testBinding.globalStore.settings.setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
       await prepare(tester);
 
       await checkOpenNotification(tester, accounts[0], eg.streamMessage());
@@ -265,6 +271,7 @@ void main() {
     testWidgets('wait for app to become ready', (tester) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.settings.setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
       await prepare(tester, early: true);
       final message = eg.streamMessage();
       await openNotification(tester, eg.selfAccount, message);
