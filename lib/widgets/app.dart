@@ -114,9 +114,9 @@ class ZulipApp extends StatefulWidget {
 
     final localizations = ZulipLocalizations.of(navigatorKey.currentContext!);
     final newSnackBar = scaffoldMessenger!.showSnackBar(
-      snackBarAnimationStyle: AnimationStyle(
-        duration: const Duration(milliseconds: 200),
-        reverseDuration: const Duration(milliseconds: 50)),
+      snackBarAnimationStyle: const AnimationStyle(
+        duration: Duration(milliseconds: 200),
+        reverseDuration: Duration(milliseconds: 50)),
       SnackBar(
         content: Text(message),
         action: (details == null) ? null : SnackBarAction(
