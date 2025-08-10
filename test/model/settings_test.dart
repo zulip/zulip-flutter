@@ -126,4 +126,40 @@ void main() {
       assert(!BoolGlobalSetting.placeholderIgnore.default_);
     });
   });
+
+  group('getInt/setInt', () {
+    test('get from initial load', () {
+      final globalSettings = eg.globalStore(intGlobalSettings: {
+        IntGlobalSetting.lastVisitedAccountId: 1,
+      }).settings;
+      check(globalSettings).getInt(IntGlobalSetting.lastVisitedAccountId)
+        .equals(1);
+    });
+
+    test('set, get', () async {
+      final globalSettings = eg.globalStore(intGlobalSettings: {}).settings;
+      check(globalSettings).getInt(IntGlobalSetting.lastVisitedAccountId)
+        .isNull();
+
+      await globalSettings.setInt(IntGlobalSetting.lastVisitedAccountId, 1);
+      check(globalSettings).getInt(IntGlobalSetting.lastVisitedAccountId)
+        .equals(1);
+
+      await globalSettings.setInt(IntGlobalSetting.lastVisitedAccountId, 100);
+      check(globalSettings).getInt(IntGlobalSetting.lastVisitedAccountId)
+        .equals(100);
+    });
+
+    test('set to null -> get returns null', () async {
+      final globalSettings = eg.globalStore(intGlobalSettings: {
+        IntGlobalSetting.lastVisitedAccountId: 1,
+      }).settings;
+      check(globalSettings).getInt(IntGlobalSetting.lastVisitedAccountId)
+        .equals(1);
+
+      await globalSettings.setInt(IntGlobalSetting.lastVisitedAccountId, null);
+      check(globalSettings).getInt(IntGlobalSetting.lastVisitedAccountId)
+        .isNull();
+    });
+  });
 }
