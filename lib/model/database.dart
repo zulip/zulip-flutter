@@ -35,7 +35,8 @@ class GlobalSettings extends Table {
     .nullable()();
 
   // If adding a new column to this table, consider whether [BoolGlobalSettings]
-  // can do the job instead (by adding a value to the [BoolGlobalSetting] enum).
+  // or [IntGlobalSettings] can do the job instead (by adding a value to the
+  // [BoolGlobalSetting] or [IntGlobalSetting] enum).
   // That way is more convenient, when it works, because
   // it avoids a migration and therefore several added copies of our schema
   // in the Drift generated files.
@@ -50,6 +51,9 @@ class GlobalSettings extends Table {
 /// referring to a possible setting from [BoolGlobalSetting].
 /// For settings in [BoolGlobalSetting] without a row in this table,
 /// the setting's value is that of [BoolGlobalSetting.default_].
+///
+/// See also:
+/// - [IntGlobalSettings], the int-valued counterpart of this table.
 @DataClassName('BoolGlobalSettingRow')
 class BoolGlobalSettings extends Table {
   /// The setting's name, a possible name from [BoolGlobalSetting].
@@ -68,6 +72,37 @@ class BoolGlobalSettings extends Table {
   /// following the app's default for the setting,
   /// that can be expressed by deleting the row.
   Column<bool> get value => boolean()();
+
+  @override
+  Set<Column<Object>>? get primaryKey => {name};
+}
+
+/// The table of the user's int-valued, account-independent settings.
+///
+/// These apply across all the user's accounts on this client
+/// (i.e. on this install of the app on this device).
+///
+/// Each row is a [IntGlobalSettingRow],
+/// referring to a possible setting from [IntGlobalSetting].
+/// For settings in [IntGlobalSetting] without a row in this table,
+/// the setting's value is `null`.
+///
+/// See also:
+/// - [BoolGlobalSettings], the bool-valued counterpart of this table.
+@DataClassName('IntGlobalSettingRow')
+class IntGlobalSettings extends Table {
+  /// The setting's name, a possible name from [IntGlobalSetting].
+  ///
+  /// The table may have rows where [name] is not the name of any
+  /// enum value in [IntGlobalSetting].
+  /// This happens if the app has previously run at a future or modified
+  /// version which had additional values in that enum,
+  /// and the user set one of those additional settings.
+  /// The app ignores any such unknown rows.
+  TextColumn get name => text()();
+
+  /// The user's chosen value for the setting.
+  IntColumn get value => integer()();
 
   @override
   Set<Column<Object>>? get primaryKey => {name};
@@ -116,7 +151,7 @@ class UriConverter extends TypeConverter<Uri, String> {
   @override Uri fromSql(String fromDb) => Uri.parse(fromDb);
 }
 
-@DriftDatabase(tables: [GlobalSettings, BoolGlobalSettings, Accounts])
+@DriftDatabase(tables: [GlobalSettings, BoolGlobalSettings, IntGlobalSettings, Accounts])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
@@ -129,7 +164,7 @@ class AppDatabase extends _$AppDatabase {
   //    information on using the build_runner.
   //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 9; // See note.
+  static const int latestSchemaVersion = 10; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -200,7 +235,10 @@ class AppDatabase extends _$AppDatabase {
       // assume there wasn't also the legacy app before that.
       await m.database.update(schema.globalSettings).write(
         RawValuesInsertable({'legacy_upgrade_state': Constant('noLegacy')}));
-    }
+    },
+    from9To10: (m, schema) async {
+      await m.createTable(schema.intGlobalSettings);
+    },
   );
 
   Future<void> _createLatestSchema(Migrator m) async {
@@ -254,6 +292,14 @@ class AppDatabase extends _$AppDatabase {
       result[setting] = row.value;
     }
     return result;
+  }
+
+  Future<Map<IntGlobalSetting, int>> getIntGlobalSettings() async {
+    return {
+      for (final row in await select(intGlobalSettings).get())
+        if (IntGlobalSetting.byName(row.name) case final setting?)
+          setting: row.value
+    };
   }
 
   Future<int> createAccount(AccountsCompanion values) async {

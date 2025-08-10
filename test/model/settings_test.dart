@@ -187,4 +187,91 @@ void main() {
       });
     });
   });
+
+  group('getInt/setInt', () {
+    test('get from initial load', () {
+      final globalSettings = eg.globalStore(intGlobalSettings: {
+        IntGlobalSetting.lastVisitedAccountId: 1,
+      }).settings;
+      check(globalSettings).getInt(IntGlobalSetting.lastVisitedAccountId)
+        .equals(1);
+    });
+
+    test('set, get', () async {
+      final globalSettings = eg.globalStore(intGlobalSettings: {}).settings;
+      check(globalSettings).getInt(IntGlobalSetting.lastVisitedAccountId)
+        .isNull();
+
+      await globalSettings.setInt(IntGlobalSetting.lastVisitedAccountId, 1);
+      check(globalSettings).getInt(IntGlobalSetting.lastVisitedAccountId)
+        .equals(1);
+
+      await globalSettings.setInt(IntGlobalSetting.lastVisitedAccountId, 100);
+      check(globalSettings).getInt(IntGlobalSetting.lastVisitedAccountId)
+        .equals(100);
+    });
+
+    test('set to null -> get returns null', () async {
+      final globalSettings = eg.globalStore(intGlobalSettings: {
+        IntGlobalSetting.lastVisitedAccountId: 1,
+      }).settings;
+      check(globalSettings).getInt(IntGlobalSetting.lastVisitedAccountId)
+        .equals(1);
+
+      await globalSettings.setInt(IntGlobalSetting.lastVisitedAccountId, null);
+      check(globalSettings).getInt(IntGlobalSetting.lastVisitedAccountId)
+        .isNull();
+    });
+
+    group('set avoids redundant updates', () {
+      int notifiedCount = 0;
+      tearDown(() => notifiedCount = 0);
+
+      test('null to null -> no update', () async {
+        final globalSettings = eg.globalStore(intGlobalSettings: {}).settings;
+        globalSettings.addListener(() => notifiedCount++);
+
+        await globalSettings.setInt(IntGlobalSetting.lastVisitedAccountId, null);
+        check(notifiedCount).equals(0);
+      });
+
+      test('10 to 10 -> no update', () async {
+        final globalSettings = eg.globalStore(intGlobalSettings: {
+          IntGlobalSetting.lastVisitedAccountId: 10,
+        }).settings;
+        globalSettings.addListener(() => notifiedCount++);
+
+        await globalSettings.setInt(IntGlobalSetting.lastVisitedAccountId, 10);
+        check(notifiedCount).equals(0);
+      });
+
+      test('null to 10 -> does the update', () async {
+        final globalSettings = eg.globalStore(intGlobalSettings: {}).settings;
+        globalSettings.addListener(() => notifiedCount++);
+
+        await globalSettings.setInt(IntGlobalSetting.lastVisitedAccountId, 10);
+        check(notifiedCount).equals(1);
+      });
+
+      test('10 to null -> does the update', () async {
+        final globalSettings = eg.globalStore(intGlobalSettings: {
+          IntGlobalSetting.lastVisitedAccountId: 10,
+        }).settings;
+        globalSettings.addListener(() => notifiedCount++);
+
+        await globalSettings.setInt(IntGlobalSetting.lastVisitedAccountId, null);
+        check(notifiedCount).equals(1);
+      });
+
+      test('10 to 100 -> does the update', () async {
+        final globalSettings = eg.globalStore(intGlobalSettings: {
+          IntGlobalSetting.lastVisitedAccountId: 10,
+        }).settings;
+        globalSettings.addListener(() => notifiedCount++);
+
+        await globalSettings.setInt(IntGlobalSetting.lastVisitedAccountId, 100);
+        check(notifiedCount).equals(1);
+      });
+    });
+  });
 }
