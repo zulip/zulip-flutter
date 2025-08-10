@@ -254,6 +254,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
             if (widget.navigatorObservers != null)
               ...widget.navigatorObservers!,
             _PreventEmptyStack(),
+            _UpdateLastVisitedAccount(GlobalStoreWidget.of(context)),
           ],
           builder: (BuildContext context, Widget? child) {
             if (!ZulipApp.ready.value) {
@@ -302,6 +303,19 @@ class _PreventEmptyStack extends NavigatorObserver {
   @override
   void didPop(Route<void> route, Route<void>? previousRoute) async {
     _pushRouteIfEmptyStack();
+  }
+}
+
+class _UpdateLastVisitedAccount extends NavigatorObserver {
+  _UpdateLastVisitedAccount(this.globalStore);
+
+  final GlobalStore globalStore;
+
+  @override
+  void didChangeTop(Route<void> topRoute, _) {
+    if (topRoute case AccountPageRouteMixin(:var accountId)) {
+      globalStore.setLastVisitedAccount(accountId);
+    }
   }
 }
 

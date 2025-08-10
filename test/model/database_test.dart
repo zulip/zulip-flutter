@@ -13,6 +13,8 @@ import 'schemas/schema_v2.dart' as v2;
 import 'schemas/schema_v3.dart' as v3;
 import 'schemas/schema_v4.dart' as v4;
 import 'schemas/schema_v5.dart' as v5;
+import 'schemas/schema_v9.dart' as v9;
+import 'schemas/schema_v10.dart' as v10;
 import 'store_checks.dart';
 
 void main() {
@@ -113,6 +115,74 @@ void main() {
         // (No error occurred, even though there was nothing to delete.)
         check(await db.getBoolGlobalSettings()).isEmpty();
         check(await db.select(db.boolGlobalSettings).get()).isEmpty();
+      });
+    });
+
+    group('IntGlobalSettings', () {
+      test('get ignores unknown names', () async {
+        await db.into(db.intGlobalSettings)
+          .insert(IntGlobalSettingRow(name: 'nonsense', value: 1));
+        check(await db.getIntGlobalSettings()).isEmpty();
+
+        final setting = IntGlobalSetting.placeholderIgnore;
+        await db.into(db.intGlobalSettings)
+          .insert(IntGlobalSettingRow(name: setting.name, value: 1));
+        check(await db.getIntGlobalSettings())
+          .deepEquals({setting: 1});
+      });
+
+      test('insert, then get', () async {
+        check(await db.getIntGlobalSettings()).isEmpty();
+
+        // As in doSetIntGlobalSetting for `value` non-null.
+        final setting = IntGlobalSetting.placeholderIgnore;
+        await db.into(db.intGlobalSettings).insertOnConflictUpdate(
+          IntGlobalSettingRow(name: setting.name, value: 1));
+        check(await db.getIntGlobalSettings())
+          .deepEquals({setting: 1});
+        check(await db.select(db.intGlobalSettings).get()).length.equals(1);
+      });
+
+      test('delete, then get', () async {
+        final setting = IntGlobalSetting.placeholderIgnore;
+        await db.into(db.intGlobalSettings).insertOnConflictUpdate(
+          IntGlobalSettingRow(name: setting.name, value: 1));
+        check(await db.getIntGlobalSettings()).deepEquals({setting: 1});
+
+        // As in doSetIntGlobalSetting for `value` null.
+        final query = db.delete(db.intGlobalSettings)
+          ..where((r) => r.name.equals(setting.name));
+        await query.go();
+        check(await db.getIntGlobalSettings()).isEmpty();
+        check(await db.select(db.intGlobalSettings).get()).isEmpty();
+      });
+
+      test('insert replaces', () async {
+        final setting = IntGlobalSetting.placeholderIgnore;
+        await db.into(db.intGlobalSettings).insertOnConflictUpdate(
+          IntGlobalSettingRow(name: setting.name, value: 1));
+        check(await db.getIntGlobalSettings())
+          .deepEquals({setting: 1});
+
+        // As in doSetIntGlobalSetting for `value` non-null.
+        await db.into(db.intGlobalSettings).insertOnConflictUpdate(
+          IntGlobalSettingRow(name: setting.name, value: 2));
+        check(await db.getIntGlobalSettings())
+          .deepEquals({setting: 2});
+        check(await db.select(db.intGlobalSettings).get()).length.equals(1);
+      });
+
+      test('delete is idempotent', () async {
+        check(await db.getIntGlobalSettings()).isEmpty();
+
+        // As in doSetIntGlobalSetting for `value` null.
+        final setting = IntGlobalSetting.placeholderIgnore;
+        final query = db.delete(db.intGlobalSettings)
+          ..where((r) => r.name.equals(setting.name));
+        await query.go();
+        // (No error occurred, even though there was nothing to delete.)
+        check(await db.getIntGlobalSettings()).isEmpty();
+        check(await db.select(db.intGlobalSettings).get()).isEmpty();
       });
     });
 
@@ -332,6 +402,56 @@ void main() {
     });
 
     // TODO(#1593) test upgrade to v9: legacyUpgradeState set to noLegacy
+
+    test('upgrade to v10: with accounts available, '
+        'insert first account id as the last-visited account ID', () async {
+      final schema = await verifier.schemaAt(9);
+      final before = v9.DatabaseAtV9(schema.newConnection());
+      await before.into(before.accounts).insert(v9.AccountsCompanion.insert(
+        realmUrl: 'https://chat.example/',
+        userId: 1,
+        email: 'asdf@example.org',
+        apiKey: '1234',
+        zulipVersion: '10.0',
+        zulipMergeBase: const Value('10.0'),
+        zulipFeatureLevel: 370,
+      ));
+      await before.into(before.accounts).insert(v9.AccountsCompanion.insert(
+        realmUrl: 'https://example.com/',
+        userId: 2,
+        email: 'jkl@example.com',
+        apiKey: '4321',
+        zulipVersion: '11.0',
+        zulipMergeBase: const Value('11.0'),
+        zulipFeatureLevel: 420,
+      ));
+      await before.close();
+
+      final db = AppDatabase(schema.newConnection());
+      await verifier.migrateAndValidate(db, 10);
+      await db.close();
+
+      final after = v10.DatabaseAtV10(schema.newConnection());
+      final intGlobalSettings = await after.select(after.intGlobalSettings).getSingle();
+      check(intGlobalSettings.name).equals(IntGlobalSetting.lastVisitedAccountId.name);
+      check(intGlobalSettings.value).equals(1);
+      await after.close();
+    });
+
+    test("upgrade to v10: with no accounts available, don't set last-visited account ID", () async {
+      final schema = await verifier.schemaAt(9);
+      final before = v9.DatabaseAtV9(schema.newConnection());
+      check(await before.select(before.accounts).get()).isEmpty();
+      await before.close();
+
+      final db = AppDatabase(schema.newConnection());
+      await verifier.migrateAndValidate(db, 10);
+      await db.close();
+
+      final after = v10.DatabaseAtV10(schema.newConnection());
+      check(await after.select(after.intGlobalSettings).get()).isEmpty();
+      await after.close();
+    });
   });
 }
 

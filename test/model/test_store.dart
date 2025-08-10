@@ -73,6 +73,11 @@ class _TestGlobalStoreBackend implements GlobalStoreBackend {
   Future<void> doSetBoolGlobalSetting(BoolGlobalSetting setting, bool? value) async {
     // Nothing to do.
   }
+
+  @override
+  Future<void> doSetIntGlobalSetting(IntGlobalSetting setting, int? value) async {
+    // Nothing to do.
+  }
 }
 
 mixin _DatabaseMixin on GlobalStore {
@@ -146,10 +151,12 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
   TestGlobalStore({
     GlobalSettingsData? globalSettings,
     Map<BoolGlobalSetting, bool>? boolGlobalSettings,
+    Map<IntGlobalSetting, int>? intGlobalSettings,
     required super.accounts,
   }) : super(backend: _TestGlobalStoreBackend(),
          globalSettings: globalSettings ?? GlobalSettingsData(),
          boolGlobalSettings: boolGlobalSettings ?? {},
+         intGlobalSettings: intGlobalSettings ?? {}
        );
 
   final Map<int, InitialSnapshot> _initialSnapshots = {};
@@ -162,13 +169,24 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
   /// The given initial snapshot will be used to initialize a corresponding
   /// [PerAccountStore] when [perAccount] is subsequently called for this
   /// account, in particular when a [PerAccountStoreWidget] is mounted.
-  Future<void> add(Account account, InitialSnapshot initialSnapshot) async {
+  ///
+  /// By default, the account is marked as [IntGlobalSetting.lastVisitedAccountId].
+  /// Pass false for [markLastVisited] to skip that.
+  Future<void> add(
+    Account account,
+    InitialSnapshot initialSnapshot, {
+    bool markLastVisited = true,
+  }) async {
     assert(initialSnapshot.zulipVersion == account.zulipVersion);
     assert(initialSnapshot.zulipMergeBase == account.zulipMergeBase);
     assert(initialSnapshot.zulipFeatureLevel == account.zulipFeatureLevel);
     await insertAccount(account.toCompanion(false));
     assert(!_initialSnapshots.containsKey(account.id));
     _initialSnapshots[account.id] = initialSnapshot;
+
+    if (markLastVisited) {
+      await setLastVisitedAccount(account.id);
+    }
   }
 
   Duration? loadPerAccountDuration;
@@ -214,10 +232,12 @@ class UpdateMachineTestGlobalStore extends GlobalStore with _ApiConnectionsMixin
   UpdateMachineTestGlobalStore({
     GlobalSettingsData? globalSettings,
     Map<BoolGlobalSetting, bool>? boolGlobalSettings,
+    Map<IntGlobalSetting, int>? intGlobalSettings,
     required super.accounts,
   }) : super(backend: _TestGlobalStoreBackend(),
          globalSettings: globalSettings ?? GlobalSettingsData(),
          boolGlobalSettings: boolGlobalSettings ?? {},
+         intGlobalSettings: intGlobalSettings ?? {},
        );
 
   // [doLoadPerAccount] depends on the cache to prepare the API responses.
