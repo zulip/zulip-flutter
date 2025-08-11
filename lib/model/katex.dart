@@ -386,6 +386,7 @@ class _KatexParser {
     final spanClasses = element.className != ''
       ? List<String>.unmodifiable(element.className.split(' '))
       : const <String>[];
+    double? widthEm;
     String? fontFamily;
     double? fontSizeEm;
     KatexSpanFontWeight? fontWeight;
@@ -576,7 +577,11 @@ class _KatexParser {
             _ => throw _KatexHtmlParseError(),
           };
 
-        // TODO handle .nulldelimiter and .delimcenter .
+        case 'nulldelimiter':
+          // .nulldelimiter { display: inline-block; width: 0.12em; }
+          widthEm = 0.12;
+
+        // TODO .delimcenter .
 
         case 'op-symbol':
           // .op-symbol { ... }
@@ -621,6 +626,7 @@ class _KatexParser {
 
     final inlineStyles = _parseInlineStyles(element);
     final styles = KatexSpanStyles(
+      widthEm: widthEm,
       fontFamily: fontFamily,
       fontSizeEm: fontSizeEm,
       fontWeight: fontWeight,
@@ -810,6 +816,8 @@ class KatexSpanColor {
 
 @immutable
 class KatexSpanStyles {
+  final double? widthEm;
+
   // TODO(#1674) does height actually appear on generic spans?
   //   In a corpus, the only occurrences that we don't already handle separately
   //   (i.e. occurrences other than on struts, vlists, etc) seem to be within
@@ -834,6 +842,7 @@ class KatexSpanStyles {
   final KatexSpanColor? color;
 
   const KatexSpanStyles({
+    this.widthEm,
     this.heightEm,
     this.topEm,
     this.marginRightEm,
@@ -849,6 +858,7 @@ class KatexSpanStyles {
   @override
   int get hashCode => Object.hash(
     'KatexSpanStyles',
+    widthEm,
     heightEm,
     topEm,
     marginRightEm,
@@ -864,6 +874,7 @@ class KatexSpanStyles {
   @override
   bool operator ==(Object other) {
     return other is KatexSpanStyles &&
+      other.widthEm == widthEm &&
       other.heightEm == heightEm &&
       other.topEm == topEm &&
       other.marginRightEm == marginRightEm &&
@@ -879,6 +890,7 @@ class KatexSpanStyles {
   @override
   String toString() {
     final args = <String>[];
+    if (widthEm != null) args.add('widthEm: $widthEm');
     if (heightEm != null) args.add('heightEm: $heightEm');
     if (topEm != null) args.add('topEm: $topEm');
     if (marginRightEm != null) args.add('marginRightEm: $marginRightEm');
@@ -893,6 +905,7 @@ class KatexSpanStyles {
   }
 
   KatexSpanStyles filter({
+    bool widthEm = true,
     bool heightEm = true,
     bool verticalAlignEm = true,
     bool topEm = true,
@@ -906,6 +919,7 @@ class KatexSpanStyles {
     bool color = true,
   }) {
     return KatexSpanStyles(
+      widthEm: widthEm ? this.widthEm : null,
       heightEm: heightEm ? this.heightEm : null,
       topEm: topEm ? this.topEm : null,
       marginRightEm: marginRightEm ? this.marginRightEm : null,
