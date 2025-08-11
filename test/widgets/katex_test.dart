@@ -73,6 +73,10 @@ void main() {
         ('X', Offset(0.00, 7.04), Size(17.03, 25.00)),
         ('n', Offset(17.03, 15.90), Size(8.63, 17.00)),
       ]),
+      (KatexExample.nulldelimiter, skip: false, [
+        ('a', Offset(2.47, 3.36), Size(10.88, 25.00)),
+        ('b', Offset(15.81, 3.36), Size(8.82, 25.00)),
+      ]),
     ];
 
     for (final testCase in testCases) {

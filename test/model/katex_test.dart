@@ -643,6 +643,38 @@ class KatexExample extends ContentExample {
           text: '∗'),
       ]),
     ]);
+
+  static final nulldelimiter = KatexExample.block(
+    r'null delimiters, like `\left.`',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2205534
+    r'\left. a \middle. b \right.',
+    '<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>a</mi><mo fence="true" lspace="0.05em" rspace="0.05em">.</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">\\left. a \\middle. b \\right.</annotation></semantics></math></span>'
+      '<span class="katex-html" aria-hidden="true">'
+        '<span class="base">'
+          '<span class="strut" style="height:0.6944em;"></span>'
+          '<span class="minner">'
+            '<span class="mopen nulldelimiter"></span>'
+            '<span class="mord mathnormal">a</span>'
+            '<span class="nulldelimiter"></span>'
+            '<span class="mord mathnormal">b</span>'
+            '<span class="mclose nulldelimiter"></span></span></span></span></span></span></p>', [
+      KatexSpanNode(nodes: [
+        KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
+        KatexSpanNode(nodes: [
+          KatexSpanNode(styles: KatexSpanStyles(widthEm: 0.12), nodes: []),
+          KatexSpanNode(
+            styles: KatexSpanStyles(fontFamily: 'KaTeX_Math', fontStyle: KatexSpanFontStyle.italic),
+            text: 'a'),
+          KatexSpanNode(styles: KatexSpanStyles(widthEm: 0.12), nodes: []),
+          KatexSpanNode(
+            styles: KatexSpanStyles(fontFamily: 'KaTeX_Math', fontStyle: KatexSpanFontStyle.italic),
+            text: 'b'),
+          KatexSpanNode(styles: KatexSpanStyles(widthEm: 0.12), nodes: []),
+        ]),
+      ]),
+    ]);
 }
 
 void main() async {
@@ -663,6 +695,7 @@ void main() async {
   testParseExample(KatexExample.textColor);
   testParseExample(KatexExample.customColorMacro);
   testParseExample(KatexExample.phantom);
+  testParseExample(KatexExample.nulldelimiter);
 
   group('parseCssHexColor', () {
     const testCases = [
