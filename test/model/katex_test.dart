@@ -643,6 +643,72 @@ class KatexExample extends ContentExample {
           text: '∗'),
       ]),
     ]);
+
+  static final bigOperators = KatexExample.block(
+    r'big operators: \int',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2240766
+    r'\int dx',
+    '<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo>∫</mo><mi>d</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">\\int dx</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base">'
+            '<span class="strut" style="height:2.2222em;vertical-align:-0.8622em;"></span>'
+            '<span class="mop op-symbol large-op" style="margin-right:0.44445em;position:relative;top:-0.0011em;">∫</span>'
+            '<span class="mspace" style="margin-right:0.1667em;"></span>'
+            '<span class="mord mathnormal">d</span>'
+            '<span class="mord mathnormal">x</span></span></span></span></span></p>', [
+      KatexSpanNode(nodes: [
+        KatexStrutNode(heightEm: 2.2222, verticalAlignEm: -0.8622),
+        KatexSpanNode(
+          styles: KatexSpanStyles(
+            topEm: -0.0011,
+            marginRightEm: 0.44445,
+            fontFamily: 'KaTeX_Size2',
+            position: KatexSpanPosition.relative),
+          text: '∫'),
+        KatexSpanNode(styles: KatexSpanStyles(marginRightEm: 0.1667), nodes: []),
+        KatexSpanNode(
+          styles: KatexSpanStyles(fontFamily: 'KaTeX_Math', fontStyle: KatexSpanFontStyle.italic),
+          text: 'd'),
+        KatexSpanNode(
+          styles: KatexSpanStyles(fontFamily: 'KaTeX_Math', fontStyle: KatexSpanFontStyle.italic),
+          text: 'x'),
+      ]),
+    ]);
+
+  static final colonEquals = KatexExample.block(
+    r'\colonequals relation',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Rajesh/near/2244936
+    r'\colonequals',
+    '<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo><mi mathvariant="normal">≔</mi></mo></mrow><annotation encoding="application/x-tex">\\colonequals</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base">'
+            '<span class="strut" style="height:0.4306em;"></span>'
+            '<span class="mrel">'
+              '<span class="mrel">'
+                '<span class="mop" style="position:relative;top:-0.0347em;">:</span></span>'
+              '<span class="mrel">'
+                '<span class="mspace" style="margin-right:-0.0667em;"></span></span>'
+              '<span class="mrel">=</span></span></span></span></span></span></p>', [
+      KatexSpanNode(nodes: [
+        KatexStrutNode(heightEm: 0.4306, verticalAlignEm: null),
+        KatexSpanNode(nodes: [
+          KatexSpanNode(nodes: [
+            KatexSpanNode(
+              styles: KatexSpanStyles(topEm: -0.0347, position: KatexSpanPosition.relative),
+              text: ':'),
+          ]),
+          KatexSpanNode(nodes: [
+            KatexSpanNode(nodes: []),
+            KatexNegativeMarginNode(leftOffsetEm: -0.0667, nodes: []),
+          ]),
+          KatexSpanNode(text: '='),
+        ]),
+      ]),
+    ]);
 }
 
 void main() async {
@@ -663,6 +729,8 @@ void main() async {
   testParseExample(KatexExample.textColor);
   testParseExample(KatexExample.customColorMacro);
   testParseExample(KatexExample.phantom);
+  testParseExample(KatexExample.bigOperators);
+  testParseExample(KatexExample.colonEquals);
 
   group('parseCssHexColor', () {
     const testCases = [
