@@ -96,10 +96,10 @@ class _KatexSpan extends StatelessWidget {
     }
 
     final styles = node.styles;
-
-    // Currently, we expect `top` to be only present with the
-    // vlist inner row span, and parser handles that explicitly.
-    assert(styles.topEm == null);
+    if (styles.topEm != null) {
+      // The meaning of `top` would be different without `position: relative`.
+      assert(styles.position == KatexSpanPosition.relative);
+    }
 
     final fontFamily = styles.fontFamily;
     final fontSize = switch (styles.fontSizeEm) {
@@ -181,6 +181,18 @@ class _KatexSpan extends StatelessWidget {
     if (margin != null) {
       assert(margin.isNonNegative);
       widget = Padding(padding: margin, child: widget);
+    }
+
+    switch (styles.position) {
+      case KatexSpanPosition.relative:
+        if (styles.topEm case final topEm?) {
+          widget = Transform.translate(
+            offset: Offset(0, topEm * em),
+            child: widget);
+        }
+
+      case null:
+        break;
     }
 
     return widget;

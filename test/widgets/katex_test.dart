@@ -73,6 +73,10 @@ void main() {
         ('X', Offset(0.00, 7.04), Size(17.03, 25.00)),
         ('n', Offset(17.03, 15.90), Size(8.63, 17.00)),
       ]),
+      (KatexExample.colonEquals, skip: false, [
+        (':', Offset(0.00, 3.45), Size(5.72, 25.00)),
+        ('=', Offset(5.72, 3.92), Size(16.00, 25.00)),
+      ]),
       (KatexExample.nulldelimiter, skip: false, [
         ('a', Offset(2.47, 3.36), Size(10.88, 25.00)),
         ('b', Offset(15.81, 3.36), Size(8.82, 25.00)),

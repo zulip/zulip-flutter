@@ -637,6 +637,7 @@ class _KatexParser {
       marginLeftEm: _takeStyleEm(inlineStyles, 'margin-left'),
       marginRightEm: _takeStyleEm(inlineStyles, 'margin-right'),
       color: _takeStyleColor(inlineStyles, 'color'),
+      position: _takeStylePosition(inlineStyles, 'position'),
       // TODO handle more CSS properties
     );
     if (inlineStyles != null && inlineStyles.isNotEmpty) {
@@ -646,10 +647,10 @@ class _KatexParser {
         _hasError = true;
       }
     }
-    // Currently, we expect `top` to only be inside a vlist, and
-    // we handle that case separately above.
-    if (styles.topEm != null) {
-      throw _KatexHtmlParseError('unsupported inline CSS property: top');
+    if (styles.topEm != null && styles.position != KatexSpanPosition.relative) {
+      // The meaning of `top` would be different without `position: relative`.
+      throw _KatexHtmlParseError(
+        'unsupported inline CSS property "top" given "position: ${styles.position}"');
     }
 
     String? text;
@@ -771,6 +772,34 @@ class _KatexParser {
     _hasError = true;
     return null;
   }
+
+  /// Remove the given property from the given style map,
+  /// and parse as a CSS position value.
+  ///
+  /// If the property is present but is not a valid CSS position value,
+  /// record an error and return null.
+  ///
+  /// If the property is absent, return null with no error.
+  ///
+  /// If the map is null, treat it as empty.
+  ///
+  /// To produce the map this method expects, see [_parseInlineStyles].
+  KatexSpanPosition? _takeStylePosition(Map<String, css_visitor.Expression>? styles, String property) {
+    final expression = styles?.remove(property);
+    if (expression == null) return null;
+    if (expression case css_visitor.LiteralTerm(:final value)) {
+      if (value case css_visitor.Identifier(:final name)) {
+        if (name == 'relative') {
+          return KatexSpanPosition.relative;
+        }
+      }
+    }
+    assert(debugLog('KaTeX: Unsupported value for CSS property $property,'
+      ' expected a CSS position value: ${expression.toDebugString()}'));
+    unsupportedInlineCssProperties.add(property);
+    _hasError = true;
+    return null;
+  }
 }
 
 enum KatexSpanFontWeight {
@@ -786,6 +815,10 @@ enum KatexSpanTextAlign {
   left,
   center,
   right,
+}
+
+enum KatexSpanPosition {
+  relative,
 }
 
 class KatexSpanColor {
@@ -840,6 +873,7 @@ class KatexSpanStyles {
   final KatexSpanTextAlign? textAlign;
 
   final KatexSpanColor? color;
+  final KatexSpanPosition? position;
 
   const KatexSpanStyles({
     this.widthEm,
@@ -853,6 +887,7 @@ class KatexSpanStyles {
     this.fontStyle,
     this.textAlign,
     this.color,
+    this.position,
   });
 
   @override
@@ -869,6 +904,7 @@ class KatexSpanStyles {
     fontStyle,
     textAlign,
     color,
+    position,
   );
 
   @override
@@ -884,7 +920,8 @@ class KatexSpanStyles {
       other.fontWeight == fontWeight &&
       other.fontStyle == fontStyle &&
       other.textAlign == textAlign &&
-      other.color == color;
+      other.color == color &&
+      other.position == position;
   }
 
   @override
@@ -901,6 +938,7 @@ class KatexSpanStyles {
     if (fontStyle != null) args.add('fontStyle: $fontStyle');
     if (textAlign != null) args.add('textAlign: $textAlign');
     if (color != null) args.add('color: $color');
+    if (position != null) args.add('position: $position');
     return '${objectRuntimeType(this, 'KatexSpanStyles')}(${args.join(', ')})';
   }
 
@@ -917,6 +955,7 @@ class KatexSpanStyles {
     bool fontStyle = true,
     bool textAlign = true,
     bool color = true,
+    bool position = true,
   }) {
     return KatexSpanStyles(
       widthEm: widthEm ? this.widthEm : null,
@@ -930,6 +969,7 @@ class KatexSpanStyles {
       fontStyle: fontStyle ? this.fontStyle : null,
       textAlign: textAlign ? this.textAlign : null,
       color: color ? this.color : null,
+      position: position ? this.position : null,
     );
   }
 }
