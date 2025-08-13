@@ -48,14 +48,14 @@ private object AndroidIntentsPigeonUtils {
 
 /** Generated class from Pigeon that represents data sent in messages. */
 data class IntentSharedFile (
-  val name: String,
+  val name: String? = null,
   val mimeType: String? = null,
   val bytes: ByteArray
 )
  {
   companion object {
     fun fromList(pigeonVar_list: List<Any?>): IntentSharedFile {
-      val name = pigeonVar_list[0] as String
+      val name = pigeonVar_list[0] as String?
       val mimeType = pigeonVar_list[1] as String?
       val bytes = pigeonVar_list[2] as ByteArray
       return IntentSharedFile(name, mimeType, bytes)

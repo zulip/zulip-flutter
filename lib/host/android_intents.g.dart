@@ -24,12 +24,12 @@ bool _deepEquals(Object? a, Object? b) {
 
 class IntentSharedFile {
   IntentSharedFile({
-    required this.name,
+    this.name,
     this.mimeType,
     required this.bytes,
   });
 
-  String name;
+  String? name;
 
   String? mimeType;
 
@@ -49,7 +49,7 @@ class IntentSharedFile {
   static IntentSharedFile decode(Object result) {
     result as List<Object?>;
     return IntentSharedFile(
-      name: result[0]! as String,
+      name: result[0] as String?,
       mimeType: result[1] as String?,
       bytes: result[2]! as Uint8List,
     );

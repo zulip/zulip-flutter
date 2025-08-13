@@ -20,7 +20,7 @@ class IntentSharedFile {
     required this.bytes,
   });
 
-  final String name;
+  final String? name;
   final String? mimeType;
   final Uint8List bytes;
 }

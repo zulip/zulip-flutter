@@ -79,19 +79,23 @@ class ShareService {
       // Try to guess the mimeType from file header magic-number.
       mimeType ??= lookupMimeType(
         // Seems like the path shouldn't be required; we still want to look for
-        // matches on `headerBytes`. Thankfully we can still do that, by calling
-        // lookupMimeType with the empty string as the path. That's a value that
-        // doesn't map to any particular type, so the path will be effectively
-        // ignored, as desired. Upstream comment:
+        // matches on `headerBytes` when we don't have a path/filename.
+        // Thankfully we can still do that, by calling lookupMimeType with the
+        // empty string as the path. That's a value that doesn't map to any
+        // particular type, so the path will be effectively ignored, as desired.
+        // Upstream comment:
         //   https://github.com/dart-lang/mime/issues/11#issuecomment-2246824452
-        '',
+        sharedFile.name ?? '',
         headerBytes: List.unmodifiable(
           sharedFile.bytes.take(defaultMagicNumbersMaxLength)));
+
+      final filename =
+        sharedFile.name ?? 'unknown.${mimeType?.split('/').last ?? 'bin'}';
 
       return FileToUpload(
         content: Stream.value(sharedFile.bytes),
         length: sharedFile.bytes.length,
-        filename: sharedFile.name,
+        filename: filename,
         mimeType: mimeType);
     });
 

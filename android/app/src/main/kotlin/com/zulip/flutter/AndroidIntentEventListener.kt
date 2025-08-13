@@ -94,7 +94,7 @@ fun getIntentSharedFile(context: Context, url: Uri): IntentSharedFile {
     cursor.moveToFirst()
     val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
     cursor.getString(nameIndex)
-  } ?: ("unknown." + (mimeType?.split('/')?.last() ?: "bin"))
+  }
 
   class ResolverFailedException(msg: String) : RuntimeException(msg)
 
