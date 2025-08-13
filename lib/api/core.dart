@@ -196,7 +196,7 @@ class ApiConnection {
       Error.throwWithStackTrace(
         MalformedServerResponseException(
           routeName: routeName, httpStatus: httpStatus, data: json,
-          causeException: exception),
+          causeException: exception, causeStackTrace: stackTrace),
         stackTrace);
     }
   }
