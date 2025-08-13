@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 30.0.263 (2025-08-12)
+
 ### Highlights for users
 
 * (Android) Share to Zulip from other apps. (#53)
