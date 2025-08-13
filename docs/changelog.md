@@ -2,6 +2,49 @@
 
 ## Unreleased
 
+### Highlights for users
+
+* (Android) Share to Zulip from other apps. (#53)
+* See read receipts. (#667)
+* Autocomplete mentioning a group. (#233)
+* Fix bug when uploading a file with a non-ASCII name. (#1709)
+* Copy link to a channel or topic. (#1227, #792)
+* Zoom in farther in lightbox. (#1091)
+* Subscribe or unsubscribe to a channel. (#1224)
+
+
+### Highlights for developers
+
+* User-visible changes not described above:
+  * upgrade Flutter (PR #1763)
+  * drop "always scrollable" on list of suggested statuses
+    (in caf1ddb7b; revision to PR #1701, for #198)
+  * handle colored text in KaTeX content (#1679)
+  * user autocomplete matches on email (#236)
+  * semantics on reaction chips; no tooltip; "You" first
+    (41e3d57f2, b2321839f, 025b0cee8; revision to PR #1700, for #740)
+  * various changes to who-reacted feature
+    (in e2c10ae21; revision to PR #1700, for #740):
+    * show who-reacted button only when there was a reaction
+    * fix an edge case in who-reacted sheet: don't re-apply
+      initialReactionType on new store
+    * dispose in _ViewReactionsState, fixing potential get-stuck bug
+    * align emoji in center of who-reacted header, not start
+    * semantics in who-reacted sheet
+  * adjust scroll-into-view behavior in who-reacted header
+    (98b94bd2a; revision to PR #1700, for #740)
+  * Cupertino dialogs (#996, PR #1782)
+  * mark-channel-read button at top of action sheet (PR #1789)
+  * reject login sooner when server too old (PR #1783)
+  * translations (PR #1757)
+
+* Set visualDensity to mobile value on desktop, fixing assert in
+  buttons (PR #1781)
+
+* Resolved in main: #332, PR #1763, #1227, #792, #198, #1679, #1709,
+  #1091, #236, #233, #740, #996, PR #1781, PR #1782, PR #1789,
+  PR #1783, #1224, PR #1757, #667, #53
+
 
 ## 30.0.262 (2025-07-24)
 
