@@ -6,7 +6,6 @@ import '../generated/l10n/zulip_localizations.dart';
 import 'action_sheet.dart';
 import 'actions.dart';
 import 'color.dart';
-import 'inset_shadow.dart';
 import 'profile.dart';
 import 'store.dart';
 import 'text.dart';
@@ -81,36 +80,23 @@ class _ReadReceiptsState extends State<ReadReceipts> with PerAccountStoreAwareSt
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    // TODO could pull out this layout/appearance code,
-    //   focusing this widget only on state management
+    final receiptCount = userIds.length;
 
     final content = switch (status) {
-      FetchStatus.loading => BottomSheetEmptyContentPlaceholder(loading: true),
-      FetchStatus.error   => BottomSheetEmptyContentPlaceholder(
+      FetchStatus.loading => SliverBottomSheetEmptyContentPlaceholder(loading: true),
+      FetchStatus.error   => SliverBottomSheetEmptyContentPlaceholder(
         message: zulipLocalizations.actionSheetReadReceiptsErrorReadCount),
       FetchStatus.success => userIds.isEmpty
-        ? BottomSheetEmptyContentPlaceholder(
+        ? SliverBottomSheetEmptyContentPlaceholder(
             message: zulipLocalizations.actionSheetReadReceiptsZeroReadCount)
-        : InsetShadowBox(
-            top: 8, bottom: 8,
-            color: DesignVariables.of(context).bgContextMenu,
-            child: ListView.builder(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              itemCount: userIds.length,
-              itemBuilder: (context, index) =>
-                ReadReceiptsUserItem(userId: userIds[index])))
+        : SliverList.builder(
+            itemCount: receiptCount,
+            itemBuilder: (_, index) => ReadReceiptsUserItem(userId: userIds[index])),
     };
 
-    return SizedBox(
-      height: 500, // TODO(design) tune
-      child: Column(
-        children: [
-          _ReadReceiptsHeader(receiptCount: userIds.length, status: status),
-          Expanded(child: content),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.close))
-        ]));
+    return DraggableScrollableModalBottomSheet(
+      header: _ReadReceiptsHeader(receiptCount: receiptCount, status: status),
+      contentSliver: content);
   }
 }
 
