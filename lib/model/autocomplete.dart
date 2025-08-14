@@ -643,9 +643,9 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   static int compareGroupsByAlphabeticalOrder(UserGroup userGroupA, UserGroup userGroupB,
       {required PerAccountStore store}) {
     final groupAName = store.autocompleteViewManager.autocompleteDataCache
-      .lowercaseNameForUserGroup(userGroupA);
+      .normalizedNameForUserGroup(userGroupA);
     final groupBName = store.autocompleteViewManager.autocompleteDataCache
-      .lowercaseNameForUserGroup(userGroupB);
+      .normalizedNameForUserGroup(userGroupB);
     return groupAName.compareTo(groupBName); // TODO(i18n): add locale-aware sorting
   }
 
@@ -737,19 +737,19 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
 /// for the given type of autocomplete interaction.
 abstract class AutocompleteQuery {
   AutocompleteQuery(this.raw) {
-    _lowercase = raw.toLowerCase();
+    _normalized = raw.toLowerCase();
     // TODO(#1805) split on space characters that the user is actually using
     //   (e.g. U+3000 IDEOGRAPHIC SPACE);
     //   could check active keyboard or just split on all kinds of spaces
-    _lowercaseWords = _lowercase.split(' ');
+    _normalizedWords = _normalized.split(' ');
   }
 
   /// The actual string the user entered.
   final String raw;
 
-  late final String _lowercase;
+  late final String _normalized;
 
-  late final List<String> _lowercaseWords;
+  late final List<String> _normalizedWords;
 
   /// Whether all of this query's words have matches in [words],
   /// modulo case, that appear in order.
@@ -763,14 +763,14 @@ abstract class AutocompleteQuery {
     int wordsIndex = 0;
     int queryWordsIndex = 0;
     while (true) {
-      if (queryWordsIndex == _lowercaseWords.length) {
+      if (queryWordsIndex == _normalizedWords.length) {
         return true;
       }
       if (wordsIndex == words.length) {
         return false;
       }
 
-      if (words[wordsIndex].startsWith(_lowercaseWords[queryWordsIndex])) {
+      if (words[wordsIndex].startsWith(_normalizedWords[queryWordsIndex])) {
         queryWordsIndex++;
       }
       wordsIndex++;
@@ -830,8 +830,8 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
       required ZulipLocalizations localizations}) {
     // TODO(#237): match insensitively to diacritics
     final localized = wildcardOption.localizedCanonicalString(localizations);
-    final matches = wildcardOption.canonicalString.contains(_lowercase)
-      || localized.toLowerCase().contains(_lowercase);
+    final matches = wildcardOption.canonicalString.contains(_normalized)
+      || localized.toLowerCase().contains(_normalized);
     if (!matches) return null;
     return WildcardMentionAutocompleteResult(
       wildcardOption: wildcardOption, rank: _rankWildcardResult);
@@ -861,8 +861,8 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
     required String normalizedName,
     required List<String> normalizedNameWords,
   }) {
-    if (normalizedName.startsWith(_lowercase)) {
-      if (normalizedName.length == _lowercase.length) {
+    if (normalizedName.startsWith(_normalized)) {
+      if (normalizedName.length == _normalized.length) {
         return NameMatchQuality.exact;
       } else {
         return NameMatchQuality.totalPrefix;
@@ -877,17 +877,17 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
   }
 
   bool _matchEmail(User user, AutocompleteDataCache cache) {
-    final lowercaseEmail = cache.normalizedEmailForUser(user);
-    if (lowercaseEmail == null) return false; // Email not known
-    return lowercaseEmail.startsWith(_lowercase);
+    final normalizedEmail = cache.normalizedEmailForUser(user);
+    if (normalizedEmail == null) return false; // Email not known
+    return normalizedEmail.startsWith(_normalized);
   }
 
   MentionAutocompleteResult? testUserGroup(UserGroup userGroup, PerAccountStore store) {
     final cache = store.autocompleteViewManager.autocompleteDataCache;
 
     final nameMatchQuality = _matchName(
-      normalizedName: cache.lowercaseNameForUserGroup(userGroup),
-      normalizedNameWords: cache.lowercaseNameWordsForUserGroup(userGroup));
+      normalizedName: cache.normalizedNameForUserGroup(userGroup),
+      normalizedNameWords: cache.normalizedNameWordsForUserGroup(userGroup));
 
     if (nameMatchQuality == null) return null;
 
@@ -999,18 +999,18 @@ class AutocompleteDataCache {
     return _normalizedEmailsByUser[user.userId] ??= user.deliveryEmail?.toLowerCase();
   }
 
-  final Map<int, String> _lowercaseNamesByUserGroup = {};
+  final Map<int, String> _normalizedNamesByUserGroup = {};
 
   /// The normalized `name` of [userGroup].
-  String lowercaseNameForUserGroup(UserGroup userGroup) {
-    return _lowercaseNamesByUserGroup[userGroup.id] ??= userGroup.name.toLowerCase();
+  String normalizedNameForUserGroup(UserGroup userGroup) {
+    return _normalizedNamesByUserGroup[userGroup.id] ??= userGroup.name.toLowerCase();
   }
 
-  final Map<int, List<String>> _lowercaseNameWordsByUserGroup = {};
+  final Map<int, List<String>> _normalizedNameWordsByUserGroup = {};
 
-  List<String> lowercaseNameWordsForUserGroup(UserGroup userGroup) {
-    return _lowercaseNameWordsByUserGroup[userGroup.id]
-      ??= lowercaseNameForUserGroup(userGroup).split(' ');
+  List<String> normalizedNameWordsForUserGroup(UserGroup userGroup) {
+    return _normalizedNameWordsByUserGroup[userGroup.id]
+      ??= normalizedNameForUserGroup(userGroup).split(' ');
   }
 
   void invalidateUser(int userId) {
@@ -1020,8 +1020,8 @@ class AutocompleteDataCache {
   }
 
   void invalidateUserGroup(int id) {
-    _lowercaseNamesByUserGroup.remove(id);
-    _lowercaseNameWordsByUserGroup.remove(id);
+    _normalizedNamesByUserGroup.remove(id);
+    _normalizedNameWordsByUserGroup.remove(id);
   }
 }
 
@@ -1204,10 +1204,10 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
 
     if (topic.displayName == null) {
       return store.realmEmptyTopicDisplayName.toLowerCase()
-        .contains(_lowercase);
+        .contains(_normalized);
     }
     return topic.displayName != raw
-      && topic.displayName!.toLowerCase().contains(_lowercase);
+      && topic.displayName!.toLowerCase().contains(_normalized);
   }
 
   @override
