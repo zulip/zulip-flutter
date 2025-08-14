@@ -225,6 +225,102 @@ class BottomSheetEmptyContentPlaceholder extends StatelessWidget {
   }
 }
 
+/// A bottom sheet that resizes, scrolls, and dismisses in response to dragging.
+///
+/// [header] is assumed to occupy the full width its parent allows.
+/// (This is important for the clipping/shadow effect when [contentSliver]
+/// scrolls under the header.)
+///
+/// The sheet's initial height and minimum height before dismissing
+/// are set proportionally to the screen's height.
+/// The screen's height is read from the parent's max-height constraint,
+/// so the caller should not introduce widgets that interfere with that.
+/// (Non-layout wrapper widgets such as [InheritedWidget]s are OK.)
+///
+/// The sheet's dismissal works like this:
+/// - A "Close" button is offered.
+/// - A drag-down or fling on the header or the [contentSliver]
+///   causes those areas to shrink past a threshold at which the sheet
+///   decides to dismiss.
+/// - The [enableDrag] param of upstream's [showModalBottomSheet]
+///   only seems to affect gesture handling on the Close button and its padding
+///   (which are not part of the resizable/scrollable area):
+///   - When true, the Close button responds to a downward fling by
+///     sliding the sheet downward and dismissing it
+///     (i.e. not by the usual behavior where the header- and-content height
+///     shrinks past a threshold, causing dismissal).
+///   - When false, the Close button doesn't respond to a downward fling.
+class DraggableScrollableModalBottomSheet extends StatelessWidget {
+  const DraggableScrollableModalBottomSheet({
+    super.key,
+    required this.header,
+    required this.contentSliver,
+  });
+
+  final Widget header;
+  final Widget contentSliver;
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      expand: false,
+      builder: (context, controller) {
+        final backgroundColor = Theme.of(context).bottomSheetTheme.backgroundColor!;
+
+        // The "inset shadow" effect in Figma is a bit awkwardly
+        // implemented here, and there might be a better factoring:
+        // 1. This effect leans on the abstraction that [contentSliver]
+        //    is simply a scrollable area in its own viewport.
+        //    We'd normally just wrap that viewport in [InsetShadowBox].
+        // 2. Really, though, the scrollable includes the header,
+        //    pinned to the viewport top. We do this to support resizing
+        //    (and dismiss-on-min-height) on gestures in the header, too,
+        //    uniformly with the content.
+        // 3. So for the top shadow, we tack a shadow gradient onto the header,
+        //    exploiting the header's pinning behavior to keep it fixed.
+        // 3. For the bottom, I haven't found a nice sliver-based implementation
+        //    that supports pinning a shadow overlay at the viewport bottom.
+        //    So for the bottom we use [InsetShadowBox] around the viewport,
+        //    with just `bottom:` and no `top:`.
+
+        final headerWithShadow = Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ColoredBox(
+              color: backgroundColor,
+              child: header),
+            SizedBox(height: 8, width: double.infinity,
+              child: DecoratedBox(decoration: fadeToTransparencyDecoration(
+                FadeToTransparencyDirection.down, backgroundColor))),
+          ]);
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: InsetShadowBox(
+                bottom: 8,
+                color: backgroundColor,
+                child: CustomScrollView(
+                  // The iOS default "bouncing" effect would look uncoordinated
+                  // in the common case where overscroll co-occurs with
+                  // shrinking the sheet past the threshold where it dismisses.
+                  physics: ClampingScrollPhysics(),
+                  controller: controller,
+                  slivers: [
+                    PinnedHeaderSliver(child: headerWithShadow),
+                    SliverPadding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      sliver: contentSliver),
+                  ]))),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.close))
+          ]);
+    });
+  }
+}
+
 /// A button in an action sheet.
 ///
 /// When built from server data, the action sheet ignores changes in that data;
