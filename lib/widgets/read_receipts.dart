@@ -137,15 +137,15 @@ class _ReadReceiptsUserList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = ZulipLocalizations.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     return switch(status) {
       FetchStatus.loading => BottomSheetEmptyContentPlaceholder(loading: true),
       FetchStatus.error   => BottomSheetEmptyContentPlaceholder(
-        message: localizations.actionSheetReadReceiptsErrorReadCount),
+        message: zulipLocalizations.actionSheetReadReceiptsErrorReadCount),
       FetchStatus.success => userIds.isEmpty
         ? BottomSheetEmptyContentPlaceholder(
-            message: localizations.actionSheetReadReceiptsZeroReadCount)
+            message: zulipLocalizations.actionSheetReadReceiptsZeroReadCount)
         : InsetShadowBox(
             top: 8, bottom: 8,
             color: DesignVariables.of(context).bgContextMenu,

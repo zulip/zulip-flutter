@@ -1443,10 +1443,10 @@ class UpdateMachine {
   }
 
   void _reportToUserErrorConnectingToServer(Object error) {
-    final localizations = GlobalLocalizations.zulipLocalizations;
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
     reportErrorToUserBriefly(
-      localizations.errorConnectingToServerShort,
-      details: localizations.errorConnectingToServerDetails(
+      zulipLocalizations.errorConnectingToServerShort,
+      details: zulipLocalizations.errorConnectingToServerDetails(
         store.realmUrl.toString(), error.toString()));
   }
 
