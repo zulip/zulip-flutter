@@ -753,32 +753,18 @@ class _ViewReactionsState extends State<ViewReactions> with PerAccountStoreAware
 
   @override
   Widget build(BuildContext context) {
-    // TODO could pull out this layout/appearance code,
-    //   focusing this widget only on state management
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        ViewReactionsHeader(
-          messageId: widget.messageId,
-          reactionType: reactionType,
-          emojiCode: emojiCode,
-          onRequestSelect: _setSelection,
-        ),
-        // TODO if all reactions (or whole message) disappeared,
-        //   we show a message saying there are no reactions,
-        //   but the layout shifts (the sheet's height changes dramatically);
-        //   we should avoid this.
-        if (reactionType != null && emojiCode != null) Flexible(
-          child: ViewReactionsUserList(
-            messageId: widget.messageId,
-            reactionType: reactionType!,
-            emojiCode: emojiCode!,
-            emojiName: emojiName!)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.close))
-      ]);
+    return DraggableScrollableModalBottomSheet(
+      header: ViewReactionsHeader(
+        messageId: widget.messageId,
+        reactionType: reactionType,
+        emojiCode: emojiCode,
+        onRequestSelect: _setSelection,
+      ),
+      contentSliver: ViewReactionsUserListSliver(
+        messageId: widget.messageId,
+        reactionType: reactionType,
+        emojiCode: emojiCode,
+        emojiName: emojiName));
   }
 }
 
@@ -828,26 +814,27 @@ class ViewReactionsHeader extends StatelessWidget {
       padding: const EdgeInsets.only(top: 16, bottom: 4),
       child: InsetShadowBox(start: 8, end: 8,
         color: designVariables.bgContextMenu,
-        child: SingleChildScrollView(
-          // TODO(upstream) we want to pass excludeFromSemantics: true
-          //    to the underlying Scrollable to remove an unwanted node
-          //    in accessibility focus traversal when there are many items.
-          scrollDirection: Axis.horizontal,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Semantics(
-              role: SemanticsRole.tabBar,
-              container: true,
-              explicitChildNodes: true,
-              label: zulipLocalizations.seeWhoReactedSheetHeaderLabel(reactions.total),
-              child: Row(
-                children: reactions.aggregated.mapIndexed((i, r) =>
-                  _ViewReactionsEmojiItem(
-                    reactionWithVotes: r,
-                    position: _emojiItemPosition(i, reactions.aggregated.length),
-                    selected: r.reactionType == reactionType && r.emojiCode == emojiCode,
-                    onRequestSelect: onRequestSelect),
-                ).toList()))))));
+        child: Center(
+          child: SingleChildScrollView(
+            // TODO(upstream) we want to pass excludeFromSemantics: true
+            //    to the underlying Scrollable to remove an unwanted node
+            //    in accessibility focus traversal when there are many items.
+            scrollDirection: Axis.horizontal,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Semantics(
+                role: SemanticsRole.tabBar,
+                container: true,
+                explicitChildNodes: true,
+                label: zulipLocalizations.seeWhoReactedSheetHeaderLabel(reactions.total),
+                child: Row(
+                  children: reactions.aggregated.mapIndexed((i, r) =>
+                    _ViewReactionsEmojiItem(
+                      reactionWithVotes: r,
+                      position: _emojiItemPosition(i, reactions.aggregated.length),
+                      selected: r.reactionType == reactionType && r.emojiCode == emojiCode,
+                      onRequestSelect: onRequestSelect),
+                  ).toList())))))));
   }
 }
 
@@ -955,7 +942,7 @@ class _ViewReactionsEmojiItem extends StatelessWidget {
 
       // I *think* we're following the doc with this but it's hard to tell;
       // I've only tested on iOS and I didn't notice a behavior change.
-      controlsNodes: {ViewReactionsUserList.semanticsIdentifier},
+      controlsNodes: {ViewReactionsUserListSliver.semanticsIdentifier},
 
       selected: selected,
       label: zulipLocalizations.seeWhoReactedSheetEmojiNameWithVoteCount(emojiName, count),
@@ -965,10 +952,9 @@ class _ViewReactionsEmojiItem extends StatelessWidget {
   }
 }
 
-
 @visibleForTesting
-class ViewReactionsUserList extends StatelessWidget {
-  const ViewReactionsUserList({
+class ViewReactionsUserListSliver extends StatelessWidget {
+  const ViewReactionsUserListSliver({
     super.key,
     required this.messageId,
     required this.reactionType,
@@ -977,9 +963,9 @@ class ViewReactionsUserList extends StatelessWidget {
   });
 
   final int messageId;
-  final ReactionType reactionType;
-  final String emojiCode;
-  final String emojiName;
+  final ReactionType? reactionType;
+  final String? emojiCode;
+  final String? emojiName;
 
   static const semanticsIdentifier = 'view-reactions-user-list';
 
@@ -987,7 +973,15 @@ class ViewReactionsUserList extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
-    final designVariables = DesignVariables.of(context);
+
+    if (reactionType == null || emojiCode == null) {
+      // The emoji selection was cleared,
+      // which happens when the message is deleted or loses all its reactions.
+      // The sheet's header will have a message like
+      // "This message has no reactions."
+      return SliverPadding(padding: EdgeInsets.zero);
+    }
+    assert(emojiName != null);
 
     final message = store.messages[messageId];
 
@@ -999,39 +993,22 @@ class ViewReactionsUserList extends StatelessWidget {
     //  Muted users will be shown as muted.)
 
     if (userIds == null) {
-      // This reaction lost all its votes, or the message was deleted.
-      return SizedBox.shrink();
+      // The selected emoji lost all its votes. This won't show long if at all;
+      // a different emoji will be automatically selected if there is one.
+      return SliverPadding(padding: EdgeInsets.zero);
     }
 
-    Widget result = SizedBox(
-      height: 400, // TODO(design) tune
-      child: InsetShadowBox(
-        top: 8,
-        bottom: 8,
-        color: designVariables.bgContextMenu,
-        // TODO(upstream) we want to pass excludeFromSemantics: true
-        //    to the underlying Scrollable to remove an unwanted node
-        //    in accessibility focus traversal when there are many items.
-        child: ListView.builder(
-          padding: EdgeInsets.only(
-            // The Figma excludes the 8px top padding, which is unusual with the
-            // shadow effect (our InsetShadowBox). We include it so that the
-            // first item's touch feedback is shadow-free in the item's initial/
-            // scrolled-to-top position.
-            top: 8,
-            bottom: 8,
-          ),
-          itemCount: userIds.length,
-          itemBuilder: (_, index) =>
-            ViewReactionsUserItem(userId: userIds[index]))));
+    Widget result = SliverList.builder(
+      itemCount: userIds.length,
+      itemBuilder: (_, index) => ViewReactionsUserItem(userId: userIds[index]));
 
-    return Semantics(
+    return SliverSemantics(
       identifier: semanticsIdentifier, // See note on `controlsNodes` on the tab.
-      label: zulipLocalizations.seeWhoReactedSheetUserListLabel(emojiName, userIds.length),
+      label: zulipLocalizations.seeWhoReactedSheetUserListLabel(emojiName!, userIds.length),
       role: SemanticsRole.tabPanel,
       container: true,
       explicitChildNodes: true,
-      child: result);
+      sliver: result);
   }
 }
 
