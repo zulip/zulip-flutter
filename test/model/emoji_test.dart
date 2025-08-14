@@ -558,8 +558,10 @@ void main() {
       check(matchOfName('blue dia', 'large_blue_diamond')).wordAligned;
     });
 
-    test('query is lower-cased', () {
+    test('case-insensitive', () {
       check(matchOfName('Smi', 'smile')).prefix;
+      check(matchOfName('smi', 'SMILE')).prefix;
+      check(matchOfName('SmI', 'sMiLe')).prefix;
     });
 
     test('query matches aliases same way as primary name', () {
@@ -577,6 +579,8 @@ void main() {
       check(matchOfNames('blue_dia', ['x', 'large_blue_diamond'])).wordAligned;
 
       check(matchOfNames('Smi', ['x', 'smile'])).prefix;
+      check(matchOfNames('smi', ['x', 'SMILE'])).prefix;
+      check(matchOfNames('SmI', ['x', 'sMiLe'])).prefix;
     });
 
     test('best match among name and aliases prevails', () {

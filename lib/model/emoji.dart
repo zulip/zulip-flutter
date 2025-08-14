@@ -74,10 +74,10 @@ final class EmojiCandidate {
   /// This might not be the only name this emoji has; see [aliases].
   final String emojiName;
 
-  /// [emojiName], but lowercased to support fuzzy matching.
-  // TODO(#1067) also remove diacritics
+  /// [emojiName], but via [AutocompleteQuery.lowercaseAndStripDiacritics]
+  /// to support fuzzy matching.
   String get normalizedEmojiName => _normalizedEmojiName
-    ??= emojiName.toLowerCase();
+    ??= AutocompleteQuery.lowercaseAndStripDiacritics(emojiName);
   String? _normalizedEmojiName;
 
   /// Additional Zulip "emoji name" values for this emoji,
@@ -85,10 +85,10 @@ final class EmojiCandidate {
   Iterable<String> get aliases => _aliases ?? const [];
   final List<String>? _aliases;
 
-  /// [aliases], but lowercased to support fuzzy matching.
-  // TODO(#1067) also remove diacritics
+  /// [aliases], but via [AutocompleteQuery.lowercaseAndStripDiacritics]
+  /// to support fuzzy matching.
   Iterable<String> get normalizedAliases => _normalizedAliases
-    ??= aliases.map((alias) => alias.toLowerCase());
+    ??= aliases.map((alias) => AutocompleteQuery.lowercaseAndStripDiacritics(alias));
   Iterable<String>? _normalizedAliases;
 
   final EmojiDisplay emojiDisplay;
@@ -513,9 +513,8 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
 
   static const _separator = '_';
 
-  static String _adjustQuery(String raw) {
-    return raw.toLowerCase().replaceAll(' ', '_'); // TODO(#1067) remove diacritics too
-  }
+  static String _adjustQuery(String raw) =>
+    AutocompleteQuery.lowercaseAndStripDiacritics(raw.replaceAll(' ', '_'));
 
   @override
   EmojiAutocompleteView initViewModel({
