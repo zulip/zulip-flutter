@@ -1115,6 +1115,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  unorm_dart:
+    dependency: "direct main"
+    description:
+      name: unorm_dart
+      sha256: "8e3870a1caa60bde8352f9597dd3535d8068613269444f8e35ea8925ec84c1f5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.1+1"
   url_launcher:
     dependency: "direct main"
     description:
