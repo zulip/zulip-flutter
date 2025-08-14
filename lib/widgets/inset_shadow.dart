@@ -48,12 +48,6 @@ class InsetShadowBox extends StatelessWidget {
 
   final Widget child;
 
-  BoxDecoration _shadowFrom(AlignmentGeometry begin) {
-    return BoxDecoration(gradient: LinearGradient(
-      begin: begin, end: -begin,
-      colors: [color, color.withValues(alpha: 0)]));
-  }
-
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -63,13 +57,32 @@ class InsetShadowBox extends StatelessWidget {
       children: [
         child,
         if (top != 0) Positioned(top: 0, height: top, left: 0, right: 0,
-          child: DecoratedBox(decoration: _shadowFrom(Alignment.topCenter))),
+          child: DecoratedBox(
+            decoration: fadeToTransparencyDecoration(FadeToTransparencyDirection.down, color))),
         if (bottom != 0) Positioned(bottom: 0, height: bottom, left: 0, right: 0,
-          child: DecoratedBox(decoration: _shadowFrom(Alignment.bottomCenter))),
+          child: DecoratedBox(
+            decoration: fadeToTransparencyDecoration(FadeToTransparencyDirection.up, color))),
         if (start != 0) PositionedDirectional(start: 0, width: start, top: 0, bottom: 0,
-          child: DecoratedBox(decoration: _shadowFrom(AlignmentDirectional.centerStart))),
+          child: DecoratedBox(
+            decoration: fadeToTransparencyDecoration(FadeToTransparencyDirection.end, color))),
         if (end != 0) PositionedDirectional(end: 0, width: end, top: 0, bottom: 0,
-          child: DecoratedBox(decoration: _shadowFrom(AlignmentDirectional.centerEnd))),
+          child: DecoratedBox(
+            decoration: fadeToTransparencyDecoration(FadeToTransparencyDirection.start, color))),
       ]);
   }
+}
+
+enum FadeToTransparencyDirection { down, up, end, start }
+
+BoxDecoration fadeToTransparencyDecoration(FadeToTransparencyDirection direction, Color color) {
+  final begin = switch (direction) {
+    FadeToTransparencyDirection.down => Alignment.topCenter,
+    FadeToTransparencyDirection.up => Alignment.bottomCenter,
+    FadeToTransparencyDirection.end => AlignmentDirectional.centerStart,
+    FadeToTransparencyDirection.start => AlignmentDirectional.centerEnd,
+  };
+
+  return BoxDecoration(gradient: LinearGradient(
+    begin: begin, end: -begin,
+    colors: [color, color.withValues(alpha: 0)]));
 }
