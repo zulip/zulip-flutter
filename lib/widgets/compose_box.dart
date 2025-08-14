@@ -1024,11 +1024,10 @@ abstract class _AttachUploadsButton extends StatelessWidget {
       return;
     }
 
-    await _uploadFiles(
+    await controller.uploadFiles(
       context: context,
-      contentController: controller.content,
-      contentFocusNode: controller.contentFocusNode,
-      files: files);
+      files: files,
+      shouldRequestFocus: true);
   }
 
   @override
