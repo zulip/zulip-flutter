@@ -27,9 +27,6 @@ import 'autocomplete_checks.dart';
 typedef MarkedTextParse = ({int? expectedSyntaxStart, TextEditingValue value});
 
 final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-final zulipLocalizationsArabic =
-  lookupZulipLocalizations(ZulipLocalizations.supportedLocales
-    .firstWhere((locale) => locale.languageCode == 'ar'));
 
 void main() {
   ({int? expectedSyntaxStart, TextEditingValue value}) parseMarkedText(String markedText) {
@@ -922,25 +919,28 @@ void main() {
       });
     }
 
-    final localizedTestCases = [
-      ('ال',        channelNarrow, [WildcardMentionOption.all, WildcardMentionOption.topic]),
-      ('الجميع',    topicNarrow,   [WildcardMentionOption.all]),
-      ('الموضوع',   channelNarrow, [WildcardMentionOption.topic]),
-      ('ق',         topicNarrow,   [WildcardMentionOption.channel]),
-      ('دفق',       channelNarrow, [WildcardMentionOption.stream]),
-      ('الكل',      dmNarrow,      [WildcardMentionOption.everyone]),
+    WildcardTester wildcardTesterForLocale(bool Function(Locale) localePredicate) {
+      final locale = ZulipLocalizations.supportedLocales.firstWhere(localePredicate);
+      final localizations = lookupZulipLocalizations(locale);
 
-      ('top',       channelNarrow, [WildcardMentionOption.topic]),
-      ('channel',   topicNarrow,   [WildcardMentionOption.channel]),
-      ('every',     dmNarrow,      [WildcardMentionOption.everyone]),
-    ];
-
-    for (final (String localizedQuery, Narrow narrow, List<WildcardMentionOption> wildcardOptions) in localizedTestCases) {
-      test('different locale -> query "$localizedQuery" in ${narrow.runtimeType} -> $wildcardOptions', () async {
-        check(getWildcardOptionsFor(localizedQuery, narrow: narrow,
-          localizations: zulipLocalizationsArabic)).deepEquals(wildcardOptions);
-      });
+      return (String query, Narrow narrow, List<WildcardMentionOption> expected) {
+        test('locale "$locale" -> query "$query" in ${narrow.runtimeType} -> $expected', () {
+          check(getWildcardOptionsFor(query, narrow: narrow,
+            localizations: localizations)).deepEquals(expected);
+        });
+      };
     }
+
+    final testArabic = wildcardTesterForLocale((locale) => locale.languageCode == 'ar');
+    testArabic('ال',        channelNarrow, [WildcardMentionOption.all, WildcardMentionOption.topic]);
+    testArabic('الجميع',    topicNarrow,   [WildcardMentionOption.all]);
+    testArabic('الموضوع',   channelNarrow, [WildcardMentionOption.topic]);
+    testArabic('ق',         topicNarrow,   [WildcardMentionOption.channel]);
+    testArabic('دفق',       channelNarrow, [WildcardMentionOption.stream]);
+    testArabic('الكل',      dmNarrow,      [WildcardMentionOption.everyone]);
+    testArabic('top',       channelNarrow, [WildcardMentionOption.topic]);
+    testArabic('channel',   topicNarrow,   [WildcardMentionOption.channel]);
+    testArabic('every',     dmNarrow,      [WildcardMentionOption.everyone]);
 
     test('no wildcards for a silent mention', () {
       check(getWildcardOptionsFor('', isSilent: true, narrow: channelNarrow))
@@ -1259,3 +1259,5 @@ void main() {
     });
   });
 }
+
+typedef WildcardTester = void Function(String query, Narrow narrow, List<WildcardMentionOption> expected);
