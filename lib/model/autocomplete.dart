@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
 import '../api/model/events.dart';
 import '../api/model/model.dart';
@@ -732,12 +733,12 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
 /// An [AutocompleteQuery] object stores the user's actual query string
 /// as [raw].
 /// It may also store processed forms of the query
-/// (for example, converted to lowercase or split on whitespace)
+/// (for example, normalized by case and diacritics, or split on whitespace)
 /// to prepare for whatever particular form of searching will be done
 /// for the given type of autocomplete interaction.
 abstract class AutocompleteQuery {
   AutocompleteQuery(this.raw) {
-    _normalized = raw.toLowerCase();
+    _normalized = lowercaseAndStripDiacritics(raw);
     // TODO(#1805) split on space characters that the user is actually using
     //   (e.g. U+3000 IDEOGRAPHIC SPACE);
     //   could check active keyboard or just split on all kinds of spaces
@@ -751,15 +752,23 @@ abstract class AutocompleteQuery {
 
   late final List<String> _normalizedWords;
 
+  static final RegExp _regExpStripMarkCharacters = RegExp(r'\p{M}', unicode: true);
+
+  static String lowercaseAndStripDiacritics(String input) {
+    // Anders reports that this is what web does; see discussion:
+    //   https://chat.zulip.org/#narrow/channel/48-mobile/topic/deps.3A.20Add.20new.20package.20to.20handle.20diacritics/near/2244487
+    final lowercase = input.toLowerCase();
+    final compatibilityNormalized = unorm.nfkd(lowercase);
+    return compatibilityNormalized.replaceAll(_regExpStripMarkCharacters, '');
+  }
+
   /// Whether all of this query's words have matches in [words],
-  /// modulo case, that appear in order.
+  /// insensitively to case and diacritics, that appear in order.
   ///
   /// A "match" means the word in [words] starts with the query word.
   ///
-  /// [words] must all be lowercased.
+  /// [words] must all have been passed through [lowercaseAndStripDiacritics].
   bool _testContainsQueryWords(List<String> words) {
-    // TODO(#237) test with diacritics stripped, where appropriate,
-    //   and update dartdoc's summary line and its restriction about [words].
     int wordsIndex = 0;
     int queryWordsIndex = 0;
     while (true) {
@@ -828,10 +837,9 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
 
   WildcardMentionAutocompleteResult? testWildcardOption(WildcardMentionOption wildcardOption, {
       required ZulipLocalizations localizations}) {
-    // TODO(#237): match insensitively to diacritics
     final localized = wildcardOption.localizedCanonicalString(localizations);
     final matches = wildcardOption.canonicalString.contains(_normalized)
-      || localized.toLowerCase().contains(_normalized);
+      || AutocompleteQuery.lowercaseAndStripDiacritics(localized).contains(_normalized);
     if (!matches) return null;
     return WildcardMentionAutocompleteResult(
       wildcardOption: wildcardOption, rank: _rankWildcardResult);
@@ -982,7 +990,8 @@ class AutocompleteDataCache {
 
   /// The normalized `fullName` of [user].
   String normalizedNameForUser(User user) {
-    return _normalizedNamesByUser[user.userId] ??= user.fullName.toLowerCase();
+    return _normalizedNamesByUser[user.userId]
+      ??= AutocompleteQuery.lowercaseAndStripDiacritics(user.fullName);
   }
 
   final Map<int, List<String>> _normalizedNameWordsByUser = {};
@@ -996,14 +1005,18 @@ class AutocompleteDataCache {
 
   /// The normalized `deliveryEmail` of [user], or null if that's null.
   String? normalizedEmailForUser(User user) {
-    return _normalizedEmailsByUser[user.userId] ??= user.deliveryEmail?.toLowerCase();
+    return _normalizedEmailsByUser[user.userId]
+      ??= (user.deliveryEmail != null
+            ? AutocompleteQuery.lowercaseAndStripDiacritics(user.deliveryEmail!)
+            : null);
   }
 
   final Map<int, String> _normalizedNamesByUserGroup = {};
 
   /// The normalized `name` of [userGroup].
   String normalizedNameForUserGroup(UserGroup userGroup) {
-    return _normalizedNamesByUserGroup[userGroup.id] ??= userGroup.name.toLowerCase();
+    return _normalizedNamesByUserGroup[userGroup.id]
+      ??= AutocompleteQuery.lowercaseAndStripDiacritics(userGroup.name);
   }
 
   final Map<int, List<String>> _normalizedNameWordsByUserGroup = {};
@@ -1203,11 +1216,11 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
     // TODO(#881): Sort by match relevance, like web does.
 
     if (topic.displayName == null) {
-      return store.realmEmptyTopicDisplayName.toLowerCase()
+      return AutocompleteQuery.lowercaseAndStripDiacritics(store.realmEmptyTopicDisplayName)
         .contains(_normalized);
     }
     return topic.displayName != raw
-      && topic.displayName!.toLowerCase().contains(_normalized);
+      && AutocompleteQuery.lowercaseAndStripDiacritics(topic.displayName!).contains(_normalized);
   }
 
   @override

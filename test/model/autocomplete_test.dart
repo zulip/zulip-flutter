@@ -932,9 +932,11 @@ void main() {
     }
 
     for (final option in WildcardMentionOption.values) {
-      // These are hard-coded, and they happened to be lowercase when written.
+      // These are hard-coded, and they happened to be lowercase and without
+      // diacritics when written.
       // Throw if that changes, to not accidentally break fuzzy matching.
-      check(option.canonicalString).equals(option.canonicalString.toLowerCase());
+      check(option.canonicalString).equals(
+        AutocompleteQuery.lowercaseAndStripDiacritics(option.canonicalString));
     }
 
     final testArabic = wildcardTesterForLocale((locale) => locale.languageCode == 'ar');
@@ -955,6 +957,10 @@ void main() {
     final testGerman = wildcardTesterForLocale((locale) => locale.languageCode == 'de');
     testGerman('Thema',     topicNarrow,   [WildcardMentionOption.topic]);
     testGerman('thema',     topicNarrow,   [WildcardMentionOption.topic]);
+
+    final testPolish = wildcardTesterForLocale((locale) => locale.languageCode == 'pl');
+    testPolish('wątek',     topicNarrow,   [WildcardMentionOption.topic]);
+    testPolish('watek',     topicNarrow,   [WildcardMentionOption.topic]);
 
     test('no wildcards for a silent mention', () {
       check(getWildcardOptionsFor('', isSilent: true, narrow: channelNarrow))
@@ -1075,6 +1081,14 @@ void main() {
       check(rankOf(query, a)!).equals(rankOf(query, b)!);
     }
 
+    void checkAllSameRank(String query, Iterable<Object> candidates) {
+      // (i.e. throw here if it's not a match)
+      final firstCandidateRank = rankOf(query, candidates.first)!;
+
+      final ranks = candidates.skip(1).map((candidate) => rankOf(query, candidate));
+      check(ranks).every((it) => it.equals(firstCandidateRank));
+    }
+
     test('wildcards, then users', () {
       checkSameRank('', WildcardMentionOption.all, WildcardMentionOption.topic);
       checkPrecedes('', WildcardMentionOption.topic, eg.user());
@@ -1087,13 +1101,28 @@ void main() {
       checkPrecedes(user.fullName, WildcardMentionOption.channel, user);
     });
 
-    test('user name matched case-insensitively', () {
-      final user1 = eg.user(fullName: 'Chris Bobbe');
-      final user2 = eg.user(fullName: 'chris bobbe');
+    test('user name match is case- and diacritics-insensitive', () {
+      final users = [
+        eg.user(fullName: 'Édith Piaf'),
+        eg.user(fullName: 'édith piaf'),
+        eg.user(fullName: 'Edith Piaf'),
+        eg.user(fullName: 'edith piaf'),
+      ];
 
-      checkSameRank('chris bobbe', user1, user2); // exact
-      checkSameRank('chris bo',    user1, user2); // total-prefix
-      checkSameRank('chr bo',      user1, user2); // word-prefixes
+      checkAllSameRank('Édith Piaf', users); // exact
+      checkAllSameRank('Edith Piaf', users); // exact
+      checkAllSameRank('édith piaf', users); // exact
+      checkAllSameRank('edith piaf', users); // exact
+
+      checkAllSameRank('Édith Pi',   users); // total-prefix
+      checkAllSameRank('Edith Pi',   users); // total-prefix
+      checkAllSameRank('édith pi',   users); // total-prefix
+      checkAllSameRank('edith pi',   users); // total-prefix
+
+      checkAllSameRank('Éd Pi',      users); // word-prefixes
+      checkAllSameRank('Ed Pi',      users); // word-prefixes
+      checkAllSameRank('éd pi',      users); // word-prefixes
+      checkAllSameRank('ed pi',      users); // word-prefixes
     });
 
     test('user name match: exact over total-prefix', () {
@@ -1110,13 +1139,16 @@ void main() {
       checkPrecedes('so m', user1, user2);
     });
 
-    test('group name matched case-insensitively', () {
-      final userGroup1 = eg.userGroup(name: 'Mobile Team');
-      final userGroup2 = eg.userGroup(name: 'mobile team');
+    test('group name is case- and diacritics-insensitive', () {
+      final userGroups = [
+        eg.userGroup(name: 'Mobile Team'),
+        eg.userGroup(name: 'mobile team'),
+        eg.userGroup(name: 'möbile team'),
+      ];
 
-      checkSameRank('mobile team', userGroup1, userGroup2); // exact
-      checkSameRank('mobile te',   userGroup1, userGroup2); // total-prefix
-      checkSameRank('mob te',      userGroup1, userGroup2); // word-prefixes
+      checkAllSameRank('mobile team', userGroups); // exact
+      checkAllSameRank('mobile te',   userGroups); // total-prefix
+      checkAllSameRank('mob te',      userGroups); // word-prefixes
     });
 
     test('group name match: exact over total-prefix', () {
@@ -1133,16 +1165,19 @@ void main() {
       checkPrecedes('so m', userGroup1, userGroup2);
     });
 
-    test('email matched case-insensitively', () {
+    test('email match is case- and diacritics-insensitive', () {
       // "z" name to prevent accidental name match with example data
-      final user1 = eg.user(fullName: 'z', deliveryEmail: 'email@example.com');
-      final user2 = eg.user(fullName: 'z', deliveryEmail: 'EmAiL@ExAmPlE.com');
+      final users = [
+        eg.user(fullName: 'z', deliveryEmail: 'email@example.com'),
+        eg.user(fullName: 'z', deliveryEmail: 'EmAiL@ExAmPlE.com'),
+        eg.user(fullName: 'z', deliveryEmail: 'ēmail@example.com'),
+      ];
 
-      checkSameRank('email@example.com', user1, user2);
-      checkSameRank('email@e',           user1, user2);
-      checkSameRank('email@',            user1, user2);
-      checkSameRank('email',             user1, user2);
-      checkSameRank('ema',               user1, user2);
+      checkAllSameRank('email@example.com', users);
+      checkAllSameRank('email@e',           users);
+      checkAllSameRank('email@',            users);
+      checkAllSameRank('email',             users);
+      checkAllSameRank('ema',               users);
     });
 
     test('email match is by prefix only', () {
