@@ -738,6 +738,9 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
 abstract class AutocompleteQuery {
   AutocompleteQuery(this.raw) {
     _lowercase = raw.toLowerCase();
+    // TODO(#1805) split on space characters that the user is actually using
+    //   (e.g. U+3000 IDEOGRAPHIC SPACE);
+    //   could check active keyboard or just split on all kinds of spaces
     _lowercaseWords = _lowercase.split(' ');
   }
 
@@ -970,6 +973,9 @@ extension WildcardMentionOptionExtension on WildcardMentionOption {
 /// but kept around in between autocomplete interactions.
 ///
 /// An instance of this class is managed by [AutocompleteViewManager].
+// TODO(#1805) when splitting words, split on space characters that are likely
+//   to be used (e.g. U+3000 IDEOGRAPHIC SPACE);
+//   could check server language or just split on all kinds of spaces
 class AutocompleteDataCache {
   final Map<int, String> _normalizedNamesByUser = {};
 
