@@ -1030,6 +1030,7 @@ class ViewReactionsUserList extends StatelessWidget {
       label: zulipLocalizations.seeWhoReactedSheetUserListLabel(emojiName, userIds.length),
       role: SemanticsRole.tabPanel,
       container: true,
+      explicitChildNodes: true,
       child: result);
   }
 }
