@@ -47,7 +47,13 @@ class ZulipVersionData {
   }
 
   final String zulipVersion;
+
+  // The `zulip_merge_base` field was added in server-5, feature level 88.
+  // We leave it nullable on this class because if a user attempts to connect
+  // to an ancient Zulip server missing this field, we still want to capture
+  // the rest of the version data for use in the error message.
   final String? zulipMergeBase;
+
   final int zulipFeatureLevel;
 
   bool matchesAccount(Account account) =>
