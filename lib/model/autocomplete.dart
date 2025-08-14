@@ -829,8 +829,9 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
   WildcardMentionAutocompleteResult? testWildcardOption(WildcardMentionOption wildcardOption, {
       required ZulipLocalizations localizations}) {
     // TODO(#237): match insensitively to diacritics
+    final localized = wildcardOption.localizedCanonicalString(localizations);
     final matches = wildcardOption.canonicalString.contains(_lowercase)
-      || wildcardOption.localizedCanonicalString(localizations).contains(_lowercase);
+      || localized.toLowerCase().contains(_lowercase);
     if (!matches) return null;
     return WildcardMentionAutocompleteResult(
       wildcardOption: wildcardOption, rank: _rankWildcardResult);

@@ -931,6 +931,12 @@ void main() {
       };
     }
 
+    for (final option in WildcardMentionOption.values) {
+      // These are hard-coded, and they happened to be lowercase when written.
+      // Throw if that changes, to not accidentally break fuzzy matching.
+      check(option.canonicalString).equals(option.canonicalString.toLowerCase());
+    }
+
     final testArabic = wildcardTesterForLocale((locale) => locale.languageCode == 'ar');
     testArabic('ال',        channelNarrow, [WildcardMentionOption.all, WildcardMentionOption.topic]);
     testArabic('الجميع',    topicNarrow,   [WildcardMentionOption.all]);
@@ -941,6 +947,14 @@ void main() {
     testArabic('top',       channelNarrow, [WildcardMentionOption.topic]);
     testArabic('channel',   topicNarrow,   [WildcardMentionOption.channel]);
     testArabic('every',     dmNarrow,      [WildcardMentionOption.everyone]);
+
+    final testEnglish = wildcardTesterForLocale((locale) => locale.languageCode == 'en');
+    testEnglish('topic',     topicNarrow,   [WildcardMentionOption.topic]);
+    testEnglish('Topic',     topicNarrow,   [WildcardMentionOption.topic]);
+
+    final testGerman = wildcardTesterForLocale((locale) => locale.languageCode == 'de');
+    testGerman('Thema',     topicNarrow,   [WildcardMentionOption.topic]);
+    testGerman('thema',     topicNarrow,   [WildcardMentionOption.topic]);
 
     test('no wildcards for a silent mention', () {
       check(getWildcardOptionsFor('', isSilent: true, narrow: channelNarrow))
