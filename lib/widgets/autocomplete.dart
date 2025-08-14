@@ -178,8 +178,8 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
   @override
   ComposeAutocompleteView initViewModel(BuildContext context, ComposeAutocompleteQuery query) {
     final store = PerAccountStoreWidget.of(context);
-    final localizations = ZulipLocalizations.of(context);
-    return query.initViewModel(store: store, localizations: localizations,
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return query.initViewModel(store: store, localizations: zulipLocalizations,
       narrow: narrow);
   }
 
@@ -273,18 +273,18 @@ class MentionAutocompleteItem extends StatelessWidget {
   }) {
     final isDmNarrow = narrow is DmNarrow;
     final isChannelWildcardAvailable = store.zulipFeatureLevel >= 247; // TODO(server-9)
-    final localizations = ZulipLocalizations.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     return switch (wildcardOption) {
       WildcardMentionOption.all || WildcardMentionOption.everyone => isDmNarrow
-        ? localizations.wildcardMentionAllDmDescription
+        ? zulipLocalizations.wildcardMentionAllDmDescription
         : isChannelWildcardAvailable
-            ? localizations.wildcardMentionChannelDescription
-            : localizations.wildcardMentionStreamDescription,
-      WildcardMentionOption.channel => localizations.wildcardMentionChannelDescription,
+            ? zulipLocalizations.wildcardMentionChannelDescription
+            : zulipLocalizations.wildcardMentionStreamDescription,
+      WildcardMentionOption.channel => zulipLocalizations.wildcardMentionChannelDescription,
       WildcardMentionOption.stream => isChannelWildcardAvailable
-        ? localizations.wildcardMentionChannelDescription
-        : localizations.wildcardMentionStreamDescription,
-      WildcardMentionOption.topic => localizations.wildcardMentionTopicDescription,
+        ? zulipLocalizations.wildcardMentionChannelDescription
+        : zulipLocalizations.wildcardMentionStreamDescription,
+      WildcardMentionOption.topic => zulipLocalizations.wildcardMentionTopicDescription,
     };
   }
 

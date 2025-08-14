@@ -84,16 +84,16 @@ class _SetStatusPageState extends State<SetStatusPage> {
 
   List<UserStatus> statusSuggestions(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final localizations = ZulipLocalizations.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     final values = [
-      ('1f6e0', localizations.userStatusBusy),
-      ('1f4c5', localizations.userStatusInAMeeting),
-      ('1f68c', localizations.userStatusCommuting),
-      ('1f912', localizations.userStatusOutSick),
-      ('1f334', localizations.userStatusVacationing),
-      ('1f3e0', localizations.userStatusWorkingRemotely),
-      ('1f3e2', localizations.userStatusAtTheOffice),
+      ('1f6e0', zulipLocalizations.userStatusBusy),
+      ('1f4c5', zulipLocalizations.userStatusInAMeeting),
+      ('1f68c', zulipLocalizations.userStatusCommuting),
+      ('1f912', zulipLocalizations.userStatusOutSick),
+      ('1f334', zulipLocalizations.userStatusVacationing),
+      ('1f3e0', zulipLocalizations.userStatusWorkingRemotely),
+      ('1f3e2', zulipLocalizations.userStatusAtTheOffice),
     ];
     return [
       for (final (emojiCode, statusText) in values)
@@ -114,7 +114,7 @@ class _SetStatusPageState extends State<SetStatusPage> {
 
   Future<void> handleStatusSave() async {
     final store = PerAccountStoreWidget.of(context);
-    final localizations = ZulipLocalizations.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     Navigator.pop(context);
     if (newStatus == oldStatus) return;
@@ -122,7 +122,7 @@ class _SetStatusPageState extends State<SetStatusPage> {
     try {
       await updateStatus(store.connection, change: statusChange.value);
     } catch (e) {
-      reportErrorToUserBriefly(localizations.updateStatusErrorTitle);
+      reportErrorToUserBriefly(zulipLocalizations.updateStatusErrorTitle);
     }
   }
 
@@ -151,18 +151,18 @@ class _SetStatusPageState extends State<SetStatusPage> {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-    final localizations = ZulipLocalizations.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     final suggestions = statusSuggestions(context);
 
     return Scaffold(
-      appBar: ZulipAppBar(title: Text(localizations.setStatusPageTitle),
+      appBar: ZulipAppBar(title: Text(zulipLocalizations.setStatusPageTitle),
         actions: [
           ValueListenableBuilder(
             valueListenable: statusChange,
             builder: (_, _, _) {
               return _ActionButton(
-                label: localizations.statusClearButtonLabel,
+                label: zulipLocalizations.statusClearButtonLabel,
                 icon: ZulipIcons.remove,
                 onPressed: newStatus == UserStatus.zero
                   ? null
@@ -173,7 +173,7 @@ class _SetStatusPageState extends State<SetStatusPage> {
             valueListenable: statusChange,
             builder: (_, change, _) {
               return _ActionButton(
-                label: localizations.statusSaveButtonLabel,
+                label: zulipLocalizations.statusSaveButtonLabel,
                 icon: ZulipIcons.check,
                 onPressed: switch ((change.text, change.emoji)) {
                   (OptionNone(), OptionNone()) => null,
@@ -233,7 +233,7 @@ class _SetStatusPageState extends State<SetStatusPage> {
                     // TODO: display a counter as suggested in CZO discussion:
                     //   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/Set.20user.20status/near/2224549
                     counterText: '',
-                    hintText: localizations.statusTextHint,
+                    hintText: zulipLocalizations.statusTextHint,
                     hintStyle: TextStyle(color: designVariables.labelSearchPrompt),
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(

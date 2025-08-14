@@ -504,11 +504,11 @@ class CopyChannelLinkButton extends ActionSheetMenuItemButton {
 
   @override
   void onPressed() async {
-    final localizations = ZulipLocalizations.of(pageContext);
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
     final store = PerAccountStoreWidget.of(pageContext);
 
     PlatformActions.copyWithPopup(context: pageContext,
-      successContent: Text(localizations.successChannelLinkCopied),
+      successContent: Text(zulipLocalizations.successChannelLinkCopied),
       data: ClipboardData(text: narrowLink(store, ChannelNarrow(channelId)).toString()));
   }
 }
@@ -915,11 +915,11 @@ class CopyTopicLinkButton extends ActionSheetMenuItemButton {
   }
 
   @override void onPressed() async {
-    final localizations = ZulipLocalizations.of(pageContext);
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
     final store = PerAccountStoreWidget.of(pageContext);
 
     PlatformActions.copyWithPopup(context: pageContext,
-      successContent: Text(localizations.successTopicLinkCopied),
+      successContent: Text(zulipLocalizations.successTopicLinkCopied),
       data: ClipboardData(text: narrowLink(store, narrow).toString()));
   }
 }

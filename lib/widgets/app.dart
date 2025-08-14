@@ -112,7 +112,7 @@ class ZulipApp extends StatefulWidget {
       return;
     }
 
-    final localizations = ZulipLocalizations.of(navigatorKey.currentContext!);
+    final zulipLocalizations = ZulipLocalizations.of(navigatorKey.currentContext!);
     final newSnackBar = scaffoldMessenger!.showSnackBar(
       snackBarAnimationStyle: AnimationStyle(
         duration: const Duration(milliseconds: 200),
@@ -120,9 +120,9 @@ class ZulipApp extends StatefulWidget {
       SnackBar(
         content: Text(message),
         action: (details == null) ? null : SnackBarAction(
-          label: localizations.snackBarDetails,
+          label: zulipLocalizations.snackBarDetails,
           onPressed: () => showErrorDialog(context: navigatorKey.currentContext!,
-            title: localizations.errorDialogTitle,
+            title: zulipLocalizations.errorDialogTitle,
             message: details))));
 
     _snackBarCount++;

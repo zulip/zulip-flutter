@@ -446,13 +446,13 @@ void main() {
   });
 
   group('user status', () {
-    final localizations = GlobalLocalizations.zulipLocalizations;
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
     Finder findStatusButton({required bool statusSet}) {
       return find.widgetWithText(ZulipMenuItemButton,
         statusSet
-          ? localizations.statusButtonLabelStatusSet
-          : localizations.statusButtonLabelStatusUnset);
+          ? zulipLocalizations.statusButtonLabelStatusSet
+          : zulipLocalizations.statusButtonLabelStatusUnset);
     }
 
     testWidgets('non-self profile, status set: no status button, status info appears', (tester) async {
@@ -514,7 +514,7 @@ void main() {
 
         final statusButtonFinder = findStatusButton(statusSet: true);
         final textPlaceholderFinder = findText(
-          includePlaceholders: false, localizations.noStatusText);
+          includePlaceholders: false, zulipLocalizations.noStatusText);
 
         check(statusButtonFinder).findsOne();
         check(textPlaceholderFinder).findsOne();
