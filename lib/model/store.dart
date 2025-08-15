@@ -482,7 +482,9 @@ class PerAccountStore extends PerAccountStoreBase with
       selfUserId: account.userId,
     );
     final realm = RealmStoreImpl(core: core, initialSnapshot: initialSnapshot);
-    final users = UserStoreImpl(realm: realm, initialSnapshot: initialSnapshot);
+    final userMap = UserStoreImpl.userMapFromInitialSnapshot(initialSnapshot);
+    final users = UserStoreImpl(realm: realm, initialSnapshot: initialSnapshot,
+      userMap: userMap);
     final channels = ChannelStoreImpl(users: users,
       initialSnapshot: initialSnapshot);
     return PerAccountStore._(

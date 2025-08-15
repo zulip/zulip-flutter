@@ -196,17 +196,26 @@ abstract class HasUserStore extends HasRealmStore with UserStore, ProxyUserStore
 /// itself.  Other code accesses this functionality through [PerAccountStore],
 /// or through the mixin [UserStore] which describes its interface.
 class UserStoreImpl extends HasRealmStore with UserStore {
+  /// Construct an implementation of [UserStore] that does the work itself.
+  ///
+  /// The `userMap` parameter should be the result of
+  /// [UserStoreImpl.userMapFromInitialSnapshot] applied to `initialSnapshot`.
   UserStoreImpl({
     required super.realm,
     required InitialSnapshot initialSnapshot,
-  }) : _users = Map.fromEntries(
-         initialSnapshot.realmUsers
-         .followedBy(initialSnapshot.realmNonActiveUsers)
-         .followedBy(initialSnapshot.crossRealmBots)
-         .map((user) => MapEntry(user.userId, user))),
+    required Map<int, User> userMap,
+  }) : _users = userMap,
        _mutedUsers = Set.from(initialSnapshot.mutedUsers.map((item) => item.id)),
        _userStatuses = initialSnapshot.userStatuses.map((userId, change) =>
          MapEntry(userId, change.apply(UserStatus.zero)));
+
+  static Map<int, User> userMapFromInitialSnapshot(InitialSnapshot initialSnapshot) {
+    return Map.fromEntries(
+      initialSnapshot.realmUsers
+      .followedBy(initialSnapshot.realmNonActiveUsers)
+      .followedBy(initialSnapshot.crossRealmBots)
+      .map((user) => MapEntry(user.userId, user)));
+  }
 
   final Map<int, User> _users;
 
