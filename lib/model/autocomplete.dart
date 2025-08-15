@@ -1203,10 +1203,10 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
 
     if (topic.displayName == null) {
       return store.realmEmptyTopicDisplayName.toLowerCase()
-        .contains(raw.toLowerCase());
+        .contains(_lowercase);
     }
     return topic.displayName != raw
-      && topic.displayName!.toLowerCase().contains(raw.toLowerCase());
+      && topic.displayName!.toLowerCase().contains(_lowercase);
   }
 
   @override
