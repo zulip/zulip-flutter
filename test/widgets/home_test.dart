@@ -333,7 +333,8 @@ void main () {
       pushedRoutes = [];
       lastPoppedRoute = null;
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot());
+      await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot(
+        realmUsers: [eg.otherUser]));
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
       await tester.pump(Duration.zero); // wait for the loading page
       checkOnLoadingPage();
@@ -445,7 +446,8 @@ void main () {
     testWidgets('while loading, go to nested levels of ChooseAccountPage', (tester) async {
       testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
       final thirdAccount = eg.account(user: eg.thirdUser);
-      await testBinding.globalStore.add(thirdAccount, eg.initialSnapshot());
+      await testBinding.globalStore.add(thirdAccount, eg.initialSnapshot(
+        realmUsers: [eg.thirdUser]));
       await prepare(tester);
 
       await tester.pump(kTryAnotherAccountWaitPeriod);

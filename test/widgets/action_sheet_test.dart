@@ -77,6 +77,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   await testBinding.globalStore.add(
     selfAccount,
     eg.initialSnapshot(
+      realmUsers: [selfUser],
       realmAllowMessageEditing: realmAllowMessageEditing,
       realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
       realmEnableReadReceipts: realmEnableReadReceipts,

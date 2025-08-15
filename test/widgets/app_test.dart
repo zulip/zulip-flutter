@@ -281,7 +281,8 @@ void main() {
     testWidgets('choosing an account clears the navigator stack', (tester) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot());
+      await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot(
+        realmUsers: [eg.otherUser]));
 
       final pushedRoutes = <Route<void>>[];
       final poppedRoutes = <Route<void>>[];

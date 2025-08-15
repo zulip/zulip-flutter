@@ -47,7 +47,7 @@ void main() {
     final store1 = PerAccountStore.fromInitialSnapshot(
       globalStore: globalStore,
       accountId: 1,
-      initialSnapshot: eg.initialSnapshot(),
+      initialSnapshot: eg.initialSnapshot(realmUsers: [eg.selfUser]),
     );
     completers(1).single.complete(store1);
     check(await future1).identicalTo(store1);
@@ -58,7 +58,7 @@ void main() {
     final store2 = PerAccountStore.fromInitialSnapshot(
       globalStore: globalStore,
       accountId: 2,
-      initialSnapshot: eg.initialSnapshot(),
+      initialSnapshot: eg.initialSnapshot(realmUsers: [eg.otherUser]),
     );
     completers(2).single.complete(store2);
     check(await future2).identicalTo(store2);
@@ -85,12 +85,12 @@ void main() {
     final store1 = PerAccountStore.fromInitialSnapshot(
       globalStore: globalStore,
       accountId: 1,
-      initialSnapshot: eg.initialSnapshot(),
+      initialSnapshot: eg.initialSnapshot(realmUsers: [eg.selfUser]),
     );
     final store2 = PerAccountStore.fromInitialSnapshot(
       globalStore: globalStore,
       accountId: 2,
-      initialSnapshot: eg.initialSnapshot(),
+      initialSnapshot: eg.initialSnapshot(realmUsers: [eg.otherUser]),
     );
     completers(1).single.complete(store1);
     completers(2).single.complete(store2);
