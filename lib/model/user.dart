@@ -207,7 +207,10 @@ class UserStoreImpl extends HasRealmStore with UserStore {
   }) : _users = userMap,
        _mutedUsers = Set.from(initialSnapshot.mutedUsers.map((item) => item.id)),
        _userStatuses = initialSnapshot.userStatuses.map((userId, change) =>
-         MapEntry(userId, change.apply(UserStatus.zero)));
+         MapEntry(userId, change.apply(UserStatus.zero))) {
+    // Verify that [selfUser] will work.
+    assert(_users.containsKey(selfUserId));
+  }
 
   static Map<int, User> userMapFromInitialSnapshot(InitialSnapshot initialSnapshot) {
     return Map.fromEntries(
