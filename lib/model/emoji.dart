@@ -74,10 +74,22 @@ final class EmojiCandidate {
   /// This might not be the only name this emoji has; see [aliases].
   final String emojiName;
 
+  /// [emojiName], but lowercased to support fuzzy matching.
+  // TODO(#1067) also remove diacritics
+  String get normalizedEmojiName => _normalizedEmojiName
+    ??= emojiName.toLowerCase();
+  String? _normalizedEmojiName;
+
   /// Additional Zulip "emoji name" values for this emoji,
   /// to show in the emoji picker UI.
   Iterable<String> get aliases => _aliases ?? const [];
   final List<String>? _aliases;
+
+  /// [aliases], but lowercased to support fuzzy matching.
+  // TODO(#1067) also remove diacritics
+  Iterable<String> get normalizedAliases => _normalizedAliases
+    ??= aliases.map((alias) => alias.toLowerCase());
+  Iterable<String>? _normalizedAliases;
 
   final EmojiDisplay emojiDisplay;
 
@@ -533,29 +545,28 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
       }
     }
 
-    EmojiMatchQuality? result = _matchName(candidate.emojiName);
-    for (final alias in candidate.aliases) {
+    EmojiMatchQuality? result = _matchName(candidate.normalizedEmojiName);
+    for (final normalizedAlias in candidate.normalizedAliases) {
       if (result == EmojiMatchQuality.best) return result;
-      result = EmojiMatchQuality.bestOf(result, _matchName(alias));
+      result = EmojiMatchQuality.bestOf(result, _matchName(normalizedAlias));
     }
     return result;
   }
 
-  EmojiMatchQuality? _matchName(String emojiName) {
+  EmojiMatchQuality? _matchName(String normalizedName) {
     // Compare query_matches_string_in_order in Zulip web:shared/src/typeahead.ts
     // for a Boolean version of this logic (match vs. no match),
     // and triage_raw in the same file web:shared/src/typeahead.ts
     // for the finer distinctions.
     // See also commentary in [_rankResult].
 
-    // TODO(#1067) this assumes emojiName is already lower-case (and no diacritics)
-    if (emojiName == _adjusted)           return EmojiMatchQuality.exact;
-    if (emojiName.startsWith(_adjusted))  return EmojiMatchQuality.prefix;
-    if (emojiName.contains(_sepAdjusted)) return EmojiMatchQuality.wordAligned;
+    if (normalizedName == _adjusted)           return EmojiMatchQuality.exact;
+    if (normalizedName.startsWith(_adjusted))  return EmojiMatchQuality.prefix;
+    if (normalizedName.contains(_sepAdjusted)) return EmojiMatchQuality.wordAligned;
     if (!_adjusted.contains(_separator)) {
       // If the query is a single token (doesn't contain a separator),
       // allow a match anywhere in the string, too.
-      if (emojiName.contains(_adjusted))  return EmojiMatchQuality.other;
+      if (normalizedName.contains(_adjusted))  return EmojiMatchQuality.other;
     } else {
       // Otherwise, require at least a word-aligned match.
     }
