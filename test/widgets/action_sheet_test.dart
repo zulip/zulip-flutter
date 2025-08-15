@@ -278,7 +278,6 @@ void main() {
       void checkButtons() {
         check(actionSheetFinder).findsOne();
         checkButton('Mark channel as read');
-        checkButton('List of topics');
         checkButton('Copy link to channel');
       }
 
@@ -414,17 +413,25 @@ void main() {
       });
     });
 
-    testWidgets('TopicListButton', (tester) async {
-      await prepare();
-      await showFromMsglistAppBar(tester,
-        narrow: ChannelNarrow(someChannel.streamId));
+    group('TopicListButton', () {
+      testWidgets('not visible from app bar on topic list', (tester) async {
+        await prepare();
+        await showFromTopicListAppBar(tester);
+        checkNoButton('List of topics');
+      });
 
-      connection.prepare(json: GetStreamTopicsResult(topics: [
-        eg.getStreamTopicsEntry(name: 'some topic foo'),
-      ]).toJson());
-      await tester.tap(findButtonForLabel('List of topics'));
-      await tester.pumpAndSettle();
-      check(find.text('some topic foo')).findsOne();
+      testWidgets('happy path from msglist app bar', (tester) async {
+        await prepare();
+        await showFromMsglistAppBar(tester,
+          narrow: ChannelNarrow(someChannel.streamId));
+
+        connection.prepare(json: GetStreamTopicsResult(topics: [
+          eg.getStreamTopicsEntry(name: 'some topic foo'),
+        ]).toJson());
+        await tester.tap(findButtonForLabel('List of topics'));
+        await tester.pumpAndSettle();
+        check(find.text('some topic foo')).findsOne();
+      });
     });
 
     group('ChannelFeedButton', () {
