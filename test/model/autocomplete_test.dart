@@ -440,12 +440,17 @@ void main() {
     late PerAccountStore store;
 
     Future<void> prepare({
+      User? selfUser,
       List<User> users = const [],
       List<UserGroup> userGroups = const [],
       List<RecentDmConversation> dmConversations = const [],
       List<Message> messages = const [],
     }) async {
-      store = eg.store(initialSnapshot: eg.initialSnapshot(
+      selfUser ??= eg.selfUser;
+      if (!users.contains(selfUser)) {
+        users = [...users, selfUser];
+      }
+      store = eg.store(selfUser: selfUser, initialSnapshot: eg.initialSnapshot(
         realmUsers: users,
         recentPrivateConversations: dmConversations));
       await store.addUserGroups(userGroups);
@@ -817,6 +822,7 @@ void main() {
         eg.user(userId: 6, fullName: 'User Six', isBot: true),
         eg.user(userId: 7, fullName: 'User Seven'),
       ];
+      final selfUser = users.last;
 
       final userGroups = [
         eg.userGroup(id: 1, name: 'User Group One'),
@@ -825,13 +831,14 @@ void main() {
         eg.userGroup(id: 4, name: 'User Group Four'),
       ];
 
-      await prepare(users: users, userGroups: userGroups, messages: [
-        eg.streamMessage(sender: users[1-1], stream: stream, topic: topic),
-        eg.streamMessage(sender: users[5-1], stream: stream, topic: 'other $topic'),
-        eg.dmMessage(from: users[1-1], to: [users[2-1], eg.selfUser]),
-        eg.dmMessage(from: users[1-1], to: [eg.selfUser]),
-        eg.dmMessage(from: users[4-1], to: [eg.selfUser]),
-      ]);
+      await prepare(users: users, selfUser: selfUser, userGroups: userGroups,
+        messages: [
+          eg.streamMessage(sender: users[1-1], stream: stream, topic: topic),
+          eg.streamMessage(sender: users[5-1], stream: stream, topic: 'other $topic'),
+          eg.dmMessage(from: users[1-1], to: [users[2-1], selfUser]),
+          eg.dmMessage(from: users[1-1], to: [selfUser]),
+          eg.dmMessage(from: users[4-1], to: [selfUser]),
+        ]);
 
       // Check the ranking of the full list of mentions,
       // i.e. the results for an empty query.
