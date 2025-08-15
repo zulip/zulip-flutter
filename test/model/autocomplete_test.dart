@@ -446,8 +446,8 @@ void main() {
       List<Message> messages = const [],
     }) async {
       store = eg.store(initialSnapshot: eg.initialSnapshot(
+        realmUsers: users,
         recentPrivateConversations: dmConversations));
-      await store.addUsers(users);
       await store.addUserGroups(userGroups);
       await store.addMessages(messages);
     }

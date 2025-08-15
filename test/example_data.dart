@@ -1276,7 +1276,7 @@ InitialSnapshot initialSnapshot({
     serverEmojiDataUrl: serverEmojiDataUrl
       ?? realmUrl.replace(path: '/static/emoji.json'),
     realmEmptyTopicDisplayName: realmEmptyTopicDisplayName ?? defaultRealmEmptyTopicDisplayName,
-    realmUsers: realmUsers ?? [],
+    realmUsers: realmUsers ?? [selfUser],
     realmNonActiveUsers: realmNonActiveUsers ?? [],
     crossRealmBots: crossRealmBots ?? [],
   );

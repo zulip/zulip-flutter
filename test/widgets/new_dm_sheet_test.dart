@@ -34,9 +34,10 @@ Future<void> setupSheet(WidgetTester tester, {
   final testNavObserver = TestNavigatorObserver()
     ..onPushed = (route, _) => lastPushedRoute = route;
 
-  await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+  await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+    realmUsers: users,
+  ));
   store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-  await store.addUsers(users);
   if (mutedUserIds != null) {
     await store.setMutedUsers(mutedUserIds);
   }
