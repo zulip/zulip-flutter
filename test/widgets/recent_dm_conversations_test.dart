@@ -38,13 +38,10 @@ Future<void> setupPage(WidgetTester tester, {
 
   selfUser ??= eg.selfUser;
   final selfAccount = eg.account(user: selfUser);
-  await testBinding.globalStore.add(selfAccount, eg.initialSnapshot());
+  await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
+    realmUsers: [selfUser, ...users]));
   store = await testBinding.globalStore.perAccount(selfAccount.id);
 
-  await store.addUser(selfUser);
-  for (final user in users) {
-    await store.addUser(user);
-  }
   if (mutedUserIds != null) {
     await store.setMutedUsers(mutedUserIds);
   }

@@ -201,7 +201,7 @@ void main() {
       final user3 = eg.user(userId: 3);
 
       store = eg.store(initialSnapshot: eg.initialSnapshot(
-        realmUsers: [user1, user2, user3],
+        realmUsers: [user1, user2, user3, eg.selfUser],
         mutedUsers: [MutedUserItem(id: 2), MutedUserItem(id: 1)]));
       check(store.isUserMuted(1)).isTrue();
       check(store.isUserMuted(2)).isTrue();

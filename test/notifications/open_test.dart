@@ -251,9 +251,14 @@ void main() {
         eg.account(id: 1003, realmUrl: realmUrlB, user: user1),
         eg.account(id: 1004, realmUrl: realmUrlB, user: user2),
       ];
-      for (final account in accounts) {
-        await testBinding.globalStore.add(account, eg.initialSnapshot());
-      }
+      await testBinding.globalStore.add(
+        accounts[0], eg.initialSnapshot(realmUsers: [user1]));
+      await testBinding.globalStore.add(
+        accounts[1], eg.initialSnapshot(realmUsers: [user2]));
+      await testBinding.globalStore.add(
+        accounts[2], eg.initialSnapshot(realmUsers: [user1]));
+      await testBinding.globalStore.add(
+        accounts[3], eg.initialSnapshot(realmUsers: [user2]));
       await prepare(tester);
 
       await checkOpenNotification(tester, accounts[0], eg.streamMessage());
@@ -306,7 +311,8 @@ void main() {
       final accountB = eg.otherAccount;
       final message = eg.streamMessage();
       await testBinding.globalStore.add(accountA, eg.initialSnapshot());
-      await testBinding.globalStore.add(accountB, eg.initialSnapshot());
+      await testBinding.globalStore.add(accountB, eg.initialSnapshot(
+        realmUsers: [eg.otherUser]));
       setupNotificationDataForLaunch(tester, accountB, message);
 
       await prepare(tester, early: true);
