@@ -313,6 +313,7 @@ Account account({
     ackedPushToken: ackedPushToken,
   );
 }
+const _account = account;
 
 /// A [User] which throws on attempting to mutate any of its fields.
 ///
@@ -1285,10 +1286,13 @@ const _initialSnapshot = initialSnapshot;
 
 PerAccountStore store({
   GlobalStore? globalStore,
+  User? selfUser,
   Account? account,
   InitialSnapshot? initialSnapshot,
 }) {
-  final effectiveAccount = account ?? selfAccount;
+  assert(!(account != null && selfUser != null));
+  final effectiveAccount = account
+    ?? (selfUser != null ? _account(user: selfUser) : selfAccount);
   return PerAccountStore.fromInitialSnapshot(
     globalStore: globalStore ?? _globalStore(accounts: [effectiveAccount]),
     accountId: effectiveAccount.id,
