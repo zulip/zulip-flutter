@@ -179,13 +179,14 @@ void main() {
       check(findText(includePlaceholders: false, 'Muted user')).findsNothing();
       check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
       check(findText(includePlaceholders: false, 'Charlie Carter')).findsOne();
-      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(2);
+      check(findText(includePlaceholders: false, 'Édith Piaf')).findsOne();
+      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(3);
     });
 
     // TODO test sorting by recent-DMs
     // TODO test that scroll position resets on query change
 
-    testWidgets('search is case-insensitive', (tester) async {
+    testWidgets('search is case- and diacritics-insensitive', (tester) async {
       await setupSheet(tester, users: testUsers);
       await tester.enterText(find.byType(TextField), 'alice');
       await tester.pump();
@@ -194,6 +195,14 @@ void main() {
       await tester.enterText(find.byType(TextField), 'ALICE');
       await tester.pump();
       check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
+
+      await tester.enterText(find.byType(TextField), 'alicé');
+      await tester.pump();
+      check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
+
+      await tester.enterText(find.byType(TextField), 'edith');
+      await tester.pump();
+      check(findText(includePlaceholders: false, 'Édith Piaf')).findsOne();
     });
 
     testWidgets('partial name and last name search handling', (tester) async {
