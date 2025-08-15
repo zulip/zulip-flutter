@@ -123,6 +123,7 @@ void main() {
       eg.user(fullName: 'Alice Anderson'),
       eg.user(fullName: 'Bob Brown'),
       eg.user(fullName: 'Charlie Carter'),
+      eg.user(fullName: 'Édith Piaf'),
     ];
 
     testWidgets('shows full list initially', (tester) async {
@@ -130,7 +131,7 @@ void main() {
       check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
       check(findText(includePlaceholders: false, 'Bob Brown')).findsOne();
       check(findText(includePlaceholders: false, 'Charlie Carter')).findsOne();
-      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(3);
+      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(testUsers.length);
       check(find.byIcon(ZulipIcons.check_circle_checked)).findsNothing();
     });
 
@@ -150,7 +151,7 @@ void main() {
         users: [...testUsers, deactivatedUser]);
       check(findText(includePlaceholders: false, 'Impostor Charlie')).findsNothing();
       check(findText(includePlaceholders: false, 'Charlie Carter')).findsOne();
-      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(3);
+      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(testUsers.length);
 
       // … and after a query that would match their name.
       await tester.enterText(find.byType(TextField), 'Charlie');
@@ -168,7 +169,7 @@ void main() {
       check(findText(includePlaceholders: false, 'Someone Muted')).findsNothing();
       check(findText(includePlaceholders: false, 'Muted user')).findsNothing();
       check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
-      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(3);
+      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(testUsers.length);
 
       // … and after a query.  One which matches both the user's actual name and
       // the replacement text "Muted user", for good measure.
