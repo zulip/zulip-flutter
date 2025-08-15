@@ -481,8 +481,22 @@ class PerAccountStore extends PerAccountStoreBase with
       accountId: accountId,
       selfUserId: account.userId,
     );
-    final realm = RealmStoreImpl(core: core, initialSnapshot: initialSnapshot);
+
     final userMap = UserStoreImpl.userMapFromInitialSnapshot(initialSnapshot);
+    final selfUser = userMap[core.selfUserId];
+    if (selfUser == null) {
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      reportErrorToUserModally(
+        zulipLocalizations.errorCouldNotConnectTitle,
+        message: zulipLocalizations.errorMalformedResponseWithCause(200,
+          // skip-i18n: This would be an unlikely bug (in the server?).  We're
+          //   showing the user these details at all only because it would be a
+          //   very nasty bug (so, important to resolve ASAP) if it ever did happen.
+          'self-user missing from user list'));
+      throw Exception("bad initial snapshot: self-user missing from user list");
+    }
+
+    final realm = RealmStoreImpl(core: core, initialSnapshot: initialSnapshot);
     final users = UserStoreImpl(realm: realm, initialSnapshot: initialSnapshot,
       userMap: userMap);
     final channels = ChannelStoreImpl(users: users,
