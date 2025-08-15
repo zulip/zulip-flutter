@@ -103,7 +103,10 @@ class _TopicListAppBarTitle extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onLongPress: () {
-          showChannelActionSheet(context, channelId: streamId);
+          showChannelActionSheet(context,
+            channelId: streamId,
+            // We're already on the topic list.
+            showTopicListButton: false);
         },
         child: Align(alignment: alignment,
           child: _buildStreamRow(context))));
