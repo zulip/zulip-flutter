@@ -6,6 +6,7 @@ import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -1045,20 +1046,24 @@ void main() {
         .isA<Icon>().color.isNotNull().isSameColorAs(expectedIconColor);
     }
 
+    Future<void> prepare(WidgetTester tester) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
+      final channel = eg.stream();
+      final narrow = ChannelNarrow(channel.streamId);
+      await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+
+      // (When we check that the send button looks disabled, it should be because
+      // the file is uploading, not a pre-existing reason.)
+      await enterTopic(tester, narrow: narrow, topic: 'some topic');
+      await enterContent(tester, 'see image: ');
+      await tester.pump();
+    }
+
     group('attach from media library', () {
       testWidgets('success', (tester) async {
-        TypingNotifier.debugEnable = false;
-        addTearDown(TypingNotifier.debugReset);
-
-        final channel = eg.stream();
-        final narrow = ChannelNarrow(channel.streamId);
-        await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
-
-        // (When we check that the send button looks disabled, it should be because
-        // the file is uploading, not a pre-existing reason.)
-        await enterTopic(tester, narrow: narrow, topic: 'some topic');
-        controller!.content.value = const TextEditingValue(text: 'see image: ');
-        await tester.pump();
+        await prepare(tester);
         checkAppearsLoading(tester, false);
 
         testBinding.pickFilesResult = FilePickerResult([PlatformFile(
@@ -1106,18 +1111,7 @@ void main() {
 
     group('attach from camera', () {
       testWidgets('success', (tester) async {
-        TypingNotifier.debugEnable = false;
-        addTearDown(TypingNotifier.debugReset);
-
-        final channel = eg.stream();
-        final narrow = ChannelNarrow(channel.streamId);
-        await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
-
-        // (When we check that the send button looks disabled, it should be because
-        // the file is uploading, not a pre-existing reason.)
-        await enterTopic(tester, narrow: narrow, topic: 'some topic');
-        controller!.content.value = const TextEditingValue(text: 'see image: ');
-        await tester.pump();
+        await prepare(tester);
         checkAppearsLoading(tester, false);
 
         testBinding.pickImageResult = XFile.fromData(
@@ -1195,6 +1189,106 @@ void main() {
       check(controller!.content.text)
         .equals('[한국어 파일.txt]('
           '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/한국어 파일.txt)\n\n');
+    });
+
+    group('attach from keyboard', () {
+      // This is adapted from:
+      //   https://github.com/flutter/flutter/blob/0ffc4ce00/packages/flutter/test/widgets/editable_text_test.dart#L724-L740
+      Future<void> insertContentFromKeyboard(WidgetTester tester, {
+        required List<int>? data,
+        required String attachedFileUrl,
+        required String mimeType,
+      }) async {
+        await tester.showKeyboard(contentInputFinder);
+        // This invokes [EditableText.performAction] on the content [TextField],
+        // which did not expose an API for testing.
+        // TODO(upstream): support a better API for testing this
+        await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+          SystemChannels.textInput.name,
+          SystemChannels.textInput.codec.encodeMethodCall(
+            MethodCall('TextInputClient.performAction', <dynamic>[
+              -1,
+              'TextInputAction.commitContent',
+              // This fakes data originally provided by the Flutter engine:
+              //   https://github.com/flutter/flutter/blob/0ffc4ce00/engine/src/flutter/shell/platform/android/io/flutter/plugin/editing/InputConnectionAdaptor.java#L497-L548
+              {
+                "mimeType": mimeType,
+                "data": data,
+                "uri": attachedFileUrl,
+              },
+            ])),
+          (ByteData? data) {});
+      }
+
+      testWidgets('success', (tester) async {
+        const fileContent = [1, 0, 1, 0, 0];
+        await prepare(tester);
+        const uploadUrl = '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/test.gif';
+        connection.prepare(json: UploadFileResult(url: uploadUrl).toJson());
+        await insertContentFromKeyboard(tester,
+          data: fileContent,
+          attachedFileUrl:
+            'content://com.zulip.android.zulipboard.provider'
+            '/root/com.zulip.android.zulipboard/candidate_temp/test.gif',
+          mimeType: 'image/gif');
+
+        await tester.pump();
+        check(controller!.content.text)
+          .equals('see image: [Uploading test.gif…]()\n\n');
+        // (the request is checked more thoroughly in API tests)
+        check(connection.lastRequest!).isA<http.MultipartRequest>()
+          ..method.equals('POST')
+          ..files.single.which((it) => it
+            ..field.equals('file')
+            ..length.equals(fileContent.length)
+            ..filename.equals('test.gif')
+            ..contentType.asString.equals('image/gif')
+            ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
+              .completes((it) => it.deepEquals(fileContent))
+          );
+        checkAppearsLoading(tester, true);
+
+        await tester.pump(Duration.zero);
+        check(controller!.content.text)
+          .equals('see image: [test.gif]($uploadUrl)\n\n');
+        checkAppearsLoading(tester, false);
+      });
+
+      testWidgets('data is null', (tester) async {
+        await prepare(tester);
+        await insertContentFromKeyboard(tester,
+          data: null,
+          attachedFileUrl:
+            'content://com.zulip.android.zulipboard.provider'
+            '/root/com.zulip.android.zulipboard/candidate_temp/test.gif',
+          mimeType: 'image/jpeg');
+
+        await tester.pump();
+        check(controller!.content.text).equals('see image: ');
+        check(connection.takeRequests()).isEmpty();
+        checkErrorDialog(tester,
+          expectedTitle: 'Content not inserted',
+          expectedMessage: 'The file to be inserted is empty or cannot be accessed.');
+        checkAppearsLoading(tester, false);
+      });
+
+      testWidgets('data is empty', (tester) async {
+        await prepare(tester);
+        await insertContentFromKeyboard(tester,
+          data: [],
+          attachedFileUrl:
+            'content://com.zulip.android.zulipboard.provider'
+            '/root/com.zulip.android.zulipboard/candidate_temp/test.gif',
+          mimeType: 'image/jpeg');
+
+        await tester.pump();
+        check(controller!.content.text).equals('see image: ');
+        check(connection.takeRequests()).isEmpty();
+        checkErrorDialog(tester,
+          expectedTitle: 'Content not inserted',
+          expectedMessage: 'The file to be inserted is empty or cannot be accessed.');
+        checkAppearsLoading(tester, false);
+      });
     });
   });
 
