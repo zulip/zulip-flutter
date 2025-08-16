@@ -250,7 +250,7 @@ class _SetStatusPageState extends State<SetStatusPage> {
               ]),
           ),
           Expanded(child: InsetShadowBox(
-            top: 6, bottom: 6,
+            top: 6,
             color: designVariables.mainBackground,
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(vertical: 6),
