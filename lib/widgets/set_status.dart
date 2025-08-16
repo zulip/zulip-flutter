@@ -8,7 +8,6 @@ import '../basic.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import 'app_bar.dart';
-import 'color.dart';
 import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
@@ -316,16 +315,9 @@ class StatusSuggestionsListEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-
-    return InkWell(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      splashFactory: NoSplash.splashFactory,
-      overlayColor: WidgetStateColor.resolveWith(
-        (states) => states.any((e) => e == WidgetState.pressed)
-          ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
-          : Colors.transparent,
-      ),
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 7, horizontal: 16),
         child: Row(
