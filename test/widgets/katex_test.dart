@@ -73,6 +73,15 @@ void main() {
         ('X', Offset(0.00, 7.04), Size(17.03, 25.00)),
         ('n', Offset(17.03, 15.90), Size(8.63, 17.00)),
       ]),
+      (KatexExample.bigOperators, skip: false, [
+        ('∫', Offset(0.00, 12.02), Size(11.43, 25.00)),
+        ('d', Offset(24.00, 12.03), Size(10.69, 25.00)),
+        ('x', Offset(34.70, 12.03), Size(11.76, 25.00)),
+      ]),
+      (KatexExample.colonEquals, skip: false, [
+        (':', Offset(0.00, 3.45), Size(5.72, 25.00)),
+        ('=', Offset(5.72, 3.92), Size(16.00, 25.00)),
+      ]),
     ];
 
     for (final testCase in testCases) {
