@@ -208,7 +208,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
           // and losing data for the user.
           return;
         }
-        // TODO(i18n) language-appropriate space character; check active keyboard?
+        // TODO(#1805) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
         replacementString = '${userMention(user, silent: query.silent, users: store)} ';
       case WildcardMentionAutocompleteResult(:var wildcardOption):
@@ -223,7 +223,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
           // and losing data for the group.
           return;
         }
-        // TODO(i18n) language-appropriate space character; check active keyboard?
+        // TODO(#1805) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
         replacementString = '${userGroupMention(userGroup.name, silent: query.silent)} ';
     }

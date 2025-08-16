@@ -87,12 +87,14 @@ class _NewDmPickerState extends State<NewDmPicker> with PerAccountStoreAwareStat
   void _updateFilteredUsers(PerAccountStore store) {
     final excludeSelfUser = selectedUserIds.isNotEmpty
       && !selectedUserIds.contains(store.selfUserId);
-    final searchTextLower = searchController.text.toLowerCase();
+    final normalizedQuery =
+      AutocompleteQuery.lowercaseAndStripDiacritics(searchController.text);
 
     final result = <User>[];
     for (final user in sortedUsers) {
       if (excludeSelfUser && user.userId == store.selfUserId) continue;
-      if (user.fullName.toLowerCase().contains(searchTextLower)) {
+      final normalizedName = AutocompleteQuery.lowercaseAndStripDiacritics(user.fullName);
+      if (normalizedName.contains(normalizedQuery)) {
         result.add(user);
       }
     }

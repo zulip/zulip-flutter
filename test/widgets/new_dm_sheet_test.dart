@@ -120,6 +120,7 @@ void main() {
       eg.user(fullName: 'Alice Anderson'),
       eg.user(fullName: 'Bob Brown'),
       eg.user(fullName: 'Charlie Carter'),
+      eg.user(fullName: 'Édith Piaf'),
     ];
 
     testWidgets('shows full list initially', (tester) async {
@@ -127,7 +128,7 @@ void main() {
       check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
       check(findText(includePlaceholders: false, 'Bob Brown')).findsOne();
       check(findText(includePlaceholders: false, 'Charlie Carter')).findsOne();
-      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(3);
+      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(testUsers.length);
       check(find.byIcon(ZulipIcons.check_circle_checked)).findsNothing();
     });
 
@@ -146,7 +147,7 @@ void main() {
       await setupSheet(tester, users: [...testUsers, deactivatedUser]);
       check(findText(includePlaceholders: false, 'Impostor Charlie')).findsNothing();
       check(findText(includePlaceholders: false, 'Charlie Carter')).findsOne();
-      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(3);
+      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(testUsers.length);
 
       // … and after a query that would match their name.
       await tester.enterText(find.byType(TextField), 'Charlie');
@@ -164,7 +165,7 @@ void main() {
       check(findText(includePlaceholders: false, 'Someone Muted')).findsNothing();
       check(findText(includePlaceholders: false, 'Muted user')).findsNothing();
       check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
-      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(3);
+      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(testUsers.length);
 
       // … and after a query.  One which matches both the user's actual name and
       // the replacement text "Muted user", for good measure.
@@ -174,13 +175,14 @@ void main() {
       check(findText(includePlaceholders: false, 'Muted user')).findsNothing();
       check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
       check(findText(includePlaceholders: false, 'Charlie Carter')).findsOne();
-      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(2);
+      check(findText(includePlaceholders: false, 'Édith Piaf')).findsOne();
+      check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(3);
     });
 
     // TODO test sorting by recent-DMs
     // TODO test that scroll position resets on query change
 
-    testWidgets('search is case-insensitive', (tester) async {
+    testWidgets('search is case- and diacritics-insensitive', (tester) async {
       await setupSheet(tester, users: testUsers);
       await tester.enterText(find.byType(TextField), 'alice');
       await tester.pump();
@@ -189,6 +191,14 @@ void main() {
       await tester.enterText(find.byType(TextField), 'ALICE');
       await tester.pump();
       check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
+
+      await tester.enterText(find.byType(TextField), 'alicé');
+      await tester.pump();
+      check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
+
+      await tester.enterText(find.byType(TextField), 'edith');
+      await tester.pump();
+      check(findText(includePlaceholders: false, 'Édith Piaf')).findsOne();
     });
 
     testWidgets('partial name and last name search handling', (tester) async {
