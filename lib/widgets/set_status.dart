@@ -182,88 +182,85 @@ class _SetStatusPageState extends State<SetStatusPage> {
             }),
         ],
       ),
-      body: Column(children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.only(
-            // In Figma design, this is 16px, but we compensate for that in
-            // the icon button below.
-            start: 8,
-            top: 8,
-            // In Figma design, this is 10px, but to be consistent with other
-            // page content, we use 8px.
-            end: 8,
-            // In Figma design, this is 4px, be we compensate for that in
-            // [SingleChildScrollView.padding] below.
-            bottom: 0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              IconButton(
-                onPressed: chooseStatusEmoji,
-                style: IconButton.styleFrom(
-                  splashFactory: NoSplash.splashFactory,
-                  foregroundColor: designVariables.icon,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  padding: EdgeInsets.symmetric(
-                    vertical: 8,
-                    // In Figma design, there is no horizontal padding, but we
-                    // provide it in order to create a proper tap target size.
-                    horizontal: 8)),
-                icon: Row(spacing: 4, children: [
-                  ValueListenableBuilder(
-                    valueListenable: statusChange,
-                    builder: (_, change, _) {
-                      final emoji = change.emoji.or(oldStatus.emoji);
-                      return emoji == null
-                        ? const Icon(ZulipIcons.smile, size: 24)
-                        : UserStatusEmoji(emoji: emoji, size: 24, neverAnimate: false);
-                    }),
-                  Icon(ZulipIcons.chevron_down, size: 16),
-                ]),
-              ),
-              Expanded(child: TextField(
-                controller: statusTextController,
-                minLines: 1,
-                maxLines: 2,
-                // The limit on the size of the status text is 60 characters.
-                // See: https://zulip.com/api/update-status#parameter-status_text
-                maxLength: 60,
-                cursorColor: designVariables.textInput,
-                textCapitalization: TextCapitalization.sentences,
-                style: TextStyle(fontSize: 19, height: 24 / 19),
-                decoration: InputDecoration(
-                  // TODO: display a counter as suggested in CZO discussion:
-                  //   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/Set.20user.20status/near/2224549
-                  counterText: '',
-                  hintText: localizations.statusTextHint,
-                  hintStyle: TextStyle(color: designVariables.labelSearchPrompt),
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(
-                    vertical: 8,
-                    // Subtracting 4 pixels to account for the internal
-                    // 4-pixel horizontal padding.
-                    horizontal: 10 - 4,
-                  ),
-                  filled: true,
-                  fillColor: designVariables.bgSearchInput,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  )))),
-            ]),
-        ),
-        Expanded(child: InsetShadowBox(
-          top: 6, bottom: 6,
-          color: designVariables.mainBackground,
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(vertical: 6),
-            child: Column(children: [
-              for (final status in suggestions)
-                StatusSuggestionsListEntry(
-                  status: status,
-                  onTap: () => chooseStatusSuggestion(status)),
-            ])))),
-      ]),
+      body: SafeArea(
+        bottom: false,
+        minimum: EdgeInsets.symmetric(horizontal: 8),
+        child: Column(children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.only(
+              top: 8,
+              // In Figma design, this is 4px, be we compensate for that in
+              // [SingleChildScrollView.padding] below.
+              bottom: 0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                IconButton(
+                  onPressed: chooseStatusEmoji,
+                  style: IconButton.styleFrom(
+                    splashFactory: NoSplash.splashFactory,
+                    foregroundColor: designVariables.icon,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: EdgeInsets.symmetric(
+                      vertical: 8,
+                      // In Figma design, there is no horizontal padding, but we
+                      // provide it in order to create a proper tap target size.
+                      horizontal: 8)),
+                  icon: Row(spacing: 4, children: [
+                    ValueListenableBuilder(
+                      valueListenable: statusChange,
+                      builder: (_, change, _) {
+                        final emoji = change.emoji.or(oldStatus.emoji);
+                        return emoji == null
+                          ? const Icon(ZulipIcons.smile, size: 24)
+                          : UserStatusEmoji(emoji: emoji, size: 24, neverAnimate: false);
+                      }),
+                    Icon(ZulipIcons.chevron_down, size: 16),
+                  ]),
+                ),
+                Expanded(child: TextField(
+                  controller: statusTextController,
+                  minLines: 1,
+                  maxLines: 2,
+                  // The limit on the size of the status text is 60 characters.
+                  // See: https://zulip.com/api/update-status#parameter-status_text
+                  maxLength: 60,
+                  cursorColor: designVariables.textInput,
+                  textCapitalization: TextCapitalization.sentences,
+                  style: TextStyle(fontSize: 19, height: 24 / 19),
+                  decoration: InputDecoration(
+                    // TODO: display a counter as suggested in CZO discussion:
+                    //   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/Set.20user.20status/near/2224549
+                    counterText: '',
+                    hintText: localizations.statusTextHint,
+                    hintStyle: TextStyle(color: designVariables.labelSearchPrompt),
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 8,
+                      // Subtracting 4 pixels to account for the internal
+                      // 4-pixel horizontal padding.
+                      horizontal: 10 - 4,
+                    ),
+                    filled: true,
+                    fillColor: designVariables.bgSearchInput,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    )))),
+              ]),
+          ),
+          Expanded(child: InsetShadowBox(
+            top: 6, bottom: 6,
+            color: designVariables.mainBackground,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(vertical: 6),
+              child: Column(children: [
+                for (final status in suggestions)
+                  StatusSuggestionsListEntry(
+                    status: status,
+                    onTap: () => chooseStatusSuggestion(status)),
+              ])))),
+        ])),
     );
   }
 }
@@ -319,7 +316,7 @@ class StatusSuggestionsListEntry extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 7, horizontal: 16),
+        padding: EdgeInsets.symmetric(vertical: 7, horizontal: 8),
         child: Row(
           spacing: 8,
           children: [
