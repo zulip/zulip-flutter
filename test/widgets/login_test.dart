@@ -12,6 +12,7 @@ import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/dialog.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/login.dart';
 import 'package:zulip/widgets/page.dart';
@@ -83,6 +84,8 @@ void main() {
 
     Future<void> prepare(WidgetTester tester,
         GetServerSettingsResult serverSettings) async {
+      debugDisableBetaCompleteDialog = true;
+      addTearDown(() => debugDisableBetaCompleteDialog = false);
       addTearDown(testBinding.reset);
 
       connection = testBinding.globalStore.apiConnection(

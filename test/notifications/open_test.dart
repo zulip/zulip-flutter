@@ -13,6 +13,7 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/notifications/open.dart';
 import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/dialog.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
@@ -76,6 +77,8 @@ void main() {
   final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
   Future<void> init({bool addSelfAccount = true}) async {
+    debugDisableBetaCompleteDialog = true;
+    addTearDown(() => debugDisableBetaCompleteDialog = false);
     if (addSelfAccount) {
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     }

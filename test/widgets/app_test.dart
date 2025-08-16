@@ -7,6 +7,7 @@ import 'package:zulip/log.dart';
 import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/dialog.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/page.dart';
 
@@ -27,6 +28,8 @@ void main() {
     late List<Route<dynamic>> pushedRoutes = [];
 
     Future<void> prepare(WidgetTester tester) async {
+      debugDisableBetaCompleteDialog = true;
+      addTearDown(() => debugDisableBetaCompleteDialog = false);
       addTearDown(testBinding.reset);
 
       pushedRoutes = [];
@@ -64,6 +67,8 @@ void main() {
     late List<Route<void>> poppedRoutes;
 
     Future<void> prepare(WidgetTester tester) async {
+      debugDisableBetaCompleteDialog = true;
+      addTearDown(() => debugDisableBetaCompleteDialog = false);
       addTearDown(testBinding.reset);
 
       pushedRoutes = [];
@@ -279,6 +284,8 @@ void main() {
     });
 
     testWidgets('choosing an account clears the navigator stack', (tester) async {
+      debugDisableBetaCompleteDialog = true;
+      addTearDown(() => debugDisableBetaCompleteDialog = false);
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot());
@@ -391,6 +398,8 @@ void main() {
     });
 
     testWidgets('reportErrorToUserBriefly with details', (tester) async {
+      debugDisableBetaCompleteDialog = true;
+      addTearDown(() => debugDisableBetaCompleteDialog = false);
       addTearDown(testBinding.reset);
       await tester.pumpWidget(const ZulipApp());
       const message = 'test error message';
@@ -418,6 +427,8 @@ void main() {
     });
 
     Future<void> prepareSnackBarWithDetails(WidgetTester tester, String message, String details) async {
+      debugDisableBetaCompleteDialog = true;
+      addTearDown(() => debugDisableBetaCompleteDialog = false);
       addTearDown(testBinding.reset);
       await tester.pumpWidget(const ZulipApp());
       await tester.pump();
@@ -484,6 +495,8 @@ void main() {
     });
 
     testWidgets('reportErrorToUserModally', (tester) async {
+      debugDisableBetaCompleteDialog = true;
+      addTearDown(() => debugDisableBetaCompleteDialog = false);
       addTearDown(testBinding.reset);
       await tester.pumpWidget(const ZulipApp());
       const title = 'test title';
