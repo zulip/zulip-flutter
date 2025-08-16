@@ -28,6 +28,8 @@ jobs:
       #   Pending that, fetch more than 1000 commits.
       run: |
         git clone --depth=3000 -b main https://github.com/flutter/flutter ~/flutter
+        cd ~/flutter
+        git --git-dir ~/flutter/.git checkout ee089d09b21ec3ccc20d179c5be100d2a9d9f866
         TZ=UTC git --git-dir ~/flutter/.git log -1 --format='%h | %ci | %s' --date=iso8601-local
         echo ~/flutter/bin >> "$GITHUB_PATH"
 
