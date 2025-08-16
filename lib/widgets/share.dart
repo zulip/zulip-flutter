@@ -10,6 +10,7 @@ import '../host/android_intents.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/narrow.dart';
+import '../model/settings.dart';
 import 'app.dart';
 import 'color.dart';
 import 'compose_box.dart';
@@ -60,9 +61,12 @@ class ShareService {
 
     final globalStore = GlobalStoreWidget.of(context);
 
-    // TODO(#524) use last account used, not the first in the list
     // TODO(#1779) allow selecting account, if there are multiple
-    final accountId = globalStore.accounts.firstOrNull?.id;
+    final lastAccountId = globalStore.settings.getInt(IntGlobalSetting.lastVisitedAccountId);
+    final lastAccountMissing =
+      lastAccountId == null || globalStore.getAccount(lastAccountId) == null;
+    final accountId = lastAccountMissing
+      ? globalStore.accounts.firstOrNull?.id : lastAccountId;
 
     if (accountId == null) {
       final zulipLocalizations = ZulipLocalizations.of(context);
