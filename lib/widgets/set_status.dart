@@ -193,6 +193,7 @@ class _SetStatusPageState extends State<SetStatusPage> {
               // [SingleChildScrollView.padding] below.
               bottom: 0),
             child: Row(
+              spacing: 4,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 IconButton(
