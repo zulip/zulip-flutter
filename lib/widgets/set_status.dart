@@ -189,7 +189,10 @@ class _SetStatusPageState extends State<SetStatusPage> {
             // In Figma design, this is 16px, but we compensate for that in
             // the icon button below.
             start: 8,
-            top: 8, end: 10,
+            top: 8,
+            // In Figma design, this is 10px, but to be consistent with other
+            // page content, we use 8px.
+            end: 8,
             // In Figma design, this is 4px, be we compensate for that in
             // [SingleChildScrollView.padding] below.
             bottom: 0),
