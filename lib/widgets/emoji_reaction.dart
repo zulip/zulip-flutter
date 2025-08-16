@@ -682,6 +682,8 @@ class ViewReactions extends StatefulWidget {
   final ReactionType? initialReactionType;
   final String? initialEmojiCode;
 
+  static String semanticsIdentifier = 'view-reactions-user-list';
+
   @override
   State<ViewReactions> createState() => _ViewReactionsState();
 }
@@ -755,32 +757,44 @@ class _ViewReactionsState extends State<ViewReactions> with PerAccountStoreAware
 
   @override
   Widget build(BuildContext context) {
-    // TODO could pull out this layout/appearance code,
-    //   focusing this widget only on state management
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        ViewReactionsHeader(
-          messageId: widget.messageId,
-          reactionType: reactionType,
-          emojiCode: emojiCode,
-          onRequestSelect: _setSelection,
-        ),
-        // TODO if all reactions (or whole message) disappeared,
-        //   we show a message saying there are no reactions,
-        //   but the layout shifts (the sheet's height changes dramatically);
-        //   we should avoid this.
-        if (reactionType != null && emojiCode != null) Flexible(
-          child: ViewReactionsUserList(
-            messageId: widget.messageId,
-            reactionType: reactionType!,
-            emojiCode: emojiCode!,
-            emojiName: emojiName!)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.close))
-      ]);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final message = PerAccountStoreWidget.of(context).messages[widget.messageId];
+
+    final userIds = message?.reactions?.aggregated.firstWhereOrNull(
+      (x) => x.reactionType == reactionType && x.emojiCode == emojiCode
+    )?.userIds.toList();
+
+    Widget contentSliver;
+    if (reactionType != null && emojiCode != null && userIds != null) {
+      assert(emojiName != null);
+
+      // (No filtering of muted or deactivated users.
+      // Muted users will be shown as muted.)
+
+      contentSliver = SliverList.builder(
+        itemCount: userIds.length,
+        itemBuilder: (_, index) => ViewReactionsUserItem(userId: userIds[index]));
+
+      contentSliver = SliverSemantics(
+        identifier: ViewReactions.semanticsIdentifier, // See note on `controlsNodes` on the tab.
+        label: zulipLocalizations.seeWhoReactedSheetUserListLabel(emojiName!, userIds.length),
+        role: SemanticsRole.tabPanel,
+        container: true,
+        explicitChildNodes: true,
+        sliver: contentSliver);
+    } else {
+      // (Not expected; see _reconcile; but at least we shouldn't crash.)
+      contentSliver = SliverPadding(padding: EdgeInsets.zero);
+    }
+
+    return DraggableScrollableModalBottomSheet(
+      header: ViewReactionsHeader(
+        messageId: widget.messageId,
+        reactionType: reactionType,
+        emojiCode: emojiCode,
+        onRequestSelect: _setSelection,
+      ),
+      contentSliver: contentSliver);
   }
 }
 
@@ -830,26 +844,27 @@ class ViewReactionsHeader extends StatelessWidget {
       padding: const EdgeInsets.only(top: 16, bottom: 4),
       child: InsetShadowBox(start: 8, end: 8,
         color: designVariables.bgContextMenu,
-        child: SingleChildScrollView(
-          // TODO(upstream) we want to pass excludeFromSemantics: true
-          //    to the underlying Scrollable to remove an unwanted node
-          //    in accessibility focus traversal when there are many items.
-          scrollDirection: Axis.horizontal,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Semantics(
-              role: SemanticsRole.tabBar,
-              container: true,
-              explicitChildNodes: true,
-              label: zulipLocalizations.seeWhoReactedSheetHeaderLabel(reactions.total),
-              child: Row(
-                children: reactions.aggregated.mapIndexed((i, r) =>
-                  _ViewReactionsEmojiItem(
-                    reactionWithVotes: r,
-                    position: _emojiItemPosition(i, reactions.aggregated.length),
-                    selected: r.reactionType == reactionType && r.emojiCode == emojiCode,
-                    onRequestSelect: onRequestSelect),
-                ).toList()))))));
+        child: Center(
+          child: SingleChildScrollView(
+            // TODO(upstream) we want to pass excludeFromSemantics: true
+            //    to the underlying Scrollable to remove an unwanted node
+            //    in accessibility focus traversal when there are many items.
+            scrollDirection: Axis.horizontal,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Semantics(
+                role: SemanticsRole.tabBar,
+                container: true,
+                explicitChildNodes: true,
+                label: zulipLocalizations.seeWhoReactedSheetHeaderLabel(reactions.total),
+                child: Row(
+                  children: reactions.aggregated.mapIndexed((i, r) =>
+                    _ViewReactionsEmojiItem(
+                      reactionWithVotes: r,
+                      position: _emojiItemPosition(i, reactions.aggregated.length),
+                      selected: r.reactionType == reactionType && r.emojiCode == emojiCode,
+                      onRequestSelect: onRequestSelect),
+                  ).toList())))))));
   }
 }
 
@@ -957,82 +972,13 @@ class _ViewReactionsEmojiItem extends StatelessWidget {
 
       // I *think* we're following the doc with this but it's hard to tell;
       // I've only tested on iOS and I didn't notice a behavior change.
-      controlsNodes: {ViewReactionsUserList.semanticsIdentifier},
+      controlsNodes: {ViewReactions.semanticsIdentifier},
 
       selected: selected,
       label: zulipLocalizations.seeWhoReactedSheetEmojiNameWithVoteCount(emojiName, count),
       onTap: () => _handleTap(context),
       child: ExcludeSemantics(
         child: result));
-  }
-}
-
-
-@visibleForTesting
-class ViewReactionsUserList extends StatelessWidget {
-  const ViewReactionsUserList({
-    super.key,
-    required this.messageId,
-    required this.reactionType,
-    required this.emojiCode,
-    required this.emojiName,
-  });
-
-  final int messageId;
-  final ReactionType reactionType;
-  final String emojiCode;
-  final String emojiName;
-
-  static const semanticsIdentifier = 'view-reactions-user-list';
-
-  @override
-  Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = PerAccountStoreWidget.of(context);
-    final designVariables = DesignVariables.of(context);
-
-    final message = store.messages[messageId];
-
-    final userIds = message?.reactions?.aggregated.firstWhereOrNull(
-      (x) => x.reactionType == reactionType && x.emojiCode == emojiCode
-    )?.userIds.toList();
-
-    // (No filtering of muted or deactivated users.
-    //  Muted users will be shown as muted.)
-
-    if (userIds == null) {
-      // This reaction lost all its votes, or the message was deleted.
-      return SizedBox.shrink();
-    }
-
-    Widget result = SizedBox(
-      height: 400, // TODO(design) tune
-      child: InsetShadowBox(
-        top: 8,
-        bottom: 8,
-        color: designVariables.bgContextMenu,
-        // TODO(upstream) we want to pass excludeFromSemantics: true
-        //    to the underlying Scrollable to remove an unwanted node
-        //    in accessibility focus traversal when there are many items.
-        child: ListView.builder(
-          padding: EdgeInsets.only(
-            // The Figma excludes the 8px top padding, which is unusual with the
-            // shadow effect (our InsetShadowBox). We include it so that the
-            // first item's touch feedback is shadow-free in the item's initial/
-            // scrolled-to-top position.
-            top: 8,
-            bottom: 8,
-          ),
-          itemCount: userIds.length,
-          itemBuilder: (_, index) =>
-            ViewReactionsUserItem(userId: userIds[index]))));
-
-    return Semantics(
-      identifier: semanticsIdentifier, // See note on `controlsNodes` on the tab.
-      label: zulipLocalizations.seeWhoReactedSheetUserListLabel(emojiName, userIds.length),
-      role: SemanticsRole.tabPanel,
-      container: true,
-      child: result);
   }
 }
 

@@ -252,15 +252,15 @@ class _SetStatusButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = ZulipLocalizations.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
     final userStatus = store.getUserStatus(store.selfUserId);
 
     return ZulipMenuItemButton(
       style: ZulipMenuItemButtonStyle.list,
       label: userStatus == UserStatus.zero
-        ? localizations.statusButtonLabelStatusUnset
-        : localizations.statusButtonLabelStatusSet,
+        ? zulipLocalizations.statusButtonLabelStatusUnset
+        : zulipLocalizations.statusButtonLabelStatusSet,
       subLabel: userStatus == UserStatus.zero ? null : TextSpan(children: [
         UserStatusEmoji.asWidgetSpan(
           userId: store.selfUserId,
@@ -270,7 +270,7 @@ class _SetStatusButton extends StatelessWidget {
           neverAnimate: false,
         ),
         userStatus.text == null
-          ? TextSpan(text: localizations.noStatusText,
+          ? TextSpan(text: zulipLocalizations.noStatusText,
               style: TextStyle(fontStyle: FontStyle.italic))
           : TextSpan(text: userStatus.text),
       ]),

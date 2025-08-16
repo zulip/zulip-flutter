@@ -6,7 +6,6 @@ import '../generated/l10n/zulip_localizations.dart';
 import 'action_sheet.dart';
 import 'actions.dart';
 import 'color.dart';
-import 'inset_shadow.dart';
 import 'profile.dart';
 import 'store.dart';
 import 'text.dart';
@@ -80,19 +79,24 @@ class _ReadReceiptsState extends State<ReadReceipts> with PerAccountStoreAwareSt
 
   @override
   Widget build(BuildContext context) {
-    // TODO could pull out this layout/appearance code,
-    //   focusing this widget only on state management
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final receiptCount = userIds.length;
 
-    return SizedBox(
-      height: 500, // TODO(design) tune
-      child: Column(
-        children: [
-          _ReadReceiptsHeader(receiptCount: userIds.length, status: status),
-          Expanded(child: _ReadReceiptsUserList(userIds: userIds, status: status)),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.close))
-        ]));
+    final content = switch (status) {
+      FetchStatus.loading => SliverBottomSheetEmptyContentPlaceholder(loading: true),
+      FetchStatus.error   => SliverBottomSheetEmptyContentPlaceholder(
+        message: zulipLocalizations.actionSheetReadReceiptsErrorReadCount),
+      FetchStatus.success => userIds.isEmpty
+        ? SliverBottomSheetEmptyContentPlaceholder(
+            message: zulipLocalizations.actionSheetReadReceiptsZeroReadCount)
+        : SliverList.builder(
+            itemCount: receiptCount,
+            itemBuilder: (_, index) => ReadReceiptsUserItem(userId: userIds[index])),
+    };
+
+    return DraggableScrollableModalBottomSheet(
+      header: _ReadReceiptsHeader(receiptCount: receiptCount, status: status),
+      contentSliver: content);
   }
 }
 
@@ -126,35 +130,6 @@ class _ReadReceiptsHeader extends StatelessWidget {
       child: BottomSheetHeader(
         title: zulipLocalizations.actionSheetReadReceipts,
         buildMessage: headerMessageBuilder));
-  }
-}
-
-class _ReadReceiptsUserList extends StatelessWidget {
-  const _ReadReceiptsUserList({required this.userIds, required this.status});
-
-  final List<int> userIds;
-  final FetchStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final localizations = ZulipLocalizations.of(context);
-
-    return switch(status) {
-      FetchStatus.loading => BottomSheetEmptyContentPlaceholder(loading: true),
-      FetchStatus.error   => BottomSheetEmptyContentPlaceholder(
-        message: localizations.actionSheetReadReceiptsErrorReadCount),
-      FetchStatus.success => userIds.isEmpty
-        ? BottomSheetEmptyContentPlaceholder(
-            message: localizations.actionSheetReadReceiptsZeroReadCount)
-        : InsetShadowBox(
-            top: 8, bottom: 8,
-            color: DesignVariables.of(context).bgContextMenu,
-            child: ListView.builder(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              itemCount: userIds.length,
-              itemBuilder: (context, index) =>
-                ReadReceiptsUserItem(userId: userIds[index])))
-    };
   }
 }
 
