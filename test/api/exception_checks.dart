@@ -28,4 +28,5 @@ extension Server5xxExceptionChecks on Subject<Server5xxException> {
 
 extension MalformedServerResponseExceptionChecks on Subject<MalformedServerResponseException> {
   Subject<Object?> get causeException => has((e) => e.causeException, 'causeException');
+  Subject<StackTrace?> get causeStackTrace => has((e) => e.causeStackTrace, 'causeStackTrace');
 }
