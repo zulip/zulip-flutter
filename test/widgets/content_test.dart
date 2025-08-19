@@ -729,6 +729,22 @@ void main() {
         targetHtml: '<code>code</code>',
         targetFontSizeFinder: mkTargetFontSizeFinderFromPattern('code'));
     });
+
+    testFontWeight('is bold in bold span',
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/1812
+      expectedWght: 600,
+      // **`bold`**
+      content: plainContent('<p><strong><code>bold</code></strong></p>'),
+      styleFinder: (tester) => mergedStyleOf(tester, 'bold')!,
+    );
+
+    testWidgets('is link-colored in link span', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/806
+      await prepareContent(tester,
+        plainContent('<p><a href="https://example/"><code>code</code></a></p>'));
+      final style = mergedStyleOf(tester, 'code');
+      check(style!.color).equals(const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor());
+    });
   });
 
   group('UserMention', () {
@@ -1041,6 +1057,21 @@ void main() {
         await checkFontSizeRatio(tester,
           targetHtml: unsupportedKatexHtml,
           targetFontSizeFinder: mkTargetFontSizeFinderFromPattern(expectedText));
+      });
+
+      testFontWeight('is bold in bold span',
+        // Regression test for: https://github.com/zulip/zulip-flutter/issues/1812
+        expectedWght: 600,
+        content: plainContent('<p><strong>$unsupportedKatexHtml</strong></p>'),
+        styleFinder: (tester) => mergedStyleOf(tester, expectedText)!,
+      );
+
+      testWidgets('is link-colored in link span', (tester) async {
+        // Regression test for: https://github.com/zulip/zulip-flutter/issues/806
+        await prepareContent(tester,
+          plainContent('<p><a href="https://example/">$unsupportedKatexHtml</a></p>'));
+        final style = mergedStyleOf(tester, expectedText);
+        check(style!.color).equals(const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor());
       });
     });
   });
