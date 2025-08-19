@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+This is a release from the "beta-prelaunch" branch, with selected
+changes atop the previous pre-launch beta release 0.0.33.
+
+
+### Highlights for users
+
+Thanks for being a beta tester of the new Zulip app!
+
+This app became the main Zulip mobile app in June 2025, and this
+beta version is no longer maintained.  We recommend uninstalling
+this beta after switching to the main Zulip app, in order to get
+the latest features and bug fixes.
+
+Changes in this version from the previous beta:
+* Give a notice on startup that this beta version is no longer
+  maintained, with links to switch to the main Zulip app. (#1603)
+
+
+### Highlights for developers
+
+* Resolved in this beta branch: #1603
+
 
 ## 0.0.33 (2025-06-13)
 
