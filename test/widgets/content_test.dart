@@ -707,6 +707,14 @@ void main() {
           '<tbody>\n<tr>\n<td>text</td>\n</tr>\n</tbody>\n'
           '</table>'),
       styleFinder: findWordBold);
+
+    testWidgets('has strike-through line in strike-through', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/1817
+      await prepareContent(tester,
+        plainContent('<p><del><strong>bold</strong></del></p>'));
+      final style = mergedStyleOf(tester, 'bold');
+      check(style!.decoration).equals(TextDecoration.lineThrough);
+    });
   });
 
   testContentSmoke(ContentExample.deleted);
