@@ -18,6 +18,10 @@ mixin UserGroupStore on PerAccountStoreBase {
   ///
   /// Consider using [activeGroups] instead.
   Iterable<UserGroup> get allGroups;
+
+  /// Whether the self-user is a (transitive) member of the given group,
+  /// a group-setting value.
+  bool selfInGroupSetting(GroupSettingValue value);
 }
 
 mixin ProxyUserGroupStore on UserGroupStore {
@@ -30,6 +34,9 @@ mixin ProxyUserGroupStore on UserGroupStore {
   Iterable<UserGroup> get activeGroups => userGroupStore.activeGroups;
   @override
   Iterable<UserGroup> get allGroups => userGroupStore.allGroups;
+  @override
+  bool selfInGroupSetting(GroupSettingValue value)
+    => userGroupStore.selfInGroupSetting(value);
 }
 
 /// The implementation of [UserGroupStore] that does the work.
@@ -53,6 +60,26 @@ class UserGroupStoreImpl extends PerAccountStoreBase with UserGroupStore {
   @override
   Iterable<UserGroup> get allGroups {
     return _groups.values;
+  }
+
+  @override
+  bool selfInGroupSetting(GroupSettingValue value) { // TODO(#1687) test
+    return switch (value) {
+      GroupSettingValueNamed() =>
+        _selfInGroup(value.groupId),
+      GroupSettingValueNameless() =>
+        value.directMembers.contains(selfUserId)
+          || value.directSubgroups.any(_selfInGroup),
+    };
+  }
+
+  bool _selfInGroup(int groupId) {
+    final group = _groups[groupId];
+    if (group == null) return false; // TODO(log); should know all groups
+    // TODO(perf), TODO(#814): memoize which groups the self-user is in,
+    //   to save doing this depth-first search on each permission check
+    return group.members.contains(selfUserId)
+      || group.directSubgroupIds.any(_selfInGroup);
   }
 
   final Map<int, UserGroup> _groups;
