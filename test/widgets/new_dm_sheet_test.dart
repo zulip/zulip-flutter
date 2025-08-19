@@ -25,6 +25,7 @@ import 'test_app.dart';
 late PerAccountStore store;
 
 Future<void> setupSheet(WidgetTester tester, {
+  User? selfUser,
   required List<User> users,
   List<int>? mutedUserIds,
 }) async {
@@ -34,17 +35,18 @@ Future<void> setupSheet(WidgetTester tester, {
   final testNavObserver = TestNavigatorObserver()
     ..onPushed = (route, _) => lastPushedRoute = route;
 
-  await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
-    realmUsers: users,
-  ));
-  store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+  selfUser ??= eg.selfUser;
+  final account = eg.account(user: selfUser);
+  await testBinding.globalStore.add(account, eg.initialSnapshot(
+    realmUsers: [selfUser, ...users]));
+  store = await testBinding.globalStore.perAccount(account.id);
   if (mutedUserIds != null) {
     await store.setMutedUsers(mutedUserIds);
   }
 
   await tester.pumpWidget(TestZulipApp(
     navigatorObservers: [testNavObserver],
-    accountId: eg.selfAccount.id,
+    accountId: account.id,
     child: const HomePage()));
   await tester.pumpAndSettle();
 
@@ -124,7 +126,7 @@ void main() {
     ];
 
     testWidgets('shows full list initially', (tester) async {
-      await setupSheet(tester, users: testUsers);
+      await setupSheet(tester, selfUser: testUsers[0], users: testUsers);
       check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
       check(findText(includePlaceholders: false, 'Bob Brown')).findsOne();
       check(findText(includePlaceholders: false, 'Charlie Carter')).findsOne();
@@ -144,7 +146,8 @@ void main() {
     testWidgets('deactivated users excluded', (tester) async {
       // Omit a deactivated user both before there's a query…
       final deactivatedUser = eg.user(fullName: 'Impostor Charlie', isActive: false);
-      await setupSheet(tester, users: [...testUsers, deactivatedUser]);
+      await setupSheet(tester, selfUser: testUsers[0],
+        users: [...testUsers, deactivatedUser]);
       check(findText(includePlaceholders: false, 'Impostor Charlie')).findsNothing();
       check(findText(includePlaceholders: false, 'Charlie Carter')).findsOne();
       check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(3);
@@ -160,7 +163,7 @@ void main() {
     testWidgets('muted users excluded', (tester) async {
       // Omit muted users both before there's a query…
       final mutedUser = eg.user(fullName: 'Someone Muted');
-      await setupSheet(tester,
+      await setupSheet(tester, selfUser: testUsers[0],
         users: [...testUsers, mutedUser], mutedUserIds: [mutedUser.userId]);
       check(findText(includePlaceholders: false, 'Someone Muted')).findsNothing();
       check(findText(includePlaceholders: false, 'Muted user')).findsNothing();
@@ -255,7 +258,7 @@ void main() {
     }
 
     testWidgets('tapping user chip deselects the user', (tester) async {
-      await setupSheet(tester, users: [eg.selfUser, eg.otherUser, eg.thirdUser]);
+      await setupSheet(tester, users: [eg.otherUser, eg.thirdUser]);
 
       await tester.tap(findUserTile(eg.otherUser));
       await tester.pump();
@@ -267,7 +270,7 @@ void main() {
 
     testWidgets('selecting and deselecting a user', (tester) async {
       final user = eg.user(fullName: 'Test User');
-      await setupSheet(tester, users: [eg.selfUser, user]);
+      await setupSheet(tester, users: [user]);
 
       checkUserSelected(tester, user, false);
       checkUserSelected(tester, eg.selfUser, false);
@@ -286,7 +289,7 @@ void main() {
 
     testWidgets('other user selection deselects self user', (tester) async {
       final otherUser = eg.user(fullName: 'Other User');
-      await setupSheet(tester, users: [eg.selfUser, otherUser]);
+      await setupSheet(tester, users: [otherUser]);
 
       await tester.tap(findUserTile(eg.selfUser));
       await tester.pump();
@@ -301,7 +304,7 @@ void main() {
 
     testWidgets('other user selection hides self user', (tester) async {
       final otherUser = eg.user(fullName: 'Other User');
-      await setupSheet(tester, users: [eg.selfUser, otherUser]);
+      await setupSheet(tester, users: [otherUser]);
 
       check(findText(includePlaceholders: false, eg.selfUser.fullName)).findsOne();
 
