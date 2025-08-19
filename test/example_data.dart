@@ -216,6 +216,12 @@ UserGroup userGroup({
   );
 }
 
+final UserGroup nobodyGroup = userGroup(
+  isSystemGroup: true,
+  name: 'role:nobody', description: 'Nobody',
+  members: [], directSubgroupIds: [],
+);
+
 RealmEmojiItem realmEmojiItem({
   required String emojiCode,
   required String emojiName,
