@@ -763,6 +763,14 @@ void main() {
         });
     });
 
+    testWidgets('is italic in italic span', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/1813
+      await prepareContent(tester,
+        plainContent('<p><em><span class="user-mention" data-user-id="13313">@Chris Bobbe</span></em></p>'));
+      final style = mergedStyleOf(tester, '@Chris Bobbe');
+      check(style!.fontStyle).equals(FontStyle.italic);
+    });
+
     testFontWeight('silent or non-self mention in plain paragraph',
       expectedWght: 400,
       // @_**Greg Price**
@@ -1081,7 +1089,19 @@ void main() {
       check(find.textContaining(renderedTextRegexpTwelveHour)).findsOne();
     });
 
-    void testIconAndTextSameColor(String description, String html) {
+    testWidgets('is italic in italic span', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/1813
+      await prepareContent(tester,
+        // We use the self-account's time-format setting.
+        wrapWithPerAccountStoreWidget: true,
+        initialSnapshot: eg.initialSnapshot(),
+        plainContent('<p><em>$timeSpanHtml</em></p>'));
+      final style = mergedStyleOf(tester,
+        findAncestor: find.byType(GlobalTime), renderedTextRegexp);
+      check(style!.fontStyle).equals(FontStyle.italic);
+    });
+
+    void testIconAndTextSameColor(String description, String html, {Color? expectedColor}) {
       testWidgets('clock icon and text are the same color: $description', (tester) async {
         await prepareContent(tester,
           // We use the self-account's time-format setting.
@@ -1097,11 +1117,16 @@ void main() {
         check(textColor).isNotNull();
 
         check(icon).color.isNotNull().isSameColorAs(textColor!);
+        if (expectedColor != null) {
+          check(icon).color.equals(expectedColor);
+        }
       });
     }
 
     testIconAndTextSameColor('common case', '<p>$timeSpanHtml</p>');
-    testIconAndTextSameColor('inside link', '<p><a href="https://example/">$timeSpanHtml</a></p>');
+    // Regression test for: https://github.com/zulip/zulip-flutter/issues/1819
+    testIconAndTextSameColor('inside link', '<p><a href="https://example/">$timeSpanHtml</a></p>',
+      expectedColor: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor());
 
     group('maintains font-size ratio with surrounding text', () {
       Future<void> doCheck(WidgetTester tester, double Function(GlobalTime widget) sizeFromWidget) async {

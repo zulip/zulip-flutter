@@ -1081,10 +1081,21 @@ class _InlineContentBuilder {
     _recognizer = _recognizerStack!.removeLast();
   }
 
-  InlineSpan _buildNodes(List<InlineContentNode> nodes, {required TextStyle? style}) {
+  final List<TextStyle> _styleStack = [];
+
+  TextStyle _resolveStyleStack() {
+    assert(_styleStack.isNotEmpty); // first item is `widget.style`
+    return _styleStack.reduce((value, element) => value.merge(element));
+  }
+
+  InlineSpan _buildNodes(List<InlineContentNode> nodes, {required TextStyle style}) {
+    _styleStack.add(style);
+    final children = nodes.map(_buildNode).toList(growable: false);
+    _styleStack.removeLast();
+
     return TextSpan(
       style: style,
-      children: nodes.map(_buildNode).toList(growable: false));
+      children: children);
   }
 
   InlineSpan _buildNode(InlineContentNode node) {
@@ -1123,7 +1134,7 @@ class _InlineContentBuilder {
 
       case UserMentionNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
-          child: UserMention(ambientTextStyle: widget.style, node: node));
+          child: UserMention(ambientTextStyle: _resolveStyleStack(), node: node));
 
       case UnicodeEmojiNode():
         return TextSpan(text: node.emojiUnicode, recognizer: _recognizer,
@@ -1145,11 +1156,11 @@ class _InlineContentBuilder {
           : WidgetSpan(
               alignment: PlaceholderAlignment.baseline,
               baseline: TextBaseline.alphabetic,
-              child: KatexWidget(ambientTextStyle: widget.style, nodes: nodes));
+              child: KatexWidget(ambientTextStyle: _resolveStyleStack(), nodes: nodes));
 
       case GlobalTimeNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
-          child: GlobalTime(node: node, ambientTextStyle: widget.style));
+          child: GlobalTime(node: node, ambientTextStyle: _resolveStyleStack()));
 
       case UnimplementedInlineContentNode():
         return _errorUnimplemented(node, context: _context!);
@@ -1341,7 +1352,7 @@ class GlobalTime extends StatelessWidget {
                 size: ambientTextStyle.fontSize!,
                 // (When GlobalTime appears in a link, it should be blue
                 // like the text.)
-                color: DefaultTextStyle.of(context).style.color!,
+                color: ambientTextStyle.color,
                 ZulipIcons.clock),
               // Ad-hoc spacing adjustment per feedback:
               //   https://chat.zulip.org/#narrow/stream/101-design/topic/clock.20icons/near/1729345
