@@ -63,7 +63,7 @@ class UserGroupStoreImpl extends PerAccountStoreBase with UserGroupStore {
   }
 
   @override
-  bool selfInGroupSetting(GroupSettingValue value) { // TODO(#1687) test
+  bool selfInGroupSetting(GroupSettingValue value) {
     return switch (value) {
       GroupSettingValueNamed() =>
         _selfInGroup(value.groupId),
@@ -106,7 +106,6 @@ class UserGroupStoreImpl extends PerAccountStoreBase with UserGroupStore {
         if (data.description != null) group.description = data.description!;
         if (data.deactivated != null) group.deactivated = data.deactivated!;
 
-      // TODO(#1687): test handling the four membership-related events
       case UserGroupAddMembersEvent():
         final group = _expectGroup(event.groupId);
         if (group == null) return;
@@ -131,7 +130,6 @@ class UserGroupStoreImpl extends PerAccountStoreBase with UserGroupStore {
 
   void handleRealmUserUpdateEvent(RealmUserUpdateEvent event) {
     if (event.isActive == false) {
-      // TODO(#1687): test handling user deactivation
       for (final group in _groups.values) {
         group.members.remove(event.userId);
       }
