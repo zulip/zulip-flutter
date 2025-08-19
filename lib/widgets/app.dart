@@ -340,10 +340,12 @@ class ChooseAccountPage extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 8),
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                     for (final (:accountId, :account) in globalStore.accountEntries)
-                      _ChooseAccountListItem(
+                      ChooseAccountListItem(
                         accountId: accountId,
                         title: Text(account.realmUrl.toString()),
-                        subtitle: Text(account.email)),
+                        subtitle: Text(account.email),
+                        showLogoutMenu: true,
+                        onTap: () => HomePage.navigate(context, accountId: accountId)),
                   ]))),
                 const SizedBox(height: 12),
                 ElevatedButton(
@@ -354,16 +356,21 @@ class ChooseAccountPage extends StatelessWidget {
   }
 }
 
-class _ChooseAccountListItem extends StatelessWidget {
-  const _ChooseAccountListItem({
+class ChooseAccountListItem extends StatelessWidget {
+  const ChooseAccountListItem({
+    super.key,
     required this.accountId,
     required this.title,
     required this.subtitle,
+    required this.showLogoutMenu,
+    required this.onTap,
   });
 
   final int accountId;
   final Widget title;
   final Widget? subtitle;
+  final bool showLogoutMenu;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -378,7 +385,7 @@ class _ChooseAccountListItem extends StatelessWidget {
         subtitle: subtitle,
         tileColor: colorScheme.secondaryContainer,
         textColor: colorScheme.onSecondaryContainer,
-        trailing: MenuAnchor(
+        trailing: !showLogoutMenu ? null : MenuAnchor(
           menuChildren: [
             MenuItemButton(
               onPressed: () async {
@@ -410,7 +417,7 @@ class _ChooseAccountListItem extends StatelessWidget {
         // The default trailing padding with M3 is 24px. Decrease by 12 because
         // IconButton (the "…" button) comes with 12px padding on all sides.
         contentPadding: const EdgeInsetsDirectional.only(start: 16, end: 12),
-        onTap: () => HomePage.navigate(context, accountId: accountId)));
+        onTap: onTap));
   }
 }
 

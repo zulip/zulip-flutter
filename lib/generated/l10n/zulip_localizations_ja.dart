@@ -883,6 +883,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get sharePageTitle => '共有';
 
   @override
+  String get shareChooseAccountLabel => 'Choose account';
+
+  @override
   String get mainMenuMyProfile => '自分のプロフィール';
 
   @override

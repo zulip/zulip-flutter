@@ -1597,6 +1597,12 @@ abstract class ZulipLocalizations {
   /// **'Share'**
   String get sharePageTitle;
 
+  /// Label for the page about selecting an account to share content received from other apps.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose account'**
+  String get shareChooseAccountLabel;
+
   /// Label for main-menu button leading to the user's own profile.
   ///
   /// In en, this message translates to:

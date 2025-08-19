@@ -60,11 +60,7 @@ class ShareService {
 
     final globalStore = GlobalStoreWidget.of(context);
 
-    // TODO(#524) use last account used, not the first in the list
-    // TODO(#1779) allow selecting account, if there are multiple
-    final accountId = globalStore.accounts.firstOrNull?.id;
-
-    if (accountId == null) {
+    if (globalStore.accounts.isEmpty) {
       final zulipLocalizations = ZulipLocalizations.of(context);
       showErrorDialog(
         context: context,
@@ -99,11 +95,18 @@ class ShareService {
         mimeType: mimeType);
     });
 
-    unawaited(navigator.push(
-      SharePage.buildRoute(
-        accountId: accountId,
-        sharedFiles: sharedFiles,
-        sharedText: intentSendEvent.extraText)));
+    if (globalStore.accounts.length == 1) {
+      unawaited(navigator.push(
+        SharePage.buildRoute(
+          accountId: globalStore.accounts.first.id,
+          sharedFiles: sharedFiles,
+          sharedText: intentSendEvent.extraText)));
+    } else {
+      unawaited(navigator.push(MaterialWidgetRoute(
+        page: ShareChooseAccountPage(
+          sharedFiles: sharedFiles,
+          sharedText: intentSendEvent.extraText))));
+    }
   }
 }
 
@@ -204,5 +207,55 @@ class SharePage extends StatelessWidget {
             hideDmsIfUserCantPost: true,
             onDmSelect: (narrow) => _handleNarrowSelect(context, narrow)),
         ])));
+  }
+}
+
+class ShareChooseAccountPage extends StatelessWidget {
+  const ShareChooseAccountPage({
+    super.key,
+    required this.sharedFiles,
+    required this.sharedText,
+  });
+
+  final Iterable<FileToUpload>? sharedFiles;
+  final String? sharedText;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = ColorScheme.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    assert(!PerAccountStoreWidget.debugExistsOf(context));
+    final globalStore = GlobalStoreWidget.of(context);
+
+    return MenuButtonTheme(
+      data: MenuButtonThemeData(style: MenuItemButton.styleFrom(
+        backgroundColor: colorScheme.secondaryContainer,
+        foregroundColor: colorScheme.onSecondaryContainer)),
+      child: Scaffold(
+        appBar: AppBar(title: Text(zulipLocalizations.sharePageTitle)),
+        body: SafeArea(
+          minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Text(zulipLocalizations.shareChooseAccountLabel,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18, height: 22 / 18)),
+                Flexible(child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    for (final (:accountId, :account) in globalStore.accountEntries)
+                      ChooseAccountListItem(
+                        accountId: accountId,
+                        title: Text(account.realmUrl.toString()),
+                        subtitle: Text(account.email),
+                        showLogoutMenu: false,
+                        onTap: () => Navigator.of(context).push(SharePage.buildRoute(
+                          accountId: accountId,
+                          sharedFiles: sharedFiles,
+                          sharedText: sharedText))),
+                  ]))),
+              ]))))));
   }
 }
