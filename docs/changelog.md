@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 0.0.34 (2025-08-18)
+
 This is a release from the "beta-prelaunch" branch, with selected
 changes atop the previous pre-launch beta release 0.0.33.
 
