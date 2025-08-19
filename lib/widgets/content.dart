@@ -1036,11 +1036,13 @@ class _InlineContentBuilder {
     _context = context;
     assert(_recognizer == widget.recognizer);
     assert(_recognizerStack == null || _recognizerStack!.isEmpty);
+    assert(_styleStack == null || _styleStack!.isEmpty);
     final result = _buildNodes(widget.nodes, style: widget.style);
     assert(identical(_context, context));
     _context = null;
     assert(_recognizer == widget.recognizer);
     assert(_recognizerStack == null || _recognizerStack!.isEmpty);
+    assert(_styleStack == null || _styleStack!.isEmpty);
     return result;
   }
 
@@ -1064,10 +1066,43 @@ class _InlineContentBuilder {
     _recognizer = _recognizerStack!.removeLast();
   }
 
-  InlineSpan _buildNodes(List<InlineContentNode> nodes, {required TextStyle? style}) {
+  /// A stack of the [TextStyle]s applied by ancestors of the node being built,
+  /// excluding the root [widget.style].
+  ///
+  /// Call [_resolveStyleStack] to merge [widget.style] and these styles
+  /// into one ambient style for the node being built.
+  ///
+  /// [widget.style] is excluded to avoid allocating an empty list
+  /// for unstyled paragraphs.
+  List<TextStyle>? _styleStack;
+
+  void _pushStyle(TextStyle style) {
+    if (identical(style, widget.style)) return;
+    (_styleStack ??= []).add(style);
+  }
+
+  void _popStyle(TextStyle style) {
+    if (identical(style, widget.style)) return;
+    _styleStack!.removeLast();
+  }
+
+  /// The merged result of [widget.style] and all styles on [_styleStack].
+  // In principle we could memoize this, but profiling suggests that's unnecessary:
+  //   https://github.com/zulip/zulip-flutter/pull/1821#discussion_r2608812752
+  TextStyle _resolveStyleStack() {
+    if (_styleStack == null || _styleStack!.isEmpty) return widget.style;
+    return _styleStack!.fold(widget.style,
+      (value, element) => value.merge(element));
+  }
+
+  InlineSpan _buildNodes(List<InlineContentNode> nodes, {required TextStyle style}) {
+    _pushStyle(style);
+    final children = nodes.map(_buildNode).toList(growable: false);
+    _popStyle(style);
+
     return TextSpan(
       style: style,
-      children: nodes.map(_buildNode).toList(growable: false));
+      children: children);
   }
 
   InlineSpan _buildNode(InlineContentNode node) {
@@ -1106,7 +1141,7 @@ class _InlineContentBuilder {
 
       case MentionNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
-          child: Mention(ambientTextStyle: widget.style, node: node));
+          child: Mention(ambientTextStyle: _resolveStyleStack(), node: node));
 
       case UnicodeEmojiNode():
         return TextSpan(text: node.emojiUnicode, recognizer: _recognizer,
@@ -1130,11 +1165,11 @@ class _InlineContentBuilder {
           : WidgetSpan(
               alignment: PlaceholderAlignment.baseline,
               baseline: TextBaseline.alphabetic,
-              child: KatexWidget(ambientTextStyle: widget.style, nodes: nodes));
+              child: KatexWidget(ambientTextStyle: _resolveStyleStack(), nodes: nodes));
 
       case GlobalTimeNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
-          child: GlobalTime(node: node, ambientTextStyle: widget.style));
+          child: GlobalTime(node: node, ambientTextStyle: _resolveStyleStack()));
 
       case UnimplementedInlineContentNode():
         return _errorUnimplemented(node, context: _context!);
@@ -1414,7 +1449,7 @@ class GlobalTime extends StatelessWidget {
                 size: ambientTextStyle.fontSize!,
                 // (When GlobalTime appears in a link, it should be blue
                 // like the text.)
-                color: DefaultTextStyle.of(context).style.color!,
+                color: ambientTextStyle.color,
                 ZulipIcons.clock),
               // Ad-hoc spacing adjustment per feedback:
               //   https://chat.zulip.org/#narrow/stream/101-design/topic/clock.20icons/near/1729345
