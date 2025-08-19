@@ -2946,6 +2946,8 @@ void main() {
     // whether the sender should be shown, but the difference between
     // fetchInitial and handleMessageEvent etc. doesn't matter.
 
+    // TODO(#1825) test that messagesCloseInTime gets used
+
     final now = clock.now();
     final t1 = eg.utcTimestamp(now.subtract(Duration(days: 1)));
     final t2 = eg.utcTimestamp(now);
@@ -3118,6 +3120,8 @@ void main() {
       }
     }
   });
+
+  // TODO(#1825) test messagesCloseInTime
 }
 
 MessageListView? _lastModel;
@@ -3244,7 +3248,7 @@ void checkInvariants(MessageListView model) {
         .message.identicalTo(model.outboxMessages[j-model.messages.length]);
     }
     check(model.items[i++]).isA<MessageListMessageBaseItem>()
-      ..showSender.equals(
+      ..showSender.equals( // TODO(#1825) adjust to reflect messagesCloseInTime
         forcedShowSender || allMessages[j].senderId != allMessages[j-1].senderId)
       ..isLastInBlock.equals(
         i == model.items.length || switch (model.items[i]) {

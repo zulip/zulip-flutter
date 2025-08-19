@@ -459,8 +459,10 @@ mixin _MessageSequence {
       if (!messagesSameDay(prevMessageItem.message, message)) {
         items.add(MessageListDateSeparatorItem(message));
         canShareSender = false;
+      } else if (prevMessageItem.message.senderId == message.senderId) {
+        canShareSender = messagesCloseInTime(prevMessage, message);
       } else {
-        canShareSender = prevMessageItem.message.senderId == message.senderId;
+        canShareSender = false;
       }
     }
     final item = buildItem(canShareSender);
@@ -566,6 +568,12 @@ bool messagesSameDay(MessageBase prevMessage, MessageBase message) {
   final time = DateTime.fromMillisecondsSinceEpoch(message.timestamp * 1000);
   if (!_sameDay(prevTime, time)) return false;
   return true;
+}
+
+@visibleForTesting
+bool messagesCloseInTime(MessageBase prevMessage, MessageBase message) {
+  final diffSeconds = (message.timestamp - prevMessage.timestamp).abs();
+  return diffSeconds <= 10 * 60;
 }
 
 bool _sameDay(DateTime date1, DateTime date2) {
