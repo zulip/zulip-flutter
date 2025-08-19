@@ -308,12 +308,65 @@ class _PreventEmptyStack extends NavigatorObserver {
 class ChooseAccountPage extends StatelessWidget {
   const ChooseAccountPage({super.key});
 
-  Widget _buildAccountItem(
-    BuildContext context, {
-    required int accountId,
-    required Widget title,
-    Widget? subtitle,
-  }) {
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = ColorScheme.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    assert(!PerAccountStoreWidget.debugExistsOf(context));
+    final globalStore = GlobalStoreWidget.of(context);
+
+    // Borrowed from [AppBar.build].
+    // See documentation on [ModalRoute.impliesAppBarDismissal]:
+    // > Whether an [AppBar] in the route should automatically add a back button or
+    // > close button.
+    final hasBackButton = ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
+
+    return MenuButtonTheme(
+      data: MenuButtonThemeData(style: MenuItemButton.styleFrom(
+        backgroundColor: colorScheme.secondaryContainer,
+        foregroundColor: colorScheme.onSecondaryContainer)),
+      child: Scaffold(
+        appBar: AppBar(
+          titleSpacing: hasBackButton ? null : 16,
+          title: Text(zulipLocalizations.chooseAccountPageTitle),
+          actions: const [ChooseAccountPageOverflowButton()]),
+        body: SafeArea(
+          minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Flexible(child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    for (final (:accountId, :account) in globalStore.accountEntries)
+                      _ChooseAccountListItem(
+                        accountId: accountId,
+                        title: Text(account.realmUrl.toString()),
+                        subtitle: Text(account.email)),
+                  ]))),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: () => Navigator.push(context,
+                    AddAccountPage.buildRoute()),
+                  child: Text(zulipLocalizations.chooseAccountButtonAddAnAccount)),
+              ]))))));
+  }
+}
+
+class _ChooseAccountListItem extends StatelessWidget {
+  const _ChooseAccountListItem({
+    required this.accountId,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final int accountId;
+  final Widget title;
+  final Widget? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
     final colorScheme = ColorScheme.of(context);
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -358,51 +411,6 @@ class ChooseAccountPage extends StatelessWidget {
         // IconButton (the "…" button) comes with 12px padding on all sides.
         contentPadding: const EdgeInsetsDirectional.only(start: 16, end: 12),
         onTap: () => HomePage.navigate(context, accountId: accountId)));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = ColorScheme.of(context);
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    assert(!PerAccountStoreWidget.debugExistsOf(context));
-    final globalStore = GlobalStoreWidget.of(context);
-
-    // Borrowed from [AppBar.build].
-    // See documentation on [ModalRoute.impliesAppBarDismissal]:
-    // > Whether an [AppBar] in the route should automatically add a back button or
-    // > close button.
-    final hasBackButton = ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
-
-    return MenuButtonTheme(
-      data: MenuButtonThemeData(style: MenuItemButton.styleFrom(
-        backgroundColor: colorScheme.secondaryContainer,
-        foregroundColor: colorScheme.onSecondaryContainer)),
-      child: Scaffold(
-        appBar: AppBar(
-          titleSpacing: hasBackButton ? null : 16,
-          title: Text(zulipLocalizations.chooseAccountPageTitle),
-          actions: const [ChooseAccountPageOverflowButton()]),
-        body: SafeArea(
-          minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Flexible(child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    for (final (:accountId, :account) in globalStore.accountEntries)
-                      _buildAccountItem(context,
-                        accountId: accountId,
-                        title: Text(account.realmUrl.toString()),
-                        subtitle: Text(account.email)),
-                  ]))),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () => Navigator.push(context,
-                    AddAccountPage.buildRoute()),
-                  child: Text(zulipLocalizations.chooseAccountButtonAddAnAccount)),
-              ]))))));
   }
 }
 
