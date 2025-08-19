@@ -554,10 +554,8 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
               padding: const EdgeInsets.symmetric(horizontal: 8),
               splashFactory: NoSplash.splashFactory,
               foregroundColor: designVariables.contextMenuItemText,
-            ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) =>
-              states.contains(WidgetState.pressed)
-                ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
-                : Colors.transparent)),
+              overlayColor: Colors.transparent,
+            ),
             child: Text(zulipLocalizations.dialogCancel,
               style: const TextStyle(fontSize: 20, height: 30 / 20))),
         ])),
