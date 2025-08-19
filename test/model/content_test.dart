@@ -85,6 +85,13 @@ class ContentExample {
     '<p><strong>bold</strong></p>',
     const StrongNode(nodes: [TextNode('bold')]));
 
+  static final deleted = ContentExample.inline(
+    'deleted/strike-through',
+    '~~strike through~~',
+    expectedText: 'strike through',
+    '<p><del>strike through</del></p>',
+    const DeletedNode(nodes: [TextNode('strike through')]));
+
   static final emphasis = ContentExample.inline(
     'emphasis/italic',
     '*italic*',
@@ -1535,10 +1542,7 @@ void main() async {
 
   testParseExample(ContentExample.strong);
 
-  testParseInline('parse deleted/strike-through',
-    // "~~strike through~~"
-    '<p><del>strike through</del></p>',
-    const DeletedNode(nodes: [TextNode('strike through')]));
+  testParseExample(ContentExample.deleted);
 
   testParseExample(ContentExample.emphasis);
 

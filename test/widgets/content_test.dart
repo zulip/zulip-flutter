@@ -709,6 +709,8 @@ void main() {
       styleFinder: findWordBold);
   });
 
+  testContentSmoke(ContentExample.deleted);
+
   testContentSmoke(ContentExample.emphasis);
 
   group('inline code', () {
