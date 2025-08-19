@@ -288,8 +288,11 @@ double bolderWght(double baseWght, {double by = 300}) {
   return clampDouble(baseWght + by, kWghtMin, kWghtMax);
 }
 
-/// A [TextStyle] whose [FontVariation] "wght" and [TextStyle.fontWeight]
-/// have been raised using [bolderWght].
+/// A [TextStyle] with [FontVariation] "wght" and [TextStyle.fontWeight]
+/// that have been raised from the input using [bolderWght].
+///
+/// Non-weight attributes in [style] are ignored
+/// and will not appear in the result.
 ///
 /// [style] must have already been processed with [weightVariableTextStyle],
 /// and [by] must be positive.
@@ -311,12 +314,9 @@ TextStyle bolderWghtTextStyle(TextStyle style, {double by = 300}) {
 
   final newWght = bolderWght(wghtFromTextStyle(style)!, by: by);
 
-  TextStyle result = style.copyWith(
-    fontVariations: style.fontVariations!.map((v) => v.axis == 'wght'
-      ? FontVariation('wght', newWght)
-      : v).toList(),
-    fontWeight: clampVariableFontWeight(newWght),
-  );
+  TextStyle result = TextStyle(
+    fontVariations: [FontVariation('wght', newWght)],
+    fontWeight: clampVariableFontWeight(newWght));
 
   assert(() {
     result = result.copyWith(debugLabel: 'bolderWghtTextStyle(by: $by)');
