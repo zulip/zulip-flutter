@@ -1127,8 +1127,7 @@ class _InlineContentBuilder {
 
       case UnicodeEmojiNode():
         return TextSpan(text: node.emojiUnicode, recognizer: _recognizer,
-          style: widget.style
-            .merge(ContentTheme.of(_context!).textStyleEmoji));
+          style: ContentTheme.of(_context!).textStyleEmoji);
 
       case ImageEmojiNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,

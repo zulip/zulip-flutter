@@ -982,6 +982,14 @@ void main() {
           _ => throw StateError('unexpected platform in test'),
         });
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+
+    testWidgets('has strike-through line in strike-through', (tester) async {
+      // Regression test for https://github.com/zulip/zulip-flutter/issues/1818
+      await prepareContent(tester,
+        plainContent('<p><del>foo<span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span>bar</del></p>'));
+      final style = mergedStyleOf(tester, '\u{1f44d}');
+      check(style!.decoration).equals(TextDecoration.lineThrough);
+    });
   });
 
   group('inline math', () {
