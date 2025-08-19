@@ -376,8 +376,13 @@ class GlobalSettingsStore extends ChangeNotifier {
   /// A value of null means the setting will revert to following
   /// the app's default.
   ///
+  /// If [value] equals the setting's current value, the database operation
+  /// and [notifyListeners] are skipped.
+  ///
   /// See also [getBool].
   Future<void> setBool(BoolGlobalSetting setting, bool? value) async {
+    if (value == _boolData[setting]) return;
+
     await _backend.doSetBoolGlobalSetting(setting, value);
     if (value == null) {
       _boolData.remove(setting);
