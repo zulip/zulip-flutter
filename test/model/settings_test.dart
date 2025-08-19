@@ -125,5 +125,43 @@ void main() {
         .isFalse();
       assert(!BoolGlobalSetting.placeholderIgnore.default_);
     });
+
+    group('set avoids redundant updates', () {
+      void checkUpdated(bool? old, bool? new_, {required bool expected}) async {
+        final globalSettings = eg.globalStore(boolGlobalSettings: {
+          if (old != null) BoolGlobalSetting.placeholderIgnore: old,
+        }).settings;
+
+        bool updated = false;
+        globalSettings.addListener(() => updated = true);
+
+        await globalSettings.setBool(BoolGlobalSetting.placeholderIgnore, new_);
+        check(updated).equals(expected);
+      }
+
+      test('null to null -> no update', () async {
+        checkUpdated(null, null, expected: false);
+      });
+
+      test('true to true -> no update', () async {
+        checkUpdated(true, true, expected: false);
+      });
+
+      test('false to false -> no update', () async {
+        checkUpdated(false, false, expected: false);
+      });
+
+      test('null to false -> does the update', () async {
+        checkUpdated(null, false, expected: true);
+      });
+
+      test('true to null -> does the update', () async {
+        checkUpdated(true, null, expected: true);
+      });
+
+      test('false to true -> does the update', () async {
+        checkUpdated(false, true, expected: true);
+      });
+    });
   });
 }
