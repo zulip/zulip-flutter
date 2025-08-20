@@ -15,9 +15,9 @@ import 'content.dart';
 /// and applies the CSS styles defined in .katex class in katex.scss :
 ///   https://github.com/KaTeX/KaTeX/blob/613c3da8/src/styles/katex.scss#L13-L15
 ///
-/// Requires the [style.fontSize] to be non-null.
-TextStyle mkBaseKatexTextStyle(TextStyle style, Color baseColor) {
-  return style.copyWith(
+/// Requires the [ambientStyle.fontSize] to be non-null.
+TextStyle mkBaseKatexTextStyle(TextStyle ambientStyle, Color baseColor) {
+  return ambientStyle.copyWith(
     ////// Overrides of our own styles:
 
     // Bold formatting is removed below by setting FontWeight.normal…
@@ -39,7 +39,7 @@ TextStyle mkBaseKatexTextStyle(TextStyle style, Color baseColor) {
 
     ////// From the .katex class in katex.scss:
 
-    fontSize: style.fontSize! * 1.21,
+    fontSize: ambientStyle.fontSize! * 1.21,
     fontFamily: 'KaTeX_Main',
     height: 1.2,
     fontWeight: FontWeight.normal,
@@ -54,11 +54,11 @@ TextStyle mkBaseKatexTextStyle(TextStyle style, Color baseColor) {
 class KatexWidget extends StatelessWidget {
   const KatexWidget({
     super.key,
-    required this.textStyle,
+    required this.ambientTextStyle,
     required this.nodes,
   });
 
-  final TextStyle textStyle;
+  final TextStyle ambientTextStyle;
   final List<KatexNode> nodes;
 
   @override
@@ -68,7 +68,7 @@ class KatexWidget extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.ltr,
       child: DefaultTextStyle(
-        style: mkBaseKatexTextStyle(textStyle,
+        style: mkBaseKatexTextStyle(ambientTextStyle,
           ContentTheme.of(context).textStylePlainParagraph.color!),
         child: widget));
   }
