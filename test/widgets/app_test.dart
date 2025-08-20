@@ -47,10 +47,9 @@ void main() {
     group('when have accounts', () {
       testWidgets('with last account visited, go to home page for last account', (tester) async {
         await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-        await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot(
-          realmUsers: [eg.otherUser]));
-        await testBinding.globalStore.settings
-          .setInt(IntGlobalSetting.lastVisitedAccountId, eg.otherAccount.id);
+        await testBinding.globalStore.add(
+          eg.otherAccount, eg.initialSnapshot(realmUsers: [eg.otherUser]),
+          markLastVisited: true);
         await prepare(tester);
 
         check(pushedRoutes).deepEquals(<Condition<Object?>>[
@@ -108,9 +107,8 @@ void main() {
     }
 
     testWidgets('push route when removing last route on stack', (tester) async {
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      await testBinding.globalStore.settings
-        .setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(),
+        markLastVisited: true);
       await prepare(tester);
       // The navigator stack should contain only a home page route.
 
@@ -313,11 +311,10 @@ void main() {
 
     testWidgets('choosing an account clears the navigator stack', (tester) async {
       addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(),
+        markLastVisited: true);
       await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot(
         realmUsers: [eg.otherUser]));
-      await testBinding.globalStore.settings
-        .setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
 
       final pushedRoutes = <Route<void>>[];
       final poppedRoutes = <Route<void>>[];
@@ -372,11 +369,10 @@ void main() {
 
       testWidgets('first non-null, then changes to the chosen account', (tester) async {
         addTearDown(testBinding.reset);
-        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(),
+          markLastVisited: true);
         await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot(
           realmUsers: [eg.otherUser]));
-        await testBinding.globalStore.settings
-          .setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
 
         await tester.pumpWidget(ZulipApp());
         await tester.pump();
