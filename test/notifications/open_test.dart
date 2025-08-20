@@ -74,10 +74,7 @@ void main() {
   TestZulipBinding.ensureInitialized();
   final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
-  Future<void> init({bool addSelfAccount = true}) async {
-    if (addSelfAccount) {
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-    }
+  Future<void> init() async {
     addTearDown(testBinding.reset);
     testBinding.firebaseMessagingInitialToken = '012abc';
     addTearDown(NotificationService.debugReset);
@@ -104,7 +101,7 @@ void main() {
 
     Future<void> prepare(WidgetTester tester,
         {bool early = false, bool withAccount = true}) async {
-      await init(addSelfAccount: false);
+      await init();
       pushedRoutes = [];
       final testNavObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
