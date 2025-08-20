@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../model/store.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -265,4 +266,105 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
           //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=5957-167736&m=dev
           child: child)));
   }
+}
+
+/// A [ChangeNotifier] that tracks a nullable account-ID selection.
+///
+/// Maintains a listener on [GlobalStore] and will clear the selection
+/// if the account no longer exists because it was logged out.
+///
+/// Use [selectedAccountId] to read the selection
+/// and [selectAccount] to update it.
+class MultiAccountPageController extends ChangeNotifier {
+  factory MultiAccountPageController.init(GlobalStore globalStore) {
+
+    final result = MultiAccountPageController._(globalStore);
+    globalStore.addListener(result._globalStoreChanged);
+    // TODO initialize selectedAccountId to last-visited?
+    result._reconcile();
+    return result;
+  }
+
+  MultiAccountPageController._(this._globalStore);
+
+  final GlobalStore _globalStore;
+
+  int? get selectedAccountId => _selectedAccountId;
+  int? _selectedAccountId;
+
+  void selectAccount(int accountId) {
+    _selectedAccountId = accountId;
+    _reconcile();
+    notifyListeners();
+  }
+
+  void _globalStoreChanged() {
+    _reconcile();
+  }
+
+  void _reconcile() {
+    if (_selectedAccountId == null) return;
+    if (_globalStore.accountIds.contains(_selectedAccountId)) return;
+    _selectedAccountId = null;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _globalStore.removeListener(_globalStoreChanged);
+    super.dispose();
+  }
+}
+
+/// A widget that can efficiently provide a [MultiAccountPageController]
+/// to its descendants, via [BuildContext.dependOnInheritedWidgetOfExactType].
+class MultiAccountPageProvider extends StatefulWidget {
+  const MultiAccountPageProvider({super.key, required this.child});
+
+  final Widget child;
+
+  /// The [MultiAccountPageController] of an assumed
+  /// [MultiAccountPageProvider] ancestor.
+  ///
+  /// Creates a dependency on the controller via [InheritedNotifier].
+  static MultiAccountPageController of(BuildContext context) {
+    final widget = context.dependOnInheritedWidgetOfExactType<_MultiAccountPageControllerInheritedWidget>();
+    assert(widget != null, 'No MultiAccountPageProvider ancestor');
+    return widget!.controller;
+  }
+
+  @override
+  State<MultiAccountPageProvider> createState() => _MultiAccountPageProviderState();
+}
+
+class _MultiAccountPageProviderState extends State<MultiAccountPageProvider> {
+  GlobalStore? _globalStore;
+
+  MultiAccountPageController? _controller;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final store = GlobalStoreWidget.of(context);
+    if (_globalStore != store) {
+      _controller?.dispose();
+      _controller = MultiAccountPageController.init(store);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _MultiAccountPageControllerInheritedWidget(
+      controller: _controller!, child: widget.child);
+  }
+}
+
+class _MultiAccountPageControllerInheritedWidget extends InheritedNotifier<MultiAccountPageController> {
+  const _MultiAccountPageControllerInheritedWidget({
+    required MultiAccountPageController controller,
+    required super.child,
+  }) : super(notifier: controller);
+
+  MultiAccountPageController get controller => notifier!;
 }
