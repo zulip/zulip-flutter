@@ -997,13 +997,22 @@ void main() {
 
     testContentSmoke(ContentExample.mathInline);
 
+    final mathInlineHtml = '<span class="katex">'
+      '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
+        '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
+      '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span>';
+
+    testWidgets('is link-colored in link span', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/1823
+      await prepareContent(tester,
+        plainContent('<p><a href="https://example/">$mathInlineHtml</a></p>'));
+      final style = mergedStyleOf(tester, 'λ');
+      check(style!.color).equals(const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor());
+    });
+
     testWidgets('maintains font-size ratio with surrounding text', (tester) async {
-      const html = '<span class="katex">'
-        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
-          '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
-        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span>';
       await checkFontSizeRatio(tester,
-        targetHtml: html,
+        targetHtml: mathInlineHtml,
         targetFontSizeFinder: (rootSpan) {
           late final double result;
           rootSpan.visitChildren((span) {

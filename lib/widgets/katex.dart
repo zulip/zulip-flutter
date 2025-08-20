@@ -6,7 +6,6 @@ import 'package:flutter/rendering.dart';
 
 import '../model/content.dart';
 import '../model/katex.dart';
-import 'content.dart';
 
 /// Creates a base text style for rendering KaTeX content.
 ///
@@ -16,7 +15,7 @@ import 'content.dart';
 ///   https://github.com/KaTeX/KaTeX/blob/613c3da8/src/styles/katex.scss#L13-L15
 ///
 /// Requires the [ambientStyle.fontSize] to be non-null.
-TextStyle mkBaseKatexTextStyle(TextStyle ambientStyle, Color baseColor) {
+TextStyle mkBaseKatexTextStyle(TextStyle ambientStyle) {
   return ambientStyle.copyWith(
     ////// Overrides of our own styles:
 
@@ -24,9 +23,6 @@ TextStyle mkBaseKatexTextStyle(TextStyle ambientStyle, Color baseColor) {
     // Just for completeness, remove "wght", but it wouldn't do anything anyway
     // since KaTeX_Main is not a variable-weight font.
     fontVariations: [],
-    // Remove link color, but
-    // TODO(#1823) do we want to do that? Web doesn't.
-    color: baseColor,
     // Italic is removed below.
 
     // Strikethrough is removed below, which affects formatting of rendered
@@ -68,8 +64,7 @@ class KatexWidget extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.ltr,
       child: DefaultTextStyle(
-        style: mkBaseKatexTextStyle(ambientTextStyle,
-          ContentTheme.of(context).textStylePlainParagraph.color!),
+        style: mkBaseKatexTextStyle(ambientTextStyle),
         child: widget));
   }
 }
