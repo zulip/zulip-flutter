@@ -213,7 +213,11 @@ class LoadingPlaceholderPage extends StatelessWidget {
   }
 }
 
-/// A "no content here" message for when a page has no content to show.
+/// A placeholder for when a page body has no content to show.
+///
+/// Pass [message] for a "no-content-here" message,
+/// or pass true for [loading] if the content hasn't finished loading yet,
+/// but don't pass both.
 ///
 /// Suitable for the inbox, the message-list page, etc.
 ///
@@ -227,13 +231,29 @@ class LoadingPlaceholderPage extends StatelessWidget {
 // TODO(#311) If the message list gets a bottom nav, the bottom inset will
 //   always be handled externally too; simplify implementation and dartdoc.
 class PageBodyEmptyContentPlaceholder extends StatelessWidget {
-  const PageBodyEmptyContentPlaceholder({super.key, required this.message});
+  const PageBodyEmptyContentPlaceholder({
+    super.key,
+    this.message,
+    this.loading = false,
+  }) : assert((message != null) ^ loading);
 
-  final String message;
+  final String? message;
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
+
+    final child = loading
+      ? CircularProgressIndicator()
+      : Text(
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: designVariables.labelSearchPrompt,
+            fontSize: 17,
+            height: 23 / 17,
+          ).merge(weightVariableTextStyle(context, wght: 500)),
+          message!);
 
     return SafeArea(
       minimum: EdgeInsets.fromLTRB(24, 0, 24, 16),
@@ -243,13 +263,6 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
           alignment: Alignment.topCenter,
           // TODO leading and trailing elements, like in Figma (given as SVGs):
           //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=5957-167736&m=dev
-          child: Text(
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: designVariables.labelSearchPrompt,
-              fontSize: 17,
-              height: 23 / 17,
-            ).merge(weightVariableTextStyle(context, wght: 500)),
-            message))));
+          child: child)));
   }
 }
