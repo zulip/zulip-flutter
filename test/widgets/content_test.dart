@@ -1041,9 +1041,8 @@ void main() {
         targetFontSizeFinder: mkTargetFontSizeFinderFromPattern(r'\lambda'));
     });
 
-    testWidgets('fallback to displaying KaTeX source if unsupported KaTeX HTML', (tester) async {
-      await prepareContent(tester, plainContent(ContentExample.mathInlineUnknown.html));
-      tester.widget(find.text(r'\lambda'));
+    group('fallback to displaying KaTeX source if unsupported KaTeX HTML', () {
+      testContentSmoke(ContentExample.mathInlineUnknown);
     });
   });
 
