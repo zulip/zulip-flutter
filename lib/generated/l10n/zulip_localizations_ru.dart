@@ -32,7 +32,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get upgradeWelcomeDialogLinkText => 'Ознакомьтесь с анонсом в блоге!';
 
   @override
-  String get upgradeWelcomeDialogDismiss => 'Приступим!';
+  String get upgradeWelcomeDialogDismiss => 'Приступим';
 
   @override
   String get chooseAccountPageTitle => 'Выберите учетную запись';
@@ -181,29 +181,32 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   }
 
   @override
-  String get actionSheetOptionViewReadReceipts => 'View read receipts';
+  String get actionSheetOptionViewReadReceipts =>
+      'Посмотреть подтверждения прочтения';
 
   @override
-  String get actionSheetReadReceipts => 'Read receipts';
+  String get actionSheetReadReceipts => 'Подтверждения прочтения';
 
   @override
   String actionSheetReadReceiptsReadCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'This message has been <z-link>read</z-link> by $count people:',
-      one: 'This message has been <z-link>read</z-link> by $count person:',
+      other:
+          'Это сообщение было <z-link>прочитано</z-link> $count пользователями:',
+      one:
+          'Это сообщение было <z-link>прочитано</z-link> $count пользователем:',
     );
     return '$_temp0';
   }
 
   @override
   String get actionSheetReadReceiptsZeroReadCount =>
-      'No one has read this message yet.';
+      'Это сообщение еще никто не прочитал.';
 
   @override
   String get actionSheetReadReceiptsErrorReadCount =>
-      'Failed to load read receipts.';
+      'Не удалось загрузить подтверждения прочтения.';
 
   @override
   String get actionSheetOptionCopyMessageText => 'Скопировать текст сообщения';
@@ -642,11 +645,11 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Темы обязательны в этой организации.';
 
   @override
-  String get errorContentNotInsertedTitle => 'Content not inserted';
+  String get errorContentNotInsertedTitle => 'Содержимое не вставлено';
 
   @override
   String get errorContentToInsertIsEmpty =>
-      'The file to be inserted is empty or cannot be accessed.';
+      'Файл для вставки пустой, или к нему нет доступа.';
 
   @override
   String errorServerVersionUnsupportedMessage(
@@ -750,20 +753,22 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get yesterday => 'Вчера';
 
   @override
-  String get userActiveNow => 'Active now';
+  String get userActiveNow => 'На связи';
 
   @override
-  String get userIdle => 'Idle';
+  String get userIdle => 'Бездействует';
 
   @override
   String userActiveMinutesAgo(int minutes) {
     String _temp0 = intl.Intl.pluralLogic(
       minutes,
       locale: localeName,
-      other: '$minutes minutes',
-      one: '1 minute',
+      other: '$minutes минут',
+      many: '$minutes минут',
+      few: '$minutes минуты',
+      one: '$minutes минуту',
     );
-    return 'Active $_temp0 ago';
+    return 'Был/а на связи $_temp0 назад';
   }
 
   @override
@@ -771,33 +776,37 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       hours,
       locale: localeName,
-      other: '$hours hours',
-      one: '1 hour',
+      other: '$hours часов',
+      many: '$hours часов',
+      few: '$hours часа',
+      one: '$hours час',
     );
-    return 'Active $_temp0 ago';
+    return 'Был/а на связи $_temp0 назад';
   }
 
   @override
-  String get userActiveYesterday => 'Active yesterday';
+  String get userActiveYesterday => 'Был/а на связи вчера';
 
   @override
   String userActiveDaysAgo(int days) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$days days',
-      one: '1 day',
+      other: '$days дней',
+      many: '$days дней',
+      few: '$days дня',
+      one: '$days день',
     );
-    return 'Active $_temp0 ago';
+    return 'Был/а на связи $_temp0 назад';
   }
 
   @override
   String userActiveDate(String date) {
-    return 'Active $date';
+    return 'Был/а на связи $date';
   }
 
   @override
-  String get userNotActiveInYear => 'Not active in the last year';
+  String get userNotActiveInYear => 'Не выходил/а на связь за последний год';
 
   @override
   String get invisibleMode => 'Режим невидимости';
@@ -917,7 +926,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Вы ещё не подписаны ни на один канал.';
 
   @override
-  String get sharePageTitle => 'Share';
+  String get sharePageTitle => 'Поделиться';
 
   @override
   String get mainMenuMyProfile => 'Мой профиль';
@@ -1109,11 +1118,11 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get errorReactionRemovingFailedTitle => 'Не удалось удалить реакцию';
 
   @override
-  String get errorSharingTitle => 'Failed to share content';
+  String get errorSharingTitle => 'Не удалось поделиться содержанием';
 
   @override
   String get errorSharingAccountNotLoggedIn =>
-      'There is no account logged in. Please log in to an account and try again.';
+      'Не выполнен вход с учетной записью. Пожалуйста, войдите в систему и повторите попытку.';
 
   @override
   String get emojiReactionsMore => 'ещё';

@@ -89,10 +89,10 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Aby odebrać pliki Zulip musi uzyskać dodatkowe uprawnienia w Ustawieniach.';
 
   @override
-  String get actionSheetOptionSubscribe => 'Subscribe';
+  String get actionSheetOptionSubscribe => 'Subskrybuj';
 
   @override
-  String get subscribeFailedTitle => 'Failed to subscribe';
+  String get subscribeFailedTitle => 'Subskrypcja bez powodzenia';
 
   @override
   String get actionSheetOptionMarkChannelAsRead =>
@@ -108,22 +108,22 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get actionSheetOptionChannelFeed => 'Channel feed';
 
   @override
-  String get actionSheetOptionUnsubscribe => 'Unsubscribe';
+  String get actionSheetOptionUnsubscribe => 'Odsubskrybuj';
 
   @override
   String unsubscribeConfirmationDialogTitle(String channelName) {
-    return 'Unsubscribe from $channelName?';
+    return 'Odsubskrybować z $channelName?';
   }
 
   @override
   String get unsubscribeConfirmationDialogMessageMaybeCannotResubscribe =>
-      'Once you leave this channel, you might not be able to rejoin.';
+      'Po opuszczeniu kanału możesz utracić możliwość powrotu.';
 
   @override
-  String get unsubscribeConfirmationDialogConfirmButton => 'Unsubscribe';
+  String get unsubscribeConfirmationDialogConfirmButton => 'Odsubskrybuj';
 
   @override
-  String get unsubscribeFailedTitle => 'Failed to unsubscribe';
+  String get unsubscribeFailedTitle => 'Odsubskrybowanie bez powdzenia';
 
   @override
   String get actionSheetOptionMuteTopic => 'Wycisz wątek';
@@ -179,29 +179,32 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
-  String get actionSheetOptionViewReadReceipts => 'View read receipts';
+  String get actionSheetOptionViewReadReceipts =>
+      'Zobacz potwierdzenia odczytu';
 
   @override
-  String get actionSheetReadReceipts => 'Read receipts';
+  String get actionSheetReadReceipts => 'Potwierdzenia odczytu';
 
   @override
   String actionSheetReadReceiptsReadCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'This message has been <z-link>read</z-link> by $count people:',
-      one: 'This message has been <z-link>read</z-link> by $count person:',
+      other:
+          'Ta wiadomość została <z-link>przeczytana</z-link> przez $count osób:',
+      one:
+          'Ta wiadomość została <z-link>przeczytana</z-link> przez $count osobę:',
     );
     return '$_temp0';
   }
 
   @override
   String get actionSheetReadReceiptsZeroReadCount =>
-      'No one has read this message yet.';
+      'Nikt jeszcze nie widział tej wiadomości.';
 
   @override
   String get actionSheetReadReceiptsErrorReadCount =>
-      'Failed to load read receipts.';
+      'Ładowanie potwierdzeń odczytu bez powodzenia.';
 
   @override
   String get actionSheetOptionCopyMessageText => 'Skopiuj tekst wiadomości';
@@ -638,11 +641,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Wątki są wymagane przez tę organizację.';
 
   @override
-  String get errorContentNotInsertedTitle => 'Content not inserted';
+  String get errorContentNotInsertedTitle =>
+      'Dodanie zawartości bez powodzenia';
 
   @override
   String get errorContentToInsertIsEmpty =>
-      'The file to be inserted is empty or cannot be accessed.';
+      'Plik do dodania jest pusty lub nie ma do niego dostępu.';
 
   @override
   String errorServerVersionUnsupportedMessage(
@@ -745,20 +749,20 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get yesterday => 'Wczoraj';
 
   @override
-  String get userActiveNow => 'Active now';
+  String get userActiveNow => 'Dostępny';
 
   @override
-  String get userIdle => 'Idle';
+  String get userIdle => 'Bezczynny';
 
   @override
   String userActiveMinutesAgo(int minutes) {
     String _temp0 = intl.Intl.pluralLogic(
       minutes,
       locale: localeName,
-      other: '$minutes minutes',
-      one: '1 minute',
+      other: '$minutes minut',
+      one: '1 minutę',
     );
-    return 'Active $_temp0 ago';
+    return 'Aktywny $_temp0 temu';
   }
 
   @override
@@ -766,33 +770,33 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       hours,
       locale: localeName,
-      other: '$hours hours',
-      one: '1 hour',
+      other: '$hours godzin',
+      one: '1 godzinę',
     );
-    return 'Active $_temp0 ago';
+    return 'Aktywny $_temp0 temu';
   }
 
   @override
-  String get userActiveYesterday => 'Active yesterday';
+  String get userActiveYesterday => 'Aktywny wczoraj';
 
   @override
   String userActiveDaysAgo(int days) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$days days',
-      one: '1 day',
+      other: '$days dni',
+      one: '1 dzień',
     );
-    return 'Active $_temp0 ago';
+    return 'Aktywny $_temp0 temu';
   }
 
   @override
   String userActiveDate(String date) {
-    return 'Active $date';
+    return 'Aktywny $date';
   }
 
   @override
-  String get userNotActiveInYear => 'Not active in the last year';
+  String get userNotActiveInYear => 'Brak aktywności za ostatni rok';
 
   @override
   String get invisibleMode => 'Tryb ukrycia';
@@ -911,7 +915,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get channelsEmptyPlaceholder => 'Nie śledzisz żadnego z kanałów.';
 
   @override
-  String get sharePageTitle => 'Share';
+  String get sharePageTitle => 'Udostępnij';
 
   @override
   String get mainMenuMyProfile => 'Mój profil';
@@ -1101,11 +1105,11 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Usuwanie reakcji bez powodzenia';
 
   @override
-  String get errorSharingTitle => 'Failed to share content';
+  String get errorSharingTitle => 'Udostępnianie zawartości bez powodzenia';
 
   @override
   String get errorSharingAccountNotLoggedIn =>
-      'There is no account logged in. Please log in to an account and try again.';
+      'Brak zalogowanego użytkownika. Proszę zaloguj się i spróbuj ponownie.';
 
   @override
   String get emojiReactionsMore => 'więcej';

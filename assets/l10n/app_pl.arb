@@ -62,6 +62,9 @@
   "@actionSheetOptionStarMessage": {
     "description": "Label for star button on action sheet."
   },
+  "@actionSheetOptionSubscribe": {
+    "description": "Label in the channel action sheet for subscribing to the channel."
+  },
   "@actionSheetOptionUnfollowTopic": {
     "description": "Label for unfollowing a topic on action sheet."
   },
@@ -73,6 +76,30 @@
   },
   "@actionSheetOptionUnstarMessage": {
     "description": "Label for unstar button on action sheet."
+  },
+  "@actionSheetOptionUnsubscribe": {
+    "description": "Label in the channel action sheet for unsubscribing from the channel."
+  },
+  "@actionSheetOptionViewReadReceipts": {
+    "description": "Label for the 'View read receipts' button in the message action sheet."
+  },
+  "@actionSheetReadReceipts": {
+    "description": "Title for the \"Read receipts\" bottom sheet."
+  },
+  "@actionSheetReadReceiptsErrorReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when loading read receipts failed."
+  },
+  "@actionSheetReadReceiptsReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when one or more people have read the message.",
+    "placeholders": {
+      "count": {
+        "example": "1",
+        "type": "int"
+      }
+    }
+  },
+  "@actionSheetReadReceiptsZeroReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
   "@appVersionUnknownPlaceholder": {
     "description": "Placeholder to show in place of the app version when it is unknown."
@@ -276,6 +303,12 @@
   },
   "@errorConnectingToServerShort": {
     "description": "Short error message for a generic unknown error connecting to the server."
+  },
+  "@errorContentNotInsertedTitle": {
+    "description": "Title for error dialog when an attempt to insert rich content failed."
+  },
+  "@errorContentToInsertIsEmpty": {
+    "description": "Error message when the rich content to be inserted is empty or cannot be accessed."
   },
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
@@ -494,8 +527,14 @@
       }
     }
   },
+  "@errorSharingAccountNotLoggedIn": {
+    "description": "Error title when sharing content received from other apps fails, when there is no account logged in"
+  },
   "@errorSharingFailed": {
     "description": "Error message when sharing a message failed."
+  },
+  "@errorSharingTitle": {
+    "description": "Error title when sharing content received from other apps fails"
   },
   "@errorStarMessageFailedTitle": {
     "description": "Error title when starring a message failed."
@@ -898,6 +937,9 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
+  "@sharePageTitle": {
+    "description": "Title for the page about sharing content received from other apps."
+  },
   "@signInWithFoo": {
     "description": "Button to use {method} to sign in to the app.",
     "placeholders": {
@@ -930,6 +972,9 @@
   },
   "@statusTextHint": {
     "description": "Hint text for the status text input field in 'Set status' page."
+  },
+  "@subscribeFailedTitle": {
+    "description": "Error title when subscribing to a channel failed."
   },
   "@successChannelLinkCopied": {
     "description": "Message when link of a channel was copied to the user's system clipboard."
@@ -1011,6 +1056,24 @@
   "@unpinnedSubscriptionsLabel": {
     "description": "Label for the list of unpinned subscribed channels."
   },
+  "@unsubscribeConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
+  },
+  "@unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": {
+    "description": "Message for a confirmation dialog for unsubscribing from a channel when you might not have permission to resubscribe."
+  },
+  "@unsubscribeConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for unsubscribing from a channel.",
+    "placeholders": {
+      "channelName": {
+        "example": "mobile",
+        "type": "String"
+      }
+    }
+  },
+  "@unsubscribeFailedTitle": {
+    "description": "Error title when unsubscribing from a channel failed."
+  },
   "@updateStatusErrorTitle": {
     "description": "Error title when updating user status failed."
   },
@@ -1025,6 +1088,54 @@
   },
   "@upgradeWelcomeDialogTitle": {
     "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "@userActiveDate": {
+    "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
+    "placeholders": {
+      "date": {
+        "example": "Aug 1, 2024",
+        "type": "String"
+      }
+    }
+  },
+  "@userActiveDaysAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "days": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveHoursAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "hours": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveMinutesAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "minutes": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveNow": {
+    "description": "Indicates a user is currently active on Zulip (not idle or offline)"
+  },
+  "@userActiveYesterday": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)"
+  },
+  "@userIdle": {
+    "description": "Indicates a user is currently idle on Zulip (not active, but not offline)"
+  },
+  "@userNotActiveInYear": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)"
   },
   "@userRoleAdministrator": {
     "description": "Label for UserRole.administrator"
@@ -1119,10 +1230,17 @@
   "actionSheetOptionSeeWhoReacted": "Pokaż kto zareagował",
   "actionSheetOptionShare": "Udostępnij",
   "actionSheetOptionStarMessage": "Oznacz gwiazdką",
+  "actionSheetOptionSubscribe": "Subskrybuj",
   "actionSheetOptionUnfollowTopic": "Nie śledź wątku",
   "actionSheetOptionUnmuteTopic": "Wznów wątek",
   "actionSheetOptionUnresolveTopic": "Oznacz brak rozwiązania",
   "actionSheetOptionUnstarMessage": "Odbierz gwiazdkę",
+  "actionSheetOptionUnsubscribe": "Odsubskrybuj",
+  "actionSheetOptionViewReadReceipts": "Zobacz potwierdzenia odczytu",
+  "actionSheetReadReceipts": "Potwierdzenia odczytu",
+  "actionSheetReadReceiptsErrorReadCount": "Ładowanie potwierdzeń odczytu bez powodzenia.",
+  "actionSheetReadReceiptsReadCount": "{count, plural, =1{Ta wiadomość została <z-link>przeczytana</z-link> przez {count} osobę:} other{Ta wiadomość została <z-link>przeczytana</z-link> przez {count} osób:}}",
+  "actionSheetReadReceiptsZeroReadCount": "Nikt jeszcze nie widział tej wiadomości.",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Strumień kanału",
   "channelsEmptyPlaceholder": "Nie śledzisz żadnego z kanałów.",
@@ -1172,6 +1290,8 @@
   "errorBannerDeactivatedDmLabel": "Nie można wysyłać wiadomości do dezaktywowanych użytkowników.",
   "errorConnectingToServerDetails": "Błąd połączenia z Zulip {serverUrl}. Spróbujmy ponownie:\n\n{error}",
   "errorConnectingToServerShort": "Błąd połączenia z Zulip. Ponawiam…",
+  "errorContentNotInsertedTitle": "Dodanie zawartości bez powodzenia",
+  "errorContentToInsertIsEmpty": "Plik do dodania jest pusty lub nie ma do niego dostępu.",
   "errorCopyingFailed": "Nie udało się skopiować",
   "errorCouldNotConnectTitle": "Brak połączenia",
   "errorCouldNotEditMessageTitle": "Nie można zmienić wiadomości",
@@ -1211,7 +1331,9 @@
   "errorResolveTopicFailedTitle": "Nie udało się oznaczyć jako rozwiązany",
   "errorServerMessage": "Odpowiedź serwera:\n\n{message}",
   "errorServerVersionUnsupportedMessage": "{url} uruchamia Zulip Server {zulipVersion}, który nie jest obsługiwany. Minimalna obsługiwana wersja to Zulip Server {minSupportedZulipVersion}.",
+  "errorSharingAccountNotLoggedIn": "Brak zalogowanego użytkownika. Proszę zaloguj się i spróbuj ponownie.",
   "errorSharingFailed": "Udostępnianie bez powodzenia",
+  "errorSharingTitle": "Udostępnianie zawartości bez powodzenia",
   "errorStarMessageFailedTitle": "Dodanie gwiazdki bez powodzenia",
   "errorUnfollowTopicFailed": "Nie śledź bez powodzenia",
   "errorUnmuteTopicFailed": "Wznowienie bez powodzenia",
@@ -1315,6 +1437,7 @@
   "serverUrlValidationErrorUnsupportedScheme": "Adres URL serwera musi zaczynać się od http:// or https://.",
   "setStatusPageTitle": "Ustaw stan",
   "settingsPageTitle": "Ustawienia",
+  "sharePageTitle": "Udostępnij",
   "signInWithFoo": "Logowanie z {method}",
   "snackBarDetails": "Szczegóły",
   "spoilerDefaultHeaderText": "Spoiler",
@@ -1324,6 +1447,7 @@
   "statusClearButtonLabel": "Wyczyść",
   "statusSaveButtonLabel": "Zapisz",
   "statusTextHint": "Twój stan",
+  "subscribeFailedTitle": "Subskrypcja bez powodzenia",
   "successChannelLinkCopied": "Skopiowano odnośnik do kanału",
   "successLinkCopied": "Skopiowano odnośnik",
   "successMessageLinkCopied": "Skopiowano odnośnik wiadomości",
@@ -1346,11 +1470,23 @@
   "unknownChannelName": "(nieznany kanał)",
   "unknownUserName": "(nieznany użytkownik)",
   "unpinnedSubscriptionsLabel": "Odpięte",
+  "unsubscribeConfirmationDialogConfirmButton": "Odsubskrybuj",
+  "unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": "Po opuszczeniu kanału możesz utracić możliwość powrotu.",
+  "unsubscribeConfirmationDialogTitle": "Odsubskrybować z {channelName}?",
+  "unsubscribeFailedTitle": "Odsubskrybowanie bez powdzenia",
   "updateStatusErrorTitle": "Błąd aktualizacji stanu. Spróbuj ponownie.",
   "upgradeWelcomeDialogDismiss": "Zaczynajmy",
   "upgradeWelcomeDialogLinkText": "Sprawdź blog pod kątem obwieszczenia!",
   "upgradeWelcomeDialogMessage": "Napotkasz na znane rozwiązania, które upakowaliśmy w szybszy i elegancki pakiet.",
   "upgradeWelcomeDialogTitle": "Witaj w nowej apce Zulip!",
+  "userActiveDate": "Aktywny {date}",
+  "userActiveDaysAgo": "Aktywny {days, plural, =1{1 dzień} other{{days} dni}} temu",
+  "userActiveHoursAgo": "Aktywny {hours, plural, =1{1 godzinę} other{{hours} godzin}} temu",
+  "userActiveMinutesAgo": "Aktywny {minutes, plural, =1{1 minutę} other{{minutes} minut}} temu",
+  "userActiveNow": "Dostępny",
+  "userActiveYesterday": "Aktywny wczoraj",
+  "userIdle": "Bezczynny",
+  "userNotActiveInYear": "Brak aktywności za ostatni rok",
   "userRoleAdministrator": "Administrator",
   "userRoleGuest": "Gość",
   "userRoleMember": "Członek",

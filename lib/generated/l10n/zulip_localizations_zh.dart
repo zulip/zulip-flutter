@@ -1136,13 +1136,13 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get aboutPageTapToView => '查看更多';
 
   @override
-  String get upgradeWelcomeDialogTitle => '欢迎来到新的 Zulip 应用！';
+  String get upgradeWelcomeDialogTitle => '欢迎来到新的 Zulip 应用程序！';
 
   @override
-  String get upgradeWelcomeDialogMessage => '您将会得到到更快，更流畅的体验。';
+  String get upgradeWelcomeDialogMessage => '您将在更快、更流畅的版本中享受熟悉的体验。';
 
   @override
-  String get upgradeWelcomeDialogLinkText => '来看看最新的公告吧！';
+  String get upgradeWelcomeDialogLinkText => '来看看最新的公告博客吧！';
 
   @override
   String get upgradeWelcomeDialogDismiss => '开始吧';
@@ -1192,17 +1192,44 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get permissionsNeededOpenSettings => '打开设置';
 
   @override
-  String get permissionsDeniedCameraAccess => '上传图片前，请在设置授予 Zulip 相应的权限。';
+  String get permissionsDeniedCameraAccess => '上传图片前，请在设置中授予 Zulip 相应的权限。';
 
   @override
   String get permissionsDeniedReadExternalStorage =>
-      '上传文件前，请在设置授予 Zulip 相应的权限。';
+      '上传文件前，请在设置中授予 Zulip 相应的权限。';
+
+  @override
+  String get actionSheetOptionSubscribe => '订阅';
+
+  @override
+  String get subscribeFailedTitle => '订阅失败';
 
   @override
   String get actionSheetOptionMarkChannelAsRead => '标记频道为已读';
 
   @override
+  String get actionSheetOptionCopyChannelLink => '复制频道链接';
+
+  @override
   String get actionSheetOptionListOfTopics => '话题列表';
+
+  @override
+  String get actionSheetOptionUnsubscribe => '取消订阅';
+
+  @override
+  String unsubscribeConfirmationDialogTitle(String channelName) {
+    return '确定取消订阅$channelName么?';
+  }
+
+  @override
+  String get unsubscribeConfirmationDialogMessageMaybeCannotResubscribe =>
+      '一旦退出该频道，您可能无法重新加入。';
+
+  @override
+  String get unsubscribeConfirmationDialogConfirmButton => '取消订阅';
+
+  @override
+  String get unsubscribeFailedTitle => '取消订阅失败';
 
   @override
   String get actionSheetOptionMuteTopic => '静音话题';
@@ -1229,13 +1256,63 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get errorUnresolveTopicFailedTitle => '未能将话题标记为未解决';
 
   @override
+  String get actionSheetOptionSeeWhoReacted => '查看谁做出了表情符号回应';
+
+  @override
+  String get seeWhoReactedSheetNoReactions => '此消息尚无表情符号回应。';
+
+  @override
+  String seeWhoReactedSheetHeaderLabel(int num) {
+    return '表情符号回应（共$num个）';
+  }
+
+  @override
+  String seeWhoReactedSheetEmojiNameWithVoteCount(String emojiName, int num) {
+    String _temp0 = intl.Intl.pluralLogic(
+      num,
+      locale: localeName,
+      other: '$num 票',
+      one: '1 票',
+    );
+    return '$emojiName：$_temp0';
+  }
+
+  @override
+  String seeWhoReactedSheetUserListLabel(String emojiName, int num) {
+    return '$emojiName 的投票数（$num）';
+  }
+
+  @override
+  String get actionSheetOptionViewReadReceipts => '查看已读回执';
+
+  @override
+  String get actionSheetReadReceipts => '已读回执';
+
+  @override
+  String actionSheetReadReceiptsReadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此消息已被<z-link>阅读</z-link>，共有 $count 人：',
+      one: '此消息已被<z-link>阅读</z-link>，共有 $count 人：',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get actionSheetReadReceiptsZeroReadCount => '尚无人阅读此消息。';
+
+  @override
+  String get actionSheetReadReceiptsErrorReadCount => '加载已读回执失败。';
+
+  @override
   String get actionSheetOptionCopyMessageText => '复制消息文本';
 
   @override
   String get actionSheetOptionCopyMessageLink => '复制消息链接';
 
   @override
-  String get actionSheetOptionMarkAsUnread => '从这里标为未读';
+  String get actionSheetOptionMarkAsUnread => '从这里开始标为未读';
 
   @override
   String get actionSheetOptionHideMutedMessage => '再次隐藏静音消息';
@@ -1257,6 +1334,9 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get actionSheetOptionMarkTopicAsRead => '将话题标为已读';
+
+  @override
+  String get actionSheetOptionCopyTopicLink => '复制话题链接';
 
   @override
   String get errorWebAuthOperationalErrorTitle => '出现了一些问题';
@@ -1304,7 +1384,13 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String errorFilesTooLargeTitle(int num) {
-    return '文件过大';
+    String _temp0 = intl.Intl.pluralLogic(
+      num,
+      locale: localeName,
+      other: '文件',
+      one: '文件',
+    );
+    return '$_temp0太大';
   }
 
   @override
@@ -1398,6 +1484,12 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get successMessageLinkCopied => '已复制消息链接';
+
+  @override
+  String get successTopicLinkCopied => '话题链接已复制';
+
+  @override
+  String get successChannelLinkCopied => '频道链接已复制';
 
   @override
   String get errorBannerDeactivatedDmLabel => '您不能向被停用的用户发送消息。';
@@ -1530,6 +1622,12 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   }
 
   @override
+  String get emptyMessageList => '这里没有消息。';
+
+  @override
+  String get emptyMessageListSearch => '没有搜索结果。';
+
+  @override
   String get messageListGroupYouWithYourself => '与自己的私信';
 
   @override
@@ -1620,6 +1718,12 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get topicValidationErrorMandatoryButEmpty => '话题在该组织为必填项。';
+
+  @override
+  String get errorContentNotInsertedTitle => '未插入内容';
+
+  @override
+  String get errorContentToInsertIsEmpty => '要插入的文件为空或无法访问。';
 
   @override
   String errorServerVersionUnsupportedMessage(
@@ -1717,6 +1821,65 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get yesterday => '昨天';
 
   @override
+  String get userActiveNow => '当前活跃';
+
+  @override
+  String get userIdle => '空闲';
+
+  @override
+  String userActiveMinutesAgo(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes 分钟前',
+      one: '1 分钟前',
+    );
+    return '上次活跃于 $_temp0';
+  }
+
+  @override
+  String userActiveHoursAgo(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '$hours 小时前',
+      one: '1 小时前',
+    );
+    return '上次活跃于 $_temp0';
+  }
+
+  @override
+  String get userActiveYesterday => '昨天活跃';
+
+  @override
+  String userActiveDaysAgo(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days 天前',
+      one: '1 天前',
+    );
+    return '上次活跃于 $_temp0';
+  }
+
+  @override
+  String userActiveDate(String date) {
+    return '上次活跃于 $date';
+  }
+
+  @override
+  String get userNotActiveInYear => '去年未活跃';
+
+  @override
+  String get invisibleMode => '隐身模式';
+
+  @override
+  String get turnOnInvisibleModeErrorTitle => '启用隐身模式时发生错误。请再尝试一次。';
+
+  @override
+  String get turnOffInvisibleModeErrorTitle => '关闭隐身模式时发生错误。请再尝试一次。';
+
+  @override
   String get userRoleOwner => '所有者';
 
   @override
@@ -1733,6 +1896,60 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get userRoleUnknown => '未知';
+
+  @override
+  String get statusButtonLabelStatusSet => '状态';
+
+  @override
+  String get statusButtonLabelStatusUnset => '设定状态';
+
+  @override
+  String get noStatusText => '无状态文字';
+
+  @override
+  String get setStatusPageTitle => '设定状态';
+
+  @override
+  String get statusClearButtonLabel => '清除';
+
+  @override
+  String get statusSaveButtonLabel => '保存';
+
+  @override
+  String get statusTextHint => '您的状态';
+
+  @override
+  String get userStatusBusy => '忙碌';
+
+  @override
+  String get userStatusInAMeeting => '会议中';
+
+  @override
+  String get userStatusCommuting => '通勤中';
+
+  @override
+  String get userStatusOutSick => '病假中';
+
+  @override
+  String get userStatusVacationing => '休假中';
+
+  @override
+  String get userStatusWorkingRemotely => '远程工作中';
+
+  @override
+  String get userStatusAtTheOffice => '在办公室';
+
+  @override
+  String get updateStatusErrorTitle => '更新用户状态时发生错误。请再试一次。';
+
+  @override
+  String get searchMessagesPageTitle => '搜索';
+
+  @override
+  String get searchMessagesHintText => '搜索';
+
+  @override
+  String get searchMessagesClearButtonTooltip => '清除';
 
   @override
   String get inboxPageTitle => '收件箱';
@@ -1765,6 +1982,9 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get channelsEmptyPlaceholder => '您还没有订阅任何频道。';
 
   @override
+  String get sharePageTitle => '分享';
+
+  @override
   String get mainMenuMyProfile => '个人资料';
 
   @override
@@ -1794,6 +2014,25 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get reactedEmojiSelfUser => '您';
+
+  @override
+  String get reactionChipsLabel => '表情符号回应';
+
+  @override
+  String reactionChipLabel(String emojiName, String votes) {
+    return '$emojiName： $votes';
+  }
+
+  @override
+  String reactionChipVotesYouAndOthers(int otherUsersCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      otherUsersCount,
+      locale: localeName,
+      other: '你与其他 $otherUsersCount 人',
+      one: '你与其他 1 人',
+    );
+    return '$_temp0';
+  }
 
   @override
   String onePersonTyping(String typist) {
@@ -1853,13 +2092,13 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get themeSettingTitle => '主题';
 
   @override
-  String get themeSettingDark => '暗色';
+  String get themeSettingDark => '暗色模式';
 
   @override
-  String get themeSettingLight => '浅色';
+  String get themeSettingLight => '浅色模式';
 
   @override
-  String get themeSettingSystem => '系统';
+  String get themeSettingSystem => '跟随系统';
 
   @override
   String get openLinksWithInAppBrowser => '使用内置浏览器打开链接';
@@ -1925,6 +2164,12 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get errorReactionRemovingFailedTitle => '未能移除表情符号';
 
   @override
+  String get errorSharingTitle => '分享内容失败';
+
+  @override
+  String get errorSharingAccountNotLoggedIn => '尚未登录任何账号。请登录账号后再次尝试。';
+
+  @override
   String get emojiReactionsMore => '更多';
 
   @override
@@ -1934,7 +2179,7 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get noEarlierMessages => '没有更早的消息了';
 
   @override
-  String get revealButtonLabel => '显示静音用户发送的消息';
+  String get revealButtonLabel => '显示消息';
 
   @override
   String get mutedUser => '静音用户';
@@ -2112,6 +2357,29 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String seeWhoReactedSheetUserListLabel(String emojiName, int num) {
     return '$emojiName 的投票數（$num）';
   }
+
+  @override
+  String get actionSheetOptionViewReadReceipts => '查看已讀回條';
+
+  @override
+  String get actionSheetReadReceipts => '已讀回條';
+
+  @override
+  String actionSheetReadReceiptsReadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此訊息已被<z-link>閱讀</z-link>，共有 $count 人：',
+      one: '此訊息已被<z-link>閱讀</z-link>，共有 $count 人：',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get actionSheetReadReceiptsZeroReadCount => '尚無人閱讀此訊息。';
+
+  @override
+  String get actionSheetReadReceiptsErrorReadCount => '載入已讀回條失敗。';
 
   @override
   String get actionSheetOptionCopyMessageText => '複製訊息文字';
@@ -2529,6 +2797,12 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get topicValidationErrorMandatoryButEmpty => '此組織要求必須填寫議題。';
 
   @override
+  String get errorContentNotInsertedTitle => '未插入內容';
+
+  @override
+  String get errorContentToInsertIsEmpty => '要插入的檔案為空或無法存取。';
+
+  @override
   String errorServerVersionUnsupportedMessage(
     String url,
     String zulipVersion,
@@ -2624,6 +2898,56 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get yesterday => '昨天';
+
+  @override
+  String get userActiveNow => '目前活躍';
+
+  @override
+  String get userIdle => '閒置';
+
+  @override
+  String userActiveMinutesAgo(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes 分鐘前',
+      one: '1 分鐘前',
+    );
+    return '上次活躍於 $_temp0';
+  }
+
+  @override
+  String userActiveHoursAgo(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '$hours 小時前',
+      one: '1 小時前',
+    );
+    return '上次活躍於 $_temp0';
+  }
+
+  @override
+  String get userActiveYesterday => '昨天活躍';
+
+  @override
+  String userActiveDaysAgo(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days 天前',
+      one: '1 天前',
+    );
+    return '上次活躍於 $_temp0';
+  }
+
+  @override
+  String userActiveDate(String date) {
+    return '上次活躍於 $date';
+  }
+
+  @override
+  String get userNotActiveInYear => '去年未活躍';
 
   @override
   String get invisibleMode => '隱身模式';
@@ -2735,6 +3059,9 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get channelsEmptyPlaceholder => '您尚未訂閱任何頻道。';
+
+  @override
+  String get sharePageTitle => '分享';
 
   @override
   String get mainMenuMyProfile => '我的設定檔';
@@ -2915,6 +3242,12 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get errorReactionRemovingFailedTitle => '移除表情反應失敗';
+
+  @override
+  String get errorSharingTitle => '分享內容失敗';
+
+  @override
+  String get errorSharingAccountNotLoggedIn => '尚未登入任何帳號。請登入帳號後再試一次。';
 
   @override
   String get emojiReactionsMore => '更多';

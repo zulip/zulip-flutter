@@ -80,6 +80,27 @@
   "@actionSheetOptionUnsubscribe": {
     "description": "Label in the channel action sheet for unsubscribing from the channel."
   },
+  "@actionSheetOptionViewReadReceipts": {
+    "description": "Label for the 'View read receipts' button in the message action sheet."
+  },
+  "@actionSheetReadReceipts": {
+    "description": "Title for the \"Read receipts\" bottom sheet."
+  },
+  "@actionSheetReadReceiptsErrorReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when loading read receipts failed."
+  },
+  "@actionSheetReadReceiptsReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when one or more people have read the message.",
+    "placeholders": {
+      "count": {
+        "example": "1",
+        "type": "int"
+      }
+    }
+  },
+  "@actionSheetReadReceiptsZeroReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
+  },
   "@appVersionUnknownPlaceholder": {
     "description": "Placeholder to show in place of the app version when it is unknown."
   },
@@ -239,6 +260,12 @@
   "@emojiReactionsMore": {
     "description": "Label for a button opening the emoji picker."
   },
+  "@emptyMessageList": {
+    "description": "Placeholder for some message-list pages when there are no messages."
+  },
+  "@emptyMessageListSearch": {
+    "description": "Placeholder for the 'Search' page when there are no messages."
+  },
   "@errorAccountLoggedIn": {
     "description": "Error message on attempting to log into an account that's already logged in.",
     "placeholders": {
@@ -276,6 +303,12 @@
   },
   "@errorConnectingToServerShort": {
     "description": "Short error message for a generic unknown error connecting to the server."
+  },
+  "@errorContentNotInsertedTitle": {
+    "description": "Title for error dialog when an attempt to insert rich content failed."
+  },
+  "@errorContentToInsertIsEmpty": {
+    "description": "Error message when the rich content to be inserted is empty or cannot be accessed."
   },
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
@@ -494,8 +527,14 @@
       }
     }
   },
+  "@errorSharingAccountNotLoggedIn": {
+    "description": "Error title when sharing content received from other apps fails, when there is no account logged in"
+  },
   "@errorSharingFailed": {
     "description": "Error message when sharing a message failed."
+  },
+  "@errorSharingTitle": {
+    "description": "Error title when sharing content received from other apps fails"
   },
   "@errorStarMessageFailedTitle": {
     "description": "Error title when starring a message failed."
@@ -560,6 +599,9 @@
   },
   "@initialAnchorSettingTitle": {
     "description": "Title of setting controlling initial anchor of message list."
+  },
+  "@invisibleMode": {
+    "description": "Label for the 'Invisible mode' switch on the profile page."
   },
   "@lightboxCopyLinkTooltip": {
     "description": "Tooltip in lightbox for the copy link action."
@@ -714,6 +756,9 @@
   "@noEarlierMessages": {
     "description": "Text to show at the start of a message list if there are no earlier messages."
   },
+  "@noStatusText": {
+    "description": "The text part of the status button sub-label in self-user profile page when status text is not set."
+  },
   "@notifGroupDmConversationLabel": {
     "description": "Label for a group DM conversation notification.",
     "placeholders": {
@@ -780,6 +825,31 @@
   },
   "@reactedEmojiSelfUser": {
     "description": "Display name for the user themself, to show on an emoji reaction added by the user."
+  },
+  "@reactionChipLabel": {
+    "description": "Text describing a reaction chip, with the emoji name and a list or number of votes. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "emojiName": {
+        "example": "working_on_it",
+        "type": "String"
+      },
+      "votes": {
+        "example": "You, Chris, Greg",
+        "type": "String"
+      }
+    }
+  },
+  "@reactionChipVotesYouAndOthers": {
+    "description": "The number of votes on a reaction chip, where the self-user and at least one other user has voted. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "otherUsersCount": {
+        "example": "4",
+        "type": "int"
+      }
+    }
+  },
+  "@reactionChipsLabel": {
+    "description": "Text identifying the container of reaction chips on a message. (An accessibility label for assistive technology.)"
   },
   "@recentDmConversationsEmptyPlaceholder": {
     "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
@@ -867,6 +937,9 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
+  "@sharePageTitle": {
+    "description": "Title for the page about sharing content received from other apps."
+  },
   "@signInWithFoo": {
     "description": "Button to use {method} to sign in to the app.",
     "placeholders": {
@@ -885,6 +958,12 @@
   "@starredMessagesPageTitle": {
     "description": "Page title for the 'Starred messages' message view."
   },
+  "@statusButtonLabelStatusSet": {
+    "description": "The status button label in self-user profile page when status is set."
+  },
+  "@statusButtonLabelStatusUnset": {
+    "description": "The status button label in self-user profile page when status is not set."
+  },
   "@statusClearButtonLabel": {
     "description": "Label for the button that clears the user status, in 'Set status' page."
   },
@@ -896,6 +975,9 @@
   },
   "@subscribeFailedTitle": {
     "description": "Error title when subscribing to a channel failed."
+  },
+  "@successChannelLinkCopied": {
+    "description": "Message when link of a channel was copied to the user's system clipboard."
   },
   "@successLinkCopied": {
     "description": "Success message after copy link action completed."
@@ -945,6 +1027,12 @@
       "example": "http://chat.example.com/",
       "type": "String"
     }
+  },
+  "@turnOffInvisibleModeErrorTitle": {
+    "description": "Error title when turning off invisible mode failed."
+  },
+  "@turnOnInvisibleModeErrorTitle": {
+    "description": "Error title when turning on invisible mode failed."
   },
   "@twoPeopleTyping": {
     "description": "Text to display when there are two users typing.",
@@ -1000,6 +1088,54 @@
   },
   "@upgradeWelcomeDialogTitle": {
     "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "@userActiveDate": {
+    "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
+    "placeholders": {
+      "date": {
+        "example": "Aug 1, 2024",
+        "type": "String"
+      }
+    }
+  },
+  "@userActiveDaysAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "days": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveHoursAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "hours": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveMinutesAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "minutes": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveNow": {
+    "description": "Indicates a user is currently active on Zulip (not idle or offline)"
+  },
+  "@userActiveYesterday": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)"
+  },
+  "@userIdle": {
+    "description": "Indicates a user is currently idle on Zulip (not active, but not offline)"
+  },
+  "@userNotActiveInYear": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)"
   },
   "@userRoleAdministrator": {
     "description": "Label for UserRole.administrator"
@@ -1100,6 +1236,11 @@
   "actionSheetOptionUnresolveTopic": "Als ungelöst markieren",
   "actionSheetOptionUnstarMessage": "Markierung aufheben",
   "actionSheetOptionUnsubscribe": "Deabonnieren",
+  "actionSheetOptionViewReadReceipts": "Empfangsbestätigungen ansehen",
+  "actionSheetReadReceipts": "Empfangsbestätigungen",
+  "actionSheetReadReceiptsErrorReadCount": "Laden von Empfangsbestätigungen fehlgeschlagen.",
+  "actionSheetReadReceiptsReadCount": "{count, plural, =1{Diese Nachricht wurde von einer Person <z-link>gelesen</z-link>:} other{Diese Nachricht wurde von {count} Personen <z-link>gelesen</z-link>:}}",
+  "actionSheetReadReceiptsZeroReadCount": "Niemand hat diese Nachricht bisher gelesen.",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Kanal-Feed",
   "channelsEmptyPlaceholder": "Du hast noch keine Kanäle abonniert.",
@@ -1141,12 +1282,16 @@
   "editAlreadyInProgressTitle": "Kann Nachricht nicht bearbeiten",
   "emojiPickerSearchEmoji": "Emoji suchen",
   "emojiReactionsMore": "mehr",
+  "emptyMessageList": "Hier gibt es keine Nachrichten.",
+  "emptyMessageListSearch": "Keine Suchergebnisse.",
   "errorAccountLoggedIn": "Der Account {email} auf {server} ist bereits in deiner Account-Liste.",
   "errorAccountLoggedInTitle": "Account bereits angemeldet",
   "errorBannerCannotPostInChannelLabel": "Du hast keine Berechtigung in diesen Kanal zu schreiben.",
   "errorBannerDeactivatedDmLabel": "Du kannst keine Nachrichten an deaktivierte Nutzer:innen senden.",
   "errorConnectingToServerDetails": "Fehler beim Verbinden mit Zulip auf {serverUrl}. Wird wiederholt:\n\n{error}",
   "errorConnectingToServerShort": "Fehler beim Verbinden mit Zulip. Wiederhole…",
+  "errorContentNotInsertedTitle": "Inhalt nicht eingefügt",
+  "errorContentToInsertIsEmpty": "Die einzufügende Datei ist leer oder kann nicht geöffnet werden.",
   "errorCopyingFailed": "Kopieren fehlgeschlagen",
   "errorCouldNotConnectTitle": "Konnte nicht verbinden",
   "errorCouldNotEditMessageTitle": "Konnte Nachricht nicht bearbeiten",
@@ -1186,7 +1331,9 @@
   "errorResolveTopicFailedTitle": "Thema konnte nicht als gelöst markiert werden",
   "errorServerMessage": "Der Server sagte:\n\n{message}",
   "errorServerVersionUnsupportedMessage": "{url} nutzt Zulip Server {zulipVersion}, welche nicht unterstützt wird. Die unterstützte Mindestversion ist Zulip Server {minSupportedZulipVersion}.",
+  "errorSharingAccountNotLoggedIn": "Es ist kein Konto angemeldet. Bitte logge dich in ein Konto ein und versuche es erneut.",
   "errorSharingFailed": "Teilen fehlgeschlagen",
+  "errorSharingTitle": "Teilen des Inhalts fehlgeschlagen",
   "errorStarMessageFailedTitle": "Konnte Nachricht nicht markieren",
   "errorUnfollowTopicFailed": "Konnte Thema nicht entfolgen",
   "errorUnmuteTopicFailed": "Konnte Thema nicht lautschalten",
@@ -1205,6 +1352,7 @@
   "initialAnchorSettingFirstUnreadConversations": "Erste ungelesene Nachricht in Unterhaltungsansicht, sonst neueste Nachricht",
   "initialAnchorSettingNewestAlways": "Neueste Nachricht",
   "initialAnchorSettingTitle": "Nachrichten-Feed öffnen bei",
+  "invisibleMode": "Unsichtbarer Modus",
   "lightboxCopyLinkTooltip": "Link kopieren",
   "lightboxVideoCurrentPosition": "Aktuelle Position",
   "lightboxVideoDuration": "Videolänge",
@@ -1250,6 +1398,7 @@
   "newDmSheetSearchHintEmpty": "Füge ein oder mehrere Nutzer:innen hinzu",
   "newDmSheetSearchHintSomeSelected": "Füge weitere Nutzer:in hinzu…",
   "noEarlierMessages": "Keine früheren Nachrichten",
+  "noStatusText": "Kein Statustext",
   "notifGroupDmConversationLabel": "{senderFullName} an dich und {numOthers, plural, =1{1 weitere:n} other{{numOthers} weitere}}",
   "notifSelfUser": "Du",
   "onePersonTyping": "{typist} tippt…",
@@ -1265,10 +1414,13 @@
   "preparingEditMessageContentInput": "Bereite vor…",
   "profileButtonSendDirectMessage": "Direktnachricht senden",
   "reactedEmojiSelfUser": "Du",
+  "reactionChipLabel": "{emojiName}: {votes}",
+  "reactionChipVotesYouAndOthers": "{otherUsersCount, plural, =1{Du und ein weiterer} other{Du und {otherUsersCount} weitere}}",
+  "reactionChipsLabel": "Reaktionen",
   "recentDmConversationsEmptyPlaceholder": "Du hast noch keine Direktnachrichten! Warum nicht die Unterhaltung beginnen?",
   "recentDmConversationsPageTitle": "Direktnachrichten",
   "recentDmConversationsSectionHeader": "Direktnachrichten",
-  "revealButtonLabel": "Nachricht für stummgeschalteten Absender anzeigen",
+  "revealButtonLabel": "Nachricht anzeigen",
   "savingMessageEditFailedLabel": "BEARBEITUNG NICHT GESPEICHERT",
   "savingMessageEditLabel": "SPEICHERE BEARBEITUNG…",
   "scrollToBottomTooltip": "Nach unten Scrollen",
@@ -1285,14 +1437,18 @@
   "serverUrlValidationErrorUnsupportedScheme": "Die Server-URL muss mit http:// oder https:// beginnen.",
   "setStatusPageTitle": "Status setzen",
   "settingsPageTitle": "Einstellungen",
+  "sharePageTitle": "Teilen",
   "signInWithFoo": "Anmelden mit {method}",
   "snackBarDetails": "Details",
   "spoilerDefaultHeaderText": "Spoiler",
   "starredMessagesPageTitle": "Markierte Nachrichten",
+  "statusButtonLabelStatusSet": "Status",
+  "statusButtonLabelStatusUnset": "Status setzen",
   "statusClearButtonLabel": "Leeren",
   "statusSaveButtonLabel": "Speichern",
   "statusTextHint": "Dein Status",
   "subscribeFailedTitle": "Konnte nicht abonnieren",
+  "successChannelLinkCopied": "Kanallink kopiert",
   "successLinkCopied": "Link kopiert",
   "successMessageLinkCopied": "Nachrichtenlink kopiert",
   "successMessageTextCopied": "Nachrichtentext kopiert",
@@ -1308,6 +1464,8 @@
   "topicsButtonTooltip": "Themen",
   "tryAnotherAccountButton": "Anderen Account ausprobieren",
   "tryAnotherAccountMessage": "Dein Account bei {url} benötigt einige Zeit zum Laden.",
+  "turnOffInvisibleModeErrorTitle": "Fehler beim Ausschalten des unsichtbaren Modus. Bitte versuche es erneut.",
+  "turnOnInvisibleModeErrorTitle": "Fehler beim Einschalten des unsichtbaren Modus. Bitte versuche es erneut.",
   "twoPeopleTyping": "{typist} und {otherTypist} tippen…",
   "unknownChannelName": "(unbekannter Kanal)",
   "unknownUserName": "(Nutzer:in unbekannt)",
@@ -1321,6 +1479,14 @@
   "upgradeWelcomeDialogLinkText": "Sieh dir den Ankündigungs-Blogpost an!",
   "upgradeWelcomeDialogMessage": "Du wirst ein vertrautes Erlebnis in einer schnelleren, schlankeren App erleben.",
   "upgradeWelcomeDialogTitle": "Willkommen in der neuen Zulip-App!",
+  "userActiveDate": "Aktiv {date}",
+  "userActiveDaysAgo": "Aktiv vor {days, plural, =1{einem Tag} other{{days} Tagen}}",
+  "userActiveHoursAgo": "Aktiv vor {hours, plural, =1{einer Stunde} other{{hours} Stunden}}",
+  "userActiveMinutesAgo": "Aktiv vor {minutes, plural, =1{einer Minute} other{{minutes} Minuten}}",
+  "userActiveNow": "Gerade aktiv",
+  "userActiveYesterday": "Gestern aktiv",
+  "userIdle": "Untätig",
+  "userNotActiveInYear": "Im letzten Jahr nicht aktiv",
   "userRoleAdministrator": "Administrator",
   "userRoleGuest": "Gast",
   "userRoleMember": "Mitglied",

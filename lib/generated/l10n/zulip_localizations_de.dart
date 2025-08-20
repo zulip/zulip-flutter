@@ -180,29 +180,31 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   }
 
   @override
-  String get actionSheetOptionViewReadReceipts => 'View read receipts';
+  String get actionSheetOptionViewReadReceipts =>
+      'Empfangsbestätigungen ansehen';
 
   @override
-  String get actionSheetReadReceipts => 'Read receipts';
+  String get actionSheetReadReceipts => 'Empfangsbestätigungen';
 
   @override
   String actionSheetReadReceiptsReadCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'This message has been <z-link>read</z-link> by $count people:',
-      one: 'This message has been <z-link>read</z-link> by $count person:',
+      other:
+          'Diese Nachricht wurde von $count Personen <z-link>gelesen</z-link>:',
+      one: 'Diese Nachricht wurde von einer Person <z-link>gelesen</z-link>:',
     );
     return '$_temp0';
   }
 
   @override
   String get actionSheetReadReceiptsZeroReadCount =>
-      'No one has read this message yet.';
+      'Niemand hat diese Nachricht bisher gelesen.';
 
   @override
   String get actionSheetReadReceiptsErrorReadCount =>
-      'Failed to load read receipts.';
+      'Laden von Empfangsbestätigungen fehlgeschlagen.';
 
   @override
   String get actionSheetOptionCopyMessageText => 'Nachrichtentext kopieren';
@@ -403,7 +405,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get successTopicLinkCopied => 'Link zum Thema kopiert';
 
   @override
-  String get successChannelLinkCopied => 'Channel link copied';
+  String get successChannelLinkCopied => 'Kanallink kopiert';
 
   @override
   String get errorBannerDeactivatedDmLabel =>
@@ -542,10 +544,10 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   }
 
   @override
-  String get emptyMessageList => 'There are no messages here.';
+  String get emptyMessageList => 'Hier gibt es keine Nachrichten.';
 
   @override
-  String get emptyMessageListSearch => 'No search results.';
+  String get emptyMessageListSearch => 'Keine Suchergebnisse.';
 
   @override
   String get messageListGroupYouWithYourself => 'Nachrichten mit dir selbst';
@@ -645,11 +647,11 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Themen sind in dieser Organisation erforderlich.';
 
   @override
-  String get errorContentNotInsertedTitle => 'Content not inserted';
+  String get errorContentNotInsertedTitle => 'Inhalt nicht eingefügt';
 
   @override
   String get errorContentToInsertIsEmpty =>
-      'The file to be inserted is empty or cannot be accessed.';
+      'Die einzufügende Datei ist leer oder kann nicht geöffnet werden.';
 
   @override
   String errorServerVersionUnsupportedMessage(
@@ -756,20 +758,20 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get yesterday => 'Gestern';
 
   @override
-  String get userActiveNow => 'Active now';
+  String get userActiveNow => 'Gerade aktiv';
 
   @override
-  String get userIdle => 'Idle';
+  String get userIdle => 'Untätig';
 
   @override
   String userActiveMinutesAgo(int minutes) {
     String _temp0 = intl.Intl.pluralLogic(
       minutes,
       locale: localeName,
-      other: '$minutes minutes',
-      one: '1 minute',
+      other: '$minutes Minuten',
+      one: 'einer Minute',
     );
-    return 'Active $_temp0 ago';
+    return 'Aktiv vor $_temp0';
   }
 
   @override
@@ -777,44 +779,44 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       hours,
       locale: localeName,
-      other: '$hours hours',
-      one: '1 hour',
+      other: '$hours Stunden',
+      one: 'einer Stunde',
     );
-    return 'Active $_temp0 ago';
+    return 'Aktiv vor $_temp0';
   }
 
   @override
-  String get userActiveYesterday => 'Active yesterday';
+  String get userActiveYesterday => 'Gestern aktiv';
 
   @override
   String userActiveDaysAgo(int days) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$days days',
-      one: '1 day',
+      other: '$days Tagen',
+      one: 'einem Tag',
     );
-    return 'Active $_temp0 ago';
+    return 'Aktiv vor $_temp0';
   }
 
   @override
   String userActiveDate(String date) {
-    return 'Active $date';
+    return 'Aktiv $date';
   }
 
   @override
-  String get userNotActiveInYear => 'Not active in the last year';
+  String get userNotActiveInYear => 'Im letzten Jahr nicht aktiv';
 
   @override
-  String get invisibleMode => 'Invisible mode';
+  String get invisibleMode => 'Unsichtbarer Modus';
 
   @override
   String get turnOnInvisibleModeErrorTitle =>
-      'Error turning on invisible mode. Please try again.';
+      'Fehler beim Einschalten des unsichtbaren Modus. Bitte versuche es erneut.';
 
   @override
   String get turnOffInvisibleModeErrorTitle =>
-      'Error turning off invisible mode. Please try again.';
+      'Fehler beim Ausschalten des unsichtbaren Modus. Bitte versuche es erneut.';
 
   @override
   String get userRoleOwner => 'Besitzer';
@@ -838,10 +840,10 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get statusButtonLabelStatusSet => 'Status';
 
   @override
-  String get statusButtonLabelStatusUnset => 'Set status';
+  String get statusButtonLabelStatusUnset => 'Status setzen';
 
   @override
-  String get noStatusText => 'No status text';
+  String get noStatusText => 'Kein Statustext';
 
   @override
   String get setStatusPageTitle => 'Status setzen';
@@ -922,7 +924,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get channelsEmptyPlaceholder => 'Du hast noch keine Kanäle abonniert.';
 
   @override
-  String get sharePageTitle => 'Share';
+  String get sharePageTitle => 'Teilen';
 
   @override
   String get mainMenuMyProfile => 'Mein Profil';
@@ -957,7 +959,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get reactedEmojiSelfUser => 'Du';
 
   @override
-  String get reactionChipsLabel => 'Reactions';
+  String get reactionChipsLabel => 'Reaktionen';
 
   @override
   String reactionChipLabel(String emojiName, String votes) {
@@ -969,8 +971,8 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       otherUsersCount,
       locale: localeName,
-      other: 'You and $otherUsersCount others',
-      one: 'You and 1 other',
+      other: 'Du und $otherUsersCount weitere',
+      one: 'Du und ein weiterer',
     );
     return '$_temp0';
   }
@@ -1116,11 +1118,11 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Entfernen der Reaktion fehlgeschlagen';
 
   @override
-  String get errorSharingTitle => 'Failed to share content';
+  String get errorSharingTitle => 'Teilen des Inhalts fehlgeschlagen';
 
   @override
   String get errorSharingAccountNotLoggedIn =>
-      'There is no account logged in. Please log in to an account and try again.';
+      'Es ist kein Konto angemeldet. Bitte logge dich in ein Konto ein und versuche es erneut.';
 
   @override
   String get emojiReactionsMore => 'mehr';
@@ -1132,8 +1134,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get noEarlierMessages => 'Keine früheren Nachrichten';
 
   @override
-  String get revealButtonLabel =>
-      'Nachricht für stummgeschalteten Absender anzeigen';
+  String get revealButtonLabel => 'Nachricht anzeigen';
 
   @override
   String get mutedUser => 'Stummgeschaltete:r Nutzer:in';

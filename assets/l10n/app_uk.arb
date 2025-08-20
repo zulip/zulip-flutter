@@ -11,6 +11,9 @@
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
+  "@actionSheetOptionChannelFeed": {
+    "description": "Label for navigating to a channel's channel-feed page."
+  },
   "@actionSheetOptionCopyChannelLink": {
     "description": "Label for copy channel link button on action sheet."
   },
@@ -79,6 +82,27 @@
   },
   "@actionSheetOptionUnsubscribe": {
     "description": "Label in the channel action sheet for unsubscribing from the channel."
+  },
+  "@actionSheetOptionViewReadReceipts": {
+    "description": "Label for the 'View read receipts' button in the message action sheet."
+  },
+  "@actionSheetReadReceipts": {
+    "description": "Title for the \"Read receipts\" bottom sheet."
+  },
+  "@actionSheetReadReceiptsErrorReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when loading read receipts failed."
+  },
+  "@actionSheetReadReceiptsReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when one or more people have read the message.",
+    "placeholders": {
+      "count": {
+        "example": "1",
+        "type": "int"
+      }
+    }
+  },
+  "@actionSheetReadReceiptsZeroReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
   "@appVersionUnknownPlaceholder": {
     "description": "Placeholder to show in place of the app version when it is unknown."
@@ -282,6 +306,12 @@
   },
   "@errorConnectingToServerShort": {
     "description": "Short error message for a generic unknown error connecting to the server."
+  },
+  "@errorContentNotInsertedTitle": {
+    "description": "Title for error dialog when an attempt to insert rich content failed."
+  },
+  "@errorContentToInsertIsEmpty": {
+    "description": "Error message when the rich content to be inserted is empty or cannot be accessed."
   },
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
@@ -500,8 +530,14 @@
       }
     }
   },
+  "@errorSharingAccountNotLoggedIn": {
+    "description": "Error title when sharing content received from other apps fails, when there is no account logged in"
+  },
   "@errorSharingFailed": {
     "description": "Error message when sharing a message failed."
+  },
+  "@errorSharingTitle": {
+    "description": "Error title when sharing content received from other apps fails"
   },
   "@errorStarMessageFailedTitle": {
     "description": "Error title when starring a message failed."
@@ -904,6 +940,9 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
+  "@sharePageTitle": {
+    "description": "Title for the page about sharing content received from other apps."
+  },
   "@signInWithFoo": {
     "description": "Button to use {method} to sign in to the app.",
     "placeholders": {
@@ -1053,6 +1092,54 @@
   "@upgradeWelcomeDialogTitle": {
     "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
   },
+  "@userActiveDate": {
+    "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
+    "placeholders": {
+      "date": {
+        "example": "Aug 1, 2024",
+        "type": "String"
+      }
+    }
+  },
+  "@userActiveDaysAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "days": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveHoursAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "hours": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveMinutesAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "minutes": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveNow": {
+    "description": "Indicates a user is currently active on Zulip (not idle or offline)"
+  },
+  "@userActiveYesterday": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)"
+  },
+  "@userIdle": {
+    "description": "Indicates a user is currently idle on Zulip (not active, but not offline)"
+  },
+  "@userNotActiveInYear": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)"
+  },
   "@userRoleAdministrator": {
     "description": "Label for UserRole.administrator"
   },
@@ -1129,6 +1216,7 @@
   "aboutPageOpenSourceLicenses": "Ліцензії з відкритим кодом",
   "aboutPageTapToView": "Натисніть, щоб переглянути",
   "aboutPageTitle": "Про Zulip",
+  "actionSheetOptionChannelFeed": "Стрічка каналу",
   "actionSheetOptionCopyChannelLink": "Копіювати посилання на канал",
   "actionSheetOptionCopyMessageLink": "Копіювати посилання на повідомлення",
   "actionSheetOptionCopyMessageText": "Копіювати текст повідомлення",
@@ -1152,6 +1240,11 @@
   "actionSheetOptionUnresolveTopic": "Позначити як невирішене",
   "actionSheetOptionUnstarMessage": "Зняти позначку зірки з повідомлення",
   "actionSheetOptionUnsubscribe": "Скасувати підписку",
+  "actionSheetOptionViewReadReceipts": "Переглянути сповіщення про прочитання",
+  "actionSheetReadReceipts": "Квитанції про прочитання",
+  "actionSheetReadReceiptsErrorReadCount": "Не вдалося завантажити сповіщення про прочитання.",
+  "actionSheetReadReceiptsReadCount": "{count, plural, =1{Це повідомлення було <z-link>прочитано</z-link> {count} особою:} other{Це повідомлення було <z-link>прочитано</z-link> {count} людьми:}}",
+  "actionSheetReadReceiptsZeroReadCount": "Ніхто ще не прочитав цього повідомлення.",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Стрічка каналу",
   "channelsEmptyPlaceholder": "Ви ще не підписані на жодний канал.",
@@ -1201,6 +1294,8 @@
   "errorBannerDeactivatedDmLabel": "Ви не можете надсилати повідомлення деактивованим користувачам.",
   "errorConnectingToServerDetails": "Помилка підключення до Zulip на {serverUrl}. Буде повторена спроба:\n\n{error}",
   "errorConnectingToServerShort": "Помилка підключення до Zulip. Повторна спроба…",
+  "errorContentNotInsertedTitle": "Вміст не вставлено",
+  "errorContentToInsertIsEmpty": "Файл, який потрібно вставити, порожній або до нього немає доступу.",
   "errorCopyingFailed": "Помилка копіювання",
   "errorCouldNotConnectTitle": "Не вдалося підключитися",
   "errorCouldNotEditMessageTitle": "Не вдалося редагувати повідомлення",
@@ -1240,7 +1335,9 @@
   "errorResolveTopicFailedTitle": "Не вдалося позначити тему як вирішену",
   "errorServerMessage": "Сервер сказав:\n\n{message}",
   "errorServerVersionUnsupportedMessage": "{url} використовує Zulip Server {zulipVersion}, який не підтримується. Мінімальною підтримуваною версією є Zulip Server {minSupportedZulipVersion}.",
+  "errorSharingAccountNotLoggedIn": "Немає облікового запису, в який ви ввійшли. Будь ласка, увійдіть в обліковий запис і спробуйте ще раз..",
   "errorSharingFailed": "Поширення не вдалося",
+  "errorSharingTitle": "Не вдалося поділитися контентом",
   "errorStarMessageFailedTitle": "Не вдалося позначити повідомлення зіркою",
   "errorUnfollowTopicFailed": "Не вдалося відписатися від теми",
   "errorUnmuteTopicFailed": "Не вдалося увімкнути тему",
@@ -1344,6 +1441,7 @@
   "serverUrlValidationErrorUnsupportedScheme": "URL-адреса сервера має починатися з http:// або https://.",
   "setStatusPageTitle": "Встановити статус",
   "settingsPageTitle": "Налаштування",
+  "sharePageTitle": "Поділитися",
   "signInWithFoo": "Увійти з {method}",
   "snackBarDetails": "Деталі",
   "spoilerDefaultHeaderText": "Спойлер",
@@ -1381,10 +1479,18 @@
   "unsubscribeConfirmationDialogTitle": "Відписатися від {channelName}?",
   "unsubscribeFailedTitle": "Не вдалося скасувати підписку",
   "updateStatusErrorTitle": "Помилка оновлення статусу користувача. Спробуйте ще раз.",
-  "upgradeWelcomeDialogDismiss": "Ходімо!",
+  "upgradeWelcomeDialogDismiss": "Ходімо",
   "upgradeWelcomeDialogLinkText": "Ознайомтесь з анонсом у блозі!",
   "upgradeWelcomeDialogMessage": "Ви знайдете звичні можливості у більш швидкому і легкому додатку.",
   "upgradeWelcomeDialogTitle": "Ласкаво просимо у новий додаток Zulip!",
+  "userActiveDate": "Активний {date}",
+  "userActiveDaysAgo": "Активний {days, plural, =1{1 день} other{{days} дні}} тому",
+  "userActiveHoursAgo": "Активний {hours, plural, =1{1 година} other{{hours} години}} тому",
+  "userActiveMinutesAgo": "Активний {minutes, plural, =1{1 хвилина} other{{minutes} хвилин}} тому",
+  "userActiveNow": "Активний зараз",
+  "userActiveYesterday": "Активний учора",
+  "userIdle": "Холостий хід",
+  "userNotActiveInYear": "Неактивний протягом останнього року",
   "userRoleAdministrator": "Адміністратор",
   "userRoleGuest": "Гість",
   "userRoleMember": "Учасник",

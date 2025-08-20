@@ -80,6 +80,27 @@
   "@actionSheetOptionUnsubscribe": {
     "description": "Label in the channel action sheet for unsubscribing from the channel."
   },
+  "@actionSheetOptionViewReadReceipts": {
+    "description": "Label for the 'View read receipts' button in the message action sheet."
+  },
+  "@actionSheetReadReceipts": {
+    "description": "Title for the \"Read receipts\" bottom sheet."
+  },
+  "@actionSheetReadReceiptsErrorReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when loading read receipts failed."
+  },
+  "@actionSheetReadReceiptsReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when one or more people have read the message.",
+    "placeholders": {
+      "count": {
+        "example": "1",
+        "type": "int"
+      }
+    }
+  },
+  "@actionSheetReadReceiptsZeroReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
+  },
   "@appVersionUnknownPlaceholder": {
     "description": "Placeholder to show in place of the app version when it is unknown."
   },
@@ -282,6 +303,12 @@
   },
   "@errorConnectingToServerShort": {
     "description": "Short error message for a generic unknown error connecting to the server."
+  },
+  "@errorContentNotInsertedTitle": {
+    "description": "Title for error dialog when an attempt to insert rich content failed."
+  },
+  "@errorContentToInsertIsEmpty": {
+    "description": "Error message when the rich content to be inserted is empty or cannot be accessed."
   },
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
@@ -500,8 +527,14 @@
       }
     }
   },
+  "@errorSharingAccountNotLoggedIn": {
+    "description": "Error title when sharing content received from other apps fails, when there is no account logged in"
+  },
   "@errorSharingFailed": {
     "description": "Error message when sharing a message failed."
+  },
+  "@errorSharingTitle": {
+    "description": "Error title when sharing content received from other apps fails"
   },
   "@errorStarMessageFailedTitle": {
     "description": "Error title when starring a message failed."
@@ -902,6 +935,9 @@
     "description": "Title for the 'Set status' page."
   },
   "@settingsPageTitle": {},
+  "@sharePageTitle": {
+    "description": "Title for the page about sharing content received from other apps."
+  },
   "@signInWithFoo": {
     "description": "Button to use {method} to sign in to the app.",
     "placeholders": {
@@ -1051,6 +1087,54 @@
   "@upgradeWelcomeDialogTitle": {
     "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
   },
+  "@userActiveDate": {
+    "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
+    "placeholders": {
+      "date": {
+        "example": "Aug 1, 2024",
+        "type": "String"
+      }
+    }
+  },
+  "@userActiveDaysAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "days": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveHoursAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "hours": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveMinutesAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "minutes": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveNow": {
+    "description": "Indicates a user is currently active on Zulip (not idle or offline)"
+  },
+  "@userActiveYesterday": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)"
+  },
+  "@userIdle": {
+    "description": "Indicates a user is currently idle on Zulip (not active, but not offline)"
+  },
+  "@userNotActiveInYear": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)"
+  },
   "@userRoleAdministrator": {
     "description": "Label for UserRole.administrator"
   },
@@ -1150,6 +1234,11 @@
   "actionSheetOptionUnresolveTopic": "標註為未解決",
   "actionSheetOptionUnstarMessage": "取消收藏訊息",
   "actionSheetOptionUnsubscribe": "取消訂閱",
+  "actionSheetOptionViewReadReceipts": "查看已讀回條",
+  "actionSheetReadReceipts": "已讀回條",
+  "actionSheetReadReceiptsErrorReadCount": "載入已讀回條失敗。",
+  "actionSheetReadReceiptsReadCount": "{count, plural, =1{此訊息已被<z-link>閱讀</z-link>，共有 {count} 人：} other{此訊息已被<z-link>閱讀</z-link>，共有 {count} 人：}}",
+  "actionSheetReadReceiptsZeroReadCount": "尚無人閱讀此訊息。",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "頻道饋給",
   "channelsEmptyPlaceholder": "您尚未訂閱任何頻道。",
@@ -1199,6 +1288,8 @@
   "errorBannerDeactivatedDmLabel": "您無法向已停用的使用者發送訊息。",
   "errorConnectingToServerDetails": "連接 Zulip {serverUrl} 時發生錯誤。將重試：\n\n{error}",
   "errorConnectingToServerShort": "連接 Zulip 時發生錯誤。重試中…",
+  "errorContentNotInsertedTitle": "未插入內容",
+  "errorContentToInsertIsEmpty": "要插入的檔案為空或無法存取。",
   "errorCopyingFailed": "複製失敗",
   "errorCouldNotConnectTitle": "無法連線",
   "errorCouldNotEditMessageTitle": "無法編輯訊息",
@@ -1238,7 +1329,9 @@
   "errorResolveTopicFailedTitle": "無法標註話題為已解決",
   "errorServerMessage": "伺服器回應：\n\n{message}",
   "errorServerVersionUnsupportedMessage": "{url} 執行的 Zulip Server 為 {zulipVersion}，此版本已不受支援。最低支援版本為 Zulip Server {minSupportedZulipVersion}。",
+  "errorSharingAccountNotLoggedIn": "尚未登入任何帳號。請登入帳號後再試一次。",
   "errorSharingFailed": "分享失敗",
+  "errorSharingTitle": "分享內容失敗",
   "errorStarMessageFailedTitle": "無法收藏訊息",
   "errorUnfollowTopicFailed": "無法取消跟隨話題",
   "errorUnmuteTopicFailed": "無法取消靜音話題",
@@ -1342,6 +1435,7 @@
   "serverUrlValidationErrorUnsupportedScheme": "伺服器 URL 必須以 http:// 或 https:// 開頭。",
   "setStatusPageTitle": "設定狀態",
   "settingsPageTitle": "設定",
+  "sharePageTitle": "分享",
   "signInWithFoo": "使用 {method} 登入",
   "snackBarDetails": "詳細資訊",
   "spoilerDefaultHeaderText": "劇透",
@@ -1383,6 +1477,14 @@
   "upgradeWelcomeDialogLinkText": "查看公告部落格文章！",
   "upgradeWelcomeDialogMessage": "您將在更快、更流暢的版本中享受熟悉的體驗。",
   "upgradeWelcomeDialogTitle": "歡迎使用新 Zulip 應用程式！",
+  "userActiveDate": "上次活躍於 {date}",
+  "userActiveDaysAgo": "上次活躍於 {days, plural, =1{1 天前} other{{days} 天前}}",
+  "userActiveHoursAgo": "上次活躍於 {hours, plural, =1{1 小時前} other{{hours} 小時前}}",
+  "userActiveMinutesAgo": "上次活躍於 {minutes, plural, =1{1 分鐘前} other{{minutes} 分鐘前}}",
+  "userActiveNow": "目前活躍",
+  "userActiveYesterday": "昨天活躍",
+  "userIdle": "閒置",
+  "userNotActiveInYear": "去年未活躍",
   "userRoleAdministrator": "管理員",
   "userRoleGuest": "訪客",
   "userRoleMember": "成員",

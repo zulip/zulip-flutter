@@ -80,6 +80,27 @@
   "@actionSheetOptionUnsubscribe": {
     "description": "Label in the channel action sheet for unsubscribing from the channel."
   },
+  "@actionSheetOptionViewReadReceipts": {
+    "description": "Label for the 'View read receipts' button in the message action sheet."
+  },
+  "@actionSheetReadReceipts": {
+    "description": "Title for the \"Read receipts\" bottom sheet."
+  },
+  "@actionSheetReadReceiptsErrorReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when loading read receipts failed."
+  },
+  "@actionSheetReadReceiptsReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when one or more people have read the message.",
+    "placeholders": {
+      "count": {
+        "example": "1",
+        "type": "int"
+      }
+    }
+  },
+  "@actionSheetReadReceiptsZeroReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
+  },
   "@appVersionUnknownPlaceholder": {
     "description": "Placeholder to show in place of the app version when it is unknown."
   },
@@ -282,6 +303,12 @@
   },
   "@errorConnectingToServerShort": {
     "description": "Short error message for a generic unknown error connecting to the server."
+  },
+  "@errorContentNotInsertedTitle": {
+    "description": "Title for error dialog when an attempt to insert rich content failed."
+  },
+  "@errorContentToInsertIsEmpty": {
+    "description": "Error message when the rich content to be inserted is empty or cannot be accessed."
   },
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
@@ -500,8 +527,14 @@
       }
     }
   },
+  "@errorSharingAccountNotLoggedIn": {
+    "description": "Error title when sharing content received from other apps fails, when there is no account logged in"
+  },
   "@errorSharingFailed": {
     "description": "Error message when sharing a message failed."
+  },
+  "@errorSharingTitle": {
+    "description": "Error title when sharing content received from other apps fails"
   },
   "@errorStarMessageFailedTitle": {
     "description": "Error title when starring a message failed."
@@ -904,6 +937,9 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
+  "@sharePageTitle": {
+    "description": "Title for the page about sharing content received from other apps."
+  },
   "@signInWithFoo": {
     "description": "Button to use {method} to sign in to the app.",
     "placeholders": {
@@ -1053,6 +1089,54 @@
   "@upgradeWelcomeDialogTitle": {
     "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
   },
+  "@userActiveDate": {
+    "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
+    "placeholders": {
+      "date": {
+        "example": "Aug 1, 2024",
+        "type": "String"
+      }
+    }
+  },
+  "@userActiveDaysAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "days": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveHoursAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "hours": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveMinutesAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "minutes": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveNow": {
+    "description": "Indicates a user is currently active on Zulip (not idle or offline)"
+  },
+  "@userActiveYesterday": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)"
+  },
+  "@userIdle": {
+    "description": "Indicates a user is currently idle on Zulip (not active, but not offline)"
+  },
+  "@userNotActiveInYear": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)"
+  },
   "@userRoleAdministrator": {
     "description": "Label for UserRole.administrator"
   },
@@ -1152,6 +1236,11 @@
   "actionSheetOptionUnresolveTopic": "Снять отметку \"решено\"",
   "actionSheetOptionUnstarMessage": "Снять отметку с сообщения",
   "actionSheetOptionUnsubscribe": "Отписаться",
+  "actionSheetOptionViewReadReceipts": "Посмотреть подтверждения прочтения",
+  "actionSheetReadReceipts": "Подтверждения прочтения",
+  "actionSheetReadReceiptsErrorReadCount": "Не удалось загрузить подтверждения прочтения.",
+  "actionSheetReadReceiptsReadCount": "{count, plural, one{Это сообщение было <z-link>прочитано</z-link> {count} пользователем:} other{Это сообщение было <z-link>прочитано</z-link> {count} пользователями:}}",
+  "actionSheetReadReceiptsZeroReadCount": "Это сообщение еще никто не прочитал.",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Лента канала",
   "channelsEmptyPlaceholder": "Вы ещё не подписаны ни на один канал.",
@@ -1201,6 +1290,8 @@
   "errorBannerDeactivatedDmLabel": "Нельзя отправить сообщение отключенным пользователям.",
   "errorConnectingToServerDetails": "Ошибка подключения к Zulip на {serverUrl}. Повторим попытку:\n\n{error}",
   "errorConnectingToServerShort": "Ошибка подключения к Zulip. Повторяем попытку…",
+  "errorContentNotInsertedTitle": "Содержимое не вставлено",
+  "errorContentToInsertIsEmpty": "Файл для вставки пустой, или к нему нет доступа.",
   "errorCopyingFailed": "Сбой копирования",
   "errorCouldNotConnectTitle": "Нет связи с сервером",
   "errorCouldNotEditMessageTitle": "Сбой редактирования",
@@ -1240,7 +1331,9 @@
   "errorResolveTopicFailedTitle": "Не удалось отметить тему как решенную",
   "errorServerMessage": "Ответ сервера:\n\n{message}",
   "errorServerVersionUnsupportedMessage": "{url} использует Zulip Server {zulipVersion}, который не поддерживается. Минимальная поддерживаемая версия — Zulip Server {minSupportedZulipVersion}.",
+  "errorSharingAccountNotLoggedIn": "Не выполнен вход с учетной записью. Пожалуйста, войдите в систему и повторите попытку.",
   "errorSharingFailed": "Не удалось поделиться",
+  "errorSharingTitle": "Не удалось поделиться содержанием",
   "errorStarMessageFailedTitle": "Не удалось отметить сообщение",
   "errorUnfollowTopicFailed": "Не удалось прекратить отслеживать тему",
   "errorUnmuteTopicFailed": "Не удалось включить оповещения темы",
@@ -1344,6 +1437,7 @@
   "serverUrlValidationErrorUnsupportedScheme": "URL-адрес сервера должен начинаться с http:// или https://.",
   "setStatusPageTitle": "Установить статус",
   "settingsPageTitle": "Настройки",
+  "sharePageTitle": "Поделиться",
   "signInWithFoo": "Войти с помощью {method}",
   "snackBarDetails": "Подробности",
   "spoilerDefaultHeaderText": "Спойлер",
@@ -1381,10 +1475,18 @@
   "unsubscribeConfirmationDialogTitle": "Отменить подписку на {channelName}?",
   "unsubscribeFailedTitle": "Не удалось отписаться",
   "updateStatusErrorTitle": "Ошибка обновления статуса пользователя. Попробуйте ещё раз.",
-  "upgradeWelcomeDialogDismiss": "Приступим!",
+  "upgradeWelcomeDialogDismiss": "Приступим",
   "upgradeWelcomeDialogLinkText": "Ознакомьтесь с анонсом в блоге!",
   "upgradeWelcomeDialogMessage": "Вы найдете привычные возможности в более быстром и легком приложении.",
   "upgradeWelcomeDialogTitle": "Добро пожаловать в новое приложение Zulip!",
+  "userActiveDate": "Был/а на связи {date}",
+  "userActiveDaysAgo": "Был/а на связи {days, plural, one{{days} день} few{{days} дня} many{{days} дней} other{{days} дней}} назад",
+  "userActiveHoursAgo": "Был/а на связи {hours, plural, one{{hours} час} few{{hours} часа} many{{hours} часов} other{{hours} часов}} назад",
+  "userActiveMinutesAgo": "Был/а на связи {minutes, plural, one{{minutes} минуту} few{{minutes} минуты} many{{minutes} минут} other{{minutes} минут}} назад",
+  "userActiveNow": "На связи",
+  "userActiveYesterday": "Был/а на связи вчера",
+  "userIdle": "Бездействует",
+  "userNotActiveInYear": "Не выходил/а на связь за последний год",
   "userRoleAdministrator": "Администратор",
   "userRoleGuest": "Гость",
   "userRoleMember": "Участник",
