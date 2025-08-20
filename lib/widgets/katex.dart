@@ -10,12 +10,35 @@ import 'content.dart';
 
 /// Creates a base text style for rendering KaTeX content.
 ///
-/// This applies the CSS styles defined in .katex class in katex.scss :
+/// This cancels out some attributes that may be ambient from Zulip content
+/// (italic, bold, etc.)
+/// and applies the CSS styles defined in .katex class in katex.scss :
 ///   https://github.com/KaTeX/KaTeX/blob/613c3da8/src/styles/katex.scss#L13-L15
 ///
 /// Requires the [style.fontSize] to be non-null.
-TextStyle mkBaseKatexTextStyle(TextStyle style) {
+TextStyle mkBaseKatexTextStyle(TextStyle style, Color baseColor) {
   return style.copyWith(
+    ////// Overrides of our own styles:
+
+    // Bold formatting is removed below by setting FontWeight.normal…
+    // Just for completeness, remove "wght", but it wouldn't do anything anyway
+    // since KaTeX_Main is not a variable-weight font.
+    fontVariations: [],
+    // Remove link color, but
+    // TODO(#1823) do we want to do that? Web doesn't.
+    color: baseColor,
+    // Italic is removed below.
+
+    // Strikethrough is removed below, which affects formatting of rendered
+    // KatexSpanNodes…but a single strikethrough on the whole KatexWidget will
+    // be visible as long as it doesn't paint an opaque background. (The line
+    // "shows through" from an ancestor span.) I think we're happy with this:
+    // the message author asked for a strikethrough by wrapping the math in ~~,
+    // but we should render it as one unbroken line, not separate lines on each
+    // KaTeX span.
+
+    ////// From the .katex class in katex.scss:
+
     fontSize: style.fontSize! * 1.21,
     fontFamily: 'KaTeX_Main',
     height: 1.2,
@@ -45,8 +68,8 @@ class KatexWidget extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.ltr,
       child: DefaultTextStyle(
-        style: mkBaseKatexTextStyle(textStyle).copyWith(
-          color: ContentTheme.of(context).textStylePlainParagraph.color),
+        style: mkBaseKatexTextStyle(textStyle,
+          ContentTheme.of(context).textStylePlainParagraph.color!),
         child: widget));
   }
 }
