@@ -3227,17 +3227,20 @@ void checkInvariants(MessageListView model) {
 
   int i = 0;
   for (int j = 0; j < allMessages.length; j++) {
-    bool forcedShowSender = false;
+    final bool showSender;
     if (j == 0
         || model.oneMessagePerBlock
         || !haveSameRecipient(allMessages[j-1], allMessages[j])) {
       check(model.items[i++]).isA<MessageListRecipientHeaderItem>()
         .message.identicalTo(allMessages[j]);
-      forcedShowSender = true;
+      showSender = true;
     } else if (!messagesSameDay(allMessages[j-1], allMessages[j])) {
       check(model.items[i++]).isA<MessageListDateSeparatorItem>()
         .message.identicalTo(allMessages[j]);
-      forcedShowSender = true;
+      showSender = true;
+    } else {
+      // TODO(#1825) adjust to reflect messagesCloseInTime
+      showSender = allMessages[j].senderId != allMessages[j-1].senderId;
     }
     if (j < model.messages.length) {
       check(model.items[i]).isA<MessageListMessageItem>()
@@ -3248,8 +3251,7 @@ void checkInvariants(MessageListView model) {
         .message.identicalTo(model.outboxMessages[j-model.messages.length]);
     }
     check(model.items[i++]).isA<MessageListMessageBaseItem>()
-      ..showSender.equals( // TODO(#1825) adjust to reflect messagesCloseInTime
-        forcedShowSender || allMessages[j].senderId != allMessages[j-1].senderId)
+      ..showSender.equals(showSender)
       ..isLastInBlock.equals(
         i == model.items.length || switch (model.items[i]) {
           MessageListMessageItem()
