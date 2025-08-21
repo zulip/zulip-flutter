@@ -2946,11 +2946,16 @@ void main() {
     // whether the sender should be shown, but the difference between
     // fetchInitial and handleMessageEvent etc. doesn't matter.
 
-    // TODO(#1825) test that messagesCloseInTime gets used
+    // Elapse test's clock to a specific time, to avoid any flaky-ness
+    // that may be caused by a specific local time of the day.
+    final initialTime = DateTime(2035, 8, 21);
+    async.elapse(initialTime.difference(clock.now()));
 
     final now = clock.now();
     final t1 = eg.utcTimestamp(now.subtract(Duration(days: 1)));
-    final t2 = eg.utcTimestamp(now);
+    final t2 = t1 + Duration(minutes: 1).inSeconds;
+    final t3 = t2 + Duration(minutes: 10, seconds: 1).inSeconds;
+    final t4 = eg.utcTimestamp(now);
     final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
     Message streamMessage(int timestamp, User sender) =>
       eg.streamMessage(sender: sender,
@@ -2966,21 +2971,25 @@ void main() {
       streamMessage(t1, eg.selfUser),  // first message, so show sender
       streamMessage(t1, eg.selfUser),  // hide sender
       streamMessage(t1, eg.otherUser), // no recipient header, but new sender
-      dmMessage(    t1, eg.otherUser), // same sender, but new recipient
-      dmMessage(    t2, eg.otherUser), // same sender/recipient, but new day
+      streamMessage(t2, eg.otherUser), // same sender, and within 10 mins of last message
+      streamMessage(t3, eg.otherUser), // same sender, but after 10 mins from last message
+      dmMessage(    t3, eg.otherUser), // same sender, but new recipient
+      dmMessage(    t4, eg.otherUser), // same sender/recipient, but new day
     ]);
     await prepareOutboxMessagesTo([
       dmDestination([eg.selfUser, eg.otherUser]), // same day, but new sender
       dmDestination([eg.selfUser, eg.otherUser]), // hide sender
     ]);
     assert(
-      store.outboxMessages.values.every((message) => message.timestamp == t2));
+      store.outboxMessages.values.every((message) => message.timestamp == t4));
     async.elapse(kLocalEchoDebounceDuration);
 
     // We check showSender has the right values in [checkInvariants],
     // but to make this test explicit:
     check(model.items).deepEquals(<void Function(Subject<Object?>)>[
       (it) => it.isA<MessageListRecipientHeaderItem>(),
+      (it) => it.isA<MessageListMessageItem>().showSender.isTrue(),
+      (it) => it.isA<MessageListMessageItem>().showSender.isFalse(),
       (it) => it.isA<MessageListMessageItem>().showSender.isTrue(),
       (it) => it.isA<MessageListMessageItem>().showSender.isFalse(),
       (it) => it.isA<MessageListMessageItem>().showSender.isTrue(),
@@ -3074,14 +3083,14 @@ void main() {
     });
   });
 
-  test('messagesSameDay', () {
-    // These timestamps will differ depending on the timezone of the
-    // environment where the tests are run, in order to give the same results
-    // in the code under test which is also based on the ambient timezone.
-    // TODO(dart): It'd be great if tests could control the ambient timezone,
-    //   so as to exercise cases like where local time falls back across midnight.
-    int timestampFromLocalTime(String date) => DateTime.parse(date).millisecondsSinceEpoch ~/ 1000;
+  // These timestamps will differ depending on the timezone of the
+  // environment where the tests are run, in order to give the same results
+  // in the code under test which is also based on the ambient timezone.
+  // TODO(dart): It'd be great if tests could control the ambient timezone,
+  //   so as to exercise cases like where local time falls back across midnight.
+  int timestampFromLocalTime(String date) => DateTime.parse(date).millisecondsSinceEpoch ~/ 1000;
 
+  test('messagesSameDay', () {
     const t111a = '2021-01-01 00:00:00';
     const t111b = '2021-01-01 12:00:00';
     const t111c = '2021-01-01 23:59:58';
@@ -3121,7 +3130,46 @@ void main() {
     }
   });
 
-  // TODO(#1825) test messagesCloseInTime
+  group('messagesCloseInTime', () {
+    final stream = eg.stream();
+    void doTest(String time0, String time1, bool expected) {
+      test('$time0 vs $time1 -> $expected', () {
+        check(messagesCloseInTime(
+          eg.streamMessage(stream: stream, topic: 'foo', timestamp: timestampFromLocalTime(time0)),
+          eg.streamMessage(stream: stream, topic: 'foo', timestamp: timestampFromLocalTime(time1)),
+        )).equals(expected);
+        check(messagesCloseInTime(
+          eg.dmMessage(from: eg.selfUser, to: [], timestamp: timestampFromLocalTime(time0)),
+          eg.dmMessage(from: eg.selfUser, to: [], timestamp: timestampFromLocalTime(time1)),
+        )).equals(expected);
+        check(messagesCloseInTime(
+          eg.streamOutboxMessage(timestamp: timestampFromLocalTime(time0)),
+          eg.streamOutboxMessage(timestamp: timestampFromLocalTime(time1)),
+        )).equals(expected);
+        check(messagesCloseInTime(
+          eg.dmOutboxMessage(from: eg.selfUser, to: [], timestamp: timestampFromLocalTime(time0)),
+          eg.dmOutboxMessage(from: eg.selfUser, to: [], timestamp: timestampFromLocalTime(time1)),
+        )).equals(expected);
+      });
+    }
+
+    const time = '2021-01-01 00:30:00';
+
+    doTest('2021-01-01 00:19:59', time, false);
+    doTest('2021-01-01 00:20:00', time, true);
+    doTest('2021-01-01 00:29:59', time, true);
+    doTest('2021-01-01 00:30:00', time, true);
+
+    doTest(time, '2021-01-01 00:30:01', true);
+    doTest(time, '2021-01-01 00:39:59', true);
+    doTest(time, '2021-01-01 00:40:00', true);
+    doTest(time, '2021-01-01 00:40:01', false);
+
+    doTest(time, '2022-01-01 00:30:00', false);
+    doTest(time, '2021-02-01 00:30:00', false);
+    doTest(time, '2021-01-02 00:30:00', false);
+    doTest(time, '2021-01-01 01:30:00', false);
+  });
 }
 
 MessageListView? _lastModel;
@@ -3238,9 +3286,10 @@ void checkInvariants(MessageListView model) {
       check(model.items[i++]).isA<MessageListDateSeparatorItem>()
         .message.identicalTo(allMessages[j]);
       showSender = true;
+    } else if (allMessages[j-1].senderId == allMessages[j].senderId) {
+      showSender = !messagesCloseInTime(allMessages[j-1], allMessages[j]);
     } else {
-      // TODO(#1825) adjust to reflect messagesCloseInTime
-      showSender = allMessages[j].senderId != allMessages[j-1].senderId;
+      showSender = true;
     }
     if (j < model.messages.length) {
       check(model.items[i]).isA<MessageListMessageItem>()
