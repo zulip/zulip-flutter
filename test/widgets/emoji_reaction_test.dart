@@ -625,6 +625,32 @@ void main() {
         debugNetworkImageHttpClientProvider = null;
       });
 
+      testWidgets('text emoji list items must have correct height', (tester) async {
+        // Regression test for #1587.
+        final message = eg.streamMessage();
+        await setupEmojiPicker(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+        // Find a list entry and get its height with the default image-based emoji.
+        final listEntryFinder = find.byWidgetPredicate(
+          (w) => w is EmojiPickerListEntry && w.emoji.emojiName == 'zzz');
+        await tester.ensureVisible(listEntryFinder);
+        final imageRenderBox = tester.renderObject<RenderBox>(listEntryFinder);
+        final imageHeight = imageRenderBox.size.height;
+
+        // Change the setting to text-only emoji.
+        await store.handleEvent(UserSettingsUpdateEvent(id: 1,
+          property: UserSettingName.emojiset,
+          value: Emojiset.text));
+        await tester.pumpAndSettle();
+
+        // Find the same list entry again and check that its height has not changed.
+        await tester.ensureVisible(listEntryFinder);
+        final textRenderBox = tester.renderObject<RenderBox>(listEntryFinder);
+        check(textRenderBox.size.height).isCloseTo(imageHeight, 1.0);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
       testWidgets('with bottom view padding', (tester) async {
         await prepare(tester, viewPadding: FakeViewPadding(bottom: 10));
 
