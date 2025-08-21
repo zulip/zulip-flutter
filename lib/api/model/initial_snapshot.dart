@@ -109,6 +109,9 @@ class InitialSnapshot {
   @JsonKey(readValue: _readUsersIsActiveFallbackTrue)
   final List<User> crossRealmBots;
 
+  // TODO(server): Get this API stabilized, to replace [SupportedPermissionSettings.fixture].
+  // final SupportedPermissionSettings? serverSupportedPermissionSettings;
+
   // TODO etc., etc.
   // If adding fields, keep them all in the order they appear in the API docs.
 
@@ -388,4 +391,115 @@ class UnreadHuddleSnapshot {
     _$UnreadHuddleSnapshotFromJson(json);
 
   Map<String, dynamic> toJson() => _$UnreadHuddleSnapshotToJson(this);
+}
+
+/// Metadata about how to interpret the various group-based permission settings.
+///
+/// This is the type that [InitialSnapshot.serverSupportedPermissionSettings]
+/// would have, according to the API as it exists as of 2025-08;
+/// but that API is documented as unstable and subject to change.
+///
+/// For a useful value of this type, see [SupportedPermissionSettings.fixture].
+///
+/// For docs, search for "d_perm" in: https://zulip.com/api/register-queue
+@JsonSerializable(fieldRename: FieldRename.snake)
+class SupportedPermissionSettings {
+  final Map<String, PermissionSettingsItem> realm;
+  final Map<String, PermissionSettingsItem> stream;
+  final Map<String, PermissionSettingsItem> group;
+
+  /// Metadata about how to interpret certain group-based permission settings,
+  /// including all those that this client uses, based on "current" servers.
+  ///
+  /// "Current" here means as of when this code was written, or last updated;
+  /// details in comments below.  Naturally it'd be better to have an API to
+  /// get this information from the actual server.
+  ///
+  /// Effectively we're counting on it being uncommon for the metadata for a
+  /// given permission to ever change from one server version to the next,
+  /// so that the values we take from one server version usually remain valid
+  /// for all past and future server versions that have the corresponding
+  /// permission at all.
+  ///
+  /// TODO(server): Stabilize [InitialSnapshot.serverSupportedPermissionSettings]
+  ///   or a similar API, and switch to using that.  See thread:
+  ///     https://chat.zulip.org/#narrow/channel/378-api-design/topic/server_supported_permission_settings/near/2247549
+  static SupportedPermissionSettings fixture = SupportedPermissionSettings(
+    realm: {}, // Please go ahead and fill this in when we come to need it.
+    group: {}, // Please go ahead and fill this in when we come to need it.
+    stream: {
+      // From the server's Stream.stream_permission_group_settings,
+      // in zerver/models/streams.py.  Current as of f9dc13014, 2025-08.
+      "can_add_subscribers_group": PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.NOBODY,
+      ),
+      "can_administer_channel_group": PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: false,
+          // default_group_name="stream_creator_or_nobody",
+      ),
+      "can_delete_any_message_group": PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: true,
+          // default_group_name=SystemGroups.NOBODY,
+      ),
+      "can_delete_own_message_group": PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: true,
+          // default_group_name=SystemGroups.NOBODY,
+      ),
+      "can_move_messages_out_of_channel_group": PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: true,
+          // default_group_name=SystemGroups.NOBODY,
+      ),
+      "can_move_messages_within_channel_group": PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: true,
+          // default_group_name=SystemGroups.NOBODY,
+      ),
+      "can_remove_subscribers_group": PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: true,
+          // default_group_name=SystemGroups.ADMINISTRATORS,
+      ),
+      "can_send_message_group": PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: true,
+          // default_group_name=SystemGroups.EVERYONE,
+      ),
+      "can_subscribe_group": PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.NOBODY,
+      ),
+      "can_resolve_topics_group": PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: true,
+          // default_group_name=SystemGroups.NOBODY,
+      ),
+    },
+  );
+
+  SupportedPermissionSettings({required this.realm, required this.stream, required this.group});
+
+  factory SupportedPermissionSettings.fromJson(Map<String, dynamic> json) =>
+    _$SupportedPermissionSettingsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SupportedPermissionSettingsToJson(this);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class PermissionSettingsItem {
+  final bool allowEveryoneGroup;
+  // also other fields not yet used
+
+  PermissionSettingsItem({required this.allowEveryoneGroup});
+
+  factory PermissionSettingsItem.fromJson(Map<String, dynamic> json) =>
+    _$PermissionSettingsItemFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PermissionSettingsItemToJson(this);
 }
