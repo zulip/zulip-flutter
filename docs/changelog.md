@@ -2,6 +2,45 @@
 
 ## Unreleased
 
+### Highlights for users (since last mainline release, v30.0.263)
+
+* (Android) Paste an image into a message, or insert a sticker from
+  your keyboard. (#1173, #419)
+* Autocomplete matches people's names regardless of diacritics. (#237)
+* Show message separated from last after a 10-minute gap. (#1773)
+* Link to channel feed in channel action sheet. (#1705)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers (since last mainline release, v30.0.263)
+
+* User-visible changes not described above:
+  * upgrade Flutter (PR #1791)
+  * show error dialog on edit-message request error (PR #1792)
+  * generate narrow links with "channel", vs "stream" (#633)
+  * TeX: big operators, null delimiters (#1671, #1677)
+  * several tweaks to set-status page (#1769, #1770, #1771)
+  * hide topic-list button in channel action sheet when redundant
+    (in PR #1794, for #1705)
+  * wildcard-mention autocomplete case-insensitive
+    (in PR #1806, for #237)
+  * emoji autocomplete insensitive to diacritics (#1067)
+  * new-DM search insensitive to diacritics
+    (in PR #1806, for #237)
+  * who-reacted and read-receipts sheets now draggable-scrollable
+    (PR #1802)
+  * translations (PR #1809)
+  * propagate nested text styles in several cases (#1818, #1817, #806,
+    #1812)
+
+* In tests, the user list always includes the self-user. (PR #1814)
+
+* Resolved in the beta-prelaunch branch (and v0.0.34): #1603
+
+* Resolved in main: #268, PR #1791, #1647, PR #1792, #633, #419,
+  #1173, #1677, #1671, #1769, #1770, #1771, PR #1814, #1705, #237,
+  #1067, PR #1802, PR #1809, #1818, #1817, #806, #1812, #1773
+
 
 ## 0.0.34 (2025-08-18)
 
