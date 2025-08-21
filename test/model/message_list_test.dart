@@ -2952,22 +2952,22 @@ void main() {
     final t1 = eg.utcTimestamp(now.subtract(Duration(days: 1)));
     final t2 = eg.utcTimestamp(now);
     final stream = eg.stream(streamId: eg.defaultStreamMessageStreamId);
-    Message streamMessage(int id, int timestamp, User sender) =>
-      eg.streamMessage(id: id, sender: sender,
+    Message streamMessage(int timestamp, User sender) =>
+      eg.streamMessage(sender: sender,
         stream: stream, topic: 'foo', timestamp: timestamp);
-    Message dmMessage(int id, int timestamp, User sender) =>
-      eg.dmMessage(id: id, from: sender, timestamp: timestamp,
+    Message dmMessage(int timestamp, User sender) =>
+      eg.dmMessage(from: sender, timestamp: timestamp,
         to: [sender.userId == eg.selfUser.userId ? eg.otherUser : eg.selfUser]);
     DmDestination dmDestination(List<User> users) =>
       DmDestination(userIds: users.map((user) => user.userId).toList());
 
     await prepare();
     await prepareMessages(foundOldest: true, messages: [
-      streamMessage(1, t1, eg.selfUser),  // first message, so show sender
-      streamMessage(2, t1, eg.selfUser),  // hide sender
-      streamMessage(3, t1, eg.otherUser), // no recipient header, but new sender
-      dmMessage(4,     t1, eg.otherUser), // same sender, but new recipient
-      dmMessage(5,     t2, eg.otherUser), // same sender/recipient, but new day
+      streamMessage(t1, eg.selfUser),  // first message, so show sender
+      streamMessage(t1, eg.selfUser),  // hide sender
+      streamMessage(t1, eg.otherUser), // no recipient header, but new sender
+      dmMessage(    t1, eg.otherUser), // same sender, but new recipient
+      dmMessage(    t2, eg.otherUser), // same sender/recipient, but new day
     ]);
     await prepareOutboxMessagesTo([
       dmDestination([eg.selfUser, eg.otherUser]), // same day, but new sender
