@@ -186,11 +186,11 @@ void main() {
   /// [styleFinder] must return the [TextStyle] containing the "wght"
   /// (in [TextStyle.fontVariations]) and the [TextStyle.fontWeight]
   /// to be checked.
-  Future<void> testFontWeight(String description, {
+  void testFontWeight(String description, {
     required Widget content,
     required double expectedWght,
     required TextStyle Function(WidgetTester tester) styleFinder,
-  }) async {
+  }) {
     for (final platformRequestsBold in [false, true]) {
       testWidgets(
         description + (platformRequestsBold ? ' (platform requests bold)' : ''),
