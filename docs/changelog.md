@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 30.0.264 (2025-08-20)
+
 ### Highlights for users (since last mainline release, v30.0.263)
 
 * (Android) Paste an image into a message, or insert a sticker from
