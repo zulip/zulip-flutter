@@ -1031,17 +1031,16 @@ void main() {
     group('fallback to displaying KaTeX source if unsupported KaTeX HTML', () {
       testContentSmoke(ContentExample.mathInlineUnknown);
 
+      assert(ContentExample.mathInlineUnknown.html.startsWith('<p>'));
+      assert(ContentExample.mathInlineUnknown.html.endsWith('</p>'));
+      final unsupportedKatexHtml = ContentExample.mathInlineUnknown.html
+        .substring(3, ContentExample.mathInlineUnknown.html.length - 4);
+      final expectedText = ContentExample.mathInlineUnknown.expectedText!;
+
       testWidgets('maintains font-size ratio with surrounding text, when falling back to TeX source', (tester) async {
-        const unsupportedHtml = '<span class="katex">'
-          '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
-            '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
-          '<span class="katex-html" aria-hidden="true">'
-            '<span class="base unknown">' // Server doesn't generate this 'unknown' class.
-            '<span class="strut" style="height:0.6944em;"></span>'
-            '<span class="mord mathnormal">λ</span></span></span></span>';
         await checkFontSizeRatio(tester,
-          targetHtml: unsupportedHtml,
-          targetFontSizeFinder: mkTargetFontSizeFinderFromPattern(r'\lambda'));
+          targetHtml: unsupportedKatexHtml,
+          targetFontSizeFinder: mkTargetFontSizeFinderFromPattern(expectedText));
       });
     });
   });
