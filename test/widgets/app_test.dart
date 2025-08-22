@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/log.dart';
 import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/database.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/page.dart';
@@ -43,18 +44,43 @@ void main() {
       ]);
     });
 
-    testWidgets('when have accounts, go to home page for first account', (tester) async {
-      // We'll need per-account data for the account that a page will be opened
-      // for, but not for the other account.
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      await testBinding.globalStore.insertAccount(eg.otherAccount.toCompanion(false));
-      await prepare(tester);
+    group('when have accounts', () {
+      testWidgets('with last account visited, go to home page for last account', (tester) async {
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        await testBinding.globalStore.add(
+          eg.otherAccount, eg.initialSnapshot(realmUsers: [eg.otherUser]),
+          markLastVisited: true);
+        await prepare(tester);
 
-      check(pushedRoutes).deepEquals(<Condition<Object?>>[
-        (it) => it.isA<MaterialAccountWidgetRoute>()
-          ..accountId.equals(eg.selfAccount.id)
-          ..page.isA<HomePage>(),
-      ]);
+        check(pushedRoutes).deepEquals(<Condition<Object?>>[
+          (it) => it.isA<MaterialAccountWidgetRoute>()
+            ..accountId.equals(eg.otherAccount.id)
+            ..page.isA<HomePage>(),
+        ]);
+      });
+
+      testWidgets('with no last account visited, go to choose account', (tester) async {
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        check(testBinding.globalStore.settings)
+          .getInt(IntGlobalSetting.lastVisitedAccountId).isNull();
+        await prepare(tester);
+
+        check(pushedRoutes).deepEquals(<Condition<Object?>>[
+          (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
+        ]);
+      });
+
+      testWidgets('with last account id matching none of the accounts, go to choose account', (tester) async {
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        await testBinding.globalStore.settings
+          .setInt(IntGlobalSetting.lastVisitedAccountId, eg.otherAccount.id);
+        check(testBinding.globalStore).getAccount(eg.otherAccount.id).isNull();
+        await prepare(tester);
+
+        check(pushedRoutes).deepEquals(<Condition<Object?>>[
+          (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
+        ]);
+      });
     });
   });
 
@@ -81,7 +107,8 @@ void main() {
     }
 
     testWidgets('push route when removing last route on stack', (tester) async {
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(),
+        markLastVisited: true);
       await prepare(tester);
       // The navigator stack should contain only a home page route.
 
@@ -99,6 +126,8 @@ void main() {
     testWidgets('push route when popping last route on stack', (tester) async {
       // Set up the loading of per-account data to fail.
       await testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      await testBinding.globalStore.settings
+        .setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
       testBinding.globalStore.loadPerAccountDuration = Duration.zero;
       testBinding.globalStore.loadPerAccountException = eg.apiExceptionUnauthorized();
       await prepare(tester);
@@ -133,6 +162,8 @@ void main() {
       const loadPerAccountDuration = Duration(seconds: 30);
       assert(loadPerAccountDuration > kTryAnotherAccountWaitPeriod);
       await testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      await testBinding.globalStore.settings
+        .setInt(IntGlobalSetting.lastVisitedAccountId, eg.selfAccount.id);
       testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
       testBinding.globalStore.loadPerAccountException = eg.apiExceptionUnauthorized();
       await prepare(tester);
@@ -280,7 +311,8 @@ void main() {
 
     testWidgets('choosing an account clears the navigator stack', (tester) async {
       addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(),
+        markLastVisited: true);
       await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot(
         realmUsers: [eg.otherUser]));
 
@@ -317,6 +349,47 @@ void main() {
       check(pushedRoutes).single.isA<MaterialAccountWidgetRoute>()
         ..accountId.equals(eg.otherAccount.id)
         ..page.isA<HomePage>();
+    });
+
+    group('choosing an account changes the last visited account', () {
+      testWidgets('first null, then changes to the chosen account', (tester) async {
+        addTearDown(testBinding.reset);
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
+        await tester.pumpWidget(ZulipApp());
+        await tester.pump();
+
+        check(testBinding.globalStore.settings)
+          .getInt(IntGlobalSetting.lastVisitedAccountId).isNull();
+        await tester.tap(find.text(eg.selfAccount.email));
+        await tester.pump();
+        check(testBinding.globalStore.settings)
+          .getInt(IntGlobalSetting.lastVisitedAccountId).equals(eg.selfAccount.id);
+      });
+
+      testWidgets('first non-null, then changes to the chosen account', (tester) async {
+        addTearDown(testBinding.reset);
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(),
+          markLastVisited: true);
+        await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot(
+          realmUsers: [eg.otherUser]));
+
+        await tester.pumpWidget(ZulipApp());
+        await tester.pump();
+
+        final navigator = await ZulipApp.navigator;
+        unawaited(navigator.push(
+          MaterialWidgetRoute(page: const ChooseAccountPage())));
+        await tester.pump();
+        await tester.pump();
+
+        check(testBinding.globalStore.settings)
+          .getInt(IntGlobalSetting.lastVisitedAccountId).equals(eg.selfAccount.id);
+        await tester.tap(find.text(eg.otherAccount.email));
+        await tester.pump();
+        check(testBinding.globalStore.settings)
+          .getInt(IntGlobalSetting.lastVisitedAccountId).equals(eg.otherAccount.id);
+      });
     });
 
     group('log out', () {

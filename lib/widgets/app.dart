@@ -8,6 +8,7 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/actions.dart';
 import '../model/localizations.dart';
+import '../model/settings.dart';
 import '../model/store.dart';
 import '../notifications/open.dart';
 import 'about_zulip.dart';
@@ -211,13 +212,16 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     }
 
     final globalStore = GlobalStoreWidget.of(context);
-    // TODO(#524) choose initial account as last one used
-    final initialAccountId = globalStore.accounts.firstOrNull?.id;
+    final lastAccountId = globalStore.settings.getInt(IntGlobalSetting.lastVisitedAccountId);
+    final lastAccountMissing =
+      lastAccountId == null || globalStore.getAccount(lastAccountId) == null;
+
     return [
-      if (initialAccountId == null)
+      if (lastAccountMissing)
+        // No account has been visited, or the last-visited account was logged out.
         MaterialWidgetRoute(page: const ChooseAccountPage())
       else
-        HomePage.buildRoute(accountId: initialAccountId),
+        HomePage.buildRoute(accountId: lastAccountId),
     ];
   }
 
@@ -254,6 +258,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
             if (widget.navigatorObservers != null)
               ...widget.navigatorObservers!,
             _PreventEmptyStack(),
+            _UpdateLastVisitedAccount(GlobalStoreWidget.settingsOf(context)),
           ],
           builder: (BuildContext context, Widget? child) {
             if (!ZulipApp.ready.value) {
@@ -302,6 +307,19 @@ class _PreventEmptyStack extends NavigatorObserver {
   @override
   void didPop(Route<void> route, Route<void>? previousRoute) async {
     _pushRouteIfEmptyStack();
+  }
+}
+
+class _UpdateLastVisitedAccount extends NavigatorObserver {
+  _UpdateLastVisitedAccount(this.globalSettings);
+
+  final GlobalSettingsStore globalSettings;
+
+  @override
+  void didChangeTop(Route<void> topRoute, _) {
+    if (topRoute case AccountPageRouteMixin(:var accountId)) {
+      globalSettings.setInt(IntGlobalSetting.lastVisitedAccountId, accountId);
+    }
   }
 }
 

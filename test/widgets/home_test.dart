@@ -276,7 +276,8 @@ void main () {
       previousTopRoute = null;
       pushedRoutes = [];
       lastPoppedRoute = null;
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(),
+        markLastVisited: true);
 
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
@@ -332,7 +333,8 @@ void main () {
       previousTopRoute = null;
       pushedRoutes = [];
       lastPoppedRoute = null;
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(),
+        markLastVisited: true);
       await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot(
         realmUsers: [eg.otherUser]));
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
@@ -524,7 +526,8 @@ void main () {
   testWidgets('logging out while still loading', (tester) async {
     // Regression test for: https://github.com/zulip/zulip-flutter/issues/1219
     addTearDown(testBinding.reset);
-    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(),
+      markLastVisited: true);
     await tester.pumpWidget(const ZulipApp());
     await tester.pump(); // wait for the loading page
     checkOnLoadingPage();
@@ -540,7 +543,8 @@ void main () {
   testWidgets('logging out after fully loaded', (tester) async {
     // Regression test for: https://github.com/zulip/zulip-flutter/issues/1219
     addTearDown(testBinding.reset);
-    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(),
+      markLastVisited: true);
     await tester.pumpWidget(const ZulipApp());
     await tester.pump(); // wait for the loading page
     await tester.pump(); // wait for store

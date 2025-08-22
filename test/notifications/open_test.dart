@@ -10,6 +10,7 @@ import 'package:zulip/host/notifications.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/notifications/open.dart';
 import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/app.dart';
@@ -20,6 +21,7 @@ import 'package:zulip/widgets/page.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../model/narrow_checks.dart';
+import '../model/store_checks.dart';
 import '../stdlib_checks.dart';
 import '../test_navigation.dart';
 import '../widgets/checks.dart';
@@ -74,10 +76,7 @@ void main() {
   TestZulipBinding.ensureInitialized();
   final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
-  Future<void> init({bool addSelfAccount = true}) async {
-    if (addSelfAccount) {
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-    }
+  Future<void> init() async {
     addTearDown(testBinding.reset);
     testBinding.firebaseMessagingInitialToken = '012abc';
     addTearDown(NotificationService.debugReset);
@@ -88,23 +87,22 @@ void main() {
   group('NotificationOpenService', () {
     late List<Route<void>> pushedRoutes;
 
-    void takeStartingRoutes({Account? account, bool withAccount = true}) {
-      account ??= eg.selfAccount;
-      final expected = <Condition<Object?>>[
-        if (withAccount)
-          (it) => it.isA<MaterialAccountWidgetRoute>()
-            ..accountId.equals(account!.id)
-            ..page.isA<HomePage>()
-        else
-          (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
-      ];
-      check(pushedRoutes.take(expected.length)).deepEquals(expected);
-      pushedRoutes.removeRange(0, expected.length);
+    void takeHomePageRouteForAccount(int accountId) {
+      check(pushedRoutes).first.which(
+        (it) => it.isA<MaterialAccountWidgetRoute>()
+          ..accountId.equals(accountId)
+          ..page.isA<HomePage>());
+      pushedRoutes.removeAt(0);
     }
 
-    Future<void> prepare(WidgetTester tester,
-        {bool early = false, bool withAccount = true}) async {
-      await init(addSelfAccount: false);
+    void takeChooseAccountPageRoute() {
+      check(pushedRoutes).first.which(
+        (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>());
+      pushedRoutes.removeAt(0);
+    }
+
+    Future<void> prepare(WidgetTester tester, {bool early = false}) async {
+      await init();
       pushedRoutes = [];
       final testNavObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
@@ -116,7 +114,14 @@ void main() {
         return;
       }
       await tester.pump();
-      takeStartingRoutes(withAccount: withAccount);
+      final accountIds = testBinding.globalStore.accountIds;
+      final lastVisitedAccountId = testBinding.globalStore.settings.getInt(
+        IntGlobalSetting.lastVisitedAccountId);
+      if (lastVisitedAccountId != null && accountIds.contains(lastVisitedAccountId)) {
+        takeHomePageRouteForAccount(lastVisitedAccountId);
+      } else {
+        takeChooseAccountPageRoute();
+      }
       check(pushedRoutes).isEmpty();
     }
 
@@ -202,6 +207,22 @@ void main() {
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]));
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
+    testWidgets('changes last visited account', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(
+        eg.selfAccount, eg.initialSnapshot(realmUsers: [eg.selfUser]),
+        markLastVisited: true);
+      await testBinding.globalStore.add(
+        eg.otherAccount, eg.initialSnapshot(realmUsers: [eg.otherUser]));
+      await prepare(tester);
+      check(testBinding.globalStore.settings)
+        .getInt(IntGlobalSetting.lastVisitedAccountId).equals(eg.selfAccount.id);
+
+      await checkOpenNotification(tester, eg.otherAccount, eg.streamMessage());
+      check(testBinding.globalStore.settings)
+        .getInt(IntGlobalSetting.lastVisitedAccountId).equals(eg.otherAccount.id);
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+
     testWidgets('account queried by realmUrl origin component', (tester) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(
@@ -218,7 +239,9 @@ void main() {
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('no accounts', (tester) async {
-      await prepare(tester, withAccount: false);
+      await prepare(tester);
+      // (just to make sure the test is working)
+      check(testBinding.globalStore.accountIds).isEmpty();
       await openNotification(tester, eg.selfAccount, eg.streamMessage());
       await tester.pump();
       check(pushedRoutes.single).isA<DialogRoute<void>>();
@@ -282,7 +305,7 @@ void main() {
       // Now let the GlobalStore get loaded and the app's main UI get mounted.
       await tester.pump();
       // The navigator first pushes the starting routes…
-      takeStartingRoutes();
+      takeChooseAccountPageRoute(); // (no lastVisitedAccountId in this test)
       // … and then the one the notification leads to.
       matchesNavigation(check(pushedRoutes).single, eg.selfAccount, message);
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
@@ -300,7 +323,7 @@ void main() {
 
       // Once the app is ready, we navigate to the conversation.
       await tester.pump();
-      takeStartingRoutes();
+      takeHomePageRouteForAccount(account.id); // because associated account
       matchesNavigation(check(pushedRoutes).single, account, message);
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
@@ -319,7 +342,7 @@ void main() {
       check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
 
       await tester.pump();
-      takeStartingRoutes(account: accountB);
+      takeHomePageRouteForAccount(accountB.id); // because associated account
       matchesNavigation(check(pushedRoutes).single, accountB, message);
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
   });

@@ -261,7 +261,8 @@ void main() {
       });
 
       testWidgets('logging into a second account', (tester) async {
-        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(),
+          markLastVisited: true);
         final serverSettings = eg.serverSettings();
         await prepare(tester, serverSettings);
         check(poppedRoutes).isEmpty();
