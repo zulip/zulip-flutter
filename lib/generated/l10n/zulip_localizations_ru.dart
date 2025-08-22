@@ -929,6 +929,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get sharePageTitle => 'Поделиться';
 
   @override
+  String get shareChooseAccountLabel => 'Choose account';
+
+  @override
   String get mainMenuMyProfile => 'Мой профиль';
 
   @override

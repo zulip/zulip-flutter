@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../model/store.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -213,7 +214,11 @@ class LoadingPlaceholderPage extends StatelessWidget {
   }
 }
 
-/// A "no content here" message for when a page has no content to show.
+/// A placeholder for when a page body has no content to show.
+///
+/// Pass [message] for a "no-content-here" message,
+/// or pass true for [loading] if the content hasn't finished loading yet,
+/// but don't pass both.
 ///
 /// Suitable for the inbox, the message-list page, etc.
 ///
@@ -227,13 +232,29 @@ class LoadingPlaceholderPage extends StatelessWidget {
 // TODO(#311) If the message list gets a bottom nav, the bottom inset will
 //   always be handled externally too; simplify implementation and dartdoc.
 class PageBodyEmptyContentPlaceholder extends StatelessWidget {
-  const PageBodyEmptyContentPlaceholder({super.key, required this.message});
+  const PageBodyEmptyContentPlaceholder({
+    super.key,
+    this.message,
+    this.loading = false,
+  }) : assert((message != null) ^ loading);
 
-  final String message;
+  final String? message;
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
+
+    final child = loading
+      ? CircularProgressIndicator()
+      : Text(
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: designVariables.labelSearchPrompt,
+            fontSize: 17,
+            height: 23 / 17,
+          ).merge(weightVariableTextStyle(context, wght: 500)),
+          message!);
 
     return SafeArea(
       minimum: EdgeInsets.fromLTRB(24, 0, 24, 16),
@@ -243,13 +264,107 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
           alignment: Alignment.topCenter,
           // TODO leading and trailing elements, like in Figma (given as SVGs):
           //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=5957-167736&m=dev
-          child: Text(
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: designVariables.labelSearchPrompt,
-              fontSize: 17,
-              height: 23 / 17,
-            ).merge(weightVariableTextStyle(context, wght: 500)),
-            message))));
+          child: child)));
   }
+}
+
+/// A [ChangeNotifier] that tracks a nullable account-ID selection.
+///
+/// Maintains a listener on [GlobalStore] and will clear the selection
+/// if the account no longer exists because it was logged out.
+///
+/// Use [selectedAccountId] to read the selection
+/// and [selectAccount] to update it.
+class MultiAccountPageController extends ChangeNotifier {
+  factory MultiAccountPageController.init(GlobalStore globalStore) {
+
+    final result = MultiAccountPageController._(globalStore);
+    globalStore.addListener(result._globalStoreChanged);
+    // TODO initialize selectedAccountId to last-visited?
+    result._reconcile();
+    return result;
+  }
+
+  MultiAccountPageController._(this._globalStore);
+
+  final GlobalStore _globalStore;
+
+  int? get selectedAccountId => _selectedAccountId;
+  int? _selectedAccountId;
+
+  void selectAccount(int accountId) {
+    _selectedAccountId = accountId;
+    _reconcile();
+    notifyListeners();
+  }
+
+  void _globalStoreChanged() {
+    _reconcile();
+  }
+
+  void _reconcile() {
+    if (_selectedAccountId == null) return;
+    if (_globalStore.accountIds.contains(_selectedAccountId)) return;
+    _selectedAccountId = null;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _globalStore.removeListener(_globalStoreChanged);
+    super.dispose();
+  }
+}
+
+/// A widget that can efficiently provide a [MultiAccountPageController]
+/// to its descendants, via [BuildContext.dependOnInheritedWidgetOfExactType].
+class MultiAccountPageProvider extends StatefulWidget {
+  const MultiAccountPageProvider({super.key, required this.child});
+
+  final Widget child;
+
+  /// The [MultiAccountPageController] of an assumed
+  /// [MultiAccountPageProvider] ancestor.
+  ///
+  /// Creates a dependency on the controller via [InheritedNotifier].
+  static MultiAccountPageController of(BuildContext context) {
+    final widget = context.dependOnInheritedWidgetOfExactType<_MultiAccountPageControllerInheritedWidget>();
+    assert(widget != null, 'No MultiAccountPageProvider ancestor');
+    return widget!.controller;
+  }
+
+  @override
+  State<MultiAccountPageProvider> createState() => _MultiAccountPageProviderState();
+}
+
+class _MultiAccountPageProviderState extends State<MultiAccountPageProvider> {
+  GlobalStore? _globalStore;
+
+  MultiAccountPageController? _controller;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final store = GlobalStoreWidget.of(context);
+    if (_globalStore != store) {
+      _controller?.dispose();
+      _controller = MultiAccountPageController.init(store);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _MultiAccountPageControllerInheritedWidget(
+      controller: _controller!, child: widget.child);
+  }
+}
+
+class _MultiAccountPageControllerInheritedWidget extends InheritedNotifier<MultiAccountPageController> {
+  const _MultiAccountPageControllerInheritedWidget({
+    required MultiAccountPageController controller,
+    required super.child,
+  }) : super(notifier: controller);
+
+  MultiAccountPageController get controller => notifier!;
 }
