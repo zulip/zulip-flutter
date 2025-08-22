@@ -199,12 +199,11 @@ mixin ChannelStore on UserStore {
     return false;
   }
 
-  bool hasPostingPermission({
+  bool selfCanSendMessage({
     required ZulipStream inChannel,
-    required User user,
     required DateTime byDate,
   }) {
-    final role = user.role;
+    final role = selfUser.role;
     // We let the users with [unknown] role to send the message, then the server
     // will decide to accept it or not based on its actual role.
     if (role == UserRole.unknown) return true;
@@ -214,7 +213,7 @@ mixin ChannelStore on UserStore {
       case ChannelPostPolicy.fullMembers:     {
         if (!role.isAtLeast(UserRole.member)) return false;
         if (role == UserRole.member) {
-          return hasPassedWaitingPeriod(user, byDate: byDate);
+          return hasPassedWaitingPeriod(selfUser, byDate: byDate);
         }
         return true;
       }

@@ -23,7 +23,7 @@ class SubscriptionListPageBody extends StatefulWidget {
   const SubscriptionListPageBody({
     super.key,
     this.showTopicListButtonInActionSheet = true,
-    this.hideChannelsIfUserCantPost = false,
+    this.hideChannelsIfUserCantSendMessage = false,
     this.allowGoToAllChannels = true,
     this.onChannelSelect,
   });
@@ -34,7 +34,7 @@ class SubscriptionListPageBody extends StatefulWidget {
   //   See discussion:
   //     https://github.com/zulip/zulip-flutter/pull/1774#discussion_r2249032503
   final bool showTopicListButtonInActionSheet;
-  final bool hideChannelsIfUserCantPost;
+  final bool hideChannelsIfUserCantSendMessage;
   final bool allowGoToAllChannels;
 
   /// Callback to invoke when the user selects a channel from the list.
@@ -120,9 +120,8 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     final List<Subscription> unpinned = [];
     final now = DateTime.now();
     for (final subscription in store.subscriptions.values) {
-      if (widget.hideChannelsIfUserCantPost) {
-        if (!store.hasPostingPermission(inChannel: subscription,
-              user: store.selfUser, byDate: now)) {
+      if (widget.hideChannelsIfUserCantSendMessage) {
+        if (!store.selfCanSendMessage(inChannel: subscription, byDate: now)) {
           continue;
         }
       }

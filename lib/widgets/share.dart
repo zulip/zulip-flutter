@@ -191,7 +191,7 @@ class SharePage extends StatelessWidget {
         body: TabBarView(children: [
           SubscriptionListPageBody(
             showTopicListButtonInActionSheet: false,
-            hideChannelsIfUserCantPost: true,
+            hideChannelsIfUserCantSendMessage: true,
             allowGoToAllChannels: false,
             onChannelSelect: (narrow) => _handleNarrowSelect(context, narrow),
             // TODO(#412) add onTopicSelect, Currently when user lands on the

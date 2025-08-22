@@ -493,9 +493,12 @@ void main() {
     for (final (ChannelPostPolicy policy, UserRole role, bool canPost) in testCases) {
       test('"${role.name}" user ${canPost ? 'can' : "can't"} post in channel '
           'with "${policy.name}" policy', () {
-        final store = eg.store();
-        final actual = store.hasPostingPermission(
-          inChannel: eg.stream(channelPostPolicy: policy), user: eg.user(role: role),
+        final selfUserWithRole = eg.user(role: role);
+        final store = eg.store(
+          selfUser: selfUserWithRole,
+          initialSnapshot: eg.initialSnapshot(realmUsers: [selfUserWithRole]));
+        final actual = store.selfCanSendMessage(
+          inChannel: eg.stream(channelPostPolicy: policy),
           // [byDate] is not actually relevant for these test cases; for the
           // ones which it is, they're practiced below.
           byDate: DateTime.now());
@@ -504,27 +507,34 @@ void main() {
     }
 
     group('"member" user posting in a channel with "fullMembers" policy', () {
-      PerAccountStore localStore({required int realmWaitingPeriodThreshold}) =>
-        eg.store(initialSnapshot: eg.initialSnapshot(
-          realmWaitingPeriodThreshold: realmWaitingPeriodThreshold));
+      PerAccountStore localStore({
+        required User selfUser,
+        required int realmWaitingPeriodThreshold,
+      }) => eg.store(
+        selfUser: selfUser,
+        initialSnapshot: eg.initialSnapshot(
+          realmWaitingPeriodThreshold: realmWaitingPeriodThreshold,
+          realmUsers: [selfUser]));
 
       User memberUser({required String dateJoined}) => eg.user(
         role: UserRole.member, dateJoined: dateJoined);
 
       test('a "full" member -> can post in the channel', () {
-        final store = localStore(realmWaitingPeriodThreshold: 3);
-        final hasPermission = store.hasPostingPermission(
+        final store = localStore(
+          selfUser: memberUser(dateJoined: '2024-11-25T10:00+00:00'),
+          realmWaitingPeriodThreshold: 3);
+        final hasPermission = store.selfCanSendMessage(
           inChannel: eg.stream(channelPostPolicy: ChannelPostPolicy.fullMembers),
-          user: memberUser(dateJoined: '2024-11-25T10:00+00:00'),
           byDate: DateTime.utc(2024, 11, 28, 10, 00));
         check(hasPermission).isTrue();
       });
 
       test('not a "full" member -> cannot post in the channel', () {
-        final store = localStore(realmWaitingPeriodThreshold: 3);
-        final actual = store.hasPostingPermission(
+        final store = localStore(
+          selfUser: memberUser(dateJoined: '2024-11-25T10:00+00:00'),
+          realmWaitingPeriodThreshold: 3);
+        final actual = store.selfCanSendMessage(
           inChannel: eg.stream(channelPostPolicy: ChannelPostPolicy.fullMembers),
-          user: memberUser(dateJoined: '2024-11-25T10:00+00:00'),
           byDate: DateTime.utc(2024, 11, 28, 09, 59));
         check(actual).isFalse();
       });
