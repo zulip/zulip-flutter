@@ -29,10 +29,6 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    kotlinOptions {
-        jvmTarget = '1.8'
-    }
-
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
@@ -82,14 +78,20 @@ android {
     }
 }
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+    }
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile).configureEach {
     // Compile Kotlin with `-Werror`... but only in release builds, so that it
     // doesn't get in the way of quick local experiments for debugging.
     //
     // The string-searching makes this a bit of a mess, but it works.
     // Better would be if we can add this to android.buildTypes.release above;
     // but on a first attempt that didn't work (it affected debug builds too).
-    kotlinOptions.allWarningsAsErrors = name.contains("Release")
+    compilerOptions.allWarningsAsErrors = name.contains("Release")
 }
 
 flutter {
