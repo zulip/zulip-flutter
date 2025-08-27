@@ -2290,6 +2290,9 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get actionSheetOptionListOfTopics => '議題列表';
 
   @override
+  String get actionSheetOptionChannelFeed => '頻道動態';
+
+  @override
   String get actionSheetOptionUnsubscribe => '取消訂閱';
 
   @override
