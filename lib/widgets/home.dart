@@ -330,8 +330,8 @@ void _showMainMenu(BuildContext context, {
     });
 }
 
-abstract class _MenuButton extends StatelessWidget {
-  const _MenuButton();
+abstract class MenuButton extends StatelessWidget {
+  const MenuButton({super.key});
 
   String label(ZulipLocalizations zulipLocalizations);
 
@@ -342,12 +342,12 @@ abstract class _MenuButton extends StatelessWidget {
   /// Must be non-null unless [buildLeading] is overridden.
   IconData? get icon;
 
-  static const _iconSize = 24.0;
+  static const iconSize = 24.0;
 
   Widget buildLeading(BuildContext context) {
     assert(icon != null);
     final designVariables = DesignVariables.of(context);
-    return Icon(icon, size: _iconSize,
+    return Icon(icon, size: iconSize,
       color: selected ? designVariables.iconSelected : designVariables.icon);
   }
 
@@ -400,7 +400,7 @@ abstract class _MenuButton extends StatelessWidget {
           onPressed: () => _handlePress(context),
           style: buttonStyle,
           child: Row(spacing: 8, children: [
-            SizedBox.square(dimension: _iconSize,
+            SizedBox.square(dimension: iconSize,
               child: buildLeading(context)),
             Expanded(child: Text(label(zulipLocalizations),
               // TODO(design): determine if we prefer to wrap
@@ -412,7 +412,7 @@ abstract class _MenuButton extends StatelessWidget {
 }
 
 /// A menu button controlling the selected [_HomePageTab] on the bottom nav bar.
-abstract class _NavigationBarMenuButton extends _MenuButton {
+abstract class _NavigationBarMenuButton extends MenuButton {
   const _NavigationBarMenuButton({required this.tabNotifier});
 
   final ValueNotifier<_HomePageTab> tabNotifier;
@@ -428,7 +428,7 @@ abstract class _NavigationBarMenuButton extends _MenuButton {
   }
 }
 
-class _SearchButton extends _MenuButton {
+class _SearchButton extends MenuButton {
   const _SearchButton();
 
   @override
@@ -461,7 +461,7 @@ class _InboxButton extends _NavigationBarMenuButton {
   _HomePageTab get navigationTarget => _HomePageTab.inbox;
 }
 
-class _MentionsButton extends _MenuButton {
+class _MentionsButton extends MenuButton {
   const _MentionsButton();
 
   @override
@@ -479,7 +479,7 @@ class _MentionsButton extends _MenuButton {
   }
 }
 
-class _StarredMessagesButton extends _MenuButton {
+class _StarredMessagesButton extends MenuButton {
   const _StarredMessagesButton();
 
   @override
@@ -497,7 +497,7 @@ class _StarredMessagesButton extends _MenuButton {
   }
 }
 
-class _CombinedFeedButton extends _MenuButton {
+class _CombinedFeedButton extends MenuButton {
   const _CombinedFeedButton();
 
   @override
@@ -545,7 +545,7 @@ class _DirectMessagesButton extends _NavigationBarMenuButton {
   _HomePageTab get navigationTarget => _HomePageTab.directMessages;
 }
 
-class _MyProfileButton extends _MenuButton {
+class _MyProfileButton extends MenuButton {
   const _MyProfileButton();
 
   @override
@@ -556,7 +556,7 @@ class _MyProfileButton extends _MenuButton {
     final store = PerAccountStoreWidget.of(context);
     return Avatar(
       userId: store.selfUserId,
-      size: _MenuButton._iconSize,
+      size: MenuButton.iconSize,
       borderRadius: 4,
       showPresence: false,
     );
@@ -575,7 +575,7 @@ class _MyProfileButton extends _MenuButton {
   }
 }
 
-class _SwitchAccountButton extends _MenuButton {
+class _SwitchAccountButton extends MenuButton {
   const _SwitchAccountButton();
 
   @override
@@ -592,7 +592,7 @@ class _SwitchAccountButton extends _MenuButton {
   }
 }
 
-class _SettingsButton extends _MenuButton {
+class _SettingsButton extends MenuButton {
   const _SettingsButton();
 
   @override
@@ -609,7 +609,7 @@ class _SettingsButton extends _MenuButton {
   }
 }
 
-class _AboutZulipButton extends _MenuButton {
+class _AboutZulipButton extends MenuButton {
   const _AboutZulipButton();
 
   @override

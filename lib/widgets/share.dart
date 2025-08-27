@@ -10,16 +10,21 @@ import '../host/android_intents.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/narrow.dart';
+import '../model/store.dart';
+import 'action_sheet.dart';
 import 'app.dart';
+import 'button.dart';
 import 'color.dart';
 import 'compose_box.dart';
 import 'dialog.dart';
+import 'home.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'recent_dm_conversations.dart';
 import 'store.dart';
 import 'subscription_list.dart';
 import 'theme.dart';
+import 'user.dart';
 
 // Responds to receiving shared content from other apps.
 class ShareService {
@@ -60,11 +65,7 @@ class ShareService {
 
     final globalStore = GlobalStoreWidget.of(context);
 
-    // TODO(#524) use last account used, not the first in the list
-    // TODO(#1779) allow selecting account, if there are multiple
-    final accountId = globalStore.accounts.firstOrNull?.id;
-
-    if (accountId == null) {
+    if (globalStore.accounts.isEmpty) {
       final zulipLocalizations = ZulipLocalizations.of(context);
       showErrorDialog(
         context: context,
@@ -101,7 +102,6 @@ class ShareService {
 
     unawaited(navigator.push(
       SharePage.buildRoute(
-        accountId: accountId,
         sharedFiles: sharedFiles,
         sharedText: intentSendEvent.extraText)));
   }
@@ -117,16 +117,18 @@ class SharePage extends StatelessWidget {
   final Iterable<FileToUpload>? sharedFiles;
   final String? sharedText;
 
-  static AccountRoute<void> buildRoute({
-    required int accountId,
+  static MaterialWidgetRoute<void> buildRoute({
     required Iterable<FileToUpload>? sharedFiles,
     required String? sharedText,
   }) {
-    return MaterialAccountWidgetRoute(
-      accountId: accountId,
-      page: SharePage(
-        sharedFiles: sharedFiles,
-        sharedText: sharedText));
+    return MaterialWidgetRoute(
+      // TODO either call [ChooseAccountForShareDialog.show] every time this
+      //   page initializes, or else have the [MultiAccountPageController]
+      //   default to the last-visited account
+      page: MultiAccountPageProvider(
+        // So that PageRoot.contextOf can be used for MultiAccountPageProvider.of
+        child: PageRoot(
+          child: SharePage(sharedFiles: sharedFiles, sharedText: sharedText))));
   }
 
   void _handleNarrowSelect(BuildContext context, Narrow narrow) {
@@ -173,22 +175,27 @@ class SharePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
+    final selectedAccountId = MultiAccountPageProvider.of(context).selectedAccountId;
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(zulipLocalizations.sharePageTitle),
-          bottom: TabBar(
-            indicatorColor: designVariables.icon,
-            labelColor: designVariables.foreground,
-            unselectedLabelColor: designVariables.foreground.withFadedAlpha(0.7),
-            splashFactory: NoSplash.splashFactory,
-            tabs: [
-              Tab(text: zulipLocalizations.channelsPageTitle),
-              Tab(text: zulipLocalizations.recentDmConversationsPageTitle),
-            ])),
-        body: TabBarView(children: [
+    PreferredSizeWidget? bottom;
+    if (selectedAccountId != null) {
+      bottom = TabBar(
+        indicatorColor: designVariables.icon,
+        labelColor: designVariables.foreground,
+        unselectedLabelColor: designVariables.foreground.withFadedAlpha(0.7),
+        splashFactory: NoSplash.splashFactory,
+        tabs: [
+          Tab(text: zulipLocalizations.channelsPageTitle),
+          Tab(text: zulipLocalizations.recentDmConversationsPageTitle),
+        ]);
+    }
+
+    final Widget? body;
+    if (selectedAccountId != null) {
+      body = PerAccountStoreWidget(
+        accountId: selectedAccountId,
+        placeholder: PageBodyEmptyContentPlaceholder(loading: true),
+        child: TabBarView(children: [
           SubscriptionListPageBody(
             showTopicListButtonInActionSheet: false,
             hideChannelsIfUserCantPost: true,
@@ -203,6 +210,139 @@ class SharePage extends StatelessWidget {
           RecentDmConversationsPageBody(
             hideDmsIfUserCantPost: true,
             onDmSelect: (narrow) => _handleNarrowSelect(context, narrow)),
-        ])));
+        ]));
+    } else {
+      body = PageBodyEmptyContentPlaceholder(
+        // TODO i18n, choose the right wording
+        message: 'No account is selected. Please use the button above to choose one.');
+    }
+
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(zulipLocalizations.sharePageTitle),
+          actionsPadding: EdgeInsetsDirectional.only(end: 8),
+          actions: [AccountSelectorButton()],
+          bottom: bottom),
+        body: body));
+  }
+}
+
+class AccountSelectorButton extends StatelessWidget {
+  const AccountSelectorButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final pageContext = PageRoot.contextOf(context);
+    final controller = MultiAccountPageProvider.of(context);
+    final selectedAccountId = controller.selectedAccountId;
+
+    if (selectedAccountId == null) {
+      return ZulipWebUiKitButton(
+        attention: ZulipWebUiKitButtonAttention.high, // TODO medium looks better?
+        label: 'Choose account', // TODO i18n, choose the right text
+        onPressed: () => ChooseAccountForShareDialog.show(pageContext));
+    } else {
+      return ZulipWebUiKitButton(
+        attention: ZulipWebUiKitButtonAttention.medium, // TODO low looks better?
+        label: 'Change account', // TODO i18n, choose the right text
+        buildIcon: (size) => PerAccountStoreWidget(
+          accountId: selectedAccountId,
+          placeholder: SizedBox.square(dimension: size), // TODO(#1036) realm logo
+          child: Builder(builder: (context) {
+            final store = PerAccountStoreWidget.of(context);
+            return AvatarShape(size: size, borderRadius: 3,
+              // TODO get realm logo from `store`
+              child: ColoredBox(color: Colors.pink));
+          })),
+        onPressed: () => ChooseAccountForShareDialog.show(pageContext));
+    }
+  }
+}
+
+/// A dialog offering the list of accounts,
+/// for one to be chosen to share to.
+class ChooseAccountForShareDialog extends StatelessWidget {
+  const ChooseAccountForShareDialog._(this.pageContext);
+
+  final BuildContext pageContext;
+
+  static void show(BuildContext pageContext) async {
+    unawaited(showModalBottomSheet<void>(
+      context: pageContext,
+      // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
+      // on my iPhone 13 Pro but is marked as "much slower":
+      //   https://api.flutter.dev/flutter/dart-ui/Clip.html
+      clipBehavior: Clip.antiAlias,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (_) {
+        return SafeArea(
+          minimum: const EdgeInsets.only(bottom: 16),
+          child: ChooseAccountForShareDialog._(pageContext));
+      }));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final globalStore = GlobalStoreWidget.of(context);
+    final accountIds = globalStore.accountIds.toList();
+    final controller = MultiAccountPageProvider.of(pageContext);
+    final content = SliverList.builder(
+      itemCount: accountIds.length,
+      itemBuilder: (_, index) {
+        final accountId = accountIds[index];
+        final account = globalStore.getAccount(accountId);
+        return _AccountButton(
+          account!,
+          handlePressed: () => controller.selectAccount(accountId),
+          selected: accountId == controller.selectedAccountId);
+      });
+
+    return DraggableScrollableModalBottomSheet(
+      header: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: BottomSheetHeader(title: 'Choose an account:')),
+      contentSliver: SliverPadding(
+        padding: EdgeInsets.symmetric(horizontal: 8),
+        sliver: content));
+  }
+}
+
+class _AccountButton extends MenuButton {
+  const _AccountButton(this.account, {
+    required this.handlePressed,
+    required bool selected,
+  }) : _selected = selected;
+
+  final Account account;
+  final VoidCallback handlePressed;
+
+  @override
+  bool get selected => _selected;
+  final bool _selected;
+
+  @override
+  IconData? get icon => null;
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return AvatarShape(
+      size: MenuButton.iconSize,
+      borderRadius: 4,
+      // TODO(#1036) realm logo
+      child: ColoredBox(color: Colors.pink));
+  }
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    // TODO(#1036) realm name (and email?)
+    return account.email;
+  }
+
+  @override
+  void onPressed(BuildContext context) {
+    handlePressed();
   }
 }
