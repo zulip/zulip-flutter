@@ -105,7 +105,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get actionSheetOptionListOfTopics => 'Список тем';
 
   @override
-  String get actionSheetOptionChannelFeed => 'Channel feed';
+  String get actionSheetOptionChannelFeed => 'Лента канала';
 
   @override
   String get actionSheetOptionUnsubscribe => 'Отписаться';
@@ -859,7 +859,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get statusTextHint => 'Ваш статус';
 
   @override
-  String get userStatusBusy => 'Занят/а';
+  String get userStatusBusy => 'В делах';
 
   @override
   String get userStatusInAMeeting => 'На встрече';
