@@ -113,12 +113,11 @@ void main() {
         return;
       }
       await tester.pump();
-      final accountIds = testBinding.globalStore.accountIds;
-      final initialAccountId = accountIds.firstOrNull;
-      if (initialAccountId == null) {
+      final lastVisitedAccountId = testBinding.globalStore.lastVisitedAccount?.id;
+      if (lastVisitedAccountId == null) {
         takeChooseAccountPageRoute();
       } else {
-        takeHomePageRouteForAccount(initialAccountId);
+        takeHomePageRouteForAccount(lastVisitedAccountId);
       }
       check(pushedRoutes).isEmpty();
     }
@@ -287,7 +286,7 @@ void main() {
       // Now let the GlobalStore get loaded and the app's main UI get mounted.
       await tester.pump();
       // The navigator first pushes the starting routes…
-      takeHomePageRouteForAccount(eg.selfAccount.id); // because first in list
+      takeHomePageRouteForAccount(eg.selfAccount.id); // because last-visited
       // … and then the one the notification leads to.
       matchesNavigation(check(pushedRoutes).single, eg.selfAccount, message);
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));

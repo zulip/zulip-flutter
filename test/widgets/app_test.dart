@@ -37,24 +37,47 @@ void main() {
     }
 
     testWidgets('when no accounts, go to choose account', (tester) async {
+      check(testBinding.globalStore).accounts.isEmpty();
+      check(testBinding.globalStore).lastVisitedAccount.isNull();
       await prepare(tester);
       check(pushedRoutes).deepEquals(<Condition<Object?>>[
         (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
       ]);
     });
 
-    testWidgets('when have accounts, go to home page for first account', (tester) async {
-      // We'll need per-account data for the account that a page will be opened
-      // for, but not for the other account.
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      await testBinding.globalStore.insertAccount(eg.otherAccount.toCompanion(false));
-      await prepare(tester);
+    group('when have accounts', () {
+      testWidgets('with account(s) visited, go to home page for the last visited account', (tester) async {
+        await testBinding.globalStore.insertAccount(eg.otherAccount.toCompanion(false));
+        // We'll need per-account data for the account that a page will be opened
+        // for, but not for the other accounts.
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        await testBinding.globalStore.insertAccount(eg.thirdAccount.toCompanion(false));
+        check(testBinding.globalStore).lastVisitedAccount.equals(eg.selfAccount);
+        await prepare(tester);
 
-      check(pushedRoutes).deepEquals(<Condition<Object?>>[
-        (it) => it.isA<MaterialAccountWidgetRoute>()
-          ..accountId.equals(eg.selfAccount.id)
-          ..page.isA<HomePage>(),
-      ]);
+        check(pushedRoutes).deepEquals(<Condition<Object?>>[
+          (it) => it.isA<MaterialAccountWidgetRoute>()
+            ..accountId.equals(eg.selfAccount.id)
+            ..page.isA<HomePage>(),
+        ]);
+      });
+
+      testWidgets('with last visited account logged out, go to choose account', (tester) async {
+        await testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+        await testBinding.globalStore.setLastVisitedAccount(eg.selfAccount.id);
+        await testBinding.globalStore.insertAccount(eg.otherAccount.toCompanion(false));
+        check(testBinding.globalStore).lastVisitedAccount.equals(eg.selfAccount);
+        final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
+        await tester.pump(TestGlobalStore.removeAccountDuration);
+        await future;
+        check(testBinding.globalStore).lastVisitedAccount.isNull();
+        check(testBinding.globalStore).accounts.isNotEmpty();
+        await prepare(tester);
+
+        check(pushedRoutes).deepEquals(<Condition<Object?>>[
+          (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
+        ]);
+      });
     });
   });
 
@@ -99,6 +122,7 @@ void main() {
     testWidgets('push route when popping last route on stack', (tester) async {
       // Set up the loading of per-account data to fail.
       await testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      await testBinding.globalStore.setLastVisitedAccount(eg.selfAccount.id);
       testBinding.globalStore.loadPerAccountDuration = Duration.zero;
       testBinding.globalStore.loadPerAccountException = eg.apiExceptionUnauthorized();
       await prepare(tester);
@@ -133,6 +157,7 @@ void main() {
       const loadPerAccountDuration = Duration(seconds: 30);
       assert(loadPerAccountDuration > kTryAnotherAccountWaitPeriod);
       await testBinding.globalStore.insertAccount(eg.selfAccount.toCompanion(false));
+      await testBinding.globalStore.setLastVisitedAccount(eg.selfAccount.id);
       testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
       testBinding.globalStore.loadPerAccountException = eg.apiExceptionUnauthorized();
       await prepare(tester);
@@ -281,8 +306,9 @@ void main() {
     testWidgets('choosing an account clears the navigator stack', (tester) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot(
-        realmUsers: [eg.otherUser]));
+      await testBinding.globalStore.add(
+        eg.otherAccount, eg.initialSnapshot(realmUsers: [eg.otherUser]),
+        markLastVisited: false);
 
       final pushedRoutes = <Route<void>>[];
       final poppedRoutes = <Route<void>>[];

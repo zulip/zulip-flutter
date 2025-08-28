@@ -211,13 +211,14 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     }
 
     final globalStore = GlobalStoreWidget.of(context);
-    // TODO(#524) choose initial account as last one used
-    final initialAccountId = globalStore.accounts.firstOrNull?.id;
+    final lastVisitedAccountId = globalStore.lastVisitedAccount?.id;
+
     return [
-      if (initialAccountId == null)
+      if (lastVisitedAccountId == null)
+        // There are no accounts, or the last-visited account was logged out.
         MaterialWidgetRoute(page: const ChooseAccountPage())
       else
-        HomePage.buildRoute(accountId: initialAccountId),
+        HomePage.buildRoute(accountId: lastVisitedAccountId),
     ];
   }
 
