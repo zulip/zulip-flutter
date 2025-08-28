@@ -113,12 +113,11 @@ void main() {
         return;
       }
       await tester.pump();
-      final accountIds = testBinding.globalStore.accountIds;
-      final initialAccountId = accountIds.firstOrNull;
-      if (initialAccountId == null) {
-        takeChooseAccountPageRoute();
+      final lastVisitedAccount = testBinding.globalStore.lastVisitedAccount;
+      if (lastVisitedAccount != null) {
+        takeHomePageRouteForAccount(lastVisitedAccount.id);
       } else {
-        takeHomePageRouteForAccount(initialAccountId);
+        takeChooseAccountPageRoute();
       }
       check(pushedRoutes).isEmpty();
     }
@@ -274,7 +273,8 @@ void main() {
 
     testWidgets('wait for app to become ready', (tester) async {
       addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(),
+        markLastVisited: false);
       await prepare(tester, early: true);
       final message = eg.streamMessage();
       await openNotification(tester, eg.selfAccount, message);
@@ -287,7 +287,7 @@ void main() {
       // Now let the GlobalStore get loaded and the app's main UI get mounted.
       await tester.pump();
       // The navigator first pushes the starting routes…
-      takeHomePageRouteForAccount(eg.selfAccount.id); // because first in list
+      takeChooseAccountPageRoute(); // (no lastVisitedAccountId in this test)
       // … and then the one the notification leads to.
       matchesNavigation(check(pushedRoutes).single, eg.selfAccount, message);
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
