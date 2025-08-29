@@ -440,6 +440,7 @@ ZulipStream stream({
   int? streamId,
   String? name,
   String? description,
+  bool? isArchived,
   String? renderedDescription,
   int? dateCreated,
   int? firstMessageId,
@@ -462,6 +463,7 @@ ZulipStream stream({
   return ZulipStream(
     streamId: effectiveStreamId,
     name: effectiveName,
+    isArchived: isArchived ?? false,
     description: effectiveDescription,
     renderedDescription: renderedDescription ?? '<p>$effectiveDescription</p>',
     dateCreated: dateCreated ?? 1686774898,
@@ -504,6 +506,7 @@ Subscription subscription(
   return Subscription(
     streamId: stream.streamId,
     name: stream.name,
+    isArchived: stream.isArchived,
     description: stream.description,
     renderedDescription: stream.renderedDescription,
     dateCreated: stream.dateCreated,
@@ -1178,6 +1181,9 @@ ChannelUpdateEvent channelUpdateEvent(
 }) {
   switch (property) {
     case ChannelPropertyName.name:
+      assert(value is String);
+    case ChannelPropertyName.isArchived:
+      assert(value is bool);
     case ChannelPropertyName.description:
       assert(value is String);
     case ChannelPropertyName.firstMessageId:

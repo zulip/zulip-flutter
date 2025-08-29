@@ -627,6 +627,12 @@ class ZulipStream {
 
   final int streamId;
   String name;
+
+  // Servers that don't send this property will only send non-archived channels;
+  // default to false for those servers.
+  @JsonKey(defaultValue: false)
+  bool isArchived; // TODO(server-10) remove default and its comment
+
   String description;
   String renderedDescription;
 
@@ -652,6 +658,7 @@ class ZulipStream {
   ZulipStream({
     required this.streamId,
     required this.name,
+    required this.isArchived,
     required this.description,
     required this.renderedDescription,
     required this.dateCreated,
@@ -674,6 +681,7 @@ class ZulipStream {
       streamId: subscription.streamId,
       name: subscription.name,
       description: subscription.description,
+      isArchived: subscription.isArchived,
       renderedDescription: subscription.renderedDescription,
       dateCreated: subscription.dateCreated,
       firstMessageId: subscription.firstMessageId,
@@ -706,6 +714,7 @@ class ZulipStream {
 enum ChannelPropertyName {
   // streamId is immutable
   name,
+  isArchived,
   description,
   // renderedDescription is updated via its own [ChannelUpdateEvent] field
   // dateCreated is immutable
@@ -791,6 +800,7 @@ class Subscription extends ZulipStream {
     required super.streamId,
     required super.name,
     required super.description,
+    required super.isArchived,
     required super.renderedDescription,
     required super.dateCreated,
     required super.firstMessageId,

@@ -664,6 +664,9 @@ class ChannelUpdateEvent extends ChannelEvent {
     final value = json['value'];
     switch (ChannelPropertyName.fromRawString(json['property'] as String)) {
       case ChannelPropertyName.name:
+        return value as String;
+      case ChannelPropertyName.isArchived:
+        return value as bool;
       case ChannelPropertyName.description:
         return value as String;
       case ChannelPropertyName.firstMessageId:

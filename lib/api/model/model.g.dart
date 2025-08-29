@@ -238,6 +238,7 @@ Map<String, dynamic> _$SavedSnippetToJson(SavedSnippet instance) =>
 ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
   streamId: (json['stream_id'] as num).toInt(),
   name: json['name'] as String,
+  isArchived: json['is_archived'] as bool? ?? false,
   description: json['description'] as String,
   renderedDescription: json['rendered_description'] as String,
   dateCreated: (json['date_created'] as num).toInt(),
@@ -269,6 +270,7 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
     <String, dynamic>{
       'stream_id': instance.streamId,
       'name': instance.name,
+      'is_archived': instance.isArchived,
       'description': instance.description,
       'rendered_description': instance.renderedDescription,
       'date_created': instance.dateCreated,
@@ -297,6 +299,7 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
   streamId: (json['stream_id'] as num).toInt(),
   name: json['name'] as String,
   description: json['description'] as String,
+  isArchived: json['is_archived'] as bool? ?? false,
   renderedDescription: json['rendered_description'] as String,
   dateCreated: (json['date_created'] as num).toInt(),
   firstMessageId: (json['first_message_id'] as num?)?.toInt(),
@@ -335,6 +338,7 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
     <String, dynamic>{
       'stream_id': instance.streamId,
       'name': instance.name,
+      'is_archived': instance.isArchived,
       'description': instance.description,
       'rendered_description': instance.renderedDescription,
       'date_created': instance.dateCreated,
@@ -502,6 +506,7 @@ const _$PresenceStatusEnumMap = {
 
 const _$ChannelPropertyNameEnumMap = {
   ChannelPropertyName.name: 'name',
+  ChannelPropertyName.isArchived: 'is_archived',
   ChannelPropertyName.description: 'description',
   ChannelPropertyName.firstMessageId: 'first_message_id',
   ChannelPropertyName.inviteOnly: 'invite_only',
