@@ -627,6 +627,7 @@ class ZulipStream {
 
   final int streamId;
   String name;
+  bool? isArchived; // TODO(server-10)
   String description;
   String renderedDescription;
 
@@ -706,6 +707,7 @@ class ZulipStream {
 enum ChannelPropertyName {
   // streamId is immutable
   name,
+  isArchived,
   description,
   // renderedDescription is updated via its own [ChannelUpdateEvent] field
   // dateCreated is immutable

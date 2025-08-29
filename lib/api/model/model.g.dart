@@ -263,12 +263,13 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
       ? null
       : GroupSettingValue.fromJson(json['can_subscribe_group']),
   streamWeeklyTraffic: (json['stream_weekly_traffic'] as num?)?.toInt(),
-);
+)..isArchived = json['is_archived'] as bool?;
 
 Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
     <String, dynamic>{
       'stream_id': instance.streamId,
       'name': instance.name,
+      'is_archived': instance.isArchived,
       'description': instance.description,
       'rendered_description': instance.renderedDescription,
       'date_created': instance.dateCreated,
@@ -329,12 +330,13 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
   pinToTop: json['pin_to_top'] as bool,
   isMuted: json['is_muted'] as bool,
   color: (Subscription._readColor(json, 'color') as num).toInt(),
-);
+)..isArchived = json['is_archived'] as bool?;
 
 Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
     <String, dynamic>{
       'stream_id': instance.streamId,
       'name': instance.name,
+      'is_archived': instance.isArchived,
       'description': instance.description,
       'rendered_description': instance.renderedDescription,
       'date_created': instance.dateCreated,
@@ -502,6 +504,7 @@ const _$PresenceStatusEnumMap = {
 
 const _$ChannelPropertyNameEnumMap = {
   ChannelPropertyName.name: 'name',
+  ChannelPropertyName.isArchived: 'is_archived',
   ChannelPropertyName.description: 'description',
   ChannelPropertyName.firstMessageId: 'first_message_id',
   ChannelPropertyName.inviteOnly: 'invite_only',

@@ -366,6 +366,8 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
             stream.name = event.value as String;
             streamsByName.remove(streamName);
             streamsByName[stream.name] = stream;
+          case ChannelPropertyName.isArchived:
+            stream.isArchived = event.value as bool;
           case ChannelPropertyName.description:
             stream.description = event.value as String;
           case ChannelPropertyName.firstMessageId:

@@ -1173,6 +1173,9 @@ ChannelUpdateEvent channelUpdateEvent(
 }) {
   switch (property) {
     case ChannelPropertyName.name:
+      assert(value is String);
+    case ChannelPropertyName.isArchived:
+      assert(value is bool);
     case ChannelPropertyName.description:
       assert(value is String);
     case ChannelPropertyName.firstMessageId:
