@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 
 import '../api/exception.dart';
 import '../api/model/events.dart';
+import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../log.dart';
@@ -78,6 +79,115 @@ mixin MessageStore on ChannelStore {
   /// Should only be called when there is a failed request,
   /// per [getEditMessageErrorStatus].
   ({String originalRawContent, String newContent}) takeFailedMessageEdit(int messageId);
+
+  /// Whether the user has permission to delete a message, as of [byDate].
+  ///
+  /// For a value of [byDate], use [ZulipBinding.instance.utcNow].
+  bool selfCanDeleteMessage(int messageId, {required DateTime byDate}) {
+    // Compare web's message_delete.get_deletability.
+
+    final message = messages[messageId];
+    if (message == null) return false; // TODO(log)
+
+    final ZulipStream? channel;
+    if (message is StreamMessage) {
+      channel = streams[message.streamId];
+      // TODO(log) if channel null here?
+    } else {
+      channel = null;
+    }
+
+    if (channel != null && channel.isArchived == true) {
+      return false;
+    }
+
+    if (realmCanDeleteAnyMessageGroup != null
+        && selfHasPermissionForGroupSetting(realmCanDeleteAnyMessageGroup!,
+             GroupSettingType.realm, 'can_delete_any_message_group')) {
+      return true;
+    }
+
+    if (channel != null) {
+      if (channel.canDeleteAnyMessageGroup != null
+          && selfHasPermissionForGroupSetting(channel.canDeleteAnyMessageGroup!,
+               GroupSettingType.stream, 'can_delete_any_message_group')) {
+        return true;
+      }
+    }
+
+    final sender = getUser(message.senderId);
+    if (sender == null) return false;
+
+    if (
+      sender.userId != selfUserId
+      && !(sender.isBot && sender.botOwnerId == selfUserId)
+    ) {
+      return false;
+    }
+
+    // Web returns false here for local-echoed message objects;
+    // that's impossible here because `message` can't be an [OutboxMessage]
+    // (it's a [Message] from [MessageStore.messages]).
+
+    if (realmCanDeleteOwnMessageGroup != null) {
+      if (!selfHasPermissionForGroupSetting(realmCanDeleteOwnMessageGroup!,
+            GroupSettingType.realm, 'can_delete_own_message_group')) {
+        if (channel == null) {
+          // i.e. this is a DM
+          return false;
+        }
+
+        if (
+          channel.canDeleteOwnMessageGroup == null
+          || !selfHasPermissionForGroupSetting(channel.canDeleteOwnMessageGroup!,
+               GroupSettingType.stream, 'can_delete_own_message_group')
+        ) {
+          return false;
+        }
+      }
+    }
+
+    if (
+      realmDeleteOwnMessagePolicy != null
+      && !_selfPassesLegacyDeleteMessagePolicy(messageId, byDate: byDate)
+    ) {
+      return false;
+    }
+
+    if (realmMessageContentDeleteLimitSeconds == null) {
+      // i.e., no limit
+      return true;
+    }
+
+    return byDate.millisecondsSinceEpoch ~/ 1000 - message.timestamp
+      <= realmMessageContentDeleteLimitSeconds!;
+  }
+
+  bool _selfPassesLegacyDeleteMessagePolicy(int messageId, {required DateTime byDate}) {
+    assert(realmDeleteOwnMessagePolicy != null);
+    final role = selfUser.role;
+
+    // (Could early-return true on [UserRole.unknown],
+    // but pre-291 servers shouldn't be giving us an unknown role.)
+
+    switch (realmDeleteOwnMessagePolicy!) {
+      case RealmDeleteOwnMessagePolicy.members:
+        return true;
+      case RealmDeleteOwnMessagePolicy.admins:
+        return role.isAtLeast(UserRole.administrator);
+      case RealmDeleteOwnMessagePolicy.fullMembers: {
+        if (!role.isAtLeast(UserRole.member)) return false;
+        if (role == UserRole.member) {
+          return hasPassedWaitingPeriod(selfUser, byDate: byDate);
+        }
+        return true;
+      }
+      case RealmDeleteOwnMessagePolicy.moderators:
+        return role.isAtLeast(UserRole.moderator);
+      case RealmDeleteOwnMessagePolicy.everyone:
+        return true;
+    }
+  }
 }
 
 mixin ProxyMessageStore on MessageStore {
@@ -122,6 +232,9 @@ mixin ProxyMessageStore on MessageStore {
   ({String originalRawContent, String newContent}) takeFailedMessageEdit(int messageId) {
     return messageStore.takeFailedMessageEdit(messageId);
   }
+  @override
+  bool selfCanDeleteMessage(int messageId, {required DateTime byDate}) =>
+    messageStore.selfCanDeleteMessage(messageId, byDate: byDate);
 
   @override
   Set<MessageListView> get debugMessageListViews => messageStore.debugMessageListViews;
