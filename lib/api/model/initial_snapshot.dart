@@ -72,6 +72,17 @@ class InitialSnapshot {
 
   final List<UserTopicItem>? userTopics; // TODO(server-6)
 
+  final GroupSettingValue? realmCanDeleteAnyMessageGroup; // TODO(server-10)
+
+  final GroupSettingValue? realmCanDeleteOwnMessageGroup; // TODO(server-10)
+
+  /// The policy for who can delete their own messages,
+  /// on supported servers below version 10.
+  ///
+  /// Removed in FL 291, so absent in the current API doc;
+  /// see zulip/zulip@0cd51f2fe.
+  final RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy; // TODO(server-10)
+
   /// The policy for who can use wildcard mentions in large channels.
   ///
   /// Search for "realm_wildcard_mention_policy" in https://zulip.com/api/register-queue.
@@ -86,6 +97,8 @@ class InitialSnapshot {
   /// For how to determine if a user is a full member, see:
   ///   https://zulip.com/api/roles-and-permissions#determining-if-a-user-is-a-full-member
   final int realmWaitingPeriodThreshold;
+
+  final int? realmMessageContentDeleteLimitSeconds;
 
   final bool realmAllowMessageEditing;
   final int? realmMessageContentEditLimitSeconds;
@@ -158,9 +171,13 @@ class InitialSnapshot {
     required this.userStatuses,
     required this.userSettings,
     required this.userTopics,
+    required this.realmCanDeleteAnyMessageGroup,
+    required this.realmCanDeleteOwnMessageGroup,
+    required this.realmDeleteOwnMessagePolicy,
     required this.realmWildcardMentionPolicy,
     required this.realmMandatoryTopics,
     required this.realmWaitingPeriodThreshold,
+    required this.realmMessageContentDeleteLimitSeconds,
     required this.realmAllowMessageEditing,
     required this.realmMessageContentEditLimitSeconds,
     required this.realmEnableReadReceipts,
@@ -194,6 +211,21 @@ enum RealmWildcardMentionPolicy {
   final int? apiValue;
 
   int? toJson() => apiValue;
+}
+
+@JsonEnum(valueField: 'apiValue')
+enum RealmDeleteOwnMessagePolicy {
+  members(apiValue: 1),
+  admins(apiValue: 2),
+  fullMembers(apiValue: 3),
+  moderators(apiValue: 4),
+  everyone(apiValue: 5);
+
+  const RealmDeleteOwnMessagePolicy({required this.apiValue});
+
+  final int apiValue;
+
+  int toJson() => apiValue;
 }
 
 /// An item in `realm_default_external_accounts`.
