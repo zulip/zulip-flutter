@@ -444,6 +444,8 @@ ZulipStream stream({
   int? messageRetentionDays,
   ChannelPostPolicy? channelPostPolicy,
   GroupSettingValue? canAddSubscribersGroup,
+  GroupSettingValue? canDeleteAnyMessageGroup,
+  GroupSettingValue? canDeleteOwnMessageGroup,
   GroupSettingValue? canSubscribeGroup,
   int? streamWeeklyTraffic,
 }) {
@@ -465,6 +467,8 @@ ZulipStream stream({
     messageRetentionDays: messageRetentionDays,
     channelPostPolicy: channelPostPolicy ?? ChannelPostPolicy.any,
     canAddSubscribersGroup: canAddSubscribersGroup ?? GroupSettingValueNamed(nobodyGroup.id),
+    canDeleteAnyMessageGroup: canDeleteAnyMessageGroup ?? GroupSettingValueNamed(nobodyGroup.id),
+    canDeleteOwnMessageGroup: canDeleteOwnMessageGroup ?? GroupSettingValueNamed(nobodyGroup.id),
     canSubscribeGroup: canSubscribeGroup ?? GroupSettingValueNamed(nobodyGroup.id),
     streamWeeklyTraffic: streamWeeklyTraffic,
   );
@@ -505,6 +509,8 @@ Subscription subscription(
     messageRetentionDays: stream.messageRetentionDays,
     channelPostPolicy: stream.channelPostPolicy,
     canAddSubscribersGroup: stream.canAddSubscribersGroup,
+    canDeleteAnyMessageGroup: stream.canDeleteAnyMessageGroup,
+    canDeleteOwnMessageGroup: stream.canDeleteOwnMessageGroup,
     canSubscribeGroup: stream.canSubscribeGroup,
     streamWeeklyTraffic: stream.streamWeeklyTraffic,
     desktopNotifications: desktopNotifications ?? false,
@@ -1178,6 +1184,8 @@ ChannelUpdateEvent channelUpdateEvent(
     case ChannelPropertyName.channelPostPolicy:
       assert(value is ChannelPostPolicy);
     case ChannelPropertyName.canAddSubscribersGroup:
+    case ChannelPropertyName.canDeleteAnyMessageGroup:
+    case ChannelPropertyName.canDeleteOwnMessageGroup:
     case ChannelPropertyName.canSubscribeGroup:
       assert(value is GroupSettingValue);
     case ChannelPropertyName.streamWeeklyTraffic:
