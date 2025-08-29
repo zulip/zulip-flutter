@@ -125,5 +125,153 @@ void main() {
         .isFalse();
       assert(!BoolGlobalSetting.placeholderIgnore.default_);
     });
+
+    group('set avoids redundant updates', () {
+      int notifiedCount = 0;
+      tearDown(() => notifiedCount = 0);
+
+      test('null to null -> no update', () async {
+        final globalSettings = eg.globalStore(boolGlobalSettings: {}).settings;
+        globalSettings.addListener(() => notifiedCount++);
+
+        await globalSettings.setBool(BoolGlobalSetting.placeholderIgnore, null);
+        check(notifiedCount).equals(0);
+      });
+
+      test('true to true -> no update', () async {
+        final globalSettings = eg.globalStore(boolGlobalSettings: {
+          BoolGlobalSetting.placeholderIgnore: true,
+        }).settings;
+        globalSettings.addListener(() => notifiedCount++);
+
+        await globalSettings.setBool(BoolGlobalSetting.placeholderIgnore, true);
+        check(notifiedCount).equals(0);
+      });
+
+      test('false to false -> no update', () async {
+        final globalSettings = eg.globalStore(boolGlobalSettings: {
+          BoolGlobalSetting.placeholderIgnore: false,
+        }).settings;
+        globalSettings.addListener(() => notifiedCount++);
+
+        await globalSettings.setBool(BoolGlobalSetting.placeholderIgnore, false);
+        check(notifiedCount).equals(0);
+      });
+
+      test('null to false -> does the update', () async {
+        final globalSettings = eg.globalStore(boolGlobalSettings: {}).settings;
+        globalSettings.addListener(() => notifiedCount++);
+
+        await globalSettings.setBool(BoolGlobalSetting.placeholderIgnore, false);
+        check(notifiedCount).equals(1);
+      });
+
+      test('true to null -> does the update', () async {
+        final globalSettings = eg.globalStore(boolGlobalSettings: {
+          BoolGlobalSetting.placeholderIgnore: true,
+        }).settings;
+        globalSettings.addListener(() => notifiedCount++);
+
+        await globalSettings.setBool(BoolGlobalSetting.placeholderIgnore, null);
+        check(notifiedCount).equals(1);
+      });
+
+      test('false to true -> does the update', () async {
+        final globalSettings = eg.globalStore(boolGlobalSettings: {
+          BoolGlobalSetting.placeholderIgnore: false,
+        }).settings;
+        globalSettings.addListener(() => notifiedCount++);
+
+        await globalSettings.setBool(BoolGlobalSetting.placeholderIgnore, true);
+        check(notifiedCount).equals(1);
+      });
+    });
+  });
+
+  group('getInt/setInt', () {
+    test('get from initial load', () {
+      final globalSettings = eg.globalStore(intGlobalSettings: {
+        IntGlobalSetting.placeholderIgnore: 1,
+      }).settings;
+      check(globalSettings).getInt(IntGlobalSetting.placeholderIgnore)
+        .equals(1);
+    });
+
+    test('set, get', () async {
+      final globalSettings = eg.globalStore(intGlobalSettings: {}).settings;
+      check(globalSettings).getInt(IntGlobalSetting.placeholderIgnore)
+        .isNull();
+
+      await globalSettings.setInt(IntGlobalSetting.placeholderIgnore, 1);
+      check(globalSettings).getInt(IntGlobalSetting.placeholderIgnore)
+        .equals(1);
+
+      await globalSettings.setInt(IntGlobalSetting.placeholderIgnore, 100);
+      check(globalSettings).getInt(IntGlobalSetting.placeholderIgnore)
+        .equals(100);
+    });
+
+    test('set to null -> get returns null', () async {
+      final globalSettings = eg.globalStore(intGlobalSettings: {
+        IntGlobalSetting.placeholderIgnore: 1,
+      }).settings;
+      check(globalSettings).getInt(IntGlobalSetting.placeholderIgnore)
+        .equals(1);
+
+      await globalSettings.setInt(IntGlobalSetting.placeholderIgnore, null);
+      check(globalSettings).getInt(IntGlobalSetting.placeholderIgnore)
+        .isNull();
+    });
+
+    group('set avoids redundant updates', () {
+      int notifiedCount = 0;
+      tearDown(() => notifiedCount = 0);
+
+      test('null to null -> no update', () async {
+        final globalSettings = eg.globalStore(intGlobalSettings: {}).settings;
+        globalSettings.addListener(() => notifiedCount++);
+
+        await globalSettings.setInt(IntGlobalSetting.placeholderIgnore, null);
+        check(notifiedCount).equals(0);
+      });
+
+      test('10 to 10 -> no update', () async {
+        final globalSettings = eg.globalStore(intGlobalSettings: {
+          IntGlobalSetting.placeholderIgnore: 10,
+        }).settings;
+        globalSettings.addListener(() => notifiedCount++);
+
+        await globalSettings.setInt(IntGlobalSetting.placeholderIgnore, 10);
+        check(notifiedCount).equals(0);
+      });
+
+      test('null to 10 -> does the update', () async {
+        final globalSettings = eg.globalStore(intGlobalSettings: {}).settings;
+        globalSettings.addListener(() => notifiedCount++);
+
+        await globalSettings.setInt(IntGlobalSetting.placeholderIgnore, 10);
+        check(notifiedCount).equals(1);
+      });
+
+      test('10 to null -> does the update', () async {
+        final globalSettings = eg.globalStore(intGlobalSettings: {
+          IntGlobalSetting.placeholderIgnore: 10,
+        }).settings;
+        globalSettings.addListener(() => notifiedCount++);
+
+        await globalSettings.setInt(IntGlobalSetting.placeholderIgnore, null);
+        check(notifiedCount).equals(1);
+      });
+
+      test('10 to 100 -> does the update', () async {
+        final globalSettings = eg.globalStore(intGlobalSettings: {
+          IntGlobalSetting.placeholderIgnore: 10,
+        }).settings;
+        globalSettings.addListener(() => notifiedCount++);
+
+        await globalSettings.setInt(IntGlobalSetting.placeholderIgnore, 100);
+        check(notifiedCount).equals(1);
+      });
+    });
   });
 }
