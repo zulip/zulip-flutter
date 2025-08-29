@@ -37,16 +37,18 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   //|//////////////////////////////
   // Realm settings found in realm/update_dict events:
   //   https://zulip.com/api/get-events#realm-update_dict
+  //
+  // In order of appearance in the realm/update_dict event doc.
   // TODO(#668): update all these realm settings on events.
 
   bool get realmAllowMessageEditing;
+  bool get realmEnableReadReceipts;
   bool get realmMandatoryTopics;
   int get maxFileUploadSizeMib;
   Duration? get realmMessageContentEditLimit =>
     realmMessageContentEditLimitSeconds == null ? null
       : Duration(seconds: realmMessageContentEditLimitSeconds!);
   int? get realmMessageContentEditLimitSeconds;
-  bool get realmEnableReadReceipts;
   bool get realmPresenceDisabled;
   int get realmWaitingPeriodThreshold;
 
@@ -146,13 +148,13 @@ mixin ProxyRealmStore on RealmStore {
   @override
   bool get realmAllowMessageEditing => realmStore.realmAllowMessageEditing;
   @override
+  bool get realmEnableReadReceipts => realmStore.realmEnableReadReceipts;
+  @override
   bool get realmMandatoryTopics => realmStore.realmMandatoryTopics;
   @override
   int get maxFileUploadSizeMib => realmStore.maxFileUploadSizeMib;
   @override
   int? get realmMessageContentEditLimitSeconds => realmStore.realmMessageContentEditLimitSeconds;
-  @override
-  bool get realmEnableReadReceipts => realmStore.realmEnableReadReceipts;
   @override
   bool get realmPresenceDisabled => realmStore.realmPresenceDisabled;
   @override
@@ -261,13 +263,13 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   @override
   final bool realmAllowMessageEditing;
   @override
+  final bool realmEnableReadReceipts;
+  @override
   final bool realmMandatoryTopics;
   @override
   final int maxFileUploadSizeMib;
   @override
   final int? realmMessageContentEditLimitSeconds;
-  @override
-  final bool realmEnableReadReceipts;
   @override
   final bool realmPresenceDisabled;
   @override
