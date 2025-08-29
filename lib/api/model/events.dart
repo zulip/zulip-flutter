@@ -675,6 +675,8 @@ class ChannelUpdateEvent extends ChannelEvent {
       case ChannelPropertyName.channelPostPolicy:
         return ChannelPostPolicy.fromApiValue(value as int);
       case ChannelPropertyName.canAddSubscribersGroup:
+      case ChannelPropertyName.canDeleteAnyMessageGroup:
+      case ChannelPropertyName.canDeleteOwnMessageGroup:
       case ChannelPropertyName.canSubscribeGroup:
         return GroupSettingValue.fromJson(value);
       case ChannelPropertyName.streamWeeklyTraffic:

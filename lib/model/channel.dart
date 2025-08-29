@@ -378,6 +378,10 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
             stream.channelPostPolicy = event.value as ChannelPostPolicy;
           case ChannelPropertyName.canAddSubscribersGroup:
             stream.canAddSubscribersGroup = event.value as GroupSettingValue;
+          case ChannelPropertyName.canDeleteAnyMessageGroup:
+            stream.canDeleteAnyMessageGroup = event.value as GroupSettingValue;
+          case ChannelPropertyName.canDeleteOwnMessageGroup:
+            stream.canDeleteOwnMessageGroup = event.value as GroupSettingValue;
           case ChannelPropertyName.canSubscribeGroup:
             stream.canSubscribeGroup = event.value as GroupSettingValue;
           case ChannelPropertyName.streamWeeklyTraffic:
