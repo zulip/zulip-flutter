@@ -457,7 +457,141 @@ class SupportedPermissionSettings {
   ///   or a similar API, and switch to using that.  See thread:
   ///     https://chat.zulip.org/#narrow/channel/378-api-design/topic/server_supported_permission_settings/near/2247549
   static SupportedPermissionSettings fixture = SupportedPermissionSettings(
-    realm: {}, // Please go ahead and fill this in when we come to need it.
+    realm: {
+      // From the server's Realm.REALM_PERMISSION_GROUP_SETTINGS,
+      // in zerver/models/realms.py.  Current as of 6ab30fcce, 2025-08.
+      'create_multiuse_invite_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.ADMINISTRATORS,
+      ),
+      'can_access_all_users_group': PermissionSettingsItem(
+          // require_system_group=True,
+          // allow_nobody_group=False,
+          allowEveryoneGroup: true,
+          // default_group_name=SystemGroups.EVERYONE,
+          // # Note that user_can_access_all_other_users in the web
+          // # app is relying on members always have access.
+          // allowed_system_groups=[SystemGroups.EVERYONE, SystemGroups.MEMBERS],
+      ),
+      'can_add_subscribers_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.MEMBERS,
+      ),
+      'can_add_custom_emoji_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.MEMBERS,
+      ),
+      'can_create_bots_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.MEMBERS,
+      ),
+      'can_create_groups': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.MEMBERS,
+      ),
+      'can_create_public_channel_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.MEMBERS,
+      ),
+      'can_create_private_channel_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.MEMBERS,
+      ),
+      'can_create_web_public_channel_group': PermissionSettingsItem(
+          // require_system_group=True,
+          // allow_nobody_group=True,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.OWNERS,
+          // allowed_system_groups=[
+          //     SystemGroups.MODERATORS,
+          //     SystemGroups.ADMINISTRATORS,
+          //     SystemGroups.OWNERS,
+          //     SystemGroups.NOBODY,
+          // ],
+      ),
+      'can_create_write_only_bots_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.MEMBERS,
+      ),
+      'can_delete_any_message_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.ADMINISTRATORS,
+      ),
+      'can_delete_own_message_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: true,
+          // default_group_name=SystemGroups.EVERYONE,
+      ),
+      'can_invite_users_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.MEMBERS,
+      ),
+      'can_manage_all_groups': PermissionSettingsItem(
+          // allow_nobody_group=False,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.OWNERS,
+      ),
+      'can_manage_billing_group': PermissionSettingsItem(
+          // allow_nobody_group=False,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.ADMINISTRATORS,
+      ),
+      'can_mention_many_users_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: true,
+          // default_group_name=SystemGroups.ADMINISTRATORS,
+      ),
+      'can_move_messages_between_channels_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.MEMBERS,
+      ),
+      'can_move_messages_between_topics_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: true,
+          // default_group_name=SystemGroups.EVERYONE,
+      ),
+      'can_resolve_topics_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: true,
+          // default_group_name=SystemGroups.EVERYONE,
+      ),
+      'can_set_delete_message_policy_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: false,
+          // default_group_name=SystemGroups.MODERATORS,
+      ),
+      'can_set_topics_policy_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: true,
+          // default_group_name=SystemGroups.MEMBERS,
+      ),
+      'can_summarize_topics_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: true,
+          // default_group_name=SystemGroups.EVERYONE,
+      ),
+      'direct_message_initiator_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: true,
+          // default_group_name=SystemGroups.EVERYONE,
+      ),
+      'direct_message_permission_group': PermissionSettingsItem(
+          // allow_nobody_group=True,
+          allowEveryoneGroup: true,
+          // default_group_name=SystemGroups.EVERYONE,
+      ),
+    },
     group: {}, // Please go ahead and fill this in when we come to need it.
     stream: {
       // From the server's Stream.stream_permission_group_settings,
