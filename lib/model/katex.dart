@@ -356,7 +356,21 @@ class _KatexParser {
           }
         }
 
-        // TODO(#1716) Handle styling for .vlist-t2 spans
+        // The katex.css has .vlist-t2 and .vlist-s classes for working around
+        // Safari rendering issues. In HTML the .vlist-t2 class will be present
+        // along with the .vlist-t class, and .vlist-s class will be present on
+        // an empty span in the first (of the two) .vlist-r span.
+        //
+        // The KaTeX implementation confirms that both classes are always
+        // present in tandem. And by experimenting via browser devtools and
+        // the CSS definition and, it can be confirmed that both cancel each
+        // others effect of the 2px shift.
+        // See:
+        //   https://github.com/KaTeX/KaTeX/blob/9fb63136e/src/buildCommon.js#L596-L620
+        //   https://github.com/KaTeX/KaTeX/commit/766487bfe
+        //
+        // So, we ignore these classes, as those workarounds aren't needed.
+
         return KatexVlistNode(
           rows: rows,
           debugHtmlNode: kDebugMode ? element : null,
