@@ -291,7 +291,7 @@ class ZulipMenuItemButton extends StatelessWidget {
     this.style = ZulipMenuItemButtonStyle.menu,
     required this.label,
     this.subLabel,
-    this.onPressed,
+    required this.onPressed,
     this.icon,
     this.toggle,
   });
@@ -299,7 +299,7 @@ class ZulipMenuItemButton extends StatelessWidget {
   final ZulipMenuItemButtonStyle style;
   final String label;
   final TextSpan? subLabel;
-  final VoidCallback? onPressed;
+  final VoidCallback onPressed;
   final IconData? icon;
 
   /// A [Toggle] to go before [icon], or in its place if it's null.
