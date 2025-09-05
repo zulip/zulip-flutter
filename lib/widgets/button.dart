@@ -11,6 +11,9 @@ import 'theme.dart';
 /// The Figma uses this for the "Cancel" and "Save" buttons in the compose box
 /// for editing an already-sent message.
 ///
+/// The icon is optional;
+/// to provide one, pass [icon] or [buildIcon] but not both.
+///
 /// See Figma:
 ///   * Component: https://www.figma.com/design/msWyAJ8cnMHgOMPxi7BUvA/Zulip-Web-UI-kit?node-id=1-2780&t=Wia0D0i1I0GXdD9z-0
 ///   * Edit-message compose box: https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3988-38201&m=dev
@@ -22,14 +25,16 @@ class ZulipWebUiKitButton extends StatelessWidget {
     this.size = ZulipWebUiKitButtonSize.normal,
     required this.label,
     this.icon,
+    this.buildIcon,
     required this.onPressed,
-  });
+  }) : assert(icon == null || buildIcon == null);
 
   final ZulipWebUiKitButtonAttention attention;
   final ZulipWebUiKitButtonIntent intent;
   final ZulipWebUiKitButtonSize size;
   final String label;
   final IconData? icon;
+  final Widget Function(double size)? buildIcon;
   final VoidCallback onPressed;
 
   WidgetStateColor _backgroundColor(DesignVariables designVariables) {
@@ -141,14 +146,24 @@ class ZulipWebUiKitButton extends StatelessWidget {
 
     final labelColor = _labelColor(designVariables);
 
+    final iconSize = 16.0;
+
+    Widget? effectiveIcon;
+    if (icon != null) {
+      effectiveIcon = Icon(icon); // (size is set in TextButton.styleFrom)
+    }
+    if (buildIcon != null) {
+      effectiveIcon = buildIcon!(iconSize);
+    }
+
     return AnimatedScaleOnTap(
       scaleEnd: 0.96,
       duration: Duration(milliseconds: 100),
       child: TextButton.icon(
         // TODO the gap between the icon and label should be 6px, not 8px
-        icon: icon != null ? Icon(icon) : null,
+        icon: effectiveIcon,
         style: TextButton.styleFrom(
-          iconSize: 16,
+          iconSize: iconSize,
           iconColor: labelColor,
           padding: EdgeInsets.symmetric(
             horizontal: _forSize(6, 10),

@@ -906,6 +906,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get sharePageTitle => 'Share';
 
   @override
+  String get shareChooseAccountLabel => 'Choose account';
+
+  @override
   String get mainMenuMyProfile => 'Môj profil';
 
   @override

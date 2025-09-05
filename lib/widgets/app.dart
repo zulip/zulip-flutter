@@ -308,58 +308,6 @@ class _PreventEmptyStack extends NavigatorObserver {
 class ChooseAccountPage extends StatelessWidget {
   const ChooseAccountPage({super.key});
 
-  Widget _buildAccountItem(
-    BuildContext context, {
-    required int accountId,
-    required Widget title,
-    Widget? subtitle,
-  }) {
-    final colorScheme = ColorScheme.of(context);
-    final designVariables = DesignVariables.of(context);
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    final materialLocalizations = MaterialLocalizations.of(context);
-    return Card(
-      clipBehavior: Clip.hardEdge,
-      child: ListTile(
-        title: title,
-        subtitle: subtitle,
-        tileColor: colorScheme.secondaryContainer,
-        textColor: colorScheme.onSecondaryContainer,
-        trailing: MenuAnchor(
-          menuChildren: [
-            MenuItemButton(
-              onPressed: () async {
-                final dialog = showSuggestedActionDialog(context: context,
-                  title: zulipLocalizations.logOutConfirmationDialogTitle,
-                  message: zulipLocalizations.logOutConfirmationDialogMessage,
-                  // TODO(#1032) "destructive" style for action button
-                  actionButtonText: zulipLocalizations.logOutConfirmationDialogConfirmButton);
-                if (await dialog.result == true) {
-                  if (!context.mounted) return;
-                  // TODO error handling if db write fails?
-                  unawaited(logOutAccount(GlobalStoreWidget.of(context), accountId));
-                }
-              },
-              child: Text(zulipLocalizations.chooseAccountPageLogOutButton)),
-          ],
-          builder: (BuildContext context, MenuController controller, Widget? child) {
-            return IconButton(
-              tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
-              onPressed: () {
-                if (controller.isOpen) {
-                  controller.close();
-                } else {
-                  controller.open();
-                }
-              },
-              icon: Icon(Icons.adaptive.more, color: designVariables.icon));
-          }),
-        // The default trailing padding with M3 is 24px. Decrease by 12 because
-        // IconButton (the "…" button) comes with 12px padding on all sides.
-        contentPadding: const EdgeInsetsDirectional.only(start: 16, end: 12),
-        onTap: () => HomePage.navigate(context, accountId: accountId)));
-  }
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.of(context);
@@ -392,10 +340,12 @@ class ChooseAccountPage extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 8),
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                     for (final (:accountId, :account) in globalStore.accountEntries)
-                      _buildAccountItem(context,
+                      ChooseAccountListItem(
                         accountId: accountId,
                         title: Text(account.realmUrl.toString()),
-                        subtitle: Text(account.email)),
+                        subtitle: Text(account.email),
+                        showLogoutMenu: true,
+                        onTap: () => HomePage.navigate(context, accountId: accountId)),
                   ]))),
                 const SizedBox(height: 12),
                 ElevatedButton(
@@ -403,6 +353,71 @@ class ChooseAccountPage extends StatelessWidget {
                     AddAccountPage.buildRoute()),
                   child: Text(zulipLocalizations.chooseAccountButtonAddAnAccount)),
               ]))))));
+  }
+}
+
+class ChooseAccountListItem extends StatelessWidget {
+  const ChooseAccountListItem({
+    super.key,
+    required this.accountId,
+    required this.title,
+    required this.subtitle,
+    required this.showLogoutMenu,
+    required this.onTap,
+  });
+
+  final int accountId;
+  final Widget title;
+  final Widget? subtitle;
+  final bool showLogoutMenu;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = ColorScheme.of(context);
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final materialLocalizations = MaterialLocalizations.of(context);
+    return Card(
+      clipBehavior: Clip.hardEdge,
+      child: ListTile(
+        title: title,
+        subtitle: subtitle,
+        tileColor: colorScheme.secondaryContainer,
+        textColor: colorScheme.onSecondaryContainer,
+        trailing: !showLogoutMenu ? null : MenuAnchor(
+          menuChildren: [
+            MenuItemButton(
+              onPressed: () async {
+                final dialog = showSuggestedActionDialog(context: context,
+                  title: zulipLocalizations.logOutConfirmationDialogTitle,
+                  message: zulipLocalizations.logOutConfirmationDialogMessage,
+                  // TODO(#1032) "destructive" style for action button
+                  actionButtonText: zulipLocalizations.logOutConfirmationDialogConfirmButton);
+                if (await dialog.result == true) {
+                  if (!context.mounted) return;
+                  // TODO error handling if db write fails?
+                  unawaited(logOutAccount(GlobalStoreWidget.of(context), accountId));
+                }
+              },
+              child: Text(zulipLocalizations.chooseAccountPageLogOutButton)),
+          ],
+          builder: (BuildContext context, MenuController controller, Widget? child) {
+            return IconButton(
+              tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
+              onPressed: () {
+                if (controller.isOpen) {
+                  controller.close();
+                } else {
+                  controller.open();
+                }
+              },
+              icon: Icon(Icons.adaptive.more, color: designVariables.icon));
+          }),
+        // The default trailing padding with M3 is 24px. Decrease by 12 because
+        // IconButton (the "…" button) comes with 12px padding on all sides.
+        contentPadding: const EdgeInsetsDirectional.only(start: 16, end: 12),
+        onTap: onTap));
   }
 }
 
