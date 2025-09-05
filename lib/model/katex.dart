@@ -258,10 +258,9 @@ class _KatexParser {
     if (vlistT.nodes.isEmpty) throw _KatexHtmlParseError();
     if (vlistT.attributes.containsKey('style')) throw _KatexHtmlParseError();
 
-    final hasTwoVlistR = vlistT.className == 'vlist-t vlist-t2';
-    if (!hasTwoVlistR && vlistT.nodes.length != 1) throw _KatexHtmlParseError();
-
-    if (hasTwoVlistR) {
+    final hasVlistT2 = vlistT.className == 'vlist-t vlist-t2';
+    if (!hasVlistT2 && vlistT.nodes.length != 1) throw _KatexHtmlParseError();
+    if (hasVlistT2) {
       if (vlistT.nodes case [
         _,
         dom.Element(localName: 'span', className: 'vlist-r', nodes: [
