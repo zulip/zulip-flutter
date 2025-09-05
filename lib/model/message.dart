@@ -11,6 +11,7 @@ import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../log.dart';
 import 'binding.dart';
+import 'channel.dart';
 import 'message_list.dart';
 import 'realm.dart';
 import 'store.dart';
@@ -18,7 +19,7 @@ import 'store.dart';
 const _apiSendMessage = sendMessage; // Bit ugly; for alternatives, see: https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20PerAccountStore.20methods/near/1545809
 
 /// The portion of [PerAccountStore] for messages and message lists.
-mixin MessageStore {
+mixin MessageStore on ChannelStore {
   /// All known messages, indexed by [Message.id].
   Map<int, Message> get messages;
 
@@ -138,8 +139,8 @@ class _EditMessageRequestStatus {
   final String newContent;
 }
 
-class MessageStoreImpl extends HasRealmStore with MessageStore, _OutboxMessageStore {
-  MessageStoreImpl({required super.realm})
+class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessageStore {
+  MessageStoreImpl({required super.channels})
     : // There are no messages in InitialSnapshot, so we don't have
       // a use case for initializing MessageStore with nonempty [messages].
       messages = {};
