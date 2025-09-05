@@ -16,6 +16,9 @@ import 'user.dart';
 ///
 /// The data structures described here are implemented at [ChannelStoreImpl].
 mixin ChannelStore on UserStore {
+  @protected
+  UserStore get userStore;
+
   /// All known channels/streams, indexed by [ZulipStream.streamId].
   ///
   /// The same [ZulipStream] objects also appear in [streamsByName].
@@ -246,6 +249,18 @@ mixin ProxyChannelStore on ChannelStore {
   @override
   Map<int, Map<TopicName, UserTopicVisibilityPolicy>> get debugTopicVisibility =>
     channelStore.debugTopicVisibility;
+}
+
+/// A base class for [PerAccountStore] substores
+/// that need access to [ChannelStore] as well as to its prerequisites
+/// [CorePerAccountStore], [RealmStore], and [UserStore].
+abstract class HasChannelStore extends HasUserStore with ChannelStore, ProxyChannelStore {
+  HasChannelStore({required ChannelStore channels})
+    : channelStore = channels, super(users: channels.userStore);
+
+  @protected
+  @override
+  final ChannelStore channelStore;
 }
 
 /// The implementation of [ChannelStore] that does the work.
