@@ -68,6 +68,16 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get chooseAccountButtonAddAnAccount => 'Dodaj konto';
 
   @override
+  String get navButtonAllChannels => 'All channels';
+
+  @override
+  String get allChannelsPageTitle => 'All channels';
+
+  @override
+  String get allChannelsEmptyPlaceholder =>
+      'There are no channels in this Zulip organization.';
+
+  @override
   String get profileButtonSendDirectMessage => 'Wyślij wiadomość bezpośrednią';
 
   @override
@@ -913,6 +923,13 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get channelsEmptyPlaceholder => 'Nie śledzisz żadnego z kanałów.';
+
+  @override
+  String channelsEmptyPlaceholderWithAllChannelsLink(
+    String allChannelsPageTitle,
+  ) {
+    return 'You are not subscribed to any channels yet. Go to <z-link>$allChannelsPageTitle</z-link> and join some of them.';
+  }
 
   @override
   String get sharePageTitle => 'Udostępnij';

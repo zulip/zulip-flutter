@@ -53,6 +53,7 @@ extension SavedSnippetChecks on Subject<SavedSnippet> {
 }
 
 extension ZulipStreamChecks on Subject<ZulipStream> {
+  Subject<int> get streamId => has((x) => x.streamId, 'streamId');
 }
 
 extension TopicNameChecks on Subject<TopicName> {
