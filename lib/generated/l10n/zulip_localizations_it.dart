@@ -68,6 +68,16 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get chooseAccountButtonAddAnAccount => 'Aggiungi un account';
 
   @override
+  String get navButtonAllChannels => 'All channels';
+
+  @override
+  String get allChannelsPageTitle => 'All channels';
+
+  @override
+  String get allChannelsEmptyPlaceholder =>
+      'There are no channels you can view in this organization.';
+
+  @override
   String get profileButtonSendDirectMessage => 'Invia un messaggio diretto';
 
   @override
@@ -914,6 +924,13 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   @override
   String get channelsEmptyPlaceholder =>
       'Non sei ancora iscritto ad alcun canale.';
+
+  @override
+  String channelsEmptyPlaceholderWithAllChannelsLink(
+    String allChannelsPageTitle,
+  ) {
+    return 'You’re not subscribed to any channels yet. Try going to <z-link>$allChannelsPageTitle</z-link> and joining some of them.';
+  }
 
   @override
   String get sharePageTitle => 'Share';

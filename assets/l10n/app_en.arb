@@ -72,6 +72,18 @@
   "@chooseAccountButtonAddAnAccount": {
     "description": "Label for ChooseAccountPage button to add an account"
   },
+  "navButtonAllChannels": "All channels",
+  "@navButtonAllChannels": {
+    "description": "Title for a nav button that opens the 'All channels' page."
+  },
+  "allChannelsPageTitle": "All channels",
+  "@allChannelsPageTitle": {
+    "description": "Title for the 'All channels' page."
+  },
+  "allChannelsEmptyPlaceholder": "There are no channels you can view in this organization.",
+  "@allChannelsEmptyPlaceholder": {
+    "description": "Centered text on the 'All channels' page saying that there is no content to show."
+  },
   "profileButtonSendDirectMessage": "Send direct message",
   "@profileButtonSendDirectMessage": {
     "description": "Label for button in profile screen to navigate to DMs with the shown user."
@@ -1077,6 +1089,13 @@
   "channelsEmptyPlaceholder": "You’re not subscribed to any channels yet.",
   "@channelsEmptyPlaceholder": {
     "description": "Centered text on the 'Channels' page saying that there is no content to show."
+  },
+  "channelsEmptyPlaceholderWithAllChannelsLink": "You’re not subscribed to any channels yet. Try going to <z-link>{allChannelsPageTitle}</z-link> and joining some of them.",
+  "@channelsEmptyPlaceholderWithAllChannelsLink": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show, with a link to 'All channels'.",
+    "placeholders": {
+      "allChannelsPageTitle": {"type": "String", "example": "All channels"}
+    }
   },
   "sharePageTitle": "Share",
   "@sharePageTitle": {

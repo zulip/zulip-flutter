@@ -222,6 +222,14 @@ final UserGroup nobodyGroup = userGroup(
   members: [], directSubgroupIds: [],
 );
 
+GroupSettingValueNameless groupSetting({
+  List<int>? members,
+  List<int>? subgroups,
+}) => GroupSettingValueNameless(
+  directMembers: members ?? [],
+  directSubgroups: subgroups ?? [],
+);
+
 RealmEmojiItem realmEmojiItem({
   required String emojiCode,
   required String emojiName,

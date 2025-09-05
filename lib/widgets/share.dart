@@ -192,6 +192,7 @@ class SharePage extends StatelessWidget {
           SubscriptionListPageBody(
             showTopicListButtonInActionSheet: false,
             hideChannelsIfUserCantPost: true,
+            allowGoToAllChannels: false,
             onChannelSelect: (narrow) => _handleNarrowSelect(context, narrow),
             // TODO(#412) add onTopicSelect, Currently when user lands on the
             //   channel feed page from subscription list page and they tap

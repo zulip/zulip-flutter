@@ -239,6 +239,24 @@ abstract class ZulipLocalizations {
   /// **'Add an account'**
   String get chooseAccountButtonAddAnAccount;
 
+  /// Title for a nav button that opens the 'All channels' page.
+  ///
+  /// In en, this message translates to:
+  /// **'All channels'**
+  String get navButtonAllChannels;
+
+  /// Title for the 'All channels' page.
+  ///
+  /// In en, this message translates to:
+  /// **'All channels'**
+  String get allChannelsPageTitle;
+
+  /// Centered text on the 'All channels' page saying that there is no content to show.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no channels you can view in this organization.'**
+  String get allChannelsEmptyPlaceholder;
+
   /// Label for button in profile screen to navigate to DMs with the shown user.
   ///
   /// In en, this message translates to:
@@ -1590,6 +1608,14 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'You’re not subscribed to any channels yet.'**
   String get channelsEmptyPlaceholder;
+
+  /// Centered text on the 'Channels' page saying that there is no content to show, with a link to 'All channels'.
+  ///
+  /// In en, this message translates to:
+  /// **'You’re not subscribed to any channels yet. Try going to <z-link>{allChannelsPageTitle}</z-link> and joining some of them.'**
+  String channelsEmptyPlaceholderWithAllChannelsLink(
+    String allChannelsPageTitle,
+  );
 
   /// Title for the page about sharing content received from other apps.
   ///

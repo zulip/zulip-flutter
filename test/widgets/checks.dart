@@ -1,9 +1,12 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/widgets.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/realm.dart';
 
 import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/widgets/all_channels.dart';
+import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
@@ -101,4 +104,12 @@ extension UnicodeEmojiWidgetChecks on Subject<UnicodeEmojiWidget> {
 
 extension EmojiPickerListEntryChecks on Subject<EmojiPickerListEntry> {
   Subject<EmojiCandidate> get emoji => has((x) => x.emoji, 'emoji');
+}
+
+extension AllChannelsListEntryChecks on Subject<AllChannelsListEntry> {
+  Subject<ZulipStream> get channel => has((x) => x.channel, 'channel');
+}
+
+extension ToggleChecks on Subject<Toggle> {
+  Subject<bool> get value => has((x) => x.value, 'value');
 }
