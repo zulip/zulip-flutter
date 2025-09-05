@@ -81,6 +81,18 @@ InitialSnapshot _$InitialSnapshotFromJson(
   userTopics: (json['user_topics'] as List<dynamic>?)
       ?.map((e) => UserTopicItem.fromJson(e as Map<String, dynamic>))
       .toList(),
+  realmCanDeleteAnyMessageGroup:
+      json['realm_can_delete_any_message_group'] == null
+      ? null
+      : GroupSettingValue.fromJson(json['realm_can_delete_any_message_group']),
+  realmCanDeleteOwnMessageGroup:
+      json['realm_can_delete_own_message_group'] == null
+      ? null
+      : GroupSettingValue.fromJson(json['realm_can_delete_own_message_group']),
+  realmDeleteOwnMessagePolicy: $enumDecodeNullable(
+    _$RealmDeleteOwnMessagePolicyEnumMap,
+    json['realm_delete_own_message_policy'],
+  ),
   realmWildcardMentionPolicy: $enumDecode(
     _$RealmWildcardMentionPolicyEnumMap,
     json['realm_wildcard_mention_policy'],
@@ -88,6 +100,8 @@ InitialSnapshot _$InitialSnapshotFromJson(
   realmMandatoryTopics: json['realm_mandatory_topics'] as bool,
   realmWaitingPeriodThreshold: (json['realm_waiting_period_threshold'] as num)
       .toInt(),
+  realmMessageContentDeleteLimitSeconds:
+      (json['realm_message_content_delete_limit_seconds'] as num?)?.toInt(),
   realmAllowMessageEditing: json['realm_allow_message_editing'] as bool,
   realmMessageContentEditLimitSeconds:
       (json['realm_message_content_edit_limit_seconds'] as num?)?.toInt(),
@@ -157,9 +171,14 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'user_status': instance.userStatuses.map((k, e) => MapEntry(k.toString(), e)),
   'user_settings': instance.userSettings,
   'user_topics': instance.userTopics,
+  'realm_can_delete_any_message_group': instance.realmCanDeleteAnyMessageGroup,
+  'realm_can_delete_own_message_group': instance.realmCanDeleteOwnMessageGroup,
+  'realm_delete_own_message_policy': instance.realmDeleteOwnMessagePolicy,
   'realm_wildcard_mention_policy': instance.realmWildcardMentionPolicy,
   'realm_mandatory_topics': instance.realmMandatoryTopics,
   'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
+  'realm_message_content_delete_limit_seconds':
+      instance.realmMessageContentDeleteLimitSeconds,
   'realm_allow_message_editing': instance.realmAllowMessageEditing,
   'realm_message_content_edit_limit_seconds':
       instance.realmMessageContentEditLimitSeconds,
@@ -172,6 +191,14 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'realm_users': instance.realmUsers,
   'realm_non_active_users': instance.realmNonActiveUsers,
   'cross_realm_bots': instance.crossRealmBots,
+};
+
+const _$RealmDeleteOwnMessagePolicyEnumMap = {
+  RealmDeleteOwnMessagePolicy.members: 1,
+  RealmDeleteOwnMessagePolicy.admins: 2,
+  RealmDeleteOwnMessagePolicy.fullMembers: 3,
+  RealmDeleteOwnMessagePolicy.moderators: 4,
+  RealmDeleteOwnMessagePolicy.everyone: 5,
 };
 
 const _$RealmWildcardMentionPolicyEnumMap = {

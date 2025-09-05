@@ -627,6 +627,7 @@ class ZulipStream {
 
   final int streamId;
   String name;
+  bool? isArchived; // TODO(server-10)
   String description;
   String renderedDescription;
 
@@ -642,6 +643,8 @@ class ZulipStream {
   // final bool isAnnouncementOnly; // deprecated for `channelPostPolicy`; ignore
 
   GroupSettingValue? canAddSubscribersGroup; // TODO(server-10)
+  GroupSettingValue? canDeleteAnyMessageGroup; // TODO(server-11)
+  GroupSettingValue? canDeleteOwnMessageGroup; // TODO(server-11)
   GroupSettingValue? canSubscribeGroup; // TODO(server-10)
 
   // TODO(server-8): added in FL 199, was previously only on [Subscription] objects
@@ -660,6 +663,8 @@ class ZulipStream {
     required this.messageRetentionDays,
     required this.channelPostPolicy,
     required this.canAddSubscribersGroup,
+    required this.canDeleteAnyMessageGroup,
+    required this.canDeleteOwnMessageGroup,
     required this.canSubscribeGroup,
     required this.streamWeeklyTraffic,
   });
@@ -679,6 +684,8 @@ class ZulipStream {
       messageRetentionDays: subscription.messageRetentionDays,
       channelPostPolicy: subscription.channelPostPolicy,
       canAddSubscribersGroup: subscription.canAddSubscribersGroup,
+      canDeleteAnyMessageGroup: subscription.canDeleteAnyMessageGroup,
+      canDeleteOwnMessageGroup: subscription.canDeleteOwnMessageGroup,
       canSubscribeGroup: subscription.canSubscribeGroup,
       streamWeeklyTraffic: subscription.streamWeeklyTraffic,
     );
@@ -700,6 +707,7 @@ class ZulipStream {
 enum ChannelPropertyName {
   // streamId is immutable
   name,
+  isArchived,
   description,
   // renderedDescription is updated via its own [ChannelUpdateEvent] field
   // dateCreated is immutable
@@ -711,6 +719,8 @@ enum ChannelPropertyName {
   @JsonValue('stream_post_policy')
   channelPostPolicy,
   canAddSubscribersGroup,
+  canDeleteAnyMessageGroup,
+  canDeleteOwnMessageGroup,
   canSubscribeGroup,
   streamWeeklyTraffic;
 
@@ -792,6 +802,8 @@ class Subscription extends ZulipStream {
     required super.messageRetentionDays,
     required super.channelPostPolicy,
     required super.canAddSubscribersGroup,
+    required super.canDeleteAnyMessageGroup,
+    required super.canDeleteOwnMessageGroup,
     required super.canSubscribeGroup,
     required super.streamWeeklyTraffic,
     required this.desktopNotifications,

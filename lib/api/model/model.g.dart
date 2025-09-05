@@ -253,16 +253,23 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
   canAddSubscribersGroup: json['can_add_subscribers_group'] == null
       ? null
       : GroupSettingValue.fromJson(json['can_add_subscribers_group']),
+  canDeleteAnyMessageGroup: json['can_delete_any_message_group'] == null
+      ? null
+      : GroupSettingValue.fromJson(json['can_delete_any_message_group']),
+  canDeleteOwnMessageGroup: json['can_delete_own_message_group'] == null
+      ? null
+      : GroupSettingValue.fromJson(json['can_delete_own_message_group']),
   canSubscribeGroup: json['can_subscribe_group'] == null
       ? null
       : GroupSettingValue.fromJson(json['can_subscribe_group']),
   streamWeeklyTraffic: (json['stream_weekly_traffic'] as num?)?.toInt(),
-);
+)..isArchived = json['is_archived'] as bool?;
 
 Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
     <String, dynamic>{
       'stream_id': instance.streamId,
       'name': instance.name,
+      'is_archived': instance.isArchived,
       'description': instance.description,
       'rendered_description': instance.renderedDescription,
       'date_created': instance.dateCreated,
@@ -273,6 +280,8 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
       'message_retention_days': instance.messageRetentionDays,
       'stream_post_policy': instance.channelPostPolicy,
       'can_add_subscribers_group': instance.canAddSubscribersGroup,
+      'can_delete_any_message_group': instance.canDeleteAnyMessageGroup,
+      'can_delete_own_message_group': instance.canDeleteOwnMessageGroup,
       'can_subscribe_group': instance.canSubscribeGroup,
       'stream_weekly_traffic': instance.streamWeeklyTraffic,
     };
@@ -303,6 +312,12 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
   canAddSubscribersGroup: json['can_add_subscribers_group'] == null
       ? null
       : GroupSettingValue.fromJson(json['can_add_subscribers_group']),
+  canDeleteAnyMessageGroup: json['can_delete_any_message_group'] == null
+      ? null
+      : GroupSettingValue.fromJson(json['can_delete_any_message_group']),
+  canDeleteOwnMessageGroup: json['can_delete_own_message_group'] == null
+      ? null
+      : GroupSettingValue.fromJson(json['can_delete_own_message_group']),
   canSubscribeGroup: json['can_subscribe_group'] == null
       ? null
       : GroupSettingValue.fromJson(json['can_subscribe_group']),
@@ -315,12 +330,13 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
   pinToTop: json['pin_to_top'] as bool,
   isMuted: json['is_muted'] as bool,
   color: (Subscription._readColor(json, 'color') as num).toInt(),
-);
+)..isArchived = json['is_archived'] as bool?;
 
 Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
     <String, dynamic>{
       'stream_id': instance.streamId,
       'name': instance.name,
+      'is_archived': instance.isArchived,
       'description': instance.description,
       'rendered_description': instance.renderedDescription,
       'date_created': instance.dateCreated,
@@ -331,6 +347,8 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'message_retention_days': instance.messageRetentionDays,
       'stream_post_policy': instance.channelPostPolicy,
       'can_add_subscribers_group': instance.canAddSubscribersGroup,
+      'can_delete_any_message_group': instance.canDeleteAnyMessageGroup,
+      'can_delete_own_message_group': instance.canDeleteOwnMessageGroup,
       'can_subscribe_group': instance.canSubscribeGroup,
       'stream_weekly_traffic': instance.streamWeeklyTraffic,
       'desktop_notifications': instance.desktopNotifications,
@@ -486,12 +504,15 @@ const _$PresenceStatusEnumMap = {
 
 const _$ChannelPropertyNameEnumMap = {
   ChannelPropertyName.name: 'name',
+  ChannelPropertyName.isArchived: 'is_archived',
   ChannelPropertyName.description: 'description',
   ChannelPropertyName.firstMessageId: 'first_message_id',
   ChannelPropertyName.inviteOnly: 'invite_only',
   ChannelPropertyName.messageRetentionDays: 'message_retention_days',
   ChannelPropertyName.channelPostPolicy: 'stream_post_policy',
   ChannelPropertyName.canAddSubscribersGroup: 'can_add_subscribers_group',
+  ChannelPropertyName.canDeleteAnyMessageGroup: 'can_delete_any_message_group',
+  ChannelPropertyName.canDeleteOwnMessageGroup: 'can_delete_own_message_group',
   ChannelPropertyName.canSubscribeGroup: 'can_subscribe_group',
   ChannelPropertyName.streamWeeklyTraffic: 'stream_weekly_traffic',
 };
