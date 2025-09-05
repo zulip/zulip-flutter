@@ -169,13 +169,24 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
   /// The given initial snapshot will be used to initialize a corresponding
   /// [PerAccountStore] when [perAccount] is subsequently called for this
   /// account, in particular when a [PerAccountStoreWidget] is mounted.
-  Future<void> add(Account account, InitialSnapshot initialSnapshot) async {
+  ///
+  /// By default, [setLastVisitedAccount] is called for the account.
+  /// Pass false for [markLastVisited] to skip that.
+  Future<void> add(
+    Account account,
+    InitialSnapshot initialSnapshot, {
+    bool markLastVisited = true,
+  }) async {
     assert(initialSnapshot.zulipVersion == account.zulipVersion);
     assert(initialSnapshot.zulipMergeBase == account.zulipMergeBase);
     assert(initialSnapshot.zulipFeatureLevel == account.zulipFeatureLevel);
     await insertAccount(account.toCompanion(false));
     assert(!_initialSnapshots.containsKey(account.id));
     _initialSnapshots[account.id] = initialSnapshot;
+
+    if (markLastVisited) {
+      await setLastVisitedAccount(account.id);
+    }
   }
 
   Duration? loadPerAccountDuration;

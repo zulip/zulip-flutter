@@ -164,7 +164,7 @@ class AppDatabase extends _$AppDatabase {
   //    information on using the build_runner.
   //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 10; // See note.
+  static const int latestSchemaVersion = 11; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -238,6 +238,26 @@ class AppDatabase extends _$AppDatabase {
     },
     from9To10: (m, schema) async {
       await m.createTable(schema.intGlobalSettings);
+    },
+    from10To11: (Migrator m, Schema11 schema) async {
+      // To provide a smooth experience for users when they first install a new
+      // version of the app with support for the "last visited account" feature,
+      // we set the first available account as the last visited one. This way,
+      // the user is still taken straight to the first account, just as they
+      // were used to before, instead of being shown the "choose account" page.
+      final firstAccountId = await (m.database.selectOnly(schema.accounts)
+        ..addColumns([schema.accounts.id])
+        ..limit(1)
+      ).map((row) => row.read(schema.accounts.id)).getSingleOrNull();
+      if (firstAccountId == null) return;
+
+      // Like `globalStore.setLastVisitedAccount(firstAccountId)`,
+      // as of the schema at the time of this migration.
+      await m.database.into(schema.intGlobalSettings).insert(
+        RawValuesInsertable({
+          'name': Variable('lastVisitedAccountId'),
+          'value': Variable(firstAccountId),
+        }));
     },
   );
 

@@ -229,6 +229,16 @@ enum IntGlobalSetting {
   /// (This is also handy to use in tests.)
   placeholderIgnore,
 
+  /// A pseudo-setting recording the id of the account the user has visited most
+  /// recently, from the list of all the available accounts on the device.
+  ///
+  /// In some cases, this may point to an account that doesn't actually exist on
+  /// the device, for example, when the last visited account is logged out and
+  /// another account is not visited during the same running session. For cases
+  /// like these, it's the responsibility of the code that reads this value to
+  /// check for the availability of the account that corresponds to this id.
+  lastVisitedAccountId,
+
   // Former settings which might exist in the database,
   // whose names should therefore not be reused:
   // (this list is empty so far)

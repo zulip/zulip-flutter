@@ -319,6 +319,27 @@ void main() {
         ..page.isA<HomePage>();
     });
 
+    testWidgets('choosing an account changes the last visited account', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.add(
+        eg.otherAccount, eg.initialSnapshot(realmUsers: [eg.otherUser]),
+        markLastVisited: false);
+
+      await tester.pumpWidget(ZulipApp());
+      await tester.pump();
+
+      final navigator = await ZulipApp.navigator;
+      unawaited(navigator.push(MaterialWidgetRoute(page: const ChooseAccountPage())));
+      await tester.pump();
+      await tester.pump();
+
+      check(testBinding.globalStore).lastVisitedAccount.equals(eg.selfAccount);
+      await tester.tap(find.text(eg.otherAccount.email));
+      await tester.pump();
+      check(testBinding.globalStore).lastVisitedAccount.equals(eg.otherAccount);
+    });
+
     group('log out', () {
       Future<(Widget, Widget)> prepare(WidgetTester tester, {required Account account}) async {
         await setupChooseAccountPage(tester, accounts: [account]);

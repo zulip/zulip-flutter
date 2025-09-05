@@ -13,6 +13,8 @@ import 'schemas/schema_v2.dart' as v2;
 import 'schemas/schema_v3.dart' as v3;
 import 'schemas/schema_v4.dart' as v4;
 import 'schemas/schema_v5.dart' as v5;
+import 'schemas/schema_v10.dart' as v10;
+import 'schemas/schema_v11.dart' as v11;
 import 'store_checks.dart';
 
 void main() {
@@ -400,6 +402,58 @@ void main() {
     });
 
     // TODO(#1593) test upgrade to v9: legacyUpgradeState set to noLegacy
+
+    test('upgrade to v11: with accounts available, '
+        'insert first account ID as the last-visited account ID', () async {
+      final schema = await verifier.schemaAt(10);
+      final before = v10.DatabaseAtV10(schema.newConnection());
+      final firstAccountId = await before.into(before.accounts).insert(
+        v10.AccountsCompanion.insert(
+          realmUrl: 'https://chat.example/',
+          userId: 1,
+          email: 'asdf@example.org',
+          apiKey: '1234',
+          zulipVersion: '10.0',
+          zulipMergeBase: const Value('10.0'),
+          zulipFeatureLevel: 370,
+        ));
+      await before.into(before.accounts).insert(
+        v10.AccountsCompanion.insert(
+          realmUrl: 'https://example.com/',
+          userId: 2,
+          email: 'jkl@example.com',
+          apiKey: '4321',
+          zulipVersion: '11.0',
+          zulipMergeBase: const Value('11.0'),
+          zulipFeatureLevel: 420,
+        ));
+      await before.close();
+
+      final db = AppDatabase(schema.newConnection());
+      await verifier.migrateAndValidate(db, 11);
+      await db.close();
+
+      final after = v11.DatabaseAtV11(schema.newConnection());
+      final intGlobalSettings = await after.select(after.intGlobalSettings).getSingle();
+      check(intGlobalSettings.name).equals(IntGlobalSetting.lastVisitedAccountId.name);
+      check(intGlobalSettings.value).equals(firstAccountId);
+      await after.close();
+    });
+
+    test("upgrade to v11: with no accounts available, don't set last-visited account ID", () async {
+      final schema = await verifier.schemaAt(10);
+      final before = v10.DatabaseAtV10(schema.newConnection());
+      check(await before.select(before.accounts).get()).isEmpty();
+      await before.close();
+
+      final db = AppDatabase(schema.newConnection());
+      await verifier.migrateAndValidate(db, 11);
+      await db.close();
+
+      final after = v11.DatabaseAtV11(schema.newConnection());
+      check(await after.select(after.intGlobalSettings).get()).isEmpty();
+      await after.close();
+    });
   });
 }
 

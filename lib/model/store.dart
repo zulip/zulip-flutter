@@ -269,6 +269,18 @@ abstract class GlobalStore extends ChangeNotifier {
 
   Account? getAccount(int id) => _accounts[id];
 
+  Account? get lastVisitedAccount {
+    final id = settings.getInt(IntGlobalSetting.lastVisitedAccountId);
+    if (id == null) return null; // No account has been visited yet.
+
+    // (Will be null if `id` refers to an account that has been logged out.)
+    return getAccount(id);
+  }
+
+  Future<void> setLastVisitedAccount(int accountId) {
+    return settings.setInt(IntGlobalSetting.lastVisitedAccountId, accountId);
+  }
+
   /// Add an account to the store, returning its assigned account ID.
   Future<int> insertAccount(AccountsCompanion data) async {
     final account = await doInsertAccount(data);

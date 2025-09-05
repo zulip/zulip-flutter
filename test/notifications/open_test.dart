@@ -20,6 +20,7 @@ import 'package:zulip/widgets/page.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../model/narrow_checks.dart';
+import '../model/store_checks.dart';
 import '../stdlib_checks.dart';
 import '../test_navigation.dart';
 import '../widgets/checks.dart';
@@ -326,6 +327,44 @@ void main() {
       takeHomePageRouteForAccount(accountB.id); // because associated account
       matchesNavigation(check(pushedRoutes).single, accountB, message);
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+
+    group('changes last visited account', () {
+      testWidgets('app already opened, then notification is opened', (tester) async {
+        addTearDown(testBinding.reset);
+        await testBinding.globalStore.add(
+          eg.selfAccount, eg.initialSnapshot(realmUsers: [eg.selfUser]));
+        await testBinding.globalStore.add(
+          eg.otherAccount, eg.initialSnapshot(realmUsers: [eg.otherUser]),
+          markLastVisited: false);
+        await prepare(tester);
+        check(testBinding.globalStore).lastVisitedAccount.equals(eg.selfAccount);
+
+        await checkOpenNotification(tester, eg.otherAccount, eg.streamMessage());
+        check(testBinding.globalStore).lastVisitedAccount.equals(eg.otherAccount);
+      }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+
+      testWidgets('app is opened through notification', (tester) async {
+        addTearDown(testBinding.reset);
+
+        final accountA = eg.selfAccount;
+        final accountB = eg.otherAccount;
+        final message = eg.streamMessage();
+        await testBinding.globalStore.add(accountA, eg.initialSnapshot());
+        await testBinding.globalStore.add(
+          accountB, eg.initialSnapshot(realmUsers: [eg.otherUser]),
+          markLastVisited: false);
+        check(testBinding.globalStore).lastVisitedAccount.equals(accountA);
+        setupNotificationDataForLaunch(tester, accountB, message);
+
+        await prepare(tester, early: true);
+        check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
+
+        await tester.pump();
+        takeHomePageRouteForAccount(accountB.id); // because associated account
+        matchesNavigation(check(pushedRoutes).single, accountB, message);
+        check(testBinding.globalStore).lastVisitedAccount.equals(accountB);
+      }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+    });
   });
 
   group('NotificationOpenPayload', () {
