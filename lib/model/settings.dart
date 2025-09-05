@@ -203,6 +203,45 @@ enum BoolGlobalSetting {
   };
 }
 
+/// An int-valued, account-independent setting the user might set.
+///
+/// These are recorded in the table [IntGlobalSettings].
+/// To read the value of one of these settings, use [GlobalSettingsStore.getInt];
+/// to set the value, use [GlobalSettingsStore.setInt].
+///
+/// To introduce a new setting, add a value to this enum.
+/// Avoid re-using any old names found in the "former settings" list.
+///
+/// To remove a setting, comment it out and move to the "former settings" list.
+/// Tracking the names of settings that formerly existed is important because
+/// they may still appear in users' databases, which means that if we were to
+/// accidentally reuse one for an unrelated new setting then users would
+/// unwittingly get those values applied to the new setting,
+/// which could cause very confusing buggy behavior.
+///
+/// (If the list of former settings gets long, we could do a migration to clear
+/// them from existing installs, and then drop the list.  We don't do that
+/// eagerly each time, to avoid creating a new schema version each time we
+/// finish an experimental feature.)
+enum IntGlobalSetting {
+  /// A non-setting to ensure this enum has at least one value.
+  ///
+  /// (This is also handy to use in tests.)
+  placeholderIgnore,
+
+  // Former settings which might exist in the database,
+  // whose names should therefore not be reused:
+  // (this list is empty so far)
+  ;
+
+  static IntGlobalSetting? byName(String name) => _byName[name];
+
+  static final Map<String, IntGlobalSetting> _byName = {
+    for (final v in values)
+      v.name: v,
+  };
+}
+
 /// Store for the user's account-independent settings.
 ///
 /// From UI code, use [GlobalStoreWidget.settingsOf] to get hold of
@@ -212,7 +251,8 @@ class GlobalSettingsStore extends ChangeNotifier {
     required GlobalStoreBackend backend,
     required GlobalSettingsData data,
     required Map<BoolGlobalSetting, bool> boolData,
-  }) : _backend = backend, _data = data, _boolData = boolData;
+    required Map<IntGlobalSetting, int> intData,
+  }) : _backend = backend, _data = data, _boolData = boolData, _intData = intData;
 
   static final List<BoolGlobalSetting> experimentalFeatureFlags =
     BoolGlobalSetting.values.where((setting) =>
@@ -388,6 +428,37 @@ class GlobalSettingsStore extends ChangeNotifier {
       _boolData.remove(setting);
     } else {
       _boolData[setting] = value;
+    }
+    notifyListeners();
+  }
+
+  /// The user's choice of the given int-valued setting, or null if not set.
+  ///
+  /// See also [setInt].
+  int? getInt(IntGlobalSetting setting) {
+    return _intData[setting];
+  }
+
+  /// A cache of the [IntGlobalSettings] table in the underlying data store.
+  final Map<IntGlobalSetting, int> _intData;
+
+  /// Set or unset the given int-valued setting,
+  /// persistently for future runs of the app.
+  ///
+  /// A value of null means the setting will be cleared out.
+  ///
+  /// If [value] equals the setting's current value, the database operation
+  /// and [notifyListeners] are skipped.
+  ///
+  /// See also [getInt].
+  Future<void> setInt(IntGlobalSetting setting, int? value) async {
+    if (value == _intData[setting]) return;
+
+    await _backend.doSetIntGlobalSetting(setting, value);
+    if (value == null) {
+      _intData.remove(setting);
+    } else {
+      _intData[setting] = value;
     }
     notifyListeners();
   }

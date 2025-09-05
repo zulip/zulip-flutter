@@ -36,6 +36,7 @@ extension GlobalSettingsStoreChecks on Subject<GlobalSettingsStore> {
   Subject<VisitFirstUnreadSetting> get visitFirstUnread => has((x) => x.visitFirstUnread, 'visitFirstUnread');
   Subject<MarkReadOnScrollSetting> get markReadOnScroll => has((x) => x.markReadOnScroll, 'markReadOnScroll');
   Subject<bool> getBool(BoolGlobalSetting setting) => has((x) => x.getBool(setting), 'getBool(${setting.name}');
+  Subject<int?> getInt(IntGlobalSetting setting) => has((x) => x.getInt(setting), 'getInt(${setting.name}');
 }
 
 extension GlobalStoreChecks on Subject<GlobalStore> {

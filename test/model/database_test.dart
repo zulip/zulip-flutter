@@ -116,6 +116,74 @@ void main() {
       });
     });
 
+    group('IntGlobalSettings', () {
+      test('get ignores unknown names', () async {
+        await db.into(db.intGlobalSettings)
+          .insert(IntGlobalSettingRow(name: 'nonsense', value: 1));
+        check(await db.getIntGlobalSettings()).isEmpty();
+
+        final setting = IntGlobalSetting.placeholderIgnore;
+        await db.into(db.intGlobalSettings)
+          .insert(IntGlobalSettingRow(name: setting.name, value: 1));
+        check(await db.getIntGlobalSettings())
+          .deepEquals({setting: 1});
+      });
+
+      test('insert, then get', () async {
+        check(await db.getIntGlobalSettings()).isEmpty();
+
+        // As in doSetIntGlobalSetting for `value` non-null.
+        final setting = IntGlobalSetting.placeholderIgnore;
+        await db.into(db.intGlobalSettings).insertOnConflictUpdate(
+          IntGlobalSettingRow(name: setting.name, value: 1));
+        check(await db.getIntGlobalSettings())
+          .deepEquals({setting: 1});
+        check(await db.select(db.intGlobalSettings).get()).length.equals(1);
+      });
+
+      test('delete, then get', () async {
+        final setting = IntGlobalSetting.placeholderIgnore;
+        await db.into(db.intGlobalSettings).insertOnConflictUpdate(
+          IntGlobalSettingRow(name: setting.name, value: 1));
+        check(await db.getIntGlobalSettings()).deepEquals({setting: 1});
+
+        // As in doSetIntGlobalSetting for `value` null.
+        final query = db.delete(db.intGlobalSettings)
+          ..where((r) => r.name.equals(setting.name));
+        await query.go();
+        check(await db.getIntGlobalSettings()).isEmpty();
+        check(await db.select(db.intGlobalSettings).get()).isEmpty();
+      });
+
+      test('insert replaces', () async {
+        final setting = IntGlobalSetting.placeholderIgnore;
+        await db.into(db.intGlobalSettings).insertOnConflictUpdate(
+          IntGlobalSettingRow(name: setting.name, value: 1));
+        check(await db.getIntGlobalSettings())
+          .deepEquals({setting: 1});
+
+        // As in doSetIntGlobalSetting for `value` non-null.
+        await db.into(db.intGlobalSettings).insertOnConflictUpdate(
+          IntGlobalSettingRow(name: setting.name, value: 2));
+        check(await db.getIntGlobalSettings())
+          .deepEquals({setting: 2});
+        check(await db.select(db.intGlobalSettings).get()).length.equals(1);
+      });
+
+      test('delete is idempotent', () async {
+        check(await db.getIntGlobalSettings()).isEmpty();
+
+        // As in doSetIntGlobalSetting for `value` null.
+        final setting = IntGlobalSetting.placeholderIgnore;
+        final query = db.delete(db.intGlobalSettings)
+          ..where((r) => r.name.equals(setting.name));
+        await query.go();
+        // (No error occurred, even though there was nothing to delete.)
+        check(await db.getIntGlobalSettings()).isEmpty();
+        check(await db.select(db.intGlobalSettings).get()).isEmpty();
+      });
+    });
+
     test('create account', () async {
       final accountData = AccountsCompanion.insert(
         realmUrl: Uri.parse('https://chat.example/'),

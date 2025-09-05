@@ -57,6 +57,11 @@ abstract class GlobalStoreBackend {
   /// This should only be called from [GlobalSettingsStore].
   Future<void> doSetBoolGlobalSetting(BoolGlobalSetting setting, bool? value);
 
+  /// Set or unset the given int-valued setting in the underlying data store.
+  ///
+  /// This should only be called from [GlobalSettingsStore].
+  Future<void> doSetIntGlobalSetting(IntGlobalSetting setting, int? value);
+
   // TODO move here the similar methods for accounts;
   //   perhaps the rest of the GlobalStore abstract methods, too.
 }
@@ -82,10 +87,11 @@ abstract class GlobalStore extends ChangeNotifier {
     required GlobalStoreBackend backend,
     required GlobalSettingsData globalSettings,
     required Map<BoolGlobalSetting, bool> boolGlobalSettings,
+    required Map<IntGlobalSetting, int> intGlobalSettings,
     required Iterable<Account> accounts,
   })
     : settings = GlobalSettingsStore(backend: backend,
-        data: globalSettings, boolData: boolGlobalSettings),
+        data: globalSettings, boolData: boolGlobalSettings, intData: intGlobalSettings),
       _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
 
   /// The store for the user's account-independent settings.
@@ -885,6 +891,18 @@ class LiveGlobalStoreBackend implements GlobalStoreBackend {
         BoolGlobalSettingRow(name: setting.name, value: value));
     }
   }
+
+  @override
+  Future<void> doSetIntGlobalSetting(IntGlobalSetting setting, int? value) async {
+    if (value == null) {
+      await (_db.delete(_db.intGlobalSettings)
+        ..where((r) => r.name.equals(setting.name))
+      ).go();
+    } else {
+      await _db.into(_db.intGlobalSettings).insertOnConflictUpdate(
+        IntGlobalSettingRow(name: setting.name, value: value));
+    }
+  }
 }
 
 /// A [GlobalStore] that uses a live server and live, persistent local database.
@@ -899,6 +917,7 @@ class LiveGlobalStore extends GlobalStore {
     required LiveGlobalStoreBackend backend,
     required super.globalSettings,
     required super.boolGlobalSettings,
+    required super.intGlobalSettings,
     required super.accounts,
   }) : _backend = backend,
        super(backend: backend);
@@ -929,20 +948,23 @@ class LiveGlobalStore extends GlobalStore {
     final t2 = stopwatch.elapsed;
     final boolGlobalSettings = await db.getBoolGlobalSettings();
     final t3 = stopwatch.elapsed;
-    final accounts = await db.select(db.accounts).get();
+    final intGlobalSettings = await db.getIntGlobalSettings();
     final t4 = stopwatch.elapsed;
+    final accounts = await db.select(db.accounts).get();
+    final t5 = stopwatch.elapsed;
     if (kProfileMode) {
       String format(Duration d) =>
         "${(d.inMicroseconds / 1000.0).toStringAsFixed(1)}ms";
-      profilePrint("db load time ${format(t4)} total: ${format(t1)} init, "
+      profilePrint("db load time ${format(t5)} total: ${format(t1)} init, "
         "${format(t2 - t1)} settings, ${format(t3 - t2)} bool-settings, "
-        "${format(t4 - t3)} accounts");
+        "${format(t4 - t3)} int-settings, ${format(t5 - t4)} accounts");
     }
 
     return LiveGlobalStore._(
       backend: LiveGlobalStoreBackend._(db: db),
       globalSettings: globalSettings,
       boolGlobalSettings: boolGlobalSettings,
+      intGlobalSettings: intGlobalSettings,
       accounts: accounts);
   }
 

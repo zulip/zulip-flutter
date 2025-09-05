@@ -73,6 +73,11 @@ class _TestGlobalStoreBackend implements GlobalStoreBackend {
   Future<void> doSetBoolGlobalSetting(BoolGlobalSetting setting, bool? value) async {
     // Nothing to do.
   }
+
+  @override
+  Future<void> doSetIntGlobalSetting(IntGlobalSetting setting, int? value) async {
+    // Nothing to do.
+  }
 }
 
 mixin _DatabaseMixin on GlobalStore {
@@ -146,10 +151,12 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
   TestGlobalStore({
     GlobalSettingsData? globalSettings,
     Map<BoolGlobalSetting, bool>? boolGlobalSettings,
+    Map<IntGlobalSetting, int>? intGlobalSettings,
     required super.accounts,
   }) : super(backend: _TestGlobalStoreBackend(),
          globalSettings: globalSettings ?? GlobalSettingsData(),
          boolGlobalSettings: boolGlobalSettings ?? {},
+         intGlobalSettings: intGlobalSettings ?? {},
        );
 
   final Map<int, InitialSnapshot> _initialSnapshots = {};
@@ -214,10 +221,12 @@ class UpdateMachineTestGlobalStore extends GlobalStore with _ApiConnectionsMixin
   UpdateMachineTestGlobalStore({
     GlobalSettingsData? globalSettings,
     Map<BoolGlobalSetting, bool>? boolGlobalSettings,
+    Map<IntGlobalSetting, int>? intGlobalSettings,
     required super.accounts,
   }) : super(backend: _TestGlobalStoreBackend(),
          globalSettings: globalSettings ?? GlobalSettingsData(),
          boolGlobalSettings: boolGlobalSettings ?? {},
+         intGlobalSettings: intGlobalSettings ?? {},
        );
 
   // [doLoadPerAccount] depends on the cache to prepare the API responses.

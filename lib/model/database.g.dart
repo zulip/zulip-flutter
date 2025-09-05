@@ -708,6 +708,225 @@ class BoolGlobalSettingsCompanion
   }
 }
 
+class $IntGlobalSettingsTable extends IntGlobalSettings
+    with TableInfo<$IntGlobalSettingsTable, IntGlobalSettingRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $IntGlobalSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<int> value = GeneratedColumn<int>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [name, value];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'int_global_settings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<IntGlobalSettingRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {name};
+  @override
+  IntGlobalSettingRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return IntGlobalSettingRow(
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}value'],
+      )!,
+    );
+  }
+
+  @override
+  $IntGlobalSettingsTable createAlias(String alias) {
+    return $IntGlobalSettingsTable(attachedDatabase, alias);
+  }
+}
+
+class IntGlobalSettingRow extends DataClass
+    implements Insertable<IntGlobalSettingRow> {
+  /// The setting's name, a possible name from [IntGlobalSetting].
+  ///
+  /// The table may have rows where [name] is not the name of any
+  /// enum value in [IntGlobalSetting].
+  /// This happens if the app has previously run at a future or modified
+  /// version which had additional values in that enum,
+  /// and the user set one of those additional settings.
+  /// The app ignores any such unknown rows.
+  final String name;
+
+  /// The user's chosen value for the setting.
+  final int value;
+  const IntGlobalSettingRow({required this.name, required this.value});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['name'] = Variable<String>(name);
+    map['value'] = Variable<int>(value);
+    return map;
+  }
+
+  IntGlobalSettingsCompanion toCompanion(bool nullToAbsent) {
+    return IntGlobalSettingsCompanion(name: Value(name), value: Value(value));
+  }
+
+  factory IntGlobalSettingRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return IntGlobalSettingRow(
+      name: serializer.fromJson<String>(json['name']),
+      value: serializer.fromJson<int>(json['value']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'name': serializer.toJson<String>(name),
+      'value': serializer.toJson<int>(value),
+    };
+  }
+
+  IntGlobalSettingRow copyWith({String? name, int? value}) =>
+      IntGlobalSettingRow(name: name ?? this.name, value: value ?? this.value);
+  IntGlobalSettingRow copyWithCompanion(IntGlobalSettingsCompanion data) {
+    return IntGlobalSettingRow(
+      name: data.name.present ? data.name.value : this.name,
+      value: data.value.present ? data.value.value : this.value,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('IntGlobalSettingRow(')
+          ..write('name: $name, ')
+          ..write('value: $value')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(name, value);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is IntGlobalSettingRow &&
+          other.name == this.name &&
+          other.value == this.value);
+}
+
+class IntGlobalSettingsCompanion extends UpdateCompanion<IntGlobalSettingRow> {
+  final Value<String> name;
+  final Value<int> value;
+  final Value<int> rowid;
+  const IntGlobalSettingsCompanion({
+    this.name = const Value.absent(),
+    this.value = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  IntGlobalSettingsCompanion.insert({
+    required String name,
+    required int value,
+    this.rowid = const Value.absent(),
+  }) : name = Value(name),
+       value = Value(value);
+  static Insertable<IntGlobalSettingRow> custom({
+    Expression<String>? name,
+    Expression<int>? value,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (name != null) 'name': name,
+      if (value != null) 'value': value,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  IntGlobalSettingsCompanion copyWith({
+    Value<String>? name,
+    Value<int>? value,
+    Value<int>? rowid,
+  }) {
+    return IntGlobalSettingsCompanion(
+      name: name ?? this.name,
+      value: value ?? this.value,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<int>(value.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('IntGlobalSettingsCompanion(')
+          ..write('name: $name, ')
+          ..write('value: $value, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -1303,6 +1522,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $GlobalSettingsTable globalSettings = $GlobalSettingsTable(this);
   late final $BoolGlobalSettingsTable boolGlobalSettings =
       $BoolGlobalSettingsTable(this);
+  late final $IntGlobalSettingsTable intGlobalSettings =
+      $IntGlobalSettingsTable(this);
   late final $AccountsTable accounts = $AccountsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -1311,6 +1532,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     globalSettings,
     boolGlobalSettings,
+    intGlobalSettings,
     accounts,
   ];
 }
@@ -1717,6 +1939,162 @@ typedef $$BoolGlobalSettingsTableProcessedTableManager =
       BoolGlobalSettingRow,
       PrefetchHooks Function()
     >;
+typedef $$IntGlobalSettingsTableCreateCompanionBuilder =
+    IntGlobalSettingsCompanion Function({
+      required String name,
+      required int value,
+      Value<int> rowid,
+    });
+typedef $$IntGlobalSettingsTableUpdateCompanionBuilder =
+    IntGlobalSettingsCompanion Function({
+      Value<String> name,
+      Value<int> value,
+      Value<int> rowid,
+    });
+
+class $$IntGlobalSettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $IntGlobalSettingsTable> {
+  $$IntGlobalSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$IntGlobalSettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $IntGlobalSettingsTable> {
+  $$IntGlobalSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$IntGlobalSettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $IntGlobalSettingsTable> {
+  $$IntGlobalSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+}
+
+class $$IntGlobalSettingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $IntGlobalSettingsTable,
+          IntGlobalSettingRow,
+          $$IntGlobalSettingsTableFilterComposer,
+          $$IntGlobalSettingsTableOrderingComposer,
+          $$IntGlobalSettingsTableAnnotationComposer,
+          $$IntGlobalSettingsTableCreateCompanionBuilder,
+          $$IntGlobalSettingsTableUpdateCompanionBuilder,
+          (
+            IntGlobalSettingRow,
+            BaseReferences<
+              _$AppDatabase,
+              $IntGlobalSettingsTable,
+              IntGlobalSettingRow
+            >,
+          ),
+          IntGlobalSettingRow,
+          PrefetchHooks Function()
+        > {
+  $$IntGlobalSettingsTableTableManager(
+    _$AppDatabase db,
+    $IntGlobalSettingsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$IntGlobalSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$IntGlobalSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$IntGlobalSettingsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> name = const Value.absent(),
+                Value<int> value = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => IntGlobalSettingsCompanion(
+                name: name,
+                value: value,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String name,
+                required int value,
+                Value<int> rowid = const Value.absent(),
+              }) => IntGlobalSettingsCompanion.insert(
+                name: name,
+                value: value,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$IntGlobalSettingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $IntGlobalSettingsTable,
+      IntGlobalSettingRow,
+      $$IntGlobalSettingsTableFilterComposer,
+      $$IntGlobalSettingsTableOrderingComposer,
+      $$IntGlobalSettingsTableAnnotationComposer,
+      $$IntGlobalSettingsTableCreateCompanionBuilder,
+      $$IntGlobalSettingsTableUpdateCompanionBuilder,
+      (
+        IntGlobalSettingRow,
+        BaseReferences<
+          _$AppDatabase,
+          $IntGlobalSettingsTable,
+          IntGlobalSettingRow
+        >,
+      ),
+      IntGlobalSettingRow,
+      PrefetchHooks Function()
+    >;
 typedef $$AccountsTableCreateCompanionBuilder =
     AccountsCompanion Function({
       Value<int> id,
@@ -1998,6 +2376,8 @@ class $AppDatabaseManager {
       $$GlobalSettingsTableTableManager(_db, _db.globalSettings);
   $$BoolGlobalSettingsTableTableManager get boolGlobalSettings =>
       $$BoolGlobalSettingsTableTableManager(_db, _db.boolGlobalSettings);
+  $$IntGlobalSettingsTableTableManager get intGlobalSettings =>
+      $$IntGlobalSettingsTableTableManager(_db, _db.intGlobalSettings);
   $$AccountsTableTableManager get accounts =>
       $$AccountsTableTableManager(_db, _db.accounts);
 }
