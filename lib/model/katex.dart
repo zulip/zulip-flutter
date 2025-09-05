@@ -258,23 +258,45 @@ class _KatexParser {
     if (vlistT.nodes.isEmpty) throw _KatexHtmlParseError();
     if (vlistT.attributes.containsKey('style')) throw _KatexHtmlParseError();
 
+    // A .vlist-t node is a CSS table; .vlist-r are rows, and
+    // .vlist and .vlist-s are cells.  See the CSS rules:
+    //   https://github.com/KaTeX/KaTeX/blob/9fb63136e/src/styles/katex.scss#L183-L231
+    //
+    // The structure of a .vlist-t node is very specific.
+    // See the code that generates it:
+    //   https://github.com/KaTeX/KaTeX/blob/9fb63136e/src/buildCommon.js#L589-L620
+    // As seen in that code, there are either two rows totalling three cells
+    // (namely [[vlist, topStrut], [depthStrut]]), or one row with one cell
+    // ([[vlist]]), where "vlist" is a .vlist node which contains all the
+    // real content of the .vlist-t.
+    //
+    // The extra cells "topStrut" and "depthStrut" are workarounds for
+    // Safari circa 2017, as seen in comments in the linked KaTeX code.
+    // When those are present, the .vlist-t node has another class `vlist-t2`,
+    // whose only effect is to cancel out part of the effect of "topStrut"
+    // (which is a .vlist-s); see the commit that added `vlist-t2`:
+    //   https://github.com/KaTeX/KaTeX/commit/766487bfe
+    // So we ignore that part of the CSS.  We ignore the rest of those
+    // two "strut" cells too, because they don't seem to have any effect
+    // in rendering on the web (in e.g. a modern Chrome, in 2025).
+
     final hasVlistT2 = vlistT.className == 'vlist-t vlist-t2';
     if (!hasVlistT2 && vlistT.nodes.length != 1) throw _KatexHtmlParseError();
     if (hasVlistT2) {
       if (vlistT.nodes case [
-        _,
+        _, // this row should have two cells [vlist, topStrut]; see details above
         dom.Element(localName: 'span', className: 'vlist-r', nodes: [
           dom.Element(localName: 'span', className: 'vlist', nodes: [
             dom.Element(localName: 'span', className: '', nodes: []),
-          ]) && final vlist,
+          ]) && final depthStrut,
         ]),
       ]) {
-        // In the generated HTML the .vlist in second .vlist-r span will have
-        // a "height" inline style which we ignore, because it doesn't seem
-        // to have any effect in rendering on the web.
-        // But also make sure there aren't any other inline styles present.
-        final vlistStyles = _parseInlineStyles(vlist);
-        if (vlistStyles != null && vlistStyles.keys.any((p) => p != 'height')) {
+        // This "depthStrut" cell will have a "height" inline style,
+        // which we ignore because it doesn't seem to have any effect in web;
+        // see detailed comment above.
+        // Make sure there aren't any other, unexpected, inline styles present.
+        final styles = _parseInlineStyles(depthStrut);
+        if (styles != null && styles.keys.any((p) => p != 'height')) {
           throw _KatexHtmlParseError();
         }
       } else {
@@ -290,11 +312,10 @@ class _KatexParser {
       if (vlistR.nodes.first
           case dom.Element(localName: 'span', className: 'vlist') &&
               final vlist) {
-        // Same as above for the second .vlist-r span, .vlist span in first
-        // .vlist-r span will have "height" inline style which we ignore,
-        // because it doesn't seem to have any effect in rendering on
-        // the web.
-        // But also make sure there aren't any other inline styles present.
+        // Same as above for the "depthStrut" node, the main "vlist" cell
+        // will have a "height" inline style which we ignore because
+        // it doesn't seem to have any effect in rendering on the web.
+        // Make sure there aren't any other, unexpected, inline styles present.
         final vlistStyles = _parseInlineStyles(vlist);
         if (vlistStyles != null && vlistStyles.keys.any((p) => p != 'height')) {
           throw _KatexHtmlParseError();
@@ -354,21 +375,6 @@ class _KatexParser {
             throw _KatexHtmlParseError();
           }
         }
-
-        // The katex.css has .vlist-t2 and .vlist-s classes for working around
-        // Safari rendering issues. In HTML the .vlist-t2 class will be present
-        // along with the .vlist-t class, and .vlist-s class will be present on
-        // an empty span in the first (of the two) .vlist-r span.
-        //
-        // The KaTeX implementation confirms that both classes are always
-        // present in tandem. And by experimenting via browser devtools and
-        // the CSS definition and, it can be confirmed that both cancel each
-        // others effect of the 2px shift.
-        // See:
-        //   https://github.com/KaTeX/KaTeX/blob/9fb63136e/src/buildCommon.js#L596-L620
-        //   https://github.com/KaTeX/KaTeX/commit/766487bfe
-        //
-        // So, we ignore these classes, as those workarounds aren't needed.
 
         return KatexVlistNode(
           rows: rows,
