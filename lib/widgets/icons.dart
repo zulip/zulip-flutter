@@ -177,20 +177,23 @@ abstract final class ZulipIcons {
   /// The Zulip custom icon "star_filled".
   static const IconData star_filled = IconData(0xf133, fontFamily: "Zulip Icons");
 
+  /// The Zulip custom icon "three_dots".
+  static const IconData three_dots = IconData(0xf134, fontFamily: "Zulip Icons");
+
   /// The Zulip custom icon "three_person".
-  static const IconData three_person = IconData(0xf134, fontFamily: "Zulip Icons");
+  static const IconData three_person = IconData(0xf135, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "topic".
-  static const IconData topic = IconData(0xf135, fontFamily: "Zulip Icons");
+  static const IconData topic = IconData(0xf136, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "topics".
-  static const IconData topics = IconData(0xf136, fontFamily: "Zulip Icons");
+  static const IconData topics = IconData(0xf137, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "two_person".
-  static const IconData two_person = IconData(0xf137, fontFamily: "Zulip Icons");
+  static const IconData two_person = IconData(0xf138, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "unmute".
-  static const IconData unmute = IconData(0xf138, fontFamily: "Zulip Icons");
+  static const IconData unmute = IconData(0xf139, fontFamily: "Zulip Icons");
 
   // END GENERATED ICON DATA
 }
