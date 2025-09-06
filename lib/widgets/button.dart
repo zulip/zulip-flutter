@@ -213,6 +213,45 @@ enum ZulipWebUiKitButtonSize {
   normal,
 }
 
+/// The "icon button" component in the Figma.
+///
+/// See Figma:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=7728-10468&m=dev
+class ZulipIconButton extends StatelessWidget {
+  const ZulipIconButton({
+    super.key,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    // Really `fg-05` from the Zulip Web UI Kit palette,
+    // but this seems at least as good as that.
+    final touchFeedbackColor = designVariables.foreground.withFadedAlpha(0.05);
+
+    return IconButton(
+      color: designVariables.icon,
+      iconSize: 24,
+      icon: Icon(icon),
+      onPressed: onPressed,
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        fixedSize: Size.square(40),
+
+        // TODO(#417): Disable splash effects for all buttons globally.
+        splashFactory: NoSplash.splashFactory,
+        highlightColor: touchFeedbackColor,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)))));
+  }
+}
+
 /// Apply [Transform.scale] to the child widget when tapped, and reset its scale
 /// when released, while animating the transitions.
 class AnimatedScaleOnTap extends StatefulWidget {
