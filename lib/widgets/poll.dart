@@ -49,13 +49,24 @@ class _PollWidgetState extends State<PollWidget> {
   }
 
   void _toggleVote(PollOption option) async {
+    final navigator = Navigator.of(context);
+
+    unawaited(showDialog(context: context,
+        barrierDismissible: false,
+        builder: (_) {
+        return Center(child: CircularProgressIndicator());
+      }
+    ));
+
     final store = PerAccountStoreWidget.of(context);
     final op = option.voters.contains(store.selfUserId)
       ? PollVoteOp.remove
       : PollVoteOp.add;
-    unawaited(sendSubmessage(store.connection, messageId: widget.messageId,
+    await(sendSubmessage(store.connection, messageId: widget.messageId,
       submessageType: SubmessageType.widget,
       content: PollVoteEventSubmessage(key: option.key, op: op)));
+
+    navigator.pop();
   }
 
   @override
