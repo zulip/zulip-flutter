@@ -526,10 +526,7 @@ class Toggle extends StatelessWidget {
 
       activeTrackColor: activeColor,
       inactiveTrackColor: inactiveColor,
-      trackOutlineColor: WidgetStateColor.fromMap({
-        WidgetState.selected: activeColor,
-        ~WidgetState.selected: inactiveColor,
-      }),
+      trackOutlineColor: WidgetStatePropertyAll(Colors.transparent),
       trackOutlineWidth: WidgetStateProperty<double>.fromMap({
         // The outline is effectively painted with strokeAlignCenter:
         //   https://api.flutter.dev/flutter/painting/BorderSide/strokeAlignCenter-constant.html
