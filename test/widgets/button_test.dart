@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:legacy_checks/legacy_checks.dart';
 import 'package:zulip/widgets/button.dart';
+import 'package:zulip/widgets/icons.dart';
 
 import '../flutter_checks.dart';
 import '../model/binding.dart';
@@ -95,5 +96,24 @@ void main() {
     }
     testVerticalOuterPadding(sizeVariant: ZulipWebUiKitButtonSize.small);
     testVerticalOuterPadding(sizeVariant: ZulipWebUiKitButtonSize.normal);
+  });
+
+  group('ZulipIconButton', () {
+    testWidgets('occupies a 40px square', (tester) async {
+      addTearDown(testBinding.reset);
+
+      await tester.pumpWidget(TestZulipApp(
+        child: UnconstrainedBox(
+          child: ZulipIconButton(
+            icon: ZulipIcons.follow,
+            onPressed: () {}))));
+      await tester.pump();
+
+      final element = tester.element(find.byType(ZulipIconButton));
+      final renderObject = element.renderObject as RenderBox;
+      check(renderObject).size.equals(Size.square(40));
+    });
+
+    // TODO test that the touch feedback fills the whole square
   });
 }
