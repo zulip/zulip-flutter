@@ -477,6 +477,9 @@ enum ZulipMenuItemButtonStyle {
 
 /// The "toggle" component in Figma.
 ///
+/// If [onChanged] is null, the switch will be displayed as disabled.
+/// (Like in the Material [Switch] widget.)
+///
 /// See Figma:
 ///    https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6070-60682&m=dev
 class Toggle extends StatelessWidget {
@@ -487,7 +490,7 @@ class Toggle extends StatelessWidget {
   });
 
   final bool value;
-  final ValueChanged<bool> onChanged;
+  final ValueChanged<bool>? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -495,9 +498,20 @@ class Toggle extends StatelessWidget {
     // TODO(#831)
     final activeColor = Color(0xff4370f0);
 
+    final activeColorDisabled = activeColor.withFadedAlpha(0.4);
+
     // Figma has this (grey/400) in both light and dark mode.
     // TODO(#831)
     final inactiveColor = Color(0xff9194a3);
+
+    final inactiveColorDisabled = inactiveColor.withFadedAlpha(0.4);
+
+    final trackColor = WidgetStateColor.fromMap({
+      WidgetState.selected  & ~WidgetState.disabled: activeColor,
+      WidgetState.selected  &  WidgetState.disabled: activeColorDisabled,
+      ~WidgetState.selected & ~WidgetState.disabled: inactiveColor,
+      ~WidgetState.selected &  WidgetState.disabled: inactiveColorDisabled,
+    });
 
     // TODO(#1636):
     //   All of these just need _SwitchConfig to be exposed,
@@ -524,8 +538,7 @@ class Toggle extends StatelessWidget {
       // Figma has white for "on" and "off" in both light and dark mode.
       thumbColor: WidgetStatePropertyAll(Colors.white),
 
-      activeTrackColor: activeColor,
-      inactiveTrackColor: inactiveColor,
+      trackColor: trackColor,
       trackOutlineColor: WidgetStatePropertyAll(Colors.transparent),
       trackOutlineWidth: WidgetStateProperty<double>.fromMap({
         // The outline is effectively painted with strokeAlignCenter:
