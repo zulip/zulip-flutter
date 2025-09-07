@@ -36,6 +36,7 @@ extension GlobalSettingsStoreChecks on Subject<GlobalSettingsStore> {
   Subject<VisitFirstUnreadSetting> get visitFirstUnread => has((x) => x.visitFirstUnread, 'visitFirstUnread');
   Subject<MarkReadOnScrollSetting> get markReadOnScroll => has((x) => x.markReadOnScroll, 'markReadOnScroll');
   Subject<bool> getBool(BoolGlobalSetting setting) => has((x) => x.getBool(setting), 'getBool(${setting.name}');
+  Subject<int?> getInt(IntGlobalSetting setting) => has((x) => x.getInt(setting), 'getInt(${setting.name}');
 }
 
 extension GlobalStoreChecks on Subject<GlobalStore> {
@@ -44,6 +45,7 @@ extension GlobalStoreChecks on Subject<GlobalStore> {
   Subject<Iterable<int>> get accountIds => has((x) => x.accountIds, 'accountIds');
   Subject<Iterable<({ int accountId, Account account })>> get accountEntries => has((x) => x.accountEntries, 'accountEntries');
   Subject<Account?> getAccount(int id) => has((x) => x.getAccount(id), 'getAccount($id)');
+  Subject<Account?> get lastVisitedAccount => has((x) => x.lastVisitedAccount, 'lastVisitedAccount');
 }
 
 extension PerAccountStoreChecks on Subject<PerAccountStore> {

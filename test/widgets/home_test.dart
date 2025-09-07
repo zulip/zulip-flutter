@@ -333,8 +333,9 @@ void main () {
       pushedRoutes = [];
       lastPoppedRoute = null;
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      await testBinding.globalStore.add(eg.otherAccount, eg.initialSnapshot(
-        realmUsers: [eg.otherUser]));
+      await testBinding.globalStore.add(
+        eg.otherAccount, eg.initialSnapshot(realmUsers: [eg.otherUser]),
+        markLastVisited: false);
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
       await tester.pump(Duration.zero); // wait for the loading page
       checkOnLoadingPage();

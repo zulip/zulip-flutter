@@ -60,9 +60,9 @@ class ShareService {
 
     final globalStore = GlobalStoreWidget.of(context);
 
-    // TODO(#524) use last account used, not the first in the list
     // TODO(#1779) allow selecting account, if there are multiple
-    final accountId = globalStore.accounts.firstOrNull?.id;
+    final accountId = globalStore.lastVisitedAccount?.id
+      ?? globalStore.accountIds.firstOrNull;
 
     if (accountId == null) {
       final zulipLocalizations = ZulipLocalizations.of(context);

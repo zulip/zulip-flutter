@@ -613,7 +613,7 @@ void main() {
 
         // Scroll to the very bottom of the list with a large offset.
         await tester.drag(scrollViewFinder, Offset(0, -500));
-        await tester.pump();
+        await tester.pumpAndSettle();  // let overscroll finish
         // The top edge of the list entries is out of view;
         // the bottom is padded by 8px, the minimum padding, from the bottom
         // edge of the scroll view.
@@ -637,7 +637,7 @@ void main() {
 
         // Scroll to the very bottom of the list with a large offset.
         await tester.drag(scrollViewFinder, Offset(0, -500));
-        await tester.pump();
+        await tester.pumpAndSettle();  // let overscroll finish
         // The top edge of the list entries is out of view;
         // the bottom edge is padded by 10px from the bottom edge of the scroll
         // view, because the view bottom padding is larger than the minimum 8px.

@@ -393,6 +393,11 @@ final Account otherAccount = account(
   user: otherUser,
   apiKey: '6dxT4b73BYpCTU+i4BB9LAKC5h/CufqY', // A Zulip API key is 32 digits of base64.
 );
+final Account thirdAccount = account(
+  id: 1003,
+  user: thirdUser,
+  apiKey: 'q8HdN7u5Yz3Wc9LhQv1Rb4o2sXjKf6Ut', // A Zulip API key is 32 digits of base64.
+);
 
 //|//////////////////////////////////////////////////////////////
 // Data attached to the self-account on the realm
@@ -1199,11 +1204,13 @@ ChannelUpdateEvent channelUpdateEvent(
 TestGlobalStore globalStore({
   GlobalSettingsData? globalSettings,
   Map<BoolGlobalSetting, bool>? boolGlobalSettings,
+  Map<IntGlobalSetting, int>? intGlobalSettings,
   List<Account> accounts = const [],
 }) {
   return TestGlobalStore(
     globalSettings: globalSettings,
     boolGlobalSettings: boolGlobalSettings,
+    intGlobalSettings: intGlobalSettings,
     accounts: accounts,
   );
 }

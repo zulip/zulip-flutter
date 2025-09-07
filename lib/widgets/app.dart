@@ -211,13 +211,14 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     }
 
     final globalStore = GlobalStoreWidget.of(context);
-    // TODO(#524) choose initial account as last one used
-    final initialAccountId = globalStore.accounts.firstOrNull?.id;
+    final lastVisitedAccountId = globalStore.lastVisitedAccount?.id;
+
     return [
-      if (initialAccountId == null)
+      if (lastVisitedAccountId == null)
+        // There are no accounts, or the last-visited account was logged out.
         MaterialWidgetRoute(page: const ChooseAccountPage())
       else
-        HomePage.buildRoute(accountId: initialAccountId),
+        HomePage.buildRoute(accountId: lastVisitedAccountId),
     ];
   }
 
@@ -254,6 +255,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
             if (widget.navigatorObservers != null)
               ...widget.navigatorObservers!,
             _PreventEmptyStack(),
+            _UpdateLastVisitedAccount(GlobalStoreWidget.of(context)),
           ],
           builder: (BuildContext context, Widget? child) {
             if (!ZulipApp.ready.value) {
@@ -302,6 +304,19 @@ class _PreventEmptyStack extends NavigatorObserver {
   @override
   void didPop(Route<void> route, Route<void>? previousRoute) async {
     _pushRouteIfEmptyStack();
+  }
+}
+
+class _UpdateLastVisitedAccount extends NavigatorObserver {
+  _UpdateLastVisitedAccount(this.globalStore);
+
+  final GlobalStore globalStore;
+
+  @override
+  void didChangeTop(Route<void> topRoute, _) {
+    if (topRoute case AccountPageRouteMixin(:var accountId)) {
+      globalStore.setLastVisitedAccount(accountId);
+    }
   }
 }
 

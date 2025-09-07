@@ -1069,7 +1069,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
     // The top sliver has its child 0 as the item just before the
     // sliver boundary, child 1 as the item before that, and so on.
-    final topSliver = SliverStickyHeaderList(
+    Widget topSliver = SliverStickyHeaderList(
       headerPlacement: HeaderPlacement.scrollingStart,
       delegate: SliverChildBuilderDelegate(
         // To preserve state across rebuilds for individual [MessageItem]
@@ -1148,6 +1148,15 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       // TODO(#311) If we have a bottom nav, it will pad the bottom inset,
       //   and this can be removed; also remove mention in MessageList dartdoc
       bottomSliver = SliverSafeArea(key: bottomSliver.key, sliver: bottomSliver);
+      topSliver = MediaQuery.removePadding(context: context,
+        // In the top sliver, forget the bottom inset;
+        // we're having the bottom sliver take care of it.
+        removeBottom: true,
+        // (Also forget the left and right insets; the outer SafeArea, above,
+        // does that, but the `context` we're passing to this `removePadding`
+        // is from outside that SafeArea, so we need to repeat it.)
+        removeLeft: true, removeRight: true,
+        child: topSliver);
     }
 
     return MessageListScrollView(
