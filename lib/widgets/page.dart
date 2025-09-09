@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import 'store.dart';
@@ -227,14 +226,49 @@ class LoadingPlaceholderPage extends StatelessWidget {
 // TODO(#311) If the message list gets a bottom nav, the bottom inset will
 //   always be handled externally too; simplify implementation and dartdoc.
 class PageBodyEmptyContentPlaceholder extends StatelessWidget {
-  const PageBodyEmptyContentPlaceholder({super.key, required this.message});
+  const PageBodyEmptyContentPlaceholder({
+    super.key,
+    this.message,
+    this.messageWithLinkMarkup,
+    this.onTapLink,
+  }) : assert(
+         (message != null)
+         ^ (messageWithLinkMarkup != null && onTapLink != null));
 
-  final String message;
+  final String? message;
+  final String? messageWithLinkMarkup;
+  final VoidCallback? onTapLink;
+
+  TextStyle _messageStyle(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    return TextStyle(
+      color: designVariables.labelSearchPrompt,
+      fontSize: 17,
+      height: 23 / 17,
+    ).merge(weightVariableTextStyle(context, wght: 500));
+  }
+
+  Widget? _buildMessage(BuildContext context) {
+    if (message != null) {
+      return Text(
+        textAlign: TextAlign.center,
+        style: _messageStyle(context),
+        message!);
+    }
+    if (messageWithLinkMarkup != null) {
+      return TextWithLink(
+        onTap: onTapLink!,
+        textAlign: TextAlign.center,
+        style: _messageStyle(context),
+        markup: messageWithLinkMarkup!);
+    }
+    assert(false);
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-
     return SafeArea(
       minimum: EdgeInsets.fromLTRB(24, 0, 24, 16),
       child: Padding(
@@ -243,13 +277,6 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
           alignment: Alignment.topCenter,
           // TODO leading and trailing elements, like in Figma (given as SVGs):
           //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=5957-167736&m=dev
-          child: Text(
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: designVariables.labelSearchPrompt,
-              fontSize: 17,
-              height: 23 / 17,
-            ).merge(weightVariableTextStyle(context, wght: 500)),
-            message))));
+          child: _buildMessage(context))));
   }
 }
