@@ -1363,5 +1363,5 @@ packages:
     source: path
     version: "0.0.1"
 sdks:
-  dart: ">=3.10.0-71.0.dev <4.0.0"
-  flutter: ">=3.33.0-1.0.pre-1285"
+  dart: ">=3.10.0-190.0.dev <4.0.0"
+  flutter: ">=3.37.0-1.0.pre-89"
