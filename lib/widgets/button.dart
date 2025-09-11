@@ -213,6 +213,45 @@ enum ZulipWebUiKitButtonSize {
   normal,
 }
 
+/// The "icon button" component in the Figma.
+///
+/// See Figma:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=7728-10468&m=dev
+class ZulipIconButton extends StatelessWidget {
+  const ZulipIconButton({
+    super.key,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    // Really `fg-05` from the Zulip Web UI Kit palette,
+    // but this seems at least as good as that.
+    final touchFeedbackColor = designVariables.foreground.withFadedAlpha(0.05);
+
+    return IconButton(
+      color: designVariables.icon,
+      iconSize: 24,
+      icon: Icon(icon),
+      onPressed: onPressed,
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        fixedSize: Size.square(40),
+
+        // TODO(#417): Disable splash effects for all buttons globally.
+        splashFactory: NoSplash.splashFactory,
+        highlightColor: touchFeedbackColor,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)))));
+  }
+}
+
 /// Apply [Transform.scale] to the child widget when tapped, and reset its scale
 /// when released, while animating the transitions.
 class AnimatedScaleOnTap extends StatefulWidget {
@@ -291,7 +330,7 @@ class ZulipMenuItemButton extends StatelessWidget {
     this.style = ZulipMenuItemButtonStyle.menu,
     required this.label,
     this.subLabel,
-    this.onPressed,
+    required this.onPressed,
     this.icon,
     this.toggle,
   });
@@ -299,7 +338,7 @@ class ZulipMenuItemButton extends StatelessWidget {
   final ZulipMenuItemButtonStyle style;
   final String label;
   final TextSpan? subLabel;
-  final VoidCallback? onPressed;
+  final VoidCallback onPressed;
   final IconData? icon;
 
   /// A [Toggle] to go before [icon], or in its place if it's null.
@@ -438,6 +477,9 @@ enum ZulipMenuItemButtonStyle {
 
 /// The "toggle" component in Figma.
 ///
+/// If [onChanged] is null, the switch will be displayed as disabled.
+/// (Like in the Material [Switch] widget.)
+///
 /// See Figma:
 ///    https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6070-60682&m=dev
 class Toggle extends StatelessWidget {
@@ -448,7 +490,7 @@ class Toggle extends StatelessWidget {
   });
 
   final bool value;
-  final ValueChanged<bool> onChanged;
+  final ValueChanged<bool>? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -456,9 +498,20 @@ class Toggle extends StatelessWidget {
     // TODO(#831)
     final activeColor = Color(0xff4370f0);
 
+    final activeColorDisabled = activeColor.withFadedAlpha(0.4);
+
     // Figma has this (grey/400) in both light and dark mode.
     // TODO(#831)
     final inactiveColor = Color(0xff9194a3);
+
+    final inactiveColorDisabled = inactiveColor.withFadedAlpha(0.4);
+
+    final trackColor = WidgetStateColor.fromMap({
+      WidgetState.selected  & ~WidgetState.disabled: activeColor,
+      WidgetState.selected  &  WidgetState.disabled: activeColorDisabled,
+      ~WidgetState.selected & ~WidgetState.disabled: inactiveColor,
+      ~WidgetState.selected &  WidgetState.disabled: inactiveColorDisabled,
+    });
 
     // TODO(#1636):
     //   All of these just need _SwitchConfig to be exposed,
@@ -485,12 +538,8 @@ class Toggle extends StatelessWidget {
       // Figma has white for "on" and "off" in both light and dark mode.
       thumbColor: WidgetStatePropertyAll(Colors.white),
 
-      activeTrackColor: activeColor,
-      inactiveTrackColor: inactiveColor,
-      trackOutlineColor: WidgetStateColor.fromMap({
-        WidgetState.selected: activeColor,
-        ~WidgetState.selected: inactiveColor,
-      }),
+      trackColor: trackColor,
+      trackOutlineColor: WidgetStatePropertyAll(Colors.transparent),
       trackOutlineWidth: WidgetStateProperty<double>.fromMap({
         // The outline is effectively painted with strokeAlignCenter:
         //   https://api.flutter.dev/flutter/painting/BorderSide/strokeAlignCenter-constant.html

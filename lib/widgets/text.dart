@@ -438,9 +438,16 @@ TextBaseline localizedTextBaseline(BuildContext context) {
 /// TODO(#1285): Generalize this to other styling, like code font and italics.
 /// TODO(#1553): Generalize this to multiple links in one string.
 class TextWithLink extends StatefulWidget {
-  const TextWithLink({super.key, this.style, required this.onTap, required this.markup});
+  const TextWithLink({
+    super.key,
+    this.style,
+    this.textAlign,
+    required this.onTap,
+    required this.markup,
+  });
 
   final TextStyle? style;
+  final TextAlign? textAlign;
 
   /// A callback to be called when the user taps the link.
   ///
@@ -520,6 +527,9 @@ class _TextWithLinkState extends State<TextWithLink> {
       ]);
     }
 
-    return Text.rich(span, style: widget.style);
+    return Text.rich(
+      style: widget.style,
+      textAlign: widget.textAlign,
+      span);
   }
 }

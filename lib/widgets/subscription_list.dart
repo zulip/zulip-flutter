@@ -5,6 +5,8 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
+import 'all_channels.dart';
+import 'button.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
@@ -21,6 +23,7 @@ class SubscriptionListPageBody extends StatefulWidget {
     super.key,
     this.showTopicListButtonInActionSheet = true,
     this.hideChannelsIfUserCantPost = false,
+    this.allowGoToAllChannels = true,
     this.onChannelSelect,
   });
 
@@ -31,6 +34,7 @@ class SubscriptionListPageBody extends StatefulWidget {
   //     https://github.com/zulip/zulip-flutter/pull/1774#discussion_r2249032503
   final bool showTopicListButtonInActionSheet;
   final bool hideChannelsIfUserCantPost;
+  final bool allowGoToAllChannels;
 
   /// Callback to invoke when the user selects a channel from the list.
   ///
@@ -138,9 +142,17 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     _sortSubs(unpinned);
 
     if (pinned.isEmpty && unpinned.isEmpty) {
-      return PageBodyEmptyContentPlaceholder(
-        // TODO(#188) add e.g. "Go to 'All channels' and join some of them."
-        message: zulipLocalizations.channelsEmptyPlaceholder);
+      if (widget.allowGoToAllChannels) {
+        return PageBodyEmptyContentPlaceholder(
+          messageWithLinkMarkup:
+            zulipLocalizations.channelsEmptyPlaceholderWithAllChannelsLink(
+              zulipLocalizations.allChannelsPageTitle),
+          onTapLink: () => Navigator.push(context,
+            AllChannelsPage.buildRoute(context: context)));
+      } else {
+        return PageBodyEmptyContentPlaceholder(
+          message: zulipLocalizations.channelsEmptyPlaceholder);
+      }
     }
 
     return SafeArea(
@@ -174,12 +186,23 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
               onChannelSelect: _handleChannelSelect),
           ],
 
-          // TODO(#188): add button leading to "All Streams" page with ability to subscribe
-
           // This ensures last item in scrollable can settle in an unobstructed area.
           // (Noop in the home-page case; see comment on `bottom: false` arg in
           // use of `SafeArea` above.)
-          const SliverSafeArea(sliver: SliverToBoxAdapter(child: SizedBox.shrink())),
+          SliverSafeArea(
+            minimum: EdgeInsets.only(bottom: 8),
+            sliver: SliverToBoxAdapter(
+              child: widget.allowGoToAllChannels
+                ? Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: MenuButtonsShape(
+                      buttons: [ZulipMenuItemButton(
+                        label: zulipLocalizations.navButtonAllChannels,
+                        icon: ZulipIcons.chevron_right,
+                        onPressed: () => Navigator.push(context,
+                          AllChannelsPage.buildRoute(context: context))),
+                      ]))
+                : const SizedBox.shrink())),
         ]));
   }
 }
