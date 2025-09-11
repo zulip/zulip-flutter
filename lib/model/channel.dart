@@ -174,25 +174,14 @@ mixin ChannelStore on UserStore {
 
   bool _selfHasContentAccessViaGroupPermissions(ZulipStream channel) {
     // Compare web's stream_data.has_content_access_via_group_permissions.
-    // TODO(#814) try to clean up this logic; perhaps record more explicitly
-    //   what default/fallback value to use for a given group-based permission
-    //   on older servers.
 
-    if (channel.canAddSubscribersGroup != null
-        && selfHasPermissionForGroupSetting(channel.canAddSubscribersGroup!,
-             GroupSettingType.stream, 'can_add_subscribers_group')) {
-      // The behavior before this permission was introduced was equivalent to
-      // the "nobody" group.
-      // TODO(server-10): simplify
+    if (selfHasPermissionForGroupSetting(channel.canAddSubscribersGroup,
+          GroupSettingType.stream, 'can_add_subscribers_group')) {
       return true;
     }
 
-    if (channel.canSubscribeGroup != null
-        && selfHasPermissionForGroupSetting(channel.canSubscribeGroup!,
-             GroupSettingType.stream, 'can_subscribe_group')) {
-      // The behavior before this permission was introduced was equivalent to
-      // the "nobody" group.
-      // TODO(server-10): simplify
+    if (selfHasPermissionForGroupSetting(channel.canSubscribeGroup,
+          GroupSettingType.stream, 'can_subscribe_group')) {
       return true;
     }
 

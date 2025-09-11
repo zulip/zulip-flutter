@@ -107,19 +107,14 @@ mixin MessageStore on ChannelStore {
       return false;
     }
 
-    if (realmCanDeleteAnyMessageGroup != null) {
-      if (selfHasPermissionForGroupSetting(realmCanDeleteAnyMessageGroup!,
-            GroupSettingType.realm, 'can_delete_any_message_group')) {
-        return true;
-      }
-    } else if (selfUser.role.isAtLeast(UserRole.administrator)) {
+    if (selfHasPermissionForGroupSetting(realmCanDeleteAnyMessageGroup,
+          GroupSettingType.realm, 'can_delete_any_message_group')) {
       return true;
     }
 
     if (channel != null) {
-      if (channel.canDeleteAnyMessageGroup != null
-          && selfHasPermissionForGroupSetting(channel.canDeleteAnyMessageGroup!,
-               GroupSettingType.stream, 'can_delete_any_message_group')) {
+      if (selfHasPermissionForGroupSetting(channel.canDeleteAnyMessageGroup,
+            GroupSettingType.stream, 'can_delete_any_message_group')) {
         return true;
       }
     }
@@ -138,6 +133,9 @@ mixin MessageStore on ChannelStore {
     // that's impossible here because `message` can't be an [OutboxMessage]
     // (it's a [Message] from [MessageStore.messages]).
 
+    // (selfHasPermissionForGroupSetting isn't equipped to handle the old-server
+    // fallback logic for this specific permission; it's dynamic and depends on
+    // realmDeleteOwnMessagePolicy, so we do our own null check here.)
     if (realmCanDeleteOwnMessageGroup != null) {
       if (!selfHasPermissionForGroupSetting(realmCanDeleteOwnMessageGroup!,
             GroupSettingType.realm, 'can_delete_own_message_group')) {
@@ -146,11 +144,8 @@ mixin MessageStore on ChannelStore {
           return false;
         }
 
-        if (
-          channel.canDeleteOwnMessageGroup == null
-          || !selfHasPermissionForGroupSetting(channel.canDeleteOwnMessageGroup!,
-               GroupSettingType.stream, 'can_delete_own_message_group')
-        ) {
+        if (!selfHasPermissionForGroupSetting(channel.canDeleteOwnMessageGroup,
+              GroupSettingType.stream, 'can_delete_own_message_group')) {
           return false;
         }
       }

@@ -140,8 +140,11 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   bool selfHasPassedWaitingPeriod({required DateTime byDate});
 
   /// Whether the self-user has the given (group-based) permission.
-  bool selfHasPermissionForGroupSetting(GroupSettingValue value,
-      GroupSettingType type, String name);
+  ///
+  /// If the server doesn't know about the permission,
+  /// pass null for [value] and a reasonable default will be chosen.
+  bool selfHasPermissionForGroupSetting(GroupSettingValue? value,
+    GroupSettingType type, String name);
 }
 
 enum GroupSettingType { realm, stream, group }
@@ -194,7 +197,7 @@ mixin ProxyRealmStore on RealmStore {
   bool selfHasPassedWaitingPeriod({required DateTime byDate}) =>
     realmStore.selfHasPassedWaitingPeriod(byDate: byDate);
   @override
-  bool selfHasPermissionForGroupSetting(GroupSettingValue value, GroupSettingType type, String name) =>
+  bool selfHasPermissionForGroupSetting(GroupSettingValue? value, GroupSettingType type, String name) =>
     realmStore.selfHasPermissionForGroupSetting(value, type, name);
 }
 
@@ -256,7 +259,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   }
 
   @override
-  bool selfHasPermissionForGroupSetting(GroupSettingValue value,
+  bool selfHasPermissionForGroupSetting(GroupSettingValue? value,
       GroupSettingType type, String name) {
     // Compare web's settings_data.user_has_permission_for_group_setting.
     //
@@ -267,11 +270,58 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     // That exists for deciding whether to offer the "Generate email address"
     // button, and if so then which users to offer in the dropdown;
     // it's predicting whether /api/get-stream-email-address would succeed.
-    if (_selfUserRole == UserRole.guest) {
-      final config = _groupSettingConfig(type, name);
-      if (!config.allowEveryoneGroup) return false;
+
+    final config = _groupSettingConfig(type, name);
+
+    if (_selfUserRole == UserRole.guest && !config.allowEveryoneGroup) {
+      return false;
     }
+
+    if (value == null) {
+      // The server doesn't know about the permission. *We* know about it
+      // (or presumably we wouldn't have called this method),
+      // and we know a reasonable default; use that.
+      return _hasPermissionByDefault(config);
+    }
+
     return selfInGroupSetting(value);
+  }
+
+  bool _hasPermissionByDefault(PermissionSettingsItem config) {
+    switch (config.defaultGroupName) {
+      case DefaultGroupNameUnknown():
+        // When we know about a permission, we should also know about the group
+        // we've said is the default value for it.
+        assert(false);
+        return true;
+      case PseudoSystemGroupName.streamCreatorOrNobody:
+        // TODO(#1102) implement
+        assert(() {
+          throw UnimplementedError();
+        }());
+        return true;
+      case SystemGroupName.everyoneOnInternet:
+      case SystemGroupName.everyone:
+        return true;
+      case SystemGroupName.members:
+        return _selfUserRole.isAtLeast(UserRole.member);
+      case SystemGroupName.fullMembers:
+        // There aren't any permissions where this is the default, and we
+        // probably won't add any. So for now we skip the complication of
+        // doing the waiting-period check.
+        assert(() {
+          throw UnimplementedError();
+        }());
+        return _selfUserRole.isAtLeast(UserRole.member);
+      case SystemGroupName.moderators:
+        return _selfUserRole.isAtLeast(UserRole.moderator);
+      case SystemGroupName.administrators:
+        return _selfUserRole.isAtLeast(UserRole.administrator);
+      case SystemGroupName.owners:
+        return _selfUserRole.isAtLeast(UserRole.owner);
+      case SystemGroupName.nobody:
+        return false;
+    }
   }
 
   /// The metadata for how to interpret the given group-based permission setting.
