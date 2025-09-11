@@ -11,6 +11,9 @@
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
+  "@actionSheetOptionChannelFeed": {
+    "description": "Label for navigating to a channel's channel-feed page."
+  },
   "@actionSheetOptionCopyChannelLink": {
     "description": "Label for copy channel link button on action sheet."
   },
@@ -1195,6 +1198,7 @@
   "aboutPageOpenSourceLicenses": "オープンソースライセンス",
   "aboutPageTapToView": "タップして表示",
   "aboutPageTitle": "Zulipについて",
+  "actionSheetOptionChannelFeed": "チャンネル一覧",
   "actionSheetOptionCopyChannelLink": "チャンネルのリンクをコピー",
   "actionSheetOptionCopyMessageLink": "メッセージへのリンクをコピー",
   "actionSheetOptionCopyMessageText": "メッセージ本文をコピー",
@@ -1356,9 +1360,9 @@
   "mainMenuMyProfile": "自分のプロフィール",
   "manyPeopleTyping": "複数のユーザーが入力中…",
   "markAllAsReadLabel": "すべてのメッセージを既読にする",
-  "markAsReadComplete": "{num, plural, =1{1 message} other{{num} messages}}件のメッセージを既読にしました。",
+  "markAsReadComplete": "{num, plural, =1{1} other{{num}}}件のメッセージを既読にしました。",
   "markAsReadInProgress": "メッセージを既読にしています…",
-  "markAsUnreadComplete": "{num, plural, =1{1 message} other{{num} messages}}件のメッセージを未読にしました。",
+  "markAsUnreadComplete": "{num, plural, =1{1} other{{num}}}件のメッセージを未読にしました。",
   "markAsUnreadInProgress": "メッセージを未読にしています…",
   "markReadOnScrollSettingAlways": "常に既読にする",
   "markReadOnScrollSettingConversations": "会話ビューのみ",
@@ -1462,13 +1466,13 @@
   "upgradeWelcomeDialogMessage": "より速く、洗練されたデザインで、これまでと同じ使い心地をお楽しみいただけます。",
   "upgradeWelcomeDialogTitle": "新しいZulipアプリへようこそ！",
   "userActiveDate": "{date}にオンライン",
-  "userActiveDaysAgo": "{days, plural, =1{1 day} other{{days} days}}日前にオンライン",
-  "userActiveHoursAgo": "{hours, plural, =1{1 hour} other{{hours} hours}}時間前にオンライン",
-  "userActiveMinutesAgo": "{minutes, plural, =1{1 minute} other{{minutes} minutes}}分前にオンライン",
+  "userActiveDaysAgo": "{days, plural, =1{1} other{{days}}}日前にオンライン",
+  "userActiveHoursAgo": "{hours, plural, =1{1} other{{hours}}}時間前にオンライン",
+  "userActiveMinutesAgo": "{minutes, plural, =1{1} other{{minutes}}}分前にオンライン",
   "userActiveNow": "オンライン",
   "userActiveYesterday": "昨日オンライン",
   "userIdle": "退席中",
-  "userNotActiveInYear": "1年以上活動していません",
+  "userNotActiveInYear": "1年以上オフラインです",
   "userRoleAdministrator": "管理者",
   "userRoleGuest": "ゲスト",
   "userRoleMember": "メンバー",

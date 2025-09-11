@@ -11,6 +11,9 @@
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
+  "@actionSheetOptionChannelFeed": {
+    "description": "Label for navigating to a channel's channel-feed page."
+  },
   "@actionSheetOptionCopyChannelLink": {
     "description": "Label for copy channel link button on action sheet."
   },
@@ -1213,6 +1216,7 @@
   "aboutPageOpenSourceLicenses": "Open-Source-Lizenzen",
   "aboutPageTapToView": "Antippen zum Ansehen",
   "aboutPageTitle": "Über Zulip",
+  "actionSheetOptionChannelFeed": "Kanal-Feed",
   "actionSheetOptionCopyChannelLink": "Link zum Kanal kopieren",
   "actionSheetOptionCopyMessageLink": "Link zur Nachricht kopieren",
   "actionSheetOptionCopyMessageText": "Nachrichtentext kopieren",
