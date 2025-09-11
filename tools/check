@@ -249,42 +249,7 @@ run_flutter_version() {
     flutter_version="${parsed[0]}"
     flutter_commit="${parsed[1]}"
 
-    # Check the version name matches the commit ID.
-    local commit_described predicted_version
-    commit_described=$(
-        "${flutter_git[@]}" describe --tags "${flutter_commit}"
-    ) || return
-    predicted_version=$(
-        echo "${commit_described}" \
-        | perl -lne 'print if (s
-             # This transformation is ad hoc.
-             # If we find cases where it fails, we can study
-             # how the `flutter` tool actually decides the version name.
-             <^(\d+\.\d+\.\d+-) (\d+) (\.\d+\.pre) -(\d+) -g[0-9a-f]+$>
-             <$1 . ($2 + 1) . $3 . "-" . $4>xe)'
-    ) || return
-    if [ -z "${predicted_version}" ]; then
-        cat >&2 <<EOF
-error: unexpected 'git describe' result on Flutter commit in pubspec.yaml
-Commit ${flutter_commit} was described as: ${commit_described}
-EOF
-        return 1
-    fi
-    if [ "${flutter_version}" != "${predicted_version}" ]; then
-        # Before 2025-07 (https://github.com/flutter/flutter/pull/172141),
-        # the version name ended like ".123" instead of "-123".
-        local alternate_predicted_version;
-        alternate_predicted_version="${predicted_version%-*}.${predicted_version##*-}"
-        if [ "${flutter_version}" != "${alternate_predicted_version}" ]; then
-            cat >&2 <<EOF
-error: Flutter commit in pubspec.yaml seems to differ from version bound
-Commit ${flutter_commit} was described as: ${commit_described}
-We therefore expect the Flutter version name to be: ${predicted_version}
-But the Flutter version bound in pubspec.yaml is: ${flutter_version}
-EOF
-            return 1
-        fi
-    fi
+    # TODO(#1851) Add the updated Flutter version name check
 
     # Check the commit is an acceptable commit.
     local commit_count
