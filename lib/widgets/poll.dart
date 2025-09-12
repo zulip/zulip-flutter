@@ -20,6 +20,7 @@ class PollWidget extends StatefulWidget {
 }
 
 class _PollWidgetState extends State<PollWidget> {
+  final Map<String, bool> _loadingOptions = {};
   @override
   void initState() {
     super.initState();
@@ -43,30 +44,31 @@ class _PollWidgetState extends State<PollWidget> {
 
   void _modelChanged() {
     setState(() {
+      _loadingOptions.clear();
       // The actual state lives in the [Poll] model.
       // This method was called because that just changed.
     });
   }
 
   void _toggleVote(PollOption option) async {
-    final navigator = Navigator.of(context);
-
-    unawaited(showDialog(context: context,
-        barrierDismissible: false,
-        builder: (_) {
-        return Center(child: CircularProgressIndicator());
-      }
-    ));
-
     final store = PerAccountStoreWidget.of(context);
     final op = option.voters.contains(store.selfUserId)
       ? PollVoteOp.remove
       : PollVoteOp.add;
+
+    setState(() {
+      if(option.voters.contains(store.selfUserId)) {
+        option.voters.remove(store.selfUserId);
+      } else {
+        option.voters.add(store.selfUserId);
+      }
+
+      _loadingOptions[option.key] = true;
+    });
+
     await(sendSubmessage(store.connection, messageId: widget.messageId,
       submessageType: SubmessageType.widget,
       content: PollVoteEventSubmessage(key: option.key, op: op)));
-
-    navigator.pop();
   }
 
   @override
@@ -95,12 +97,14 @@ class _PollWidgetState extends State<PollWidget> {
         .join(', ');
 
       return Row(
-        crossAxisAlignment: CrossAxisAlignment.baseline,
+        crossAxisAlignment: CrossAxisAlignment.center,
         textBaseline: localizedTextBaseline(context),
         children: [
           GestureDetector(
             // TODO: Implement feedback when the user taps the button
-            onTap: () => _toggleVote(option),
+            onTap: () => _loadingOptions[option.key] ?? false
+                ? null
+                : _toggleVote(option),
             behavior: HitTestBehavior.translucent,
             child: ConstrainedBox(
               constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
@@ -117,7 +121,9 @@ class _PollWidgetState extends State<PollWidget> {
                   // there are more than three digits).
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
-                    color: theme.colorPollVoteCountBackground,
+                    color: _loadingOptions[option.key] ?? false
+                      ? theme.colorPollVoteCountBackground.withValues(alpha: 1.0)
+                      : theme.colorPollVoteCountBackground,
                     border: Border.all(color: theme.colorPollVoteCountBorder),
                     borderRadius: BorderRadius.circular(3)),
                   child: Center(
