@@ -16,6 +16,9 @@ import 'user.dart';
 ///
 /// The data structures described here are implemented at [ChannelStoreImpl].
 mixin ChannelStore on UserStore {
+  @protected
+  UserStore get userStore;
+
   /// All known channels/streams, indexed by [ZulipStream.streamId].
   ///
   /// The same [ZulipStream] objects also appear in [streamsByName].
@@ -248,6 +251,18 @@ mixin ProxyChannelStore on ChannelStore {
     channelStore.debugTopicVisibility;
 }
 
+/// A base class for [PerAccountStore] substores
+/// that need access to [ChannelStore] as well as to its prerequisites
+/// [CorePerAccountStore], [RealmStore], and [UserStore].
+abstract class HasChannelStore extends HasUserStore with ChannelStore, ProxyChannelStore {
+  HasChannelStore({required ChannelStore channels})
+    : channelStore = channels, super(users: channels.userStore);
+
+  @protected
+  @override
+  final ChannelStore channelStore;
+}
+
 /// The implementation of [ChannelStore] that does the work.
 ///
 /// Generally the only code that should need this class is [PerAccountStore]
@@ -366,6 +381,8 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
             stream.name = event.value as String;
             streamsByName.remove(streamName);
             streamsByName[stream.name] = stream;
+          case ChannelPropertyName.isArchived:
+            stream.isArchived = event.value as bool;
           case ChannelPropertyName.description:
             stream.description = event.value as String;
           case ChannelPropertyName.firstMessageId:
@@ -378,6 +395,10 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
             stream.channelPostPolicy = event.value as ChannelPostPolicy;
           case ChannelPropertyName.canAddSubscribersGroup:
             stream.canAddSubscribersGroup = event.value as GroupSettingValue;
+          case ChannelPropertyName.canDeleteAnyMessageGroup:
+            stream.canDeleteAnyMessageGroup = event.value as GroupSettingValue;
+          case ChannelPropertyName.canDeleteOwnMessageGroup:
+            stream.canDeleteOwnMessageGroup = event.value as GroupSettingValue;
           case ChannelPropertyName.canSubscribeGroup:
             stream.canSubscribeGroup = event.value as GroupSettingValue;
           case ChannelPropertyName.streamWeeklyTraffic:
