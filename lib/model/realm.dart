@@ -37,16 +37,21 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   //|//////////////////////////////
   // Realm settings found in realm/update_dict events:
   //   https://zulip.com/api/get-events#realm-update_dict
+  //
+  // In order of appearance in the realm/update_dict event doc.
   // TODO(#668): update all these realm settings on events.
 
   bool get realmAllowMessageEditing;
+  GroupSettingValue? get realmCanDeleteAnyMessageGroup; // TODO(server-10)
+  GroupSettingValue? get realmCanDeleteOwnMessageGroup; // TODO(server-10)
+  bool get realmEnableReadReceipts;
   bool get realmMandatoryTopics;
   int get maxFileUploadSizeMib;
+  int? get realmMessageContentDeleteLimitSeconds;
   Duration? get realmMessageContentEditLimit =>
     realmMessageContentEditLimitSeconds == null ? null
       : Duration(seconds: realmMessageContentEditLimitSeconds!);
   int? get realmMessageContentEditLimitSeconds;
-  bool get realmEnableReadReceipts;
   bool get realmPresenceDisabled;
   int get realmWaitingPeriodThreshold;
 
@@ -55,6 +60,7 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   // but now deprecated.
 
   RealmWildcardMentionPolicy get realmWildcardMentionPolicy; // TODO(#662): replaced by can_mention_many_users_group
+  RealmDeleteOwnMessagePolicy? get realmDeleteOwnMessagePolicy; // TODO(server-10) remove
 
   //|//////////////////////////////
   // Realm settings that lack events.
@@ -146,19 +152,27 @@ mixin ProxyRealmStore on RealmStore {
   @override
   bool get realmAllowMessageEditing => realmStore.realmAllowMessageEditing;
   @override
+  GroupSettingValue? get realmCanDeleteAnyMessageGroup => realmStore.realmCanDeleteAnyMessageGroup;
+  @override
+  GroupSettingValue? get realmCanDeleteOwnMessageGroup => realmStore.realmCanDeleteOwnMessageGroup;
+  @override
+  bool get realmEnableReadReceipts => realmStore.realmEnableReadReceipts;
+  @override
   bool get realmMandatoryTopics => realmStore.realmMandatoryTopics;
   @override
   int get maxFileUploadSizeMib => realmStore.maxFileUploadSizeMib;
   @override
-  int? get realmMessageContentEditLimitSeconds => realmStore.realmMessageContentEditLimitSeconds;
+  int? get realmMessageContentDeleteLimitSeconds => realmStore.realmMessageContentDeleteLimitSeconds;
   @override
-  bool get realmEnableReadReceipts => realmStore.realmEnableReadReceipts;
+  int? get realmMessageContentEditLimitSeconds => realmStore.realmMessageContentEditLimitSeconds;
   @override
   bool get realmPresenceDisabled => realmStore.realmPresenceDisabled;
   @override
   int get realmWaitingPeriodThreshold => realmStore.realmWaitingPeriodThreshold;
   @override
   RealmWildcardMentionPolicy get realmWildcardMentionPolicy => realmStore.realmWildcardMentionPolicy;
+  @override
+  RealmDeleteOwnMessagePolicy? get realmDeleteOwnMessagePolicy => realmStore.realmDeleteOwnMessagePolicy;
   @override
   String get realmEmptyTopicDisplayName => realmStore.realmEmptyTopicDisplayName;
   @override
@@ -195,13 +209,17 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     serverTypingStoppedWaitPeriodMilliseconds = initialSnapshot.serverTypingStoppedWaitPeriodMilliseconds,
     serverTypingStartedWaitPeriodMilliseconds = initialSnapshot.serverTypingStartedWaitPeriodMilliseconds,
     realmAllowMessageEditing = initialSnapshot.realmAllowMessageEditing,
+    realmCanDeleteAnyMessageGroup = initialSnapshot.realmCanDeleteAnyMessageGroup,
+    realmCanDeleteOwnMessageGroup = initialSnapshot.realmCanDeleteOwnMessageGroup,
     realmMandatoryTopics = initialSnapshot.realmMandatoryTopics,
     maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib,
+    realmMessageContentDeleteLimitSeconds = initialSnapshot.realmMessageContentDeleteLimitSeconds,
     realmMessageContentEditLimitSeconds = initialSnapshot.realmMessageContentEditLimitSeconds,
     realmEnableReadReceipts = initialSnapshot.realmEnableReadReceipts,
     realmPresenceDisabled = initialSnapshot.realmPresenceDisabled,
     realmWaitingPeriodThreshold = initialSnapshot.realmWaitingPeriodThreshold,
     realmWildcardMentionPolicy = initialSnapshot.realmWildcardMentionPolicy,
+    realmDeleteOwnMessagePolicy = initialSnapshot.realmDeleteOwnMessagePolicy,
     _realmEmptyTopicDisplayName = initialSnapshot.realmEmptyTopicDisplayName,
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
     customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields);
@@ -261,13 +279,19 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   @override
   final bool realmAllowMessageEditing;
   @override
+  final GroupSettingValue? realmCanDeleteAnyMessageGroup;
+  @override
+  final GroupSettingValue? realmCanDeleteOwnMessageGroup;
+  @override
+  final bool realmEnableReadReceipts;
+  @override
   final bool realmMandatoryTopics;
   @override
   final int maxFileUploadSizeMib;
   @override
-  final int? realmMessageContentEditLimitSeconds;
+  final int? realmMessageContentDeleteLimitSeconds;
   @override
-  final bool realmEnableReadReceipts;
+  final int? realmMessageContentEditLimitSeconds;
   @override
   final bool realmPresenceDisabled;
   @override
@@ -275,6 +299,8 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
 
   @override
   final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
+  @override
+  final RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy;
 
   @override
   String get realmEmptyTopicDisplayName {

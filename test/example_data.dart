@@ -271,6 +271,7 @@ User user({
   String? dateJoined,
   bool? isActive,
   bool? isBot,
+  int? botOwnerId,
   UserRole? role,
   String? avatarUrl,
   Map<int, ProfileFieldUserData>? profileData,
@@ -286,7 +287,7 @@ User user({
     isActive: isActive ?? true,
     isBot: isBot ?? false,
     botType: null,
-    botOwnerId: null,
+    botOwnerId: botOwnerId,
     role: role ?? UserRole.member,
     timezone: 'UTC',
     avatarUrl: avatarUrl,
@@ -440,6 +441,7 @@ ZulipStream stream({
   int? streamId,
   String? name,
   String? description,
+  bool? isArchived,
   String? renderedDescription,
   int? dateCreated,
   int? firstMessageId,
@@ -449,6 +451,8 @@ ZulipStream stream({
   int? messageRetentionDays,
   ChannelPostPolicy? channelPostPolicy,
   GroupSettingValue? canAddSubscribersGroup,
+  GroupSettingValue? canDeleteAnyMessageGroup,
+  GroupSettingValue? canDeleteOwnMessageGroup,
   GroupSettingValue? canSubscribeGroup,
   int? streamWeeklyTraffic,
 }) {
@@ -460,6 +464,7 @@ ZulipStream stream({
   return ZulipStream(
     streamId: effectiveStreamId,
     name: effectiveName,
+    isArchived: isArchived ?? false,
     description: effectiveDescription,
     renderedDescription: renderedDescription ?? '<p>$effectiveDescription</p>',
     dateCreated: dateCreated ?? 1686774898,
@@ -470,6 +475,8 @@ ZulipStream stream({
     messageRetentionDays: messageRetentionDays,
     channelPostPolicy: channelPostPolicy ?? ChannelPostPolicy.any,
     canAddSubscribersGroup: canAddSubscribersGroup ?? GroupSettingValueNamed(nobodyGroup.id),
+    canDeleteAnyMessageGroup: canDeleteAnyMessageGroup ?? GroupSettingValueNamed(nobodyGroup.id),
+    canDeleteOwnMessageGroup: canDeleteOwnMessageGroup ?? GroupSettingValueNamed(nobodyGroup.id),
     canSubscribeGroup: canSubscribeGroup ?? GroupSettingValueNamed(nobodyGroup.id),
     streamWeeklyTraffic: streamWeeklyTraffic,
   );
@@ -500,6 +507,7 @@ Subscription subscription(
   return Subscription(
     streamId: stream.streamId,
     name: stream.name,
+    isArchived: stream.isArchived,
     description: stream.description,
     renderedDescription: stream.renderedDescription,
     dateCreated: stream.dateCreated,
@@ -510,6 +518,8 @@ Subscription subscription(
     messageRetentionDays: stream.messageRetentionDays,
     channelPostPolicy: stream.channelPostPolicy,
     canAddSubscribersGroup: stream.canAddSubscribersGroup,
+    canDeleteAnyMessageGroup: stream.canDeleteAnyMessageGroup,
+    canDeleteOwnMessageGroup: stream.canDeleteOwnMessageGroup,
     canSubscribeGroup: stream.canSubscribeGroup,
     streamWeeklyTraffic: stream.streamWeeklyTraffic,
     desktopNotifications: desktopNotifications ?? false,
@@ -1172,6 +1182,9 @@ ChannelUpdateEvent channelUpdateEvent(
 }) {
   switch (property) {
     case ChannelPropertyName.name:
+      assert(value is String);
+    case ChannelPropertyName.isArchived:
+      assert(value is bool);
     case ChannelPropertyName.description:
       assert(value is String);
     case ChannelPropertyName.firstMessageId:
@@ -1183,6 +1196,8 @@ ChannelUpdateEvent channelUpdateEvent(
     case ChannelPropertyName.channelPostPolicy:
       assert(value is ChannelPostPolicy);
     case ChannelPropertyName.canAddSubscribersGroup:
+    case ChannelPropertyName.canDeleteAnyMessageGroup:
+    case ChannelPropertyName.canDeleteOwnMessageGroup:
     case ChannelPropertyName.canSubscribeGroup:
       assert(value is GroupSettingValue);
     case ChannelPropertyName.streamWeeklyTraffic:
@@ -1243,9 +1258,13 @@ InitialSnapshot initialSnapshot({
   Map<int, UserStatusChange>? userStatuses,
   UserSettings? userSettings,
   List<UserTopicItem>? userTopics,
+  GroupSettingValue? realmCanDeleteAnyMessageGroup,
+  GroupSettingValue? realmCanDeleteOwnMessageGroup,
+  RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy,
   RealmWildcardMentionPolicy? realmWildcardMentionPolicy,
   bool? realmMandatoryTopics,
   int? realmWaitingPeriodThreshold,
+  int? realmMessageContentDeleteLimitSeconds,
   bool? realmAllowMessageEditing,
   int? realmMessageContentEditLimitSeconds,
   bool? realmEnableReadReceipts,
@@ -1291,9 +1310,15 @@ InitialSnapshot initialSnapshot({
       presenceEnabled: true,
     ),
     userTopics: userTopics,
+    // no default; allow `null` to simulate servers without this
+    realmCanDeleteAnyMessageGroup: realmCanDeleteAnyMessageGroup,
+    // no default; allow `null` to simulate servers without this
+    realmCanDeleteOwnMessageGroup: realmCanDeleteOwnMessageGroup,
+    realmDeleteOwnMessagePolicy: realmDeleteOwnMessagePolicy,
     realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? RealmWildcardMentionPolicy.everyone,
     realmMandatoryTopics: realmMandatoryTopics ?? true,
     realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
+    realmMessageContentDeleteLimitSeconds: realmMessageContentDeleteLimitSeconds,
     realmAllowMessageEditing: realmAllowMessageEditing ?? true,
     realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
     realmEnableReadReceipts: realmEnableReadReceipts ?? true,
