@@ -37,8 +37,29 @@ PermissionSettingsItem _$PermissionSettingsItemFromJson(
   Map<String, dynamic> json,
 ) => PermissionSettingsItem(
   allowEveryoneGroup: json['allow_everyone_group'] as bool,
+  defaultGroupName: DefaultGroupName.fromJson(
+    json['default_group_name'] as String,
+  ),
 );
 
 Map<String, dynamic> _$PermissionSettingsItemToJson(
   PermissionSettingsItem instance,
-) => <String, dynamic>{'allow_everyone_group': instance.allowEveryoneGroup};
+) => <String, dynamic>{
+  'allow_everyone_group': instance.allowEveryoneGroup,
+  'default_group_name': instance.defaultGroupName,
+};
+
+const _$PseudoSystemGroupNameEnumMap = {
+  PseudoSystemGroupName.streamCreatorOrNobody: 'stream_creator_or_nobody',
+};
+
+const _$SystemGroupNameEnumMap = {
+  SystemGroupName.everyoneOnInternet: 'role:internet',
+  SystemGroupName.everyone: 'role:everyone',
+  SystemGroupName.members: 'role:members',
+  SystemGroupName.fullMembers: 'role:fullmembers',
+  SystemGroupName.moderators: 'role:moderators',
+  SystemGroupName.administrators: 'role:administrators',
+  SystemGroupName.owners: 'role:owners',
+  SystemGroupName.nobody: 'role:nobody',
+};
