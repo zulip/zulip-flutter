@@ -9,19 +9,19 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   ZulipLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
-  String get aboutPageTitle => 'About Zulip';
+  String get aboutPageTitle => 'عن زوليب';
 
   @override
-  String get aboutPageAppVersion => 'App version';
+  String get aboutPageAppVersion => 'نسخة التطبيق';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Open-source licenses';
+  String get aboutPageOpenSourceLicenses => '10.0.151.1';
 
   @override
-  String get aboutPageTapToView => 'Tap to view';
+  String get aboutPageTapToView => 'اضغط للعرض';
 
   @override
-  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
+  String get upgradeWelcomeDialogTitle => 'أهلا بك في تطبيق زوليب الجديد !';
 
   @override
   String get upgradeWelcomeDialogMessage =>
@@ -32,16 +32,16 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
       'Check out the announcement blog post!';
 
   @override
-  String get upgradeWelcomeDialogDismiss => 'Let\'s go';
+  String get upgradeWelcomeDialogDismiss => 'هيا بنا';
 
   @override
-  String get chooseAccountPageTitle => 'Choose account';
+  String get chooseAccountPageTitle => 'اختر حساب';
 
   @override
-  String get settingsPageTitle => 'Settings';
+  String get settingsPageTitle => 'الإعدادات';
 
   @override
-  String get switchAccountButton => 'Switch account';
+  String get switchAccountButton => 'تبديل الحساب';
 
   @override
   String tryAnotherAccountMessage(Object url) {
