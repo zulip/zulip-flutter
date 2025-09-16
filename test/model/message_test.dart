@@ -868,7 +868,7 @@ void main() {
   group('selfCanDeleteMessage', () {
     /// Call the method, with setup from [params].
     Future<bool> evaluate(CanDeleteMessageParams params) async {
-      final selfUser = eg.selfUser;
+      final selfUser = eg.user(role: params.selfUserRole);
       final botUserOwnedBySelf = eg.user(isBot: true, botOwnerId: selfUser.userId);
       final botUserNotOwnedBySelf = eg.user(isBot: true, botOwnerId: eg.otherUser.userId);
 
@@ -1127,7 +1127,7 @@ void main() {
         // doesn't exist, so we follow realmDeleteOwnMessagePolicy instead,
         // and we don't error.
 
-        test('allowed', () async {
+        test('allowed (permissive policy, low role)', () async {
           check(await evaluate(
             CanDeleteMessageParams.pre291(
               senderConfig: CanDeleteMessageSenderConfig.self,
@@ -1135,6 +1135,27 @@ void main() {
               inRealmCanDeleteAnyMessageGroup: false,
               isChannelArchived: false,
               realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone,
+              selfUserRole: UserRole.member,
+          )))
+            ..equals(await evaluate(
+             CanDeleteMessageParams.pre407(
+               senderConfig: CanDeleteMessageSenderConfig.self,
+               timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
+               inRealmCanDeleteAnyMessageGroup: false,
+               inRealmCanDeleteOwnMessageGroup: true,
+               isChannelArchived: false)))
+            ..isTrue();
+        });
+
+        test('allowed (strict policy, high role)', () async {
+          check(await evaluate(
+            CanDeleteMessageParams.pre291(
+              senderConfig: CanDeleteMessageSenderConfig.self,
+              timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
+              inRealmCanDeleteAnyMessageGroup: false,
+              isChannelArchived: false,
+              realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.admins,
+              selfUserRole: UserRole.administrator,
           )))
             ..equals(await evaluate(
              CanDeleteMessageParams.pre407(
@@ -1154,6 +1175,7 @@ void main() {
               inRealmCanDeleteAnyMessageGroup: false,
               isChannelArchived: false,
               realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.admins,
+              selfUserRole: UserRole.moderator,
           )))..equals(await evaluate(
               CanDeleteMessageParams.pre407(
                 senderConfig: CanDeleteMessageSenderConfig.self,
@@ -1177,13 +1199,15 @@ void main() {
               timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
               isChannelArchived: false,
               realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone,
+              selfUserRole: UserRole.member,
           )))..equals(await evaluate(
               CanDeleteMessageParams.pre291(
                 senderConfig: CanDeleteMessageSenderConfig.otherHuman,
                 timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
                 inRealmCanDeleteAnyMessageGroup: false,
                 isChannelArchived: false,
-                realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone)))
+                realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone,
+                selfUserRole: UserRole.member)))
             ..isFalse();
         });
       });
@@ -2006,6 +2030,7 @@ class CanDeleteMessageParams {
   final bool? inChannelCanDeleteAnyMessageGroup;
   final bool? inChannelCanDeleteOwnMessageGroup;
   final RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy;
+  final UserRole? selfUserRole;
 
   CanDeleteMessageParams._({
     required this.senderConfig,
@@ -2016,6 +2041,7 @@ class CanDeleteMessageParams {
     required this.inChannelCanDeleteAnyMessageGroup,
     required this.inChannelCanDeleteOwnMessageGroup,
     required this.realmDeleteOwnMessagePolicy,
+    required this.selfUserRole,
   });
 
   CanDeleteMessageParams.modern({
@@ -2026,7 +2052,9 @@ class CanDeleteMessageParams {
     required this.isChannelArchived,
     required this.inChannelCanDeleteAnyMessageGroup,
     required this.inChannelCanDeleteOwnMessageGroup,
-  }) : realmDeleteOwnMessagePolicy = null;
+  }) :
+    realmDeleteOwnMessagePolicy = null,
+    selfUserRole = null;
 
   factory CanDeleteMessageParams.restrictiveForChannelMessageExcept({
     CanDeleteMessageSenderConfig? senderConfig,
@@ -2110,6 +2138,7 @@ class CanDeleteMessageParams {
     inChannelCanDeleteAnyMessageGroup: null,
     inChannelCanDeleteOwnMessageGroup: null,
     realmDeleteOwnMessagePolicy: null,
+    selfUserRole: null,
   );
 
   // TODO(server-10) delete
@@ -2119,6 +2148,7 @@ class CanDeleteMessageParams {
     required bool inRealmCanDeleteAnyMessageGroup,
     required bool? isChannelArchived,
     required RealmDeleteOwnMessagePolicy realmDeleteOwnMessagePolicy,
+    required UserRole selfUserRole,
   }) => CanDeleteMessageParams._(
     senderConfig: senderConfig,
     timeLimitConfig: timeLimitConfig,
@@ -2128,6 +2158,7 @@ class CanDeleteMessageParams {
     inChannelCanDeleteAnyMessageGroup: null,
     inChannelCanDeleteOwnMessageGroup: null,
     realmDeleteOwnMessagePolicy: realmDeleteOwnMessagePolicy,
+    selfUserRole: selfUserRole,
   );
 
   // TODO(server-10) delete
@@ -2136,6 +2167,7 @@ class CanDeleteMessageParams {
     required CanDeleteMessageTimeLimitConfig timeLimitConfig,
     required bool? isChannelArchived,
     required RealmDeleteOwnMessagePolicy realmDeleteOwnMessagePolicy,
+    required UserRole selfUserRole,
   }) => CanDeleteMessageParams._(
     senderConfig: senderConfig,
     timeLimitConfig: timeLimitConfig,
@@ -2145,6 +2177,7 @@ class CanDeleteMessageParams {
     inChannelCanDeleteAnyMessageGroup: null,
     inChannelCanDeleteOwnMessageGroup: null,
     realmDeleteOwnMessagePolicy: realmDeleteOwnMessagePolicy,
+    selfUserRole: selfUserRole,
   );
 
   String describe() {
