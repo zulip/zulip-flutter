@@ -311,6 +311,8 @@ User user({
 Account account({
   int? id,
   Uri? realmUrl,
+  String? realmName,
+  Uri? realmIcon,
   required User user,
   String? apiKey,
   int? zulipFeatureLevel,
@@ -326,6 +328,8 @@ Account account({
   return Account(
     id: id ?? 1000, // TODO generate example IDs
     realmUrl: realmUrl ?? _realmUrl,
+    realmName: realmName ?? 'Example Zulip organization',
+    realmIcon: realmIcon ?? _realmIcon,
     email: email,
     apiKey: apiKey ?? 'aeouasdf',
     userId: user.userId,

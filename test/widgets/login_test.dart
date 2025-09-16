@@ -328,6 +328,8 @@ void main() {
 
       testWidgets('creates account with data from server settings', (tester) async {
         final serverSettings = eg.serverSettings(
+          realmName: 'Some organization',
+          realmIcon: Uri.parse('/some-image.png'),
           zulipFeatureLevel: 427,
           zulipVersion: '12.0-dev-524-ga557b1e721',
           zulipMergeBase: '12.0-dev-523-g72e3b94855',
@@ -341,6 +343,8 @@ void main() {
         check(testBinding.globalStore.accounts).single
           .equals(eg.selfAccount.copyWith(
             id: testBinding.globalStore.accounts.single.id,
+            realmName: Value('Some organization'),
+            realmIcon: Value(Uri.parse('/some-image.png')),
             zulipFeatureLevel: 427,
             zulipVersion: '12.0-dev-524-ga557b1e721',
             zulipMergeBase: Value('12.0-dev-523-g72e3b94855')));

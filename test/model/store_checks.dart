@@ -19,6 +19,8 @@ extension GlobalSettingsDataChecks on Subject<GlobalSettingsData> {
 extension AccountChecks on Subject<Account> {
   Subject<int> get id => has((x) => x.id, 'id');
   Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
+  Subject<String?> get realmName => has((x) => x.realmName, 'realmName');
+  Subject<Uri?> get realmIcon => has((x) => x.realmIcon, 'realmIcon');
   Subject<int> get userId => has((x) => x.userId, 'userId');
   Subject<String> get email => has((x) => x.email, 'email');
   Subject<String> get apiKey => has((x) => x.apiKey, 'apiKey');
