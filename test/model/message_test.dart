@@ -1188,11 +1188,11 @@ void main() {
       });
 
       group('pre-281', () {
-        // The realm-level can-delete-any-message permission
-        // doesn't exist, so we act as though that's present and denied,
-        // notably by not throwing.
+        // The realm-level can-delete-any-message permission doesn't exist,
+        // so we act as though that's present with role:administrators,
+        // and we don't throw.
 
-        test('denied', () async {
+        test('self-user is not admin', () async {
           check(await evaluate(
             CanDeleteMessageParams.pre281(
               senderConfig: CanDeleteMessageSenderConfig.otherHuman,
@@ -1209,6 +1209,25 @@ void main() {
                 realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone,
                 selfUserRole: UserRole.member)))
             ..isFalse();
+        });
+
+        test('self-user is admin', () async {
+          check(await evaluate(
+            CanDeleteMessageParams.pre281(
+              senderConfig: CanDeleteMessageSenderConfig.otherHuman,
+              timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
+              isChannelArchived: false,
+              realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone,
+              selfUserRole: UserRole.administrator,
+          )))..equals(await evaluate(
+              CanDeleteMessageParams.pre291(
+                senderConfig: CanDeleteMessageSenderConfig.otherHuman,
+                timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
+                inRealmCanDeleteAnyMessageGroup: true,
+                isChannelArchived: false,
+                realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone,
+                selfUserRole: UserRole.administrator)))
+            ..isTrue();
         });
       });
     });

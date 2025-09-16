@@ -107,11 +107,12 @@ mixin MessageStore on ChannelStore {
       return false;
     }
 
-    // TODO(#1850) really the default should be `role:administrators`:
-    //   https://github.com/zulip/zulip-flutter/pull/1842#discussion_r2331362461
-    if (realmCanDeleteAnyMessageGroup != null
-        && selfHasPermissionForGroupSetting(realmCanDeleteAnyMessageGroup!,
-             GroupSettingType.realm, 'can_delete_any_message_group')) {
+    if (realmCanDeleteAnyMessageGroup != null) {
+      if (selfHasPermissionForGroupSetting(realmCanDeleteAnyMessageGroup!,
+            GroupSettingType.realm, 'can_delete_any_message_group')) {
+        return true;
+      }
+    } else if (selfUser.role.isAtLeast(UserRole.administrator)) {
       return true;
     }
 
