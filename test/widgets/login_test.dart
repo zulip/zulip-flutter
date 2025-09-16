@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:checks/checks.dart';
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -257,7 +258,11 @@ void main() {
         await login(tester, eg.selfAccount);
         check(testBinding.globalStore.accounts).single
           .equals(eg.selfAccount.copyWith(
-            id: testBinding.globalStore.accounts.single.id));
+            id: testBinding.globalStore.accounts.single.id,
+            // TODO store value from server settings during login flow
+            realmName: Value(null),
+            // TODO store value from server settings during login flow
+            realmIcon: Value(null)));
       });
 
       testWidgets('logging into a second account', (tester) async {
@@ -274,7 +279,12 @@ void main() {
         await login(tester, eg.otherAccount);
         final newAccount = testBinding.globalStore.accounts.singleWhere(
           (account) => account != eg.selfAccount);
-        check(newAccount).equals(eg.otherAccount.copyWith(id: newAccount.id));
+        check(newAccount).equals(eg.otherAccount.copyWith(
+          id: newAccount.id,
+          // TODO store value from server settings during login flow
+          realmName: Value(null),
+          // TODO store value from server settings during login flow
+          realmIcon: Value(null)));
         check(poppedRoutes).length.equals(2);
         check(pushedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
       });
@@ -299,7 +309,11 @@ void main() {
         await tester.idle();
         check(testBinding.globalStore.accounts).single
           .equals(eg.selfAccount.copyWith(
-            id: testBinding.globalStore.accounts.single.id));
+            id: testBinding.globalStore.accounts.single.id,
+            // TODO store value from server settings during login flow
+            realmName: Value(null),
+            // TODO store value from server settings during login flow
+            realmIcon: Value(null)));
       });
 
       testWidgets('account already exists', (tester) async {
@@ -376,7 +390,12 @@ void main() {
         check(testBinding.takeCloseInAppWebViewCallCount()).equals(1);
 
         final account = testBinding.globalStore.accounts.single;
-        check(account).equals(eg.selfAccount.copyWith(id: account.id));
+        check(account).equals(eg.selfAccount.copyWith(
+          id: account.id,
+          // TODO store value from server settings during login flow
+          realmName: Value(null),
+          // TODO store value from server settings during login flow
+          realmIcon: Value(null)));
         check(pushedRoutes).single.isA<MaterialAccountWidgetRoute>()
           ..accountId.equals(account.id)
           ..page.isA<HomePage>();
