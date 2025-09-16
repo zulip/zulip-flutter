@@ -1078,8 +1078,8 @@ void main() {
     group('legacy behavior', () {
       group('pre-407', () {
         // The channel-level group permissions don't exist,
-        // so we act as though they were present and denied,
-        // notably by not throwing.
+        // so we act as though they were present with role:nobody,
+        // and we don't throw.
 
         test('denial is not forced just because one of the permissions is absent (the any-message one)', () async {
           check(await evaluate(
