@@ -3,6 +3,7 @@ import 'package:drift/internal/versioned_schema.dart';
 import 'package:drift/remote.dart';
 import 'package:sqlite3/common.dart';
 
+import '../api/route/realm.dart';
 import '../log.dart';
 import 'legacy_app_data.dart';
 import 'schema_versions.g.dart';
@@ -123,6 +124,16 @@ class Accounts extends Table {
   /// It never changes for a given account.
   Column<String> get realmUrl => text().map(const UriConverter())();
 
+  /// The name of the Zulip realm this account is on.
+  ///
+  /// This corresponds to [GetServerSettingsResult.realmName].
+  Column<String> get realmName => text().nullable()();
+
+  /// The organization icon URL of the Zulip realm this account is on.
+  ///
+  /// This corresponds to [GetServerSettingsResult.realmIcon].
+  Column<String> get realmIcon => text().map(const UriConverter()).nullable()();
+
   /// The Zulip user ID of this account.
   ///
   /// This is the identifier the server uses for the account.
@@ -164,7 +175,7 @@ class AppDatabase extends _$AppDatabase {
   //    information on using the build_runner.
   //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 11; // See note.
+  static const int latestSchemaVersion = 12; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -258,6 +269,10 @@ class AppDatabase extends _$AppDatabase {
           'name': Variable('lastVisitedAccountId'),
           'value': Variable(firstAccountId),
         }));
+    },
+    from11To12: (Migrator m, Schema12 schema) async {
+      await m.addColumn(schema.accounts, schema.accounts.realmName);
+      await m.addColumn(schema.accounts, schema.accounts.realmIcon);
     },
   );
 
