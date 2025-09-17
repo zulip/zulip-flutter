@@ -1588,7 +1588,7 @@ abstract class ZulipLocalizations {
   /// Centered text on the 'Channels' page saying that there is no content to show.
   ///
   /// In en, this message translates to:
-  /// **'You are not subscribed to any channels yet.'**
+  /// **'You’re not subscribed to any channels yet.'**
   String get channelsEmptyPlaceholder;
 
   /// Title for the page about sharing content received from other apps.

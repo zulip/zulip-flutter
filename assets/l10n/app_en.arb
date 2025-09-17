@@ -1074,7 +1074,7 @@
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
   },
-  "channelsEmptyPlaceholder": "You are not subscribed to any channels yet.",
+  "channelsEmptyPlaceholder": "You’re not subscribed to any channels yet.",
   "@channelsEmptyPlaceholder": {
     "description": "Centered text on the 'Channels' page saying that there is no content to show."
   },

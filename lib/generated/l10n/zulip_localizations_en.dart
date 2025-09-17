@@ -898,7 +898,7 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
 
   @override
   String get channelsEmptyPlaceholder =>
-      'You are not subscribed to any channels yet.';
+      'You’re not subscribed to any channels yet.';
 
   @override
   String get sharePageTitle => 'Share';
