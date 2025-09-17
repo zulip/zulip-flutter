@@ -354,7 +354,7 @@ void main() {
 
     // TODO test database gets updated correctly (an integration test with sqlite?)
   });
-  
+
   test('GlobalStore.updateZulipVersionData', () async {
     final [currentZulipVersion,          newZulipVersion             ]
         = ['10.0-beta2-302-gf5b08b11f4', '10.0-beta2-351-g75ac8fe961'];
@@ -515,18 +515,24 @@ void main() {
 
     test('updates account from snapshot', () => awaitFakeAsync((async) async {
       final account = eg.account(user: eg.selfUser,
+        realmName: 'Organization A',
+        realmIcon: Uri.parse('/image-a.png'),
         zulipVersion: '6.0+gabcd',
         zulipMergeBase: '6.0',
         zulipFeatureLevel: 123,
       );
       await prepareStore(account: account);
       check(globalStore.getAccount(account.id)).isNotNull()
+        ..realmName.equals('Organization A')
+        ..realmIcon.equals(Uri.parse('/image-a.png'))
         ..zulipVersion.equals('6.0+gabcd')
         ..zulipMergeBase.equals('6.0')
         ..zulipFeatureLevel.equals(123);
 
       globalStore.useCachedApiConnections = true;
       connection.prepare(json: eg.initialSnapshot(
+        realmName: 'Organization B',
+        realmIconUrl: Uri.parse('/image-b.png'),
         zulipVersion: '8.0+g9876',
         zulipMergeBase: '8.0',
         zulipFeatureLevel: 234,
@@ -535,6 +541,8 @@ void main() {
       updateMachine.debugPauseLoop();
       check(globalStore.getAccount(account.id)).isNotNull()
         ..identicalTo(updateMachine.store.account)
+        ..realmName.equals('Organization B')
+        ..realmIcon.equals(Uri.parse('/image-b.png'))
         ..zulipVersion.equals('8.0+g9876')
         ..zulipMergeBase.equals('8.0')
         ..zulipFeatureLevel.equals(234);
