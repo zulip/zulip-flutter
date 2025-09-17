@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/channel.dart';
 import '../model/narrow.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
@@ -66,27 +67,12 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     });
   }
 
-  // TODO(linter): The linter incorrectly flags the following regexp string
-  //    as invalid. See: https://github.com/dart-lang/sdk/issues/61246
-  // ignore: valid_regexps
-  static final _startsWithEmojiRegex = RegExp(r'^\p{Emoji}', unicode: true);
-
   void _sortSubs(List<Subscription> list) {
     list.sort((a, b) {
       if (a.isMuted && !b.isMuted) return 1;
       if (!a.isMuted && b.isMuted) return -1;
 
-      // A user gave feedback wanting zulip-flutter to match web in putting
-      // emoji-prefixed channels first; see #1202.
-      // For matching web's ordering completely, see:
-      //   https://github.com/zulip/zulip-flutter/issues/1165
-      final aStartsWithEmoji = _startsWithEmojiRegex.hasMatch(a.name);
-      final bStartsWithEmoji = _startsWithEmojiRegex.hasMatch(b.name);
-      if (aStartsWithEmoji && !bStartsWithEmoji) return -1;
-      if (!aStartsWithEmoji && bStartsWithEmoji) return 1;
-
-      // TODO(i18n): add locale-aware sorting
-      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      return ChannelStore.compareChannelsByName(a, b);
     });
   }
 

@@ -42,6 +42,24 @@ mixin ChannelStore on UserStore {
   /// and [streamsByName].
   Map<int, Subscription> get subscriptions;
 
+  static int compareChannelsByName(ZulipStream a, ZulipStream b) {
+    // A user gave feedback wanting zulip-flutter to match web in putting
+    // emoji-prefixed channels first; see #1202.
+    // TODO(#1165) for matching web's ordering completely, which
+    //   (for the all-channels view) I think just means locale-aware sorting.
+    final aStartsWithEmoji = _startsWithEmojiRegex.hasMatch(a.name);
+    final bStartsWithEmoji = _startsWithEmojiRegex.hasMatch(b.name);
+    if (aStartsWithEmoji && !bStartsWithEmoji) return -1;
+    if (!aStartsWithEmoji && bStartsWithEmoji) return 1;
+
+    return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+  }
+
+  // TODO(linter): The linter incorrectly flags the following regexp string
+  //    as invalid. See: https://github.com/dart-lang/sdk/issues/61246
+  // ignore: valid_regexps
+  static final _startsWithEmojiRegex = RegExp(r'^\p{Emoji}', unicode: true);
+
   /// The visibility policy that the self-user has for the given topic.
   ///
   /// This does not incorporate the user's channel-level policy,
