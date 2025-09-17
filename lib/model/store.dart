@@ -323,6 +323,28 @@ abstract class GlobalStore extends ChangeNotifier {
       zulipFeatureLevel: Value(data.zulipFeatureLevel)));
   }
 
+  /// Update an account with [realmName] and [realmIcon], returning the new version.
+  ///
+  /// The account must already exist in the store.
+  Future<Account> updateRealmData(int accountId, {
+    required String realmName,
+    required Uri realmIcon,
+  }) async {
+    final account = getAccount(accountId)!;
+    if (account.realmName == realmName && account.realmIcon == realmIcon) {
+      return account;
+    }
+
+    return updateAccount(accountId,  AccountsCompanion(
+      realmName: account.realmName != realmName
+        ? Value(realmName)
+        : const Value.absent(),
+      realmIcon: account.realmIcon != realmIcon
+        ? Value(realmIcon)
+        : const Value.absent(),
+    ));
+  }
+
   /// Update an account in the underlying data store.
   Future<void> doUpdateAccount(int accountId, AccountsCompanion data);
 
@@ -1107,6 +1129,11 @@ class UpdateMachine {
       await globalStore.updateZulipVersionData(accountId, zulipVersionData);
       connection.zulipFeatureLevel = zulipVersionData.zulipFeatureLevel;
     }
+
+    // TODO(#668) update realmName and realmIcon on realm update events
+    await globalStore.updateRealmData(accountId,
+      realmName: initialSnapshot.realmName,
+      realmIcon: initialSnapshot.realmIconUrl);
 
     final store = PerAccountStore.fromInitialSnapshot(
       globalStore: globalStore,
