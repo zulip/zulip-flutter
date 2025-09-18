@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
+import '../api/model/permission.dart';
 import 'store.dart';
 import 'user_group.dart';
 
