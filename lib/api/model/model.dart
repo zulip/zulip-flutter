@@ -628,10 +628,15 @@ class ZulipStream {
   final int streamId;
   String name;
 
+  // We don't expect `true` for this until we declare the `archived_channels`
+  // client capability.
+  //
   // Servers that don't send this property will only send non-archived channels;
   // default to false for those servers.
+  // TODO(server-10) remove default and its comment
+  // TODO(#800) remove comment about `archived_channels` client capability.
   @JsonKey(defaultValue: false)
-  bool isArchived; // TODO(server-10) remove default and its comment
+  bool isArchived;
 
   String description;
   String renderedDescription;
