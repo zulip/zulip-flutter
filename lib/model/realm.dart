@@ -128,6 +128,16 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
     return topic;
   }
 
+  /// Whether the self-user has passed the realm's waiting period
+  /// to be a full member.
+  ///
+  /// See:
+  ///   https://zulip.com/api/roles-and-permissions#determining-if-a-user-is-a-full-member
+  ///
+  /// To determine if the self-user is a full member,
+  /// callers must also check that the user's role is at least [UserRole.member].
+  bool selfHasPassedWaitingPeriod({required DateTime byDate});
+
   /// Whether the self-user has the given (group-based) permission.
   bool selfHasPermissionForGroupSetting(GroupSettingValue value,
       GroupSettingType type, String name);
@@ -180,6 +190,9 @@ mixin ProxyRealmStore on RealmStore {
   @override
   List<CustomProfileField> get customProfileFields => realmStore.customProfileFields;
   @override
+  bool selfHasPassedWaitingPeriod({required DateTime byDate}) =>
+    realmStore.selfHasPassedWaitingPeriod(byDate: byDate);
+  @override
   bool selfHasPermissionForGroupSetting(GroupSettingValue value, GroupSettingType type, String name) =>
     realmStore.selfHasPermissionForGroupSetting(value, type, name);
 }
@@ -203,6 +216,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     required User selfUser,
   }) :
     _selfUserRole = selfUser.role,
+    _selfUserDateJoined = selfUser.dateJoined,
     serverPresencePingIntervalSeconds = initialSnapshot.serverPresencePingIntervalSeconds,
     serverPresenceOfflineThresholdSeconds = initialSnapshot.serverPresenceOfflineThresholdSeconds,
     serverTypingStartedExpiryPeriodMilliseconds = initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds,
@@ -223,6 +237,22 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     _realmEmptyTopicDisplayName = initialSnapshot.realmEmptyTopicDisplayName,
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
     customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields);
+
+  @override
+  bool selfHasPassedWaitingPeriod({required DateTime byDate}) {
+    // [User.dateJoined] is in UTC. For logged-in users, the format is:
+    // YYYY-MM-DDTHH:mm+00:00, which includes the timezone offset for UTC.
+    // For logged-out spectators, the format is: YYYY-MM-DD, which doesn't
+    // include the timezone offset. In the later case, [DateTime.parse] will
+    // interpret it as the client's local timezone, which could lead to
+    // incorrect results; but that's acceptable for now because the app
+    // doesn't support viewing as a spectator.
+    //
+    // See the related discussion:
+    //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/provide.20an.20explicit.20format.20for.20.60realm_user.2Edate_joined.60/near/1980194
+    final dateJoined = DateTime.parse(_selfUserDateJoined);
+    return byDate.difference(dateJoined).inDays >= realmWaitingPeriodThreshold;
+  }
 
   @override
   bool selfHasPermissionForGroupSetting(GroupSettingValue value,
@@ -262,7 +292,19 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   /// The main home of this information is [UserStore]: `store.selfUser.role`.
   /// We need it here for interpreting some permission settings;
   /// so we denormalize it here to avoid a cycle between substores.
+  ///
+  /// See also [_selfUserDateJoined].
   UserRole _selfUserRole;
+
+  /// The [User.dateJoined] of the self-user.
+  ///
+  /// The main home of this information is [UserStore]:
+  /// `store.selfUser.dateJoined`.
+  /// We need it here for interpreting some permission settings;
+  /// so we denormalize it here to avoid a cycle between substores.
+  ///
+  /// See also [_selfUserRole].
+  final String _selfUserDateJoined;
 
   @override
   final int serverPresencePingIntervalSeconds;

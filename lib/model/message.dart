@@ -186,7 +186,7 @@ mixin MessageStore on ChannelStore {
       case RealmDeleteOwnMessagePolicy.fullMembers: {
         if (!role.isAtLeast(UserRole.member)) return false;
         if (role == UserRole.member) {
-          return hasPassedWaitingPeriod(selfUser, byDate: atDate);
+          return selfHasPassedWaitingPeriod(byDate: atDate);
         }
         return true;
       }

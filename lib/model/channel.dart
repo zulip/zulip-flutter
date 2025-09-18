@@ -213,7 +213,7 @@ mixin ChannelStore on UserStore {
       case ChannelPostPolicy.fullMembers:     {
         if (!role.isAtLeast(UserRole.member)) return false;
         if (role == UserRole.member) {
-          return hasPassedWaitingPeriod(selfUser, byDate: byDate);
+          return selfHasPassedWaitingPeriod(byDate: byDate);
         }
         return true;
       }

@@ -35,6 +35,32 @@ void main() {
     doCheck(eg.t('(no topic)'),          eg.t(''),                    370);
   });
 
+  group('selfHasPassedWaitingPeriod', () {
+    final testCases = [
+      ('2024-11-25T10:00+00:00', DateTime.utc(2024, 11, 25 + 0, 10, 00), false),
+      ('2024-11-25T10:00+00:00', DateTime.utc(2024, 11, 25 + 1, 10, 00), false),
+      ('2024-11-25T10:00+00:00', DateTime.utc(2024, 11, 25 + 2, 09, 59), false),
+      ('2024-11-25T10:00+00:00', DateTime.utc(2024, 11, 25 + 2, 10, 00), true),
+      ('2024-11-25T10:00+00:00', DateTime.utc(2024, 11, 25 + 1000, 07, 00), true),
+    ];
+
+    for (final (String dateJoined, DateTime currentDate, bool expected) in testCases) {
+      test('self-user joined at $dateJoined ${expected ? 'has' : "hasn't"} '
+          'passed waiting period by $currentDate', () {
+        final selfUser = eg.user(dateJoined: dateJoined);
+        final store = eg.store(
+          selfUser: selfUser,
+          initialSnapshot: eg.initialSnapshot(
+            realmWaitingPeriodThreshold: 2,
+            realmUsers: [selfUser],
+          ),
+        );
+        check(store.selfHasPassedWaitingPeriod(byDate: currentDate))
+          .equals(expected);
+      });
+    }
+  });
+
   group('selfHasPermissionForGroupSetting', () {
     // Most of the implementation of this is in [UserGroupStore.selfInGroupSetting],
     // and is tested in more detail in user_group_test.dart .
