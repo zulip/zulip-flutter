@@ -92,6 +92,9 @@ int utcTimestamp([DateTime? dateTime]) {
 final Uri realmUrl = Uri.parse('https://chat.example/');
 Uri get _realmUrl => realmUrl;
 
+final Uri realmIcon = Uri.parse('/user_avatars/2/realm/icon.png?version=3');
+Uri get _realmIcon => realmIcon;
+
 const String recentZulipVersion = '9.0';
 const int recentZulipFeatureLevel = 382;
 const int futureZulipFeatureLevel = 9999;
@@ -1281,11 +1284,13 @@ InitialSnapshot initialSnapshot({
   RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy,
   RealmWildcardMentionPolicy? realmWildcardMentionPolicy,
   bool? realmMandatoryTopics,
+  String? realmName,
   int? realmWaitingPeriodThreshold,
   int? realmMessageContentDeleteLimitSeconds,
   bool? realmAllowMessageEditing,
   int? realmMessageContentEditLimitSeconds,
   bool? realmEnableReadReceipts,
+  Uri? realmIconUrl,
   bool? realmPresenceDisabled,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   int? maxFileUploadSizeMib,
@@ -1341,11 +1346,13 @@ InitialSnapshot initialSnapshot({
     realmDeleteOwnMessagePolicy: realmDeleteOwnMessagePolicy,
     realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? RealmWildcardMentionPolicy.everyone,
     realmMandatoryTopics: realmMandatoryTopics ?? true,
+    realmName: realmName ?? 'Example Zulip organization',
     realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
     realmMessageContentDeleteLimitSeconds: realmMessageContentDeleteLimitSeconds,
     realmAllowMessageEditing: realmAllowMessageEditing ?? true,
     realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
     realmEnableReadReceipts: realmEnableReadReceipts ?? true,
+    realmIconUrl: realmIconUrl ?? _realmIcon,
     realmPresenceDisabled: realmPresenceDisabled ?? false,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
