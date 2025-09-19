@@ -260,6 +260,9 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
   canDeleteOwnMessageGroup: json['can_delete_own_message_group'] == null
       ? null
       : GroupSettingValue.fromJson(json['can_delete_own_message_group']),
+  canSendMessageGroup: json['can_send_message_group'] == null
+      ? null
+      : GroupSettingValue.fromJson(json['can_send_message_group']),
   canSubscribeGroup: json['can_subscribe_group'] == null
       ? null
       : GroupSettingValue.fromJson(json['can_subscribe_group']),
@@ -283,6 +286,7 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
       'can_add_subscribers_group': instance.canAddSubscribersGroup,
       'can_delete_any_message_group': instance.canDeleteAnyMessageGroup,
       'can_delete_own_message_group': instance.canDeleteOwnMessageGroup,
+      'can_send_message_group': instance.canSendMessageGroup,
       'can_subscribe_group': instance.canSubscribeGroup,
       'stream_weekly_traffic': instance.streamWeeklyTraffic,
     };
@@ -320,6 +324,9 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
   canDeleteOwnMessageGroup: json['can_delete_own_message_group'] == null
       ? null
       : GroupSettingValue.fromJson(json['can_delete_own_message_group']),
+  canSendMessageGroup: json['can_send_message_group'] == null
+      ? null
+      : GroupSettingValue.fromJson(json['can_send_message_group']),
   canSubscribeGroup: json['can_subscribe_group'] == null
       ? null
       : GroupSettingValue.fromJson(json['can_subscribe_group']),
@@ -351,6 +358,7 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'can_add_subscribers_group': instance.canAddSubscribersGroup,
       'can_delete_any_message_group': instance.canDeleteAnyMessageGroup,
       'can_delete_own_message_group': instance.canDeleteOwnMessageGroup,
+      'can_send_message_group': instance.canSendMessageGroup,
       'can_subscribe_group': instance.canSubscribeGroup,
       'stream_weekly_traffic': instance.streamWeeklyTraffic,
       'desktop_notifications': instance.desktopNotifications,
@@ -515,6 +523,7 @@ const _$ChannelPropertyNameEnumMap = {
   ChannelPropertyName.canAddSubscribersGroup: 'can_add_subscribers_group',
   ChannelPropertyName.canDeleteAnyMessageGroup: 'can_delete_any_message_group',
   ChannelPropertyName.canDeleteOwnMessageGroup: 'can_delete_own_message_group',
+  ChannelPropertyName.canSendMessageGroup: 'can_send_message_group',
   ChannelPropertyName.canSubscribeGroup: 'can_subscribe_group',
   ChannelPropertyName.streamWeeklyTraffic: 'stream_weekly_traffic',
 };

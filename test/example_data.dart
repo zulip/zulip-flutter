@@ -461,9 +461,16 @@ ZulipStream stream({
   GroupSettingValue? canAddSubscribersGroup,
   GroupSettingValue? canDeleteAnyMessageGroup,
   GroupSettingValue? canDeleteOwnMessageGroup,
+  GroupSettingValue? canSendMessageGroup,
   GroupSettingValue? canSubscribeGroup,
   int? streamWeeklyTraffic,
 }) {
+  if (channelPostPolicy == null) {
+    // Set a default for realmCanDeleteOwnMessageGroup, but only if we're
+    // not trying to test legacy behavior with channelPostPolicy.
+    canSendMessageGroup ??= groupSetting(members: [selfUser.userId]);
+  }
+
   _checkPositive(streamId, 'stream ID');
   _checkPositive(firstMessageId, 'message ID');
   var effectiveStreamId = streamId ?? _nextStreamId();
@@ -485,6 +492,7 @@ ZulipStream stream({
     canAddSubscribersGroup: canAddSubscribersGroup ?? GroupSettingValueNamed(nobodyGroup.id),
     canDeleteAnyMessageGroup: canDeleteAnyMessageGroup ?? GroupSettingValueNamed(nobodyGroup.id),
     canDeleteOwnMessageGroup: canDeleteOwnMessageGroup ?? GroupSettingValueNamed(nobodyGroup.id),
+    canSendMessageGroup: canSendMessageGroup,
     canSubscribeGroup: canSubscribeGroup ?? GroupSettingValueNamed(nobodyGroup.id),
     streamWeeklyTraffic: streamWeeklyTraffic,
   );
@@ -528,6 +536,7 @@ Subscription subscription(
     canAddSubscribersGroup: stream.canAddSubscribersGroup,
     canDeleteAnyMessageGroup: stream.canDeleteAnyMessageGroup,
     canDeleteOwnMessageGroup: stream.canDeleteOwnMessageGroup,
+    canSendMessageGroup: stream.canSendMessageGroup,
     canSubscribeGroup: stream.canSubscribeGroup,
     streamWeeklyTraffic: stream.streamWeeklyTraffic,
     desktopNotifications: desktopNotifications ?? false,
@@ -1206,6 +1215,7 @@ ChannelUpdateEvent channelUpdateEvent(
     case ChannelPropertyName.canAddSubscribersGroup:
     case ChannelPropertyName.canDeleteAnyMessageGroup:
     case ChannelPropertyName.canDeleteOwnMessageGroup:
+    case ChannelPropertyName.canSendMessageGroup:
     case ChannelPropertyName.canSubscribeGroup:
       assert(value is GroupSettingValue);
     case ChannelPropertyName.streamWeeklyTraffic:
