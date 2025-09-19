@@ -405,6 +405,8 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
             stream.canDeleteAnyMessageGroup = event.value as GroupSettingValue;
           case ChannelPropertyName.canDeleteOwnMessageGroup:
             stream.canDeleteOwnMessageGroup = event.value as GroupSettingValue;
+          case ChannelPropertyName.canSendMessageGroup:
+            stream.canSendMessageGroup = event.value as GroupSettingValue;
           case ChannelPropertyName.canSubscribeGroup:
             stream.canSubscribeGroup = event.value as GroupSettingValue;
           case ChannelPropertyName.streamWeeklyTraffic:

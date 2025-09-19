@@ -655,6 +655,7 @@ class ZulipStream {
   GroupSettingValue? canAddSubscribersGroup; // TODO(server-10)
   GroupSettingValue? canDeleteAnyMessageGroup; // TODO(server-11)
   GroupSettingValue? canDeleteOwnMessageGroup; // TODO(server-11)
+  GroupSettingValue? canSendMessageGroup; // TODO(server-10)
   GroupSettingValue? canSubscribeGroup; // TODO(server-10)
 
   // TODO(server-8): added in FL 199, was previously only on [Subscription] objects
@@ -676,6 +677,7 @@ class ZulipStream {
     required this.canAddSubscribersGroup,
     required this.canDeleteAnyMessageGroup,
     required this.canDeleteOwnMessageGroup,
+    required this.canSendMessageGroup,
     required this.canSubscribeGroup,
     required this.streamWeeklyTraffic,
   });
@@ -698,6 +700,7 @@ class ZulipStream {
       canAddSubscribersGroup: subscription.canAddSubscribersGroup,
       canDeleteAnyMessageGroup: subscription.canDeleteAnyMessageGroup,
       canDeleteOwnMessageGroup: subscription.canDeleteOwnMessageGroup,
+      canSendMessageGroup: subscription.canSendMessageGroup,
       canSubscribeGroup: subscription.canSubscribeGroup,
       streamWeeklyTraffic: subscription.streamWeeklyTraffic,
     );
@@ -733,6 +736,7 @@ enum ChannelPropertyName {
   canAddSubscribersGroup,
   canDeleteAnyMessageGroup,
   canDeleteOwnMessageGroup,
+  canSendMessageGroup,
   canSubscribeGroup,
   streamWeeklyTraffic;
 
@@ -817,6 +821,7 @@ class Subscription extends ZulipStream {
     required super.canAddSubscribersGroup,
     required super.canDeleteAnyMessageGroup,
     required super.canDeleteOwnMessageGroup,
+    required super.canSendMessageGroup,
     required super.canSubscribeGroup,
     required super.streamWeeklyTraffic,
     required this.desktopNotifications,
