@@ -64,6 +64,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   List<int>? mutedUserIds,
   bool? realmAllowMessageEditing,
   int? realmMessageContentEditLimitSeconds,
+  bool hasDeletePermission = true,
   bool? realmEnableReadReceipts,
   bool shouldSetServerEmojiData = true,
   bool useLegacyServerEmojiData = false,
@@ -74,6 +75,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   assert(narrow.containsMessage(message)!);
 
   selfUser ??= eg.selfUser;
+  assert(!(hasDeletePermission && selfUser.role == UserRole.guest));
   final selfAccount = eg.account(user: selfUser);
   await testBinding.globalStore.add(
     selfAccount,
@@ -82,6 +84,10 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
       realmAllowMessageEditing: realmAllowMessageEditing,
       realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
       realmEnableReadReceipts: realmEnableReadReceipts,
+      realmCanDeleteAnyMessageGroup: hasDeletePermission
+        ? eg.groupSetting(members: [selfUser.userId])
+        : eg.groupSetting(members: []),
+      realmCanDeleteOwnMessageGroup: eg.groupSetting(members: []),
     ));
   store = await testBinding.globalStore.perAccount(selfAccount.id);
   await store.addUsers([
@@ -116,6 +122,9 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
 
   // global store, per-account store, and message list get loaded
   await tester.pumpAndSettle();
+
+  check(store.selfCanDeleteMessage(message.id, atDate: testBinding.utcNow()))
+    .equals(hasDeletePermission);
 
   await beforeLongPress?.call();
 
@@ -1161,6 +1170,10 @@ void main() {
   });
 
   group('message action sheet', () {
+    final actionSheetFinder = find.byType(BottomSheet);
+    Finder findButtonForLabel(String label) =>
+      find.descendant(of: actionSheetFinder, matching: find.text(label));
+
     group('header', () {
       void checkSenderAndTimestampShown(WidgetTester tester, {required int senderId}) {
         check(find.descendant(
@@ -2210,6 +2223,95 @@ void main() {
               ..messageId.equals(message.id)
               ..originalRawContent.equals('foo');
         });
+      });
+    });
+
+    group('DeleteMessageButton', () {
+      final findButton = findButtonForLabel('Delete message');
+
+      group('visibility', () {
+        testWidgets('shown when user has permission', (tester) async {
+          final message = eg.streamMessage(flags: []);
+          await setupToMessageActionSheet(tester,
+            hasDeletePermission: true,
+            message: message, narrow: TopicNarrow.ofMessage(message));
+
+          check(findButton).findsOne();
+        });
+
+        testWidgets('not shown when user does not have permission', (tester) async {
+          final message = eg.streamMessage(flags: []);
+          await setupToMessageActionSheet(tester,
+            hasDeletePermission: false,
+            message: message, narrow: TopicNarrow.ofMessage(message));
+
+          check(findButton).findsNothing();
+        });
+      });
+
+      Future<void> tapButton(WidgetTester tester, {bool starred = false}) async {
+        await tester.ensureVisible(findButton);
+        await tester.tap(findButton);
+        await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+      }
+
+      (Widget, Widget) checkConfirmation(WidgetTester tester) =>
+        checkSuggestedActionDialog(tester,
+          expectedTitle: 'Delete message?',
+          expectedMessage: 'Deleting a message permanently removes it for everyone.',
+          expectDestructiveActionButton: true,
+          expectedActionButtonText: 'Delete');
+
+      testWidgets('smoke', (tester) async {
+        final message = eg.streamMessage(flags: []);
+        await setupToMessageActionSheet(tester,
+          message: message, narrow: TopicNarrow.ofMessage(message));
+
+        await tapButton(tester);
+        await tester.pump();
+
+        final (deleteButton, cancelButton) = checkConfirmation(tester);
+        connection.prepare(json: {});
+        await tester.tap(find.byWidget(deleteButton));
+        await tester.pump(Duration.zero);
+
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('DELETE')
+          ..url.path.equals('/api/v1/messages/${message.id}')
+          ..bodyFields.deepEquals({});
+      });
+
+      testWidgets('cancel confirmation dialog', (tester) async {
+        final message = eg.streamMessage(flags: []);
+        await setupToMessageActionSheet(tester,
+          message: message, narrow: TopicNarrow.ofMessage(message));
+
+        connection.takeRequests();
+
+        await tapButton(tester);
+        await tester.pump();
+
+        final (deleteButton, cancelButton) = checkConfirmation(tester);
+        await tester.tap(find.byWidget(cancelButton));
+        await tester.pumpAndSettle();
+
+        check(connection.lastRequest).isNull();
+      });
+
+      testWidgets('request fails', (tester) async {
+        final message = eg.streamMessage(flags: []);
+        await setupToMessageActionSheet(tester,
+          message: message, narrow: TopicNarrow.ofMessage(message));
+
+        await tapButton(tester);
+        await tester.pump();
+
+        final (deleteButton, cancelButton) = checkConfirmation(tester);
+        connection.prepare(apiException: eg.apiBadRequest());
+        await tester.tap(find.byWidget(deleteButton));
+        await tester.pump(Duration.zero);
+
+        checkErrorDialog(tester, expectedTitle: 'Failed to delete message');
       });
     });
 

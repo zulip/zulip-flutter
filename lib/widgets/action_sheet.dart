@@ -340,6 +340,7 @@ abstract class ActionSheetMenuItemButton extends StatelessWidget {
 
   IconData get icon;
   String label(ZulipLocalizations zulipLocalizations);
+  bool get destructive => false;
 
   /// Called when the button is pressed, after dismissing the action sheet.
   ///
@@ -376,7 +377,9 @@ abstract class ActionSheetMenuItemButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return ZulipMenuItemButton(
-      style: ZulipMenuItemButtonStyle.menu,
+      style: destructive
+        ? ZulipMenuItemButtonStyle.menuDestructive
+        : ZulipMenuItemButtonStyle.menu,
       icon: icon,
       label: label(zulipLocalizations),
       onPressed: () => _handlePressed(context),
@@ -1026,6 +1029,8 @@ class CopyTopicLinkButton extends ActionSheetMenuItemButton {
 ///
 /// Must have a [MessageListPage] ancestor.
 void showMessageActionSheet({required BuildContext context, required Message message}) {
+  final now = ZulipBinding.instance.utcNow();
+
   final pageContext = PageRoot.contextOf(context);
   final store = PerAccountStoreWidget.of(pageContext);
 
@@ -1050,30 +1055,34 @@ void showMessageActionSheet({required BuildContext context, required Message mes
 
   final isSenderMuted = store.isUserMuted(message.senderId);
 
-  final optionButtons = [
-    if (popularEmojiLoaded)
-      ReactionButtons(message: message, pageContext: pageContext),
-    if (hasReactions)
-      ViewReactionsButton(message: message, pageContext: pageContext),
-    if (readReceiptsEnabled)
-      ViewReadReceiptsButton(message: message, pageContext: pageContext),
-    StarButton(message: message, pageContext: pageContext),
-    if (isComposeBoxOffered)
-      QuoteAndReplyButton(message: message, pageContext: pageContext),
-    if (showMarkAsUnreadButton)
-      MarkAsUnreadButton(message: message, pageContext: pageContext),
-    if (isSenderMuted)
-      // The message must have been revealed in order to open this action sheet.
-      UnrevealMutedMessageButton(message: message, pageContext: pageContext),
-    CopyMessageTextButton(message: message, pageContext: pageContext),
-    CopyMessageLinkButton(message: message, pageContext: pageContext),
-    ShareButton(message: message, pageContext: pageContext),
-    if (_getShouldShowEditButton(pageContext, message))
-      EditButton(message: message, pageContext: pageContext),
+  final buttonSections = [
+    [
+      if (popularEmojiLoaded)
+        ReactionButtons(message: message, pageContext: pageContext),
+      if (hasReactions)
+        ViewReactionsButton(message: message, pageContext: pageContext),
+      if (readReceiptsEnabled)
+        ViewReadReceiptsButton(message: message, pageContext: pageContext),
+      StarButton(message: message, pageContext: pageContext),
+      if (isComposeBoxOffered)
+        QuoteAndReplyButton(message: message, pageContext: pageContext),
+      if (showMarkAsUnreadButton)
+        MarkAsUnreadButton(message: message, pageContext: pageContext),
+      if (isSenderMuted)
+        // The message must have been revealed in order to open this action sheet.
+        UnrevealMutedMessageButton(message: message, pageContext: pageContext),
+      CopyMessageTextButton(message: message, pageContext: pageContext),
+      CopyMessageLinkButton(message: message, pageContext: pageContext),
+      ShareButton(message: message, pageContext: pageContext),
+      if (_getShouldShowEditButton(pageContext, message))
+        EditButton(message: message, pageContext: pageContext),
+    ],
+    if (store.selfCanDeleteMessage(message.id, atDate: now))
+      [DeleteMessageButton(message: message, pageContext: pageContext)],
   ];
 
   _showActionSheet(pageContext,
-    buttonSections: [optionButtons],
+    buttonSections: buttonSections,
     header: _MessageActionSheetHeader(message: message));
 }
 
@@ -1601,5 +1610,51 @@ class EditButton extends MessageActionSheetMenuItemButton {
       throw StateError('Compose box unexpectedly absent when edit-message button pressed');
     }
     composeBoxState.startEditInteraction(message.id);
+  }
+}
+
+class DeleteMessageButton extends MessageActionSheetMenuItemButton {
+  DeleteMessageButton({super.key, required super.message, required super.pageContext});
+
+  @override
+  IconData get icon => ZulipIcons.trash;
+
+  @override
+  bool get destructive => true;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) =>
+    zulipLocalizations.actionSheetOptionDeleteMessage;
+
+  @override void onPressed() async {
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
+
+    final dialog = showSuggestedActionDialog(context: pageContext,
+      title: zulipLocalizations.deleteMessageConfirmationDialogTitle,
+      message: zulipLocalizations.deleteMessageConfirmationDialogMessage,
+      destructiveActionButton: true,
+      actionButtonText: zulipLocalizations.deleteMessageConfirmationDialogConfirmButton,
+    );
+    if (await dialog.result != true) return;
+    if (!pageContext.mounted) return;
+
+    final connection = PerAccountStoreWidget.of(pageContext).connection;
+    try {
+      await deleteMessage(connection, messageId: message.id);
+    } catch (e) {
+      if (!pageContext.mounted) return;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      final title = ZulipLocalizations.of(pageContext).errorDeleteMessageFailedTitle;
+      showErrorDialog(context: pageContext, title: title, message: errorMessage);
+    }
   }
 }
