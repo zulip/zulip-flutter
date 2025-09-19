@@ -1285,6 +1285,13 @@ InitialSnapshot initialSnapshot({
   List<User>? realmNonActiveUsers,
   List<User>? crossRealmBots,
 }) {
+  if (realmDeleteOwnMessagePolicy == null) {
+    // Set a default for realmCanDeleteOwnMessageGroup, but only if we're
+    // trying to simulate a modern server without realmDeleteOwnMessagePolicy.
+    realmCanDeleteOwnMessageGroup ??= GroupSettingValueNamed(nobodyGroup.id);
+  }
+  assert((realmCanDeleteOwnMessageGroup != null) ^ (realmDeleteOwnMessagePolicy != null));
+
   return InitialSnapshot(
     queueId: queueId ?? '1:2345',
     lastEventId: lastEventId ?? -1,
@@ -1320,7 +1327,6 @@ InitialSnapshot initialSnapshot({
     userTopics: userTopics,
     // no default; allow `null` to simulate servers without this
     realmCanDeleteAnyMessageGroup: realmCanDeleteAnyMessageGroup,
-    // no default; allow `null` to simulate servers without this
     realmCanDeleteOwnMessageGroup: realmCanDeleteOwnMessageGroup,
     realmDeleteOwnMessagePolicy: realmDeleteOwnMessagePolicy,
     realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? RealmWildcardMentionPolicy.everyone,
