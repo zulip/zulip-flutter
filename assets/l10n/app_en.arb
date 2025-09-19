@@ -277,6 +277,26 @@
   "@actionSheetOptionEditMessage": {
     "description": "Label for the 'Edit message' button in the message action sheet."
   },
+  "actionSheetOptionDeleteMessage": "Delete message",
+  "@actionSheetOptionDeleteMessage": {
+    "description": "Label for the 'Delete message' button in the message action sheet."
+  },
+  "deleteMessageConfirmationDialogTitle": "Delete message?",
+  "@deleteMessageConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for deleting a message."
+  },
+  "deleteMessageConfirmationDialogMessage": "Deleting a message permanently removes it for everyone.",
+  "@deleteMessageConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for deleting a message."
+  },
+  "deleteMessageConfirmationDialogConfirmButton": "Delete",
+  "@deleteMessageConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Delete' button on a confirmation dialog for deleting a message."
+  },
+  "errorDeleteMessageFailedTitle": "Failed to delete message",
+  "@errorDeleteMessageFailedTitle": {
+    "description": "Error title when deleting a message failed."
+  },
   "actionSheetOptionMarkTopicAsRead": "Mark topic as read",
   "@actionSheetOptionMarkTopicAsRead": {
     "description": "Option to mark a specific topic as read in the action sheet."
