@@ -2024,7 +2024,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       final dialog = showSuggestedActionDialog(context: context,
         title: zulipLocalizations.discardDraftConfirmationDialogTitle,
         message: dialogMessage,
-        // TODO(#1032) "destructive" style for action button
+        destructiveActionButton: true,
         actionButtonText: zulipLocalizations.discardDraftConfirmationDialogConfirmButton);
       if (await dialog.result != true) return true;
     }

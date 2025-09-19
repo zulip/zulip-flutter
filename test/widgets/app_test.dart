@@ -382,6 +382,7 @@ void main() {
         return checkSuggestedActionDialog(tester,
           expectedTitle: 'Log out?',
           expectedMessage: 'To use this account in the future, you will have to re-enter the URL for your organization and your account information.',
+          expectDestructiveActionButton: true,
           expectedActionButtonText: 'Log out');
       }
 

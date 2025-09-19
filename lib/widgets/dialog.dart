@@ -10,7 +10,15 @@ import 'content.dart';
 import 'store.dart';
 
 /// A platform-appropriate action for [AlertDialog.adaptive]'s [actions] param.
-Widget _adaptiveAction({required VoidCallback onPressed, required String text}) {
+///
+/// [isDefaultAction] and [isDestructiveAction] are ignored on Android
+/// because Material Design doesn't specify corresponding styles.
+Widget _adaptiveAction({
+  required VoidCallback onPressed,
+  required bool isDefaultAction,
+  bool isDestructiveAction = false,
+  required String text,
+}) {
   switch (defaultTargetPlatform) {
     case TargetPlatform.android:
     case TargetPlatform.fuchsia:
@@ -30,7 +38,11 @@ Widget _adaptiveAction({required VoidCallback onPressed, required String text}) 
 
     case TargetPlatform.iOS:
     case TargetPlatform.macOS:
-      return CupertinoDialogAction(onPressed: onPressed, child: Text(text));
+      return CupertinoDialogAction(
+        onPressed: onPressed,
+        isDefaultAction: isDefaultAction,
+        isDestructiveAction: isDestructiveAction,
+        child: Text(text));
   }
 }
 
@@ -112,9 +124,11 @@ DialogStatus<void> showErrorDialog({
         if (learnMoreButtonUrl != null)
           _adaptiveAction(
             onPressed: () => PlatformActions.launchUrl(context, learnMoreButtonUrl),
+            isDefaultAction: false,
             text: zulipLocalizations.errorDialogLearnMore),
         _adaptiveAction(
           onPressed: () => Navigator.pop(context),
+          isDefaultAction: true,
           text: zulipLocalizations.errorDialogContinue),
       ]));
   return DialogStatus(future);
@@ -133,6 +147,7 @@ DialogStatus<bool> showSuggestedActionDialog({
   required String title,
   required String message,
   required String? actionButtonText,
+  bool destructiveActionButton = false,
 }) {
   final zulipLocalizations = ZulipLocalizations.of(context);
   final future = showDialog<bool>(
@@ -143,9 +158,12 @@ DialogStatus<bool> showSuggestedActionDialog({
       actions: [
         _adaptiveAction(
           onPressed: () => Navigator.pop<bool>(context, null),
+          isDefaultAction: false,
           text: zulipLocalizations.dialogCancel),
         _adaptiveAction(
           onPressed: () => Navigator.pop<bool>(context, true),
+          isDefaultAction: true,
+          isDestructiveAction: destructiveActionButton,
           text: actionButtonText ?? zulipLocalizations.dialogContinue),
       ]));
   return DialogStatus(future);
@@ -213,6 +231,7 @@ class UpgradeWelcomeDialog extends StatelessWidget {
       actions: [
         _adaptiveAction(
           onPressed: () => Navigator.pop(context),
+          isDefaultAction: true,
           text: zulipLocalizations.upgradeWelcomeDialogDismiss)
       ]);
   }
