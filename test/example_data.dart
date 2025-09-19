@@ -112,7 +112,7 @@ GetServerSettingsResult serverSettings({
   bool? requireEmailFormatUsernames,
   Uri? realmUrl,
   String? realmName,
-  String? realmIcon,
+  Uri? realmIcon,
   String? realmDescription,
   bool? realmWebPublicAccessEnabled,
 }) {
@@ -128,7 +128,7 @@ GetServerSettingsResult serverSettings({
     requireEmailFormatUsernames: requireEmailFormatUsernames ?? true,
     realmUrl: realmUrl ?? _realmUrl,
     realmName: realmName ?? 'Example Zulip organization',
-    realmIcon: realmIcon ?? '$realmUrl/icon.png',
+    realmIcon: realmIcon ?? _realmIcon,
     realmDescription: realmDescription ?? 'An example Zulip organization',
     realmWebPublicAccessEnabled: realmWebPublicAccessEnabled ?? false,
   );
