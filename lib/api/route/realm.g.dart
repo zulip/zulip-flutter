@@ -31,7 +31,7 @@ GetServerSettingsResult _$GetServerSettingsResultFromJson(
   requireEmailFormatUsernames: json['require_email_format_usernames'] as bool,
   realmUrl: Uri.parse(json['realm_uri'] as String),
   realmName: json['realm_name'] as String,
-  realmIcon: json['realm_icon'] as String,
+  realmIcon: Uri.parse(json['realm_icon'] as String),
   realmDescription: json['realm_description'] as String,
   realmWebPublicAccessEnabled: json['realm_web_public_access_enabled'] as bool,
 );
@@ -50,7 +50,7 @@ Map<String, dynamic> _$GetServerSettingsResultToJson(
   'require_email_format_usernames': instance.requireEmailFormatUsernames,
   'realm_uri': instance.realmUrl.toString(),
   'realm_name': instance.realmName,
-  'realm_icon': instance.realmIcon,
+  'realm_icon': instance.realmIcon.toString(),
   'realm_description': instance.realmDescription,
   'realm_web_public_access_enabled': instance.realmWebPublicAccessEnabled,
 };

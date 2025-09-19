@@ -48,7 +48,7 @@ class GetServerSettingsResult {
   final Uri realmUrl;
 
   final String realmName;
-  final String realmIcon;
+  final Uri realmIcon;
   final String realmDescription;
   final bool realmWebPublicAccessEnabled;
 
