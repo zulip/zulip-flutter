@@ -1645,6 +1645,7 @@ void main() {
     final (actionButton, cancelButton) = checkSuggestedActionDialog(tester,
       expectedTitle: 'Discard the message you’re writing?',
       expectedMessage: expectedMessage,
+      expectDestructiveActionButton: true,
       expectedActionButtonText: 'Discard');
     if (shouldContinue) {
       await tester.tap(find.byWidget(actionButton));

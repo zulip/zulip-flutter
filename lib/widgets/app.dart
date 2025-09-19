@@ -347,7 +347,7 @@ class ChooseAccountPage extends StatelessWidget {
                 final dialog = showSuggestedActionDialog(context: context,
                   title: zulipLocalizations.logOutConfirmationDialogTitle,
                   message: zulipLocalizations.logOutConfirmationDialogMessage,
-                  // TODO(#1032) "destructive" style for action button
+                  destructiveActionButton: true,
                   actionButtonText: zulipLocalizations.logOutConfirmationDialogConfirmButton);
                 if (await dialog.result == true) {
                   if (!context.mounted) return;

@@ -643,7 +643,7 @@ class UnsubscribeButton extends ActionSheetMenuItemButton {
       final dialog = showSuggestedActionDialog(context: pageContext,
         title: zulipLocalizations.unsubscribeConfirmationDialogTitle(subscription.name),
         message: zulipLocalizations.unsubscribeConfirmationDialogMessageMaybeCannotResubscribe,
-        // TODO(#1032) "destructive" style for action button
+        destructiveActionButton: true,
         actionButtonText: zulipLocalizations.unsubscribeConfirmationDialogConfirmButton);
       if (await dialog.result != true) return;
       if (!pageContext.mounted) return;
