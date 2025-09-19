@@ -450,6 +450,18 @@ void main() {
     });
   });
 
+  group('updateMessage', () {
+    test('smoke', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: {});
+        await deleteMessage(connection, messageId: 123321);
+        check(connection.takeRequests()).single.isA<http.Request>()
+          ..method.equals('DELETE')
+          ..url.path.equals('/api/v1/messages/123321');
+      });
+    });
+  });
+
   group('uploadFile', () {
     Future<void> checkUploadFile(FakeApiConnection connection, {
       required List<List<int>> content,

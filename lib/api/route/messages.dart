@@ -250,6 +250,14 @@ class UpdateMessageResult {
   Map<String, dynamic> toJson() => _$UpdateMessageResultToJson(this);
 }
 
+/// https://zulip.com/api/delete-message
+Future<void> deleteMessage(
+  ApiConnection connection, {
+  required int messageId,
+}) {
+  return connection.delete('deleteMessage', (_) {}, 'messages/$messageId', {});
+}
+
 /// https://zulip.com/api/upload-file
 Future<UploadFileResult> uploadFile(
   ApiConnection connection, {
