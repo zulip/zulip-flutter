@@ -38,6 +38,7 @@ abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT exten
 
 class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends State<AutocompleteField<QueryT, ResultT>> with PerAccountStoreAwareStateMixin<AutocompleteField<QueryT, ResultT>> {
   AutocompleteView<QueryT, ResultT>? _viewModel;
+  final ScrollController _scrollController = ScrollController();
 
   void _initViewModel(QueryT query) {
     _viewModel = widget.initViewModel(context, query)
@@ -63,6 +64,10 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
       } else {
         assert(_viewModel!.acceptsQuery(newQuery));
         _viewModel!.query = newQuery;
+        // Reset scroll when query content changes
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(0);
+        }
       }
     }
   }
@@ -96,6 +101,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
   void dispose() {
     widget.controller.removeListener(_handleControllerChange);
     _viewModel?.dispose(); // removes our listener
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -138,6 +144,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 300), // TODO not hard-coded
               child: ListView.builder(
+                controller: _scrollController,
                 padding: EdgeInsets.zero,
                 shrinkWrap: true,
                 itemCount: _resultsToDisplay.length,
