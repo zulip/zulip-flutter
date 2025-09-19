@@ -161,10 +161,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     composeBoxBg: const Color(0xffffffff),
     contextMenuCancelText: const Color(0xff222222),
     contextMenuItemBg: const Color(0xff6159e1),
+    contextMenuItemBgDanger: const Color(0xffc0070a), // TODO(#831) red/550
     contextMenuItemIcon: const Color(0xff4f42c9),
+    contextMenuItemIconDanger: const Color(0xffac0508), // TODO(#831) red/600
     contextMenuItemLabel: const Color(0xff242631),
     contextMenuItemMeta: const Color(0xff626573),
     contextMenuItemText: const Color(0xff381da7),
+    contextMenuItemTextDanger: const Color(0xffac0508), // TODO(#831) red/600
     editorButtonPressedBg: Colors.black.withValues(alpha: 0.06),
     fabBg: const Color(0xff6e69f3),
     fabBgPressed: const Color(0xff6159e1),
@@ -252,10 +255,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     composeBoxBg: const Color(0xff0f0f0f),
     contextMenuCancelText: const Color(0xffffffff).withValues(alpha: 0.75),
     contextMenuItemBg: const Color(0xff7977fe),
+    contextMenuItemBgDanger: const Color(0xffe1392e), // TODO(#831) red/450
     contextMenuItemIcon: const Color(0xff9398fd),
+    contextMenuItemIconDanger: const Color(0xfffd7465), // TODO(#831) red/300
     contextMenuItemLabel: const Color(0xffdfe1e8),
     contextMenuItemMeta: const Color(0xff9194a3),
     contextMenuItemText: const Color(0xff9398fd),
+    contextMenuItemTextDanger: const Color(0xfffd7465), // TODO(#831) red/300
     editorButtonPressedBg: Colors.white.withValues(alpha: 0.06),
     fabBg: const Color(0xff4f42c9),
     fabBgPressed: const Color(0xff4331b8),
@@ -352,10 +358,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.composeBoxBg,
     required this.contextMenuCancelText,
     required this.contextMenuItemBg,
+    required this.contextMenuItemBgDanger,
     required this.contextMenuItemIcon,
+    required this.contextMenuItemIconDanger,
     required this.contextMenuItemLabel,
     required this.contextMenuItemMeta,
     required this.contextMenuItemText,
+    required this.contextMenuItemTextDanger,
     required this.editorButtonPressedBg,
     required this.foreground,
     required this.fabBg,
@@ -443,10 +452,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color composeBoxBg;
   final Color contextMenuCancelText;
   final Color contextMenuItemBg;
+  final Color contextMenuItemBgDanger;
   final Color contextMenuItemIcon;
+  final Color contextMenuItemIconDanger;
   final Color contextMenuItemLabel;
   final Color contextMenuItemMeta;
   final Color contextMenuItemText;
+  final Color contextMenuItemTextDanger;
   final Color editorButtonPressedBg;
   final Color fabBg;
   final Color fabBgPressed;
@@ -529,10 +541,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? composeBoxBg,
     Color? contextMenuCancelText,
     Color? contextMenuItemBg,
+    Color? contextMenuItemBgDanger,
     Color? contextMenuItemIcon,
+    Color? contextMenuItemIconDanger,
     Color? contextMenuItemLabel,
     Color? contextMenuItemMeta,
     Color? contextMenuItemText,
+    Color? contextMenuItemTextDanger,
     Color? editorButtonPressedBg,
     Color? fabBg,
     Color? fabBgPressed,
@@ -610,10 +625,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       composeBoxBg: composeBoxBg ?? this.composeBoxBg,
       contextMenuCancelText: contextMenuCancelText ?? this.contextMenuCancelText,
       contextMenuItemBg: contextMenuItemBg ?? this.contextMenuItemBg,
+      contextMenuItemBgDanger: contextMenuItemBgDanger ?? this.contextMenuItemBgDanger,
       contextMenuItemIcon: contextMenuItemIcon ?? this.contextMenuItemIcon,
+      contextMenuItemIconDanger: contextMenuItemIconDanger ?? this.contextMenuItemIconDanger,
       contextMenuItemLabel: contextMenuItemLabel ?? this.contextMenuItemLabel,
       contextMenuItemMeta: contextMenuItemMeta ?? this.contextMenuItemMeta,
       contextMenuItemText: contextMenuItemText ?? this.contextMenuItemText,
+      contextMenuItemTextDanger: contextMenuItemTextDanger ?? this.contextMenuItemTextDanger,
       editorButtonPressedBg: editorButtonPressedBg ?? this.editorButtonPressedBg,
       foreground: foreground ?? this.foreground,
       fabBg: fabBg ?? this.fabBg,
@@ -698,10 +716,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       composeBoxBg: Color.lerp(composeBoxBg, other.composeBoxBg, t)!,
       contextMenuCancelText: Color.lerp(contextMenuCancelText, other.contextMenuCancelText, t)!,
       contextMenuItemBg: Color.lerp(contextMenuItemBg, other.contextMenuItemBg, t)!,
+      contextMenuItemBgDanger: Color.lerp(contextMenuItemBgDanger, other.contextMenuItemBgDanger, t)!,
       contextMenuItemIcon: Color.lerp(contextMenuItemIcon, other.contextMenuItemIcon, t)!,
+      contextMenuItemIconDanger: Color.lerp(contextMenuItemIconDanger, other.contextMenuItemIconDanger, t)!,
       contextMenuItemLabel: Color.lerp(contextMenuItemLabel, other.contextMenuItemLabel, t)!,
       contextMenuItemMeta: Color.lerp(contextMenuItemMeta, other.contextMenuItemMeta, t)!,
       contextMenuItemText: Color.lerp(contextMenuItemText, other.contextMenuItemText, t)!,
+      contextMenuItemTextDanger: Color.lerp(contextMenuItemTextDanger, other.contextMenuItemTextDanger, t)!,
       editorButtonPressedBg: Color.lerp(editorButtonPressedBg, other.editorButtonPressedBg, t)!,
       foreground: Color.lerp(foreground, other.foreground, t)!,
       fabBg: Color.lerp(fabBg, other.fabBg, t)!,
