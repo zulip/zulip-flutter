@@ -247,7 +247,7 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
   isWebPublic: json['is_web_public'] as bool,
   historyPublicToSubscribers: json['history_public_to_subscribers'] as bool,
   messageRetentionDays: (json['message_retention_days'] as num?)?.toInt(),
-  channelPostPolicy: $enumDecode(
+  channelPostPolicy: $enumDecodeNullable(
     _$ChannelPostPolicyEnumMap,
     json['stream_post_policy'],
   ),
@@ -311,7 +311,7 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
   isWebPublic: json['is_web_public'] as bool,
   historyPublicToSubscribers: json['history_public_to_subscribers'] as bool,
   messageRetentionDays: (json['message_retention_days'] as num?)?.toInt(),
-  channelPostPolicy: $enumDecode(
+  channelPostPolicy: $enumDecodeNullable(
     _$ChannelPostPolicyEnumMap,
     json['stream_post_policy'],
   ),

@@ -649,7 +649,7 @@ class ZulipStream {
   bool historyPublicToSubscribers;
   int? messageRetentionDays;
   @JsonKey(name: 'stream_post_policy')
-  ChannelPostPolicy channelPostPolicy;
+  ChannelPostPolicy? channelPostPolicy; // TODO(server-10) remove
   // final bool isAnnouncementOnly; // deprecated for `channelPostPolicy`; ignore
 
   GroupSettingValue? canAddSubscribersGroup; // TODO(server-10)
