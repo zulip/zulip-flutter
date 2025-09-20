@@ -521,6 +521,36 @@ abstract class ZulipLocalizations {
   /// **'Edit message'**
   String get actionSheetOptionEditMessage;
 
+  /// Label for the 'Delete message' button in the message action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete message'**
+  String get actionSheetOptionDeleteMessage;
+
+  /// Title for a confirmation dialog for deleting a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete message?'**
+  String get deleteMessageConfirmationDialogTitle;
+
+  /// Message for a confirmation dialog for deleting a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting a message permanently removes it for everyone.'**
+  String get deleteMessageConfirmationDialogMessage;
+
+  /// Label for the 'Delete' button on a confirmation dialog for deleting a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteMessageConfirmationDialogConfirmButton;
+
+  /// Error title when deleting a message failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete message'**
+  String get errorDeleteMessageFailedTitle;
+
   /// Option to mark a specific topic as read in the action sheet.
   ///
   /// In en, this message translates to:

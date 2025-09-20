@@ -350,7 +350,8 @@ class ZulipMenuItemButton extends StatelessWidget {
   final Widget? toggle;
 
   double get itemSpacingAndEndPadding => switch (style) {
-    ZulipMenuItemButtonStyle.menu => 16,
+    ZulipMenuItemButtonStyle.menu
+      || ZulipMenuItemButtonStyle.menuDestructive => 16,
     ZulipMenuItemButtonStyle.list => 12,
   };
 
@@ -373,6 +374,11 @@ class ZulipMenuItemButton extends StatelessWidget {
           WidgetState.pressed: designVariables.contextMenuItemBg.withFadedAlpha(0.20),
           ~WidgetState.pressed: designVariables.contextMenuItemBg.withFadedAlpha(0.12),
         });
+      case ZulipMenuItemButtonStyle.menuDestructive:
+        return WidgetStateColor.fromMap({
+          WidgetState.pressed: designVariables.contextMenuItemBgDanger.withFadedAlpha(0.20),
+          ~WidgetState.pressed: designVariables.contextMenuItemBgDanger.withFadedAlpha(0.12),
+        });
       case ZulipMenuItemButtonStyle.list:
         return WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.listMenuItemBg.withFadedAlpha(0.7),
@@ -384,13 +390,15 @@ class ZulipMenuItemButton extends StatelessWidget {
   Color _labelColor(DesignVariables designVariables) {
     return switch (style) {
       ZulipMenuItemButtonStyle.menu => designVariables.contextMenuItemText,
+      ZulipMenuItemButtonStyle.menuDestructive => designVariables.contextMenuItemTextDanger,
       ZulipMenuItemButtonStyle.list => designVariables.listMenuItemText,
     };
   }
 
   double _labelWght() {
     return switch (style) {
-      ZulipMenuItemButtonStyle.menu => 600,
+      ZulipMenuItemButtonStyle.menu
+        || ZulipMenuItemButtonStyle.menuDestructive => 600,
       ZulipMenuItemButtonStyle.list => 500,
     };
   }
@@ -398,6 +406,7 @@ class ZulipMenuItemButton extends StatelessWidget {
   Color _iconColor(DesignVariables designVariables) {
     return switch (style) {
       ZulipMenuItemButtonStyle.menu => designVariables.contextMenuItemIcon,
+      ZulipMenuItemButtonStyle.menuDestructive => designVariables.contextMenuItemIconDanger,
       ZulipMenuItemButtonStyle.list => designVariables.listMenuItemIcon,
     };
   }
@@ -467,6 +476,12 @@ enum ZulipMenuItemButtonStyle {
   /// See Figma:
   ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3302-20443&m=dev
   menu,
+
+  /// The red, destructive variant of [menu].
+  ///
+  /// See Figma:
+  ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6329-127234&m=dev
+  menuDestructive,
 
   /// The gray "list button" component in Figma, with 12px end padding.
   ///

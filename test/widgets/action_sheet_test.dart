@@ -576,6 +576,7 @@ void main() {
         final (unsubscribeButton, cancelButton) = checkSuggestedActionDialog(tester,
           expectedTitle: 'Unsubscribe from ${channel.name}?',
           expectedMessage: 'Once you leave this channel, you might not be able to rejoin.',
+          expectDestructiveActionButton: true,
           expectedActionButtonText: 'Unsubscribe');
         await tester.tap(find.byWidget(unsubscribeButton));
         await tester.pump(Duration.zero);
