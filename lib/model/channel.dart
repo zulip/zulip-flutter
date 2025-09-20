@@ -192,6 +192,21 @@ mixin ChannelStore on UserStore {
     required ZulipStream inChannel,
     required DateTime byDate,
   }) {
+    // (selfHasPermissionForGroupSetting isn't equipped to handle the old-server
+    // fallback logic for this specific permission; it's dynamic and depends on
+    // channelPostPolicy, so we do our own null check here.)
+    if (inChannel.canSendMessageGroup != null) {
+      return selfHasPermissionForGroupSetting(inChannel.canSendMessageGroup!,
+               GroupSettingType.stream, 'can_send_message_group');
+    } else {
+      return _selfPassesLegacyChannelPostPolicy(inChannel: inChannel, atDate: byDate);
+    }
+  }
+
+  bool _selfPassesLegacyChannelPostPolicy({
+    required ZulipStream inChannel,
+    required DateTime atDate,
+  }) {
     final role = selfUser.role;
     // We let the users with [unknown] role to send the message, then the server
     // will decide to accept it or not based on its actual role.
@@ -202,7 +217,7 @@ mixin ChannelStore on UserStore {
       case ChannelPostPolicy.fullMembers:     {
         if (!role.isAtLeast(UserRole.member)) return false;
         if (role == UserRole.member) {
-          return selfHasPassedWaitingPeriod(byDate: byDate);
+          return selfHasPassedWaitingPeriod(byDate: atDate);
         }
         return true;
       }

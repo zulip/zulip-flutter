@@ -9,9 +9,12 @@ import 'package:zulip/model/channel.dart';
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
 import '../stdlib_checks.dart';
+import 'binding.dart';
 import 'test_store.dart';
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   group('Unified stream/sub data', () {
     /// Check that `streams`, `streamsByName`, and `subscriptions` all agree
     /// and point to the same objects where applicable.
@@ -456,6 +459,32 @@ void main() {
   });
 
   group('selfCanSendMessage', () {
+    test('in group', () {
+      addTearDown(testBinding.reset);
+      final now = testBinding.utcNow();
+
+      final canSendMessageGroup = eg.groupSetting(members: [eg.selfUser.userId]);
+      final channel = eg.stream(canSendMessageGroup: canSendMessageGroup);
+      final store = eg.store(
+        initialSnapshot: eg.initialSnapshot(streams: [channel]));
+      check(store.selfCanSendMessage(inChannel: channel, byDate: now))
+        .isTrue();
+    });
+
+    test('not in group', () {
+      addTearDown(testBinding.reset);
+      final now = testBinding.utcNow();
+
+      final canSendMessageGroup = eg.groupSetting(members: []);
+      final channel = eg.stream(canSendMessageGroup: canSendMessageGroup);
+      final store = eg.store(
+        initialSnapshot: eg.initialSnapshot(streams: [channel]));
+      check(store.selfCanSendMessage(inChannel: channel, byDate: now))
+        .isFalse();
+    });
+  });
+
+  group('selfCanSendMessage, legacy', () {
     final testCases = [
       (ChannelPostPolicy.unknown,        UserRole.unknown,       true),
       (ChannelPostPolicy.unknown,        UserRole.guest,         true),
