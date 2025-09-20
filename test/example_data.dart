@@ -92,6 +92,9 @@ int utcTimestamp([DateTime? dateTime]) {
 final Uri realmUrl = Uri.parse('https://chat.example/');
 Uri get _realmUrl => realmUrl;
 
+final Uri realmIcon = Uri.parse('/user_avatars/2/realm/icon.png?version=3');
+Uri get _realmIcon => realmIcon;
+
 const String recentZulipVersion = '9.0';
 const int recentZulipFeatureLevel = 382;
 const int futureZulipFeatureLevel = 9999;
@@ -109,7 +112,7 @@ GetServerSettingsResult serverSettings({
   bool? requireEmailFormatUsernames,
   Uri? realmUrl,
   String? realmName,
-  String? realmIcon,
+  Uri? realmIcon,
   String? realmDescription,
   bool? realmWebPublicAccessEnabled,
 }) {
@@ -125,7 +128,7 @@ GetServerSettingsResult serverSettings({
     requireEmailFormatUsernames: requireEmailFormatUsernames ?? true,
     realmUrl: realmUrl ?? _realmUrl,
     realmName: realmName ?? 'Example Zulip organization',
-    realmIcon: realmIcon ?? '$realmUrl/icon.png',
+    realmIcon: realmIcon ?? _realmIcon,
     realmDescription: realmDescription ?? 'An example Zulip organization',
     realmWebPublicAccessEnabled: realmWebPublicAccessEnabled ?? false,
   );
@@ -308,6 +311,8 @@ User user({
 Account account({
   int? id,
   Uri? realmUrl,
+  String? realmName,
+  Uri? realmIcon,
   required User user,
   String? apiKey,
   int? zulipFeatureLevel,
@@ -323,6 +328,8 @@ Account account({
   return Account(
     id: id ?? 1000, // TODO generate example IDs
     realmUrl: realmUrl ?? _realmUrl,
+    realmName: realmName ?? 'Example Zulip organization',
+    realmIcon: realmIcon ?? _realmIcon,
     email: email,
     apiKey: apiKey ?? 'aeouasdf',
     userId: user.userId,
@@ -1271,11 +1278,13 @@ InitialSnapshot initialSnapshot({
   RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy,
   RealmWildcardMentionPolicy? realmWildcardMentionPolicy,
   bool? realmMandatoryTopics,
+  String? realmName,
   int? realmWaitingPeriodThreshold,
   int? realmMessageContentDeleteLimitSeconds,
   bool? realmAllowMessageEditing,
   int? realmMessageContentEditLimitSeconds,
   bool? realmEnableReadReceipts,
+  Uri? realmIconUrl,
   bool? realmPresenceDisabled,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   int? maxFileUploadSizeMib,
@@ -1325,11 +1334,13 @@ InitialSnapshot initialSnapshot({
     realmDeleteOwnMessagePolicy: realmDeleteOwnMessagePolicy,
     realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? RealmWildcardMentionPolicy.everyone,
     realmMandatoryTopics: realmMandatoryTopics ?? true,
+    realmName: realmName ?? 'Example Zulip organization',
     realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
     realmMessageContentDeleteLimitSeconds: realmMessageContentDeleteLimitSeconds,
     realmAllowMessageEditing: realmAllowMessageEditing ?? true,
     realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
     realmEnableReadReceipts: realmEnableReadReceipts ?? true,
+    realmIconUrl: realmIconUrl ?? _realmIcon,
     realmPresenceDisabled: realmPresenceDisabled ?? false,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,

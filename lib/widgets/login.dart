@@ -409,6 +409,8 @@ class _LoginPageState extends State<LoginPage> {
         email: email,
         apiKey: apiKey,
         userId: userId,
+        realmName: Value(widget.serverSettings.realmName),
+        realmIcon: Value(widget.serverSettings.realmIcon),
         zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
         zulipVersion: widget.serverSettings.zulipVersion,
         zulipMergeBase: Value(widget.serverSettings.zulipMergeBase),
