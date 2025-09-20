@@ -137,6 +137,16 @@ abstract class MessageListPageState extends State<MessageListPage> {
   /// The narrow for this page's message list.
   Narrow get narrow;
 
+  /// Resets the [MessageListView] model, triggering an initial fetch
+  /// at [anchor].
+  ///
+  /// Useful when updates won't arrive through the event system,
+  /// as when showing an unsubscribed channel.
+  /// (New-message events aren't sent for unsubscribed channels.)
+  ///
+  /// Does nothing if [MessageList] has not mounted yet.
+  void refresh(Anchor anchor);
+
   /// The [ComposeBoxState] for this [MessageListPage]'s compose box,
   /// if this [MessageListPage] offers a compose box and it has mounted,
   /// else null.
@@ -266,6 +276,9 @@ class MessageListPage extends StatefulWidget {
 class _MessageListPageState extends State<MessageListPage> implements MessageListPageState {
   @override
   late Narrow narrow;
+
+  @override
+  void refresh(Anchor anchor) => model?.renarrowAndFetch(narrow, anchor);
 
   @override
   ComposeBoxState? get composeBoxState => _composeBoxKey.currentState;
