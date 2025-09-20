@@ -212,9 +212,9 @@ mixin ChannelStore on UserStore {
   }) {
     assert(inChannel.channelPostPolicy != null);
     final role = selfUser.role;
-    // We let the users with [unknown] role to send the message, then the server
-    // will decide to accept it or not based on its actual role.
-    if (role == UserRole.unknown) return true;
+
+    // (Could early-return true on [UserRole.unknown],
+    // but pre-333 servers shouldn't be giving us an unknown role.)
 
     switch (inChannel.channelPostPolicy!) {
       case ChannelPostPolicy.any:             return true;
