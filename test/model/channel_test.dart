@@ -455,7 +455,7 @@ void main() {
     });
   });
 
-  group('hasPostingPermission', () {
+  group('selfCanSendMessage', () {
     final testCases = [
       (ChannelPostPolicy.unknown,        UserRole.unknown,       true),
       (ChannelPostPolicy.unknown,        UserRole.guest,         true),
