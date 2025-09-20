@@ -192,17 +192,36 @@ mixin ChannelStore on UserStore {
     required ZulipStream inChannel,
     required DateTime byDate,
   }) {
-    final role = selfUser.role;
-    // We let the users with [unknown] role to send the message, then the server
-    // will decide to accept it or not based on its actual role.
-    if (role == UserRole.unknown) return true;
+    // (selfHasPermissionForGroupSetting isn't equipped to handle the old-server
+    // fallback logic for this specific permission; it's dynamic and depends on
+    // channelPostPolicy, so we do our own null check here.)
+    if (inChannel.canSendMessageGroup != null) {
+      return selfHasPermissionForGroupSetting(inChannel.canSendMessageGroup!,
+               GroupSettingType.stream, 'can_send_message_group');
+    } else if (inChannel.channelPostPolicy != null) {
+      return _selfPassesLegacyChannelPostPolicy(inChannel: inChannel, atDate: byDate);
+    } else {
+      assert(false); // TODO(log)
+      return true;
+    }
+  }
 
-    switch (inChannel.channelPostPolicy) {
+  bool _selfPassesLegacyChannelPostPolicy({
+    required ZulipStream inChannel,
+    required DateTime atDate,
+  }) {
+    assert(inChannel.channelPostPolicy != null);
+    final role = selfUser.role;
+
+    // (Could early-return true on [UserRole.unknown],
+    // but pre-333 servers shouldn't be giving us an unknown role.)
+
+    switch (inChannel.channelPostPolicy!) {
       case ChannelPostPolicy.any:             return true;
       case ChannelPostPolicy.fullMembers:     {
         if (!role.isAtLeast(UserRole.member)) return false;
         if (role == UserRole.member) {
-          return selfHasPassedWaitingPeriod(byDate: byDate);
+          return selfHasPassedWaitingPeriod(byDate: atDate);
         }
         return true;
       }
@@ -405,6 +424,8 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
             stream.canDeleteAnyMessageGroup = event.value as GroupSettingValue;
           case ChannelPropertyName.canDeleteOwnMessageGroup:
             stream.canDeleteOwnMessageGroup = event.value as GroupSettingValue;
+          case ChannelPropertyName.canSendMessageGroup:
+            stream.canSendMessageGroup = event.value as GroupSettingValue;
           case ChannelPropertyName.canSubscribeGroup:
             stream.canSubscribeGroup = event.value as GroupSettingValue;
           case ChannelPropertyName.streamWeeklyTraffic:

@@ -9,9 +9,12 @@ import 'package:zulip/model/channel.dart';
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
 import '../stdlib_checks.dart';
+import 'binding.dart';
 import 'test_store.dart';
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   group('Unified stream/sub data', () {
     /// Check that `streams`, `streamsByName`, and `subscriptions` all agree
     /// and point to the same objects where applicable.
@@ -455,34 +458,55 @@ void main() {
     });
   });
 
-  group('hasPostingPermission', () {
+  group('selfCanSendMessage', () {
+    test('in group', () {
+      addTearDown(testBinding.reset);
+      final now = testBinding.utcNow();
+
+      final canSendMessageGroup = eg.groupSetting(members: [eg.selfUser.userId]);
+      final channel = eg.stream(canSendMessageGroup: canSendMessageGroup);
+      final store = eg.store(
+        initialSnapshot: eg.initialSnapshot(streams: [channel]));
+      check(store.selfCanSendMessage(inChannel: channel, byDate: now))
+        .isTrue();
+    });
+
+    test('not in group', () {
+      addTearDown(testBinding.reset);
+      final now = testBinding.utcNow();
+
+      final canSendMessageGroup = eg.groupSetting(members: []);
+      final channel = eg.stream(canSendMessageGroup: canSendMessageGroup);
+      final store = eg.store(
+        initialSnapshot: eg.initialSnapshot(streams: [channel]));
+      check(store.selfCanSendMessage(inChannel: channel, byDate: now))
+        .isFalse();
+    });
+  });
+
+  group('selfCanSendMessage, legacy', () {
     final testCases = [
-      (ChannelPostPolicy.unknown,        UserRole.unknown,       true),
       (ChannelPostPolicy.unknown,        UserRole.guest,         true),
       (ChannelPostPolicy.unknown,        UserRole.member,        true),
       (ChannelPostPolicy.unknown,        UserRole.moderator,     true),
       (ChannelPostPolicy.unknown,        UserRole.administrator, true),
       (ChannelPostPolicy.unknown,        UserRole.owner,         true),
-      (ChannelPostPolicy.any,            UserRole.unknown,       true),
       (ChannelPostPolicy.any,            UserRole.guest,         true),
       (ChannelPostPolicy.any,            UserRole.member,        true),
       (ChannelPostPolicy.any,            UserRole.moderator,     true),
       (ChannelPostPolicy.any,            UserRole.administrator, true),
       (ChannelPostPolicy.any,            UserRole.owner,         true),
-      (ChannelPostPolicy.fullMembers,    UserRole.unknown,       true),
       (ChannelPostPolicy.fullMembers,    UserRole.guest,         false),
       // The fullMembers/member case gets its own tests further below.
       // (ChannelPostPolicy.fullMembers,    UserRole.member,        /* complicated */),
       (ChannelPostPolicy.fullMembers,    UserRole.moderator,     true),
       (ChannelPostPolicy.fullMembers,    UserRole.administrator, true),
       (ChannelPostPolicy.fullMembers,    UserRole.owner,         true),
-      (ChannelPostPolicy.moderators,     UserRole.unknown,       true),
       (ChannelPostPolicy.moderators,     UserRole.guest,         false),
       (ChannelPostPolicy.moderators,     UserRole.member,        false),
       (ChannelPostPolicy.moderators,     UserRole.moderator,     true),
       (ChannelPostPolicy.moderators,     UserRole.administrator, true),
       (ChannelPostPolicy.moderators,     UserRole.owner,         true),
-      (ChannelPostPolicy.administrators, UserRole.unknown,       true),
       (ChannelPostPolicy.administrators, UserRole.guest,         false),
       (ChannelPostPolicy.administrators, UserRole.member,        false),
       (ChannelPostPolicy.administrators, UserRole.moderator,     false),
