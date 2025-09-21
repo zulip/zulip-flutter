@@ -87,32 +87,32 @@ class _PollWidgetState extends State<PollWidget> {
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: localizedTextBaseline(context),
         children: [
-          GestureDetector(
-            // TODO: Implement feedback when the user taps the button
-            onTap: () => _toggleVote(option),
-            behavior: HitTestBehavior.translucent,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-              child: Padding(
-                // For accessibility, the touch target is padded to be larger
-                // than the vote count box.  Still, we avoid padding at the
-                // start because we want to align all the poll options to the
-                // surrounding messages.
-                padding: const EdgeInsetsDirectional.only(
-                  end: 5, top: verticalPadding, bottom: verticalPadding),
-                child: Container(
-                  // Inner padding preserves whitespace even when the text's
-                  // width approaches the button's min-width (e.g. because
-                  // there are more than three digits).
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  decoration: BoxDecoration(
-                    color: theme.colorPollVoteCountBackground,
-                    border: Border.all(color: theme.colorPollVoteCountBorder),
-                    borderRadius: BorderRadius.circular(3)),
-                  child: Center(
-                    child: Text(option.voters.length.toString(),
-                      style: textStyleBold.copyWith(
-                        color: theme.colorPollVoteCountText, fontSize: 20))))))),
+          ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+            child: Padding(
+              // For accessibility, the touch target is padded to be larger
+              // than the vote count box.  Still, we avoid padding at the
+              // start because we want to align all the poll options to the
+              // surrounding messages.
+              padding: const EdgeInsetsDirectional.only(
+                end: 5, top: verticalPadding, bottom: verticalPadding),
+              child: Material(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(3),
+                  side: BorderSide(color: theme.colorPollVoteCountBorder)),
+                color: theme.colorPollVoteCountBackground,
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () => _toggleVote(option),
+                  child: Padding(
+                    // Inner padding preserves whitespace even when the text's
+                    // width approaches the button's min-width (e.g. because
+                    // there are more than three digits).
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Center(
+                      child: Text(option.voters.length.toString(),
+                        style: textStyleBold.copyWith(
+                          color: theme.colorPollVoteCountText, fontSize: 20)))))))),
           Expanded(
             child: Padding(
               // This and the padding on the vote count box both extend the row
