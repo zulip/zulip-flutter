@@ -185,7 +185,12 @@ class UriConverter extends TypeConverter<Uri, String> {
   @override Uri fromSql(String fromDb) => Uri.parse(fromDb);
 }
 
-@DriftDatabase(tables: [GlobalSettings, BoolGlobalSettings, IntGlobalSettings, Accounts])
+const _allTables = [
+  GlobalSettings, BoolGlobalSettings, IntGlobalSettings,
+  Accounts,
+];
+
+@DriftDatabase(tables: _allTables)
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
