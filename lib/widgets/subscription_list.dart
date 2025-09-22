@@ -185,6 +185,7 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
               sliver: SliverToBoxAdapter(
                 child: MenuButtonsShape(buttons: [
                   ZulipMenuItemButton(
+                    style: ZulipMenuItemButtonStyle.menu,
                     label: zulipLocalizations.navButtonAllChannels,
                     icon: ZulipIcons.chevron_right,
                     onPressed: () => Navigator.push(context,

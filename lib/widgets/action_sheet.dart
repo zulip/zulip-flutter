@@ -376,6 +376,7 @@ abstract class ActionSheetMenuItemButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return ZulipMenuItemButton(
+      style: ZulipMenuItemButtonStyle.menu,
       icon: icon,
       label: label(zulipLocalizations),
       onPressed: () => _handlePressed(context),

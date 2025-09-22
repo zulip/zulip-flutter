@@ -327,7 +327,7 @@ class MenuButtonsShape extends StatelessWidget {
 class ZulipMenuItemButton extends StatelessWidget {
   const ZulipMenuItemButton({
     super.key,
-    this.style = ZulipMenuItemButtonStyle.menu,
+    required this.style,
     required this.label,
     this.subLabel,
     required this.onPressed,
