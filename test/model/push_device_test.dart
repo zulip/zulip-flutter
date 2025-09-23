@@ -15,15 +15,13 @@ import '../stdlib_checks.dart';
 void main() {
   TestZulipBinding.ensureInitialized();
 
-  group('registerToken', () {
-    // TODO test registerToken gets called on constructing an instance
-
+  group('register token', () {
     late PushDeviceManager model;
     late FakeApiConnection connection;
 
     void prepareStore() {
-      PushDeviceManager.debugAutoRegisterToken = false;
-      addTearDown(() => PushDeviceManager.debugAutoRegisterToken = true);
+      PushDeviceManager.debugAutoPause = true;
+      addTearDown(() => PushDeviceManager.debugAutoPause = false);
       final store = eg.store();
       model = store.pushDevices;
       connection = store.connection as FakeApiConnection;
@@ -56,7 +54,7 @@ void main() {
       // On store startup, send the token.
       prepareStore();
       connection.prepare(json: {});
-      await model.registerToken();
+      await model.debugUnpauseRegisterToken();
       if (defaultTargetPlatform == TargetPlatform.android) {
         checkLastRequestFcm(token: '012abc');
       } else {
@@ -84,14 +82,14 @@ void main() {
       // TODO this test is a bit brittle in its interaction with asynchrony;
       //   to fix, probably extend TestZulipBinding to control when getToken finishes.
       //
-      // The aim here is to first wait for `model.registerToken`
+      // The aim here is to first wait for `model.debugUnpauseRegisterToken`
       // to complete whatever it's going to do; then check no request was made;
       // and only after that wait for `NotificationService.start` to finish,
       // including its `getToken` call.
 
       // On store startup, send nothing (because we have nothing to send).
       prepareStore();
-      await model.registerToken();
+      await model.debugUnpauseRegisterToken();
       check(connection.lastRequest).isNull();
 
       // When the token later appears, send it.
@@ -125,7 +123,7 @@ void main() {
 
       prepareStore();
       connection.prepare(json: {});
-      await model.registerToken();
+      await model.debugUnpauseRegisterToken();
       checkLastRequestApns(token: '012abc', appid: 'com.example.test');
     }));
   });

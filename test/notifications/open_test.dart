@@ -81,8 +81,8 @@ void main() {
     testBinding.firebaseMessagingInitialToken = '012abc';
     addTearDown(NotificationService.debugReset);
     NotificationService.debugBackgroundIsolateIsLive = false;
-    PushDeviceManager.debugAutoRegisterToken = false;
-    addTearDown(() => PushDeviceManager.debugAutoRegisterToken = true);
+    PushDeviceManager.debugAutoPause = true;
+    addTearDown(() => PushDeviceManager.debugAutoPause = false);
     await NotificationService.instance.start();
   }
 

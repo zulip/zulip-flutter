@@ -148,8 +148,8 @@ void main() {
     }));
 
     test('notifications are removed after logout', () => awaitFakeAsync((async) async {
-      PushDeviceManager.debugAutoRegisterToken = false;
-      addTearDown(() => PushDeviceManager.debugAutoRegisterToken = true);
+      PushDeviceManager.debugAutoPause = true;
+      addTearDown(() => PushDeviceManager.debugAutoPause = false);
       await prepare();
       testBinding.firebaseMessagingInitialToken = '123';
       addTearDown(NotificationService.debugReset);
