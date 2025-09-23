@@ -1117,12 +1117,7 @@ class UpdateMachine {
     final updateMachine = UpdateMachine.fromInitialSnapshot(
       store: store, initialSnapshot: initialSnapshot);
     updateMachine.poll();
-    if (initialSnapshot.serverEmojiDataUrl != null) {
-      // TODO(server-6): If the server is ancient, just skip trying to have
-      //   a list of its emoji.  (The old servers that don't provide
-      //   serverEmojiDataUrl are already unsupported at time of writing.)
-      unawaited(updateMachine.fetchEmojiData(initialSnapshot.serverEmojiDataUrl!));
-    }
+    unawaited(updateMachine.fetchEmojiData(initialSnapshot.serverEmojiDataUrl));
     store.presence.start();
     return updateMachine;
   }
