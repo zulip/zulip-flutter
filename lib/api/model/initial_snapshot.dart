@@ -284,7 +284,7 @@ class UserSettings {
   )
   TwentyFourHourTimeMode twentyFourHourTime;
 
-  bool? displayEmojiReactionUsers; // TODO(server-6)
+  bool displayEmojiReactionUsers;
   Emojiset emojiset;
   bool presenceEnabled;
 

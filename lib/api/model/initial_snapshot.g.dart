@@ -246,7 +246,7 @@ UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
   twentyFourHourTime: TwentyFourHourTimeMode.fromApiValue(
     json['twenty_four_hour_time'] as bool?,
   ),
-  displayEmojiReactionUsers: json['display_emoji_reaction_users'] as bool?,
+  displayEmojiReactionUsers: json['display_emoji_reaction_users'] as bool,
   emojiset: $enumDecode(_$EmojisetEnumMap, json['emojiset']),
   presenceEnabled: json['presence_enabled'] as bool,
 );
