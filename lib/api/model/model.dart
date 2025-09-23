@@ -97,7 +97,7 @@ enum CustomProfileFieldType {
   link(apiValue: 5),
   user(apiValue: 6),
   externalAccount(apiValue: 7),
-  pronouns(apiValue: 8), // TODO(server-6) newly added
+  pronouns(apiValue: 8),
   unknown(apiValue: null);
 
   const CustomProfileFieldType({
