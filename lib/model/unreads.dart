@@ -453,12 +453,8 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
             final newlyUnreadInDms = <DmNarrow, QueueList<int>>{};
             for (final messageId in event.messages) {
               final detail = event.messageDetails![messageId];
-              if (detail == null) { // TODO(log) if on Zulip 6.0+
-                // Happens as a bug in some cases before fixed in Zulip 6.0:
-                //   https://chat.zulip.org/#narrow/stream/378-api-design/topic/unreads.20in.20unsubscribed.20streams/near/1458467
-                // TODO(server-6) remove Zulip 6.0 comment
-                continue;
-              }
+              if (detail == null) continue; // TODO(log)
+
               if (detail.mentioned == true) {
                 mentions.add(messageId);
               }
