@@ -69,7 +69,7 @@ class CustomProfileField {
   final String name;
   final String hint;
   final String fieldData;
-  final bool? displayInProfileSummary; // TODO(server-6)
+  final bool? displayInProfileSummary;
 
   CustomProfileField({
     required this.id,
