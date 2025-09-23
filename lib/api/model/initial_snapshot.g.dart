@@ -78,8 +78,8 @@ InitialSnapshot _$InitialSnapshotFromJson(
   userSettings: UserSettings.fromJson(
     json['user_settings'] as Map<String, dynamic>,
   ),
-  userTopics: (json['user_topics'] as List<dynamic>?)
-      ?.map((e) => UserTopicItem.fromJson(e as Map<String, dynamic>))
+  userTopics: (json['user_topics'] as List<dynamic>)
+      .map((e) => UserTopicItem.fromJson(e as Map<String, dynamic>))
       .toList(),
   realmCanDeleteAnyMessageGroup:
       json['realm_can_delete_any_message_group'] == null

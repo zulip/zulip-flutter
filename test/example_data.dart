@@ -1334,7 +1334,7 @@ InitialSnapshot initialSnapshot({
       emojiset: Emojiset.google,
       presenceEnabled: true,
     ),
-    userTopics: userTopics,
+    userTopics: userTopics ?? [],
     // no default; allow `null` to simulate servers without this
     realmCanDeleteAnyMessageGroup: realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup: realmCanDeleteOwnMessageGroup,

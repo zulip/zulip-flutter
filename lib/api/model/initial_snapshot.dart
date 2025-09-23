@@ -35,8 +35,6 @@ class InitialSnapshot {
   @JsonKey(defaultValue: 10000)
   final int serverTypingStartedWaitPeriodMilliseconds;
 
-  // final List<…> mutedTopics; // TODO(#422) we ignore this feature on older servers
-
   final List<MutedUserItem> mutedUsers;
 
   // In the modern format because we pass `slim_presence`.
@@ -70,7 +68,7 @@ class InitialSnapshot {
 
   final UserSettings userSettings;
 
-  final List<UserTopicItem>? userTopics; // TODO(server-6)
+  final List<UserTopicItem> userTopics;
 
   final GroupSettingValue? realmCanDeleteAnyMessageGroup; // TODO(server-10)
 

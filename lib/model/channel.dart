@@ -307,7 +307,7 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
     }
 
     final topicVisibility = <int, TopicKeyedMap<UserTopicVisibilityPolicy>>{};
-    for (final item in initialSnapshot.userTopics ?? const <UserTopicItem>[]) {
+    for (final item in initialSnapshot.userTopics) {
       if (_warnInvalidVisibilityPolicy(item.visibilityPolicy)) {
         // Not a value we expect. Keep it out of our data structures. // TODO(log)
         continue;

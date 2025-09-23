@@ -71,7 +71,6 @@ sealed class Event {
           case 'peer_remove': return SubscriptionPeerRemoveEvent.fromJson(json);
           default: return UnexpectedEvent.fromJson(json);
         }
-      // case 'muted_topics': … // TODO(#422) we ignore this feature on older servers
       case 'user_status': return UserStatusEvent.fromJson(json);
       case 'user_topic': return UserTopicEvent.fromJson(json);
       case 'muted_users': return MutedUsersEvent.fromJson(json);
