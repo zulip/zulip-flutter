@@ -128,7 +128,7 @@ GetServerSettingsResult serverSettings({
     requireEmailFormatUsernames: requireEmailFormatUsernames ?? true,
     realmUrl: realmUrl ?? _realmUrl,
     realmName: realmName ?? 'Example Zulip organization',
-    realmIcon: realmIcon ?? Uri.parse('$realmUrl/icon.png'),
+    realmIcon: realmIcon ?? _realmIcon,
     realmDescription: realmDescription ?? 'An example Zulip organization',
     realmWebPublicAccessEnabled: realmWebPublicAccessEnabled ?? false,
   );
