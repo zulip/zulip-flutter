@@ -1013,8 +1013,6 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final isComposeBoxOffered = messageListPage.composeBoxState != null;
 
   final isMessageRead = message.flags.contains(MessageFlag.read);
-  final markAsUnreadSupported = store.zulipFeatureLevel >= 155; // TODO(server-6)
-  final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
 
   final isSenderMuted = store.isUserMuted(message.senderId);
 
@@ -1029,7 +1027,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       StarButton(message: message, pageContext: pageContext),
       if (isComposeBoxOffered)
         QuoteAndReplyButton(message: message, pageContext: pageContext),
-      if (showMarkAsUnreadButton)
+      if (isMessageRead)
         MarkAsUnreadButton(message: message, pageContext: pageContext),
       if (isSenderMuted)
         // The message must have been revealed in order to open this action sheet.

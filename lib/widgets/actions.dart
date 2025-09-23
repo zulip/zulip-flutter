@@ -68,7 +68,6 @@ abstract final class ZulipAction {
     Message message,
     Narrow narrow,
   ) async {
-    assert(PerAccountStoreWidget.of(context).zulipFeatureLevel >= 155); // TODO(server-6)
     final zulipLocalizations = ZulipLocalizations.of(context);
     await updateMessageFlagsStartingFromAnchor(
       context: context,
