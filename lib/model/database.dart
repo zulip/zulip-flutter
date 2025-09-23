@@ -176,13 +176,12 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   // When updating the schema:
-  //  * Make the change in the table classes, and bump latestSchemaVersion.
-  //  * Export the new schema and generate test migrations with drift:
-  //    $ tools/check --fix drift
-  //    and generate database code with build_runner.
-  //    See ../../README.md#generated-files for more
-  //    information on using the build_runner.
-  //  * Write a migration in `_migrationSteps` below.
+  //  * Make the change in the table classes.
+  //  * Bump latestSchemaVersion.
+  //  * Updated generated code for the new schema:
+  //    $ tools/check --fix build_runner drift
+  //  * Fix resulting analyzer errors; in particular,
+  //    write a migration in `_migrationSteps` below.
   //  * Write tests.
   static const int latestSchemaVersion = 12; // See note.
 
