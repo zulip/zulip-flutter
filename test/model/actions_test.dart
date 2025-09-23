@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http_testing;
 import 'package:zulip/model/actions.dart';
+import 'package:zulip/model/push_device.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
 
@@ -147,6 +148,8 @@ void main() {
     }));
 
     test('notifications are removed after logout', () => awaitFakeAsync((async) async {
+      PushDeviceManager.debugAutoRegisterToken = false;
+      addTearDown(() => PushDeviceManager.debugAutoRegisterToken = true);
       await prepare();
       testBinding.firebaseMessagingInitialToken = '123';
       addTearDown(NotificationService.debugReset);

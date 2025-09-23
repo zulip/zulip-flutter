@@ -5,7 +5,12 @@ import 'store.dart';
 /// and tracking the server's responses on the status of push devices.
 // TODO(#1764) do that tracking of responses
 class PushDeviceManager extends PerAccountStoreBase {
-  PushDeviceManager({required super.core});
+  PushDeviceManager({required super.core}) {
+    if (!debugAutoRegisterToken) {
+      return;
+    }
+    registerToken();
+  }
 
   bool _disposed = false;
 
@@ -27,9 +32,6 @@ class PushDeviceManager extends PerAccountStoreBase {
   // TODO(#322) save acked token, to dedupe updating it on the server
   // TODO(#323) track the addFcmToken/etc request, warn if not succeeding
   Future<void> registerToken() async {
-    if (!debugEnableRegisterToken) {
-      return;
-    }
     NotificationService.instance.token.addListener(_registerToken);
     await _registerToken();
   }
@@ -40,22 +42,22 @@ class PushDeviceManager extends PerAccountStoreBase {
     await NotificationService.instance.registerToken(connection);
   }
 
-  /// In debug mode, controls whether [registerToken] should
-  /// have its normal effect.
+  /// In debug mode, controls whether [registerToken] should be called
+  /// immediately in the constructor.
   ///
   /// Outside of debug mode, this is always true and the setter has no effect.
-  static bool get debugEnableRegisterToken {
+  static bool get debugAutoRegisterToken {
     bool result = true;
     assert(() {
-      result = _debugEnableRegisterToken;
+      result = _debugAutoRegisterToken;
       return true;
     }());
     return result;
   }
-  static bool _debugEnableRegisterToken = true;
-  static set debugEnableRegisterToken(bool value) {
+  static bool _debugAutoRegisterToken = true;
+  static set debugAutoRegisterToken(bool value) {
     assert(() {
-      _debugEnableRegisterToken = value;
+      _debugAutoRegisterToken = value;
       return true;
     }());
   }

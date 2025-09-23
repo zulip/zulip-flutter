@@ -10,6 +10,7 @@ import 'package:zulip/host/notifications.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/push_device.dart';
 import 'package:zulip/notifications/open.dart';
 import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/app.dart';
@@ -80,6 +81,8 @@ void main() {
     testBinding.firebaseMessagingInitialToken = '012abc';
     addTearDown(NotificationService.debugReset);
     NotificationService.debugBackgroundIsolateIsLive = false;
+    PushDeviceManager.debugAutoRegisterToken = false;
+    addTearDown(() => PushDeviceManager.debugAutoRegisterToken = true);
     await NotificationService.instance.start();
   }
 

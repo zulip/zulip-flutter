@@ -17,10 +17,8 @@ import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/log.dart';
 import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/presence.dart';
-import 'package:zulip/model/push_device.dart';
 import 'package:zulip/model/server_support.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/notifications/receive.dart';
 
 import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
@@ -137,17 +135,14 @@ void main() {
   }));
 
   test('GlobalStore.perAccount loading succeeds', () => awaitFakeAsync((async) async {
-    NotificationService.instance.token = ValueNotifier('asdf');
-    addTearDown(NotificationService.debugReset);
-
     final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
     final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
     final future = globalStore.perAccount(eg.selfAccount.id);
     check(connection.takeRequests()).length.equals(1); // register request
 
     await future;
-    // poll, server-emoji-data, register-token requests
-    check(connection.takeRequests()).length.equals(3);
+    // poll and server-emoji-data requests
+    check(connection.takeRequests()).length.equals(2);
     check(connection).isOpen.isTrue();
   }));
 
@@ -163,7 +158,7 @@ void main() {
 
     await check(future).throws<AccountNotFoundException>();
     check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
-    // no poll, server-emoji-data, or register-token requests
+    // no poll or other follow-up requests
     check(connection.takeRequests()).isEmpty();
     check(connection).isOpen.isFalse();
   }));
@@ -182,7 +177,7 @@ void main() {
 
     await check(future).throws<AccountNotFoundException>();
     check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
-    // no poll, server-emoji-data, or register-token requests
+    // no poll or other follow-up requests
     check(connection.takeRequests()).isEmpty();
     check(connection).isOpen.isFalse();
   }));
@@ -203,7 +198,7 @@ void main() {
 
     await check(future).throws<AccountNotFoundException>();
     check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
-    // no poll, server-emoji-data, or register-token requests
+    // no poll or other follow-up requests
     check(connection.takeRequests()).isEmpty();
     check(connection).isOpen.isFalse();
   }));
@@ -224,7 +219,7 @@ void main() {
 
     await check(future).throws<AccountNotFoundException>();
     check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
-    // no poll, server-emoji-data, or register-token requests
+    // no poll or other follow-up requests
     check(connection.takeRequests()).isEmpty();
     check(connection).isOpen.isFalse();
   }));
@@ -246,7 +241,7 @@ void main() {
 
     await check(future).throws<AccountNotFoundException>();
     check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
-    // no poll, server-emoji-data, or register-token requests
+    // no poll or other follow-up requests
     check(connection.takeRequests()).isEmpty();
     check(connection).isOpen.isFalse();
   }));
@@ -270,7 +265,7 @@ void main() {
 
     await check(future).throws<AccountNotFoundException>();
     check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
-    // no poll, server-emoji-data, or register-token requests
+    // no poll or other follow-up requests
     check(connection.takeRequests()).isEmpty();
     check(connection).isOpen.isFalse();
   }));
@@ -294,7 +289,7 @@ void main() {
 
     await check(future).throws<AccountNotFoundException>();
     check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
-    // no retry-register, poll, server-emoji-data, or register-token requests
+    // no retry-register, poll, or other follow-up requests
     check(connection.takeRequests()).isEmpty();
     check(connection).isOpen.isFalse();
   }));
@@ -484,8 +479,6 @@ void main() {
         as FakeApiConnection);
       UpdateMachine.debugEnableFetchEmojiData = false;
       addTearDown(() => UpdateMachine.debugEnableFetchEmojiData = true);
-      PushDeviceManager.debugEnableRegisterToken = false;
-      addTearDown(() => PushDeviceManager.debugEnableRegisterToken = true);
     }
 
     void checkLastRequest() {
@@ -572,7 +565,6 @@ void main() {
     }));
 
     // TODO test UpdateMachine.load starts polling loop
-    // TODO test UpdateMachine.load calls [PushDeviceManager.registerToken]
   });
 
   group('UpdateMachine.fetchEmojiData', () {
