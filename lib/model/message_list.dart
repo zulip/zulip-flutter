@@ -873,12 +873,6 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       numBefore: kMessageListFetchBatchSize,
       numAfter: 0,
       processResult: (result) {
-        if (result.messages.isNotEmpty
-            && result.messages.last.id == messages[0].id) {
-          // TODO(server-6): includeAnchor should make this impossible
-          result.messages.removeLast();
-        }
-
         store.reconcileMessages(result.messages);
         store.recentSenders.handleMessages(result.messages); // TODO(#824)
 
@@ -909,12 +903,6 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       numBefore: 0,
       numAfter: kMessageListFetchBatchSize,
       processResult: (result) {
-        if (result.messages.isNotEmpty
-            && result.messages.first.id == messages.last.id) {
-          // TODO(server-6): includeAnchor should make this impossible
-          result.messages.removeAt(0);
-        }
-
         store.reconcileMessages(result.messages);
         store.recentSenders.handleMessages(result.messages); // TODO(#824)
 

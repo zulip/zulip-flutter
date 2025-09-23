@@ -625,40 +625,6 @@ void main() {
       check(connection.takeRequests()).single;
     }));
 
-    test('fetchOlder handles servers not understanding includeAnchor', () async {
-      await prepare();
-      await prepareMessages(foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 1000 + i)));
-
-      // The old behavior is to include the anchor message regardless of includeAnchor.
-      connection.prepare(json: olderResult(
-        anchor: 1000, foundOldest: false, foundAnchor: true,
-        messages: List.generate(101, (i) => eg.streamMessage(id: 900 + i)),
-      ).toJson());
-      await model.fetchOlder();
-      checkNotified(count: 2);
-      check(model)
-        ..busyFetchingMore.isFalse()
-        ..messages.length.equals(200);
-    });
-
-    test('fetchNewer handles servers not understanding includeAnchor', () async {
-      await prepare(anchor: NumericAnchor(1000));
-      await prepareMessages(foundOldest: true, foundNewest: false,
-        messages: List.generate(101, (i) => eg.streamMessage(id: 1000 + i)));
-
-      // The old behavior is to include the anchor message regardless of includeAnchor.
-      connection.prepare(json: newerResult(
-        anchor: 1100, foundNewest: false, foundAnchor: true,
-        messages: List.generate(101, (i) => eg.streamMessage(id: 1100 + i)),
-      ).toJson());
-      await model.fetchNewer();
-      checkNotified(count: 2);
-      check(model)
-        ..busyFetchingMore.isFalse()
-        ..messages.length.equals(201);
-    });
-
     // TODO(#824): move this test
     test('fetchOlder recent senders track all the messages', () async {
       await prepare();

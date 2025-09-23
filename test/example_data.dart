@@ -821,14 +821,13 @@ GetMessagesResult nearGetMessagesResult({
 /// A GetMessagesResult the server might return when we request older messages.
 GetMessagesResult olderGetMessagesResult({
   required int anchor,
-  bool foundAnchor = false, // the value if the server understood includeAnchor false
   required bool foundOldest,
   bool historyLimited = false,
   required List<Message> messages,
 }) {
   return GetMessagesResult(
     anchor: anchor,
-    foundAnchor: foundAnchor,
+    foundAnchor: false,
     foundNewest: false, // empirically always this, even when anchor happens to be latest
     foundOldest: foundOldest,
     historyLimited: historyLimited,
@@ -839,14 +838,13 @@ GetMessagesResult olderGetMessagesResult({
 /// A GetMessagesResult the server might return when we request newer messages.
 GetMessagesResult newerGetMessagesResult({
   required int anchor,
-  bool foundAnchor = false, // the value if the server understood includeAnchor false
   required bool foundNewest,
   bool historyLimited = false,
   required List<Message> messages,
 }) {
   return GetMessagesResult(
     anchor: anchor,
-    foundAnchor: foundAnchor,
+    foundAnchor: false,
     foundOldest: false,
     foundNewest: foundNewest,
     historyLimited: historyLimited,
