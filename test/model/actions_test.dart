@@ -180,6 +180,7 @@ void main() {
 
     test('fallback to current token if acked is missing', () => awaitFakeAsync((async) async {
       await prepare(ackedPushToken: null);
+      addTearDown(NotificationService.debugReset);
       NotificationService.instance.token = ValueNotifier('asdf');
 
       final newConnection = separateConnection()
@@ -193,6 +194,7 @@ void main() {
 
     test('no error if acked token and current token both missing', () => awaitFakeAsync((async) async {
       await prepare(ackedPushToken: null);
+      addTearDown(NotificationService.debugReset);
       NotificationService.instance.token = ValueNotifier(null);
 
       final newConnection = separateConnection();
