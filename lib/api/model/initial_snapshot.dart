@@ -70,7 +70,7 @@ class InitialSnapshot {
 
   final UserSettings userSettings;
 
-  final List<UserTopicItem>? userTopics; // TODO(server-6)
+  final List<UserTopicItem> userTopics;
 
   final GroupSettingValue? realmCanDeleteAnyMessageGroup; // TODO(server-10)
 
