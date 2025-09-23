@@ -2202,8 +2202,6 @@ void main() {
         }
 
         testVisibility(true);
-        // TODO(server-6) limit 0 not expected on 6.0+
-        testVisibility(true, limit: 0);
         testVisibility(true, limit: 600);
         testVisibility(true, narrow: ChannelNarrow(1));
 

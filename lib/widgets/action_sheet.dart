@@ -1107,10 +1107,7 @@ bool _getShouldShowEditButton(BuildContext pageContext, Message message) {
 
   final now = ZulipBinding.instance.utcNow().millisecondsSinceEpoch ~/ 1000;
   final editLimit = store.realmMessageContentEditLimitSeconds;
-  final outsideEditLimit =
-    editLimit != null
-    && editLimit != 0 // TODO(server-6) remove (pre-FL 138, 0 represents no limit)
-    && now - message.timestamp > editLimit;
+  final outsideEditLimit = editLimit != null && now - message.timestamp > editLimit;
 
   return message.senderId == store.selfUserId
     && isComposeBoxOffered
