@@ -16,10 +16,14 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   group('registerToken', () {
+    // TODO test registerToken gets called on constructing an instance
+
     late PushDeviceManager model;
     late FakeApiConnection connection;
 
     void prepareStore() {
+      PushDeviceManager.debugAutoRegisterToken = false;
+      addTearDown(() => PushDeviceManager.debugAutoRegisterToken = true);
       final store = eg.store();
       model = store.pushDevices;
       connection = store.connection as FakeApiConnection;

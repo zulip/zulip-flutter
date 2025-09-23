@@ -1123,7 +1123,6 @@ class UpdateMachine {
       //   serverEmojiDataUrl are already unsupported at time of writing.)
       unawaited(updateMachine.fetchEmojiData(initialSnapshot.serverEmojiDataUrl!));
     }
-    unawaited(store.pushDevices.registerToken());
     store.presence.start();
     return updateMachine;
   }
