@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../notifications/receive.dart';
 import 'store.dart';
 
@@ -6,10 +8,7 @@ import 'store.dart';
 // TODO(#1764) do that tracking of responses
 class PushDeviceManager extends PerAccountStoreBase {
   PushDeviceManager({required super.core}) {
-    if (!debugAutoRegisterToken) {
-      return;
-    }
-    registerToken();
+    _registerTokenAndSubscribe();
   }
 
   bool _disposed = false;
@@ -25,15 +24,18 @@ class PushDeviceManager extends PerAccountStoreBase {
   }
 
   /// Send this client's notification token to the server, now and if it changes.
-  ///
-  /// TODO The returned future isn't especially meaningful (it may or may not
-  ///   mean we actually sent the token).  Make it just `void` once we fix the
-  ///   one test that relies on the future.
   // TODO(#322) save acked token, to dedupe updating it on the server
   // TODO(#323) track the addFcmToken/etc request, warn if not succeeding
-  Future<void> registerToken() async {
+  void _registerTokenAndSubscribe() async {
+    _debugMaybePause();
+    if (_debugRegisterTokenProceed != null) {
+      await _debugRegisterTokenProceed!.future;
+    }
+
     NotificationService.instance.token.addListener(_registerToken);
     await _registerToken();
+
+    _debugRegisterTokenCompleted?.complete();
   }
 
   Future<void> _registerToken() async {
@@ -42,22 +44,49 @@ class PushDeviceManager extends PerAccountStoreBase {
     await NotificationService.instance.registerToken(connection);
   }
 
-  /// In debug mode, controls whether [registerToken] should be called
-  /// immediately in the constructor.
-  ///
-  /// Outside of debug mode, this is always true and the setter has no effect.
-  static bool get debugAutoRegisterToken {
-    bool result = true;
+  Completer<void>? _debugRegisterTokenProceed;
+  Completer<void>? _debugRegisterTokenCompleted;
+
+  void _debugMaybePause() {
     assert(() {
-      result = _debugAutoRegisterToken;
+      if (debugAutoPause) {
+        _debugRegisterTokenProceed = Completer();
+        _debugRegisterTokenCompleted = Completer();
+      }
+      return true;
+    }());
+  }
+
+  /// Unpause registering the token (after [debugAutoPause]),
+  /// returning a future that completes when any immediate request is completed.
+  ///
+  /// This has no effect if [debugAutoPause] was false
+  /// when this instance was constructed,
+  /// and therefore no effect outside of debug mode.
+  Future<void> debugUnpauseRegisterToken() async {
+    _debugRegisterTokenProceed!.complete();
+    await _debugRegisterTokenCompleted!.future;
+  }
+
+  /// In debug mode, controls whether new instances should pause
+  /// before registering the token with the server.
+  ///
+  /// When paused, token registration can be unpaused
+  /// with [debugUnpauseRegisterToken].
+  ///
+  /// Outside of debug mode, this is always false and the setter has no effect.
+  static bool get debugAutoPause {
+    bool result = false;
+    assert(() {
+      result = _debugAutoPause;
       return true;
     }());
     return result;
   }
-  static bool _debugAutoRegisterToken = true;
-  static set debugAutoRegisterToken(bool value) {
+  static bool _debugAutoPause = false;
+  static set debugAutoPause(bool value) {
     assert(() {
-      _debugAutoRegisterToken = value;
+      _debugAutoPause = value;
       return true;
     }());
   }
