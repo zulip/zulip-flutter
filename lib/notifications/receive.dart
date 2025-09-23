@@ -147,7 +147,10 @@ class NotificationService {
     token.value = value;
   }
 
-  static Future<void> registerToken(ApiConnection connection, {required String token}) async {
+  Future<void> registerToken(ApiConnection connection) async {
+    final token = this.token.value;
+    if (token == null) return;
+
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         await addFcmToken(connection, token: token);

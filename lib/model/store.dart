@@ -1522,9 +1522,7 @@ class UpdateMachine {
   }
 
   Future<void> _registerNotificationToken() async {
-    final token = NotificationService.instance.token.value;
-    if (token == null) return;
-    await NotificationService.registerToken(store.connection, token: token);
+    await NotificationService.instance.registerToken(store.connection);
   }
 
   /// Cleans up resources and tells the instance not to make new API requests.
