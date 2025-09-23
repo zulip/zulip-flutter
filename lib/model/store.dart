@@ -17,7 +17,6 @@ import '../api/route/events.dart';
 import '../api/backoff.dart';
 import '../api/route/realm.dart';
 import '../log.dart';
-import '../notifications/receive.dart';
 import 'actions.dart';
 import 'autocomplete.dart';
 import 'database.dart';
@@ -25,6 +24,7 @@ import 'emoji.dart';
 import 'localizations.dart';
 import 'message.dart';
 import 'presence.dart';
+import 'push_device.dart';
 import 'realm.dart';
 import 'recent_dm_conversations.dart';
 import 'recent_senders.dart';
@@ -529,6 +529,7 @@ class PerAccountStore extends PerAccountStoreBase with
       emoji: EmojiStoreImpl(core: core,
         allRealmEmoji: initialSnapshot.realmEmoji),
       userSettings: initialSnapshot.userSettings,
+      pushDevices: PushDeviceManager(core: core),
       savedSnippets: SavedSnippetStoreImpl(core: core,
         savedSnippets: initialSnapshot.savedSnippets ?? []),
       typingNotifier: TypingNotifier(realm: realm),
@@ -552,6 +553,7 @@ class PerAccountStore extends PerAccountStoreBase with
     required RealmStoreImpl realm,
     required EmojiStoreImpl emoji,
     required this.userSettings,
+    required this.pushDevices,
     required SavedSnippetStoreImpl savedSnippets,
     required this.typingNotifier,
     required UserStoreImpl users,
@@ -622,6 +624,8 @@ class PerAccountStore extends PerAccountStoreBase with
   // Data attached to the self-account on the realm.
 
   final UserSettings userSettings;
+
+  final PushDeviceManager pushDevices;
 
   @override
   Map<int, SavedSnippet> get savedSnippets => _savedSnippets.savedSnippets;
@@ -714,6 +718,7 @@ class PerAccountStore extends PerAccountStoreBase with
     presence.dispose();
     typingStatus.dispose();
     typingNotifier.dispose();
+    pushDevices.dispose();
     updateMachine?.dispose();
     connection.close();
     _disposed = true;
@@ -1118,9 +1123,7 @@ class UpdateMachine {
       //   serverEmojiDataUrl are already unsupported at time of writing.)
       unawaited(updateMachine.fetchEmojiData(initialSnapshot.serverEmojiDataUrl!));
     }
-    // TODO do registerNotificationToken before registerQueue:
-    //   https://github.com/zulip/zulip-flutter/pull/325#discussion_r1365982807
-    unawaited(updateMachine.registerNotificationToken());
+    unawaited(store.pushDevices.registerToken());
     store.presence.start();
     return updateMachine;
   }
@@ -1505,26 +1508,6 @@ class UpdateMachine {
         store.realmUrl.toString(), error.toString()));
   }
 
-  /// Send this client's notification token to the server, now and if it changes.
-  ///
-  /// TODO The returned future isn't especially meaningful (it may or may not
-  ///   mean we actually sent the token).  Make it just `void` once we fix the
-  ///   one test that relies on the future.
-  // TODO(#322) save acked token, to dedupe updating it on the server
-  // TODO(#323) track the addFcmToken/etc request, warn if not succeeding
-  Future<void> registerNotificationToken() async {
-    assert(!_disposed);
-    if (!debugEnableRegisterNotificationToken) {
-      return;
-    }
-    NotificationService.instance.token.addListener(_registerNotificationToken);
-    await _registerNotificationToken();
-  }
-
-  Future<void> _registerNotificationToken() async {
-    await NotificationService.instance.registerToken(store.connection);
-  }
-
   /// Cleans up resources and tells the instance not to make new API requests.
   ///
   /// After this is called, the instance is not in a usable state
@@ -1535,7 +1518,6 @@ class UpdateMachine {
   /// requests to error. [PerAccountStore.dispose] does that.
   void dispose() {
     assert(!_disposed);
-    NotificationService.instance.token.removeListener(_registerNotificationToken);
     _disposed = true;
   }
 
@@ -1555,26 +1537,6 @@ class UpdateMachine {
   static set debugEnableFetchEmojiData(bool value) {
     assert(() {
       _debugEnableFetchEmojiData = value;
-      return true;
-    }());
-  }
-
-  /// In debug mode, controls whether [registerNotificationToken] should
-  /// have its normal effect.
-  ///
-  /// Outside of debug mode, this is always true and the setter has no effect.
-  static bool get debugEnableRegisterNotificationToken {
-    bool result = true;
-    assert(() {
-      result = _debugEnableRegisterNotificationToken;
-      return true;
-    }());
-    return result;
-  }
-  static bool _debugEnableRegisterNotificationToken = true;
-  static set debugEnableRegisterNotificationToken(bool value) {
-    assert(() {
-      _debugEnableRegisterNotificationToken = value;
       return true;
     }());
   }
