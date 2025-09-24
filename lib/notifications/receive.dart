@@ -147,28 +147,6 @@ class NotificationService {
     token.value = value;
   }
 
-  Future<void> registerToken(ApiConnection connection) async {
-    final token = this.token.value;
-    if (token == null) return;
-
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        await addFcmToken(connection, token: token);
-
-      case TargetPlatform.iOS:
-        final packageInfo = await ZulipBinding.instance.packageInfo;
-        await addApnsToken(connection,
-          token: token,
-          appid: packageInfo!.packageName);
-
-      case TargetPlatform.linux:
-      case TargetPlatform.macOS:
-      case TargetPlatform.windows:
-      case TargetPlatform.fuchsia:
-        assert(false);
-    }
-  }
-
   static Future<void> unregisterToken(ApiConnection connection, {required String token}) async {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:

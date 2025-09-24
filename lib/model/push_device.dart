@@ -1,6 +1,10 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
+import '../api/route/notifications.dart';
 import '../notifications/receive.dart';
+import 'binding.dart';
 import 'store.dart';
 
 /// Manages telling the server this device's push token,
@@ -26,6 +30,8 @@ class PushDeviceManager extends PerAccountStoreBase {
   /// Send this client's notification token to the server, now and if it changes.
   // TODO(#322) save acked token, to dedupe updating it on the server
   // TODO(#323) track the addFcmToken/etc request, warn if not succeeding
+  // TODO it would be nice to register the token before even registerQueue:
+  //   https://github.com/zulip/zulip-flutter/pull/325#discussion_r1365982807
   void _registerTokenAndSubscribe() async {
     _debugMaybePause();
     if (_debugRegisterTokenProceed != null) {
@@ -36,12 +42,6 @@ class PushDeviceManager extends PerAccountStoreBase {
     await _registerToken();
 
     _debugRegisterTokenCompleted?.complete();
-  }
-
-  Future<void> _registerToken() async {
-    // TODO it would be nice to register the token before even registerQueue:
-    //   https://github.com/zulip/zulip-flutter/pull/325#discussion_r1365982807
-    await NotificationService.instance.registerToken(connection);
   }
 
   Completer<void>? _debugRegisterTokenProceed;
@@ -89,5 +89,27 @@ class PushDeviceManager extends PerAccountStoreBase {
       _debugAutoPause = value;
       return true;
     }());
+  }
+
+  Future<void> _registerToken() async {
+    final token = NotificationService.instance.token.value;
+    if (token == null) return;
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        await addFcmToken(connection, token: token);
+
+      case TargetPlatform.iOS:
+        final packageInfo = await ZulipBinding.instance.packageInfo;
+        await addApnsToken(connection,
+          token: token,
+          appid: packageInfo!.packageName);
+
+      case TargetPlatform.linux:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+      case TargetPlatform.fuchsia:
+        assert(false);
+    }
   }
 }
