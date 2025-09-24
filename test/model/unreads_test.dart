@@ -1250,22 +1250,6 @@ void main() {
         checkMatchesMessages([message1, message2]);
       });
 
-      // TODO(server-6) remove mention of zulip/zulip#22164, fixed in 6.0
-      test('tolerates event pointing to DM/stream messages that are already unread (zulip/zulip#22164)', () {
-        final message1 = eg.streamMessage(id: 1, flags: []);
-        final message2 = eg.dmMessage(id: 2, from: eg.otherUser, to: [eg.selfUser], flags: []);
-
-        prepare();
-        fillWithMessages([message1, message2]);
-
-        model.handleUpdateMessageFlagsEvent(mkEvent([message1, message2]));
-        checkNotifiedOnce();
-
-        message1.flags.remove(MessageFlag.read);
-        message2.flags.remove(MessageFlag.read);
-        checkMatchesMessages([message1, message2]);
-      });
-
       test('tolerates "message details" missing', () {
         final stream = eg.stream();
         const topic = 'a';
