@@ -90,13 +90,17 @@ class _PollWidgetState extends State<PollWidget> {
           ConstrainedBox(
             constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             child: Padding(
+              // For accessibility, the touch target is padded to be larger
+              // than the vote count box.  Still, we avoid padding at the
+              // start because we want to align all the poll options to the
+              // surrounding messages.
               padding: const EdgeInsetsDirectional.only(
                 end: 5, top: verticalPadding, bottom: verticalPadding),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () => _toggleVote(option),
-                  child: Ink(
+                  child: Container(
                     // Inner padding preserves whitespace even when the text's
                     // width approaches the button's min-width (e.g. because
                     // there are more than three digits).
