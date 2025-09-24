@@ -533,11 +533,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
     final topics = streams[streamId] ??= makeTopicKeyedMap();
     topics.update(topic,
       ifAbsent: () => messageIds,
-      // setUnion dedupes existing and incoming unread IDs,
-      // so we tolerate zulip/zulip#22164, fixed in 6.0
-      // TODO(server-6) remove 6.0 comment
-      (existing) => setUnion(existing, messageIds),
-    );
+      (existing) => setUnion(existing, messageIds));
   }
 
   /// Remove [idsToRemove] from [streams] and [dms].
@@ -636,10 +632,6 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   void _addAllInDm(QueueList<int> messageIds, DmNarrow dmNarrow) {
     dms.update(dmNarrow,
       ifAbsent: () => messageIds,
-      // setUnion dedupes existing and incoming unread IDs,
-      // so we tolerate zulip/zulip#22164, fixed in 6.0
-      // TODO(server-6) remove 6.0 comment
-      (existing) => setUnion(existing, messageIds),
-    );
+      (existing) => setUnion(existing, messageIds));
   }
 }
