@@ -14,7 +14,8 @@ import 'exception.dart';
 ///
 /// When updating this, also update [kMinSupportedZulipFeatureLevel]
 /// and the README.
-// TODO(#992) address all TODO(server-6) and TODO(server-7)
+// TODO(#1837) address all TODO(server-6)
+// TODO(#1838) address all TODO(server-7)
 const kMinSupportedZulipVersion = '7.0';
 
 /// The Zulip feature level reserved for the [kMinSupportedZulipVersion] release.
