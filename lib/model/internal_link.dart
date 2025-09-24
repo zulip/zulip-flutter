@@ -58,6 +58,18 @@ String? decodeHashComponent(String str) {
 // When you want to point the server to a location in a message list, you
 // you do so by passing the `anchor` param.
 Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
+  final fragment = narrowLinkFragment(store, narrow, nearMessageId: nearMessageId);
+  Uri result = store.realmUrl.replace(fragment: fragment);
+  if (result.path.isEmpty) {
+    // Always ensure that there is a '/' right after the hostname.
+    // A generated URL without '/' looks odd,
+    // and if used in a Zulip message does not get automatically linkified.
+    result = result.replace(path: '/');
+  }
+  return result;
+}
+
+String narrowLinkFragment(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
   // TODO(server-7)
   final apiNarrow = resolveApiNarrowForServer(
     narrow.apiEncode(), store.zulipFeatureLevel);
@@ -101,14 +113,7 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
     fragment.write('/near/$nearMessageId');
   }
 
-  Uri result = store.realmUrl.replace(fragment: fragment.toString());
-  if (result.path.isEmpty) {
-    // Always ensure that there is a '/' right after the hostname.
-    // A generated URL without '/' looks odd,
-    // and if used in a Zulip message does not get automatically linkified.
-    result = result.replace(path: '/');
-  }
-  return result;
+  return fragment.toString();
 }
 
 /// The result of parsing some URL within a Zulip realm,
