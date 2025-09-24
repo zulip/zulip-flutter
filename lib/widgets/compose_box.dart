@@ -1727,9 +1727,9 @@ class EditMessageComposeBoxController extends ComposeBoxController {
 abstract class _Banner extends StatelessWidget {
   const _Banner();
 
+  _BannerIntent get intent;
+
   String getLabel(ZulipLocalizations zulipLocalizations);
-  Color getLabelColor(DesignVariables designVariables);
-  Color getBackgroundColor(DesignVariables designVariables);
 
   /// A trailing element, with vertical but not horizontal outer padding
   /// for spacing/positioning.
@@ -1757,16 +1757,23 @@ abstract class _Banner extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
+
+    final (labelColor, backgroundColor) = switch (intent) {
+      _BannerIntent.info =>
+        (designVariables.bannerTextIntInfo, designVariables.bannerBgIntInfo),
+      _BannerIntent.danger =>
+        (designVariables.btnLabelAttMediumIntDanger, designVariables.bannerBgIntDanger),
+    };
+
     final labelTextStyle = TextStyle(
       fontSize: 17,
       height: 22 / 17,
-      color: getLabelColor(designVariables),
+      color: labelColor,
     ).merge(weightVariableTextStyle(context, wght: 600));
 
     final trailing = buildTrailing(PageRoot.contextOf(context));
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: getBackgroundColor(designVariables)),
+      decoration: BoxDecoration(color: backgroundColor),
       child: SafeArea(
         minimum: EdgeInsetsDirectional.only(start: 8, end: padEnd ? 8 : 0)
           // (SafeArea.minimum doesn't take an EdgeInsetsDirectional)
@@ -1790,6 +1797,11 @@ abstract class _Banner extends StatelessWidget {
   }
 }
 
+enum _BannerIntent {
+  info,
+  danger,
+}
+
 class _ErrorBanner extends _Banner {
   const _ErrorBanner({
     required String Function(ZulipLocalizations) getLabel,
@@ -1801,12 +1813,7 @@ class _ErrorBanner extends _Banner {
   final String Function(ZulipLocalizations) _getLabel;
 
   @override
-  Color getLabelColor(DesignVariables designVariables) =>
-    designVariables.btnLabelAttMediumIntDanger;
-
-  @override
-  Color getBackgroundColor(DesignVariables designVariables) =>
-    designVariables.bannerBgIntDanger;
+  _BannerIntent get intent => _BannerIntent.danger;
 
   @override
   Widget? buildTrailing(pageContext) {
@@ -1828,12 +1835,7 @@ class _EditMessageBanner extends _Banner {
     zulipLocalizations.composeBoxBannerLabelEditMessage;
 
   @override
-  Color getLabelColor(DesignVariables designVariables) =>
-    designVariables.bannerTextIntInfo;
-
-  @override
-  Color getBackgroundColor(DesignVariables designVariables) =>
-    designVariables.bannerBgIntInfo;
+  _BannerIntent get intent => _BannerIntent.info;
 
   void _handleTapSave (BuildContext pageContext) async {
     final store = PerAccountStoreWidget.of(pageContext);
