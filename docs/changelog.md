@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+### Highlights for users
+
+* The app launches with the Zulip account you most recently used,
+  rather than the first one you logged into. (#524)
+* Browse channels you're not subscribed to, and subscribe. (#188)
+* Delete a message completely. (#1548)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* User-visible changes not described above:
+  * horizontal scrollbar in code block was sometimes too high (#1523)
+  * (Android) updated emoji font for Unicode 16 and Unicode 17
+    (PR #1835, PR #1865)
+  * upgraded Flutter and other dependencies (PR #1846, PR #1859)
+  * (iOS) use "destructive" and "default" styles on dialog actions
+    (#1032)
+
+* Resolved: #1687, #814, #1825, PR #1833, #1804, #1523, #524,
+  PR #1835, #1716, PR #1842, PR #1846, #188, PR #1859, PR #1855,
+  #1850, PR #1865, PR #1866, PR #1868, #1032, #1548
+
 
 ## 30.0.264 (2025-08-20)
 
