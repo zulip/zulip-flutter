@@ -1224,7 +1224,7 @@ class UserMention extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
       child: InlineContent(
         // If an @-mention is inside a link, let the @-mention override it.
-        recognizer: null,  // TODO make @-mentions tappable, for info on user
+        recognizer: null,  // TODO(#1867) make @-mentions tappable, for info on user
         // One hopes an @-mention can't contain an embedded link.
         // (The parser on creating a UserMentionNode has a TODO to check that.)
         linkRecognizers: null,
