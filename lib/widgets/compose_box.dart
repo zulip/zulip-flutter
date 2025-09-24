@@ -1724,14 +1724,20 @@ class EditMessageComposeBoxController extends ComposeBoxController {
 /// A banner to display over or instead of interactive compose-box content.
 ///
 /// Must have a [PageRoot] ancestor.
-abstract class _Banner extends StatelessWidget {
-  const _Banner();
+class _Banner extends StatelessWidget {
+  const _Banner({
+    required this.intent,
+    required this.label,
+    this.trailing,
+    this.padEnd = true, // ignore: unused_element_parameter
+  });
 
-  _BannerIntent get intent;
+  final _BannerIntent intent;
+  final String label;
 
-  String getLabel(ZulipLocalizations zulipLocalizations);
-
-  /// A trailing element, with vertical but not horizontal outer padding
+  /// An optional trailing element.
+  ///
+  /// It should include vertical but not horizontal outer padding
   /// for spacing/positioning.
   ///
   /// An interactive element's touchable area should have height at least 44px,
@@ -1739,19 +1745,24 @@ abstract class _Banner extends StatelessWidget {
   /// what gets painted:
   ///   https://github.com/zulip/zulip-flutter/pull/1432#discussion_r2023907300
   ///
-  /// To control the element's distance from the end edge, override [padEnd].
-  Widget? buildTrailing(BuildContext context);
+  /// To control the element's distance from the end edge, use [padEnd].
+  // An "x" button could go here.
+  // 24px square with 8px touchable padding in all directions?
+  // and `padEnd: false`; see Figma:
+  //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=4031-17029&m=dev
+  final Widget? trailing;
 
   /// Whether to apply `end: 8` in [SafeArea.minimum].
   ///
-  /// Subclasses can use `false` when the [buildTrailing] element
+  /// Pass `false` when the [trailing] element
   /// is meant to abut the edge of the screen
   /// in the common case that there are no horizontal device insets.
-  bool get padEnd => true;
+  ///
+  /// Defaults to `true`.
+  final bool padEnd;
 
   @override
   Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
 
     final (labelColor, backgroundColor) = switch (intent) {
@@ -1767,7 +1778,6 @@ abstract class _Banner extends StatelessWidget {
       color: labelColor,
     ).merge(weightVariableTextStyle(context, wght: 600));
 
-    final trailing = buildTrailing(PageRoot.contextOf(context));
     return DecoratedBox(
       decoration: BoxDecoration(color: backgroundColor),
       child: SafeArea(
@@ -1784,10 +1794,10 @@ abstract class _Banner extends StatelessWidget {
                   child: Text(
                     style: labelTextStyle,
                     textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
-                    getLabel(zulipLocalizations)))),
+                    label))),
               if (trailing != null) ...[
                 const SizedBox(width: 8),
-                trailing,
+                trailing!,
               ],
             ]))));
   }
@@ -1798,40 +1808,10 @@ enum _BannerIntent {
   danger,
 }
 
-class _ErrorBanner extends _Banner {
-  const _ErrorBanner({
-    required String Function(ZulipLocalizations) getLabel,
-  }) : _getLabel = getLabel;
-
-  @override
-  String getLabel(ZulipLocalizations zulipLocalizations) =>
-    _getLabel(zulipLocalizations);
-  final String Function(ZulipLocalizations) _getLabel;
-
-  @override
-  _BannerIntent get intent => _BannerIntent.danger;
-
-  @override
-  Widget? buildTrailing(context) {
-    // An "x" button can go here.
-    // 24px square with 8px touchable padding in all directions?
-    // and `bool get padEnd => false`; see Figma:
-    //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=4031-17029&m=dev
-    return null;
-  }
-}
-
-class _EditMessageBanner extends _Banner {
-  const _EditMessageBanner({required this.composeBoxState});
+class _EditMessageBannerTrailing extends StatelessWidget {
+  const _EditMessageBannerTrailing({required this.composeBoxState});
 
   final ComposeBoxState composeBoxState;
-
-  @override
-  String getLabel(ZulipLocalizations zulipLocalizations) =>
-    zulipLocalizations.composeBoxBannerLabelEditMessage;
-
-  @override
-  _BannerIntent get intent => _BannerIntent.info;
 
   void _handleTapSave (BuildContext context) async {
     // (A BuildContext that's expected to remain mounted until the whole page
@@ -1884,7 +1864,7 @@ class _EditMessageBanner extends _Banner {
   }
 
   @override
-  Widget buildTrailing(context) {
+  Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return Row(mainAxisSize: MainAxisSize.min, spacing: 8, children: [
       ZulipWebUiKitButton(label: zulipLocalizations.composeBoxBannerButtonCancel,
@@ -2148,25 +2128,28 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     super.dispose();
   }
 
-  /// An [_ErrorBanner] that replaces the compose box's text inputs.
+  /// A [_Banner] that replaces the compose box's text inputs.
   Widget? _errorBannerComposingNotAllowed(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     switch (widget.narrow) {
       case ChannelNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         final channel = store.streams[streamId];
         if (channel == null || !store.selfCanSendMessage(inChannel: channel,
             byDate: DateTime.now())) {
-          return _ErrorBanner(getLabel: (zulipLocalizations) =>
-            zulipLocalizations.errorBannerCannotPostInChannelLabel);
+          return _Banner(
+            intent: _BannerIntent.danger,
+            label: zulipLocalizations.errorBannerCannotPostInChannelLabel);
         }
 
       case DmNarrow(:final otherRecipientIds):
         final hasDeactivatedUser = otherRecipientIds.any((id) =>
           !(store.getUser(id)?.isActive ?? true));
         if (hasDeactivatedUser) {
-          return _ErrorBanner(getLabel: (zulipLocalizations) =>
-            zulipLocalizations.errorBannerDeactivatedDmLabel);
+          return _Banner(
+            intent: _BannerIntent.danger,
+            label: zulipLocalizations.errorBannerDeactivatedDmLabel);
         }
 
       case CombinedFeedNarrow():
@@ -2180,6 +2163,8 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
     final errorBanner = _errorBannerComposingNotAllowed(context);
     if (errorBanner != null) {
       return ComposeBoxInheritedWidget.fromComposeBoxState(this,
@@ -2202,7 +2187,10 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       }
       case EditMessageComposeBoxController(): {
         body = _EditMessageComposeBoxBody(controller: controller, narrow: narrow);
-        banner = _EditMessageBanner(composeBoxState: this);
+        banner = _Banner(
+          intent: _BannerIntent.info,
+          label: zulipLocalizations.composeBoxBannerLabelEditMessage,
+          trailing: _EditMessageBannerTrailing(composeBoxState: this));
       }
     }
 
