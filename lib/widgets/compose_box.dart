@@ -2129,7 +2129,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   }
 
   /// A [_Banner] that replaces the compose box's text inputs.
-  Widget? _errorBannerComposingNotAllowed(BuildContext context) {
+  Widget? _bannerComposingNotAllowed(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     switch (widget.narrow) {
@@ -2139,7 +2139,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         if (channel == null || !store.selfCanSendMessage(inChannel: channel,
             byDate: DateTime.now())) {
           return _Banner(
-            intent: _BannerIntent.danger,
+            intent: _BannerIntent.info,
             label: zulipLocalizations.errorBannerCannotPostInChannelLabel);
         }
 
@@ -2148,7 +2148,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
           !(store.getUser(id)?.isActive ?? true));
         if (hasDeactivatedUser) {
           return _Banner(
-            intent: _BannerIntent.danger,
+            intent: _BannerIntent.info,
             label: zulipLocalizations.errorBannerDeactivatedDmLabel);
         }
 
@@ -2165,10 +2165,10 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final errorBanner = _errorBannerComposingNotAllowed(context);
-    if (errorBanner != null) {
+    final bannerComposingNotAllowed = _bannerComposingNotAllowed(context);
+    if (bannerComposingNotAllowed != null) {
       return ComposeBoxInheritedWidget.fromComposeBoxState(this,
-        child: _ComposeBoxContainer(body: null, banner: errorBanner));
+        child: _ComposeBoxContainer(body: null, banner: bannerComposingNotAllowed));
     }
 
     final Widget? body;
