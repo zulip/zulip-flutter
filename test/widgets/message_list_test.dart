@@ -2453,4 +2453,145 @@ void main() {
         ..status.equals(AnimationStatus.dismissed);
     });
   });
+
+  group('app bar search button', () {
+    // Tests for the search icon button that should appear in the app bar
+    // on the combined feed screen but not on other message list screens.
+    // We check the app bar's actions list directly to avoid confusion with
+    // the search icon that appears in the search input field.
+
+    testWidgets('search icon button appears on CombinedFeedNarrow', (tester) async {
+      // Set up the combined feed (all messages) view
+      await setupMessageListPage(tester, narrow: const CombinedFeedNarrow(), messages: []);
+
+      // Verify that the search button is present in the app bar actions
+      final appBar = tester.widget<ZulipAppBar>(find.byType(ZulipAppBar));
+      final actions = appBar.actions ?? [];
+      final hasSearchButton = actions.any((widget) =>
+        widget is IconButton &&
+        widget.icon is Icon &&
+        (widget.icon as Icon).icon == ZulipIcons.search);
+      check(hasSearchButton).isTrue();
+    });
+
+    testWidgets('search icon button does not appear on ChannelNarrow', (tester) async {
+      // Set up a single channel view
+      final stream = eg.stream();
+      await setupMessageListPage(tester, narrow: ChannelNarrow(stream.streamId), messages: []);
+
+      // Verify search button is not present in channel views
+      final appBar = tester.widget<ZulipAppBar>(find.byType(ZulipAppBar));
+      final actions = appBar.actions ?? [];
+      final hasSearchButton = actions.any((widget) =>
+        widget is IconButton &&
+        widget.icon is Icon &&
+        (widget.icon as Icon).icon == ZulipIcons.search);
+      check(hasSearchButton).isFalse();
+    });
+
+    testWidgets('search icon button does not appear on TopicNarrow', (tester) async {
+      // Set up a single topic view within a channel
+      final stream = eg.stream();
+      await setupMessageListPage(tester, narrow: eg.topicNarrow(stream.streamId, 'topic'), messages: []);
+
+      // Verify search button is not present in topic views
+      final appBar = tester.widget<ZulipAppBar>(find.byType(ZulipAppBar));
+      final actions = appBar.actions ?? [];
+      final hasSearchButton = actions.any((widget) =>
+        widget is IconButton &&
+        widget.icon is Icon &&
+        (widget.icon as Icon).icon == ZulipIcons.search);
+      check(hasSearchButton).isFalse();
+    });
+
+    testWidgets('search icon button does not appear on DmNarrow', (tester) async {
+      // Set up a direct message conversation view
+      final narrow = DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId);
+      await setupMessageListPage(tester, narrow: narrow, messages: []);
+
+      // Verify search button is not present in DM views
+      final appBar = tester.widget<ZulipAppBar>(find.byType(ZulipAppBar));
+      final actions = appBar.actions ?? [];
+      final hasSearchButton = actions.any((widget) =>
+        widget is IconButton &&
+        widget.icon is Icon &&
+        (widget.icon as Icon).icon == ZulipIcons.search);
+      check(hasSearchButton).isFalse();
+    });
+
+    testWidgets('search icon button does not appear on MentionsNarrow', (tester) async {
+      // Set up the mentions view (messages that mention the user)
+      await setupMessageListPage(tester, narrow: const MentionsNarrow(), messages: []);
+
+      // Verify search button is not present in mentions view
+      final appBar = tester.widget<ZulipAppBar>(find.byType(ZulipAppBar));
+      final actions = appBar.actions ?? [];
+      final hasSearchButton = actions.any((widget) =>
+        widget is IconButton &&
+        widget.icon is Icon &&
+        (widget.icon as Icon).icon == ZulipIcons.search);
+      check(hasSearchButton).isFalse();
+    });
+
+    testWidgets('search icon button does not appear on StarredMessagesNarrow', (tester) async {
+      // Set up the starred messages view
+      await setupMessageListPage(tester, narrow: const StarredMessagesNarrow(), messages: []);
+
+      // Verify search button is not present in starred messages view
+      final appBar = tester.widget<ZulipAppBar>(find.byType(ZulipAppBar));
+      final actions = appBar.actions ?? [];
+      final hasSearchButton = actions.any((widget) =>
+        widget is IconButton &&
+        widget.icon is Icon &&
+        (widget.icon as Icon).icon == ZulipIcons.search);
+      check(hasSearchButton).isFalse();
+    });
+
+    testWidgets('search icon button does not appear on KeywordSearchNarrow', (tester) async {
+      // Set up the search results view (this is the search page itself)
+      await setupMessageListPage(tester, narrow: KeywordSearchNarrow('test'), messages: []);
+
+      // Verify search button is not present on the search page itself
+      // (since the search input field is already present)
+      final appBar = tester.widget<ZulipAppBar>(find.byType(ZulipAppBar));
+      final actions = appBar.actions ?? [];
+      final hasSearchButton = actions.any((widget) =>
+        widget is IconButton &&
+        widget.icon is Icon &&
+        (widget.icon as Icon).icon == ZulipIcons.search);
+      check(hasSearchButton).isFalse();
+    });
+
+    testWidgets('search icon button tapping search button on CombinedFeedNarrow navigates to search page', (tester) async {
+      // Set up navigation tracking
+      final pushedRoutes = <Route<dynamic>>[];
+      final testNavObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+      // Set up the combined feed view with navigation observer
+      await setupMessageListPage(tester,
+        narrow: const CombinedFeedNarrow(),
+        messages: [],
+        navObservers: [testNavObserver]);
+
+      // Clear any initial navigation that happened during setup
+      pushedRoutes.clear();
+
+      // Mock the API call for the search page
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: []).toJson());
+
+      // Tap the search button in the app bar
+      await tester.tap(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byIcon(ZulipIcons.search)));
+      await tester.pump();
+
+      // Verify that we navigated to the search page with an empty search query
+      check(pushedRoutes).single.isA<WidgetRoute>().page
+        .isA<MessageListPage>()
+        .initNarrow.equals(KeywordSearchNarrow(''));
+      await tester.pump(Duration.zero); // Allow message list fetch to complete
+    });
+  });
 }

@@ -558,4 +558,73 @@ void main () {
   // TODO end-to-end widget test that checks the error dialog when connecting
   //   to an ancient server:
   //     https://github.com/zulip/zulip-flutter/pull/1410#discussion_r1999991512
+
+  group('search button', () {
+    // Tests for the search icon button that should appear in the app bar
+    // on the inbox tab and allow users to navigate to the search page.
+
+    testWidgets('search icon button appears on inbox tab', (tester) async {
+      await prepare(tester);
+      // The app starts on the inbox tab by default
+      // Verify that the search icon button is present in the app bar actions
+      final appBar = tester.widget<ZulipAppBar>(find.byType(ZulipAppBar));
+      final actions = appBar.actions ?? [];
+      final hasSearchButton = actions.any((widget) =>
+        widget is IconButton &&
+        widget.icon is Icon &&
+        (widget.icon as Icon).icon == ZulipIcons.search);
+      check(hasSearchButton).isTrue();
+    });
+
+    testWidgets('search icon button does not appear on channels tab', (tester) async {
+      await prepare(tester);
+      // Switch to the channels (subscribed streams) tab
+      await tester.tap(find.byIcon(ZulipIcons.hash_italic));
+      await tester.pump();
+      // Verify search button is not present on this tab
+      final appBar = tester.widget<ZulipAppBar>(find.byType(ZulipAppBar));
+      final actions = appBar.actions ?? [];
+      final hasSearchButton = actions.any((widget) =>
+        widget is IconButton &&
+        widget.icon is Icon &&
+        (widget.icon as Icon).icon == ZulipIcons.search);
+      check(hasSearchButton).isFalse();
+    });
+
+    testWidgets('search icon button does not appear on direct messages tab', (tester) async {
+      await prepare(tester);
+      // Switch to the direct messages tab
+      await tester.tap(find.byIcon(ZulipIcons.two_person));
+      await tester.pump();
+      // Verify search button is not present on this tab
+      final appBar = tester.widget<ZulipAppBar>(find.byType(ZulipAppBar));
+      final actions = appBar.actions ?? [];
+      final hasSearchButton = actions.any((widget) =>
+        widget is IconButton &&
+        widget.icon is Icon &&
+        (widget.icon as Icon).icon == ZulipIcons.search);
+      check(hasSearchButton).isFalse();
+    });
+
+    testWidgets('tapping search button navigates to search page', (tester) async {
+      await prepare(tester);
+      pushedRoutes.clear();
+
+      // Mock the API call that will be made when navigating to search page
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: []).toJson());
+
+      // Tap the search button in the app bar
+      await tester.tap(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byIcon(ZulipIcons.search)));
+      await tester.pump();
+
+      // Verify that we navigated to the search page (MessageListPage with KeywordSearchNarrow)
+      check(pushedRoutes).single.isA<WidgetRoute>().page
+        .isA<MessageListPage>()
+        .initNarrow.equals(KeywordSearchNarrow(''));
+      await tester.pump(Duration.zero); // Allow message-list fetch to complete
+    });
+  });
 }
