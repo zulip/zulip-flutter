@@ -406,6 +406,10 @@ class _LoginPageState extends State<LoginPage> {
     try {
       accountId = await globalStore.insertAccount(AccountsCompanion.insert(
         realmUrl: realmUrl,
+        // TODO store the updated value from /register
+        realmName: Value(widget.serverSettings.realmName),
+        // TODO store the updated value from /register
+        realmIcon: Value(widget.serverSettings.realmIcon),
         email: email,
         apiKey: apiKey,
         userId: userId,
