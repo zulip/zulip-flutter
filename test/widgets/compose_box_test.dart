@@ -1411,30 +1411,53 @@ void main() {
       void checkComposeBox({required bool isShown}) => checkComposeBoxIsShown(isShown,
         bannerLabel: zulipLocalizations.errorBannerCannotPostInChannelLabel);
 
-      final narrowTestCases = [
-        ('channel', const ChannelNarrow(1)),
-        ('topic',   eg.topicNarrow(1, 'topic')),
-      ];
+      const channelNarrow = ChannelNarrow(1);
+      final topicNarrow = eg.topicNarrow(1, 'topic');
 
-      for (final (String narrowType, Narrow narrow) in narrowTestCases) {
-        testWidgets('compose box is shown in $narrowType narrow', (tester) async {
+      void doTestComposeBoxShown({
+        required Narrow narrow,
+        required ChannelPostPolicy channelPostPolicy,
+        required UserRole selfUserRole,
+        required bool expected,
+      }) {
+        final description = [
+          narrow.toString(),
+          'channelPostPolicy: ${channelPostPolicy.name}',
+          'self-user role: ${selfUserRole.name}',
+        ].join(', ');
+        testWidgets(description, (tester) async {
           await prepareComposeBox(tester,
             narrow: narrow,
-            selfUser: eg.user(role: UserRole.administrator),
+            selfUser: eg.user(role: selfUserRole),
             subscriptions: [eg.subscription(eg.stream(streamId: 1,
-              channelPostPolicy: ChannelPostPolicy.moderators))]);
-          checkComposeBox(isShown: true);
-        });
-
-        testWidgets('error banner is shown in $narrowType narrow', (tester) async {
-          await prepareComposeBox(tester,
-            narrow: narrow,
-            selfUser: eg.user(role: UserRole.moderator),
-            subscriptions: [eg.subscription(eg.stream(streamId: 1,
-              channelPostPolicy: ChannelPostPolicy.administrators))]);
-          checkComposeBox(isShown: false);
+              channelPostPolicy: channelPostPolicy))]);
+          checkComposeBox(isShown: expected);
         });
       }
+
+      doTestComposeBoxShown(
+        narrow: channelNarrow,
+        channelPostPolicy: ChannelPostPolicy.moderators,
+        selfUserRole: UserRole.administrator,
+        expected: true);
+
+      doTestComposeBoxShown(
+        narrow: topicNarrow,
+        channelPostPolicy: ChannelPostPolicy.moderators,
+        selfUserRole: UserRole.administrator,
+        expected: true);
+
+      doTestComposeBoxShown(
+        narrow: channelNarrow,
+        channelPostPolicy: ChannelPostPolicy.administrators,
+        selfUserRole: UserRole.moderator,
+        expected: false);
+
+      doTestComposeBoxShown(
+        narrow: topicNarrow,
+        channelPostPolicy: ChannelPostPolicy.administrators,
+        selfUserRole: UserRole.moderator,
+        expected: false);
 
       testWidgets('user loses privilege -> compose box is replaced with the banner', (tester) async {
         final selfUser = eg.user(role: UserRole.administrator);
