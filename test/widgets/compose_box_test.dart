@@ -58,11 +58,14 @@ void main() {
     required Narrow narrow,
     User? selfUser,
     List<User> otherUsers = const [],
-    List<ZulipStream> streams = const [],
+    List<ZulipStream>? streams,
+    List<Subscription> subscriptions = const [],
     List<Message>? messages,
     bool? mandatoryTopics,
     int? zulipFeatureLevel,
   }) async {
+    streams ??= subscriptions;
+
     if (narrow case ChannelNarrow(:var streamId) || TopicNarrow(: var streamId)) {
       final channel = streams.firstWhereOrNull((s) => s.streamId == streamId);
       assert(channel != null,
@@ -82,6 +85,7 @@ void main() {
     await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
       realmUsers: [selfUser, ...otherUsers],
       streams: streams,
+      subscriptions: subscriptions,
       zulipFeatureLevel: zulipFeatureLevel,
       realmMandatoryTopics: mandatoryTopics,
       realmAllowMessageEditing: true,
@@ -1417,8 +1421,8 @@ void main() {
           await prepareComposeBox(tester,
             narrow: narrow,
             selfUser: eg.user(role: UserRole.administrator),
-            streams: [eg.stream(streamId: 1,
-              channelPostPolicy: ChannelPostPolicy.moderators)]);
+            subscriptions: [eg.subscription(eg.stream(streamId: 1,
+              channelPostPolicy: ChannelPostPolicy.moderators))]);
           checkComposeBox(isShown: true);
         });
 
@@ -1426,8 +1430,8 @@ void main() {
           await prepareComposeBox(tester,
             narrow: narrow,
             selfUser: eg.user(role: UserRole.moderator),
-            streams: [eg.stream(streamId: 1,
-              channelPostPolicy: ChannelPostPolicy.administrators)]);
+            subscriptions: [eg.subscription(eg.stream(streamId: 1,
+              channelPostPolicy: ChannelPostPolicy.administrators))]);
           checkComposeBox(isShown: false);
         });
       }
@@ -1437,8 +1441,8 @@ void main() {
         await prepareComposeBox(tester,
           narrow: const ChannelNarrow(1),
           selfUser: selfUser,
-          streams: [eg.stream(streamId: 1,
-            channelPostPolicy: ChannelPostPolicy.administrators)]);
+          subscriptions: [eg.subscription(eg.stream(streamId: 1,
+            channelPostPolicy: ChannelPostPolicy.administrators))]);
         checkComposeBox(isShown: true);
 
         await store.handleEvent(RealmUserUpdateEvent(id: 1,
@@ -1452,8 +1456,8 @@ void main() {
         await prepareComposeBox(tester,
           narrow: const ChannelNarrow(1),
           selfUser: selfUser,
-          streams: [eg.stream(streamId: 1,
-            channelPostPolicy: ChannelPostPolicy.moderators)]);
+          subscriptions: [eg.subscription(eg.stream(streamId: 1,
+            channelPostPolicy: ChannelPostPolicy.moderators))]);
         checkComposeBox(isShown: false);
 
         await store.handleEvent(RealmUserUpdateEvent(id: 1,
@@ -1470,7 +1474,7 @@ void main() {
         await prepareComposeBox(tester,
           narrow: const ChannelNarrow(1),
           selfUser: selfUser,
-          streams: [channel]);
+          subscriptions: [eg.subscription(channel)]);
         checkComposeBox(isShown: true);
 
         await store.handleEvent(eg.channelUpdateEvent(channel,
@@ -1488,7 +1492,7 @@ void main() {
         await prepareComposeBox(tester,
           narrow: const ChannelNarrow(1),
           selfUser: selfUser,
-          streams: [channel]);
+          subscriptions: [eg.subscription(channel)]);
         checkComposeBox(isShown: false);
 
         await store.handleEvent(eg.channelUpdateEvent(channel,
