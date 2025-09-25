@@ -1411,30 +1411,48 @@ void main() {
       void checkComposeBox({required bool isShown}) => checkComposeBoxIsShown(isShown,
         bannerLabel: zulipLocalizations.errorBannerCannotPostInChannelLabel);
 
-      final narrowTestCases = [
-        ('channel', const ChannelNarrow(1)),
-        ('topic',   eg.topicNarrow(1, 'topic')),
-      ];
+      const channelNarrow = ChannelNarrow(1);
+      final topicNarrow = eg.topicNarrow(1, 'topic');
 
-      for (final (String narrowType, Narrow narrow) in narrowTestCases) {
-        testWidgets('compose box is shown in $narrowType narrow', (tester) async {
+      void testComposeBoxShown({
+        required Narrow narrow,
+        required bool canSend,
+        required bool expected,
+      }) {
+        final description = [
+          narrow.toString(),
+          'can send?: $canSend',
+        ].join(', ');
+        testWidgets(description, (tester) async {
           await prepareComposeBox(tester,
             narrow: narrow,
-            selfUser: eg.user(role: UserRole.administrator),
+            selfUser: eg.user(
+              role: canSend ? UserRole.administrator : UserRole.member),
             subscriptions: [eg.subscription(eg.stream(streamId: 1,
               channelPostPolicy: ChannelPostPolicy.moderators))]);
-          checkComposeBox(isShown: true);
-        });
-
-        testWidgets('error banner is shown in $narrowType narrow', (tester) async {
-          await prepareComposeBox(tester,
-            narrow: narrow,
-            selfUser: eg.user(role: UserRole.moderator),
-            subscriptions: [eg.subscription(eg.stream(streamId: 1,
-              channelPostPolicy: ChannelPostPolicy.administrators))]);
-          checkComposeBox(isShown: false);
+          checkComposeBox(isShown: expected);
         });
       }
+
+      testComposeBoxShown(
+        narrow: channelNarrow,
+        canSend: true,
+        expected: true);
+
+      testComposeBoxShown(
+        narrow: topicNarrow,
+        canSend: true,
+        expected: true);
+
+      testComposeBoxShown(
+        narrow: channelNarrow,
+        canSend: false,
+        expected: false);
+
+      testComposeBoxShown(
+        narrow: topicNarrow,
+        canSend: false,
+        expected: false);
 
       testWidgets('user loses privilege -> compose box is replaced with the banner', (tester) async {
         final selfUser = eg.user(role: UserRole.administrator);
