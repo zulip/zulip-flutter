@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:checks/checks.dart';
-import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,8 +10,8 @@ import 'package:zulip/api/model/web_auth.dart';
 import 'package:zulip/api/route/account.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/binding.dart';
-import 'package:zulip/model/database.dart';
 import 'package:zulip/model/localizations.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/login.dart';
@@ -249,7 +248,10 @@ void main() {
       }
 
       testWidgets('basic happy case', (tester) async {
-        final serverSettings = eg.serverSettings();
+        final serverSettings = eg.serverSettings(
+          realmName: 'Some organization',
+          realmIcon: Uri.parse('/some-image.png'),
+        );
         await prepare(tester, serverSettings);
         takeStartingRoutes();
         check(pushedRoutes).isEmpty();
@@ -259,10 +261,8 @@ void main() {
         check(testBinding.globalStore.accounts).single
           .equals(eg.selfAccount.copyWith(
             id: testBinding.globalStore.accounts.single.id,
-            // TODO store value from server settings during login flow
-            realmName: Value(null),
-            // TODO store value from server settings during login flow
-            realmIcon: Value(null)));
+            realmName: Value('Some organization'),
+            realmIcon: Value(Uri.parse('/some-image.png'))));
       });
 
       testWidgets('logging into a second account', (tester) async {
@@ -279,12 +279,7 @@ void main() {
         await login(tester, eg.otherAccount);
         final newAccount = testBinding.globalStore.accounts.singleWhere(
           (account) => account != eg.selfAccount);
-        check(newAccount).equals(eg.otherAccount.copyWith(
-          id: newAccount.id,
-          // TODO store value from server settings during login flow
-          realmName: Value(null),
-          // TODO store value from server settings during login flow
-          realmIcon: Value(null)));
+        check(newAccount).equals(eg.otherAccount.copyWith(id: newAccount.id));
         check(poppedRoutes).length.equals(2);
         check(pushedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
       });
@@ -309,11 +304,7 @@ void main() {
         await tester.idle();
         check(testBinding.globalStore.accounts).single
           .equals(eg.selfAccount.copyWith(
-            id: testBinding.globalStore.accounts.single.id,
-            // TODO store value from server settings during login flow
-            realmName: Value(null),
-            // TODO store value from server settings during login flow
-            realmIcon: Value(null)));
+            id: testBinding.globalStore.accounts.single.id));
       });
 
       testWidgets('account already exists', (tester) async {
@@ -356,6 +347,8 @@ void main() {
           signupUrl: '/accounts/register/social/google',
         );
         final serverSettings = eg.serverSettings(
+          realmName: 'Some organization',
+          realmIcon: Uri.parse('/some-image.png'),
           externalAuthenticationMethods: [method]);
         prepareBoringImageHttpClient(); // icon on social-auth button
         await prepare(tester, serverSettings);
@@ -392,10 +385,8 @@ void main() {
         final account = testBinding.globalStore.accounts.single;
         check(account).equals(eg.selfAccount.copyWith(
           id: account.id,
-          // TODO store value from server settings during login flow
-          realmName: Value(null),
-          // TODO store value from server settings during login flow
-          realmIcon: Value(null)));
+          realmName: Value('Some organization'),
+          realmIcon: Value(Uri.parse('/some-image.png'))));
         check(pushedRoutes).single.isA<MaterialAccountWidgetRoute>()
           ..accountId.equals(account.id)
           ..page.isA<HomePage>();
