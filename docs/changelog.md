@@ -20,10 +20,11 @@
   * upgraded Flutter and other dependencies (PR #1846, PR #1859)
   * (iOS) use "destructive" and "default" styles on dialog actions
     (#1032)
+  * translations (PR #1828)
 
 * Resolved: #1687, #814, #1825, PR #1833, #1804, #1523, #524,
   PR #1835, #1716, PR #1842, PR #1846, #188, PR #1859, PR #1855,
-  #1850, PR #1865, PR #1866, PR #1868, #1032, #1548
+  #1850, PR #1865, PR #1866, PR #1868, #1032, #1548, PR #1828
 
 
 ## 30.0.264 (2025-08-20)
