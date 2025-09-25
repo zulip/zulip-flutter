@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -425,6 +426,58 @@ void main() {
           .equals(TopicNarrow(someChannel.streamId, eg.t(someTopic)));
       });
     });
+  });
+
+  group('renarrowAndFetch', () {
+    test('smoke', () => awaitFakeAsync((async) async {
+      final channel = eg.stream();
+
+      const narrow = CombinedFeedNarrow();
+      await prepare(narrow: narrow, stream: channel);
+      final messages = List.generate(100,
+        (i) => eg.streamMessage(id: 1000 + i, stream: channel));
+      await prepareMessages(foundOldest: false, messages: messages);
+
+      // Start a fetchOlder, so we can check that renarrowAndFetch causes its
+      // result to be discarded.
+      connection.prepare(
+        json: olderResult(
+          anchor: 1000, foundOldest: false,
+          messages: List.generate(100,
+            (i) => eg.streamMessage(id: 900 + i, stream: channel)),
+        ).toJson(),
+        delay: Duration(milliseconds: 500),
+      );
+      unawaited(model.fetchOlder());
+      checkNotifiedOnce();
+
+      // Start the renarrowAndFetch.
+      final newNarrow = ChannelNarrow(channel.streamId);
+      final result = eg.getMessagesResult(
+        anchor: model.anchor, foundOldest: false, messages: messages);
+      connection.prepare(json: result.toJson(), delay: Duration(seconds: 1));
+      model.renarrowAndFetch(newNarrow);
+      checkNotifiedOnce();
+      check(model)
+        ..fetched.isFalse()
+        ..narrow.equals(newNarrow)
+        ..messages.isEmpty();
+
+      // Elapse until the fetchOlder is done but renarrowAndFetch is still
+      // pending; check that the list is still empty despite the fetchOlder.
+      async.elapse(Duration(milliseconds: 750));
+      check(model)
+        ..fetched.isFalse()
+        ..narrow.equals(newNarrow)
+        ..messages.isEmpty();
+
+      // Elapse until the renarrowAndFetch completes.
+      async.elapse(Duration(seconds: 250));
+      check(model)
+        ..fetched.isTrue()
+        ..narrow.equals(newNarrow)
+        ..messages.length.equals(100);
+    }));
   });
 
   group('fetching more', () {
