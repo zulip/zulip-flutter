@@ -11,6 +11,9 @@
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
+  "@actionSheetOptionChannelFeed": {
+    "description": "Label for navigating to a channel's channel-feed page."
+  },
   "@actionSheetOptionCopyChannelLink": {
     "description": "Label for copy channel link button on action sheet."
   },
@@ -22,6 +25,9 @@
   },
   "@actionSheetOptionCopyTopicLink": {
     "description": "Label for copy topic link button in action sheet."
+  },
+  "@actionSheetOptionDeleteMessage": {
+    "description": "Label for the 'Delete message' button in the message action sheet."
   },
   "@actionSheetOptionEditMessage": {
     "description": "Label for the 'Edit message' button in the message action sheet."
@@ -101,6 +107,12 @@
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
+  "@allChannelsEmptyPlaceholder": {
+    "description": "Centered text on the 'All channels' page saying that there is no content to show."
+  },
+  "@allChannelsPageTitle": {
+    "description": "Title for the 'All channels' page."
+  },
   "@appVersionUnknownPlaceholder": {
     "description": "Placeholder to show in place of the app version when it is unknown."
   },
@@ -109,6 +121,15 @@
   },
   "@channelsEmptyPlaceholder": {
     "description": "Centered text on the 'Channels' page saying that there is no content to show."
+  },
+  "@channelsEmptyPlaceholderWithAllChannelsLink": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show, with a link to 'All channels'.",
+    "placeholders": {
+      "allChannelsPageTitle": {
+        "example": "All channels",
+        "type": "String"
+      }
+    }
   },
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
@@ -214,6 +235,15 @@
   },
   "@contentValidationErrorUploadInProgress": {
     "description": "Content validation error message when attachments have not finished uploading."
+  },
+  "@deleteMessageConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Delete' button on a confirmation dialog for deleting a message."
+  },
+  "@deleteMessageConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for deleting a message."
+  },
+  "@deleteMessageConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for deleting a message."
   },
   "@dialogCancel": {
     "description": "Button label in dialogs to cancel."
@@ -336,6 +366,9 @@
   },
   "@errorCouldNotShowUserProfile": {
     "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
+  "@errorDeleteMessageFailedTitle": {
+    "description": "Error title when deleting a message failed."
   },
   "@errorDialogContinue": {
     "description": "Button label in error dialogs to acknowledge the error and close the dialog."
@@ -734,6 +767,9 @@
   },
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
+  },
+  "@navButtonAllChannels": {
+    "description": "Title for a nav button that opens the 'All channels' page."
   },
   "@newDmFabButtonLabel": {
     "description": "Label for the floating action button (FAB) that opens the new DM sheet."
@@ -1213,10 +1249,12 @@
   "aboutPageOpenSourceLicenses": "Licencje otwartego źródła",
   "aboutPageTapToView": "Dotknij, aby pokazać",
   "aboutPageTitle": "O Zulip",
+  "actionSheetOptionChannelFeed": "Strumień kanału",
   "actionSheetOptionCopyChannelLink": "Skopiuj odnośnik do kanału",
   "actionSheetOptionCopyMessageLink": "Skopiuj odnośnik do wiadomości",
   "actionSheetOptionCopyMessageText": "Skopiuj tekst wiadomości",
   "actionSheetOptionCopyTopicLink": "Skopiuj odnośnik do wątku",
+  "actionSheetOptionDeleteMessage": "Skasuj wiadomość",
   "actionSheetOptionEditMessage": "Zmień wiadomość",
   "actionSheetOptionFollowTopic": "Śledź wątek",
   "actionSheetOptionHideMutedMessage": "Ukryj ponownie wyciszone wiadomości",
@@ -1241,9 +1279,12 @@
   "actionSheetReadReceiptsErrorReadCount": "Ładowanie potwierdzeń odczytu bez powodzenia.",
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{Ta wiadomość została <z-link>przeczytana</z-link> przez {count} osobę:} other{Ta wiadomość została <z-link>przeczytana</z-link> przez {count} osób:}}",
   "actionSheetReadReceiptsZeroReadCount": "Nikt jeszcze nie widział tej wiadomości.",
+  "allChannelsEmptyPlaceholder": "Brak kanałów, które możesz przeglądać w tej organizacji.",
+  "allChannelsPageTitle": "Wszystkie kanały",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Strumień kanału",
   "channelsEmptyPlaceholder": "Nie śledzisz żadnego z kanałów.",
+  "channelsEmptyPlaceholderWithAllChannelsLink": "Nie śledzisz żadnego z kanałów. Sprawdź dostępne <z-link>{allChannelsPageTitle}</z-link> i dołącz do części z nich.",
   "channelsPageTitle": "Kanały",
   "chooseAccountButtonAddAnAccount": "Dodaj konto",
   "chooseAccountPageLogOutButton": "Wyloguj",
@@ -1269,6 +1310,9 @@
   "contentValidationErrorQuoteAndReplyInProgress": "Zaczekaj na zakończenie pobierania cytatu.",
   "contentValidationErrorTooLong": "Wiadomość nie może być dłuższa niż 10000 znaków.",
   "contentValidationErrorUploadInProgress": "Zaczekaj na zakończenie przekazywania.",
+  "deleteMessageConfirmationDialogConfirmButton": "Skasuj",
+  "deleteMessageConfirmationDialogMessage": "Kasowanie wiadomości na dobre usuwa ją dla wszystkich.",
+  "deleteMessageConfirmationDialogTitle": "Skasować wiadomość?",
   "dialogCancel": "Anuluj",
   "dialogClose": "Zamknij",
   "dialogContinue": "Kontynuuj",
@@ -1299,6 +1343,7 @@
   "errorCouldNotOpenLink": "Nie można otworzyć: {url}",
   "errorCouldNotOpenLinkTitle": "Nie udało się otworzyć odnośnika",
   "errorCouldNotShowUserProfile": "Nie udało się wyświetlić profilu.",
+  "errorDeleteMessageFailedTitle": "Kasowanie wiadomości bez powodzenia",
   "errorDialogContinue": "OK",
   "errorDialogLearnMore": "Dowiedz się więcej",
   "errorDialogTitle": "Błąd",
@@ -1391,6 +1436,7 @@
   "messageListGroupYouWithYourself": "Zapiski na własne konto",
   "messageNotSentLabel": "NIE WYSŁANO WIADOMOŚCI",
   "mutedUser": "Wyciszony użytkownik",
+  "navButtonAllChannels": "Wszystkie kanały",
   "newDmFabButtonLabel": "Nowa DM",
   "newDmSheetComposeButtonLabel": "Utwórz",
   "newDmSheetNoUsersFound": "Nie odnaleziono użytkowników",

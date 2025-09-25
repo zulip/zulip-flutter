@@ -115,7 +115,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get actionSheetOptionListOfTopics => 'Themenliste';
 
   @override
-  String get actionSheetOptionChannelFeed => 'Channel feed';
+  String get actionSheetOptionChannelFeed => 'Kanal-Feed';
 
   @override
   String get actionSheetOptionUnsubscribe => 'Deabonnieren';

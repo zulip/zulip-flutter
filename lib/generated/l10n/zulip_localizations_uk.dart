@@ -68,14 +68,14 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get chooseAccountButtonAddAnAccount => 'Додати обліковий запис';
 
   @override
-  String get navButtonAllChannels => 'All channels';
+  String get navButtonAllChannels => 'Усі канали';
 
   @override
-  String get allChannelsPageTitle => 'All channels';
+  String get allChannelsPageTitle => 'Усі канали';
 
   @override
   String get allChannelsEmptyPlaceholder =>
-      'There are no channels you can view in this organization.';
+      'У цій організації немає каналів, які ви можете переглянути.';
 
   @override
   String get profileButtonSendDirectMessage =>
@@ -247,20 +247,21 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get actionSheetOptionEditMessage => 'Редагувати повідомлення';
 
   @override
-  String get actionSheetOptionDeleteMessage => 'Delete message';
+  String get actionSheetOptionDeleteMessage => 'Видалити повідомлення';
 
   @override
-  String get deleteMessageConfirmationDialogTitle => 'Delete message?';
+  String get deleteMessageConfirmationDialogTitle => 'Видалити повідомлення?';
 
   @override
   String get deleteMessageConfirmationDialogMessage =>
-      'Deleting a message permanently removes it for everyone.';
+      'Видалення повідомлення назавжди вилучає його для всіх.';
 
   @override
-  String get deleteMessageConfirmationDialogConfirmButton => 'Delete';
+  String get deleteMessageConfirmationDialogConfirmButton => 'Видалити';
 
   @override
-  String get errorDeleteMessageFailedTitle => 'Failed to delete message';
+  String get errorDeleteMessageFailedTitle =>
+      'Не вдалося видалити повідомлення';
 
   @override
   String get actionSheetOptionMarkTopicAsRead => 'Позначити тему як прочитану';
@@ -945,7 +946,7 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String channelsEmptyPlaceholderWithAllChannelsLink(
     String allChannelsPageTitle,
   ) {
-    return 'You’re not subscribed to any channels yet. Try going to <z-link>$allChannelsPageTitle</z-link> and joining some of them.';
+    return 'Ви ще не підписані на жодний канал. Спробуйте перейти за посиланням <z-link>$allChannelsPageTitle</z-link> та приєднатися до деяких із них.';
   }
 
   @override

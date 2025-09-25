@@ -112,7 +112,7 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get actionSheetOptionListOfTopics => 'トピック一覧';
 
   @override
-  String get actionSheetOptionChannelFeed => 'Channel feed';
+  String get actionSheetOptionChannelFeed => 'チャンネル一覧';
 
   @override
   String get actionSheetOptionUnsubscribe => 'チャンネルから退出';
@@ -707,8 +707,8 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num messages',
-      one: '1 message',
+      other: '$num',
+      one: '1',
     );
     return '$_temp0件のメッセージを既読にしました。';
   }
@@ -724,8 +724,8 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num messages',
-      one: '1 message',
+      other: '$num',
+      one: '1',
     );
     return '$_temp0件のメッセージを未読にしました。';
   }
@@ -753,8 +753,8 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       minutes,
       locale: localeName,
-      other: '$minutes minutes',
-      one: '1 minute',
+      other: '$minutes',
+      one: '1',
     );
     return '$_temp0分前にオンライン';
   }
@@ -764,8 +764,8 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       hours,
       locale: localeName,
-      other: '$hours hours',
-      one: '1 hour',
+      other: '$hours',
+      one: '1',
     );
     return '$_temp0時間前にオンライン';
   }
@@ -778,8 +778,8 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$days days',
-      one: '1 day',
+      other: '$days',
+      one: '1',
     );
     return '$_temp0日前にオンライン';
   }
@@ -790,7 +790,7 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   }
 
   @override
-  String get userNotActiveInYear => '1年以上活動していません';
+  String get userNotActiveInYear => '1年以上オフラインです';
 
   @override
   String get invisibleMode => 'ステータス非表示';

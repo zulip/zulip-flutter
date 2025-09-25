@@ -352,6 +352,18 @@
       "type": "String"
     }
   },
+  "@unsubscribeConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
+  },
+  "@unsubscribeConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for unsubscribing from a channel.",
+    "placeholders": {
+      "channelName": {
+        "example": "mobile",
+        "type": "String"
+      }
+    }
+  },
   "@upgradeWelcomeDialogDismiss": {
     "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
   },
@@ -451,6 +463,8 @@
   "switchAccountButton": "Changer de compte",
   "tryAnotherAccountButton": "Essayer un autre compte",
   "tryAnotherAccountMessage": "Votre compte à {url} prend du temps à se charger.",
+  "unsubscribeConfirmationDialogConfirmButton": "Se désinscrire",
+  "unsubscribeConfirmationDialogTitle": "Se désinscrire de {channelName}?",
   "upgradeWelcomeDialogDismiss": "Allons-y",
   "upgradeWelcomeDialogLinkText": "Allez voir les articles sur le blog des annonces !",
   "upgradeWelcomeDialogMessage": "Vous retrouverez une expérience familière dans un logiciel plus rapide et plus élégant.",

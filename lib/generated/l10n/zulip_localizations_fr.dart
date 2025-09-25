@@ -122,7 +122,7 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
 
   @override
   String unsubscribeConfirmationDialogTitle(String channelName) {
-    return 'Unsubscribe from $channelName?';
+    return 'Se désinscrire de $channelName?';
   }
 
   @override
@@ -130,7 +130,7 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Once you leave this channel, you might not be able to rejoin.';
 
   @override
-  String get unsubscribeConfirmationDialogConfirmButton => 'Unsubscribe';
+  String get unsubscribeConfirmationDialogConfirmButton => 'Se désinscrire';
 
   @override
   String get unsubscribeFailedTitle => 'Failed to unsubscribe';

@@ -2289,6 +2289,15 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get chooseAccountButtonAddAnAccount => '增添帳號';
 
   @override
+  String get navButtonAllChannels => '所有頻道';
+
+  @override
+  String get allChannelsPageTitle => '所有頻道';
+
+  @override
+  String get allChannelsEmptyPlaceholder => '在此組織中沒有您可以查看的頻道。';
+
+  @override
   String get profileButtonSendDirectMessage => '發送私訊';
 
   @override
@@ -2321,6 +2330,9 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get actionSheetOptionListOfTopics => '議題列表';
+
+  @override
+  String get actionSheetOptionChannelFeed => '頻道動態';
 
   @override
   String get actionSheetOptionUnsubscribe => '取消訂閱';
@@ -2440,6 +2452,21 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get actionSheetOptionEditMessage => '編輯訊息';
+
+  @override
+  String get actionSheetOptionDeleteMessage => '刪除訊息';
+
+  @override
+  String get deleteMessageConfirmationDialogTitle => '刪除訊息？';
+
+  @override
+  String get deleteMessageConfirmationDialogMessage => '刪除訊息將為所有人永久移除該訊息。';
+
+  @override
+  String get deleteMessageConfirmationDialogConfirmButton => '刪除';
+
+  @override
+  String get errorDeleteMessageFailedTitle => '刪除訊息失敗';
 
   @override
   String get actionSheetOptionMarkTopicAsRead => '標註話題為已讀';
@@ -3092,6 +3119,13 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get channelsEmptyPlaceholder => '您尚未訂閱任何頻道。';
+
+  @override
+  String channelsEmptyPlaceholderWithAllChannelsLink(
+    String allChannelsPageTitle,
+  ) {
+    return '您尚未訂閱任何頻道。請前往 <z-link>$allChannelsPageTitle</z-link> 並加入一些頻道。';
+  }
 
   @override
   String get sharePageTitle => '分享';
