@@ -952,7 +952,7 @@ abstract class ZulipLocalizations {
   /// Hint text for content input when sending a message to yourself.
   ///
   /// In en, this message translates to:
-  /// **'Jot down something'**
+  /// **'Write yourself a note'**
   String get composeBoxSelfDmContentHint;
 
   /// Hint text for content input when sending a message to a channel.
