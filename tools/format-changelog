@@ -31,7 +31,29 @@ extract_highlights() {
 
 # Undo line-wrapping.
 unwrap() {
-    fmt --tagged-paragraph --width=2000
+    # Implemented by rewrapping paragraphs in Vim.
+    # (Emacs works equally well, interactively; but seems more annoying
+    # to integrate into a CLI pipeline.)
+
+    local vim_markdown_settings=/usr/share/vim/vim90/ftplugin/markdown.vim
+    if [ ! -r "${vim_markdown_settings}" ]; then
+        # On Debian, this file is installed by the package `vim-runtime`.
+        # We can generalize this as needed to find where other systems put it.
+        # Upstream is here:
+        #   https://github.com/tpope/vim-markdown/blob/f9f845f28/ftplugin/markdown.vim
+        # The parts we actually use are the variables `comments`,
+        # `formatoptions`, and `formatlistpat`.
+        echo >&2 "error: Could not find spec for rewrapping Markdown."
+        echo >&2 "  See comments in the source code in tools/format-changelog."
+        exit 1
+    fi
+
+    # The Vim command "gq" rewraps paragraphs; "G" makes it do so
+    # from the current point to the end, and "gg" first goes to the start.
+    vim -es /dev/stdin \
+      '+set textwidth=2000' \
+      "+source ${vim_markdown_settings}" \
+      '+normal gggqG' '+%print' '+:q!'
 }
 
 # Print changelog entry, with line-wrapping removed.
