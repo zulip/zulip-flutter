@@ -2,12 +2,15 @@
 
 ## NOTE: This document is out of date.
 
-Now that this is the main Zulip mobile app, the actual release process
-is roughly a hybrid of the steps below for building the app,
-then the steps from the legacy app's release instructions for
-distributing the app.
+Now that this is the main Zulip mobile app,
+the actual release process is roughly a hybrid of the steps below
+and those from the legacy app's release instructions.
 
-Revising this into a single coherent set of instructions
+The steps below have been updated up through "Promote to beta".
+After that, announce the release following a hybrid of the two docs;
+and release to production following the other doc.
+
+Revising this further into a single coherent set of instructions
 is an open TODO.
 
 
@@ -48,15 +51,16 @@ is an open TODO.
   flutter build appbundle -Psigned && flutter build apk -Psigned
   ```
 
-* Upload the AAB to the "Zulip (Flutter beta)" app on the Play Console,
-  at [Release > Testing > Internal testing][play-internaltesting],
-  using the "Create new release" button there.
+* Upload the AAB to Google Play via the "Create new release" button
+  at the top of the
+  [Release > Testing > Internal testing][play-internaltesting]
+  page.
 
   * For the release notes, start with `tools/format-changelog user`.
     Edit as needed to resolve "(Android)" and "(iOS)" labels
     and for formatting.
 
-[play-internaltesting]: https://play.google.com/console/developers/8060868091387311598/app/4972181690507348330/tracks/internal-testing
+[play-internaltesting]: https://play.google.com/console/developers/8060868091387311598/app/4976350040864490411/tracks/internal-testing
 
 
 ## Build and upload alpha: iOS
@@ -71,7 +75,7 @@ is an open TODO.
 
   * If `flutter build ipa` successfully built an IPA file:
 
-    * Run `open -a Transporter build/ios/ipa/'Zulip beta'.ipa`.
+    * Run `open -a Transporter build/ios/ipa/Zulip.ipa`.
 
     * Hit the big blue "Deliver" button in the Transporter app.
 
@@ -142,7 +146,38 @@ is an open TODO.
     "Waiting for Review".  This typically comes back the next morning,
     California time.  If successful, the app is out in beta!
 
-[asc-external]: https://appstoreconnect.apple.com/apps/1672696023/testflight/groups/87223480-4e5d-4007-a3a1-542cd410546c
+  * Also submit for App Store review, to save latency in the prod rollout:
+
+    * In App Store Connect for the app, [go to the "App Store"
+      tab][asc-main], and hit the "+" button next to "iOS App" at the
+      top of the left sidebar.  Enter the version number.  This
+      creates a new draft listing.
+
+    * In the draft listing:
+
+      * Near the top, fill in "What's New in This Version",
+        using the same release notes as for TestFlight.
+
+      * In the "Build" section, hit the "+" icon next to the "Build"
+        heading.  Select the desired build.
+
+      * Under "Version Release" near the bottom, make sure "Manually
+        release this version" is selected (vs. "Automatically release
+        this version").
+
+      * Back at the top, hit "Save" and then "Add for Review", and hit
+        "Continue" in the resulting dialog box.
+
+      * In the resulting "Confirm Submission" page, hit
+        "Submit to App Review".
+
+    * The draft listing should enter state "Waiting for Review".  From
+      here, it typically takes a day or so to get a result from the
+      Apple review process; if it passes review, we can push one more
+      button to roll it out.
+
+[asc-external]: https://appstoreconnect.apple.com/apps/1203036395/testflight/groups/1bf18c25-da12-4bad-8384-9dd872ce447f
+[asc-main]: https://appstoreconnect.apple.com/apps/1203036395/appstore/info
 
 
 ## Announce
