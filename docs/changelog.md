@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 30.0.265 (2025-09-25)
+
 ### Highlights for users
 
 * The app launches with the Zulip account you most recently used,

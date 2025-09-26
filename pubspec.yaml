@@ -8,7 +8,7 @@ description: A Zulip client for Android and iOS
 publish_to: 'none'
 
 # Keep the last two numbers equal; see docs/release.md.
-version: 30.0.264+264
+version: 30.0.265+265
 
 environment:
   # We use a recent version of Flutter from its main channel, and
