@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -eu
 
 usage () {
     cat <<EOF >&2
@@ -12,13 +12,23 @@ EOF
 
 shift && usage;
 
+major_version=0
+minor_version=0
+pub_version_regexp="${major_version}\.${minor_version}\.(\d+)\+\1"
+
 date="$(date --iso)"
 
 old_version_int="$(perl -lne '
-print $1 if (/^version: 0\.0\.(\d+)\+\1$/);
+print $1 if (/^version: '"${pub_version_regexp}"'$/);
 ' pubspec.yaml)"
+if [ -z "${old_version_int}" ]; then
+    echo >&2 "error: failed to parse current version in pubspec.yaml"
+    exit 1
+fi
+
 version_int=$(( old_version_int + 1 ))
-version_name="0.0.${version_int}"
+version_name="${major_version}.${minor_version}.${version_int}"
+pub_version="${version_name}+${version_int}"
 tag_name=v"${version_name}"
 
 had_uncommitted=
@@ -27,8 +37,8 @@ if ! git diff-index --quiet HEAD; then
 fi
 
 perl -i -0pe '
-s<^version: \K0\.0\.(\d+)\+\1$>
- <0.0.'"${version_int}"'+'"${version_int}"'>m;
+s<^version: \K'"${pub_version_regexp}"'$>
+ <'"${pub_version}"'>m;
 ' pubspec.yaml
 
 perl -i -0pe '
