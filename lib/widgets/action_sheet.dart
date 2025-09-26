@@ -61,6 +61,46 @@ void _showActionSheet(
     isScrollControlled: true,
     builder: (BuildContext _) {
       final designVariables = DesignVariables.of(pageContext);
+
+      Widget? effectiveHeader;
+      if (header != null) {
+        effectiveHeader = Flexible(
+          // TODO(upstream) Enforce a flex ratio (e.g. 1:3)
+          //   only when the header height plus the buttons' height
+          //   exceeds available space. Otherwise let one or the other
+          //   grow to fill available space even if it breaks the ratio.
+          //   Needs support for separate properties like `flex-grow`
+          //   and `flex-shrink`.
+          flex: 1,
+          child: InsetShadowBox(
+            top: 8, bottom: 8,
+            color: designVariables.bgContextMenu,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: header)));
+      }
+
+      final body = Flexible(
+        flex: 3,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(child: InsetShadowBox(
+                top: 8, bottom: 8,
+                color: designVariables.bgContextMenu,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 8,
+                    children: buttonSections.map((buttons) =>
+                      MenuButtonsShape(buttons: buttons)).toList())))),
+              const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.cancel),
+            ])));
+
       return PerAccountStoreWidget(
         accountId: accountId,
         child: Semantics(
@@ -70,43 +110,11 @@ void _showActionSheet(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (header != null)
-                  Flexible(
-                    // TODO(upstream) Enforce a flex ratio (e.g. 1:3)
-                    //   only when the header height plus the buttons' height
-                    //   exceeds available space. Otherwise let one or the other
-                    //   grow to fill available space even if it breaks the ratio.
-                    //   Needs support for separate properties like `flex-grow`
-                    //   and `flex-shrink`.
-                    flex: 1,
-                    child: InsetShadowBox(
-                      top: 8, bottom: 8,
-                      color: designVariables.bgContextMenu,
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: header)))
+                if (effectiveHeader != null)
+                  effectiveHeader
                 else
                   SizedBox(height: 8),
-                Flexible(
-                  flex: 3,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(child: InsetShadowBox(
-                          top: 8, bottom: 8,
-                          color: designVariables.bgContextMenu,
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              spacing: 8,
-                              children: buttonSections.map((buttons) =>
-                                MenuButtonsShape(buttons: buttons)).toList())))),
-                        const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.cancel),
-                      ]))),
+                body,
               ]))));
     });
 }
