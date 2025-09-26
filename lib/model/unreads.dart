@@ -453,12 +453,8 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
             final newlyUnreadInDms = <DmNarrow, QueueList<int>>{};
             for (final messageId in event.messages) {
               final detail = event.messageDetails![messageId];
-              if (detail == null) { // TODO(log) if on Zulip 6.0+
-                // Happens as a bug in some cases before fixed in Zulip 6.0:
-                //   https://chat.zulip.org/#narrow/stream/378-api-design/topic/unreads.20in.20unsubscribed.20streams/near/1458467
-                // TODO(server-6) remove Zulip 6.0 comment
-                continue;
-              }
+              if (detail == null) continue; // TODO(log)
+
               if (detail.mentioned == true) {
                 mentions.add(messageId);
               }
@@ -537,11 +533,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
     final topics = streams[streamId] ??= makeTopicKeyedMap();
     topics.update(topic,
       ifAbsent: () => messageIds,
-      // setUnion dedupes existing and incoming unread IDs,
-      // so we tolerate zulip/zulip#22164, fixed in 6.0
-      // TODO(server-6) remove 6.0 comment
-      (existing) => setUnion(existing, messageIds),
-    );
+      (existing) => setUnion(existing, messageIds));
   }
 
   /// Remove [idsToRemove] from [streams] and [dms].
@@ -640,10 +632,6 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   void _addAllInDm(QueueList<int> messageIds, DmNarrow dmNarrow) {
     dms.update(dmNarrow,
       ifAbsent: () => messageIds,
-      // setUnion dedupes existing and incoming unread IDs,
-      // so we tolerate zulip/zulip#22164, fixed in 6.0
-      // TODO(server-6) remove 6.0 comment
-      (existing) => setUnion(existing, messageIds),
-    );
+      (existing) => setUnion(existing, messageIds));
   }
 }

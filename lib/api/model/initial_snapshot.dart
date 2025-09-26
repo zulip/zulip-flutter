@@ -70,7 +70,7 @@ class InitialSnapshot {
 
   final UserSettings userSettings;
 
-  final List<UserTopicItem>? userTopics; // TODO(server-6)
+  final List<UserTopicItem> userTopics;
 
   final GroupSettingValue? realmCanDeleteAnyMessageGroup; // TODO(server-10)
 
@@ -111,7 +111,7 @@ class InitialSnapshot {
 
   final int maxFileUploadSizeMib;
 
-  final Uri? serverEmojiDataUrl; // TODO(server-6)
+  final Uri serverEmojiDataUrl;
 
   final String? realmEmptyTopicDisplayName; // TODO(server-10)
 
@@ -284,7 +284,7 @@ class UserSettings {
   )
   TwentyFourHourTimeMode twentyFourHourTime;
 
-  bool? displayEmojiReactionUsers; // TODO(server-6)
+  bool displayEmojiReactionUsers;
   Emojiset emojiset;
   bool presenceEnabled;
 

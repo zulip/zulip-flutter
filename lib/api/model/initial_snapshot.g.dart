@@ -78,8 +78,8 @@ InitialSnapshot _$InitialSnapshotFromJson(
   userSettings: UserSettings.fromJson(
     json['user_settings'] as Map<String, dynamic>,
   ),
-  userTopics: (json['user_topics'] as List<dynamic>?)
-      ?.map((e) => UserTopicItem.fromJson(e as Map<String, dynamic>))
+  userTopics: (json['user_topics'] as List<dynamic>)
+      .map((e) => UserTopicItem.fromJson(e as Map<String, dynamic>))
       .toList(),
   realmCanDeleteAnyMessageGroup:
       json['realm_can_delete_any_message_group'] == null
@@ -115,9 +115,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
         ),
       ),
   maxFileUploadSizeMib: (json['max_file_upload_size_mib'] as num).toInt(),
-  serverEmojiDataUrl: json['server_emoji_data_url'] == null
-      ? null
-      : Uri.parse(json['server_emoji_data_url'] as String),
+  serverEmojiDataUrl: Uri.parse(json['server_emoji_data_url'] as String),
   realmEmptyTopicDisplayName: json['realm_empty_topic_display_name'] as String?,
   realmUsers:
       (InitialSnapshot._readUsersIsActiveFallbackTrue(json, 'realm_users')
@@ -186,7 +184,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'realm_presence_disabled': instance.realmPresenceDisabled,
   'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
   'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
-  'server_emoji_data_url': instance.serverEmojiDataUrl?.toString(),
+  'server_emoji_data_url': instance.serverEmojiDataUrl.toString(),
   'realm_empty_topic_display_name': instance.realmEmptyTopicDisplayName,
   'realm_users': instance.realmUsers,
   'realm_non_active_users': instance.realmNonActiveUsers,
@@ -248,7 +246,7 @@ UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
   twentyFourHourTime: TwentyFourHourTimeMode.fromApiValue(
     json['twenty_four_hour_time'] as bool?,
   ),
-  displayEmojiReactionUsers: json['display_emoji_reaction_users'] as bool?,
+  displayEmojiReactionUsers: json['display_emoji_reaction_users'] as bool,
   emojiset: $enumDecode(_$EmojisetEnumMap, json['emojiset']),
   presenceEnabled: json['presence_enabled'] as bool,
 );

@@ -812,7 +812,7 @@ GetMessagesResult nearGetMessagesResult({
 /// A GetMessagesResult the server might return when we request older messages.
 GetMessagesResult olderGetMessagesResult({
   required int anchor,
-  bool foundAnchor = false, // the value if the server understood includeAnchor false
+  bool foundAnchor = false,
   required bool foundOldest,
   bool historyLimited = false,
   required List<Message> messages,
@@ -830,7 +830,7 @@ GetMessagesResult olderGetMessagesResult({
 /// A GetMessagesResult the server might return when we request newer messages.
 GetMessagesResult newerGetMessagesResult({
   required int anchor,
-  bool foundAnchor = false, // the value if the server understood includeAnchor false
+  bool foundAnchor = false,
   required bool foundNewest,
   bool historyLimited = false,
   required List<Message> messages,
@@ -1324,7 +1324,7 @@ InitialSnapshot initialSnapshot({
       emojiset: Emojiset.google,
       presenceEnabled: true,
     ),
-    userTopics: userTopics,
+    userTopics: userTopics ?? [],
     // no default; allow `null` to simulate servers without this
     realmCanDeleteAnyMessageGroup: realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup: realmCanDeleteOwnMessageGroup,

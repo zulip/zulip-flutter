@@ -1050,8 +1050,6 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final isComposeBoxOffered = messageListPage.composeBoxState != null;
 
   final isMessageRead = message.flags.contains(MessageFlag.read);
-  final markAsUnreadSupported = store.zulipFeatureLevel >= 155; // TODO(server-6)
-  final showMarkAsUnreadButton = markAsUnreadSupported && isMessageRead;
 
   final isSenderMuted = store.isUserMuted(message.senderId);
 
@@ -1066,7 +1064,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       StarButton(message: message, pageContext: pageContext),
       if (isComposeBoxOffered)
         QuoteAndReplyButton(message: message, pageContext: pageContext),
-      if (showMarkAsUnreadButton)
+      if (isMessageRead)
         MarkAsUnreadButton(message: message, pageContext: pageContext),
       if (isSenderMuted)
         // The message must have been revealed in order to open this action sheet.
@@ -1146,10 +1144,7 @@ bool _getShouldShowEditButton(BuildContext pageContext, Message message) {
 
   final now = ZulipBinding.instance.utcNow().millisecondsSinceEpoch ~/ 1000;
   final editLimit = store.realmMessageContentEditLimitSeconds;
-  final outsideEditLimit =
-    editLimit != null
-    && editLimit != 0 // TODO(server-6) remove (pre-FL 138, 0 represents no limit)
-    && now - message.timestamp > editLimit;
+  final outsideEditLimit = editLimit != null && now - message.timestamp > editLimit;
 
   return message.senderId == store.selfUserId
     && isComposeBoxOffered
