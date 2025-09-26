@@ -39,11 +39,12 @@ import 'topic_list.dart';
 /// and an optional scrollable header.
 ///
 /// [header] should not use vertical padding to position itself on the sheet.
-/// It will be wrapped in vertical padding,
-/// a scroll view, and an [InsetShadowBox] to support scrolling.
+/// It will be wrapped in vertical padding
+/// and, if [headerScrollable], a scroll view and an [InsetShadowBox].
 void _showActionSheet(
   BuildContext pageContext, {
   Widget? header,
+  bool headerScrollable = true,
   required List<List<Widget>> buttonSections,
 }) {
   assert(header is! BottomSheetHeader || !header.outerVerticalPadding);
@@ -64,24 +65,30 @@ void _showActionSheet(
 
       Widget? effectiveHeader;
       if (header != null) {
-        effectiveHeader = Flexible(
-          // TODO(upstream) Enforce a flex ratio (e.g. 1:3)
-          //   only when the header height plus the buttons' height
-          //   exceeds available space. Otherwise let one or the other
-          //   grow to fill available space even if it breaks the ratio.
-          //   Needs support for separate properties like `flex-grow`
-          //   and `flex-shrink`.
-          flex: 1,
-          child: InsetShadowBox(
-            top: 8, bottom: 8,
-            color: designVariables.bgContextMenu,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: header)));
+        effectiveHeader = headerScrollable
+          ? Flexible(
+              // TODO(upstream) Enforce a flex ratio (e.g. 1:3)
+              //   only when the header height plus the buttons' height
+              //   exceeds available space. Otherwise let one or the other
+              //   grow to fill available space even if it breaks the ratio.
+              //   Needs support for separate properties like `flex-grow`
+              //   and `flex-shrink`.
+              flex: 1,
+              child: InsetShadowBox(
+                top: 8, bottom: 8,
+                color: designVariables.bgContextMenu,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: header)))
+          : Padding(
+              padding: EdgeInsets.only(top: 16, bottom: 4),
+              child: header);
       }
 
       final body = Flexible(
-        flex: 3,
+        flex: (effectiveHeader != null && headerScrollable)
+          ? 3
+          : 1,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
           child: Column(
