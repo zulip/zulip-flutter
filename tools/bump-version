@@ -12,7 +12,7 @@ EOF
 
 shift && usage;
 
-major_version=0
+major_version=30
 minor_version=0
 pub_version_regexp="${major_version}\.${minor_version}\.(\d+)\+\1"
 
