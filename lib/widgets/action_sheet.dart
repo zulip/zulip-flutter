@@ -35,11 +35,25 @@ import 'text.dart';
 import 'theme.dart';
 import 'topic_list.dart';
 
+/// Show an action sheet with scrollable menu buttons
+/// and an optional scrollable header.
+///
+/// [header] should not use vertical padding to position itself on the sheet.
+/// It will be wrapped in vertical padding,
+/// a scroll view, and an [InsetShadowBox] to support scrolling.
 void _showActionSheet(
   BuildContext pageContext, {
   Widget? header,
   required List<List<Widget>> buttonSections,
 }) {
+  // This assert does look absurd, but see dartdoc -- [BottomSheetHeader] adds
+  // vertical padding to position itself on the sheet, so isn't suitable here.
+  // When it grows a param to omit that padding, soon, it'll be usable here.
+  // (Currently the only caller that passes `header` is the message action sheet,
+  // and that header widget only adds internal padding, on a distinct-colored
+  // surface, not padding for positioning.)
+  assert(header is! BottomSheetHeader);
+
   // Could omit this if we need _showActionSheet outside a per-account context.
   final accountId = PerAccountStoreWidget.accountIdOf(pageContext);
 
