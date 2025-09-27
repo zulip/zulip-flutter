@@ -416,6 +416,16 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get errorBannerCannotPostInChannelLabel => 'このチャンネルに投稿する権限がありません。';
 
   @override
+  String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
+      'New messages will not appear automatically.';
+
+  @override
+  String get composeBoxBannerButtonRefresh => 'Refresh';
+
+  @override
+  String get composeBoxBannerButtonSubscribe => 'Subscribe';
+
+  @override
   String get composeBoxBannerLabelEditMessage => 'メッセージを編集';
 
   @override

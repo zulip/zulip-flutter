@@ -427,6 +427,53 @@ void main() {
     });
   });
 
+  group('renarrowAndFetch', () {
+    test('smoke', () => awaitFakeAsync((async) async {
+      final channel = eg.stream();
+
+      const narrow = CombinedFeedNarrow();
+      await prepare(narrow: narrow, stream: channel);
+      final messages = List.generate(100,
+        (i) => eg.streamMessage(id: 1000 + i, stream: channel));
+      await prepareMessages(foundOldest: false, messages: messages);
+
+      // …do something unrelated…
+      connection.prepare(json: olderResult(
+        anchor: 1000, foundOldest: false,
+        messages: List.generate(100,
+          (i) => eg.streamMessage(id: 900 + i, stream: channel)),
+      ).toJson());
+      await model.fetchOlder();
+      checkNotified(count: 2);
+
+      final generationBefore = model.generation;
+
+      final newNarrow = ChannelNarrow(channel.streamId);
+      final newAnchor = NumericAnchor(messages[3].id);
+
+      final result = eg.getMessagesResult(
+        anchor: newAnchor,
+        foundOldest: false, foundNewest: false,
+        messages: messages.sublist(3, 5));
+      connection.prepare(json: result.toJson(), delay: Duration(seconds: 1));
+      model.renarrowAndFetch(newNarrow, newAnchor);
+      checkNotifiedOnce();
+      check(model)
+        ..generation.equals(generationBefore + 1)
+        ..fetched.isFalse()
+        ..narrow.equals(newNarrow)
+        ..anchor.equals(newAnchor)
+        ..messages.isEmpty();
+
+      async.elapse(Duration(seconds: 1));
+      check(model)
+        ..fetched.isTrue()
+        ..narrow.equals(newNarrow)
+        ..anchor.equals(newAnchor)
+        ..messages.length.equals(2);
+    }));
+  });
+
   group('fetching more', () {
     test('fetchOlder smoke', () async {
       const narrow = CombinedFeedNarrow();
@@ -3361,6 +3408,8 @@ extension MessageListMessageItemChecks on Subject<MessageListMessageItem> {
 extension MessageListViewChecks on Subject<MessageListView> {
   Subject<PerAccountStore> get store => has((x) => x.store, 'store');
   Subject<Narrow> get narrow => has((x) => x.narrow, 'narrow');
+  Subject<Anchor> get anchor => has((x) => x.anchor, 'anchor');
+  Subject<int> get generation => has((x) => x.generation, 'generation');
   Subject<List<Message>> get messages => has((x) => x.messages, 'messages');
   Subject<List<OutboxMessage>> get outboxMessages => has((x) => x.outboxMessages, 'outboxMessages');
   Subject<int> get middleMessage => has((x) => x.middleMessage, 'middleMessage');

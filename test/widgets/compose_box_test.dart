@@ -34,6 +34,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/message_list_test.dart';
 import '../model/store_checks.dart';
 import '../model/test_store.dart';
 import '../model/typing_status_test.dart';
@@ -58,11 +59,14 @@ void main() {
     required Narrow narrow,
     User? selfUser,
     List<User> otherUsers = const [],
-    List<ZulipStream> streams = const [],
+    List<ZulipStream>? streams,
+    List<Subscription> subscriptions = const [],
     List<Message>? messages,
     bool? mandatoryTopics,
     int? zulipFeatureLevel,
   }) async {
+    streams ??= subscriptions;
+
     if (narrow case ChannelNarrow(:var streamId) || TopicNarrow(: var streamId)) {
       final channel = streams.firstWhereOrNull((s) => s.streamId == streamId);
       assert(channel != null,
@@ -82,6 +86,7 @@ void main() {
     await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
       realmUsers: [selfUser, ...otherUsers],
       streams: streams,
+      subscriptions: subscriptions,
       zulipFeatureLevel: zulipFeatureLevel,
       realmMandatoryTopics: mandatoryTopics,
       realmAllowMessageEditing: true,
@@ -1407,38 +1412,158 @@ void main() {
       void checkComposeBox({required bool isShown}) => checkComposeBoxIsShown(isShown,
         bannerLabel: zulipLocalizations.errorBannerCannotPostInChannelLabel);
 
-      final narrowTestCases = [
-        ('channel', const ChannelNarrow(1)),
-        ('topic',   eg.topicNarrow(1, 'topic')),
-      ];
+      const channelNarrow = ChannelNarrow(1);
+      final topicNarrow = eg.topicNarrow(1, 'topic');
 
-      for (final (String narrowType, Narrow narrow) in narrowTestCases) {
-        testWidgets('compose box is shown in $narrowType narrow', (tester) async {
+      void doTestComposeBoxShown({
+        required Narrow narrow,
+        required bool isChannelSubscribed,
+        required ChannelPostPolicy channelPostPolicy,
+        required UserRole selfUserRole,
+        required bool expected,
+      }) {
+        final description = [
+          narrow.toString(),
+          'channel subscribed? $isChannelSubscribed',
+          'channelPostPolicy: ${channelPostPolicy.name}',
+          'self-user role: ${selfUserRole.name}',
+        ].join(', ');
+        testWidgets(description, (tester) async {
+          final channel = eg.stream(streamId: 1,
+            channelPostPolicy: channelPostPolicy);
           await prepareComposeBox(tester,
             narrow: narrow,
-            selfUser: eg.user(role: UserRole.administrator),
-            streams: [eg.stream(streamId: 1,
-              channelPostPolicy: ChannelPostPolicy.moderators)]);
-          checkComposeBox(isShown: true);
-        });
-
-        testWidgets('error banner is shown in $narrowType narrow', (tester) async {
-          await prepareComposeBox(tester,
-            narrow: narrow,
-            selfUser: eg.user(role: UserRole.moderator),
-            streams: [eg.stream(streamId: 1,
-              channelPostPolicy: ChannelPostPolicy.administrators)]);
-          checkComposeBox(isShown: false);
+            selfUser: eg.user(role: selfUserRole),
+            streams: [channel],
+            subscriptions: isChannelSubscribed ? [eg.subscription(channel)] : []);
+          checkComposeBoxIsShown(expected,
+            bannerLabel: isChannelSubscribed
+              ? zulipLocalizations.errorBannerCannotPostInChannelLabel
+              : zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend);
         });
       }
+
+      doTestComposeBoxShown(
+        narrow: channelNarrow,
+        isChannelSubscribed: true,
+        channelPostPolicy: ChannelPostPolicy.moderators,
+        selfUserRole: UserRole.administrator,
+        expected: true);
+
+      doTestComposeBoxShown(
+        narrow: channelNarrow,
+        isChannelSubscribed: false,
+        channelPostPolicy: ChannelPostPolicy.moderators,
+        selfUserRole: UserRole.administrator,
+        expected: true);
+
+      doTestComposeBoxShown(
+        narrow: topicNarrow,
+        isChannelSubscribed: true,
+        channelPostPolicy: ChannelPostPolicy.moderators,
+        selfUserRole: UserRole.administrator,
+        expected: true);
+
+      doTestComposeBoxShown(
+        narrow: topicNarrow,
+        isChannelSubscribed: false,
+        channelPostPolicy: ChannelPostPolicy.moderators,
+        selfUserRole: UserRole.administrator,
+        expected: true);
+
+      doTestComposeBoxShown(
+        narrow: channelNarrow,
+        isChannelSubscribed: true,
+        channelPostPolicy: ChannelPostPolicy.administrators,
+        selfUserRole: UserRole.moderator,
+        expected: false);
+
+      doTestComposeBoxShown(
+        narrow: channelNarrow,
+        isChannelSubscribed: false,
+        channelPostPolicy: ChannelPostPolicy.administrators,
+        selfUserRole: UserRole.moderator,
+        expected: false);
+
+      doTestComposeBoxShown(
+        narrow: topicNarrow,
+        isChannelSubscribed: true,
+        channelPostPolicy: ChannelPostPolicy.administrators,
+        selfUserRole: UserRole.moderator,
+        expected: false);
+
+      doTestComposeBoxShown(
+        narrow: topicNarrow,
+        isChannelSubscribed: false,
+        channelPostPolicy: ChannelPostPolicy.administrators,
+        selfUserRole: UserRole.moderator,
+        expected: false);
+
+      void doTestRefreshSubscribeButtons({required Narrow narrow}) {
+        testWidgets('Refresh/Subscribe buttons when cannot send and channel unsubscribed, $narrow', (tester) async {
+          final channel = eg.stream(streamId: 1,
+            channelPostPolicy: ChannelPostPolicy.administrators);
+          final messages = List.generate(100, (i) => eg.streamMessage(id: 1000 + i,
+            stream: channel, topic: topicNarrow.topic.apiName));
+
+          await prepareComposeBox(tester,
+            narrow: ChannelNarrow(channel.streamId),
+            selfUser: eg.user(role: UserRole.member),
+            streams: [channel],
+            subscriptions: [],
+            messages: messages);
+          checkComposeBoxIsShown(false,
+            bannerLabel: zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend);
+          check(store.debugMessageListViews).single
+            ..fetched.isTrue()..messages.length.equals(100);
+
+          connection.prepare(json:
+            eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson(),
+            delay: Duration(seconds: 1));
+          await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Refresh'));
+          await tester.pump();
+          check(store.debugMessageListViews).single
+            ..fetched.isFalse()..messages.length.equals(0);
+          await tester.pump(Duration(seconds: 1));
+          check(store.debugMessageListViews).single
+            ..fetched.isTrue()..messages.length.equals(100);
+
+          connection.takeRequests();
+
+          // prepare subscribe request, then refresh (get-messages) request
+          connection
+            ..prepare(json: {}, delay: Duration(milliseconds: 500))
+            ..prepare(json:
+                eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson(),
+                delay: Duration(seconds: 1));
+          await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Subscribe'));
+          await tester.pump();
+          await tester.pump(Duration.zero);
+          check(connection.lastRequest).isA<http.Request>()
+            ..method.equals('POST')
+            ..url.path.equals('/api/v1/users/me/subscriptions')
+            ..bodyFields.deepEquals({
+              'subscriptions': jsonEncode([{'name': channel.name}]),
+            });
+          await tester.pump(Duration(milliseconds: 500));
+          check(store.debugMessageListViews).single
+            ..fetched.isFalse()..messages.length.equals(0);
+          await tester.pump(Duration(seconds: 1));
+          check(store.debugMessageListViews).single
+            ..fetched.isTrue()..messages.length.equals(100);
+        });
+      }
+
+      doTestRefreshSubscribeButtons(narrow: channelNarrow);
+      doTestRefreshSubscribeButtons(narrow: topicNarrow);
 
       testWidgets('user loses privilege -> compose box is replaced with the banner', (tester) async {
         final selfUser = eg.user(role: UserRole.administrator);
         await prepareComposeBox(tester,
           narrow: const ChannelNarrow(1),
           selfUser: selfUser,
-          streams: [eg.stream(streamId: 1,
-            channelPostPolicy: ChannelPostPolicy.administrators)]);
+          subscriptions: [eg.subscription(eg.stream(streamId: 1,
+            channelPostPolicy: ChannelPostPolicy.administrators))]);
         checkComposeBox(isShown: true);
 
         await store.handleEvent(RealmUserUpdateEvent(id: 1,
@@ -1452,8 +1577,8 @@ void main() {
         await prepareComposeBox(tester,
           narrow: const ChannelNarrow(1),
           selfUser: selfUser,
-          streams: [eg.stream(streamId: 1,
-            channelPostPolicy: ChannelPostPolicy.moderators)]);
+          subscriptions: [eg.subscription(eg.stream(streamId: 1,
+            channelPostPolicy: ChannelPostPolicy.moderators))]);
         checkComposeBox(isShown: false);
 
         await store.handleEvent(RealmUserUpdateEvent(id: 1,
@@ -1470,7 +1595,7 @@ void main() {
         await prepareComposeBox(tester,
           narrow: const ChannelNarrow(1),
           selfUser: selfUser,
-          streams: [channel]);
+          subscriptions: [eg.subscription(channel)]);
         checkComposeBox(isShown: true);
 
         await store.handleEvent(eg.channelUpdateEvent(channel,
@@ -1488,7 +1613,7 @@ void main() {
         await prepareComposeBox(tester,
           narrow: const ChannelNarrow(1),
           selfUser: selfUser,
-          streams: [channel]);
+          subscriptions: [eg.subscription(channel)]);
         checkComposeBox(isShown: false);
 
         await store.handleEvent(eg.channelUpdateEvent(channel,

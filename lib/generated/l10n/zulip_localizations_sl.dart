@@ -450,6 +450,16 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
       'Nimate dovoljenja za objavljanje v tem kanalu.';
 
   @override
+  String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
+      'New messages will not appear automatically.';
+
+  @override
+  String get composeBoxBannerButtonRefresh => 'Refresh';
+
+  @override
+  String get composeBoxBannerButtonSubscribe => 'Subscribe';
+
+  @override
   String get composeBoxBannerLabelEditMessage => 'Uredi sporočilo';
 
   @override

@@ -7,6 +7,7 @@ import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/model/narrow.dart';
 import '../api/route/messages.dart';
+import '../api/route/channels.dart' as channels_api;
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
 import '../model/narrow.dart';
@@ -238,6 +239,32 @@ abstract final class ZulipAction {
     }
 
     return fetchedMessage?.content;
+  }
+
+  static Future<void> subscribeToChannel(BuildContext context, {
+    required int channelId,
+  }) async {
+    final store = PerAccountStoreWidget.of(context);
+    final channel = store.streams[channelId];
+    if (channel == null || channel is Subscription) return; // TODO could give feedback
+
+    try {
+      await channels_api.subscribeToChannel(store.connection, subscriptions: [channel.name]);
+    } catch (e) {
+      if (!context.mounted) return;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      final title = ZulipLocalizations.of(context).subscribeFailedTitle;
+      showErrorDialog(context: context, title: title, message: errorMessage);
+    }
   }
 }
 
