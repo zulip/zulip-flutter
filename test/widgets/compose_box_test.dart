@@ -686,7 +686,7 @@ void main() {
       await prepare(tester, narrow: DmNarrow.withUser(
         eg.selfUser.userId, selfUserId: eg.selfUser.userId));
       checkComposeBoxHintTexts(tester,
-        contentHintText: 'Jot down something');
+        contentHintText: 'Write yourself a note');
     });
 
     testWidgets('to 1:1 DmNarrow', (tester) async {

@@ -597,7 +597,7 @@
   "@composeBoxGroupDmContentHint": {
     "description": "Hint text for content input when sending a message to a group."
   },
-  "composeBoxSelfDmContentHint": "Jot down something",
+  "composeBoxSelfDmContentHint": "Write yourself a note",
   "@composeBoxSelfDmContentHint": {
     "description": "Hint text for content input when sending a message to yourself."
   },
