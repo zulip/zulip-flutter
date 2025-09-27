@@ -46,13 +46,7 @@ void _showActionSheet(
   Widget? header,
   required List<List<Widget>> buttonSections,
 }) {
-  // This assert does look absurd, but see dartdoc -- [BottomSheetHeader] adds
-  // vertical padding to position itself on the sheet, so isn't suitable here.
-  // When it grows a param to omit that padding, soon, it'll be usable here.
-  // (Currently the only caller that passes `header` is the message action sheet,
-  // and that header widget only adds internal padding, on a distinct-colored
-  // surface, not padding for positioning.)
-  assert(header is! BottomSheetHeader);
+  assert(header is! BottomSheetHeader || !header.outerVerticalPadding);
 
   // Could omit this if we need _showActionSheet outside a per-account context.
   final accountId = PerAccountStoreWidget.accountIdOf(pageContext);
@@ -128,6 +122,9 @@ typedef WidgetBuilderFromTextStyle = Widget Function(TextStyle);
 /// The "build" params support richer content, such as [TextWithLink],
 /// and the callback is passed a [TextStyle] which is the base style.
 ///
+/// To add outer vertical padding to position the header on the sheet,
+/// pass true for [outerVerticalPadding].
+///
 /// Figma; just message no title:
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3481-26993&m=dev
 ///
@@ -145,6 +142,7 @@ class BottomSheetHeader extends StatelessWidget {
     this.buildTitle,
     this.message,
     this.buildMessage,
+    this.outerVerticalPadding = false,
   }) : assert(message == null || buildMessage == null),
        assert(title == null || buildTitle == null),
        assert((message != null || buildMessage != null)
@@ -154,6 +152,7 @@ class BottomSheetHeader extends StatelessWidget {
   final Widget Function(TextStyle)? buildTitle;
   final String? message;
   final Widget Function(TextStyle)? buildMessage;
+  final bool outerVerticalPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -182,12 +181,20 @@ class BottomSheetHeader extends StatelessWidget {
       _                    => null,
     };
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
+    Widget result = Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 8,
         children: [?effectiveTitle, ?effectiveMessage]));
+
+    if (outerVerticalPadding) {
+      result = Padding(
+        padding: EdgeInsets.only(top: 16, bottom: 4),
+        child: result);
+    }
+
+    return result;
   }
 }
 

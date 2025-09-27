@@ -129,6 +129,7 @@ class _ReadReceiptsHeader extends StatelessWidget {
     }
 
     return BottomSheetHeader(
+      outerVerticalPadding: true,
       title: zulipLocalizations.actionSheetReadReceipts,
       buildMessage: headerMessageBuilder);
   }

@@ -805,6 +805,7 @@ class ViewReactionsHeader extends StatelessWidget {
 
     if (reactions == null || reactions.aggregated.isEmpty) {
       return BottomSheetHeader(
+        outerVerticalPadding: true,
         message: zulipLocalizations.seeWhoReactedSheetNoReactions);
     }
 
