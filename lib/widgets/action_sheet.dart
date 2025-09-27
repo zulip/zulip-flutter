@@ -114,8 +114,6 @@ typedef WidgetBuilderFromTextStyle = Widget Function(TextStyle);
 /// The "build" params support richer content, such as [TextWithLink],
 /// and the callback is passed a [TextStyle] which is the base style.
 ///
-/// Assumes 8px padding below the top of the bottom sheet.
-///
 /// Figma; just message no title:
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3481-26993&m=dev
 ///
@@ -171,7 +169,7 @@ class BottomSheetHeader extends StatelessWidget {
     };
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 8,
