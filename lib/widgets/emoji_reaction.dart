@@ -804,10 +804,9 @@ class ViewReactionsHeader extends StatelessWidget {
     final reactions = message?.reactions;
 
     if (reactions == null || reactions.aggregated.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 8),
-        child: BottomSheetHeader(message: zulipLocalizations.seeWhoReactedSheetNoReactions),
-      );
+      return BottomSheetHeader(
+        outerVerticalPadding: true,
+        message: zulipLocalizations.seeWhoReactedSheetNoReactions);
     }
 
     return Padding(

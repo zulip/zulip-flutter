@@ -35,11 +35,20 @@ import 'text.dart';
 import 'theme.dart';
 import 'topic_list.dart';
 
+/// Show an action sheet with scrollable menu buttons
+/// and an optional scrollable header.
+///
+/// [header] should not use vertical padding to position itself on the sheet.
+/// It will be wrapped in vertical padding
+/// and, if [headerScrollable], a scroll view and an [InsetShadowBox].
 void _showActionSheet(
   BuildContext pageContext, {
   Widget? header,
+  bool headerScrollable = true,
   required List<List<Widget>> buttonSections,
 }) {
+  assert(header is! BottomSheetHeader || !header.outerVerticalPadding);
+
   // Could omit this if we need _showActionSheet outside a per-account context.
   final accountId = PerAccountStoreWidget.accountIdOf(pageContext);
 
@@ -53,6 +62,52 @@ void _showActionSheet(
     isScrollControlled: true,
     builder: (BuildContext _) {
       final designVariables = DesignVariables.of(pageContext);
+
+      Widget? effectiveHeader;
+      if (header != null) {
+        effectiveHeader = headerScrollable
+          ? Flexible(
+              // TODO(upstream) Enforce a flex ratio (e.g. 1:3)
+              //   only when the header height plus the buttons' height
+              //   exceeds available space. Otherwise let one or the other
+              //   grow to fill available space even if it breaks the ratio.
+              //   Needs support for separate properties like `flex-grow`
+              //   and `flex-shrink`.
+              flex: 1,
+              child: InsetShadowBox(
+                top: 8, bottom: 8,
+                color: designVariables.bgContextMenu,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: header)))
+          : Padding(
+              padding: EdgeInsets.only(top: 16, bottom: 4),
+              child: header);
+      }
+
+      final body = Flexible(
+        flex: (effectiveHeader != null && headerScrollable)
+          ? 3
+          : 1,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(child: InsetShadowBox(
+                top: 8, bottom: 8,
+                color: designVariables.bgContextMenu,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 8,
+                    children: buttonSections.map((buttons) =>
+                      MenuButtonsShape(buttons: buttons)).toList())))),
+              const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.cancel),
+            ])));
+
       return PerAccountStoreWidget(
         accountId: accountId,
         child: Semantics(
@@ -62,43 +117,11 @@ void _showActionSheet(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (header != null)
-                  Flexible(
-                    // TODO(upstream) Enforce a flex ratio (e.g. 1:3)
-                    //   only when the header height plus the buttons' height
-                    //   exceeds available space. Otherwise let one or the other
-                    //   grow to fill available space even if it breaks the ratio.
-                    //   Needs support for separate properties like `flex-grow`
-                    //   and `flex-shrink`.
-                    flex: 1,
-                    child: InsetShadowBox(
-                      top: 8, bottom: 8,
-                      color: designVariables.bgContextMenu,
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: header)))
+                if (effectiveHeader != null)
+                  effectiveHeader
                 else
                   SizedBox(height: 8),
-                Flexible(
-                  flex: 3,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(child: InsetShadowBox(
-                          top: 8, bottom: 8,
-                          color: designVariables.bgContextMenu,
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              spacing: 8,
-                              children: buttonSections.map((buttons) =>
-                                MenuButtonsShape(buttons: buttons)).toList())))),
-                        const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.cancel),
-                      ]))),
+                body,
               ]))));
     });
 }
@@ -114,7 +137,8 @@ typedef WidgetBuilderFromTextStyle = Widget Function(TextStyle);
 /// The "build" params support richer content, such as [TextWithLink],
 /// and the callback is passed a [TextStyle] which is the base style.
 ///
-/// Assumes 8px padding below the top of the bottom sheet.
+/// To add outer vertical padding to position the header on the sheet,
+/// pass true for [outerVerticalPadding].
 ///
 /// Figma; just message no title:
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3481-26993&m=dev
@@ -133,6 +157,7 @@ class BottomSheetHeader extends StatelessWidget {
     this.buildTitle,
     this.message,
     this.buildMessage,
+    this.outerVerticalPadding = false,
   }) : assert(message == null || buildMessage == null),
        assert(title == null || buildTitle == null),
        assert((message != null || buildMessage != null)
@@ -142,6 +167,7 @@ class BottomSheetHeader extends StatelessWidget {
   final Widget Function(TextStyle)? buildTitle;
   final String? message;
   final Widget Function(TextStyle)? buildMessage;
+  final bool outerVerticalPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -170,12 +196,20 @@ class BottomSheetHeader extends StatelessWidget {
       _                    => null,
     };
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+    Widget result = Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 8,
         children: [?effectiveTitle, ?effectiveMessage]));
+
+    if (outerVerticalPadding) {
+      result = Padding(
+        padding: EdgeInsets.only(top: 16, bottom: 4),
+        child: result);
+    }
+
+    return result;
   }
 }
 
@@ -441,6 +475,7 @@ void showChannelActionSheet(BuildContext context, {
   bool showTopicListButton = true,
 }) {
   final pageContext = PageRoot.contextOf(context);
+  final zulipLocalizations = ZulipLocalizations.of(pageContext);
   final store = PerAccountStoreWidget.of(pageContext);
   final messageListPageState = MessageListPage.maybeAncestorOf(pageContext);
 
@@ -468,7 +503,31 @@ void showChannelActionSheet(BuildContext context, {
       [UnsubscribeButton(pageContext: pageContext, channelId: channelId)],
   ];
 
-  _showActionSheet(pageContext, buttonSections: buttonSections);
+  Widget header;
+  if (channel == null) {
+    header = BottomSheetHeader(title: zulipLocalizations.unknownChannelName);
+  } else {
+    final channelIconColor = colorSwatchFor(context,
+      store.subscriptions[channelId]).iconOnPlainBackground;
+    final icon = iconDataForStream(channel);
+
+    header = BottomSheetHeader(
+      buildTitle: (baseStyle) => Row(
+        spacing: 4,
+        mainAxisSize: MainAxisSize.min,
+        // TODO(design): The vertical alignment of the stream privacy icon is a bit ad hoc.
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(size: baseStyle.fontSize, color: channelIconColor, icon),
+          Flexible(child: Text(style: baseStyle,
+            channel.name)),
+        ]));
+  }
+
+  _showActionSheet(pageContext,
+    header: header,
+    headerScrollable: false,
+    buttonSections: buttonSections);
 }
 
 class SubscribeButton extends ActionSheetMenuItemButton {
@@ -780,7 +839,20 @@ void showTopicActionSheet(BuildContext context, {
     narrow: TopicNarrow(channelId, topic, with_: someMessageIdInTopic),
     pageContext: context));
 
-  _showActionSheet(pageContext, buttonSections: [optionButtons]);
+  Widget header;
+  if (topic.displayName == null) {
+    header = BottomSheetHeader(
+      buildTitle: (baseStyle) => Text(
+        style: baseStyle.copyWith(fontStyle: FontStyle.italic),
+        store.realmEmptyTopicDisplayName));
+  } else {
+    header = BottomSheetHeader(title: topic.displayName!);
+  }
+
+  _showActionSheet(pageContext,
+    header: header,
+    headerScrollable: false,
+    buttonSections: [optionButtons]);
 }
 
 class UserTopicUpdateButton extends ActionSheetMenuItemButton {

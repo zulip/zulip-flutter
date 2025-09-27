@@ -128,11 +128,10 @@ class _ReadReceiptsHeader extends StatelessWidget {
         markup: zulipLocalizations.actionSheetReadReceiptsReadCount(receiptCount));
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: BottomSheetHeader(
-        title: zulipLocalizations.actionSheetReadReceipts,
-        buildMessage: headerMessageBuilder));
+    return BottomSheetHeader(
+      outerVerticalPadding: true,
+      title: zulipLocalizations.actionSheetReadReceipts,
+      buildMessage: headerMessageBuilder);
   }
 }
 
