@@ -475,6 +475,7 @@ void showChannelActionSheet(BuildContext context, {
   bool showTopicListButton = true,
 }) {
   final pageContext = PageRoot.contextOf(context);
+  final zulipLocalizations = ZulipLocalizations.of(pageContext);
   final store = PerAccountStoreWidget.of(pageContext);
   final messageListPageState = MessageListPage.maybeAncestorOf(pageContext);
 
@@ -502,7 +503,31 @@ void showChannelActionSheet(BuildContext context, {
       [UnsubscribeButton(pageContext: pageContext, channelId: channelId)],
   ];
 
-  _showActionSheet(pageContext, buttonSections: buttonSections);
+  Widget header;
+  if (channel == null) {
+    header = BottomSheetHeader(title: zulipLocalizations.unknownChannelName);
+  } else {
+    final channelIconColor = colorSwatchFor(context,
+      store.subscriptions[channelId]).iconOnPlainBackground;
+    final icon = iconDataForStream(channel);
+
+    header = BottomSheetHeader(
+      buildTitle: (baseStyle) => Row(
+        spacing: 4,
+        mainAxisSize: MainAxisSize.min,
+        // TODO(design): The vertical alignment of the stream privacy icon is a bit ad hoc.
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(size: baseStyle.fontSize, color: channelIconColor, icon),
+          Flexible(child: Text(style: baseStyle,
+            channel.name)),
+        ]));
+  }
+
+  _showActionSheet(pageContext,
+    header: header,
+    headerScrollable: false,
+    buttonSections: buttonSections);
 }
 
 class SubscribeButton extends ActionSheetMenuItemButton {
