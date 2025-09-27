@@ -4,6 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../generated/l10n/zulip_localizations.dart';
+import 'icons.dart';
+import 'store.dart';
 import 'theme.dart';
 
 /// An app-wide [Typography] for Zulip, customized from the Material default.
@@ -532,4 +535,140 @@ class _TextWithLinkState extends State<TextWithLink> {
       textAlign: widget.textAlign,
       span);
   }
+}
+
+/// Data to size and position a square icon in a span of text.
+class InlineIconGeometryData {
+  /// What size the icon should be,
+  /// as a fraction of the surrounding text's font size.
+  final double sizeFactor;
+
+  /// Where to assign the icon's baseline, as a fraction of the icon's size,
+  /// when the span is rendered with [TextBaseline.alphabetic].
+  ///
+  /// This is ignored when the span is rendered with [TextBaseline.ideographic];
+  /// zero is used instead.
+  final double alphabeticBaselineFactor;
+
+  /// How much horizontal padding should separate the icon from surrounding text,
+  /// as a fraction of the icon's size.
+  final double paddingFactor;
+
+  const InlineIconGeometryData._({
+    required this.sizeFactor,
+    required this.alphabeticBaselineFactor,
+    required this.paddingFactor,
+  });
+
+  factory InlineIconGeometryData.forIcon(IconData icon) {
+    final result = _inlineIconGeometries[icon];
+    assert(result != null);
+    return result ?? _defaultGeometry;
+  }
+
+  // Values are ad hoc unless otherwise specified.
+  static final Map<IconData, InlineIconGeometryData> _inlineIconGeometries = {
+    ZulipIcons.globe: InlineIconGeometryData._(
+      sizeFactor: 0.8,
+      alphabeticBaselineFactor: 1 / 8,
+      paddingFactor: 1 / 4),
+
+    ZulipIcons.hash_sign: InlineIconGeometryData._(
+      sizeFactor: 0.8,
+      alphabeticBaselineFactor: 1 / 16,
+      paddingFactor: 1 / 4),
+
+    ZulipIcons.lock: InlineIconGeometryData._(
+      sizeFactor: 0.8,
+      alphabeticBaselineFactor: 1 / 16,
+      paddingFactor: 1 / 4),
+ };
+
+  static final _defaultGeometry = InlineIconGeometryData._(
+    sizeFactor: 0.8,
+    alphabeticBaselineFactor: 1 / 16,
+    paddingFactor: 1 / 4,
+  );
+}
+
+/// An icon, sized and aligned for use in a span of text.
+WidgetSpan iconWidgetSpan({
+  required IconData icon,
+  required double fontSize,
+  required TextBaseline baselineType,
+  required Color? color,
+  bool padBefore = false,
+  bool padAfter = false,
+}) {
+  final InlineIconGeometryData(
+    :sizeFactor,
+    :alphabeticBaselineFactor,
+    :paddingFactor,
+  ) = InlineIconGeometryData.forIcon(icon);
+
+  final size = sizeFactor * fontSize;
+
+  final effectiveBaselineOffset = switch (baselineType) {
+    TextBaseline.alphabetic => alphabeticBaselineFactor * size,
+    TextBaseline.ideographic => 0.0,
+  };
+
+  Widget child = Icon(size: size, color: color, icon);
+
+  if (effectiveBaselineOffset != 0) {
+    child = Transform.translate(
+      offset: Offset(0, effectiveBaselineOffset),
+      child: child);
+  }
+
+  if (padBefore || padAfter) {
+    final padding = paddingFactor * size;
+    child = Padding(
+      padding: EdgeInsetsDirectional.only(
+        start: padBefore ? padding : 0,
+        end: padAfter ? padding : 0,
+      ),
+      child: child);
+  }
+
+  return WidgetSpan(
+    alignment: PlaceholderAlignment.baseline,
+    baseline: baselineType,
+    child: child);
+}
+
+/// An [InlineSpan] with a channel privacy icon and channel name.
+///
+/// Pass this to [Text.rich], which can be styled arbitrarily.
+/// Pass the [fontSize] of surrounding text
+/// so that the icon is sized appropriately.
+InlineSpan channelTopicLabelSpan({
+  required BuildContext context,
+  required int channelId,
+  required double fontSize,
+  required Color color,
+}) {
+  final zulipLocalizations = ZulipLocalizations.of(context);
+  final store = PerAccountStoreWidget.of(context);
+  final channel = store.streams[channelId];
+  final subscription = store.subscriptions[channelId];
+  final swatch = colorSwatchFor(context, subscription);
+  final channelIcon = channel != null ? iconDataForStream(channel) : null;
+  final baselineType = localizedTextBaseline(context);
+
+  return TextSpan(children: [
+    if (channelIcon != null)
+      iconWidgetSpan(
+        icon: channelIcon,
+        fontSize: fontSize,
+        baselineType: baselineType,
+        color: swatch.iconOnPlainBackground,
+        padAfter: true),
+    if (channel != null)
+      TextSpan(text: channel.name)
+    else
+      TextSpan(
+        style: TextStyle(fontStyle: FontStyle.italic),
+        text: zulipLocalizations.unknownChannelName),
+  ]);
 }

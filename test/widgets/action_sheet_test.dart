@@ -38,6 +38,7 @@ import 'package:zulip/widgets/topic_list.dart';
 import 'package:zulip/widgets/user.dart';
 import '../api/fake_api.dart';
 
+import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
@@ -291,6 +292,61 @@ void main() {
         checkButton('Mark channel as read');
         checkButton('Copy link to channel');
       }
+
+      group('header', () {
+        final findHeader = find.descendant(
+          of: actionSheetFinder,
+          matching: find.byType(BottomSheetHeader));
+
+        Finder findInHeader(Finder finder) =>
+          find.descendant(of: findHeader, matching: finder);
+
+        testWidgets('public channel', (tester) async {
+          await prepare();
+          check(store.streams[someChannel.streamId]).isNotNull()
+            ..inviteOnly.isFalse()..isWebPublic.isFalse();
+          await showFromInbox(tester);
+          check(findInHeader(find.byIcon(ZulipIcons.hash_sign))).findsOne();
+          check(findInHeader(find.textContaining(someChannel.name))).findsOne();
+        });
+
+        testWidgets('web-public channel', (tester) async {
+          await prepare();
+          await store.handleEvent(ChannelUpdateEvent(id: 1,
+            streamId: someChannel.streamId,
+            name: someChannel.name,
+            property: null, value: null,
+            // (Ideally we'd use `property` and `value` but I'm not sure if
+            // modern servers actually do that or if they still use this
+            // separate field.)
+            isWebPublic: true));
+          check(store.streams[someChannel.streamId]).isNotNull()
+            ..inviteOnly.isFalse()..isWebPublic.isTrue();
+          await showFromInbox(tester);
+          check(findInHeader(find.byIcon(ZulipIcons.globe))).findsOne();
+          check(findInHeader(find.textContaining(someChannel.name))).findsOne();
+        });
+
+        testWidgets('private channel', (tester) async {
+          await prepare();
+          await store.handleEvent(eg.channelUpdateEvent(someChannel,
+            property: ChannelPropertyName.inviteOnly, value: true));
+          check(store.streams[someChannel.streamId]).isNotNull()
+            ..inviteOnly.isTrue()..isWebPublic.isFalse();
+          await showFromInbox(tester);
+          check(findInHeader(find.byIcon(ZulipIcons.lock))).findsOne();
+          check(findInHeader(find.textContaining(someChannel.name))).findsOne();
+        });
+
+        testWidgets('unknown channel', (tester) async {
+          await prepare();
+          await store.handleEvent(ChannelDeleteEvent(id: 1, streams: [someChannel]));
+          check(store.streams[someChannel.streamId]).isNull();
+          await showFromTopicListAppBar(tester);
+          check(findInHeader(find.byType(Icon))).findsNothing();
+          check(findInHeader(find.textContaining('(unknown channel)'))).findsOne();
+        });
+      });
 
       testWidgets('show from inbox', (tester) async {
         await prepare();

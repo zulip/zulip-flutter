@@ -502,7 +502,21 @@ void showChannelActionSheet(BuildContext context, {
       [UnsubscribeButton(pageContext: pageContext, channelId: channelId)],
   ];
 
-  _showActionSheet(pageContext, buttonSections: buttonSections);
+  final header = BottomSheetHeader(
+    buildTitle: (baseStyle) => Text.rich(
+      style: baseStyle,
+      channelTopicLabelSpan(
+        context: context,
+        channelId: channelId,
+        fontSize: baseStyle.fontSize!,
+        color: baseStyle.color!)),
+    // TODO(#1896) show channel description
+  );
+
+  _showActionSheet(pageContext,
+    header: header,
+    headerScrollable: false,
+    buttonSections: buttonSections);
 }
 
 class SubscribeButton extends ActionSheetMenuItemButton {

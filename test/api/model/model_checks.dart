@@ -54,6 +54,9 @@ extension SavedSnippetChecks on Subject<SavedSnippet> {
 
 extension ZulipStreamChecks on Subject<ZulipStream> {
   Subject<int> get streamId => has((x) => x.streamId, 'streamId');
+
+  Subject<bool> get inviteOnly => has((x) => x.inviteOnly, 'inviteOnly');
+  Subject<bool> get isWebPublic => has((x) => x.isWebPublic, 'isWebPublic');
 }
 
 extension ChannelFolderChecks on Subject<ChannelFolder> {
