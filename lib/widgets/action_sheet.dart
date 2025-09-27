@@ -785,7 +785,20 @@ void showTopicActionSheet(BuildContext context, {
     narrow: TopicNarrow(channelId, topic, with_: someMessageIdInTopic),
     pageContext: context));
 
-  _showActionSheet(pageContext, buttonSections: [optionButtons]);
+  final header = BottomSheetHeader(
+    buildTitle: (baseStyle) => Text.rich(
+      style: baseStyle,
+      channelTopicLabelSpan(
+        context: context,
+        channelId: channelId,
+        topic: topic,
+        fontSize: baseStyle.fontSize!,
+        color: baseStyle.color!)));
+
+  _showActionSheet(pageContext,
+    header: header,
+    headerScrollable: false,
+    buttonSections: [optionButtons]);
 }
 
 class UserTopicUpdateButton extends ActionSheetMenuItemButton {

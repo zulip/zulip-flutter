@@ -805,6 +805,38 @@ void main() {
         checkButton('Copy link to topic');
       }
 
+      group('header', () {
+        final findHeader = find.descendant(
+          of: actionSheetFinder,
+          matching: find.byType(BottomSheetHeader));
+
+        Finder findInHeader(Finder finder) =>
+          find.descendant(of: findHeader, matching: finder);
+
+        testWidgets('with topic', (tester) async {
+          await prepare();
+          check(store.streams[someChannel.streamId]).isNotNull()
+            ..inviteOnly.isFalse()..isWebPublic.isFalse();
+          await showFromAppBar(tester);
+          check(findInHeader(find.byIcon(ZulipIcons.hash_sign))).findsOne();
+          check(findInHeader(find.textContaining(someChannel.name))).findsOne();
+          check(findInHeader(find.textContaining(someTopic))).findsOne();
+        });
+
+        testWidgets('without topic (general chat)', (tester) async {
+          await prepare(topic: '');
+          check(store.streams[someChannel.streamId]).isNotNull()
+            ..inviteOnly.isFalse()..isWebPublic.isFalse();
+          final message = eg.streamMessage(
+            stream: someChannel, topic: '', sender: eg.otherUser);
+          await showFromAppBar(tester, messages: [message], topic: eg.t(''));
+          check(findInHeader(find.byIcon(ZulipIcons.hash_sign))).findsOne();
+          check(findInHeader(find.textContaining(someChannel.name))).findsOne();
+          check(findInHeader(find.textContaining(store.realmEmptyTopicDisplayName)))
+            .findsOne();
+        });
+      });
+
       testWidgets('show from inbox; message in Unreads but not in MessageStore', (tester) async {
         await prepare(unreadMsgs: eg.unreadMsgs(count: 1,
           channels: [eg.unreadChannelMsgs(

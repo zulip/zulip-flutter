@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import 'icons.dart';
 import 'store.dart';
@@ -582,6 +583,11 @@ class InlineIconGeometryData {
       sizeFactor: 0.8,
       alphabeticBaselineFactor: 1 / 16,
       paddingFactor: 1 / 4),
+
+    ZulipIcons.chevron_right: InlineIconGeometryData._(
+      sizeFactor: 1,
+      alphabeticBaselineFactor: 5 / 24,
+      paddingFactor: 0),
  };
 
   static final _defaultGeometry = InlineIconGeometryData._(
@@ -637,14 +643,16 @@ WidgetSpan iconWidgetSpan({
     child: child);
 }
 
-/// An [InlineSpan] with a channel privacy icon and channel name.
+/// An [InlineSpan] with a channel privacy icon, channel name,
+/// and optionally a chevron-right icon plus topic.
 ///
 /// Pass this to [Text.rich], which can be styled arbitrarily.
-/// Pass the [fontSize] of surrounding text
-/// so that the icon is sized appropriately.
+/// Pass the [fontSize] and [color] of surrounding text
+/// so that the icons are sized and colored appropriately.
 InlineSpan channelTopicLabelSpan({
   required BuildContext context,
   required int channelId,
+  TopicName? topic,
   required double fontSize,
   required Color color,
 }) {
@@ -670,5 +678,20 @@ InlineSpan channelTopicLabelSpan({
       TextSpan(
         style: TextStyle(fontStyle: FontStyle.italic),
         text: zulipLocalizations.unknownChannelName),
+    if (topic != null) ...[
+      iconWidgetSpan(
+        icon: ZulipIcons.chevron_right,
+        fontSize: fontSize,
+        baselineType: baselineType,
+        color: color,
+        padBefore: true,
+        padAfter: true),
+      if (topic.displayName != null)
+        TextSpan(text: topic.displayName)
+      else
+        TextSpan(
+          style: TextStyle(fontStyle: FontStyle.italic),
+          text: store.realmEmptyTopicDisplayName),
+    ],
   ]);
 }
