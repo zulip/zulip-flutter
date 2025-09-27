@@ -10,8 +10,8 @@ import 'package:zulip/api/model/web_auth.dart';
 import 'package:zulip/api/route/account.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/binding.dart';
-import 'package:zulip/model/database.dart';
 import 'package:zulip/model/localizations.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/login.dart';
@@ -248,7 +248,10 @@ void main() {
       }
 
       testWidgets('basic happy case', (tester) async {
-        final serverSettings = eg.serverSettings();
+        final serverSettings = eg.serverSettings(
+          realmName: 'Some organization',
+          realmIcon: Uri.parse('/some-image.png'),
+        );
         await prepare(tester, serverSettings);
         takeStartingRoutes();
         check(pushedRoutes).isEmpty();
@@ -257,7 +260,9 @@ void main() {
         await login(tester, eg.selfAccount);
         check(testBinding.globalStore.accounts).single
           .equals(eg.selfAccount.copyWith(
-            id: testBinding.globalStore.accounts.single.id));
+            id: testBinding.globalStore.accounts.single.id,
+            realmName: Value('Some organization'),
+            realmIcon: Value(Uri.parse('/some-image.png'))));
       });
 
       testWidgets('logging into a second account', (tester) async {
@@ -342,6 +347,8 @@ void main() {
           signupUrl: '/accounts/register/social/google',
         );
         final serverSettings = eg.serverSettings(
+          realmName: 'Some organization',
+          realmIcon: Uri.parse('/some-image.png'),
           externalAuthenticationMethods: [method]);
         prepareBoringImageHttpClient(); // icon on social-auth button
         await prepare(tester, serverSettings);
@@ -376,7 +383,10 @@ void main() {
         check(testBinding.takeCloseInAppWebViewCallCount()).equals(1);
 
         final account = testBinding.globalStore.accounts.single;
-        check(account).equals(eg.selfAccount.copyWith(id: account.id));
+        check(account).equals(eg.selfAccount.copyWith(
+          id: account.id,
+          realmName: Value('Some organization'),
+          realmIcon: Value(Uri.parse('/some-image.png'))));
         check(pushedRoutes).single.isA<MaterialAccountWidgetRoute>()
           ..accountId.equals(account.id)
           ..page.isA<HomePage>();
