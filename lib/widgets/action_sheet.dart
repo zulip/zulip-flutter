@@ -839,7 +839,20 @@ void showTopicActionSheet(BuildContext context, {
     narrow: TopicNarrow(channelId, topic, with_: someMessageIdInTopic),
     pageContext: context));
 
-  _showActionSheet(pageContext, buttonSections: [optionButtons]);
+  Widget header;
+  if (topic.displayName == null) {
+    header = BottomSheetHeader(
+      buildTitle: (baseStyle) => Text(
+        style: baseStyle.copyWith(fontStyle: FontStyle.italic),
+        store.realmEmptyTopicDisplayName));
+  } else {
+    header = BottomSheetHeader(title: topic.displayName!);
+  }
+
+  _showActionSheet(pageContext,
+    header: header,
+    headerScrollable: false,
+    buttonSections: [optionButtons]);
 }
 
 class UserTopicUpdateButton extends ActionSheetMenuItemButton {
