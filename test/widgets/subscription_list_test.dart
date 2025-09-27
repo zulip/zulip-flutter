@@ -4,6 +4,7 @@ import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
@@ -347,5 +348,22 @@ void main() {
     checkStreamNameWght(unmutedStreamWithNoUnmutedUnreads.name, 400);
     checkStreamNameWght(mutedStreamWithUnmutedUnreads.name,     400);
     checkStreamNameWght(mutedStreamWithNoUnmutedUnreads.name,   400);
+  });
+
+  testWidgets('no search button appears in subscribed channels page', (tester) async {
+    // Set up the subscribed channels (streams) page with one test subscription
+    await setupStreamListPage(tester, subscriptions: [
+      eg.subscription(eg.stream(streamId: 1), pinToTop: true),
+    ]);
+
+    // Verify that no search button appears in the app bar of the channels page
+    // (search should only be available on inbox and combined feed)
+    final appBar = tester.widget<ZulipAppBar>(find.byType(ZulipAppBar));
+    final actions = appBar.actions ?? [];
+    final hasSearchButton = actions.any((widget) =>
+      widget is IconButton &&
+      widget.icon is Icon &&
+      (widget.icon as Icon).icon == ZulipIcons.search);
+    check(hasSearchButton).isFalse();
   });
 }

@@ -120,7 +120,14 @@ class _HomePageState extends State<HomePage> {
     final designVariables = DesignVariables.of(context);
     return Scaffold(
       appBar: ZulipAppBar(titleSpacing: 16,
-        title: Text(_currentTabTitle)),
+        title: Text(_currentTabTitle),
+        actions: _tab.value == _HomePageTab.inbox ? [
+          IconButton(
+            icon: const Icon(ZulipIcons.search),
+            onPressed: () => Navigator.of(context).push(MessageListPage.buildRoute(
+              context: context, narrow: KeywordSearchNarrow(''))),
+          ),
+        ] : null),
       body: Stack(
         children: [
           for (final (tab, body) in pageBodies)
