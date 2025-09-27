@@ -100,7 +100,7 @@ class _PollWidgetState extends State<PollWidget> {
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () => _toggleVote(option),
-                  child: Container(
+                  child: Ink(
                     // Inner padding preserves whitespace even when the text's
                     // width approaches the button's min-width (e.g. because
                     // there are more than three digits).
