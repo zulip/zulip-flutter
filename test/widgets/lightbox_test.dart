@@ -718,5 +718,38 @@ void main() {
       check(position).isGreaterThan(basePosition);
       check(platform.position).equals(position);
     });
+
+    testWidgets('video can be zoomed in and out', (tester) async {
+      await setupPage(tester, videoSrc: Uri.parse(kTestVideoUrl));
+      check(platform.isPlaying).isTrue();
+
+      final initialRect = tester.getRect(find.byType(VideoPlayer));
+      final bottomRight = initialRect.bottomRight;
+      // Define initial positions for two fingers near bottom right corner:
+      //   In the case of mismatch between media and device orientation,
+      //   the zoom gesture is still expected to work,
+      //   even if the fingers are not in the image's frame.
+      final Offset finger1Start = bottomRight + const Offset(-70.0, -70.0);
+      final Offset finger2Start = bottomRight + const Offset(-20.0, -20.0);
+      final TestGesture gesture1 = await tester.startGesture(finger1Start);
+      final TestGesture gesture2 = await tester.startGesture(finger2Start);
+      await tester.pump();
+
+      // Simulate pinch out (zoom in)
+      await gesture1.moveBy(const Offset(-20.0, -20.0));
+      await gesture2.moveBy(const Offset(20.0, 20.0));
+      await tester.pump();
+      final zoomedInRect = tester.getRect(find.byType(VideoPlayer));
+      check(zoomedInRect.width).isGreaterThan(initialRect.width);
+      check(zoomedInRect.height).isGreaterThan(initialRect.height);
+
+      // Simulate pinch out (zoom in)
+      await gesture1.moveBy(const Offset(30.0, 30.0));
+      await gesture2.moveBy(const Offset(-30.0, -30.0));
+      await tester.pump();
+      final zoomedOutRect = tester.getRect(find.byType(VideoPlayer));
+      check(zoomedOutRect.width).isLessThan(zoomedInRect.width);
+      check(zoomedOutRect.height).isLessThan(zoomedInRect.height);
+    });
   });
 }
