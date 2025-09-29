@@ -11,14 +11,15 @@ import '../log.dart';
 import '../model/binding.dart';
 import '../model/narrow.dart';
 import 'app.dart';
-import 'color.dart';
 import 'compose_box.dart';
+import 'content.dart';
 import 'dialog.dart';
+import 'icons.dart';
 import 'message_list.dart';
-import 'page.dart';
 import 'recent_dm_conversations.dart';
 import 'store.dart';
 import 'subscription_list.dart';
+import 'text.dart';
 import 'theme.dart';
 
 // Responds to receiving shared content from other apps.
@@ -99,16 +100,16 @@ class ShareService {
         mimeType: mimeType);
     });
 
-    unawaited(navigator.push(
-      SharePage.buildRoute(
-        accountId: accountId,
-        sharedFiles: sharedFiles,
-        sharedText: intentSendEvent.extraText)));
+    ShareDialog.show(
+      pageContext: context,
+      initialAccountId: accountId,
+      sharedFiles: sharedFiles,
+      sharedText: intentSendEvent.extraText);
   }
 }
 
-class SharePage extends StatelessWidget {
-  const SharePage({
+class ShareDialog extends StatelessWidget {
+  const ShareDialog({
     super.key,
     required this.sharedFiles,
     required this.sharedText,
@@ -117,16 +118,27 @@ class SharePage extends StatelessWidget {
   final Iterable<FileToUpload>? sharedFiles;
   final String? sharedText;
 
-  static AccountRoute<void> buildRoute({
-    required int accountId,
+  static void show({
+    required BuildContext pageContext,
+    required int initialAccountId,
     required Iterable<FileToUpload>? sharedFiles,
     required String? sharedText,
-  }) {
-    return MaterialAccountWidgetRoute(
-      accountId: accountId,
-      page: SharePage(
-        sharedFiles: sharedFiles,
-        sharedText: sharedText));
+  }) async {
+    unawaited(showModalBottomSheet<void>(
+      context: pageContext,
+      // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
+      // on my iPhone 13 Pro but is marked as "much slower":
+      //   https://api.flutter.dev/flutter/dart-ui/Clip.html
+      clipBehavior: Clip.antiAlias,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (_) {
+        return PerAccountStoreWidget(
+          accountId: initialAccountId,
+          child: ShareDialog(
+            sharedFiles: sharedFiles,
+            sharedText: sharedText));
+      }));
   }
 
   void _handleNarrowSelect(BuildContext context, Narrow narrow) {
@@ -171,28 +183,74 @@ class SharePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    // We should already have the `store.realmIcon` after the
+    // PerAccountStore has completed loading, hence the `!` here.
+    final realmIconUrl = store.realmUrl.resolveUri(store.realmIcon!);
+
+    final labelStyle = TextStyle(
+      fontSize: 18,
+      height: 24 / 18,
+      letterSpacing: 0,
+    ).merge(weightVariableTextStyle(context, wght: 500));
+
+    Widget mkLabel(String text) {
+      return Text(
+        text,
+        style: labelStyle,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1);
+    }
 
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(zulipLocalizations.sharePageTitle),
-          bottom: TabBar(
-            indicatorColor: designVariables.icon,
-            labelColor: designVariables.foreground,
-            unselectedLabelColor: designVariables.foreground.withFadedAlpha(0.7),
+      child: Column(children: [
+        Row(children: [
+          SizedBox.square(
+            dimension: 42,
+            child: Padding(
+              padding: const EdgeInsets.all(7),
+              child: RealmContentNetworkImage(realmIconUrl))),
+          Expanded(child: TabBar(
+            labelStyle: labelStyle,
+            labelColor: designVariables.iconSelected,
+            unselectedLabelColor: designVariables.icon,
+            indicatorWeight: 0,
+            indicator: BoxDecoration(border: Border(
+              bottom: BorderSide(
+                color: designVariables.iconSelected,
+                width: 4.0))),
+            indicatorSize: TabBarIndicatorSize.label,
+            dividerHeight: 0,
             splashFactory: NoSplash.splashFactory,
             tabs: [
-              Tab(text: zulipLocalizations.channelsPageTitle),
-              Tab(text: zulipLocalizations.recentDmConversationsPageTitle),
+              SizedBox(
+                height: 42,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 4,
+                  children: [
+                    Icon(size: 24, ZulipIcons.hash_italic),
+                    Flexible(child: mkLabel(zulipLocalizations.channelsPageTitle)),
+                  ])),
+              SizedBox(
+                height: 42,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 4,
+                  children: [
+                    Icon(size: 24, ZulipIcons.two_person),
+                    Flexible(child: mkLabel(zulipLocalizations.recentDmConversationsPageTitle)),
+                  ])),
             ])),
-        body: TabBarView(children: [
+        ]),
+        Expanded(child: TabBarView(children: [
           SubscriptionListPageBody(
             showTopicListButtonInActionSheet: false,
             hideChannelsIfUserCantSendMessage: true,
-            allowGoToAllChannels: false,
             onChannelSelect: (narrow) => _handleNarrowSelect(context, narrow),
             // TODO(#412) add onTopicSelect, Currently when user lands on the
             //   channel feed page from subscription list page and they tap
@@ -204,6 +262,7 @@ class SharePage extends StatelessWidget {
           RecentDmConversationsPageBody(
             hideDmsIfUserCantPost: true,
             onDmSelect: (narrow) => _handleNarrowSelect(context, narrow)),
-        ])));
+        ])),
+      ]));
   }
 }
