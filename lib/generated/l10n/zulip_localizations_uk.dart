@@ -1040,9 +1040,6 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   }
 
   @override
-  String get sharePageTitle => 'Поділитися';
-
-  @override
   String get mainMenuMyProfile => 'Мій профіль';
 
   @override

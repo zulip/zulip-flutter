@@ -1039,9 +1039,6 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   }
 
   @override
-  String get sharePageTitle => 'Partager';
-
-  @override
   String get mainMenuMyProfile => 'Mon profil';
 
   @override
