@@ -1060,9 +1060,6 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
-  "@sharePageTitle": {
-    "description": "Title for the page about sharing content received from other apps."
-  },
   "@signInWithFoo": {
     "description": "Button to use {method} to sign in to the app.",
     "placeholders": {
@@ -1596,7 +1593,6 @@
   "serverUrlValidationErrorUnsupportedScheme": "URL-адреса сервера має починатися з http:// або https://.",
   "setStatusPageTitle": "Встановити статус",
   "settingsPageTitle": "Налаштування",
-  "sharePageTitle": "Поділитися",
   "signInWithFoo": "Увійти з {method}",
   "snackBarDetails": "Деталі",
   "spoilerDefaultHeaderText": "Спойлер",

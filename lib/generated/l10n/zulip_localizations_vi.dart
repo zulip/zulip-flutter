@@ -1026,9 +1026,6 @@ class ZulipLocalizationsVi extends ZulipLocalizations {
   }
 
   @override
-  String get sharePageTitle => 'Share';
-
-  @override
   String get mainMenuMyProfile => 'My profile';
 
   @override

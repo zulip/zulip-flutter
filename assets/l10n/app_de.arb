@@ -991,9 +991,6 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
-  "@sharePageTitle": {
-    "description": "Title for the page about sharing content received from other apps."
-  },
   "@signInWithFoo": {
     "description": "Button to use {method} to sign in to the app.",
     "placeholders": {
@@ -1507,7 +1504,6 @@
   "serverUrlValidationErrorUnsupportedScheme": "Die Server-URL muss mit http:// oder https:// beginnen.",
   "setStatusPageTitle": "Status setzen",
   "settingsPageTitle": "Einstellungen",
-  "sharePageTitle": "Teilen",
   "signInWithFoo": "Anmelden mit {method}",
   "snackBarDetails": "Details",
   "spoilerDefaultHeaderText": "Spoiler",

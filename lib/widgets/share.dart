@@ -11,15 +11,18 @@ import '../log.dart';
 import '../model/binding.dart';
 import '../model/narrow.dart';
 import 'app.dart';
-import 'color.dart';
 import 'compose_box.dart';
 import 'dialog.dart';
+import 'icons.dart';
+import 'image.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'recent_dm_conversations.dart';
 import 'store.dart';
 import 'subscription_list.dart';
+import 'text.dart';
 import 'theme.dart';
+import 'user.dart';
 
 // Responds to receiving shared content from other apps.
 class ShareService {
@@ -99,17 +102,20 @@ class ShareService {
         mimeType: mimeType);
     });
 
-    unawaited(navigator.push(
-      SharePage.buildRoute(
-        accountId: accountId,
-        sharedFiles: sharedFiles,
-        sharedText: intentSendEvent.extraText)));
+    ShareSheet.show(
+      pageContext: context,
+      initialAccountId: accountId,
+      sharedFiles: sharedFiles,
+      sharedText: intentSendEvent.extraText);
   }
 }
 
-class SharePage extends StatelessWidget {
-  const SharePage({
-    super.key,
+/// The Share-to-Zulip sheet.
+///
+/// Figma link:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=12853-76543&p=f&t=oBRXWxFjbkz1yeI7-0
+class ShareSheet extends StatelessWidget {
+  const ShareSheet._({
     required this.sharedFiles,
     required this.sharedText,
   });
@@ -117,16 +123,34 @@ class SharePage extends StatelessWidget {
   final Iterable<FileToUpload>? sharedFiles;
   final String? sharedText;
 
-  static AccountRoute<void> buildRoute({
-    required int accountId,
+  static void show({
+    required BuildContext pageContext,
+    required int initialAccountId,
     required Iterable<FileToUpload>? sharedFiles,
     required String? sharedText,
-  }) {
-    return MaterialAccountWidgetRoute(
-      accountId: accountId,
-      page: SharePage(
-        sharedFiles: sharedFiles,
-        sharedText: sharedText));
+  }) async {
+    unawaited(showModalBottomSheet<void>(
+      context: pageContext,
+      // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
+      // on my iPhone 13 Pro but is marked as "much slower":
+      //   https://api.flutter.dev/flutter/dart-ui/Clip.html
+      clipBehavior: Clip.antiAlias,
+      useSafeArea: true,
+      isScrollControlled: true,
+      // The Figma uses designVariables.mainBackground, which we could set
+      // here with backgroundColor. Shrug; instead, accept the background color
+      // from BottomSheetThemeData, which is similar to that (as of 2025-10-07),
+      // for consistency with other bottom sheets.
+      builder: (_) {
+        return PerAccountStoreWidget(
+          accountId: initialAccountId,
+          // PageRoot goes under PerAccountStoreWidget, so the provided context
+          // can be used for PerAccountStoreWidget.of.
+          child: PageRoot(
+            child: ShareSheet._(
+              sharedFiles: sharedFiles,
+              sharedText: sharedText)));
+      }));
   }
 
   void _handleNarrowSelect(BuildContext context, Narrow narrow) {
@@ -171,24 +195,73 @@ class SharePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    Widget mkTabLabel({required String text, required IconData icon}) {
+      return ConstrainedBox(
+        constraints: BoxConstraints(minHeight: 42),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 4,
+          children: [
+            Icon(size: 24, icon),
+            Flexible(
+              child: Text(
+                text,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: TextStyle(
+                  fontSize: 18,
+                  height: 24 / 18,
+                ).merge(weightVariableTextStyle(context, wght: 500)))),
+          ]));
+    }
 
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(zulipLocalizations.sharePageTitle),
-          bottom: TabBar(
-            indicatorColor: designVariables.icon,
-            labelColor: designVariables.foreground,
-            unselectedLabelColor: designVariables.foreground.withFadedAlpha(0.7),
+      child: Column(children: [
+        Row(children: [
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 7, horizontal: 11),
+            child: AvatarShape(
+              size: 28,
+              borderRadius: 4,
+              child: RealmContentNetworkImage(
+                store.resolvedRealmIcon,
+                filterQuality: FilterQuality.medium,
+                fit: BoxFit.cover))),
+          Expanded(child: TabBar(
+            labelPadding: EdgeInsets.symmetric(horizontal: 4),
+            labelColor: designVariables.iconSelected,
+            unselectedLabelColor: designVariables.icon,
+            // TODO(upstream): The documentation for `indicatorWeight` states
+            //   that it is ignored if `indicator` is specified. But that
+            //   doesn't seem to be the case in practice, this value affects
+            //   the size of the tab label, making the tab label 2px larger
+            //   which is also the default value for this argument. See:
+            //     https://github.com/flutter/flutter/issues/171951
+            //   As a workaround passing a value of zero appears to be working
+            //   fine, so use that.
+            indicatorWeight: 0,
+            indicator: UnderlineTabIndicator(
+              borderSide: BorderSide(
+                color: designVariables.iconSelected,
+                width: 4.0)),
+            dividerHeight: 0,
             splashFactory: NoSplash.splashFactory,
+            overlayColor: WidgetStatePropertyAll(Colors.transparent),
             tabs: [
-              Tab(text: zulipLocalizations.channelsPageTitle),
-              Tab(text: zulipLocalizations.recentDmConversationsPageTitle),
+              mkTabLabel(
+                text: zulipLocalizations.channelsPageTitle,
+                icon: ZulipIcons.hash_italic),
+              mkTabLabel(
+                text: zulipLocalizations.recentDmConversationsPageTitle,
+                icon: ZulipIcons.two_person),
             ])),
-        body: TabBarView(children: [
+        ]),
+        Expanded(child: TabBarView(children: [
           SubscriptionListPageBody(
             showTopicListButtonInActionSheet: false,
             hideChannelsIfUserCantSendMessage: true,
@@ -204,6 +277,7 @@ class SharePage extends StatelessWidget {
           RecentDmConversationsPageBody(
             hideDmsIfUserCantPost: true,
             onDmSelect: (narrow) => _handleNarrowSelect(context, narrow)),
-        ])));
+        ])),
+      ]));
   }
 }

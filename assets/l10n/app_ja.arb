@@ -931,9 +931,6 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
-  "@sharePageTitle": {
-    "description": "Title for the page about sharing content received from other apps."
-  },
   "@signInWithFoo": {
     "description": "Button to use {method} to sign in to the app.",
     "placeholders": {
@@ -1416,7 +1413,6 @@
   "serverUrlValidationErrorUnsupportedScheme": "サーバーURLは http:// または https:// で始まる必要があります。",
   "setStatusPageTitle": "ステータスの設定",
   "settingsPageTitle": "設定",
-  "sharePageTitle": "共有",
   "signInWithFoo": "{method}でログイン",
   "snackBarDetails": "詳細",
   "spoilerDefaultHeaderText": "内容を隠す",

@@ -1001,9 +1001,6 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   }
 
   @override
-  String get sharePageTitle => '共有';
-
-  @override
   String get mainMenuMyProfile => '自分のプロフィール';
 
   @override
