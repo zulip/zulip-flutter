@@ -1740,11 +1740,7 @@ abstract class _Banner extends StatelessWidget {
   ///   https://github.com/zulip/zulip-flutter/pull/1432#discussion_r2023907300
   ///
   /// To control the element's distance from the end edge, override [padEnd].
-  ///
-  /// The passed [BuildContext] will be the result of [PageRoot.contextOf],
-  /// so it's expected to remain mounted until the whole page disappears,
-  /// which may be long after the banner disappears.
-  Widget? buildTrailing(BuildContext pageContext);
+  Widget? buildTrailing(BuildContext context);
 
   /// Whether to apply `end: 8` in [SafeArea.minimum].
   ///
@@ -1816,7 +1812,7 @@ class _ErrorBanner extends _Banner {
   _BannerIntent get intent => _BannerIntent.danger;
 
   @override
-  Widget? buildTrailing(pageContext) {
+  Widget? buildTrailing(context) {
     // An "x" button can go here.
     // 24px square with 8px touchable padding in all directions?
     // and `bool get padEnd => false`; see Figma:
@@ -1837,7 +1833,11 @@ class _EditMessageBanner extends _Banner {
   @override
   _BannerIntent get intent => _BannerIntent.info;
 
-  void _handleTapSave (BuildContext pageContext) async {
+  void _handleTapSave (BuildContext context) async {
+    // (A BuildContext that's expected to remain mounted until the whole page
+    // disappears, which may be long after the banner disappears.)
+    final pageContext = PageRoot.contextOf(context);
+
     final store = PerAccountStoreWidget.of(pageContext);
     final controller = composeBoxState.controller;
     if (controller is! EditMessageComposeBoxController) return; // TODO(log)
@@ -1884,8 +1884,8 @@ class _EditMessageBanner extends _Banner {
   }
 
   @override
-  Widget buildTrailing(pageContext) {
-    final zulipLocalizations = ZulipLocalizations.of(pageContext);
+  Widget buildTrailing(context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     return Row(mainAxisSize: MainAxisSize.min, spacing: 8, children: [
       ZulipWebUiKitButton(label: zulipLocalizations.composeBoxBannerButtonCancel,
         onPressed: composeBoxState.endEditInteraction),
@@ -1893,7 +1893,7 @@ class _EditMessageBanner extends _Banner {
       //   or the original raw content hasn't loaded yet
       ZulipWebUiKitButton(label: zulipLocalizations.composeBoxBannerButtonSave,
         attention: ZulipWebUiKitButtonAttention.high,
-        onPressed: () => _handleTapSave(pageContext)),
+        onPressed: () => _handleTapSave(context)),
     ]);
   }
 }
