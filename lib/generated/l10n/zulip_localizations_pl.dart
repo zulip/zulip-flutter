@@ -1043,9 +1043,6 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
-  String get sharePageTitle => 'Udostępnij';
-
-  @override
   String get mainMenuMyProfile => 'Mój profil';
 
   @override

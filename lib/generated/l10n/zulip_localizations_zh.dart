@@ -1026,9 +1026,6 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   }
 
   @override
-  String get sharePageTitle => 'Share';
-
-  @override
   String get mainMenuMyProfile => 'My profile';
 
   @override
@@ -2124,9 +2121,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get channelsPageTitle => '频道';
-
-  @override
-  String get sharePageTitle => '分享';
 
   @override
   String get mainMenuMyProfile => '个人资料';
@@ -3255,9 +3249,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String channelsEmptyPlaceholderMessage(String allChannelsPageTitle) {
     return '試著前往 <z-link>$allChannelsPageTitle</z-link>，加入一些頻道吧。';
   }
-
-  @override
-  String get sharePageTitle => '分享';
 
   @override
   String get mainMenuMyProfile => '我的設定檔';

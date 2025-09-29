@@ -1028,9 +1028,6 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   }
 
   @override
-  String get sharePageTitle => 'Share';
-
-  @override
   String get mainMenuMyProfile => 'Môj profil';
 
   @override

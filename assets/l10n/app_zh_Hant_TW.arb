@@ -989,9 +989,6 @@
     "description": "Title for the 'Set status' page."
   },
   "@settingsPageTitle": {},
-  "@sharePageTitle": {
-    "description": "Title for the page about sharing content received from other apps."
-  },
   "@signInWithFoo": {
     "description": "Button to use {method} to sign in to the app.",
     "placeholders": {
@@ -1505,7 +1502,6 @@
   "serverUrlValidationErrorUnsupportedScheme": "伺服器 URL 必須以 http:// 或 https:// 開頭。",
   "setStatusPageTitle": "設定狀態",
   "settingsPageTitle": "設定",
-  "sharePageTitle": "分享",
   "signInWithFoo": "使用 {method} 登入",
   "snackBarDetails": "詳細資訊",
   "spoilerDefaultHeaderText": "劇透",

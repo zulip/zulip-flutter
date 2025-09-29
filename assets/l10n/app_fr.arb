@@ -520,9 +520,6 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
-  "@sharePageTitle": {
-    "description": "Title for the page about sharing content received from other apps."
-  },
   "@starredMessagesPageTitle": {
     "description": "Page title for the 'Starred messages' message view."
   },
@@ -782,7 +779,6 @@
   "seeWhoReactedSheetUserListLabel": "Votes pour {emojiName} ({num})",
   "setStatusPageTitle": "Définir statut",
   "settingsPageTitle": "Paramètres",
-  "sharePageTitle": "Partager",
   "starredMessagesPageTitle": "Messages favoris",
   "statusButtonLabelStatusSet": "Statut",
   "statusButtonLabelStatusUnset": "Définir mon statut",
