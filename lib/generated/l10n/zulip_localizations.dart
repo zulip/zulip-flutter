@@ -1785,6 +1785,12 @@ abstract class ZulipLocalizations {
   /// **'Try going to <z-link>{allChannelsPageTitle}</z-link> and joining some of them.'**
   String channelsEmptyPlaceholderMessage(String allChannelsPageTitle);
 
+  /// Label for the page about selecting an account to share content received from other apps.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an account'**
+  String get shareChooseAccountLabel;
+
   /// Label for main-menu button leading to the user's own profile.
   ///
   /// In en, this message translates to:
