@@ -1216,6 +1216,10 @@
       "allChannelsPageTitle": {"type": "String", "example": "All channels"}
     }
   },
+  "shareChooseAccountLabel": "Choose an account",
+  "@shareChooseAccountLabel": {
+    "description": "Label for the page about selecting an account to share content received from other apps."
+  },
   "mainMenuMyProfile": "My profile",
   "@mainMenuMyProfile": {
     "description": "Label for main-menu button leading to the user's own profile."
