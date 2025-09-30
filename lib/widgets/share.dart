@@ -5,14 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:mime/mime.dart';
 
+import '../api/core.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../host/android_intents.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/narrow.dart';
+import '../model/store.dart';
+import 'action_sheet.dart';
 import 'app.dart';
 import 'compose_box.dart';
 import 'dialog.dart';
+import 'home.dart';
 import 'icons.dart';
 import 'image.dart';
 import 'message_list.dart';
@@ -195,9 +199,12 @@ class ShareSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final globalStore = GlobalStoreWidget.of(context);
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final hasMultipleAccounts = globalStore.accountIds.length > 1;
 
     Widget mkTabLabel({required String text, required IconData icon}) {
       return ConstrainedBox(
@@ -223,15 +230,26 @@ class ShareSheet extends StatelessWidget {
       length: 2,
       child: Column(children: [
         Row(children: [
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 7, horizontal: 11),
-            child: AvatarShape(
-              size: 28,
-              borderRadius: 4,
-              child: RealmContentNetworkImage(
-                store.resolvedRealmIcon,
-                filterQuality: FilterQuality.medium,
-                fit: BoxFit.cover))),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: !hasMultipleAccounts
+              ? null
+              : () {
+                  ChooseAccountForShareModal.show(
+                    pageContext: context,
+                    selectedAccountId: store.accountId,
+                    sharedFiles: sharedFiles,
+                    sharedText: sharedText);
+                },
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 7, horizontal: 11),
+              child: AvatarShape(
+                size: 28,
+                borderRadius: 4,
+                child: RealmContentNetworkImage(
+                  store.resolvedRealmIcon,
+                  filterQuality: FilterQuality.medium,
+                  fit: BoxFit.cover)))),
           Expanded(child: TabBar(
             labelPadding: EdgeInsets.symmetric(horizontal: 4),
             labelColor: designVariables.iconSelected,
@@ -279,5 +297,110 @@ class ShareSheet extends StatelessWidget {
             onDmSelect: (narrow) => _handleNarrowSelect(context, narrow)),
         ])),
       ]));
+  }
+}
+
+class ChooseAccountForShareModal extends StatefulWidget {
+  const ChooseAccountForShareModal._({
+    required this.sharedFiles,
+    required this.sharedText,
+  });
+
+  final Iterable<FileToUpload>? sharedFiles;
+  final String? sharedText;
+
+  static void show({
+    required BuildContext pageContext,
+    required int selectedAccountId,
+    required Iterable<FileToUpload>? sharedFiles,
+    required String? sharedText,
+  }) async {
+    unawaited(showModalBottomSheet<void>(
+      context: pageContext,
+      // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
+      // on my iPhone 13 Pro but is marked as "much slower":
+      //   https://api.flutter.dev/flutter/dart-ui/Clip.html
+      clipBehavior: Clip.antiAlias,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (_) {
+        return SafeArea(
+          minimum: const EdgeInsets.only(bottom: 16),
+          child: ChooseAccountForShareModal._(
+            sharedFiles: sharedFiles,
+            sharedText: sharedText));
+      }));
+  }
+
+  @override
+  State<ChooseAccountForShareModal> createState() => _ChooseAccountForShareModalState();
+}
+
+class _ChooseAccountForShareModalState extends State<ChooseAccountForShareModal> {
+  bool _hasUpdatedAccountsOnce = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final globalStore = GlobalStoreWidget.of(context);
+
+    if (_hasUpdatedAccountsOnce) return;
+    _hasUpdatedAccountsOnce = true;
+
+    globalStore.refreshRealmMetadata();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final globalStore = GlobalStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final accounts = List<Account>.unmodifiable(globalStore.accounts);
+
+    // TODO(#1038) align the design of this dialog to other
+    //   choose account dialogs
+    final content = SliverList.builder(
+      itemCount: accounts.length,
+      itemBuilder: (context, index) {
+        final account = accounts[index];
+        final accountId = account.id;
+
+        final resolvedRealmIconUrl =
+          account.realmIcon == null
+            ? null
+            : account.realmUrl.resolveUri(account.realmIcon!);
+
+        return ListTile(
+          onTap: () {
+            // First change home page account to the selected account.
+            HomePage.navigate(context, accountId: accountId);
+            // Then push a new share dialog for the selected account.
+            ShareSheet.show(
+              pageContext: context,
+              initialAccountId: accountId,
+              sharedFiles: widget.sharedFiles,
+              sharedText: widget.sharedText);
+          },
+          splashColor: Colors.transparent,
+          leading: AvatarShape(
+            size: 56,
+            borderRadius: 4,
+            child: resolvedRealmIconUrl == null
+              ? const SizedBox.shrink()
+              : Image.network(
+                  resolvedRealmIconUrl.toString(),
+                  headers: userAgentHeader(),
+                  filterQuality: FilterQuality.medium,
+                  fit: BoxFit.cover)),
+          title: Text(account.realmName ?? account.realmUrl.toString()),
+          subtitle: Text(account.email));
+      });
+
+    return DraggableScrollableModalBottomSheet(
+      header: BottomSheetHeader(
+        title: zulipLocalizations.shareChooseAccountModalTitle,
+        outerVerticalPadding: true),
+      contentSliver: content);
   }
 }

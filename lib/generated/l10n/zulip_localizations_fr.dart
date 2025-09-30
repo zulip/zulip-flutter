@@ -1042,6 +1042,9 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   }
 
   @override
+  String get shareChooseAccountModalTitle => 'Choose an account';
+
+  @override
   String get mainMenuMyProfile => 'Mon profil';
 
   @override

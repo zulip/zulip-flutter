@@ -1220,6 +1220,10 @@
       "allChannelsPageTitle": {"type": "String", "example": "All channels"}
     }
   },
+  "shareChooseAccountModalTitle": "Choose an account",
+  "@shareChooseAccountModalTitle": {
+    "description": "Title for the modal bottom sheet about selecting an account to share content received from other apps."
+  },
   "mainMenuMyProfile": "My profile",
   "@mainMenuMyProfile": {
     "description": "Label for main-menu button leading to the user's own profile."
