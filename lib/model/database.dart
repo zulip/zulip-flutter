@@ -1,5 +1,10 @@
 import 'package:drift/drift.dart';
 import 'package:drift/internal/versioned_schema.dart';
+// `package:drift/remote.dart` says:
+//   The public apis of this libraries are stable. The present [experimental]
+//   annotation refers to the underlying protocol implementation.
+// We use it only for the public API, and only of DriftRemoteException.
+// ignore: experimental_member_use  // see explanation above
 import 'package:drift/remote.dart';
 import 'package:sqlite3/common.dart';
 
