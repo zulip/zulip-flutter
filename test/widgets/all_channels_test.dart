@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/all_channels.dart';
@@ -12,11 +15,13 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/theme.dart';
 
+import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../example_data.dart' as eg;
 import '../model/test_store.dart';
+import '../stdlib_checks.dart';
 import 'checks.dart';
 import 'test_app.dart';
 
@@ -24,6 +29,7 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   late PerAccountStore store;
+  late FakeApiConnection connection;
   late TransitionDurationObserver transitionDurationObserver;
 
   final groupSettingWithSelf = eg.groupSetting(members: [eg.selfUser.userId]);
@@ -40,6 +46,7 @@ void main() {
     );
     await testBinding.globalStore.add(eg.selfAccount, initialSnapshot);
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+    connection = store.connection as FakeApiConnection;
 
     transitionDurationObserver = TransitionDurationObserver();
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
@@ -206,5 +213,29 @@ void main() {
     await transitionDurationObserver.pumpPastTransition(tester);
 
     check(find.byType(BottomSheet)).findsOne();
+  });
+
+  testWidgets('use toggle switch to subscribe/unsubscribe', (tester) async {
+    final channel = eg.stream();
+    await setupAllChannelsPage(tester, channels: [channel]);
+
+    await tester.tap(find.byType(Toggle));
+    check(connection.lastRequest).isA<http.Request>()
+      ..method.equals('POST')
+      ..url.path.equals('/api/v1/users/me/subscriptions')
+      ..bodyFields.deepEquals({
+        'subscriptions': jsonEncode([{'name': channel.name}]),
+      });
+
+    await store.addSubscription(eg.subscription(channel));
+    await tester.pump(); // Toggle changes state
+
+    await tester.tap(find.byType(Toggle));
+    check(connection.lastRequest).isA<http.Request>()
+      ..method.equals('DELETE')
+      ..url.path.equals('/api/v1/users/me/subscriptions')
+      ..bodyFields.deepEquals({
+        'subscriptions': jsonEncode([channel.name]),
+      });
   });
 }
