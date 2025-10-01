@@ -418,6 +418,8 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
             stream.messageRetentionDays = event.value as int?;
           case ChannelPropertyName.channelPostPolicy:
             stream.channelPostPolicy = event.value as ChannelPostPolicy;
+          case ChannelPropertyName.folderId:
+            stream.folderId = event.value as int?;
           case ChannelPropertyName.canAddSubscribersGroup:
             stream.canAddSubscribersGroup = event.value as GroupSettingValue;
           case ChannelPropertyName.canDeleteAnyMessageGroup:

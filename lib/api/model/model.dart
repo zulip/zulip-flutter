@@ -643,6 +643,8 @@ class ZulipStream {
   final int dateCreated;
   int? firstMessageId;
 
+  int? folderId;
+
   bool inviteOnly;
   bool isWebPublic; // present since 2.1, according to /api/changelog
   bool historyPublicToSubscribers;
@@ -673,6 +675,7 @@ class ZulipStream {
     required this.historyPublicToSubscribers,
     required this.messageRetentionDays,
     required this.channelPostPolicy,
+    required this.folderId,
     required this.canAddSubscribersGroup,
     required this.canDeleteAnyMessageGroup,
     required this.canDeleteOwnMessageGroup,
@@ -696,6 +699,7 @@ class ZulipStream {
       historyPublicToSubscribers: subscription.historyPublicToSubscribers,
       messageRetentionDays: subscription.messageRetentionDays,
       channelPostPolicy: subscription.channelPostPolicy,
+      folderId: subscription.folderId,
       canAddSubscribersGroup: subscription.canAddSubscribersGroup,
       canDeleteAnyMessageGroup: subscription.canDeleteAnyMessageGroup,
       canDeleteOwnMessageGroup: subscription.canDeleteOwnMessageGroup,
@@ -732,6 +736,7 @@ enum ChannelPropertyName {
   messageRetentionDays,
   @JsonValue('stream_post_policy')
   channelPostPolicy,
+  folderId,
   canAddSubscribersGroup,
   canDeleteAnyMessageGroup,
   canDeleteOwnMessageGroup,
@@ -816,6 +821,7 @@ class Subscription extends ZulipStream {
     required super.historyPublicToSubscribers,
     required super.messageRetentionDays,
     required super.channelPostPolicy,
+    required super.folderId,
     required super.canAddSubscribersGroup,
     required super.canDeleteAnyMessageGroup,
     required super.canDeleteOwnMessageGroup,
