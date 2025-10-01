@@ -573,9 +573,15 @@ void main() {
 
         connection.prepare(json: {});
         await tapButton(tester);
-        await tester.pump(Duration.zero);
+        await tester.pump();
 
-        checkNoDialog(tester);
+        final (unsubscribeButton, cancelButton) = checkSuggestedActionDialog(tester,
+          expectedTitle: 'Unsubscribe from #${channel.name}?',
+          expectDestructiveActionButton: false,
+          expectedActionButtonText: 'Unsubscribe');
+        await tester.tap(find.byWidget(unsubscribeButton));
+        await tester.pump();
+        await tester.pump(Duration.zero);
 
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('DELETE')

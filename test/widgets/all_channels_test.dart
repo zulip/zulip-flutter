@@ -241,6 +241,24 @@ void main() {
       });
   });
 
+  testWidgets('Toggle "off" to unsubscribe, public channel', (tester) async {
+    final channel = eg.stream(inviteOnly: false);
+    final subscription = eg.subscription(channel);
+
+    await setupAllChannelsPage(tester, channels: [subscription]);
+
+    connection.prepare(json: {});
+    await tester.tap(find.byType(Toggle));
+    await tester.pump(Duration.zero);
+    checkNoDialog(tester);
+    check(connection.lastRequest).isA<http.Request>()
+      ..method.equals('DELETE')
+      ..url.path.equals('/api/v1/users/me/subscriptions')
+      ..bodyFields.deepEquals({
+        'subscriptions': jsonEncode([channel.name]),
+      });
+  });
+
   testWidgets('Toggle "off" to unsubscribe, but without resubscribe permission', (tester) async {
     final channel = eg.stream(
       inviteOnly: true, canSubscribeGroup: eg.groupSetting(members: []));

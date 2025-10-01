@@ -139,7 +139,8 @@ class _SubscribeToggle extends StatelessWidget {
             subscriptions: [channel.name]);
         } else {
           await ZulipAction.unsubscribeFromChannel(context,
-            channelId: channel.streamId);
+            channelId: channel.streamId,
+            alwaysAsk: false);
         }
       },
       // TODO(#741) interpret API errors for user

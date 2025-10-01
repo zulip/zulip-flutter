@@ -247,8 +247,11 @@ abstract final class ZulipAction {
   ///
   /// A confirmation dialog is shown if the user would not have permission
   /// to resubscribe.
+  /// If [alwaysAsk] is true (the default),
+  /// a confirmation dialog is shown unconditionally.
   static Future<void> unsubscribeFromChannel(BuildContext context, {
     required int channelId,
+    bool alwaysAsk = true,
   }) async {
     final store = PerAccountStoreWidget.of(context);
     final subscription = store.subscriptions[channelId];
@@ -258,14 +261,20 @@ abstract final class ZulipAction {
     final couldResubscribe = !subscription.inviteOnly
       || store.selfHasPermissionForGroupSetting(subscription.canSubscribeGroup,
            GroupSettingType.stream, 'can_subscribe_group');
+    final zulipLocalizations = ZulipLocalizations.of(context);
     if (!couldResubscribe) {
       // TODO(#1788) warn if org would lose content access (nobody can subscribe)
-      final zulipLocalizations = ZulipLocalizations.of(context);
 
       final dialog = showSuggestedActionDialog(context: context,
         title: zulipLocalizations.unsubscribeConfirmationDialogTitle('#${subscription.name}'),
         message: zulipLocalizations.unsubscribeConfirmationDialogMessageCannotResubscribe,
         destructiveActionButton: true,
+        actionButtonText: zulipLocalizations.unsubscribeConfirmationDialogConfirmButton);
+      if (await dialog.result != true) return;
+      if (!context.mounted) return;
+    } else if (alwaysAsk) {
+      final dialog = showSuggestedActionDialog(context: context,
+        title: zulipLocalizations.unsubscribeConfirmationDialogTitle('#${subscription.name}'),
         actionButtonText: zulipLocalizations.unsubscribeConfirmationDialogConfirmButton);
       if (await dialog.result != true) return;
       if (!context.mounted) return;
