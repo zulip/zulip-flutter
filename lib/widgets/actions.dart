@@ -7,9 +7,11 @@ import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/model/narrow.dart';
 import '../api/route/messages.dart';
+import '../api/route/channels.dart' as channels_api;
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
 import '../model/narrow.dart';
+import '../model/realm.dart';
 import 'dialog.dart';
 import 'store.dart';
 
@@ -238,6 +240,55 @@ abstract final class ZulipAction {
     }
 
     return fetchedMessage?.content;
+  }
+
+  /// Unsubscribe from a channel, possibly after a confirmation dialog,
+  /// showing an error dialog on failure.
+  ///
+  /// A confirmation dialog is shown if the user would not have permission
+  /// to resubscribe.
+  static Future<void> unsubscribeFromChannel(BuildContext context, {
+    required int channelId,
+  }) async {
+    final store = PerAccountStoreWidget.of(context);
+    final subscription = store.subscriptions[channelId];
+    if (subscription == null) return; // TODO could give feedback
+
+    // TODO(future) check if the self-user is a guest and the channel is not web-public
+    final couldResubscribe = !subscription.inviteOnly
+      || store.selfHasPermissionForGroupSetting(subscription.canSubscribeGroup,
+           GroupSettingType.stream, 'can_subscribe_group');
+    if (!couldResubscribe) {
+      // TODO(#1788) warn if org would lose content access (nobody can subscribe)
+      final zulipLocalizations = ZulipLocalizations.of(context);
+
+      final dialog = showSuggestedActionDialog(context: context,
+        title: zulipLocalizations.unsubscribeConfirmationDialogTitle('#${subscription.name}'),
+        message: zulipLocalizations.unsubscribeConfirmationDialogMessageCannotResubscribe,
+        destructiveActionButton: true,
+        actionButtonText: zulipLocalizations.unsubscribeConfirmationDialogConfirmButton);
+      if (await dialog.result != true) return;
+      if (!context.mounted) return;
+    }
+
+    try {
+      await channels_api.unsubscribeFromChannel(PerAccountStoreWidget.of(context).connection,
+        subscriptions: [subscription.name]);
+    } catch (e) {
+      if (!context.mounted) return;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      final title = ZulipLocalizations.of(context).unsubscribeFailedTitle;
+      showErrorDialog(context: context, title: title, message: errorMessage);
+    }
   }
 }
 

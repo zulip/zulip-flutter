@@ -17,7 +17,6 @@ import '../model/content.dart';
 import '../model/emoji.dart';
 import '../model/internal_link.dart';
 import '../model/narrow.dart';
-import '../model/realm.dart';
 import 'actions.dart';
 import 'button.dart';
 import 'color.dart';
@@ -634,45 +633,7 @@ class UnsubscribeButton extends ActionSheetMenuItemButton {
 
   @override
   void onPressed() async {
-    final store = PerAccountStoreWidget.of(pageContext);
-    final subscription = store.subscriptions[channelId];
-    if (subscription == null) return; // TODO could give feedback
-
-    // TODO(future) check if the self-user is a guest and the channel is not web-public
-    final couldResubscribe = !subscription.inviteOnly
-      || store.selfHasPermissionForGroupSetting(subscription.canSubscribeGroup,
-           GroupSettingType.stream, 'can_subscribe_group');
-    if (!couldResubscribe) {
-      // TODO(#1788) warn if org would lose content access (nobody can subscribe)
-      final zulipLocalizations = ZulipLocalizations.of(pageContext);
-
-      final dialog = showSuggestedActionDialog(context: pageContext,
-        title: zulipLocalizations.unsubscribeConfirmationDialogTitle('#${subscription.name}'),
-        message: zulipLocalizations.unsubscribeConfirmationDialogMessageCannotResubscribe,
-        destructiveActionButton: true,
-        actionButtonText: zulipLocalizations.unsubscribeConfirmationDialogConfirmButton);
-      if (await dialog.result != true) return;
-      if (!pageContext.mounted) return;
-    }
-
-    try {
-      await unsubscribeFromChannel(PerAccountStoreWidget.of(pageContext).connection,
-        subscriptions: [subscription.name]);
-    } catch (e) {
-      if (!pageContext.mounted) return;
-
-      String? errorMessage;
-      switch (e) {
-        case ZulipApiException():
-          errorMessage = e.message;
-          // TODO(#741) specific messages for common errors, like network errors
-          //   (support with reusable code)
-        default:
-      }
-
-      final title = ZulipLocalizations.of(pageContext).unsubscribeFailedTitle;
-      showErrorDialog(context: pageContext, title: title, message: errorMessage);
-    }
+    await ZulipAction.unsubscribeFromChannel(pageContext, channelId: channelId);
   }
 }
 
