@@ -126,8 +126,8 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
-  String get unsubscribeConfirmationDialogMessageMaybeCannotResubscribe =>
-      'Po opuszczeniu kanału możesz utracić możliwość powrotu.';
+  String get unsubscribeConfirmationDialogMessageCannotResubscribe =>
+      'Once you leave this channel, you will not be able to rejoin.';
 
   @override
   String get unsubscribeConfirmationDialogConfirmButton => 'Odsubskrybuj';

@@ -124,8 +124,8 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   }
 
   @override
-  String get unsubscribeConfirmationDialogMessageMaybeCannotResubscribe =>
-      'Ko zapustite ta kanal, se morda ne boste mogli znova pridružiti.';
+  String get unsubscribeConfirmationDialogMessageCannotResubscribe =>
+      'Once you leave this channel, you will not be able to rejoin.';
 
   @override
   String get unsubscribeConfirmationDialogConfirmButton => 'Prekliči naročnino';

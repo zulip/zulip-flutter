@@ -17,6 +17,7 @@ import '../model/content.dart';
 import '../model/emoji.dart';
 import '../model/internal_link.dart';
 import '../model/narrow.dart';
+import '../model/realm.dart';
 import 'actions.dart';
 import 'button.dart';
 import 'color.dart';
@@ -633,20 +634,21 @@ class UnsubscribeButton extends ActionSheetMenuItemButton {
 
   @override
   void onPressed() async {
-    final subscription = PerAccountStoreWidget.of(pageContext).subscriptions[channelId];
+    final store = PerAccountStoreWidget.of(pageContext);
+    final subscription = store.subscriptions[channelId];
     if (subscription == null) return; // TODO could give feedback
 
-    // TODO(#1786) check group-based permission to subscribe, then replace
-    //   error message with a new one saying "will not" instead of "might not"
     // TODO(future) check if the self-user is a guest and the channel is not web-public
-    final couldResubscribe = !subscription.inviteOnly;
+    final couldResubscribe = !subscription.inviteOnly
+      || store.selfHasPermissionForGroupSetting(subscription.canSubscribeGroup,
+           GroupSettingType.stream, 'can_subscribe_group');
     if (!couldResubscribe) {
       // TODO(#1788) warn if org would lose content access (nobody can subscribe)
       final zulipLocalizations = ZulipLocalizations.of(pageContext);
 
       final dialog = showSuggestedActionDialog(context: pageContext,
         title: zulipLocalizations.unsubscribeConfirmationDialogTitle(subscription.name),
-        message: zulipLocalizations.unsubscribeConfirmationDialogMessageMaybeCannotResubscribe,
+        message: zulipLocalizations.unsubscribeConfirmationDialogMessageCannotResubscribe,
         destructiveActionButton: true,
         actionButtonText: zulipLocalizations.unsubscribeConfirmationDialogConfirmButton);
       if (await dialog.result != true) return;

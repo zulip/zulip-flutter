@@ -341,11 +341,11 @@ abstract class ZulipLocalizations {
   /// **'Unsubscribe from {channelName}?'**
   String unsubscribeConfirmationDialogTitle(String channelName);
 
-  /// Message for a confirmation dialog for unsubscribing from a channel when you might not have permission to resubscribe.
+  /// Message for a confirmation dialog for unsubscribing from a channel when you will not have permission to resubscribe.
   ///
   /// In en, this message translates to:
-  /// **'Once you leave this channel, you might not be able to rejoin.'**
-  String get unsubscribeConfirmationDialogMessageMaybeCannotResubscribe;
+  /// **'Once you leave this channel, you will not be able to rejoin.'**
+  String get unsubscribeConfirmationDialogMessageCannotResubscribe;
 
   /// Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel.
   ///

@@ -143,9 +143,9 @@
       "channelName": {"type": "String", "example": "mobile"}
     }
   },
-  "unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": "Once you leave this channel, you might not be able to rejoin.",
-  "@unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": {
-    "description": "Message for a confirmation dialog for unsubscribing from a channel when you might not have permission to resubscribe."
+  "unsubscribeConfirmationDialogMessageCannotResubscribe": "Once you leave this channel, you will not be able to rejoin.",
+  "@unsubscribeConfirmationDialogMessageCannotResubscribe": {
+    "description": "Message for a confirmation dialog for unsubscribing from a channel when you will not have permission to resubscribe."
   },
   "unsubscribeConfirmationDialogConfirmButton": "Unsubscribe",
   "@unsubscribeConfirmationDialogConfirmButton": {

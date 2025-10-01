@@ -124,8 +124,8 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   }
 
   @override
-  String get unsubscribeConfirmationDialogMessageMaybeCannotResubscribe =>
-      'Once you leave this channel, you might not be able to rejoin.';
+  String get unsubscribeConfirmationDialogMessageCannotResubscribe =>
+      'Once you leave this channel, you will not be able to rejoin.';
 
   @override
   String get unsubscribeConfirmationDialogConfirmButton => 'Unsubscribe';
@@ -1255,10 +1255,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   }
 
   @override
-  String get unsubscribeConfirmationDialogMessageMaybeCannotResubscribe =>
-      '一旦退出该频道，您可能无法重新加入。';
-
-  @override
   String get unsubscribeConfirmationDialogConfirmButton => '取消订阅';
 
   @override
@@ -2341,10 +2337,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String unsubscribeConfirmationDialogTitle(String channelName) {
     return '確定要取消訂閱 $channelName 嗎？';
   }
-
-  @override
-  String get unsubscribeConfirmationDialogMessageMaybeCannotResubscribe =>
-      '一旦您離開此頻道，可能無法重新加入。';
 
   @override
   String get unsubscribeConfirmationDialogConfirmButton => '取消訂閱';
