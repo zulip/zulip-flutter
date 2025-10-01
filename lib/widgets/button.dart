@@ -509,6 +509,8 @@ class Toggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
     // Figma has this (blue/500) in both light and dark mode.
     // TODO(#831)
     final activeColor = Color(0xff4370f0);
@@ -550,8 +552,10 @@ class Toggle extends StatelessWidget {
         ~WidgetState.selected: null,
       }),
 
-      // Figma has white for "on" and "off" in both light and dark mode.
-      thumbColor: WidgetStatePropertyAll(Colors.white),
+      thumbColor: WidgetStateProperty.fromMap({
+        WidgetState.selected: Colors.white,
+        ~WidgetState.selected: designVariables.mainBackground,
+      }),
 
       trackColor: trackColor,
       trackOutlineColor: WidgetStatePropertyAll(Colors.transparent),
