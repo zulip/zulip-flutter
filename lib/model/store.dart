@@ -829,6 +829,11 @@ class PerAccountStore extends PerAccountStoreBase with
         _channels.handleSubscriptionEvent(event);
         notifyListeners();
 
+      case ChannelFolderEvent():
+        assert(debugLog("server event: channel_folder/${event.op}"));
+        // TODO handle
+        break;
+
       case UserStatusEvent():
         assert(debugLog("server event: user_status"));
         _users.handleUserStatusEvent(event);

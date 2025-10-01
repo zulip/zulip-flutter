@@ -589,6 +589,77 @@ Map<String, dynamic> _$SubscriptionPeerRemoveEventToJson(
   'user_ids': instance.userIds,
 };
 
+ChannelFolderAddEvent _$ChannelFolderAddEventFromJson(
+  Map<String, dynamic> json,
+) => ChannelFolderAddEvent(
+  id: (json['id'] as num).toInt(),
+  channelFolder: ChannelFolder.fromJson(
+    json['channel_folder'] as Map<String, dynamic>,
+  ),
+);
+
+Map<String, dynamic> _$ChannelFolderAddEventToJson(
+  ChannelFolderAddEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'channel_folder': instance.channelFolder,
+};
+
+ChannelFolderUpdateEvent _$ChannelFolderUpdateEventFromJson(
+  Map<String, dynamic> json,
+) => ChannelFolderUpdateEvent(
+  id: (json['id'] as num).toInt(),
+  channelFolderId: (json['channel_folder_id'] as num).toInt(),
+  data: ChannelFolderChange.fromJson(json['data'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$ChannelFolderUpdateEventToJson(
+  ChannelFolderUpdateEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'channel_folder_id': instance.channelFolderId,
+  'data': instance.data,
+};
+
+ChannelFolderChange _$ChannelFolderChangeFromJson(Map<String, dynamic> json) =>
+    ChannelFolderChange(
+      name: json['name'] as String?,
+      description: json['description'] as String?,
+      renderedDescription: json['rendered_description'] as String?,
+      isArchived: json['is_archived'] as bool?,
+    );
+
+Map<String, dynamic> _$ChannelFolderChangeToJson(
+  ChannelFolderChange instance,
+) => <String, dynamic>{
+  'name': instance.name,
+  'description': instance.description,
+  'rendered_description': instance.renderedDescription,
+  'is_archived': instance.isArchived,
+};
+
+ChannelFolderReorderEvent _$ChannelFolderReorderEventFromJson(
+  Map<String, dynamic> json,
+) => ChannelFolderReorderEvent(
+  id: (json['id'] as num).toInt(),
+  order: (json['order'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+);
+
+Map<String, dynamic> _$ChannelFolderReorderEventToJson(
+  ChannelFolderReorderEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'order': instance.order,
+};
+
 UserStatusEvent _$UserStatusEventFromJson(Map<String, dynamic> json) =>
     UserStatusEvent(
       id: (json['id'] as num).toInt(),
