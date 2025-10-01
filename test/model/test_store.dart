@@ -319,6 +319,19 @@ extension PerAccountStoreTestExtension on PerAccountStore {
     await handleEvent(ChannelCreateEvent(id: 1, streams: streams));
   }
 
+  Future<void> updateChannel(
+    int channelId,
+    ChannelPropertyName property,
+    Object? value,
+  ) async {
+    await handleEvent(ChannelUpdateEvent(
+      id: 1,
+      streamId: channelId,
+      name: 'some channel name', // (not true, of course, but that's fine)
+      property: property,
+      value: value));
+  }
+
   Future<void> addSubscription(Subscription subscription) async {
     await addSubscriptions([subscription]);
   }

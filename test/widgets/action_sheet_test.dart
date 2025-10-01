@@ -341,12 +341,28 @@ void main() {
         await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
       }
 
-      testWidgets('channel not subscribed', (tester) async {
+      testWidgets('channel not subscribed, with content access', (tester) async {
         await prepare();
         final narrow = ChannelNarrow(someChannel.streamId);
         await store.removeSubscription(narrow.streamId);
+        check(store.selfHasContentAccess(someChannel)).isTrue();
         await showFromMsglistAppBar(tester, narrow: narrow);
         checkButton('Subscribe');
+      });
+
+      testWidgets('channel not subscribed, without content access', (tester) async {
+        final privateChannel = eg.stream(inviteOnly: true);
+        await prepare();
+        await store.addStream(privateChannel);
+        await store.updateChannel(privateChannel.streamId,
+          ChannelPropertyName.canSubscribeGroup, eg.groupSetting(members: []));
+        await store.updateChannel(privateChannel.streamId,
+          ChannelPropertyName.canAddSubscribersGroup, eg.groupSetting(members: []));
+        final narrow = ChannelNarrow(privateChannel.streamId);
+        check(store.selfHasContentAccess(privateChannel)).isFalse();
+        await showFromMsglistAppBar(tester,
+          channel: privateChannel, narrow: narrow);
+        checkNoButton('Subscribe');
       });
 
       testWidgets('channel subscribed', (tester) async {
