@@ -13,6 +13,7 @@ import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/page.dart';
+import 'package:zulip/widgets/remote_settings.dart';
 import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
@@ -23,6 +24,7 @@ import '../example_data.dart' as eg;
 import '../model/test_store.dart';
 import '../stdlib_checks.dart';
 import 'checks.dart';
+import 'dialog_checks.dart';
 import 'test_app.dart';
 
 void main() {
@@ -231,6 +233,39 @@ void main() {
     await tester.pump(); // Toggle changes state
 
     await tester.tap(find.byType(Toggle));
+    check(connection.lastRequest).isA<http.Request>()
+      ..method.equals('DELETE')
+      ..url.path.equals('/api/v1/users/me/subscriptions')
+      ..bodyFields.deepEquals({
+        'subscriptions': jsonEncode([channel.name]),
+      });
+  });
+
+  testWidgets('Toggle "off" to unsubscribe, but without resubscribe permission', (tester) async {
+    final channel = eg.stream(
+      inviteOnly: true, canSubscribeGroup: eg.groupSetting(members: []));
+    final subscription = eg.subscription(channel);
+
+    (Widget, Widget) checkConfirmDialog() => checkSuggestedActionDialog(tester,
+      expectedTitle: 'Unsubscribe from #${channel.name}?',
+      expectedMessage: 'Once you leave this channel, you will not be able to rejoin.',
+      expectDestructiveActionButton: true,
+      expectedActionButtonText: 'Unsubscribe');
+
+    await setupAllChannelsPage(tester, channels: [subscription]);
+
+    await tester.tap(find.byType(Toggle));
+    await tester.pump();
+    final (_, cancelButton) = checkConfirmDialog();
+    await tester.tap(find.byWidget(cancelButton));
+    await tester.pumpAndSettle();
+    check(connection.lastRequest).isNull();
+    await tester.pump(RemoteSettingBuilder.localEchoIdleTimeout);
+
+    await tester.tap(find.byType(Toggle));
+    await tester.pump();
+    final (unsubscribeButton, _) = checkConfirmDialog();
+    await tester.tap(find.byWidget(unsubscribeButton));
     check(connection.lastRequest).isA<http.Request>()
       ..method.equals('DELETE')
       ..url.path.equals('/api/v1/users/me/subscriptions')

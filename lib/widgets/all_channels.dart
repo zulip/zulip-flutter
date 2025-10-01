@@ -6,6 +6,7 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/channel.dart';
 import 'action_sheet.dart';
+import 'actions.dart';
 import 'app_bar.dart';
 import 'button.dart';
 import 'icons.dart';
@@ -137,8 +138,8 @@ class _SubscribeToggle extends StatelessWidget {
           await subscribeToChannel(store.connection,
             subscriptions: [channel.name]);
         } else {
-          await unsubscribeFromChannel(store.connection,
-            subscriptions: [channel.name]);
+          await ZulipAction.unsubscribeFromChannel(context,
+            channelId: channel.streamId);
         }
       },
       // TODO(#741) interpret API errors for user
