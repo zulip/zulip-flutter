@@ -560,6 +560,49 @@ Subscription subscription(
   );
 }
 
+/// A fresh channel folder ID,
+/// from a random but always strictly increasing sequence.
+int _nextChannelFolderId() => (_lastChannelFolderId += 1 + Random().nextInt(100));
+int _lastChannelFolderId = 1000;
+
+ChannelFolder channelFolder({
+  int? id,
+  String? name,
+  int? order,
+  int? dateCreated,
+  int? creatorId,
+  String? description,
+  String? renderedDescription,
+  bool? isArchived,
+}) {
+  final effectiveId = id ?? _nextChannelFolderId();
+  final effectiveDescription = description ?? 'An example channel folder.';
+  return ChannelFolder(
+    id: effectiveId,
+    name: name ?? 'channel folder $effectiveId',
+    order: order,
+    dateCreated: dateCreated ?? utcTimestamp(),
+    creatorId: creatorId ?? selfUser.userId,
+    description: effectiveDescription,
+    renderedDescription: renderedDescription ?? '<p>$effectiveDescription</p>',
+    isArchived: isArchived ?? false,
+  );
+}
+
+ChannelFolderChange channelFolderChange({
+  String? name,
+  String? description,
+  String? renderedDescription,
+  bool? isArchived,
+}) {
+  return ChannelFolderChange(
+    name: name,
+    description: description,
+    renderedDescription: renderedDescription,
+    isArchived: isArchived,
+  );
+}
+
 /// The [TopicName] constructor, but shorter.
 ///
 /// Useful in test code that mentions a lot of topics in a compact format.

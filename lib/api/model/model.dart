@@ -852,13 +852,13 @@ class Subscription extends ZulipStream {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class ChannelFolder {
   final int id;
-  final String name;
-  final int? order; // TODO(server-11); added in a later FL than the rest
+  String name;
+  int? order; // TODO(server-11); added in a later FL than the rest
   final int? dateCreated;
   final int? creatorId;
-  final String description;
-  final String renderedDescription;
-  final bool isArchived;
+  String description;
+  String renderedDescription;
+  bool isArchived;
 
   ChannelFolder({
     required this.id,
