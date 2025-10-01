@@ -371,6 +371,30 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'color': instance.color,
     };
 
+ChannelFolder _$ChannelFolderFromJson(Map<String, dynamic> json) =>
+    ChannelFolder(
+      id: (json['id'] as num).toInt(),
+      name: json['name'] as String,
+      order: (json['order'] as num?)?.toInt(),
+      dateCreated: (json['date_created'] as num?)?.toInt(),
+      creatorId: (json['creator_id'] as num?)?.toInt(),
+      description: json['description'] as String,
+      renderedDescription: json['rendered_description'] as String,
+      isArchived: json['is_archived'] as bool,
+    );
+
+Map<String, dynamic> _$ChannelFolderToJson(ChannelFolder instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'order': instance.order,
+      'date_created': instance.dateCreated,
+      'creator_id': instance.creatorId,
+      'description': instance.description,
+      'rendered_description': instance.renderedDescription,
+      'is_archived': instance.isArchived,
+    };
+
 StreamConversation _$StreamConversationFromJson(Map<String, dynamic> json) {
   $checkKeys(
     json,

@@ -52,6 +52,8 @@ class InitialSnapshot {
 
   final List<Subscription> subscriptions;
 
+  final List<ChannelFolder>? channelFolders; // TODO(server-11)
+
   final UnreadMessagesSnapshot unreadMsgs;
 
   final List<ZulipStream> streams;
@@ -168,6 +170,7 @@ class InitialSnapshot {
     required this.recentPrivateConversations,
     required this.savedSnippets,
     required this.subscriptions,
+    required this.channelFolders,
     required this.unreadMsgs,
     required this.streams,
     required this.userStatuses,

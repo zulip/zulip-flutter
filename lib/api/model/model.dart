@@ -839,6 +839,38 @@ class Subscription extends ZulipStream {
   Map<String, dynamic> toJson() => _$SubscriptionToJson(this);
 }
 
+/// As in `channel_folders` in the initial snapshot.
+///
+/// For docs, search for "channel_folders:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class ChannelFolder {
+  final int id;
+  final String name;
+  final int? order; // TODO(server-11); added in a later FL than the rest
+  final int? dateCreated;
+  final int? creatorId;
+  final String description;
+  final String renderedDescription;
+  final bool isArchived;
+
+  ChannelFolder({
+    required this.id,
+    required this.name,
+    required this.order,
+    required this.dateCreated,
+    required this.creatorId,
+    required this.description,
+    required this.renderedDescription,
+    required this.isArchived,
+  });
+
+  factory ChannelFolder.fromJson(Map<String, dynamic> json) =>
+    _$ChannelFolderFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ChannelFolderToJson(this);
+}
+
 @JsonEnum(fieldRename: FieldRename.snake, valueField: "apiValue")
 enum UserTopicVisibilityPolicy {
   none(apiValue: 0),

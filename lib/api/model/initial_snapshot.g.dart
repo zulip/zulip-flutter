@@ -63,6 +63,9 @@ InitialSnapshot _$InitialSnapshotFromJson(
   subscriptions: (json['subscriptions'] as List<dynamic>)
       .map((e) => Subscription.fromJson(e as Map<String, dynamic>))
       .toList(),
+  channelFolders: (json['channel_folders'] as List<dynamic>?)
+      ?.map((e) => ChannelFolder.fromJson(e as Map<String, dynamic>))
+      .toList(),
   unreadMsgs: UnreadMessagesSnapshot.fromJson(
     json['unread_msgs'] as Map<String, dynamic>,
   ),
@@ -166,6 +169,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'recent_private_conversations': instance.recentPrivateConversations,
   'saved_snippets': instance.savedSnippets,
   'subscriptions': instance.subscriptions,
+  'channel_folders': instance.channelFolders,
   'unread_msgs': instance.unreadMsgs,
   'streams': instance.streams,
   'user_status': instance.userStatuses.map((k, e) => MapEntry(k.toString(), e)),

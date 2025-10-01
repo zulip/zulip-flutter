@@ -1276,6 +1276,7 @@ InitialSnapshot initialSnapshot({
   List<RecentDmConversation>? recentPrivateConversations,
   List<SavedSnippet>? savedSnippets,
   List<Subscription>? subscriptions,
+  List<ChannelFolder>? channelFolders,
   UnreadMessagesSnapshot? unreadMsgs,
   List<ZulipStream>? streams,
   Map<int, UserStatusChange>? userStatuses,
@@ -1332,6 +1333,7 @@ InitialSnapshot initialSnapshot({
     recentPrivateConversations: recentPrivateConversations ?? [],
     savedSnippets: savedSnippets ?? [],
     subscriptions: subscriptions ?? [], // TODO add subscriptions to default
+    channelFolders: channelFolders ?? [],
     unreadMsgs: unreadMsgs ?? _unreadMsgs(),
     streams: streams ?? [], // TODO add streams to default
     userStatuses: userStatuses ?? {},
