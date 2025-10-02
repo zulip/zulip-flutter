@@ -22,7 +22,7 @@ void main() {
     });
 
     group('background', () {
-      Future<void> prepare(WidgetTester tester, Color? backgroundColor) async {
+      Future<void> prepare(WidgetTester tester, ChannelColorSwatch? backgroundColor) async {
         addTearDown(testBinding.reset);
         await tester.pumpWidget(TestZulipApp(
           child: UnreadCountBadge(count: 1, backgroundColor: backgroundColor)));
@@ -38,11 +38,6 @@ void main() {
       testWidgets('default color', (tester) async {
         await prepare(tester, null);
         check(findBackgroundColor(tester)).isNotNull().isSameColorAs(const Color(0x26666699));
-      });
-
-      testWidgets('specified color', (tester) async {
-        await prepare(tester, Colors.pink);
-        check(findBackgroundColor(tester)).isNotNull().isSameColorAs(Colors.pink);
       });
 
       testWidgets('stream color', (tester) async {

@@ -6,6 +6,7 @@ import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
+import 'channel_colors.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
@@ -249,7 +250,7 @@ abstract class _HeaderItem extends StatelessWidget {
   Color collapsedIconColor(BuildContext context);
   Color uncollapsedIconColor(BuildContext context);
   Color uncollapsedBackgroundColor(BuildContext context);
-  Color? unreadCountBadgeBackgroundColor(BuildContext context);
+  ChannelColorSwatch? unreadCountBadgeBackgroundColor(BuildContext context);
 
   Future<void> onCollapseButtonTap() async {
     if (!collapsed) {
@@ -332,7 +333,7 @@ class _AllDmsHeaderItem extends _HeaderItem {
   @override Color uncollapsedIconColor(context) => DesignVariables.of(context).labelMenuButton;
 
   @override Color uncollapsedBackgroundColor(context) => DesignVariables.of(context).dmHeaderBg;
-  @override Color? unreadCountBadgeBackgroundColor(context) => null;
+  @override ChannelColorSwatch? unreadCountBadgeBackgroundColor(context) => null;
 
   @override Future<void> onCollapseButtonTap() async {
     await super.onCollapseButtonTap();
@@ -462,7 +463,7 @@ class _StreamHeaderItem extends _HeaderItem with _LongPressable {
     colorSwatchFor(context, subscription).iconOnBarBackground;
   @override Color uncollapsedBackgroundColor(context) =>
     colorSwatchFor(context, subscription).barBackground;
-  @override Color? unreadCountBadgeBackgroundColor(context) =>
+  @override ChannelColorSwatch? unreadCountBadgeBackgroundColor(context) =>
     colorSwatchFor(context, subscription);
 
   @override Future<void> onCollapseButtonTap() async {
