@@ -9,6 +9,7 @@ import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/channel_colors.dart';
+import 'package:zulip/widgets/theme.dart';
 import 'package:zulip/widgets/unread_count_badge.dart';
 
 import '../example_data.dart' as eg;
@@ -204,6 +205,28 @@ void main() {
     // TODO more checks: ordering, etc.
     testWidgets('page builds; not empty', (tester) async {
       await setupVarious(tester);
+    });
+
+    testWidgets('UnreadCountBadge text color for a channel', (tester) async {
+      // Regression test for a bug where
+      // DesignVariables.labelCounterUnread was used for the text instead of
+      // DesignVariables.unreadCountBadgeTextForChannel.
+      final channel = eg.stream();
+      final subscription  = eg.subscription(channel);
+      await setupPage(tester,
+        streams: [channel],
+        subscriptions: [subscription],
+        unreadMessages: generateStreamMessages(stream: channel, count: 1, flags: []));
+
+      final text = tester.widget<Text>(
+        find.descendant(
+          of: find.byWidget(findRowByLabel(tester, channel.name)!),
+          matching: find.descendant(
+            of: find.byType(UnreadCountBadge),
+            matching: find.text('1'))));
+
+      final expectedTextColor = DesignVariables.light.unreadCountBadgeTextForChannel;
+      check(text).style.isNotNull().color.isNotNull().isSameColorAs(expectedTextColor);
     });
 
     // TODO test that tapping a conversation row opens the message list

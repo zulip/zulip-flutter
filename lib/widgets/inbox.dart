@@ -463,7 +463,7 @@ class _StreamHeaderItem extends _HeaderItem with _LongPressable {
   @override Color uncollapsedBackgroundColor(context) =>
     colorSwatchFor(context, subscription).barBackground;
   @override Color? unreadCountBadgeBackgroundColor(context) =>
-    colorSwatchFor(context, subscription).unreadCountBadgeBackground;
+    colorSwatchFor(context, subscription);
 
   @override Future<void> onCollapseButtonTap() async {
     await super.onCollapseButtonTap();
