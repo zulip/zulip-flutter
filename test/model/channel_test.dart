@@ -1,4 +1,5 @@
 import 'package:checks/checks.dart';
+import 'package:collection/collection.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
@@ -89,6 +90,21 @@ void main() {
         subscriptions: [eg.subscription(stream)]));
       checkUnified(store);
     });
+  });
+
+  group('channelFolderComparator', () {
+    final folder1 = eg.channelFolder(id: 1, order: null, name: 'M');
+    final folder2 = eg.channelFolder(id: 2, order: null, name: 'n');
+    final folder3 = eg.channelFolder(id: 3, order: 2, name: 'a');
+    final folder4 = eg.channelFolder(id: 4, order: 0, name: 'b');
+    final folder5 = eg.channelFolder(id: 5, order: 1, name: 'c');
+
+    final store = eg.store(initialSnapshot: eg.initialSnapshot(
+      channelFolders: [folder1, folder2, folder3, folder4, folder5]));
+
+    final sorted = store.channelFolders.values.toList()
+      .sorted(ChannelStore.compareChannelFolders);
+    check(sorted).deepEquals([folder1, folder2, folder4, folder5, folder3]);
   });
 
   group('SubscriptionEvent', () {

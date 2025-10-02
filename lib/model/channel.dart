@@ -63,6 +63,21 @@ mixin ChannelStore on UserStore {
   // ignore: valid_regexps
   static final _startsWithEmojiRegex = RegExp(r'^\p{Emoji}', unicode: true);
 
+  /// A compare function for [ChannelFolder]s, using [ChannelFolder.order].
+  ///
+  /// Channels without [ChannelFolder.order] will come first,
+  /// sorted alphabetically.
+  // TODO(server-11) Once [ChannelFolder.order] is required,
+  //   remove alphabetical sorting.
+  static int compareChannelFolders(ChannelFolder a, ChannelFolder b) {
+    return switch ((a.order, b.order)) {
+      (null,   null) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+      (null,  int()) => -1,
+      (int(),  null) => 1,
+      (int a, int b) => a.compareTo(b),
+    };
+  }
+
   /// The visibility policy that the self-user has for the given topic.
   ///
   /// This does not incorporate the user's channel-level policy,
