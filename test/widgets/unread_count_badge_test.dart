@@ -13,22 +13,22 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   group('UnreadCountBadge', () {
-    testWidgets('smoke test; no crash', (tester) async {
+    Future<void> prepare(WidgetTester tester, {
+      required Widget child,
+    }) async {
       addTearDown(testBinding.reset);
-      await tester.pumpWidget(const TestZulipApp(
-        child: UnreadCountBadge(count: 1, backgroundColor: null)));
+      await tester.pumpWidget(TestZulipApp(
+        child: child));
       await tester.pump();
+    }
+
+    testWidgets('smoke test; no crash', (tester) async {
+      await prepare(tester,
+        child: UnreadCountBadge(count: 1, backgroundColor: null));
       tester.widget(find.text("1"));
     });
 
     group('background', () {
-      Future<void> prepare(WidgetTester tester, ChannelColorSwatch? backgroundColor) async {
-        addTearDown(testBinding.reset);
-        await tester.pumpWidget(TestZulipApp(
-          child: UnreadCountBadge(count: 1, backgroundColor: backgroundColor)));
-        await tester.pump();
-      }
-
       Color? findBackgroundColor(WidgetTester tester) {
         final widget = tester.widget<DecoratedBox>(find.byType(DecoratedBox));
         final decoration = widget.decoration as BoxDecoration;
@@ -36,13 +36,15 @@ void main() {
       }
 
       testWidgets('default color', (tester) async {
-        await prepare(tester, null);
+        await prepare(tester,
+          child: UnreadCountBadge(count: 1, backgroundColor: null));
         check(findBackgroundColor(tester)).isNotNull().isSameColorAs(const Color(0x26666699));
       });
 
       testWidgets('stream color', (tester) async {
         final swatch = ChannelColorSwatch.light(0xff76ce90);
-        await prepare(tester, swatch);
+        await prepare(tester,
+          child: UnreadCountBadge(count: 1, backgroundColor: swatch));
         check(findBackgroundColor(tester)).isNotNull().isSameColorAs(swatch.unreadCountBadgeBackground);
       });
     });
