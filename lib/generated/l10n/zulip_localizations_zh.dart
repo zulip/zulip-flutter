@@ -1160,7 +1160,7 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get aboutPageTitle => '关于 Zulip';
 
   @override
-  String get aboutPageAppVersion => '应用程序版本';
+  String get aboutPageAppVersion => 'App 版本';
 
   @override
   String get aboutPageOpenSourceLicenses => '开源许可';
@@ -1213,6 +1213,15 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get chooseAccountButtonAddAnAccount => '添加一个账号';
 
   @override
+  String get navButtonAllChannels => '所有频道';
+
+  @override
+  String get allChannelsPageTitle => '所有频道';
+
+  @override
+  String get allChannelsEmptyPlaceholder => '在该组织里你没有可以查看的频道。';
+
+  @override
   String get profileButtonSendDirectMessage => '发送私信';
 
   @override
@@ -1245,6 +1254,9 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get actionSheetOptionListOfTopics => '话题列表';
+
+  @override
+  String get actionSheetOptionChannelFeed => '频道动态';
 
   @override
   String get actionSheetOptionUnsubscribe => '取消订阅';
@@ -1364,6 +1376,21 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get actionSheetOptionEditMessage => '编辑消息';
+
+  @override
+  String get actionSheetOptionDeleteMessage => '删除消息';
+
+  @override
+  String get deleteMessageConfirmationDialogTitle => '删除消息？';
+
+  @override
+  String get deleteMessageConfirmationDialogMessage => '对所有人永久删除消息。';
+
+  @override
+  String get deleteMessageConfirmationDialogConfirmButton => '删除';
+
+  @override
+  String get errorDeleteMessageFailedTitle => '删除消息失败';
 
   @override
   String get actionSheetOptionMarkTopicAsRead => '将话题标为已读';
@@ -2013,6 +2040,13 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get channelsEmptyPlaceholder => '您还没有订阅任何频道。';
+
+  @override
+  String channelsEmptyPlaceholderWithAllChannelsLink(
+    String allChannelsPageTitle,
+  ) {
+    return '你还没订阅任何频道。可以访问 <z-link>$allChannelsPageTitle</z-link>然后加入。';
+  }
 
   @override
   String get sharePageTitle => '分享';

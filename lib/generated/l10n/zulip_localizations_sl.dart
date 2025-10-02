@@ -67,14 +67,14 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get chooseAccountButtonAddAnAccount => 'Dodaj račun';
 
   @override
-  String get navButtonAllChannels => 'All channels';
+  String get navButtonAllChannels => 'Vsi kanali';
 
   @override
-  String get allChannelsPageTitle => 'All channels';
+  String get allChannelsPageTitle => 'Vsi kanali';
 
   @override
   String get allChannelsEmptyPlaceholder =>
-      'There are no channels you can view in this organization.';
+      'V tej organizaciji ni kanalov, ki bi si jih lahko ogledali.';
 
   @override
   String get profileButtonSendDirectMessage => 'Pošlji neposredno sporočilo';
@@ -246,20 +246,20 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get actionSheetOptionEditMessage => 'Uredi sporočilo';
 
   @override
-  String get actionSheetOptionDeleteMessage => 'Delete message';
+  String get actionSheetOptionDeleteMessage => 'Izbriši sporočilo';
 
   @override
-  String get deleteMessageConfirmationDialogTitle => 'Delete message?';
+  String get deleteMessageConfirmationDialogTitle => 'Izbrišem sporočilo?';
 
   @override
   String get deleteMessageConfirmationDialogMessage =>
-      'Deleting a message permanently removes it for everyone.';
+      'Brisanje sporočila ga trajno odstrani za vse.';
 
   @override
-  String get deleteMessageConfirmationDialogConfirmButton => 'Delete';
+  String get deleteMessageConfirmationDialogConfirmButton => 'Izbriši';
 
   @override
-  String get errorDeleteMessageFailedTitle => 'Failed to delete message';
+  String get errorDeleteMessageFailedTitle => 'Sporočila se ne da izbrisati';
 
   @override
   String get actionSheetOptionMarkTopicAsRead => 'Označi temo kot prebrano';
@@ -965,7 +965,7 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String channelsEmptyPlaceholderWithAllChannelsLink(
     String allChannelsPageTitle,
   ) {
-    return 'You’re not subscribed to any channels yet. Try going to <z-link>$allChannelsPageTitle</z-link> and joining some of them.';
+    return 'Naročeni še niste na noben kanal. Poskusite odpreti <z-link>$allChannelsPageTitle</z-link> in se pridružiti kateremu od njih.';
   }
 
   @override
