@@ -95,7 +95,7 @@ extension PerAccountStoreWidgetChecks on Subject<PerAccountStoreWidget> {
 extension UnreadCountBadgeChecks on Subject<UnreadCountBadge> {
   Subject<int> get count => has((b) => b.count, 'count');
   Subject<bool> get bold => has((b) => b.bold, 'bold');
-  Subject<Color?> get backgroundColor => has((b) => b.backgroundColor, 'backgroundColor');
+  Subject<int?> get channelIdForBackground => has((b) => b.channelIdForBackground, 'channelIdForBackground');
 }
 
 extension UnicodeEmojiWidgetChecks on Subject<UnicodeEmojiWidget> {

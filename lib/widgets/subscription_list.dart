@@ -337,7 +337,7 @@ class SubscriptionItem extends StatelessWidget {
               opacity: opacity,
               child: UnreadCountBadge(
                 count: unreadCount,
-                backgroundColor: swatch,
+                channelIdForBackground: subscription.streamId,
                 bold: true)),
           ] else if (showMutedUnreadBadge) ...[
             const SizedBox(width: 12),
