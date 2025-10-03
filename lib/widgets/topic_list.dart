@@ -14,6 +14,7 @@ import 'page.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'unread_count_badge.dart';
 
 class TopicListPage extends StatelessWidget {
   const TopicListPage({super.key, required this.streamId});
@@ -301,7 +302,10 @@ class _TopicItem extends StatelessWidget {
                   children: [
                     if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
                     if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
-                    if (unreadCount > 0) _UnreadCountBadge(count: unreadCount),
+                    if (unreadCount > 0)
+                      UnreadCountBadge(
+                        count: unreadCount,
+                        channelIdForBackground: null),
                   ])),
               ])),
         )));
@@ -322,33 +326,5 @@ class _IconMarker extends StatelessWidget {
     return Icon(icon,
       size: textScaler.clamp(maxScaleFactor: 1.5).scale(16),
       color: designVariables.textMessage.withFadedAlpha(0.4));
-  }
-}
-
-// This is adapted from [UnreadCountBadge].
-// TODO(#1406) see if we can reuse this in redesign
-// TODO(#1527) see if we can reuse this in redesign
-class _UnreadCountBadge extends StatelessWidget {
-  const _UnreadCountBadge({required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-        color: designVariables.bgCounterUnread,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        child: Text(count.toString(),
-          style: TextStyle(
-            fontSize: 15,
-            height: 16 / 15,
-            color: designVariables.labelCounterUnread,
-          ).merge(weightVariableTextStyle(context, wght: 500)))));
   }
 }
