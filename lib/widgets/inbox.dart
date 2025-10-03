@@ -310,7 +310,6 @@ abstract class _HeaderItem extends StatelessWidget {
           Padding(padding: const EdgeInsetsDirectional.only(end: 16),
             child: UnreadCountBadge(
               channelIdForBackground: channelId,
-              bold: true,
               count: count)),
         ])));
   }
