@@ -257,7 +257,6 @@ class StatusEmoji {
 ///
 /// The absence of one of these means there is no change.
 class UserStatusChange {
-  // final Option<bool> away; // deprecated in server-6 (FL-148); ignore
   final Option<String?> text;
   final Option<StatusEmoji?> emoji;
 
