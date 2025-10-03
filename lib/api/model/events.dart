@@ -783,7 +783,6 @@ class SubscriptionUpdateEvent extends SubscriptionEvent {
         assert(RegExp(r'^#[0-9a-f]{6}$').hasMatch(str));
         return 0xff000000 | int.parse(str.substring(1), radix: 16);
       case SubscriptionProperty.isMuted:
-      case SubscriptionProperty.inHomeView:
       case SubscriptionProperty.pinToTop:
       case SubscriptionProperty.desktopNotifications:
       case SubscriptionProperty.audibleNotifications:
@@ -820,13 +819,18 @@ enum SubscriptionProperty {
   color,
 
   isMuted,
-  inHomeView,
   pinToTop,
   desktopNotifications,
   audibleNotifications,
   pushNotifications,
   emailNotifications,
   wildcardMentionsNotify,
+
+  /// A new, unrecognized property, or a deprecated one we don't use.
+  ///
+  /// Could be `in_home_view`, deprecated in FL 139 (Server 6) but still sent
+  /// as of CZO on 2025-10-03.
+  // TODO(server-future) Remove `in_home_view` comment once it stops being sent.
   unknown;
 
   static SubscriptionProperty fromRawString(String raw) => _byRawString[raw] ?? unknown;

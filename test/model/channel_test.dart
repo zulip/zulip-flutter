@@ -121,20 +121,6 @@ void main() {
         value: true));
       check(store.subscriptions[stream.streamId]!.isMuted).isTrue();
     });
-
-    test('SubscriptionProperty.inHomeView updates isMuted instead', () async {
-      final store = eg.store(initialSnapshot: eg.initialSnapshot(
-        streams: [stream],
-        subscriptions: [eg.subscription(stream, isMuted: false)],
-      ));
-      check(store.subscriptions[stream.streamId]!.isMuted).isFalse();
-
-      await store.handleEvent(SubscriptionUpdateEvent(id: 1,
-        streamId: stream.streamId,
-        property: SubscriptionProperty.inHomeView,
-        value: false));
-      check(store.subscriptions[stream.streamId]!.isMuted).isTrue();
-    });
   });
 
   group('topic visibility', () {

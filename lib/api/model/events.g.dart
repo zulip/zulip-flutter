@@ -535,7 +535,6 @@ Map<String, dynamic> _$SubscriptionUpdateEventToJson(
 const _$SubscriptionPropertyEnumMap = {
   SubscriptionProperty.color: 'color',
   SubscriptionProperty.isMuted: 'is_muted',
-  SubscriptionProperty.inHomeView: 'in_home_view',
   SubscriptionProperty.pinToTop: 'pin_to_top',
   SubscriptionProperty.desktopNotifications: 'desktop_notifications',
   SubscriptionProperty.audibleNotifications: 'audible_notifications',

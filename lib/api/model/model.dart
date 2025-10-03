@@ -792,7 +792,6 @@ class Subscription extends ZulipStream {
 
   bool pinToTop;
   bool isMuted;
-  // final bool? inHomeView; // deprecated; ignore
 
   /// As an int that dart:ui's Color constructor will take:
   ///   <https://api.flutter.dev/flutter/dart-ui/Color/Color.html>
