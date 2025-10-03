@@ -89,9 +89,7 @@ class AvatarImage extends StatelessWidget {
       avatarUrl.get(physicalSize),
       filterQuality: FilterQuality.medium,
       fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) {
-        return _AvatarPlaceholder(size: size);
-      },
+      errorBuilder: (_, _, _) => _AvatarPlaceholder(size: size),
     );
   }
 }
