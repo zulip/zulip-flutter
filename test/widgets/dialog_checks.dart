@@ -109,7 +109,7 @@ void checkNoDialog(WidgetTester tester) {
 /// Tap the action button by calling `tester.tap(find.byWidget(actionButton))`.
 (Widget, Widget) checkSuggestedActionDialog(WidgetTester tester, {
   required String expectedTitle,
-  required String expectedMessage,
+  String? expectedMessage,
   String? expectedActionButtonText,
   bool expectDestructiveActionButton = false,
 }) {
@@ -121,8 +121,10 @@ void checkNoDialog(WidgetTester tester) {
       final dialog = tester.widget<AlertDialog>(find.bySubtype<AlertDialog>());
       tester.widget(find.descendant(matchRoot: true,
         of: find.byWidget(dialog.title!), matching: find.text(expectedTitle)));
-      tester.widget(find.descendant(matchRoot: true,
-        of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
+      if (expectedMessage != null) {
+        tester.widget(find.descendant(matchRoot: true,
+          of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
+      }
 
       final actionButton = tester.widget(find.descendant(of: find.byWidget(dialog),
         matching: find.widgetWithText(TextButton, expectedActionButtonText ?? 'Continue')));
@@ -135,8 +137,10 @@ void checkNoDialog(WidgetTester tester) {
       final dialog = tester.widget<CupertinoAlertDialog>(find.byType(CupertinoAlertDialog));
       tester.widget(find.descendant(matchRoot: true,
         of: find.byWidget(dialog.title!), matching: find.text(expectedTitle)));
-      tester.widget(find.descendant(matchRoot: true,
-        of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
+      if (expectedMessage != null) {
+        tester.widget(find.descendant(matchRoot: true,
+          of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
+      }
 
       final actionButton = tester.widget<CupertinoDialogAction>(
         find.descendant(
