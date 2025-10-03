@@ -94,7 +94,6 @@ extension PerAccountStoreWidgetChecks on Subject<PerAccountStoreWidget> {
 
 extension UnreadCountBadgeChecks on Subject<UnreadCountBadge> {
   Subject<int> get count => has((b) => b.count, 'count');
-  Subject<bool> get bold => has((b) => b.bold, 'bold');
   Subject<int?> get channelIdForBackground => has((b) => b.channelIdForBackground, 'channelIdForBackground');
 }
 
