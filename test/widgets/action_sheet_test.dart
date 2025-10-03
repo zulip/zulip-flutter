@@ -599,7 +599,7 @@ void main() {
         await tester.pump();
 
         final (unsubscribeButton, cancelButton) = checkSuggestedActionDialog(tester,
-          expectedTitle: 'Unsubscribe from ${channel.name}?',
+          expectedTitle: 'Unsubscribe from #${channel.name}?',
           expectedMessage: 'Once you leave this channel, you will not be able to rejoin.',
           expectDestructiveActionButton: true,
           expectedActionButtonText: 'Unsubscribe');

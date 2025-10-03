@@ -140,7 +140,7 @@
   "@unsubscribeConfirmationDialogTitle": {
     "description": "Title for a confirmation dialog for unsubscribing from a channel.",
     "placeholders": {
-      "channelName": {"type": "String", "example": "mobile"}
+      "channelName": {"type": "String", "example": "#mobile"}
     }
   },
   "unsubscribeConfirmationDialogMessageCannotResubscribe": "Once you leave this channel, you will not be able to rejoin.",
