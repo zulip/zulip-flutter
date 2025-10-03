@@ -67,9 +67,8 @@ class AvatarImage extends StatelessWidget {
     final user = store.getUser(userId);
 
     if (user == null) { // TODO(log)
-      return const SizedBox.shrink();
+      return _AvatarPlaceholder(size: size);
     }
-
     if (replaceIfMuted && store.isUserMuted(userId)) {
       return _AvatarPlaceholder(size: size);
     }
@@ -80,7 +79,7 @@ class AvatarImage extends StatelessWidget {
     };
 
     if (resolvedUrl == null) {
-      return const SizedBox.shrink();
+      return _AvatarPlaceholder(size: size);
     }
 
     final avatarUrl = AvatarUrl.fromUserData(resolvedUrl: resolvedUrl);
@@ -90,6 +89,7 @@ class AvatarImage extends StatelessWidget {
       avatarUrl.get(physicalSize),
       filterQuality: FilterQuality.medium,
       fit: BoxFit.cover,
+      errorBuilder: (_, _, _) => _AvatarPlaceholder(size: size),
     );
   }
 }
