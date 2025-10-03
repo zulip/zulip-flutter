@@ -95,12 +95,9 @@ void main() {
         final user = eg.user(avatarUrl: 'https://zulip.com/avatar.png');
         await store.addUser(user);
 
-        await tester.pumpWidget(
-          TestZulipApp(
-            accountId: eg.selfAccount.id,
-            child: AvatarImage(userId: user.userId, size: 32),
-          ),
-        );
+        await tester.pumpWidget(TestZulipApp(
+          accountId: eg.selfAccount.id,
+          child: AvatarImage(userId: user.userId, size: 32)));
         await tester.pump(); // Image provider is created
         await tester.pump(); // Image fails to load
         expect(find.byIcon(ZulipIcons.person), findsOneWidget);
