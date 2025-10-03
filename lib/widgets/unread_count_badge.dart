@@ -13,8 +13,11 @@ import 'theme.dart';
 ///
 /// Currently this widget supports only those other contexts (not the main menu)
 /// and only the component's "kind=unread" variant (not "kind=quantity").
-/// For example, the "Channels" page:
+/// For example, the "Channels" page and the topic-list page:
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6205-26001&m=dev
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6823-37113&m=dev
+/// (We use this for the topic-list page even though the Figma makes it a bit
+/// more compact there…the inconsistency seems worse and might be accidental.)
 // TODO support the main-menu context, update dartdoc
 // TODO support the "kind=quantity" variant, update dartdoc
 class UnreadCountBadge extends StatelessWidget {
