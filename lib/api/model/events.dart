@@ -762,6 +762,7 @@ class SubscriptionUpdateEvent extends SubscriptionEvent {
 
   final int streamId;
 
+  @JsonKey(unknownEnumValue: SubscriptionProperty.unknown)
   final SubscriptionProperty property;
 
   /// The new value, or null if we don't recognize the setting.

@@ -513,7 +513,11 @@ SubscriptionUpdateEvent _$SubscriptionUpdateEventFromJson(
 ) => SubscriptionUpdateEvent(
   id: (json['id'] as num).toInt(),
   streamId: (json['stream_id'] as num).toInt(),
-  property: $enumDecode(_$SubscriptionPropertyEnumMap, json['property']),
+  property: $enumDecode(
+    _$SubscriptionPropertyEnumMap,
+    json['property'],
+    unknownValue: SubscriptionProperty.unknown,
+  ),
   value: SubscriptionUpdateEvent._readValue(json, 'value'),
 );
 
