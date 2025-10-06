@@ -465,6 +465,7 @@ ZulipStream stream({
   bool? historyPublicToSubscribers,
   int? messageRetentionDays,
   ChannelPostPolicy? channelPostPolicy,
+  bool? isRecentlyActive,
   int? folderId,
   GroupSettingValue? canAddSubscribersGroup,
   GroupSettingValue? canDeleteAnyMessageGroup,
@@ -497,6 +498,7 @@ ZulipStream stream({
     historyPublicToSubscribers: historyPublicToSubscribers ?? true,
     messageRetentionDays: messageRetentionDays,
     channelPostPolicy: channelPostPolicy ?? ChannelPostPolicy.any,
+    isRecentlyActive: isRecentlyActive,
     folderId: folderId,
     canAddSubscribersGroup: canAddSubscribersGroup ?? GroupSettingValueNamed(nobodyGroup.id),
     canDeleteAnyMessageGroup: canDeleteAnyMessageGroup ?? GroupSettingValueNamed(nobodyGroup.id),
@@ -542,6 +544,7 @@ Subscription subscription(
     historyPublicToSubscribers: stream.historyPublicToSubscribers,
     messageRetentionDays: stream.messageRetentionDays,
     channelPostPolicy: stream.channelPostPolicy,
+    isRecentlyActive: stream.isRecentlyActive,
     folderId: stream.folderId,
     canAddSubscribersGroup: stream.canAddSubscribersGroup,
     canDeleteAnyMessageGroup: stream.canDeleteAnyMessageGroup,
@@ -1263,6 +1266,8 @@ ChannelUpdateEvent channelUpdateEvent(
       assert(value is int?);
     case ChannelPropertyName.channelPostPolicy:
       assert(value is ChannelPostPolicy);
+    case ChannelPropertyName.isRecentlyActive:
+      assert(value is bool?);
     case ChannelPropertyName.folderId:
       assert(value is int?);
     case ChannelPropertyName.canAddSubscribersGroup:
