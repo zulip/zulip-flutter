@@ -691,6 +691,8 @@ class ChannelUpdateEvent extends ChannelEvent {
       case ChannelPropertyName.canSendMessageGroup:
       case ChannelPropertyName.canSubscribeGroup:
         return GroupSettingValue.fromJson(value);
+      case ChannelPropertyName.isRecentlyActive:
+        return value as bool;
       case ChannelPropertyName.streamWeeklyTraffic:
         return value as int?;
       case null:
