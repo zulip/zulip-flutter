@@ -372,6 +372,38 @@ void main() {
 
       check(find.text('DMs with Muted user, User 2, Muted user')).findsOne();
     });
+
+    testWidgets('search button on combined feed navigates to search page', (tester) async {
+      final pushedRoutes = <Route<dynamic>>[];
+      final testNavObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+      await setupMessageListPage(tester,
+        narrow: const CombinedFeedNarrow(),
+        messages: [],
+        navObservers: [testNavObserver]);
+      pushedRoutes.clear();
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: []).toJson());
+
+      await tester.tap(find.descendant(of: find.byType(ZulipAppBar),
+        matching: find.byIcon(ZulipIcons.search)));
+      await tester.pump();
+
+      check(pushedRoutes).single.isA<WidgetRoute>().page
+        .isA<MessageListPage>()
+        .initNarrow.equals(KeywordSearchNarrow(''));
+    });
+
+    testWidgets('no search button in channel view', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: const ChannelNarrow(1), messages: []);
+
+      check(find.descendant(of: find.byType(ZulipAppBar),
+        matching: find.byIcon(ZulipIcons.search))
+      ).findsNothing();
+    });
   });
 
   group('no-messages placeholder', () {
