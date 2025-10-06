@@ -458,6 +458,8 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
             stream.canSendMessageGroup = event.value as GroupSettingValue;
           case ChannelPropertyName.canSubscribeGroup:
             stream.canSubscribeGroup = event.value as GroupSettingValue;
+          case ChannelPropertyName.isRecentlyActive:
+            stream.isRecentlyActive = event.value as bool;
           case ChannelPropertyName.streamWeeklyTraffic:
             stream.streamWeeklyTraffic = event.value as int?;
         }
