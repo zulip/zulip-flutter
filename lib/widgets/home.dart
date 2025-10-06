@@ -84,6 +84,23 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  List<Widget>? get _currentTabAppBarActions {
+    switch(_tab.value) {
+      case _HomePageTab.inbox:
+        return [
+          IconButton(
+            icon: const Icon(ZulipIcons.search),
+            tooltip: ZulipLocalizations.of(context).searchMessagesPageTitle,
+            onPressed: () => Navigator.of(context).push(MessageListPage.buildRoute(
+              context: context, narrow: KeywordSearchNarrow(''))),
+          ),
+        ];
+      case _HomePageTab.channels:
+      case _HomePageTab.directMessages:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     const pageBodies = [
@@ -120,7 +137,9 @@ class _HomePageState extends State<HomePage> {
     final designVariables = DesignVariables.of(context);
     return Scaffold(
       appBar: ZulipAppBar(titleSpacing: 16,
-        title: Text(_currentTabTitle)),
+        title: Text(_currentTabTitle),
+        actions: _currentTabAppBarActions
+      ),
       body: Stack(
         children: [
           for (final (tab, body) in pageBodies)
