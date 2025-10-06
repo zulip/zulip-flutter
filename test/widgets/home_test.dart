@@ -139,24 +139,31 @@ void main () {
       check(findIcon(ZulipIcons.arrow_right)).findsOne();
     });
 
-    testWidgets('update app bar title when switching between views', (tester) async {
+    testWidgets('update app bar title and actions when switching between views', (tester) async {
       await prepare(tester);
+
+      final findSearchButton = find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byIcon(ZulipIcons.search));
 
       check(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text('Inbox'))).findsOne();
+      check(findSearchButton).findsOne();
 
       await tester.tap(find.byIcon(ZulipIcons.hash_italic));
       await tester.pump();
       check(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text('Channels'))).findsOne();
+      check(findSearchButton).findsNothing();
 
       await tester.tap(find.byIcon(ZulipIcons.two_person));
       await tester.pump();
       check(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text('Direct messages'))).findsOne();
+      check(findSearchButton).findsNothing();
     });
 
     testWidgets("view switches when labels are tapped", (tester) async {
