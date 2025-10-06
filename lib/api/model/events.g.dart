@@ -468,6 +468,7 @@ const _$ChannelPropertyNameEnumMap = {
   ChannelPropertyName.canDeleteOwnMessageGroup: 'can_delete_own_message_group',
   ChannelPropertyName.canSendMessageGroup: 'can_send_message_group',
   ChannelPropertyName.canSubscribeGroup: 'can_subscribe_group',
+  ChannelPropertyName.isRecentlyActive: 'is_recently_active',
   ChannelPropertyName.streamWeeklyTraffic: 'stream_weekly_traffic',
 };
 
