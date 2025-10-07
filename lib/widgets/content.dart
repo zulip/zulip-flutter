@@ -21,6 +21,7 @@ import 'katex.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
+import 'profile.dart';
 import 'scrolling.dart';
 import 'store.dart';
 import 'text.dart';
@@ -1216,25 +1217,45 @@ class UserMention extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final contentTheme = ContentTheme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        // TODO(#646) different for wildcard mentions
-        color: contentTheme.colorDirectMentionBackground,
-        borderRadius: const BorderRadius.all(Radius.circular(3))),
-      padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
-      child: InlineContent(
-        // If an @-mention is inside a link, let the @-mention override it.
-        recognizer: null,  // TODO(#1867) make @-mentions tappable, for info on user
-        // One hopes an @-mention can't contain an embedded link.
-        // (The parser on creating a UserMentionNode has a TODO to check that.)
-        linkRecognizers: null,
+    final userId = node.userId;
+    
+    final innerContent = InlineContent(
+      // If an @-mention is inside a link, let the @-mention override it.
+      recognizer: null,
+      // One hopes an @-mention can't contain an embedded link.
+      // (The parser on creating a UserMentionNode has a TODO to check that.)
+      linkRecognizers: null,
 
-        // TODO(#647) when self-user is non-silently mentioned, make bold, and:
-        // TODO(#646) when self-user is non-silently mentioned,
-        //   distinguish font color between direct and wildcard mentions
-        style: ambientTextStyle,
+      style: ambientTextStyle,
 
-        nodes: node.nodes));
+      nodes: node.nodes);
+
+    if (userId != null && userId > 0) {
+      // Wrap with gesture detector if we have a valid user ID
+      return GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          ProfilePage.buildRoute(context: context, userId: userId),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            // TODO(#646) different for wildcard mentions
+            color: contentTheme.colorDirectMentionBackground,
+            borderRadius: const BorderRadius.all(Radius.circular(3))),
+          padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
+          child: innerContent,
+        ),
+      );
+    } else {
+      // Regular container without gesture detector if no valid user ID
+      return Container(
+        decoration: BoxDecoration(
+          // TODO(#646) different for wildcard mentions
+          color: contentTheme.colorDirectMentionBackground,
+          borderRadius: const BorderRadius.all(Radius.circular(3))),
+        padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
+        child: innerContent);
+    }
   }
 
 // This is a more literal translation of Zulip web's CSS.
