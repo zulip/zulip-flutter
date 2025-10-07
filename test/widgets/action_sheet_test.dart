@@ -255,19 +255,21 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
     }
 
-    Future<void> showFromTopicListAppBar(WidgetTester tester) async {
+    Future<void> showFromTopicListAppBar(WidgetTester tester, {int? streamId}) async {
+      streamId ??= someChannel.streamId;
       final transitionDurationObserver = TransitionDurationObserver();
 
       connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
       await tester.pumpWidget(TestZulipApp(
         navigatorObservers: [transitionDurationObserver],
         accountId: eg.selfAccount.id,
-        child: TopicListPage(streamId: someChannel.streamId)));
+        child: TopicListPage(streamId: streamId)));
       await tester.pump();
 
+      final titleText = store.streams[streamId]?.name ?? '(unknown channel)';
       await tester.longPress(find.descendant(
         of: find.byType(ZulipAppBar),
-        matching: find.text(someChannel.name)));
+        matching: find.text(titleText)));
       await transitionDurationObserver.pumpPastTransition(tester);
     }
 
