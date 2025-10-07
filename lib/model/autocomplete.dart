@@ -762,6 +762,25 @@ abstract class AutocompleteQuery {
     return compatibilityNormalized.replaceAll(_regExpStripMarkCharacters, '');
   }
 
+  NameMatchQuality? _matchName({
+    required String normalizedName,
+    required List<String> normalizedNameWords,
+  }) {
+    if (normalizedName.startsWith(_normalized)) {
+      if (normalizedName.length == _normalized.length) {
+        return NameMatchQuality.exact;
+      } else {
+        return NameMatchQuality.totalPrefix;
+      }
+    }
+
+    if (_testContainsQueryWords(normalizedNameWords)) {
+      return NameMatchQuality.wordPrefixes;
+    }
+
+    return null;
+  }
+
   /// Whether all of this query's words have matches in [words],
   /// insensitively to case and diacritics, that appear in order.
   ///
@@ -787,8 +806,7 @@ abstract class AutocompleteQuery {
   }
 }
 
-/// The match quality of a [User.fullName] or [UserGroup.name]
-/// to a mention autocomplete query.
+/// The match quality of a name or text to an autocomplete query.
 ///
 /// All matches are case-insensitive.
 enum NameMatchQuality {
@@ -862,25 +880,6 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
     return UserMentionAutocompleteResult(
       userId: user.userId,
       rank: _rankUserResult(nameMatchQuality, matchesEmail: matchesEmail));
-  }
-
-  NameMatchQuality? _matchName({
-    required String normalizedName,
-    required List<String> normalizedNameWords,
-  }) {
-    if (normalizedName.startsWith(_normalized)) {
-      if (normalizedName.length == _normalized.length) {
-        return NameMatchQuality.exact;
-      } else {
-        return NameMatchQuality.totalPrefix;
-      }
-    }
-
-    if (_testContainsQueryWords(normalizedNameWords)) {
-      return NameMatchQuality.wordPrefixes;
-    }
-
-    return null;
   }
 
   bool _matchEmail(User user, AutocompleteDataCache cache) {
