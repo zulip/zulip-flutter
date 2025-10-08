@@ -1307,6 +1307,561 @@ void main() {
       doCheck('nam', 'Name', true);
     });
   });
+
+  group('ChannelLinkAutocompleteView', () {
+    Condition<Object?> isChannel(int channelId) {
+      return (it) => it.isA<ChannelLinkAutocompleteResult>()
+        .channelId.equals(channelId);
+    }
+
+    test('misc', () async {
+      const narrow = ChannelNarrow(1);
+      final channel1 = eg.stream(streamId: 1, name: 'First');
+      final channel2 = eg.stream(streamId: 2, name: 'Second');
+      final store = eg.store(initialSnapshot:
+        eg.initialSnapshot(streams: [channel1, channel2]));
+
+      final view = ChannelLinkAutocompleteView.init(store: store,
+        narrow: narrow, query: ChannelLinkAutocompleteQuery(''));
+      bool done = false;
+      view.addListener(() { done = true; });
+      await Future(() {});
+      check(done).isTrue();
+      // Based on alphabetical order. For how the ordering works, see the
+      // dedicated test group "sorting results" below.
+      check(view.results).deepEquals([1, 2].map(isChannel));
+    });
+
+    test('results update after query change', () async {
+      const narrow = ChannelNarrow(1);
+      final channel1 = eg.stream(streamId: 1, name: 'First');
+      final channel2 = eg.stream(streamId: 2, name: 'Second');
+      final store = eg.store(initialSnapshot:
+        eg.initialSnapshot(streams: [channel1, channel2]));
+
+      final view = ChannelLinkAutocompleteView.init(store: store,
+        narrow: narrow, query: ChannelLinkAutocompleteQuery('Fir'));
+      bool done = false;
+      view.addListener(() { done = true; });
+      await Future(() {});
+      check(done).isTrue();
+      check(view.results).single.which(isChannel(1));
+
+      done = false;
+      view.query = ChannelLinkAutocompleteQuery('sec');
+      await Future(() {});
+      check(done).isTrue();
+      check(view.results).single.which(isChannel(2));
+    });
+
+    group('sorting results', () {
+      group('compareByComposingTo', () {
+        int compare(int a, int b, {required int composingToChannelId}) =>
+          ChannelLinkAutocompleteView.compareByComposingTo(
+            eg.stream(streamId: a), eg.stream(streamId: b),
+            composingToChannelId: composingToChannelId);
+
+        test('favor the channel being composed to', () {
+          check(compare(1, 2, composingToChannelId: 1)).isLessThan(0);
+          check(compare(1, 2, composingToChannelId: 2)).isGreaterThan(0);
+        });
+
+        test('none is the channel being composed to, favor none', () {
+          check(compare(1, 2, composingToChannelId: 3)).equals(0);
+        });
+
+        test('both are the channels being composed to (unlikely in practice), favor none', () {
+          check(compare(1, 1, composingToChannelId: 1)).equals(0);
+        });
+      });
+
+      group('compareByBeingSubscribed', () {
+        final channelA = eg.stream();
+        final channelB = eg.stream();
+
+        Subscription subA({bool? isMuted, bool? pinToTop}) =>
+          eg.subscription(channelA, isMuted: isMuted, pinToTop: pinToTop);
+        Subscription subB({bool? isMuted, bool? pinToTop}) =>
+          eg.subscription(channelB, isMuted: isMuted, pinToTop: pinToTop);
+
+        int compare(ZulipStream a, ZulipStream b) =>
+          ChannelLinkAutocompleteView.compareByBeingSubscribed(a, b);
+
+        test('favor subscribed channel over unsubscribed', () {
+          check(compare(subA(), channelB)).isLessThan(0);
+          check(compare(channelA, subB())).isGreaterThan(0);
+        });
+
+        test('both channels unsubscribed, favor none', () {
+          check(compare(channelA, channelB)).equals(0);
+        });
+
+        group('both channels subscribed', () {
+          test('favor unmuted over muted, regardless of pinned status', () {
+            check(compare(
+              subA(isMuted: false, pinToTop: true),
+              subB(isMuted: true,  pinToTop: false),
+            )).isLessThan(0);
+            check(compare(
+              subA(isMuted: false, pinToTop: false),
+              subB(isMuted: true,  pinToTop: true),
+            )).isLessThan(0);
+
+            check(compare(
+              subA(isMuted: true,  pinToTop: true),
+              subB(isMuted: false, pinToTop: false),
+            )).isGreaterThan(0);
+            check(compare(
+              subA(isMuted: true,  pinToTop: false),
+              subB(isMuted: false, pinToTop: true),
+            )).isGreaterThan(0);
+          });
+
+          test('same muted status, favor pinned over unpinned', () {
+            check(compare(
+              subA(isMuted: false, pinToTop: true),
+              subB(isMuted: false, pinToTop: false),
+            )).isLessThan(0);
+            check(compare(
+              subA(isMuted: false, pinToTop: false),
+              subB(isMuted: false, pinToTop: true),
+            )).isGreaterThan(0);
+
+            check(compare(
+              subA(isMuted: true, pinToTop: true),
+              subB(isMuted: true, pinToTop: false),
+            )).isLessThan(0);
+            check(compare(
+              subA(isMuted: true, pinToTop: false),
+              subB(isMuted: true, pinToTop: true),
+            )).isGreaterThan(0);
+          });
+
+          test('same muted and same pinned status, favor none', () {
+            check(compare(
+              subA(isMuted: false, pinToTop: false),
+              subB(isMuted: false, pinToTop: false),
+            )).equals(0);
+            check(compare(
+              subA(isMuted: false, pinToTop: true),
+              subB(isMuted: false, pinToTop: true),
+            )).equals(0);
+
+            check(compare(
+              subA(isMuted: true, pinToTop: false),
+              subB(isMuted: true, pinToTop: false),
+            )).equals(0);
+            check(compare(
+              subA(isMuted: true, pinToTop: true),
+              subB(isMuted: true, pinToTop: true),
+            )).equals(0);
+          });
+        });
+      });
+
+      group('compareByRecentActivity', () {
+        int compare(bool a, bool b) => ChannelLinkAutocompleteView.compareByRecentActivity(
+          eg.stream(isRecentlyActive: a), eg.stream(isRecentlyActive: b));
+
+        test('favor recently-active channel over inactive', () {
+          check(compare(true, false)).isLessThan(0);
+          check(compare(false, true)).isGreaterThan(0);
+        });
+
+        test('both channels are the same, favor none', () {
+          check(compare(true, true)).equals(0);
+          check(compare(false, false)).equals(0);
+        });
+      });
+
+      group('compareByWeeklyTraffic', () {
+        int compare(int? a, int? b) => ChannelLinkAutocompleteView.compareByWeeklyTraffic(
+          eg.stream(streamWeeklyTraffic: a), eg.stream(streamWeeklyTraffic: b));
+
+        test('favor channel with more traffic', () {
+          check(compare(100, 50)).isLessThan(0);
+          check(compare(50, 100)).isGreaterThan(0);
+        });
+
+        test('favor channel with traffic defined', () {
+          check(compare(100, null)).isLessThan(0);
+          check(compare(null, 100)).isGreaterThan(0);
+        });
+
+        test('zero vs undefined traffic, favor none', () {
+          check(compare(0, null)).equals(0);
+          check(compare(null, 0)).equals(0);
+        });
+
+        test('both channels are the same, favor none', () {
+          check(compare(100, 100)).equals(0);
+          check(compare(null, null)).equals(0);
+        });
+      });
+
+      late PerAccountStore store;
+
+      void prepare({
+        List<ZulipStream> channels = const [],
+        List<Subscription> subscriptions = const [],
+      }) {
+        store = eg.store(initialSnapshot: eg.initialSnapshot(
+          streams: channels, subscriptions: subscriptions));
+      }
+
+      group('compares by name', () {
+        void checkPrecedes(String a, String b) {
+          final view = ChannelLinkAutocompleteView.init(store: store,
+            narrow: ChannelNarrow(1), query: ChannelLinkAutocompleteQuery(''));
+          check(view.debugCompareChannels(eg.stream(name: a), eg.stream(name: b))).isLessThan(0);
+          check(view.debugCompareChannels(eg.stream(name: b), eg.stream(name: a))).isGreaterThan(0);
+          view.dispose();
+        }
+
+        test('favor channel with name coming first case-insensitively', () {
+          prepare();
+          checkPrecedes('announce', 'backend');
+          checkPrecedes('announce', 'BACKEND');
+        });
+
+        test('favor channel with emoji-prefixed name', () {
+          // This checks that channel names are being compared with the
+          // proper method ChannelStore.compareChannelsByName,
+          // rather than a more naïve string comparison.
+          prepare();
+          checkPrecedes('🗄️backend',  'announce');
+          checkPrecedes('🗄️ BACKEND', 'announce');
+        });
+      });
+
+      group('ranking across signals', () {
+        void checkPrecedes(Narrow narrow, ZulipStream a, Iterable<ZulipStream> bs) {
+          final view = ChannelLinkAutocompleteView.init(store: store,
+            narrow: narrow, query: ChannelLinkAutocompleteQuery(''));
+          for (final b in bs) {
+            check(view.debugCompareChannels(a, b)).isLessThan(0);
+            check(view.debugCompareChannels(b, a)).isGreaterThan(0);
+          }
+          view.dispose();
+        }
+
+        void checkRankEqual(Narrow narrow, List<ZulipStream> channels) {
+          final view = ChannelLinkAutocompleteView.init(store: store,
+            narrow: narrow, query: ChannelLinkAutocompleteQuery(''));
+          for (int i = 0; i < channels.length; i++) {
+            for (int j = i + 1; j < channels.length; j++) {
+              check(view.debugCompareChannels(channels[i], channels[j])).equals(0);
+              check(view.debugCompareChannels(channels[j], channels[i])).equals(0);
+            }
+          }
+          view.dispose();
+        }
+
+        // The composing-to channel ranks last on each of the other criteria,
+        // but comes out first in the end, showing that composing-to channel
+        // comes first. Then among the remaining channels, the subscribed ones
+        // rank last on each of the remaining criteria, but comes out top
+        // in the end; and so on.
+        final channels = [
+          // Wins by being the composing-to channel.
+          eg.stream(name: 'Z', isRecentlyActive: false, streamWeeklyTraffic: 0),
+
+          // Next three are runners-up by being subscribed to.
+          // Runner-up by being unmuted.
+          eg.subscription(eg.stream(name: 'Y',
+              isRecentlyActive: false, streamWeeklyTraffic: 0),
+            isMuted: false, pinToTop: false),
+          // Runner-up by being pinned.
+          eg.subscription(eg.stream(name: 'X',
+              isRecentlyActive: false, streamWeeklyTraffic: 0),
+            isMuted: true, pinToTop: true),
+          // Last among subscribed ones by being unpinned.
+          eg.subscription(eg.stream(name: 'W',
+              isRecentlyActive: false, streamWeeklyTraffic: 0),
+            isMuted: true, pinToTop: false),
+
+          // The rest are runners-up by not being subscribed to.
+          // Runner-up by being recently active.
+          eg.stream(name: 'V', isRecentlyActive: true, streamWeeklyTraffic: 0),
+          // Runner-up by having more weekly traffic.
+          eg.stream(name: 'U', isRecentlyActive: false, streamWeeklyTraffic: 100),
+          // Runner-up by name.
+          eg.stream(name: 'A', isRecentlyActive: false, streamWeeklyTraffic: 0),
+          // Next two are tied because no remaining criteria.
+          eg.stream(name: 'B', isRecentlyActive: false, streamWeeklyTraffic: 0),
+          eg.stream(name: 'b', isRecentlyActive: false, streamWeeklyTraffic: 0),
+        ];
+        for (final narrow in [
+          eg.topicNarrow(channels[0].streamId, 'this'),
+          ChannelNarrow(channels[0].streamId),
+        ]) {
+          test('${narrow.runtimeType}: composing-to channel > subscribed (unmuted > pinned) > recently active > weekly traffic > name', () {
+            prepare();
+            checkPrecedes(narrow, channels[0], channels.skip(1));
+            checkPrecedes(narrow, channels[1], channels.skip(2));
+            checkPrecedes(narrow, channels[2], channels.skip(3));
+            checkPrecedes(narrow, channels[3], channels.skip(4));
+            checkPrecedes(narrow, channels[4], channels.skip(5));
+            checkPrecedes(narrow, channels[5], channels.skip(6));
+            checkPrecedes(narrow, channels[6], channels.skip(7));
+            checkRankEqual(narrow, [channels[7], channels[8]]);
+          });
+        }
+
+        test('DmNarrow: subscribed (unmuted > pinned) > recently active > weekly traffic > name', () {
+          // Same principle as for ChannelNarrow and TopicNarrow;
+          // see that test case above.
+          final channels = [
+            // Next three wins by being subscribed to.
+            // Wins by being unmuted.
+            eg.subscription(eg.stream(name: 'Z',
+                isRecentlyActive: false, streamWeeklyTraffic: 0),
+              isMuted: false, pinToTop: false),
+            // Runner-up by being pinned.
+            eg.subscription(eg.stream(name: 'Y',
+                isRecentlyActive: false, streamWeeklyTraffic: 0),
+              isMuted: true, pinToTop: true),
+            // Last among subscribed ones by being unpinned.
+            eg.subscription(eg.stream(name: 'X',
+                isRecentlyActive: false, streamWeeklyTraffic: 0),
+              isMuted: true, pinToTop: false),
+
+            // The rest are runners-up by not being subscribed to.
+            // Runner-up by being recently active.
+            eg.stream(name: 'W', isRecentlyActive: true, streamWeeklyTraffic: 0),
+            // Runner-up by having more weekly traffic.
+            eg.stream(name: 'V', isRecentlyActive: false, streamWeeklyTraffic: 100),
+            // Runner-up by name.
+            eg.stream(name: 'A', isRecentlyActive: false, streamWeeklyTraffic: 0),
+            // Next two are tied because no remaining criteria.
+            eg.stream(name: 'B', isRecentlyActive: false, streamWeeklyTraffic: 0),
+            eg.stream(name: 'b', isRecentlyActive: false, streamWeeklyTraffic: 0),
+          ];
+          prepare();
+          final narrow = DmNarrow.withUser(1, selfUserId: 10);
+          checkPrecedes(narrow, channels[0], channels.skip(1));
+          checkPrecedes(narrow, channels[1], channels.skip(2));
+          checkPrecedes(narrow, channels[2], channels.skip(3));
+          checkPrecedes(narrow, channels[3], channels.skip(4));
+          checkPrecedes(narrow, channels[4], channels.skip(5));
+          checkPrecedes(narrow, channels[5], channels.skip(6));
+          checkRankEqual(narrow, [channels[6], channels[7]]);
+        });
+
+        test('CombinedFeedNarrow gives error', () async {
+          prepare();
+          const narrow = CombinedFeedNarrow();
+          check(() => ChannelLinkAutocompleteView.init(store: store,
+                        narrow: narrow, query: ChannelLinkAutocompleteQuery('')))
+            .throws<AssertionError>();
+        });
+
+        test('MentionsNarrow gives error', () async {
+          prepare();
+          const narrow = MentionsNarrow();
+          check(() => ChannelLinkAutocompleteView.init(store: store,
+                        narrow: narrow, query: ChannelLinkAutocompleteQuery('')))
+            .throws<AssertionError>();
+        });
+
+        test('StarredMessagesNarrow gives error', () async {
+          prepare();
+          const narrow = StarredMessagesNarrow();
+          check(() => ChannelLinkAutocompleteView.init(store: store,
+                        narrow: narrow, query: ChannelLinkAutocompleteQuery('')))
+            .throws<AssertionError>();
+        });
+
+        test('KeywordSearchNarrow gives error', () async {
+          prepare();
+          final narrow = KeywordSearchNarrow('');
+          check(() => ChannelLinkAutocompleteView.init(store: store,
+                        narrow: narrow, query: ChannelLinkAutocompleteQuery('')))
+            .throws<AssertionError>();
+        });
+      });
+
+      test('final results end-to-end', () async {
+        Future<Iterable<ChannelLinkAutocompleteResult>> getResults(
+            Narrow narrow, ChannelLinkAutocompleteQuery query) async {
+          bool done = false;
+          final view = ChannelLinkAutocompleteView.init(store: store,
+            narrow: narrow, query: query);
+          view.addListener(() { done = true; });
+          await Future(() {});
+          check(done).isTrue();
+          final results = view.results;
+          view.dispose();
+          return results;
+        }
+
+        final channels = [
+          eg.stream(streamId: 1, name: 'Channel One', isRecentlyActive: false,
+            streamWeeklyTraffic: 10),
+          eg.stream(streamId: 2, name: 'Channel Two', isRecentlyActive: true),
+          eg.stream(streamId: 3, name: 'Channel Three', isRecentlyActive: false,
+            streamWeeklyTraffic: 100),
+          eg.stream(streamId: 4, name: 'Channel Four', isRecentlyActive: false),
+          eg.stream(streamId: 5, name: 'Channel Five', isRecentlyActive: false),
+          eg.stream(streamId: 6, name: 'Channel Six'),
+          eg.stream(streamId: 7, name: 'Channel Seven'),
+          eg.stream(streamId: 8, name: 'Channel Eight'),
+          eg.stream(streamId: 9, name: 'Channel Nine'),
+          eg.stream(streamId: 10, name: 'Channel Ten'),
+        ];
+
+        prepare(channels: channels, subscriptions: [
+          eg.subscription(channels[6 - 1], isMuted: false, pinToTop: true),
+          eg.subscription(channels[7 - 1], isMuted: false, pinToTop: false),
+          eg.subscription(channels[8 - 1], isMuted: true,  pinToTop: true),
+          eg.subscription(channels[9 - 1], isMuted: true,  pinToTop: false),
+        ]);
+
+        final narrow = eg.topicNarrow(10, 'this');
+
+        // The order should be:
+        // 1. composing-to channel
+        // 2. subscribed channels
+        //    1. unmuted pinned
+        //    2. unmuted unpinned
+        //    3. muted pinned
+        //    4. muted unpinned
+        // 3. recently-active channels
+        // 4. channels with more traffic
+        // 5. channels by name alphabetical order
+
+        // Check the ranking of the full list of options,
+        // i.e. the results for an empty query.
+        check(await getResults(narrow, ChannelLinkAutocompleteQuery('')))
+          .deepEquals([10, 6, 7, 8, 9, 2, 3, 1, 5, 4].map(isChannel));
+
+        // Check the ranking applies also to results filtered by a query.
+        check(await getResults(narrow, ChannelLinkAutocompleteQuery('t')))
+          .deepEquals([10, 2, 3].map(isChannel));
+        check(await getResults(narrow, ChannelLinkAutocompleteQuery('F')))
+          .deepEquals([5, 4].map(isChannel));
+      });
+    });
+  });
+
+  group('ChannelLinkAutocompleteQuery', () {
+    late PerAccountStore store;
+
+    void doCheck(String rawQuery, ZulipStream channel, bool expected) {
+      final result = ChannelLinkAutocompleteQuery(rawQuery).testChannel(channel, store);
+      expected
+        ? check(result).isA<ChannelLinkAutocompleteResult>()
+        : check(result).isNull();
+    }
+
+    test('channel is always excluded when archived, regardless of other criteria', () {
+      store = eg.store();
+
+      doCheck('Channel Name', eg.stream(name: 'Channel Name', isArchived: true), false);
+      // When not archived, then other criteria will be checked.
+      doCheck('Channel Name', eg.stream(name: 'Channel Name', isArchived: false), true);
+    });
+
+    test('testChannel: channel is included if name words match the query', () {
+      store = eg.store();
+
+      doCheck('', eg.stream(name: 'Channel Name'), true);
+      doCheck('', eg.stream(name: ''), true); // unlikely case, but should not crash
+      doCheck('Channel Name', eg.stream(name: 'Channel Name'), true);
+      doCheck('channel name', eg.stream(name: 'Channel Name'), true);
+      doCheck('Channel Name', eg.stream(name: 'channel name'), true);
+      doCheck('Channel', eg.stream(name: 'Channel Name'), true);
+      doCheck('Name', eg.stream(name: 'Channel Name'), true);
+      doCheck('Channel Name', eg.stream(name: 'Channels Names'), true);
+      doCheck('Channel Four', eg.stream(name: 'Channel Name Four Words'), true);
+      doCheck('Name Words', eg.stream(name: 'Channel Name Four Words'), true);
+      doCheck('Channel F', eg.stream(name: 'Channel Name Four Words'), true);
+      doCheck('C Four', eg.stream(name: 'Channel Name Four Words'), true);
+      doCheck('channel channel', eg.stream(name: 'Channel Channel Name'), true);
+      doCheck('channel channel', eg.stream(name: 'Channel Name Channel'), true);
+
+      doCheck('C', eg.stream(name: ''), false); // unlikely case, but should not crash
+      doCheck('Channels Names', eg.stream(name: 'Channel Name'), false);
+      doCheck('Channel Name', eg.stream(name: 'Channel'), false);
+      doCheck('Channel Name', eg.stream(name: 'Name'), false);
+      doCheck('nnel ame', eg.stream(name: 'Channel Name'), false);
+      doCheck('nnel Name', eg.stream(name: 'Channel Name'), false);
+      doCheck('Channel ame', eg.stream(name: 'Channel Name'), false);
+      doCheck('Channel Channel', eg.stream(name: 'Channel Name'), false);
+      doCheck('Name Name', eg.stream(name: 'Channel Name'), false);
+      doCheck('Name Channel', eg.stream(name: 'Channel Name'), false);
+      doCheck('Name Four Channel Words', eg.stream(name: 'Channel Name Four Words'), false);
+      doCheck('F Channel', eg.stream(name: 'Channel Name Four Words'), false);
+      doCheck('Four C', eg.stream(name: 'Channel Name Four Words'), false);
+    });
+
+    group('ranking', () {
+      int rankOf(String query, ZulipStream channel) {
+        // (i.e. throw here if it's not a match)
+        return ChannelLinkAutocompleteQuery(query)
+          .testChannel(channel, store)!.rank;
+      }
+
+      void checkPrecedes(String query, ZulipStream a, ZulipStream b) {
+        check(rankOf(query, a)).isLessThan(rankOf(query, b));
+      }
+
+      void checkAllSameRank(String query, Iterable<ZulipStream> channels) {
+        final firstRank = rankOf(query, channels.first);
+        final remainingRanks = channels.skip(1).map((e) => rankOf(query, e));
+        check(remainingRanks).every((it) => it.equals(firstRank));
+      }
+
+      test('channel name is case- and diacritics-insensitive', () {
+        store = eg.store();
+        final channels = [
+          eg.stream(name: 'Über Cars'),
+          eg.stream(name: 'über cars'),
+          eg.stream(name: 'Uber Cars'),
+          eg.stream(name: 'uber cars'),
+        ];
+
+        checkAllSameRank('Über Cars', channels); // exact
+        checkAllSameRank('über cars', channels); // exact
+        checkAllSameRank('Uber Cars', channels); // exact
+        checkAllSameRank('uber cars', channels); // exact
+
+        checkAllSameRank('Über Ca',   channels); // total-prefix
+        checkAllSameRank('über ca',   channels); // total-prefix
+        checkAllSameRank('Uber Ca',   channels); // total-prefix
+        checkAllSameRank('uber ca',   channels); // total-prefix
+
+        checkAllSameRank('Üb Ca',     channels); // word-prefixes
+        checkAllSameRank('üb ca',     channels); // word-prefixes
+        checkAllSameRank('Ub Ca',     channels); // word-prefixes
+        checkAllSameRank('ub ca',     channels); // word-prefixes
+      });
+
+      test('channel name match: exact over total-prefix', () {
+        store = eg.store();
+        final channel1 = eg.stream(name: 'Resume');
+        final channel2 = eg.stream(name: 'Resume Tips');
+        checkPrecedes('resume', channel1, channel2);
+      });
+
+      test('channel name match: total-prefix over word-prefixes', () {
+        store = eg.store();
+        final channel1 = eg.stream(name: 'So Many Ideas');
+        final channel2 = eg.stream(name: 'Some Media Channel');
+        checkPrecedes('so m', channel1, channel2);
+      });
+
+      test('full list of ranks', () {
+        store = eg.store();
+        final channel = eg.stream(name: 'some channel');
+        check([
+          rankOf('some channel', channel), // exact name match
+          rankOf('some ch', channel),      // total-prefix name match
+          rankOf('so ch', channel),        // word-prefixes name match
+        ]).deepEquals([0, 1, 2]);
+      });
+    });
+  });
 }
 
 typedef WildcardTester = void Function(String query, Narrow narrow, List<WildcardMentionOption> expected);

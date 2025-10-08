@@ -33,3 +33,7 @@ extension UserGroupMentionAutocompleteResultChecks on Subject<UserGroupMentionAu
 extension TopicAutocompleteResultChecks on Subject<TopicAutocompleteResult> {
   Subject<TopicName> get topic => has((r) => r.topic, 'topic');
 }
+
+extension ChannelLinkAutocompleteResultChecks on Subject<ChannelLinkAutocompleteResult> {
+  Subject<int> get channelId => has((r) => r.channelId, 'channelId');
+}
