@@ -6,11 +6,25 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/code_block.dart';
 import 'package:zulip/model/content.dart';
+import 'package:zulip/model/content_example_json.dart';
+import 'package:zulip/model/content_node_json_utils.dart';
 import 'package:zulip/model/katex.dart';
 
 import 'binding.dart';
 import 'content_checks.dart';
 
+
+extension ContentExampleJsonExport on ContentExample {
+  ContentExampleJson toJsonSerializable() {
+    return ContentExampleJson(
+      description: description,
+      markdown: markdown,
+      html: html,
+      expectedNodes: expectedNodes.map(nodeToJson).toList(),
+      expectedText: expectedText,
+    );
+  }
+}
 /// An example of Zulip content for test cases.
 //
 // When writing examples:
