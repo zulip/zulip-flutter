@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../api/model/model.dart';
 import '../model/avatar_url.dart';
 import '../model/binding.dart';
@@ -90,6 +89,7 @@ class AvatarImage extends StatelessWidget {
       avatarUrl.get(physicalSize),
       filterQuality: FilterQuality.medium,
       fit: BoxFit.cover,
+      errorBuilder: (_, _, _) => _AvatarPlaceholder(size: size),
     );
   }
 }
