@@ -49,6 +49,9 @@ extension ComposeContentAutocomplete on ComposeContentController {
       } else if (charAtPos == ':') {
         final match = _emojiIntentRegex.matchAsPrefix(textUntilCursor, pos);
         if (match == null) continue;
+      } else if (charAtPos == '#') {
+        final match = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
+        if (match == null) continue;
       } else {
         continue;
       }
@@ -67,6 +70,10 @@ extension ComposeContentAutocomplete on ComposeContentController {
         final match = _emojiIntentRegex.matchAsPrefix(textUntilCursor, pos);
         if (match == null) continue;
         query = EmojiAutocompleteQuery(match[1]!);
+      } else if (charAtPos == '#') {
+        final match = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
+        if (match == null) continue;
+        query = ChannelLinkAutocompleteQuery(match[1] ?? match[2]!);
       } else {
         continue;
       }
@@ -165,6 +172,32 @@ final RegExp _emojiIntentRegex = (() {
       + r'[-\s' + nameCharacters + r']*'
     + r')$');
 })();
+
+final RegExp _channelLinkIntentRegex = () {
+  // Similar reasoning as in _mentionIntentRegex.
+  const before = r'(?<=^|\s|\p{Punctuation})';
+
+  // TODO(upstream): maybe use duplicate-named capture groups for better readability?
+  //   https://github.com/dart-lang/sdk/issues/61337
+  return RegExp(unicode: true,
+    before
+    + r'#'
+    // As Web, match both '#channel' and '#**channel'. In both cases, the raw
+    // query is going to be 'channel'. Matching the second case ('#**channel')
+    // is useful when the user selects a channel from the autocomplete list, but
+    // then starts pressing "backspace" to edit the query and choose another
+    // option, instead of clearing the entire query and starting from scratch.
+    + r'(?:'
+      // Case '#channel': right after '#', reject whitespace as well as '**'.
+      + r'(?!\s|\*\*)(.*)'
+      + r'|'
+      // Case '#**channel': right after '#**', reject whitespace.
+      // Also, make sure that the remaining query doesn't contain '**',
+      // otherwise '#**channel**' (which is a complete channel link syntax) and
+      // any text followed by that will always match.
+      + r'\*\*(?!\s)((?:(?!\*\*).)*)'
+    + r')$');
+}();
 
 /// The text controller's recognition that the user might want autocomplete UI.
 class AutocompleteIntent<QueryT extends AutocompleteQuery> {
