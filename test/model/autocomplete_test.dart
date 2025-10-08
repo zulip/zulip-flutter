@@ -77,12 +77,15 @@ void main() {
     ///
     /// For example, "~@chris^" means the text is "@chris", the selection is
     /// collapsed at index 6, and we expect the syntax to start at index 0.
-    void doTest(String markedText, ComposeAutocompleteQuery? expectedQuery) {
+    void doTest(String markedText, ComposeAutocompleteQuery? expectedQuery, {
+      int? maxChannelName,
+    }) {
       final description = expectedQuery != null
         ? 'in ${jsonEncode(markedText)}, query ${jsonEncode(expectedQuery.raw)}'
         : 'no query in ${jsonEncode(markedText)}';
       test(description, () {
-        final store = eg.store();
+        final store = eg.store(initialSnapshot:
+          eg.initialSnapshot(maxChannelNameLength: maxChannelName));
         final controller = ComposeContentController(store: store);
         final parsed = parseMarkedText(markedText);
         assert((expectedQuery == null) == (parsed.expectedSyntaxStart == null));
@@ -99,6 +102,7 @@ void main() {
 
     MentionAutocompleteQuery mention(String raw) => MentionAutocompleteQuery(raw, silent: false);
     MentionAutocompleteQuery silentMention(String raw) => MentionAutocompleteQuery(raw, silent: true);
+    ChannelLinkAutocompleteQuery channelLink(String raw) => ChannelLinkAutocompleteQuery(raw);
     EmojiAutocompleteQuery emoji(String raw) => EmojiAutocompleteQuery(raw);
 
     doTest('', null);
@@ -180,8 +184,106 @@ void main() {
     doTest('~@_Rodion Romanovich Raskolniko^', silentMention('Rodion Romanovich Raskolniko'));
     doTest('~@Родион Романович Раскольников^', mention('Родион Романович Раскольников'));
     doTest('~@_Родион Романович Раскольнико^', silentMention('Родион Романович Раскольнико'));
-    doTest('If @chris is around, please ask him.^', null); // @ sign is too far away from cursor
-    doTest('If @_chris is around, please ask him.^', null); // @ sign is too far away from cursor
+
+    // "#" sign can be (3 + 2 * maxChannelName) utf-16 code units
+    // away to the left of cursor.
+    doTest('If ~@chris^ is around, please ask him.', mention('chris'), maxChannelName: 10);
+    doTest('If ~@_chris is^ around, please ask him.', silentMention('chris is'), maxChannelName: 10);
+    doTest('If @chris is around, please ask him.^', null, maxChannelName: 10);
+    doTest('If @_chris is around, please ask him.^', null, maxChannelName: 10);
+
+    // #channel link.
+
+    doTest('^#', null);
+    doTest('^#abc', null);
+    doTest('#abc', null); // (no cursor)
+
+    doTest('~#^', channelLink(''));
+    doTest('~##^', channelLink('#'));
+    doTest('~#abc^', channelLink('abc'));
+    doTest('~#abc ^', channelLink('abc '));
+    doTest('~#abc def^', channelLink('abc def'));
+
+    // Accept space before channel link syntax.
+    doTest(' ~#abc^', channelLink('abc'));
+    doTest('xyz ~#abc^', channelLink('abc'));
+
+    // Accept punctuations before channel link syntax.
+    doTest(':~#abc^', channelLink('abc'));
+    doTest('!~#abc^', channelLink('abc'));
+    doTest(',~#abc^', channelLink('abc'));
+    doTest('.~#abc^', channelLink('abc'));
+    doTest('(~#abc^', channelLink('abc')); doTest(')~#abc^', channelLink('abc'));
+    doTest('{~#abc^', channelLink('abc')); doTest('}~#abc^', channelLink('abc'));
+    doTest('[~#abc^', channelLink('abc')); doTest(']~#abc^', channelLink('abc'));
+    doTest('“~#abc^', channelLink('abc')); doTest('”~#abc^', channelLink('abc'));
+    doTest('«~#abc^', channelLink('abc')); doTest('»~#abc^', channelLink('abc'));
+    // … and other punctuations except '#' and '@':
+    doTest('~##abc^', channelLink('#abc'));
+    doTest('~@#abc^', mention('#abc'));
+
+    // Avoid other characters before channel link syntax.
+    doTest('+#abc^', null);
+    doTest('=#abc^', null);
+    doTest('\$#abc^', null);
+    doTest('zulip/zulip-flutter#124^', null);
+    doTest('XYZ#abc^', null);
+    doTest('xyz#abc^', null);
+    // … but
+    doTest('~#xyz#abc^', channelLink('xyz#abc'));
+
+    // Avoid leading space character in query.
+    doTest('# ^', null);
+    doTest('# abc^', null);
+
+    // Avoid line-break characters in query.
+    doTest('#\n^', null); doTest('#a\n^', null); doTest('#\na^', null); doTest('#a\nb^', null);
+    doTest('#\r^', null); doTest('#a\r^', null); doTest('#\ra^', null); doTest('#a\rb^', null);
+    doTest('#\r\n^', null); doTest('#a\r\n^', null); doTest('#\r\na^', null); doTest('#a\r\nb^', null);
+
+    // Allow all other sorts of characters in query.
+    doTest('~#\u0000^', channelLink('\u0000')); // control
+    doTest('~#\u061C^', channelLink('\u061C')); // format character
+    doTest('~#\u0600^', channelLink('\u0600')); // format
+    doTest('~#\uD834^', channelLink('\uD834')); // leading surrogate
+    doTest('~#`^', channelLink('`'));   doTest('~#a`b^', channelLink('a`b'));
+    doTest('~#\\^', channelLink('\\')); doTest('~#a\\b^', channelLink('a\\b'));
+    doTest('~#"^', channelLink('"'));   doTest('~#a"b^', channelLink('a"b'));
+    doTest('~#>^', channelLink('>'));   doTest('~#a>b^', channelLink('a>b'));
+    doTest('~#&^', channelLink('&'));   doTest('~#a&b^', channelLink('a&b'));
+    doTest('~#_^', channelLink('_'));   doTest('~#a_b^', channelLink('a_b'));
+    doTest('~#*^', channelLink('*'));   doTest('~#a*b^', channelLink('a*b'));
+
+    // Two leading stars ('**') in the query are omitted.
+    doTest('~#**^', channelLink(''));
+    doTest('~#**abc^', channelLink('abc'));
+    doTest('~#**abc ^', channelLink('abc '));
+    doTest('~#**abc def^', channelLink('abc def'));
+    doTest('#** ^', null);
+    doTest('#** abc^', null);
+
+    doTest('~#**abc*^', channelLink('abc*'));
+
+    // Query with leading '**' should not contain other '**'.
+    doTest('#**abc**^', null);
+    doTest('#**abc** ^', null);
+    doTest('#**abc** def^', null);
+
+    // Query without leading '**' can contain other '**'.
+    doTest('~#abc**^', channelLink('abc**'));
+    doTest('~#abc** ^', channelLink('abc** '));
+    doTest('~#abc** def^', channelLink('abc** def'));
+    doTest('~#*abc**^', channelLink('*abc**'));
+
+    // "#" sign can be (3 + 2 * maxChannelName) utf-16 code units
+    // away to the left of cursor.
+    doTest('check ~#**mobile dev^ team', channelLink('mobile dev'), maxChannelName: 5);
+    doTest('check ~#mobile dev t^eam', channelLink('mobile dev t'), maxChannelName: 5);
+    doTest('check #mobile dev te^am', null, maxChannelName: 5);
+    doTest('check #mobile dev team for more info^', null, maxChannelName: 5);
+    // '🙂' is 2 utf-16 code units.
+    doTest('check ~#**🙂🙂🙂🙂🙂^', channelLink('🙂🙂🙂🙂🙂'), maxChannelName: 5);
+    doTest('check #**🙂🙂🙂🙂🙂🙂^', null, maxChannelName: 5);
 
     // Emoji (":smile:").
 
