@@ -88,6 +88,8 @@ class InitialSnapshot {
 
   final bool realmMandatoryTopics;
 
+  final String realmName;
+
   /// The number of days until a user's account is treated as a full member.
   ///
   /// Search for "realm_waiting_period_threshold" in https://zulip.com/api/register-queue.
@@ -102,6 +104,8 @@ class InitialSnapshot {
   final int? realmMessageContentEditLimitSeconds;
 
   final bool realmEnableReadReceipts;
+
+  final Uri realmIconUrl;
 
   final bool realmPresenceDisabled;
 
@@ -174,11 +178,13 @@ class InitialSnapshot {
     required this.realmDeleteOwnMessagePolicy,
     required this.realmWildcardMentionPolicy,
     required this.realmMandatoryTopics,
+    required this.realmName,
     required this.realmWaitingPeriodThreshold,
     required this.realmMessageContentDeleteLimitSeconds,
     required this.realmAllowMessageEditing,
     required this.realmMessageContentEditLimitSeconds,
     required this.realmEnableReadReceipts,
+    required this.realmIconUrl,
     required this.realmPresenceDisabled,
     required this.realmDefaultExternalAccounts,
     required this.maxFileUploadSizeMib,

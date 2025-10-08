@@ -94,6 +94,8 @@ Future<void> migrateLegacyAppData(AppDatabase db) async {
     try {
       await db.createAccount(AccountsCompanion.insert(
         realmUrl: account.realm,
+        // no realmName; legacy app didn't record it
+        // no realmIcon; legacy app didn't record it
         userId: account.userId!,
         email: account.email,
         apiKey: account.apiKey,

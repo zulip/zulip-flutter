@@ -15,6 +15,7 @@ import 'schemas/schema_v4.dart' as v4;
 import 'schemas/schema_v5.dart' as v5;
 import 'schemas/schema_v10.dart' as v10;
 import 'schemas/schema_v11.dart' as v11;
+import 'schemas/schema_v12.dart' as v12;
 import 'store_checks.dart';
 
 void main() {
@@ -189,6 +190,8 @@ void main() {
     test('create account', () async {
       final accountData = AccountsCompanion.insert(
         realmUrl: Uri.parse('https://chat.example/'),
+        realmName: Value('Example Zulip organization'),
+        realmIcon: Value(Uri.parse('/user_avatars/2/realm/icon.png?version=3')),
         userId: 1,
         email: 'asdf@example.org',
         apiKey: '1234',
@@ -452,6 +455,35 @@ void main() {
 
       final after = v11.DatabaseAtV11(schema.newConnection());
       check(await after.select(after.intGlobalSettings).get()).isEmpty();
+      await after.close();
+    });
+
+    test('upgrade to v12, with data', () async {
+      final schema = await verifier.schemaAt(11);
+      final before = v11.DatabaseAtV11(schema.newConnection());
+      await before.into(before.accounts).insert(v11.AccountsCompanion.insert(
+          realmUrl: 'https://chat.example/',
+          userId: 1,
+          email: 'asdf@example.org',
+          apiKey: '1234',
+          zulipVersion: '11.2',
+          zulipMergeBase: const Value('11.2'),
+          zulipFeatureLevel: 420,
+      ));
+      final accountV11 = await before.select(before.accounts).watchSingle().first;
+      await before.close();
+
+      final db = AppDatabase(schema.newConnection());
+      await verifier.migrateAndValidate(db, 12);
+      await db.close();
+
+      final after = v12.DatabaseAtV12(schema.newConnection());
+      final account = await after.select(after.accounts).getSingle();
+      check(account.toJson()).deepEquals({
+        ...accountV11.toJson(),
+        'realmName': null,
+        'realmIcon': null,
+      });
       await after.close();
     });
   });

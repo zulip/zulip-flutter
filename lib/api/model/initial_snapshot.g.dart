@@ -98,6 +98,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
     json['realm_wildcard_mention_policy'],
   ),
   realmMandatoryTopics: json['realm_mandatory_topics'] as bool,
+  realmName: json['realm_name'] as String,
   realmWaitingPeriodThreshold: (json['realm_waiting_period_threshold'] as num)
       .toInt(),
   realmMessageContentDeleteLimitSeconds:
@@ -106,6 +107,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
   realmMessageContentEditLimitSeconds:
       (json['realm_message_content_edit_limit_seconds'] as num?)?.toInt(),
   realmEnableReadReceipts: json['realm_enable_read_receipts'] as bool,
+  realmIconUrl: Uri.parse(json['realm_icon_url'] as String),
   realmPresenceDisabled: json['realm_presence_disabled'] as bool,
   realmDefaultExternalAccounts:
       (json['realm_default_external_accounts'] as Map<String, dynamic>).map(
@@ -174,6 +176,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'realm_delete_own_message_policy': instance.realmDeleteOwnMessagePolicy,
   'realm_wildcard_mention_policy': instance.realmWildcardMentionPolicy,
   'realm_mandatory_topics': instance.realmMandatoryTopics,
+  'realm_name': instance.realmName,
   'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
   'realm_message_content_delete_limit_seconds':
       instance.realmMessageContentDeleteLimitSeconds,
@@ -181,6 +184,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'realm_message_content_edit_limit_seconds':
       instance.realmMessageContentEditLimitSeconds,
   'realm_enable_read_receipts': instance.realmEnableReadReceipts,
+  'realm_icon_url': instance.realmIconUrl.toString(),
   'realm_presence_disabled': instance.realmPresenceDisabled,
   'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
   'max_file_upload_size_mib': instance.maxFileUploadSizeMib,

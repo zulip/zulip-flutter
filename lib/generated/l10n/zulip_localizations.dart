@@ -1647,11 +1647,11 @@ abstract class ZulipLocalizations {
     String allChannelsPageTitle,
   );
 
-  /// Title for the page about sharing content received from other apps.
+  /// Label for the page about selecting an account to share content received from other apps.
   ///
   /// In en, this message translates to:
-  /// **'Share'**
-  String get sharePageTitle;
+  /// **'Choose an account'**
+  String get shareChooseAccountLabel;
 
   /// Label for main-menu button leading to the user's own profile.
   ///
