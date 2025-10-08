@@ -98,6 +98,7 @@ void main() {
 
     MentionAutocompleteQuery mention(String raw) => MentionAutocompleteQuery(raw, silent: false);
     MentionAutocompleteQuery silentMention(String raw) => MentionAutocompleteQuery(raw, silent: true);
+    ChannelLinkAutocompleteQuery channelLink(String raw) => ChannelLinkAutocompleteQuery(raw);
     EmojiAutocompleteQuery emoji(String raw) => EmojiAutocompleteQuery(raw);
 
     doTest('', null);
@@ -181,6 +182,83 @@ void main() {
     doTest('~@_Родион Романович Раскольнико^', silentMention('Родион Романович Раскольнико'));
     doTest('If @chris is around, please ask him.^', null); // @ sign is too far away from cursor
     doTest('If @_chris is around, please ask him.^', null); // @ sign is too far away from cursor
+
+    // #channel link.
+
+    doTest('^#', null);
+    doTest('^#abc', null);
+    doTest('#abc', null); // (no cursor)
+
+    doTest('~#^', channelLink(''));
+    doTest('~#abc^', channelLink('abc'));
+    doTest('~#abc ^', channelLink('abc '));
+    doTest('~#abc def^', channelLink('abc def'));
+
+    // Accept space before channel link syntax.
+    doTest(' ~#abc^', channelLink('abc'));
+    doTest('xyz ~#abc^', channelLink('abc'));
+
+    // Accept punctuations before channel link syntax.
+    doTest('#~#abc^', channelLink('abc'));
+    doTest('@~#abc^', channelLink('abc'));
+    doTest(':~#abc^', channelLink('abc'));
+    doTest('!~#abc^', channelLink('abc'));
+    doTest(',~#abc^', channelLink('abc'));
+    doTest('.~#abc^', channelLink('abc'));
+    doTest('(~#abc^', channelLink('abc')); doTest(')~#abc^', channelLink('abc'));
+    doTest('{~#abc^', channelLink('abc')); doTest('}~#abc^', channelLink('abc'));
+    doTest('[~#abc^', channelLink('abc')); doTest(']~#abc^', channelLink('abc'));
+    // … and other punctuations.
+
+    // Avoid other characters before channel link syntax.
+    doTest('\$#abc^', null);
+    doTest('+#abc^', null);
+    doTest('=#abc^', null);
+    doTest('XYZ#abc^', null);
+    doTest('xyz#abc^', null);
+    // … but
+    doTest('~#xyz#abc^', channelLink('xyz#abc'));
+
+    // Avoid leading space character in query.
+    doTest('# ^', null);
+    doTest('# abc^', null);
+
+    // Avoid line-break characters in query.
+    doTest('#\n^', null); doTest('#a\n^', null); doTest('#\na^', null); doTest('#a\nb^', null);
+    doTest('#\r^', null); doTest('#a\r^', null); doTest('#\ra^', null); doTest('#a\rb^', null);
+    doTest('#\r\n^', null); doTest('#a\r\n^', null); doTest('#\r\na^', null); doTest('#a\r\nb^', null);
+
+    // Allow all other sorts of characters in query.
+    doTest('~#\u0000^', channelLink('\u0000')); // control
+    doTest('~#\u061C^', channelLink('\u061C')); // format character
+    doTest('~#\u0600^', channelLink('\u0600')); // format
+    doTest('~#\uD834^', channelLink('\uD834')); // leading surrogate
+    doTest('~#`^', channelLink('`'));   doTest('~#a`b^', channelLink('a`b'));
+    doTest('~#\\^', channelLink('\\')); doTest('~#a\\b^', channelLink('a\\b'));
+    doTest('~#"^', channelLink('"'));   doTest('~#a"b^', channelLink('a"b'));
+    doTest('~#>^', channelLink('>'));   doTest('~#a>b^', channelLink('a>b'));
+    doTest('~#&^', channelLink('&'));   doTest('~#a&b^', channelLink('a&b'));
+    doTest('~#_^', channelLink('_'));   doTest('~#a_b^', channelLink('a_b'));
+    doTest('~#*^', channelLink('*'));   doTest('~#a*b^', channelLink('a*b'));
+
+    // Two leading stars ('**') in query are omitted.
+    doTest('~#**^', channelLink(''));
+    doTest('~#**abc^', channelLink('abc'));
+    doTest('~#**abc ^', channelLink('abc '));
+    doTest('~#**abc def^', channelLink('abc def'));
+    doTest('#** ^', null);
+    doTest('#** abc^', null);
+    doTest('~#**abc*^', channelLink('abc*'));
+
+    // Query with leading '**' should not contain other '**'.
+    doTest('#**abc**^', null);
+    doTest('#**abc** ^', null);
+    doTest('#**abc** def^', null);
+
+    // Query without leading '**' can contain other '**'.
+    doTest('~#abc**^', channelLink('abc**'));
+    doTest('~#abc** ^', channelLink('abc** '));
+    doTest('~#abc** def^', channelLink('abc** def'));
 
     // Emoji (":smile:").
 
