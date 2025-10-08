@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/content.dart';
 import '../model/emoji.dart';
 import '../model/store.dart';
+import 'content.dart';
 import 'emoji.dart';
 import 'icons.dart';
 import 'store.dart';
@@ -45,8 +47,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
   }
 
   void _handleControllerChange() {
-    var newQuery = widget.autocompleteIntent()?.query;
-    if (newQuery is ChannelLinkAutocompleteQuery) newQuery = null; // TODO(#124)
+    final newQuery = widget.autocompleteIntent()?.query;
     // First, tear down the old view-model if necessary.
     if (_viewModel != null
         && (newQuery == null
@@ -227,8 +228,17 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
         // TODO(#1805) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
         replacementString = '${userGroupMention(userGroup.name, silent: query.silent)} ';
-      case ChannelLinkAutocompleteResult():
-        throw UnimplementedError(); // TODO(#124)
+      case ChannelLinkAutocompleteResult(:final channelId):
+        if (query is! ChannelLinkAutocompleteQuery) {
+          return; // Shrug; similar to `intent == null` case above.
+        }
+        final channel = store.streams[channelId];
+        if (channel == null) {
+          // Don't crash on theoretical race between async results-filtering
+          // and losing data for the channel.
+          return;
+        }
+        replacementString = '${channelLinkSyntax(channel, store: store)} ';
     }
 
     controller.value = intent.textEditingValue.replaced(
@@ -246,7 +256,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
     final child = switch (option) {
       MentionAutocompleteResult() => MentionAutocompleteItem(
         option: option, narrow: narrow),
-      ChannelLinkAutocompleteResult() => throw UnimplementedError(), // TODO(#124)
+      ChannelLinkAutocompleteResult() => _ChannelLinkAutocompleteItem(option: option),
       EmojiAutocompleteResult() => _EmojiAutocompleteItem(option: option),
     };
     return InkWell(
@@ -357,6 +367,68 @@ class MentionAutocompleteItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [labelWidget, ?sublabelWidget])),
+      ]));
+  }
+}
+
+class _ChannelLinkAutocompleteItem extends StatelessWidget {
+  const _ChannelLinkAutocompleteItem({required this.option});
+
+  final ChannelLinkAutocompleteResult option;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+
+    final channel = store.streams[option.channelId];
+
+    // A null [Icon.icon] makes a blank space.
+    IconData? icon;
+    Color? iconColor;
+    String label;
+    String? subLabel;
+    if (channel != null) {
+      icon = iconDataForStream(channel);
+      iconColor = colorSwatchFor(context, store.subscriptions[channel.streamId])
+        .iconOnPlainBackground;
+      label = channel.name;
+      subLabel = channel.renderedDescription.isNotEmpty
+        ? channel.renderedDescription : null;
+    } else {
+      icon = null;
+      iconColor = null;
+      label = zulipLocalizations.unknownChannelName;
+      subLabel = null;
+    }
+
+    final labelWidget = Text(label,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: 18, height: 20 / 18,
+        color: designVariables.contextMenuItemLabel,
+      ).merge(weightVariableTextStyle(context, wght: 600)));
+
+    final subLabelWidget = subLabel == null ? null
+      // Adapted from [MessageContent].
+      : DefaultTextStyle(
+          style: ContentTheme.of(context).textStylePlainParagraph.merge(
+            TextStyle(fontSize: 14, height: 16 / 14,
+              overflow: TextOverflow.ellipsis,
+              color: designVariables.contextMenuItemMeta)),
+          child: BlockContentList(
+            nodes: parseContent(channel!.renderedDescription).nodes),
+      );
+
+    return Padding(
+      padding: EdgeInsetsGeometry.fromSTEB(12, 4, 10, 4),
+      child: Row(spacing: 10, children: [
+        SizedBox.square(dimension: 24,
+          child: Icon(size: 18, color: iconColor, icon)),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [labelWidget, ?subLabelWidget])),
       ]));
   }
 }
