@@ -861,8 +861,7 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
 
     return UserMentionAutocompleteResult(
       userId: user.userId,
-      rank: _rankUserResult(user,
-        nameMatchQuality: nameMatchQuality, matchesEmail: matchesEmail));
+      rank: _rankUserResult(nameMatchQuality, matchesEmail: matchesEmail));
   }
 
   NameMatchQuality? _matchName({
@@ -901,7 +900,7 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
 
     return UserGroupMentionAutocompleteResult(
       groupId: userGroup.id,
-      rank: _rankUserGroupResult(userGroup, nameMatchQuality: nameMatchQuality));
+      rank: _rankUserGroupResult(nameMatchQuality));
   }
 
   /// A measure of a wildcard result's quality in the context of the query,
@@ -917,8 +916,7 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
   /// callers should skip computing [matchesEmail] and pass null for that.
   ///
   /// See also [_rankWildcardResult] and [_rankUserGroupResult].
-  static int _rankUserResult(User user, {
-    required NameMatchQuality? nameMatchQuality,
+  static int _rankUserResult(NameMatchQuality? nameMatchQuality, {
     required bool? matchesEmail,
   }) {
     if (nameMatchQuality != null) {
@@ -937,9 +935,7 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
   /// from 0 (best) to one less than [_numResultRanks].
   ///
   /// See also [_rankWildcardResult] and [_rankUserResult].
-  static int _rankUserGroupResult(UserGroup userGroup, {
-    required NameMatchQuality nameMatchQuality,
-  }) {
+  static int _rankUserGroupResult(NameMatchQuality nameMatchQuality) {
     return switch (nameMatchQuality) {
       NameMatchQuality.exact =>        4,
       NameMatchQuality.totalPrefix =>  5,
