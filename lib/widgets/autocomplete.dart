@@ -226,6 +226,8 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
         // TODO(#1805) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
         replacementString = '${userGroupMention(userGroup.name, silent: query.silent)} ';
+      case ChannelLinkAutocompleteResult():
+        throw UnimplementedError(); // TODO(#124)
     }
 
     controller.value = intent.textEditingValue.replaced(
@@ -243,6 +245,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
     final child = switch (option) {
       MentionAutocompleteResult() => MentionAutocompleteItem(
         option: option, narrow: narrow),
+      ChannelLinkAutocompleteResult() => throw UnimplementedError(), // TODO(#124)
       EmojiAutocompleteResult() => _EmojiAutocompleteItem(option: option),
     };
     return InkWell(
