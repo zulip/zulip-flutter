@@ -10,8 +10,8 @@ import 'package:zulip/api/model/web_auth.dart';
 import 'package:zulip/api/route/account.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/binding.dart';
-import 'package:zulip/model/database.dart';
 import 'package:zulip/model/localizations.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/login.dart';
@@ -324,6 +324,26 @@ void main() {
         final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
         await tester.tap(find.byWidget(checkErrorDialog(tester,
           expectedTitle: zulipLocalizations.errorAccountLoggedInTitle)));
+      });
+
+      testWidgets('creates account with data from server settings', (tester) async {
+        final serverSettings = eg.serverSettings(
+          zulipFeatureLevel: 427,
+          zulipVersion: '12.0-dev-524-ga557b1e721',
+          zulipMergeBase: '12.0-dev-523-g72e3b94855',
+        );
+        await prepare(tester, serverSettings);
+        takeStartingRoutes();
+        check(pushedRoutes).isEmpty();
+        check(testBinding.globalStore.accounts).isEmpty();
+
+        await login(tester, eg.selfAccount);
+        check(testBinding.globalStore.accounts).single
+          .equals(eg.selfAccount.copyWith(
+            id: testBinding.globalStore.accounts.single.id,
+            zulipFeatureLevel: 427,
+            zulipVersion: '12.0-dev-524-ga557b1e721',
+            zulipMergeBase: Value('12.0-dev-523-g72e3b94855')));
       });
 
       // TODO test validators on the TextFormField widgets
