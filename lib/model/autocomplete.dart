@@ -18,6 +18,18 @@ import 'narrow.dart';
 import 'store.dart';
 
 extension ComposeContentAutocomplete on ComposeContentController {
+  // To avoid spending a lot of time searching for autocomplete intents
+  // in long messages, we bound how far back we look for the intent's start.
+  int get _maxLookbackForAutocompleteIntent {
+    return 1 // intent character, e.g. "#"
+      + 2 // some optional characters e.g., "_" for silent mention or "**"
+
+      // Per the API doc, maxChannelNameLength is in Unicode code points.
+      // We walk the string by UTF-16 code units, and there might be one or two
+      // of those encoding each Unicode code point.
+      + 2 * store.maxChannelNameLength;
+  }
+
   AutocompleteIntent<ComposeAutocompleteQuery>? autocompleteIntent() {
     if (!selection.isValid || !selection.isNormalized) {
       // We don't require [isCollapsed] to be true because we've seen that
@@ -28,9 +40,7 @@ extension ComposeContentAutocomplete on ComposeContentController {
       return null;
     }
 
-    // To avoid spending a lot of time searching for autocomplete intents
-    // in long messages, we bound how far back we look for the intent's start.
-    final earliest = max(0, selection.end - 30);
+    final earliest = max(0, selection.end - _maxLookbackForAutocompleteIntent);
 
     if (selection.start < earliest) {
       // The selection extends to before any position we'd consider
@@ -47,6 +57,9 @@ extension ComposeContentAutocomplete on ComposeContentController {
         if (match == null) continue;
       } else if (charAtPos == ':') {
         final match = _emojiIntentRegex.matchAsPrefix(textUntilCursor, pos);
+        if (match == null) continue;
+      } else if (charAtPos == '#') {
+        final match = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
         if (match == null) continue;
       } else {
         continue;
@@ -66,6 +79,10 @@ extension ComposeContentAutocomplete on ComposeContentController {
         final match = _emojiIntentRegex.matchAsPrefix(textUntilCursor, pos);
         if (match == null) continue;
         query = EmojiAutocompleteQuery(match[1]!);
+      } else if (charAtPos == '#') {
+        final match = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
+        if (match == null) continue;
+        query = ChannelLinkAutocompleteQuery(match[1] ?? match[2]!);
       } else {
         continue;
       }
@@ -164,6 +181,60 @@ final RegExp _emojiIntentRegex = (() {
       + r'[-\s' + nameCharacters + r']*'
     + r')$');
 })();
+
+final RegExp _channelLinkIntentRegex = () {
+  // What's likely to come just before #channel syntax: the start of the string,
+  // whitespace, or punctuation. Letters are unlikely; in that case a GitHub-
+  // style "zulip/zulip-flutter#124" link might be intended (as on CZO where
+  // there's a custom linkifier for that).
+  //
+  // Only some punctuation, like "(", is actually likely here. We don't
+  // currently try to be specific about that, except we exclude "#" and "@"
+  // in order to allow typing "##channel" for the channel query "#channel"
+  // and "@#user" for the mention query "#user". See discussion:
+  //   https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/channel.20autocomplete.3A.20channels.20with.20.22.23.22.20in.20name/near/2288883
+  const before = r'(?<=^|\s|\p{Punctuation})(?<![#@])';
+  // TODO(dart-future): Regexps in ES 2024 have a /v aka unicodeSets flag;
+  //   if Dart matches that, we could combine into one character class
+  //   meaning "whitespace and punctuation, except not `#` or `@`":
+  //     r'(?<=^|[[\s\p{Punctuation}]--[#@]])'
+
+  // In a channel name, the server accepts a wide range of characters.
+  // It excludes only portions of the `\p{C}` major category,
+  // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
+  //   - https://github.com/zulip/zulip/blob/9467296e0/zerver/lib/string_validation.py#L8-L56
+  //
+  // TODO: match the server constraints
+  const nameCharExclusions = r'\r\n';
+
+  // TODO(upstream): maybe use duplicate-named capture groups for better readability?
+  //   https://github.com/dart-lang/sdk/issues/61337
+  return RegExp(unicode: true,
+    before
+    + r'#'
+    // As Web, match both '#channel' and '#**channel'. In both cases, the raw
+    // query is going to be 'channel'. Matching the second case ('#**channel')
+    // is useful when the user selects a channel from the autocomplete list, but
+    // then starts pressing "backspace" to edit the query and choose another
+    // option, instead of clearing the entire query and starting from scratch.
+    + r'(?:'
+      // Case '#channel': right after '#', reject whitespace as well as '**'.
+      + r'(?!\s|\*\*)([^' + nameCharExclusions + r']*)'
+      + r'|'
+      // Case '#**channel': right after '#**', reject whitespace.
+      // Also, make sure that the remaining query doesn't contain '**',
+      // otherwise '#**channel**' (which is a completed channel link syntax) and
+      // any text followed by that will always match.
+      + r'\*\*(?!\s)'
+      + r'((?:'
+        + r'[^*' + nameCharExclusions + r']'
+        + r'|'
+        + r'\*[^*' + nameCharExclusions + r']'
+        + r'|'
+        + r'\*$'
+      + r')*)'
+    + r')$');
+}();
 
 /// The text controller's recognition that the user might want autocomplete UI.
 class AutocompleteIntent<QueryT extends AutocompleteQuery> {

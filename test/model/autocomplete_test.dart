@@ -76,12 +76,15 @@ void main() {
     ///
     /// For example, "~@chris^" means the text is "@chris", the selection is
     /// collapsed at index 6, and we expect the syntax to start at index 0.
-    void doTest(String markedText, ComposeAutocompleteQuery? expectedQuery) {
+    void doTest(String markedText, ComposeAutocompleteQuery? expectedQuery, {
+      int? maxChannelName,
+    }) {
       final description = expectedQuery != null
         ? 'in ${jsonEncode(markedText)}, query ${jsonEncode(expectedQuery.raw)}'
         : 'no query in ${jsonEncode(markedText)}';
       test(description, () {
-        final store = eg.store();
+        final store = eg.store(initialSnapshot:
+          eg.initialSnapshot(maxChannelNameLength: maxChannelName));
         final controller = ComposeContentController(store: store);
         final parsed = parseMarkedText(markedText);
         assert((expectedQuery == null) == (parsed.expectedSyntaxStart == null));
@@ -98,6 +101,7 @@ void main() {
 
     MentionAutocompleteQuery mention(String raw) => MentionAutocompleteQuery(raw, silent: false);
     MentionAutocompleteQuery silentMention(String raw) => MentionAutocompleteQuery(raw, silent: true);
+    ChannelLinkAutocompleteQuery channelLink(String raw) => ChannelLinkAutocompleteQuery(raw);
     EmojiAutocompleteQuery emoji(String raw) => EmojiAutocompleteQuery(raw);
 
     doTest('', null);
@@ -179,8 +183,13 @@ void main() {
     doTest('~@_Rodion Romanovich Raskolniko^', silentMention('Rodion Romanovich Raskolniko'));
     doTest('~@Родион Романович Раскольников^', mention('Родион Романович Раскольников'));
     doTest('~@_Родион Романович Раскольнико^', silentMention('Родион Романович Раскольнико'));
-    doTest('If @chris is around, please ask him.^', null); // @ sign is too far away from cursor
-    doTest('If @_chris is around, please ask him.^', null); // @ sign is too far away from cursor
+
+    // "@" sign can be (3 + 2 * maxChannelName) utf-16 code units
+    // away to the left of the cursor.
+    doTest('If ~@chris^ is around, please ask him.', mention('chris'), maxChannelName: 10);
+    doTest('If ~@_chris is^ around, please ask him.', silentMention('chris is'), maxChannelName: 10);
+    doTest('If @chris is around, please ask him.^', null, maxChannelName: 10);
+    doTest('If @_chris is around, please ask him.^', null, maxChannelName: 10);
 
     // Emoji (":smile:").
 
@@ -259,6 +268,90 @@ void main() {
     doTest(',~:^', emoji('')); doTest(',~:a^', emoji('a'));
     doTest('，~:^', emoji('')); doTest('，~:a^', emoji('a'));
     doTest('。~:^', emoji('')); doTest('。~:a^', emoji('a'));
+
+    // #channel links.
+
+    doTest('^#',    null);
+    doTest('^#abc', null);
+    doTest('#abc',  null); // (no cursor)
+
+    // Link syntax can be at the start of a string.
+    doTest('~#^',    channelLink(''));
+    doTest('~##^',   channelLink('#'));
+    doTest('~#abc^', channelLink('abc'));
+
+    // Link syntax can contain multiple words.
+    doTest('~#abc ^',    channelLink('abc '));
+    doTest('~#abc def^', channelLink('abc def'));
+
+    // Link syntax can come after a word or space.
+    doTest('xyz ~#abc^', channelLink('abc'));
+    doTest(' ~#abc^',    channelLink('abc'));
+
+    // Link syntax can come after punctuation…
+    doTest(':~#abc^', channelLink('abc'));
+    doTest('!~#abc^', channelLink('abc'));
+    doTest(',~#abc^', channelLink('abc'));
+    doTest('.~#abc^', channelLink('abc'));
+    doTest('(~#abc^', channelLink('abc')); doTest(')~#abc^', channelLink('abc'));
+    doTest('{~#abc^', channelLink('abc')); doTest('}~#abc^', channelLink('abc'));
+    doTest('[~#abc^', channelLink('abc')); doTest(']~#abc^', channelLink('abc'));
+    doTest('“~#abc^', channelLink('abc')); doTest('”~#abc^', channelLink('abc'));
+    doTest('«~#abc^', channelLink('abc')); doTest('»~#abc^', channelLink('abc'));
+    // … except for '#' and '@', because they start
+    // channel link and mention syntaxes, respectively.
+    doTest('~##abc^', channelLink('#abc'));
+    doTest('~@#abc^', mention('#abc'));
+
+    // Avoid interpreting as queries a URL or a common linkifier syntax.
+    doTest('https://example.com/docs#install^', null);
+    doTest('zulip/zulip-flutter#124^',          null);
+
+    // Query can't start with a space; channel names don't.
+    doTest('# ^',    null);
+    doTest('# abc^', null);
+
+    // Query shouldn't be multiple lines.
+    doTest('#\n^',   null); doTest('#a\n^',   null); doTest('#\na^',   null); doTest('#a\nb^',   null);
+    doTest('#\r^',   null); doTest('#a\r^',   null); doTest('#\ra^',   null); doTest('#a\rb^',   null);
+    doTest('#\r\n^', null); doTest('#a\r\n^', null); doTest('#\r\na^', null); doTest('#a\r\nb^', null);
+
+    // Query can contain a wide range of characters.
+    doTest('~#`^', channelLink('`')); doTest('~#a`b^', channelLink('a`b'));
+    doTest('~#"^', channelLink('"')); doTest('~#a"b^', channelLink('a"b'));
+    doTest('~#>^', channelLink('>')); doTest('~#a>b^', channelLink('a>b'));
+    doTest('~#&^', channelLink('&')); doTest('~#a&b^', channelLink('a&b'));
+    doTest('~#_^', channelLink('_')); doTest('~#a_b^', channelLink('a_b'));
+    doTest('~#*^', channelLink('*')); doTest('~#a*b^', channelLink('a*b'));
+
+    // Avoid interpreting already-entered `#**foo**` syntax as queries.
+    doTest('#**abc**^',     null);
+    doTest('#**abc** ^',    null);
+    doTest('#**abc** def^', null);
+
+    // Accept syntax like "#**foo" (as from the user finishing an autocomplete
+    // and then hitting backspace to edit it), but leave the "**" out of the query.
+    doTest('~#**^',        channelLink(''));
+    doTest('~#**abc^',     channelLink('abc'));
+    doTest('~#**abc ^',    channelLink('abc '));
+    doTest('~#**abc def^', channelLink('abc def'));
+    doTest('~#**ab*c^',    channelLink('ab*c'));
+    doTest('~#**abc*^',    channelLink('abc*'));
+    doTest('#** ^',     null);
+    doTest('#** abc^',  null);
+    doTest('#**a\n^',   null); doTest('#**\na^',   null); doTest('#**a\nb^',   null);
+    doTest('#**a\r^',   null); doTest('#**\ra^',   null); doTest('#**a\rb^',   null);
+    doTest('#**a\r\n^', null); doTest('#**\r\na^', null); doTest('#**a\r\nb^', null);
+
+    // "#" sign can be (3 + 2 * maxChannelName) utf-16 code units
+    // away to the left of the cursor.
+    doTest('check ~#**mobile dev^ team', channelLink('mobile dev'), maxChannelName: 5);
+    doTest('check ~#mobile dev t^eam', channelLink('mobile dev t'), maxChannelName: 5);
+    doTest('check #mobile dev te^am', null, maxChannelName: 5);
+    doTest('check #mobile dev team for more info^', null, maxChannelName: 5);
+    // '🙂' is 2 utf-16 code units.
+    doTest('check ~#**🙂🙂🙂🙂🙂^', channelLink('🙂🙂🙂🙂🙂'), maxChannelName: 5);
+    doTest('check #**🙂🙂🙂🙂🙂🙂^', null, maxChannelName: 5);
   });
 
   test('MentionAutocompleteView misc', () async {
