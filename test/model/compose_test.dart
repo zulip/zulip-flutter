@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/store.dart';
@@ -331,6 +332,80 @@ hello
         check(userGroupMention(userGroup.name, silent: true))
           .equals('@_*Group Name*');
       });
+    });
+  });
+
+  test('fallbackMarkdownLink', () async {
+    final store = eg.store();
+    final channels = [
+      eg.stream(streamId: 1, name: '`code`'),
+      eg.stream(streamId: 2, name: 'score > 90'),
+      eg.stream(streamId: 3, name: 'A*'),
+      eg.stream(streamId: 4, name: 'R&D'),
+      eg.stream(streamId: 5, name: 'UI [v2]'),
+      eg.stream(streamId: 6, name: r'Save $$'),
+    ];
+    await store.addStreams(channels);
+
+    check(fallbackMarkdownLink(store: store,
+        channel: channels[1 - 1]))
+      .equals('[&#96;code&#96;](#narrow/channel/1-.60code.60)');
+    check(fallbackMarkdownLink(store: store,
+        channel: channels[2 - 1], topic: TopicName('topic')))
+      .equals('[score &gt; 90 > topic](#narrow/channel/2-score-.3E-90/topic/topic)');
+    check(fallbackMarkdownLink(store: store,
+        channel: channels[3 - 1], topic: TopicName('R&D')))
+      .equals('[A&#42; > R&amp;D](#narrow/channel/3-A*/topic/R.26D)');
+    check(fallbackMarkdownLink(store: store,
+        channel: channels[4 - 1], topic: TopicName('topic'), nearMessageId: 10))
+      .equals('[R&amp;D > topic @ 💬](#narrow/channel/4-R.26D/topic/topic/near/10)');
+    check(fallbackMarkdownLink(store: store,
+        channel: channels[5 - 1], topic: TopicName(r'Save $$'), nearMessageId: 10))
+      .equals('[UI &#91;v2&#93; > Save &#36;&#36; @ 💬](#narrow/channel/5-UI-.5Bv2.5D/topic/Save.20.24.24/near/10)');
+    check(() => fallbackMarkdownLink(store: store,
+        channel: channels[6 - 1], nearMessageId: 10))
+      .throws<AssertionError>();
+  });
+
+  group('channel link syntax', () {
+    test('channels with normal names', () async {
+      final store = eg.store();
+      final channels = [
+        eg.stream(name: 'mobile'),
+        eg.stream(name: 'dev-ops'),
+        eg.stream(name: 'ui/ux'),
+        eg.stream(name: 'api_v3'),
+        eg.stream(name: 'build+test'),
+        eg.stream(name: 'init()'),
+      ];
+      await store.addStreams(channels);
+
+      check(channelLinkSyntax(channels[0], store: store)).equals('#**mobile**');
+      check(channelLinkSyntax(channels[1], store: store)).equals('#**dev-ops**');
+      check(channelLinkSyntax(channels[2], store: store)).equals('#**ui/ux**');
+      check(channelLinkSyntax(channels[3], store: store)).equals('#**api_v3**');
+      check(channelLinkSyntax(channels[4], store: store)).equals('#**build+test**');
+      check(channelLinkSyntax(channels[5], store: store)).equals('#**init()**');
+    });
+
+    test('channels with names containing faulty characters', () async {
+      final store = eg.store();
+      final channels = [
+        eg.stream(streamId: 1, name: '`code`'),
+        eg.stream(streamId: 2, name: 'score > 90'),
+        eg.stream(streamId: 3, name: 'A*'),
+        eg.stream(streamId: 4, name: 'R&D'),
+        eg.stream(streamId: 5, name: 'UI [v2]'),
+        eg.stream(streamId: 6, name: r'Save $$'),
+      ];
+      await store.addStreams(channels);
+
+      check(channelLinkSyntax(channels[1 - 1], store: store)).equals('[&#96;code&#96;](#narrow/channel/1-.60code.60)');
+      check(channelLinkSyntax(channels[2 - 1], store: store)).equals('[score &gt; 90](#narrow/channel/2-score-.3E-90)');
+      check(channelLinkSyntax(channels[3 - 1], store: store)).equals('[A&#42;](#narrow/channel/3-A*)');
+      check(channelLinkSyntax(channels[4 - 1], store: store)).equals('[R&amp;D](#narrow/channel/4-R.26D)');
+      check(channelLinkSyntax(channels[5 - 1], store: store)).equals('[UI &#91;v2&#93;](#narrow/channel/5-UI-.5Bv2.5D)');
+      check(channelLinkSyntax(channels[6 - 1], store: store)).equals('[Save &#36;&#36;](#narrow/channel/6-Save-.24.24)');
     });
   });
 
