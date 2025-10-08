@@ -175,15 +175,29 @@ class BottomSheetHeader extends StatelessWidget {
 
     final baseTitleStyle = TextStyle(
       fontSize: 20,
-      height: 20 / 20,
+      // More height than in Figma, but it was looking too tight:
+      //   https://github.com/zulip/zulip-flutter/pull/1877#issuecomment-3379664807
+      // (See use of TextHeightBehavior below.)
+      height: 24 / 20,
       color: designVariables.title,
     ).merge(weightVariableTextStyle(context, wght: 600));
 
-    final effectiveTitle = switch ((buildTitle, title)) {
+    Widget? effectiveTitle = switch ((buildTitle, title)) {
       (final build?, null) => build(baseTitleStyle),
       (null,  final data?) => Text(style: baseTitleStyle, data),
       _                    => null,
     };
+
+    if (effectiveTitle != null) {
+      effectiveTitle = DefaultTextHeightBehavior(
+        textHeightBehavior: TextHeightBehavior(
+          // We want some breathing room between lines,
+          // without adding margin above or below the title.
+          applyHeightToFirstAscent: false,
+          applyHeightToLastDescent: false,
+        ),
+        child: effectiveTitle);
+    }
 
     final baseMessageStyle = TextStyle(
       color: designVariables.labelTime,
