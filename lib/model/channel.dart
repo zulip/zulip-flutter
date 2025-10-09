@@ -398,13 +398,15 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
         // details will come in a later `subscription` event.)
 
       case ChannelDeleteEvent():
-        for (final stream in event.streams) {
-          assert(identical(streams[stream.streamId], streamsByName[stream.name]));
-          assert(subscriptions[stream.streamId] == null
-            || identical(subscriptions[stream.streamId], streams[stream.streamId]));
-          streams.remove(stream.streamId);
-          streamsByName.remove(stream.name);
-          subscriptions.remove(stream.streamId);
+        for (final channelId in event.channelIds) {
+          final channel = streams.remove(channelId);
+          if (channel == null) continue; // TODO(log)
+          assert(channelId == channel.streamId);
+          assert(identical(channel, streamsByName[channel.name]));
+          assert(subscriptions[channelId] == null
+            || identical(subscriptions[channelId], channel));
+          streamsByName.remove(channel.name);
+          subscriptions.remove(channelId);
         }
 
       case ChannelUpdateEvent():
