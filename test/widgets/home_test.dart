@@ -117,18 +117,27 @@ void main () {
       check(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text('Inbox'))).findsOne();
+      check(find.descendant(
+          of: find.byType(ZulipAppBar),
+          matching: find.bySemanticsLabel(RegExp("Inbox")))).findsOne();
 
       await tester.tap(find.byIcon(ZulipIcons.hash_italic));
       await tester.pump();
       check(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text('Channels'))).findsOne();
+      check(find.descendant(
+          of: find.byType(ZulipAppBar),
+          matching: find.bySemanticsLabel(RegExp("Channels")))).findsOne();
 
       await tester.tap(find.byIcon(ZulipIcons.two_person));
       await tester.pump();
       check(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text('Direct messages'))).findsOne();
+      check(find.descendant(
+          of: find.byType(ZulipAppBar),
+          matching: find.bySemanticsLabel(RegExp("Direct messages")))).findsOne();
     });
 
     testWidgets('combined feed', (tester) async {

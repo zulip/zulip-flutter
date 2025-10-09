@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
@@ -74,14 +75,21 @@ class _HomePageState extends State<HomePage> {
 
   String get _currentTabTitle {
     final zulipLocalizations = ZulipLocalizations.of(context);
+    String pageTitle;
     switch(_tab.value) {
       case _HomePageTab.inbox:
-        return zulipLocalizations.inboxPageTitle;
+        pageTitle = zulipLocalizations.inboxPageTitle;
+        break;
       case _HomePageTab.channels:
-        return zulipLocalizations.channelsPageTitle;
+        pageTitle = zulipLocalizations.channelsPageTitle;
+        break;
       case _HomePageTab.directMessages:
-        return zulipLocalizations.recentDmConversationsPageTitle;
+        pageTitle = zulipLocalizations.recentDmConversationsPageTitle;
     }
+
+    SemanticsService.sendAnnouncement(View.of(context), pageTitle,
+      Directionality.of(context));
+    return pageTitle;
   }
 
   @override
@@ -132,9 +140,6 @@ class _HomePageState extends State<HomePage> {
       body: Stack(
         children: [
           for (final (tab, body) in pageBodies)
-            // TODO(#535): Decide if we find it helpful to use something like
-            //   [SemanticsProperties.namesRoute] to structure this UI better
-            //   for screen-reader software.
             Offstage(offstage: tab != _tab.value, child: body),
         ]),
       bottomNavigationBar: DecoratedBox(
@@ -304,6 +309,8 @@ void _showMainMenu(BuildContext context, {
     // TODO(#1095): VersionInfo
   ];
 
+  SemanticsService.sendAnnouncement(View.of(context),
+      ZulipLocalizations.of(context).navBarMenuLabel, Directionality.of(context));
   final designVariables = DesignVariables.of(context);
   final accountId = PerAccountStoreWidget.accountIdOf(context);
   showModalBottomSheet<void>(
