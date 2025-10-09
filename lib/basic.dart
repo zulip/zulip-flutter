@@ -66,3 +66,6 @@ class OptionSome<T> extends Option<T> {
   @override
   String toString() => 'OptionSome($value)';
 }
+
+/// Returns [object] as [T] if it matches the type, otherwise `null`.
+T? tryCast<T>(dynamic object) => object is T ? object : null;
