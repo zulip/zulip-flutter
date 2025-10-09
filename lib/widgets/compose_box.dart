@@ -2136,8 +2136,17 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       case ChannelNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         final channel = store.streams[streamId];
-        if (channel == null || !store.selfCanSendMessage(inChannel: channel,
-            byDate: DateTime.now())) {
+        if (channel == null) {
+          return _Banner(
+            intent: _BannerIntent.info,
+            // TODO this doesn't seem like exactly the right message --
+            //   it makes it sound like the channel exists, which might not be
+            //   true. (We'll get here if the channel doesn't exist or if it
+            //   exists but we don't have permission to know about it.)
+            label: zulipLocalizations.errorBannerCannotPostInChannelLabel);
+        }
+
+        if (!store.selfCanSendMessage(inChannel: channel, byDate: DateTime.now())) {
           return _Banner(
             intent: _BannerIntent.info,
             label: zulipLocalizations.errorBannerCannotPostInChannelLabel);
