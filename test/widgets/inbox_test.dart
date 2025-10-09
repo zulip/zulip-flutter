@@ -9,9 +9,11 @@ import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/channel_colors.dart';
+import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/theme.dart';
 import 'package:zulip/widgets/unread_count_badge.dart';
 
+import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
@@ -231,6 +233,42 @@ void main() {
 
     // TODO test that tapping a conversation row opens the message list
     //   for the conversation
+    group('navigation', () {
+      testWidgets('tapping a topic row opens the message list', (tester) async {
+          final stream = eg.stream();
+          final subscription = eg.subscription(stream);
+          const topic = 'lunch';
+          final message = eg.streamMessage(stream: stream, topic: topic);
+
+          await setupPage(tester,
+              streams: [stream],
+              subscriptions: [subscription],
+              unreadMessages: [message]);
+
+          final connection = store.connection as FakeApiConnection;
+
+          connection.prepare(
+            json: eg.newestGetMessagesResult(messages: [
+              eg.streamMessage(stream: stream, topic: topic,
+                flags: [MessageFlag.read]),
+            ], foundOldest: false).toJson(),
+          );
+
+          connection.prepare(
+            json: eg.newestGetMessagesResult(messages: [], foundOldest: true).toJson(),
+          );
+
+          await tester.tap(find.text(topic));
+          await tester.pumpAndSettle();
+
+          check(find.byType(HomePage)).findsNothing();
+          check(find.byType(MessageListPage)).findsOne();
+
+          check(find.text(topic)).findsAny();
+
+      });
+
+    });
 
     // Tests for the topic action sheet are in test/widgets/action_sheet_test.dart.
 
