@@ -800,6 +800,11 @@ class PerAccountStore extends PerAccountStoreBase with
       case UserGroupEvent():
         assert(debugLog("server event: user_group/${event.op}"));
         _groups.handleUserGroupEvent(event);
+        if (event is UserGroupRemoveEvent) {
+          autocompleteViewManager.handleUserGroupRemoveEvent(event);
+        } else if (event is UserGroupUpdateEvent) {
+          autocompleteViewManager.handleUserGroupUpdateEvent(event);
+        }
         notifyListeners();
 
       case RealmUserAddEvent():
