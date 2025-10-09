@@ -231,8 +231,6 @@ void main() {
       check(text).style.isNotNull().color.isNotNull().isSameColorAs(expectedTextColor);
     });
 
-    // TODO test that tapping a conversation row opens the message list
-    //   for the conversation
     group('navigation', () {
       testWidgets('tapping a topic row opens the message list', (tester) async {
           final stream = eg.stream();
@@ -266,6 +264,35 @@ void main() {
 
           check(find.text(topic)).findsAny();
 
+      });
+
+      testWidgets('tapping a DM row opens the message list', (tester) async {
+        final otherUser = eg.otherUser;
+        final message = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
+
+        await setupPage(tester,
+            users: [eg.selfUser, otherUser],
+            unreadMessages: [message]);
+
+        final connection = store.connection as FakeApiConnection;
+
+        connection.prepare(
+          json: eg.newestGetMessagesResult(messages: [
+            eg.dmMessage(from: otherUser, to: [eg.selfUser], flags: [MessageFlag.read]),
+          ], foundOldest: false).toJson(),
+        );
+
+        connection.prepare(
+          json: eg.newestGetMessagesResult(messages: [], foundOldest: true).toJson(),
+        );
+
+        await tester.tap(find.text(otherUser.fullName));
+        await tester.pumpAndSettle();
+
+        check(find.byType(HomePage)).findsNothing();
+        check(find.byType(MessageListPage)).findsOne();
+
+        check(find.text(otherUser.fullName)).findsAny();
       });
 
     });
