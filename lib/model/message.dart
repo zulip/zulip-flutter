@@ -556,8 +556,7 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
   }
 
   void handleChannelDeleteEvent(ChannelDeleteEvent event) {
-    final channelIds = event.streams.map((channel) => channel.streamId);
-    _handleSubscriptionsRemoved(channelIds);
+    _handleSubscriptionsRemoved(event.channelIds);
   }
 
   void handleSubscriptionRemoveEvent(SubscriptionRemoveEvent event) {
