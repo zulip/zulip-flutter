@@ -862,7 +862,7 @@ void main() {
       // Then prepare an event on which handleEvent will throw
       // because it hits that broken invariant.
       connection.prepare(json: GetEventsResult(events: [
-        ChannelDeleteEvent(id: 1, streams: [stream]),
+        ChannelDeleteEvent(id: 1, channelIds: [stream.streamId]),
       ], queueId: null).toJson());
     }
 

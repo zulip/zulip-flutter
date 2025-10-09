@@ -637,7 +637,7 @@ void main() {
           // Subscribe, to mark message as not-stale, setting up another check…
           await store.addSubscription(eg.subscription(otherChannel));
 
-          await store.handleEvent(ChannelDeleteEvent(id: 1, streams: [otherChannel]));
+          await store.handleEvent(ChannelDeleteEvent(id: 1, channelIds: [otherChannel.streamId]));
           // Message was in a channel that became unknown, so clobber.
           checkClobber();
         });
