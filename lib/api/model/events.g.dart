@@ -410,8 +410,11 @@ Map<String, dynamic> _$ChannelCreateEventToJson(ChannelCreateEvent instance) =>
 ChannelDeleteEvent _$ChannelDeleteEventFromJson(Map<String, dynamic> json) =>
     ChannelDeleteEvent(
       id: (json['id'] as num).toInt(),
-      streams: (json['streams'] as List<dynamic>)
-          .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
+      streams: (json['streams'] as List<dynamic>?)
+          ?.map((e) => ZulipStreamId.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      streamIds: (json['stream_ids'] as List<dynamic>?)
+          ?.map((e) => (e as num).toInt())
           .toList(),
     );
 
@@ -421,7 +424,14 @@ Map<String, dynamic> _$ChannelDeleteEventToJson(ChannelDeleteEvent instance) =>
       'type': instance.type,
       'op': instance.op,
       'streams': instance.streams,
+      'stream_ids': instance.streamIds,
     };
+
+ZulipStreamId _$ZulipStreamIdFromJson(Map<String, dynamic> json) =>
+    ZulipStreamId(streamId: (json['stream_id'] as num).toInt());
+
+Map<String, dynamic> _$ZulipStreamIdToJson(ZulipStreamId instance) =>
+    <String, dynamic>{'stream_id': instance.streamId};
 
 ChannelUpdateEvent _$ChannelUpdateEventFromJson(Map<String, dynamic> json) =>
     ChannelUpdateEvent(

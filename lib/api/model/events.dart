@@ -616,15 +616,32 @@ class ChannelDeleteEvent extends ChannelEvent {
   @JsonKey(includeToJson: true)
   String get op => 'delete';
 
-  final List<ZulipStream> streams;
+  final List<ZulipStreamId>? streams; // TODO(server-10): remove
+  final List<int>? streamIds; // TODO(server-10): remove nullability
 
-  ChannelDeleteEvent({required super.id, required this.streams});
+  ChannelDeleteEvent({
+    required super.id,
+    this.streams,
+    required this.streamIds,
+  }) : assert(streams != null || streamIds != null);
 
   factory ChannelDeleteEvent.fromJson(Map<String, dynamic> json) =>
     _$ChannelDeleteEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$ChannelDeleteEventToJson(this);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class ZulipStreamId {
+  final int streamId;
+
+  ZulipStreamId({required this.streamId});
+
+  factory ZulipStreamId.fromJson(Map<String, dynamic> json) =>
+    _$ZulipStreamIdFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ZulipStreamIdToJson(this);
 }
 
 /// A [ChannelEvent] with op `update`: https://zulip.com/api/get-events#stream-update
