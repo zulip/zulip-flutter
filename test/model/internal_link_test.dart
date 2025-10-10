@@ -586,6 +586,34 @@ void main() {
       });
     });
   });
+
+  group('parseInternalLink uploads', () {
+    for (final (expectParse, urlPath) in [
+      (true,  '/user_uploads/123/abc.pdf'),
+      (true,  '/user_uploads/123/4/ab/5/cde'),
+      (false, '/user_uploads/123/'),
+      (false, '/user_uploads/123'),
+      (false, '/user_uploads/'),
+      (false, '/user_uploads'),
+      (false, '/user_uploads//abc.pdf'),
+      (false, '/user_uploads/-123/abc.pdf'),
+      (false, '/user_upload/123/abc.pdf'),
+    ]) {
+      test('$urlPath -> ${expectParse ? 'parse' : 'reject'}', () {
+        final store = eg.store();
+        final url = store.tryResolveUrl(urlPath)!;
+        final result = parseInternalLink(url, store);
+        if (!expectParse) {
+          check(result).isNull();
+        } else {
+          check(result).isA<UserUploadLink>();
+          result as UserUploadLink;
+          final reconstructedPath = '/user_uploads/${result.realmId}/${result.path}';
+          check(reconstructedPath).equals(urlPath);
+        }
+      });
+    }
+  });
 }
 
 extension InternalLinkChecks on Subject<InternalLink> {

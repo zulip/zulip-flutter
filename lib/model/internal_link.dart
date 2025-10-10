@@ -128,6 +128,36 @@ class NarrowLink extends InternalLink {
   final int? nearMessageId;
 }
 
+/// A parsed link to an uploaded file in Zulip.
+///
+/// The structure mirrors the data required for [getFileTemporaryUrl]:
+///   https://zulip.com/api/get-file-temporary-url
+class UserUploadLink extends InternalLink {
+  UserUploadLink(this.realmId, this.path, {required super.realmUrl});
+
+  static UserUploadLink? _tryParse(String urlPath, Uri realmUrl) {
+    final match = _urlPathRegexp.matchAsPrefix(urlPath);
+    if (match == null) return null;
+    final realmId = int.parse(match.group(1)!, radix: 10);
+    return UserUploadLink(realmId, match.group(2)!, realmUrl: realmUrl);
+  }
+
+  static const _urlPathPrefix = '/user_uploads/';
+  static final _urlPathRegexp = RegExp(r'^/user_uploads/(\d+)/(.+)$');
+
+  final int realmId;
+
+  /// The remaining path components after the realm ID.
+  ///
+  /// This excludes the slash that separates the realm ID from the
+  /// next component, but includes the rest of the URL path after that slash.
+  ///
+  /// This corresponds to `filename` in the arguments to [getFileTemporaryUrl];
+  /// but it's typically several path components,
+  /// not just one as that name would suggest.
+  final String path;
+}
+
 /// Try to parse the given URL as a page in this app, on `store`'s realm.
 ///
 /// `url` must already be a result from [PerAccountStore.tryResolveUrl]
@@ -161,6 +191,8 @@ InternalLink? parseInternalLink(Uri url, PerAccountStore store) {
         if (segments.isEmpty || !segments.length.isEven) return null;
         return _interpretNarrowSegments(segments, store);
     }
+  } else if (url.path.startsWith(UserUploadLink._urlPathPrefix)) {
+    return UserUploadLink._tryParse(url.path, store.realmUrl);
   }
 
   return null;
