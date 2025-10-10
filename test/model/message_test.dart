@@ -533,19 +533,31 @@ void main() {
       });
     });
 
-    test('on ID collision, new message does not clobber old in store.messages', () async {
-      await prepare();
-      final message = eg.streamMessage(id: 1, content: '<p>foo</p>');
-      await addMessages([message]);
-      check(store.messages).deepEquals({1: message});
-      final newMessage = eg.streamMessage(id: 1, content: '<p>bar</p>');
-      final messages = [newMessage];
-      store.reconcileMessages(messages);
-      check(messages).deepEquals(
-        // (We'll check more messages in an upcoming commit.)
-        [message].map(conditionIdentical));
-      check(store.messages).deepEquals({1: message});
-    });
+    test(
+      'on fetched message with ID already in store.messages, '
+      'fetched does not clobber existing except in unsubscribed channel',
+      () async {
+        await prepare();
+
+        final otherChannel = eg.stream();
+        await store.addStream(otherChannel);
+        check(store.subscriptions[otherChannel.streamId]).isNull();
+
+        final message1 = eg.streamMessage(id: 1, content: '<p>foo</p>');
+        final message2 = eg.streamMessage(id: 2, content: '<p>foo</p>', stream: otherChannel);
+        final message3 = eg.streamMessage(id: 3, content: '<p>foo</p>');
+        await addMessages([message1, message2, message3]);
+        check(store.messages).deepEquals({1: message1, 2: message2, 3: message3});
+        final newMessage1 = eg.streamMessage(id: 1, content: '<p>bar</p>');
+        final newMessage2 = eg.streamMessage(id: 2, content: '<p>bar</p>', stream: otherChannel);
+        final newMessage3 = eg.streamMessage(id: 3, content: '<p>bar</p>');
+        final messages = [newMessage1, newMessage2, newMessage3];
+        store.reconcileMessages(messages);
+        check(messages).deepEquals(
+          [message1, newMessage2, message3].map(conditionIdentical));
+        check(store.messages)
+          .deepEquals({1: message1, 2: newMessage2, 3: message3});
+      });
 
     test('matchContent and matchTopic are removed', () async {
       await prepare();
