@@ -278,6 +278,10 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
       'Could not fetch message source.';
 
   @override
+  String get errorCouldNotAccessUploadedFileTitle =>
+      'Could not access uploaded file';
+
+  @override
   String get errorCopyingFailed => 'Copying failed';
 
   @override

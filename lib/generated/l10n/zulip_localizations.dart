@@ -593,6 +593,12 @@ abstract class ZulipLocalizations {
   /// **'Could not fetch message source.'**
   String get errorCouldNotFetchMessageSource;
 
+  /// Error title on failure in opening a file someone previously uploaded to Zulip
+  ///
+  /// In en, this message translates to:
+  /// **'Could not access uploaded file'**
+  String get errorCouldNotAccessUploadedFileTitle;
+
   /// Error message when copying the text of a message to the user's system clipboard failed.
   ///
   /// In en, this message translates to:

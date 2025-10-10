@@ -287,6 +287,10 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
       'Ni bilo mogoče pridobiti vira sporočila.';
 
   @override
+  String get errorCouldNotAccessUploadedFileTitle =>
+      'Could not access uploaded file';
+
+  @override
   String get errorCopyingFailed => 'Kopiranje ni uspelo';
 
   @override

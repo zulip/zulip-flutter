@@ -284,6 +284,10 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Impossibile recuperare l\'origine del messaggio.';
 
   @override
+  String get errorCouldNotAccessUploadedFileTitle =>
+      'Could not access uploaded file';
+
+  @override
   String get errorCopyingFailed => 'Copia non riuscita';
 
   @override
