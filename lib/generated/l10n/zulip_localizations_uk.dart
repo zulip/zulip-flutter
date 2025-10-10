@@ -1054,6 +1054,15 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Повідомити канал';
 
   @override
+  String get navBarFeedLabel => 'Combined feed';
+
+  @override
+  String get navBarDmLabel => 'DMs';
+
+  @override
+  String get navBarMenuLabel => 'Menu';
+
+  @override
   String get messageIsEditedLabel => 'РЕДАГОВАНО';
 
   @override

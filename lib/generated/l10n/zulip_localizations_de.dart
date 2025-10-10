@@ -1061,6 +1061,15 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Thema benachrichtigen';
 
   @override
+  String get navBarFeedLabel => 'Combined feed';
+
+  @override
+  String get navBarDmLabel => 'DMs';
+
+  @override
+  String get navBarMenuLabel => 'Menu';
+
+  @override
   String get messageIsEditedLabel => 'BEARBEITET';
 
   @override
