@@ -498,6 +498,9 @@ void main() {
   });
 
   group('reconcileMessages', () {
+    Condition<Object?> conditionIdentical<T>(T element) =>
+      (it) => it.identicalTo(element);
+
     test('from empty', () async {
       await prepare();
       check(store.messages).isEmpty();
@@ -507,8 +510,7 @@ void main() {
       final messages = <Message>[message1, message2, message3];
       store.reconcileMessages(messages);
       check(messages).deepEquals(
-        [message1, message2, message3]
-          .map((m) => (Subject<Object?> it) => it.identicalTo(m)));
+        [message1, message2, message3].map(conditionIdentical));
       check(store.messages).deepEquals({
         for (final m in messages) m.id: m,
       });
@@ -524,8 +526,7 @@ void main() {
       final newMessage = eg.streamMessage();
       store.reconcileMessages([newMessage]);
       check(messages).deepEquals(
-        [message1, message2, message3]
-          .map((m) => (Subject<Object?> it) => it.identicalTo(m)));
+        [message1, message2, message3].map(conditionIdentical));
       check(store.messages).deepEquals({
         for (final m in messages) m.id: m,
         newMessage.id: newMessage,
@@ -540,7 +541,9 @@ void main() {
       final newMessage = eg.streamMessage(id: 1, content: '<p>bar</p>');
       final messages = [newMessage];
       store.reconcileMessages(messages);
-      check(messages).single.identicalTo(message);
+      check(messages).deepEquals(
+        // (We'll check more messages in an upcoming commit.)
+        [message].map(conditionIdentical));
       check(store.messages).deepEquals({1: message});
     });
 
