@@ -7,9 +7,11 @@ import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/model/narrow.dart';
 import '../api/route/messages.dart';
+import '../api/route/messages.dart' as messages_api;
 import '../api/route/channels.dart' as channels_api;
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
+import '../model/internal_link.dart';
 import '../model/narrow.dart';
 import '../model/realm.dart';
 import 'dialog.dart';
@@ -239,6 +241,42 @@ abstract final class ZulipAction {
     }
 
     return fetchedMessage?.content;
+  }
+
+  /// Fetch and parse a URL from [messages_api.getFileTemporaryUrl];
+  /// on failure, show an error dialog and return null.
+  static Future<Uri?> getFileTemporaryUrl(BuildContext context, UserUploadLink link) async {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    String? resultUrl;
+    try {
+      final store = PerAccountStoreWidget.of(context);
+      resultUrl = (await messages_api.getFileTemporaryUrl(store.connection,
+        realmId: link.realmId, filename: link.path)).url;
+    } catch (e) {
+      if (!context.mounted) return null;
+      final errorMessage = switch (e) {
+        ZulipApiException() => e.message,
+        // TODO specific messages for common errors, like network errors
+        //   (support with reusable code)
+        _ => null,
+      };
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorCouldNotAccessUploadedFileTitle,
+        message: errorMessage);
+      return null;
+    }
+    if (!context.mounted) return null;
+
+    final tempUrl = PerAccountStoreWidget.of(context).tryResolveUrl(resultUrl);
+    if (tempUrl == null) {
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorCouldNotAccessUploadedFileTitle,
+        message: zulipLocalizations.errorInvalidResponse);
+      return null;
+    }
+
+    return tempUrl;
   }
 
   static Future<void> subscribeToChannel(BuildContext context, {

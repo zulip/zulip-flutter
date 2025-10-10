@@ -285,6 +285,10 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Impossible d\'atteindre le message source.';
 
   @override
+  String get errorCouldNotAccessUploadedFileTitle =>
+      'Could not access uploaded file';
+
+  @override
   String get errorCopyingFailed => 'Échec de la copie';
 
   @override

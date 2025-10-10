@@ -273,6 +273,10 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get errorCouldNotFetchMessageSource => 'メッセージのソースを取得できませんでした。';
 
   @override
+  String get errorCouldNotAccessUploadedFileTitle =>
+      'Could not access uploaded file';
+
+  @override
   String get errorCopyingFailed => 'コピーに失敗しました';
 
   @override

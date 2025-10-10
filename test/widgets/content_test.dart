@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/core.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/content.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/settings.dart';
@@ -21,6 +22,7 @@ import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/text.dart';
 
+import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
@@ -944,6 +946,9 @@ void main() {
   });
 
   group('LinkNode on internal links', () {
+    late PerAccountStore store;
+    late FakeApiConnection connection;
+
     Future<List<Route<dynamic>>> prepare(WidgetTester tester, String html) async {
       final pushedRoutes = <Route<dynamic>>[];
       final testNavObserver = TestNavigatorObserver()
@@ -959,12 +964,13 @@ void main() {
       assert(pushedRoutes.length == 1);
       pushedRoutes.removeLast();
 
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      connection = store.connection as FakeApiConnection;
       await store.addStream(eg.stream(name: 'stream'));
       return pushedRoutes;
     }
 
-    testWidgets('valid internal links are navigated to within app', (tester) async {
+    testWidgets('narrow links are navigated to within app', (tester) async {
       final pushedRoutes = await prepare(tester,
         '<p><a href="/#narrow/stream/1-check">stream</a></p>');
 
@@ -975,6 +981,22 @@ void main() {
     });
 
     // TODO(#1570): test links with /near/ go to the specific message
+
+    testWidgets('uploaded-file links are opened with temporary authed URL', (tester) async {
+      final pushedRoutes = await prepare(tester,
+        '<p><a href="/user_uploads/123/ab/paper.pdf">paper.pdf</a></p>');
+
+      final tempUrlString = '/temp/s3kr1t-auth-token/paper.pdf';
+      final expectedUrl = eg.realmUrl.resolve(tempUrlString);
+
+      connection.prepare(json: GetFileTemporaryUrlResult(
+        url: tempUrlString).toJson());
+      await tapText(tester, find.text('paper.pdf'));
+      await tester.pump(Duration.zero);
+      check(testBinding.takeLaunchUrlCalls())
+        .single.equals((url: expectedUrl, mode: LaunchMode.inAppBrowserView));
+      check(pushedRoutes).isEmpty();
+    });
 
     testWidgets('invalid internal links are opened in browser', (tester) async {
       // Link is invalid due to `topic` operator missing an operand.
@@ -1190,10 +1212,14 @@ void main() {
     }
 
     testWidgets('tapping on audio link opens it in browser', (tester) async {
-      final url = eg.realmUrl.resolve('/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/crab-rave.mp3');
       await prepare(tester, ContentExample.audioInline.html);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      final connection = store.connection as FakeApiConnection;
 
+      final url = eg.realmUrl.resolve('/temp/token/crab-rave.mp3');
+      connection.prepare(json: GetFileTemporaryUrlResult(url: url.path).toJson());
       await tapText(tester, find.text('crab-rave.mp3'));
+      await tester.pump(Duration.zero);
 
       final expectedLaunchMode = defaultTargetPlatform == TargetPlatform.iOS ?
         LaunchMode.externalApplication : LaunchMode.inAppBrowserView;

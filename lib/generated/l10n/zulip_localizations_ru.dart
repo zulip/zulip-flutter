@@ -290,6 +290,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Не удалось извлечь источник сообщения.';
 
   @override
+  String get errorCouldNotAccessUploadedFileTitle =>
+      'Could not access uploaded file';
+
+  @override
   String get errorCopyingFailed => 'Сбой копирования';
 
   @override
