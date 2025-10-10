@@ -171,6 +171,10 @@ bool _sameOrigin(Uri url, Uri realmUrl) {
   try {
     return url.origin == realmUrl.origin;
   } on StateError {
+    // The getter [Uri.origin] throws if the scheme is not "http" or "https".
+    // (Also if the URL is relative or certain kinds of malformed, but those
+    // should be impossible as `url` came from [PerAccountStore.tryResolveUrl]).
+    // In that case `url` has no "origin", and certainly not the realm's origin.
     return false;
   }
 }
