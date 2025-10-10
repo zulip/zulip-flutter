@@ -154,7 +154,7 @@ void main() {
     testWidgets('MessageListPageState.narrow', (tester) async {
       final stream = eg.stream();
       await setupMessageListPage(tester, narrow: ChannelNarrow(stream.streamId),
-        streams: [stream],
+        subscriptions: [eg.subscription(stream)],
         messages: [eg.streamMessage(stream: stream, content: "<p>a message</p>")]);
       final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
       check(state.narrow).equals(ChannelNarrow(stream.streamId));
@@ -167,7 +167,7 @@ void main() {
       final topic = eg.defaultRealmEmptyTopicDisplayName;
       final topicNarrow = eg.topicNarrow(stream.streamId, topic);
       await setupMessageListPage(tester, narrow: topicNarrow,
-        streams: [stream],
+        subscriptions: [eg.subscription(stream)],
         messages: [eg.streamMessage(stream: stream, topic: topic, content: "<p>a message</p>")]);
       final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
       // The page's narrow has been updated; the topic is "", not "general chat".
@@ -177,7 +177,7 @@ void main() {
     testWidgets('composeBoxState finds compose box', (tester) async {
       final stream = eg.stream();
       await setupMessageListPage(tester, narrow: ChannelNarrow(stream.streamId),
-        streams: [stream],
+        subscriptions: [eg.subscription(stream)],
         messages: [eg.streamMessage(stream: stream, content: "<p>a message</p>")]);
       final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
       check(state.composeBoxState).isNotNull();
@@ -238,7 +238,7 @@ void main() {
       final channel = eg.stream();
       await setupMessageListPage(tester,
         narrow: eg.topicNarrow(channel.streamId, ''),
-        streams: [channel],
+        subscriptions: [eg.subscription(channel)],
         messageCount: 1);
       checkAppBarChannelTopic(
         channel.name, eg.defaultRealmEmptyTopicDisplayName);
@@ -281,7 +281,7 @@ void main() {
       final channel = eg.stream();
       await setupMessageListPage(tester, narrow: eg.topicNarrow(channel.streamId, 'hi'),
         navObservers: [navObserver],
-        streams: [channel], messageCount: 1);
+        subscriptions: [eg.subscription(channel)], messageCount: 1);
 
       // Clear out initial route.
       assert(pushedRoutes.length == 1);
@@ -298,7 +298,7 @@ void main() {
       final channel = eg.stream(name: 'channel foo');
       await setupMessageListPage(tester,
         narrow: eg.topicNarrow(channel.streamId, 'topic foo'),
-        streams: [channel],
+        subscriptions: [eg.subscription(channel)],
         messages: [eg.streamMessage(stream: channel, topic: 'topic foo')]);
 
       connection.prepare(json: GetStreamTopicsResult(topics: [
@@ -333,7 +333,7 @@ void main() {
       final channel = eg.stream(name: 'channel foo');
       await setupMessageListPage(tester,
         narrow: ChannelNarrow(channel.streamId),
-        streams: [channel],
+        subscriptions: [eg.subscription(channel)],
         messages: [eg.streamMessage(stream: channel, topic: 'topic foo')]);
 
       connection.prepare(json: GetStreamTopicsResult(topics: [
@@ -390,7 +390,7 @@ void main() {
       final channel = eg.stream();
       await setupMessageListPage(tester,
         narrow: TopicNarrow(channel.streamId, eg.t('topic')),
-        streams: [channel],
+        subscriptions: [eg.subscription(channel)],
         messages: []);
       check(findPlaceholder).findsOne();
 
@@ -488,9 +488,11 @@ void main() {
 
     group('topic permalink', () {
       final someStream = eg.stream();
+      final someSubscription = eg.subscription(someStream);
       const someTopic = 'some topic';
 
       final otherStream = eg.stream();
+      final otherSubscription = eg.subscription(otherStream);
       const otherTopic = 'other topic';
 
       testWidgets('with message move', (tester) async {
@@ -499,7 +501,7 @@ void main() {
           narrow: narrow,
           // server sends the /with/<id> message in its current, different location
           messages: [eg.streamMessage(id: 1, stream: otherStream, topic: otherTopic)],
-          streams: [someStream, otherStream],
+          subscriptions: [someSubscription, otherSubscription],
           skipPumpAndSettle: true);
         await tester.pump(); // global store loaded
         await tester.pump(); // per-account store loaded
@@ -533,7 +535,7 @@ void main() {
           narrow: narrow,
           // server sends the /with/<id> message in its current, different location
           messages: [eg.streamMessage(id: 1, stream: someStream, topic: someTopic)],
-          streams: [someStream],
+          subscriptions: [someSubscription],
           skipPumpAndSettle: true);
         await tester.pump(); // global store loaded
         await tester.pump(); // per-account store loaded
@@ -1182,7 +1184,9 @@ void main() {
   group('Update Narrow on message move', () {
     const topic = 'foo';
     final channel = eg.stream();
+    final subscription = eg.subscription(channel);
     final otherChannel = eg.stream();
+    final otherSubscription = eg.subscription(otherChannel);
     final narrow = eg.topicNarrow(channel.streamId, topic);
 
     void prepareGetMessageResponse(List<Message> messages) {
@@ -1200,7 +1204,10 @@ void main() {
 
     testWidgets('compose box send message after move', (tester) async {
       final message = eg.streamMessage(stream: channel, topic: topic, content: 'Message to move');
-      await setupMessageListPage(tester, narrow: narrow, messages: [message], streams: [channel, otherChannel]);
+      await setupMessageListPage(tester,
+        narrow: narrow,
+        messages: [message],
+        subscriptions: [subscription, otherSubscription]);
 
       final channelContentInputFinder = find.descendant(
         of: find.byType(ComposeAutocomplete),
@@ -1240,7 +1247,8 @@ void main() {
 
     testWidgets('Move to narrow with existing messages', (tester) async {
       final message = eg.streamMessage(stream: channel, topic: topic, content: 'Message to move');
-      await setupMessageListPage(tester, narrow: narrow, messages: [message], streams: [channel]);
+      await setupMessageListPage(tester,
+        narrow: narrow, messages: [message], subscriptions: [subscription]);
       check(find.textContaining('Existing message').evaluate()).length.equals(0);
       check(find.textContaining('Message to move').evaluate()).length.equals(1);
 
@@ -1256,7 +1264,8 @@ void main() {
 
     testWidgets('show new topic in TopicNarrow after move', (tester) async {
       final message = eg.streamMessage(stream: channel, topic: topic, content: 'Message to move');
-      await setupMessageListPage(tester, narrow: narrow, messages: [message], streams: [channel]);
+      await setupMessageListPage(tester,
+        narrow: narrow, messages: [message], subscriptions: [subscription]);
 
       prepareGetMessageResponse([message]);
       await handleMessageMoveEvent([message], 'new topic');
@@ -1315,7 +1324,7 @@ void main() {
       testWidgets('do not show channel name in ChannelNarrow', (tester) async {
         await setupMessageListPage(tester,
           narrow: ChannelNarrow(stream.streamId),
-          messages: [message], streams: [stream]);
+          messages: [message], subscriptions: [eg.subscription(stream)]);
         await tester.pump();
         check(findInMessageList('stream name')).length.equals(0);
         check(findInMessageList('topic name')).length.equals(1);
@@ -1324,7 +1333,7 @@ void main() {
       testWidgets('do not show stream name in TopicNarrow', (tester) async {
         await setupMessageListPage(tester,
           narrow: TopicNarrow.ofMessage(message),
-          messages: [message], streams: [stream]);
+          messages: [message], subscriptions: [eg.subscription(stream)]);
         await tester.pump();
         check(findInMessageList('stream name')).length.equals(0);
         check(findInMessageList('topic name')).length.equals(1);
@@ -1505,7 +1514,7 @@ void main() {
         final message = eg.streamMessage(stream: channel, topic: 'topic name');
         await setupMessageListPage(tester,
           narrow: ChannelNarrow(channel.streamId),
-          streams: [channel],
+          subscriptions: [eg.subscription(channel)],
           messages: [message],
           navObservers: [navObserver]);
 
@@ -1531,7 +1540,7 @@ void main() {
         final message = eg.streamMessage(stream: channel, topic: 'topic name');
         await setupMessageListPage(tester,
           narrow: TopicNarrow.ofMessage(message),
-          streams: [channel],
+          subscriptions: [eg.subscription(channel)],
           messages: [message],
           navObservers: [navObserver]);
 
@@ -2136,7 +2145,7 @@ void main() {
 
     testWidgets('hidden -> waiting', (tester) async {
       await setupMessageListPage(tester,
-        narrow: topicNarrow, streams: [stream],
+        narrow: topicNarrow, subscriptions: [eg.subscription(stream)],
         messages: []);
 
       await sendMessageAndSucceed(tester);
@@ -2152,7 +2161,7 @@ void main() {
 
     testWidgets('hidden -> failed, tap to restore message', (tester) async {
       await setupMessageListPage(tester,
-        narrow: topicNarrow, streams: [stream],
+        narrow: topicNarrow, subscriptions: [eg.subscription(stream)],
         messages: []);
       // Send a message and fail.  Dismiss the error dialog as it pops up.
       await sendMessageAndFail(tester);
@@ -2200,7 +2209,7 @@ void main() {
 
     testWidgets('waiting -> waitPeriodExpired, tap to restore message', (tester) async {
       await setupMessageListPage(tester,
-        narrow: topicNarrow, streams: [stream],
+        narrow: topicNarrow, subscriptions: [eg.subscription(stream)],
         messages: []);
       await sendMessageAndFail(tester,
         delay: kSendMessageOfferRestoreWaitPeriod + const Duration(seconds: 1));
