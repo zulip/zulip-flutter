@@ -417,6 +417,14 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
   }
 
   Message _reconcileUnrecognizedMessage(Message incoming) {
+    if (
+      incoming is StreamMessage
+      && subscriptions[incoming.streamId] == null
+    ) {
+      // The message is in an unsubscribed channel. It might grow stale;
+      // add it to _maybeStaleChannelMessages.
+      _maybeStaleChannelMessages.add(incoming.id);
+    }
     return _stripMatchFields(incoming);
   }
 
@@ -426,19 +434,56 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     // overlaps another, e.g. a stream and a topic within it.
     //
     // Most often, the just-fetched message will look just like the one we
-    // already have.  But they can differ: message fetching happens out of band
-    // from the event queue, so there's inherently a race.
-    //
-    // If the fetched message reflects changes we haven't yet heard from the
-    // event queue, then it doesn't much matter which version we use: we'll
-    // soon get the corresponding events and apply the changes anyway.
-    // But if it lacks changes we've already heard from the event queue, then
-    // we won't hear those events again; the only way to wind up with an
-    // updated message is to use the version we have, that already reflects
-    // those events' changes.  So we always stick with the version we have.
-    // TODO(#1798) consider unsubscribed channels
-    return current;
+    // already have. But not always, and we can choose intelligently whether
+    // to keep the stored version or clobber it with the incoming one.
+
+    bool currentIsMaybeStale = false;
+    if (incoming is StreamMessage) {
+      if (subscriptions[incoming.streamId] != null) {
+        // The incoming version won't grow stale; it's in a subscribed channel.
+        // Remove it from _maybeStaleChannelMessages if it was there.
+        currentIsMaybeStale = _maybeStaleChannelMessages.remove(incoming.id);
+      } else {
+        assert(_maybeStaleChannelMessages.contains(incoming.id));
+        currentIsMaybeStale = true;
+      }
+    }
+
+    if (currentIsMaybeStale) {
+      // The event queue is unreliable for this message; the message was in an
+      // unsubscribed channel when we stored it or sometime since, so the stored
+      // version might be stale. Refresh it with the fetched version.
+      return _stripMatchFields(incoming);
+    } else {
+      // Message fetching happens out of band from the event queue, so there's
+      // inherently a race.
+      //
+      // If the fetched message reflects changes we haven't yet heard from the
+      // event queue, then it doesn't much matter which version we use: we'll
+      // soon get the corresponding events and apply the changes anyway.
+      // But if it lacks changes we've already heard from the event queue, then
+      // we won't hear those events again; the only way to wind up with an
+      // updated message is to use the version we have, that already reflects
+      // those events' changes.  So, stick with the version we have.
+      return current;
+    }
   }
+
+  /// Messages in [messages] whose data stream is or was presumably broken
+  /// by the message being in an unsubscribed channel.
+  ///
+  /// This is the subset of [messages] where the message was
+  /// in an unsubscribed channel when we added it or sometime since.
+  ///
+  /// We don't expect update events for messages in unsubscribed channels,
+  /// so if some of these maybe-stale messages appear in a fetch,
+  /// we'll always clobber our stored version with the fetched version.
+  /// See [reconcileMessages].
+  ///
+  /// (We have seen a few such events, actually --
+  /// maybe because the channel only recently became unsubscribed? --
+  /// but not consistently, and we're not supposed to rely on them.)
+  final Set<int> _maybeStaleChannelMessages = {};
 
   Message _stripMatchFields(Message message) {
     message.matchContent = null;
@@ -510,6 +555,30 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     );
   }
 
+  void handleChannelDeleteEvent(ChannelDeleteEvent event) {
+    final channelIds = event.streams.map((channel) => channel.streamId);
+    _handleSubscriptionsRemoved(channelIds);
+  }
+
+  void handleSubscriptionRemoveEvent(SubscriptionRemoveEvent event) {
+    _handleSubscriptionsRemoved(event.streamIds);
+  }
+
+  void _handleSubscriptionsRemoved(Iterable<int> channelIds) {
+    if (channelIds.length > 8) {
+      assert(channelIds is! Set);
+      // optimization: https://github.com/zulip/zulip-flutter/pull/1912#discussion_r2479350329
+      channelIds = Set.from(channelIds);
+    }
+
+    // Linear in [messages].
+    final affectedKnownMessageIds = messages.values
+      .where((message) => message is StreamMessage && channelIds.contains(message.streamId))
+      .map((message) => message.id);
+
+    _maybeStaleChannelMessages.addAll(affectedKnownMessageIds);
+  }
+
   void handleUserTopicEvent(UserTopicEvent event) {
     for (final view in _messageListViews) {
       view.handleUserTopicEvent(event);
@@ -523,10 +592,18 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
   }
 
   void handleMessageEvent(MessageEvent event) {
+    final message = event.message;
+
     // If the message is one we already know about (from a fetch),
     // clobber it with the one from the event system.
     // See [reconcileMessages] for reasoning.
-    messages[event.message.id] = event.message;
+    messages[message.id] = message;
+
+    if (message is StreamMessage && subscriptions[message.streamId] == null) {
+      // We didn't expect this event, because the channel is unsubscribed. But
+      // that doesn't mean we should expect future events about this message.
+      _maybeStaleChannelMessages.add(message.id);
+    }
 
     _handleMessageEventOutbox(event);
 
@@ -615,6 +692,12 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
         // See [StreamConversation.displayRecipient] on why the invalidation is
         // needed.
         message.conversation.displayRecipient = null;
+
+        if (subscriptions[newStreamId] == null) {
+          // The message was moved into an unsubscribed channel, which means
+          // we expect our data on it to get stale.
+          _maybeStaleChannelMessages.add(messageId);
+        }
       }
 
       if (newTopic != origTopic) {
@@ -637,6 +720,7 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
   void handleDeleteMessageEvent(DeleteMessageEvent event) {
     for (final messageId in event.messageIds) {
       messages.remove(messageId);
+      _maybeStaleChannelMessages.remove(messageId);
       _editMessageRequests.remove(messageId);
     }
     for (final view in _messageListViews) {

@@ -36,7 +36,7 @@ void main() {
 
   // These "late" variables are the common state operated on by each test.
   // Each test case calls [prepare] to initialize them.
-  late Subscription subscription;
+  late Subscription? subscription;
   late PerAccountStore store;
   late FakeApiConnection connection;
   // [messageList] is here only for the sake of checking when it notifies.
@@ -54,15 +54,20 @@ void main() {
   /// Initialize [store] and the rest of the test state.
   Future<void> prepare({
     ZulipStream? stream,
+    bool isChannelSubscribed = true,
     int? zulipFeatureLevel,
   }) async {
     stream ??= eg.stream(streamId: eg.defaultStreamMessageStreamId);
-    subscription = eg.subscription(stream);
     final selfAccount = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
     store = eg.store(account: selfAccount,
       initialSnapshot: eg.initialSnapshot(zulipFeatureLevel: zulipFeatureLevel));
     await store.addStream(stream);
-    await store.addSubscription(subscription);
+    if (isChannelSubscribed) {
+      subscription = eg.subscription(stream);
+      await store.addSubscription(subscription!);
+    } else {
+      subscription = null;
+    }
     connection = store.connection as FakeApiConnection;
     notifiedCount = 0;
     messageList = MessageListView.init(store: store,
@@ -533,18 +538,137 @@ void main() {
       });
     });
 
-    test('on ID collision, new message does not clobber old in store.messages', () async {
-      await prepare();
-      final message = eg.streamMessage(id: 1, content: '<p>foo</p>');
-      await addMessages([message]);
-      check(store.messages).deepEquals({1: message});
-      final newMessage = eg.streamMessage(id: 1, content: '<p>bar</p>');
-      final messages = [newMessage];
-      store.reconcileMessages(messages);
-      check(messages).deepEquals(
-        // (We'll check more messages in an upcoming commit.)
-        [message].map(conditionIdentical));
-      check(store.messages).deepEquals({1: message});
+    group('fetched message with ID already in store.messages', () {
+      /// Makes a copy of the single message in [MessageStore.messages]
+      /// by round-tripping through [Message.fromJson] and [Message.toJson].
+      ///
+      /// If that message's [StreamMessage.conversation.displayRecipient]
+      /// is null, callers must provide a non-null [displayRecipient]
+      /// to allow [StreamConversation.fromJson] to complete without throwing.
+      Message copyStoredMessage({String? displayRecipient}) {
+        final message = store.messages.values.single;
+
+        final json = message.toJson();
+        if (
+          message is StreamMessage
+          && message.conversation.displayRecipient == null
+        ) {
+          if (displayRecipient == null) throw ArgumentError();
+          json['display_recipient'] = displayRecipient;
+        }
+
+        return Message.fromJson(json);
+      }
+
+      /// Checks if the single message in [MessageStore.messages]
+      /// is identical to [message].
+      void checkStoredMessageIdenticalTo(Message message) {
+        check(store.messages)
+          .deepEquals({message.id: conditionIdentical(message)});
+      }
+
+      void checkClobber({Message? withMessageCopy}) {
+        final messageCopy = withMessageCopy ?? copyStoredMessage();
+        store.reconcileMessages([messageCopy]);
+        checkStoredMessageIdenticalTo(messageCopy);
+      }
+
+      void checkNoClobber() {
+        final messageBefore = store.messages.values.single;
+        store.reconcileMessages([copyStoredMessage()]);
+        checkStoredMessageIdenticalTo(messageBefore);
+      }
+
+      test('DM', () async {
+        await prepare();
+        final message = eg.dmMessage(id: 1, from: eg.otherUser, to: [eg.selfUser]);
+
+        store.reconcileMessages([message]);
+
+        // Not clobbering, because the first call didn't mark stale.
+        checkNoClobber();
+      });
+
+      group('channel message; chooses correctly whether to clobber the stored version', () {
+        // Exercise the ways we move the message in and out of the "maybe stale"
+        // state. These include reconcileMessage itself, so sometimes we test
+        // repeated calls to that with nothing else happening in between.
+
+        test('various conditions', () async {
+          final channel = eg.stream();
+          await prepare(stream: channel, isChannelSubscribed: true);
+          final message = eg.streamMessage(stream: channel);
+
+          store.reconcileMessages([message]);
+
+          // Not clobbering, because the first call didn't mark stale,
+          // because the message was in a subscribed channel.
+          checkNoClobber();
+
+          await store.removeSubscription(channel.streamId);
+          // Clobbering because the unsubscribe event marked the message stale.
+          checkClobber();
+          // (Check that reconcileMessage itself didn't unmark as stale.)
+          checkClobber();
+
+          await store.addSubscription(eg.subscription(channel));
+          // The channel became subscribed,
+          // but the message's data hasn't been refreshed, so clobber…
+          checkClobber();
+
+          // …Now it's been refreshed, by reconcileMessages, so don't clobber.
+          checkNoClobber();
+
+          final otherChannel = eg.stream();
+          await store.addStream(otherChannel);
+          check(store.subscriptions[otherChannel.streamId]).isNull();
+          await store.handleEvent(
+            eg.updateMessageEventMoveFrom(origMessages: [message],
+              newStreamId: otherChannel.streamId));
+          // Message was moved to an unsubscribed channel, so clobber.
+          checkClobber(
+            withMessageCopy: copyStoredMessage(displayRecipient: otherChannel.name));
+          // (Check that reconcileMessage itself didn't unmark as stale.)
+          checkClobber();
+
+          // Subscribe, to mark message as not-stale, setting up another check…
+          await store.addSubscription(eg.subscription(otherChannel));
+
+          await store.handleEvent(ChannelDeleteEvent(id: 1, streams: [otherChannel]));
+          // Message was in a channel that became unknown, so clobber.
+          checkClobber();
+        });
+
+        test('in unsubscribed channel on first call', () async {
+          await prepare(isChannelSubscribed: false);
+          final message = eg.streamMessage();
+
+          store.reconcileMessages([message]);
+
+          checkClobber();
+          checkClobber();
+        });
+
+        test('new-message event when in unsubscribed channel', () async {
+          await prepare(isChannelSubscribed: false);
+          final message = eg.streamMessage();
+
+          await store.handleEvent(eg.messageEvent(message));
+
+          checkClobber();
+          checkClobber();
+        });
+
+        test('new-message event when in a subscribed channel', () async {
+          await prepare(isChannelSubscribed: true);
+          final message = eg.streamMessage();
+
+          await store.handleEvent(eg.messageEvent(message));
+
+          checkNoClobber();
+          checkNoClobber();
+        });
+      });
     });
 
     test('matchContent and matchTopic are removed', () async {
