@@ -285,6 +285,29 @@ class UploadFileResult {
   Map<String, dynamic> toJson() => _$UploadFileResultToJson(this);
 }
 
+/// https://zulip.com/api/get-file-temporary-url
+Future<GetFileTemporaryUrlResult> getFileTemporaryUrl(ApiConnection connection, {
+  required int realmId,
+  required String filename,
+}) {
+  return connection.get('getFileTemporaryUrl', GetFileTemporaryUrlResult.fromJson,
+    'user_uploads/$realmId/$filename', {});
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class GetFileTemporaryUrlResult {
+  final String url;
+
+  GetFileTemporaryUrlResult({
+    required this.url,
+  });
+
+  factory GetFileTemporaryUrlResult.fromJson(Map<String, dynamic> json) =>
+    _$GetFileTemporaryUrlResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$GetFileTemporaryUrlResultToJson(this);
+}
+
 /// https://zulip.com/api/add-reaction
 Future<void> addReaction(ApiConnection connection, {
   required int messageId,
