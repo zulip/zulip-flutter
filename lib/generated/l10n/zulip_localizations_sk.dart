@@ -279,6 +279,10 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
       'Nepodarilo sa nahrať zdroj správy';
 
   @override
+  String get errorCouldNotAccessUploadedFileTitle =>
+      'Could not access uploaded file';
+
+  @override
   String get errorCopyingFailed => 'Kopírovanie zlyhalo';
 
   @override

@@ -1436,6 +1436,12 @@ void _launchUrl(BuildContext context, String urlString) async {
           narrow: internalLink.narrow,
           initAnchorMessageId: internalLink.nearMessageId)));
 
+    case UserUploadLink():
+      final tempUrl = await ZulipAction.getFileTemporaryUrl(context, internalLink);
+      if (!context.mounted) return null;
+      if (tempUrl == null) return;
+      await PlatformActions.launchUrl(context, tempUrl);
+
     case null:
       await PlatformActions.launchUrl(context, url);
   }

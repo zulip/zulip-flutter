@@ -286,6 +286,10 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Konnte Nachrichtenquelle nicht abrufen.';
 
   @override
+  String get errorCouldNotAccessUploadedFileTitle =>
+      'Could not access uploaded file';
+
+  @override
   String get errorCopyingFailed => 'Kopieren fehlgeschlagen';
 
   @override
