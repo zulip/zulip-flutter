@@ -148,27 +148,31 @@ class NarrowLink extends InternalLink {
 ///   #narrow/stream/1-announce/stream/1-announce (duplicated operator)
 // TODO(#1661): handle all valid narrow links, returning a search narrow
 InternalLink? parseInternalLink(Uri url, PerAccountStore store) {
-  if (!_isInternalLink(url, store.realmUrl)) return null;
+  if (!_sameOrigin(url, store.realmUrl)) return null;
 
-  final (category, segments) = _getCategoryAndSegmentsFromFragment(url.fragment);
-  switch (category) {
-    case 'narrow':
-      if (segments.isEmpty || !segments.length.isEven) return null;
-      return _interpretNarrowSegments(segments, store);
+  if ((url.hasEmptyPath || url.path == '/')) {
+    if (url.hasQuery) return null;
+    if (!url.hasFragment) return null;
+    // The URL is of the form `/#…` relative to the realm URL,
+    // the shape used for representing a state within the web app.
+    final (category, segments) = _getCategoryAndSegmentsFromFragment(url.fragment);
+    switch (category) {
+      case 'narrow':
+        if (segments.isEmpty || !segments.length.isEven) return null;
+        return _interpretNarrowSegments(segments, store);
+    }
   }
+
   return null;
 }
 
-/// Check if `url` is an internal link on the given `realmUrl`.
-bool _isInternalLink(Uri url, Uri realmUrl) {
+/// Check if `url` has the same origin as `realmUrl`.
+bool _sameOrigin(Uri url, Uri realmUrl) {
   try {
-    if (url.origin != realmUrl.origin) return false;
+    return url.origin == realmUrl.origin;
   } on StateError {
     return false;
   }
-  return (url.hasEmptyPath || url.path == '/')
-    && !url.hasQuery
-    && url.hasFragment;
 }
 
 /// Split `fragment` of arbitrary segments and handle trailing slashes
