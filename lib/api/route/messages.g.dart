@@ -55,6 +55,14 @@ UploadFileResult _$UploadFileResultFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$UploadFileResultToJson(UploadFileResult instance) =>
     <String, dynamic>{'uri': instance.url};
 
+GetFileTemporaryUrlResult _$GetFileTemporaryUrlResultFromJson(
+  Map<String, dynamic> json,
+) => GetFileTemporaryUrlResult(url: json['url'] as String);
+
+Map<String, dynamic> _$GetFileTemporaryUrlResultToJson(
+  GetFileTemporaryUrlResult instance,
+) => <String, dynamic>{'url': instance.url};
+
 UpdateMessageFlagsResult _$UpdateMessageFlagsResultFromJson(
   Map<String, dynamic> json,
 ) => UpdateMessageFlagsResult(
