@@ -1436,6 +1436,7 @@ void _launchUrl(BuildContext context, String urlString) async {
           narrow: internalLink.narrow,
           initAnchorMessageId: internalLink.nearMessageId)));
 
+    case UserUploadLink(): // TODO(#1732): handle these specially
     case null:
       await PlatformActions.launchUrl(context, url);
   }
