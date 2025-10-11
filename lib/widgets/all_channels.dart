@@ -5,11 +5,13 @@ import '../api/route/channels.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/channel.dart';
+import '../model/narrow.dart';
 import 'action_sheet.dart';
 import 'actions.dart';
 import 'app_bar.dart';
 import 'button.dart';
 import 'icons.dart';
+import 'message_list.dart';
 import 'page.dart';
 import 'remote_settings.dart';
 import 'store.dart';
@@ -98,26 +100,36 @@ class AllChannelsListEntry extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsetsDirectional.only(start: 8, end: 4),
-      child: Row(spacing: 6, children: [
-        Icon(
-          size: 20,
-          color: colorSwatchFor(context, subscription).iconOnPlainBackground,
-          iconDataForStream(channel)),
-        Expanded(
-          child: Text(
-            style: TextStyle(
-              color: designVariables.textMessage,
-              fontSize: 17,
-              height: 20 / 17,
-            ).merge(weightVariableTextStyle(context, wght: 600)),
-            channel.name)),
-        if (hasContentAccess) _SubscribeToggle(channel: channel),
-        ZulipIconButton(
-          icon: ZulipIcons.more_horizontal,
-          onPressed: () {
-            showChannelActionSheet(context, channelId: channel.streamId);
-          }),
-      ]));
+      child: GestureDetector(
+        onTap: () {
+          if (!hasContentAccess) {
+            return;
+          }
+          Navigator.push(context, MessageListPage.buildRoute(
+            context: context,
+            narrow: ChannelNarrow(channel.streamId)));
+        },
+        onLongPress: () {
+          if (!hasContentAccess) {
+            return;
+          }
+          showChannelActionSheet(context, channelId: channel.streamId);
+        },
+        child: Row(spacing: 6, children: [
+          Icon(
+            size: 20,
+            color: colorSwatchFor(context, subscription).iconOnPlainBackground,
+            iconDataForStream(channel)),
+          Expanded(
+            child: Text(
+              style: TextStyle(
+                color: designVariables.textMessage,
+                fontSize: 17,
+                height: 20 / 17,
+              ).merge(weightVariableTextStyle(context, wght: 600)),
+              channel.name)),
+          if (hasContentAccess) _SubscribeToggle(channel: channel),
+      ])));
   }
 }
 
