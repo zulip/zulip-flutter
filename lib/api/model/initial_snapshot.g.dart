@@ -12,6 +12,8 @@ InitialSnapshot _$InitialSnapshotFromJson(
   Map<String, dynamic> json,
 ) => InitialSnapshot(
   queueId: json['queue_id'] as String?,
+  realmJitsiServerUrl: json['jitsi_server_url'] as String,
+  realmVideoChatProvider: json['realm_video_chat_provider'] as int,
   lastEventId: (json['last_event_id'] as num).toInt(),
   zulipFeatureLevel: (json['zulip_feature_level'] as num).toInt(),
   zulipVersion: json['zulip_version'] as String,

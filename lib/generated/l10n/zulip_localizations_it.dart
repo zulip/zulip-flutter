@@ -493,6 +493,9 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get composeBoxAttachFromCameraTooltip => 'Fai una foto';
 
   @override
+  String get composeBoxAttachFromVideoCallTooltip => 'Join video call.';
+
+  @override
   String get composeBoxGenericContentHint => 'Batti un messaggio';
 
   @override

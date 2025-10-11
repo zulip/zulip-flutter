@@ -507,6 +507,9 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get composeBoxAttachFromCameraTooltip => 'Fotografiraj';
 
   @override
+  String get composeBoxAttachFromVideoCallTooltip => 'Join video call.';
+
+  @override
   String get composeBoxGenericContentHint => 'Vnesite sporočilo';
 
   @override

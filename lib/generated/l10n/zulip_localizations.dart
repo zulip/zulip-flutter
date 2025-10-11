@@ -913,6 +913,12 @@ abstract class ZulipLocalizations {
   /// **'Take a photo'**
   String get composeBoxAttachFromCameraTooltip;
 
+  /// Tooltip for compose box icon to attach a video call url from the jitsi to the message.
+  ///
+  /// In en, this message translates to:
+  /// **'Join video call.'**
+  String get composeBoxAttachFromVideoCallTooltip;
+
   /// Hint text for content input when sending a message.
   ///
   /// In en, this message translates to:

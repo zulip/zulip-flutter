@@ -32,6 +32,8 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   Duration get serverTypingStartedWaitPeriod => Duration(milliseconds: serverTypingStartedWaitPeriodMilliseconds);
   int get serverTypingStartedWaitPeriodMilliseconds;
 
+  String? get realmJitsiServerUrl;
+  int get realmVideoChatProvider;
   //|//////////////////////////////////////////////////////////////
   // Realm settings.
 
@@ -164,6 +166,10 @@ mixin ProxyRealmStore on RealmStore {
   @override
   int get serverTypingStartedWaitPeriodMilliseconds => realmStore.serverTypingStartedWaitPeriodMilliseconds;
   @override
+  String? get realmJitsiServerUrl => realmStore.realmJitsiServerUrl;
+  @override
+  int get realmVideoChatProvider => realmStore.realmVideoChatProvider;
+  @override
   bool get realmAllowMessageEditing => realmStore.realmAllowMessageEditing;
   @override
   GroupSettingValue? get realmCanDeleteAnyMessageGroup => realmStore.realmCanDeleteAnyMessageGroup;
@@ -226,6 +232,8 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     serverTypingStartedExpiryPeriodMilliseconds = initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds,
     serverTypingStoppedWaitPeriodMilliseconds = initialSnapshot.serverTypingStoppedWaitPeriodMilliseconds,
     serverTypingStartedWaitPeriodMilliseconds = initialSnapshot.serverTypingStartedWaitPeriodMilliseconds,
+    realmJitsiServerUrl = initialSnapshot.realmJitsiServerUrl,
+    realmVideoChatProvider = initialSnapshot.realmVideoChatProvider,
     realmAllowMessageEditing = initialSnapshot.realmAllowMessageEditing,
     realmCanDeleteAnyMessageGroup = initialSnapshot.realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup = initialSnapshot.realmCanDeleteOwnMessageGroup,
@@ -369,6 +377,10 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   @override
   final int serverTypingStartedWaitPeriodMilliseconds;
 
+  @override
+  final String? realmJitsiServerUrl;
+  @override
+  final int realmVideoChatProvider;
   @override
   final bool realmAllowMessageEditing;
   @override
