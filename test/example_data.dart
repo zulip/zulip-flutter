@@ -1336,6 +1336,8 @@ InitialSnapshot initialSnapshot({
   RealmWildcardMentionPolicy? realmWildcardMentionPolicy,
   bool? realmMandatoryTopics,
   String? realmName,
+  String? realmJitsiServerUrl,
+  int? realmVideoChatProvider,
   int? realmWaitingPeriodThreshold,
   int? realmMessageContentDeleteLimitSeconds,
   bool? realmAllowMessageEditing,
@@ -1414,6 +1416,8 @@ InitialSnapshot initialSnapshot({
     realmUsers: realmUsers ?? [selfUser],
     realmNonActiveUsers: realmNonActiveUsers ?? [],
     crossRealmBots: crossRealmBots ?? [],
+    realmJitsiServerUrl: realmJitsiServerUrl ?? 'https://meet.jit.si',
+    realmVideoChatProvider: realmVideoChatProvider ?? 0,
   );
 }
 const _initialSnapshot = initialSnapshot;

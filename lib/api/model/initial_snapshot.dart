@@ -108,6 +108,10 @@ class InitialSnapshot {
   final bool realmEnableReadReceipts;
 
   final Uri realmIconUrl;
+  
+  final String? realmJitsiServerUrl;
+
+  final int realmVideoChatProvider;
 
   final bool realmPresenceDisabled;
 
@@ -196,6 +200,8 @@ class InitialSnapshot {
     required this.realmUsers,
     required this.realmNonActiveUsers,
     required this.crossRealmBots,
+    required this.realmJitsiServerUrl,
+    required this.realmVideoChatProvider,
   });
 
   factory InitialSnapshot.fromJson(Map<String, dynamic> json) =>
