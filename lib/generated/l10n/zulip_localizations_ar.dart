@@ -1038,6 +1038,15 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'إخطار الموضوع';
 
   @override
+  String get navBarFeedLabel => 'Combined feed';
+
+  @override
+  String get navBarDmLabel => 'DMs';
+
+  @override
+  String get navBarMenuLabel => 'Menu';
+
+  @override
   String get messageIsEditedLabel => 'EDITED';
 
   @override
