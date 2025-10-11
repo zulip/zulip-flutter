@@ -251,6 +251,7 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
     _$ChannelPostPolicyEnumMap,
     json['stream_post_policy'],
   ),
+  isRecentlyActive: json['is_recently_active'] as bool?,
   folderId: (json['folder_id'] as num?)?.toInt(),
   canAddSubscribersGroup: json['can_add_subscribers_group'] == null
       ? null
@@ -285,6 +286,7 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
       'message_retention_days': instance.messageRetentionDays,
       'stream_post_policy': instance.channelPostPolicy,
+      'is_recently_active': instance.isRecentlyActive,
       'can_add_subscribers_group': instance.canAddSubscribersGroup,
       'can_delete_any_message_group': instance.canDeleteAnyMessageGroup,
       'can_delete_own_message_group': instance.canDeleteOwnMessageGroup,
@@ -317,6 +319,7 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
     _$ChannelPostPolicyEnumMap,
     json['stream_post_policy'],
   ),
+  isRecentlyActive: json['is_recently_active'] as bool?,
   folderId: (json['folder_id'] as num?)?.toInt(),
   canAddSubscribersGroup: json['can_add_subscribers_group'] == null
       ? null
@@ -359,6 +362,7 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
       'message_retention_days': instance.messageRetentionDays,
       'stream_post_policy': instance.channelPostPolicy,
+      'is_recently_active': instance.isRecentlyActive,
       'can_add_subscribers_group': instance.canAddSubscribersGroup,
       'can_delete_any_message_group': instance.canDeleteAnyMessageGroup,
       'can_delete_own_message_group': instance.canDeleteOwnMessageGroup,
@@ -548,6 +552,7 @@ const _$ChannelPropertyNameEnumMap = {
   ChannelPropertyName.inviteOnly: 'invite_only',
   ChannelPropertyName.messageRetentionDays: 'message_retention_days',
   ChannelPropertyName.channelPostPolicy: 'stream_post_policy',
+  ChannelPropertyName.isRecentlyActive: 'is_recently_active',
   ChannelPropertyName.folderId: 'folder_id',
   ChannelPropertyName.canAddSubscribersGroup: 'can_add_subscribers_group',
   ChannelPropertyName.canDeleteAnyMessageGroup: 'can_delete_any_message_group',
