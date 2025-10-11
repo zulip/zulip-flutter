@@ -410,19 +410,35 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     //
     // If the fetched message reflects changes we haven't yet heard from the
     // event queue, then it doesn't much matter which version we use: we'll
-    // soon get the corresponding events and apply the changes anyway.
+    // soon get the corresponding events and apply the changes anyway. [1]
     // But if it lacks changes we've already heard from the event queue, then
     // we won't hear those events again; the only way to wind up with an
     // updated message is to use the version we have, that already reflects
-    // those events' changes.  So we always stick with the version we have.
+    // those events' changes.  So we always stick with the version we have. [2]
+    //
+    // [1] Actually, we don't expect an event if the message is in an
+    //     unsubscribed channel. See [2] and issue #1798 ("fourth buggy behavior").
+    // [2] Since we don't expect events for messages in unsubscribed channels,
+    //     we actually stick with the *fetched* version of those messages,
+    //     since fetching is the only reliable way to get updates.
     for (int i = 0; i < messages.length; i++) {
       final message = messages[i];
+
+      if (message is StreamMessage && subscriptions[message.streamId] == null) {
+        this.messages[message.id] = _stripMatchFields(message);
+        continue;
+      }
+
       messages[i] = this.messages.putIfAbsent(message.id, () {
-        message.matchContent = null;
-        message.matchTopic = null;
-        return message;
+        return _stripMatchFields(message);
       });
     }
+  }
+
+  Message _stripMatchFields(Message message) {
+    message.matchContent = null;
+    message.matchTopic = null;
+    return message;
   }
 
   @override
