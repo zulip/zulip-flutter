@@ -35,7 +35,7 @@ android {
 
     defaultConfig {
         applicationId "com.zulipmobile"
-        minSdkVersion 28
+        minSdkVersion 26
         targetSdkVersion flutter.targetSdkVersion
         // These are synced to local.properties from pubspec.yaml by the flutter tool.
         versionCode localProperties.getProperty('flutter.versionCode').toInteger()
