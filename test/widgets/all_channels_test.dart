@@ -12,6 +12,7 @@ import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/remote_settings.dart';
 import 'package:zulip/widgets/theme.dart';
@@ -203,21 +204,35 @@ void main() {
         check(maybeToggle).isNull();
       }
 
-      check(findInRow(find.byIcon(ZulipIcons.more_horizontal))).findsOne();
-
       final touchTargetSize = tester.getSize(findElement);
       check(touchTargetSize.height).equals(44);
     }
   });
 
-  testWidgets('tapping three-dots button opens channel action sheet', (tester) async {
+  testWidgets('open channel action sheet on long press', (tester) async {
     await setupAllChannelsPage(tester, channels: [eg.stream()]);
 
-    await tester.tap(find.byIcon(ZulipIcons.more_horizontal));
+    await tester.longPress(find.byType(AllChannelsListEntry));
     await tester.pump();
     await transitionDurationObserver.pumpPastTransition(tester);
 
     check(find.byType(BottomSheet)).findsOne();
+  });
+
+  testWidgets('navigate to channel feed on tap', (tester) async {
+    final channel = eg.stream(name: 'some-channel');
+    await setupAllChannelsPage(tester, channels: [channel]);
+
+    connection.prepare(json: eg.newestGetMessagesResult(
+      foundOldest: true, messages: [eg.streamMessage(stream: channel)]).toJson());
+    await tester.tap(find.byType(AllChannelsListEntry));
+    await tester.pump();
+    await transitionDurationObserver.pumpPastTransition(tester);
+
+    check(find.descendant(
+      of: find.byType(MessageListPage),
+      matching: find.text('some-channel')),
+    ).findsOne();
   });
 
   testWidgets('use toggle switch to subscribe/unsubscribe', (tester) async {
