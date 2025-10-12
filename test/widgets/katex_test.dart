@@ -81,6 +81,12 @@ void main() {
         ('a', Offset(2.47, 3.36), Size(10.88, 25.00)),
         ('b', Offset(15.81, 3.36), Size(8.82, 25.00)),
       ]),
+      (KatexExample.overline, skip: false, [
+        ('a', Offset(0.00, 3.36), Size(10.88, 25.00)),
+      ]),
+      (KatexExample.underline, skip: false, [
+        ('b', Offset(0.00, 3.36), Size(8.82, 25.00)),
+      ]),
     ];
 
     for (final testCase in testCases) {

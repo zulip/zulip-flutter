@@ -195,9 +195,47 @@ class _KatexSpan extends StatelessWidget {
         break;
     }
 
+    if (styles.borderStyle case final borderStyle?) {
+      final currentColor = color ?? DefaultTextStyle.of(context).style.color!;
+      final Color borderColor = borderStyle.color != null
+          ? Color.fromARGB(borderStyle.color!.a,borderStyle.color!.r,borderStyle.color!.g,borderStyle.color!.b,
+        ): currentColor;
+
+      final double borderWidth = borderStyle.widthEm * em;
+      final bool isTop = borderStyle.position == KatexBorderPosition.top;
+      widget = CustomPaint(
+        painter: _BorderPainter(color: borderColor,strokeWidth: borderWidth,isTop: isTop),
+        child: widget);
+    }
     return widget;
   }
 }
+
+class _BorderPainter extends CustomPainter {
+  _BorderPainter({
+    required this.color,
+    required this.strokeWidth,
+    required this.isTop,
+  });
+
+  final Color color;
+  final double strokeWidth;
+  final bool isTop;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+    if (isTop) {canvas.drawLine(Offset(0, strokeWidth / 2 + 3),Offset(size.width, strokeWidth / 2 + 3),paint);
+    } else {canvas.drawLine(Offset(0, size.height - strokeWidth / 2 - 3),Offset(size.width, size.height - strokeWidth / 2 - 3),paint);
+    }
+}
+  @override
+  bool shouldRepaint(_BorderPainter oldDelegate) {
+    return oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth ||oldDelegate.isTop != isTop;
+  }}
 
 class _KatexStrut extends StatelessWidget {
   const _KatexStrut(this.node);
