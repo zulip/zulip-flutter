@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -eu
 
+this_dir=${BASH_SOURCE[0]%/*}
+
+# shellcheck source=tools/lib/ensure-coreutils.sh
+. "${this_dir}"/lib/ensure-coreutils.sh
+
 usage () {
     cat <<EOF >&2
 usage: bump-version
