@@ -512,7 +512,7 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
   void handleMessageEvent(MessageEvent event) {
     // If the message is one we already know about (from a fetch),
     // clobber it with the one from the event system.
-    // See [fetchedMessages] for reasoning.
+    // See [reconcileMessages] for reasoning.
     messages[event.message.id] = event.message;
 
     _handleMessageEventOutbox(event);
