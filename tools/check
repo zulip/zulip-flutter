@@ -221,6 +221,71 @@ run_test() {
     flutter test
 }
 
+# Predict a Flutter version string from the given Flutter commit SHA.
+predict_flutter_version() {
+    local flutter_commit
+    flutter_commit="$1"
+
+    local flutter_tree flutter_git
+    flutter_tree=$(flutter_tree)
+    flutter_git=( git --git-dir="${flutter_tree}"/.git )
+
+    # Check the version name matches the calculated version using the
+    # latest tag. We mimic the upstream Flutter tools's implementation here:
+    #   https://github.com/flutter/flutter/blob/7258223ea/packages/flutter_tools/lib/src/version.dart#L1060-L1091
+    local latest_tag ancestor_ref commit_count
+    latest_tag=$(
+        "${flutter_git[@]}" for-each-ref \
+            --sort=-v:refname \
+            --count=1 \
+            --format='%(refname:short)' \
+            'refs/tags/[0-9]*.*.*'
+    ) || return
+    if [ -z "${latest_tag}" ]; then
+        echo >&2 "error: Failed to determine the latest tag"
+        return 1
+    fi
+    ancestor_ref=$(
+        "${flutter_git[@]}" merge-base "${flutter_commit}" "${latest_tag}"
+    ) || return
+    if [ -z "${ancestor_ref}" ]; then
+        echo >&2 "error: Failed to determine merge-base between ${flutter_commit} and ${latest_tag}"
+        return 1
+    fi
+    commit_count=$(
+        "${flutter_git[@]}" rev-list --count "${ancestor_ref}..${flutter_commit}"
+    ) || return
+    if [ -z "${commit_count}" ]; then
+        echo >&2 "error: Failed to count commits from ${ancestor_ref} to ${flutter_commit}"
+        return 1
+    fi
+
+    latest_tag_version="${latest_tag}-${commit_count}"
+
+    # Generate a predicted Flutter version string by parsing the latest tag
+    # version and applying the same transformations as the upstream Flutter
+    # tool:
+    #   https://github.com/flutter/flutter/blob/7258223ea/packages/flutter_tools/lib/src/version.dart#L1162
+    predicted_version=$(
+        echo "${latest_tag_version}" \
+        | perl -lne 'print if (s
+             # This transformation is ad hoc.
+             # If we find cases where it fails, we can study
+             # how the `flutter` tool actually decides the version name.
+             <^(\d+\.\d+\.\d+-) (\d+) \.\d+\.pre -(\d+)$>
+             <$1 . ($2 + 1) . ".0.pre-" . $3>xe)'
+    ) || return
+    if [ -z "${predicted_version}" ]; then
+        cat >&2 <<EOF
+error: unexpected latest tag version on Flutter commit in pubspec.yaml
+Commit ${flutter_commit} was described as: ${latest_tag_version}
+EOF
+        return 1
+    fi
+
+    echo "${predicted_version}"
+}
+
 # Check the Flutter version in pubspec.yaml is commented with a commit ID,
 # which agrees with the version, and the commit is from upstream main.
 run_flutter_version() {
@@ -246,7 +311,23 @@ run_flutter_version() {
     flutter_version="${parsed[0]}"
     flutter_commit="${parsed[1]}"
 
-    # TODO(#1851) Add the updated Flutter version name check
+    local predicted_version
+    predicted_version=$(
+        predict_flutter_version "${flutter_commit}"
+    ) || return
+    if [ -z "${predicted_version}" ]; then
+        return 1
+    fi
+
+    if [ "${flutter_version}" != "${predicted_version}" ]; then
+        cat >&2 <<EOF
+error: Flutter commit in pubspec.yaml seems to differ from version bound
+Commit ${flutter_commit}
+We therefore expect the Flutter version name to be: ${predicted_version}
+But the Flutter version bound in pubspec.yaml is: ${flutter_version}
+EOF
+        return 1
+    fi
 
     # Check the commit is an acceptable commit.
     local commit_count
