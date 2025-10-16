@@ -212,7 +212,7 @@ void main() {
 
     final channel = eg.stream();
     final message = eg.streamMessage(stream: channel,
-      topic: 'test topic', contentMarkdown: ContentExample.imageSingle.html);
+      topic: 'test topic', contentMarkdown: ContentExample.imagePreviewSingle.html);
 
     // From ContentExample.imageSingle.
     final imageSrcUrlStr = 'https://chat.example/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp';

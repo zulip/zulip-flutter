@@ -348,13 +348,13 @@ class BlockContentList extends StatelessWidget {
           SpoilerNode() => Spoiler(node: node),
           CodeBlockNode() => CodeBlock(node: node),
           MathBlockNode() => MathBlock(node: node),
-          ImageNodeList() => MessageImageList(node: node),
-          ImageNode() => (){
+          ImagePreviewNodeList() => MessageImagePreviewList(node: node),
+          ImagePreviewNode() => (){
             assert(false,
-              "[ImageNode] not allowed in [BlockContentList]. "
-              "It should be wrapped in [ImageNodeList]."
+              "[ImagePreviewNode] not allowed in [BlockContentList]. "
+              "It should be wrapped in [ImagePreviewNodeList]."
             );
-            return MessageImage(node: node);
+            return MessageImagePreview(node: node);
           }(),
           InlineVideoNode() => MessageInlineVideo(node: node),
           EmbedVideoNode() => MessageEmbedVideo(node: node),
@@ -614,22 +614,22 @@ class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
   }
 }
 
-class MessageImageList extends StatelessWidget {
-  const MessageImageList({super.key, required this.node});
+class MessageImagePreviewList extends StatelessWidget {
+  const MessageImagePreviewList({super.key, required this.node});
 
-  final ImageNodeList node;
+  final ImagePreviewNodeList node;
 
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      children: node.images.map((imageNode) => MessageImage(node: imageNode)).toList());
+      children: node.imagePreviews.map((node) => MessageImagePreview(node: node)).toList());
   }
 }
 
-class MessageImage extends StatelessWidget {
-  const MessageImage({super.key, required this.node});
+class MessageImagePreview extends StatelessWidget {
+  const MessageImagePreview({super.key, required this.node});
 
-  final ImageNode node;
+  final ImagePreviewNode node;
 
   @override
   Widget build(BuildContext context) {
