@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+import '../api/model/model.dart';
 import '../model/emoji.dart';
 import 'content.dart';
 
@@ -145,4 +146,14 @@ class ImageEmojiWidget extends StatelessWidget {
       errorBuilder: errorBuilder,
       resolvedUrl);
   }
+}
+
+/// The text to display for an emoji in the "Plain text" emoji theme.
+///
+/// See [Emojiset.text].
+String textEmojiForEmojiName(String emojiName) {
+  // Encourage line breaks before "_" (common in these), but try not
+  // to leave a colon alone on a line. See:
+  //   <https://github.com/flutter/flutter/issues/61081#issuecomment-1103330522>
+  return ':\ufeff${emojiName.replaceAll('_', '\u200b_')}\ufeff:';
 }
