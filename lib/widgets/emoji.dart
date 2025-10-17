@@ -123,7 +123,6 @@ class ImageEmojiWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Some people really dislike animated emoji.
     final doNotAnimate =
       neverAnimate
       // From reading code, this doesn't actually get set on iOS:
