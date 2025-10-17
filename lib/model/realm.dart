@@ -47,6 +47,8 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   GroupSettingValue? get realmCanDeleteOwnMessageGroup; // TODO(server-10)
   bool get realmEnableReadReceipts;
   bool get realmMandatoryTopics;
+  String? get jitsiServerUrl;
+  int get realmVideoChatProvider;
   int get maxFileUploadSizeMib;
   int? get realmMessageContentDeleteLimitSeconds;
   Duration? get realmMessageContentEditLimit =>
@@ -174,6 +176,10 @@ mixin ProxyRealmStore on RealmStore {
   @override
   bool get realmMandatoryTopics => realmStore.realmMandatoryTopics;
   @override
+  int get realmVideoChatProvider => realmStore.realmVideoChatProvider;
+  @override
+  String? get jitsiServerUrl => realmStore.jitsiServerUrl;
+  @override
   int get maxFileUploadSizeMib => realmStore.maxFileUploadSizeMib;
   @override
   int? get realmMessageContentDeleteLimitSeconds => realmStore.realmMessageContentDeleteLimitSeconds;
@@ -230,6 +236,8 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmCanDeleteAnyMessageGroup = initialSnapshot.realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup = initialSnapshot.realmCanDeleteOwnMessageGroup,
     realmMandatoryTopics = initialSnapshot.realmMandatoryTopics,
+    realmVideoChatProvider = initialSnapshot.realmVideoChatProvider,
+    jitsiServerUrl = initialSnapshot.jitsiServerUrl,
     maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib,
     realmMessageContentDeleteLimitSeconds = initialSnapshot.realmMessageContentDeleteLimitSeconds,
     realmMessageContentEditLimitSeconds = initialSnapshot.realmMessageContentEditLimitSeconds,
@@ -379,6 +387,10 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   final bool realmEnableReadReceipts;
   @override
   final bool realmMandatoryTopics;
+  @override
+  final int realmVideoChatProvider;
+  @override
+  final String? jitsiServerUrl;
   @override
   final int maxFileUploadSizeMib;
   @override
