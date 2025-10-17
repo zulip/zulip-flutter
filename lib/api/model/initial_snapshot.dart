@@ -90,6 +90,8 @@ class InitialSnapshot {
   /// Search for "realm_wildcard_mention_policy" in https://zulip.com/api/register-queue.
   final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
 
+  final int realmVideoChatProvider;
+
   final bool realmMandatoryTopics;
 
   final String realmName;
@@ -114,6 +116,8 @@ class InitialSnapshot {
   final bool realmPresenceDisabled;
 
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
+
+  final String? jitsiServerUrl;
 
   final int maxFileUploadSizeMib;
 
@@ -184,6 +188,7 @@ class InitialSnapshot {
     required this.realmDeleteOwnMessagePolicy,
     required this.realmWildcardMentionPolicy,
     required this.realmMandatoryTopics,
+    required this.realmVideoChatProvider,
     required this.realmName,
     required this.realmWaitingPeriodThreshold,
     required this.realmMessageContentDeleteLimitSeconds,
@@ -193,6 +198,7 @@ class InitialSnapshot {
     required this.realmIconUrl,
     required this.realmPresenceDisabled,
     required this.realmDefaultExternalAccounts,
+    required this.jitsiServerUrl,
     required this.maxFileUploadSizeMib,
     required this.serverEmojiDataUrl,
     required this.realmEmptyTopicDisplayName,
