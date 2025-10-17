@@ -208,6 +208,9 @@ abstract final class ZulipIcons {
   /// The Zulip custom icon "unmute".
   static const IconData unmute = IconData(0xf13c, fontFamily: "Zulip Icons");
 
+  /// The Zulip custom icon "video".
+  static const IconData video = IconData(0xf13d, fontFamily: "Zulip Icons");
+
   // END GENERATED ICON DATA
 }
 
