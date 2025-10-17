@@ -130,10 +130,9 @@ class ImageEmojiWidget extends StatelessWidget {
       //   https://github.com/zulip/zulip-flutter/pull/410#discussion_r1408522293
       || MediaQuery.disableAnimationsOf(context)
       || (defaultTargetPlatform == TargetPlatform.iOS
-        // TODO(upstream) On iOS 17+ (new in 2023), there's a more closely
+        // TODO(#1924) On iOS 17+ (new in 2023), there's a more closely
         //   relevant setting than "reduce motion". It's called "auto-play
-        //   animated images", and we should file an issue to expose it.
-        //   See GitHub comment linked above.
+        //   animated images"; we should use that once Flutter exposes it.
         && WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.reduceMotion);
 
     final size = textScaler.scale(this.size);
