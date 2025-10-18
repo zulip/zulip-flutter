@@ -349,8 +349,8 @@ class UserStatusEmoji extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final effectiveEmoji = emoji ?? store.getUserStatus(userId!).emoji;
 
-    final placeholder = SizedBox.shrink();
-    if (effectiveEmoji == null) return placeholder;
+    final placeholder = SizedBox.square(dimension: size);
+    if (effectiveEmoji == null) return SizedBox.shrink();
 
     final emojiDisplay = store.emojiDisplayFor(
       emojiType: effectiveEmoji.reactionType,
@@ -374,7 +374,9 @@ class UserStatusEmoji extends StatelessWidget {
       // The user-status feature doesn't support a :text_emoji:-style display.
       // Also, if an image emoji's URL string doesn't parse, it'll fall back to
       // a :text_emoji:-style display. We show nothing for this case.
-      TextEmojiDisplay() => placeholder,
+      TextEmojiDisplay() => Padding(
+        padding: padding,
+        child: placeholder),
     };
   }
 }
