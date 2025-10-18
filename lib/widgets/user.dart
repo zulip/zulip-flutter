@@ -359,25 +359,22 @@ class UserStatusEmoji extends StatelessWidget {
         // Web doesn't seem to respect the emojiset user settings for user status.
         // .resolve(store.userSettings)
     ;
-    return switch (emojiDisplay) {
-      UnicodeEmojiDisplay() => Padding(
-        padding: padding,
-        child: UnicodeEmojiWidget(size: size, emojiDisplay: emojiDisplay)),
-      ImageEmojiDisplay() => Padding(
-        padding: padding,
-        child: ImageEmojiWidget(
+
+    return Padding(
+      padding: padding,
+      child: switch (emojiDisplay) {
+        UnicodeEmojiDisplay() => UnicodeEmojiWidget(size: size, emojiDisplay: emojiDisplay),
+        ImageEmojiDisplay() => ImageEmojiWidget(
           size: size,
           emojiDisplay: emojiDisplay,
           neverAnimate: neverAnimate,
           // If image emoji fails to load, show nothing.
-          errorBuilder: (_, _, _) => placeholder)),
-      // The user-status feature doesn't support a :text_emoji:-style display.
-      // Also, if an image emoji's URL string doesn't parse, it'll fall back to
-      // a :text_emoji:-style display. We show nothing for this case.
-      TextEmojiDisplay() => Padding(
-        padding: padding,
-        child: placeholder),
-    };
+          errorBuilder: (_, _, _) => placeholder),
+        // The user-status feature doesn't support a :text_emoji:-style display.
+        // Also, if an image emoji's URL string doesn't parse, it'll fall back to
+        // a :text_emoji:-style display. We show nothing for this case.
+        TextEmojiDisplay() => placeholder,
+      });
   }
 }
 
