@@ -224,22 +224,14 @@ class ReactionChip extends StatelessWidget {
       emojiName: emojiName,
     ).resolve(store.userSettings);
 
-    final emoji = switch (emojiDisplay) {
-      UnicodeEmojiDisplay() => UnicodeEmojiWidget(
-        size: _squareEmojiSize,
-        textScaler: _squareEmojiScalerClamped(context),
-        emojiDisplay: emojiDisplay),
-      ImageEmojiDisplay() => ImageEmojiWidget(
-        size: _squareEmojiSize,
-        // Unicode and text emoji get scaled; it would look weird if image emoji didn't.
-        textScaler: _squareEmojiScalerClamped(context),
-        emojiDisplay: emojiDisplay,
-        errorBuilder: (context, _, _) => _TextEmoji(
-          emojiName: emojiName, selected: selfVoted),
-      ),
-      TextEmojiDisplay() => _TextEmoji(
+    final emoji = EmojiWidget(
+      emojiDisplay: emojiDisplay,
+      squareDimension: _squareEmojiSize,
+      squareDimensionScaler: _squareEmojiScalerClamped(context),
+      imagePlaceholderStyle: EmojiImagePlaceholderStyle.text,
+      buildCustomTextEmoji: () => _TextEmoji(
         emojiName: emojiName, selected: selfVoted),
-    };
+    );
 
     Widget result = Material(
       color: backgroundColor,

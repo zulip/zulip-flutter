@@ -5,6 +5,93 @@ import '../api/model/model.dart';
 import '../model/emoji.dart';
 import 'content.dart';
 
+/// A widget showing an emoji.
+class EmojiWidget extends StatelessWidget {
+  const EmojiWidget({
+    super.key,
+    required this.emojiDisplay,
+    required this.squareDimension,
+    this.squareDimensionScaler = TextScaler.noScaling,
+    this.imagePlaceholderStyle = EmojiImagePlaceholderStyle.square,
+    this.neverAnimateImage = false,
+    this.buildCustomTextEmoji,
+  });
+
+  final EmojiDisplay emojiDisplay;
+
+  /// The base width and height to use for the emoji square.
+  ///
+  /// This will be scaled by [squareDimensionScaler].
+  ///
+  /// This is ignored when using the plain-text emoji style.
+  final double squareDimension;
+
+  /// A [TextScaler] to apply to [squareDimension].
+  ///
+  /// Defaults to [TextScaler.noScaling].
+  ///
+  /// This is ignored when using the plain-text emoji style.
+  final TextScaler squareDimensionScaler;
+
+  final EmojiImagePlaceholderStyle imagePlaceholderStyle;
+
+  /// Whether to show an animated emoji in its still (non-animated) variant
+  /// only, even if device settings permit animation.
+  ///
+  /// Defaults to false.
+  final bool neverAnimateImage;
+
+  /// An optional callback to specify a custom plain-text emoji style.
+  ///
+  /// If this is not passed, a simple [Text] widget with no added styling
+  /// is used.
+  final Widget Function()? buildCustomTextEmoji;
+
+  Widget _buildTextEmoji() {
+    return buildCustomTextEmoji?.call()
+      ?? Text(textEmojiForEmojiName(emojiDisplay.emojiName));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final emojiDisplay = this.emojiDisplay;
+    return switch (emojiDisplay) {
+      ImageEmojiDisplay() => ImageEmojiWidget(
+        emojiDisplay: emojiDisplay,
+        size: squareDimension,
+        textScaler: squareDimensionScaler,
+        errorBuilder: (_, _, _) => switch (imagePlaceholderStyle) {
+          EmojiImagePlaceholderStyle.square =>
+            SizedBox.square(dimension: squareDimensionScaler.scale(squareDimension)),
+          EmojiImagePlaceholderStyle.nothing => SizedBox.shrink(),
+          EmojiImagePlaceholderStyle.text => _buildTextEmoji(),
+        },
+        neverAnimate: neverAnimateImage),
+      UnicodeEmojiDisplay() => UnicodeEmojiWidget(
+        emojiDisplay: emojiDisplay,
+        size: squareDimension,
+        textScaler: squareDimensionScaler),
+      TextEmojiDisplay() => _buildTextEmoji(),
+    };
+  }
+}
+
+/// In [EmojiWidget], how to present an image emoji when we don't have the image.
+enum EmojiImagePlaceholderStyle {
+  /// A square of [EmojiWidget.squareDimension]
+  /// scaled by [EmojiWidget.squareDimensionScaler].
+  square,
+
+  /// A [SizedBox.shrink].
+  nothing,
+
+  /// A plain-text emoji.
+  ///
+  /// See [EmojiWidget.buildCustomTextEmoji] for how plain-text emojis are
+  /// styled.
+  text,
+}
+
 class UnicodeEmojiWidget extends StatelessWidget {
   const UnicodeEmojiWidget({
     super.key,
@@ -90,7 +177,6 @@ class UnicodeEmojiWidget extends StatelessWidget {
     }
   }
 }
-
 
 class ImageEmojiWidget extends StatelessWidget {
   const ImageEmojiWidget({
