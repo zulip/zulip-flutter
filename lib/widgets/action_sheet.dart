@@ -499,16 +499,16 @@ void showChannelActionSheet(BuildContext context, {
   final unreadCount = store.unreads.countInChannelNarrow(channelId);
   final channel = store.streams[channelId];
   final isSubscribed = channel is Subscription;
+  final hasContentAccess = channel != null && store.selfHasContentAccess(channel);
   final buttonSections = [
-    if (!isSubscribed
-        && channel != null && store.selfHasContentAccess(channel))
+    if (!isSubscribed && hasContentAccess)
       [SubscribeButton(pageContext: pageContext, channelId: channelId)],
     [
-      if (unreadCount > 0)
+      if (hasContentAccess && unreadCount > 0)
         MarkChannelAsReadButton(pageContext: pageContext, channelId: channelId),
-      if (showTopicListButton)
+      if (hasContentAccess && showTopicListButton)
         TopicListButton(pageContext: pageContext, channelId: channelId),
-      if (!isOnChannelFeed)
+      if (hasContentAccess && !isOnChannelFeed)
         ChannelFeedButton(pageContext: pageContext, channelId: channelId),
       CopyChannelLinkButton(channelId: channelId, pageContext: pageContext)
     ],
