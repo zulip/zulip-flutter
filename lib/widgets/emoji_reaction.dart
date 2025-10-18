@@ -235,10 +235,10 @@ class ReactionChip extends StatelessWidget {
         textScaler: _squareEmojiScalerClamped(context),
         emojiDisplay: emojiDisplay,
         errorBuilder: (context, _, _) => _TextEmoji(
-          emojiDisplay: TextEmojiDisplay(emojiName: emojiName), selected: selfVoted),
+          emojiName: emojiName, selected: selfVoted),
       ),
       TextEmojiDisplay() => _TextEmoji(
-        emojiDisplay: emojiDisplay, selected: selfVoted),
+        emojiName: emojiName, selected: selfVoted),
     };
 
     Widget result = Material(
@@ -345,9 +345,9 @@ TextScaler _labelTextScalerClamped(BuildContext context) =>
   MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2);
 
 class _TextEmoji extends StatelessWidget {
-  const _TextEmoji({required this.emojiDisplay, required this.selected});
+  const _TextEmoji({required this.emojiName, required this.selected});
 
-  final TextEmojiDisplay emojiDisplay;
+  final String emojiName;
   final bool selected;
 
   @override
@@ -363,7 +363,7 @@ class _TextEmoji extends StatelessWidget {
         color: selected ? reactionTheme.textSelected : reactionTheme.textUnselected,
       ).merge(weightVariableTextStyle(context,
           wght: selected ? 600 : null)),
-      textEmojiForEmojiName(emojiDisplay.emojiName));
+      textEmojiForEmojiName(emojiName));
   }
 }
 
