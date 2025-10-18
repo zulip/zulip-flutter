@@ -731,6 +731,62 @@ class KatexExample extends ContentExample {
         ]),
       ]),
     ]);
+
+  static final overline = KatexExample.block(
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Saif.20KaTeX/with/2278868
+    r'overline: \overline{a}',
+    r'\overline{a}',
+    '<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mover accent="true"><mi>a</mi><mo>¯</mo></mover></mrow><annotation encoding="application/x-tex">\\overline{a}</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base">'
+            '<span class="strut" style="height:0.6944em;"></span>'
+            '<span class="mord overline">'
+              '<span class="mord mathnormal">a</span></span></span></span></span></span></p>', [
+      KatexSpanNode(nodes: [
+        KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
+        KatexSpanNode(
+          styles: KatexSpanStyles(
+            borderStyle: KatexBorderStyle(
+              position: KatexBorderPosition.top,
+              widthEm: 0.049,
+              color: null)),
+          nodes: [
+            KatexSpanNode(
+              styles: KatexSpanStyles(fontFamily: 'KaTeX_Math', fontStyle: KatexSpanFontStyle.italic),
+              text: 'a'),
+          ]),
+      ]),
+    ]);
+
+  static final underline = KatexExample.block(
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Saif.20KaTeX/with/2278868
+    r'underline: \underline{b}',
+    r'\underline{b}',
+    '<p>'
+      '<span class="katex-display"><span class="katex">'
+        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><munder accent="true"><mi>b</mi><mo>‾</mo></munder></mrow><annotation encoding="application/x-tex">\\underline{b}</annotation></semantics></math></span>'
+        '<span class="katex-html" aria-hidden="true">'
+          '<span class="base">'
+            '<span class="strut" style="height:0.6944em;"></span>'
+            '<span class="mord underline">'
+              '<span class="mord mathnormal">b</span></span></span></span></span></span></p>', [
+      KatexSpanNode(nodes: [
+        KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
+        KatexSpanNode(
+          styles: KatexSpanStyles(
+            borderStyle: KatexBorderStyle(
+              position: KatexBorderPosition.bottom,
+              widthEm: 0.049,
+              color: null)),
+          nodes: [
+            KatexSpanNode(
+              styles: KatexSpanStyles(fontFamily: 'KaTeX_Math', fontStyle: KatexSpanFontStyle.italic),
+              text: 'b'),
+          ]),
+      ]),
+    ]);
 }
 
 void main() async {
@@ -754,6 +810,8 @@ void main() async {
   testParseExample(KatexExample.bigOperators);
   testParseExample(KatexExample.colonEquals);
   testParseExample(KatexExample.nulldelimiter);
+  testParseExample(KatexExample.overline);
+  testParseExample(KatexExample.underline);
 
   group('parseCssHexColor', () {
     const testCases = [
