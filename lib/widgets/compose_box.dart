@@ -1061,6 +1061,12 @@ class _AttachVideoChatUrlButton extends StatelessWidget {
   }
 
   void _handlePress(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final placeholder = _getMeetingUrl(zulipLocalizations,
+        store.realmVideoChatProvider, store.jitsiServerUrl);
+    if (placeholder == null) return;
   }
 
   @override
