@@ -86,6 +86,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
     const pageBodies = [
       (_HomePageTab.inbox,          InboxPageBody()),
       (_HomePageTab.channels,       SubscriptionListPageBody()),
@@ -93,28 +95,34 @@ class _HomePageState extends State<HomePage> {
       (_HomePageTab.directMessages, RecentDmConversationsPageBody()),
     ];
 
-    _NavigationBarButton button(_HomePageTab tab, IconData icon) {
+    _NavigationBarButton button(_HomePageTab tab, IconData icon, String label) {
       return _NavigationBarButton(icon: icon,
         selected: _tab.value == tab,
         onPressed: () {
           _tab.value = tab;
-        });
+        },
+        label: label);
     }
 
     // TODO(a11y): add tooltips for these buttons
     final navigationBarButtons = [
-      button(_HomePageTab.inbox,          ZulipIcons.inbox),
+      button(_HomePageTab.inbox,          ZulipIcons.inbox,
+        zulipLocalizations.inboxPageTitle),
       _NavigationBarButton(         icon: ZulipIcons.message_feed,
         selected: false,
         onPressed: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
-            narrow: const CombinedFeedNarrow()))),
-      button(_HomePageTab.channels,       ZulipIcons.hash_italic),
+            narrow: const CombinedFeedNarrow())), 
+        label: zulipLocalizations.navBarFeedLabel),
+      button(_HomePageTab.channels,       ZulipIcons.hash_italic,
+        zulipLocalizations.channelsPageTitle),
       // TODO(#1094): Users
-      button(_HomePageTab.directMessages, ZulipIcons.two_person),
+      button(_HomePageTab.directMessages, ZulipIcons.two_person,
+        zulipLocalizations.navBarDmLabel),
       _NavigationBarButton(         icon: ZulipIcons.menu,
         selected: false,
-        onPressed: () => _showMainMenu(context, tabNotifier: _tab)),
+        onPressed: () => _showMainMenu(context, tabNotifier: _tab),
+        label: zulipLocalizations.navBarMenuLabel),
     ];
 
     final designVariables = DesignVariables.of(context);
@@ -231,11 +239,13 @@ class _NavigationBarButton extends StatelessWidget {
     required this.icon,
     required this.selected,
     required this.onPressed,
+    required this.label,
   });
 
   final IconData icon;
   final bool selected;
   final void Function() onPressed;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
