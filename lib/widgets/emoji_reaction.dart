@@ -843,22 +843,19 @@ class _ViewReactionsEmojiItem extends StatelessWidget {
       emojiType: reactionWithVotes.reactionType,
       emojiCode: reactionWithVotes.emojiCode,
       emojiName: emojiName);
+    // (Not calling EmojiDisplay.resolve. For expediency, rather than design a
+    // reasonable layout for [Emojiset.text], in this case we just override that
+    // setting and show the emoji anyway.)
 
-    // Don't use a :text_emoji:-style display here.
-    final placeholder = SizedBox.square(dimension: emojiSize);
-
-    // TODO make a helper widget for this
-    final emoji = switch (emojiDisplay) {
-      UnicodeEmojiDisplay() => UnicodeEmojiWidget(
-        size: emojiSize,
-        emojiDisplay: emojiDisplay),
-      ImageEmojiDisplay() => ImageEmojiWidget(
-        size: emojiSize,
-        emojiDisplay: emojiDisplay,
-        // If image emoji fails to load, show nothing.
-        errorBuilder: (_, _, _) => placeholder),
-      TextEmojiDisplay() => placeholder,
-    };
+    final emoji = EmojiWidget(
+      emojiDisplay: emojiDisplay,
+      squareDimension: emojiSize,
+      buildCustomTextEmoji: () =>
+        // Invoked when an image emoji's URL didn't parse; see
+        // EmojiStore.emojiDisplayFor. Don't show text, just an empty square.
+        // TODO(design) refine?; offer a visible touch target with tooltip?
+        SizedBox.square(dimension: emojiSize),
+    );
 
     Widget result = Tooltip(
       message: emojiName,
