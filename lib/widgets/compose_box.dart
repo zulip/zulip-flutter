@@ -1040,9 +1040,24 @@ class _AttachVideoChatUrlButton extends StatelessWidget {
   final ComposeBoxController controller;
   final bool enabled;
 
+  static const int jitsi = 1;
+  static const int zoom = 2; //TODO: Add other supported video chat providers
+
   String _generateJitsiUrl(String serverUrl, String visibleText) {
     final id = List.generate(15, (_) => Random.secure().nextInt(10)).join();
     return inlineLink(visibleText, '$serverUrl/$id#config.startWithVideoMuted=false');
+  }
+
+  String? _getMeetingUrl(ZulipLocalizations zulipLocalization, int? provider, String? jitsiServerUrl) {
+    final visibleText = zulipLocalization.composeBoxUploadedVideoCallUrl;
+
+    switch (provider) {
+      case 0: return null; //TODO: Implement feedback no video chat provider is setup
+      case jitsi: return jitsiServerUrl == null ? null :_generateJitsiUrl(jitsiServerUrl, visibleText);
+      case zoom: return inlineLink(visibleText,
+        'https://zoom.us/start/meeting');
+      default: return null;
+    }
   }
 
   void _handlePress(BuildContext context) {
