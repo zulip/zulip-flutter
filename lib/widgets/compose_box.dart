@@ -1067,6 +1067,11 @@ class _AttachVideoChatUrlButton extends StatelessWidget {
     final placeholder = _getMeetingUrl(zulipLocalizations,
         store.realmVideoChatProvider, store.jitsiServerUrl);
     if (placeholder == null) return;
+
+    final contentController = controller.content;
+    final insertionRange = contentController.insertionIndex();
+    contentController.value = contentController.value.replaced(insertionRange, '$placeholder\n\n');
+    controller.contentFocusNode.requestFocus();
   }
 
   @override
