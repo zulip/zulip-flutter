@@ -1057,6 +1057,15 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Powiadom w wątku';
 
   @override
+  String get navBarFeedLabel => 'Feed';
+
+  @override
+  String get navBarDmLabel => 'DMs';
+
+  @override
+  String get navBarMenuLabel => 'Menu';
+
+  @override
   String get messageIsEditedLabel => 'ZMIENIONO';
 
   @override
