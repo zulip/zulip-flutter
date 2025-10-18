@@ -555,13 +555,19 @@ class EmojiPickerListEntry extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
 
-    // TODO deduplicate this logic with [_EmojiAutocompleteItem]
     final emojiDisplay = emoji.emojiDisplay.resolve(store.userSettings);
     final Widget? glyph = switch (emojiDisplay) {
-      ImageEmojiDisplay() =>
-        ImageEmojiWidget(size: _emojiSize, emojiDisplay: emojiDisplay),
-      UnicodeEmojiDisplay() =>
-        UnicodeEmojiWidget(size: _emojiSize, emojiDisplay: emojiDisplay),
+      ImageEmojiDisplay() || UnicodeEmojiDisplay() => EmojiWidget(
+        emojiDisplay: emojiDisplay,
+        squareDimension: _emojiSize,
+        imagePlaceholderStyle: EmojiImagePlaceholderStyle.square,
+        buildCustomTextEmoji: () {
+          // emojiDisplay is not TextEmojiDisplay,
+          // and imagePlaceholderStyle is not EmojiImagePlaceholderStyle.text.
+          assert(false);
+          return SizedBox.shrink();
+        },
+      ),
       TextEmojiDisplay() => null, // The text is already shown separately.
     };
 
