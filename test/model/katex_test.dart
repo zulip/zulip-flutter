@@ -4,11 +4,49 @@ import 'package:checks/checks.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:test_api/scaffolding.dart';
 import 'package:zulip/model/content.dart';
+import 'package:zulip/model/content_example_json.dart';
+import 'package:zulip/model/content_node_json_utils.dart';
 import 'package:zulip/model/katex.dart';
 
 import 'binding.dart';
 import 'content_test.dart';
 
+
+extension KatexExampleJsonExport on KatexExample {
+  KatexExampleJson toJsonSerializable() {
+    final texSource = _extractTexSource();
+    return KatexExampleJson(
+      description: description,
+      texSource: texSource,
+      markdown: markdown,
+      html: html,
+      expectedNodes: expectedNodes.map(nodeToJson).toList(),
+      expectedText: expectedText,
+    );
+  }
+
+  /// Helper to extract TeX source from MathInlineNode or MathBlockNode
+  /// within the expectedNodes
+  String? _extractTexSource() {
+    if (expectedNodes.isEmpty) return null;
+
+    final firstNode = expectedNodes[0];
+
+    if (firstNode is MathBlockNode) {
+      return firstNode.texSource;
+    }
+
+    // For inline math, the first node should be a ParagraphNode containing MathInlineNode
+    if (firstNode is ParagraphNode) {
+      for (final inlineNode in firstNode.nodes) {
+        if (inlineNode is MathInlineNode) {
+          return inlineNode.texSource;
+        }
+      }
+    }
+    return null;
+  }
+}
 /// An example of KaTeX Zulip content for test cases.
 ///
 /// For guidance on writing examples, see comments on [ContentExample].
