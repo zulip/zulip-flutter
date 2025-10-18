@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../api/model/model.dart';
 import '../model/avatar_url.dart';
 import '../model/binding.dart';
-import '../model/emoji.dart';
 import '../model/presence.dart';
 import 'content.dart';
 import 'emoji.dart';
@@ -349,32 +348,28 @@ class UserStatusEmoji extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final effectiveEmoji = emoji ?? store.getUserStatus(userId!).emoji;
 
-    final placeholder = SizedBox.square(dimension: size);
     if (effectiveEmoji == null) return SizedBox.shrink();
 
     final emojiDisplay = store.emojiDisplayFor(
       emojiType: effectiveEmoji.reactionType,
       emojiCode: effectiveEmoji.emojiCode,
       emojiName: effectiveEmoji.emojiName)
-        // Web doesn't seem to respect the emojiset user settings for user status.
+        // The user-status feature doesn't support a :text_emoji:-style display.
         // .resolve(store.userSettings)
     ;
 
     return Padding(
       padding: padding,
-      child: switch (emojiDisplay) {
-        UnicodeEmojiDisplay() => UnicodeEmojiWidget(size: size, emojiDisplay: emojiDisplay),
-        ImageEmojiDisplay() => ImageEmojiWidget(
-          size: size,
-          emojiDisplay: emojiDisplay,
-          neverAnimate: neverAnimate,
-          // If image emoji fails to load, show nothing.
-          errorBuilder: (_, _, _) => placeholder),
-        // The user-status feature doesn't support a :text_emoji:-style display.
-        // Also, if an image emoji's URL string doesn't parse, it'll fall back to
-        // a :text_emoji:-style display. We show nothing for this case.
-        TextEmojiDisplay() => placeholder,
-      });
+      child: EmojiWidget(
+        emojiDisplay: emojiDisplay,
+        squareDimension: size,
+        neverAnimateImage: neverAnimate,
+        buildCustomTextEmoji: () =>
+          // Invoked when an image emoji's URL didn't parse; see
+          // EmojiStore.emojiDisplayFor. Don't show text, just an empty square.
+          // TODO(design) refine?; offer a visible touch target with tooltip?
+          SizedBox.square(dimension: size),
+      ));
   }
 }
 
