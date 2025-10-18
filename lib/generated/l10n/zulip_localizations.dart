@@ -919,6 +919,12 @@ abstract class ZulipLocalizations {
   /// **'Take a photo'**
   String get composeBoxAttachFromCameraTooltip;
 
+  /// Tooltip for compose box icon to attach a video call url to the message.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach a video call'**
+  String get composeBoxAttachFromVideoCallTooltip;
+
   /// Hint text for content input when sending a message.
   ///
   /// In en, this message translates to:
@@ -1020,6 +1026,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Uploading {filename}…'**
   String composeBoxUploadingFilename(String filename);
+
+  /// Placeholder in compose box showing the video call url is generated.
+  ///
+  /// In en, this message translates to:
+  /// **'Join video call.'**
+  String get composeBoxUploadedVideoCallUrl;
 
   /// Placeholder in compose box showing the quoted message is currently loading.
   ///
