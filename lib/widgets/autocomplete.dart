@@ -370,13 +370,19 @@ class _EmojiAutocompleteItem extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     final candidate = option.candidate;
 
-    // TODO deduplicate this logic with [EmojiPickerListEntry]
     final emojiDisplay = candidate.emojiDisplay.resolve(store.userSettings);
     final Widget? glyph = switch (emojiDisplay) {
-      ImageEmojiDisplay() =>
-        ImageEmojiWidget(size: _size, emojiDisplay: emojiDisplay),
-      UnicodeEmojiDisplay() =>
-        UnicodeEmojiWidget(size: _size, emojiDisplay: emojiDisplay),
+      ImageEmojiDisplay() || UnicodeEmojiDisplay() => EmojiWidget(
+        emojiDisplay: emojiDisplay,
+        squareDimension: _size,
+        imagePlaceholderStyle: EmojiImagePlaceholderStyle.square,
+        buildCustomTextEmoji: () {
+          // emojiDisplay is not TextEmojiDisplay,
+          // and imagePlaceholderStyle is not EmojiImagePlaceholderStyle.text.
+          assert(false);
+          return SizedBox.shrink();
+        },
+      ),
       TextEmojiDisplay() => null, // The text is already shown separately.
     };
 
