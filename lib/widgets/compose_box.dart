@@ -1031,6 +1031,32 @@ Future<void> _uploadFiles({
   }
 }
 
+class _AttachVideoChatUrlButton extends StatelessWidget {
+  const _AttachVideoChatUrlButton({
+    required this.controller,
+    required this.enabled,
+  });
+
+  final ComposeBoxController controller;
+  final bool enabled;
+
+  void _handlePress(BuildContext context) {
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    return SizedBox(
+      width: _composeButtonSize,
+      child: IconButton(
+        icon: Icon(ZulipIcons.video, color: designVariables.foreground.withFadedAlpha(0.5)),
+        tooltip: zulipLocalizations.composeBoxAttachFromVideoCallTooltip,
+        onPressed: enabled ? () => _handlePress(context) : null));
+  }
+}
+
 abstract class _AttachUploadsButton extends StatelessWidget {
   const _AttachUploadsButton({required this.controller, required this.enabled});
 
@@ -1469,6 +1495,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
       _AttachFileButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
+      _AttachVideoChatUrlButton(controller: controller, enabled: composeButtonsEnabled),
     ];
 
     final topicInput = buildTopicInput();

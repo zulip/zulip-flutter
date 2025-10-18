@@ -1314,6 +1314,7 @@ void main() {
       check(attachButtonFinder(ZulipIcons.attach_file).evaluate().length).equals(areShown ? 1 : 0);
       check(attachButtonFinder(ZulipIcons.image).evaluate().length).equals(areShown ? 1 : 0);
       check(attachButtonFinder(ZulipIcons.camera).evaluate().length).equals(areShown ? 1 : 0);
+      check(attachButtonFinder(ZulipIcons.video).evaluate().length).equals(areShown ? 1 : 0);
     }
 
     void checkBannerWithLabel(String label, {required bool isShown}) {
