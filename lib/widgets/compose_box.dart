@@ -1040,6 +1040,11 @@ class _AttachVideoChatUrlButton extends StatelessWidget {
   final ComposeBoxController controller;
   final bool enabled;
 
+  String _generateJitsiUrl(String serverUrl, String visibleText) {
+    final id = List.generate(15, (_) => Random.secure().nextInt(10)).join();
+    return inlineLink(visibleText, '$serverUrl/$id#config.startWithVideoMuted=false');
+  }
+
   void _handlePress(BuildContext context) {
   }
 
