@@ -652,6 +652,7 @@ class ZulipStream {
   @JsonKey(name: 'stream_post_policy')
   ChannelPostPolicy? channelPostPolicy; // TODO(server-10) remove
   // final bool isAnnouncementOnly; // deprecated for `channelPostPolicy`; ignore
+  bool? isRecentlyActive; // TODO(server-10)
 
   GroupSettingValue? canAddSubscribersGroup; // TODO(server-10)
   GroupSettingValue? canDeleteAnyMessageGroup; // TODO(server-11)
@@ -675,6 +676,7 @@ class ZulipStream {
     required this.historyPublicToSubscribers,
     required this.messageRetentionDays,
     required this.channelPostPolicy,
+    required this.isRecentlyActive,
     required this.folderId,
     required this.canAddSubscribersGroup,
     required this.canDeleteAnyMessageGroup,
@@ -699,6 +701,7 @@ class ZulipStream {
       historyPublicToSubscribers: subscription.historyPublicToSubscribers,
       messageRetentionDays: subscription.messageRetentionDays,
       channelPostPolicy: subscription.channelPostPolicy,
+      isRecentlyActive: subscription.isRecentlyActive,
       folderId: subscription.folderId,
       canAddSubscribersGroup: subscription.canAddSubscribersGroup,
       canDeleteAnyMessageGroup: subscription.canDeleteAnyMessageGroup,
@@ -736,6 +739,7 @@ enum ChannelPropertyName {
   messageRetentionDays,
   @JsonValue('stream_post_policy')
   channelPostPolicy,
+  isRecentlyActive,
   folderId,
   canAddSubscribersGroup,
   canDeleteAnyMessageGroup,
@@ -821,6 +825,7 @@ class Subscription extends ZulipStream {
     required super.historyPublicToSubscribers,
     required super.messageRetentionDays,
     required super.channelPostPolicy,
+    required super.isRecentlyActive,
     required super.folderId,
     required super.canAddSubscribersGroup,
     required super.canDeleteAnyMessageGroup,

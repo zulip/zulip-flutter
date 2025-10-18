@@ -340,7 +340,7 @@ void main() {
 
         testWidgets('unknown channel', (tester) async {
           await prepare();
-          await store.handleEvent(ChannelDeleteEvent(id: 1, streams: [someChannel]));
+          await store.handleEvent(ChannelDeleteEvent(id: 1, streamIds: [someChannel.streamId]));
           check(store.streams[someChannel.streamId]).isNull();
           await showFromTopicListAppBar(tester);
           check(findInHeader(find.byType(Icon))).findsNothing();
