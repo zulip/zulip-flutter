@@ -224,14 +224,14 @@ class ReactionChip extends StatelessWidget {
       emojiName: emojiName,
     ).resolve(store.userSettings);
 
-    final emoji = switch (emojiDisplay) {
-      UnicodeEmojiDisplay() => _UnicodeEmoji(
-        emojiDisplay: emojiDisplay),
-      ImageEmojiDisplay() => _ImageEmoji(
-        emojiDisplay: emojiDisplay, emojiName: emojiName, selected: selfVoted),
-      TextEmojiDisplay() => _TextEmoji(
-        emojiDisplay: emojiDisplay, selected: selfVoted),
-    };
+    final emoji = EmojiWidget(
+      emojiDisplay: emojiDisplay,
+      squareDimension: _squareEmojiSize,
+      squareDimensionScaler: _squareEmojiScalerClamped(context),
+      imagePlaceholderStyle: EmojiImagePlaceholderStyle.text,
+      buildCustomTextEmoji: () => _TextEmoji(
+        emojiName: emojiName, selected: selfVoted),
+    );
 
     Widget result = Material(
       color: backgroundColor,
@@ -336,59 +336,14 @@ TextScaler _textEmojiScalerClamped(BuildContext context) =>
 TextScaler _labelTextScalerClamped(BuildContext context) =>
   MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2);
 
-class _UnicodeEmoji extends StatelessWidget {
-  const _UnicodeEmoji({required this.emojiDisplay});
+class _TextEmoji extends StatelessWidget {
+  const _TextEmoji({required this.emojiName, required this.selected});
 
-  final UnicodeEmojiDisplay emojiDisplay;
-
-  @override
-  Widget build(BuildContext context) {
-    return UnicodeEmojiWidget(
-      size: _squareEmojiSize,
-      textScaler: _squareEmojiScalerClamped(context),
-      emojiDisplay: emojiDisplay);
-  }
-}
-
-class _ImageEmoji extends StatelessWidget {
-  const _ImageEmoji({
-    required this.emojiDisplay,
-    required this.emojiName,
-    required this.selected,
-  });
-
-  final ImageEmojiDisplay emojiDisplay;
   final String emojiName;
   final bool selected;
 
   @override
   Widget build(BuildContext context) {
-    return ImageEmojiWidget(
-      size: _squareEmojiSize,
-      // Unicode and text emoji get scaled; it would look weird if image emoji didn't.
-      textScaler: _squareEmojiScalerClamped(context),
-      emojiDisplay: emojiDisplay,
-      errorBuilder: (context, _, _) => _TextEmoji(
-        emojiDisplay: TextEmojiDisplay(emojiName: emojiName), selected: selected),
-    );
-  }
-}
-
-class _TextEmoji extends StatelessWidget {
-  const _TextEmoji({required this.emojiDisplay, required this.selected});
-
-  final TextEmojiDisplay emojiDisplay;
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    final emojiName = emojiDisplay.emojiName;
-
-    // Encourage line breaks before "_" (common in these), but try not
-    // to leave a colon alone on a line. See:
-    //   <https://github.com/flutter/flutter/issues/61081#issuecomment-1103330522>
-    final text = ':\ufeff${emojiName.replaceAll('_', '\u200b_')}\ufeff:';
-
     final reactionTheme = EmojiReactionTheme.of(context);
     return Text(
       textAlign: TextAlign.end,
@@ -400,7 +355,7 @@ class _TextEmoji extends StatelessWidget {
         color: selected ? reactionTheme.textSelected : reactionTheme.textUnselected,
       ).merge(weightVariableTextStyle(context,
           wght: selected ? 600 : null)),
-      text);
+      textEmojiForEmojiName(emojiName));
   }
 }
 
@@ -600,13 +555,19 @@ class EmojiPickerListEntry extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
 
-    // TODO deduplicate this logic with [_EmojiAutocompleteItem]
     final emojiDisplay = emoji.emojiDisplay.resolve(store.userSettings);
     final Widget? glyph = switch (emojiDisplay) {
-      ImageEmojiDisplay() =>
-        ImageEmojiWidget(size: _emojiSize, emojiDisplay: emojiDisplay),
-      UnicodeEmojiDisplay() =>
-        UnicodeEmojiWidget(size: _emojiSize, emojiDisplay: emojiDisplay),
+      ImageEmojiDisplay() || UnicodeEmojiDisplay() => EmojiWidget(
+        emojiDisplay: emojiDisplay,
+        squareDimension: _emojiSize,
+        imagePlaceholderStyle: EmojiImagePlaceholderStyle.square,
+        buildCustomTextEmoji: () {
+          // emojiDisplay is not TextEmojiDisplay,
+          // and imagePlaceholderStyle is not EmojiImagePlaceholderStyle.text.
+          assert(false);
+          return SizedBox.shrink();
+        },
+      ),
       TextEmojiDisplay() => null, // The text is already shown separately.
     };
 
@@ -888,22 +849,19 @@ class _ViewReactionsEmojiItem extends StatelessWidget {
       emojiType: reactionWithVotes.reactionType,
       emojiCode: reactionWithVotes.emojiCode,
       emojiName: emojiName);
+    // (Not calling EmojiDisplay.resolve. For expediency, rather than design a
+    // reasonable layout for [Emojiset.text], in this case we just override that
+    // setting and show the emoji anyway.)
 
-    // Don't use a :text_emoji:-style display here.
-    final placeholder = SizedBox.square(dimension: emojiSize);
-
-    // TODO make a helper widget for this
-    final emoji = switch (emojiDisplay) {
-      UnicodeEmojiDisplay() => UnicodeEmojiWidget(
-        size: emojiSize,
-        emojiDisplay: emojiDisplay),
-      ImageEmojiDisplay() => ImageEmojiWidget(
-        size: emojiSize,
-        emojiDisplay: emojiDisplay,
-        // If image emoji fails to load, show nothing.
-        errorBuilder: (_, _, _) => placeholder),
-      TextEmojiDisplay() => placeholder,
-    };
+    final emoji = EmojiWidget(
+      emojiDisplay: emojiDisplay,
+      squareDimension: emojiSize,
+      buildCustomTextEmoji: () =>
+        // Invoked when an image emoji's URL didn't parse; see
+        // EmojiStore.emojiDisplayFor. Don't show text, just an empty square.
+        // TODO(design) refine?; offer a visible touch target with tooltip?
+        SizedBox.square(dimension: emojiSize),
+    );
 
     Widget result = Tooltip(
       message: emojiName,

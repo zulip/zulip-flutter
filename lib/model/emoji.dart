@@ -116,6 +116,13 @@ final class EmojiCandidate {
 
 /// The portion of [PerAccountStore] describing what emoji exist.
 mixin EmojiStore {
+  /// An [EmojiDisplay] for the specified emoji.
+  ///
+  /// Use [EmojiDisplay.resolve] on the result to apply the user's [Emojiset]
+  /// setting.
+  ///
+  /// May be a [TextEmojiDisplay] even if the emojiset is not [Emojiset.text];
+  /// this happens for image emojis whose URLs don't parse.
   EmojiDisplay emojiDisplayFor({
     required ReactionType emojiType,
     required String emojiCode,
