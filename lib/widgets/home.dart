@@ -263,6 +263,16 @@ class _NavigationBarButton extends StatelessWidget {
             SizedBox(height: 34,
               child: Center(
                 child: Icon(icon, size: 24, color: color,))),
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: color,
+                  height: 1.0,),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis)),
           ])));
   }
 }
