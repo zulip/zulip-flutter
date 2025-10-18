@@ -229,8 +229,14 @@ class ReactionChip extends StatelessWidget {
         size: _squareEmojiSize,
         textScaler: _squareEmojiScalerClamped(context),
         emojiDisplay: emojiDisplay),
-      ImageEmojiDisplay() => _ImageEmoji(
-        emojiDisplay: emojiDisplay, emojiName: emojiName, selected: selfVoted),
+      ImageEmojiDisplay() => ImageEmojiWidget(
+        size: _squareEmojiSize,
+        // Unicode and text emoji get scaled; it would look weird if image emoji didn't.
+        textScaler: _squareEmojiScalerClamped(context),
+        emojiDisplay: emojiDisplay,
+        errorBuilder: (context, _, _) => _TextEmoji(
+          emojiDisplay: TextEmojiDisplay(emojiName: emojiName), selected: selfVoted),
+      ),
       TextEmojiDisplay() => _TextEmoji(
         emojiDisplay: emojiDisplay, selected: selfVoted),
     };
@@ -337,30 +343,6 @@ TextScaler _textEmojiScalerClamped(BuildContext context) =>
 // TODO(a11y) clamp higher?
 TextScaler _labelTextScalerClamped(BuildContext context) =>
   MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2);
-
-class _ImageEmoji extends StatelessWidget {
-  const _ImageEmoji({
-    required this.emojiDisplay,
-    required this.emojiName,
-    required this.selected,
-  });
-
-  final ImageEmojiDisplay emojiDisplay;
-  final String emojiName;
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    return ImageEmojiWidget(
-      size: _squareEmojiSize,
-      // Unicode and text emoji get scaled; it would look weird if image emoji didn't.
-      textScaler: _squareEmojiScalerClamped(context),
-      emojiDisplay: emojiDisplay,
-      errorBuilder: (context, _, _) => _TextEmoji(
-        emojiDisplay: TextEmojiDisplay(emojiName: emojiName), selected: selected),
-    );
-  }
-}
 
 class _TextEmoji extends StatelessWidget {
   const _TextEmoji({required this.emojiDisplay, required this.selected});
