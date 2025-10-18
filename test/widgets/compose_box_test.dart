@@ -1719,7 +1719,7 @@ void main() {
     await tester.longPress(find.byWidgetPredicate((widget) =>
       widget is MessageWithPossibleSender && widget.item.message.id == messageId));
     // sheet appears onscreen; default duration of bottom-sheet enter animation
-    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pumpAndSettle();
     final findEditButton = find.descendant(
       of: find.byType(BottomSheet),
       matching: find.byIcon(ZulipIcons.edit, skipOffstage: false));
@@ -1862,10 +1862,17 @@ void main() {
       await tester.pump();
       check(state).controller.content.text.equals('composing something');
     });
+    testWidgets('interrupting message edit: proceed through confirmation dialog', (WidgetTester tester) async {
+      final TransitionDurationObserver transitionDurationObserver = TransitionDurationObserver();
 
-    testWidgets('interrupting message edit: proceed through confirmation dialog', (tester) async {
-      await prepareMessageNotSent(tester, narrow: topicNarrow);
-
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorObservers: <NavigatorObserver>[transitionDurationObserver],
+          home: Scaffold(
+            body: Builder(builder: (context) {
+                prepareMessageNotSent(tester, narrow: topicNarrow);
+                return const SizedBox.shrink();},
+            ))));
       final messageToEdit = eg.streamMessage(
         sender: eg.selfUser, stream: channel, topic: topic,
         content: 'message to edit');
@@ -1875,21 +1882,28 @@ void main() {
       await startEditInteractionFromActionSheet(tester, messageId: messageToEdit.id,
         originalRawContent: 'message to edit',
         delay: Duration.zero);
-      await tester.pump(const Duration(milliseconds: 250)); // bottom-sheet animation
+      await transitionDurationObserver.pumpPastTransition(tester);// bottom-sheet animation
 
       await tester.tap(failedMessageFinder);
       await tester.pump();
       check(state).controller.content.text.equals('message to edit');
 
-      await expectAndHandleDiscardForMessageNotSentConfirmation(tester,
-        shouldContinue: true);
+      await expectAndHandleDiscardForMessageNotSentConfirmation(tester, shouldContinue: true);
       await tester.pump();
       check(state).controller.content.text.equals(failedMessageContent);
     });
 
-    testWidgets('interrupting message edit: cancel confirmation dialog', (tester) async {
-      await prepareMessageNotSent(tester, narrow: topicNarrow);
+    testWidgets('interrupting message edit: cancel confirmation dialog', (WidgetTester tester) async {
+      final TransitionDurationObserver transitionDurationObserver = TransitionDurationObserver();
 
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorObservers: <NavigatorObserver>[transitionDurationObserver],
+          home: Scaffold(
+            body: Builder(builder: (context) {
+                prepareMessageNotSent(tester, narrow: topicNarrow);
+                return const SizedBox.shrink();},
+              ))));
       final messageToEdit = eg.streamMessage(
         sender: eg.selfUser, stream: channel, topic: topic,
         content: 'message to edit');
@@ -1899,7 +1913,7 @@ void main() {
       await startEditInteractionFromActionSheet(tester, messageId: messageToEdit.id,
         originalRawContent: 'message to edit',
         delay: Duration.zero);
-      await tester.pump(const Duration(milliseconds: 250)); // bottom-sheet animation
+      await transitionDurationObserver.pumpPastTransition(tester); // bottom-sheet animation
 
       await tester.tap(failedMessageFinder);
       await tester.pump();
