@@ -64,10 +64,12 @@ async function main() {
   const template = fs.readFileSync(dataTemplateFile, 'utf8');
   const generated = Object.entries(codepoints).map(([name, codepoint]) => {
     const codepointHex = "0x" + codepoint.toString(16);
+    const isDirectonal = /left|right/.test(name) ? "true" : "false";
     return `\
 
   /// The Zulip custom icon "${name}".
-  static const IconData ${name} = IconData(${codepointHex}, fontFamily: "${fontName}");
+  static const IconData ${name} = IconData(${codepointHex}, fontFamily: "${fontName}",
+    matchTextDirection: ${isDirectonal});
 `;
   }).join("");
   const output = template.replace(
