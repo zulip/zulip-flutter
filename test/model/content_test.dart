@@ -814,6 +814,21 @@ class ContentExample {
     ]),
   ]);
 
+  static const imagePreviewSingleExternal3 = ContentExample(
+    'single image preview external, src starts with https://custom.camo-uri.example/',
+    // CAMO_URI (server variable) can be set arbitrarily;
+    // for another possible value, see imagePreviewSingleExternal2.
+    "https://upload.wikimedia.org/wikipedia/commons/7/78/Verregende_bloem_van_een_Helenium_%27El_Dorado%27._22-07-2023._%28d.j.b%29.jpg",
+    '<div class="message_inline_image">'
+      '<a href="https://upload.wikimedia.org/wikipedia/commons/7/78/Verregende_bloem_van_een_Helenium_%27El_Dorado%27._22-07-2023._%28d.j.b%29.jpg">'
+      '<img src="https://custom.camo-uri.example/99742b0f992be15283c428dd42f3b9f5db138d69/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067"></a></div>', [
+    ImagePreviewNodeList([
+      ImagePreviewNode(srcUrl: 'https://custom.camo-uri.example/99742b0f992be15283c428dd42f3b9f5db138d69/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067',
+        thumbnailUrl: null, loading: false,
+        originalWidth: null, originalHeight: null),
+    ]),
+  ]);
+
   static const imagePreviewInvalidUrl = ContentExample(
     'single image preview with invalid URL',
     null, // hypothetical, to test for a risk of crashing
@@ -1833,6 +1848,7 @@ void main() async {
   testParseExample(ContentExample.imagePreviewSingleLoadingPlaceholder);
   testParseExample(ContentExample.imagePreviewSingleExternal1);
   testParseExample(ContentExample.imagePreviewSingleExternal2);
+  testParseExample(ContentExample.imagePreviewSingleExternal3);
   testParseExample(ContentExample.imagePreviewInvalidUrl);
   testParseExample(ContentExample.imagePreviewCluster);
   testParseExample(ContentExample.imagePreviewClusterNoThumbnails);
