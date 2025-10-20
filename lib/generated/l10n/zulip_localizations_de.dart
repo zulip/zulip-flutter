@@ -105,6 +105,9 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get subscribeFailedTitle => 'Konnte nicht abonnieren';
 
   @override
+  String get actionSheetOptionViewChannelMembers => 'View channel members';
+
+  @override
   String get actionSheetOptionMarkChannelAsRead =>
       'Kanal als gelesen markieren';
 

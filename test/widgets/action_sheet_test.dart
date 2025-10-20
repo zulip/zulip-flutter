@@ -24,6 +24,7 @@ import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/action_sheet.dart';
 import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/button.dart';
+import 'package:zulip/widgets/channel_subscribers.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/emoji_reaction.dart';
@@ -289,6 +290,7 @@ void main() {
     group('showChannelActionSheet', () {
       void checkButtons() {
         check(actionSheetFinder).findsOne();
+        checkButton('View channel members');
         checkButton('Mark channel as read');
         checkButton('Copy link to channel');
       }
@@ -448,6 +450,35 @@ void main() {
             'subscriptions': jsonEncode([{'name': someChannel.name}]),
           });
       });
+    });
+    testWidgets('navigates to ChannelMembersPage', (WidgetTester tester) async {
+      final TransitionDurationObserver transitionDurationObserver = TransitionDurationObserver();
+
+      await prepare();
+      final narrow = ChannelNarrow(someChannel.streamId);
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: []).toJson());
+      connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+
+      await tester.pumpWidget(TestZulipApp(
+        accountId: eg.selfAccount.id,
+        navigatorObservers: <NavigatorObserver>[transitionDurationObserver],
+        child: MessageListPage(initNarrow: narrow),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.text(someChannel.name),
+      ));
+      await transitionDurationObserver.pumpPastTransition(tester);
+      connection.prepare(json: GetSubscribersResult(subscribers: [1, 2, 3]).toJson());
+
+      await tester.tap(findButtonForLabel('View channel members'));
+      await tester.pump();
+      await transitionDurationObserver.pumpPastTransition(tester);
+      check(find.byType(ChannelMembersPage)).findsOne();
     });
 
     group('MarkChannelAsReadButton', () {

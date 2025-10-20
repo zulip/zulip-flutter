@@ -104,6 +104,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get subscribeFailedTitle => 'Failed to subscribe';
 
   @override
+  String get actionSheetOptionViewChannelMembers => 'View channel members';
+
+  @override
   String get actionSheetOptionMarkChannelAsRead => 'Mark channel as read';
 
   @override

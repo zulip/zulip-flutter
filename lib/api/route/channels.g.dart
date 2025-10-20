@@ -30,3 +30,15 @@ GetStreamTopicsEntry _$GetStreamTopicsEntryFromJson(
 Map<String, dynamic> _$GetStreamTopicsEntryToJson(
   GetStreamTopicsEntry instance,
 ) => <String, dynamic>{'max_id': instance.maxId, 'name': instance.name};
+
+GetSubscribersResult _$GetSubscribersResultFromJson(
+  Map<String, dynamic> json,
+) => GetSubscribersResult(
+  subscribers: (json['subscribers'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+);
+
+Map<String, dynamic> _$GetSubscribersResultToJson(
+  GetSubscribersResult instance,
+) => <String, dynamic>{'subscribers': instance.subscribers};

@@ -19,6 +19,7 @@ import '../model/internal_link.dart';
 import '../model/narrow.dart';
 import 'actions.dart';
 import 'button.dart';
+import 'channel_subscribers.dart';
 import 'color.dart';
 import 'compose_box.dart';
 import 'content.dart';
@@ -504,6 +505,7 @@ void showChannelActionSheet(BuildContext context, {
         && channel != null && store.selfHasContentAccess(channel))
       [SubscribeButton(pageContext: pageContext, channelId: channelId)],
     [
+      ChannelMembersButton(pageContext: pageContext, channelId: channelId),
       if (unreadCount > 0)
         MarkChannelAsReadButton(pageContext: pageContext, channelId: channelId),
       if (showTopicListButton)
@@ -577,6 +579,26 @@ class MarkChannelAsReadButton extends ActionSheetMenuItemButton {
   void onPressed() async {
     final narrow = ChannelNarrow(channelId);
     await ZulipAction.markNarrowAsRead(pageContext, narrow);
+  }
+}
+
+class ChannelMembersButton extends ActionSheetMenuItemButton {
+  const ChannelMembersButton({super.key, required this.channelId, required super.pageContext});
+
+  final int channelId;
+
+  @override
+  IconData get icon => ZulipIcons.two_person;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionViewChannelMembers;
+  }
+
+  @override
+  void onPressed() {
+    Navigator.push(pageContext,
+      ChannelMembersPage.buildRoute(context: pageContext, streamId: channelId));
   }
 }
 

@@ -19,6 +19,7 @@ import 'action_sheet.dart';
 import 'actions.dart';
 import 'app_bar.dart';
 import 'button.dart';
+import 'channel_subscribers.dart';
 import 'color.dart';
 import 'compose_box.dart';
 import 'content.dart';
@@ -602,6 +603,9 @@ class MessageListAppBarTitle extends StatelessWidget {
           width: double.infinity,
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
+            onTap: () {
+              Navigator.push(context,ChannelMembersPage.buildRoute(context: context, streamId: streamId));
+            },
             onLongPress: () {
               showChannelActionSheet(context, channelId: streamId);
             },

@@ -305,6 +305,12 @@ abstract class ZulipLocalizations {
   /// **'Failed to subscribe'**
   String get subscribeFailedTitle;
 
+  /// Label for navigating to a channel's members page.
+  ///
+  /// In en, this message translates to:
+  /// **'View channel members'**
+  String get actionSheetOptionViewChannelMembers;
+
   /// Label for marking a channel as read.
   ///
   /// In en, this message translates to:

@@ -116,6 +116,10 @@
   "@subscribeFailedTitle": {
     "description": "Error title when subscribing to a channel failed."
   },
+  "actionSheetOptionViewChannelMembers": "View channel members",
+  "@actionSheetOptionViewChannelMembers": {
+    "description": "Label for navigating to a channel's members page."
+  },
   "actionSheetOptionMarkChannelAsRead": "Mark channel as read",
   "@actionSheetOptionMarkChannelAsRead": {
     "description": "Label for marking a channel as read."

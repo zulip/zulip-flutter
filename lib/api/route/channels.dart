@@ -127,3 +127,25 @@ Future<void> updateUserTopic(ApiConnection connection, {
     'visibility_policy': visibilityPolicy,
   });
 }
+
+/// https://zulip.com/api/get-subscribers
+Future<GetSubscribersResult> getSubscribers(ApiConnection connection, {
+  required int streamId,
+}) {
+  return connection.get('getSubscribers', GetSubscribersResult.fromJson,
+    'streams/$streamId/members', null);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class GetSubscribersResult {
+  final List<int> subscribers;
+
+  GetSubscribersResult({
+    required this.subscribers,
+  });
+
+  factory GetSubscribersResult.fromJson(Map<String, dynamic> json) =>
+    _$GetSubscribersResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$GetSubscribersResultToJson(this);
+}

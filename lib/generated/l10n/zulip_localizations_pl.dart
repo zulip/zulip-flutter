@@ -105,6 +105,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get subscribeFailedTitle => 'Subskrypcja bez powodzenia';
 
   @override
+  String get actionSheetOptionViewChannelMembers => 'View channel members';
+
+  @override
   String get actionSheetOptionMarkChannelAsRead =>
       'Oznacz kanał jako przeczytany';
 

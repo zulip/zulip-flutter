@@ -138,4 +138,27 @@ void main() {
       });
     });
   });
+  group('GetSubscribersResult', () {
+    test('fromJson smoke test', () {
+      final json = {
+        'subscribers': [1, 2, 3, 4, 5],
+      };
+      final result = GetSubscribersResult.fromJson(json);
+      check(result.subscribers).deepEquals([1, 2, 3, 4, 5]);
+    });
+
+    // test('fromJson with empty list', () {
+    //   final json = {'subscribers': []};
+    //   final result = GetSubscribersResult.fromJson(json);
+    //   check(result.subscribers).isEmpty();
+    // });
+
+    test('fromJson preserves order', () {
+      final json = {
+        'subscribers': <int>[5, 3, 1, 4, 2],
+      };
+      final result = GetSubscribersResult.fromJson(json);
+      check(result.subscribers).deepEquals([5, 3, 1, 4, 2]);
+    });
+  });
 }

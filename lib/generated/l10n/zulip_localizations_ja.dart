@@ -103,6 +103,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get subscribeFailedTitle => 'チャンネルへの参加に失敗しました';
 
   @override
+  String get actionSheetOptionViewChannelMembers => 'View channel members';
+
+  @override
   String get actionSheetOptionMarkChannelAsRead => 'チャンネルを既読にする';
 
   @override

@@ -27,6 +27,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/autocomplete.dart';
+import 'package:zulip/widgets/channel_subscribers.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/content.dart';
@@ -234,6 +235,23 @@ void main() {
   group('app bar', () {
     // Tests for the topic action sheet are in test/widgets/action_sheet_test.dart.
 
+    testWidgets('channel name tappable to open members list', (tester) async {
+      final channel = eg.stream();
+      await setupMessageListPage(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        streams: [channel],
+        messages: [eg.streamMessage(stream: channel)]);
+
+      connection.prepare(json: GetSubscribersResult(
+        subscribers: [1, 2, 3]).toJson());
+      await tester.tap(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.text(channel.name)));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      check(find.byType(ChannelMembersPage)).findsOne();
+    });
     testWidgets('handle empty topics', (tester) async {
       final channel = eg.stream();
       await setupMessageListPage(tester,
