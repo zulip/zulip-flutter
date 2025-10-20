@@ -29,7 +29,7 @@ typedef MarkedTextParse = ({int? expectedSyntaxStart, TextEditingValue value});
 final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
 void main() {
-  ({int? expectedSyntaxStart, TextEditingValue value}) parseMarkedText(String markedText) {
+  MarkedTextParse parseMarkedText(String markedText) {
     final TextSelection selection;
     int? expectedSyntaxStart;
     final textBuffer = StringBuffer();
