@@ -31,7 +31,7 @@ late PerAccountStore store;
 
 /// Simulates loading a [MessageListPage] and tapping to focus the compose input.
 ///
-/// Also adds [users] to the [PerAccountStore],
+/// Also adds [users] and [channels] to the [PerAccountStore],
 /// so they can show up in autocomplete.
 ///
 /// Also sets [debugNetworkImageHttpClientProvider] to return a constant image.
@@ -40,6 +40,7 @@ late PerAccountStore store;
 /// before the end of the test.
 Future<Finder> setupToComposeInput(WidgetTester tester, {
   List<User> users = const [],
+  List<ZulipStream> channels = const [],
   Narrow? narrow,
 }) async {
   assert(narrow is ChannelNarrow? || narrow is SendableNarrow?);
@@ -51,6 +52,7 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
   store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
   await store.addUsers([eg.selfUser, eg.otherUser]);
   await store.addUsers(users);
+  await store.addStreams(channels);
   final connection = store.connection as FakeApiConnection;
 
   narrow ??= DmNarrow(
