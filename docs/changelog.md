@@ -4,10 +4,15 @@
 
 ### Highlights for users
 
+* Open uploaded files without logging in again. (#1732)
 * Polls show immediate feedback when you vote. (#1808)
 
 
 ### Highlights for developers
+
+* Two scripts for automating some steps of the release process,
+  tools/bump-version and tools/format-changelog, now work again.
+  (PR #1874, PR #1875)
 
 * User-visible changes not described above:
   * Use group-based permission to better determine when to show
@@ -26,7 +31,7 @@
 
 * Resolved: #1862, PR #1885, #1870, #1786, PR #1891, PR #1893, #1878,
   #1827, #1837, PR #1895, #1808, #1036, PR #1876, PR #1873, PR #1894,
-  #1533
+  #1533, PR #1874, #1732, PR #1922, PR #1875, PR #1926, PR #1923
 
 
 ## 30.0.265 (2025-09-25)
