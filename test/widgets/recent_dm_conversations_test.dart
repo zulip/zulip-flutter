@@ -7,6 +7,7 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/basic.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
@@ -189,7 +190,7 @@ void main() {
           matching: find.byType(UserStatusEmoji));
         check(statusEmojiFinder).findsOne();
         check(tester.widget<UserStatusEmoji>(statusEmojiFinder)
-          .neverAnimate).isTrue();
+          .animationMode).equals(ImageAnimationMode.animateNever);
         check(find.ancestor(of: statusEmojiFinder,
           matching: find.byType(RecentDmConversationsItem))).findsOne();
       }

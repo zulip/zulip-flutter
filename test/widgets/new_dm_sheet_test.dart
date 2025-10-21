@@ -4,6 +4,7 @@ import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/basic.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/compose_box.dart';
@@ -344,7 +345,7 @@ void main() {
       final tileStatusEmojiFinder = find.descendant(of: findUserTile(user),
         matching: statusEmojiFinder);
       check(tester.widget<UserStatusEmoji>(tileStatusEmojiFinder)
-        .neverAnimate).isTrue();
+        .animationMode).equals(ImageAnimationMode.animateNever);
       check(tileStatusEmojiFinder).findsOne();
     }
 
@@ -354,7 +355,7 @@ void main() {
       final chipStatusEmojiFinder = find.descendant(of: findUserChip(user),
         matching: statusEmojiFinder);
       check(tester.widget<UserStatusEmoji>(chipStatusEmojiFinder)
-        .neverAnimate).isTrue();
+        .animationMode).equals(ImageAnimationMode.animateNever);
       check(chipStatusEmojiFinder).findsOne();
     }
 
