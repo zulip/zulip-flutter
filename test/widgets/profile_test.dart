@@ -469,7 +469,7 @@ void main() {
         matching: find.byType(UserStatusEmoji));
       check(statusEmojiFinder).findsOne();
       check(tester.widget<UserStatusEmoji>(statusEmojiFinder)
-        .neverAnimate).isFalse();
+        .animationMode).equals(ImageAnimationMode.animateConditionally);
       check(find.text('Busy')).findsOne();
     });
 
@@ -495,7 +495,7 @@ void main() {
         check(statusButtonFinder).findsOne();
         check(statusEmojiFinder).findsOne();
         check(tester.widget<UserStatusEmoji>(statusEmojiFinder)
-          .neverAnimate).isFalse();
+          .animationMode).equals(ImageAnimationMode.animateConditionally);
         check(statusTextFinder).findsOne();
 
         check(find.descendant(of: statusButtonFinder,

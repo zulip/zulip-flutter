@@ -297,8 +297,8 @@ class _PresenceCircleState extends State<PresenceCircle> with PerAccountStoreAwa
 /// widgets.
 /// When there is no status emoji to be shown, the padding will be omitted too.
 ///
-/// Use [neverAnimate] to forcefully disable the animation for animated emojis.
-/// Defaults to true.
+/// Use [animationMode] to control whether an animated emoji is shown
+/// in its still or animated version.
 class UserStatusEmoji extends StatelessWidget {
   const UserStatusEmoji({
     super.key,
@@ -306,7 +306,7 @@ class UserStatusEmoji extends StatelessWidget {
     this.emoji,
     required this.size,
     this.padding = EdgeInsets.zero,
-    this.neverAnimate = true,
+    this.animationMode = ImageAnimationMode.animateNever,
   }) : assert((userId == null) != (emoji == null),
               'Only one of the userId or emoji should be provided.');
 
@@ -314,7 +314,7 @@ class UserStatusEmoji extends StatelessWidget {
   final StatusEmoji? emoji;
   final double size;
   final EdgeInsetsGeometry padding;
-  final bool neverAnimate;
+  final ImageAnimationMode animationMode;
 
   static const double _spanPadding = 4;
 
@@ -329,7 +329,7 @@ class UserStatusEmoji extends StatelessWidget {
     required double fontSize,
     required TextScaler textScaler,
     StatusEmojiPosition position = StatusEmojiPosition.after,
-    bool neverAnimate = true,
+    ImageAnimationMode animationMode = ImageAnimationMode.animateNever,
   }) {
     final (double paddingStart, double paddingEnd) = switch (position) {
       StatusEmojiPosition.before => (0,            _spanPadding),
@@ -340,7 +340,7 @@ class UserStatusEmoji extends StatelessWidget {
       alignment: PlaceholderAlignment.middle,
       child: UserStatusEmoji(userId: userId, emoji: emoji, size: size,
         padding: EdgeInsetsDirectional.only(start: paddingStart, end: paddingEnd),
-        neverAnimate: neverAnimate));
+        animationMode: animationMode));
   }
 
   @override
@@ -363,7 +363,7 @@ class UserStatusEmoji extends StatelessWidget {
       child: EmojiWidget(
         emojiDisplay: emojiDisplay,
         squareDimension: size,
-        neverAnimateImage: neverAnimate,
+        imageAnimationMode: animationMode,
         buildCustomTextEmoji: () =>
           // Invoked when an image emoji's URL didn't parse; see
           // EmojiStore.emojiDisplayFor. Don't show text, just an empty square.

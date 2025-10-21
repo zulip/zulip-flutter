@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../api/core.dart';
@@ -105,5 +106,46 @@ class RealmContentNetworkImage extends StatelessWidget {
       cacheWidth: cacheWidth,
       cacheHeight: cacheHeight,
     );
+  }
+}
+
+/// Whether to show an animated image in its still or animated version.
+///
+/// Use [resolve] to evaluate this for the given [BuildContext],
+/// which reads device-setting data for [animateConditionally].
+enum ImageAnimationMode {
+  /// Always show the animated version.
+  animateAlways,
+
+  /// Always show the still version.
+  animateNever,
+
+  /// Show the animated version
+  /// just if animations aren't disabled in device settings.
+  animateConditionally,
+  ;
+
+  /// True if the image should be animated, false if it should be still.
+  bool resolve(BuildContext context) {
+    switch (this) {
+      case animateAlways: return true;
+      case animateNever: return false;
+      case animateConditionally:
+        // From reading code, this doesn't actually get set on iOS:
+        //   https://github.com/zulip/zulip-flutter/pull/410#discussion_r1408522293
+        if (MediaQuery.disableAnimationsOf(context)) return false;
+
+        if (
+          defaultTargetPlatform == TargetPlatform.iOS
+          // TODO(#1924) On iOS 17+ (new in 2023), there's a more closely
+          //   relevant setting than "reduce motion". It's called "auto-play
+          //   animated images"; we should use that once Flutter exposes it.
+          && WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.reduceMotion
+        ) {
+          return false;
+        }
+
+        return true;
+    }
   }
 }

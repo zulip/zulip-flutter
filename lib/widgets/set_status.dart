@@ -10,6 +10,7 @@ import '../log.dart';
 import 'app_bar.dart';
 import 'emoji_reaction.dart';
 import 'icons.dart';
+import 'image.dart';
 import 'inset_shadow.dart';
 import 'page.dart';
 import 'store.dart';
@@ -214,7 +215,11 @@ class _SetStatusPageState extends State<SetStatusPage> {
                         final emoji = change.emoji.or(oldStatus.emoji);
                         return emoji == null
                           ? const Icon(ZulipIcons.smile, size: 24)
-                          : UserStatusEmoji(emoji: emoji, size: 24, neverAnimate: false);
+                          : UserStatusEmoji(
+                              emoji: emoji,
+                              size: 24,
+                              animationMode: ImageAnimationMode.animateConditionally,
+                            );
                       }),
                     Icon(ZulipIcons.chevron_down, size: 16),
                   ]),
