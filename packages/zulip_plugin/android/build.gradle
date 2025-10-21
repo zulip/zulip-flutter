@@ -10,7 +10,7 @@ android {
     // so the settings below have no real effect.  The Gradle project exists only
     // because the Flutter Gradle plugin expects every Flutter plugin to have one.
 
-    compileSdk 34
+    compileSdk flutter.compileSdkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
