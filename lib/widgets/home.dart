@@ -262,23 +262,25 @@ class _NavigationBarButton extends StatelessWidget {
           splashFactory: NoSplash.splashFactory,
           highlightColor: designVariables.navigationButtonBg,
           onTap: onPressed,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(height: 34,
-                child: Center(
-                  child: Icon(icon, size: 24, color: color,))),
-              Flexible(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: color,
-                    height: 1.0,),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis)),
-            ]))));
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 3.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: 34,
+                  child: Center(
+                    child: Icon(icon, size: 24, color: color,))),
+                Flexible(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: color,
+                      height: 1.0,),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis)),
+              ])))));
   }
 }
 
