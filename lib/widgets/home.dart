@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
+import '../log.dart';
 import '../model/narrow.dart';
 import 'about_zulip.dart';
 import 'action_sheet.dart';
@@ -12,6 +13,7 @@ import 'app_bar.dart';
 import 'button.dart';
 import 'color.dart';
 import 'icons.dart';
+import 'image.dart';
 import 'inbox.dart';
 import 'inset_shadow.dart';
 import 'message_list.dart';
@@ -384,7 +386,6 @@ class _MainMenu extends StatelessWidget {
       _DirectMessagesButton(tabNotifier: tabNotifier),
       // TODO(#1094): Users
       const _MyProfileButton(),
-      const _SwitchAccountButton(),
       // TODO(#198): Set my status
       // const SizedBox(height: 8),
       const _SettingsButton(),
@@ -400,6 +401,7 @@ class _MainMenu extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
+          _MainMenuHeader(),
           Flexible(child: InsetShadowBox(
             top: 8, bottom: 8,
             color: designVariables.bgBotBar,
@@ -414,6 +416,60 @@ class _MainMenu extends StatelessWidget {
               child: BottomSheetDismissButton(
                 style: BottomSheetDismissButtonStyle.close))),
         ]));
+  }
+}
+
+class _MainMenuHeader extends StatelessWidget {
+  const _MainMenuHeader();
+
+  void _handleSwitchAccount(BuildContext context) {
+    Navigator.pop(context); // Close the main menu.
+    Navigator.push(context,
+      MaterialWidgetRoute(page: const ChooseAccountPage()));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
+
+    final placeholder = ColoredBox(color: designVariables.avatarPlaceholderBg);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, left: 12, right: 12),
+      child: Row(spacing: 12, children: [
+        Flexible(child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(spacing: 8, children: [
+            AvatarShape(
+              size: 28,
+              borderRadius: 4,
+              child: RealmContentNetworkImage(
+                store.resolvedRealmIcon,
+                filterQuality: FilterQuality.medium,
+                fit: BoxFit.cover,
+                frameBuilder: (_, child, frame, _) {
+                  if (frame == null) return placeholder;
+                  return child;
+                },
+                errorBuilder: (_, e, st) {
+                  assert(debugLog('$e\n$st'));
+                  return placeholder;
+                })),
+            Flexible(child: Text(store.realmName,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: designVariables.title,
+                fontSize: 20,
+                height: 24 / 20,
+              ).merge(weightVariableTextStyle(context, wght: 600)))),
+          ]))),
+        ZulipIconButton(
+          icon: ZulipIcons.arrow_left_right,
+          tooltip: zulipLocalizations.switchAccountButtonTooltip,
+          onPressed: () => _handleSwitchAccount(context)),
+      ]));
   }
 }
 
@@ -659,23 +715,6 @@ class _MyProfileButton extends _MenuButton {
     final store = PerAccountStoreWidget.of(context);
     Navigator.of(context).push(
       ProfilePage.buildRoute(context: context, userId: store.selfUserId));
-  }
-}
-
-class _SwitchAccountButton extends _MenuButton {
-  const _SwitchAccountButton();
-
-  @override
-  IconData? get icon => ZulipIcons.arrow_left_right;
-
-  @override
-  String label(ZulipLocalizations zulipLocalizations) {
-    return zulipLocalizations.switchAccountButton;
-  }
-
-  @override
-  void onPressed(BuildContext context) {
-    Navigator.of(context).push(MaterialWidgetRoute(page: const ChooseAccountPage()));
   }
 }
 

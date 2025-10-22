@@ -40,7 +40,7 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get settingsPageTitle => 'Nastavitve';
 
   @override
-  String get switchAccountButton => 'Preklopi račun';
+  String get switchAccountButtonTooltip => 'Preklopi račun';
 
   @override
   String tryAnotherAccountMessage(Object url) {

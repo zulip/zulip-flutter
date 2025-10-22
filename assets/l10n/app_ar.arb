@@ -17,8 +17,8 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
-  "@switchAccountButton": {
-    "description": "Label for main-menu button leading to the choose-account page."
+  "@switchAccountButtonTooltip": {
+    "description": "Tooltip message for main-menu button leading to the choose-account page."
   },
   "@upgradeWelcomeDialogDismiss": {
     "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
@@ -41,7 +41,7 @@
   "aboutPageTitle": "عن زوليب",
   "chooseAccountPageTitle": "اختر حساب",
   "settingsPageTitle": "الإعدادات",
-  "switchAccountButton": "تبديل الحساب",
+  "switchAccountButtonTooltip": "تبديل الحساب",
   "upgradeWelcomeDialogDismiss": "هيا بنا",
   "upgradeWelcomeDialogTitle": "أهلا بك في تطبيق زوليب الجديد !",
   "wildcardMentionAll": "الجميع",
