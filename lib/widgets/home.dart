@@ -10,6 +10,7 @@ import 'app.dart';
 import 'app_bar.dart';
 import 'button.dart';
 import 'color.dart';
+import 'content.dart';
 import 'icons.dart';
 import 'inbox.dart';
 import 'inset_shadow.dart';
@@ -279,7 +280,6 @@ void _showMainMenu(BuildContext context, {
     _DirectMessagesButton(tabNotifier: tabNotifier),
     // TODO(#1094): Users
     const _MyProfileButton(),
-    const _SwitchAccountButton(),
     // TODO(#198): Set my status
     // const SizedBox(height: 8),
     const _SettingsButton(),
@@ -307,27 +307,111 @@ void _showMainMenu(BuildContext context, {
     builder: (BuildContext _) {
       return PerAccountStoreWidget(
         accountId: accountId,
-        child: SafeArea(
-          minimum: const EdgeInsets.only(bottom: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(child: InsetShadowBox(
-                top: 8, bottom: 8,
-                color: designVariables.bgBotBar,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                  child: Column(children: menuItems)))),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: AnimatedScaleOnTap(
-                  scaleEnd: 0.95,
-                  duration: Duration(milliseconds: 100),
-                  child: BottomSheetDismissButton(
-                    style: BottomSheetDismissButtonStyle.close))),
-            ])));
+        child: _MainMenu(menuItems: menuItems));
     });
+}
+
+/// The main-menu sheet.
+///
+/// Figma link:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=143-10939&t=s7AS3nEgNgjyqHck-4
+class _MainMenu extends StatelessWidget {
+  const _MainMenu({
+    required this.menuItems,
+  });
+
+  final List<Widget> menuItems;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    return SafeArea(
+      minimum: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _MainMenuHeader(),
+          Flexible(child: InsetShadowBox(
+            top: 8, bottom: 8,
+            color: designVariables.bgBotBar,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              child: Column(children: menuItems)))),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: AnimatedScaleOnTap(
+              scaleEnd: 0.95,
+              duration: Duration(milliseconds: 100),
+              child: BottomSheetDismissButton(
+                style: BottomSheetDismissButtonStyle.close))),
+        ]));
+  }
+}
+
+class _MainMenuHeader extends StatelessWidget {
+  const _MainMenuHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
+
+    final realmIconUrl = store.resolveRealmIconUrl();
+
+    final placeholder = ColoredBox(color: designVariables.avatarPlaceholderBg);
+    final logo = realmIconUrl != null
+      ? RealmContentNetworkImage(
+          realmIconUrl,
+          frameBuilder: (_, child, frame, _) {
+            if (frame == null) return placeholder;
+            return child;
+          },
+          errorBuilder: (_, _, _) => placeholder)
+      : placeholder;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: AnimatedScaleOnTap(
+        duration: const Duration(milliseconds: 100),
+        scaleEnd: 0.95,
+        child: TextButton(
+          onPressed: () {
+            Navigator.pop(context); // Close the main menu.
+            Navigator.push(context,
+              MaterialWidgetRoute(page: const ChooseAccountPage()));
+          },
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.zero,
+            shape: LinearBorder.none,
+            backgroundColor: Colors.transparent,
+            overlayColor: Colors.transparent,
+            splashFactory: NoSplash.splashFactory,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+          child: Row(children: [
+            Flexible(child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(12, 6, 4, 6),
+              child: Row(spacing: 8, children: [
+                AvatarShape(
+                  size: 28,
+                  borderRadius: 4,
+                  child: logo),
+                Flexible(child: Text(store.realmName,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: designVariables.title,
+                    fontSize: 20,
+                    height: 24 / 20,
+                  ).merge(weightVariableTextStyle(context, wght: 600)))),
+              ]))),
+            Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(8, 7, 14, 7),
+              child: Icon(ZulipIcons.arrow_left_right,
+                size: 19,
+                color: designVariables.icon)),
+          ]))));
+  }
 }
 
 abstract class _MenuButton extends StatelessWidget {
@@ -572,23 +656,6 @@ class _MyProfileButton extends _MenuButton {
     final store = PerAccountStoreWidget.of(context);
     Navigator.of(context).push(
       ProfilePage.buildRoute(context: context, userId: store.selfUserId));
-  }
-}
-
-class _SwitchAccountButton extends _MenuButton {
-  const _SwitchAccountButton();
-
-  @override
-  IconData? get icon => ZulipIcons.arrow_left_right;
-
-  @override
-  String label(ZulipLocalizations zulipLocalizations) {
-    return zulipLocalizations.switchAccountButton;
-  }
-
-  @override
-  void onPressed(BuildContext context) {
-    Navigator.of(context).push(MaterialWidgetRoute(page: const ChooseAccountPage()));
   }
 }
 
