@@ -423,9 +423,15 @@ abstract class PerAccountStoreBase {
   /// Always equal to `account.realmUrl` and `connection.realmUrl`.
   Uri get realmUrl => connection.realmUrl;
 
-  String? get realmName => account.realmName;
+  // The `account` is populated with the `realmName` before
+  // PerAccountStore is created, so this should never be null.
+  // See `UpdateMachine.load`.
+  String get realmName => account.realmName!;
 
-  Uri? get realmIcon => account.realmIcon;
+  // The `account` is populated with the `realmIcon` before
+  // PerAccountStore is created, so this should never be null.
+  // See `UpdateMachine.load`.
+  Uri get realmIcon => account.realmIcon!;
 
   /// Resolve [reference] as a URL relative to [realmUrl].
   ///
