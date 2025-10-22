@@ -146,12 +146,12 @@ void main() {
       for (final emojiset in [Emojiset.text, Emojiset.google]) {
         for (final textDirection in TextDirection.values) {
           for (final textScaleFactor in kTextScaleFactors) {
-            Future<void> runSmokeTest(
+            void runSmokeTest(
               String description,
               List<Reaction> reactions, {
               required List<User> users,
               required Map<String, RealmEmojiItem> realmEmoji,
-            }) async {
+            }) {
               final descriptionDetails = [
                 displayEmojiReactionUsers ? 'show names when few' : 'no names',
                 emojiset.name,
