@@ -142,17 +142,15 @@ class _HomePageState extends State<HomePage> {
           border: Border(top: BorderSide(color: designVariables.borderBar)),
           color: designVariables.bgBotBar),
         child: SafeArea(
-          child: SizedBox(height: 48,
-            child: Center(
-              child: ConstrainedBox(
-                // TODO(design): determine a suitable max width for bottom nav bar
-                constraints: const BoxConstraints(maxWidth: 600),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (final navigationBarButton in navigationBarButtons)
-                      Expanded(child: navigationBarButton),
-                  ])))))));
+          child: ConstrainedBox(
+            // TODO(design): determine a suitable max width for bottom nav bar
+            constraints: const BoxConstraints(maxWidth: 600, minHeight: 48, maxHeight: 85),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final navigationBarButton in navigationBarButtons)
+                  Expanded(child: navigationBarButton),
+              ])))));
   }
 }
 
