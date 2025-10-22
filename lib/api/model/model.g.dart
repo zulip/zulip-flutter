@@ -247,6 +247,13 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
   isWebPublic: json['is_web_public'] as bool,
   historyPublicToSubscribers: json['history_public_to_subscribers'] as bool,
   messageRetentionDays: (json['message_retention_days'] as num?)?.toInt(),
+  topicsPolicy:
+      $enumDecodeNullable(
+        _$TopicsPolicyEnumMap,
+        json['topics_policy'],
+        unknownValue: TopicsPolicy.unknown,
+      ) ??
+      TopicsPolicy.inherit,
   channelPostPolicy: $enumDecodeNullable(
     _$ChannelPostPolicyEnumMap,
     json['stream_post_policy'],
@@ -285,6 +292,7 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
       'is_web_public': instance.isWebPublic,
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
       'message_retention_days': instance.messageRetentionDays,
+      'topics_policy': _$TopicsPolicyEnumMap[instance.topicsPolicy]!,
       'stream_post_policy': instance.channelPostPolicy,
       'can_add_subscribers_group': instance.canAddSubscribersGroup,
       'can_delete_any_message_group': instance.canDeleteAnyMessageGroup,
@@ -294,6 +302,14 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
       'is_recently_active': instance.isRecentlyActive,
       'stream_weekly_traffic': instance.streamWeeklyTraffic,
     };
+
+const _$TopicsPolicyEnumMap = {
+  TopicsPolicy.inherit: 'inherit',
+  TopicsPolicy.allowEmptyTopic: 'allow_empty_topic',
+  TopicsPolicy.disableEmptyTopic: 'disable_empty_topic',
+  TopicsPolicy.emptyTopicOnly: 'empty_topic_only',
+  TopicsPolicy.unknown: 'unknown',
+};
 
 const _$ChannelPostPolicyEnumMap = {
   ChannelPostPolicy.any: 1,
@@ -315,6 +331,13 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
   isWebPublic: json['is_web_public'] as bool,
   historyPublicToSubscribers: json['history_public_to_subscribers'] as bool,
   messageRetentionDays: (json['message_retention_days'] as num?)?.toInt(),
+  topicsPolicy:
+      $enumDecodeNullable(
+        _$TopicsPolicyEnumMap,
+        json['topics_policy'],
+        unknownValue: TopicsPolicy.unknown,
+      ) ??
+      TopicsPolicy.inherit,
   channelPostPolicy: $enumDecodeNullable(
     _$ChannelPostPolicyEnumMap,
     json['stream_post_policy'],
@@ -361,6 +384,7 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'is_web_public': instance.isWebPublic,
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
       'message_retention_days': instance.messageRetentionDays,
+      'topics_policy': _$TopicsPolicyEnumMap[instance.topicsPolicy]!,
       'stream_post_policy': instance.channelPostPolicy,
       'can_add_subscribers_group': instance.canAddSubscribersGroup,
       'can_delete_any_message_group': instance.canDeleteAnyMessageGroup,
@@ -553,6 +577,7 @@ const _$ChannelPropertyNameEnumMap = {
   ChannelPropertyName.firstMessageId: 'first_message_id',
   ChannelPropertyName.inviteOnly: 'invite_only',
   ChannelPropertyName.messageRetentionDays: 'message_retention_days',
+  ChannelPropertyName.topicsPolicy: 'topics_policy',
   ChannelPropertyName.channelPostPolicy: 'stream_post_policy',
   ChannelPropertyName.folderId: 'folder_id',
   ChannelPropertyName.canAddSubscribersGroup: 'can_add_subscribers_group',
