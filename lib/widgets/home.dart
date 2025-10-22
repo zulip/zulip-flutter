@@ -249,25 +249,26 @@ class _NavigationBarButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
-    final iconColor = WidgetStateColor.fromMap({
-      WidgetState.pressed:  designVariables.iconSelected,
-      ~WidgetState.pressed: selected ? designVariables.iconSelected
-                                     : designVariables.icon,
-    });
+    final color = selected ? designVariables.iconSelected : designVariables.icon;
 
     return AnimatedScaleOnTap(
       scaleEnd: 0.875,
       duration: const Duration(milliseconds: 100),
-      child: IconButton(
-        icon: Icon(icon, size: 24),
-        onPressed: onPressed,
-        style: IconButton.styleFrom(
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
           // TODO(#417): Disable splash effects for all buttons globally.
+          borderRadius: BorderRadius.all(Radius.circular(4)),
           splashFactory: NoSplash.splashFactory,
           highlightColor: designVariables.navigationButtonBg,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(4))),
-        ).copyWith(foregroundColor: iconColor)));
+          onTap: onPressed,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 34,
+                child: Center(
+                  child: Icon(icon, size: 24, color: color,))),
+            ]))));
   }
 }
 
