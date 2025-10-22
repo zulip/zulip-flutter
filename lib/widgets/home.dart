@@ -10,6 +10,7 @@ import 'app.dart';
 import 'app_bar.dart';
 import 'button.dart';
 import 'color.dart';
+import 'content.dart';
 import 'icons.dart';
 import 'inbox.dart';
 import 'inset_shadow.dart';
@@ -307,27 +308,102 @@ void _showMainMenu(BuildContext context, {
     builder: (BuildContext _) {
       return PerAccountStoreWidget(
         accountId: accountId,
-        child: SafeArea(
-          minimum: const EdgeInsets.only(bottom: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(child: InsetShadowBox(
-                top: 8, bottom: 8,
-                color: designVariables.bgBotBar,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                  child: Column(children: menuItems)))),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: AnimatedScaleOnTap(
-                  scaleEnd: 0.95,
-                  duration: Duration(milliseconds: 100),
-                  child: BottomSheetDismissButton(
-                    style: BottomSheetDismissButtonStyle.close))),
-            ])));
+        child: _MainMenu(menuItems: menuItems));
     });
+}
+
+/// The main-menu sheet.
+///
+/// Figma link:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=11367-20647&t=lSnHudU6l7NWx0Fa-0
+class _MainMenu extends StatelessWidget {
+  const _MainMenu({
+    required this.menuItems,
+  });
+
+  final List<Widget> menuItems;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    return SafeArea(
+      minimum: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _MainMenuHeader(),
+          Flexible(child: InsetShadowBox(
+            top: 8, bottom: 8,
+            color: designVariables.bgBotBar,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              child: Column(children: menuItems)))),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: AnimatedScaleOnTap(
+              scaleEnd: 0.95,
+              duration: Duration(milliseconds: 100),
+              child: BottomSheetDismissButton(
+                style: BottomSheetDismissButtonStyle.close))),
+        ]));
+  }
+}
+
+class _MainMenuHeader extends StatelessWidget {
+  const _MainMenuHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
+
+    final realmIconUrl = store.tryResolveUrl(store.realmIcon.toString());
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(children: [
+        Expanded(child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 6, 4, 6),
+          child: Row(spacing: 8, children: [
+            AvatarShape(
+              size: 28,
+              borderRadius: 4,
+              child: realmIconUrl != null
+                ? RealmContentNetworkImage(realmIconUrl)
+                : const SizedBox.shrink()),
+            Expanded(child: Text(store.realmName,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: designVariables.title,
+                fontSize: 20,
+                height: 24 / 20,
+              ).merge(weightVariableTextStyle(context, wght: 600)))),
+          ]))),
+        AnimatedScaleOnTap(
+          duration: const Duration(milliseconds: 100),
+          scaleEnd: 0.95,
+          child: TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close the main menu.
+              Navigator.of(context).push(
+                MaterialWidgetRoute(page: const ChooseAccountPage()));
+            },
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.fromLTRB(8, 7, 14, 7),
+              foregroundColor: designVariables.icon,
+              backgroundColor: Colors.transparent,
+              overlayColor: Colors.transparent,
+              splashFactory: NoSplash.splashFactory,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+            child: Text(zulipLocalizations.organizationsButton,
+              style: const TextStyle(fontSize: 19, height: 26 / 19)
+                .merge(weightVariableTextStyle(context, wght: 600))))),
+      ]));
+  }
 }
 
 abstract class _MenuButton extends StatelessWidget {
