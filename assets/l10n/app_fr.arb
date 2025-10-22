@@ -526,8 +526,8 @@
   "@successTopicLinkCopied": {
     "description": "Message when link of a topic was copied to the user's system clipboard."
   },
-  "@switchAccountButton": {
-    "description": "Label for main-menu button leading to the choose-account page."
+  "@switchAccountButtonTooltip": {
+    "description": "Tooltip message for main-menu button leading to the choose-account page."
   },
   "@topicsButtonTooltip": {
     "description": "Tooltip for button to navigate to topic-list page."
@@ -742,7 +742,7 @@
   "successMessageLinkCopied": "Lien sur le message copié",
   "successMessageTextCopied": "Texte du message copié",
   "successTopicLinkCopied": "Lien sur le sujet copié",
-  "switchAccountButton": "Changer de compte",
+  "switchAccountButtonTooltip": "Changer de compte",
   "topicsButtonTooltip": "Sujets",
   "tryAnotherAccountButton": "Essayer un autre compte",
   "tryAnotherAccountMessage": "Votre compte à {url} prend du temps à se charger.",

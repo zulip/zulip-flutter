@@ -41,7 +41,7 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get settingsPageTitle => 'Settings';
 
   @override
-  String get switchAccountButton => 'Switch account';
+  String get switchAccountButtonTooltip => 'Switch account';
 
   @override
   String tryAnotherAccountMessage(Object url) {
@@ -1217,7 +1217,7 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get settingsPageTitle => '设置';
 
   @override
-  String get switchAccountButton => '切换账号';
+  String get switchAccountButtonTooltip => '切换账号';
 
   @override
   String tryAnotherAccountMessage(Object url) {
@@ -2305,7 +2305,7 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get settingsPageTitle => '設定';
 
   @override
-  String get switchAccountButton => '切換帳號';
+  String get switchAccountButtonTooltip => '切換帳號';
 
   @override
   String tryAnotherAccountMessage(Object url) {

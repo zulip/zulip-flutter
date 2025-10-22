@@ -43,9 +43,9 @@
   "@actionSheetOptionUnfollowTopic": {
     "description": "Label for unfollowing a topic on action sheet."
   },
-  "switchAccountButton": "Zmeniť účet",
-  "@switchAccountButton": {
-    "description": "Label for main-menu button leading to the choose-account page."
+  "switchAccountButtonTooltip": "Zmeniť účet",
+  "@switchAccountButtonTooltip": {
+    "description": "Tooltip message for main-menu button leading to the choose-account page."
   },
   "permissionsNeededOpenSettings": "Otvoriť nastavenia",
   "@permissionsNeededOpenSettings": {

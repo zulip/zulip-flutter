@@ -1015,8 +1015,8 @@
   "@successTopicLinkCopied": {
     "description": "Message when link of a topic was copied to the user's system clipboard."
   },
-  "@switchAccountButton": {
-    "description": "Label for main-menu button leading to the choose-account page."
+  "@switchAccountButtonTooltip": {
+    "description": "Tooltip message for main-menu button leading to the choose-account page."
   },
   "@themeSettingDark": {
     "description": "Label for dark theme setting."
@@ -1485,7 +1485,7 @@
   "successMessageLinkCopied": "Nachrichtenlink kopiert",
   "successMessageTextCopied": "Nachrichtentext kopiert",
   "successTopicLinkCopied": "Link zum Thema kopiert",
-  "switchAccountButton": "Konto wechseln",
+  "switchAccountButtonTooltip": "Konto wechseln",
   "themeSettingDark": "Dunkel",
   "themeSettingLight": "Hell",
   "themeSettingSystem": "System",

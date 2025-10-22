@@ -41,7 +41,7 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get settingsPageTitle => 'Settings';
 
   @override
-  String get switchAccountButton => 'Zmeniť účet';
+  String get switchAccountButtonTooltip => 'Zmeniť účet';
 
   @override
   String tryAnotherAccountMessage(Object url) {

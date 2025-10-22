@@ -1016,8 +1016,8 @@
   "@successTopicLinkCopied": {
     "description": "Message when link of a topic was copied to the user's system clipboard."
   },
-  "@switchAccountButton": {
-    "description": "Label for main-menu button leading to the choose-account page."
+  "@switchAccountButtonTooltip": {
+    "description": "Tooltip message for main-menu button leading to the choose-account page."
   },
   "@themeSettingDark": {
     "description": "Label for dark theme setting."
@@ -1487,7 +1487,7 @@
   "successMessageLinkCopied": "已複製訊息連結",
   "successMessageTextCopied": "已複製訊息文字",
   "successTopicLinkCopied": "議題連結已複製",
-  "switchAccountButton": "切換帳號",
+  "switchAccountButtonTooltip": "切換帳號",
   "themeSettingDark": "深色主題",
   "themeSettingLight": "淺色主題",
   "themeSettingSystem": "系統主題",

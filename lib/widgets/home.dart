@@ -12,6 +12,7 @@ import 'app_bar.dart';
 import 'button.dart';
 import 'color.dart';
 import 'icons.dart';
+import 'image.dart';
 import 'inbox.dart';
 import 'inset_shadow.dart';
 import 'message_list.dart';
@@ -384,7 +385,6 @@ class _MainMenu extends StatelessWidget {
       _DirectMessagesButton(tabNotifier: tabNotifier),
       // TODO(#1094): Users
       const _MyProfileButton(),
-      const _SwitchAccountButton(),
       // TODO(#198): Set my status
       // const SizedBox(height: 8),
       const _SettingsButton(),
@@ -400,6 +400,7 @@ class _MainMenu extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
+          _MainMenuHeader(),
           Flexible(child: InsetShadowBox(
             top: 8, bottom: 8,
             color: designVariables.bgBotBar,
@@ -414,6 +415,73 @@ class _MainMenu extends StatelessWidget {
               child: BottomSheetDismissButton(
                 style: BottomSheetDismissButtonStyle.close))),
         ]));
+  }
+}
+
+class _MainMenuHeader extends StatefulWidget {
+  const _MainMenuHeader();
+
+  @override
+  State<_MainMenuHeader> createState() => _MainMenuHeaderState();
+}
+
+class _MainMenuHeaderState extends State<_MainMenuHeader> {
+  bool _isPressed = false;
+
+  void _setIsPressed(bool isPressed) {
+    setState(() {
+      _isPressed = isPressed;
+    });
+  }
+
+  void _handleSwitchAccount(BuildContext context) {
+    Navigator.pop(context); // Close the main menu.
+    Navigator.push(context,
+      MaterialWidgetRoute(page: const ChooseAccountPage()));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
+
+    return Tooltip(
+      message: zulipLocalizations.switchAccountButtonTooltip,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _handleSwitchAccount(context),
+        onTapDown: (_) => _setIsPressed(true),
+        onTapUp: (_) => _setIsPressed(false),
+        onTapCancel: () => _setIsPressed(false),
+        child: AnimatedOpacity(
+          opacity: _isPressed ? 0.5 : 1,
+          duration: const Duration(milliseconds: 100),
+          child: Padding(
+            padding: const EdgeInsets.only(top: 6, left: 12, right: 12),
+            child: Row(spacing: 12, children: [
+              Flexible(child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(spacing: 8, children: [
+                  AvatarShape(
+                    size: 28,
+                    borderRadius: 4,
+                    child: RealmContentNetworkImage(
+                      store.resolvedRealmIcon,
+                      filterQuality: FilterQuality.medium,
+                      fit: BoxFit.cover)),
+                  Flexible(child: Text(store.realmName,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: designVariables.title,
+                      fontSize: 20,
+                      height: 24 / 20,
+                    ).merge(weightVariableTextStyle(context, wght: 600)))),
+                ]))),
+              Icon(ZulipIcons.arrow_left_right,
+                color: designVariables.icon,
+                size: 24),
+            ])))));
   }
 }
 
@@ -659,23 +727,6 @@ class _MyProfileButton extends _MenuButton {
     final store = PerAccountStoreWidget.of(context);
     Navigator.of(context).push(
       ProfilePage.buildRoute(context: context, userId: store.selfUserId));
-  }
-}
-
-class _SwitchAccountButton extends _MenuButton {
-  const _SwitchAccountButton();
-
-  @override
-  IconData? get icon => ZulipIcons.arrow_left_right;
-
-  @override
-  String label(ZulipLocalizations zulipLocalizations) {
-    return zulipLocalizations.switchAccountButton;
-  }
-
-  @override
-  void onPressed(BuildContext context) {
-    Navigator.of(context).push(MaterialWidgetRoute(page: const ChooseAccountPage()));
   }
 }
 

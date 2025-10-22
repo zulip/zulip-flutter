@@ -979,8 +979,8 @@
   "@successTopicLinkCopied": {
     "description": "Message when link of a topic was copied to the user's system clipboard."
   },
-  "@switchAccountButton": {
-    "description": "Label for main-menu button leading to the choose-account page."
+  "@switchAccountButtonTooltip": {
+    "description": "Tooltip message for main-menu button leading to the choose-account page."
   },
   "@themeSettingDark": {
     "description": "Label for dark theme setting."
@@ -1424,7 +1424,7 @@
   "successMessageLinkCopied": "メッセージのリンクをコピーしました",
   "successMessageTextCopied": "メッセージ本文をコピーしました",
   "successTopicLinkCopied": "トピックのリンクをコピーしました",
-  "switchAccountButton": "アカウントを切り替える",
+  "switchAccountButtonTooltip": "アカウントを切り替える",
   "themeSettingDark": "ダークテーマ",
   "themeSettingLight": "ライトテーマ",
   "themeSettingSystem": "自動テーマ",
