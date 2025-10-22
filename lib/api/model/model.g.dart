@@ -252,6 +252,7 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
     json['stream_post_policy'],
   ),
   folderId: (json['folder_id'] as num?)?.toInt(),
+  topicsPolicy: $enumDecode(_$TopicsPolicyEnumMap, json['topics_policy']),
   canAddSubscribersGroup: json['can_add_subscribers_group'] == null
       ? null
       : GroupSettingValue.fromJson(json['can_add_subscribers_group']),
@@ -280,6 +281,7 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
       'date_created': instance.dateCreated,
       'first_message_id': instance.firstMessageId,
       'folder_id': instance.folderId,
+      'topics_policy': instance.topicsPolicy,
       'invite_only': instance.inviteOnly,
       'is_web_public': instance.isWebPublic,
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
@@ -301,6 +303,13 @@ const _$ChannelPostPolicyEnumMap = {
   ChannelPostPolicy.unknown: null,
 };
 
+const _$TopicsPolicyEnumMap = {
+  TopicsPolicy.inherit: 'inherit',
+  TopicsPolicy.allowEmptyTopic: 'allow_empty_topic',
+  TopicsPolicy.disableEmptyTopic: 'disable_empty_topic',
+  TopicsPolicy.emptyTopicOnly: 'empty_topic_only',
+};
+
 Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
   streamId: (json['stream_id'] as num).toInt(),
   name: json['name'] as String,
@@ -318,6 +327,7 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
     json['stream_post_policy'],
   ),
   folderId: (json['folder_id'] as num?)?.toInt(),
+  topicsPolicy: $enumDecode(_$TopicsPolicyEnumMap, json['topics_policy']),
   canAddSubscribersGroup: json['can_add_subscribers_group'] == null
       ? null
       : GroupSettingValue.fromJson(json['can_add_subscribers_group']),
@@ -354,6 +364,7 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'date_created': instance.dateCreated,
       'first_message_id': instance.firstMessageId,
       'folder_id': instance.folderId,
+      'topics_policy': instance.topicsPolicy,
       'invite_only': instance.inviteOnly,
       'is_web_public': instance.isWebPublic,
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
@@ -549,6 +560,7 @@ const _$ChannelPropertyNameEnumMap = {
   ChannelPropertyName.messageRetentionDays: 'message_retention_days',
   ChannelPropertyName.channelPostPolicy: 'stream_post_policy',
   ChannelPropertyName.folderId: 'folder_id',
+  ChannelPropertyName.topicsPolicy: 'topics_policy',
   ChannelPropertyName.canAddSubscribersGroup: 'can_add_subscribers_group',
   ChannelPropertyName.canDeleteAnyMessageGroup: 'can_delete_any_message_group',
   ChannelPropertyName.canDeleteOwnMessageGroup: 'can_delete_own_message_group',

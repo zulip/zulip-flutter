@@ -644,6 +644,7 @@ class ZulipStream {
   int? firstMessageId;
 
   int? folderId;
+  TopicsPolicy topicsPolicy;
 
   bool inviteOnly;
   bool isWebPublic; // present since 2.1, according to /api/changelog
@@ -676,6 +677,7 @@ class ZulipStream {
     required this.messageRetentionDays,
     required this.channelPostPolicy,
     required this.folderId,
+    required this.topicsPolicy,
     required this.canAddSubscribersGroup,
     required this.canDeleteAnyMessageGroup,
     required this.canDeleteOwnMessageGroup,
@@ -700,6 +702,7 @@ class ZulipStream {
       messageRetentionDays: subscription.messageRetentionDays,
       channelPostPolicy: subscription.channelPostPolicy,
       folderId: subscription.folderId,
+      topicsPolicy: subscription.topicsPolicy,
       canAddSubscribersGroup: subscription.canAddSubscribersGroup,
       canDeleteAnyMessageGroup: subscription.canDeleteAnyMessageGroup,
       canDeleteOwnMessageGroup: subscription.canDeleteOwnMessageGroup,
@@ -737,6 +740,8 @@ enum ChannelPropertyName {
   @JsonValue('stream_post_policy')
   channelPostPolicy,
   folderId,
+  @JsonValue('topics_policy')
+  topicsPolicy,
   canAddSubscribersGroup,
   canDeleteAnyMessageGroup,
   canDeleteOwnMessageGroup,
@@ -781,6 +786,31 @@ enum ChannelPostPolicy {
     .map((key, value) => MapEntry(value, key));
 }
 
+/// Policy for whether a topic is required to post
+///
+/// For docs, search for "topics_policy"
+/// in <https://zulip.com/api/get-stream-by-id>
+@JsonEnum(valueField: 'apiValue')
+enum TopicsPolicy {
+  inherit(apiValue: "inherit"),
+  allowEmptyTopic(apiValue: "allow_empty_topic"),
+  disableEmptyTopic(apiValue: "disable_empty_topic"),
+  emptyTopicOnly(apiValue: "empty_topic_only");
+
+  const TopicsPolicy({
+    required this.apiValue,
+  });
+
+  final String apiValue;
+
+  String toJson() => apiValue;
+
+  static TopicsPolicy fromApiValue(String value) => _byApiValue[value]!;
+
+  static final _byApiValue = _$TopicsPolicyEnumMap
+    .map((key, value) => MapEntry(value, key));
+}
+
 /// As in `subscriptions` in the initial snapshot.
 ///
 /// For docs, search for "subscriptions:"
@@ -822,6 +852,7 @@ class Subscription extends ZulipStream {
     required super.messageRetentionDays,
     required super.channelPostPolicy,
     required super.folderId,
+    required super.topicsPolicy,
     required super.canAddSubscribersGroup,
     required super.canDeleteAnyMessageGroup,
     required super.canDeleteOwnMessageGroup,

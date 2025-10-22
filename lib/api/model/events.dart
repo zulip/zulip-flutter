@@ -685,6 +685,8 @@ class ChannelUpdateEvent extends ChannelEvent {
         return ChannelPostPolicy.fromApiValue(value as int);
       case ChannelPropertyName.folderId:
         return value as int?;
+      case ChannelPropertyName.topicsPolicy:
+        return TopicsPolicy.fromApiValue(value as String);
       case ChannelPropertyName.canAddSubscribersGroup:
       case ChannelPropertyName.canDeleteAnyMessageGroup:
       case ChannelPropertyName.canDeleteOwnMessageGroup:
