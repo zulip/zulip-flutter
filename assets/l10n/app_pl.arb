@@ -158,11 +158,20 @@
   "@composeBoxBannerButtonCancel": {
     "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonRefresh": {
+    "description": "Label text for the 'Refresh' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerButtonSave": {
     "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonSubscribe": {
+    "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages."
   },
   "@composeBoxChannelContentHint": {
     "description": "Hint text for content input when sending a message to a channel.",
@@ -342,6 +351,9 @@
   },
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
+  },
+  "@errorCouldNotAccessUploadedFileTitle": {
+    "description": "Error title on failure in opening a file someone previously uploaded to Zulip"
   },
   "@errorCouldNotConnectTitle": {
     "description": "Error title when the app could not connect to the server."
@@ -1095,8 +1107,8 @@
   "@unsubscribeConfirmationDialogConfirmButton": {
     "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
   },
-  "@unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": {
-    "description": "Message for a confirmation dialog for unsubscribing from a channel when you might not have permission to resubscribe."
+  "@unsubscribeConfirmationDialogMessageCannotResubscribe": {
+    "description": "Message for a confirmation dialog for unsubscribing from a channel when you will not have permission to resubscribe."
   },
   "@unsubscribeConfirmationDialogTitle": {
     "description": "Title for a confirmation dialog for unsubscribing from a channel.",
@@ -1294,15 +1306,18 @@
   "composeBoxAttachFromCameraTooltip": "Zrób zdjęcie",
   "composeBoxAttachMediaTooltip": "Dołącz obrazy lub wideo",
   "composeBoxBannerButtonCancel": "Anuluj",
+  "composeBoxBannerButtonRefresh": "Odśwież",
   "composeBoxBannerButtonSave": "Zapisz",
+  "composeBoxBannerButtonSubscribe": "Subskrybuj",
   "composeBoxBannerLabelEditMessage": "Zmień wiadomość",
+  "composeBoxBannerLabelUnsubscribedWhenCannotSend": "Nowe wiadomości nie pojawią się z automatu.",
   "composeBoxChannelContentHint": "Wiadomość do {destination}",
   "composeBoxDmContentHint": "Napisz do @{user}",
   "composeBoxEnterTopicOrSkipHintText": "Wpisz tytuł wątku (pomiń aby uzyskać “{defaultTopicName}”)",
   "composeBoxGenericContentHint": "Wpisz wiadomość",
   "composeBoxGroupDmContentHint": "Napisz do grupy",
   "composeBoxLoadingMessage": "(ładowanie wiadomości {messageId})",
-  "composeBoxSelfDmContentHint": "Zanotuj coś na przyszłość",
+  "composeBoxSelfDmContentHint": "Zostaw notatkę dla siebie",
   "composeBoxSendTooltip": "Wyślij",
   "composeBoxTopicHintText": "Wątek",
   "composeBoxUploadingFilename": "Przekazywanie {filename}…",
@@ -1337,6 +1352,7 @@
   "errorContentNotInsertedTitle": "Dodanie zawartości bez powodzenia",
   "errorContentToInsertIsEmpty": "Plik do dodania jest pusty lub nie ma do niego dostępu.",
   "errorCopyingFailed": "Nie udało się skopiować",
+  "errorCouldNotAccessUploadedFileTitle": "Brak dostępu do załadowanego pliku",
   "errorCouldNotConnectTitle": "Brak połączenia",
   "errorCouldNotEditMessageTitle": "Nie można zmienić wiadomości",
   "errorCouldNotFetchMessageSource": "Nie można uzyskać źródłowej wiadomości.",
@@ -1517,7 +1533,7 @@
   "unknownUserName": "(nieznany użytkownik)",
   "unpinnedSubscriptionsLabel": "Odpięte",
   "unsubscribeConfirmationDialogConfirmButton": "Odsubskrybuj",
-  "unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": "Po opuszczeniu kanału możesz utracić możliwość powrotu.",
+  "unsubscribeConfirmationDialogMessageCannotResubscribe": "Opuszczając ten kanał utracisz możliwość ponownego przyłączenia.",
   "unsubscribeConfirmationDialogTitle": "Odsubskrybować z {channelName}?",
   "unsubscribeFailedTitle": "Odsubskrybowanie bez powdzenia",
   "updateStatusErrorTitle": "Błąd aktualizacji stanu. Spróbuj ponownie.",
@@ -1529,7 +1545,7 @@
   "userActiveDaysAgo": "Aktywny {days, plural, =1{1 dzień} other{{days} dni}} temu",
   "userActiveHoursAgo": "Aktywny {hours, plural, =1{1 godzinę} other{{hours} godzin}} temu",
   "userActiveMinutesAgo": "Aktywny {minutes, plural, =1{1 minutę} other{{minutes} minut}} temu",
-  "userActiveNow": "Dostępny",
+  "userActiveNow": "Teraz dostępny",
   "userActiveYesterday": "Aktywny wczoraj",
   "userIdle": "Bezczynny",
   "userNotActiveInYear": "Brak aktywności za ostatni rok",

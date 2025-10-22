@@ -68,6 +68,9 @@
   "@actionSheetOptionUnstarMessage": {
     "description": "Label for unstar button on action sheet."
   },
+  "@allChannelsPageTitle": {
+    "description": "Title for the 'All channels' page."
+  },
   "@appVersionUnknownPlaceholder": {
     "description": "Placeholder to show in place of the app version when it is unknown."
   },
@@ -103,6 +106,9 @@
   },
   "@composeBoxBannerButtonCancel": {
     "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerButtonRefresh": {
+    "description": "Label text for the 'Refresh' button in the compose-box banner when you are viewing an unsubscribed channel."
   },
   "@composeBoxBannerButtonSave": {
     "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
@@ -681,6 +687,9 @@
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
   },
+  "@navButtonAllChannels": {
+    "description": "Title for a nav button that opens the 'All channels' page."
+  },
   "@newDmFabButtonLabel": {
     "description": "Label for the floating action button (FAB) that opens the new DM sheet."
   },
@@ -789,6 +798,12 @@
   },
   "@scrollToBottomTooltip": {
     "description": "Tooltip for button to scroll to bottom."
+  },
+  "@searchMessagesHintText": {
+    "description": "Hint text for the message search text field."
+  },
+  "@searchMessagesPageTitle": {
+    "description": "Page title for the 'Search' message view."
   },
   "@serverUrlValidationErrorEmpty": {
     "description": "Error message when URL is empty"
@@ -980,6 +995,7 @@
   "actionSheetOptionUnmuteTopic": "Riattiva argomento",
   "actionSheetOptionUnresolveTopic": "Segna come irrisolto",
   "actionSheetOptionUnstarMessage": "Messaggio normale",
+  "allChannelsPageTitle": "Titolo per la pagina \"Tutti i canali\".",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Feed del canale",
   "channelsEmptyPlaceholder": "Non sei ancora iscritto ad alcun canale.",
@@ -992,6 +1008,7 @@
   "composeBoxAttachFromCameraTooltip": "Fai una foto",
   "composeBoxAttachMediaTooltip": "Allega immagini o video",
   "composeBoxBannerButtonCancel": "Annulla",
+  "composeBoxBannerButtonRefresh": "Etichetta il testo per il pulsante \"Aggiorna\" nel banner della casella di composizione quando visualizzi un canale a cui non sei iscritto.",
   "composeBoxBannerButtonSave": "Salva",
   "composeBoxBannerLabelEditMessage": "Modifica messaggio",
   "composeBoxChannelContentHint": "Messaggia {destination}",
@@ -1123,6 +1140,7 @@
   "messageListGroupYouWithYourself": "Messaggi con te stesso",
   "messageNotSentLabel": "MESSAGGIO NON INVIATO",
   "mutedUser": "Utente silenziato",
+  "navButtonAllChannels": "Titolo per un pulsante di navigazione che apre la pagina \"Tutti i canali\".",
   "newDmFabButtonLabel": "Nuovo MD",
   "newDmSheetComposeButtonLabel": "Componi",
   "newDmSheetNoUsersFound": "Nessun utente trovato",
@@ -1152,6 +1170,8 @@
   "savingMessageEditFailedLabel": "MODIFICA NON SALVATA",
   "savingMessageEditLabel": "SALVATAGGIO MODIFICA…",
   "scrollToBottomTooltip": "Scorri fino in fondo",
+  "searchMessagesHintText": "Testo di suggerimento per il campo di testo di ricerca del messaggio.",
+  "searchMessagesPageTitle": "Titolo della pagina per la visualizzazione del messaggio \"Cerca\".",
   "serverUrlValidationErrorEmpty": "Inserire un URL.",
   "serverUrlValidationErrorInvalidUrl": "Inserire un URL valido.",
   "serverUrlValidationErrorNoUseEmail": "Inserire l'URL del server, non il proprio indirizzo email.",

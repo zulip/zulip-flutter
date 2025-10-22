@@ -26,6 +26,9 @@
   "@actionSheetOptionCopyTopicLink": {
     "description": "Label for copy topic link button in action sheet."
   },
+  "@actionSheetOptionDeleteMessage": {
+    "description": "Label for the 'Delete message' button in the message action sheet."
+  },
   "@actionSheetOptionEditMessage": {
     "description": "Label for the 'Edit message' button in the message action sheet."
   },
@@ -104,6 +107,12 @@
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
+  "@allChannelsEmptyPlaceholder": {
+    "description": "Centered text on the 'All channels' page saying that there is no content to show."
+  },
+  "@allChannelsPageTitle": {
+    "description": "Title for the 'All channels' page."
+  },
   "@appVersionUnknownPlaceholder": {
     "description": "Placeholder to show in place of the app version when it is unknown."
   },
@@ -112,6 +121,15 @@
   },
   "@channelsEmptyPlaceholder": {
     "description": "Centered text on the 'Channels' page saying that there is no content to show."
+  },
+  "@channelsEmptyPlaceholderWithAllChannelsLink": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show, with a link to 'All channels'.",
+    "placeholders": {
+      "allChannelsPageTitle": {
+        "example": "All channels",
+        "type": "String"
+      }
+    }
   },
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
@@ -140,11 +158,20 @@
   "@composeBoxBannerButtonCancel": {
     "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonRefresh": {
+    "description": "Label text for the 'Refresh' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerButtonSave": {
     "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonSubscribe": {
+    "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages."
   },
   "@composeBoxChannelContentHint": {
     "description": "Hint text for content input when sending a message to a channel.",
@@ -217,6 +244,15 @@
   },
   "@contentValidationErrorUploadInProgress": {
     "description": "Content validation error message when attachments have not finished uploading."
+  },
+  "@deleteMessageConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Delete' button on a confirmation dialog for deleting a message."
+  },
+  "@deleteMessageConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for deleting a message."
+  },
+  "@deleteMessageConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for deleting a message."
   },
   "@dialogCancel": {
     "description": "Button label in dialogs to cancel."
@@ -339,6 +375,9 @@
   },
   "@errorCouldNotShowUserProfile": {
     "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
+  "@errorDeleteMessageFailedTitle": {
+    "description": "Error title when deleting a message failed."
   },
   "@errorDialogContinue": {
     "description": "Button label in error dialogs to acknowledge the error and close the dialog."
@@ -738,6 +777,9 @@
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
   },
+  "@navButtonAllChannels": {
+    "description": "Title for a nav button that opens the 'All channels' page."
+  },
   "@newDmFabButtonLabel": {
     "description": "Label for the floating action button (FAB) that opens the new DM sheet."
   },
@@ -1062,8 +1104,8 @@
   "@unsubscribeConfirmationDialogConfirmButton": {
     "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
   },
-  "@unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": {
-    "description": "Message for a confirmation dialog for unsubscribing from a channel when you might not have permission to resubscribe."
+  "@unsubscribeConfirmationDialogMessageCannotResubscribe": {
+    "description": "Message for a confirmation dialog for unsubscribing from a channel when you will not have permission to resubscribe."
   },
   "@unsubscribeConfirmationDialogTitle": {
     "description": "Title for a confirmation dialog for unsubscribing from a channel.",
@@ -1221,6 +1263,7 @@
   "actionSheetOptionCopyMessageLink": "Link zur Nachricht kopieren",
   "actionSheetOptionCopyMessageText": "Nachrichtentext kopieren",
   "actionSheetOptionCopyTopicLink": "Link zum Thema kopieren",
+  "actionSheetOptionDeleteMessage": "Nachricht löschen",
   "actionSheetOptionEditMessage": "Nachricht bearbeiten",
   "actionSheetOptionFollowTopic": "Thema folgen",
   "actionSheetOptionHideMutedMessage": "Stummgeschaltete Nachricht wieder ausblenden",
@@ -1245,9 +1288,12 @@
   "actionSheetReadReceiptsErrorReadCount": "Laden von Empfangsbestätigungen fehlgeschlagen.",
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{Diese Nachricht wurde von einer Person <z-link>gelesen</z-link>:} other{Diese Nachricht wurde von {count} Personen <z-link>gelesen</z-link>:}}",
   "actionSheetReadReceiptsZeroReadCount": "Niemand hat diese Nachricht bisher gelesen.",
+  "allChannelsEmptyPlaceholder": "Es gibt in dieser Organisation keine Kanäle die du ansehen kannst.",
+  "allChannelsPageTitle": "Alle Kanäle",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Kanal-Feed",
   "channelsEmptyPlaceholder": "Du hast noch keine Kanäle abonniert.",
+  "channelsEmptyPlaceholderWithAllChannelsLink": "Du hast noch keine Kanäle abonniert. Probiere zu <z-link>{allChannelsPageTitle}</z-link> zu gehen und ein paar von ihnen beizutreten.",
   "channelsPageTitle": "Kanäle",
   "chooseAccountButtonAddAnAccount": "Account hinzufügen",
   "chooseAccountPageLogOutButton": "Abmelden",
@@ -1257,15 +1303,18 @@
   "composeBoxAttachFromCameraTooltip": "Ein Foto aufnehmen",
   "composeBoxAttachMediaTooltip": "Bilder oder Videos anhängen",
   "composeBoxBannerButtonCancel": "Abbrechen",
+  "composeBoxBannerButtonRefresh": "Auffrischen",
   "composeBoxBannerButtonSave": "Speichern",
+  "composeBoxBannerButtonSubscribe": "Abonnieren",
   "composeBoxBannerLabelEditMessage": "Nachricht bearbeiten",
+  "composeBoxBannerLabelUnsubscribedWhenCannotSend": "Neue Nachrichten werden nicht automatisch angezeigt.",
   "composeBoxChannelContentHint": "Nachricht an {destination}",
   "composeBoxDmContentHint": "Nachricht an @{user}",
   "composeBoxEnterTopicOrSkipHintText": "Gib ein Thema ein (leer lassen für “{defaultTopicName}”)",
   "composeBoxGenericContentHint": "Eine Nachricht eingeben",
   "composeBoxGroupDmContentHint": "Nachricht an Gruppe",
   "composeBoxLoadingMessage": "(lade Nachricht {messageId})",
-  "composeBoxSelfDmContentHint": "Schreibe etwas",
+  "composeBoxSelfDmContentHint": "Schreibe dir selbst eine Notiz",
   "composeBoxSendTooltip": "Senden",
   "composeBoxTopicHintText": "Thema",
   "composeBoxUploadingFilename": "Lade {filename} hoch…",
@@ -1273,6 +1322,9 @@
   "contentValidationErrorQuoteAndReplyInProgress": "Bitte warte bis das Zitat abgeschlossen ist.",
   "contentValidationErrorTooLong": "Nachrichtenlänge sollte nicht größer als 10000 Zeichen sein.",
   "contentValidationErrorUploadInProgress": "Bitte warte bis das Hochladen abgeschlossen ist.",
+  "deleteMessageConfirmationDialogConfirmButton": "Löschen",
+  "deleteMessageConfirmationDialogMessage": "Das Löschen einer Nachricht entfernt diese permanent für alle Nutzer:innen.",
+  "deleteMessageConfirmationDialogTitle": "Nachricht löschen?",
   "dialogCancel": "Abbrechen",
   "dialogClose": "Schließen",
   "dialogContinue": "Fortsetzen",
@@ -1303,6 +1355,7 @@
   "errorCouldNotOpenLink": "Link konnte nicht geöffnet werden: {url}",
   "errorCouldNotOpenLinkTitle": "Link kann nicht geöffnet werden",
   "errorCouldNotShowUserProfile": "Nutzerprofil kann nicht angezeigt werden.",
+  "errorDeleteMessageFailedTitle": "Löschen der Nachricht fehlgeschlagen",
   "errorDialogContinue": "OK",
   "errorDialogLearnMore": "Mehr erfahren",
   "errorDialogTitle": "Fehler",
@@ -1395,6 +1448,7 @@
   "messageListGroupYouWithYourself": "Nachrichten mit dir selbst",
   "messageNotSentLabel": "NACHRICHT NICHT GESENDET",
   "mutedUser": "Stummgeschaltete:r Nutzer:in",
+  "navButtonAllChannels": "Alle Kanäle",
   "newDmFabButtonLabel": "Neue DN",
   "newDmSheetComposeButtonLabel": "Verfassen",
   "newDmSheetNoUsersFound": "Keine Nutzer:innen gefunden",
@@ -1475,7 +1529,7 @@
   "unknownUserName": "(Nutzer:in unbekannt)",
   "unpinnedSubscriptionsLabel": "Nicht angeheftet",
   "unsubscribeConfirmationDialogConfirmButton": "Deabonnieren",
-  "unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": "Wenn du diesen Kanal verlässt, kannst du sich vielleicht nicht wieder beitreten.",
+  "unsubscribeConfirmationDialogMessageCannotResubscribe": "Sobald du diesen Kanal verlässt, kannst du ihm nicht mehr beitreten.",
   "unsubscribeConfirmationDialogTitle": "{channelName} deabonnieren?",
   "unsubscribeFailedTitle": "Konnte nicht deabonnieren",
   "updateStatusErrorTitle": "Fehler beim Update des Benutzerstatus. Bitte versuche es nochmal.",

@@ -11,6 +11,9 @@
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
+  "@actionSheetOptionChannelFeed": {
+    "description": "Label for navigating to a channel's channel-feed page."
+  },
   "@actionSheetOptionCopyChannelLink": {
     "description": "Label for copy channel link button on action sheet."
   },
@@ -22,6 +25,9 @@
   },
   "@actionSheetOptionCopyTopicLink": {
     "description": "Label for copy topic link button in action sheet."
+  },
+  "@actionSheetOptionDeleteMessage": {
+    "description": "Label for the 'Delete message' button in the message action sheet."
   },
   "@actionSheetOptionEditMessage": {
     "description": "Label for the 'Edit message' button in the message action sheet."
@@ -101,6 +107,12 @@
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
+  "@allChannelsEmptyPlaceholder": {
+    "description": "Centered text on the 'All channels' page saying that there is no content to show."
+  },
+  "@allChannelsPageTitle": {
+    "description": "Title for the 'All channels' page."
+  },
   "@appVersionUnknownPlaceholder": {
     "description": "Placeholder to show in place of the app version when it is unknown."
   },
@@ -109,6 +121,15 @@
   },
   "@channelsEmptyPlaceholder": {
     "description": "Centered text on the 'Channels' page saying that there is no content to show."
+  },
+  "@channelsEmptyPlaceholderWithAllChannelsLink": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show, with a link to 'All channels'.",
+    "placeholders": {
+      "allChannelsPageTitle": {
+        "example": "All channels",
+        "type": "String"
+      }
+    }
   },
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
@@ -214,6 +235,15 @@
   },
   "@contentValidationErrorUploadInProgress": {
     "description": "Content validation error message when attachments have not finished uploading."
+  },
+  "@deleteMessageConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Delete' button on a confirmation dialog for deleting a message."
+  },
+  "@deleteMessageConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for deleting a message."
+  },
+  "@deleteMessageConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for deleting a message."
   },
   "@dialogCancel": {
     "description": "Button label in dialogs to cancel."
@@ -336,6 +366,9 @@
   },
   "@errorCouldNotShowUserProfile": {
     "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
+  "@errorDeleteMessageFailedTitle": {
+    "description": "Error title when deleting a message failed."
   },
   "@errorDialogContinue": {
     "description": "Button label in error dialogs to acknowledge the error and close the dialog."
@@ -735,6 +768,9 @@
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
   },
+  "@navButtonAllChannels": {
+    "description": "Title for a nav button that opens the 'All channels' page."
+  },
   "@newDmFabButtonLabel": {
     "description": "Label for the floating action button (FAB) that opens the new DM sheet."
   },
@@ -1057,9 +1093,6 @@
   "@unsubscribeConfirmationDialogConfirmButton": {
     "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
   },
-  "@unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": {
-    "description": "Message for a confirmation dialog for unsubscribing from a channel when you might not have permission to resubscribe."
-  },
   "@unsubscribeConfirmationDialogTitle": {
     "description": "Title for a confirmation dialog for unsubscribing from a channel.",
     "placeholders": {
@@ -1207,14 +1240,16 @@
   "@zulipAppTitle": {
     "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
   },
-  "aboutPageAppVersion": "应用程序版本",
+  "aboutPageAppVersion": "App 版本",
   "aboutPageOpenSourceLicenses": "开源许可",
   "aboutPageTapToView": "查看更多",
   "aboutPageTitle": "关于 Zulip",
+  "actionSheetOptionChannelFeed": "频道动态",
   "actionSheetOptionCopyChannelLink": "复制频道链接",
   "actionSheetOptionCopyMessageLink": "复制消息链接",
   "actionSheetOptionCopyMessageText": "复制消息文本",
   "actionSheetOptionCopyTopicLink": "复制话题链接",
+  "actionSheetOptionDeleteMessage": "删除消息",
   "actionSheetOptionEditMessage": "编辑消息",
   "actionSheetOptionFollowTopic": "关注话题",
   "actionSheetOptionHideMutedMessage": "再次隐藏静音消息",
@@ -1239,9 +1274,12 @@
   "actionSheetReadReceiptsErrorReadCount": "加载已读回执失败。",
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{此消息已被<z-link>阅读</z-link>，共有 {count} 人：} other{此消息已被<z-link>阅读</z-link>，共有 {count} 人：}}",
   "actionSheetReadReceiptsZeroReadCount": "尚无人阅读此消息。",
+  "allChannelsEmptyPlaceholder": "在该组织里你没有可以查看的频道。",
+  "allChannelsPageTitle": "所有频道",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "频道订阅",
   "channelsEmptyPlaceholder": "您还没有订阅任何频道。",
+  "channelsEmptyPlaceholderWithAllChannelsLink": "你还没订阅任何频道。可以访问 <z-link>{allChannelsPageTitle}</z-link>然后加入。",
   "channelsPageTitle": "频道",
   "chooseAccountButtonAddAnAccount": "添加一个账号",
   "chooseAccountPageLogOutButton": "登出",
@@ -1267,6 +1305,9 @@
   "contentValidationErrorQuoteAndReplyInProgress": "请等待引用消息完成。",
   "contentValidationErrorTooLong": "消息的长度不能超过10000个字符。",
   "contentValidationErrorUploadInProgress": "请等待上传完成。",
+  "deleteMessageConfirmationDialogConfirmButton": "删除",
+  "deleteMessageConfirmationDialogMessage": "对所有人永久删除消息。",
+  "deleteMessageConfirmationDialogTitle": "删除消息？",
   "dialogCancel": "取消",
   "dialogClose": "关闭",
   "dialogContinue": "继续",
@@ -1297,6 +1338,7 @@
   "errorCouldNotOpenLink": "未能打开此链接：{url}",
   "errorCouldNotOpenLinkTitle": "未能打开链接",
   "errorCouldNotShowUserProfile": "无法显示用户个人资料。",
+  "errorDeleteMessageFailedTitle": "删除消息失败",
   "errorDialogContinue": "好的",
   "errorDialogLearnMore": "更多信息",
   "errorDialogTitle": "错误",
@@ -1389,6 +1431,7 @@
   "messageListGroupYouWithYourself": "与自己的私信",
   "messageNotSentLabel": "消息未发送",
   "mutedUser": "静音用户",
+  "navButtonAllChannels": "所有频道",
   "newDmFabButtonLabel": "发起私信",
   "newDmSheetComposeButtonLabel": "撰写消息",
   "newDmSheetNoUsersFound": "没有用户",
@@ -1469,7 +1512,6 @@
   "unknownUserName": "（未知用户）",
   "unpinnedSubscriptionsLabel": "未置顶",
   "unsubscribeConfirmationDialogConfirmButton": "取消订阅",
-  "unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": "一旦退出该频道，您可能无法重新加入。",
   "unsubscribeConfirmationDialogTitle": "确定取消订阅{channelName}么?",
   "unsubscribeFailedTitle": "取消订阅失败",
   "updateStatusErrorTitle": "更新用户状态时发生错误。请再试一次。",

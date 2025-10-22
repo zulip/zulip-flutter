@@ -7,8 +7,12 @@ import 'package:intl/intl.dart' as intl;
 
 import 'zulip_localizations_ar.dart';
 import 'zulip_localizations_de.dart';
+import 'zulip_localizations_el.dart';
 import 'zulip_localizations_en.dart';
+import 'zulip_localizations_es.dart';
 import 'zulip_localizations_fr.dart';
+import 'zulip_localizations_he.dart';
+import 'zulip_localizations_hu.dart';
 import 'zulip_localizations_it.dart';
 import 'zulip_localizations_ja.dart';
 import 'zulip_localizations_nb.dart';
@@ -108,8 +112,12 @@ abstract class ZulipLocalizations {
     Locale('en'),
     Locale('ar'),
     Locale('de'),
+    Locale('el'),
     Locale('en', 'GB'),
+    Locale('es'),
     Locale('fr'),
+    Locale('he'),
+    Locale('hu'),
     Locale('it'),
     Locale('ja'),
     Locale('nb'),
@@ -2059,8 +2067,12 @@ class _ZulipLocalizationsDelegate
   bool isSupported(Locale locale) => <String>[
     'ar',
     'de',
+    'el',
     'en',
+    'es',
     'fr',
+    'he',
+    'hu',
     'it',
     'ja',
     'nb',
@@ -2103,10 +2115,18 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
       return ZulipLocalizationsAr();
     case 'de':
       return ZulipLocalizationsDe();
+    case 'el':
+      return ZulipLocalizationsEl();
     case 'en':
       return ZulipLocalizationsEn();
+    case 'es':
+      return ZulipLocalizationsEs();
     case 'fr':
       return ZulipLocalizationsFr();
+    case 'he':
+      return ZulipLocalizationsHe();
+    case 'hu':
+      return ZulipLocalizationsHu();
     case 'it':
       return ZulipLocalizationsIt();
     case 'ja':

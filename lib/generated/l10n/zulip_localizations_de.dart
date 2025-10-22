@@ -68,14 +68,14 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get chooseAccountButtonAddAnAccount => 'Account hinzufügen';
 
   @override
-  String get navButtonAllChannels => 'All channels';
+  String get navButtonAllChannels => 'Alle Kanäle';
 
   @override
-  String get allChannelsPageTitle => 'All channels';
+  String get allChannelsPageTitle => 'Alle Kanäle';
 
   @override
   String get allChannelsEmptyPlaceholder =>
-      'There are no channels you can view in this organization.';
+      'Es gibt in dieser Organisation keine Kanäle die du ansehen kannst.';
 
   @override
   String get profileButtonSendDirectMessage => 'Direktnachricht senden';
@@ -127,7 +127,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get unsubscribeConfirmationDialogMessageCannotResubscribe =>
-      'Once you leave this channel, you will not be able to rejoin.';
+      'Sobald du diesen Kanal verlässt, kannst du ihm nicht mehr beitreten.';
 
   @override
   String get unsubscribeConfirmationDialogConfirmButton => 'Deabonnieren';
@@ -245,20 +245,21 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get actionSheetOptionEditMessage => 'Nachricht bearbeiten';
 
   @override
-  String get actionSheetOptionDeleteMessage => 'Delete message';
+  String get actionSheetOptionDeleteMessage => 'Nachricht löschen';
 
   @override
-  String get deleteMessageConfirmationDialogTitle => 'Delete message?';
+  String get deleteMessageConfirmationDialogTitle => 'Nachricht löschen?';
 
   @override
   String get deleteMessageConfirmationDialogMessage =>
-      'Deleting a message permanently removes it for everyone.';
+      'Das Löschen einer Nachricht entfernt diese permanent für alle Nutzer:innen.';
 
   @override
-  String get deleteMessageConfirmationDialogConfirmButton => 'Delete';
+  String get deleteMessageConfirmationDialogConfirmButton => 'Löschen';
 
   @override
-  String get errorDeleteMessageFailedTitle => 'Failed to delete message';
+  String get errorDeleteMessageFailedTitle =>
+      'Löschen der Nachricht fehlgeschlagen';
 
   @override
   String get actionSheetOptionMarkTopicAsRead => 'Thema als gelesen markieren';
@@ -447,13 +448,13 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
-      'New messages will not appear automatically.';
+      'Neue Nachrichten werden nicht automatisch angezeigt.';
 
   @override
-  String get composeBoxBannerButtonRefresh => 'Refresh';
+  String get composeBoxBannerButtonRefresh => 'Auffrischen';
 
   @override
-  String get composeBoxBannerButtonSubscribe => 'Subscribe';
+  String get composeBoxBannerButtonSubscribe => 'Abonnieren';
 
   @override
   String get composeBoxBannerLabelEditMessage => 'Nachricht bearbeiten';
@@ -533,7 +534,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get composeBoxGroupDmContentHint => 'Nachricht an Gruppe';
 
   @override
-  String get composeBoxSelfDmContentHint => 'Schreibe etwas';
+  String get composeBoxSelfDmContentHint => 'Schreibe dir selbst eine Notiz';
 
   @override
   String composeBoxChannelContentHint(String destination) {
@@ -967,7 +968,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String channelsEmptyPlaceholderWithAllChannelsLink(
     String allChannelsPageTitle,
   ) {
-    return 'You’re not subscribed to any channels yet. Try going to <z-link>$allChannelsPageTitle</z-link> and joining some of them.';
+    return 'Du hast noch keine Kanäle abonniert. Probiere zu <z-link>$allChannelsPageTitle</z-link> zu gehen und ein paar von ihnen beizutreten.';
   }
 
   @override

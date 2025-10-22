@@ -128,7 +128,7 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
 
   @override
   String get unsubscribeConfirmationDialogMessageCannotResubscribe =>
-      'Once you leave this channel, you will not be able to rejoin.';
+      'Після того, як ви покинете цей канал, ви не зможете приєднатися знову.';
 
   @override
   String get unsubscribeConfirmationDialogConfirmButton => 'Скасувати підписку';
@@ -289,7 +289,7 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
 
   @override
   String get errorCouldNotAccessUploadedFileTitle =>
-      'Could not access uploaded file';
+      'Не вдалося отримати доступ до завантаженого файлу';
 
   @override
   String get errorCopyingFailed => 'Помилка копіювання';
@@ -445,13 +445,13 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
-      'New messages will not appear automatically.';
+      'Нові повідомлення не з’являтимуться автоматично.';
 
   @override
-  String get composeBoxBannerButtonRefresh => 'Refresh';
+  String get composeBoxBannerButtonRefresh => 'Оновити';
 
   @override
-  String get composeBoxBannerButtonSubscribe => 'Subscribe';
+  String get composeBoxBannerButtonSubscribe => 'Підписатися';
 
   @override
   String get composeBoxBannerLabelEditMessage => 'Редагування повідомлення';
@@ -529,7 +529,7 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get composeBoxGroupDmContentHint => 'Написати групі';
 
   @override
-  String get composeBoxSelfDmContentHint => 'Занотувати щось';
+  String get composeBoxSelfDmContentHint => 'Напишіть собі записку';
 
   @override
   String composeBoxChannelContentHint(String destination) {

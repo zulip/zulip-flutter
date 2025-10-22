@@ -26,6 +26,9 @@
   "@actionSheetOptionCopyTopicLink": {
     "description": "Label for copy topic link button in action sheet."
   },
+  "@actionSheetOptionDeleteMessage": {
+    "description": "Label for the 'Delete message' button in the message action sheet."
+  },
   "@actionSheetOptionEditMessage": {
     "description": "Label for the 'Edit message' button in the message action sheet."
   },
@@ -104,6 +107,12 @@
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
+  "@allChannelsEmptyPlaceholder": {
+    "description": "Centered text on the 'All channels' page saying that there is no content to show."
+  },
+  "@allChannelsPageTitle": {
+    "description": "Title for the 'All channels' page."
+  },
   "@appVersionUnknownPlaceholder": {
     "description": "Placeholder to show in place of the app version when it is unknown."
   },
@@ -112,6 +121,15 @@
   },
   "@channelsEmptyPlaceholder": {
     "description": "Centered text on the 'Channels' page saying that there is no content to show."
+  },
+  "@channelsEmptyPlaceholderWithAllChannelsLink": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show, with a link to 'All channels'.",
+    "placeholders": {
+      "allChannelsPageTitle": {
+        "example": "All channels",
+        "type": "String"
+      }
+    }
   },
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
@@ -140,11 +158,20 @@
   "@composeBoxBannerButtonCancel": {
     "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonRefresh": {
+    "description": "Label text for the 'Refresh' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerButtonSave": {
     "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonSubscribe": {
+    "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages."
   },
   "@composeBoxChannelContentHint": {
     "description": "Hint text for content input when sending a message to a channel.",
@@ -217,6 +244,15 @@
   },
   "@contentValidationErrorUploadInProgress": {
     "description": "Content validation error message when attachments have not finished uploading."
+  },
+  "@deleteMessageConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Delete' button on a confirmation dialog for deleting a message."
+  },
+  "@deleteMessageConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for deleting a message."
+  },
+  "@deleteMessageConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for deleting a message."
   },
   "@dialogCancel": {
     "description": "Button label in dialogs to cancel."
@@ -316,6 +352,9 @@
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
   },
+  "@errorCouldNotAccessUploadedFileTitle": {
+    "description": "Error title on failure in opening a file someone previously uploaded to Zulip"
+  },
   "@errorCouldNotConnectTitle": {
     "description": "Error title when the app could not connect to the server."
   },
@@ -339,6 +378,9 @@
   },
   "@errorCouldNotShowUserProfile": {
     "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
+  "@errorDeleteMessageFailedTitle": {
+    "description": "Error title when deleting a message failed."
   },
   "@errorDialogContinue": {
     "description": "Button label in error dialogs to acknowledge the error and close the dialog."
@@ -738,6 +780,9 @@
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
   },
+  "@navButtonAllChannels": {
+    "description": "Title for a nav button that opens the 'All channels' page."
+  },
   "@newDmFabButtonLabel": {
     "description": "Label for the floating action button (FAB) that opens the new DM sheet."
   },
@@ -1062,8 +1107,8 @@
   "@unsubscribeConfirmationDialogConfirmButton": {
     "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
   },
-  "@unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": {
-    "description": "Message for a confirmation dialog for unsubscribing from a channel when you might not have permission to resubscribe."
+  "@unsubscribeConfirmationDialogMessageCannotResubscribe": {
+    "description": "Message for a confirmation dialog for unsubscribing from a channel when you will not have permission to resubscribe."
   },
   "@unsubscribeConfirmationDialogTitle": {
     "description": "Title for a confirmation dialog for unsubscribing from a channel.",
@@ -1221,6 +1266,7 @@
   "actionSheetOptionCopyMessageLink": "Kopiraj povezavo do sporočila",
   "actionSheetOptionCopyMessageText": "Kopiraj besedilo sporočila",
   "actionSheetOptionCopyTopicLink": "Kopiraj povezavo do teme",
+  "actionSheetOptionDeleteMessage": "Izbriši sporočilo",
   "actionSheetOptionEditMessage": "Uredi sporočilo",
   "actionSheetOptionFollowTopic": "Sledi temi",
   "actionSheetOptionHideMutedMessage": "Znova skrij utišano sporočilo",
@@ -1245,9 +1291,12 @@
   "actionSheetReadReceiptsErrorReadCount": "Nalaganje potrdil o branju ni uspelo.",
   "actionSheetReadReceiptsReadCount": "{count, plural, one{To sporočilo je <z-link>prebrala</z-link> {count} oseba:} two{To sporočilo sta <z-link>prebrali</z-link> {count} osebi:} few{To sporočilo so <z-link>prebrale</z-link> {count} osebe:} other{To sporočilo je <z-link>prebralo</z-link> {count} oseb:}}",
   "actionSheetReadReceiptsZeroReadCount": "Tega sporočila še nihče ni prebral.",
+  "allChannelsEmptyPlaceholder": "V tej organizaciji ni kanalov, ki bi si jih lahko ogledali.",
+  "allChannelsPageTitle": "Vsi kanali",
   "appVersionUnknownPlaceholder": "(...)",
   "channelFeedButtonTooltip": "Sporočila kanala",
   "channelsEmptyPlaceholder": "Niste še naročeni na noben kanal.",
+  "channelsEmptyPlaceholderWithAllChannelsLink": "Naročeni še niste na noben kanal. Poskusite odpreti <z-link>{allChannelsPageTitle}</z-link> in se pridružiti kateremu od njih.",
   "channelsPageTitle": "Kanali",
   "chooseAccountButtonAddAnAccount": "Dodaj račun",
   "chooseAccountPageLogOutButton": "Odjava",
@@ -1257,15 +1306,18 @@
   "composeBoxAttachFromCameraTooltip": "Fotografiraj",
   "composeBoxAttachMediaTooltip": "Pripni fotografije ali videoposnetke",
   "composeBoxBannerButtonCancel": "Prekliči",
+  "composeBoxBannerButtonRefresh": "Osveži",
   "composeBoxBannerButtonSave": "Shrani",
+  "composeBoxBannerButtonSubscribe": "Naroči se",
   "composeBoxBannerLabelEditMessage": "Uredi sporočilo",
+  "composeBoxBannerLabelUnsubscribedWhenCannotSend": "Nova sporočila se ne bodo prikazala samodejno.",
   "composeBoxChannelContentHint": "Sporočilo {destination}",
   "composeBoxDmContentHint": "Sporočilo @{user}",
   "composeBoxEnterTopicOrSkipHintText": "Vnesite temo (ali pustite prazno za »{defaultTopicName}«)",
   "composeBoxGenericContentHint": "Vnesite sporočilo",
   "composeBoxGroupDmContentHint": "Skupinsko sporočilo",
   "composeBoxLoadingMessage": "(nalaganje sporočila {messageId})",
-  "composeBoxSelfDmContentHint": "Zapišite opombo zase",
+  "composeBoxSelfDmContentHint": "Zapišite si opombo",
   "composeBoxSendTooltip": "Pošlji",
   "composeBoxTopicHintText": "Tema",
   "composeBoxUploadingFilename": "Nalaganje {filename}…",
@@ -1273,6 +1325,9 @@
   "contentValidationErrorQuoteAndReplyInProgress": "Počakajte, da se citat zaključi.",
   "contentValidationErrorTooLong": "Dolžina sporočila ne sme presegati 10000 znakov.",
   "contentValidationErrorUploadInProgress": "Počakajte, da se nalaganje konča.",
+  "deleteMessageConfirmationDialogConfirmButton": "Izbriši",
+  "deleteMessageConfirmationDialogMessage": "Brisanje sporočila ga trajno odstrani za vse.",
+  "deleteMessageConfirmationDialogTitle": "Izbrišem sporočilo?",
   "dialogCancel": "Prekliči",
   "dialogClose": "Zapri",
   "dialogContinue": "Nadaljuj",
@@ -1297,12 +1352,14 @@
   "errorContentNotInsertedTitle": "Vsebina ni vstavljena",
   "errorContentToInsertIsEmpty": "Datoteka za vstavljanje je prazna ali nedostopna.",
   "errorCopyingFailed": "Kopiranje ni uspelo",
+  "errorCouldNotAccessUploadedFileTitle": "Dostop do naložene datoteke ni mogoč",
   "errorCouldNotConnectTitle": "Povezave ni bilo mogoče vzpostaviti",
   "errorCouldNotEditMessageTitle": "Sporočila ni mogoče urediti",
   "errorCouldNotFetchMessageSource": "Ni bilo mogoče pridobiti vira sporočila.",
   "errorCouldNotOpenLink": "Povezave ni bilo mogoče odpreti: {url}",
   "errorCouldNotOpenLinkTitle": "Povezave ni mogoče odpreti",
   "errorCouldNotShowUserProfile": "Uporabniškega profila ni mogoče prikazati.",
+  "errorDeleteMessageFailedTitle": "Sporočila se ne da izbrisati",
   "errorDialogContinue": "V redu",
   "errorDialogLearnMore": "Več o tem",
   "errorDialogTitle": "Napaka",
@@ -1395,6 +1452,7 @@
   "messageListGroupYouWithYourself": "Sporočila sebi",
   "messageNotSentLabel": "SPOROČILO NI POSLANO",
   "mutedUser": "Uporabnik je utišan",
+  "navButtonAllChannels": "Vsi kanali",
   "newDmFabButtonLabel": "Novo neposredno sporočilo",
   "newDmSheetComposeButtonLabel": "Napiši",
   "newDmSheetNoUsersFound": "Ni zadetkov med uporabniki",
@@ -1475,7 +1533,7 @@
   "unknownUserName": "(neznan uporabnik)",
   "unpinnedSubscriptionsLabel": "Nepripeto",
   "unsubscribeConfirmationDialogConfirmButton": "Prekliči naročnino",
-  "unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": "Ko zapustite ta kanal, se morda ne boste mogli znova pridružiti.",
+  "unsubscribeConfirmationDialogMessageCannotResubscribe": "Ko zapustite kanal, se ne boste več mogli pridružiti nazaj.",
   "unsubscribeConfirmationDialogTitle": "Odjava iz {channelName}?",
   "unsubscribeFailedTitle": "Preklic naročnine ni uspel",
   "updateStatusErrorTitle": "Napaka pri posodabljanju statusa uporabnika. Poskusite znova.",

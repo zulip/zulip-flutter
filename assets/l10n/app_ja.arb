@@ -1056,9 +1056,6 @@
   "@unsubscribeConfirmationDialogConfirmButton": {
     "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
   },
-  "@unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": {
-    "description": "Message for a confirmation dialog for unsubscribing from a channel when you might not have permission to resubscribe."
-  },
   "@unsubscribeConfirmationDialogTitle": {
     "description": "Title for a confirmation dialog for unsubscribing from a channel.",
     "placeholders": {
@@ -1457,7 +1454,6 @@
   "unknownUserName": "（不明なユーザー）",
   "unpinnedSubscriptionsLabel": "ピン留めなし",
   "unsubscribeConfirmationDialogConfirmButton": "チャンネルから退出",
-  "unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": "このチャンネルを退出すると、再び参加できない可能性があります。",
   "unsubscribeConfirmationDialogTitle": "{channelName} から退出しますか？",
   "unsubscribeFailedTitle": "チャンネルからの退出に失敗しました",
   "updateStatusErrorTitle": "ステータスの更新に失敗しました。もう一度お試しください。",

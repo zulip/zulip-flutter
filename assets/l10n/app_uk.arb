@@ -158,11 +158,20 @@
   "@composeBoxBannerButtonCancel": {
     "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonRefresh": {
+    "description": "Label text for the 'Refresh' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerButtonSave": {
     "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonSubscribe": {
+    "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages."
   },
   "@composeBoxChannelContentHint": {
     "description": "Hint text for content input when sending a message to a channel.",
@@ -342,6 +351,9 @@
   },
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
+  },
+  "@errorCouldNotAccessUploadedFileTitle": {
+    "description": "Error title on failure in opening a file someone previously uploaded to Zulip"
   },
   "@errorCouldNotConnectTitle": {
     "description": "Error title when the app could not connect to the server."
@@ -1095,8 +1107,8 @@
   "@unsubscribeConfirmationDialogConfirmButton": {
     "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
   },
-  "@unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": {
-    "description": "Message for a confirmation dialog for unsubscribing from a channel when you might not have permission to resubscribe."
+  "@unsubscribeConfirmationDialogMessageCannotResubscribe": {
+    "description": "Message for a confirmation dialog for unsubscribing from a channel when you will not have permission to resubscribe."
   },
   "@unsubscribeConfirmationDialogTitle": {
     "description": "Title for a confirmation dialog for unsubscribing from a channel.",
@@ -1294,15 +1306,18 @@
   "composeBoxAttachFromCameraTooltip": "Зробити фото",
   "composeBoxAttachMediaTooltip": "Додати зображення або відео",
   "composeBoxBannerButtonCancel": "Відміна",
+  "composeBoxBannerButtonRefresh": "Оновити",
   "composeBoxBannerButtonSave": "Зберегти",
+  "composeBoxBannerButtonSubscribe": "Підписатися",
   "composeBoxBannerLabelEditMessage": "Редагування повідомлення",
+  "composeBoxBannerLabelUnsubscribedWhenCannotSend": "Нові повідомлення не з’являтимуться автоматично.",
   "composeBoxChannelContentHint": "Надіслати повідомлення {destination}",
   "composeBoxDmContentHint": "Повідомлення @{user}",
   "composeBoxEnterTopicOrSkipHintText": "Вкажіть тему (або залиште “{defaultTopicName}”)",
   "composeBoxGenericContentHint": "Ввести повідомлення",
   "composeBoxGroupDmContentHint": "Написати групі",
   "composeBoxLoadingMessage": "(завантаження повідомлення {messageId})",
-  "composeBoxSelfDmContentHint": "Занотувати щось",
+  "composeBoxSelfDmContentHint": "Напишіть собі записку",
   "composeBoxSendTooltip": "Надіслати",
   "composeBoxTopicHintText": "Тема",
   "composeBoxUploadingFilename": "Завантаження {filename}…",
@@ -1337,6 +1352,7 @@
   "errorContentNotInsertedTitle": "Вміст не вставлено",
   "errorContentToInsertIsEmpty": "Файл, який потрібно вставити, порожній або до нього немає доступу.",
   "errorCopyingFailed": "Помилка копіювання",
+  "errorCouldNotAccessUploadedFileTitle": "Не вдалося отримати доступ до завантаженого файлу",
   "errorCouldNotConnectTitle": "Не вдалося підключитися",
   "errorCouldNotEditMessageTitle": "Не вдалося редагувати повідомлення",
   "errorCouldNotFetchMessageSource": "Не вдалося отримати джерело повідомлення.",
@@ -1517,7 +1533,7 @@
   "unknownUserName": "(невідомий користувач)",
   "unpinnedSubscriptionsLabel": "Відкріплені",
   "unsubscribeConfirmationDialogConfirmButton": "Скасувати підписку",
-  "unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": "Після того, як ви залишите цей канал, ви, можливо, не зможете приєднатися знову.",
+  "unsubscribeConfirmationDialogMessageCannotResubscribe": "Після того, як ви покинете цей канал, ви не зможете приєднатися знову.",
   "unsubscribeConfirmationDialogTitle": "Відписатися від {channelName}?",
   "unsubscribeFailedTitle": "Не вдалося скасувати підписку",
   "updateStatusErrorTitle": "Помилка оновлення статусу користувача. Спробуйте ще раз.",

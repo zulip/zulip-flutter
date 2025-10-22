@@ -158,11 +158,20 @@
   "@composeBoxBannerButtonCancel": {
     "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonRefresh": {
+    "description": "Label text for the 'Refresh' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerButtonSave": {
     "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonSubscribe": {
+    "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages."
   },
   "@composeBoxChannelContentHint": {
     "description": "Hint text for content input when sending a message to a channel.",
@@ -342,6 +351,9 @@
   },
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
+  },
+  "@errorCouldNotAccessUploadedFileTitle": {
+    "description": "Error title on failure in opening a file someone previously uploaded to Zulip"
   },
   "@errorCouldNotConnectTitle": {
     "description": "Error title when the app could not connect to the server."
@@ -1093,8 +1105,8 @@
   "@unsubscribeConfirmationDialogConfirmButton": {
     "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
   },
-  "@unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": {
-    "description": "Message for a confirmation dialog for unsubscribing from a channel when you might not have permission to resubscribe."
+  "@unsubscribeConfirmationDialogMessageCannotResubscribe": {
+    "description": "Message for a confirmation dialog for unsubscribing from a channel when you will not have permission to resubscribe."
   },
   "@unsubscribeConfirmationDialogTitle": {
     "description": "Title for a confirmation dialog for unsubscribing from a channel.",
@@ -1292,15 +1304,18 @@
   "composeBoxAttachFromCameraTooltip": "拍照",
   "composeBoxAttachMediaTooltip": "附加圖片或影片",
   "composeBoxBannerButtonCancel": "取消",
+  "composeBoxBannerButtonRefresh": "重新整理",
   "composeBoxBannerButtonSave": "儲存",
+  "composeBoxBannerButtonSubscribe": "訂閱",
   "composeBoxBannerLabelEditMessage": "編輯訊息",
+  "composeBoxBannerLabelUnsubscribedWhenCannotSend": "新訊息將不會自動顯示。",
   "composeBoxChannelContentHint": "訊息 {destination}",
   "composeBoxDmContentHint": "訊息 @{user}",
   "composeBoxEnterTopicOrSkipHintText": "輸入議題（留空則使用「{defaultTopicName}」）",
   "composeBoxGenericContentHint": "輸入訊息",
   "composeBoxGroupDmContentHint": "訊息群組",
   "composeBoxLoadingMessage": "(載入訊息 {messageId} 中)",
-  "composeBoxSelfDmContentHint": "記下些什麼",
+  "composeBoxSelfDmContentHint": "寫給自己的備忘",
   "composeBoxSendTooltip": "發送",
   "composeBoxTopicHintText": "議題",
   "composeBoxUploadingFilename": "正在上傳 {filename}…",
@@ -1335,6 +1350,7 @@
   "errorContentNotInsertedTitle": "未插入內容",
   "errorContentToInsertIsEmpty": "要插入的檔案為空或無法存取。",
   "errorCopyingFailed": "複製失敗",
+  "errorCouldNotAccessUploadedFileTitle": "無法存取上傳的檔案",
   "errorCouldNotConnectTitle": "無法連線",
   "errorCouldNotEditMessageTitle": "無法編輯訊息",
   "errorCouldNotFetchMessageSource": "無法取得訊息來源。",
@@ -1515,7 +1531,7 @@
   "unknownUserName": "(未知使用者)",
   "unpinnedSubscriptionsLabel": "未釘選",
   "unsubscribeConfirmationDialogConfirmButton": "取消訂閱",
-  "unsubscribeConfirmationDialogMessageMaybeCannotResubscribe": "一旦您離開此頻道，可能無法重新加入。",
+  "unsubscribeConfirmationDialogMessageCannotResubscribe": "一旦您離開此頻道，將無法重新加入。",
   "unsubscribeConfirmationDialogTitle": "確定要取消訂閱 {channelName} 嗎？",
   "unsubscribeFailedTitle": "取消訂閱失敗",
   "updateStatusErrorTitle": "更新使用者狀態時發生錯誤。請再試一次。",
