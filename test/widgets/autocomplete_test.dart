@@ -16,6 +16,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/autocomplete.dart';
 import 'package:zulip/widgets/compose_box.dart';
+import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/user.dart';
 
@@ -31,7 +32,7 @@ late PerAccountStore store;
 
 /// Simulates loading a [MessageListPage] and tapping to focus the compose input.
 ///
-/// Also adds [users] to the [PerAccountStore],
+/// Also adds [users] and [channels] to the [PerAccountStore],
 /// so they can show up in autocomplete.
 ///
 /// Also sets [debugNetworkImageHttpClientProvider] to return a constant image.
@@ -40,6 +41,7 @@ late PerAccountStore store;
 /// before the end of the test.
 Future<Finder> setupToComposeInput(WidgetTester tester, {
   List<User> users = const [],
+  List<ZulipStream> channels = const [],
   Narrow? narrow,
 }) async {
   assert(narrow is ChannelNarrow? || narrow is SendableNarrow?);
@@ -51,6 +53,7 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
   store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
   await store.addUsers([eg.selfUser, eg.otherUser]);
   await store.addUsers(users);
+  await store.addStreams(channels);
   final connection = store.connection as FakeApiConnection;
 
   narrow ??= DmNarrow(
@@ -349,6 +352,58 @@ void main() {
 
         debugNetworkImageHttpClientProvider = null;
       });
+    });
+  });
+
+  group('#channel link', () {
+    void checkChannelShown(ZulipStream channel, {required bool expected}) {
+      check(find.byIcon(iconDataForStream(channel))).findsAtLeast(expected ? 1 : 0);
+      check(find.text(channel.name)).findsExactly(expected ? 1 : 0);
+    }
+
+    testWidgets('user options appear, disappear, and change correctly', (tester) async {
+      final channel1 = eg.stream(name: 'mobile');
+      final channel2 = eg.stream(name: 'mobile design');
+      final channel3 = eg.stream(name: 'mobile dev help');
+      final composeInputFinder = await setupToComposeInput(tester,
+        channels: [channel1, channel2, channel3]);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      // Options are filtered correctly for query.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check #mobile ');
+      await tester.enterText(composeInputFinder, 'check #mobile de');
+      await tester.pumpAndSettle(); // async computation; options appear
+
+      checkChannelShown(channel1, expected: false);
+      checkChannelShown(channel2, expected: true);
+      checkChannelShown(channel3, expected: true);
+
+      // Finishing autocomplete updates compose box; causes options to disappear.
+      await tester.tap(find.text('mobile design'));
+      await tester.pump();
+      check(tester.widget<TextField>(composeInputFinder).controller!.text)
+        .contains(channelLinkSyntax(channel2, store: store));
+      checkChannelShown(channel1, expected: false);
+      checkChannelShown(channel2, expected: false);
+      checkChannelShown(channel3, expected: false);
+
+      // Then a new autocomplete intent brings up options again.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check #mobile de');
+      await tester.enterText(composeInputFinder, 'check #mobile dev');
+      await tester.pumpAndSettle(); // async computation; options appear
+      checkChannelShown(channel3, expected: true);
+
+      // Removing autocomplete intent causes options to disappear.
+      // TODO(#226): Remove one of these edits when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check ');
+      await tester.enterText(composeInputFinder, 'check');
+      checkChannelShown(channel1, expected: false);
+      checkChannelShown(channel2, expected: false);
+      checkChannelShown(channel3, expected: false);
+
+      debugNetworkImageHttpClientProvider = null;
     });
   });
 
