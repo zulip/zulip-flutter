@@ -44,6 +44,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get switchAccountButton => 'Змінити обліковий запис';
 
   @override
+  String get organizationsButton => 'Organizations';
+
+  @override
   String tryAnotherAccountMessage(Object url) {
     return 'Ваш обліковий запис на $url завантажується деякий час.';
   }

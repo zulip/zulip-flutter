@@ -45,6 +45,9 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get switchAccountButton => 'Changer de compte';
 
   @override
+  String get organizationsButton => 'Organizations';
+
+  @override
   String tryAnotherAccountMessage(Object url) {
     return 'Votre compte à $url prend du temps à se charger.';
   }
