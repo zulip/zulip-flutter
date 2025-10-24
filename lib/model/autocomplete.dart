@@ -206,39 +206,17 @@ class AutocompleteIntent<QueryT extends AutocompleteQuery> {
 ///
 /// On reassemble, call [reassemble].
 class AutocompleteViewManager {
-  final Set<MentionAutocompleteView> _mentionAutocompleteViews = {};
-  final Set<TopicAutocompleteView> _topicAutocompleteViews = {};
-  final Set<EmojiAutocompleteView> _emojiAutocompleteViews = {};
+  final Set<AutocompleteView> _autocompleteViews = {};
 
   AutocompleteDataCache autocompleteDataCache = AutocompleteDataCache();
 
-  void registerMentionAutocomplete(MentionAutocompleteView view) {
-    final added = _mentionAutocompleteViews.add(view);
+  void registerAutocomplete(AutocompleteView view) {
+    final added = _autocompleteViews.add(view);
     assert(added);
   }
 
-  void unregisterMentionAutocomplete(MentionAutocompleteView view) {
-    final removed = _mentionAutocompleteViews.remove(view);
-    assert(removed);
-  }
-
-  void registerTopicAutocomplete(TopicAutocompleteView view) {
-    final added = _topicAutocompleteViews.add(view);
-    assert(added);
-  }
-
-  void unregisterTopicAutocomplete(TopicAutocompleteView view) {
-    final removed = _topicAutocompleteViews.remove(view);
-    assert(removed);
-  }
-
-  void registerEmojiAutocomplete(EmojiAutocompleteView view) {
-    final added = _emojiAutocompleteViews.add(view);
-    assert(added);
-  }
-
-  void unregisterEmojiAutocomplete(EmojiAutocompleteView view) {
-    final removed = _emojiAutocompleteViews.remove(view);
+  void unregisterAutocomplete(AutocompleteView view) {
+    final removed = _autocompleteViews.remove(view);
     assert(removed);
   }
 
@@ -263,13 +241,7 @@ class AutocompleteViewManager {
   /// Calls [AutocompleteView.reassemble] for all that are registered.
   ///
   void reassemble() {
-    for (final view in _mentionAutocompleteViews) {
-      view.reassemble();
-    }
-    for (final view in _topicAutocompleteViews) {
-      view.reassemble();
-    }
-    for (final view in _emojiAutocompleteViews) {
+    for (final view in _autocompleteViews) {
       view.reassemble();
     }
   }
@@ -311,6 +283,7 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   AutocompleteView({required this.store, required QueryT query})
       : _query = query {
     _startSearch();
+    store.autocompleteViewManager.registerAutocomplete(this);
   }
 
   final PerAccountStore store;
@@ -420,6 +393,15 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
     }
     return false;
   }
+
+  @override
+  void dispose() {
+    store.autocompleteViewManager.unregisterAutocomplete(this);
+    // We cancel in-progress computations by checking [hasListeners] between tasks.
+    // After [super.dispose] is called, [hasListeners] returns false.
+    // TODO test that logic (may involve detecting an unhandled Future rejection; how?)
+    super.dispose();
+  }
 }
 
 /// An [AutocompleteView] for an autocomplete interaction
@@ -444,7 +426,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     required Narrow narrow,
     required MentionAutocompleteQuery query,
   }) {
-    final view = MentionAutocompleteView._(
+    return MentionAutocompleteView._(
       store: store,
       query: query,
       localizations: localizations,
@@ -452,8 +434,6 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
       sortedUsers: _usersByRelevance(store: store, narrow: narrow),
       sortedUserGroups: _userGroupsByRelevance(store: store),
     );
-    store.autocompleteViewManager.registerMentionAutocomplete(view);
-    return view;
   }
 
   final Narrow narrow;
@@ -711,15 +691,6 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
 
   MentionAutocompleteResult? _testUserGroup(MentionAutocompleteQuery query, UserGroup userGroup) {
     return query.testUserGroup(userGroup, store);
-  }
-
-  @override
-  void dispose() {
-    store.autocompleteViewManager.unregisterMentionAutocomplete(this);
-    // We cancel in-progress computations by checking [hasListeners] between tasks.
-    // After [super.dispose] is called, [hasListeners] returns false.
-    // TODO test that logic (may involve detecting an unhandled Future rejection; how?)
-    super.dispose();
   }
 }
 
@@ -1156,11 +1127,8 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
     required int streamId,
     required TopicAutocompleteQuery query,
   }) {
-    final view = TopicAutocompleteView._(
-      store: store, streamId: streamId, query: query);
-    store.autocompleteViewManager.registerTopicAutocomplete(view);
-    view._fetch();
-    return view;
+    return TopicAutocompleteView._(store: store, streamId: streamId, query: query)
+      .._fetch();
   }
 
   /// The channel/stream the eventual message will be sent to.
@@ -1201,12 +1169,6 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
       return TopicAutocompleteResult(topic: topic);
     }
     return null;
-  }
-
-  @override
-  void dispose() {
-    store.autocompleteViewManager.unregisterTopicAutocomplete(this);
-    super.dispose();
   }
 }
 
