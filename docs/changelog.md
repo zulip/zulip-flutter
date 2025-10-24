@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 30.0.266 (2025-10-23)
+
 ### Highlights for users
 
 * (Android) Fix bug causing repeated re-downloads of images. (#1892)
