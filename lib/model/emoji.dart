@@ -481,9 +481,7 @@ class EmojiAutocompleteView extends AutocompleteView<EmojiAutocompleteQuery, Emo
     required PerAccountStore store,
     required EmojiAutocompleteQuery query,
   }) {
-    final view = EmojiAutocompleteView._(store: store, query: query);
-    store.autocompleteViewManager.registerEmojiAutocomplete(view);
-    return view;
+    return EmojiAutocompleteView._(store: store, query: query);
   }
 
   @override
@@ -499,12 +497,6 @@ class EmojiAutocompleteView extends AutocompleteView<EmojiAutocompleteQuery, Emo
 
   static EmojiAutocompleteResult? _testCandidate(EmojiAutocompleteQuery query, EmojiCandidate candidate) {
     return query.testCandidate(candidate);
-  }
-
-  @override
-  void dispose() {
-    store.autocompleteViewManager.unregisterEmojiAutocomplete(this);
-    super.dispose();
   }
 }
 
