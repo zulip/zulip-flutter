@@ -246,7 +246,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
     bgMenuButtonActive: Colors.black.withValues(alpha: 0.2),
     bgMenuButtonSelected: Colors.black.withValues(alpha: 0.25),
-    bgMessageRegular: const HSLColor.fromAHSL(1, 0, 0, 0.11).toColor(),
+    bgMessageRegular: const Color(0xff1d1d1d),
     bgTopBar: const Color(0xff242424),
     borderBar: const Color(0xffffffff).withValues(alpha: 0.1),
     borderMenuButtonSelected: Colors.white.withValues(alpha: 0.1),
