@@ -1,0 +1,1554 @@
+{
+  "@aboutPageAppVersion": {
+    "description": "Label for Zulip app version in About Zulip page"
+  },
+  "@aboutPageOpenSourceLicenses": {
+    "description": "Item title in About Zulip page to navigate to Licenses page"
+  },
+  "@aboutPageTapToView": {
+    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
+  },
+  "@aboutPageTitle": {
+    "description": "Title for About Zulip page."
+  },
+  "@actionSheetOptionChannelFeed": {
+    "description": "Label for navigating to a channel's channel-feed page."
+  },
+  "@actionSheetOptionCopyChannelLink": {
+    "description": "Label for copy channel link button on action sheet."
+  },
+  "@actionSheetOptionCopyMessageLink": {
+    "description": "Label for copy message link button on action sheet."
+  },
+  "@actionSheetOptionCopyMessageText": {
+    "description": "Label for copy message text button on action sheet."
+  },
+  "@actionSheetOptionCopyTopicLink": {
+    "description": "Label for copy topic link button in action sheet."
+  },
+  "@actionSheetOptionDeleteMessage": {
+    "description": "Label for the 'Delete message' button in the message action sheet."
+  },
+  "@actionSheetOptionEditMessage": {
+    "description": "Label for the 'Edit message' button in the message action sheet."
+  },
+  "@actionSheetOptionFollowTopic": {
+    "description": "Label for following a topic on action sheet."
+  },
+  "@actionSheetOptionHideMutedMessage": {
+    "description": "Label for hide muted message again button on action sheet."
+  },
+  "@actionSheetOptionListOfTopics": {
+    "description": "Label for navigating to a channel's topic-list page."
+  },
+  "@actionSheetOptionMarkAsUnread": {
+    "description": "Label for mark as unread button on action sheet."
+  },
+  "@actionSheetOptionMarkChannelAsRead": {
+    "description": "Label for marking a channel as read."
+  },
+  "@actionSheetOptionMarkTopicAsRead": {
+    "description": "Option to mark a specific topic as read in the action sheet."
+  },
+  "@actionSheetOptionMuteTopic": {
+    "description": "Label for muting a topic on action sheet."
+  },
+  "@actionSheetOptionQuoteMessage": {
+    "description": "Label for the 'Quote message' button in the message action sheet."
+  },
+  "@actionSheetOptionResolveTopic": {
+    "description": "Label for the 'Mark as resolved' button on the topic action sheet."
+  },
+  "@actionSheetOptionSeeWhoReacted": {
+    "description": "Label for the 'See who reacted' button in the message action sheet."
+  },
+  "@actionSheetOptionShare": {
+    "description": "Label for share button on action sheet."
+  },
+  "@actionSheetOptionStarMessage": {
+    "description": "Label for star button on action sheet."
+  },
+  "@actionSheetOptionSubscribe": {
+    "description": "Label in the channel action sheet for subscribing to the channel."
+  },
+  "@actionSheetOptionUnfollowTopic": {
+    "description": "Label for unfollowing a topic on action sheet."
+  },
+  "@actionSheetOptionUnmuteTopic": {
+    "description": "Label for unmuting a topic on action sheet."
+  },
+  "@actionSheetOptionUnresolveTopic": {
+    "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
+  },
+  "@actionSheetOptionUnstarMessage": {
+    "description": "Label for unstar button on action sheet."
+  },
+  "@actionSheetOptionUnsubscribe": {
+    "description": "Label in the channel action sheet for unsubscribing from the channel."
+  },
+  "@actionSheetOptionViewReadReceipts": {
+    "description": "Label for the 'View read receipts' button in the message action sheet."
+  },
+  "@actionSheetReadReceipts": {
+    "description": "Title for the \"Read receipts\" bottom sheet."
+  },
+  "@actionSheetReadReceiptsErrorReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when loading read receipts failed."
+  },
+  "@actionSheetReadReceiptsReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when one or more people have read the message.",
+    "placeholders": {
+      "count": {
+        "example": "1",
+        "type": "int"
+      }
+    }
+  },
+  "@actionSheetReadReceiptsZeroReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
+  },
+  "@allChannelsEmptyPlaceholder": {
+    "description": "Centered text on the 'All channels' page saying that there is no content to show."
+  },
+  "@allChannelsPageTitle": {
+    "description": "Title for the 'All channels' page."
+  },
+  "@appVersionUnknownPlaceholder": {
+    "description": "Placeholder to show in place of the app version when it is unknown."
+  },
+  "@channelFeedButtonTooltip": {
+    "description": "Tooltip for button to navigate to a given channel's feed"
+  },
+  "@channelsEmptyPlaceholder": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show."
+  },
+  "@channelsEmptyPlaceholderWithAllChannelsLink": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show, with a link to 'All channels'.",
+    "placeholders": {
+      "allChannelsPageTitle": {
+        "example": "All channels",
+        "type": "String"
+      }
+    }
+  },
+  "@channelsPageTitle": {
+    "description": "Title for the page with a list of subscribed channels."
+  },
+  "@chooseAccountButtonAddAnAccount": {
+    "description": "Label for ChooseAccountPage button to add an account"
+  },
+  "@chooseAccountPageLogOutButton": {
+    "description": "Label for the 'Log out' button for an account on the choose-account page"
+  },
+  "@chooseAccountPageTitle": {
+    "description": "Title for the page to choose between Zulip accounts."
+  },
+  "@combinedFeedPageTitle": {
+    "description": "Page title for the 'Combined feed' message view."
+  },
+  "@composeBoxAttachFilesTooltip": {
+    "description": "Tooltip for compose box icon to attach a file to the message."
+  },
+  "@composeBoxAttachFromCameraTooltip": {
+    "description": "Tooltip for compose box icon to attach an image from the camera to the message."
+  },
+  "@composeBoxAttachMediaTooltip": {
+    "description": "Tooltip for compose box icon to attach media to the message."
+  },
+  "@composeBoxBannerButtonCancel": {
+    "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerButtonSave": {
+    "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerLabelEditMessage": {
+    "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxChannelContentHint": {
+    "description": "Hint text for content input when sending a message to a channel.",
+    "placeholders": {
+      "destination": {
+        "example": "#channel name > topic name",
+        "type": "String"
+      }
+    }
+  },
+  "@composeBoxDmContentHint": {
+    "description": "Hint text for content input when sending a message to one other person.",
+    "placeholders": {
+      "user": {
+        "example": "channel name",
+        "type": "String"
+      }
+    }
+  },
+  "@composeBoxEnterTopicOrSkipHintText": {
+    "description": "Hint text for topic input widget in compose box when topics are optional.",
+    "placeholders": {
+      "defaultTopicName": {
+        "example": "general chat",
+        "type": "String"
+      }
+    }
+  },
+  "@composeBoxGenericContentHint": {
+    "description": "Hint text for content input when sending a message."
+  },
+  "@composeBoxGroupDmContentHint": {
+    "description": "Hint text for content input when sending a message to a group."
+  },
+  "@composeBoxLoadingMessage": {
+    "description": "Placeholder in compose box showing the quoted message is currently loading.",
+    "placeholders": {
+      "messageId": {
+        "example": "1234",
+        "type": "int"
+      }
+    }
+  },
+  "@composeBoxSelfDmContentHint": {
+    "description": "Hint text for content input when sending a message to yourself."
+  },
+  "@composeBoxSendTooltip": {
+    "description": "Tooltip for send button in compose box."
+  },
+  "@composeBoxTopicHintText": {
+    "description": "Hint text for topic input widget in compose box."
+  },
+  "@composeBoxUploadingFilename": {
+    "description": "Placeholder in compose box showing the specified file is currently uploading.",
+    "placeholders": {
+      "filename": {
+        "example": "file.txt",
+        "type": "String"
+      }
+    }
+  },
+  "@contentValidationErrorEmpty": {
+    "description": "Content validation error message when the message is empty."
+  },
+  "@contentValidationErrorQuoteAndReplyInProgress": {
+    "description": "Content validation error message when a quotation has not completed yet."
+  },
+  "@contentValidationErrorTooLong": {
+    "description": "Content validation error message when the message is too long."
+  },
+  "@contentValidationErrorUploadInProgress": {
+    "description": "Content validation error message when attachments have not finished uploading."
+  },
+  "@deleteMessageConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Delete' button on a confirmation dialog for deleting a message."
+  },
+  "@deleteMessageConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for deleting a message."
+  },
+  "@deleteMessageConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for deleting a message."
+  },
+  "@dialogCancel": {
+    "description": "Button label in dialogs to cancel."
+  },
+  "@dialogClose": {
+    "description": "Button label in dialogs to close."
+  },
+  "@dialogContinue": {
+    "description": "Button label in dialogs to proceed."
+  },
+  "@discardDraftConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "@discardDraftConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "@discardDraftForEditConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for discarding message text that was typed into the compose box, when editing a message."
+  },
+  "@discardDraftForOutboxConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog when restoring an outbox message, for discarding message text that was typed into the compose box."
+  },
+  "@dmsWithOthersPageTitle": {
+    "description": "Message list page title for a DM group with others.",
+    "placeholders": {
+      "others": {
+        "example": "Alice, Bob",
+        "type": "String"
+      }
+    }
+  },
+  "@dmsWithYourselfPageTitle": {
+    "description": "Message list page title for a DM group that only includes yourself."
+  },
+  "@editAlreadyInProgressMessage": {
+    "description": "Error message when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "@editAlreadyInProgressTitle": {
+    "description": "Error title when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "@emojiPickerSearchEmoji": {
+    "description": "Hint text for the emoji picker search text field."
+  },
+  "@emojiReactionsMore": {
+    "description": "Label for a button opening the emoji picker."
+  },
+  "@emptyMessageList": {
+    "description": "Placeholder for some message-list pages when there are no messages."
+  },
+  "@emptyMessageListSearch": {
+    "description": "Placeholder for the 'Search' page when there are no messages."
+  },
+  "@errorAccountLoggedIn": {
+    "description": "Error message on attempting to log into an account that's already logged in.",
+    "placeholders": {
+      "email": {
+        "example": "user@example.com",
+        "type": "String"
+      },
+      "server": {
+        "example": "https://example.com",
+        "type": "String"
+      }
+    }
+  },
+  "@errorAccountLoggedInTitle": {
+    "description": "Error title on attempting to log into an account that's already logged in."
+  },
+  "@errorBannerCannotPostInChannelLabel": {
+    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "@errorBannerDeactivatedDmLabel": {
+    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  },
+  "@errorConnectingToServerDetails": {
+    "description": "Dialog error message for a generic unknown error connecting to the server with details.",
+    "placeholders": {
+      "error": {
+        "example": "Invalid format",
+        "type": "String"
+      },
+      "serverUrl": {
+        "example": "http://example.com/",
+        "type": "String"
+      }
+    }
+  },
+  "@errorConnectingToServerShort": {
+    "description": "Short error message for a generic unknown error connecting to the server."
+  },
+  "@errorContentNotInsertedTitle": {
+    "description": "Title for error dialog when an attempt to insert rich content failed."
+  },
+  "@errorContentToInsertIsEmpty": {
+    "description": "Error message when the rich content to be inserted is empty or cannot be accessed."
+  },
+  "@errorCopyingFailed": {
+    "description": "Error message when copying the text of a message to the user's system clipboard failed."
+  },
+  "@errorCouldNotConnectTitle": {
+    "description": "Error title when the app could not connect to the server."
+  },
+  "@errorCouldNotEditMessageTitle": {
+    "description": "Error title when an exception prevented us from opening the compose box for editing a message."
+  },
+  "@errorCouldNotFetchMessageSource": {
+    "description": "Error message when the source of a message could not be fetched."
+  },
+  "@errorCouldNotOpenLink": {
+    "description": "Error message when opening a link failed.",
+    "placeholders": {
+      "url": {
+        "example": "https://chat.example.com",
+        "type": "String"
+      }
+    }
+  },
+  "@errorCouldNotOpenLinkTitle": {
+    "description": "Error title when opening a link failed."
+  },
+  "@errorCouldNotShowUserProfile": {
+    "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
+  "@errorDeleteMessageFailedTitle": {
+    "description": "Error title when deleting a message failed."
+  },
+  "@errorDialogContinue": {
+    "description": "Button label in error dialogs to acknowledge the error and close the dialog."
+  },
+  "@errorDialogLearnMore": {
+    "description": "Button label in error dialogs to open a web page with more information."
+  },
+  "@errorDialogTitle": {
+    "description": "Generic title for error dialog."
+  },
+  "@errorFailedToUploadFileTitle": {
+    "description": "Error title when the specified file failed to upload.",
+    "placeholders": {
+      "filename": {
+        "example": "file.txt",
+        "type": "String"
+      }
+    }
+  },
+  "@errorFilesTooLarge": {
+    "description": "Error message when attached files are too large in size.",
+    "placeholders": {
+      "listMessage": {
+        "example": "foo.txt: 10.1 MiB\nbar.txt 20.2 MiB",
+        "type": "String"
+      },
+      "maxFileUploadSizeMib": {
+        "example": "15",
+        "type": "int"
+      },
+      "num": {
+        "example": "2",
+        "type": "int"
+      }
+    }
+  },
+  "@errorFilesTooLargeTitle": {
+    "description": "Error title when attached files are too large in size.",
+    "placeholders": {
+      "num": {
+        "example": "4",
+        "type": "int"
+      }
+    }
+  },
+  "@errorFollowTopicFailed": {
+    "description": "Error message when following a topic failed."
+  },
+  "@errorHandlingEventDetails": {
+    "description": "Error details on failing to handle a Zulip server event.",
+    "placeholders": {
+      "error": {
+        "example": "Unexpected null value",
+        "type": "String"
+      },
+      "event": {
+        "example": "UpdateMessageEvent(id: 123, messageIds: [2345, 3456], newTopic: 'dinner')",
+        "type": "String"
+      },
+      "serverUrl": {
+        "example": "https://chat.example.com",
+        "type": "String"
+      }
+    }
+  },
+  "@errorHandlingEventTitle": {
+    "description": "Error title on failing to handle a Zulip server event."
+  },
+  "@errorInvalidApiKeyMessage": {
+    "description": "Error message in the dialog for invalid API key.",
+    "placeholders": {
+      "url": {
+        "example": "http://chat.example.com/",
+        "type": "String"
+      }
+    }
+  },
+  "@errorInvalidResponse": {
+    "description": "Error message when an API call returned an invalid response."
+  },
+  "@errorLoginCouldNotConnect": {
+    "description": "Error message when the app could not connect to the server.",
+    "placeholders": {
+      "url": {
+        "example": "http://example.com/",
+        "type": "String"
+      }
+    }
+  },
+  "@errorLoginFailedTitle": {
+    "description": "Error title for login when signing into a Zulip server fails."
+  },
+  "@errorLoginInvalidInputTitle": {
+    "description": "Error title for login when input is invalid."
+  },
+  "@errorMalformedResponse": {
+    "description": "Error message when an API call fails because we could not parse the response.",
+    "placeholders": {
+      "httpStatus": {
+        "example": "200",
+        "type": "int"
+      }
+    }
+  },
+  "@errorMalformedResponseWithCause": {
+    "description": "Error message when an API call fails because we could not parse the response, with details of the failure.",
+    "placeholders": {
+      "details": {
+        "example": "type 'Null' is not a subtype of type 'String' in type cast",
+        "type": "String"
+      },
+      "httpStatus": {
+        "example": "200",
+        "type": "int"
+      }
+    }
+  },
+  "@errorMarkAsReadFailedTitle": {
+    "description": "Error title when mark as read action failed."
+  },
+  "@errorMarkAsUnreadFailedTitle": {
+    "description": "Error title when mark as unread action failed."
+  },
+  "@errorMessageDoesNotSeemToExist": {
+    "description": "Error message when loading a message that does not exist."
+  },
+  "@errorMessageEditNotSaved": {
+    "description": "Error message for compose box when a message edit could not be saved."
+  },
+  "@errorMessageNotSent": {
+    "description": "Error message for compose box when a message could not be sent."
+  },
+  "@errorMuteTopicFailed": {
+    "description": "Error message when muting a topic failed."
+  },
+  "@errorNetworkRequestFailed": {
+    "description": "Error message when a network request fails."
+  },
+  "@errorNotificationOpenAccountNotFound": {
+    "description": "Error message when the account associated with the notification could not be found"
+  },
+  "@errorNotificationOpenTitle": {
+    "description": "Error title when notification opening fails"
+  },
+  "@errorQuotationFailed": {
+    "description": "Error message when quoting a message failed."
+  },
+  "@errorReactionAddingFailedTitle": {
+    "description": "Error title when adding a message reaction fails"
+  },
+  "@errorReactionRemovingFailedTitle": {
+    "description": "Error title when removing a message reaction fails"
+  },
+  "@errorRequestFailed": {
+    "description": "Error message when an API call fails.",
+    "placeholders": {
+      "httpStatus": {
+        "example": "500",
+        "type": "int"
+      }
+    }
+  },
+  "@errorResolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as resolved failed."
+  },
+  "@errorServerMessage": {
+    "description": "Error message that quotes an error from the server.",
+    "placeholders": {
+      "message": {
+        "example": "Invalid format",
+        "type": "String"
+      }
+    }
+  },
+  "@errorServerVersionUnsupportedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+    "placeholders": {
+      "minSupportedZulipVersion": {
+        "example": "4.0",
+        "type": "String"
+      },
+      "url": {
+        "example": "http://chat.example.com/",
+        "type": "String"
+      },
+      "zulipVersion": {
+        "example": "3.2",
+        "type": "String"
+      }
+    }
+  },
+  "@errorSharingAccountNotLoggedIn": {
+    "description": "Error title when sharing content received from other apps fails, when there is no account logged in"
+  },
+  "@errorSharingFailed": {
+    "description": "Error message when sharing a message failed."
+  },
+  "@errorSharingTitle": {
+    "description": "Error title when sharing content received from other apps fails"
+  },
+  "@errorStarMessageFailedTitle": {
+    "description": "Error title when starring a message failed."
+  },
+  "@errorUnfollowTopicFailed": {
+    "description": "Error message when unfollowing a topic failed."
+  },
+  "@errorUnmuteTopicFailed": {
+    "description": "Error message when unmuting a topic failed."
+  },
+  "@errorUnresolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as unresolved failed."
+  },
+  "@errorUnstarMessageFailedTitle": {
+    "description": "Error title when unstarring a message failed."
+  },
+  "@errorVideoPlayerFailed": {
+    "description": "Error message when a video fails to play."
+  },
+  "@errorWebAuthOperationalError": {
+    "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "@errorWebAuthOperationalErrorTitle": {
+    "description": "Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "@experimentalFeatureSettingsPageTitle": {
+    "description": "Title of settings page for experimental, in-development features"
+  },
+  "@experimentalFeatureSettingsWarning": {
+    "description": "Warning text on settings page for experimental, in-development features"
+  },
+  "@filenameAndSizeInMiB": {
+    "description": "The name of a file, and its size in mebibytes.",
+    "placeholders": {
+      "filename": {
+        "example": "foo.txt",
+        "type": "String"
+      },
+      "size": {
+        "example": "20.2",
+        "type": "String"
+      }
+    }
+  },
+  "@inboxEmptyPlaceholder": {
+    "description": "Centered text on the 'Inbox' page saying that there is no content to show."
+  },
+  "@inboxPageTitle": {
+    "description": "Title for the page with unreads."
+  },
+  "@initialAnchorSettingDescription": {
+    "description": "Description of setting controlling initial anchor of message list."
+  },
+  "@initialAnchorSettingFirstUnreadAlways": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "@initialAnchorSettingFirstUnreadConversations": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "@initialAnchorSettingNewestAlways": {
+    "description": "Label for a value of setting controlling initial anchor of message list."
+  },
+  "@initialAnchorSettingTitle": {
+    "description": "Title of setting controlling initial anchor of message list."
+  },
+  "@invisibleMode": {
+    "description": "Label for the 'Invisible mode' switch on the profile page."
+  },
+  "@lightboxCopyLinkTooltip": {
+    "description": "Tooltip in lightbox for the copy link action."
+  },
+  "@lightboxVideoCurrentPosition": {
+    "description": "The current playback position of the video playing in the lightbox."
+  },
+  "@lightboxVideoDuration": {
+    "description": "The total duration of the video playing in the lightbox."
+  },
+  "@logOutConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Log out' button on a confirmation dialog for logging out."
+  },
+  "@logOutConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for logging out."
+  },
+  "@logOutConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for logging out."
+  },
+  "@loginAddAnAccountPageTitle": {
+    "description": "Title for page to add a Zulip account."
+  },
+  "@loginEmailLabel": {
+    "description": "Label for input when an email is required to log in."
+  },
+  "@loginErrorMissingEmail": {
+    "description": "Error message when an empty email was provided."
+  },
+  "@loginErrorMissingPassword": {
+    "description": "Error message when an empty password was provided."
+  },
+  "@loginErrorMissingUsername": {
+    "description": "Error message when an empty username was provided."
+  },
+  "@loginFormSubmitLabel": {
+    "description": "Button text to submit login credentials."
+  },
+  "@loginHidePassword": {
+    "description": "Icon label for button to hide password in input form."
+  },
+  "@loginMethodDivider": {
+    "description": "Text on the divider between the username/password form and the third-party login options. Uppercase (for languages with letter case)."
+  },
+  "@loginPageTitle": {
+    "description": "Title for login page."
+  },
+  "@loginPasswordLabel": {
+    "description": "Label for password input field."
+  },
+  "@loginServerUrlLabel": {
+    "description": "Label in login page for Zulip server URL entry."
+  },
+  "@loginUsernameLabel": {
+    "description": "Label for input when a username is required to log in."
+  },
+  "@mainMenuMyProfile": {
+    "description": "Label for main-menu button leading to the user's own profile."
+  },
+  "@manyPeopleTyping": {
+    "description": "Text to display when there are multiple users typing."
+  },
+  "@markAllAsReadLabel": {
+    "description": "Button text to mark messages as read."
+  },
+  "@markAsReadComplete": {
+    "description": "Message when marking messages as read has completed.",
+    "placeholders": {
+      "num": {
+        "example": "4",
+        "type": "int"
+      }
+    }
+  },
+  "@markAsReadInProgress": {
+    "description": "Progress message when marking messages as read."
+  },
+  "@markAsUnreadComplete": {
+    "description": "Message when marking messages as unread has completed.",
+    "placeholders": {
+      "num": {
+        "example": "4",
+        "type": "int"
+      }
+    }
+  },
+  "@markAsUnreadInProgress": {
+    "description": "Progress message when marking messages as unread."
+  },
+  "@markReadOnScrollSettingAlways": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "@markReadOnScrollSettingConversations": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "@markReadOnScrollSettingConversationsDescription": {
+    "description": "Description for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "@markReadOnScrollSettingDescription": {
+    "description": "Description of setting controlling which message-list views should mark read on scroll."
+  },
+  "@markReadOnScrollSettingNever": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "@markReadOnScrollSettingTitle": {
+    "description": "Title of setting controlling which message-list views should mark read on scroll."
+  },
+  "@mentionsPageTitle": {
+    "description": "Page title for the 'Mentions' message view."
+  },
+  "@messageIsEditedLabel": {
+    "description": "Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "@messageIsMovedLabel": {
+    "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "@messageListGroupYouAndOthers": {
+    "description": "Message list recipient header for a DM group with others.",
+    "placeholders": {
+      "others": {
+        "example": "Alice, Bob",
+        "type": "String"
+      }
+    }
+  },
+  "@messageListGroupYouWithYourself": {
+    "description": "Message list recipient header for a DM group that only includes yourself."
+  },
+  "@messageNotSentLabel": {
+    "description": "Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "@mutedUser": {
+    "description": "Name for a muted user to display all over the app."
+  },
+  "@navButtonAllChannels": {
+    "description": "Title for a nav button that opens the 'All channels' page."
+  },
+  "@newDmFabButtonLabel": {
+    "description": "Label for the floating action button (FAB) that opens the new DM sheet."
+  },
+  "@newDmSheetComposeButtonLabel": {
+    "description": "Label for the compose button in the new DM sheet that starts composing a message to the selected users."
+  },
+  "@newDmSheetNoUsersFound": {
+    "description": "Message shown in the new DM sheet when no users match the search."
+  },
+  "@newDmSheetScreenTitle": {
+    "description": "Title displayed at the top of the new DM screen."
+  },
+  "@newDmSheetSearchHintEmpty": {
+    "description": "Hint text for the search bar when no users are selected"
+  },
+  "@newDmSheetSearchHintSomeSelected": {
+    "description": "Hint text for the search bar when at least one user is selected."
+  },
+  "@noEarlierMessages": {
+    "description": "Text to show at the start of a message list if there are no earlier messages."
+  },
+  "@noStatusText": {
+    "description": "The text part of the status button sub-label in self-user profile page when status text is not set."
+  },
+  "@notifGroupDmConversationLabel": {
+    "description": "Label for a group DM conversation notification.",
+    "placeholders": {
+      "numOthers": {
+        "example": "4",
+        "type": "int"
+      },
+      "senderFullName": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@notifSelfUser": {
+    "description": "Display name for the user themself, to show after replying in an Android notification"
+  },
+  "@onePersonTyping": {
+    "description": "Text to display when there is one user typing.",
+    "placeholders": {
+      "typist": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@openLinksWithInAppBrowser": {
+    "description": "Label for toggling setting to open links with in-app browser"
+  },
+  "@permissionsDeniedCameraAccess": {
+    "description": "Message for dialog asking the user to grant permissions for camera access."
+  },
+  "@permissionsDeniedReadExternalStorage": {
+    "description": "Message for dialog asking the user to grant permissions for external storage read access."
+  },
+  "@permissionsNeededOpenSettings": {
+    "description": "Button label for permissions dialog button that opens the system settings screen."
+  },
+  "@permissionsNeededTitle": {
+    "description": "Title for dialog asking the user to grant additional permissions."
+  },
+  "@pinnedSubscriptionsLabel": {
+    "description": "Label for the list of pinned subscribed channels."
+  },
+  "@pollVoterNames": {
+    "description": "The list of people who voted for a poll option, wrapped in parentheses.",
+    "placeholders": {
+      "voterNames": {
+        "example": "Alice, Bob, Chad",
+        "type": "String"
+      }
+    }
+  },
+  "@pollWidgetOptionsMissing": {
+    "description": "Text to display for a poll when it has no options"
+  },
+  "@pollWidgetQuestionMissing": {
+    "description": "Text to display for a poll when the question is missing"
+  },
+  "@preparingEditMessageContentInput": {
+    "description": "Hint text for content input when the compose box is preparing to edit a message."
+  },
+  "@profileButtonSendDirectMessage": {
+    "description": "Label for button in profile screen to navigate to DMs with the shown user."
+  },
+  "@reactedEmojiSelfUser": {
+    "description": "Display name for the user themself, to show on an emoji reaction added by the user."
+  },
+  "@reactionChipLabel": {
+    "description": "Text describing a reaction chip, with the emoji name and a list or number of votes. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "emojiName": {
+        "example": "working_on_it",
+        "type": "String"
+      },
+      "votes": {
+        "example": "You, Chris, Greg",
+        "type": "String"
+      }
+    }
+  },
+  "@reactionChipVotesYouAndOthers": {
+    "description": "The number of votes on a reaction chip, where the self-user and at least one other user has voted. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "otherUsersCount": {
+        "example": "4",
+        "type": "int"
+      }
+    }
+  },
+  "@reactionChipsLabel": {
+    "description": "Text identifying the container of reaction chips on a message. (An accessibility label for assistive technology.)"
+  },
+  "@recentDmConversationsEmptyPlaceholder": {
+    "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "@recentDmConversationsPageTitle": {
+    "description": "Title for the page with a list of DM conversations."
+  },
+  "@recentDmConversationsSectionHeader": {
+    "description": "Heading for direct messages section on the 'Inbox' message view."
+  },
+  "@revealButtonLabel": {
+    "description": "Label for the button revealing hidden message from a muted sender in message list."
+  },
+  "@savingMessageEditFailedLabel": {
+    "description": "Text on a message in the message list saying that a message edit request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "@savingMessageEditLabel": {
+    "description": "Text on a message in the message list saying that a message edit request is processing. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "@scrollToBottomTooltip": {
+    "description": "Tooltip for button to scroll to bottom."
+  },
+  "@searchMessagesClearButtonTooltip": {
+    "description": "Tooltip for the 'x' button in the search text field."
+  },
+  "@searchMessagesHintText": {
+    "description": "Hint text for the message search text field."
+  },
+  "@searchMessagesPageTitle": {
+    "description": "Page title for the 'Search' message view."
+  },
+  "@seeWhoReactedSheetEmojiNameWithVoteCount": {
+    "description": "In the 'See who reacted' sheet, an emoji reaction's name and how many votes it has. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "emojiName": {
+        "example": "working_on_it",
+        "type": "String"
+      },
+      "num": {
+        "example": "2",
+        "type": "int"
+      }
+    }
+  },
+  "@seeWhoReactedSheetHeaderLabel": {
+    "description": "In the 'See who reacted' sheet, a label for the list of emoji reactions at the top, with the total number of reactions. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "num": {
+        "example": "2",
+        "type": "int"
+      }
+    }
+  },
+  "@seeWhoReactedSheetNoReactions": {
+    "description": "Explanation on the 'See who reacted' sheet when the message has no reactions (because they were removed after the sheet was opened)."
+  },
+  "@seeWhoReactedSheetUserListLabel": {
+    "description": "In the 'See who reacted' sheet, a label for the list of users who chose an emoji reaction, with the emoji's name and how many votes it has. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "emojiName": {
+        "example": "working_on_it",
+        "type": "String"
+      },
+      "num": {
+        "example": "2",
+        "type": "int"
+      }
+    }
+  },
+  "@serverUrlValidationErrorEmpty": {
+    "description": "Error message when URL is empty"
+  },
+  "@serverUrlValidationErrorInvalidUrl": {
+    "description": "Error message when URL is not in a valid format."
+  },
+  "@serverUrlValidationErrorNoUseEmail": {
+    "description": "Error message when URL looks like an email"
+  },
+  "@serverUrlValidationErrorUnsupportedScheme": {
+    "description": "Error message when URL has an unsupported scheme."
+  },
+  "@setStatusPageTitle": {
+    "description": "Title for the 'Set status' page."
+  },
+  "@settingsPageTitle": {},
+  "@sharePageTitle": {
+    "description": "Title for the page about sharing content received from other apps."
+  },
+  "@signInWithFoo": {
+    "description": "Button to use {method} to sign in to the app.",
+    "placeholders": {
+      "method": {
+        "example": "Google",
+        "type": "String"
+      }
+    }
+  },
+  "@snackBarDetails": {
+    "description": "Button label for snack bar button that opens a dialog with more details."
+  },
+  "@spoilerDefaultHeaderText": {
+    "description": "The default header text in a spoiler block ( https://zulip.com/help/spoilers )."
+  },
+  "@starredMessagesPageTitle": {
+    "description": "Page title for the 'Starred messages' message view."
+  },
+  "@statusButtonLabelStatusSet": {
+    "description": "The status button label in self-user profile page when status is set."
+  },
+  "@statusButtonLabelStatusUnset": {
+    "description": "The status button label in self-user profile page when status is not set."
+  },
+  "@statusClearButtonLabel": {
+    "description": "Label for the button that clears the user status, in 'Set status' page."
+  },
+  "@statusSaveButtonLabel": {
+    "description": "Label for the button that saves the user status, in 'Set status' page."
+  },
+  "@statusTextHint": {
+    "description": "Hint text for the status text input field in 'Set status' page."
+  },
+  "@subscribeFailedTitle": {
+    "description": "Error title when subscribing to a channel failed."
+  },
+  "@successChannelLinkCopied": {
+    "description": "Message when link of a channel was copied to the user's system clipboard."
+  },
+  "@successLinkCopied": {
+    "description": "Success message after copy link action completed."
+  },
+  "@successMessageLinkCopied": {
+    "description": "Message when link of a message was copied to the user's system clipboard."
+  },
+  "@successMessageTextCopied": {
+    "description": "Message when content of a message was copied to the user's system clipboard."
+  },
+  "@successTopicLinkCopied": {
+    "description": "Message when link of a topic was copied to the user's system clipboard."
+  },
+  "@switchAccountButton": {
+    "description": "Label for main-menu button leading to the choose-account page."
+  },
+  "@themeSettingDark": {
+    "description": "Label for dark theme setting."
+  },
+  "@themeSettingLight": {
+    "description": "Label for light theme setting."
+  },
+  "@themeSettingSystem": {
+    "description": "Label for system theme setting."
+  },
+  "@themeSettingTitle": {
+    "description": "Title for theme setting. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "@today": {
+    "description": "Term to use to reference the current day."
+  },
+  "@topicValidationErrorMandatoryButEmpty": {
+    "description": "Topic validation error when topic is required but was empty."
+  },
+  "@topicValidationErrorTooLong": {
+    "description": "Topic validation error when topic is too long."
+  },
+  "@topicsButtonTooltip": {
+    "description": "Tooltip for button to navigate to topic-list page."
+  },
+  "@tryAnotherAccountButton": {
+    "description": "Label for loading screen button prompting user to try another account."
+  },
+  "@tryAnotherAccountMessage": {
+    "description": "Message that appears on the loading screen after waiting for some time.",
+    "url": {
+      "example": "http://chat.example.com/",
+      "type": "String"
+    }
+  },
+  "@turnOffInvisibleModeErrorTitle": {
+    "description": "Error title when turning off invisible mode failed."
+  },
+  "@turnOnInvisibleModeErrorTitle": {
+    "description": "Error title when turning on invisible mode failed."
+  },
+  "@twoPeopleTyping": {
+    "description": "Text to display when there are two users typing.",
+    "placeholders": {
+      "otherTypist": {
+        "example": "Bob",
+        "type": "String"
+      },
+      "typist": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@unknownChannelName": {
+    "description": "Replacement name for channel when it cannot be found in the store."
+  },
+  "@unknownUserName": {
+    "description": "Name placeholder to use for a user when we don't know their name."
+  },
+  "@unpinnedSubscriptionsLabel": {
+    "description": "Label for the list of unpinned subscribed channels."
+  },
+  "@unsubscribeConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
+  },
+  "@unsubscribeConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for unsubscribing from a channel.",
+    "placeholders": {
+      "channelName": {
+        "example": "mobile",
+        "type": "String"
+      }
+    }
+  },
+  "@unsubscribeFailedTitle": {
+    "description": "Error title when unsubscribing from a channel failed."
+  },
+  "@updateStatusErrorTitle": {
+    "description": "Error title when updating user status failed."
+  },
+  "@upgradeWelcomeDialogDismiss": {
+    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "@upgradeWelcomeDialogLinkText": {
+    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "@upgradeWelcomeDialogMessage": {
+    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "@upgradeWelcomeDialogTitle": {
+    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "@userActiveDate": {
+    "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
+    "placeholders": {
+      "date": {
+        "example": "Aug 1, 2024",
+        "type": "String"
+      }
+    }
+  },
+  "@userActiveDaysAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "days": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveHoursAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "hours": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveMinutesAgo": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)",
+    "placeholders": {
+      "minutes": {
+        "example": "5",
+        "type": "int"
+      }
+    }
+  },
+  "@userActiveNow": {
+    "description": "Indicates a user is currently active on Zulip (not idle or offline)"
+  },
+  "@userActiveYesterday": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)"
+  },
+  "@userIdle": {
+    "description": "Indicates a user is currently idle on Zulip (not active, but not offline)"
+  },
+  "@userNotActiveInYear": {
+    "description": "Indicates when a user was last active on Zulip (who is currently offline)"
+  },
+  "@userRoleAdministrator": {
+    "description": "Label for UserRole.administrator"
+  },
+  "@userRoleGuest": {
+    "description": "Label for UserRole.guest"
+  },
+  "@userRoleMember": {
+    "description": "Label for UserRole.member"
+  },
+  "@userRoleModerator": {
+    "description": "Label for UserRole.moderator"
+  },
+  "@userRoleOwner": {
+    "description": "Label for UserRole.owner"
+  },
+  "@userRoleUnknown": {
+    "description": "Label for UserRole.unknown"
+  },
+  "@userStatusAtTheOffice": {
+    "description": "A suggested user status text, 'At the office'."
+  },
+  "@userStatusBusy": {
+    "description": "A suggested user status text, 'Busy'."
+  },
+  "@userStatusCommuting": {
+    "description": "A suggested user status text, 'Commuting'."
+  },
+  "@userStatusInAMeeting": {
+    "description": "A suggested user status text, 'In a meeting'."
+  },
+  "@userStatusOutSick": {
+    "description": "A suggested user status text, 'Out sick'."
+  },
+  "@userStatusVacationing": {
+    "description": "A suggested user status text, 'Vacationing'."
+  },
+  "@userStatusWorkingRemotely": {
+    "description": "A suggested user status text, 'Working remotely'."
+  },
+  "@wildcardMentionAll": {
+    "description": "Text for \"@all\" wildcard-mention autocomplete option when writing a channel or DM message."
+  },
+  "@wildcardMentionAllDmDescription": {
+    "description": "Description for \"@all\" and \"@everyone\" wildcard-mention autocomplete options when writing a DM message."
+  },
+  "@wildcardMentionChannel": {
+    "description": "Text for \"@channel\" wildcard-mention autocomplete option when writing a channel message."
+  },
+  "@wildcardMentionChannelDescription": {
+    "description": "Description for \"@all\", \"@everyone\", \"@channel\", and \"@stream\" wildcard-mention autocomplete options when writing a channel message."
+  },
+  "@wildcardMentionEveryone": {
+    "description": "Text for \"@everyone\" wildcard-mention autocomplete option when writing a channel or DM message."
+  },
+  "@wildcardMentionStream": {
+    "description": "Text for \"@stream\" wildcard-mention autocomplete option when writing a channel message in older servers."
+  },
+  "@wildcardMentionStreamDescription": {
+    "description": "Description for \"@all\", \"@everyone\", and \"@stream\" wildcard-mention autocomplete options when writing a channel message in older servers."
+  },
+  "@wildcardMentionTopic": {
+    "description": "Text for \"@topic\" wildcard-mention autocomplete option when writing a channel message."
+  },
+  "@wildcardMentionTopicDescription": {
+    "description": "Description for \"@topic\" wildcard-mention autocomplete options when writing a channel message."
+  },
+  "@yesterday": {
+    "description": "Term to use to reference the previous day."
+  },
+  "@zulipAppTitle": {
+    "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
+  },
+  "aboutPageAppVersion": "App 版本",
+  "aboutPageOpenSourceLicenses": "开源许可",
+  "aboutPageTapToView": "查看更多",
+  "aboutPageTitle": "关于 Zulip",
+  "actionSheetOptionChannelFeed": "频道动态",
+  "actionSheetOptionCopyChannelLink": "复制频道链接",
+  "actionSheetOptionCopyMessageLink": "复制消息链接",
+  "actionSheetOptionCopyMessageText": "复制消息文本",
+  "actionSheetOptionCopyTopicLink": "复制话题链接",
+  "actionSheetOptionDeleteMessage": "删除消息",
+  "actionSheetOptionEditMessage": "编辑消息",
+  "actionSheetOptionFollowTopic": "关注话题",
+  "actionSheetOptionHideMutedMessage": "再次隐藏静音消息",
+  "actionSheetOptionListOfTopics": "话题列表",
+  "actionSheetOptionMarkAsUnread": "从这里开始标为未读",
+  "actionSheetOptionMarkChannelAsRead": "标记频道为已读",
+  "actionSheetOptionMarkTopicAsRead": "将话题标为已读",
+  "actionSheetOptionMuteTopic": "静音话题",
+  "actionSheetOptionQuoteMessage": "引用消息",
+  "actionSheetOptionResolveTopic": "标记为已解决",
+  "actionSheetOptionSeeWhoReacted": "查看谁做出了表情符号回应",
+  "actionSheetOptionShare": "分享",
+  "actionSheetOptionStarMessage": "添加星标消息标记",
+  "actionSheetOptionSubscribe": "订阅",
+  "actionSheetOptionUnfollowTopic": "取消关注话题",
+  "actionSheetOptionUnmuteTopic": "取消静音话题",
+  "actionSheetOptionUnresolveTopic": "标记为未解决",
+  "actionSheetOptionUnstarMessage": "取消星标消息标记",
+  "actionSheetOptionUnsubscribe": "取消订阅",
+  "actionSheetOptionViewReadReceipts": "查看已读回执",
+  "actionSheetReadReceipts": "已读回执",
+  "actionSheetReadReceiptsErrorReadCount": "加载已读回执失败。",
+  "actionSheetReadReceiptsReadCount": "{count, plural, =1{此消息已被<z-link>阅读</z-link>，共有 {count} 人：} other{此消息已被<z-link>阅读</z-link>，共有 {count} 人：}}",
+  "actionSheetReadReceiptsZeroReadCount": "尚无人阅读此消息。",
+  "allChannelsEmptyPlaceholder": "在该组织里你没有可以查看的频道。",
+  "allChannelsPageTitle": "所有频道",
+  "appVersionUnknownPlaceholder": "(…)",
+  "channelFeedButtonTooltip": "频道订阅",
+  "channelsEmptyPlaceholder": "您还没有订阅任何频道。",
+  "channelsEmptyPlaceholderWithAllChannelsLink": "你还没订阅任何频道。可以访问 <z-link>{allChannelsPageTitle}</z-link>然后加入。",
+  "channelsPageTitle": "频道",
+  "chooseAccountButtonAddAnAccount": "添加一个账号",
+  "chooseAccountPageLogOutButton": "登出",
+  "chooseAccountPageTitle": "选择账号",
+  "combinedFeedPageTitle": "综合消息",
+  "composeBoxAttachFilesTooltip": "上传文件",
+  "composeBoxAttachFromCameraTooltip": "拍摄照片",
+  "composeBoxAttachMediaTooltip": "上传图片或视频",
+  "composeBoxBannerButtonCancel": "取消",
+  "composeBoxBannerButtonSave": "保存",
+  "composeBoxBannerLabelEditMessage": "编辑消息",
+  "composeBoxChannelContentHint": "发送消息到 {destination}",
+  "composeBoxDmContentHint": "发送私信给 @{user}",
+  "composeBoxEnterTopicOrSkipHintText": "输入话题（默认为“{defaultTopicName}”）",
+  "composeBoxGenericContentHint": "撰写消息",
+  "composeBoxGroupDmContentHint": "发送私信到群组",
+  "composeBoxLoadingMessage": "（加载消息 {messageId}）",
+  "composeBoxSelfDmContentHint": "向自己撰写消息",
+  "composeBoxSendTooltip": "发送",
+  "composeBoxTopicHintText": "话题",
+  "composeBoxUploadingFilename": "正在上传 {filename}…",
+  "contentValidationErrorEmpty": "发送的消息不能为空！",
+  "contentValidationErrorQuoteAndReplyInProgress": "请等待引用消息完成。",
+  "contentValidationErrorTooLong": "消息的长度不能超过10000个字符。",
+  "contentValidationErrorUploadInProgress": "请等待上传完成。",
+  "deleteMessageConfirmationDialogConfirmButton": "删除",
+  "deleteMessageConfirmationDialogMessage": "对所有人永久删除消息。",
+  "deleteMessageConfirmationDialogTitle": "删除消息？",
+  "dialogCancel": "取消",
+  "dialogClose": "关闭",
+  "dialogContinue": "继续",
+  "discardDraftConfirmationDialogConfirmButton": "清空",
+  "discardDraftConfirmationDialogTitle": "放弃您正在撰写的消息？",
+  "discardDraftForEditConfirmationDialogMessage": "当您编辑消息时，文本框中已有的内容将会被清空。",
+  "discardDraftForOutboxConfirmationDialogMessage": "当您恢复未能发送的消息时，文本框已有的内容将会被清空。",
+  "dmsWithOthersPageTitle": "与{others}的私信",
+  "dmsWithYourselfPageTitle": "与自己的私信",
+  "editAlreadyInProgressMessage": "已有正在被编辑的消息。请在其完成后重试。",
+  "editAlreadyInProgressTitle": "未能编辑消息",
+  "emojiPickerSearchEmoji": "搜索表情符号",
+  "emojiReactionsMore": "更多",
+  "emptyMessageList": "这里没有消息。",
+  "emptyMessageListSearch": "没有搜索结果。",
+  "errorAccountLoggedIn": "在 {server} 的账号 {email} 已经在您的账号列表了。",
+  "errorAccountLoggedInTitle": "已经登入该账号",
+  "errorBannerCannotPostInChannelLabel": "您没有足够的权限在此频道发送消息。",
+  "errorBannerDeactivatedDmLabel": "您不能向被停用的用户发送消息。",
+  "errorConnectingToServerDetails": "未能连接到在 {serverUrl} 的 Zulip 服务器。即将重连：\n\n{error}",
+  "errorConnectingToServerShort": "未能连接到 Zulip. 重试中…",
+  "errorContentNotInsertedTitle": "未插入内容",
+  "errorContentToInsertIsEmpty": "要插入的文件为空或无法访问。",
+  "errorCopyingFailed": "未能复制消息文本",
+  "errorCouldNotConnectTitle": "未能连接",
+  "errorCouldNotEditMessageTitle": "未能编辑消息",
+  "errorCouldNotFetchMessageSource": "未能获取原始消息。",
+  "errorCouldNotOpenLink": "未能打开此链接：{url}",
+  "errorCouldNotOpenLinkTitle": "未能打开链接",
+  "errorCouldNotShowUserProfile": "无法显示用户个人资料。",
+  "errorDeleteMessageFailedTitle": "删除消息失败",
+  "errorDialogContinue": "好的",
+  "errorDialogLearnMore": "更多信息",
+  "errorDialogTitle": "错误",
+  "errorFailedToUploadFileTitle": "未能上传文件：{filename}",
+  "errorFilesTooLarge": "{num, plural, other{{num} 个您上传的文件}}大小超过了该组织 {maxFileUploadSizeMib} MiB 的限制：\n\n{listMessage}",
+  "errorFilesTooLargeTitle": "{num, plural, =1{文件} other{文件}}太大",
+  "errorFollowTopicFailed": "未能关注话题",
+  "errorHandlingEventDetails": "处理来自 {serverUrl} 的 Zulip 事件时发生了一些问题。即将重连。\n\n错误：{error}\n\n事件：{event}",
+  "errorHandlingEventTitle": "处理 Zulip 事件时发生了一些问题。即将重连…",
+  "errorInvalidApiKeyMessage": "您在 {url} 的账号无法被登入。请重试或者使用另外的账号。",
+  "errorInvalidResponse": "服务器的回复不合法。",
+  "errorLoginCouldNotConnect": "未能连接到服务器：\n{url}",
+  "errorLoginFailedTitle": "未能登入",
+  "errorLoginInvalidInputTitle": "输入的信息不正确",
+  "errorMalformedResponse": "服务器的回复不合法；HTTP 状态码 {httpStatus}",
+  "errorMalformedResponseWithCause": "服务器的回复不合法；HTTP 状态码 {httpStatus}; {details}",
+  "errorMarkAsReadFailedTitle": "未能将消息标为已读",
+  "errorMarkAsUnreadFailedTitle": "未能将消息标为未读",
+  "errorMessageDoesNotSeemToExist": "找不到此消息。",
+  "errorMessageEditNotSaved": "未能保存消息编辑",
+  "errorMessageNotSent": "未能发送消息",
+  "errorMuteTopicFailed": "未能静音话题",
+  "errorNetworkRequestFailed": "网络请求失败",
+  "errorNotificationOpenAccountNotFound": "未能找到关联该消息提醒的账号。",
+  "errorNotificationOpenTitle": "未能打开消息提醒",
+  "errorQuotationFailed": "未能引用消息",
+  "errorReactionAddingFailedTitle": "未能添加表情符号",
+  "errorReactionRemovingFailedTitle": "未能移除表情符号",
+  "errorRequestFailed": "网络请求失败；HTTP 状态码 {httpStatus}",
+  "errorResolveTopicFailedTitle": "未能将话题标记为解决",
+  "errorServerMessage": "服务器：\n\n{message}",
+  "errorServerVersionUnsupportedMessage": "{url} 运行的 Zulip 服务器版本 {zulipVersion} 过低。该客户端只支持 {minSupportedZulipVersion} 及以后的服务器版本。",
+  "errorSharingAccountNotLoggedIn": "尚未登录任何账号。请登录账号后再次尝试。",
+  "errorSharingFailed": "分享失败",
+  "errorSharingTitle": "分享内容失败",
+  "errorStarMessageFailedTitle": "未能添加星标消息标记",
+  "errorUnfollowTopicFailed": "未能取消关注话题",
+  "errorUnmuteTopicFailed": "未能取消静音话题",
+  "errorUnresolveTopicFailedTitle": "未能将话题标记为未解决",
+  "errorUnstarMessageFailedTitle": "未能取消星标消息标记",
+  "errorVideoPlayerFailed": "未能播放视频。",
+  "errorWebAuthOperationalError": "发生了未知的错误。",
+  "errorWebAuthOperationalErrorTitle": "出现了一些问题",
+  "experimentalFeatureSettingsPageTitle": "实验功能",
+  "experimentalFeatureSettingsWarning": "以下选项能够启用开发中的功能。它们暂不完善，并可能造成其他的一些问题。\n\n这些选项的目的是为了帮助开发者进行实验。",
+  "filenameAndSizeInMiB": "{filename}: {size} MiB",
+  "inboxEmptyPlaceholder": "您的收件箱中没有未读消息。您可以通过底部导航栏访问综合消息或者频道列表。",
+  "inboxPageTitle": "收件箱",
+  "initialAnchorSettingDescription": "您可以将消息的起始位置设置为第一条未读消息或者最新消息。",
+  "initialAnchorSettingFirstUnreadAlways": "第一条未读消息",
+  "initialAnchorSettingFirstUnreadConversations": "在单个话题或私信的第一条未读消息；在其他情况下的最新消息",
+  "initialAnchorSettingNewestAlways": "最新消息",
+  "initialAnchorSettingTitle": "设置消息起始位置于",
+  "invisibleMode": "隐身模式",
+  "lightboxCopyLinkTooltip": "复制链接",
+  "lightboxVideoCurrentPosition": "当前进度",
+  "lightboxVideoDuration": "视频时长",
+  "logOutConfirmationDialogConfirmButton": "登出",
+  "logOutConfirmationDialogMessage": "下次登入此账号时，您将需要重新输入组织网址和账号信息。",
+  "logOutConfirmationDialogTitle": "登出？",
+  "loginAddAnAccountPageTitle": "添加账号",
+  "loginEmailLabel": "电子邮箱地址",
+  "loginErrorMissingEmail": "请输入电子邮箱地址。",
+  "loginErrorMissingPassword": "请输入密码。",
+  "loginErrorMissingUsername": "请输入用户名。",
+  "loginFormSubmitLabel": "登入",
+  "loginHidePassword": "隐藏密码",
+  "loginMethodDivider": "或",
+  "loginPageTitle": "登入",
+  "loginPasswordLabel": "密码",
+  "loginServerUrlLabel": "Zulip 服务器网址",
+  "loginUsernameLabel": "用户名",
+  "mainMenuMyProfile": "个人资料",
+  "manyPeopleTyping": "多个用户正在输入…",
+  "markAllAsReadLabel": "将所有消息标为已读",
+  "markAsReadComplete": "已将 {num, plural, other{{num} 条消息}}标为已读。",
+  "markAsReadInProgress": "正在将消息标为已读…",
+  "markAsUnreadComplete": "已将 {num, plural, other{{num} 条消息}}标为未读。",
+  "markAsUnreadInProgress": "正在将消息标为未读…",
+  "markReadOnScrollSettingAlways": "总是",
+  "markReadOnScrollSettingConversations": "只在对话视图",
+  "markReadOnScrollSettingConversationsDescription": "只将在同一个话题或私聊中的消息自动标记为已读。",
+  "markReadOnScrollSettingDescription": "在滑动浏览消息时，是否自动将它们标记为已读？",
+  "markReadOnScrollSettingNever": "从不",
+  "markReadOnScrollSettingTitle": "滑动时将消息标为已读",
+  "mentionsPageTitle": "被提及消息",
+  "messageIsEditedLabel": "已编辑",
+  "messageIsMovedLabel": "已移动",
+  "messageListGroupYouAndOthers": "您和{others}",
+  "messageListGroupYouWithYourself": "与自己的私信",
+  "messageNotSentLabel": "消息未发送",
+  "mutedUser": "静音用户",
+  "navButtonAllChannels": "所有频道",
+  "newDmFabButtonLabel": "发起私信",
+  "newDmSheetComposeButtonLabel": "撰写消息",
+  "newDmSheetNoUsersFound": "没有用户",
+  "newDmSheetScreenTitle": "发起私信",
+  "newDmSheetSearchHintEmpty": "添加一个或多个用户",
+  "newDmSheetSearchHintSomeSelected": "添加更多用户…",
+  "noEarlierMessages": "没有更早的消息了",
+  "noStatusText": "无状态文字",
+  "notifGroupDmConversationLabel": "{senderFullName}向您和其他 {numOthers, plural, other{{numOthers} 个用户}}",
+  "notifSelfUser": "您",
+  "onePersonTyping": "{typist}正在输入…",
+  "openLinksWithInAppBrowser": "使用内置浏览器打开链接",
+  "permissionsDeniedCameraAccess": "上传图片前，请在设置中授予 Zulip 相应的权限。",
+  "permissionsDeniedReadExternalStorage": "上传文件前，请在设置中授予 Zulip 相应的权限。",
+  "permissionsNeededOpenSettings": "打开设置",
+  "permissionsNeededTitle": "需要额外权限",
+  "pinnedSubscriptionsLabel": "置顶",
+  "pollVoterNames": "（{voterNames}）",
+  "pollWidgetOptionsMissing": "该投票还没有任何选项。",
+  "pollWidgetQuestionMissing": "无问题。",
+  "preparingEditMessageContentInput": "准备编辑消息…",
+  "profileButtonSendDirectMessage": "发送私信",
+  "reactedEmojiSelfUser": "您",
+  "reactionChipLabel": "{emojiName}： {votes}",
+  "reactionChipVotesYouAndOthers": "{otherUsersCount, plural, =1 {你与其他 1 人} other {你与其他 {otherUsersCount} 人}}",
+  "reactionChipsLabel": "表情符号回应",
+  "recentDmConversationsEmptyPlaceholder": "您还没有任何私信消息！何不开启一个新对话？",
+  "recentDmConversationsPageTitle": "私信",
+  "recentDmConversationsSectionHeader": "私信",
+  "revealButtonLabel": "显示消息",
+  "savingMessageEditFailedLabel": "编辑失败",
+  "savingMessageEditLabel": "保存中…",
+  "scrollToBottomTooltip": "拖动到最底",
+  "searchMessagesClearButtonTooltip": "清除",
+  "searchMessagesHintText": "搜索",
+  "searchMessagesPageTitle": "搜索",
+  "seeWhoReactedSheetEmojiNameWithVoteCount": "{emojiName}：{num, plural, =1 {1 票} other {{num} 票}}",
+  "seeWhoReactedSheetHeaderLabel": "表情符号回应（共{num}个）",
+  "seeWhoReactedSheetNoReactions": "此消息尚无表情符号回应。",
+  "seeWhoReactedSheetUserListLabel": "{emojiName} 的投票数（{num}）",
+  "serverUrlValidationErrorEmpty": "请输入网址。",
+  "serverUrlValidationErrorInvalidUrl": "请输入正确的网址。",
+  "serverUrlValidationErrorNoUseEmail": "请输入服务器网址，而不是您的电子邮件。",
+  "serverUrlValidationErrorUnsupportedScheme": "服务器网址必须以 http:// 或 https:// 开头。",
+  "setStatusPageTitle": "设定状态",
+  "settingsPageTitle": "设置",
+  "sharePageTitle": "分享",
+  "signInWithFoo": "使用{method}登入",
+  "snackBarDetails": "详情",
+  "spoilerDefaultHeaderText": "剧透",
+  "starredMessagesPageTitle": "星标消息",
+  "statusButtonLabelStatusSet": "状态",
+  "statusButtonLabelStatusUnset": "设定状态",
+  "statusClearButtonLabel": "清除",
+  "statusSaveButtonLabel": "保存",
+  "statusTextHint": "您的状态",
+  "subscribeFailedTitle": "订阅失败",
+  "successChannelLinkCopied": "频道链接已复制",
+  "successLinkCopied": "已复制链接",
+  "successMessageLinkCopied": "已复制消息链接",
+  "successMessageTextCopied": "已复制消息文本",
+  "successTopicLinkCopied": "话题链接已复制",
+  "switchAccountButton": "切换账号",
+  "themeSettingDark": "暗色模式",
+  "themeSettingLight": "浅色模式",
+  "themeSettingSystem": "跟随系统",
+  "themeSettingTitle": "主题",
+  "today": "今天",
+  "topicValidationErrorMandatoryButEmpty": "话题在该组织为必填项。",
+  "topicValidationErrorTooLong": "话题长度不应该超过 60 个字符。",
+  "topicsButtonTooltip": "话题",
+  "tryAnotherAccountButton": "尝试另一个账号",
+  "tryAnotherAccountMessage": "您在 {url} 的账号加载时间过长。",
+  "turnOffInvisibleModeErrorTitle": "关闭隐身模式时发生错误。请再尝试一次。",
+  "turnOnInvisibleModeErrorTitle": "启用隐身模式时发生错误。请再尝试一次。",
+  "twoPeopleTyping": "{typist}和{otherTypist}正在输入…",
+  "unknownChannelName": "（未知频道）",
+  "unknownUserName": "（未知用户）",
+  "unpinnedSubscriptionsLabel": "未置顶",
+  "unsubscribeConfirmationDialogConfirmButton": "取消订阅",
+  "unsubscribeConfirmationDialogTitle": "确定取消订阅{channelName}么?",
+  "unsubscribeFailedTitle": "取消订阅失败",
+  "updateStatusErrorTitle": "更新用户状态时发生错误。请再试一次。",
+  "upgradeWelcomeDialogDismiss": "开始吧",
+  "upgradeWelcomeDialogLinkText": "来看看最新的公告博客吧！",
+  "upgradeWelcomeDialogMessage": "您将在更快、更流畅的版本中享受熟悉的体验。",
+  "upgradeWelcomeDialogTitle": "欢迎来到新的 Zulip 应用程序！",
+  "userActiveDate": "上次活跃于 {date}",
+  "userActiveDaysAgo": "上次活跃于 {days, plural, =1{1 天前} other{{days} 天前}}",
+  "userActiveHoursAgo": "上次活跃于 {hours, plural, =1{1 小时前} other{{hours} 小时前}}",
+  "userActiveMinutesAgo": "上次活跃于 {minutes, plural, =1{1 分钟前} other{{minutes} 分钟前}}",
+  "userActiveNow": "当前活跃",
+  "userActiveYesterday": "昨天活跃",
+  "userIdle": "空闲",
+  "userNotActiveInYear": "去年未活跃",
+  "userRoleAdministrator": "管理员",
+  "userRoleGuest": "访客",
+  "userRoleMember": "成员",
+  "userRoleModerator": "版主",
+  "userRoleOwner": "所有者",
+  "userRoleUnknown": "未知",
+  "userStatusAtTheOffice": "在办公室",
+  "userStatusBusy": "忙碌",
+  "userStatusCommuting": "通勤中",
+  "userStatusInAMeeting": "会议中",
+  "userStatusOutSick": "病假中",
+  "userStatusVacationing": "休假中",
+  "userStatusWorkingRemotely": "远程工作中",
+  "wildcardMentionAll": "所有人",
+  "wildcardMentionAllDmDescription": "通知收件人",
+  "wildcardMentionChannel": "频道",
+  "wildcardMentionChannelDescription": "通知频道",
+  "wildcardMentionEveryone": "所有人",
+  "wildcardMentionStream": "频道",
+  "wildcardMentionStreamDescription": "通知频道",
+  "wildcardMentionTopic": "话题",
+  "wildcardMentionTopicDescription": "通知话题",
+  "yesterday": "昨天",
+  "zulipAppTitle": "Zulip"
+}

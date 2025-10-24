@@ -1,0 +1,19 @@
+# For docs on this file, see:
+#   https://dart.dev/tools/analysis
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-inference: true
+    strict-raw-types: true
+    strict-casts: true
+
+linter:
+  # For a list of all available lints, with docs, see:
+  #   https://dart-lang.github.io/linter/lints/index.html.
+  rules:
+    always_declare_return_types: true
+    no_literal_bool_comparisons: true
+    prefer_relative_imports: true
+    unnecessary_statements: true
+    unawaited_futures: true

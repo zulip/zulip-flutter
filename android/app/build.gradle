@@ -1,0 +1,103 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'dev.flutter.flutter-gradle-plugin'
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def keystoreProperties = new Properties()
+try {
+    keystoreProperties.load(new FileInputStream(rootProject.file('release-keystore.properties')))
+} catch (FileNotFoundException ignored) {
+    keystoreProperties = null
+}
+
+android {
+    namespace "com.zulip.flutter"
+
+    compileSdkVersion flutter.compileSdkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    defaultConfig {
+        applicationId "com.zulipmobile"
+        minSdkVersion 28
+        targetSdkVersion flutter.targetSdkVersion
+        // These are synced to local.properties from pubspec.yaml by the flutter tool.
+        versionCode localProperties.getProperty('flutter.versionCode').toInteger()
+        versionName localProperties.getProperty('flutter.versionName')
+    }
+
+    signingConfigs {
+        release {
+            if (project.hasProperty('signed')) {
+                if (keystoreProperties == null) {
+                    throw new GradleException(
+                            "Missing signing config, but signing requested (-Psigned).  Did you want an unsigned build?")
+                }
+                storeFile rootProject.file(keystoreProperties.storeFile)
+                if (!storeFile.exists()) {
+                    throw new GradleException(
+                            "Keystore file missing, but signing requested (-Psigned).  Did you want an unsigned build?")
+                }
+                storePassword keystoreProperties.storePassword
+                keyAlias keystoreProperties.keyAlias
+                keyPassword keystoreProperties.keyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig project.hasProperty('signed') ?
+                    signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    lint {
+        // For docs on options available here:
+        //   https://developer.android.com/reference/tools/gradle-api/8.5/com/android/build/api/dsl/Lint
+        checkAllWarnings = true
+        warningsAsErrors = true
+        baseline = file("lint-baseline.xml")
+        disable += ['AndroidGradlePluginVersion']
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+    }
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile).configureEach {
+    // Compile Kotlin with `-Werror`... but only in release builds, so that it
+    // doesn't get in the way of quick local experiments for debugging.
+    //
+    // The string-searching makes this a bit of a mess, but it works.
+    // Better would be if we can add this to android.buildTypes.release above;
+    // but on a first attempt that didn't work (it affected debug builds too).
+    compilerOptions.allWarningsAsErrors = name.contains("Release")
+}
+
+flutter {
+    source '../..'
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+}

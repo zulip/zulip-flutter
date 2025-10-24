@@ -1,0 +1,227 @@
+# For docs on this file format, see:
+#   https://dart.dev/tools/pub/pubspec
+#   https://docs.flutter.dev/tools/pubspec
+#   https://github.com/flutter/flutter/blob/main/packages/flutter_tools/templates/app/pubspec.yaml.tmpl
+
+name: zulip
+description: A Zulip client for Android and iOS
+publish_to: 'none'
+
+# Keep the last two numbers equal; see docs/release.md.
+version: 30.0.266+266
+
+environment:
+  # We use a recent version of Flutter from its main channel, and
+  # the corresponding recent version of the Dart SDK.
+  # Feel free to update these regularly; see README.md for instructions.
+  sdk: '>=3.11.0-36.0.dev <4.0.0'
+  flutter: '>=3.38.0-1.0.pre-166'  # 83382d1bb9d5427e86e043ec6546b9c165d8c748
+
+# To update dependencies, see instructions in README.md.
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # For some packages that are pinned by the Flutter SDK, we write no
+  # constraint, to avoid unnecessarily breaking when Flutter takes a
+  # new version.  (This risks getting a new version that really is
+  # incompatible; but that's true of Flutter itself on each upgrade.)
+  # We only do this for packages with a history of major-version bumps
+  # that caused more churn than real incompatibilities.
+  intl: any  # pinned by flutter_localizations; churn history:
+             # https://github.com/dart-lang/i18n/issues/458#issuecomment-1513231235
+             # https://github.com/dart-lang/i18n/issues/759#issuecomment-1864316701
+             # https://github.com/flutter/flutter/issues/117163
+
+  app_settings: ^6.1.1
+  collection: ^1.17.2
+  convert: ^3.1.1
+  crypto: ^3.0.3
+  csslib: ^1.0.2
+  device_info_plus: ^12.0.0
+  drift: ^2.23.0
+  file_picker: ^10.1.2
+  firebase_core: ^4.0.0
+  firebase_messaging: ^16.0.0
+  flutter_color_models: ^1.3.3+2
+  html: ^0.15.1
+  http: ^1.0.0
+  http_parser: ^4.0.2
+  image_picker: ^1.0.0
+  json_annotation: ^4.9.0
+  mime: ^2.0.0
+  package_info_plus: ^9.0.0
+  path: ^1.8.3
+  path_provider: ^2.0.13
+  share_plus: ^12.0.0
+  share_plus_platform_interface: ^6.0.0
+  sqlite3: ^2.4.0
+  sqlite3_flutter_libs: ^0.5.13
+  url_launcher: ^6.1.11
+  url_launcher_android: ">=6.1.0"
+  video_player: ^2.10.0
+  wakelock_plus: ^1.2.8
+  zulip_plugin:
+    path: ./packages/zulip_plugin
+  unorm_dart: ^0.3.1+1
+  # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
+
+dependency_overrides:
+  # TODO(#918) remove this and `flutter_color_models` when `flutter_color_models` accommodates
+  #   wide-gamut adjustments to Flutter's `Color`. A PR to `flutter_color_models` is already open:
+  #     https://github.com/james-alex/color_models/pull/10
+  color_models:
+    git:
+      url: https://github.com/gaaclarke/color_models.git
+      ref: wide-gamut
+      path: color_models
+  flutter_color_models:
+    git:
+      url: https://github.com/gaaclarke/color_models.git
+      ref: wide-gamut
+      path: flutter_color_models
+
+
+dev_dependencies:
+  flutter_driver:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+
+  args: ^2.5.0
+  build_runner: ^2.3.3
+  checks: ^0.3.0
+  clock: ^1.1.1
+  drift_dev: ^2.5.2
+  fake_async: ^1.3.1
+  flutter_checks: ^0.1.2
+  flutter_lints: ^6.0.0
+  ini: ^2.1.0
+  json_serializable: ^6.5.4
+  legacy_checks: ^0.1.0
+  pigeon: ^26.0.0
+  stack_trace: ^1.11.1
+  test: ^1.23.1
+  test_api: ^0.7.3
+  video_player_platform_interface: ^6.2.2
+  # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
+
+flutter:
+  generate: true
+  uses-material-design: true
+
+  assets:
+    - assets/KaTeX/LICENSE
+    - assets/Noto_Color_Emoji/LICENSE
+    - assets/Pygments/AUTHORS.txt
+    - assets/Pygments/LICENSE.txt
+    - assets/Source_Code_Pro/LICENSE.md
+    - assets/Source_Sans_3/LICENSE.md
+
+  fonts:
+    # KaTeX's custom fonts.
+    - family: KaTeX_AMS
+      fonts:
+        - asset: assets/KaTeX/KaTeX_AMS-Regular.ttf
+
+    - family: KaTeX_Caligraphic
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Caligraphic-Regular.ttf
+        - asset: assets/KaTeX/KaTeX_Caligraphic-Bold.ttf
+          weight: 700
+
+    - family: KaTeX_Fraktur
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Fraktur-Regular.ttf
+        - asset: assets/KaTeX/KaTeX_Fraktur-Bold.ttf
+          weight: 700
+
+    - family: KaTeX_Main
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Main-Regular.ttf
+        - asset: assets/KaTeX/KaTeX_Main-Bold.ttf
+          weight: 700
+        - asset: assets/KaTeX/KaTeX_Main-Italic.ttf
+          style: italic
+        - asset: assets/KaTeX/KaTeX_Main-BoldItalic.ttf
+          weight: 700
+          style: italic
+
+    - family: KaTeX_Math
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Math-Italic.ttf
+          style: italic
+        - asset: assets/KaTeX/KaTeX_Math-BoldItalic.ttf
+          weight: 700
+          style: italic
+
+    - family: KaTeX_SansSerif
+      fonts:
+        - asset: assets/KaTeX/KaTeX_SansSerif-Regular.ttf
+        - asset: assets/KaTeX/KaTeX_SansSerif-Bold.ttf
+          weight: 700
+        - asset: assets/KaTeX/KaTeX_SansSerif-Italic.ttf
+          style: italic
+
+    - family: KaTeX_Script
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Script-Regular.ttf
+
+    - family: KaTeX_Size1
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Size1-Regular.ttf
+
+    - family: KaTeX_Size2
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Size2-Regular.ttf
+
+    - family: KaTeX_Size3
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Size3-Regular.ttf
+
+    - family: KaTeX_Size4
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Size4-Regular.ttf
+
+    - family: KaTeX_Typewriter
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Typewriter-Regular.ttf
+
+    # Google's emoji font. (Web uses these emoji for the "Google" emojiset.)
+    #
+    # This should not be used on iOS.
+    # iOS doesn't support any of the formats this font is available in,
+    # and if we use it on iOS (whether as a primary font or a fallback)
+    # we'll get blank spaces where we could have had Apple-style emojis.
+    #
+    # Also, in text that might contain non-emoji glyphs, this should
+    # always come after a non-emoji font in the chain of font-family
+    # fallbacks. Letting this font handle e.g. space characters will
+    # make text look weird.
+    # TODO don't bundle this on iOS; it wastes several MB because it's unused.
+    - family: Noto Color Emoji
+      fonts:
+        - asset: assets/Noto_Color_Emoji/Noto-COLRv1.ttf
+
+    - family: Source Code Pro
+      fonts:
+        - asset: assets/Source_Code_Pro/SourceCodeVF-Upright.otf
+        - asset: assets/Source_Code_Pro/SourceCodeVF-Italic.otf
+          style: italic
+
+    - family: Source Sans 3
+      fonts:
+        - asset: assets/Source_Sans_3/SourceSans3VF-Upright.otf
+        - asset: assets/Source_Sans_3/SourceSans3VF-Italic.otf
+          style: italic
+
+    # Zulip's custom icons.  To use or edit, see class ZulipIcons.
+    - family: Zulip Icons
+      fonts:
+        - asset: assets/icons/ZulipIcons.ttf
+
+    # If adding a font, remember to account for its license in lib/licenses.dart.

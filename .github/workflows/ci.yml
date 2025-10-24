@@ -1,0 +1,41 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4.1.7
+
+    - name: Install system dependencies
+      run: TERM=dumb sudo apt install libsqlite3-dev -y
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4.2.1
+      with:
+        java-version: 17
+        distribution: temurin
+
+    - name: Clone Flutter SDK
+      # Upstream's version calculation fails with a shallow clone,
+      # so instead clone with `--filter=blob:none`.
+      run: |
+        git clone --filter=blob:none -b main https://github.com/flutter/flutter ~/flutter
+        TZ=UTC git --git-dir ~/flutter/.git log -1 --format='%h | %ci | %s' --date=iso8601-local
+        echo ~/flutter/bin >> "$GITHUB_PATH"
+
+        # The Flutter tool assumes the tip of tree is "origin/master"
+        # (or "upstream/master"):
+        #   https://github.com/flutter/flutter/issues/160626
+        # TODO(upstream): make workaround unneeded
+        git --git-dir ~/flutter/.git update-ref refs/remotes/origin/master origin/main
+
+    - name: Download Flutter SDK artifacts (flutter precache)
+      run: flutter precache --universal
+
+    - name: Download our dependencies (flutter pub get)
+      run: flutter pub get
+
+    - name: Run tools/check
+      run: TERM=dumb tools/check --all --verbose

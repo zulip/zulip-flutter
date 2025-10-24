@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+
+this_file=$(readlink -f "${BASH_SOURCE[0]}")
+root=${this_file%/*/*}
+changelog_file=${root}/docs/changelog.md
+
+. "${root}"/tools/lib/ensure-coreutils.sh
+
+# Extract the most recent changelog entry.
+extract() {
+    perl -0n \
+      -e 'print $& if (
+            /^ \#\#\ (?!Unreleased)  # any h2 not matching "Unreleased"
+             .*?                     # ... up to the first following ...
+             (?= ^ \#\#\  )          # h2.
+            /xms)' \
+      "${changelog_file}"
+}
+
+# Extract the most recent user-highlights entry.
+extract_highlights() {
+    perl -0n \
+      -e 'print $& if (
+            /^ \#\#\#\ Highlights\ for\ users
+                                     # any matching h3
+             .*?                     # ... up to the first following ...
+             (?= ^ \#{1,3}\  )          # h3 or less.
+            /xms)' \
+      "${changelog_file}"
+}
+
+# Undo line-wrapping.
+_do_unwrap() {
+    # Implemented by rewrapping paragraphs in Vim.
+    # (Emacs works equally well, interactively; but seems more annoying
+    # to integrate into a CLI pipeline.)
+
+    # The Vim "filetype" plugin for Markdown, relative to
+    # the Vim runtime path (typically "/usr/share/vim/vim$version").
+    # The file's upstream source is here:
+    #   https://github.com/tpope/vim-markdown/blob/f9f845f28/ftplugin/markdown.vim
+    # The parts we actually use are the variables `comments`,
+    # `formatoptions`, and `formatlistpat`.
+    local vim_markdown_settings=ftplugin/markdown.vim
+
+    # The Vim command "gq" rewraps paragraphs; "G" makes it do so
+    # from the current point to the end, and "gg" first goes to the start.
+    vim -es /dev/stdin \
+      "+runtime! ${vim_markdown_settings}" \
+      '+set textwidth=2000' \
+      '+normal gggqG' '+%print' '+:q!'
+}
+
+# Undo line-wrapping; print an error if missing needed dependencies.
+unwrap() {
+    # A test string which gets rewrapped differently as plain text vs Markdown.
+    local test_markdown=$'* a\n  * b'
+    if [ "$(_do_unwrap <<<"${test_markdown}")" != "${test_markdown}" ]; then
+        # As plain text, the test string wraps to "* a * b".
+        # But as Markdown, it's already wrapped, so shouldn't have changed.
+        cat >&2 <<EOF
+error: Could not rewrap Markdown.
+  Most likely either there is no \`vim\` command,
+  or it is from a minimal Vim installation without the usual plugins.
+
+  Try installing Vim; e.g. on Debian, \`sudo apt install vim\`.
+EOF
+        exit 1
+    fi
+
+    _do_unwrap
+}
+
+# Print changelog entry, with line-wrapping removed.
+cmd_unwrap() {
+    extract | unwrap
+}
+
+# Print user-highlights entry, with line-wrapping removed.
+cmd_user() {
+    extract_highlights | tail -n +2 | unwrap
+}
+
+show_hash() {
+    local artifacts filename output hash basename
+    artifacts=(
+        "${root}"/build/app/outputs/flutter-apk/app-release.apk
+        "${root}"/build/app/outputs/bundle/release/app-release.aab
+    )
+    echo "sha256sum -c <<EOF"
+    for filename in "${artifacts[@]}"; do
+        output=$(sha256sum "${filename}")
+        hash=${output%% *}
+        basename="${filename##*/}"
+        echo "${hash}  ${basename}"
+    done
+    echo "EOF"
+}
+
+# Print release notes suitable for posting on e.g. GitHub.
+cmd_notes() {
+    cmd_unwrap
+    echo '```'; show_hash; echo '```'
+}
+
+# Print release notes suitable for posting on chat.zulip.org.
+cmd_czo() {
+    # Converts #1234 to #F1234, matching a linkifier we have on czo.
+    cmd_unwrap \
+        | perl -pe 's<\# (?= \d{2,8} )>
+                     <#F>xg'
+}
+
+usage() {
+    cat >&2 <<EOF
+usage: ${BASH_SOURCE[0]} { unwrap | user | notes | czo }
+EOF
+}
+
+case "$1" in
+    unwrap) shift; cmd_unwrap "$@";;
+    user) shift; cmd_user "$@";;
+    notes) shift; cmd_notes "$@";;
+    czo) shift; cmd_czo "$@";;
+    *) usage;;
+esac

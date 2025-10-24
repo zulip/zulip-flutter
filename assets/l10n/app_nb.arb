@@ -1,0 +1,14 @@
+{
+  "aboutPageAppVersion": "App versjon",
+  "@aboutPageAppVersion": {
+    "description": "Label for Zulip app version in About Zulip page"
+  },
+  "aboutPageTitle": "Om Zulip",
+  "@aboutPageTitle": {
+    "description": "Title for About Zulip page."
+  },
+  "aboutPageOpenSourceLicenses": "Lisenser for åpen kildekode",
+  "@aboutPageOpenSourceLicenses": {
+    "description": "Item title in About Zulip page to navigate to Licenses page"
+  }
+}

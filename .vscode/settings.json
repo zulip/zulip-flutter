@@ -1,0 +1,23 @@
+// Visual Studio Code settings for the zulip-flutter repo.
+{
+  // VS Code formats files on save by default.
+  // Like Flutter itself, we don't use the Dart autoformatter,
+  // so disable that VS Code behavior.
+  "[dart]": {
+    // This appears redundant with the all-language setting,
+    // but it's not: if the user's personal config has a Dart-specific
+    // setting, then we need a Dart-specific setting to override it.
+    "editor.formatOnSave": false,
+    "editor.formatOnType": false,
+    "editor.formatOnPaste": false,
+  },
+
+  // For that matter, don't go reformatting whole files in any language.
+  "editor.formatOnSave": false,
+
+  // This much more focused automatic fix is helpful, though.
+  "files.trimTrailingWhitespace": true,
+
+  // Suppress the warnings that appear for TODOs throughout the codebase.
+  "dart.showTodos": false,
+}

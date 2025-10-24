@@ -1,0 +1,52 @@
+# This file teaches `git log` and friends the canonical names
+# and email addresses to use for our contributors.
+#
+# For details on the format, see:
+#   https://git.github.io/htmldocs/gitmailmap.html
+#
+# Handy commands for examining or adding to this file:
+#
+#     # shows all names/emails after mapping, sorted:
+#   $ git shortlog -es | sort -k2
+#
+#     # shows raw names/emails, filtered by mapped name:
+#   $ git log --format='%an %ae' --author=$NAME | uniq -c
+
+Brynly Mitchell <u7088495@anu.edu.au>
+Chinmay Ajith <chinmayajith30@gmail.com>
+Chris Bobbe <cbobbe@zulip.com> <csbobbe@gmail.com>
+Greg Price <greg@zulip.com> <gnprice@gmail.com>
+K Akhil <kssakhilraj@gmail.com>
+Lakshya Goel <lakshya1234goel@gmail.com>
+Lalit Kumar Singh <lalitkumarsingh3716@gmail.com>
+Rajesh Malviya <rmalviya@zulip.com> <rajveer0malviya@gmail.com>
+Shu Chen <shu@zulip.com> <shu.chen@freelancedreams.com>
+Tomlin7 <billydevbusiness@gmail.com>
+
+# The goal when editing this file is to group all of a given person's
+# contributions together, and under their preferred name and email
+# address.
+#
+# Where possible, to find out what name and email address to use for a
+# person, we ask them.
+#
+# In cases where we have several names or email addresses for one
+# person and we don't directly know their preferences, we make a guess
+# based on public information, with the following principles:
+#
+#  * When making a guess, we always choose from among the names and
+#    email addresses the person has used in the Git history.
+#
+#  * If the contributions come from the same GitHub account, they're
+#    the same person.
+#
+#  * Prefer the name or email found in the contributor's GitHub profile
+#    or their chat.zulip.org profile.
+#
+#  * If one name looks like a full name and another a GitHub username,
+#    prefer the full name.
+#
+#  * If one email is at users.noreply.github.com, prefer any other.
+#
+#  * Prefer the name or email the contributor has used more often
+#    most recently.
