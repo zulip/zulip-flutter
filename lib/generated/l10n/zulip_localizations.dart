@@ -1833,6 +1833,12 @@ abstract class ZulipLocalizations {
   /// **'Notify topic'**
   String get wildcardMentionTopicDescription;
 
+  /// Label for the Menu button on the bottom navigation bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get navBarMenuLabel;
+
   /// Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)
   ///
   /// In en, this message translates to:

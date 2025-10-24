@@ -1075,6 +1075,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Оповестить тему';
 
   @override
+  String get navBarMenuLabel => 'Menu';
+
+  @override
   String get messageIsEditedLabel => 'ИЗМЕНЕНО';
 
   @override
