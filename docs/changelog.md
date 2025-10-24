@@ -4,7 +4,9 @@
 
 ### Highlights for users
 
+* (Android) Fix bug causing repeated re-downloads of images. (#1892)
 * Open uploaded files without logging in again. (#1732)
+* (Android) Fix bug in showing certain HEIF images. (#1785)
 * Polls show immediate feedback when you vote. (#1808)
 
 
@@ -28,10 +30,15 @@
   * Show refresh/subscribe banner in some cases on message feed
     when not subscribed. (PR #1873, toward #1798)
   * Show channel/topic at top of their action sheets. (#1533)
+  * Upgrade Flutter and other dependencies. (PR #1935)
+  * Handle image previews on Zulip servers using Camo in general.
+    (PR #1933)
+  * Update translations. (PR #1881)
 
 * Resolved: #1862, PR #1885, #1870, #1786, PR #1891, PR #1893, #1878,
   #1827, #1837, PR #1895, #1808, #1036, PR #1876, PR #1873, PR #1894,
-  #1533, PR #1874, #1732, PR #1922, PR #1875, PR #1926, PR #1923
+  #1533, PR #1874, #1732, PR #1922, PR #1875, PR #1926, PR #1923,
+  PR #1935, #1785, #1892, PR #1933, PR #1881
 
 
 ## 30.0.265 (2025-09-25)
