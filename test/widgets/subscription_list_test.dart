@@ -63,9 +63,8 @@ void main() {
     check(getItemCount()).equals(0);
     check(isPinnedHeaderInTree()).isFalse();
     check(isUnpinnedHeaderInTree()).isFalse();
-    check(find.text(
-      'You’re not subscribed to any channels yet. Try going to All channels and joining some of them.'
-    )).findsOne();
+    check(find.text('You’re not subscribed to any channels yet.')).findsOne();
+    check(find.text('Try going to All channels and joining some of them.')).findsOne();
   });
 
   testWidgets('basic subscriptions', (tester) async {

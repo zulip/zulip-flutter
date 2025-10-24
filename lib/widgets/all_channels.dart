@@ -54,7 +54,7 @@ class AllChannelsPageBody extends StatelessWidget {
 
     if (channels.isEmpty) {
       return PageBodyEmptyContentPlaceholder(
-        message: zulipLocalizations.allChannelsEmptyPlaceholder);
+        header: zulipLocalizations.allChannelsEmptyPlaceholderHeader);
     }
 
     final items = channels.values.toList();
