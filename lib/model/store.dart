@@ -1175,7 +1175,7 @@ class UpdateMachine {
       InitialSnapshot? result;
       try {
         result = await registerQueue(connection);
-      } catch (e, s) {
+      } catch (e, stackTrace) {
         stopAndThrowIfNoAccount();
         // TODO(#890): tell user if initial-fetch errors persist, or look non-transient
         final ZulipVersionData? zulipVersionData;
@@ -1192,7 +1192,20 @@ class UpdateMachine {
             assert(debugLog('Error fetching initial snapshot: $e'));
             // Print stack trace in its own log entry; log entries are truncated
             // at 1 kiB (at least on Android), and stack can be longer than that.
-            assert(debugLog('Stack:\n$s'));
+            assert(debugLog('Stack:\n$stackTrace'));
+            if (e case NetworkException(cause: SocketException())) {
+              // A [SocketException] is common when the device is asleep.
+            } else {
+              // TODO: When the error seems transient, do keep retrying but
+              //   don't spam this feedback.
+              // TODO(#1948) Break the retry loop on non-transient errors.
+              _reportConnectionErrorToUserAndPromiseRetry(e,
+                realmUrl: connection.realmUrl,
+                // The stack trace is mostly useful for
+                // `MalformedServerResponseException`s, and will be noise for
+                // routine exceptions like from network problems.
+                stackTrace: e is ApiRequestException ? null : stackTrace);
+            }
         }
         assert(debugLog('Backing off, then will retry…'));
         await (backoffMachine ??= BackoffMachine()).wait();
@@ -1498,7 +1511,9 @@ class UpdateMachine {
         // at 1 kiB (at least on Android), and stack can be longer than that.
         assert(debugLog('Stack trace:\n$stackTrace'));
         assert(debugLog('Replacing event queue…'));
-        _reportToUserErrorConnectingToServer(error, stackTrace);
+        _reportConnectionErrorToUserAndPromiseRetry(error,
+          realmUrl: store.realmUrl,
+          stackTrace: stackTrace);
         // Similar story to the _EventHandlingException case;
         // separate only so that that other case can print more context.
         // The bug here could be in the server if it's an ApiRequestException,
@@ -1529,11 +1544,17 @@ class UpdateMachine {
   void _maybeReportToUserTransientError(Object error) {
     _accumulatedTransientFailureCount++;
     if (_accumulatedTransientFailureCount > transientFailureCountNotifyThreshold) {
-      _reportToUserErrorConnectingToServer(error);
+      _reportConnectionErrorToUserAndPromiseRetry(error, realmUrl: store.realmUrl);
     }
   }
 
-  void _reportToUserErrorConnectingToServer(Object error, [StackTrace? stackTrace]) {
+  /// Give brief UI feedback that we failed to connect to the server
+  /// and that we'll try again.
+  static void _reportConnectionErrorToUserAndPromiseRetry(
+    Object error, {
+    StackTrace? stackTrace,
+    required Uri realmUrl,
+  }) {
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
     final details = StringBuffer()..write(error.toString());
@@ -1544,7 +1565,7 @@ class UpdateMachine {
     reportErrorToUserBriefly(
       zulipLocalizations.errorConnectingToServerShort,
       details: zulipLocalizations.errorConnectingToServerDetails(
-        store.realmUrl.toString(), details.toString()));
+        realmUrl.toString(), details.toString()));
   }
 
   /// Cleans up resources and tells the instance not to make new API requests.
