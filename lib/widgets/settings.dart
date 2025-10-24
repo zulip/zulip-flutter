@@ -20,7 +20,7 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       appBar: ZulipAppBar(
         title: Text(zulipLocalizations.settingsPageTitle)),
-      body: Column(children: [
+      body: ListView(children: [
         const _ThemeSetting(),
         const _BrowserPreferenceSetting(),
         const _VisitFirstUnreadSetting(),

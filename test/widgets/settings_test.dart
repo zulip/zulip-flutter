@@ -64,6 +64,21 @@ void main() {
         hasCheckedState: true, isChecked: expectedIsChecked);
   }
 
+  testWidgets('SettingsPage is scrollable when taller than a screenful', (tester) async {
+    tester.view.physicalSize = const Size(200, 200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await prepare(tester);
+
+    final lastElementFinder = GlobalSettingsStore.experimentalFeatureFlags.isNotEmpty
+      ? find.text("Experimental features")
+      : find.text("Mark messages as read on scroll");
+    check(lastElementFinder).findsNothing();
+
+    await tester.scrollUntilVisible(lastElementFinder, 100);
+    check(lastElementFinder).findsOne();
+  });
+
   group('ThemeSetting', () {
     void checkThemeSetting(WidgetTester tester, {
       required ThemeSetting? expectedThemeSetting,
