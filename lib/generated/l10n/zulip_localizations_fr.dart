@@ -75,7 +75,7 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get allChannelsPageTitle => 'All channels';
 
   @override
-  String get allChannelsEmptyPlaceholder =>
+  String get allChannelsEmptyPlaceholderHeader =>
       'There are no channels you can view in this organization.';
 
   @override
@@ -927,8 +927,12 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get inboxPageTitle => 'Boîte de réception';
 
   @override
-  String get inboxEmptyPlaceholder =>
-      'Aucun message non lu dans votre boîte de réception. Utilisez les boutons ci-dessous pour voir le fil groupé ou la liste des chaînes.';
+  String get inboxEmptyPlaceholderHeader =>
+      'There are no unread messages in your inbox.';
+
+  @override
+  String get inboxEmptyPlaceholderMessage =>
+      'Use the buttons below to view the combined feed or list of channels.';
 
   @override
   String get recentDmConversationsPageTitle => 'Messages directs';
@@ -937,8 +941,12 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get recentDmConversationsSectionHeader => 'Messages directs';
 
   @override
-  String get recentDmConversationsEmptyPlaceholder =>
-      'Vous n\'avez aucun message direct pour l\'instant ! Et si vous lanciez une conversation ?';
+  String get recentDmConversationsEmptyPlaceholderHeader =>
+      'You have no direct messages yet!';
+
+  @override
+  String get recentDmConversationsEmptyPlaceholderMessage =>
+      'Why not start a conversation?';
 
   @override
   String get combinedFeedPageTitle => 'Fil groupé';
@@ -953,14 +961,12 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get channelsPageTitle => 'Chaînes';
 
   @override
-  String get channelsEmptyPlaceholder =>
-      'Vous n\'êtes abonné à aucune chaîne pour l\'instant.';
+  String get channelsEmptyPlaceholderHeader =>
+      'You’re not subscribed to any channels yet.';
 
   @override
-  String channelsEmptyPlaceholderWithAllChannelsLink(
-    String allChannelsPageTitle,
-  ) {
-    return 'Vous n\'êtes abonné à aucune chaîne pour l\'instant. Allez sur <z-link>$allChannelsPageTitle</z-link> pour vous abonner.';
+  String channelsEmptyPlaceholderMessage(String allChannelsPageTitle) {
+    return 'Try going to <z-link>$allChannelsPageTitle</z-link> and joining some of them.';
   }
 
   @override

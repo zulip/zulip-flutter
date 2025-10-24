@@ -80,8 +80,8 @@
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
   },
-  "allChannelsEmptyPlaceholder": "There are no channels you can view in this organization.",
-  "@allChannelsEmptyPlaceholder": {
+  "allChannelsEmptyPlaceholderHeader": "There are no channels you can view in this organization.",
+  "@allChannelsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'All channels' page saying that there is no content to show."
   },
   "profileButtonSendDirectMessage": "Send direct message",
@@ -1090,9 +1090,13 @@
   "@inboxPageTitle": {
     "description": "Title for the page with unreads."
   },
-  "inboxEmptyPlaceholder": "There are no unread messages in your inbox. Use the buttons below to view the combined feed or list of channels.",
-  "@inboxEmptyPlaceholder": {
+  "inboxEmptyPlaceholderHeader": "There are no unread messages in your inbox.",
+  "@inboxEmptyPlaceholderHeader": {
     "description": "Centered text on the 'Inbox' page saying that there is no content to show."
+  },
+  "inboxEmptyPlaceholderMessage": "Use the buttons below to view the combined feed or list of channels.",
+  "@inboxEmptyPlaceholderMessage": {
+    "description": "Additional centered text on the 'Inbox' page saying that there is no content to show."
   },
   "recentDmConversationsPageTitle": "Direct messages",
   "@recentDmConversationsPageTitle": {
@@ -1102,9 +1106,13 @@
   "@recentDmConversationsSectionHeader": {
     "description": "Heading for direct messages section on the 'Inbox' message view."
   },
-  "recentDmConversationsEmptyPlaceholder": "You have no direct messages yet! Why not start the conversation?",
-  "@recentDmConversationsEmptyPlaceholder": {
+  "recentDmConversationsEmptyPlaceholderHeader": "You have no direct messages yet!",
+  "@recentDmConversationsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "recentDmConversationsEmptyPlaceholderMessage": "Why not start a conversation?",
+  "@recentDmConversationsEmptyPlaceholderMessage": {
+    "description": "Additional centered text on the 'Direct messages' page saying that there is no content to show."
   },
   "combinedFeedPageTitle": "Combined feed",
   "@combinedFeedPageTitle": {
@@ -1122,12 +1130,12 @@
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
   },
-  "channelsEmptyPlaceholder": "You’re not subscribed to any channels yet.",
-  "@channelsEmptyPlaceholder": {
+  "channelsEmptyPlaceholderHeader": "You’re not subscribed to any channels yet.",
+  "@channelsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'Channels' page saying that there is no content to show."
   },
-  "channelsEmptyPlaceholderWithAllChannelsLink": "You’re not subscribed to any channels yet. Try going to <z-link>{allChannelsPageTitle}</z-link> and joining some of them.",
-  "@channelsEmptyPlaceholderWithAllChannelsLink": {
+  "channelsEmptyPlaceholderMessage": "Try going to <z-link>{allChannelsPageTitle}</z-link> and joining some of them.",
+  "@channelsEmptyPlaceholderMessage": {
     "description": "Centered text on the 'Channels' page saying that there is no content to show, with a link to 'All channels'.",
     "placeholders": {
       "allChannelsPageTitle": {"type": "String", "example": "All channels"}
