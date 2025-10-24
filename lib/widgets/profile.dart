@@ -11,6 +11,7 @@ import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/narrow.dart';
 import '../model/presence.dart';
+import '../model/settings.dart';
 import 'app_bar.dart';
 import 'button.dart';
 import 'content.dart';
@@ -87,7 +88,7 @@ class ProfilePage extends StatelessWidget {
               userId: userId,
               fontSize: nameStyle.fontSize!,
               textScaler: MediaQuery.textScalerOf(context),
-              neverAnimate: false,
+              animationMode: ImageAnimationMode.animateConditionally,
             ),
         ]),
         textAlign: TextAlign.center,
@@ -267,7 +268,7 @@ class _SetStatusButton extends StatelessWidget {
           fontSize: 16,
           textScaler: MediaQuery.textScalerOf(context),
           position: StatusEmojiPosition.before,
-          neverAnimate: false,
+          animationMode: ImageAnimationMode.animateConditionally,
         ),
         userStatus.text == null
           ? TextSpan(text: zulipLocalizations.noStatusText,

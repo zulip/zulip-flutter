@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter/foundation.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
@@ -471,5 +472,56 @@ class GlobalSettingsStore extends ChangeNotifier {
       _intData[setting] = value;
     }
     notifyListeners();
+  }
+}
+
+/// Whether to show an animated image in its still or animated version.
+///
+/// Use [resolve] to evaluate this for the given [BuildContext],
+/// which reads device-setting data for [animateConditionally].
+///
+/// Callers should try to check whether an image is animated,
+/// i.e. whether it has separate still and animated versions.
+/// This can't be done perfectly (in 2025-10)
+/// because of animated emoji that were uploaded before Zulip Server 5
+/// and don't have `still_url` filled in:
+///   https://github.com/zulip/zulip/issues/36339 .
+// TODO(server-future) Remove mention of still_url once all supported servers
+//   have a fix for zulip/zulip#36339,
+//   i.e. that have run a migration to fill in still_url.
+enum ImageAnimationMode {
+  /// Always show the animated version, ignoring device settings.
+  animateAlways,
+
+  /// Always show the still version, ignoring device settings.
+  animateNever,
+
+  /// Show the animated version
+  /// just if animations aren't disabled in device settings.
+  animateConditionally,
+  ;
+
+  /// True if the image should be animated, false if it should be still.
+  bool resolve(BuildContext context) {
+    switch (this) {
+      case animateAlways: return true;
+      case animateNever: return false;
+      case animateConditionally:
+        // From reading code, this doesn't actually get set on iOS:
+        //   https://github.com/zulip/zulip-flutter/pull/410#discussion_r1408522293
+        if (MediaQuery.disableAnimationsOf(context)) return false;
+
+        if (
+          defaultTargetPlatform == TargetPlatform.iOS
+          // TODO(#1924) On iOS 17+ (new in 2023), there's a more closely
+          //   relevant setting than "reduce motion". It's called "auto-play
+          //   animated images"; we should use that once Flutter exposes it.
+          && WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.reduceMotion
+        ) {
+          return false;
+        }
+
+        return true;
+    }
   }
 }
