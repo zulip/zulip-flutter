@@ -574,6 +574,10 @@
   "@composeBoxAttachFromCameraTooltip": {
     "description": "Tooltip for compose box icon to attach an image from the camera to the message."
   },
+  "composeBoxAttachFromVideoCallTooltip": "Attach a video call",
+    "@composeBoxAttachFromVideoCallTooltip": {
+      "description": "Tooltip for compose box icon to attach a video call url to the message."
+    },
   "composeBoxGenericContentHint": "Type a message",
   "@composeBoxGenericContentHint": {
     "description": "Hint text for content input when sending a message."
@@ -654,6 +658,10 @@
       "filename": {"type": "String", "example": "file.txt"}
     }
   },
+  "composeBoxUploadedVideoCallUrl": "Join video call.",
+      "@composeBoxUploadedVideoCallUrl": {
+        "description": "Placeholder in compose box showing the video call url is generated."
+      },
   "composeBoxLoadingMessage": "(loading message {messageId})",
   "@composeBoxLoadingMessage": {
     "description": "Placeholder in compose box showing the quoted message is currently loading.",
