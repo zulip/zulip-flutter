@@ -112,6 +112,8 @@ class AllChannelsListEntry extends StatelessWidget {
               iconDataForStream(channel)),
             Expanded(
               child: Text(
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: designVariables.textMessage,
                   fontSize: 17,
