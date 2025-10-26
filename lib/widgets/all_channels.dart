@@ -96,28 +96,29 @@ class AllChannelsListEntry extends StatelessWidget {
     final Subscription? subscription = channel is Subscription ? channel : null;
     final hasContentAccess = store.selfHasContentAccess(channel);
 
-    return Padding(
-      padding: EdgeInsetsDirectional.only(start: 8, end: 4),
-      child: Row(spacing: 6, children: [
-        Icon(
-          size: 20,
-          color: colorSwatchFor(context, subscription).iconOnPlainBackground,
-          iconDataForStream(channel)),
-        Expanded(
-          child: Text(
-            style: TextStyle(
-              color: designVariables.textMessage,
-              fontSize: 17,
-              height: 20 / 17,
-            ).merge(weightVariableTextStyle(context, wght: 600)),
-            channel.name)),
-        if (hasContentAccess) _SubscribeToggle(channel: channel),
-        ZulipIconButton(
-          icon: ZulipIcons.more_horizontal,
-          onPressed: () {
-            showChannelActionSheet(context, channelId: channel.streamId);
-          }),
-      ]));
+    return ConstrainedBox(constraints: const BoxConstraints(minHeight: 44),
+      child: Padding(
+        padding: EdgeInsetsDirectional.only(start: 8, end: 4),
+        child: Row(spacing: 6, children: [
+          Icon(
+            size: 20,
+            color: colorSwatchFor(context, subscription).iconOnPlainBackground,
+            iconDataForStream(channel)),
+          Expanded(
+            child: Text(
+              style: TextStyle(
+                color: designVariables.textMessage,
+                fontSize: 17,
+                height: 20 / 17,
+              ).merge(weightVariableTextStyle(context, wght: 600)),
+              channel.name)),
+          if (hasContentAccess) _SubscribeToggle(channel: channel),
+          ZulipIconButton(
+            icon: ZulipIcons.more_horizontal,
+            onPressed: () {
+              showChannelActionSheet(context, channelId: channel.streamId);
+            }),
+        ])));
   }
 }
 

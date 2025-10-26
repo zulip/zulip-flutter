@@ -204,6 +204,9 @@ void main() {
       }
 
       check(findInRow(find.byIcon(ZulipIcons.more_horizontal))).findsOne();
+
+      final touchTargetSize = tester.getSize(findElement);
+      check(touchTargetSize.height).equals(44);
     }
   });
 
