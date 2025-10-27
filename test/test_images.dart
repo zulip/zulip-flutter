@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-
+import 'dart:typed_data';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,12 +12,18 @@ import 'package:flutter_test/flutter_test.dart';
 /// before the end of the test.
 // TODO(upstream) simplify callers by using addTearDown: https://github.com/flutter/flutter/issues/123189
 //   See also: https://github.com/flutter/flutter/issues/121917
-FakeImageHttpClient prepareBoringImageHttpClient() {
+FakeImageHttpClient prepareBoringImageHttpClient({bool success = true}) {
   final httpClient = FakeImageHttpClient();
   debugNetworkImageHttpClientProvider = () => httpClient;
-  httpClient.request.response
-    ..statusCode = HttpStatus.ok
-    ..content = kSolidBlueAvatar;
+  if (success) {
+    httpClient.request.response
+      ..statusCode = HttpStatus.ok
+      ..content = kSolidBlueAvatar;
+  } else {
+    httpClient.request.response
+      ..statusCode = HttpStatus.notFound
+      ..content = Uint8List(0);
+  }
   return httpClient;
 }
 
