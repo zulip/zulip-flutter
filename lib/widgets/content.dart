@@ -1218,7 +1218,7 @@ class UserMention extends StatelessWidget {
   Widget build(BuildContext context) {
     final contentTheme = ContentTheme.of(context);
     final userId = node.userId;
-    
+
     final innerContent = InlineContent(
       // If an @-mention is inside a link, let the @-mention override it.
       recognizer: null,
@@ -1230,31 +1230,24 @@ class UserMention extends StatelessWidget {
 
       nodes: node.nodes);
 
+    final widget = Container(
+      decoration: BoxDecoration(
+        // TODO(#646) different for wildcard mentions
+        color: contentTheme.colorDirectMentionBackground,
+        borderRadius: const BorderRadius.all(Radius.circular(3))),
+      padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
+      child: innerContent);
+
     if (userId != null && userId > 0) {
-      // Wrap with gesture detector if we have a valid user ID
       return GestureDetector(
         onTap: () => Navigator.push(
           context,
           ProfilePage.buildRoute(context: context, userId: userId),
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            // TODO(#646) different for wildcard mentions
-            color: contentTheme.colorDirectMentionBackground,
-            borderRadius: const BorderRadius.all(Radius.circular(3))),
-          padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
-          child: innerContent,
-        ),
+        child: widget,
       );
     } else {
-      // Regular container without gesture detector if no valid user ID
-      return Container(
-        decoration: BoxDecoration(
-          // TODO(#646) different for wildcard mentions
-          color: contentTheme.colorDirectMentionBackground,
-          borderRadius: const BorderRadius.all(Radius.circular(3))),
-        padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
-        child: innerContent);
+      return widget;
     }
   }
 

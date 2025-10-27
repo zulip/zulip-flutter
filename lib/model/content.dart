@@ -926,9 +926,9 @@ enum UserMentionType { user, userGroup }
 
 class UserMentionNode extends InlineContainerNode {
   const UserMentionNode({
+    required this.userId,
     super.debugHtmlNode,
     required super.nodes,
-    this.userId,
   });
 
   final int? userId;

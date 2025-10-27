@@ -1383,4 +1383,61 @@ void main() {
       check(linkText.textAlign).equals(TextAlign.center);
     });
   });
+
+  group('UserMention tappable functionality', () {
+    testWidgets('mention with valid user ID has gesture detector', (tester) async {
+      await prepareContent(tester, plainContent('<p><span class="user-mention" data-user-id="123">@Test User</span></p>'));
+      expect(find.byType(GestureDetector), findsOneWidget);
+    });
+
+    testWidgets('mention with user ID navigates to ProfilePage when tapped', (tester) async {
+      final pushedRoutes = <Route<dynamic>>[];
+      final testNavObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      addTearDown(testBinding.reset);
+      await tester.pumpWidget(TestZulipApp(
+        accountId: eg.selfAccount.id,
+        navigatorObservers: [testNavObserver],
+        child: plainContent('<p><span class="user-mention" data-user-id="123">@Test User</span></p>'),
+      ));
+      await tester.pump(); // global store
+
+      await tester.pump(); // Allow any deferred work to complete
+
+      expect(find.byType(GestureDetector), findsOneWidget);
+
+      await tester.tap(find.byType(GestureDetector));
+      await tester.pump();
+
+      // Verify that navigation occurred (at least one route was pushed)
+      expect(pushedRoutes.length, greaterThanOrEqualTo(1));
+    });
+
+    testWidgets('mention without user ID does not have gesture detector', (tester) async {
+      await prepareContent(tester, plainContent('<p><span class="user-mention">@Test User</span></p>'));
+      expect(find.byType(GestureDetector), findsNothing);
+    });
+
+    testWidgets('mention with invalid user ID does not have gesture detector', (tester) async {
+      await prepareContent(tester, plainContent('<p><span class="user-mention" data-user-id="invalid">@Test User</span></p>'));
+      expect(find.byType(GestureDetector), findsNothing);
+    });
+
+    testWidgets('mention with wildcard user ID does not have gesture detector', (tester) async {
+      await prepareContent(tester, plainContent('<p><span class="user-mention" data-user-id="*">@all</span></p>'));
+      expect(find.byType(GestureDetector), findsNothing);
+    });
+
+    testWidgets('mention with zero user ID does not have gesture detector', (tester) async {
+      await prepareContent(tester, plainContent('<p><span class="user-mention" data-user-id="0">@Test User</span></p>'));
+      expect(find.byType(GestureDetector), findsNothing);
+    });
+
+    testWidgets('mention with negative user ID does not have gesture detector', (tester) async {
+      await prepareContent(tester, plainContent('<p><span class="user-mention" data-user-id="-1">@Test User</span></p>'));
+      expect(find.byType(GestureDetector), findsNothing);
+    });
+  });
 }
