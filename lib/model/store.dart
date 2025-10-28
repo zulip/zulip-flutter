@@ -436,7 +436,7 @@ abstract class PerAccountStoreBase {
   /// Resolve [reference] as a URL relative to [realmUrl].
   ///
   /// This returns null if [reference] fails to parse as a URL.
-  Uri? tryResolveUrl(String reference) => _tryResolveUrl(realmUrl, reference);
+  Uri? tryResolveUrl(String reference) => _tryResolveUrlStr(realmUrl, reference);
 
   /// Always equal to `connection.zulipFeatureLevel`
   /// and `account.zulipFeatureLevel`.
@@ -465,10 +465,8 @@ abstract class PerAccountStoreBase {
   int get selfUserId => core.selfUserId;
 }
 
-const _tryResolveUrl = tryResolveUrl;
-
 /// Like [Uri.resolve], but on failure return null instead of throwing.
-Uri? tryResolveUrl(Uri baseUrl, String reference) {
+Uri? _tryResolveUrlStr(Uri baseUrl, String reference) {
   try {
     return baseUrl.resolve(reference);
   } on FormatException {
