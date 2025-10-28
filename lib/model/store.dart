@@ -429,6 +429,12 @@ abstract class PerAccountStoreBase {
   /// Always equal to `account.realmIcon`.
   Uri get realmIcon => account.realmIcon!;
 
+  /// The full, resolved URL for the Zulip realm icon.
+  ///
+  /// Returned URL is derived by resolving [realmIcon] (relative) URL
+  /// against the base [realmUrl].
+  Uri get resolvedRealmIcon => realmUrl.resolveUri(realmIcon);
+
   /// Resolve [reference] as a URL relative to [realmUrl].
   ///
   /// This returns null if [reference] fails to parse as a URL.
