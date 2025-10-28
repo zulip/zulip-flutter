@@ -401,7 +401,7 @@ void main() {
       // The image indeed has an invalid URL.
       final expectedImages = (example.expectedNodes[0] as ImagePreviewNodeList).imagePreviews;
       check(() => Uri.parse(expectedImages.single.srcUrl)).throws<void>();
-      check(tryResolveUrl(eg.realmUrl, expectedImages.single.srcUrl)).isNull();
+      check(tryResolveUrlStr(eg.realmUrl, expectedImages.single.srcUrl)).isNull();
       // The MessageImagePreview has shown up,
       // but it doesn't attempt a RealmContentNetworkImage.
       check(tester.widgetList(find.byType(MessageImagePreview))).isNotEmpty();
