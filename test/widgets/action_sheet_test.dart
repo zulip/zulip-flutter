@@ -221,12 +221,7 @@ void main() {
       channel ??= someChannel;
 
       connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: true, messages: []).toJson());
-      if (narrow case ChannelNarrow()) {
-        // We auto-focus the topic input when there are no messages;
-        // this is for topic autocomplete.
-        connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
-      }
+        foundOldest: true, messages: [eg.streamMessage(stream: channel)]).toJson());
       await tester.pumpWidget(TestZulipApp(
         accountId: eg.selfAccount.id,
         child: MessageListPage(
