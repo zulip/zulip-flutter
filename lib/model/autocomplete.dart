@@ -6,7 +6,6 @@ import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
 import '../api/model/events.dart';
 import '../api/model/model.dart';
-import '../api/route/channels.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../widgets/compose_box.dart';
 import 'algorithms.dart';
@@ -1164,22 +1163,15 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   final int streamId;
 
   Iterable<TopicName> _topics = [];
-  bool _isFetching = false;
 
-  /// Fetches topics of the current stream narrow, expected to fetch
-  /// only once per lifecycle.
+  /// Fetches topics of the current stream narrow.
   ///
   /// Starts fetching once the stream narrow is active, then when results
   /// are fetched it restarts search to refresh UI showing the newly
   /// fetched topics.
   Future<void> _fetch() async {
-     assert(!_isFetching);
-    _isFetching = true;
-    final result = await getChannelTopics(store.connection, channelId: streamId,
-      allowEmptyTopicName: true,
-    );
-    _topics = result.topics.map((e) => e.name);
-    _isFetching = false;
+    await store.topics.fetchChannelTopics(streamId); // TODO: handle fetch failure
+    _topics = store.topics.getChannelTopics(streamId)!.map((e) => e.name);
     return _startSearch();
   }
 
