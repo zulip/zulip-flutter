@@ -433,6 +433,11 @@ abstract class PerAccountStoreBase {
   // See `UpdateMachine.load`.
   Uri get realmIcon => account.realmIcon!;
 
+  /// Resolve [realmIcon] as a URL relative to [realmUrl].
+  ///
+  /// This returns null if resolving fails.
+  Uri? resolveRealmIconUrl() => _tryResolveUrl(realmUrl, realmIcon);
+
   /// Resolve [reference] as a URL relative to [realmUrl].
   ///
   /// This returns null if [reference] fails to parse as a URL.
@@ -469,6 +474,15 @@ abstract class PerAccountStoreBase {
 Uri? _tryResolveUrlStr(Uri baseUrl, String reference) {
   try {
     return baseUrl.resolve(reference);
+  } on FormatException {
+    return null;
+  }
+}
+
+/// Like [Uri.resolve], but on failure return null instead of throwing.
+Uri? _tryResolveUrl(Uri baseUrl, Uri reference) {
+  try {
+    return baseUrl.resolveUri(reference);
   } on FormatException {
     return null;
   }
