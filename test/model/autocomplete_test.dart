@@ -1373,19 +1373,47 @@ void main() {
     check(done).isTrue();
   });
 
-  test('TopicAutocompleteView getChannelTopics request', () async {
+  test('TopicAutocompleteView fetches topics once for a channel', () async {
     final store = eg.store();
     final connection = store.connection as FakeApiConnection;
 
-    connection.prepare(json: GetChannelTopicsResult(
-      topics: [eg.getChannelTopicsEntry(name: '')],
-    ).toJson());
-    TopicAutocompleteView.init(store: store, streamId: 1000,
-      query: TopicAutocompleteQuery('foo'));
-    check(connection.lastRequest).isA<http.Request>()
+    final topic1 = eg.getChannelTopicsEntry(maxId: 20, name: 'server releases');
+    final topic2 = eg.getChannelTopicsEntry(maxId: 10, name: 'mobile releases');
+
+    connection.prepare(json: GetChannelTopicsResult(topics: [topic1, topic2]).toJson());
+    final view1 = TopicAutocompleteView.init(store: store, streamId: 1000,
+      query: TopicAutocompleteQuery(''));
+    bool done = false;
+    view1.addListener(() { done = true; });
+
+    check(connection.takeRequests()).last.isA<http.Request>()
       ..method.equals('GET')
       ..url.path.equals('/api/v1/users/me/1000/topics')
       ..url.queryParameters['allow_empty_topic_name'].equals('true');
+
+    await Future(() {});
+    await Future(() {});
+    check(done).isTrue();
+    check(view1.results).deepEquals([isTopic(topic1.name), isTopic(topic2.name)]);
+
+    view1.query = TopicAutocompleteQuery('server');
+    check(connection.takeRequests()).isEmpty();
+    await Future(() {});
+    check(view1.results).single.which(isTopic(topic1.name));
+    view1.dispose();
+
+    // No need to prepare a response as there will be no request made.
+    final view2 = TopicAutocompleteView.init(store: store, streamId: 1000,
+      query: TopicAutocompleteQuery('mobile'));
+    done = false;
+    view2.addListener(() { done = true; });
+
+    check(connection.takeRequests()).isEmpty();
+
+    await Future(() {});
+    await Future(() {});
+    check(done).isTrue();
+    check(view2.results).single.which(isTopic(topic2.name));
   });
 
   group('TopicAutocompleteQuery.testTopic', () {
