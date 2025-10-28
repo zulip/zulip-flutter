@@ -1,13 +1,18 @@
+import 'dart:async';
 import 'dart:collection';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
+import '../api/route/channels.dart';
 import 'realm.dart';
 import 'store.dart';
 import 'user.dart';
+
+final _apiGetChannelTopics = getStreamTopics;  // similar to _apiSendMessage in lib/model/message.dart
 
 /// The portion of [PerAccountStore] for channels, topics, and stuff about them.
 ///
@@ -77,6 +82,27 @@ mixin ChannelStore on UserStore {
       (int a, int b) => a.compareTo(b),
     };
   }
+
+  /// Fetch topics in a channel from the server, only if they're not fetched yet.
+  ///
+  /// The results from the last successful fetch
+  /// can be retrieved with [getChannelTopics].
+  Future<void> fetchTopics(int channelId);
+
+  /// Pairs of the known topics and its latest message ID, in the given channel.
+  ///
+  /// Returns null if the data has never been fetched yet.
+  /// To fetch it from the server, use [fetchTopics].
+  ///
+  /// The result is guaranteed to be sorted by [GetStreamTopicsEntry.maxId]
+  /// descending, and the topics are guaranteed to be distinct.
+  ///
+  /// In some cases, the same maxId affected by message moves can be present in
+  /// multiple [GetStreamTopicsEntry] entries. For this reason, the caller
+  /// should not rely on [getChannelTopics] to determine which topic the message
+  /// is in. Instead, refer to [PerAccountStore.messages].
+  /// See [handleUpdateMessageEvent] on how this could happen.
+  List<GetStreamTopicsEntry>? getChannelTopics(int channelId);
 
   /// The visibility policy that the self-user has for the given topic.
   ///
@@ -289,6 +315,13 @@ mixin ProxyChannelStore on ChannelStore {
   Map<int, ChannelFolder> get channelFolders => channelStore.channelFolders;
 
   @override
+  Future<void> fetchTopics(int channelId) => channelStore.fetchTopics(channelId);
+
+  @override
+  List<GetStreamTopicsEntry>? getChannelTopics(int channelId) =>
+    channelStore.getChannelTopics(channelId);
+
+  @override
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic) =>
     channelStore.topicVisibilityPolicy(streamId, topic);
 
@@ -367,6 +400,37 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
   final Map<int, Subscription> subscriptions;
   @override
   final Map<int, ChannelFolder> channelFolders;
+
+  /// Maps indexed by channel IDs, of the known latest message IDs in each topic.
+  ///
+  /// For example: `_latestMessageIdsByChannelTopic[channel.streamId][topic] = maxId`
+  ///
+  /// In some cases, the same message IDs, when affected by message moves, can
+  /// be present for mutliple channel-topic keys.
+  /// See [handleUpdateMessageEvent] on how this could happen.
+  final Map<int, Map<TopicName, int>> _latestMessageIdsByChannelTopic = {};
+
+  @override
+  Future<void> fetchTopics(int channelId) async {
+    if (_latestMessageIdsByChannelTopic[channelId] != null) return;
+
+    final result = await _apiGetChannelTopics(connection, streamId: channelId,
+      allowEmptyTopicName: true);
+    _latestMessageIdsByChannelTopic[channelId] = {
+      for (final GetStreamTopicsEntry(:name, :maxId) in result.topics)
+        name: maxId,
+    };
+  }
+
+  @override
+  List<GetStreamTopicsEntry>? getChannelTopics(int channelId) {
+    final latestMessageIdsByTopic = _latestMessageIdsByChannelTopic[channelId];
+    if (latestMessageIdsByTopic == null) return null;
+    return [
+      for (final MapEntry(:key, :value) in latestMessageIdsByTopic.entries)
+        GetStreamTopicsEntry(maxId: value, name: key),
+    ].sortedBy((value) => -value.maxId);
+  }
 
   @override
   Map<int, TopicKeyedMap<UserTopicVisibilityPolicy>> get debugTopicVisibility => topicVisibility;
@@ -571,6 +635,65 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
       final forStream = topicVisibility.putIfAbsent(event.streamId, () => makeTopicKeyedMap());
       forStream[event.topicName] = visibilityPolicy;
     }
+  }
+
+  /// Handle a [MessageEvent], returning whether listeners should be notified.
+  bool handleMessageEvent(MessageEvent event) {
+    if (event.message is! StreamMessage) return false;
+    final StreamMessage(:streamId, :topic) = event.message as StreamMessage;
+
+    final latestMessageIdsByTopic = _latestMessageIdsByChannelTopic[streamId];
+    // If we don't already know about the list of topics of the channel this
+    // message belongs to, we don't want to proceed and put one entry about the
+    // topic of this message, otherwise [fetchTopics] and the callers of
+    // [getChannelTopics] would think that the channel only has this one topic
+    // and would never fetch the complete list of topics for that matter.
+    if (latestMessageIdsByTopic == null) return false;
+
+    // If this message is already the latest message in the topic because it was
+    // received through fetch in fetch/event race, or it is a message sent even
+    // before the latest message of the fetch, we don't do the update.
+    final currentLatestMessageId = latestMessageIdsByTopic[topic];
+    if (currentLatestMessageId != null && currentLatestMessageId >= event.message.id) {
+      return false;
+    }
+    latestMessageIdsByTopic[topic] = event.message.id;
+    return true;
+  }
+
+  /// Handle an [UpdateMessageEvent], returning whether listeners should be
+  /// notified.
+  bool handleUpdateMessageEvent(UpdateMessageEvent event) {
+    if (event.moveData == null) return false;
+    final UpdateMessageMoveData(
+      :origStreamId, :origTopic, :newStreamId, :newTopic, :propagateMode,
+    ) = event.moveData!;
+    bool shouldNotify = false;
+
+    final origLatestMessageIdsByTopics = _latestMessageIdsByChannelTopic[origStreamId];
+    // We only handle the case where all the messages of [origTopic] are
+    // moved to [newTopic]; in that case we can remove [origTopic] safely.
+    // But if only one messsage is moved (`PropagateMode.changeOne`) or a few
+    // messages are moved (`PropagateMode.changeLater`), we cannot do anything
+    // about [origTopic] here as we cannot determine the new `maxId` for it.
+    // (This is the case where there could be multiple channel-topic keys with
+    //  the same `maxId`)
+    if (propagateMode == PropagateMode.changeAll
+        && origLatestMessageIdsByTopics != null) {
+      shouldNotify = origLatestMessageIdsByTopics.remove(origTopic) != null;
+    }
+
+    final newLatestMessageIdsByTopics = _latestMessageIdsByChannelTopic[newStreamId];
+    if (newLatestMessageIdsByTopics != null) {
+      final movedMaxId = event.messageIds.max;
+      if (!newLatestMessageIdsByTopics.containsKey(newTopic)
+          || newLatestMessageIdsByTopics[newTopic]! < movedMaxId) {
+        newLatestMessageIdsByTopics[newTopic] = movedMaxId;
+        shouldNotify = true;
+      }
+    }
+
+    return shouldNotify;
   }
 }
 
