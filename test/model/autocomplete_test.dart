@@ -81,7 +81,8 @@ void main() {
         ? 'in ${jsonEncode(markedText)}, query ${jsonEncode(expectedQuery.raw)}'
         : 'no query in ${jsonEncode(markedText)}';
       test(description, () {
-        final controller = ComposeContentController();
+        final store = eg.store();
+        final controller = ComposeContentController(store: store);
         final parsed = parseMarkedText(markedText);
         assert((expectedQuery == null) == (parsed.expectedSyntaxStart == null));
         controller.value = parsed.value;
