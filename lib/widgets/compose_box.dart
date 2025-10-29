@@ -89,7 +89,9 @@ const double _composeButtonSize = 44;
 ///
 /// Subclasses must ensure that [_update] is called in all exposed constructors.
 abstract class ComposeController<ErrorT> extends TextEditingController {
-  ComposeController({super.text});
+  ComposeController({super.text, required this.store});
+
+  PerAccountStore store;
 
   int get maxLengthUnicodeCodePoints;
 
@@ -152,11 +154,9 @@ enum TopicValidationError {
 }
 
 class ComposeTopicController extends ComposeController<TopicValidationError> {
-  ComposeTopicController({super.text, required this.store}) {
+  ComposeTopicController({super.text, required super.store}) {
     _update();
   }
-
-  PerAccountStore store;
 
   // TODO(#668): listen to [PerAccountStore] once we subscribe to this value
   bool get mandatory => store.realmMandatoryTopics;
@@ -234,7 +234,11 @@ enum ContentValidationError {
 }
 
 class ComposeContentController extends ComposeController<ContentValidationError> {
-  ComposeContentController({super.text, this.requireNotEmpty = true}) {
+  ComposeContentController({
+    super.text,
+    required super.store,
+    this.requireNotEmpty = true,
+  }) {
     _update();
   }
 
@@ -1575,7 +1579,10 @@ class _EditMessageComposeBoxBody extends _ComposeBoxBody {
 }
 
 sealed class ComposeBoxController {
-  final content = ComposeContentController();
+  ComposeBoxController({required PerAccountStore store})
+    : content = ComposeContentController(store: store);
+
+  final ComposeContentController content;
   final contentFocusNode = FocusNode();
 
   /// If no input is focused, requests focus on the appropriate input.
@@ -1668,7 +1675,7 @@ enum ComposeTopicInteractionStatus {
 }
 
 class StreamComposeBoxController extends ComposeBoxController {
-  StreamComposeBoxController({required PerAccountStore store})
+  StreamComposeBoxController({required super.store})
     : topic = ComposeTopicController(store: store);
 
   final ComposeTopicController topic;
@@ -1698,21 +1705,25 @@ class StreamComposeBoxController extends ComposeBoxController {
   }
 }
 
-class FixedDestinationComposeBoxController extends ComposeBoxController {}
+class FixedDestinationComposeBoxController extends ComposeBoxController {
+  FixedDestinationComposeBoxController({required super.store});
+}
 
 class EditMessageComposeBoxController extends ComposeBoxController {
   EditMessageComposeBoxController({
+    required super.store,
     required this.messageId,
     required this.originalRawContent,
     required String? initialText,
   }) : _content = ComposeContentController(
                     text: initialText,
+                    store: store,
                     // Editing to delete the content is a supported form of
                     // deletion: https://zulip.com/help/delete-a-message#delete-message-content
                     requireNotEmpty: false);
 
-  factory EditMessageComposeBoxController.empty(int messageId) =>
-    EditMessageComposeBoxController(messageId: messageId,
+  factory EditMessageComposeBoxController.empty(PerAccountStore store, int messageId) =>
+    EditMessageComposeBoxController(store: store, messageId: messageId,
       originalRawContent: null, initialText: null);
 
   @override ComposeContentController get content => _content;
@@ -2058,6 +2069,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     setState(() {
       controller.dispose();
       _controller = EditMessageComposeBoxController(
+        store: store,
         messageId: messageId,
         originalRawContent: failedEdit.originalRawContent,
         initialText: failedEdit.newContent,
@@ -2067,8 +2079,9 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   }
 
   void _editFromRawContentFetch(int messageId) async {
+    final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final emptyEditController = EditMessageComposeBoxController.empty(messageId);
+    final emptyEditController = EditMessageComposeBoxController.empty(store, messageId);
     setState(() {
       controller.dispose();
       _controller = emptyEditController;
@@ -2134,10 +2147,11 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
     switch (controller) {
       case StreamComposeBoxController():
+        controller.content.store = newStore;
         controller.topic.store = newStore;
       case FixedDestinationComposeBoxController():
       case EditMessageComposeBoxController():
-        // no reference to the store that needs updating
+        controller.content.store = newStore;
     }
   }
 
@@ -2148,7 +2162,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         _controller = StreamComposeBoxController(store: store);
       case TopicNarrow():
       case DmNarrow():
-        _controller = FixedDestinationComposeBoxController();
+        _controller = FixedDestinationComposeBoxController(store: store);
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():

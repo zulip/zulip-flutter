@@ -255,7 +255,8 @@ void main() {
       /// In expectedValue, represent the collapsed selection as "^".
       void testInsertPadded(String description, String valueBefore, String textToInsert, String expectedValue) {
         test(description, () {
-          final controller = ComposeContentController();
+          store = eg.store();
+          final controller = ComposeContentController(store: store);
           controller.value = parseMarkedText(valueBefore);
           controller.insertPadded(textToInsert);
           check(controller.value).equals(parseMarkedText(expectedValue));
@@ -336,7 +337,8 @@ void main() {
       }
 
       testWidgets('requireNotEmpty: true (default)', (tester) async {
-        controller = ComposeContentController();
+        store = eg.store();
+        controller = ComposeContentController(store: store);
         addTearDown(controller.dispose);
         checkCountsAsEmpty('', true);
         checkCountsAsEmpty(' ', true);
@@ -344,7 +346,8 @@ void main() {
       });
 
       testWidgets('requireNotEmpty: false', (tester) async {
-        controller = ComposeContentController(requireNotEmpty: false);
+        store = eg.store();
+        controller = ComposeContentController(store: store, requireNotEmpty: false);
         addTearDown(controller.dispose);
         checkCountsAsEmpty('', false);
         checkCountsAsEmpty(' ', false);
