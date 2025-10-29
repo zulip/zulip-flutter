@@ -76,6 +76,7 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
 
   Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts;
 
+  int get maxChannelNameLength;
   int get maxTopicLength;
 
   //|//////////////////////////////
@@ -194,6 +195,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts => realmStore.realmDefaultExternalAccounts;
   @override
+  int get maxChannelNameLength => realmStore.maxChannelNameLength;
+  @override
   int get maxTopicLength => realmStore.maxTopicLength;
   @override
   List<CustomProfileField> get customProfileFields => realmStore.customProfileFields;
@@ -244,6 +247,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmDeleteOwnMessagePolicy = initialSnapshot.realmDeleteOwnMessagePolicy,
     _realmEmptyTopicDisplayName = initialSnapshot.realmEmptyTopicDisplayName,
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
+    maxChannelNameLength = initialSnapshot.maxChannelNameLength,
     maxTopicLength = initialSnapshot.maxTopicLength,
     customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields);
 
@@ -411,6 +415,8 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   @override
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
 
+  @override
+  final int maxChannelNameLength;
   @override
   final int maxTopicLength;
 
