@@ -24,6 +24,8 @@ class InitialSnapshot {
 
   final List<CustomProfileField> customProfileFields;
 
+  @JsonKey(name: 'max_stream_name_length')
+  final int maxChannelNameLength;
   final int maxTopicLength;
 
   final int serverPresencePingIntervalSeconds;
@@ -160,6 +162,7 @@ class InitialSnapshot {
     required this.zulipMergeBase,
     required this.alertWords,
     required this.customProfileFields,
+    required this.maxChannelNameLength,
     required this.maxTopicLength,
     required this.serverPresencePingIntervalSeconds,
     required this.serverPresenceOfflineThresholdSeconds,
