@@ -123,6 +123,19 @@ class _KatexSpan extends StatelessWidget {
       null => null,
     };
 
+    if (styles.borderBottomStyle == KatexSpanBorderBottomStyle.solid &&
+        styles.borderBottomWidthEm != null) {
+      final borderColor = color ?? DefaultTextStyle.of(context).style.color!;
+      final borderWidth = styles.borderBottomWidthEm! * em;
+
+      widget = DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: borderColor, width: borderWidth, style: BorderStyle.solid))),
+        child: widget,
+      );
+    }
+
     TextStyle? textStyle;
     if (fontFamily != null ||
         fontSize != null ||
