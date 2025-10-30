@@ -76,6 +76,8 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
 
   Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts;
 
+  int get maxTopicLength;
+
   //|//////////////////////////////
   // Realm settings with their own events.
 
@@ -192,6 +194,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts => realmStore.realmDefaultExternalAccounts;
   @override
+  int get maxTopicLength => realmStore.maxTopicLength;
+  @override
   List<CustomProfileField> get customProfileFields => realmStore.customProfileFields;
   @override
   bool selfHasPassedWaitingPeriod({required DateTime byDate}) =>
@@ -240,6 +244,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmDeleteOwnMessagePolicy = initialSnapshot.realmDeleteOwnMessagePolicy,
     _realmEmptyTopicDisplayName = initialSnapshot.realmEmptyTopicDisplayName,
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
+    maxTopicLength = initialSnapshot.maxTopicLength,
     customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields);
 
   @override
@@ -405,6 +410,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
 
   @override
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
+
+  @override
+  final int maxTopicLength;
 
   @override
   List<CustomProfileField> customProfileFields;
