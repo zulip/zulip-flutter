@@ -128,7 +128,8 @@ class _KatexSpan extends StatelessWidget {
       final borderColor = color ?? DefaultTextStyle.of(context).style.color!;
       final borderWidth = styles.borderBottomWidthEm! * em;
 
-      widget = DecoratedBox(
+      widget = Container(
+        constraints: const BoxConstraints(minWidth: double.infinity),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(color: borderColor, width: borderWidth, style: BorderStyle.solid))),

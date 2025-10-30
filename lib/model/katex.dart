@@ -644,7 +644,7 @@ class _KatexParser {
           // .overline-line,
           // .underline-line { width: 100%; border-bottom-style: solid; }
           // Border applied via inline style: border-bottom-width: 0.04em;
-          widthEm = double.infinity;
+          //widthEm = double.infinity;
           borderBottomStyle = KatexSpanBorderBottomStyle.solid;
           break;
 
