@@ -806,9 +806,15 @@
   "@loginErrorMissingUsername": {
     "description": "Error message when an empty username was provided."
   },
-  "topicValidationErrorTooLong": "Topic length shouldn't be greater than 60 characters.",
+  "topicValidationErrorTooLong": "Topic length shouldn't be greater than {maxLength, plural, =1{1 character} other{{maxLength} characters}}.",
   "@topicValidationErrorTooLong": {
-    "description": "Topic validation error when topic is too long."
+    "description": "Topic validation error when topic is too long.",
+    "placeholders": {
+      "maxLength": {
+        "type": "int",
+        "example": "60"
+      }
+    }
   },
   "topicValidationErrorMandatoryButEmpty": "Topics are required in this organization.",
   "@topicValidationErrorMandatoryButEmpty": {
