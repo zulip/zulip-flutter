@@ -677,8 +677,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Пожалуйста, введите ваше имя пользователя.';
 
   @override
-  String get topicValidationErrorTooLong =>
-      'Длина темы не должна превышать 60 символов.';
+  String topicValidationErrorTooLong(int maxLength) {
+    return 'Длина темы не должна превышать 60 символов.';
+  }
 
   @override
   String get topicValidationErrorMandatoryButEmpty =>

@@ -686,8 +686,9 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get loginErrorMissingUsername => 'Vnesite svoje uporabniško ime.';
 
   @override
-  String get topicValidationErrorTooLong =>
-      'Dolžina teme ne sme presegati 60 znakov.';
+  String topicValidationErrorTooLong(int maxLength) {
+    return 'Dolžina teme ne sme presegati 60 znakov.';
+  }
 
   @override
   String get topicValidationErrorMandatoryButEmpty =>

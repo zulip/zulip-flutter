@@ -661,8 +661,15 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get loginErrorMissingUsername => 'Please enter your username.';
 
   @override
-  String get topicValidationErrorTooLong =>
-      'Topic length shouldn\'t be greater than 60 characters.';
+  String topicValidationErrorTooLong(int maxLength) {
+    String _temp0 = intl.Intl.pluralLogic(
+      maxLength,
+      locale: localeName,
+      other: '$maxLength characters',
+      one: '1 character',
+    );
+    return 'Topic length shouldn\'t be greater than $_temp0.';
+  }
 
   @override
   String get topicValidationErrorMandatoryButEmpty =>
@@ -1787,7 +1794,9 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get loginErrorMissingUsername => '请输入用户名。';
 
   @override
-  String get topicValidationErrorTooLong => '话题长度不应该超过 60 个字符。';
+  String topicValidationErrorTooLong(int maxLength) {
+    return '话题长度不应该超过 60 个字符。';
+  }
 
   @override
   String get topicValidationErrorMandatoryButEmpty => '话题在该组织为必填项。';
@@ -2891,7 +2900,9 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get loginErrorMissingUsername => '請輸入您的使用者名稱。';
 
   @override
-  String get topicValidationErrorTooLong => '議題長度不得超過 60 個字元。';
+  String topicValidationErrorTooLong(int maxLength) {
+    return '議題長度不得超過 60 個字元。';
+  }
 
   @override
   String get topicValidationErrorMandatoryButEmpty => '此組織要求必須填寫議題。';
