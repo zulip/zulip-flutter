@@ -232,11 +232,13 @@ class _KatexVlist extends StatelessWidget {
   Widget build(BuildContext context) {
     final em = DefaultTextStyle.of(context).style.fontSize!;
 
-    return Stack(children: List.unmodifiable(node.rows.map((row) {
-      return Transform.translate(
-        offset: Offset(0, row.verticalOffsetEm * em),
-        child: _KatexSpan(row.node));
-    })));
+    return IntrinsicWidth(
+      child: Stack(children: List.unmodifiable(node.rows.map((row) {
+        return Transform.translate(
+          offset: Offset(0, row.verticalOffsetEm * em),
+          child: _KatexSpan(row.node));
+      }))),
+    );
   }
 }
 
