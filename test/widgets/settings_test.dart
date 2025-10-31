@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/model/settings.dart';
+import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/settings.dart';
 import 'package:zulip/widgets/store.dart';
@@ -49,19 +50,17 @@ void main() {
       matching: find.text(expectedSubtitle))).findsOne();
   }
 
-  Finder findRadioListTileWithTitle<T>(String title) => find.ancestor(
+  Finder findCustomRadioTileWithTitle<T>(String title) => find.ancestor(
     of: find.text(title),
-    matching: find.byType(RadioListTile<T>));
+    matching: find.byType(CustomRadioTile<T>));
 
-  void checkRadioButtonAppearsChecked<T>(WidgetTester tester,
+  void checkCustomRadioTileAppearsChecked<T>(WidgetTester tester,
       String title, bool expectedIsChecked, {String? subtitle}) {
-    check(tester.semantics.find(findRadioListTileWithTitle<T>(title)))
-      .containsSemantics(
-        label: subtitle == null
-          ? title
-          : '$title\n$subtitle',
-        isInMutuallyExclusiveGroup: true,
-        hasCheckedState: true, isChecked: expectedIsChecked);
+    final tile = tester.widget<CustomRadioTile<T>>(findCustomRadioTileWithTitle<T>(title));
+    if (expectedIsChecked) {
+      check(tile.value).equals(tile.groupValue);
+    } else {
+      check(tile.value).not((it) => it.equals(tile.groupValue));}
   }
 
   group('ThemeSetting', () {
@@ -74,7 +73,7 @@ void main() {
         ThemeSetting.dark => 'Dark',
       };
       for (final title in ['System', 'Light', 'Dark']) {
-        checkRadioButtonAppearsChecked<ThemeSetting?>(tester, title, title == expectedCheckedTitle);
+        checkCustomRadioTileAppearsChecked<ThemeSetting?>(tester, title, title == expectedCheckedTitle);
       }
       check(testBinding.globalStore)
         .settings.themeSetting.equals(expectedThemeSetting);
@@ -89,13 +88,13 @@ void main() {
       check(Theme.of(element)).brightness.equals(Brightness.light);
       checkThemeSetting(tester, expectedThemeSetting: ThemeSetting.light);
 
-      await tester.tap(findRadioListTileWithTitle<ThemeSetting?>('Dark'));
+      await tester.tap(findCustomRadioTileWithTitle<ThemeSetting?>('Dark'));
       await tester.pump();
       await tester.pump(Duration(milliseconds: 250)); // wait for transition
       check(Theme.of(element)).brightness.equals(Brightness.dark);
       checkThemeSetting(tester, expectedThemeSetting: ThemeSetting.dark);
 
-      await tester.tap(findRadioListTileWithTitle<ThemeSetting?>('System'));
+      await tester.tap(findCustomRadioTileWithTitle<ThemeSetting?>('System'));
       await tester.pump();
       await tester.pump(Duration(milliseconds: 250)); // wait for transition
       check(Theme.of(element)).brightness.equals(Brightness.light);
@@ -117,15 +116,13 @@ void main() {
   });
 
   group('BrowserPreference', () {
-    Finder useInAppBrowserSwitchFinder = find.ancestor(
-      of: find.text('Open links with in-app browser'),
-      matching: find.byType(SwitchListTile));
+    Finder useInAppBrowserSwitchFinder = find.byType(Toggle).first;
 
     void checkSwitchAndGlobalSettings(WidgetTester tester, {
       required bool checked,
       required BrowserPreference? expectedBrowserPreference,
     }) {
-      check(tester.widget<SwitchListTile>(useInAppBrowserSwitchFinder))
+      check(tester.widget<Toggle>(useInAppBrowserSwitchFinder))
         .value.equals(checked);
       check(testBinding.globalStore)
         .settings.browserPreference.equals(expectedBrowserPreference);
@@ -172,7 +169,7 @@ void main() {
     }) {
       for (final setting in VisitFirstUnreadSetting.values) {
         final thisSettingTitle = settingTitle(setting);
-        checkRadioButtonAppearsChecked<VisitFirstUnreadSetting>(tester,
+        checkCustomRadioTileAppearsChecked<VisitFirstUnreadSetting>(tester,
           thisSettingTitle, setting == expectedSetting);
       }
     }
@@ -195,17 +192,17 @@ void main() {
       await tester.pump((lastPushedRoute as TransitionRoute).transitionDuration);
       checkPage(tester, expectedSetting: VisitFirstUnreadSetting.conversations);
 
-      await tester.tap(findRadioListTileWithTitle<VisitFirstUnreadSetting>(
+      await tester.tap(findCustomRadioTileWithTitle<VisitFirstUnreadSetting>(
         settingTitle(VisitFirstUnreadSetting.always)));
       await tester.pump();
       checkPage(tester, expectedSetting: VisitFirstUnreadSetting.always);
 
-      await tester.tap(findRadioListTileWithTitle<VisitFirstUnreadSetting>(
+      await tester.tap(findCustomRadioTileWithTitle<VisitFirstUnreadSetting>(
         settingTitle(VisitFirstUnreadSetting.conversations)));
       await tester.pump();
       checkPage(tester, expectedSetting: VisitFirstUnreadSetting.conversations);
 
-      await tester.tap(findRadioListTileWithTitle<VisitFirstUnreadSetting>(
+      await tester.tap(findCustomRadioTileWithTitle<VisitFirstUnreadSetting>(
         settingTitle(VisitFirstUnreadSetting.never)));
       await tester.pump();
       checkPage(tester, expectedSetting: VisitFirstUnreadSetting.never);
@@ -242,7 +239,7 @@ void main() {
     }) {
       for (final setting in MarkReadOnScrollSetting.values) {
         final thisSettingTitle = settingTitle(setting);
-        checkRadioButtonAppearsChecked<MarkReadOnScrollSetting>(tester,
+        checkCustomRadioTileAppearsChecked<MarkReadOnScrollSetting>(tester,
           thisSettingTitle,
           setting == expectedSetting,
           subtitle: settingSubtitle(setting));
@@ -267,17 +264,17 @@ void main() {
       await tester.pump((lastPushedRoute as TransitionRoute).transitionDuration);
       checkPage(tester, expectedSetting: MarkReadOnScrollSetting.conversations);
 
-      await tester.tap(findRadioListTileWithTitle<MarkReadOnScrollSetting>(
+      await tester.tap(findCustomRadioTileWithTitle<MarkReadOnScrollSetting>(
         settingTitle(MarkReadOnScrollSetting.always)));
       await tester.pump();
       checkPage(tester, expectedSetting: MarkReadOnScrollSetting.always);
 
-      await tester.tap(findRadioListTileWithTitle<MarkReadOnScrollSetting>(
+      await tester.tap(findCustomRadioTileWithTitle<MarkReadOnScrollSetting>(
         settingTitle(MarkReadOnScrollSetting.conversations)));
       await tester.pump();
       checkPage(tester, expectedSetting: MarkReadOnScrollSetting.conversations);
 
-      await tester.tap(findRadioListTileWithTitle<MarkReadOnScrollSetting>(
+      await tester.tap(findCustomRadioTileWithTitle<MarkReadOnScrollSetting>(
         settingTitle(MarkReadOnScrollSetting.never)));
       await tester.pump();
       checkPage(tester, expectedSetting: MarkReadOnScrollSetting.never);
