@@ -616,15 +616,38 @@ class ChannelDeleteEvent extends ChannelEvent {
   @JsonKey(includeToJson: true)
   String get op => 'delete';
 
-  final List<ZulipStream> streams;
+  @JsonKey(readValue: _readChannelIds, includeToJson: false)
+  final List<int> channelIds;
 
-  ChannelDeleteEvent({required super.id, required this.streams});
+  // TODO(server-10) simplify away; rely on stream_ids
+  static List<int> _readChannelIds(Map<dynamic, dynamic> json, String key) {
+    final channelIds = json['stream_ids'] as List<dynamic>?;
+    if (channelIds != null) channelIds.map((id) => id as int).toList();
+
+    final channels = json['streams'] as List<dynamic>;
+    return channels
+      .map((c) => (c as Map<String, dynamic>)['stream_id'] as int)
+      .toList();
+  }
+
+  ChannelDeleteEvent({
+    required super.id,
+    required this.channelIds,
+  });
 
   factory ChannelDeleteEvent.fromJson(Map<String, dynamic> json) =>
     _$ChannelDeleteEventFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$ChannelDeleteEventToJson(this);
+  Map<String, dynamic> toJson() {
+    // TODO(server-10) simplify away; rely on stream_ids
+    final result = _$ChannelDeleteEventToJson(this);
+    result['stream_ids'] = channelIds;
+    result['streams'] = [
+      for (final id in channelIds) {'stream_id': id}
+    ];
+    return result;
+  }
 }
 
 /// A [ChannelEvent] with op `update`: https://zulip.com/api/get-events#stream-update
@@ -683,6 +706,8 @@ class ChannelUpdateEvent extends ChannelEvent {
         return value as int?;
       case ChannelPropertyName.channelPostPolicy:
         return ChannelPostPolicy.fromApiValue(value as int);
+      case ChannelPropertyName.isRecentlyActive:
+        return value as bool?;
       case ChannelPropertyName.folderId:
         return value as int?;
       case ChannelPropertyName.canAddSubscribersGroup:
