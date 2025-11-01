@@ -10,6 +10,7 @@ extension ComposeContentControllerChecks on Subject<ComposeContentController> {
 
 extension ComposeTopicControllerChecks on Subject<ComposeTopicController> {
   Subject<AutocompleteIntent<TopicAutocompleteQuery>?> get autocompleteIntent => has((c) => c.autocompleteIntent(), 'autocompleteIntent');
+  Subject<String> get textNormalized => has((c) => c.textNormalized, 'textNormalized');
 }
 
 extension AutocompleteIntentChecks on Subject<AutocompleteIntent<AutocompleteQuery>> {

@@ -41,6 +41,7 @@ import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
+import '../model/autocomplete_checks.dart';
 import '../model/binding.dart';
 import '../model/content_test.dart';
 import '../model/test_store.dart';
@@ -1674,8 +1675,8 @@ void main() {
         check(contentController).not((it) => it.validationErrors.contains(ContentValidationError.quoteAndReplyInProgress));
       }
 
-      testWidgets('in channel narrow', (tester) async {
-        final message = eg.streamMessage();
+      testWidgets('in channel narrow with different, non-vacuous topic', (tester) async {
+        final message = eg.streamMessage(topic: 'some topic');
         await setupToMessageActionSheet(tester, message: message, narrow: ChannelNarrow(message.streamId));
 
         final composeBoxController = findComposeBoxController(tester) as StreamComposeBoxController;
@@ -1685,7 +1686,7 @@ void main() {
         connection.prepare(body:
           jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
         final topicController = composeBoxController.topic;
-        topicController.value = const TextEditingValue(text: kNoTopicTopic);
+        topicController.value = TextEditingValue(text: 'other topic');
 
         final valueBefore = contentController.value;
         prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
@@ -1695,6 +1696,32 @@ void main() {
         check(composeBoxController.contentFocusNode.hasFocus).isTrue();
         checkSuccessState(store, contentController,
           valueBefore: valueBefore, message: message, rawContent: 'Hello world');
+        check(topicController).textNormalized.equals('other topic');
+      });
+
+      testWidgets('in channel narrow with empty topic', (tester) async {
+        // Regression test for https://github.com/zulip/zulip-flutter/issues/1469
+        final message = eg.streamMessage(topic: 'some topic');
+        await setupToMessageActionSheet(tester, message: message, narrow: ChannelNarrow(message.streamId));
+
+        final composeBoxController = findComposeBoxController(tester) as StreamComposeBoxController;
+        final contentController = composeBoxController.content;
+
+        // Ensure channel-topics are loaded before testing quote & reply behavior
+        connection.prepare(body:
+          jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
+        final topicController = composeBoxController.topic;
+        topicController.value = const TextEditingValue(text: '');
+
+        final valueBefore = contentController.value;
+        prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
+        await tapQuoteAndReplyButton(tester);
+        checkLoadingState(store, contentController, valueBefore: valueBefore, message: message);
+        await tester.pump(Duration.zero); // message is fetched; compose box updates
+        check(composeBoxController.contentFocusNode.hasFocus).isTrue();
+        checkSuccessState(store, contentController,
+          valueBefore: valueBefore, message: message, rawContent: 'Hello world');
+        check(topicController).textNormalized.equals('some topic');
       });
 
       group('in topic narrow', () {

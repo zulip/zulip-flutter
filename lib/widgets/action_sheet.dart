@@ -1409,7 +1409,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     composeBoxController!;
     if (
       composeBoxController is StreamComposeBoxController
-      && composeBoxController.topic.textNormalized == kNoTopicTopic
+      && composeBoxController.topic.isTopicVacuous
       && message is StreamMessage
     ) {
       composeBoxController.topic.setTopic(message.topic);
