@@ -21,6 +21,7 @@ import 'katex.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
+import 'profile.dart';
 import 'scrolling.dart';
 import 'store.dart';
 import 'text.dart';
@@ -1216,25 +1217,38 @@ class UserMention extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final contentTheme = ContentTheme.of(context);
-    return Container(
+    final userId = node.userId;
+
+    final innerContent = InlineContent(
+      // If an @-mention is inside a link, let the @-mention override it.
+      recognizer: null,
+      // One hopes an @-mention can't contain an embedded link.
+      // (The parser on creating a UserMentionNode has a TODO to check that.)
+      linkRecognizers: null,
+
+      style: ambientTextStyle,
+
+      nodes: node.nodes);
+
+    final widget = Container(
       decoration: BoxDecoration(
         // TODO(#646) different for wildcard mentions
         color: contentTheme.colorDirectMentionBackground,
         borderRadius: const BorderRadius.all(Radius.circular(3))),
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
-      child: InlineContent(
-        // If an @-mention is inside a link, let the @-mention override it.
-        recognizer: null,  // TODO(#1867) make @-mentions tappable, for info on user
-        // One hopes an @-mention can't contain an embedded link.
-        // (The parser on creating a UserMentionNode has a TODO to check that.)
-        linkRecognizers: null,
+      child: innerContent);
 
-        // TODO(#647) when self-user is non-silently mentioned, make bold, and:
-        // TODO(#646) when self-user is non-silently mentioned,
-        //   distinguish font color between direct and wildcard mentions
-        style: ambientTextStyle,
-
-        nodes: node.nodes));
+    if (userId != null && userId > 0) {
+      return GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          ProfilePage.buildRoute(context: context, userId: userId),
+        ),
+        child: widget,
+      );
+    } else {
+      return widget;
+    }
   }
 
 // This is a more literal translation of Zulip web's CSS.
