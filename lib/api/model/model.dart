@@ -184,7 +184,17 @@ class RealmEmojiItem {
   final String emojiCode;
   final String name;
   final String sourceUrl;
+
+  /// The non-animated version, if this is an animated emoji.
+  ///
+  /// As of 2025-10, this will be missing on animated emoji
+  /// that were uploaded before Zulip Server 5 when this was added;
+  /// see https://github.com/zulip/zulip/issues/36339 .
+  // TODO(server-future) Update dartdoc once all supported servers
+  //   have a fix for https://github.com/zulip/zulip/issues/36339
+  //   i.e. that have run a migration to fill this in for animated emoji.
   final String? stillUrl;
+
   final bool deactivated;
   final int? authorId;
 
