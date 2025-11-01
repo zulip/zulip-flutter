@@ -22,6 +22,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
   customProfileFields: (json['custom_profile_fields'] as List<dynamic>)
       .map((e) => CustomProfileField.fromJson(e as Map<String, dynamic>))
       .toList(),
+  maxTopicLength: (json['max_topic_length'] as num).toInt(),
   serverPresencePingIntervalSeconds:
       (json['server_presence_ping_interval_seconds'] as num).toInt(),
   serverPresenceOfflineThresholdSeconds:
@@ -152,6 +153,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'zulip_merge_base': instance.zulipMergeBase,
   'alert_words': instance.alertWords,
   'custom_profile_fields': instance.customProfileFields,
+  'max_topic_length': instance.maxTopicLength,
   'server_presence_ping_interval_seconds':
       instance.serverPresencePingIntervalSeconds,
   'server_presence_offline_threshold_seconds':

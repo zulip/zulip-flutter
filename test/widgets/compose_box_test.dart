@@ -64,6 +64,7 @@ void main() {
     List<Message>? messages,
     bool? mandatoryTopics,
     int? zulipFeatureLevel,
+    int? maxTopicLength,
   }) async {
     streams ??= subscriptions;
 
@@ -91,6 +92,7 @@ void main() {
       realmMandatoryTopics: mandatoryTopics,
       realmAllowMessageEditing: true,
       realmMessageContentEditLimitSeconds: null,
+      maxTopicLength: maxTopicLength,
     ));
 
     store = await testBinding.globalStore.perAccount(selfAccount.id);
@@ -411,40 +413,43 @@ void main() {
     });
 
     group('topic', () {
-      Future<void> prepareWithTopic(WidgetTester tester, String topic) async {
+      Future<void> prepareWithTopic(WidgetTester tester, String topic, {
+        required int maxTopicLength,
+      }) async {
         TypingNotifier.debugEnable = false;
         addTearDown(TypingNotifier.debugReset);
         MessageStoreImpl.debugOutboxEnable = false;
         addTearDown(MessageStoreImpl.debugReset);
 
         final narrow = ChannelNarrow(channel.streamId);
-        await prepareComposeBox(tester, narrow: narrow, subscriptions: [eg.subscription(channel)]);
+        await prepareComposeBox(tester, narrow: narrow, subscriptions: [eg.subscription(channel)],
+          maxTopicLength: maxTopicLength);
         await enterTopic(tester, narrow: narrow, topic: topic);
         await enterContent(tester, 'some content');
       }
 
-      Future<void> checkErrorResponse(WidgetTester tester) async {
+      Future<void> checkErrorResponse(WidgetTester tester, {required int maxTopicLength}) async {
         await tester.tap(find.byWidget(checkErrorDialog(tester,
           expectedTitle: 'Message not sent',
-          expectedMessage: 'Topic length shouldn\'t be greater than 60 characters.')));
+          expectedMessage: 'Topic length shouldn\'t be greater than $maxTopicLength ${maxTopicLength == 1 ? 'character' : 'characters'}.')));
       }
 
       testWidgets('too-long topic is rejected', (tester) async {
-        await prepareWithTopic(tester,
-          makeStringWithCodePoints(kMaxTopicLengthCodePoints + 1));
+        await prepareWithTopic(tester, makeStringWithCodePoints(37 + 1),
+          maxTopicLength: 37);
         await tapSendButton(tester);
-        await checkErrorResponse(tester);
+        await checkErrorResponse(tester, maxTopicLength: 37);
       });
 
       testWidgets('max-length topic not rejected', (tester) async {
-        await prepareWithTopic(tester,
-          makeStringWithCodePoints(kMaxTopicLengthCodePoints));
+        await prepareWithTopic(tester, makeStringWithCodePoints(37),
+          maxTopicLength: 37);
         await tapSendButton(tester);
         checkNoDialog(tester);
       });
 
       testWidgets('code points not counted unnecessarily', (tester) async {
-        await prepareWithTopic(tester, 'a' * kMaxTopicLengthCodePoints);
+        await prepareWithTopic(tester, 'a' * 37, maxTopicLength: 37);
         check((controller as StreamComposeBoxController)
           .topic.debugLengthUnicodeCodePointsIfLong).isNull();
       });

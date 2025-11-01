@@ -24,6 +24,8 @@ class InitialSnapshot {
 
   final List<CustomProfileField> customProfileFields;
 
+  final int maxTopicLength;
+
   final int serverPresencePingIntervalSeconds;
   final int serverPresenceOfflineThresholdSeconds;
 
@@ -158,6 +160,7 @@ class InitialSnapshot {
     required this.zulipMergeBase,
     required this.alertWords,
     required this.customProfileFields,
+    required this.maxTopicLength,
     required this.serverPresencePingIntervalSeconds,
     required this.serverPresenceOfflineThresholdSeconds,
     required this.serverTypingStartedExpiryPeriodMilliseconds,

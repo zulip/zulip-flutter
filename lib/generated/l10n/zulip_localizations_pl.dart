@@ -674,8 +674,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get loginErrorMissingUsername => 'Proszę podaj nazwę użytkownika.';
 
   @override
-  String get topicValidationErrorTooLong =>
-      'Tytuł nie może być dłuższy niż 60 znaków.';
+  String topicValidationErrorTooLong(int maxLength) {
+    return 'Tytuł nie może być dłuższy niż 60 znaków.';
+  }
 
   @override
   String get topicValidationErrorMandatoryButEmpty =>

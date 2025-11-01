@@ -141,10 +141,10 @@ enum TopicValidationError {
   mandatoryButEmpty,
   tooLong;
 
-  String message(ZulipLocalizations zulipLocalizations) {
+  String message(ZulipLocalizations zulipLocalizations, {required int maxLength}) {
     switch (this) {
       case tooLong:
-        return zulipLocalizations.topicValidationErrorTooLong;
+        return zulipLocalizations.topicValidationErrorTooLong(maxLength);
       case mandatoryButEmpty:
         return zulipLocalizations.topicValidationErrorMandatoryButEmpty;
     }
@@ -161,8 +161,7 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   // TODO(#668): listen to [PerAccountStore] once we subscribe to this value
   bool get mandatory => store.realmMandatoryTopics;
 
-  // TODO(#307) use `max_topic_length` instead of hardcoded limit
-  @override final maxLengthUnicodeCodePoints = kMaxTopicLengthCodePoints;
+  @override int get maxLengthUnicodeCodePoints => store.maxTopicLength;
 
   @override
   String _computeTextNormalized() {
@@ -1309,11 +1308,12 @@ class _SendButtonState extends State<_SendButton> {
 
     if (_hasValidationErrors) {
       final zulipLocalizations = ZulipLocalizations.of(context);
+      final store = PerAccountStoreWidget.of(context);
       List<String> validationErrorMessages = [
         for (final error in (controller is StreamComposeBoxController
                               ? controller.topic.validationErrors
                               : const <TopicValidationError>[]))
-          error.message(zulipLocalizations),
+          error.message(zulipLocalizations, maxLength: store.maxTopicLength),
         for (final error in controller.content.validationErrors)
           error.message(zulipLocalizations),
       ];
