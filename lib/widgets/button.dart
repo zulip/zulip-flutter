@@ -303,11 +303,11 @@ class _AnimatedScaleOnTapState extends State<AnimatedScaleOnTap> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Listener(
       behavior: HitTestBehavior.translucent,
-      onTapDown: (_) =>  _changeScale(widget.scaleEnd),
-      onTapUp: (_) =>    _changeScale(1),
-      onTapCancel: () => _changeScale(1),
+      onPointerDown: (_) =>  _changeScale(widget.scaleEnd),
+      onPointerUp: (_) =>    _changeScale(1),
+      onPointerCancel: (_) => _changeScale(1),
       child: AnimatedScale(
         scale: _scale,
         duration: widget.duration,
