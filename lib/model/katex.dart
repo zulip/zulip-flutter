@@ -611,6 +611,12 @@ class _KatexParser {
             _ => throw _KatexHtmlParseError(),
           };
 
+        case 'thinbox':
+        // .thinbox { display: inline-flex; flex-direction: row; width: 0; max-width: 0; }
+        case 'rlap':
+        // .rlap { width: 0; position: relative; }
+          widthEm = 0;
+
         // TODO handle more classes from katex.scss
 
         case 'mord':
@@ -626,6 +632,9 @@ class _KatexParser {
         case 'nobreak':
         case 'allowbreak':
         case 'mathdefault':
+        case 'vbox':
+        case 'inner':
+        case 'fix':
           // Ignore these classes because they don't have a CSS definition
           // in katex.scss, but we encounter them in the generated HTML.
           // (Why are they there if they're not used?  The story seems to be:
