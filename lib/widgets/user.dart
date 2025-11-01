@@ -4,9 +4,9 @@ import '../api/model/model.dart';
 import '../model/avatar_url.dart';
 import '../model/binding.dart';
 import '../model/presence.dart';
-import 'content.dart';
 import 'emoji.dart';
 import 'icons.dart';
+import 'image.dart';
 import 'store.dart';
 import 'theme.dart';
 

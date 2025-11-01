@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 
 import '../api/model/model.dart';
 import '../model/emoji.dart';
-import 'content.dart';
+import 'image.dart';
 
 /// A widget showing an emoji.
 class EmojiWidget extends StatelessWidget {

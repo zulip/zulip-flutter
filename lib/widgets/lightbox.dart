@@ -11,6 +11,7 @@ import '../model/binding.dart';
 import 'actions.dart';
 import 'content.dart';
 import 'dialog.dart';
+import 'image.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
