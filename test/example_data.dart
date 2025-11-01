@@ -466,6 +466,7 @@ ZulipStream stream({
   int? messageRetentionDays,
   ChannelPostPolicy? channelPostPolicy,
   int? folderId,
+  TopicsPolicy? topicsPolicy,
   GroupSettingValue? canAddSubscribersGroup,
   GroupSettingValue? canDeleteAnyMessageGroup,
   GroupSettingValue? canDeleteOwnMessageGroup,
@@ -498,6 +499,7 @@ ZulipStream stream({
     messageRetentionDays: messageRetentionDays,
     channelPostPolicy: channelPostPolicy ?? ChannelPostPolicy.any,
     folderId: folderId,
+    topicsPolicy: topicsPolicy ?? TopicsPolicy.inherit,
     canAddSubscribersGroup: canAddSubscribersGroup ?? GroupSettingValueNamed(nobodyGroup.id),
     canDeleteAnyMessageGroup: canDeleteAnyMessageGroup ?? GroupSettingValueNamed(nobodyGroup.id),
     canDeleteOwnMessageGroup: canDeleteOwnMessageGroup ?? GroupSettingValueNamed(nobodyGroup.id),
@@ -543,6 +545,7 @@ Subscription subscription(
     messageRetentionDays: stream.messageRetentionDays,
     channelPostPolicy: stream.channelPostPolicy,
     folderId: stream.folderId,
+    topicsPolicy: stream.topicsPolicy,
     canAddSubscribersGroup: stream.canAddSubscribersGroup,
     canDeleteAnyMessageGroup: stream.canDeleteAnyMessageGroup,
     canDeleteOwnMessageGroup: stream.canDeleteOwnMessageGroup,
@@ -1265,6 +1268,8 @@ ChannelUpdateEvent channelUpdateEvent(
       assert(value is ChannelPostPolicy);
     case ChannelPropertyName.folderId:
       assert(value is int?);
+    case ChannelPropertyName.topicsPolicy:
+      assert(value is TopicsPolicy);
     case ChannelPropertyName.canAddSubscribersGroup:
     case ChannelPropertyName.canDeleteAnyMessageGroup:
     case ChannelPropertyName.canDeleteOwnMessageGroup:
