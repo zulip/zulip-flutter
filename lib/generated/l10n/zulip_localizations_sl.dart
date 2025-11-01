@@ -40,9 +40,6 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get settingsPageTitle => 'Nastavitve';
 
   @override
-  String get switchAccountButton => 'Preklopi račun';
-
-  @override
   String tryAnotherAccountMessage(Object url) {
     return 'Nalaganje vašega računa iz $url traja dlje kot običajno.';
   }

@@ -41,9 +41,6 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get settingsPageTitle => 'Settings';
 
   @override
-  String get switchAccountButton => 'Switch account';
-
-  @override
   String tryAnotherAccountMessage(Object url) {
     return 'Your account at $url is taking a while to load.';
   }
@@ -1207,9 +1204,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get settingsPageTitle => '设置';
 
   @override
-  String get switchAccountButton => '切换账号';
-
-  @override
   String tryAnotherAccountMessage(Object url) {
     return '您在 $url 的账号加载时间过长。';
   }
@@ -2291,9 +2285,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get settingsPageTitle => '設定';
-
-  @override
-  String get switchAccountButton => '切換帳號';
 
   @override
   String tryAnotherAccountMessage(Object url) {

@@ -41,9 +41,6 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get settingsPageTitle => 'Impostazioni';
 
   @override
-  String get switchAccountButton => 'Cambia account';
-
-  @override
   String tryAnotherAccountMessage(Object url) {
     return 'Il caricamento dell\'account su $url sta richiedendo un po\' di tempo.';
   }

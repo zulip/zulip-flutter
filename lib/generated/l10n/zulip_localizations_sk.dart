@@ -41,9 +41,6 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get settingsPageTitle => 'Settings';
 
   @override
-  String get switchAccountButton => 'Zmeniť účet';
-
-  @override
   String tryAnotherAccountMessage(Object url) {
     return 'Načítavanie vášho konta na adrese $url chvílu trvá.';
   }
