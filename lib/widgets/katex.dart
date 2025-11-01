@@ -123,6 +123,20 @@ class _KatexSpan extends StatelessWidget {
       null => null,
     };
 
+    if (styles.borderBottomStyle == KatexSpanBorderBottomStyle.solid &&
+        styles.borderBottomWidthEm != null) {
+      final borderColor = color ?? DefaultTextStyle.of(context).style.color!;
+      final borderWidth = styles.borderBottomWidthEm! * em;
+
+      widget = Container(
+        constraints: const BoxConstraints(minWidth: double.infinity),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: borderColor, width: borderWidth, style: BorderStyle.solid))),
+        child: widget,
+      );
+    }
+
     TextStyle? textStyle;
     if (fontFamily != null ||
         fontSize != null ||
@@ -232,11 +246,13 @@ class _KatexVlist extends StatelessWidget {
   Widget build(BuildContext context) {
     final em = DefaultTextStyle.of(context).style.fontSize!;
 
-    return Stack(children: List.unmodifiable(node.rows.map((row) {
-      return Transform.translate(
-        offset: Offset(0, row.verticalOffsetEm * em),
-        child: _KatexSpan(row.node));
-    })));
+    return IntrinsicWidth(
+      child: Stack(children: List.unmodifiable(node.rows.map((row) {
+        return Transform.translate(
+          offset: Offset(0, row.verticalOffsetEm * em),
+          child: _KatexSpan(row.node));
+      }))),
+    );
   }
 }
 
