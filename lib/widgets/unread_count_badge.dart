@@ -6,24 +6,35 @@ import 'theme.dart';
 
 /// A widget to display a given number of unreads in a conversation.
 ///
-/// Implements the design for these in Figma:
-///   <https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=341%3A12387&mode=dev>
+/// See Figma's "counter-menu" component, which this is based on:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2037-186671&m=dev
+/// It looks like that component was created for the main menu,
+/// then adapted for various other contexts, like the Inbox page.
+///
+/// Currently this widget supports only those other contexts (not the main menu)
+/// and only the component's "kind=unread" variant (not "kind=quantity").
+/// For example, the "Channels" page and the topic-list page:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6205-26001&m=dev
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6823-37113&m=dev
+/// (We use this for the topic-list page even though the Figma makes it a bit
+/// more compact there…the inconsistency seems worse and might be accidental.)
+// TODO support the main-menu context, update dartdoc
+// TODO support the "kind=quantity" variant, update dartdoc
 class UnreadCountBadge extends StatelessWidget {
   const UnreadCountBadge({
     super.key,
     required this.count,
     required this.channelIdForBackground,
-    this.bold = false,
   });
 
   final int count;
-  final bool bold;
 
   /// An optional [Subscription.streamId], for a channel-colorized background.
   ///
   /// Useful when this badge represents messages in one specific channel.
   ///
   /// If null, the default neutral background will be used.
+  // TODO remove; the Figma doesn't use this anymore.
   final int? channelIdForBackground;
 
   @override
@@ -46,19 +57,17 @@ class UnreadCountBadge extends StatelessWidget {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(3),
+        borderRadius: BorderRadius.circular(5),
         color: backgroundColor,
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(4, 0, 4, 1),
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
         child: Text(
           style: TextStyle(
             fontSize: 16,
-            height: (18 / 16),
-            fontFeatures: const [FontFeature.enable('smcp')], // small caps
+            height: (16 / 16),
             color: textColor,
-          ).merge(weightVariableTextStyle(context,
-              wght: bold ? 600 : null)),
+          ).merge(weightVariableTextStyle(context, wght: 500)),
           count.toString())));
   }
 }

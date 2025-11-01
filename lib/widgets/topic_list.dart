@@ -14,6 +14,7 @@ import 'page.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'unread_count_badge.dart';
 
 class TopicListPage extends StatelessWidget {
   const TopicListPage({super.key, required this.streamId});
@@ -264,43 +265,50 @@ class _TopicItem extends StatelessWidget {
           topic: topic,
           someMessageIdInTopic: maxId),
         splashFactory: NoSplash.splashFactory,
-        child: Padding(padding: EdgeInsetsDirectional.fromSTEB(6, 8, 12, 8),
-          child: Row(
-            spacing: 8,
-            // In the Figma design, the text and icons on the topic item row
-            // are aligned to the start on the cross axis
-            // (i.e., `align-items: flex-start`).  The icons are padded down
-            // 2px relative to the start, to visibly sit on the baseline.
-            // To account for scaled text, we align everything on the row
-            // to [CrossAxisAlignment.center] instead ([Row]'s default),
-            // like we do for the topic items on the inbox page.
-            // TODO(#1528): align to baseline (and therefore to first line of
-            //   topic name), but with adjustment for icons
-            // CZO discussion:
-            //   https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/topic.20list.20item.20alignment/near/2173252
-            children: [
-              // A null [Icon.icon] makes a blank space.
-              _IconMarker(icon: topic.isResolved ? ZulipIcons.check : null),
-              Expanded(child: Opacity(
-                opacity: opacity,
-                child: Text(
-                  style: TextStyle(
-                    fontSize: 17,
-                    height: 20 / 17,
-                    fontStyle: topic.displayName == null ? FontStyle.italic : null,
-                    color: designVariables.textMessage,
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  topic.unresolve().displayName ?? store.realmEmptyTopicDisplayName))),
-              Opacity(opacity: opacity, child: Row(
-                spacing: 4,
-                children: [
-                  if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
-                  if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
-                  if (unreadCount > 0) _UnreadCountBadge(count: unreadCount),
-                ])),
-            ]))));
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: 40),
+          child: Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(6, 4, 12, 4),
+            child: Row(
+              spacing: 8,
+              // In the Figma design, the text and icons on the topic item row
+              // are aligned to the start on the cross axis
+              // (i.e., `align-items: flex-start`).  The icons are padded down
+              // 2px relative to the start, to visibly sit on the baseline.
+              // To account for scaled text, we align everything on the row
+              // to [CrossAxisAlignment.center] instead ([Row]'s default),
+              // like we do for the topic items on the inbox page.
+              // TODO(#1528): align to baseline (and therefore to first line of
+              //   topic name), but with adjustment for icons
+              // CZO discussion:
+              //   https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/topic.20list.20item.20alignment/near/2173252
+              children: [
+                // A null [Icon.icon] makes a blank space.
+                _IconMarker(icon: topic.isResolved ? ZulipIcons.check : null),
+                Expanded(child: Opacity(
+                  opacity: opacity,
+                  child: Text(
+                    style: TextStyle(
+                      fontSize: 17,
+                      height: 20 / 17,
+                      fontStyle: topic.displayName == null ? FontStyle.italic : null,
+                      color: designVariables.textMessage,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    topic.unresolve().displayName ?? store.realmEmptyTopicDisplayName))),
+                Opacity(opacity: opacity, child: Row(
+                  spacing: 4,
+                  children: [
+                    if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
+                    if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
+                    if (unreadCount > 0)
+                      UnreadCountBadge(
+                        count: unreadCount,
+                        channelIdForBackground: null),
+                  ])),
+              ])),
+        )));
   }
 }
 
@@ -318,33 +326,5 @@ class _IconMarker extends StatelessWidget {
     return Icon(icon,
       size: textScaler.clamp(maxScaleFactor: 1.5).scale(16),
       color: designVariables.textMessage.withFadedAlpha(0.4));
-  }
-}
-
-// This is adapted from [UnreadCountBadge].
-// TODO(#1406) see if we can reuse this in redesign
-// TODO(#1527) see if we can reuse this in redesign
-class _UnreadCountBadge extends StatelessWidget {
-  const _UnreadCountBadge({required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-        color: designVariables.bgCounterUnread,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        child: Text(count.toString(),
-          style: TextStyle(
-            fontSize: 15,
-            height: 16 / 15,
-            color: designVariables.labelCounterUnread,
-          ).merge(weightVariableTextStyle(context, wght: 500)))));
   }
 }
