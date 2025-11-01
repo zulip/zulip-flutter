@@ -5,6 +5,7 @@ import '../model/settings.dart';
 import 'app_bar.dart';
 import 'page.dart';
 import 'store.dart';
+import 'text.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -18,9 +19,9 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return Scaffold(
-      appBar: ZulipAppBar(
-        title: Text(zulipLocalizations.settingsPageTitle)),
+      appBar: ZulipAppBar(title: Text(zulipLocalizations.settingsPageTitle),centerTitle: true),
       body: ListView(children: [
+        _ThemeSettingTitle(title: ZulipLocalizations.of(context).themeSettingTitle),
         const _ThemeSetting(),
         const _BrowserPreferenceSetting(),
         const _VisitFirstUnreadSetting(),
@@ -33,6 +34,21 @@ class SettingsPage extends StatelessWidget {
       ]));
   }
 }
+
+class _ThemeSettingTitle extends StatelessWidget {
+  const _ThemeSettingTitle({required this.title});
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+    color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16,8),
+        child: Text(title,
+          style: TextStyle(fontSize: 17).merge(weightVariableTextStyle(context, wght: 600)),
+        )));
+  }}
 
 class _ThemeSetting extends StatelessWidget {
   const _ThemeSetting();
@@ -51,7 +67,6 @@ class _ThemeSetting extends StatelessWidget {
       onChanged: (newValue) => _handleChange(context, newValue),
       child: Column(
         children: [
-          ListTile(title: Text(zulipLocalizations.themeSettingTitle)),
           for (final themeSettingOption in [null, ...ThemeSetting.values])
             RadioListTile<ThemeSetting?>.adaptive(
               title: Text(ThemeSetting.displayName(
