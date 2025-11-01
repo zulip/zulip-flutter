@@ -82,6 +82,20 @@ void main () {
   }
 
   group('bottom nav navigation', () {
+    final findBottomNavDecoratedBox = find.byWidgetPredicate((widget) {
+      if (widget is! DecoratedBox) return false;
+
+      final decoration = widget.decoration;
+      if (decoration is! BoxDecoration) return false;
+
+      final expectedBorderTop = BorderSide(color: Colors.black.withValues(alpha: 0.2));
+      return decoration.border == Border(top: expectedBorderTop);
+    });
+
+    // Finds a widget within the bottom navbar's decorated box subtree.
+    Finder findInBottomNav(Finder finder) =>
+      find.descendant(of: findBottomNavDecoratedBox, matching: finder);
+
     testWidgets('preserve states when switching between views', (tester) async {
       await prepare(tester);
       await store.addUser(eg.otherUser);
@@ -129,6 +143,26 @@ void main () {
       check(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text('Direct messages'))).findsOne();
+    });
+
+    testWidgets("view switches when labels are tapped", (tester) async {
+      await prepare(tester);
+
+      check(find.descendant(
+          of: find.byType(ZulipAppBar),
+          matching: find.text('Inbox'))).findsOne();
+
+      await tester.tap(findInBottomNav(find.text('Channels')));
+      await tester.pump();
+      check(find.descendant(
+          of: find.byType(ZulipAppBar),
+          matching: find.text('Channels'))).findsOne();
+
+      await tester.tap(findInBottomNav(find.text('Direct messages')));
+      await tester.pump();
+      check(find.descendant(
+          of: find.byType(ZulipAppBar),
+          matching: find.text('Direct messages'))).findsOne();
     });
 
     testWidgets('combined feed', (tester) async {
