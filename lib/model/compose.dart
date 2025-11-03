@@ -235,6 +235,17 @@ String fallbackMarkdownLink({
   return inlineLink(text.toString(), '#$linkFragment');
 }
 
+/// A #channel link syntax of a channel, like #**announce**.
+///
+/// [fallbackMarkdownLink] will be used if the channel name includes some faulty
+/// characters that will break normal #**channel** rendering.
+String channelLink(ZulipStream channel, {required PerAccountStore store}) {
+  if (_channelTopicFaultyCharsRegex.hasMatch(channel.name)) {
+    return fallbackMarkdownLink(store: store, channel: channel);
+  }
+  return '#**${channel.name}**';
+}
+
 /// https://spec.commonmark.org/0.30/#inline-link
 ///
 /// The "link text" is made by enclosing [visibleText] in square brackets.
