@@ -185,6 +185,48 @@ String wildcardMention(WildcardMentionOption wildcardOption, {
 String userGroupMention(String userGroupName, {bool silent = false}) =>
   '@${silent ? '_' : ''}*$userGroupName*';
 
+// Corresponds to `topic_link_util.escape_invalid_stream_topic_characters`
+// in Zulip web:
+//   https://github.com/zulip/zulip/blob/b42d3e77e/web/src/topic_link_util.ts#L15-L34
+const _channelAvoidedCharsReplacements = {
+  '`': '&#96;',
+  '>': '&gt;',
+  '*': '&#42;',
+  '&': '&amp;',
+  '[': '&#91;',
+  ']': '&#93;',
+  r'$$': '&#36;&#36;',
+};
+
+final _channelAvoidedCharsRegex = RegExp(r'[`>*&[\]]|\$\$');
+
+/// Markdown link for channel when the channel name includes characters that
+/// will break normal markdown rendering.
+///
+/// Refer to [_channelAvoidedCharsReplacements] for a complete list of
+/// these characters.
+// Adopted from `topic_link_util.get_fallback_markdown_link` in Zulip web;
+//   https://github.com/zulip/zulip/blob/b42d3e77e/web/src/topic_link_util.ts#L96-L108
+String _channelFallbackMarkdownLink(ZulipStream channel, {
+  required PerAccountStore store,
+}) {
+  final text = '#${channel.name.replaceAllMapped(_channelAvoidedCharsRegex,
+    (match) => _channelAvoidedCharsReplacements[match[0]]!)}';
+  final relativeLink = '#${narrowLinkFragment(store, ChannelNarrow(channel.streamId))}';
+  return inlineLink(text.toString(), relativeLink);
+}
+
+/// A #channel link syntax of a channel, like #**announce**.
+///
+/// A plain Markdown link will be used if the channel name includes some
+/// characters that would break normal #**channel** rendering.
+String channelLink(ZulipStream channel, {required PerAccountStore store}) {
+  if (_channelAvoidedCharsRegex.hasMatch(channel.name)) {
+    return _channelFallbackMarkdownLink(channel, store: store);
+  }
+  return '#**${channel.name}**';
+}
+
 /// https://spec.commonmark.org/0.30/#inline-link
 ///
 /// The "link text" is made by enclosing [visibleText] in square brackets.
