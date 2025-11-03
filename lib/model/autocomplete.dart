@@ -116,6 +116,7 @@ final RegExp _mentionIntentRegex = (() {
   // full_name, find uses of UserProfile.NAME_INVALID_CHARS in zulip/zulip.)
   const fullNameAndEmailCharExclusions = r'\*`\\>"\p{Other}';
 
+  // TODO(#1967): ignore immediate "**" after '@' sign
   return RegExp(
     beforeAtSign
     + r'@(_?)' // capture, so we can distinguish silent mentions
