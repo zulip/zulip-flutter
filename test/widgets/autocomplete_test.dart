@@ -16,6 +16,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/autocomplete.dart';
 import 'package:zulip/widgets/compose_box.dart';
+import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/user.dart';
@@ -352,6 +353,60 @@ void main() {
 
         debugNetworkImageHttpClientProvider = null;
       });
+    });
+  });
+
+  group('#channel link', () {
+    void checkChannelShown(ZulipStream channel, {required bool expected}) {
+      check(find.ancestor(of: find.byIcon(iconDataForStream(channel)),
+        matching: find.ancestor(of: find.text(channel.name),
+          matching: find.byType(Row)))
+      ).findsExactly(expected ? 1 : 0);
+    }
+
+    testWidgets('options appear, disappear, and change correctly', (tester) async {
+      final channel1 = eg.stream(name: 'mobile');
+      final channel2 = eg.stream(name: 'mobile design');
+      final channel3 = eg.stream(name: 'mobile dev help');
+      final composeInputFinder = await setupToComposeInput(tester,
+        channels: [channel1, channel2, channel3]);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      // Options are filtered correctly for query.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check #mobile ');
+      await tester.enterText(composeInputFinder, 'check #mobile de');
+      await tester.pumpAndSettle(); // async computation; options appear
+
+      checkChannelShown(channel1, expected: false);
+      checkChannelShown(channel2, expected: true);
+      checkChannelShown(channel3, expected: true);
+
+      // Finishing autocomplete updates compose box; causes options to disappear.
+      await tester.tap(find.text('mobile design'));
+      await tester.pump();
+      check(tester.widget<TextField>(composeInputFinder).controller!.text)
+        .contains(channelLink(channel2, store: store));
+      checkChannelShown(channel1, expected: false);
+      checkChannelShown(channel2, expected: false);
+      checkChannelShown(channel3, expected: false);
+
+      // Then a new autocomplete intent brings up options again.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check #mobile de');
+      await tester.enterText(composeInputFinder, 'check #mobile dev');
+      await tester.pumpAndSettle(); // async computation; options appear
+      checkChannelShown(channel3, expected: true);
+
+      // Removing autocomplete intent causes options to disappear.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check ');
+      await tester.enterText(composeInputFinder, 'check');
+      checkChannelShown(channel1, expected: false);
+      checkChannelShown(channel2, expected: false);
+      checkChannelShown(channel3, expected: false);
+
+      debugNetworkImageHttpClientProvider = null;
     });
   });
 
