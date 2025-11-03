@@ -1422,6 +1422,7 @@ InitialSnapshot initialSnapshot({
   GroupSettingValue? realmCanDeleteOwnMessageGroup,
   RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy,
   RealmWildcardMentionPolicy? realmWildcardMentionPolicy,
+  RealmTopicsPolicy? realmTopicsPolicy,
   bool? realmMandatoryTopics,
   String? realmName,
   int? realmWaitingPeriodThreshold,
@@ -1487,6 +1488,8 @@ InitialSnapshot initialSnapshot({
     realmCanDeleteOwnMessageGroup: realmCanDeleteOwnMessageGroup,
     realmDeleteOwnMessagePolicy: realmDeleteOwnMessagePolicy,
     realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? RealmWildcardMentionPolicy.everyone,
+    // no default; allow `null` to simulate servers without this
+    realmTopicsPolicy: realmTopicsPolicy,
     realmMandatoryTopics: realmMandatoryTopics ?? true,
     realmName: realmName ?? 'Example Zulip organization',
     realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
