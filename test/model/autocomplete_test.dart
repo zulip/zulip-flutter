@@ -1352,7 +1352,7 @@ void main() {
       .topic.equals(third.name);
   });
 
-  test('TopicAutocompleteView updates results when streams are loaded', () async {
+  test('TopicAutocompleteView updates results when topics are loaded', () async {
     final store = eg.store();
     final connection = store.connection as FakeApiConnection;
     connection.prepare(json: GetChannelTopicsResult(
