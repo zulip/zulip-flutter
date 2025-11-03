@@ -185,6 +185,56 @@ String wildcardMention(WildcardMentionOption wildcardOption, {
 String userGroupMention(String userGroupName, {bool silent = false}) =>
   '@${silent ? '_' : ''}*$userGroupName*';
 
+// Corresponds to `topic_link_util.escape_invalid_stream_topic_characters`
+// in Zulip web:
+//   https://github.com/zulip/zulip/blob/b42d3e77e/web/src/topic_link_util.ts#L15-L34
+const _channelTopicFaultyCharsReplacements = {
+  '`': '&#96;',
+  '>': '&gt;',
+  '*': '&#42;',
+  '&': '&amp;',
+  '[': '&#91;',
+  ']': '&#93;',
+  r'$$': '&#36;&#36;',
+};
+
+final _channelTopicFaultyCharsRegex = RegExp(r'[`>*&[\]]|(?:\$\$)');
+
+/// Markdown link for channel, topic, or message when the channel or topic name
+/// includes characters that will break normal markdown rendering.
+///
+/// Refer to [_channelTopicFaultyCharsReplacements] for a complete list of
+/// these characters.
+// Corresponds to `topic_link_util.get_fallback_markdown_link` in Zulip web;
+//   https://github.com/zulip/zulip/blob/b42d3e77e/web/src/topic_link_util.ts#L96-L108
+String channelTopicFallbackMarkdownLink({
+  required PerAccountStore store,
+  required ZulipStream channel,
+  TopicName? topic,
+  int? nearMessageId,
+}) {
+  assert(nearMessageId == null || topic != null);
+
+  String replaceFaultyChars(String str) {
+    return str.replaceAllMapped(_channelTopicFaultyCharsRegex,
+      (match) => _channelTopicFaultyCharsReplacements[match[0]]!);
+  }
+
+  final text = StringBuffer('#${replaceFaultyChars(channel.name)}');
+  if (topic != null) {
+    text.write(' > ${replaceFaultyChars(topic.displayName ?? store.realmEmptyTopicDisplayName)}');
+  }
+  if (nearMessageId != null) {
+    text.write(' @ 💬');
+  }
+
+  final narrow = topic == null
+    ? ChannelNarrow(channel.streamId) : TopicNarrow(channel.streamId, topic);
+  final linkFragment = narrowLinkFragment(store, narrow, nearMessageId: nearMessageId);
+
+  return inlineLink(text.toString(), '#$linkFragment');
+}
+
 /// https://spec.commonmark.org/0.30/#inline-link
 ///
 /// The "link text" is made by enclosing [visibleText] in square brackets.
