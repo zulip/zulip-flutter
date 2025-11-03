@@ -90,6 +90,9 @@ class InitialSnapshot {
   /// Search for "realm_wildcard_mention_policy" in https://zulip.com/api/register-queue.
   final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
 
+  @JsonKey(unknownEnumValue: RealmTopicsPolicy.unknown)
+  final RealmTopicsPolicy? realmTopicsPolicy; // TODO(server-11)
+
   final bool realmMandatoryTopics;
 
   final String realmName;
@@ -183,6 +186,7 @@ class InitialSnapshot {
     required this.realmCanDeleteOwnMessageGroup,
     required this.realmDeleteOwnMessagePolicy,
     required this.realmWildcardMentionPolicy,
+    required this.realmTopicsPolicy,
     required this.realmMandatoryTopics,
     required this.realmName,
     required this.realmWaitingPeriodThreshold,
@@ -236,6 +240,23 @@ enum RealmDeleteOwnMessagePolicy {
   final int apiValue;
 
   int toJson() => apiValue;
+}
+
+/// A value of [InitialSnapshot.realmTopicsPolicy].
+///
+/// For docs, search for "realm_topics_policy"
+/// in <https://zulip.com/api/register-queue#response>.
+@JsonEnum(valueField: 'apiValue')
+enum RealmTopicsPolicy {
+  allowEmptyTopic(apiValue: 'allow_empty_topic'),
+  disableEmptyTopic(apiValue: 'disable_empty_topic'),
+  unknown(apiValue: null);
+
+  const RealmTopicsPolicy({required this.apiValue});
+
+  final String? apiValue;
+
+  String? toJson() => apiValue;
 }
 
 /// An item in `realm_default_external_accounts`.
