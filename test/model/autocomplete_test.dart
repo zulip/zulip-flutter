@@ -1233,6 +1233,10 @@ void main() {
     doTest('a^bc^', TopicAutocompleteQuery('abc'));
   });
 
+  Condition<Object?> isTopic(TopicName topic) {
+    return (it) => it.isA<TopicAutocompleteResult>().topic.equals(topic);
+  }
+
   test('TopicAutocompleteView misc', () async {
     final store = eg.store();
     final connection = store.connection as FakeApiConnection;
@@ -1253,9 +1257,7 @@ void main() {
     await Future(() {});
     await Future(() {});
     check(done).isTrue();
-    check(view.results).single
-      .isA<TopicAutocompleteResult>()
-      .topic.equals(third.name);
+    check(view.results).single.which(isTopic(third.name));
   });
 
   test('TopicAutocompleteView updates results when topics are loaded', () async {
