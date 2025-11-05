@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
@@ -47,6 +47,9 @@ class HomePage extends StatefulWidget {
     unawaited(navigator.pushReplacement(
       HomePage.buildRoute(accountId: accountId)));
   }
+
+  static String contentSemanticsIdentifier = 'home-page-content';
+  static String titleSemanticsIdentifier = 'home-page-title';
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -96,15 +99,20 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: ZulipAppBar(titleSpacing: 16,
-        title: Text(_currentTabTitle)),
-      body: Stack(
-        children: [
-          for (final (tab, body) in pageBodies)
-            // TODO(#535): Decide if we find it helpful to use something like
-            //   [SemanticsProperties.namesRoute] to structure this UI better
-            //   for screen-reader software.
-            Offstage(offstage: tab != _tab.value, child: body),
-        ]),
+        title: Semantics(
+          identifier: HomePage.titleSemanticsIdentifier,
+          namesRoute: true,
+          child: Text(_currentTabTitle))),
+      body: Semantics(
+        role: SemanticsRole.tabPanel,
+        identifier: HomePage.contentSemanticsIdentifier,
+        container: true,
+        explicitChildNodes: true,
+        child: Stack(
+          children: [
+            for (final (tab, body) in pageBodies)
+              Offstage(offstage: tab != _tab.value, child: body),
+          ])),
       bottomNavigationBar: _BottomNavBar(tabNotifier: _tab));
   }
 }
@@ -156,7 +164,7 @@ class _BottomNavBar extends StatelessWidget {
         onPressed: () => _showMainMenu(context, tabNotifier: tabNotifier)),
     ];
 
-    return DecoratedBox(
+    Widget result = DecoratedBox(
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: designVariables.borderBar)),
         color: designVariables.bgBotBar),
@@ -172,6 +180,14 @@ class _BottomNavBar extends StatelessWidget {
                 for (final navigationBarButton in navigationBarButtons)
                   Expanded(child: navigationBarButton),
               ])))));
+
+    result = Semantics(
+      container: true,
+      explicitChildNodes: true,
+      role: SemanticsRole.tabBar,
+      child: result);
+
+    return result;
   }
 }
 
@@ -271,7 +287,7 @@ class _NavigationBarButton extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     final color = selected ? designVariables.iconSelected : designVariables.icon;
 
-    return AnimatedScaleOnTap(
+    Widget result = AnimatedScaleOnTap(
       scaleEnd: 0.875,
       duration: const Duration(milliseconds: 100),
       child: Material(
@@ -287,21 +303,31 @@ class _NavigationBarButton extends StatelessWidget {
             // text wrap before getting too close to the button's edge, which is
             // visible on tap-down.)
             padding: const EdgeInsets.fromLTRB(3, 6, 3, 3),
-            child: Semantics(
-              role: SemanticsRole.tab,
-              selected: selected,
-              child: Column(
-                spacing: 3,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon, size: 24, color: color),
-                  Flexible(
-                    child: Text(
-                      label,
-                      style: TextStyle(fontSize: 12, color: color, height: 12 / 12),
-                      textAlign: TextAlign.center,
-                      textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5))),
-                ]))))));
+            child: Column(
+              spacing: 3,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 24, color: color),
+                Flexible(
+                  child: Text(
+                    label,
+                    style: TextStyle(fontSize: 12, color: color, height: 12 / 12),
+                    textAlign: TextAlign.center,
+                    textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5))),
+              ])))));
+
+    result = MergeSemantics(
+      child: Semantics(
+        role: SemanticsRole.tab,
+        controlsNodes: {
+          HomePage.contentSemanticsIdentifier,
+          HomePage.titleSemanticsIdentifier,
+        },
+        selected: selected,
+        onTap: onPressed,
+        child: result));
+
+    return result;
   }
 }
 
