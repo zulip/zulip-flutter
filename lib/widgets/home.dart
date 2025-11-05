@@ -87,8 +87,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
-
     const pageBodies = [
       (_HomePageTab.inbox,          InboxPageBody()),
       (_HomePageTab.channels,       SubscriptionListPageBody()),
@@ -96,44 +94,6 @@ class _HomePageState extends State<HomePage> {
       (_HomePageTab.directMessages, RecentDmConversationsPageBody()),
     ];
 
-    _NavigationBarButton button({
-      required _HomePageTab tab,
-      required IconData icon,
-      required String label,
-    }) {
-      return _NavigationBarButton(icon: icon,
-        label: label,
-        selected: _tab.value == tab,
-        onPressed: () {
-          _tab.value = tab;
-        });
-    }
-
-    // TODO(a11y): add tooltips for these buttons
-    final navigationBarButtons = [
-      button(tab: _HomePageTab.inbox,
-        icon: ZulipIcons.inbox,
-        label: zulipLocalizations.inboxPageTitle),
-      _NavigationBarButton(icon: ZulipIcons.message_feed,
-        label: zulipLocalizations.combinedFeedPageTitle,
-        selected: false,
-        onPressed: () => Navigator.push(context,
-          MessageListPage.buildRoute(context: context,
-            narrow: const CombinedFeedNarrow()))),
-      button(tab: _HomePageTab.channels,
-        icon: ZulipIcons.hash_italic,
-        label: zulipLocalizations.channelsPageTitle),
-      // TODO(#1094): Users
-      button(tab: _HomePageTab.directMessages,
-        icon: ZulipIcons.two_person,
-        label: zulipLocalizations.recentDmConversationsPageTitle),
-      _NavigationBarButton(icon: ZulipIcons.menu,
-        label: zulipLocalizations.navBarMenuLabel,
-        selected: false,
-        onPressed: () => _showMainMenu(context, tabNotifier: _tab)),
-    ];
-
-    final designVariables = DesignVariables.of(context);
     return Scaffold(
       appBar: ZulipAppBar(titleSpacing: 16,
         title: Text(_currentTabTitle)),
@@ -145,22 +105,73 @@ class _HomePageState extends State<HomePage> {
             //   for screen-reader software.
             Offstage(offstage: tab != _tab.value, child: body),
         ]),
-      bottomNavigationBar: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: designVariables.borderBar)),
-          color: designVariables.bgBotBar),
-        child: SafeArea(
-          child: Center(
-            heightFactor: 1,
-            child: ConstrainedBox(
-              // TODO(design): determine a suitable max width for bottom nav bar
-              constraints: const BoxConstraints(maxWidth: 600, minHeight: 48),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (final navigationBarButton in navigationBarButtons)
-                    Expanded(child: navigationBarButton),
-                ]))))));
+      bottomNavigationBar: _BottomNavBar(tabNotifier: _tab));
+  }
+}
+
+class _BottomNavBar extends StatelessWidget {
+  const _BottomNavBar({required this.tabNotifier});
+
+  final ValueNotifier<_HomePageTab> tabNotifier;
+
+  _NavigationBarButton _button({
+    required _HomePageTab tab,
+    required IconData icon,
+    required String label,
+  }) {
+    return _NavigationBarButton(icon: icon,
+      label: label,
+      selected: tabNotifier.value == tab,
+      onPressed: () {
+        tabNotifier.value = tab;
+      });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    // TODO(a11y): add tooltips for these buttons
+    final navigationBarButtons = [
+      _button(tab: _HomePageTab.inbox,
+        icon: ZulipIcons.inbox,
+        label: zulipLocalizations.inboxPageTitle),
+      _NavigationBarButton(icon: ZulipIcons.message_feed,
+        label: zulipLocalizations.combinedFeedPageTitle,
+        selected: false,
+        onPressed: () => Navigator.push(context,
+          MessageListPage.buildRoute(context: context,
+            narrow: const CombinedFeedNarrow()))),
+      _button(tab: _HomePageTab.channels,
+        icon: ZulipIcons.hash_italic,
+        label: zulipLocalizations.channelsPageTitle),
+      // TODO(#1094): Users
+      _button(tab: _HomePageTab.directMessages,
+        icon: ZulipIcons.two_person,
+        label: zulipLocalizations.recentDmConversationsPageTitle),
+      _NavigationBarButton(icon: ZulipIcons.menu,
+        label: zulipLocalizations.navBarMenuLabel,
+        selected: false,
+        onPressed: () => _showMainMenu(context, tabNotifier: tabNotifier)),
+    ];
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: designVariables.borderBar)),
+        color: designVariables.bgBotBar),
+      child: SafeArea(
+        child: Center(
+          heightFactor: 1,
+          child: ConstrainedBox(
+            // TODO(design): determine a suitable max width for bottom nav bar
+            constraints: const BoxConstraints(maxWidth: 600, minHeight: 48),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final navigationBarButton in navigationBarButtons)
+                  Expanded(child: navigationBarButton),
+              ])))));
   }
 }
 
