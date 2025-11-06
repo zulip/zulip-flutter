@@ -107,9 +107,6 @@
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
-  "@allChannelsEmptyPlaceholder": {
-    "description": "Centered text on the 'All channels' page saying that there is no content to show."
-  },
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
   },
@@ -118,18 +115,6 @@
   },
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
-  },
-  "@channelsEmptyPlaceholder": {
-    "description": "Centered text on the 'Channels' page saying that there is no content to show."
-  },
-  "@channelsEmptyPlaceholderWithAllChannelsLink": {
-    "description": "Centered text on the 'Channels' page saying that there is no content to show, with a link to 'All channels'.",
-    "placeholders": {
-      "allChannelsPageTitle": {
-        "example": "All channels",
-        "type": "String"
-      }
-    }
   },
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
@@ -612,9 +597,6 @@
       }
     }
   },
-  "@inboxEmptyPlaceholder": {
-    "description": "Centered text on the 'Inbox' page saying that there is no content to show."
-  },
   "@inboxPageTitle": {
     "description": "Title for the page with unreads."
   },
@@ -886,9 +868,6 @@
   },
   "@reactionChipsLabel": {
     "description": "Text identifying the container of reaction chips on a message. (An accessibility label for assistive technology.)"
-  },
-  "@recentDmConversationsEmptyPlaceholder": {
-    "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
   },
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
@@ -1274,12 +1253,9 @@
   "actionSheetReadReceiptsErrorReadCount": "加载已读回执失败。",
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{此消息已被<z-link>阅读</z-link>，共有 {count} 人：} other{此消息已被<z-link>阅读</z-link>，共有 {count} 人：}}",
   "actionSheetReadReceiptsZeroReadCount": "尚无人阅读此消息。",
-  "allChannelsEmptyPlaceholder": "在该组织里你没有可以查看的频道。",
   "allChannelsPageTitle": "所有频道",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "频道订阅",
-  "channelsEmptyPlaceholder": "您还没有订阅任何频道。",
-  "channelsEmptyPlaceholderWithAllChannelsLink": "你还没订阅任何频道。可以访问 <z-link>{allChannelsPageTitle}</z-link>然后加入。",
   "channelsPageTitle": "频道",
   "chooseAccountButtonAddAnAccount": "添加一个账号",
   "chooseAccountPageLogOutButton": "登出",
@@ -1385,7 +1361,6 @@
   "experimentalFeatureSettingsPageTitle": "实验功能",
   "experimentalFeatureSettingsWarning": "以下选项能够启用开发中的功能。它们暂不完善，并可能造成其他的一些问题。\n\n这些选项的目的是为了帮助开发者进行实验。",
   "filenameAndSizeInMiB": "{filename}: {size} MiB",
-  "inboxEmptyPlaceholder": "您的收件箱中没有未读消息。您可以通过底部导航栏访问综合消息或者频道列表。",
   "inboxPageTitle": "收件箱",
   "initialAnchorSettingDescription": "您可以将消息的起始位置设置为第一条未读消息或者最新消息。",
   "initialAnchorSettingFirstUnreadAlways": "第一条未读消息",
@@ -1458,7 +1433,6 @@
   "reactionChipLabel": "{emojiName}： {votes}",
   "reactionChipVotesYouAndOthers": "{otherUsersCount, plural, =1 {你与其他 1 人} other {你与其他 {otherUsersCount} 人}}",
   "reactionChipsLabel": "表情符号回应",
-  "recentDmConversationsEmptyPlaceholder": "您还没有任何私信消息！何不开启一个新对话？",
   "recentDmConversationsPageTitle": "私信",
   "recentDmConversationsSectionHeader": "私信",
   "revealButtonLabel": "显示消息",

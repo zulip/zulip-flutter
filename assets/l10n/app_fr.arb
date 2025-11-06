@@ -101,18 +101,6 @@
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
   },
-  "@channelsEmptyPlaceholder": {
-    "description": "Centered text on the 'Channels' page saying that there is no content to show."
-  },
-  "@channelsEmptyPlaceholderWithAllChannelsLink": {
-    "description": "Centered text on the 'Channels' page saying that there is no content to show, with a link to 'All channels'.",
-    "placeholders": {
-      "allChannelsPageTitle": {
-        "example": "All channels",
-        "type": "String"
-      }
-    }
-  },
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
   },
@@ -357,9 +345,6 @@
       }
     }
   },
-  "@inboxEmptyPlaceholder": {
-    "description": "Centered text on the 'Inbox' page saying that there is no content to show."
-  },
   "@inboxPageTitle": {
     "description": "Title for the page with unreads."
   },
@@ -445,9 +430,6 @@
   },
   "@reactionChipsLabel": {
     "description": "Text identifying the container of reaction chips on a message. (An accessibility label for assistive technology.)"
-  },
-  "@recentDmConversationsEmptyPlaceholder": {
-    "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
   },
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
@@ -665,8 +647,6 @@
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{Ce message a été <z-link>lu</z-link> par {count} personne:} other{Ce message a été <z-link>lu</z-link> par {count} personnes :}}",
   "actionSheetReadReceiptsZeroReadCount": "Personne n'a encore lu ce message.",
   "channelFeedButtonTooltip": "Fil de la chaîne",
-  "channelsEmptyPlaceholder": "Vous n'êtes abonné à aucune chaîne pour l'instant.",
-  "channelsEmptyPlaceholderWithAllChannelsLink": "Vous n'êtes abonné à aucune chaîne pour l'instant. Allez sur <z-link>{allChannelsPageTitle}</z-link> pour vous abonner.",
   "channelsPageTitle": "Chaînes",
   "chooseAccountButtonAddAnAccount": "Ajouter un compte",
   "chooseAccountPageLogOutButton": "Déconnexion",
@@ -719,7 +699,6 @@
   "errorWebAuthOperationalError": "Oups, une erreur s'est produite.",
   "errorWebAuthOperationalErrorTitle": "Une erreur s'est produite",
   "filenameAndSizeInMiB": "{filename} : {size} MiB",
-  "inboxEmptyPlaceholder": "Aucun message non lu dans votre boîte de réception. Utilisez les boutons ci-dessous pour voir le fil groupé ou la liste des chaînes.",
   "inboxPageTitle": "Boîte de réception",
   "logOutConfirmationDialogConfirmButton": "Déconnexion",
   "logOutConfirmationDialogMessage": "Pour utiliser ce compte à l'avenir, vous devrez ré-entrer l'adresse pour votre organisation et les informations de votre compte.",
@@ -740,7 +719,6 @@
   "reactedEmojiSelfUser": "Vous",
   "reactionChipLabel": "{emojiName} : {votes}",
   "reactionChipsLabel": "Réactions",
-  "recentDmConversationsEmptyPlaceholder": "Vous n'avez aucun message direct pour l'instant ! Et si vous lanciez une conversation ?",
   "recentDmConversationsPageTitle": "Messages directs",
   "recentDmConversationsSectionHeader": "Messages directs",
   "searchMessagesClearButtonTooltip": "Effacer",

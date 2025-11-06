@@ -77,9 +77,6 @@
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
   },
-  "@channelsEmptyPlaceholder": {
-    "description": "Centered text on the 'Channels' page saying that there is no content to show."
-  },
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
   },
@@ -534,9 +531,6 @@
       }
     }
   },
-  "@inboxEmptyPlaceholder": {
-    "description": "Centered text on the 'Inbox' page saying that there is no content to show."
-  },
   "@inboxPageTitle": {
     "description": "Title for the page with unreads."
   },
@@ -778,9 +772,6 @@
   "@reactedEmojiSelfUser": {
     "description": "Display name for the user themself, to show on an emoji reaction added by the user."
   },
-  "@recentDmConversationsEmptyPlaceholder": {
-    "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
-  },
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
   },
@@ -998,7 +989,6 @@
   "allChannelsPageTitle": "Titolo per la pagina \"Tutti i canali\".",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Feed del canale",
-  "channelsEmptyPlaceholder": "Non sei ancora iscritto ad alcun canale.",
   "channelsPageTitle": "Canali",
   "chooseAccountButtonAddAnAccount": "Aggiungi un account",
   "chooseAccountPageLogOutButton": "Esci",
@@ -1095,7 +1085,6 @@
   "experimentalFeatureSettingsPageTitle": "Caratteristiche sperimentali",
   "experimentalFeatureSettingsWarning": "Queste opzioni abilitano funzionalità ancora in fase di sviluppo e non ancora pronte. Potrebbero non funzionare e causare problemi in altre aree dell'app.\n\nQueste impostazioni sono pensate per la sperimentazione da parte di chi lavora allo sviluppo di Zulip.",
   "filenameAndSizeInMiB": "{filename}: {size} MiB",
-  "inboxEmptyPlaceholder": "Non ci sono messaggi non letti nella posta in arrivo. Usare i pulsanti sotto per visualizzare il feed combinato o l'elenco dei canali.",
   "inboxPageTitle": "Inbox",
   "initialAnchorSettingDescription": "È possibile scegliere se i feed dei messaggi devono aprirsi al primo messaggio non letto oppure ai messaggi più recenti.",
   "initialAnchorSettingFirstUnreadAlways": "Primo messaggio non letto",
@@ -1163,7 +1152,6 @@
   "preparingEditMessageContentInput": "Preparazione…",
   "profileButtonSendDirectMessage": "Invia un messaggio diretto",
   "reactedEmojiSelfUser": "Tu",
-  "recentDmConversationsEmptyPlaceholder": "Non ci sono ancora messaggi diretti! Perché non iniziare la conversazione?",
   "recentDmConversationsPageTitle": "Messaggi diretti",
   "recentDmConversationsSectionHeader": "Messaggi diretti",
   "revealButtonLabel": "Mostra messaggio per mittente silenziato",

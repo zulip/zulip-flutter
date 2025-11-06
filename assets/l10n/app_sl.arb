@@ -107,7 +107,7 @@
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
-  "@allChannelsEmptyPlaceholder": {
+  "@allChannelsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'All channels' page saying that there is no content to show."
   },
   "@allChannelsPageTitle": {
@@ -119,10 +119,10 @@
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
   },
-  "@channelsEmptyPlaceholder": {
+  "@channelsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'Channels' page saying that there is no content to show."
   },
-  "@channelsEmptyPlaceholderWithAllChannelsLink": {
+  "@channelsEmptyPlaceholderMessage": {
     "description": "Centered text on the 'Channels' page saying that there is no content to show, with a link to 'All channels'.",
     "placeholders": {
       "allChannelsPageTitle": {
@@ -624,8 +624,11 @@
       }
     }
   },
-  "@inboxEmptyPlaceholder": {
+  "@inboxEmptyPlaceholderHeader": {
     "description": "Centered text on the 'Inbox' page saying that there is no content to show."
+  },
+  "@inboxEmptyPlaceholderMessage": {
+    "description": "Additional centered text on the 'Inbox' page saying that there is no content to show."
   },
   "@inboxPageTitle": {
     "description": "Title for the page with unreads."
@@ -899,8 +902,11 @@
   "@reactionChipsLabel": {
     "description": "Text identifying the container of reaction chips on a message. (An accessibility label for assistive technology.)"
   },
-  "@recentDmConversationsEmptyPlaceholder": {
+  "@recentDmConversationsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "@recentDmConversationsEmptyPlaceholderMessage": {
+    "description": "Additional centered text on the 'Direct messages' page saying that there is no content to show."
   },
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
@@ -1291,12 +1297,12 @@
   "actionSheetReadReceiptsErrorReadCount": "Nalaganje potrdil o branju ni uspelo.",
   "actionSheetReadReceiptsReadCount": "{count, plural, one{To sporočilo je <z-link>prebrala</z-link> {count} oseba:} two{To sporočilo sta <z-link>prebrali</z-link> {count} osebi:} few{To sporočilo so <z-link>prebrale</z-link> {count} osebe:} other{To sporočilo je <z-link>prebralo</z-link> {count} oseb:}}",
   "actionSheetReadReceiptsZeroReadCount": "Tega sporočila še nihče ni prebral.",
-  "allChannelsEmptyPlaceholder": "V tej organizaciji ni kanalov, ki bi si jih lahko ogledali.",
+  "allChannelsEmptyPlaceholderHeader": "V tej organizaciji ni kanalov, do katerih imate dostop.",
   "allChannelsPageTitle": "Vsi kanali",
   "appVersionUnknownPlaceholder": "(...)",
   "channelFeedButtonTooltip": "Sporočila kanala",
-  "channelsEmptyPlaceholder": "Niste še naročeni na noben kanal.",
-  "channelsEmptyPlaceholderWithAllChannelsLink": "Naročeni še niste na noben kanal. Poskusite odpreti <z-link>{allChannelsPageTitle}</z-link> in se pridružiti kateremu od njih.",
+  "channelsEmptyPlaceholderHeader": "Niste še naročeni na noben kanal.",
+  "channelsEmptyPlaceholderMessage": "Poskusite odpreti <z-link>{allChannelsPageTitle}</z-link> in se jim pridružiti.",
   "channelsPageTitle": "Kanali",
   "chooseAccountButtonAddAnAccount": "Dodaj račun",
   "chooseAccountPageLogOutButton": "Odjava",
@@ -1406,7 +1412,8 @@
   "experimentalFeatureSettingsPageTitle": "Eksperimentalne funkcije",
   "experimentalFeatureSettingsWarning": "Te možnosti omogočajo funkcije, ki so še v razvoju in niso pripravljene. Morda ne bodo delovale in lahko povzročijo težave v drugih delih aplikacije.\n\nNamen teh nastavitev je eksperimentiranje za uporabnike, ki delajo na razvoju Zulipa.",
   "filenameAndSizeInMiB": "{filename}: {size} MiB",
-  "inboxEmptyPlaceholder": "V vašem nabiralniku ni neprebranih sporočil. Uporabite spodnje gumbe za ogled združenega prikaza ali seznama kanalov.",
+  "inboxEmptyPlaceholderHeader": "Ni neprebranih sporočil.",
+  "inboxEmptyPlaceholderMessage": "Uporabite spodnje gumbe za ogled združenega vira ali seznama kanalov.",
   "inboxPageTitle": "Nabiralnik",
   "initialAnchorSettingDescription": "Lahko izberete, ali se tok sporočil odpre pri vašem prvem neprebranem sporočilu ali pri najnovejših sporočilih.",
   "initialAnchorSettingFirstUnreadAlways": "Prvo neprebrano sporočilo",
@@ -1479,7 +1486,8 @@
   "reactionChipLabel": "{emojiName}: {votes}",
   "reactionChipVotesYouAndOthers": "{otherUsersCount, plural, one{Vi in 1 druga oseba} two{Vi in 2 drugi osebi} few{Vi in {otherUsersCount} druge osebe} other{Vi in {otherUsersCount} drugih}}",
   "reactionChipsLabel": "Odzivi",
-  "recentDmConversationsEmptyPlaceholder": "Zaenkrat še nimate neposrednih sporočil! Zakaj ne bi začeli pogovora?",
+  "recentDmConversationsEmptyPlaceholderHeader": "Nimate nobenih neposrednih sproročil!",
+  "recentDmConversationsEmptyPlaceholderMessage": "Zakaj ne bi začeli pogovora?",
   "recentDmConversationsPageTitle": "Neposredna sporočila",
   "recentDmConversationsSectionHeader": "Neposredna sporočila",
   "revealButtonLabel": "Razkrij sporočilo",
@@ -1522,7 +1530,7 @@
   "themeSettingTitle": "TEMA",
   "today": "Danes",
   "topicValidationErrorMandatoryButEmpty": "Teme so v tej organizaciji obvezne.",
-  "topicValidationErrorTooLong": "Dolžina teme ne sme presegati 60 znakov.",
+  "topicValidationErrorTooLong": "Dolžina teme ne sme presegati {maxLength, plural, =1{1 znaka} other{{maxLength} znakov}}.",
   "topicsButtonTooltip": "Teme",
   "tryAnotherAccountButton": "Poskusite z drugim računom",
   "tryAnotherAccountMessage": "Nalaganje vašega računa iz {url} traja dlje kot običajno.",

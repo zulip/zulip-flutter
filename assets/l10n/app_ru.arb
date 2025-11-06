@@ -107,7 +107,7 @@
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
-  "@allChannelsEmptyPlaceholder": {
+  "@allChannelsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'All channels' page saying that there is no content to show."
   },
   "@allChannelsPageTitle": {
@@ -119,10 +119,10 @@
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
   },
-  "@channelsEmptyPlaceholder": {
+  "@channelsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'Channels' page saying that there is no content to show."
   },
-  "@channelsEmptyPlaceholderWithAllChannelsLink": {
+  "@channelsEmptyPlaceholderMessage": {
     "description": "Centered text on the 'Channels' page saying that there is no content to show, with a link to 'All channels'.",
     "placeholders": {
       "allChannelsPageTitle": {
@@ -624,8 +624,11 @@
       }
     }
   },
-  "@inboxEmptyPlaceholder": {
+  "@inboxEmptyPlaceholderHeader": {
     "description": "Centered text on the 'Inbox' page saying that there is no content to show."
+  },
+  "@inboxEmptyPlaceholderMessage": {
+    "description": "Additional centered text on the 'Inbox' page saying that there is no content to show."
   },
   "@inboxPageTitle": {
     "description": "Title for the page with unreads."
@@ -899,8 +902,11 @@
   "@reactionChipsLabel": {
     "description": "Text identifying the container of reaction chips on a message. (An accessibility label for assistive technology.)"
   },
-  "@recentDmConversationsEmptyPlaceholder": {
+  "@recentDmConversationsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "@recentDmConversationsEmptyPlaceholderMessage": {
+    "description": "Additional centered text on the 'Direct messages' page saying that there is no content to show."
   },
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
@@ -1291,12 +1297,12 @@
   "actionSheetReadReceiptsErrorReadCount": "Не удалось загрузить подтверждения прочтения.",
   "actionSheetReadReceiptsReadCount": "{count, plural, one{Это сообщение было <z-link>прочитано</z-link> {count} пользователем:} other{Это сообщение было <z-link>прочитано</z-link> {count} пользователями:}}",
   "actionSheetReadReceiptsZeroReadCount": "Это сообщение еще никто не прочитал.",
-  "allChannelsEmptyPlaceholder": "В этой организации нет доступных вам для просмотра каналов.",
+  "allChannelsEmptyPlaceholderHeader": "В этой организации нет каналов, которые вы можете просматривать.",
   "allChannelsPageTitle": "Все каналы",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Лента канала",
-  "channelsEmptyPlaceholder": "Вы ещё не подписаны ни на один канал.",
-  "channelsEmptyPlaceholderWithAllChannelsLink": "Вы ещё не подписаны ни на один канал. Можете посмотреть <z-link>{allChannelsPageTitle}</z-link> и подписаться на какие-то из них.",
+  "channelsEmptyPlaceholderHeader": "Вы пока не подписаны ни на один канал.",
+  "channelsEmptyPlaceholderMessage": "Вы можете просмотреть <z-link>{allChannelsPageTitle}</z-link> и присоединиться к некоторым из них.",
   "channelsPageTitle": "Каналы",
   "chooseAccountButtonAddAnAccount": "Добавить учетную запись",
   "chooseAccountPageLogOutButton": "Выход из системы",
@@ -1406,7 +1412,8 @@
   "experimentalFeatureSettingsPageTitle": "Экспериментальные функции",
   "experimentalFeatureSettingsWarning": "Эти параметры включают возможности, которые все ещё находятся в разработке и не готовы. Они могут не работать и вызывать проблемы в других местах приложения.\n\nЦель этих настроек — экспериментирование людьми, работающими над разработкой Zulip.",
   "filenameAndSizeInMiB": "{filename}: {size} МиБ",
-  "inboxEmptyPlaceholder": "Нет непрочитанных входящих сообщений. Используйте кнопки ниже для просмотра объединенной ленты или списка каналов.",
+  "inboxEmptyPlaceholderHeader": "У вас нет непрочитанных входящих сообщений.",
+  "inboxEmptyPlaceholderMessage": "Используйте кнопки внизу для просмотра объединенной ленты или списка каналов.",
   "inboxPageTitle": "Входящие",
   "initialAnchorSettingDescription": "Можно открывать ленту сообщений на первом непрочитанном сообщении или на самом новом.",
   "initialAnchorSettingFirstUnreadAlways": "Первое непрочитанное сообщение",
@@ -1479,7 +1486,8 @@
   "reactionChipLabel": "{emojiName}: {votes}",
   "reactionChipVotesYouAndOthers": "{otherUsersCount, plural, one{Вы и еще {otherUsersCount} человек} few{Вы и еще {otherUsersCount} человека} many{Вы и еще {otherUsersCount} человек} other{Вы и еще {otherUsersCount} человек}}",
   "reactionChipsLabel": "Реакции",
-  "recentDmConversationsEmptyPlaceholder": "У вас пока нет личных сообщений! Почему бы не начать беседу?",
+  "recentDmConversationsEmptyPlaceholderHeader": "У вас пока нет личных сообщений!",
+  "recentDmConversationsEmptyPlaceholderMessage": "Почему бы не начать общение?",
   "recentDmConversationsPageTitle": "Личные сообщения",
   "recentDmConversationsSectionHeader": "Личные сообщения",
   "revealButtonLabel": "Показать сообщение",
@@ -1522,7 +1530,7 @@
   "themeSettingTitle": "РЕЖИМ",
   "today": "Сегодня",
   "topicValidationErrorMandatoryButEmpty": "Темы обязательны в этой организации.",
-  "topicValidationErrorTooLong": "Длина темы не должна превышать 60 символов.",
+  "topicValidationErrorTooLong": "Длина темы не должна превышать {maxLength, plural, one{{maxLength} символ} few{{maxLength} символа} many{{maxLength} символов} other{{maxLength} символов}}.",
   "topicsButtonTooltip": "Темы",
   "tryAnotherAccountButton": "Попробовать другую учетную запись",
   "tryAnotherAccountMessage": "Ваша учетная запись на {url} загружается медленно.",

@@ -107,9 +107,6 @@
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
-  "@allChannelsEmptyPlaceholder": {
-    "description": "Centered text on the 'All channels' page saying that there is no content to show."
-  },
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
   },
@@ -118,18 +115,6 @@
   },
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
-  },
-  "@channelsEmptyPlaceholder": {
-    "description": "Centered text on the 'Channels' page saying that there is no content to show."
-  },
-  "@channelsEmptyPlaceholderWithAllChannelsLink": {
-    "description": "Centered text on the 'Channels' page saying that there is no content to show, with a link to 'All channels'.",
-    "placeholders": {
-      "allChannelsPageTitle": {
-        "example": "All channels",
-        "type": "String"
-      }
-    }
   },
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
@@ -621,9 +606,6 @@
       }
     }
   },
-  "@inboxEmptyPlaceholder": {
-    "description": "Centered text on the 'Inbox' page saying that there is no content to show."
-  },
   "@inboxPageTitle": {
     "description": "Title for the page with unreads."
   },
@@ -895,9 +877,6 @@
   },
   "@reactionChipsLabel": {
     "description": "Text identifying the container of reaction chips on a message. (An accessibility label for assistive technology.)"
-  },
-  "@recentDmConversationsEmptyPlaceholder": {
-    "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
   },
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
@@ -1288,12 +1267,9 @@
   "actionSheetReadReceiptsErrorReadCount": "Laden von Empfangsbestätigungen fehlgeschlagen.",
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{Diese Nachricht wurde von einer Person <z-link>gelesen</z-link>:} other{Diese Nachricht wurde von {count} Personen <z-link>gelesen</z-link>:}}",
   "actionSheetReadReceiptsZeroReadCount": "Niemand hat diese Nachricht bisher gelesen.",
-  "allChannelsEmptyPlaceholder": "Es gibt in dieser Organisation keine Kanäle die du ansehen kannst.",
   "allChannelsPageTitle": "Alle Kanäle",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Kanal-Feed",
-  "channelsEmptyPlaceholder": "Du hast noch keine Kanäle abonniert.",
-  "channelsEmptyPlaceholderWithAllChannelsLink": "Du hast noch keine Kanäle abonniert. Probiere zu <z-link>{allChannelsPageTitle}</z-link> zu gehen und ein paar von ihnen beizutreten.",
   "channelsPageTitle": "Kanäle",
   "chooseAccountButtonAddAnAccount": "Account hinzufügen",
   "chooseAccountPageLogOutButton": "Abmelden",
@@ -1402,7 +1378,6 @@
   "experimentalFeatureSettingsPageTitle": "Experimentelle Funktionen",
   "experimentalFeatureSettingsWarning": "Diese Optionen aktivieren Funktionen, die noch in Entwicklung und nicht bereit sind. Sie funktionieren möglicherweise nicht und können Problem in anderen Bereichen der App verursachen.\n\nDer Zweck dieser Einstellungen ist das Experimentieren der Leute, die an der Entwicklung von Zulip arbeiten.",
   "filenameAndSizeInMiB": "{filename}: {size} MiB",
-  "inboxEmptyPlaceholder": "Es sind keine ungelesenen Nachrichten in deinem Eingang. Verwende die Buttons unten, um den kombinierten Feed oder die Kanalliste anzusehen.",
   "inboxPageTitle": "Eingang",
   "initialAnchorSettingDescription": "Du kannst auswählen ob Nachrichten-Feeds bei deiner ersten ungelesenen oder bei den neuesten Nachrichten geöffnet werden.",
   "initialAnchorSettingFirstUnreadAlways": "Erste ungelesene Nachricht",
@@ -1475,7 +1450,6 @@
   "reactionChipLabel": "{emojiName}: {votes}",
   "reactionChipVotesYouAndOthers": "{otherUsersCount, plural, =1{Du und ein weiterer} other{Du und {otherUsersCount} weitere}}",
   "reactionChipsLabel": "Reaktionen",
-  "recentDmConversationsEmptyPlaceholder": "Du hast noch keine Direktnachrichten! Warum nicht die Unterhaltung beginnen?",
   "recentDmConversationsPageTitle": "Direktnachrichten",
   "recentDmConversationsSectionHeader": "Direktnachrichten",
   "revealButtonLabel": "Nachricht anzeigen",

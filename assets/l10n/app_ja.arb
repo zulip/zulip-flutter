@@ -110,9 +110,6 @@
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
   },
-  "@channelsEmptyPlaceholder": {
-    "description": "Centered text on the 'Channels' page saying that there is no content to show."
-  },
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
   },
@@ -578,9 +575,6 @@
       }
     }
   },
-  "@inboxEmptyPlaceholder": {
-    "description": "Centered text on the 'Inbox' page saying that there is no content to show."
-  },
   "@inboxPageTitle": {
     "description": "Title for the page with unreads."
   },
@@ -847,9 +841,6 @@
   },
   "@reactionChipsLabel": {
     "description": "Text identifying the container of reaction chips on a message. (An accessibility label for assistive technology.)"
-  },
-  "@recentDmConversationsEmptyPlaceholder": {
-    "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
   },
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
@@ -1226,7 +1217,6 @@
   "actionSheetReadReceiptsZeroReadCount": "このメッセージはまだ誰も読んでいません。",
   "appVersionUnknownPlaceholder": "（…）",
   "channelFeedButtonTooltip": "チャンネルフィード",
-  "channelsEmptyPlaceholder": "まだ参加しているチャンネルはありません。",
   "channelsPageTitle": "チャンネル",
   "chooseAccountButtonAddAnAccount": "新しいアカウントを追加",
   "chooseAccountPageLogOutButton": "ログアウト",
@@ -1328,7 +1318,6 @@
   "experimentalFeatureSettingsPageTitle": "実験的機能",
   "experimentalFeatureSettingsWarning": "これらのオプションは、まだ開発中で未完成の機能を有効にします。正常に動作しない場合や、アプリの他の部分に不具合を引き起こす可能性があります。\n\nこの設定は、Zulip の開発に携わる人が試験的に利用することを目的としています。",
   "filenameAndSizeInMiB": "{filename}: {size} MiB",
-  "inboxEmptyPlaceholder": "未読メッセージはありません。下のボタンから、統合フィードまたはチャンネル一覧を表示できます。",
   "inboxPageTitle": "受信箱",
   "initialAnchorSettingDescription": "メッセージ一覧を、最初の未読メッセージから開くか、最新のメッセージから開くかを選択できます。",
   "initialAnchorSettingFirstUnreadAlways": "最初の未読メッセージ",
@@ -1400,7 +1389,6 @@
   "reactionChipLabel": "{emojiName}: {votes}件",
   "reactionChipVotesYouAndOthers": "{otherUsersCount, plural, =1{自分とほか1人} other{自分とほか{otherUsersCount}人}}",
   "reactionChipsLabel": "リアクション",
-  "recentDmConversationsEmptyPlaceholder": "まだダイレクトメッセージはありません！会話を始めてみませんか？",
   "recentDmConversationsPageTitle": "ダイレクトメッセージ",
   "recentDmConversationsSectionHeader": "ダイレクトメッセージ",
   "revealButtonLabel": "メッセージを表示",
