@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 30.0.267 (2025-11-06)
+
 ### Highlights for users
 
 * (Android) Support Android 8. (#1898)
