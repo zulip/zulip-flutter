@@ -11,6 +11,13 @@ jobs:
   update-translations:
     runs-on: ubuntu-latest
     steps:
+      - name: Trigger a rebase in Weblate
+        run: |
+          pip install wlc
+          wlc --url https://hosted.weblate.org/api/ --key $WEBLATE_API_KEY pull zulip/zulip-flutter
+        with:
+          WEBLATE_API_KEY: ${{ secrets.WEBLATE_API_KEY }}
+
       - uses: actions/checkout@v4
 
       - name: Fetch and merge from Weblate
