@@ -408,6 +408,34 @@ void main() {
         debugNetworkImageHttpClientProvider = null;
       });
 
+      testWidgets('relative displayIcon URL is resolved correctly', (tester) async {
+        final method = ExternalAuthenticationMethod(
+          name: 'github',
+          displayName: 'GitHub',
+          displayIcon: '/static/images/authentication_backends/github-icon.png', // Relative URL
+          loginUrl: '/accounts/login/social/github',
+          signupUrl: '/accounts/register/social/github',
+        );
+        final serverSettings = eg.serverSettings(
+          externalAuthenticationMethods: [method]);
+        prepareBoringImageHttpClient(); // icon on social-auth button
+        await prepare(tester, serverSettings);
+        takeStartingRoutes();
+        check(pushedRoutes).isEmpty();
+        check(testBinding.globalStore.accounts).isEmpty();
+
+        // Verify the button exists
+        tester.widget(find.textContaining('GitHub'));
+
+        // Verify the Image.network widget receives the resolved absolute URL
+        final imageWidget = tester.widget<Image>(find.byType(Image));
+        final networkImage = imageWidget.image as NetworkImage;
+        final expectedResolvedUrl = eg.realmUrl.resolve(method.displayIcon!).toString();
+        check(networkImage.url).equals(expectedResolvedUrl);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
       // TODO failures, such as: invalid loginUrl; URL can't be launched;
       //   WebAuthPayload.realm doesn't match the realm the UI is about
     });
