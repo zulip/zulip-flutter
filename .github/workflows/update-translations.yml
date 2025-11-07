@@ -15,7 +15,7 @@ jobs:
         run: |
           pip install wlc
           wlc --url https://hosted.weblate.org/api/ --key $WEBLATE_API_KEY pull zulip/zulip-flutter
-        with:
+        env:
           WEBLATE_API_KEY: ${{ secrets.WEBLATE_API_KEY }}
 
       - uses: actions/checkout@v4
