@@ -2,6 +2,34 @@
 
 ## Unreleased
 
+### Highlights for users
+
+* (Android) Support Android 8. (#1898)
+* (Android) Fix crash on opening unsupported types of images. (#1973)
+* Fill in topic properly on quote-and-reply. (#1469)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* User-visible changes not described above:
+  * More error reporting on malformed events or register-queue
+    failure. (#1083, #890)
+  * Adjust design of "All channels" page to more resemble "Channels".
+    (#1914)
+  * Revise design of empty-page placeholders. (PR #1946)
+  * Better handle unavailable image emoji in user status. (PR #1928)
+  * Update messages in unsubscribed channels when re-fetched.
+    (PR #1912)
+  * Use `max_topic_length` instead of hardcoded value of 60. (#307)
+  * Make settings page scrollable. (#1904)
+  * Upgrade Flutter. (PR #1971, fixing #1973)
+  * Make unread-count badges and topic-list items larger. (PR #1959)
+  * Update translations. (PR #1975)
+
+* Resolved: #890, #1083, #1898, #1914, PR #1946, PR #1928, PR #1912,
+  #307, #1904, #1973, #1469, PR #1959, PR #1975
+
 
 ## 30.0.266 (2025-10-23)
 
