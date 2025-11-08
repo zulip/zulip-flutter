@@ -127,6 +127,10 @@ mixin _MessageSequence {
   /// conceptually belongs in this message list.
   /// That information is expressed in [fetched], [haveOldest], [haveNewest].
   ///
+  /// This also may or may not represent all the message history that
+  /// conceptually belongs in this narrow because some messages might be
+  /// muted in one way or another and they may not appear in the message list.
+  ///
   /// See also [middleMessage], an index which divides this list
   /// into a top slice and a bottom slice.
   ///
