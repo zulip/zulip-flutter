@@ -127,6 +127,8 @@ mixin _MessageSequence {
   /// conceptually belongs in this message list.
   /// That information is expressed in [fetched], [haveOldest], [haveNewest].
   ///
+  /// Also, messages may be excluded if they are in muted conversations.
+  ///
   /// See also [middleMessage], an index which divides this list
   /// into a top slice and a bottom slice.
   ///
