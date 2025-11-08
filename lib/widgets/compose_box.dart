@@ -1989,7 +1989,6 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     final store = PerAccountStoreWidget.of(context);
     final outboxMessage = store.takeOutboxMessage(localMessageId);
     setState(() {
-      this.controller.dispose();
       _setNewController(store);
       final controller = this.controller;
       controller
@@ -2092,7 +2091,6 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       // Fetch-raw-content failed; abort the edit session.
       // An error dialog was already shown, by fetchRawContentWithFeedback.
       setState(() {
-        controller.dispose();
         _setNewController(PerAccountStoreWidget.of(context));
       });
       return;
@@ -2120,7 +2118,6 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
     final store = PerAccountStoreWidget.of(context);
     setState(() {
-      controller.dispose();
       _setNewController(store);
     });
   }
@@ -2145,6 +2142,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   }
 
   void _setNewController(PerAccountStore store) {
+    _controller?.dispose(); // `?.` because this might be the first call
     switch (widget.narrow) {
       case ChannelNarrow():
         _controller = StreamComposeBoxController(store: store);
