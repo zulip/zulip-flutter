@@ -1261,6 +1261,10 @@
   "@wildcardMentionTopicDescription": {
     "description": "Description for \"@topic\" wildcard-mention autocomplete options when writing a channel message."
   },
+  "navBarMenuLabel": "Menu",
+  "@navBarMenuLabel": {
+    "description": "Label for the Menu button on the bottom navigation bar."
+  },
   "messageIsEditedLabel": "EDITED",
   "@messageIsEditedLabel": {
     "description": "Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
