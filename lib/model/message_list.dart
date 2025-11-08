@@ -593,7 +593,7 @@ bool _sameDay(DateTime date1, DateTime date2) {
 ///  * Add listeners with [addListener].
 ///  * Fetch messages with [fetchInitial].  When the fetch completes, this object
 ///    will notify its listeners (as it will any other time the data changes.)
-///  * Fetch more messages as needed with [fetchOlder].
+///  * Fetch more messages as needed with [fetchOlder] and [fetchNewer].
 ///  * On reassemble, call [reassemble].
 ///  * When the object will no longer be used, call [dispose] to free
 ///    resources on the [PerAccountStore].
