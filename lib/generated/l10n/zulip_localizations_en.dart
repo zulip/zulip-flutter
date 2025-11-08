@@ -1055,6 +1055,9 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Notify topic';
 
   @override
+  String get navBarMenuLabel => 'Menu';
+
+  @override
   String get messageIsEditedLabel => 'EDITED';
 
   @override

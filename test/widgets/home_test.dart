@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
@@ -82,6 +84,15 @@ void main () {
   }
 
   group('bottom nav navigation', () {
+    final findBottomNavSemantics = find.byWidgetPredicate((widget) {
+      if (widget is! Semantics) return false;
+      return widget.properties.role == SemanticsRole.tab;
+    });
+
+    // Finds a widget within the bottom navbar's semantics box subtree.
+    Finder findInBottomNav(Finder finder) =>
+      find.descendant(of: findBottomNavSemantics, matching: finder);
+
     testWidgets('preserve states when switching between views', (tester) async {
       await prepare(tester);
       await store.addUser(eg.otherUser);
@@ -125,6 +136,26 @@ void main () {
         matching: find.text('Channels'))).findsOne();
 
       await tester.tap(find.byIcon(ZulipIcons.two_person));
+      await tester.pump();
+      check(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.text('Direct messages'))).findsOne();
+    });
+
+    testWidgets("view switches when labels are tapped", (tester) async {
+      await prepare(tester);
+
+      check(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.text('Inbox'))).findsOne();
+
+      await tester.tap(findInBottomNav(find.text('Channels')));
+      await tester.pump();
+      check(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.text('Channels'))).findsOne();
+
+      await tester.tap(findInBottomNav(find.text('Direct messages')));
       await tester.pump();
       check(find.descendant(
         of: find.byType(ZulipAppBar),

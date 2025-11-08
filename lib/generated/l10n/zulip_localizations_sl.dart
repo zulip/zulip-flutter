@@ -1092,6 +1092,9 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Obvesti udeležence teme';
 
   @override
+  String get navBarMenuLabel => 'Menu';
+
+  @override
   String get messageIsEditedLabel => 'UREJENO';
 
   @override
