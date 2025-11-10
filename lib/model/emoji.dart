@@ -500,6 +500,12 @@ class EmojiAutocompleteView extends AutocompleteView<EmojiAutocompleteQuery, Emo
   static EmojiAutocompleteResult? _testCandidate(EmojiAutocompleteQuery query, EmojiCandidate candidate) {
     return query.testCandidate(candidate);
   }
+
+  @override
+  void dispose() {
+    store.autocompleteViewManager.unregisterEmojiAutocomplete(this);
+    super.dispose();
+  }
 }
 
 class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
