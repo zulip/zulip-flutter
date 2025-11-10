@@ -269,6 +269,9 @@ class AutocompleteViewManager {
     for (final view in _topicAutocompleteViews) {
       view.reassemble();
     }
+    for (final view in _emojiAutocompleteViews) {
+      view.reassemble();
+    }
   }
 
   // No `dispose` method, because there's nothing for it to do.
