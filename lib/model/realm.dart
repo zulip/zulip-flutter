@@ -32,6 +32,8 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   Duration get serverTypingStartedWaitPeriod => Duration(milliseconds: serverTypingStartedWaitPeriodMilliseconds);
   int get serverTypingStartedWaitPeriodMilliseconds;
 
+  List<ThumbnailFormat> get serverThumbnailFormats;
+
   //|//////////////////////////////////////////////////////////////
   // Realm settings.
 
@@ -166,6 +168,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   int get serverTypingStartedWaitPeriodMilliseconds => realmStore.serverTypingStartedWaitPeriodMilliseconds;
   @override
+  List<ThumbnailFormat> get serverThumbnailFormats => realmStore.serverThumbnailFormats;
+  @override
   bool get realmAllowMessageEditing => realmStore.realmAllowMessageEditing;
   @override
   GroupSettingValue? get realmCanDeleteAnyMessageGroup => realmStore.realmCanDeleteAnyMessageGroup;
@@ -230,6 +234,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     serverTypingStartedExpiryPeriodMilliseconds = initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds,
     serverTypingStoppedWaitPeriodMilliseconds = initialSnapshot.serverTypingStoppedWaitPeriodMilliseconds,
     serverTypingStartedWaitPeriodMilliseconds = initialSnapshot.serverTypingStartedWaitPeriodMilliseconds,
+    serverThumbnailFormats = initialSnapshot.serverThumbnailFormats,
     realmAllowMessageEditing = initialSnapshot.realmAllowMessageEditing,
     realmCanDeleteAnyMessageGroup = initialSnapshot.realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup = initialSnapshot.realmCanDeleteOwnMessageGroup,
@@ -373,6 +378,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   final int serverTypingStoppedWaitPeriodMilliseconds;
   @override
   final int serverTypingStartedWaitPeriodMilliseconds;
+
+  @override
+  final List<ThumbnailFormat> serverThumbnailFormats;
 
   @override
   final bool realmAllowMessageEditing;
