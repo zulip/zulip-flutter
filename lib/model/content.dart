@@ -5,6 +5,7 @@ import 'package:html/parser.dart';
 
 import '../api/model/model.dart';
 import '../api/model/submessage.dart';
+import '../widgets/image.dart';
 import 'code_block.dart';
 import 'katex.dart';
 
@@ -597,10 +598,8 @@ class ImagePreviewNode extends BlockContentNode {
 /// Data to locate an image thumbnail,
 /// and whether the image has an animated version.
 ///
-/// Currently a no-op wrapper around a thumbnail URL ([defaultFormatSrc]).
-/// Soon, this class will support choosing a format for the caller's UI need,
-/// from [RealmStore.serverThumbnailFormats].
-/// Until then, callers should just use [defaultFormatSrc].
+/// Use [ImageThumbnailLocatorExtension.resolve] to obtain a suitable URL
+/// for the current UI need.
 @immutable
 class ImageThumbnailLocator extends DiagnosticableTree {
   ImageThumbnailLocator({

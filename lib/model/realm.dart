@@ -33,6 +33,14 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   int get serverTypingStartedWaitPeriodMilliseconds;
 
   List<ThumbnailFormat> get serverThumbnailFormats;
+  /// A digest of [serverThumbnailFormats]:
+  /// sorted by max-width plus max-height, ascending,
+  /// and filtered to those with `animated: true`.
+  List<ThumbnailFormat> get sortedAnimatedThumbnailFormats;
+  /// A digest of [serverThumbnailFormats]:
+  /// sorted by max-width plus max-height, ascending,
+  /// and filtered to those with `animated: false`.
+  List<ThumbnailFormat> get sortedStillThumbnailFormats;
 
   //|//////////////////////////////////////////////////////////////
   // Realm settings.
@@ -171,6 +179,10 @@ mixin ProxyRealmStore on RealmStore {
   @override
   List<ThumbnailFormat> get serverThumbnailFormats => realmStore.serverThumbnailFormats;
   @override
+  List<ThumbnailFormat> get sortedAnimatedThumbnailFormats => realmStore.sortedAnimatedThumbnailFormats;
+  @override
+  List<ThumbnailFormat> get sortedStillThumbnailFormats => realmStore.sortedStillThumbnailFormats;
+  @override
   bool get realmAllowMessageEditing => realmStore.realmAllowMessageEditing;
   @override
   GroupSettingValue? get realmCanDeleteAnyMessageGroup => realmStore.realmCanDeleteAnyMessageGroup;
@@ -238,6 +250,10 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     serverTypingStoppedWaitPeriodMilliseconds = initialSnapshot.serverTypingStoppedWaitPeriodMilliseconds,
     serverTypingStartedWaitPeriodMilliseconds = initialSnapshot.serverTypingStartedWaitPeriodMilliseconds,
     serverThumbnailFormats = initialSnapshot.serverThumbnailFormats,
+    _sortedAnimatedThumbnailFormats = _filterAndSortThumbnailFormats(
+      initialSnapshot.serverThumbnailFormats, animated: true),
+    _sortedStillThumbnailFormats = _filterAndSortThumbnailFormats(
+      initialSnapshot.serverThumbnailFormats, animated: false),
     realmAllowMessageEditing = initialSnapshot.realmAllowMessageEditing,
     realmCanDeleteAnyMessageGroup = initialSnapshot.realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup = initialSnapshot.realmCanDeleteOwnMessageGroup,
@@ -385,6 +401,12 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
 
   @override
   final List<ThumbnailFormat> serverThumbnailFormats;
+  @override
+  List<ThumbnailFormat> get sortedAnimatedThumbnailFormats => _sortedAnimatedThumbnailFormats;
+  final List<ThumbnailFormat> _sortedAnimatedThumbnailFormats;
+  @override
+  List<ThumbnailFormat> get sortedStillThumbnailFormats => _sortedStillThumbnailFormats;
+  final List<ThumbnailFormat> _sortedStillThumbnailFormats;
 
   @override
   final bool realmAllowMessageEditing;
@@ -444,6 +466,23 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     final displayFields = initialCustomProfileFields.where((e) => e.displayInProfileSummary == true);
     final nonDisplayFields = initialCustomProfileFields.where((e) => e.displayInProfileSummary != true);
     return displayFields.followedBy(nonDisplayFields).toList();
+  }
+
+  static List<ThumbnailFormat> _filterAndSortThumbnailFormats(
+    List<ThumbnailFormat> initialServerThumbnailFormats, {
+    required bool animated,
+  }) {
+    return initialServerThumbnailFormats
+      .where((format) => format.animated == animated)
+      .toList()
+      ..sort(_compareThumbnailFormats);
+  }
+
+  /// A comparator to sort formats by max-width plus max-height, ascending.
+  static int _compareThumbnailFormats(ThumbnailFormat a, ThumbnailFormat b) {
+    final aValue = a.maxWidth + a.maxHeight;
+    final bValue = b.maxWidth + b.maxHeight;
+    return aValue.compareTo(bValue);
   }
 
   void handleCustomProfileFieldsEvent(CustomProfileFieldsEvent event) {
