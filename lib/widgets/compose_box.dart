@@ -1509,10 +1509,21 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   @override
   final StreamComposeBoxController controller;
 
-  @override Widget? buildTopicInput(BuildContext context) => _TopicInput(
-    streamId: narrow.streamId,
-    controller: controller,
-  );
+  @override
+  Widget? buildTopicInput(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final stream = store.streams[narrow.streamId];
+    final topicsPolicy = stream?.topicsPolicy;
+
+    if (topicsPolicy == TopicsPolicy.emptyTopicOnly) {
+      return null;
+    }
+
+    return _TopicInput(
+      streamId: narrow.streamId,
+      controller: controller,
+    );
+  }
 
   @override Widget buildContentInput() => _StreamContentInput(
     narrow: narrow,
