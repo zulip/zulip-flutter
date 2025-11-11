@@ -637,11 +637,13 @@ class MessageImagePreview extends StatelessWidget {
 
     // TODO image hover animation
     final srcUrl = node.srcUrl;
-    final thumbnailUrl = node.thumbnail?.defaultFormatSrc;
+    final thumbnailLocator = node.thumbnail;
     final store = PerAccountStoreWidget.of(context);
     final resolvedSrcUrl = store.tryResolveUrl(srcUrl);
-    final resolvedThumbnailUrl = thumbnailUrl == null
-      ? null : store.tryResolveUrl(thumbnailUrl.toString());
+    final resolvedThumbnailUrl = thumbnailLocator?.resolve(context,
+      width: MessageMediaContainer.width,
+      height: MessageMediaContainer.height,
+      animationMode: ImageAnimationMode.animateConditionally);
 
     // TODO if src fails to parse, show an explicit "broken image"
 
@@ -736,6 +738,12 @@ class MessageMediaContainer extends StatelessWidget {
   final void Function()? onTap;
   final Widget? child;
 
+  /// The container's width, in logical pixels.
+  static const width = 150.0;
+
+  /// The container's height, in logical pixels.
+  static const height = 100.0;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -751,8 +759,8 @@ class MessageMediaContainer extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(1),
               child: SizedBox(
-                height: 100,
-                width: 150,
+                width: width,
+                height: height,
                 child: child))))));
   }
 }
