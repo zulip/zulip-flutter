@@ -5,6 +5,7 @@ import 'package:html/parser.dart';
 
 import '../api/model/model.dart';
 import '../api/model/submessage.dart';
+import '../widgets/image.dart';
 import 'code_block.dart';
 import 'katex.dart';
 
@@ -553,7 +554,8 @@ class ImagePreviewNode extends BlockContentNode {
 
   /// The thumbnail URL of the image and whether it has an animated version.
   ///
-  /// [ImageThumbnailLocator.urlPath] is a relative URL string.
+  /// Use [ImageThumbnailLocatorExtension.resolve] to obtain a suitable URL
+  /// for the current UI need.
   ///
   /// This will be null if the server hasn't yet generated a thumbnail,
   /// or is a version that doesn't offer thumbnails.
@@ -598,6 +600,9 @@ class ImagePreviewNode extends BlockContentNode {
 
 /// Data to locate an image thumbnail,
 /// and whether the image has an animated version.
+///
+/// Use [ImageThumbnailLocatorExtension.resolve] to obtain a suitable URL
+/// for the current UI need.
 @immutable
 class ImageThumbnailLocator extends DiagnosticableTree {
   ImageThumbnailLocator({
