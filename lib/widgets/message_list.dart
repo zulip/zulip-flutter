@@ -1712,6 +1712,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
         ?? zulipLocalizations.unknownChannelName; // TODO(log)
 
       streamWidget = GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
             narrow: ChannelNarrow(streamId))),
