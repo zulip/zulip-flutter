@@ -151,12 +151,12 @@ void main() {
         });
     });
 
-    final stream = eg.stream();
-    final streamDestination = StreamDestination(stream.streamId, eg.t('some topic'));
+    final streamDestination = StreamDestination(
+      eg.defaultStreamMessageStreamId, eg.t('some topic'));
     late StreamMessage message;
 
     test('outbox messages get unique localMessageId', () async {
-      await prepare(stream: stream);
+      await prepare();
       await prepareMessages([]);
 
       for (int i = 0; i < 10; i++) {
@@ -175,9 +175,9 @@ void main() {
       MessageDestination? destination,
       int? zulipFeatureLevel,
     }) async {
-      message = eg.streamMessage(stream: stream);
-      await prepare(stream: stream, zulipFeatureLevel: zulipFeatureLevel);
-      await prepareMessages([eg.streamMessage(stream: stream)]);
+      message = eg.streamMessage();
+      await prepare(zulipFeatureLevel: zulipFeatureLevel);
+      await prepareMessages([eg.streamMessage()]);
       connection.prepare(json: SendMessageResult(id: 1).toJson());
       await store.sendMessage(
         destination: destination ?? streamDestination, content: 'content');
@@ -185,9 +185,9 @@ void main() {
 
     late Future<void> outboxMessageFailFuture;
     Future<void> prepareOutboxMessageToFailAfterDelay(Duration delay) async {
-      message = eg.streamMessage(stream: stream);
-      await prepare(stream: stream);
-      await prepareMessages([eg.streamMessage(stream: stream)]);
+      message = eg.streamMessage();
+      await prepare();
+      await prepareMessages([eg.streamMessage()]);
       connection.prepare(httpException: SocketException('failed'), delay: delay);
       outboxMessageFailFuture = store.sendMessage(
         destination: streamDestination, content: 'content');
@@ -215,7 +215,7 @@ void main() {
 
     test('smoke stream message: hidden -> waiting -> (delete)', () => awaitFakeAsync((async) async {
       await prepareOutboxMessage(destination: StreamDestination(
-        stream.streamId, eg.t('foo')));
+        eg.defaultStreamMessageStreamId, eg.t('foo')));
       checkState().equals(OutboxMessageState.hidden);
       checkNotNotified();
 
@@ -223,7 +223,7 @@ void main() {
       checkState().equals(OutboxMessageState.waiting);
       checkNotifiedOnce();
 
-      await receiveMessage(eg.streamMessage(stream: stream, topic: 'foo'));
+      await receiveMessage(eg.streamMessage(topic: 'foo'));
       check(store.outboxMessages).isEmpty();
       checkNotifiedOnce();
     }));
@@ -263,8 +263,8 @@ void main() {
     }));
 
     test('waiting -> waitPeriodExpired -> waiting and never return to waitPeriodExpired', () => awaitFakeAsync((async) async {
-      await prepare(stream: stream);
-      await prepareMessages([eg.streamMessage(stream: stream)]);
+      await prepare();
+      await prepareMessages([eg.streamMessage()]);
       // Set up a [sendMessage] request that succeeds after enough delay,
       // for the outbox message to reach the waitPeriodExpired state.
       // TODO extract helper to add prepare an outbox message with a delayed
@@ -460,7 +460,8 @@ void main() {
 
     test('when sending to "(no topic)", process topic like the server does when creating outbox message', () => awaitFakeAsync((async) async {
       await prepareOutboxMessage(
-        destination: StreamDestination(stream.streamId, TopicName('(no topic)')),
+        destination: StreamDestination(
+          eg.defaultStreamMessageStreamId, TopicName('(no topic)')),
         zulipFeatureLevel: 370);
       async.elapse(kLocalEchoDebounceDuration);
       check(store.outboxMessages).values.single
@@ -469,7 +470,8 @@ void main() {
 
     test('legacy: when sending to "(no topic)", process topic like the server does when creating outbox message', () => awaitFakeAsync((async) async {
       await prepareOutboxMessage(
-        destination: StreamDestination(stream.streamId, TopicName('(no topic)')),
+        destination: StreamDestination(
+          eg.defaultStreamMessageStreamId, TopicName('(no topic)')),
         zulipFeatureLevel: 369);
       async.elapse(kLocalEchoDebounceDuration);
       check(store.outboxMessages).values.single
@@ -487,14 +489,14 @@ void main() {
   });
 
   test('takeOutboxMessage', () async {
-    final stream = eg.stream();
-    await prepare(stream: stream);
+    await prepare();
     await prepareMessages([]);
 
     for (int i = 0; i < 10; i++) {
       connection.prepare(apiException: eg.apiBadRequest());
       await check(store.sendMessage(
-        destination: StreamDestination(stream.streamId, eg.t('topic')),
+        destination: StreamDestination(
+          eg.defaultStreamMessageStreamId, eg.t('topic')),
         content: 'content')).throws();
       checkNotifiedOnce();
     }
