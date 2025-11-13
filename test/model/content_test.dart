@@ -735,11 +735,28 @@ class ContentExample {
         '<img data-original-dimensions="6000x4000" src="/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp"></a></div>', [
     ImagePreviewNodeList([
       ImagePreviewNode(srcUrl: '/user_uploads/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg',
-        thumbnail: ImageThumbnailLocator(
+        thumbnail: ImageThumbnailLocator(animated: false,
           defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp')),
         loading: false,
         originalWidth: 6000,
         originalHeight: 4000),
+    ]),
+  ]);
+
+  static final imagePreviewSingleAnimated = ContentExample(
+    'single image preview, animated',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Thumbnails/near/2298790
+    "[2c8d985d.gif](/user_uploads/2/9f/tZ9c5ZmsI_cSDZ6ZdJmW8pt4/2c8d985d.gif)",
+    '<div class="message_inline_image">'
+      '<a href="/user_uploads/2/9f/tZ9c5ZmsI_cSDZ6ZdJmW8pt4/2c8d985d.gif" title="2c8d985d.gif">'
+        '<img data-animated="true" data-original-content-type="image/gif" data-original-dimensions="64x64" src="/user_uploads/thumbnail/2/9f/tZ9c5ZmsI_cSDZ6ZdJmW8pt4/2c8d985d.gif/840x560-anim.webp"></a></div>', [
+    ImagePreviewNodeList([
+      ImagePreviewNode(srcUrl: '/user_uploads/2/9f/tZ9c5ZmsI_cSDZ6ZdJmW8pt4/2c8d985d.gif',
+        thumbnail: ImageThumbnailLocator(animated: true,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/9f/tZ9c5ZmsI_cSDZ6ZdJmW8pt4/2c8d985d.gif/840x560-anim.webp')),
+        loading: false,
+        originalWidth: 64,
+        originalHeight: 64),
     ]),
   ]);
 
@@ -752,7 +769,7 @@ class ContentExample {
         '<img src="/user_uploads/thumbnail/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg/840x560.webp"/></a></div>', [
     ImagePreviewNodeList([
       ImagePreviewNode(srcUrl: '/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg',
-        thumbnail: ImageThumbnailLocator(
+        thumbnail: ImageThumbnailLocator(animated: false,
           defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg/840x560.webp')),
         loading: false,
         originalWidth: null,
@@ -865,13 +882,13 @@ class ContentExample {
     ]),
     ImagePreviewNodeList([
       ImagePreviewNode(srcUrl: '/user_uploads/2/9b/WkDt2Qsy79iwf3sM9EMp9fYL/image.jpg',
-        thumbnail: ImageThumbnailLocator(
+        thumbnail: ImageThumbnailLocator(animated: false,
           defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/9b/WkDt2Qsy79iwf3sM9EMp9fYL/image.jpg/840x560.webp')),
         loading: false,
         originalWidth: null,
         originalHeight: null),
       ImagePreviewNode(srcUrl: '/user_uploads/2/70/pVeI52TwFUEoFE2qT_u9AMCO/image2.jpg',
-        thumbnail: ImageThumbnailLocator(
+        thumbnail: ImageThumbnailLocator(animated: false,
           defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/70/pVeI52TwFUEoFE2qT_u9AMCO/image2.jpg/840x560.webp')),
         loading: false,
         originalWidth: null,
@@ -1425,7 +1442,7 @@ class ContentExample {
     ]),
     ImagePreviewNodeList([
       ImagePreviewNode(srcUrl: '/user_uploads/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg',
-        thumbnail: ImageThumbnailLocator(
+        thumbnail: ImageThumbnailLocator(animated: false,
           defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg/840x560.webp')),
         loading: false,
         originalWidth: 2760,
@@ -1858,7 +1875,7 @@ void main() async {
     [
       ImagePreviewNodeList([
         ImagePreviewNode(srcUrl: '/user_uploads/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg',
-          thumbnail: ImageThumbnailLocator(
+          thumbnail: ImageThumbnailLocator(animated: false,
             defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp?x=y#abc')),
           loading: false,
           originalWidth: 6000,
@@ -1866,6 +1883,7 @@ void main() async {
       ]),
     ]);
 
+  testParseExample(ContentExample.imagePreviewSingleAnimated);
   testParseExample(ContentExample.imagePreviewSingleNoDimensions);
   testParseExample(ContentExample.imagePreviewSingleNoThumbnail);
   testParseExample(ContentExample.imagePreviewSingleLoadingPlaceholder);

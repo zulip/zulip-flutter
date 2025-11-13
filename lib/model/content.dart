@@ -551,7 +551,7 @@ class ImagePreviewNode extends BlockContentNode {
   /// authentication credentials to the request.
   final String srcUrl;
 
-  /// The thumbnail URL of the image.
+  /// The thumbnail URL of the image and whether it has an animated version.
   ///
   /// This will be null if the server hasn't yet generated a thumbnail,
   /// or is a version that doesn't offer thumbnails.
@@ -594,7 +594,8 @@ class ImagePreviewNode extends BlockContentNode {
   }
 }
 
-/// Data to locate an image thumbnail.
+/// Data to locate an image thumbnail,
+/// and whether the image has an animated version.
 ///
 /// Currently a no-op wrapper around a thumbnail URL ([defaultFormatSrc]).
 /// Soon, this class will support choosing a format for the caller's UI need,
@@ -604,6 +605,7 @@ class ImagePreviewNode extends BlockContentNode {
 class ImageThumbnailLocator extends DiagnosticableTree {
   ImageThumbnailLocator({
     required this.defaultFormatSrc,
+    required this.animated,
   }) : assert(!defaultFormatSrc.hasScheme
            && !defaultFormatSrc.hasAuthority
            && defaultFormatSrc.path.startsWith(srcPrefix));
@@ -613,21 +615,27 @@ class ImageThumbnailLocator extends DiagnosticableTree {
   /// It may not work without adding authentication credentials to the request.
   final Uri defaultFormatSrc;
 
+  final bool animated;
+
   static const srcPrefix = '/user_uploads/thumbnail/';
 
   @override
   bool operator ==(Object other) {
     if (other is! ImageThumbnailLocator) return false;
-    return defaultFormatSrc == other.defaultFormatSrc;
+    return defaultFormatSrc == other.defaultFormatSrc
+      && animated == other.animated;
   }
 
   @override
-  int get hashCode => Object.hash('ImageThumbnailLocator', defaultFormatSrc);
+  int get hashCode => Object.hash('ImageThumbnailLocator', defaultFormatSrc, animated);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(StringProperty('defaultFormatSrc', defaultFormatSrc.toString()));
+    properties.add(FlagProperty('animated', value: animated,
+      ifTrue: 'animated',
+      ifFalse: 'not animated'));
   }
 }
 
@@ -1453,7 +1461,9 @@ class _ZulipContentParser {
       // For why we recognize this as the thumbnail form, see discussion:
       //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/documenting.20inline.20images/near/2279872
       srcUrl = href;
-      thumbnail = ImageThumbnailLocator(defaultFormatSrc: parsedSrc);
+      thumbnail = ImageThumbnailLocator(
+        defaultFormatSrc: parsedSrc,
+        animated: imgElement.attributes['data-animated'] == 'true');
     } else {
       // Known cases this handles:
       // - `src` starts with CAMO_URI, a server variable (e.g. on Zulip Cloud
