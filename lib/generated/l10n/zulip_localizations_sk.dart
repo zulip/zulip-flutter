@@ -629,6 +629,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get loginMethodDivider => 'alebo';
 
   @override
+  String get loginMethodDividerSemanticLabel => 'Log-in alternatives';
+
+  @override
   String signInWithFoo(String method) {
     return 'Prihlásiť sa pomocou $method';
   }
