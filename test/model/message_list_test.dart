@@ -127,13 +127,13 @@ void main() {
 
   Future<void> prepareOutboxMessages({
     required int count,
-    required ZulipStream stream,
+    required int channelId,
     String topic = 'some topic',
   }) async {
     for (int i = 0; i < count; i++) {
       connection.prepare(json: SendMessageResult(id: 123).toJson());
       await store.sendMessage(
-        destination: StreamDestination(stream.streamId, eg.t(topic)),
+        destination: StreamDestination(channelId, eg.t(topic)),
         content: 'content');
     }
   }
@@ -288,7 +288,8 @@ void main() {
       await prepare(
         narrow: eg.topicNarrow(stream.streamId, 'topic'), stream: stream);
 
-      await prepareOutboxMessages(count: 1, stream: stream, topic: 'topic');
+      await prepareOutboxMessages(count: 1,
+        channelId: stream.streamId, topic: 'topic');
       async.elapse(kLocalEchoDebounceDuration);
       checkNotNotified();
       check(model)
@@ -309,7 +310,8 @@ void main() {
       await prepare(
         narrow: eg.topicNarrow(stream.streamId, 'topic'), stream: stream);
 
-      await prepareOutboxMessages(count: 1, stream: stream, topic: 'topic');
+      await prepareOutboxMessages(count: 1,
+        channelId: stream.streamId, topic: 'topic');
       async.elapse(kLocalEchoDebounceDuration);
       checkNotNotified();
       check(model)
@@ -332,7 +334,8 @@ void main() {
         anchor: AnchorCode.firstUnread,
         stream: stream);
 
-      await prepareOutboxMessages(count: 1, stream: stream, topic: 'topic');
+      await prepareOutboxMessages(count: 1,
+        channelId: stream.streamId, topic: 'topic');
       async.elapse(kLocalEchoDebounceDuration);
       checkNotNotified();
       check(model)..fetched.isFalse()..outboxMessages.isEmpty();
@@ -781,7 +784,7 @@ void main() {
       await prepareMessages(foundOldest: true, messages:
         List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
-      await prepareOutboxMessages(count: 5, stream: stream);
+      await prepareOutboxMessages(count: 5, channelId: stream.streamId);
       async.elapse(kLocalEchoDebounceDuration);
       checkNotified(count: 5);
       check(model)
@@ -824,7 +827,7 @@ void main() {
       await prepareMessages(foundOldest: true, messages:
         List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
-      await prepareOutboxMessages(count: 5, stream: stream);
+      await prepareOutboxMessages(count: 5, channelId: stream.streamId);
       async.elapse(kLocalEchoDebounceDuration);
       checkNotified(count: 5);
       final localMessageId = store.outboxMessages.keys.first;
@@ -850,7 +853,7 @@ void main() {
       await prepareMessages(foundOldest: true, messages:
         List.generate(30, (i) => eg.streamMessage(stream: stream, topic: 'topic')));
 
-      await prepareOutboxMessages(count: 5, stream: stream, topic: 'other');
+      await prepareOutboxMessages(count: 5, channelId: stream.streamId, topic: 'other');
       final localMessageId = store.outboxMessages.keys.first;
       check(model)
         ..messages.length.equals(30)
@@ -876,7 +879,7 @@ void main() {
       await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages:
         List.generate(30, (i) => eg.streamMessage(stream: stream)));
-      await prepareOutboxMessages(count: 5, stream: stream);
+      await prepareOutboxMessages(count: 5, channelId: stream.streamId);
       check(model).outboxMessages.isEmpty();
 
       async.elapse(kLocalEchoDebounceDuration);
@@ -888,7 +891,8 @@ void main() {
       await prepare(narrow: eg.topicNarrow(stream.streamId, 'topic'), stream: stream);
       await prepareMessages(foundOldest: true, messages:
         List.generate(30, (i) => eg.streamMessage(stream: stream, topic: 'topic')));
-      await prepareOutboxMessages(count: 5, stream: stream, topic: 'other topic');
+      await prepareOutboxMessages(count: 5,
+        channelId: stream.streamId, topic: 'other topic');
       check(model).outboxMessages.isEmpty();
 
       async.elapse(kLocalEchoDebounceDuration);
@@ -898,7 +902,7 @@ void main() {
 
     test('before fetch', () => awaitFakeAsync((async) async {
       await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
-      await prepareOutboxMessages(count: 5, stream: stream);
+      await prepareOutboxMessages(count: 5, channelId: stream.streamId);
       check(model)
         ..fetched.isFalse()
         ..outboxMessages.isEmpty();
@@ -916,13 +920,13 @@ void main() {
 
     Future<void> prepareFailedOutboxMessages(FakeAsync async, {
       required int count,
-      required ZulipStream stream,
+      required int channelId,
       String topic = 'some topic',
     }) async {
       for (int i = 0; i < count; i++) {
         connection.prepare(httpException: SocketException('failed'));
         await check(store.sendMessage(
-          destination: StreamDestination(stream.streamId, eg.t(topic)),
+          destination: StreamDestination(channelId, eg.t(topic)),
           content: 'content')).throws();
       }
     }
@@ -932,7 +936,7 @@ void main() {
       await prepareMessages(foundOldest: true, messages:
         List.generate(30, (i) => eg.streamMessage(stream: stream, topic: 'topic')));
       await prepareFailedOutboxMessages(async,
-        count: 5, stream: stream);
+        count: 5, channelId: stream.streamId);
       check(model).outboxMessages.length.equals(5);
       checkNotified(count: 5);
 
@@ -946,7 +950,7 @@ void main() {
       await prepareMessages(foundOldest: true, messages:
         List.generate(30, (i) => eg.streamMessage(stream: stream, topic: 'topic')));
       await prepareFailedOutboxMessages(async,
-        count: 5, stream: stream, topic: 'other topic');
+        count: 5, channelId: stream.streamId, topic: 'other topic');
       check(model).outboxMessages.isEmpty();
       checkNotNotified();
 
@@ -959,7 +963,7 @@ void main() {
       await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages: []);
       await prepareFailedOutboxMessages(async,
-        count: 1, stream: stream);
+        count: 1, channelId: stream.streamId);
       check(model).outboxMessages.single;
       checkNotified(count: 1);
 
@@ -1461,7 +1465,7 @@ void main() {
     test('message present', () => awaitFakeAsync((async) async {
       await prepare(narrow: const CombinedFeedNarrow(), stream: stream);
       await prepareMessages(foundOldest: true, messages: []);
-      await prepareOutboxMessages(count: 5, stream: stream);
+      await prepareOutboxMessages(count: 5, channelId: stream.streamId);
 
       async.elapse(kLocalEchoDebounceDuration);
       checkNotified(count: 5);
@@ -1476,7 +1480,7 @@ void main() {
         narrow: eg.topicNarrow(stream.streamId, 'some topic'), stream: stream);
       await prepareMessages(foundOldest: true, messages: []);
       await prepareOutboxMessages(count: 5,
-        stream: stream, topic: 'other topic');
+        channelId: stream.streamId, topic: 'other topic');
 
       async.elapse(kLocalEchoDebounceDuration);
       checkNotNotified();
@@ -1620,7 +1624,7 @@ void main() {
         final narrow = ChannelNarrow(stream.streamId);
         await prepareNarrow(narrow, initialMessages + movedMessages);
         connection.prepare(json: SendMessageResult(id: 1).toJson());
-        await prepareOutboxMessages(count: 5, stream: stream);
+        await prepareOutboxMessages(count: 5, channelId: stream.streamId);
 
         async.elapse(kLocalEchoDebounceDuration);
         checkNotified(count: 5);
@@ -2765,7 +2769,8 @@ void main() {
       // `findItemWithMessageId` uses binary search.  Set up just enough
       // outbox message items, so that a [MessageListDateSeparatorItem] for
       // the outbox messages is right in the middle.
-      await prepareOutboxMessages(count: 2, stream: stream, topic: 'topic');
+      await prepareOutboxMessages(count: 2,
+        channelId: stream.streamId, topic: 'topic');
       async.elapse(kLocalEchoDebounceDuration);
       checkNotified(count: 2);
       check(model.items).deepEquals(<Condition<Object?>>[
@@ -2788,7 +2793,8 @@ void main() {
       // `findItemWithMessageId` uses binary search.  Set up just enough
       // outbox message items, so that a [MessageListOutboxMessageItem]
       // is right in the middle.
-      await prepareOutboxMessages(count: 3, stream: stream, topic: 'topic');
+      await prepareOutboxMessages(count: 3,
+        channelId: stream.streamId, topic: 'topic');
       async.elapse(kLocalEchoDebounceDuration);
       checkNotified(count: 3);
       check(model.items).deepEquals(<Condition<Object?>>[
