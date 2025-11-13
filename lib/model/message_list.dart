@@ -141,6 +141,32 @@ mixin _MessageSequence {
   /// The corresponding item index is [middleItem].
   int middleMessage = 0;
 
+  /// The ID of the oldest message fetched so far in this narrow.
+  ///
+  /// This is used as the anchor for fetching the next batch of older messages
+  /// and will be `null` if no messages of this narrow have been fetched yet.
+  ///
+  /// A message with this ID might not appear in [messages]:
+  /// - The message may be in a muted conversation.
+  /// - The message may have been moved or deleted after it was fetched.
+  ///
+  /// See also [newestFetchedMessageId].
+  int? get oldestFetchedMessageId => _oldestFetchedMessageId;
+  int? _oldestFetchedMessageId;
+
+  /// The ID of the newest message fetched so far in this narrow.
+  ///
+  /// This is used as the anchor for fetching the next batch of newer messages
+  /// and will be `null` if no messages of this narrow have been fetched yet.
+  ///
+  /// A message with this ID might not appear in [messages]:
+  /// - The message may be in a muted conversation.
+  /// - The message may have been moved or deleted after it was fetched.
+  ///
+  /// See also [oldestFetchedMessageId].
+  int? get newestFetchedMessageId => _newestFetchedMessageId;
+  int? _newestFetchedMessageId;
+
   /// Whether [messages] and [items] represent the results of a fetch.
   ///
   /// This allows the UI to distinguish "still working on fetching messages"
@@ -405,6 +431,8 @@ mixin _MessageSequence {
     generation += 1;
     messages.clear();
     middleMessage = 0;
+    _oldestFetchedMessageId = null;
+    _newestFetchedMessageId = null;
     outboxMessages.clear();
     _haveOldest = false;
     _haveNewest = false;
@@ -814,6 +842,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   Future<void> fetchInitial() async {
     assert(!fetched && !haveOldest && !haveNewest && !busyFetchingMore);
     assert(messages.isEmpty && contents.isEmpty);
+    assert(oldestFetchedMessageId == null && newestFetchedMessageId == null);
 
     if (narrow case KeywordSearchNarrow(keyword: '')) {
       // The server would reject an empty keyword search; skip the request.
@@ -828,6 +857,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     _setStatus(FetchingStatus.fetchInitial, was: FetchingStatus.unstarted);
     // TODO schedule all this in another isolate
     final generation = this.generation;
+    // TODO(#2085): handle request failure
     final result = await getMessages(store.connection,
       narrow: narrow.apiEncode(),
       anchor: anchor,
@@ -836,6 +866,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       allowEmptyTopicName: true,
     );
     if (this.generation > generation) return;
+
+    _oldestFetchedMessageId = result.messages.firstOrNull?.id;
+    _newestFetchedMessageId = result.messages.lastOrNull?.id;
 
     _adjustNarrowForTopicPermalink(result.messages.firstOrNull);
 
@@ -911,12 +944,13 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     if (haveOldest) return;
     if (busyFetchingMore) return;
     assert(fetched);
-    assert(messages.isNotEmpty);
+    assert(oldestFetchedMessageId != null);
     await _fetchMore(
-      anchor: NumericAnchor(messages[0].id),
+      anchor: NumericAnchor(oldestFetchedMessageId!),
       numBefore: kMessageListFetchBatchSize,
       numAfter: 0,
       processResult: (result) {
+        _oldestFetchedMessageId = result.messages.firstOrNull?.id ?? oldestFetchedMessageId;
         store.reconcileMessages(result.messages);
         store.recentSenders.handleMessages(result.messages); // TODO(#824)
 
@@ -941,12 +975,13 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     if (haveNewest) return;
     if (busyFetchingMore) return;
     assert(fetched);
-    assert(messages.isNotEmpty);
+    assert(newestFetchedMessageId != null);
     await _fetchMore(
-      anchor: NumericAnchor(messages.last.id),
+      anchor: NumericAnchor(newestFetchedMessageId!),
       numBefore: 0,
       numAfter: kMessageListFetchBatchSize,
       processResult: (result) {
+        _newestFetchedMessageId = result.messages.lastOrNull?.id ?? newestFetchedMessageId;
         store.reconcileMessages(result.messages);
         store.recentSenders.handleMessages(result.messages); // TODO(#824)
 
