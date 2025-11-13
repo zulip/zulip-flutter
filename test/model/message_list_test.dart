@@ -729,6 +729,206 @@ void main() {
     });
   });
 
+  group('oldestFetchedMessageId, newestFetchedMessageId', () {
+    final mutedUser = eg.user();
+
+    Message channelMessage({required int id}) =>
+      eg.streamMessage(id: id, sender: eg.selfUser);
+
+    List<Message> channelMessages({required int fromId, required int count}) =>
+      List.generate(count, (i) => channelMessage(id: fromId + i));
+
+    List<Message> mutedDmMessages({required int fromId, required int count}) =>
+      List.generate(count, (i) =>
+        eg.dmMessage(id: fromId + i, from: eg.selfUser, to: [mutedUser]));
+
+    group('fetchInitial', () {
+      test('visible messages', () async {
+        await prepare();
+        check(model)
+          ..messages.isEmpty()
+          ..oldestFetchedMessageId.isNull()..newestFetchedMessageId.isNull();
+
+        connection.prepare(json: newestResult(
+          foundOldest: true,
+          messages: channelMessages(fromId: 100, count: 100),
+        ).toJson());
+        await model.fetchInitial();
+
+        checkNotifiedOnce();
+        check(model)
+          ..messages.length.equals(100)
+          ..messages.first.id.equals(100)..messages.last.id.equals(199)
+          ..oldestFetchedMessageId.equals(100)..newestFetchedMessageId.equals(199);
+      });
+
+      test('invisible messages', () async {
+        await prepare(users: [mutedUser], mutedUserIds: [mutedUser.userId]);
+        check(model)
+          ..messages.isEmpty()
+          ..oldestFetchedMessageId.isNull()..newestFetchedMessageId.isNull();
+
+        connection.prepare(json: newestResult(
+          foundOldest: true,
+          messages: mutedDmMessages(fromId: 100, count: 100),
+        ).toJson());
+        await model.fetchInitial();
+
+        checkNotifiedOnce();
+        check(model)
+          ..messages.isEmpty()
+          ..oldestFetchedMessageId.equals(100)..newestFetchedMessageId.equals(199);
+      });
+
+      test('no messages found', () async {
+        await prepare();
+        check(model)
+          ..messages.isEmpty()
+          ..oldestFetchedMessageId.isNull()..newestFetchedMessageId.isNull();
+
+        connection.prepare(json: newestResult(
+          foundOldest: true,
+          messages: [],
+        ).toJson());
+        await model.fetchInitial();
+
+        checkNotifiedOnce();
+        check(model)
+          ..messages.isEmpty()
+          ..oldestFetchedMessageId.isNull()..newestFetchedMessageId.isNull();
+      });
+    });
+
+    group('fetching more', () {
+      test('visible messages', () async {
+        await prepare(anchor: AnchorCode.firstUnread);
+        check(model)
+          ..messages.isEmpty()
+          ..oldestFetchedMessageId.isNull()..newestFetchedMessageId.isNull();
+
+        await prepareMessages(
+          foundOldest: false, foundNewest: false,
+          anchorMessageId: 250,
+          messages: channelMessages(fromId: 200, count: 100));
+        check(model)
+          ..messages.length.equals(100)
+          ..messages.first.id.equals(200)..messages.last.id.equals(299)
+          ..oldestFetchedMessageId.equals(200)..newestFetchedMessageId.equals(299);
+
+        connection.prepare(json: olderResult(
+          anchor: 200, foundOldest: true,
+          messages: channelMessages(fromId: 100, count: 100),
+        ).toJson());
+        await model.fetchOlder();
+        checkNotified(count: 2);
+        check(model)
+          ..messages.length.equals(200)
+          ..messages.first.id.equals(100)..messages.last.id.equals(299)
+          ..oldestFetchedMessageId.equals(100)..newestFetchedMessageId.equals(299);
+
+        connection.prepare(json: newerResult(
+          anchor: 299, foundNewest: true,
+          messages: channelMessages(fromId: 300, count: 100),
+        ).toJson());
+        await model.fetchNewer();
+        checkNotified(count: 2);
+        check(model)
+          ..messages.length.equals(300)
+          ..messages.first.id.equals(100)..messages.last.id.equals(399)
+          ..oldestFetchedMessageId.equals(100)..newestFetchedMessageId.equals(399);
+      });
+
+      test('invisible messages', () async {
+        await prepare(anchor: AnchorCode.firstUnread,
+          users: [mutedUser], mutedUserIds: [mutedUser.userId]);
+        check(model)
+          ..messages.isEmpty()
+          ..oldestFetchedMessageId.isNull()..newestFetchedMessageId.isNull();
+
+        await prepareMessages(
+          foundOldest: false, foundNewest: false,
+          anchorMessageId: 250,
+          messages: [
+            ...mutedDmMessages(fromId: 200, count: 40),
+            ...channelMessages(fromId: 240, count: 20),
+            ...mutedDmMessages(fromId: 260, count: 40),
+          ]);
+        check(model)
+          ..messages.length.equals(20)
+          ..messages.first.id.equals(240)..messages.last.id.equals(259)
+          ..oldestFetchedMessageId.equals(200)..newestFetchedMessageId.equals(299);
+
+        connection.prepare(json: olderResult(
+          anchor: 200, foundOldest: true,
+          messages: mutedDmMessages(fromId: 100, count: 100),
+        ).toJson());
+        await model.fetchOlder();
+        checkNotified(count: 2);
+        check(connection.lastRequest).isA<http.Request>()
+          .url.queryParameters['anchor'].equals('200');
+        check(model)
+          ..messages.length.equals(20)
+          ..messages.first.id.equals(240)..messages.last.id.equals(259)
+          ..oldestFetchedMessageId.equals(100)..newestFetchedMessageId.equals(299);
+
+        connection.prepare(json: newerResult(
+          anchor: 299, foundNewest: true,
+          messages: mutedDmMessages(fromId: 300, count: 100),
+        ).toJson());
+        await model.fetchNewer();
+        checkNotified(count: 2);
+        check(connection.lastRequest).isA<http.Request>()
+          .url.queryParameters['anchor'].equals('299');
+        check(model)
+          ..messages.length.equals(20)
+          ..messages.first.id.equals(240)..messages.last.id.equals(259)
+          ..oldestFetchedMessageId.equals(100)..newestFetchedMessageId.equals(399);
+      });
+
+      test('no messages found', () async {
+        await prepare(anchor: AnchorCode.firstUnread);
+        check(model)
+          ..messages.isEmpty()
+          ..oldestFetchedMessageId.isNull()..newestFetchedMessageId.isNull();
+
+        await prepareMessages(
+          foundOldest: false, foundNewest: false,
+          anchorMessageId: 250,
+          messages: channelMessages(fromId: 200, count: 100));
+        check(model)
+          ..messages.length.equals(100)
+          ..messages.first.id.equals(200)..messages.last.id.equals(299)
+          ..oldestFetchedMessageId.equals(200)..newestFetchedMessageId.equals(299);
+
+        // This can happen if after the initial fetch,
+        // all the older messages got deleted/moved out of the narrow.
+        connection.prepare(json: olderResult(
+          anchor: 200, foundOldest: true,
+          messages: [],
+        ).toJson());
+        await model.fetchOlder();
+        checkNotified(count: 2);
+        check(model)
+          ..messages.length.equals(100)
+          ..messages.first.id.equals(200)..messages.last.id.equals(299)
+          ..oldestFetchedMessageId.equals(200)..newestFetchedMessageId.equals(299);
+
+        // This can happen if after the initial fetch,
+        // all the newer messages got deleted/moved out of the narrow.
+        connection.prepare(json: newerResult(
+          anchor: 299, foundNewest: true,
+          messages: [],
+        ).toJson());
+        await model.fetchNewer();
+        checkNotified(count: 2);
+        check(model)
+          ..messages.length.equals(100)
+          ..messages.first.id.equals(200)..messages.last.id.equals(299)
+          ..oldestFetchedMessageId.equals(200)..newestFetchedMessageId.equals(299);
+      });
+    });
+  });
+
   // TODO(#1569): test jumpToEnd
 
   group('MessageEvent', () {
@@ -3382,6 +3582,8 @@ void checkInvariants(MessageListView model) {
     check(model)
       ..messages.isEmpty()
       ..outboxMessages.isEmpty()
+      ..oldestFetchedMessageId.isNull()
+      ..newestFetchedMessageId.isNull()
       ..haveOldest.isFalse()
       ..haveNewest.isFalse()
       ..busyFetchingMore.isFalse();
@@ -3570,6 +3772,8 @@ extension MessageListViewChecks on Subject<MessageListView> {
   Subject<List<MessageListItem>> get items => has((x) => x.items, 'items');
   Subject<int> get middleItem => has((x) => x.middleItem, 'middleItem');
   Subject<bool> get fetched => has((x) => x.fetched, 'fetched');
+  Subject<int?> get oldestFetchedMessageId => has((x) => x.oldestFetchedMessageId, 'oldestFetchedMessageId');
+  Subject<int?> get newestFetchedMessageId => has((x) => x.newestFetchedMessageId, 'newestFetchedMessageId');
   Subject<bool> get haveOldest => has((x) => x.haveOldest, 'haveOldest');
   Subject<bool> get haveNewest => has((x) => x.haveNewest, 'haveNewest');
   Subject<bool> get busyFetchingMore => has((x) => x.busyFetchingMore, 'busyFetchingMore');
