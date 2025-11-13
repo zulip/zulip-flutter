@@ -127,7 +127,7 @@ void main() {
 
   Future<void> prepareOutboxMessages({
     required int count,
-    required int channelId,
+    int channelId = eg.defaultStreamMessageStreamId,
     String topic = 'some topic',
   }) async {
     for (int i = 0; i < count; i++) {
@@ -920,7 +920,7 @@ void main() {
 
     Future<void> prepareFailedOutboxMessages(FakeAsync async, {
       required int count,
-      required int channelId,
+      int channelId = eg.defaultStreamMessageStreamId,
       String topic = 'some topic',
     }) async {
       for (int i = 0; i < count; i++) {
