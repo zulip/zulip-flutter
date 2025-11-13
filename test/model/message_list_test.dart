@@ -1337,7 +1337,7 @@ void main() {
     final stream = eg.stream();
     final messages = List.generate(30, (i) => eg.streamMessage(stream: stream));
 
-    test('in narrow', () async {
+    test('all deleted messages are in the msglist', () async {
       await prepare(narrow: ChannelNarrow(stream.streamId));
       await prepareMessages(foundOldest: true, messages: messages);
 
@@ -1347,7 +1347,7 @@ void main() {
       check(model).messages.length.equals(20);
     });
 
-    test('not all in narrow', () async {
+    test('some deleted messages are in the msglist, some not', () async {
       await prepare(narrow: ChannelNarrow(stream.streamId));
       await prepareMessages(foundOldest: true, messages: messages.sublist(5));
 
@@ -1357,7 +1357,7 @@ void main() {
       check(model).messages.length.equals(20);
     });
 
-    test('not in narrow', () async {
+    test('none of the deleted messages are in the msglist', () async {
       await prepare(narrow: ChannelNarrow(stream.streamId));
       await prepareMessages(foundOldest: true, messages: messages.sublist(5));
 
@@ -1367,7 +1367,7 @@ void main() {
       check(model).messages.length.equals(25);
     });
 
-    test('complete message deletion', () async {
+    test('deleted messages are exactly those in the msglist', () async {
       await prepare(narrow: ChannelNarrow(stream.streamId));
       await prepareMessages(foundOldest: true, messages: messages.sublist(0, 25));
 
@@ -1377,7 +1377,7 @@ void main() {
       check(model).messages.length.equals(0);
     });
 
-    test('non-consecutive message deletion', () async {
+    test('deleted messages are present non-consecutively in the msglist', () async {
       await prepare(narrow: ChannelNarrow(stream.streamId));
       await prepareMessages(foundOldest: true, messages: messages);
       final messagesToDelete = messages.sublist(2, 5) + messages.sublist(10, 15);
