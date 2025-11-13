@@ -551,7 +551,7 @@ class ImagePreviewNode extends BlockContentNode {
   /// authentication credentials to the request.
   final String srcUrl;
 
-  /// The thumbnail URL of the image.
+  /// The thumbnail URL of the image and whether it has an animated version.
   ///
   /// [ImageThumbnailLocator.urlPath] is a relative URL string.
   ///
@@ -596,11 +596,13 @@ class ImagePreviewNode extends BlockContentNode {
   }
 }
 
-/// Data to locate an image thumbnail.
+/// Data to locate an image thumbnail,
+/// and whether the image has an animated version.
 @immutable
 class ImageThumbnailLocator extends DiagnosticableTree {
   ImageThumbnailLocator({
     required this.urlPath,
+    required this.animated,
   }) : assert(urlPath.startsWith(urlPathPrefix));
 
   /// The relative URL string for the default format,
@@ -609,21 +611,27 @@ class ImageThumbnailLocator extends DiagnosticableTree {
   /// It may not work without adding authentication credentials to the request.
   final String urlPath;
 
+  final bool animated;
+
   static const urlPathPrefix = '/user_uploads/thumbnail/';
 
   @override
   bool operator ==(Object other) {
     if (other is! ImageThumbnailLocator) return false;
-    return urlPath == other.urlPath;
+    return urlPath == other.urlPath
+      && animated == other.animated;
   }
 
   @override
-  int get hashCode => Object.hash('ImageThumbnailLocator', urlPath);
+  int get hashCode => Object.hash('ImageThumbnailLocator', urlPath, animated);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(StringProperty('urlPath', urlPath));
+    properties.add(FlagProperty('animated', value: animated,
+      ifTrue: 'animated',
+      ifFalse: 'not animated'));
   }
 }
 
@@ -1446,7 +1454,9 @@ class _ZulipContentParser {
       // For why we recognize this as the thumbnail form, see discussion:
       //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/documenting.20inline.20images/near/2279872
       srcUrl = href;
-      thumbnail = ImageThumbnailLocator(urlPath: src);
+      thumbnail = ImageThumbnailLocator(
+        urlPath: src,
+        animated: imgElement.attributes['data-animated'] == 'true');
     } else {
       // Known cases this handles:
       // - `src` starts with CAMO_URI, a server variable (e.g. on Zulip Cloud
