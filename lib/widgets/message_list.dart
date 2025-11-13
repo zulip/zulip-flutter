@@ -902,6 +902,28 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       // This method was called because that just changed.
     });
 
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!model.fetched || !scrollController.hasClients) {
+        return;
+      }
+
+      // If fetchInitial or fetchOlder/fetchNewer
+      // haven't filled model.messages with any visible (i.e. unmuted) messages,
+      // or anyway not enough to fill the screen, fetch again.
+      // If we're in a long run of muted messages, this has the effect of
+      // fetching in a loop until we've either fetched the narrow's whole history
+      // or we've filled the screen with visible messages,
+      // without needing user scroll input between iterations.
+      //
+      // The right time for the "if-needed" check is
+      // after the current model change has been laid out
+      // and the scroll metrics have been updated,
+      // so that when we receive and lay out a screenful of messages,
+      // we don't fetch again unnecessarily.
+      // That's why we do it in a post-frame callback.
+      _fetchMoreIfNeeded(scrollController.position);
+    });
+
     if (!_prevFetched && model.fetched && model.messages.isEmpty) {
       // If the fetch came up empty, there's nothing to read,
       // so opening the keyboard won't be bothersome and could be helpful.

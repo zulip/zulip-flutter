@@ -872,6 +872,103 @@ void main() {
     });
   });
 
+  group('muted messages', () {
+    final mutedUser = eg.user();
+    const messageContent = '<p>first line</p>\n<p>second line</p>';
+
+    Message channelMessage({required int id}) =>
+      eg.streamMessage(id: id, sender: eg.selfUser, content: messageContent);
+
+    List<Message> channelMessages({required int fromId, required int count}) =>
+      List.generate(count, (i) => channelMessage(id: fromId + i));
+
+    List<Message> mutedDmMessages({required int fromId, required int count}) =>
+      List.generate(count, (i) =>
+        eg.dmMessage(id: fromId + i, from: eg.selfUser, to: [mutedUser], content: messageContent));
+
+    testWidgets('multiple fetch-older requests are made until there are enough messages', (tester) async {
+      await setupMessageListPage(tester, foundOldest: false,
+        mutedUserIds: [mutedUser.userId],
+        messages: [
+          channelMessage(id: 1000),
+          ...mutedDmMessages(fromId: 1001, count: 99),
+        ],
+        skipPumpAndSettle: true);
+
+      await tester.pump(); // global store loaded
+      await tester.pump(); // per-account store loaded
+
+      connection.prepare(delay: Duration(milliseconds: 1),
+        json: eg.olderGetMessagesResult(anchor: 1000, foundOldest: false,
+          messages: [
+            ...channelMessages(fromId: 900, count: 2),
+            ...mutedDmMessages(fromId: 902, count: 98),
+          ]).toJson());
+      await tester.pump(Duration.zero); // initial message fetch request
+      // (one item for the message and one for the recipient header)
+      check(messageListItemCount(tester)).equals(2);
+
+      connection.prepare(delay: Duration(milliseconds: 1),
+        json: eg.olderGetMessagesResult(anchor: 900, foundOldest: false,
+          messages: [
+            ...channelMessages(fromId: 800, count: 98),
+            ...mutedDmMessages(fromId: 898, count: 2),
+          ]).toJson());
+      await tester.pump(Duration(milliseconds: 1));
+      // The two newly-fetched messages don't trigger a scroll-metrics
+      // notification to fetch more messages, but the model listener will
+      // trigger fetching more messages.
+      check(messageListItemCount(tester)).equals(2 + 2);
+
+      // Although there are more messages in the history (`foundOldest: false`
+      // in the last reponse), another request is not made as there are
+      // enough messages for now.
+      await tester.pump(Duration(milliseconds: 1));
+      check(messageListItemCount(tester)).equals(2 + 2 + 98);
+    });
+
+    testWidgets('mid-history, fetch-initial and fetch-older with too few messages -> fetch-newer request gets made', (tester) async {
+      await setupMessageListPage(tester,
+        mutedUserIds: [mutedUser.userId],
+        fetchResult: eg.nearGetMessagesResult(
+          anchor: 1000, foundOldest: false, foundNewest: false,
+          messages: [
+            ...mutedDmMessages(fromId: 900, count: 100),
+            channelMessage(id: 1000),
+            ...mutedDmMessages(fromId: 1001, count: 99),
+          ]),
+        skipPumpAndSettle: true);
+
+      await tester.pump(); // global store loaded
+      await tester.pump(); // per-account store loaded
+
+      connection.prepare(delay: Duration(milliseconds: 1),
+        json: eg.olderGetMessagesResult(anchor: 900, foundOldest: true,
+          messages: [
+            ...channelMessages(fromId: 800, count: 2),
+            ...mutedDmMessages(fromId: 802, count: 98),
+          ]).toJson());
+      await tester.pump(Duration.zero); // initial message fetch request
+      // (one item for the message and one for the recipient header)
+      check(messageListItemCount(tester)).equals(2);
+
+      connection.prepare(delay: Duration(milliseconds: 1),
+        json: eg.newerGetMessagesResult(anchor: 1100, foundNewest: true,
+          messages: [
+            ...channelMessages(fromId: 1100, count: 2),
+            ...mutedDmMessages(fromId: 1102, count: 98),
+          ]).toJson());
+      await tester.pump(Duration(milliseconds: 1)); // older message fetch request
+      // The two newly-fetched (older) messages don't trigger a scroll-metrics
+      // notification to fetch newer messages, but the model listener will
+      // trigger fetching newer messages.
+      check(messageListItemCount(tester)).equals(2 + 2);
+
+      await tester.pump(Duration(milliseconds: 1)); // newer message fetch request
+      check(messageListItemCount(tester)).equals(2 + 2 + 2);
+    });
+  });
+
   group('scroll position', () {
     // The scrolling behavior is tested in more detail in the tests of
     // [MessageListScrollView], in scrolling_test.dart .
@@ -1612,7 +1709,12 @@ void main() {
         ..decoration.isNotNull().hintText.equals('Message #${channel.name} > $topic')
         ..controller.isNotNull().text.equals('Some text');
 
-      prepareGetMessageResponse([message]);
+      prepareGetMessageResponse(
+        // `foundOldest: true` just to avoid having to prepare a fetch-older
+        // response; the message list would otherwise refetch when it notices
+        // it doesn't have a screenful of messages.
+        foundOldest: true,
+        [message]);
       await handleMessageMoveEvent([message], 'new topic', newChannelId: otherChannel.streamId);
       await tester.pump(const Duration(seconds: 1));
       check(tester.widget<TextField>(channelContentInputFinder))
@@ -1674,7 +1776,12 @@ void main() {
       await setupMessageListPage(tester,
         narrow: narrow, messages: [message], subscriptions: [subscription]);
 
-      prepareGetMessageResponse([message]);
+      prepareGetMessageResponse(
+        // `foundOldest: true` just to avoid having to prepare a fetch-older
+        // response; the message list would otherwise refetch when it notices
+        // it doesn't have a screenful of messages.
+        foundOldest: true,
+        [message]);
       await handleMessageMoveEvent([message], 'new topic');
       await tester.pump(const Duration(seconds: 1));
 
