@@ -240,10 +240,12 @@ class ZulipIconButton extends StatelessWidget {
     super.key,
     required this.icon,
     required this.onPressed,
+    this.tooltip,
   });
 
   final IconData icon;
   final VoidCallback onPressed;
+  final String? tooltip;
 
   @override
   Widget build(BuildContext context) {
@@ -258,6 +260,7 @@ class ZulipIconButton extends StatelessWidget {
       iconSize: 24,
       icon: Icon(icon),
       onPressed: onPressed,
+      tooltip: tooltip,
       style: IconButton.styleFrom(
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         fixedSize: Size.square(40),
