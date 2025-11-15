@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../model/content.dart';
@@ -231,12 +231,75 @@ class _KatexVlist extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final em = DefaultTextStyle.of(context).style.fontSize!;
+    final defaultColor = DefaultTextStyle.of(context).style.color ;
 
-    return Stack(children: List.unmodifiable(node.rows.map((row) {
-      return Transform.translate(
-        offset: Offset(0, row.verticalOffsetEm * em),
-        child: _KatexSpan(row.node));
-    })));
+    final lines = <_VlistLine>[];
+    for (final row in node.rows) {
+      final lineInfo = _findLineInfo(row.node);
+      if (lineInfo != null) {
+        final y = (row.verticalOffsetEm - (lineInfo.heightEm ?? 0) + 0.9) * em;
+        final thickness = lineInfo.borderWidthEm * em;
+        lines.add(_VlistLine(y, thickness, lineInfo.color ?? defaultColor));
+      }}
+
+    return CustomPaint(
+      foregroundPainter: _KatexBorderPainter(lines),
+      child: Stack(
+        children: List.unmodifiable(node.rows.map((row) {
+          return Transform.translate(
+            offset: Offset(0, row.verticalOffsetEm * em),
+            child: _KatexSpan(row.node));
+        }))));
+  }
+  ({double? heightEm, double borderWidthEm, Color? color})? _findLineInfo(KatexSpanNode span) {
+    final borderWidth = span.styles.borderBottomWidthEm;
+    final color = span.styles.color != null
+        ? Color.fromARGB(span.styles.color!.a, span.styles.color!.r, span.styles.color!.g, span.styles.color!.b)
+        : null;
+    if (borderWidth != null) {return (heightEm: span.styles.heightEm, borderWidthEm: borderWidth, color: color);}
+
+    if (span.nodes != null) {
+      for (final child in span.nodes!) {
+        if (child is KatexSpanNode) {
+          final info = _findLineInfo(child);
+          if (info != null) return info;
+      }}}
+    return null;
+  }
+}
+
+class _VlistLine {
+  const _VlistLine(this.y, this.thickness, this.color);
+  final double y;
+  final double thickness;
+  final Color? color;
+}
+
+class _KatexBorderPainter extends CustomPainter {
+  const _KatexBorderPainter(this.lines);
+
+  final List<_VlistLine> lines;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (lines.isEmpty) return;
+    final paint = Paint()..style = PaintingStyle.fill;
+    for (final line in lines) {
+      paint.color = line.color ?? Colors.black;
+      canvas.drawRect(Rect.fromLTWH(0, line.y, size.width, line.thickness), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _KatexBorderPainter oldDelegate) {
+    if (oldDelegate.lines.length != lines.length) return true;
+    for (var i = 0; i < lines.length; i++) {
+      if (oldDelegate.lines[i].y != lines[i].y ||
+          oldDelegate.lines[i].thickness != lines[i].thickness ||
+          oldDelegate.lines[i].color != lines[i].color) {
+        return true;
+      }}
+    return false;
   }
 }
 
