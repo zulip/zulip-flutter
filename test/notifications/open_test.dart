@@ -88,6 +88,7 @@ void main() {
 
   group('NotificationOpenService', () {
     late List<Route<void>> pushedRoutes;
+    late List<Route<void>> poppedRoutes;
 
     void takeHomePageRouteForAccount(int accountId) {
       check(pushedRoutes).first.which(
@@ -106,8 +107,18 @@ void main() {
     Future<void> prepare(WidgetTester tester, {bool early = false}) async {
       await init();
       pushedRoutes = [];
+      poppedRoutes = [];
       final testNavObserver = TestNavigatorObserver()
-        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+        ..onPushed = (route, prevRoute) {
+          pushedRoutes.add(route);
+        }
+        ..onPopped = (route, prevRoute) {
+          poppedRoutes.add(route);
+        }
+        ..onReplaced = (route, prevRoute) {
+          poppedRoutes.add(prevRoute!);
+          pushedRoutes.add(route!);
+        };
       // This uses [ZulipApp] instead of [TestZulipApp] because notification
       // logic uses `await ZulipApp.navigator`.
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
@@ -178,6 +189,20 @@ void main() {
       }
     }
 
+    void takeHomePageReplacement(int accountId, int prevAccountId) {
+      check(poppedRoutes).last.which(
+        (it) => it.isA<MaterialAccountWidgetRoute>()
+          ..accountId.equals(prevAccountId)
+          ..page.isA<HomePage>());
+      // We only care about HomePage being the last popped route.
+      poppedRoutes.clear();
+      check(pushedRoutes).first.which(
+        (it) => it.isA<MaterialAccountWidgetRoute>()
+          ..accountId.equals(accountId)
+          ..page.isA<HomePage>());
+      pushedRoutes.removeAt(0);
+    }
+
     void matchesNavigation(Subject<Route<void>> route, Account account, Message message) {
       route.isA<MaterialAccountWidgetRoute>()
         ..accountId.equals(account.id)
@@ -186,8 +211,15 @@ void main() {
             selfUserId: account.userId));
     }
 
-    Future<void> checkOpenNotification(WidgetTester tester, Account account, Message message) async {
+    Future<void> checkOpenNotification(
+      WidgetTester tester,
+      Account account,
+      Message message, {
+      bool expectHomePageReplaced = false,
+      int? prevAccountId,
+    }) async {
       await openNotification(tester, account, message);
+      if (expectHomePageReplaced) takeHomePageReplacement(account.id, prevAccountId!);
       matchesNavigation(check(pushedRoutes).single, account, message);
       pushedRoutes.clear();
     }
@@ -259,19 +291,29 @@ void main() {
         eg.account(id: 1004, realmUrl: realmUrlB, user: user2),
       ];
       await testBinding.globalStore.add(
-        accounts[0], eg.initialSnapshot(realmUsers: [user1]));
+        accounts[0], eg.initialSnapshot(realmUsers: [user1]),
+        markLastVisited: true);
       await testBinding.globalStore.add(
-        accounts[1], eg.initialSnapshot(realmUsers: [user2]));
+        accounts[1], eg.initialSnapshot(realmUsers: [user2]),
+        markLastVisited: false);
       await testBinding.globalStore.add(
-        accounts[2], eg.initialSnapshot(realmUsers: [user1]));
+        accounts[2], eg.initialSnapshot(realmUsers: [user1]),
+        markLastVisited: false);
       await testBinding.globalStore.add(
-        accounts[3], eg.initialSnapshot(realmUsers: [user2]));
+        accounts[3], eg.initialSnapshot(realmUsers: [user2]),
+        markLastVisited: false);
       await prepare(tester);
 
       await checkOpenNotification(tester, accounts[0], eg.streamMessage());
-      await checkOpenNotification(tester, accounts[1], eg.streamMessage());
-      await checkOpenNotification(tester, accounts[2], eg.streamMessage());
-      await checkOpenNotification(tester, accounts[3], eg.streamMessage());
+      await checkOpenNotification(tester,
+        accounts[1], eg.streamMessage(),
+        expectHomePageReplaced: true, prevAccountId: accounts[0].id);
+      await checkOpenNotification(tester,
+        accounts[2], eg.streamMessage(),
+        expectHomePageReplaced: true, prevAccountId: accounts[1].id);
+      await checkOpenNotification(tester,
+        accounts[3], eg.streamMessage(),
+        expectHomePageReplaced: true, prevAccountId: accounts[2].id);
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('wait for app to become ready', (tester) async {
@@ -341,7 +383,9 @@ void main() {
         await prepare(tester);
         check(testBinding.globalStore).lastVisitedAccount.equals(eg.selfAccount);
 
-        await checkOpenNotification(tester, eg.otherAccount, eg.streamMessage());
+        await checkOpenNotification(tester,
+          eg.otherAccount, eg.streamMessage(),
+          expectHomePageReplaced: true, prevAccountId: eg.selfAccount.id);
         check(testBinding.globalStore).lastVisitedAccount.equals(eg.otherAccount);
       }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
