@@ -13,6 +13,7 @@ import '../model/binding.dart';
 import '../model/narrow.dart';
 import '../widgets/app.dart';
 import '../widgets/dialog.dart';
+import '../widgets/home.dart';
 import '../widgets/message_list.dart';
 import '../widgets/page.dart';
 import '../widgets/store.dart';
@@ -135,7 +136,9 @@ class NotificationOpenService {
     final route = routeForNotification(context: context, data: notifNavData);
     if (route == null) return; // TODO(log)
 
-    // TODO(nav): Better interact with existing nav stack on notif open
+    if (GlobalStoreWidget.of(context).lastVisitedAccount?.id != route.accountId) {
+      HomePage.navigate(context, accountId: route.accountId);
+    }
     unawaited(navigator.push(route));
   }
 
@@ -158,7 +161,9 @@ class NotificationOpenService {
     final route = routeForNotification(context: context, data: data);
     if (route == null) return; // TODO(log)
 
-    // TODO(nav): Better interact with existing nav stack on notif open
+    if (GlobalStoreWidget.of(context).lastVisitedAccount?.id != route.accountId) {
+      HomePage.navigate(context, accountId: route.accountId);
+    }
     unawaited(navigator.push(route));
   }
 

@@ -88,6 +88,7 @@ void main() {
 
   group('NotificationOpenService', () {
     late List<Route<void>> pushedRoutes;
+    Route<void>? lastPoppedRoute;
 
     void takeHomePageRouteForAccount(int accountId) {
       check(pushedRoutes).first.which(
@@ -106,8 +107,18 @@ void main() {
     Future<void> prepare(WidgetTester tester, {bool early = false}) async {
       await init();
       pushedRoutes = [];
+      lastPoppedRoute = null;
       final testNavObserver = TestNavigatorObserver()
-        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+        ..onPushed = (route, prevRoute) {
+          pushedRoutes.add(route);
+        }
+        ..onPopped = (route, prevRoute) {
+          lastPoppedRoute = route;
+        }
+        ..onReplaced = (route, prevRoute) {
+          lastPoppedRoute = prevRoute;
+          pushedRoutes.add(route!);
+        };
       // This uses [ZulipApp] instead of [TestZulipApp] because notification
       // logic uses `await ZulipApp.navigator`.
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
@@ -178,6 +189,14 @@ void main() {
       }
     }
 
+    void takeHomePageReplacement(int accountId) {
+      check(lastPoppedRoute).which(
+        (it) => it.isA<MaterialAccountWidgetRoute>()
+          ..page.isA<HomePage>());
+      lastPoppedRoute = null;
+      takeHomePageRouteForAccount(accountId);
+    }
+
     void matchesNavigation(Subject<Route<void>> route, Account account, Message message) {
       route.isA<MaterialAccountWidgetRoute>()
         ..accountId.equals(account.id)
@@ -186,8 +205,18 @@ void main() {
             selfUserId: account.userId));
     }
 
-    Future<void> checkOpenNotification(WidgetTester tester, Account account, Message message) async {
+    Future<void> checkOpenNotification(
+      WidgetTester tester,
+      Account account,
+      Message message, {
+      bool expectHomePageReplaced = false,
+    }) async {
       await openNotification(tester, account, message);
+      if (expectHomePageReplaced) {
+        takeHomePageReplacement(account.id);
+      } else {
+        check(lastPoppedRoute).isNull();
+      }
       matchesNavigation(check(pushedRoutes).single, account, message);
       pushedRoutes.clear();
     }
@@ -268,10 +297,13 @@ void main() {
         accounts[3], eg.initialSnapshot(realmUsers: [user2]));
       await prepare(tester);
 
-      await checkOpenNotification(tester, accounts[0], eg.streamMessage());
-      await checkOpenNotification(tester, accounts[1], eg.streamMessage());
-      await checkOpenNotification(tester, accounts[2], eg.streamMessage());
       await checkOpenNotification(tester, accounts[3], eg.streamMessage());
+      await checkOpenNotification(tester, accounts[2], eg.streamMessage(),
+        expectHomePageReplaced: true);
+      await checkOpenNotification(tester, accounts[1], eg.streamMessage(),
+        expectHomePageReplaced: true);
+      await checkOpenNotification(tester, accounts[0], eg.streamMessage(),
+        expectHomePageReplaced: true);
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('wait for app to become ready', (tester) async {
@@ -341,7 +373,8 @@ void main() {
         await prepare(tester);
         check(testBinding.globalStore).lastVisitedAccount.equals(eg.selfAccount);
 
-        await checkOpenNotification(tester, eg.otherAccount, eg.streamMessage());
+        await checkOpenNotification(tester, eg.otherAccount, eg.streamMessage(),
+          expectHomePageReplaced: true);
         check(testBinding.globalStore).lastVisitedAccount.equals(eg.otherAccount);
       }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
@@ -367,6 +400,21 @@ void main() {
         check(testBinding.globalStore).lastVisitedAccount.equals(accountB);
       }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
     });
+
+    testWidgets('replaces HomePage with related account', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(
+        eg.selfAccount, eg.initialSnapshot(realmUsers: [eg.selfUser]));
+      await testBinding.globalStore.add(
+        eg.otherAccount, eg.initialSnapshot(realmUsers: [eg.otherUser]));
+
+      await prepare(tester);
+      check(testBinding.globalStore).lastVisitedAccount.equals(eg.otherAccount);
+
+      await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage(),
+        expectHomePageReplaced: true);
+      check(testBinding.globalStore).lastVisitedAccount.equals(eg.selfAccount);
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
   });
 
   group('NotificationOpenPayload', () {
