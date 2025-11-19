@@ -271,6 +271,16 @@ void main() {
       ]);
       check(model.countInStarredMessagesNarrow()).equals(0);
     });
+
+    test('countInDms', () async {
+      prepare();
+      fillWithMessages([
+        eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: []),
+        eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser], flags: []),
+        eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser], flags: []),
+      ]);
+      check(model.countInDms()).equals(3);
+    });
   });
 
   group('isUnread', () {
