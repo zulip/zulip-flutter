@@ -191,6 +191,7 @@ void main() {
       await store.addSubscription(eg.subscription(stream2));
       await store.addSubscription(eg.subscription(stream3, isMuted: true));
       await store.setUserTopic(stream1, 'a', UserTopicVisibilityPolicy.muted);
+      await store.setMutedUsers([eg.thirdUser.userId]);
       fillWithMessages([
         eg.streamMessage(stream: stream1, topic: 'a', flags: []),
         eg.streamMessage(stream: stream1, topic: 'b', flags: []),
@@ -198,9 +199,10 @@ void main() {
         eg.streamMessage(stream: stream2, topic: 'c', flags: []),
         eg.streamMessage(stream: stream3, topic: 'd', flags: []),
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: []),
+        // Exclude because user is muted
         eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser], flags: []),
       ]);
-      check(model.countInCombinedFeedNarrow()).equals(5);
+      check(model.countInCombinedFeedNarrow()).equals(4);
     });
 
     test('countInChannel/Narrow', () async {
@@ -274,12 +276,16 @@ void main() {
 
     test('countInAllDms', () async {
       prepare();
+      await store.setMutedUsers([eg.thirdUser.userId]);
       fillWithMessages([
+        // No one is muted: don't exclude
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: []),
+        // Everyone is muted: exclude
         eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser], flags: []),
+        // One is muted, one isn't: don't exclude
         eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser], flags: []),
       ]);
-      check(model.countInCombinedFeedNarrow()).equals(3);
+      check(model.countInCombinedFeedNarrow()).equals(2);
     });
   });
 
