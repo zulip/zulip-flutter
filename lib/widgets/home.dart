@@ -480,8 +480,9 @@ class _InboxButton extends _NavigationBarMenuButton {
     final store = PerAccountStoreWidget.of(context);
     final unreadCount = store.unreads.countInCombinedFeedNarrow();
     if (unreadCount == 0) return null;
-    return UnreadCountBadge(
-      style: UnreadCountBadgeStyle.mainMenu,
+    return Counter(
+      kind: CounterKind.unread,
+      style: CounterStyle.mainMenu,
       count: unreadCount,
       channelIdForBackground: null,
     );
@@ -507,8 +508,9 @@ class _MentionsButton extends MenuButton {
     final store = PerAccountStoreWidget.of(context);
     final unreadCount = store.unreads.countInMentionsNarrow();
     if (unreadCount == 0) return null;
-    return UnreadCountBadge(
-      style: UnreadCountBadgeStyle.mainMenu,
+    return Counter(
+      kind: CounterKind.unread,
+      style: CounterStyle.mainMenu,
       count: unreadCount,
       channelIdForBackground: null,
     );
@@ -530,6 +532,18 @@ class _StarredMessagesButton extends MenuButton {
   @override
   String label(ZulipLocalizations zulipLocalizations) {
     return zulipLocalizations.starredMessagesPageTitle;
+  }
+
+  @override
+  Widget? buildTrailing(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    if (!store.userSettings.starredMessageCounts) return null;
+    return Counter(
+      kind: CounterKind.quantity,
+      style: CounterStyle.mainMenu,
+      count: store.starredMessages.length,
+      channelIdForBackground: null,
+    );
   }
 
   @override
@@ -588,8 +602,9 @@ class _DirectMessagesButton extends _NavigationBarMenuButton {
     final store = PerAccountStoreWidget.of(context);
     final unreadCount = store.unreads.countInAllDms();
     if (unreadCount == 0) return null;
-    return UnreadCountBadge(
-      style: UnreadCountBadgeStyle.mainMenu,
+    return Counter(
+      kind: CounterKind.unread,
+      style: CounterStyle.mainMenu,
       count: unreadCount,
       channelIdForBackground: null,
     );

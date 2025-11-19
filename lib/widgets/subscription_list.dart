@@ -336,7 +336,8 @@ class SubscriptionItem extends StatelessWidget {
             // TODO(#747) show @-mention indicator when it applies
             Opacity(
               opacity: opacity,
-              child: UnreadCountBadge(
+              child: Counter(
+                kind: CounterKind.unread,
                 count: unreadCount,
                 channelIdForBackground: subscription.streamId)),
           ] else if (showMutedUnreadBadge) ...[

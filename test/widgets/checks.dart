@@ -92,7 +92,7 @@ extension PerAccountStoreWidgetChecks on Subject<PerAccountStoreWidget> {
   Subject<Widget> get child => has((x) => x.child, 'child');
 }
 
-extension UnreadCountBadgeChecks on Subject<UnreadCountBadge> {
+extension UnreadCountBadgeChecks on Subject<Counter> {
   Subject<int> get count => has((b) => b.count, 'count');
   Subject<int?> get channelIdForBackground => has((b) => b.channelIdForBackground, 'channelIdForBackground');
 }

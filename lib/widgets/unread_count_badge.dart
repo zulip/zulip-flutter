@@ -4,31 +4,29 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 
-/// A widget to display a given number of unreads in a conversation.
+/// A widget to display a given number (e.g. of unread messages or of users).
 ///
 /// See Figma's "counter-menu" component, which this is based on:
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2037-186671&m=dev
 /// It looks like that component was created for the main menu,
 /// then adapted for various other contexts, like the Inbox page.
-/// See [UnreadCountBadgeStyle].
-///
-/// Currently this widget supports only the component's "kind=unread" variant,
-/// not "kind=quantity".
-// TODO support the "kind=quantity" variant, update dartdoc
-class UnreadCountBadge extends StatelessWidget {
-  const UnreadCountBadge({
+/// See [CounterStyle] and [CounterKind] for the possible variants.
+class Counter extends StatelessWidget {
+  const Counter({
     super.key,
-    this.style = UnreadCountBadgeStyle.other,
+    this.style = CounterStyle.other,
+    required this.kind,
     required this.count,
     required this.channelIdForBackground,
-  });
+  }) : assert(!(kind == CounterKind.quantity && channelIdForBackground != null));
 
-  final UnreadCountBadgeStyle style;
+  final CounterStyle style;
+  final CounterKind kind;
   final int count;
 
   /// An optional [Subscription.streamId], for a channel-colorized background.
   ///
-  /// Useful when this badge represents messages in one specific channel.
+  /// Useful when this counter represents unreads in one specific channel.
   ///
   /// If null, the default neutral background will be used.
   // TODO remove; the Figma doesn't use this anymore.
@@ -48,40 +46,54 @@ class UnreadCountBadge extends StatelessWidget {
       final swatch = colorSwatchFor(context, subscription);
       backgroundColor = swatch.unreadCountBadgeBackground;
     } else {
-      textColor = designVariables.labelCounterUnread;
+      textColor = switch (kind) {
+        CounterKind.unread => designVariables.labelCounterUnread,
+        CounterKind.quantity => designVariables.labelCounterQuantity,
+      };
       backgroundColor = designVariables.bgCounterUnread;
     }
 
     final padding = switch (style) {
-      UnreadCountBadgeStyle.mainMenu =>
+      CounterStyle.mainMenu =>
         const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
-      UnreadCountBadgeStyle.other =>
+      CounterStyle.other =>
         const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
     };
 
-    final double wght = switch (style) {
-      UnreadCountBadgeStyle.mainMenu => 600,
-      UnreadCountBadgeStyle.other => 500,
+    final double wght = switch ((style, kind)) {
+      (CounterStyle.mainMenu, CounterKind.unread  ) => 600,
+      (CounterStyle.mainMenu, CounterKind.quantity) => 500,
+      (CounterStyle.other,    CounterKind.unread  ) => 500,
+      (CounterStyle.other,    CounterKind.quantity) => 500,
     };
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-        color: backgroundColor,
-      ),
-      child: Padding(
-        padding: padding,
-        child: Text(
-          style: TextStyle(
-            fontSize: 16,
-            height: (16 / 16),
-            color: textColor,
-          ).merge(weightVariableTextStyle(context, wght: wght)),
-          count.toString())));
+    Widget result = Padding(
+      padding: padding,
+      child: Text(
+        style: TextStyle(
+          fontSize: 16,
+          height: (16 / 16),
+          color: textColor,
+        ).merge(weightVariableTextStyle(context, wght: wght)),
+        count.toString()));
+
+    switch (kind) {
+      case CounterKind.unread:
+        result = DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            color: backgroundColor,
+          ),
+          child: result);
+      case CounterKind.quantity:
+        // no decoration
+    }
+
+    return result;
   }
 }
 
-enum UnreadCountBadgeStyle {
+enum CounterStyle {
   /// The style to use in the main menu.
   ///
   /// Figma:
@@ -96,6 +108,22 @@ enum UnreadCountBadgeStyle {
   /// (We use this for the topic-list page even though the Figma makes it a bit
   /// more compact there…the inconsistency seems worse and might be accidental.)
   other,
+}
+
+enum CounterKind {
+  /// The counter counts unread messages.
+  ///
+  /// Figma:
+  ///   Main-menu style: https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2037-185125&m=dev
+  ///   Other style: https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6205-26001&m=dev
+  unread,
+
+  /// The counter counts something else, like users or starred messages.
+  ///
+  /// Figma:
+  ///   Main-menu style: https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2037-186672&m=dev
+  ///   Other style: https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6025-293468&m=dev
+  quantity,
 }
 
 class MutedUnreadBadge extends StatelessWidget {
