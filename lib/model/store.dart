@@ -788,6 +788,8 @@ class PerAccountStore extends PerAccountStoreBase with
         switch (event.property!) {
           case UserSettingName.twentyFourHourTime:
             userSettings.twentyFourHourTime        = event.value as TwentyFourHourTimeMode;
+          case UserSettingName.starredMessageCounts:
+            userSettings.starredMessageCounts      = event.value as bool;
           case UserSettingName.displayEmojiReactionUsers:
             userSettings.displayEmojiReactionUsers = event.value as bool;
           case UserSettingName.emojiset:
