@@ -578,20 +578,22 @@ class EmojiPickerListEntry extends StatelessWidget {
           : Colors.transparent),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Row(spacing: 4, children: [
-          if (glyph != null)
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: glyph),
-          Flexible(child: Text(label,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 17,
-              height: 18 / 17,
-              color: designVariables.textMessage)))
-        ]),
-      ));
+        child: ConstrainedBox(
+          // Ensure the row meets the minimum touch target height.
+          constraints: const BoxConstraints(minHeight: 44),
+          child: Row(spacing: 4, children: [
+            if (glyph != null)
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: glyph),
+            Flexible(child: Text(label,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 17,
+                height: 18 / 17,
+                color: designVariables.textMessage)))
+          ]))));
   }
 }
 
