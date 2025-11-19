@@ -230,7 +230,8 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
 
   int countInAllDms() {
     int c = 0;
-    for (final messageIds in dms.values) {
+    for (final MapEntry(key: narrow, value: messageIds) in dms.entries) {
+      if (channelStore.shouldMuteDmConversation(narrow)) continue;
       c += messageIds.length;
     }
     return c;
