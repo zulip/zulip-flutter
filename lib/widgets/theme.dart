@@ -184,6 +184,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     foreground: const Color(0xff000000),
     icon: const Color(0xff6159e1),
     iconSelected: const Color(0xff222222),
+    labelCounterQuantity: const Color(0xff222222).withValues(alpha: 0.6),
     labelCounterUnread: const Color(0xff1a1a1a),
     labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
     labelMenuButton: const Color(0xff222222),
@@ -285,6 +286,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     foreground: const Color(0xffffffff),
     icon: const Color(0xff7977fe),
     iconSelected: Colors.white.withValues(alpha: 0.8),
+    labelCounterQuantity: const Color(0xffffffff).withValues(alpha: 0.7),
     labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.95),
     labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
     labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
@@ -395,6 +397,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.fabShadow,
     required this.icon,
     required this.iconSelected,
+    required this.labelCounterQuantity,
     required this.labelCounterUnread,
     required this.labelEdited,
     required this.labelMenuButton,
@@ -496,6 +499,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color foreground;
   final Color icon;
   final Color iconSelected;
+  final Color labelCounterQuantity;
   final Color labelCounterUnread;
   final Color labelEdited;
   final Color labelMenuButton;
@@ -592,6 +596,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? foreground,
     Color? icon,
     Color? iconSelected,
+    Color? labelCounterQuantity,
     Color? labelCounterUnread,
     Color? labelEdited,
     Color? labelMenuButton,
@@ -683,6 +688,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       fabShadow: fabShadow ?? this.fabShadow,
       icon: icon ?? this.icon,
       iconSelected: iconSelected ?? this.iconSelected,
+      labelCounterQuantity: labelCounterQuantity ?? this.labelCounterQuantity,
       labelCounterUnread: labelCounterUnread ?? this.labelCounterUnread,
       labelEdited: labelEdited ?? this.labelEdited,
       labelMenuButton: labelMenuButton ?? this.labelMenuButton,
@@ -781,6 +787,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       fabShadow: Color.lerp(fabShadow, other.fabShadow, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
       iconSelected: Color.lerp(iconSelected, other.iconSelected, t)!,
+      labelCounterQuantity: Color.lerp(labelCounterQuantity, other.labelCounterQuantity, t)!,
       labelCounterUnread: Color.lerp(labelCounterUnread, other.labelCounterUnread, t)!,
       labelEdited: Color.lerp(labelEdited, other.labelEdited, t)!,
       labelMenuButton: Color.lerp(labelMenuButton, other.labelMenuButton, t)!,
