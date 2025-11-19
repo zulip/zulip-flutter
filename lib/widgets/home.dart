@@ -24,6 +24,7 @@ import 'store.dart';
 import 'subscription_list.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'unread_count_badge.dart';
 import 'user.dart';
 
 enum _HomePageTab {
@@ -506,6 +507,8 @@ abstract class _MenuButton extends StatelessWidget {
       color: selected ? designVariables.iconSelected : designVariables.icon);
   }
 
+  Widget? buildTrailing(BuildContext context) => null;
+
   void onPressed(BuildContext context);
 
   void _handlePress(BuildContext context) {
@@ -546,6 +549,8 @@ abstract class _MenuButton extends StatelessWidget {
         ~WidgetState.pressed: selected ? borderSideSelected : null,
       }));
 
+    final trailing = buildTrailing(context);
+
     return AnimatedScaleOnTap(
       duration: const Duration(milliseconds: 100),
       scaleEnd: 0.95,
@@ -562,6 +567,7 @@ abstract class _MenuButton extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 19, height: 26 / 19)
                 .merge(weightVariableTextStyle(context, wght: selected ? 600 : 400)))),
+            ?trailing,
           ]))));
   }
 }
@@ -613,6 +619,18 @@ class _InboxButton extends _NavigationBarMenuButton {
   }
 
   @override
+  Widget? buildTrailing(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final unreadCount = store.unreads.countInCombinedFeedNarrow();
+    if (unreadCount == 0) return null;
+    return UnreadCountBadge(
+      style: UnreadCountBadgeStyle.mainMenu,
+      count: unreadCount,
+      channelIdForBackground: null,
+    );
+  }
+
+  @override
   _HomePageTab get navigationTarget => _HomePageTab.inbox;
 }
 
@@ -625,6 +643,18 @@ class _MentionsButton extends _MenuButton {
   @override
   String label(ZulipLocalizations zulipLocalizations) {
     return zulipLocalizations.mentionsPageTitle;
+  }
+
+  @override
+  Widget? buildTrailing(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final unreadCount = store.unreads.countInMentionsNarrow();
+    if (unreadCount == 0) return null;
+    return UnreadCountBadge(
+      style: UnreadCountBadgeStyle.mainMenu,
+      count: unreadCount,
+      channelIdForBackground: null,
+    );
   }
 
   @override
@@ -694,6 +724,18 @@ class _DirectMessagesButton extends _NavigationBarMenuButton {
   @override
   String label(ZulipLocalizations zulipLocalizations) {
     return zulipLocalizations.recentDmConversationsPageTitle;
+  }
+
+  @override
+  Widget? buildTrailing(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final unreadCount = store.unreads.countInDms();
+    if (unreadCount == 0) return null;
+    return UnreadCountBadge(
+      style: UnreadCountBadgeStyle.mainMenu,
+      count: unreadCount,
+      channelIdForBackground: null,
+    );
   }
 
   @override
