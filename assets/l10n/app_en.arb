@@ -1017,6 +1017,24 @@
   "@errorMarkAsUnreadFailedTitle": {
     "description": "Error title when mark as unread action failed."
   },
+  "markAllAsReadConfirmationDialogTitle": "Mark messages as read?",
+  "@markAllAsReadConfirmationDialogTitle": {
+    "description": "Title of the confirmation dialog for marking all messages as read."
+  },
+  "markAllAsReadConfirmationDialogMessage": "{count, plural, =1{{count} message will be marked as read.} other{{count} messages will be marked as read.}}",
+  "@markAllAsReadConfirmationDialogMessage": {
+    "description": "Message in the confirmation dialog for marking all messages as read.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "description": "Number of messages that will be marked as read"
+      }
+    }
+  },
+  "markAllAsReadConfirmationDialogConfirmButton": "Mark as read",
+  "@markAllAsReadConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Mark as read' button on a confirmation dialog for marking all messages as read."
+  },
   "today": "Today",
   "@today": {
     "description": "Term to use to reference the current day."

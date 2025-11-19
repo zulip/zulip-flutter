@@ -1190,6 +1190,133 @@ void main() {
       return finder.evaluate().isNotEmpty;
     }
 
+    (Widget, Widget) checkConfirmDialog(WidgetTester tester, int unreadCount) {
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      return checkSuggestedActionDialog(tester,
+        expectedTitle: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
+        expectedMessage: zulipLocalizations.markAllAsReadConfirmationDialogMessage(unreadCount),
+        expectDestructiveActionButton: false,
+        expectedActionButtonText: zulipLocalizations.markAllAsReadConfirmationDialogConfirmButton);
+    }
+
+    group('confirmation dialog', () {
+      Future<void> showsConfirmDialog(WidgetTester tester, {
+        required Narrow narrow,
+        required List<Message> messages,
+        required UnreadMessagesSnapshot unreadMsgs,
+      }) async {
+        await setupMessageListPage(tester, narrow: narrow,
+          messages: messages, unreadMsgs: unreadMsgs);
+        check(isMarkAsReadButtonVisible(tester)).isTrue();
+
+        await tester.tap(find.byType(MarkAsReadWidget));
+        await tester.pump();
+
+        final unreadCount = store.unreads.countInNarrow(narrow);
+        checkConfirmDialog(tester, unreadCount);
+      }
+
+      Future<void> doesNotShowConfirmDialog(WidgetTester tester, {
+        required Narrow narrow,
+        required List<Message> messages,
+        required UnreadMessagesSnapshot unreadMsgs,
+        required UpdateMessageFlagsForNarrowResult updateResult,
+      }) async {
+        await setupMessageListPage(tester,
+          narrow: narrow, messages: messages, unreadMsgs: unreadMsgs);
+        check(isMarkAsReadButtonVisible(tester)).isTrue();
+
+        connection.prepare(json: updateResult.toJson());
+        await tester.tap(find.byType(MarkAsReadWidget));
+        await tester.pump();
+
+        checkNoDialog(tester);
+        await tester.pump(Duration.zero);
+        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/messages/flags/narrow')
+          ..bodyFields.deepEquals({
+              'anchor': 'oldest',
+              'include_anchor': 'false',
+              'num_before': '0',
+              'num_after': '1000',
+              'narrow': jsonEncode(resolveApiNarrowForServer(apiNarrow, connection.zulipFeatureLevel!)),
+              'op': 'add',
+              'flag': 'read',
+            });
+      }
+
+      testWidgets('CombinedFeedNarrow: show dialog', (tester) async {
+        final message = eg.streamMessage(flags: []);
+        await showsConfirmDialog(tester,
+          narrow: CombinedFeedNarrow(),
+          messages: [message],
+          unreadMsgs: eg.unreadMsgs(channels: [
+            UnreadChannelSnapshot(
+              streamId: message.streamId,
+              topic: message.topic,
+              unreadMessageIds: [message.id]),
+          ]));
+      });
+
+      testWidgets('MentionsNarrow: show dialog', (tester) async {
+        final message = eg.streamMessage(flags: [MessageFlag.mentioned]);
+        await showsConfirmDialog(tester,
+          narrow: MentionsNarrow(),
+          messages: [message],
+          unreadMsgs: eg.unreadMsgs(
+            mentions: [message.id],
+            channels: [
+              UnreadChannelSnapshot(
+                streamId: message.streamId,
+                topic: message.topic,
+                unreadMessageIds: [message.id]),
+            ]));
+      });
+
+      testWidgets('ChannelNarrow: show dialog', (tester) async {
+        final message = eg.streamMessage(flags: []);
+        await showsConfirmDialog(tester,
+          narrow: ChannelNarrow(message.streamId),
+          messages: [message],
+          unreadMsgs: eg.unreadMsgs(channels: [
+            UnreadChannelSnapshot(
+              streamId: message.streamId,
+              topic: message.topic,
+              unreadMessageIds: [message.id]),
+          ]));
+      });
+
+      testWidgets('DmNarrow: do not show dialog', (tester) async {
+        final message = eg.dmMessage(flags: [], from: eg.selfUser, to: [eg.otherUser]);
+        await doesNotShowConfirmDialog(tester,
+          narrow: DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId),
+          messages: [message],
+          unreadMsgs: eg.unreadMsgs(dms: [
+            UnreadDmSnapshot(otherUserId: eg.otherUser.userId,
+              unreadMessageIds: [message.id])]),
+          updateResult: UpdateMessageFlagsForNarrowResult(
+            processedCount: 1, updatedCount: 1,
+            firstProcessedId: message.id, lastProcessedId: message.id,
+            foundOldest: true, foundNewest: true));
+      });
+
+      testWidgets('TopicNarrow: do not show dialog', (tester) async {
+        final message = eg.streamMessage(flags: []);
+        await doesNotShowConfirmDialog(tester,
+          narrow: TopicNarrow.ofMessage(message),
+          messages: [message],
+          unreadMsgs: eg.unreadMsgs(channels: [
+            UnreadChannelSnapshot(topic: message.topic,
+              streamId: message.streamId, unreadMessageIds: [message.id])]),
+          updateResult: UpdateMessageFlagsForNarrowResult(
+            processedCount: 1, updatedCount: 1,
+            firstProcessedId: message.id, lastProcessedId: message.id,
+            foundOldest: true, foundNewest: true));
+      });
+    });
+
     testWidgets('from read to unread', (tester) async {
       final message = eg.streamMessage(flags: [MessageFlag.read]);
       await setupMessageListPage(tester, messages: [message]);
@@ -1421,6 +1548,10 @@ void main() {
           firstProcessedId: null, lastProcessedId: null,
           foundOldest: true, foundNewest: true).toJson());
         await tester.tap(find.byType(MarkAsReadWidget));
+        await tester.pump();
+        final unreadCount = store.unreads.countInCombinedFeedNarrow();
+        final (confirmButton, _) = checkConfirmDialog(tester, unreadCount);
+        await tester.tap(find.byWidget(confirmButton));
         await tester.pumpAndSettle();
         check(store.unreads.oldUnreadsMissing).isFalse();
       });
@@ -1434,6 +1565,10 @@ void main() {
 
         connection.prepare(httpException: http.ClientException('Oops'));
         await tester.tap(find.byType(MarkAsReadWidget));
+        await tester.pump();
+        final unreadCount = store.unreads.countInCombinedFeedNarrow();
+        final (confirmButton, _) = checkConfirmDialog(tester, unreadCount);
+        await tester.tap(find.byWidget(confirmButton));
         await tester.pumpAndSettle();
         checkErrorDialog(tester,
           expectedTitle: zulipLocalizations.errorMarkAsReadFailedTitle,

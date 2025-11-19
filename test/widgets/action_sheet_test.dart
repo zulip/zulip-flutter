@@ -482,6 +482,8 @@ void main() {
       }
 
       testWidgets('happy path from inbox', (tester) async {
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+
         await prepare();
         final message = eg.streamMessage(stream: someChannel, topic: someTopic);
         await store.addMessage(message);
@@ -491,17 +493,37 @@ void main() {
           firstProcessedId: message.id, lastProcessedId: message.id,
           foundOldest: true, foundNewest: true).toJson());
         await tester.tap(findButtonForLabel('Mark channel as read'));
+        await tester.pump();
+        await tester.pump();
+        final unreadCount = store.unreads.countInChannelNarrow(someChannel.streamId);
+        final (confirmButton, _) = checkSuggestedActionDialog(tester,
+          expectedTitle: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
+          expectedMessage: zulipLocalizations.markAllAsReadConfirmationDialogMessage(unreadCount),
+          expectedActionButtonText: zulipLocalizations.markAllAsReadConfirmationDialogConfirmButton);
+        await tester.tap(find.byWidget(confirmButton));
         await tester.pumpAndSettle();
+
         checkRequest(someChannel.streamId);
         checkNoDialog(tester);
       });
 
       testWidgets('request fails', (tester) async {
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+
         await prepare();
         await showFromInbox(tester);
         connection.prepare(httpException: http.ClientException('Oops'));
         await tester.tap(findButtonForLabel('Mark channel as read'));
+        await tester.pump();
+        await tester.pump();
+        final unreadCount = store.unreads.countInChannelNarrow(someChannel.streamId);
+        final (confirmButton, _) = checkSuggestedActionDialog(tester,
+          expectedTitle: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
+          expectedMessage: zulipLocalizations.markAllAsReadConfirmationDialogMessage(unreadCount),
+          expectedActionButtonText: zulipLocalizations.markAllAsReadConfirmationDialogConfirmButton);
+        await tester.tap(find.byWidget(confirmButton));
         await tester.pumpAndSettle();
+
         checkRequest(someChannel.streamId);
         checkErrorDialog(tester,
           expectedTitle: "Mark as read failed");
