@@ -160,9 +160,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
   int countInCombinedFeedNarrow() {
     int c = 0;
-    for (final messageIds in dms.values) {
-      c = c + messageIds.length;
-    }
+    c += countInDms();
     for (final MapEntry(key: streamId, value: topics) in streams.entries) {
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
         if (channelStore.isTopicVisible(streamId, topic)) {
@@ -229,6 +227,14 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
 
   // TODO: Implement unreads handling?
   int countInKeywordSearchNarrow() => 0;
+
+  int countInDms() {
+    int c = 0;
+    for (final messageIds in dms.values) {
+      c += messageIds.length;
+    }
+    return c;
+  }
 
   int countInNarrow(Narrow narrow) {
     switch (narrow) {
