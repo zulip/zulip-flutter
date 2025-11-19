@@ -31,6 +31,23 @@ abstract final class ZulipAction {
   /// for details on the UI feedback, see there.
   static Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
+
+    final unreadCount = switch (narrow) {
+      CombinedFeedNarrow() => store.unreads.countInCombinedFeedNarrow(),
+      _ => 0,
+    };
+
+    if (narrow is CombinedFeedNarrow) {
+      final didConfirm = showSuggestedActionDialog(context: context,
+        title: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
+        message: zulipLocalizations.markAllAsReadConfirmationDialogMessage(unreadCount),
+        actionButtonText: zulipLocalizations.markAllAsReadConfirmationDialogAction,
+      );
+
+      if (await didConfirm.result != true) return;
+      if (!context.mounted) return;
+    }
 
     final didPass = await updateMessageFlagsStartingFromAnchor(
       context: context,

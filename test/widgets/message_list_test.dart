@@ -972,6 +972,16 @@ void main() {
       return finder.evaluate().isNotEmpty;
     }
 
+    (Widget, Widget) checkConfirmDialog(WidgetTester tester, int unreadCount) {
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      return checkSuggestedActionDialog(tester,
+        expectedTitle: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
+        expectedMessage: zulipLocalizations.markAllAsReadConfirmationDialogMessage(unreadCount),
+        expectDestructiveActionButton: true,
+        expectedActionButtonText: zulipLocalizations.markAllAsReadConfirmationDialogAction,
+      );
+    }
+
     testWidgets('from read to unread', (tester) async {
       final message = eg.streamMessage(flags: [MessageFlag.read]);
       await setupMessageListPage(tester, messages: [message]);
@@ -1161,6 +1171,10 @@ void main() {
           firstProcessedId: null, lastProcessedId: null,
           foundOldest: true, foundNewest: true).toJson());
         await tester.tap(find.byType(MarkAsReadWidget));
+        await tester.pump();
+        final unreadCount = store.unreads.countInCombinedFeedNarrow();
+        final (confirmButton, _) = checkConfirmDialog(tester, unreadCount);
+        await tester.tap(find.byWidget(confirmButton));
         await tester.pumpAndSettle();
         check(store.unreads.oldUnreadsMissing).isFalse();
       });
@@ -1174,6 +1188,10 @@ void main() {
 
         connection.prepare(httpException: http.ClientException('Oops'));
         await tester.tap(find.byType(MarkAsReadWidget));
+        await tester.pump();
+        final unreadCount = store.unreads.countInCombinedFeedNarrow();
+        final (confirmButton, _) = checkConfirmDialog(tester, unreadCount);
+        await tester.tap(find.byWidget(confirmButton));
         await tester.pumpAndSettle();
         checkErrorDialog(tester,
           expectedTitle: zulipLocalizations.errorMarkAsReadFailedTitle,

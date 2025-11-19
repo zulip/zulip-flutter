@@ -791,6 +791,17 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get errorMarkAsUnreadFailedTitle => 'Mark as unread failed';
 
   @override
+  String get markAllAsReadConfirmationDialogTitle => 'Mark messages as read?';
+
+  @override
+  String markAllAsReadConfirmationDialogMessage(int count) {
+    return '$count messages will be marked as read.';
+  }
+
+  @override
+  String get markAllAsReadConfirmationDialogAction => 'Mark as read';
+
+  @override
   String get today => 'Today';
 
   @override

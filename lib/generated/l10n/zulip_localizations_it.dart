@@ -786,6 +786,17 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Contrassegno come non letti non riuscito';
 
   @override
+  String get markAllAsReadConfirmationDialogTitle => 'Mark messages as read?';
+
+  @override
+  String markAllAsReadConfirmationDialogMessage(int count) {
+    return '$count messages will be marked as read.';
+  }
+
+  @override
+  String get markAllAsReadConfirmationDialogAction => 'Mark as read';
+
+  @override
   String get today => 'Oggi';
 
   @override
