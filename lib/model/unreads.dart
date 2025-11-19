@@ -228,9 +228,14 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   // TODO: Implement unreads handling?
   int countInKeywordSearchNarrow() => 0;
 
+  /// The aggregated unread count for DM conversations.
+  ///
+  /// This excludes conversations that are considered muted,
+  /// by [UserStore.shouldMuteDmConversation].
   int countInDms() {
     int c = 0;
-    for (final messageIds in dms.values) {
+    for (final MapEntry(key: narrow, value: messageIds) in dms.entries) {
+      if (channelStore.shouldMuteDmConversation(narrow)) continue;
       c += messageIds.length;
     }
     return c;
