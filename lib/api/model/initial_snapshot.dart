@@ -297,6 +297,7 @@ class UserSettings {
   )
   TwentyFourHourTimeMode twentyFourHourTime;
 
+  bool starredMessageCounts;
   bool displayEmojiReactionUsers;
   @JsonKey(unknownEnumValue: Emojiset.unknown)
   Emojiset emojiset;
@@ -310,6 +311,7 @@ class UserSettings {
 
   UserSettings({
     required this.twentyFourHourTime,
+    required this.starredMessageCounts,
     required this.displayEmojiReactionUsers,
     required this.emojiset,
     required this.presenceEnabled,
