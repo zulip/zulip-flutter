@@ -108,9 +108,7 @@ void main() {
           processedCount: 11, updatedCount: 3,
           firstProcessedId: null, lastProcessedId: null,
           foundOldest: true, foundNewest: true).toJson());
-        final future = ZulipAction.markNarrowAsRead(context, narrow);
-        await tester.pump(Duration.zero);
-        await future;
+        await confirmToMarkNarrowAsRead(tester: tester, context: context, narrow: narrow);
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('POST')
           ..url.path.equals('/api/v1/messages/flags/narrow')
@@ -134,9 +132,7 @@ void main() {
           processedCount: 11, updatedCount: 3,
           firstProcessedId: null, lastProcessedId: null,
           foundOldest: true, foundNewest: true).toJson());
-        final future = ZulipAction.markNarrowAsRead(context, narrow);
-        await tester.pump(Duration.zero);
-        await future;
+        await confirmToMarkNarrowAsRead(tester: tester, context: context, narrow: narrow);
         check(store.unreads.oldUnreadsMissing).isFalse();
       });
     });

@@ -32,6 +32,17 @@ abstract final class ZulipAction {
   static Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
 
+    if (narrow is CombinedFeedNarrow) {
+      final didConfirm = showSuggestedActionDialog(context: context,
+        title: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
+        message: zulipLocalizations.markAllAsReadConfirmationDialogMessage,
+        actionButtonText: zulipLocalizations.markAllAsReadConfirmationDialogAction,
+      );
+
+      if (await didConfirm.result != true) return;
+      if (!context.mounted) return;
+    }
+
     final didPass = await updateMessageFlagsStartingFromAnchor(
       context: context,
       // Include `is:unread` in the narrow.  That has a database index, so
