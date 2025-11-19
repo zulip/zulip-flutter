@@ -1389,6 +1389,7 @@ InitialSnapshot initialSnapshot({
     userStatuses: userStatuses ?? {},
     userSettings: userSettings ?? UserSettings(
       twentyFourHourTime: TwentyFourHourTimeMode.twelveHour,
+      starredMessageCounts: true,
       displayEmojiReactionUsers: true,
       emojiset: Emojiset.google,
       presenceEnabled: true,

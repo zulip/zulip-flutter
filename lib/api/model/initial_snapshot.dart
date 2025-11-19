@@ -294,6 +294,7 @@ class UserSettings {
   )
   TwentyFourHourTimeMode twentyFourHourTime;
 
+  bool starredMessageCounts;
   bool displayEmojiReactionUsers;
   Emojiset emojiset;
   bool presenceEnabled;
@@ -306,6 +307,7 @@ class UserSettings {
 
   UserSettings({
     required this.twentyFourHourTime,
+    required this.starredMessageCounts,
     required this.displayEmojiReactionUsers,
     required this.emojiset,
     required this.presenceEnabled,
