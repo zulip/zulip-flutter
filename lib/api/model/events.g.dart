@@ -65,6 +65,7 @@ Map<String, dynamic> _$UserSettingsUpdateEventToJson(
 
 const _$UserSettingNameEnumMap = {
   UserSettingName.twentyFourHourTime: 'twenty_four_hour_time',
+  UserSettingName.starredMessageCounts: 'starred_message_counts',
   UserSettingName.displayEmojiReactionUsers: 'display_emoji_reaction_users',
   UserSettingName.emojiset: 'emojiset',
   UserSettingName.presenceEnabled: 'presence_enabled',

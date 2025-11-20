@@ -222,7 +222,7 @@ void main() {
         find.descendant(
           of: find.byWidget(findRowByLabel(tester, channel.name)!),
           matching: find.descendant(
-            of: find.byType(UnreadCountBadge),
+            of: find.byType(Counter),
             matching: find.text('1'))));
 
       final expectedTextColor = DesignVariables.light.unreadCountBadgeTextForChannel;
@@ -406,19 +406,19 @@ void main() {
 
         check(find.descendant(
           of: find.byWidget(findRowByLabel(tester, 'aaa')!),
-          matching: find.widgetWithText(UnreadCountBadge, '1'))).findsOne();
+          matching: find.widgetWithText(Counter, '1'))).findsOne();
 
         await store.handleEvent(eg.updateMessageFlagsRemoveEvent(MessageFlag.read, [message2]));
         await tester.pump();
         check(find.descendant(
           of: find.byWidget(findRowByLabel(tester, 'aaa')!),
-          matching: find.widgetWithText(UnreadCountBadge, '2'))).findsOne();
+          matching: find.widgetWithText(Counter, '2'))).findsOne();
 
         await store.handleEvent(eg.updateMessageFlagsRemoveEvent(MessageFlag.read, [message3]));
         await tester.pump();
         check(find.descendant(
           of: find.byWidget(findRowByLabel(tester, 'aaa')!),
-          matching: find.widgetWithText(UnreadCountBadge, '3'))).findsOne();
+          matching: find.widgetWithText(Counter, '3'))).findsOne();
       });
     });
 

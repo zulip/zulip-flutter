@@ -70,6 +70,9 @@ InitialSnapshot _$InitialSnapshotFromJson(
   unreadMsgs: UnreadMessagesSnapshot.fromJson(
     json['unread_msgs'] as Map<String, dynamic>,
   ),
+  starredMessages: (json['starred_messages'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
   streams: (json['streams'] as List<dynamic>)
       .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -173,6 +176,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'subscriptions': instance.subscriptions,
   'channel_folders': instance.channelFolders,
   'unread_msgs': instance.unreadMsgs,
+  'starred_messages': instance.starredMessages,
   'streams': instance.streams,
   'user_status': instance.userStatuses.map((k, e) => MapEntry(k.toString(), e)),
   'user_settings': instance.userSettings,
@@ -256,6 +260,7 @@ UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
   twentyFourHourTime: TwentyFourHourTimeMode.fromApiValue(
     json['twenty_four_hour_time'] as bool?,
   ),
+  starredMessageCounts: json['starred_message_counts'] as bool,
   displayEmojiReactionUsers: json['display_emoji_reaction_users'] as bool,
   emojiset: $enumDecode(_$EmojisetEnumMap, json['emojiset']),
   presenceEnabled: json['presence_enabled'] as bool,
@@ -263,6 +268,7 @@ UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
 
 const _$UserSettingsFieldMap = <String, String>{
   'twentyFourHourTime': 'twenty_four_hour_time',
+  'starredMessageCounts': 'starred_message_counts',
   'displayEmojiReactionUsers': 'display_emoji_reaction_users',
   'emojiset': 'emojiset',
   'presenceEnabled': 'presence_enabled',
@@ -273,6 +279,7 @@ Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
       'twenty_four_hour_time': TwentyFourHourTimeMode.staticToJson(
         instance.twentyFourHourTime,
       ),
+      'starred_message_counts': instance.starredMessageCounts,
       'display_emoji_reaction_users': instance.displayEmojiReactionUsers,
       'emojiset': instance.emojiset,
       'presence_enabled': instance.presenceEnabled,

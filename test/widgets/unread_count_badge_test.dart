@@ -36,7 +36,10 @@ void main() {
 
     testWidgets('smoke test; no crash', (tester) async {
       await prepare(tester,
-        child: const UnreadCountBadge(count: 1, channelIdForBackground: null));
+        child: const Counter(
+          kind: CounterKind.unread,
+          count: 1,
+          channelIdForBackground: null));
       tester.widget(find.text("1"));
     });
 
@@ -49,7 +52,10 @@ void main() {
 
       testWidgets('default color', (tester) async {
         await prepare(tester,
-          child: UnreadCountBadge(count: 1, channelIdForBackground: null));
+          child: Counter(
+            kind: CounterKind.unread,
+            count: 1,
+            channelIdForBackground: null));
         check(findBackgroundColor(tester)).isNotNull().isSameColorAs(const Color(0x26666699));
       });
 
@@ -57,7 +63,8 @@ void main() {
         final subscription = eg.subscription(eg.stream(), color: 0xff76ce90);
         await prepare(tester,
           subscription: subscription,
-          child: UnreadCountBadge(
+          child: Counter(
+            kind: CounterKind.unread,
             count: 1,
             channelIdForBackground: subscription.streamId));
         check(findBackgroundColor(tester)).isNotNull()

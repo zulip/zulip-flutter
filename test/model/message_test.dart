@@ -55,12 +55,15 @@ void main() {
   Future<void> prepare({
     ZulipStream? stream,
     bool isChannelSubscribed = true,
+    List<int>? starredMessages = const [],
     int? zulipFeatureLevel,
   }) async {
     stream ??= eg.stream(streamId: eg.defaultStreamMessageStreamId);
     final selfAccount = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
     store = eg.store(account: selfAccount,
-      initialSnapshot: eg.initialSnapshot(zulipFeatureLevel: zulipFeatureLevel));
+      initialSnapshot: eg.initialSnapshot(
+        starredMessages: starredMessages,
+        zulipFeatureLevel: zulipFeatureLevel));
     await store.addStream(stream);
     if (isChannelSubscribed) {
       subscription = eg.subscription(stream);
@@ -1634,6 +1637,17 @@ void main() {
       checkNotifiedOnce();
       check(store).messages.values.single.id.equals(message1.id);
     });
+
+    test('delete a starred message', () async {
+      final message = eg.streamMessage(flags: [MessageFlag.starred]);
+      await prepare(starredMessages: [message.id]);
+      await prepareMessages([message]);
+      check(store).starredMessages.single.equals(message.id);
+      await store.handleEvent(eg.deleteMessageEvent([message]));
+      checkNotifiedOnce();
+      check(store).messages.isEmpty();
+      check(store).starredMessages.isEmpty();
+    });
   });
 
   group('handleUpdateMessageFlagsEvent', () {
@@ -1702,6 +1716,30 @@ void main() {
         check(store).messages.values
           .single.flags.deepEquals([MessageFlag.starred, MessageFlag.read]);
       });
+
+      test('add to starredMessages', () async {
+        int perAccountStoreNotifiedCount = 0;
+        void checkPerAccountStoreNotified({required int count}) {
+          check(perAccountStoreNotifiedCount).equals(count);
+          notifiedCount = 0;
+        }
+
+        final message1 = eg.streamMessage(flags: []);
+        final message2 = eg.streamMessage(flags: []);
+
+        await prepare(starredMessages: []);
+
+        store.addListener(() {
+          perAccountStoreNotifiedCount++;
+        });
+
+        await prepareMessages([message1, message2]);
+        check(store).starredMessages.isEmpty();
+        await store.handleEvent(
+          mkAddEvent(MessageFlag.starred, [message1.id, message2.id]));
+        checkPerAccountStoreNotified(count: 1);
+        check(store).starredMessages.deepEquals([message1.id, message2.id]);
+      });
     });
 
     group('remove flag', () {
@@ -1736,6 +1774,30 @@ void main() {
         checkNotifiedOnce();
         check(store).messages.values
           .single.flags.deepEquals([MessageFlag.starred]);
+      });
+
+      test('remove from starredMessages', () async {
+        int perAccountStoreNotifiedCount = 0;
+        void checkPerAccountStoreNotified({required int count}) {
+          check(perAccountStoreNotifiedCount).equals(count);
+          notifiedCount = 0;
+        }
+
+        final message1 = eg.streamMessage(flags: [MessageFlag.starred]);
+        final message2 = eg.streamMessage(flags: [MessageFlag.starred]);
+
+        await prepare(starredMessages: [message1.id, message2.id]);
+
+        store.addListener(() {
+          perAccountStoreNotifiedCount++;
+        });
+
+        await prepareMessages([message1, message2]);
+        check(store).starredMessages.deepEquals([message1.id, message2.id]);
+        await store.handleEvent(
+          mkRemoveEvent(MessageFlag.starred, [message1, message2]));
+        checkPerAccountStoreNotified(count: 1);
+        check(store).starredMessages.isEmpty();
       });
     });
   });
