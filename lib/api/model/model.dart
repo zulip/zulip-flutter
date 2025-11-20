@@ -390,7 +390,8 @@ enum Emojiset {
   google,
   googleBlob,
   twitter,
-  text;
+  text,
+  unknown;
 
   /// Get an [Emojiset] from a raw string. Throws if the string is unrecognized.
   ///
