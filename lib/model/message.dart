@@ -24,6 +24,9 @@ mixin MessageStore on ChannelStore {
   /// All known messages, indexed by [Message.id].
   Map<int, Message> get messages;
 
+  /// All starred messages, as message IDs.
+  Set<int> get starredMessages;
+
   /// [OutboxMessage]s sent by the user, indexed by [OutboxMessage.localMessageId].
   Map<int, OutboxMessage> get outboxMessages;
 
@@ -208,6 +211,8 @@ mixin ProxyMessageStore on MessageStore {
   @override
   Map<int, Message> get messages => messageStore.messages;
   @override
+  Set<int> get starredMessages => messageStore.starredMessages;
+  @override
   Map<int, OutboxMessage> get outboxMessages => messageStore.outboxMessages;
   @override
   void registerMessageList(MessageListView view) =>
@@ -261,13 +266,18 @@ class _EditMessageRequestStatus {
 }
 
 class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessageStore {
-  MessageStoreImpl({required super.channels})
-    : // There are no messages in InitialSnapshot, so we don't have
-      // a use case for initializing MessageStore with nonempty [messages].
-      messages = {};
+  MessageStoreImpl({
+    required super.channels,
+    required List<int> initialStarredMessages,
+  }) :
+     messages = {},
+     starredMessages = Set.of(initialStarredMessages);
 
   @override
   final Map<int, Message> messages;
+
+  @override
+  final Set<int> starredMessages;
 
   @override
   final Set<MessageListView> _messageListViews = {};
@@ -410,6 +420,17 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     assert(!_disposed);
     for (int i = 0; i < messages.length; i++) {
       final message = messages[i];
+
+      // TODO(#649) update Unreads, if [Unreads.oldUnreadsMissing]
+      // TODO(#650) update RecentDmConversationsView
+
+      // It's tempting to update [starredMessages] based on fetched messages,
+      // like Unreads and RecentDmConversationsView.
+      // But we don't need to: per the API doc, InitialSnapshot.starredMessages
+      // is the complete list of starred message IDs. So we can maintain it
+      // using just the event system, avoiding the fetch/event race
+      // as a cause of inaccuracies.
+
       messages[i] = this.messages.update(message.id,
         ifAbsent: () => _reconcileUnrecognizedMessage(message),
         (current) => _reconcileRecognizedMessage(current, message));
@@ -607,6 +628,13 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
   void handleMessageEvent(MessageEvent event) {
     final message = event.message;
 
+    if (message.flags.contains(MessageFlag.starred)) { // TODO(log)
+      // It would be surprising if a newly-sent message could be starred.
+      // (I notice that the send-message endpoint doesn't offer a way to
+      // set the starred flag.)
+      // If it turns out to be possible, we should update [starredMessages].
+    }
+
     // If the message is one we already know about (from a fetch),
     // clobber it with the one from the event system.
     // See [reconcileMessages] for reasoning.
@@ -730,18 +758,25 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     }
   }
 
-  void handleDeleteMessageEvent(DeleteMessageEvent event) {
+  /// Handle a [DeleteMessageEvent]
+  /// and return true if the [PerAccountStore] should notify listeners.
+  bool handleDeleteMessageEvent(DeleteMessageEvent event) {
+    bool perAccountStoreShouldNotify = false;
     for (final messageId in event.messageIds) {
       messages.remove(messageId);
+      perAccountStoreShouldNotify |= starredMessages.remove(messageId);
       _maybeStaleChannelMessages.remove(messageId);
       _editMessageRequests.remove(messageId);
     }
     for (final view in _messageListViews) {
       view.handleDeleteMessageEvent(event);
     }
+    return perAccountStoreShouldNotify;
   }
 
-  void handleUpdateMessageFlagsEvent(UpdateMessageFlagsEvent event) {
+  /// Handle an [UpdateMessageFlagsEvent]
+  /// and return true if the [PerAccountStore] should notify listeners.
+  bool handleUpdateMessageFlagsEvent(UpdateMessageFlagsEvent event) {
     final isAdd = switch (event) {
       UpdateMessageFlagsAddEvent()    => true,
       UpdateMessageFlagsRemoveEvent() => false,
@@ -779,6 +814,15 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
         _notifyMessageListViews(event.messages);
       }
     }
+
+    if (event.flag == MessageFlag.starred) {
+      isAdd
+        ? starredMessages.addAll(event.messages)
+        : starredMessages.removeAll(event.messages);
+      return true;
+    }
+
+    return false;
   }
 
   void handleReactionEvent(ReactionEvent event) {
