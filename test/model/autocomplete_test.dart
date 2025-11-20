@@ -1233,6 +1233,10 @@ void main() {
     doTest('a^bc^', TopicAutocompleteQuery('abc'));
   });
 
+  Condition<Object?> isTopic(TopicName topic) {
+    return (it) => it.isA<TopicAutocompleteResult>().topic.equals(topic);
+  }
+
   test('TopicAutocompleteView misc', () async {
     final store = eg.store();
     final connection = store.connection as FakeApiConnection;
@@ -1253,12 +1257,10 @@ void main() {
     await Future(() {});
     await Future(() {});
     check(done).isTrue();
-    check(view.results).single
-      .isA<TopicAutocompleteResult>()
-      .topic.equals(third.name);
+    check(view.results).single.which(isTopic(third.name));
   });
 
-  test('TopicAutocompleteView updates results when streams are loaded', () async {
+  test('TopicAutocompleteView updates results when topics are loaded', () async {
     final store = eg.store();
     final connection = store.connection as FakeApiConnection;
     connection.prepare(json: GetStreamTopicsResult(
@@ -1277,19 +1279,47 @@ void main() {
     check(done).isTrue();
   });
 
-  test('TopicAutocompleteView getStreamTopics request', () async {
+  test('TopicAutocompleteView fetch topics once for a channel', () async {
     final store = eg.store();
     final connection = store.connection as FakeApiConnection;
 
-    connection.prepare(json: GetStreamTopicsResult(
-      topics: [eg.getStreamTopicsEntry(name: '')],
-    ).toJson());
-    TopicAutocompleteView.init(store: store, streamId: 1000,
-      query: TopicAutocompleteQuery('foo'));
-    check(connection.lastRequest).isA<http.Request>()
+    final topic1 = eg.getStreamTopicsEntry(maxId: 20, name: 'server releases');
+    final topic2 = eg.getStreamTopicsEntry(maxId: 10, name: 'mobile releases');
+
+    connection.prepare(json: GetStreamTopicsResult(topics: [topic1, topic2]).toJson());
+    final view1 = TopicAutocompleteView.init(store: store, streamId: 1000,
+      query: TopicAutocompleteQuery(''));
+    bool done = false;
+    view1.addListener(() { done = true; });
+
+    check(connection.takeRequests()).last.isA<http.Request>()
       ..method.equals('GET')
       ..url.path.equals('/api/v1/users/me/1000/topics')
       ..url.queryParameters['allow_empty_topic_name'].equals('true');
+
+    await Future(() {});
+    await Future(() {});
+    check(done).isTrue();
+    check(view1.results).deepEquals([isTopic(topic1.name), isTopic(topic2.name)]);
+
+    view1.query = TopicAutocompleteQuery('server');
+    await Future(() {});
+    check(connection.takeRequests()).isEmpty();
+    check(view1.results).single.which(isTopic(topic1.name));
+    view1.dispose();
+
+    connection.prepare(json: GetStreamTopicsResult(topics: [topic1]).toJson());
+    final view2 = TopicAutocompleteView.init(store: store, streamId: 1000,
+      query: TopicAutocompleteQuery('mobile'));
+    done = false;
+    view2.addListener(() { done = true; });
+
+    check(connection.takeRequests()).isEmpty();
+
+    await Future(() {});
+    await Future(() {});
+    check(done).isTrue();
+    check(view2.results).single.which(isTopic(topic2.name));
   });
 
   group('TopicAutocompleteQuery.testTopic', () {
