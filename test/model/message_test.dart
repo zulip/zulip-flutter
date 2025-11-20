@@ -38,7 +38,17 @@ void main() {
   // Each test case calls [prepare] to initialize them.
   late Subscription? subscription;
   late PerAccountStore store;
+
+  late int perAccountStoreNotifiedCount;
+  void checkPerAccountStoreNotified({required int count}) {
+    check(perAccountStoreNotifiedCount).equals(count);
+    perAccountStoreNotifiedCount = 0;
+  }
+  void checkPerAccountStoreNotNotified() => checkPerAccountStoreNotified(count: 0);
+  void checkPerAccountStoreNotifiedOnce() => checkPerAccountStoreNotified(count: 1);
+
   late FakeApiConnection connection;
+
   // [messageList] is here only for the sake of checking when it notifies.
   // For anything deeper than that, use `message_list_test.dart`.
   late MessageListView messageList;
@@ -55,12 +65,16 @@ void main() {
   Future<void> prepare({
     ZulipStream? stream,
     bool isChannelSubscribed = true,
+    List<int>? starredMessages = const [],
     int? zulipFeatureLevel,
   }) async {
     stream ??= eg.stream(streamId: eg.defaultStreamMessageStreamId);
     final selfAccount = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
+
     store = eg.store(account: selfAccount,
-      initialSnapshot: eg.initialSnapshot(zulipFeatureLevel: zulipFeatureLevel));
+      initialSnapshot: eg.initialSnapshot(
+        starredMessages: starredMessages,
+        zulipFeatureLevel: zulipFeatureLevel));
     await store.addStream(stream);
     if (isChannelSubscribed) {
       subscription = eg.subscription(stream);
@@ -68,7 +82,14 @@ void main() {
     } else {
       subscription = null;
     }
+    perAccountStoreNotifiedCount = 0;
+    store.addListener(() {
+      perAccountStoreNotifiedCount++;
+    });
+    checkPerAccountStoreNotNotified();
+
     connection = store.connection as FakeApiConnection;
+
     notifiedCount = 0;
     messageList = MessageListView.init(store: store,
         narrow: const CombinedFeedNarrow(),
@@ -1637,6 +1658,20 @@ void main() {
       checkNotifiedOnce();
       check(store).messages.values.single.id.equals(message1.id);
     });
+
+    test('delete a starred message', () async {
+      final message = eg.streamMessage(flags: [MessageFlag.starred]);
+      await prepare(starredMessages: [message.id]);
+
+      // The actual message hasn't been fetched by a message list;
+      // we want to test [MessageStore.starredMessages] in isolation.
+      await prepareMessages([]);
+
+      check(store).starredMessages.single.equals(message.id);
+      await store.handleEvent(eg.deleteMessageEvent([message]));
+      checkPerAccountStoreNotifiedOnce();
+      check(store).starredMessages.isEmpty();
+    });
   });
 
   group('handleUpdateMessageFlagsEvent', () {
@@ -1698,12 +1733,24 @@ void main() {
 
       test('other flags not clobbered', () async {
         final message = eg.streamMessage(flags: [MessageFlag.starred]);
-        await prepare();
+        await prepare(starredMessages: [message.id]);
         await prepareMessages([message]);
         await store.handleEvent(mkAddEvent(MessageFlag.read, [message.id]));
         checkNotifiedOnce();
         check(store).messages.values
           .single.flags.deepEquals([MessageFlag.starred, MessageFlag.read]);
+      });
+
+      test('add to starredMessages', () async {
+        final message1 = eg.streamMessage(flags: []);
+        final message2 = eg.streamMessage(flags: []);
+        await prepare(starredMessages: []);
+        await prepareMessages([message2]);
+        check(store).starredMessages.isEmpty();
+        await store.handleEvent(
+          mkAddEvent(MessageFlag.starred, [message1.id, message2.id]));
+        checkPerAccountStoreNotifiedOnce();
+        check(store).starredMessages.deepEquals([message1.id, message2.id]);
       });
     });
 
@@ -1733,12 +1780,24 @@ void main() {
 
       test('other flags not affected', () async {
         final message = eg.streamMessage(flags: [MessageFlag.starred, MessageFlag.read]);
-        await prepare();
+        await prepare(starredMessages: [message.id]);
         await prepareMessages([message]);
         await store.handleEvent(mkRemoveEvent(MessageFlag.read, [message]));
         checkNotifiedOnce();
         check(store).messages.values
           .single.flags.deepEquals([MessageFlag.starred]);
+      });
+
+      test('remove from starredMessages', () async {
+        final message1 = eg.streamMessage(flags: [MessageFlag.starred]);
+        final message2 = eg.streamMessage(flags: [MessageFlag.starred]);
+        await prepare(starredMessages: [message1.id, message2.id]);
+        await prepareMessages([message2]);
+        check(store).starredMessages.deepEquals([message1.id, message2.id]);
+        await store.handleEvent(
+          mkRemoveEvent(MessageFlag.starred, [message1, message2]));
+        checkPerAccountStoreNotifiedOnce();
+        check(store).starredMessages.isEmpty();
       });
     });
   });

@@ -81,13 +81,14 @@ void main() {
   Future<void> prepare({
     Narrow narrow = const CombinedFeedNarrow(),
     Anchor anchor = AnchorCode.newest,
+    List<int>? starredMessages,
     ZulipStream? stream,
     List<User>? users,
     List<int>? mutedUserIds,
   }) async {
     stream ??= eg.stream(streamId: eg.defaultStreamMessageStreamId);
     subscription = eg.subscription(stream);
-    store = eg.store();
+    store = eg.store(initialSnapshot: eg.initialSnapshot(starredMessages: starredMessages));
     await store.addStream(stream);
     await store.addSubscription(subscription);
     await store.addUsers([...?users, eg.selfUser]);
@@ -1250,7 +1251,10 @@ void main() {
     });
 
     test('StarredMessagesNarrow', () async {
-      await prepare(narrow: StarredMessagesNarrow(), users: users);
+      await prepare(
+        narrow: StarredMessagesNarrow(),
+        starredMessages: [1, 2, 3],
+        users: users);
       await prepareMessages(foundOldest: true, messages: [
         eg.dmMessage(id: 1, from: eg.selfUser, to: [user1],
           flags: [MessageFlag.starred]),
@@ -2459,7 +2463,10 @@ void main() {
     test('in StarredMessagesNarrow', () async {
       final stream = eg.stream(streamId: 1, name: 'muted stream');
       const mutedTopic = 'muted';
-      await prepare(narrow: const StarredMessagesNarrow());
+      await prepare(
+        narrow: const StarredMessagesNarrow(),
+        starredMessages: [101, 102, 201, 202, 301, 302],
+      );
       await store.addStream(stream);
       await store.setUserTopic(stream, mutedTopic, UserTopicVisibilityPolicy.muted);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
@@ -2951,6 +2958,7 @@ void main() {
 
         await prepare(
           narrow: narrow,
+          starredMessages: [message1.id, message2.id],
           stream: channel,
         );
         connection.prepare(json: newestResult(
