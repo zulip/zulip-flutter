@@ -2360,6 +2360,30 @@ void main() {
     // testCancel(narrow: topicNarrow,   start: _EditInteractionStart.restoreFailedEdit);
     // testCancel(narrow: dmNarrow,      start: _EditInteractionStart.restoreFailedEdit);
   });
+
+  group('compose box inputs visibility by topic policy', () {
+    void testComposeBoxWidgetVisibility({required TopicsPolicy topicsPolicy, required bool shouldShowTopicInput}) {
+      final description = shouldShowTopicInput ?
+        'show topic input when topic policy is $topicsPolicy':
+        'hide topic input when topic policy is $topicsPolicy';
+
+      testWidgets(description, (tester) async {
+        final channel = eg.stream(topicsPolicy: topicsPolicy);
+
+        await prepareComposeBox(tester, narrow: ChannelNarrow(channel.streamId), streams: [channel]);
+
+        check(contentInputFinder).findsOne();
+        shouldShowTopicInput ?
+          check(topicInputFinder).findsOne():
+          check(topicInputFinder).findsNothing();
+      });
+    }
+
+    testComposeBoxWidgetVisibility(topicsPolicy: TopicsPolicy.inherit, shouldShowTopicInput: true);
+    testComposeBoxWidgetVisibility(topicsPolicy: TopicsPolicy.allowEmptyTopic, shouldShowTopicInput: true);
+    testComposeBoxWidgetVisibility(topicsPolicy: TopicsPolicy.disableEmptyTopic, shouldShowTopicInput: true);
+    testComposeBoxWidgetVisibility(topicsPolicy: TopicsPolicy.emptyTopicOnly, shouldShowTopicInput: false);
+  });
 }
 
 /// How the edit interaction is started:
