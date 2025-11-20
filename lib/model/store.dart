@@ -564,7 +564,8 @@ class PerAccountStore extends PerAccountStoreBase with
       presence: Presence(realm: realm,
         initial: initialSnapshot.presences),
       channels: channels,
-      messages: MessageStoreImpl(channels: channels),
+      messages: MessageStoreImpl(channels: channels,
+        initialStarredMessages: initialSnapshot.starredMessages),
       unreads: Unreads(core: core, channelStore: channels,
         initial: initialSnapshot.unreadMsgs),
       recentDmConversationsView: RecentDmConversationsView(core: core,
@@ -879,12 +880,16 @@ class PerAccountStore extends PerAccountStoreBase with
         // specifically, their `senderId`s. By calling this after the
         // aforementioned line, we'll lose reference to those messages.
         recentSenders.handleDeleteMessageEvent(event, messages);
-        _messages.handleDeleteMessageEvent(event);
+        if (_messages.handleDeleteMessageEvent(event)) {
+          notifyListeners();
+        }
         unreads.handleDeleteMessageEvent(event);
 
       case UpdateMessageFlagsEvent():
         assert(debugLog("server event: update_message_flags/${event.op} ${event.flag.toJson()}"));
-        _messages.handleUpdateMessageFlagsEvent(event);
+        if (_messages.handleUpdateMessageFlagsEvent(event)) {
+          notifyListeners();
+        }
         unreads.handleUpdateMessageFlagsEvent(event);
 
       case SubmessageEvent():
