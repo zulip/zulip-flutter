@@ -39,9 +39,9 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
-  "switchAccountButton": "Switch account",
-  "@switchAccountButton": {
-    "description": "Label for main-menu button leading to the choose-account page."
+  "switchAccountButtonTooltip": "Switch account",
+  "@switchAccountButtonTooltip": {
+    "description": "Tooltip message for main-menu button leading to the choose-account page."
   },
   "tryAnotherAccountMessage": "Your account at {url} is taking a while to load.",
   "@tryAnotherAccountMessage": {

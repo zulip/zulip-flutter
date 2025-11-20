@@ -423,14 +423,25 @@ abstract class PerAccountStoreBase {
   /// Always equal to `account.realmUrl` and `connection.realmUrl`.
   Uri get realmUrl => connection.realmUrl;
 
-  String? get realmName => account.realmName;
+  // The `account` is populated with the `realmName` before
+  // PerAccountStore is created, so this should never be null.
+  // See `UpdateMachine.load`.
+  String get realmName => account.realmName!;
 
-  Uri? get realmIcon => account.realmIcon;
+  // The `account` is populated with the `realmIcon` before
+  // PerAccountStore is created, so this should never be null.
+  // See `UpdateMachine.load`.
+  Uri get realmIcon => account.realmIcon!;
+
+  /// Resolve [realmIcon] as a URL relative to [realmUrl].
+  ///
+  /// This returns null if resolving fails.
+  Uri? resolveRealmIconUrl() => _tryResolveUrl(realmUrl, realmIcon);
 
   /// Resolve [reference] as a URL relative to [realmUrl].
   ///
   /// This returns null if [reference] fails to parse as a URL.
-  Uri? tryResolveUrl(String reference) => _tryResolveUrl(realmUrl, reference);
+  Uri? tryResolveUrl(String reference) => _tryResolveUrlStr(realmUrl, reference);
 
   /// Always equal to `connection.zulipFeatureLevel`
   /// and `account.zulipFeatureLevel`.
@@ -459,12 +470,19 @@ abstract class PerAccountStoreBase {
   int get selfUserId => core.selfUserId;
 }
 
-const _tryResolveUrl = tryResolveUrl;
-
 /// Like [Uri.resolve], but on failure return null instead of throwing.
-Uri? tryResolveUrl(Uri baseUrl, String reference) {
+Uri? _tryResolveUrlStr(Uri baseUrl, String reference) {
   try {
     return baseUrl.resolve(reference);
+  } on FormatException {
+    return null;
+  }
+}
+
+/// Like [Uri.resolve], but on failure return null instead of throwing.
+Uri? _tryResolveUrl(Uri baseUrl, Uri reference) {
+  try {
+    return baseUrl.resolveUri(reference);
   } on FormatException {
     return null;
   }

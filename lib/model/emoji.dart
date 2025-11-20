@@ -234,12 +234,12 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
     required String? stillUrl,
     required String emojiName,
   }) {
-    final resolvedUrl = this.tryResolveUrl(sourceUrl);
+    final resolvedUrl = tryResolveUrl(sourceUrl);
     if (resolvedUrl == null) return TextEmojiDisplay(emojiName: emojiName);
 
     Uri? resolvedStillUrl;
     if (stillUrl != null) {
-      resolvedStillUrl = this.tryResolveUrl(stillUrl);
+      resolvedStillUrl = tryResolveUrl(stillUrl);
       if (resolvedStillUrl == null) return TextEmojiDisplay(emojiName: emojiName);
     }
 
