@@ -1639,9 +1639,9 @@ class _UnreadMarker extends StatelessWidget {
     return Stack(
       children: [
         child,
-        Positioned(
+        PositionedDirectional(
           top: 0,
-          left: 0,
+          start: 0,
           bottom: 0,
           width: 4,
           child: AnimatedOpacity(
@@ -1653,7 +1653,7 @@ class _UnreadMarker extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: messageListTheme.unreadMarker,
-                border: Border(left: BorderSide(
+                border: BorderDirectional(start: BorderSide(
                   width: 1,
                   color: messageListTheme.unreadMarkerGap)))))),
       ]);
