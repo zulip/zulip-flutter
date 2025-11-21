@@ -1328,13 +1328,15 @@ class _SendButtonState extends State<_SendButton> {
       return;
     }
 
-    final store = PerAccountStoreWidget.of(context);
+    final destination = widget.getDestination();
     final content = controller.content.textNormalized;
 
     controller.content.clear();
 
     try {
-      await store.sendMessage(destination: widget.getDestination(), content: content);
+      final store = PerAccountStoreWidget.of(context);
+      await store.sendMessage(destination: destination, content: content);
+      if (!mounted) return;
     } on ApiRequestException catch (e) {
       if (!mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(context);
@@ -1346,6 +1348,20 @@ class _SendButtonState extends State<_SendButton> {
         title: zulipLocalizations.errorMessageNotSent,
         message: message);
       return;
+    }
+
+    final store = PerAccountStoreWidget.of(context);
+    if (
+      destination is StreamDestination
+      && store.subscriptions[destination.streamId] == null
+    ) {
+      // The message was sent to an unsubscribed channel.
+      // We don't get new-message events for unsubscribed channels,
+      // but we can refresh the view when a send-message request succeeds,
+      // so the user will at least see their own messages without having to
+      // exit and re-enter. See the "first buggy behavior" in
+      //   https://github.com/zulip/zulip-flutter/issues/1798 .
+      MessageListPage.ancestorOf(context).refresh(AnchorCode.newest);
     }
   }
 
