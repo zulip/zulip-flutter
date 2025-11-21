@@ -462,7 +462,12 @@ class _LoginPageState extends State<LoginPage> {
       if (externalAuthenticationMethods.isNotEmpty) ...[
         const OrDivider(),
         ...externalAuthenticationMethods.map((method) {
-          final icon = method.displayIcon;
+          final iconUrl = method.displayIcon;
+          final icon = (iconUrl != null)
+            ? (iconUrl.startsWith('http://') || iconUrl.startsWith('https://'))
+              ? iconUrl
+              : widget.serverSettings.realmUrl.resolve(iconUrl).toString()
+            : null;
           return OutlinedButton.icon(
             style: ButtonStyle(
               backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer),
