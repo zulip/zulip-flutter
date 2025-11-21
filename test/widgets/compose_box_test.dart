@@ -35,6 +35,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/content_test.dart';
 import '../model/message_list_test.dart';
 import '../model/store_checks.dart';
 import '../model/test_store.dart';
@@ -2416,6 +2417,57 @@ void main() {
     testCancel(narrow: channelNarrow, start: _EditInteractionStart.restoreFailedEdit);
     // testCancel(narrow: topicNarrow,   start: _EditInteractionStart.restoreFailedEdit);
     // testCancel(narrow: dmNarrow,      start: _EditInteractionStart.restoreFailedEdit);
+
+    testWidgets('if channel is unsubscribed, refresh on message-edit success', (tester) async {
+      // Regression test for the "first buggy behavior"
+      // in https://github.com/zulip/zulip-flutter/issues/1798 .
+
+      final channel = eg.stream();
+      final narrow = ChannelNarrow(channel.streamId);
+      final message = eg.streamMessage(stream: channel, sender: eg.selfUser);
+
+      await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+      await store.addMessages([message]);
+      check(store.subscriptions[channel.streamId]).isNull();
+      await tester.pump(); // message list updates
+
+      await startEditInteractionFromActionSheet(tester,
+        messageId: message.id, originalRawContent: 'foo');
+      await tester.pump(Duration(seconds: 1)); // fetch-raw-content request
+      checkContentInputValue(tester, 'foo');
+
+      final newMarkdownContent = ContentExample.emojiUnicode.markdown!;
+      await enterContent(tester, newMarkdownContent);
+
+      connection.prepare(json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+      await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
+      await tester.pump(Duration(milliseconds: 500));
+      checkRequest(message.id, prevContent: 'foo', content: newMarkdownContent);
+
+      final updatedMessage =
+        Message.fromJson(message.toJson()..['content'] = ContentExample.emojiUnicode.html);
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [updatedMessage]).toJson());
+      await tester.pump(Duration(milliseconds: 500));
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('GET')
+        ..url.path.equals('/api/v1/messages')
+        ..url.queryParameters.deepEquals({
+          'narrow': jsonEncode(resolveApiNarrowForServer(
+            narrow.apiEncode(), connection.zulipFeatureLevel!)),
+          'anchor': '${message.id}',
+          'num_before': '100',
+          'num_after': '100',
+          'allow_empty_topic_name': 'true',
+        });
+      check(find.descendant(
+        of: find.byType(MessageWithPossibleSender),
+        matching: find.text(ContentExample.emojiUnicode.expectedText!))
+      ).findsOne();
+      // TODO(#1798) The message actually appears in the "SAVING EDIT…" state
+      //   (the "third buggy behavior" in #1798). We'll fix that soon,
+      //   and it'll be convenient to test that here too.
+    });
   });
 }
 
