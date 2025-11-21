@@ -12,7 +12,7 @@ GetStreamTopicsResult _$GetStreamTopicsResultFromJson(
   Map<String, dynamic> json,
 ) => GetStreamTopicsResult(
   topics: (json['topics'] as List<dynamic>)
-      .map((e) => GetStreamTopicsEntry.fromJson(e as Map<String, dynamic>))
+      .map((e) => GetChannelTopicsEntry.fromJson(e as Map<String, dynamic>))
       .toList(),
 );
 
@@ -20,13 +20,13 @@ Map<String, dynamic> _$GetStreamTopicsResultToJson(
   GetStreamTopicsResult instance,
 ) => <String, dynamic>{'topics': instance.topics};
 
-GetStreamTopicsEntry _$GetStreamTopicsEntryFromJson(
+GetChannelTopicsEntry _$GetChannelTopicsEntryFromJson(
   Map<String, dynamic> json,
-) => GetStreamTopicsEntry(
+) => GetChannelTopicsEntry(
   maxId: (json['max_id'] as num).toInt(),
   name: TopicName.fromJson(json['name'] as String),
 );
 
-Map<String, dynamic> _$GetStreamTopicsEntryToJson(
-  GetStreamTopicsEntry instance,
+Map<String, dynamic> _$GetChannelTopicsEntryToJson(
+  GetChannelTopicsEntry instance,
 ) => <String, dynamic>{'max_id': instance.maxId, 'name': instance.name};
