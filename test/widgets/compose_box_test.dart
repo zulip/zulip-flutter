@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/localizations.dart';
@@ -974,6 +975,59 @@ void main() {
         expectedMessage: zulipLocalizations.errorServerMessage(
           'You do not have permission to initiate direct message conversations.'),
       )));
+    });
+
+    testWidgets('if channel is unsubscribed, refresh on message-send success', (tester) async {
+      // Regression test for the "first buggy behavior"
+      // in https://github.com/zulip/zulip-flutter/issues/1798 .
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+      assert(MessageStoreImpl.debugOutboxEnable);
+
+      final channel = eg.stream();
+      final narrow = eg.topicNarrow(channel.streamId, 'some topic');
+      final messages = [eg.streamMessage(stream: channel, topic: 'some topic')];
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      await prepareComposeBox(tester,
+        narrow: narrow,
+        streams: [channel],
+        messages: messages);
+      assert(store.subscriptions[channel.streamId] == null);
+
+      await enterContent(tester, 'hello world');
+
+      connection.prepare(
+        json: SendMessageResult(id: 456).toJson(), delay: Duration(seconds: 1));
+      await tester.tap(find.byTooltip(zulipLocalizations.composeBoxSendTooltip));
+      await tester.pump(Duration(milliseconds: 500));
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages');
+
+      final newMessage = eg.streamMessage(
+        stream: channel, topic: 'some topic',
+        content: '<p>hello world</p>');
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [...messages, newMessage]).toJson());
+      await tester.pump(Duration(milliseconds: 500));
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('GET')
+        ..url.path.equals('/api/v1/messages')
+        ..url.queryParameters.deepEquals({
+          'narrow': jsonEncode(resolveApiNarrowForServer(
+            narrow.apiEncode(), connection.zulipFeatureLevel!)),
+          'anchor': 'newest',
+          'num_before': '100',
+          'num_after': '100',
+          'allow_empty_topic_name': 'true',
+        });
+      check(find.descendant(
+        of: find.byType(MessageWithPossibleSender),
+        matching: find.text('hello world'))
+      ).findsOne();
+      // TODO(#1798) There's actually a lingering OutboxMessageWithPossibleSender,
+      //   too (the "third buggy behavior" in #1798). We'll fix that soon,
+      //   and it'll be convenient to test that here too.
     });
   });
 
