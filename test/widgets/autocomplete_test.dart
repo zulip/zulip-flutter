@@ -103,7 +103,7 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
 ///
 /// Returns a [Finder] for the topic input's [TextField].
 Future<Finder> setupToTopicInput(WidgetTester tester, {
-  required List<GetStreamTopicsEntry> topics,
+  required List<GetChannelTopicsEntry> topics,
   String? realmEmptyTopicDisplayName,
 }) async {
   addTearDown(testBinding.reset);

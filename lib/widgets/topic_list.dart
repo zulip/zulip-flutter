@@ -127,7 +127,7 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
   Unreads? unreadsModel;
   // TODO(#1499): store the results on [ChannelStore], and keep them
   //   up-to-date by handling events
-  List<GetStreamTopicsEntry>? lastFetchedTopics;
+  List<GetChannelTopicsEntry>? lastFetchedTopics;
 
   @override
   void onNewStore() {
@@ -173,7 +173,7 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
 
     // This is adapted from parts of the build method on [_InboxPageState].
     final topicItems = <_TopicItemData>[];
-    for (final GetStreamTopicsEntry(:maxId, name: topic) in lastFetchedTopics!) {
+    for (final GetChannelTopicsEntry(:maxId, name: topic) in lastFetchedTopics!) {
       final unreadMessageIds =
         unreadsModel!.streams[widget.streamId]?[topic] ?? <int>[];
       final countInTopic = unreadMessageIds.length;
