@@ -126,7 +126,7 @@ void main() {
     required String topic,
   }) async {
     connection.prepare(body:
-      jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
+      jsonEncode(GetStreamTopicsResult(topics: [eg.getChannelTopicsEntry()]).toJson()));
     await tester.enterText(topicInputFinder, topic);
     check(connection.takeRequests()).single
       ..method.equals('GET')

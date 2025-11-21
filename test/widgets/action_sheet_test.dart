@@ -511,7 +511,7 @@ void main() {
           narrow: ChannelNarrow(someChannel.streamId));
 
         connection.prepare(json: GetStreamTopicsResult(topics: [
-          eg.getStreamTopicsEntry(name: 'some topic foo'),
+          eg.getChannelTopicsEntry(name: 'some topic foo'),
         ]).toJson());
         await tester.tap(findButtonForLabel('List of topics'));
         await tester.pumpAndSettle();
@@ -1685,7 +1685,7 @@ void main() {
 
         // Ensure channel-topics are loaded before testing quote & reply behavior
         connection.prepare(body:
-          jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
+          jsonEncode(GetStreamTopicsResult(topics: [eg.getChannelTopicsEntry()]).toJson()));
         final topicController = composeBoxController.topic;
         topicController.value = TextEditingValue(text: 'other topic');
 
@@ -1710,7 +1710,7 @@ void main() {
 
         // Ensure channel-topics are loaded before testing quote & reply behavior
         connection.prepare(body:
-          jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
+          jsonEncode(GetStreamTopicsResult(topics: [eg.getChannelTopicsEntry()]).toJson()));
         final topicController = composeBoxController.topic;
         topicController.value = const TextEditingValue(text: '');
 
