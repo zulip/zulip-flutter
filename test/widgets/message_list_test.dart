@@ -302,7 +302,7 @@ void main() {
         subscriptions: [eg.subscription(channel)],
         messages: [eg.streamMessage(stream: channel, topic: 'topic foo')]);
 
-      connection.prepare(json: GetStreamTopicsResult(topics: [
+      connection.prepare(json: GetChannelTopicsResult(topics: [
         eg.getChannelTopicsEntry(name: 'topic foo'),
       ]).toJson());
       await tester.tap(find.byIcon(ZulipIcons.topics));
@@ -337,7 +337,7 @@ void main() {
         subscriptions: [eg.subscription(channel)],
         messages: [eg.streamMessage(stream: channel, topic: 'topic foo')]);
 
-      connection.prepare(json: GetStreamTopicsResult(topics: [
+      connection.prepare(json: GetChannelTopicsResult(topics: [
         eg.getChannelTopicsEntry(name: 'topic foo'),
       ]).toJson());
       await tester.tap(find.byIcon(ZulipIcons.topics));
@@ -392,7 +392,7 @@ void main() {
         skipPumpAndSettle: true);
 
       // The topic input is autofocused, triggering topic autocomplete.
-      connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+      connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
       await tester.pumpAndSettle();
 
       check(findPlaceholder).findsOne();
@@ -406,7 +406,7 @@ void main() {
         skipPumpAndSettle: true);
 
       // The topic input is autofocused, triggering topic autocomplete.
-      connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+      connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
       await tester.pumpAndSettle();
 
       check(store.selfHasContentAccess(channel)).isFalse();
@@ -448,7 +448,7 @@ void main() {
         skipPumpAndSettle: true);
 
       // The topic input is autofocused, triggering topic autocomplete.
-      connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+      connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
       await tester.pumpAndSettle();
 
       check(store.selfHasContentAccess(channel)).isFalse();

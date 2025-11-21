@@ -226,7 +226,7 @@ void main() {
       if (narrow case ChannelNarrow()) {
         // We auto-focus the topic input when there are no messages;
         // this is for topic autocomplete.
-        connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+        connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
       }
       await tester.pumpWidget(TestZulipApp(
         accountId: eg.selfAccount.id,
@@ -261,7 +261,7 @@ void main() {
       streamId ??= someChannel.streamId;
       final transitionDurationObserver = TransitionDurationObserver();
 
-      connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+      connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
       await tester.pumpWidget(TestZulipApp(
         navigatorObservers: [transitionDurationObserver],
         accountId: eg.selfAccount.id,
@@ -510,7 +510,7 @@ void main() {
         await showFromMsglistAppBar(tester,
           narrow: ChannelNarrow(someChannel.streamId));
 
-        connection.prepare(json: GetStreamTopicsResult(topics: [
+        connection.prepare(json: GetChannelTopicsResult(topics: [
           eg.getChannelTopicsEntry(name: 'some topic foo'),
         ]).toJson());
         await tester.tap(findButtonForLabel('List of topics'));
@@ -565,7 +565,7 @@ void main() {
         connection.prepare(json: eg.newestGetMessagesResult(
           foundOldest: true, messages: []).toJson());
         // for topic autocomplete
-        connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+        connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
         await tapButtonAndPump(tester);
         await transitionDurationObserver.pumpPastTransition(tester);
 
@@ -1685,7 +1685,7 @@ void main() {
 
         // Ensure channel-topics are loaded before testing quote & reply behavior
         connection.prepare(body:
-          jsonEncode(GetStreamTopicsResult(topics: [eg.getChannelTopicsEntry()]).toJson()));
+          jsonEncode(GetChannelTopicsResult(topics: [eg.getChannelTopicsEntry()]).toJson()));
         final topicController = composeBoxController.topic;
         topicController.value = TextEditingValue(text: 'other topic');
 
@@ -1710,7 +1710,7 @@ void main() {
 
         // Ensure channel-topics are loaded before testing quote & reply behavior
         connection.prepare(body:
-          jsonEncode(GetStreamTopicsResult(topics: [eg.getChannelTopicsEntry()]).toJson()));
+          jsonEncode(GetChannelTopicsResult(topics: [eg.getChannelTopicsEntry()]).toJson()));
         final topicController = composeBoxController.topic;
         topicController.value = const TextEditingValue(text: '');
 
