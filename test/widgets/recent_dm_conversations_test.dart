@@ -59,7 +59,7 @@ Future<void> setupPage(WidgetTester tester, {
 
   // Switch to direct messages tab.
   await tester.tap(find.descendant(
-    of: find.byType(Center),
+    of: find.byType(DecoratedBox),
     matching: find.byIcon(ZulipIcons.two_person)));
   await tester.pump();
 }

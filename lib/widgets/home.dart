@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
@@ -46,6 +47,9 @@ class HomePage extends StatefulWidget {
     unawaited(navigator.pushReplacement(
       HomePage.buildRoute(accountId: accountId)));
   }
+
+  static String contentSemanticsIdentifier = 'home-page-content';
+  static String titleSemanticsIdentifier = 'home-page-title';
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -93,58 +97,97 @@ class _HomePageState extends State<HomePage> {
       (_HomePageTab.directMessages, RecentDmConversationsPageBody()),
     ];
 
-    _NavigationBarButton button(_HomePageTab tab, IconData icon) {
-      return _NavigationBarButton(icon: icon,
-        selected: _tab.value == tab,
-        onPressed: () {
-          _tab.value = tab;
-        });
-    }
+    return Scaffold(
+      appBar: ZulipAppBar(titleSpacing: 16,
+        title: Semantics(
+          identifier: HomePage.titleSemanticsIdentifier,
+          namesRoute: true,
+          child: Text(_currentTabTitle))),
+      body: Semantics(
+        role: SemanticsRole.tabPanel,
+        identifier: HomePage.contentSemanticsIdentifier,
+        container: true,
+        explicitChildNodes: true,
+        child: Stack(
+          children: [
+            for (final (tab, body) in pageBodies)
+              Offstage(offstage: tab != _tab.value, child: body),
+          ])),
+      bottomNavigationBar: _BottomNavBar(tabNotifier: _tab));
+  }
+}
+
+class _BottomNavBar extends StatelessWidget {
+  const _BottomNavBar({required this.tabNotifier});
+
+  final ValueNotifier<_HomePageTab> tabNotifier;
+
+  _NavigationBarButton _button({
+    required _HomePageTab tab,
+    required IconData icon,
+    required String label,
+  }) {
+    return _NavigationBarButton(icon: icon,
+      label: label,
+      selected: tabNotifier.value == tab,
+      onPressed: () {
+        tabNotifier.value = tab;
+      });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     // TODO(a11y): add tooltips for these buttons
     final navigationBarButtons = [
-      button(_HomePageTab.inbox,          ZulipIcons.inbox),
-      _NavigationBarButton(         icon: ZulipIcons.message_feed,
+      _button(tab: _HomePageTab.inbox,
+        icon: ZulipIcons.inbox,
+        label: zulipLocalizations.inboxPageTitle),
+      _NavigationBarButton(icon: ZulipIcons.message_feed,
+        label: zulipLocalizations.combinedFeedPageTitle,
         selected: false,
         onPressed: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
             narrow: const CombinedFeedNarrow()))),
-      button(_HomePageTab.channels,       ZulipIcons.hash_italic),
+      _button(tab: _HomePageTab.channels,
+        icon: ZulipIcons.hash_italic,
+        label: zulipLocalizations.channelsPageTitle),
       // TODO(#1094): Users
-      button(_HomePageTab.directMessages, ZulipIcons.two_person),
-      _NavigationBarButton(         icon: ZulipIcons.menu,
+      _button(tab: _HomePageTab.directMessages,
+        icon: ZulipIcons.two_person,
+        label: zulipLocalizations.recentDmConversationsPageTitle),
+      _NavigationBarButton(icon: ZulipIcons.menu,
+        label: zulipLocalizations.navBarMenuLabel,
         selected: false,
-        onPressed: () => _showMainMenu(context, tabNotifier: _tab)),
+        onPressed: () => _showMainMenu(context, tabNotifier: tabNotifier)),
     ];
 
-    final designVariables = DesignVariables.of(context);
-    return Scaffold(
-      appBar: ZulipAppBar(titleSpacing: 16,
-        title: Text(_currentTabTitle)),
-      body: Stack(
-        children: [
-          for (final (tab, body) in pageBodies)
-            // TODO(#535): Decide if we find it helpful to use something like
-            //   [SemanticsProperties.namesRoute] to structure this UI better
-            //   for screen-reader software.
-            Offstage(offstage: tab != _tab.value, child: body),
-        ]),
-      bottomNavigationBar: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: designVariables.borderBar)),
-          color: designVariables.bgBotBar),
-        child: SafeArea(
-          child: SizedBox(height: 48,
-            child: Center(
-              child: ConstrainedBox(
-                // TODO(design): determine a suitable max width for bottom nav bar
-                constraints: const BoxConstraints(maxWidth: 600),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (final navigationBarButton in navigationBarButtons)
-                      Expanded(child: navigationBarButton),
-                  ])))))));
+    Widget result = DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: designVariables.borderBar)),
+        color: designVariables.bgBotBar),
+      child: SafeArea(
+        child: Center(
+          heightFactor: 1,
+          child: ConstrainedBox(
+            // TODO(design): determine a suitable max width for bottom nav bar
+            constraints: const BoxConstraints(maxWidth: 600, minHeight: 48),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final navigationBarButton in navigationBarButtons)
+                  Expanded(child: navigationBarButton),
+              ])))));
+
+    result = Semantics(
+      container: true,
+      explicitChildNodes: true,
+      role: SemanticsRole.tabBar,
+      child: result);
+
+    return result;
   }
 }
 
@@ -229,37 +272,62 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
 class _NavigationBarButton extends StatelessWidget {
   const _NavigationBarButton({
     required this.icon,
+    required this.label,
     required this.selected,
     required this.onPressed,
   });
 
   final IconData icon;
+  final String label;
   final bool selected;
   final void Function() onPressed;
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
+    final color = selected ? designVariables.iconSelected : designVariables.icon;
 
-    final iconColor = WidgetStateColor.fromMap({
-      WidgetState.pressed:  designVariables.iconSelected,
-      ~WidgetState.pressed: selected ? designVariables.iconSelected
-                                     : designVariables.icon,
-    });
-
-    return AnimatedScaleOnTap(
+    Widget result = AnimatedScaleOnTap(
       scaleEnd: 0.875,
       duration: const Duration(milliseconds: 100),
-      child: IconButton(
-        icon: Icon(icon, size: 24),
-        onPressed: onPressed,
-        style: IconButton.styleFrom(
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
           // TODO(#417): Disable splash effects for all buttons globally.
           splashFactory: NoSplash.splashFactory,
           highlightColor: designVariables.navigationButtonBg,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(4))),
-        ).copyWith(foregroundColor: iconColor)));
+          onTap: onPressed,
+          child: Padding(
+            // (Added 3px horizontal padding not present in Figma, to make the
+            // text wrap before getting too close to the button's edge, which is
+            // visible on tap-down.)
+            padding: const EdgeInsets.fromLTRB(3, 6, 3, 3),
+            child: Column(
+              spacing: 3,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 24, color: color),
+                Flexible(
+                  child: Text(
+                    label,
+                    style: TextStyle(fontSize: 12, color: color, height: 12 / 12),
+                    textAlign: TextAlign.center,
+                    textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5))),
+              ])))));
+
+    result = MergeSemantics(
+      child: Semantics(
+        role: SemanticsRole.tab,
+        controlsNodes: {
+          HomePage.contentSemanticsIdentifier,
+          HomePage.titleSemanticsIdentifier,
+        },
+        selected: selected,
+        onTap: onPressed,
+        child: result));
+
+    return result;
   }
 }
 
