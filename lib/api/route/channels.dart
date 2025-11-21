@@ -53,7 +53,7 @@ Future<GetStreamTopicsResult> getStreamTopics(ApiConnection connection, {
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class GetStreamTopicsResult {
-  final List<GetStreamTopicsEntry> topics;
+  final List<GetChannelTopicsEntry> topics;
 
   GetStreamTopicsResult({
     required this.topics,
@@ -66,18 +66,18 @@ class GetStreamTopicsResult {
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-class GetStreamTopicsEntry {
+class GetChannelTopicsEntry {
   final int maxId;
   final TopicName name;
 
-  GetStreamTopicsEntry({
+  GetChannelTopicsEntry({
     required this.maxId,
     required this.name,
   });
 
-  factory GetStreamTopicsEntry.fromJson(Map<String, dynamic> json) => _$GetStreamTopicsEntryFromJson(json);
+  factory GetChannelTopicsEntry.fromJson(Map<String, dynamic> json) => _$GetChannelTopicsEntryFromJson(json);
 
-  Map<String, dynamic> toJson() => _$GetStreamTopicsEntryToJson(this);
+  Map<String, dynamic> toJson() => _$GetChannelTopicsEntryToJson(this);
 }
 
 /// Update a topic's visibility policy.
