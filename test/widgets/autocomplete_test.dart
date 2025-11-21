@@ -450,9 +450,9 @@ void main() {
 
   group('TopicAutocomplete', () {
     testWidgets('options appear, disappear, and change correctly', (WidgetTester tester) async {
-      final topic1 = eg.getStreamTopicsEntry(maxId: 1, name: 'Topic one');
-      final topic2 = eg.getStreamTopicsEntry(maxId: 2, name: 'Topic two');
-      final topic3 = eg.getStreamTopicsEntry(maxId: 3, name: 'Topic three');
+      final topic1 = eg.getChannelTopicsEntry(maxId: 1, name: 'Topic one');
+      final topic2 = eg.getChannelTopicsEntry(maxId: 2, name: 'Topic two');
+      final topic3 = eg.getChannelTopicsEntry(maxId: 3, name: 'Topic three');
       final topicInputFinder = await setupToTopicInput(tester, topics: [topic1, topic2, topic3]);
 
       // Options are filtered correctly for query
@@ -488,7 +488,7 @@ void main() {
       //   to suffice to set it up; the controller value after the pump still
       //   has empty composing region, so there's nothing to check after tap.)
 
-      final topic = eg.getStreamTopicsEntry(name: 'some topic');
+      final topic = eg.getChannelTopicsEntry(name: 'some topic');
       final topicInputFinder = await setupToTopicInput(tester, topics: [topic]);
       final controller = tester.widget<TextField>(topicInputFinder).controller!;
 
@@ -518,7 +518,7 @@ void main() {
     });
 
     testWidgets('display realmEmptyTopicDisplayName for empty topic', (tester) async {
-      final topic = eg.getStreamTopicsEntry(name: '');
+      final topic = eg.getChannelTopicsEntry(name: '');
       final topicInputFinder = await setupToTopicInput(tester, topics: [topic],
         realmEmptyTopicDisplayName: 'some display name');
 
@@ -531,7 +531,7 @@ void main() {
     });
 
     testWidgets('match realmEmptyTopicDisplayName in autocomplete', (tester) async {
-      final topic = eg.getStreamTopicsEntry(name: '');
+      final topic = eg.getChannelTopicsEntry(name: '');
       final topicInputFinder = await setupToTopicInput(tester, topics: [topic],
         realmEmptyTopicDisplayName: 'general chat');
 
@@ -544,7 +544,7 @@ void main() {
     });
 
     testWidgets('autocomplete to realmEmptyTopicDisplayName sets topic to empty string', (tester) async {
-      final topic = eg.getStreamTopicsEntry(name: '');
+      final topic = eg.getChannelTopicsEntry(name: '');
       final topicInputFinder = await setupToTopicInput(tester, topics: [topic],
         realmEmptyTopicDisplayName: 'general chat');
       final controller = tester.widget<TextField>(topicInputFinder).controller!;
