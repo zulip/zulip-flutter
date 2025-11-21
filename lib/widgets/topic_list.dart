@@ -154,8 +154,8 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
     // the loading screen, until the user navigates away and back.
     // TODO(design) show a nice error message on screen when this fails
     final store = PerAccountStoreWidget.of(context);
-    final result = await getStreamTopics(store.connection,
-      streamId: widget.streamId,
+    final result = await getChannelTopics(store.connection,
+      channelId: widget.streamId,
       allowEmptyTopicName: true);
     if (!mounted) return;
     setState(() {

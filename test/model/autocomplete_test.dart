@@ -1371,7 +1371,7 @@ void main() {
     check(done).isTrue();
   });
 
-  test('TopicAutocompleteView getStreamTopics request', () async {
+  test('TopicAutocompleteView getChannelTopics request', () async {
     final store = eg.store();
     final connection = store.connection as FakeApiConnection;
 
