@@ -75,7 +75,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get allChannelsEmptyPlaceholderHeader =>
-      'There are no channels you can view in this organization.';
+      'Es gibt keine Kanäle, die du in dieser Organisation anzeigen könntest.';
 
   @override
   String get profileButtonSendDirectMessage => 'Direktnachricht senden';
@@ -288,7 +288,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get errorCouldNotAccessUploadedFileTitle =>
-      'Could not access uploaded file';
+      'Konnte nicht auf die hochgeladene Datei zugreifen';
 
   @override
   String get errorCopyingFailed => 'Kopieren fehlgeschlagen';
@@ -681,7 +681,13 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String topicValidationErrorTooLong(int maxLength) {
-    return 'Länge des Themas sollte 60 Zeichen nicht überschreiten.';
+    String _temp0 = intl.Intl.pluralLogic(
+      maxLength,
+      locale: localeName,
+      other: '$maxLength Zeichen',
+      one: '1 Zeichen',
+    );
+    return 'Länge des Themas sollte $_temp0 nicht überschreiten.';
   }
 
   @override
@@ -938,11 +944,11 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get inboxEmptyPlaceholderHeader =>
-      'There are no unread messages in your inbox.';
+      'Es gibt keine ungelesenen Nachrichten in deinem Posteingang.';
 
   @override
   String get inboxEmptyPlaceholderMessage =>
-      'Use the buttons below to view the combined feed or list of channels.';
+      'Nutze die Buttons unten, um den kombinierten Feed oder die Liste der Kanäle anzuzeigen.';
 
   @override
   String get recentDmConversationsPageTitle => 'Direktnachrichten';
@@ -952,11 +958,11 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get recentDmConversationsEmptyPlaceholderHeader =>
-      'You have no direct messages yet!';
+      'Du hast noch keine Direktnachrichten!';
 
   @override
   String get recentDmConversationsEmptyPlaceholderMessage =>
-      'Why not start a conversation?';
+      'Warum beginnst du nicht einfach eine Unterhaltung?';
 
   @override
   String get combinedFeedPageTitle => 'Kombinierter Feed';
@@ -972,11 +978,11 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get channelsEmptyPlaceholderHeader =>
-      'You’re not subscribed to any channels yet.';
+      'Du hast noch keine Kanäle abonniert.';
 
   @override
   String channelsEmptyPlaceholderMessage(String allChannelsPageTitle) {
-    return 'Try going to <z-link>$allChannelsPageTitle</z-link> and joining some of them.';
+    return 'Versuche, nach <z-link>$allChannelsPageTitle</z-link> zu gehen und einigen davon beizutreten.';
   }
 
   @override
