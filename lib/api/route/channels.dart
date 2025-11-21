@@ -41,12 +41,12 @@ Future<void> unsubscribeFromChannel(ApiConnection connection, {
 }
 
 /// https://zulip.com/api/get-stream-topics
-Future<GetChannelTopicsResult> getStreamTopics(ApiConnection connection, {
-  required int streamId,
+Future<GetChannelTopicsResult> getChannelTopics(ApiConnection connection, {
+  required int channelId,
   required bool allowEmptyTopicName,
 }) {
   assert(allowEmptyTopicName, '`allowEmptyTopicName` should only be true');
-  return connection.get('getStreamTopics', GetChannelTopicsResult.fromJson, 'users/me/$streamId/topics', {
+  return connection.get('getChannelTopics', GetChannelTopicsResult.fromJson, 'users/me/$channelId/topics', {
     'allow_empty_topic_name': allowEmptyTopicName,
   });
 }

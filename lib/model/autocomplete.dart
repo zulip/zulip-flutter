@@ -1175,7 +1175,7 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   Future<void> _fetch() async {
      assert(!_isFetching);
     _isFetching = true;
-    final result = await getStreamTopics(store.connection, streamId: streamId,
+    final result = await getChannelTopics(store.connection, channelId: streamId,
       allowEmptyTopicName: true,
     );
     _topics = result.topics.map((e) => e.name);
