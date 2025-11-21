@@ -8,16 +8,16 @@ part of 'channels.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-GetStreamTopicsResult _$GetStreamTopicsResultFromJson(
+GetChannelTopicsResult _$GetChannelTopicsResultFromJson(
   Map<String, dynamic> json,
-) => GetStreamTopicsResult(
+) => GetChannelTopicsResult(
   topics: (json['topics'] as List<dynamic>)
       .map((e) => GetChannelTopicsEntry.fromJson(e as Map<String, dynamic>))
       .toList(),
 );
 
-Map<String, dynamic> _$GetStreamTopicsResultToJson(
-  GetStreamTopicsResult instance,
+Map<String, dynamic> _$GetChannelTopicsResultToJson(
+  GetChannelTopicsResult instance,
 ) => <String, dynamic>{'topics': instance.topics};
 
 GetChannelTopicsEntry _$GetChannelTopicsEntryFromJson(

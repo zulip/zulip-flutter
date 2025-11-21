@@ -1239,7 +1239,7 @@ void main() {
     final first = eg.getChannelTopicsEntry(maxId: 1, name: 'First Topic');
     final second = eg.getChannelTopicsEntry(maxId: 2, name: 'Second Topic');
     final third = eg.getChannelTopicsEntry(maxId: 3, name: 'Third Topic');
-    connection.prepare(json: GetStreamTopicsResult(
+    connection.prepare(json: GetChannelTopicsResult(
       topics: [first, second, third]).toJson());
 
     final view = TopicAutocompleteView.init(
@@ -1261,7 +1261,7 @@ void main() {
   test('TopicAutocompleteView updates results when streams are loaded', () async {
     final store = eg.store();
     final connection = store.connection as FakeApiConnection;
-    connection.prepare(json: GetStreamTopicsResult(
+    connection.prepare(json: GetChannelTopicsResult(
       topics: [eg.getChannelTopicsEntry(name: 'test')]
     ).toJson());
 
@@ -1281,7 +1281,7 @@ void main() {
     final store = eg.store();
     final connection = store.connection as FakeApiConnection;
 
-    connection.prepare(json: GetStreamTopicsResult(
+    connection.prepare(json: GetChannelTopicsResult(
       topics: [eg.getChannelTopicsEntry(name: '')],
     ).toJson());
     TopicAutocompleteView.init(store: store, streamId: 1000,

@@ -130,7 +130,7 @@ Future<Finder> setupToTopicInput(WidgetTester tester, {
     child: MessageListPage(initNarrow: ChannelNarrow(stream.streamId))));
   await tester.pumpAndSettle();
 
-  connection.prepare(json: GetStreamTopicsResult(topics: topics).toJson());
+  connection.prepare(json: GetChannelTopicsResult(topics: topics).toJson());
   final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
   final finder = find.byWidgetPredicate((widget) => widget is TextField
     && widget.decoration?.hintText == zulipLocalizations.composeBoxTopicHintText);

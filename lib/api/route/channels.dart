@@ -41,28 +41,28 @@ Future<void> unsubscribeFromChannel(ApiConnection connection, {
 }
 
 /// https://zulip.com/api/get-stream-topics
-Future<GetStreamTopicsResult> getStreamTopics(ApiConnection connection, {
+Future<GetChannelTopicsResult> getStreamTopics(ApiConnection connection, {
   required int streamId,
   required bool allowEmptyTopicName,
 }) {
   assert(allowEmptyTopicName, '`allowEmptyTopicName` should only be true');
-  return connection.get('getStreamTopics', GetStreamTopicsResult.fromJson, 'users/me/$streamId/topics', {
+  return connection.get('getStreamTopics', GetChannelTopicsResult.fromJson, 'users/me/$streamId/topics', {
     'allow_empty_topic_name': allowEmptyTopicName,
   });
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-class GetStreamTopicsResult {
+class GetChannelTopicsResult {
   final List<GetChannelTopicsEntry> topics;
 
-  GetStreamTopicsResult({
+  GetChannelTopicsResult({
     required this.topics,
   });
 
-  factory GetStreamTopicsResult.fromJson(Map<String, dynamic> json) =>
-    _$GetStreamTopicsResultFromJson(json);
+  factory GetChannelTopicsResult.fromJson(Map<String, dynamic> json) =>
+    _$GetChannelTopicsResultFromJson(json);
 
-  Map<String, dynamic> toJson() => _$GetStreamTopicsResultToJson(this);
+  Map<String, dynamic> toJson() => _$GetChannelTopicsResultToJson(this);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

@@ -103,7 +103,7 @@ void main() {
       eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson());
     if (narrow is ChannelNarrow && messages.isEmpty) {
       // The topic input will autofocus, triggering a getStreamTopics request.
-      connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+      connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
     }
     await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
       child: MessageListPage(initNarrow: narrow)));
@@ -126,7 +126,7 @@ void main() {
     required String topic,
   }) async {
     connection.prepare(body:
-      jsonEncode(GetStreamTopicsResult(topics: [eg.getChannelTopicsEntry()]).toJson()));
+      jsonEncode(GetChannelTopicsResult(topics: [eg.getChannelTopicsEntry()]).toJson()));
     await tester.enterText(topicInputFinder, topic);
     check(connection.takeRequests()).single
       ..method.equals('GET')
@@ -1794,7 +1794,7 @@ void main() {
         otherUsers: otherUsers);
 
       if (narrow is ChannelNarrow) {
-        connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+        connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
         await enterTopic(tester, narrow: narrow, topic: topic);
       }
       await enterContent(tester, failedMessageContent);
