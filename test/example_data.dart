@@ -510,7 +510,7 @@ ZulipStream stream({
 }
 const _stream = stream;
 
-GetChannelTopicsEntry getStreamTopicsEntry({int? maxId, String? name}) {
+GetChannelTopicsEntry getChannelTopicsEntry({int? maxId, String? name}) {
   maxId ??= 123;
   return GetChannelTopicsEntry(maxId: maxId,
     name: TopicName(name ?? 'Test Topic #$maxId'));
