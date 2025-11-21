@@ -49,7 +49,7 @@ void main() {
     messages ??= [eg.streamMessage(stream: channel, topic: topics.first.name.apiName)];
     await store.addMessages(messages);
 
-    connection.prepare(json: GetStreamTopicsResult(topics: topics).toJson());
+    connection.prepare(json: GetChannelTopicsResult(topics: topics).toJson());
     await tester.pumpWidget(TestZulipApp(
       accountId: eg.selfAccount.id,
       child: TopicListPage(streamId: channel.streamId)));
@@ -69,7 +69,7 @@ void main() {
       final channel = eg.stream();
 
       (store.connection as FakeApiConnection).prepare(
-        json: GetStreamTopicsResult(topics: []).toJson());
+        json: GetChannelTopicsResult(topics: []).toJson());
       await tester.pumpWidget(TestZulipApp(
         accountId: eg.selfAccount.id,
         child: TopicListPage(streamId: channel.streamId)));
@@ -111,7 +111,7 @@ void main() {
     final channel = eg.stream();
 
     (store.connection as FakeApiConnection).prepare(
-      json: GetStreamTopicsResult(topics: []).toJson(),
+      json: GetChannelTopicsResult(topics: []).toJson(),
       delay: Duration(seconds: 1),
     );
     await tester.pumpWidget(TestZulipApp(
@@ -140,7 +140,7 @@ void main() {
     await tester.pump();
 
     // Tap "TOPICS" button navigating to the topic-list page…
-    connection.prepare(json: GetStreamTopicsResult(
+    connection.prepare(json: GetChannelTopicsResult(
       topics: [eg.getChannelTopicsEntry(name: 'topic A')]).toJson());
     await tester.tap(find.byIcon(ZulipIcons.topics));
     await tester.pump();
@@ -152,7 +152,7 @@ void main() {
     await tester.pump();
 
     // … then back to the topic-list page, expecting to fetch again.
-    connection.prepare(json: GetStreamTopicsResult(
+    connection.prepare(json: GetChannelTopicsResult(
       topics: [eg.getChannelTopicsEntry(name: 'topic B')]).toJson());
     await tester.tap(find.byIcon(ZulipIcons.topics));
     await tester.pump();
