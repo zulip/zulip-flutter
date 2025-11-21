@@ -1881,7 +1881,6 @@ class _EditMessageBannerTrailing extends StatelessWidget {
     // disappears, which may be long after the banner disappears.)
     final pageContext = PageRoot.contextOf(context);
 
-    final store = PerAccountStoreWidget.of(pageContext);
     final controller = composeBoxState.controller;
     if (controller is! EditMessageComposeBoxController) return; // TODO(log)
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
@@ -1908,10 +1907,12 @@ class _EditMessageBannerTrailing extends StatelessWidget {
     composeBoxState.endEditInteraction();
 
     try {
+      final store = PerAccountStoreWidget.of(pageContext);
       await store.editMessage(
         messageId: messageId,
         originalRawContent: originalRawContent,
         newContent: newContent);
+      if (!pageContext.mounted) return;
     } on ApiRequestException catch (e) {
       if (!pageContext.mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(pageContext);
@@ -1923,6 +1924,25 @@ class _EditMessageBannerTrailing extends StatelessWidget {
         title: zulipLocalizations.errorMessageEditNotSaved,
         message: message);
       return;
+    }
+
+    final store = PerAccountStoreWidget.of(pageContext);
+    final messageListPageState = MessageListPage.ancestorOf(pageContext);
+    final narrow = messageListPageState.narrow;
+    final message = store.messages[messageId];
+    if (
+      message != null // (the message wasn't deleted during the edit request)
+      && narrow.containsMessage(message) == true // (or moved out of the view)
+      && message is StreamMessage
+      && store.subscriptions[message.conversation.streamId] == null
+    ) {
+      // The message is in an unsubscribed channel.
+      // We don't get edit-message events for unsubscribed channels,
+      // but we can refresh the view when an edit-message request succeeds,
+      // so the user will at least see their updated message without having to
+      // exit and re-enter. See the "first buggy behavior" in
+      //   https://github.com/zulip/zulip-flutter/issues/1798 .
+      messageListPageState.refresh(NumericAnchor(messageId));
     }
   }
 
