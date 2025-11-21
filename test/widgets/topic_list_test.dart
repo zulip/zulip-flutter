@@ -28,7 +28,7 @@ void main() {
 
   Future<void> prepare(WidgetTester tester, {
     ZulipStream? channel,
-    List<GetStreamTopicsEntry>? topics,
+    List<GetChannelTopicsEntry>? topics,
     List<UserTopicItem> userTopics = const [],
     List<StreamMessage>? messages,
   }) async {
