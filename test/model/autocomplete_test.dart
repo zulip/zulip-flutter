@@ -1236,9 +1236,9 @@ void main() {
   test('TopicAutocompleteView misc', () async {
     final store = eg.store();
     final connection = store.connection as FakeApiConnection;
-    final first = eg.getStreamTopicsEntry(maxId: 1, name: 'First Topic');
-    final second = eg.getStreamTopicsEntry(maxId: 2, name: 'Second Topic');
-    final third = eg.getStreamTopicsEntry(maxId: 3, name: 'Third Topic');
+    final first = eg.getChannelTopicsEntry(maxId: 1, name: 'First Topic');
+    final second = eg.getChannelTopicsEntry(maxId: 2, name: 'Second Topic');
+    final third = eg.getChannelTopicsEntry(maxId: 3, name: 'Third Topic');
     connection.prepare(json: GetStreamTopicsResult(
       topics: [first, second, third]).toJson());
 
@@ -1262,7 +1262,7 @@ void main() {
     final store = eg.store();
     final connection = store.connection as FakeApiConnection;
     connection.prepare(json: GetStreamTopicsResult(
-      topics: [eg.getStreamTopicsEntry(name: 'test')]
+      topics: [eg.getChannelTopicsEntry(name: 'test')]
     ).toJson());
 
     final view = TopicAutocompleteView.init(
@@ -1282,7 +1282,7 @@ void main() {
     final connection = store.connection as FakeApiConnection;
 
     connection.prepare(json: GetStreamTopicsResult(
-      topics: [eg.getStreamTopicsEntry(name: '')],
+      topics: [eg.getChannelTopicsEntry(name: '')],
     ).toJson());
     TopicAutocompleteView.init(store: store, streamId: 1000,
       query: TopicAutocompleteQuery('foo'));
