@@ -63,6 +63,8 @@ void main() {
         eg.streamMessage(stream: stream,      topic: 'topic2'))).isFalse();
       check(narrow.containsMessage(
         eg.streamMessage(stream: stream,      topic: 'topic'))).isTrue();
+      check(narrow.containsMessage(
+        eg.streamMessage(stream: stream,      topic: 'ToPiC'))).isTrue();
 
       check(narrow.containsMessage(
         eg.dmOutboxMessage(from: eg.selfUser, to: [eg.otherUser]))).isFalse();
@@ -72,6 +74,8 @@ void main() {
         eg.streamOutboxMessage(stream: stream,      topic: 'topic2'))).isFalse();
       check(narrow.containsMessage(
         eg.streamOutboxMessage(stream: stream,      topic: 'topic'))).isTrue();
+      check(narrow.containsMessage(
+        eg.streamOutboxMessage(stream: stream,      topic: 'ToPiC'))).isTrue();
     });
   });
 

@@ -112,7 +112,7 @@ class TopicNarrow extends Narrow implements SendableNarrow {
   bool containsMessage(MessageBase message) {
     final conversation = message.conversation;
     return conversation is StreamConversation
-      && conversation.streamId == streamId && conversation.topic == topic;
+      && conversation.streamId == streamId && conversation.topic.isSameAs(topic);
   }
 
   @override
