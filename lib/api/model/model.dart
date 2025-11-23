@@ -407,6 +407,28 @@ enum Emojiset {
   String toJson() => _$EmojisetEnumMap[this]!;
 }
 
+/// As in [InitialSnapshot.realmVideoChatProvider].
+///
+/// For docs, search for "realm_video_chat_provider:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonEnum(fieldRename: FieldRename.snake, valueField: "apiValue")
+enum RealmVideoChatProvider {
+  none(apiValue: 0),
+  jitsiMeet(apiValue: 1),
+  zoomUserOAuth(apiValue: 3),
+  bigBlueButton(apiValue: 4),
+  zoomServerToServerOAuth(apiValue: 5),
+  unknown(apiValue: null);
+
+  const RealmVideoChatProvider({
+    required this.apiValue,
+  });
+
+  final int? apiValue;
+
+  int? toJson() => apiValue;
+}
+
 /// As in [InitialSnapshot.realmUserGroups] or [UserGroupAddEvent].
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UserGroup {
