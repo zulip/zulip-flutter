@@ -107,6 +107,10 @@ InitialSnapshot _$InitialSnapshotFromJson(
   ),
   realmMandatoryTopics: json['realm_mandatory_topics'] as bool,
   realmName: json['realm_name'] as String,
+  realmVideoChatProvider: $enumDecode(
+    _$RealmVideoChatProviderEnumMap,
+    json['realm_video_chat_provider'],
+  ),
   realmWaitingPeriodThreshold: (json['realm_waiting_period_threshold'] as num)
       .toInt(),
   realmMessageContentDeleteLimitSeconds:
@@ -194,6 +198,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'realm_wildcard_mention_policy': instance.realmWildcardMentionPolicy,
   'realm_mandatory_topics': instance.realmMandatoryTopics,
   'realm_name': instance.realmName,
+  'realm_video_chat_provider': instance.realmVideoChatProvider,
   'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
   'realm_message_content_delete_limit_seconds':
       instance.realmMessageContentDeleteLimitSeconds,
@@ -228,6 +233,15 @@ const _$RealmWildcardMentionPolicyEnumMap = {
   RealmWildcardMentionPolicy.admins: 5,
   RealmWildcardMentionPolicy.nobody: 6,
   RealmWildcardMentionPolicy.moderators: 7,
+};
+
+const _$RealmVideoChatProviderEnumMap = {
+  RealmVideoChatProvider.none: 0,
+  RealmVideoChatProvider.jitsiMeet: 1,
+  RealmVideoChatProvider.zoomUserOAuth: 3,
+  RealmVideoChatProvider.bigBlueButton: 4,
+  RealmVideoChatProvider.zoomServerToServerOAuth: 5,
+  RealmVideoChatProvider.unknown: null,
 };
 
 RealmDefaultExternalAccount _$RealmDefaultExternalAccountFromJson(
