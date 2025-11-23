@@ -103,6 +103,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
   ),
   realmMandatoryTopics: json['realm_mandatory_topics'] as bool,
   realmName: json['realm_name'] as String,
+  realmVideoChatProvider: (json['realm_video_chat_provider'] as num).toInt(),
   realmWaitingPeriodThreshold: (json['realm_waiting_period_threshold'] as num)
       .toInt(),
   realmMessageContentDeleteLimitSeconds:
@@ -183,6 +184,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'realm_wildcard_mention_policy': instance.realmWildcardMentionPolicy,
   'realm_mandatory_topics': instance.realmMandatoryTopics,
   'realm_name': instance.realmName,
+  'realm_video_chat_provider': instance.realmVideoChatProvider,
   'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
   'realm_message_content_delete_limit_seconds':
       instance.realmMessageContentDeleteLimitSeconds,
