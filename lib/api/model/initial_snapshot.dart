@@ -100,6 +100,8 @@ class InitialSnapshot {
 
   final String realmName;
 
+  final RealmVideoChatProvider realmVideoChatProvider;
+
   /// The number of days until a user's account is treated as a full member.
   ///
   /// Search for "realm_waiting_period_threshold" in https://zulip.com/api/register-queue.
@@ -201,6 +203,7 @@ class InitialSnapshot {
     required this.realmWildcardMentionPolicy,
     required this.realmMandatoryTopics,
     required this.realmName,
+    required this.realmVideoChatProvider,
     required this.realmWaitingPeriodThreshold,
     required this.realmMessageContentDeleteLimitSeconds,
     required this.realmAllowMessageEditing,
