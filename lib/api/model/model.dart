@@ -337,6 +337,7 @@ class UserStatusChange {
 @JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum UserSettingName {
   twentyFourHourTime,
+  starredMessageCounts,
   displayEmojiReactionUsers,
   emojiset,
   presenceEnabled,

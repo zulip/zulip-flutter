@@ -309,7 +309,9 @@ abstract class _HeaderItem extends StatelessWidget {
           const SizedBox(width: 12),
           if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
           Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-            child: UnreadCountBadge(
+            child: Counter(
+              // TODO(design) use CounterKind.quantity, following Figma
+              kind: CounterKind.unread,
               channelIdForBackground: channelId,
               count: count)),
         ])));
@@ -431,7 +433,10 @@ class _DmItem extends StatelessWidget {
             const SizedBox(width: 12),
             if (hasMention) const  _IconMarker(icon: ZulipIcons.at_sign),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-              child: UnreadCountBadge(channelIdForBackground: null,
+              child: Counter(
+                // TODO(design) use CounterKind.quantity, following Figma
+                kind: CounterKind.unread,
+                channelIdForBackground: null,
                 count: count)),
           ]))));
   }
@@ -565,7 +570,9 @@ class _TopicItem extends StatelessWidget {
             // TODO(design) copies the "@" marker color; is there a better color?
             if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-              child: UnreadCountBadge(
+              child: Counter(
+                // TODO(design) use CounterKind.quantity, following Figma
+                kind: CounterKind.unread,
                 channelIdForBackground: streamId,
                 count: count)),
           ]))));
