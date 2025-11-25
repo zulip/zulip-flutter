@@ -741,11 +741,11 @@ class MessageMediaContainer extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: UnconstrainedBox(
-        alignment: Alignment.centerLeft,
+        alignment: AlignmentDirectional.centerStart,
         child: Padding(
           // TODO clean up this padding by imitating web less precisely;
           //   in particular, avoid adding loose whitespace at end of message.
-          padding: const EdgeInsets.only(right: 5, bottom: 5),
+          padding: const EdgeInsetsDirectional.only(end: 5, bottom: 5),
           child: ColoredBox(
             color: ContentTheme.of(context).colorMessageMediaContainerBackground,
             child: Padding(
