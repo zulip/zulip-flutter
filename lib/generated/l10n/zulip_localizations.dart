@@ -1387,6 +1387,24 @@ abstract class ZulipLocalizations {
   /// **'Mark as unread failed'**
   String get errorMarkAsUnreadFailedTitle;
 
+  /// Title of the confirmation dialog for marking all messages as read
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all messages as read?'**
+  String get markAllAsReadConfirmationDialogTitle;
+
+  /// Message that warns the user they may unintentionally mark messages as read
+  ///
+  /// In en, this message translates to:
+  /// **'You are not in a conversation view. Marking all as read may unintentionally mark unseen messages as read. Do you want to continue?'**
+  String get markAllAsReadConfirmationDialogMessage;
+
+  /// Action message to confirm marking all messages as read.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, mark as read'**
+  String get markAllAsReadConfirmationDialogAction;
+
   /// Term to use to reference the current day.
   ///
   /// In en, this message translates to:

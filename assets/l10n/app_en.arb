@@ -932,6 +932,18 @@
   "@errorMarkAsUnreadFailedTitle": {
     "description": "Error title when mark as unread action failed."
   },
+  "markAllAsReadConfirmationDialogTitle": "Mark all messages as read?",
+  "@markAllAsReadConfirmationDialogTitle": {
+    "description": "Title of the confirmation dialog for marking all messages as read"
+  },
+  "markAllAsReadConfirmationDialogMessage": "You are not in a conversation view. Marking all as read may unintentionally mark unseen messages as read. Do you want to continue?",
+  "@markAllAsReadConfirmationDialogMessage": {
+    "description": "Message that warns the user they may unintentionally mark messages as read"
+  },
+  "markAllAsReadConfirmationDialogAction": "Yes, mark as read",
+  "@markAllAsReadConfirmationDialogAction": {
+    "description": "Action message to confirm marking all messages as read."
+  },
   "today": "Today",
   "@today": {
     "description": "Term to use to reference the current day."
