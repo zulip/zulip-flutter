@@ -753,6 +753,17 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get errorMarkAsUnreadFailedTitle => '未読にできませんでした';
 
   @override
+  String get markAllAsReadConfirmationDialogTitle =>
+      'Mark all messages as read?';
+
+  @override
+  String get markAllAsReadConfirmationDialogMessage =>
+      'You are not in a conversation view. Marking all as read may unintentionally mark unseen messages as read. Do you want to continue?';
+
+  @override
+  String get markAllAsReadConfirmationDialogAction => 'Yes, mark as read';
+
+  @override
   String get today => '今日';
 
   @override

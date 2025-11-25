@@ -791,6 +791,17 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Oznaczanie jako nieprzeczytane bez powodzenia';
 
   @override
+  String get markAllAsReadConfirmationDialogTitle =>
+      'Mark all messages as read?';
+
+  @override
+  String get markAllAsReadConfirmationDialogMessage =>
+      'You are not in a conversation view. Marking all as read may unintentionally mark unseen messages as read. Do you want to continue?';
+
+  @override
+  String get markAllAsReadConfirmationDialogAction => 'Yes, mark as read';
+
+  @override
   String get today => 'Dzisiaj';
 
   @override
