@@ -199,11 +199,11 @@ abstract class ZulipLocalizations {
   /// **'Settings'**
   String get settingsPageTitle;
 
-  /// Label for main-menu button leading to the choose-account page.
+  /// Tooltip message for main-menu button leading to the choose-account page.
   ///
   /// In en, this message translates to:
   /// **'Switch account'**
-  String get switchAccountButton;
+  String get switchAccountButtonTooltip;
 
   /// Message that appears on the loading screen after waiting for some time.
   ///

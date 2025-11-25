@@ -841,8 +841,8 @@
   "@successMessageTextCopied": {
     "description": "Message when content of a message was copied to the user's system clipboard."
   },
-  "@switchAccountButton": {
-    "description": "Label for main-menu button leading to the choose-account page."
+  "@switchAccountButtonTooltip": {
+    "description": "Tooltip message for main-menu button leading to the choose-account page."
   },
   "@themeSettingDark": {
     "description": "Label for dark theme setting."
@@ -1173,7 +1173,7 @@
   "successLinkCopied": "Collegamento copiato",
   "successMessageLinkCopied": "Collegamento messaggio copiato",
   "successMessageTextCopied": "Testo messaggio copiato",
-  "switchAccountButton": "Cambia account",
+  "switchAccountButtonTooltip": "Cambia account",
   "themeSettingDark": "Scuro",
   "themeSettingLight": "Chiaro",
   "themeSettingSystem": "Sistema",
