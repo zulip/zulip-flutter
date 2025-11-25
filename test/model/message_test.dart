@@ -77,7 +77,7 @@ void main() {
         notifiedCount++;
       });
     addTearDown(messageList.dispose);
-    check(messageList).fetched.isFalse();
+    check(messageList).initialFetched.isFalse();
     checkNotNotified();
 
     // This cleans up possibly pending timers from [MessageStoreImpl].
@@ -99,7 +99,7 @@ void main() {
 
   Future<void> addMessages(Iterable<Message> messages) async {
     await store.addMessages(messages);
-    checkNotified(count: messageList.fetched ? messages.length : 0);
+    checkNotified(count: messageList.initialFetched ? messages.length : 0);
   }
 
   test('dispose cancels pending timers', () => awaitFakeAsync((async) async {
