@@ -56,6 +56,26 @@ void main() {
     }
 
     group('markNarrowAsRead', () {
+      Future<void> confirmToMarkNarrowAsRead({required WidgetTester tester,
+        required BuildContext context, required Narrow narrow
+      }) async {
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+
+        final future = tester.runAsync(() => ZulipAction.markNarrowAsRead(context, narrow));
+
+        await tester.pump();
+        final (confirmButton, _) = checkSuggestedActionDialog(tester,
+          expectedTitle: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
+          expectedMessage: zulipLocalizations.markAllAsReadConfirmationDialogMessage,
+          expectedActionButtonText: zulipLocalizations.markAllAsReadConfirmationDialogAction,
+        );
+
+        await tester.tap(find.byWidget(confirmButton));
+        await tester.pump();
+
+        await future;
+      }
+
       testWidgets('smoke test on modern server', (tester) async {
         final narrow = TopicNarrow.ofMessage(eg.streamMessage());
         await prepare(tester);
