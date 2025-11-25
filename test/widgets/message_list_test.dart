@@ -972,6 +972,16 @@ void main() {
       return finder.evaluate().isNotEmpty;
     }
 
+    (Widget, Widget) checkConfirmDialog(WidgetTester tester) {
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      return checkSuggestedActionDialog(tester,
+        expectedTitle: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
+        expectedMessage: zulipLocalizations.markAllAsReadConfirmationDialogMessage,
+        expectDestructiveActionButton: true,
+        expectedActionButtonText: zulipLocalizations.markAllAsReadConfirmationDialogAction,
+      );
+    }
+
     testWidgets('from read to unread', (tester) async {
       final message = eg.streamMessage(flags: [MessageFlag.read]);
       await setupMessageListPage(tester, messages: [message]);
