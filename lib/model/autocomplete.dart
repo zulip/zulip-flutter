@@ -6,7 +6,6 @@ import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
 import '../api/model/events.dart';
 import '../api/model/model.dart';
-import '../api/route/channels.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../widgets/compose_box.dart';
 import 'algorithms.dart';
@@ -1173,12 +1172,10 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   /// are fetched it restarts search to refresh UI showing the newly
   /// fetched topics.
   Future<void> _fetch() async {
-     assert(!_isFetching);
+    assert(!_isFetching);
     _isFetching = true;
-    final result = await getStreamTopics(store.connection, streamId: streamId,
-      allowEmptyTopicName: true,
-    );
-    _topics = result.topics.map((e) => e.name);
+    await store.fetchChannelTopics(streamId); // TODO: handle fetch failure
+    _topics = store.getChannelTopics(streamId)!.map((e) => e.name);
     _isFetching = false;
     return _startSearch();
   }

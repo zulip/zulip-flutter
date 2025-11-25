@@ -302,8 +302,8 @@ void main() {
         subscriptions: [eg.subscription(channel)],
         messages: [eg.streamMessage(stream: channel, topic: 'topic foo')]);
 
-      connection.prepare(json: GetStreamTopicsResult(topics: [
-        eg.getStreamTopicsEntry(name: 'topic foo'),
+      connection.prepare(json: GetChannelTopicsResult(topics: [
+        eg.getChannelTopicsEntry(name: 'topic foo'),
       ]).toJson());
       await tester.tap(find.byIcon(ZulipIcons.topics));
       await tester.pump(); // tap the button
@@ -337,8 +337,8 @@ void main() {
         subscriptions: [eg.subscription(channel)],
         messages: [eg.streamMessage(stream: channel, topic: 'topic foo')]);
 
-      connection.prepare(json: GetStreamTopicsResult(topics: [
-        eg.getStreamTopicsEntry(name: 'topic foo'),
+      connection.prepare(json: GetChannelTopicsResult(topics: [
+        eg.getChannelTopicsEntry(name: 'topic foo'),
       ]).toJson());
       await tester.tap(find.byIcon(ZulipIcons.topics));
       await tester.pump(); // tap the button
