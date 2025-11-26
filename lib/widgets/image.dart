@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../api/core.dart';
+import '../api/model/initial_snapshot.dart';
+import '../model/content.dart';
 import 'store.dart';
 
 /// Like [Image.network], but includes [authHeader] if [src] is on-realm.
@@ -147,5 +149,61 @@ enum ImageAnimationMode {
 
         return true;
     }
+  }
+}
+
+extension ImageThumbnailLocatorExtension on ImageThumbnailLocator {
+  /// Chooses an appropriate format from [PerAccountStore.serverThumbnailFormats],
+  /// represented as an absolute URL.
+  ///
+  /// [height] and [width] are in logical pixels.
+  ///
+  /// Requires an ancestor [PerAccountStoreWidget].
+  Uri? resolve(
+    BuildContext context, {
+    required double width,
+    required double height,
+    required ImageAnimationMode animationMode,
+  }) {
+    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+    final widthPhysicalPx = (width * devicePixelRatio).ceil();
+    final heightPhysicalPx = (height * devicePixelRatio).ceil();
+
+    final store = PerAccountStoreWidget.of(context);
+    ThumbnailFormat? bestCandidate;
+
+    final animateIfSupported = animationMode.resolve(context);
+    if (hasAnimatedVersion && animateIfSupported) {
+      bestCandidate ??= _bestFormatOf(store.sortedAnimatedThumbnailFormats,
+                          width: widthPhysicalPx, height: heightPhysicalPx);
+    }
+
+    bestCandidate ??= _bestFormatOf(store.sortedStillThumbnailFormats,
+                        width: widthPhysicalPx, height: heightPhysicalPx);
+
+    if (bestCandidate == null) {
+      // Odd if we'd need to fall back to the format encoded in [locator]'s path.
+      // Seems theoretically possible though:
+      // maybe this format isn't used now, for new uploads,
+      // but it was used in the past, including for this image.
+      return store.realmUrl.replace(path: urlPath);
+    }
+
+    final lastSlashIndex = urlPath.lastIndexOf('/');
+    return store.realmUrl.replace(
+      path: '${urlPath.substring(0, lastSlashIndex)}/${bestCandidate.name}');
+  }
+
+  ThumbnailFormat? _bestFormatOf(
+    List<ThumbnailFormat> sortedCandidates, {
+    required int width,
+    required int height,
+  }) {
+    ThumbnailFormat? result;
+    for (final candidate in sortedCandidates) {
+      result = candidate;
+      if (candidate.maxWidth >= width && candidate.maxHeight >= height) break;
+    }
+    return result;
   }
 }
