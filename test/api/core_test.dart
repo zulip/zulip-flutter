@@ -137,7 +137,7 @@ void main() {
             ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
             ...kFallbackUserAgentHeader,
             if (expectContentType)
-              'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
+              'content-type': 'application/x-www-form-urlencoded',
           })
           ..body.equals(expectedBody);
       }));
@@ -213,7 +213,7 @@ void main() {
             ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
             ...kFallbackUserAgentHeader,
             if (expectContentType)
-              'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
+              'content-type': 'application/x-www-form-urlencoded',
           })
           ..body.equals(expectedBody);
       }));
@@ -244,7 +244,7 @@ void main() {
             ...authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey),
             ...kFallbackUserAgentHeader,
             if (expectContentType)
-              'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
+              'content-type': 'application/x-www-form-urlencoded',
           })
           ..body.equals(expectedBody);
       }));
