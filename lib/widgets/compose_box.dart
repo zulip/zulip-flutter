@@ -1030,6 +1030,62 @@ Future<void> _uploadFiles({
   }
 }
 
+class _AttachVideoChatUrlButton extends StatelessWidget {
+  const _AttachVideoChatUrlButton({
+    required this.controller,
+    required this.enabled,
+  });
+
+  final ComposeBoxController controller;
+  final bool enabled;
+
+  static const int jitsi = 1;
+  static const int zoomUser = 3;
+
+  String _generateJitsiUrl(String serverUrl, String visibleText) {
+    final id = List.generate(15, (_) => Random.secure().nextInt(10)).join();
+    return inlineLink(visibleText, '$serverUrl/$id#config.startWithVideoMuted=false');
+  }
+
+  String? _getMeetingUrl(ZulipLocalizations zulipLocalization, int? provider, String? jitsiServerUrl) {
+    final visibleText = zulipLocalization.composeBoxVideoCallLinkText;
+
+    switch (provider) {
+      case jitsi: return jitsiServerUrl == null ? null :_generateJitsiUrl(jitsiServerUrl, visibleText);
+      case zoomUser: return inlineLink(visibleText,
+        'https://zoom.us/start/meeting');
+      default: return null;
+    }
+  }
+
+  void _handlePress(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final placeholder = _getMeetingUrl(zulipLocalizations,
+        store.realmVideoChatProvider, store.jitsiServerUrl);
+    if (placeholder == null) return;
+
+    final contentController = controller.content;
+    final insertionRange = contentController.insertionIndex();
+    contentController.value = contentController.value.replaced(insertionRange, '$placeholder\n\n');
+    controller.contentFocusNode.requestFocus();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    return SizedBox(
+      width: _composeButtonSize,
+      child: IconButton(
+        icon: Icon(ZulipIcons.video, color: designVariables.foreground.withFadedAlpha(0.5)),
+        tooltip: zulipLocalizations.composeBoxAddVideoCallTooltip,
+        onPressed: enabled ? () => _handlePress(context) : null));
+  }
+}
+
 abstract class _AttachUploadsButton extends StatelessWidget {
   const _AttachUploadsButton({required this.controller, required this.enabled});
 
@@ -1442,6 +1498,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     final themeData = Theme.of(context);
     final designVariables = DesignVariables.of(context);
 
@@ -1469,6 +1526,9 @@ abstract class _ComposeBoxBody extends StatelessWidget {
       _AttachFileButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
+      store.realmVideoChatProvider == 0
+        ? const SizedBox.shrink()
+        : _AttachVideoChatUrlButton(controller: controller, enabled: composeButtonsEnabled),
     ];
 
     final topicInput = buildTopicInput();

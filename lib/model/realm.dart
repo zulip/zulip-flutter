@@ -47,6 +47,10 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   GroupSettingValue? get realmCanDeleteOwnMessageGroup; // TODO(server-10)
   bool get realmEnableReadReceipts;
   bool get realmMandatoryTopics;
+  int get realmVideoChatProvider;
+  String? get realmJitsiServerUrl;
+  String? get jitsiServerUrl;
+  String? get serverJitsiServerUrl;
   int get maxFileUploadSizeMib;
   int? get realmMessageContentDeleteLimitSeconds;
   Duration? get realmMessageContentEditLimit =>
@@ -176,6 +180,14 @@ mixin ProxyRealmStore on RealmStore {
   @override
   bool get realmMandatoryTopics => realmStore.realmMandatoryTopics;
   @override
+  int get realmVideoChatProvider => realmStore.realmVideoChatProvider;
+  @override
+  String? get realmJitsiServerUrl => realmStore.realmJitsiServerUrl;
+  @override
+  String? get jitsiServerUrl => realmStore.jitsiServerUrl;
+  @override
+  String? get serverJitsiServerUrl => realmStore.serverJitsiServerUrl;
+  @override
   int get maxFileUploadSizeMib => realmStore.maxFileUploadSizeMib;
   @override
   int? get realmMessageContentDeleteLimitSeconds => realmStore.realmMessageContentDeleteLimitSeconds;
@@ -234,6 +246,10 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmCanDeleteAnyMessageGroup = initialSnapshot.realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup = initialSnapshot.realmCanDeleteOwnMessageGroup,
     realmMandatoryTopics = initialSnapshot.realmMandatoryTopics,
+    realmVideoChatProvider = initialSnapshot.realmVideoChatProvider,
+    realmJitsiServerUrl = initialSnapshot.realmJitsiServerUrl,
+    jitsiServerUrl = initialSnapshot.jitsiServerUrl,
+    serverJitsiServerUrl = initialSnapshot.serverJitsiServerUrl,
     maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib,
     realmMessageContentDeleteLimitSeconds = initialSnapshot.realmMessageContentDeleteLimitSeconds,
     realmMessageContentEditLimitSeconds = initialSnapshot.realmMessageContentEditLimitSeconds,
@@ -384,6 +400,14 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   final bool realmEnableReadReceipts;
   @override
   final bool realmMandatoryTopics;
+  @override
+  final int realmVideoChatProvider;
+  @override
+  final String? realmJitsiServerUrl;
+  @override
+  final String? jitsiServerUrl;
+  @override
+  final String? serverJitsiServerUrl;
   @override
   final int maxFileUploadSizeMib;
   @override

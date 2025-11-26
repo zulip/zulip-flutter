@@ -103,6 +103,8 @@ InitialSnapshot _$InitialSnapshotFromJson(
   ),
   realmMandatoryTopics: json['realm_mandatory_topics'] as bool,
   realmName: json['realm_name'] as String,
+  realmVideoChatProvider: (json['realm_video_chat_provider'] as num).toInt(),
+  realmJitsiServerUrl: json['realm_jitsi_server_url'] as String?,
   realmWaitingPeriodThreshold: (json['realm_waiting_period_threshold'] as num)
       .toInt(),
   realmMessageContentDeleteLimitSeconds:
@@ -120,8 +122,10 @@ InitialSnapshot _$InitialSnapshotFromJson(
           RealmDefaultExternalAccount.fromJson(e as Map<String, dynamic>),
         ),
       ),
+  jitsiServerUrl: json['jitsi_server_url'] as String?,
   maxFileUploadSizeMib: (json['max_file_upload_size_mib'] as num).toInt(),
   serverEmojiDataUrl: Uri.parse(json['server_emoji_data_url'] as String),
+  serverJitsiServerUrl: json['server_jitsi_server_url'] as String?,
   realmEmptyTopicDisplayName: json['realm_empty_topic_display_name'] as String?,
   realmUsers:
       (InitialSnapshot._readUsersIsActiveFallbackTrue(json, 'realm_users')
@@ -183,6 +187,8 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'realm_wildcard_mention_policy': instance.realmWildcardMentionPolicy,
   'realm_mandatory_topics': instance.realmMandatoryTopics,
   'realm_name': instance.realmName,
+  'realm_video_chat_provider': instance.realmVideoChatProvider,
+  'realm_jitsi_server_url': instance.realmJitsiServerUrl,
   'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
   'realm_message_content_delete_limit_seconds':
       instance.realmMessageContentDeleteLimitSeconds,
@@ -193,8 +199,10 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'realm_icon_url': instance.realmIconUrl.toString(),
   'realm_presence_disabled': instance.realmPresenceDisabled,
   'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
+  'jitsi_server_url': instance.jitsiServerUrl,
   'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
   'server_emoji_data_url': instance.serverEmojiDataUrl.toString(),
+  'server_jitsi_server_url': instance.serverJitsiServerUrl,
   'realm_empty_topic_display_name': instance.realmEmptyTopicDisplayName,
   'realm_users': instance.realmUsers,
   'realm_non_active_users': instance.realmNonActiveUsers,

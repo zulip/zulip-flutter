@@ -94,6 +94,10 @@ class InitialSnapshot {
 
   final String realmName;
 
+  final int realmVideoChatProvider;
+
+  final String? realmJitsiServerUrl;
+
   /// The number of days until a user's account is treated as a full member.
   ///
   /// Search for "realm_waiting_period_threshold" in https://zulip.com/api/register-queue.
@@ -115,9 +119,13 @@ class InitialSnapshot {
 
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
 
+  final String? jitsiServerUrl;
+
   final int maxFileUploadSizeMib;
 
   final Uri serverEmojiDataUrl;
+
+  final String? serverJitsiServerUrl;
 
   final String? realmEmptyTopicDisplayName; // TODO(server-10)
 
@@ -185,6 +193,8 @@ class InitialSnapshot {
     required this.realmWildcardMentionPolicy,
     required this.realmMandatoryTopics,
     required this.realmName,
+    required this.realmVideoChatProvider,
+    required this.realmJitsiServerUrl,
     required this.realmWaitingPeriodThreshold,
     required this.realmMessageContentDeleteLimitSeconds,
     required this.realmAllowMessageEditing,
@@ -193,8 +203,10 @@ class InitialSnapshot {
     required this.realmIconUrl,
     required this.realmPresenceDisabled,
     required this.realmDefaultExternalAccounts,
+    required this.jitsiServerUrl,
     required this.maxFileUploadSizeMib,
     required this.serverEmojiDataUrl,
+    required this.serverJitsiServerUrl,
     required this.realmEmptyTopicDisplayName,
     required this.realmUsers,
     required this.realmNonActiveUsers,

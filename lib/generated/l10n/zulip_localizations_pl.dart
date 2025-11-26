@@ -498,6 +498,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get composeBoxAttachFromCameraTooltip => 'Zrób zdjęcie';
 
   @override
+  String get composeBoxAddVideoCallTooltip => 'Add video call';
+
+  @override
   String get composeBoxGenericContentHint => 'Wpisz wiadomość';
 
   @override
@@ -556,6 +559,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String composeBoxUploadingFilename(String filename) {
     return 'Przekazywanie $filename…';
   }
+
+  @override
+  String get composeBoxVideoCallLinkText => 'Join video call.';
 
   @override
   String composeBoxLoadingMessage(int messageId) {

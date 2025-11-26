@@ -213,6 +213,28 @@ class RealmEmojiItem {
   Map<String, dynamic> toJson() => _$RealmEmojiItemToJson(this);
 }
 
+/// As in [InitialSnapshot.realmVideoChatProvider].
+///
+/// For docs, search for "realm_video_chat_provider:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonEnum(fieldRename: FieldRename.snake, valueField: "apiValue")
+enum RealmVideoChatProvider {
+  none(apiValue: 0),
+  jitsi(apiValue: 1),
+  zoomUser(apiValue: 3),
+  bigBlueButton(apiValue: 4),
+  zoomServer(apiValue: 5),
+  unknown(apiValue: null);
+
+  const RealmVideoChatProvider({
+    required this.apiValue,
+  });
+
+  final int? apiValue;
+
+  int? toJson() => apiValue;
+}
+
 /// A user's status, with [text] and [emoji] parts.
 ///
 /// If a part is null, that part is empty/unset.
