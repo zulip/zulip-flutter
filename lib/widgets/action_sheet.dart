@@ -1233,7 +1233,8 @@ class ReactionButtons extends StatelessWidget {
       onTap: () => _handleTapReaction(emoji: emoji, isSelfVoted: isSelfVoted),
       splashFactory: NoSplash.splashFactory,
       borderRadius: isFirst
-        ? const BorderRadius.only(topLeft: Radius.circular(7))
+        ? const BorderRadiusDirectional.only(topStart: Radius.circular(7))
+            .resolve(Directionality.of(context))
         : null,
       overlayColor: WidgetStateColor.resolveWith((states) =>
         states.any((e) => e == WidgetState.pressed)
@@ -1253,6 +1254,7 @@ class ReactionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textDirection = Directionality.of(context);
     final store = PerAccountStoreWidget.of(pageContext);
     final popularEmojiCandidates = store.popularEmojiCandidates();
     assert(popularEmojiCandidates.every(
@@ -1289,7 +1291,8 @@ class ReactionButtons extends StatelessWidget {
         InkWell(
           onTap: _handleTapMore,
           splashFactory: NoSplash.splashFactory,
-          borderRadius: const BorderRadius.only(topRight: Radius.circular(7)),
+          borderRadius: const BorderRadiusDirectional.only(
+            topEnd: Radius.circular(7)).resolve(textDirection),
           overlayColor: WidgetStateColor.resolveWith((states) =>
             states.any((e) => e == WidgetState.pressed)
               ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
