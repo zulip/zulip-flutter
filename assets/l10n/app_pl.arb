@@ -783,6 +783,9 @@
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
   },
+  "@navBarMenuLabel": {
+    "description": "Label for the Menu button on the bottom navigation bar."
+  },
   "@navButtonAllChannels": {
     "description": "Title for a nav button that opens the 'All channels' page."
   },
@@ -1459,6 +1462,7 @@
   "messageListGroupYouWithYourself": "Zapiski na własne konto",
   "messageNotSentLabel": "NIE WYSŁANO WIADOMOŚCI",
   "mutedUser": "Wyciszony użytkownik",
+  "navBarMenuLabel": "Menu",
   "navButtonAllChannels": "Wszystkie kanały",
   "newDmFabButtonLabel": "Nowa DM",
   "newDmSheetComposeButtonLabel": "Utwórz",
