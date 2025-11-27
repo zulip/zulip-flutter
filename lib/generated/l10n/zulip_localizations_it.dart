@@ -642,6 +642,9 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get loginMethodDivider => 'O';
 
   @override
+  String get loginMethodDividerSemanticLabel => 'Log-in alternatives';
+
+  @override
   String signInWithFoo(String method) {
     return 'Accedi con $method';
   }
