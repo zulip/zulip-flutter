@@ -471,6 +471,7 @@ ZulipStream stream({
   GroupSettingValue? canDeleteOwnMessageGroup,
   GroupSettingValue? canSendMessageGroup,
   GroupSettingValue? canSubscribeGroup,
+  bool? isRecentlyActive,
   int? streamWeeklyTraffic,
 }) {
   if (channelPostPolicy == null) {
@@ -503,6 +504,7 @@ ZulipStream stream({
     canDeleteOwnMessageGroup: canDeleteOwnMessageGroup ?? GroupSettingValueNamed(nobodyGroup.id),
     canSendMessageGroup: canSendMessageGroup,
     canSubscribeGroup: canSubscribeGroup ?? GroupSettingValueNamed(nobodyGroup.id),
+    isRecentlyActive: isRecentlyActive ?? true,
     streamWeeklyTraffic: streamWeeklyTraffic,
   );
 }
@@ -548,6 +550,7 @@ Subscription subscription(
     canDeleteOwnMessageGroup: stream.canDeleteOwnMessageGroup,
     canSendMessageGroup: stream.canSendMessageGroup,
     canSubscribeGroup: stream.canSubscribeGroup,
+    isRecentlyActive: stream.isRecentlyActive,
     streamWeeklyTraffic: stream.streamWeeklyTraffic,
     desktopNotifications: desktopNotifications ?? false,
     emailNotifications: emailNotifications ?? false,
@@ -1271,6 +1274,8 @@ ChannelUpdateEvent channelUpdateEvent(
     case ChannelPropertyName.canSendMessageGroup:
     case ChannelPropertyName.canSubscribeGroup:
       assert(value is GroupSettingValue);
+    case ChannelPropertyName.isRecentlyActive:
+      assert(value is bool);
     case ChannelPropertyName.streamWeeklyTraffic:
       assert(value is int?);
   }
@@ -1312,6 +1317,7 @@ InitialSnapshot initialSnapshot({
   String? zulipMergeBase,
   List<String>? alertWords,
   List<CustomProfileField>? customProfileFields,
+  int? maxChannelNameLength,
   int? maxTopicLength,
   int? serverPresencePingIntervalSeconds,
   int? serverPresenceOfflineThresholdSeconds,
@@ -1367,6 +1373,7 @@ InitialSnapshot initialSnapshot({
     zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
     alertWords: alertWords ?? ['klaxon'],
     customProfileFields: customProfileFields ?? [],
+    maxChannelNameLength: maxChannelNameLength ?? 60,
     maxTopicLength: maxTopicLength ?? 60,
     serverPresencePingIntervalSeconds: serverPresencePingIntervalSeconds ?? 60,
     serverPresenceOfflineThresholdSeconds: serverPresenceOfflineThresholdSeconds ?? 140,

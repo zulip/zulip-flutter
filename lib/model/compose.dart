@@ -185,6 +185,67 @@ String wildcardMention(WildcardMentionOption wildcardOption, {
 String userGroupMention(String userGroupName, {bool silent = false}) =>
   '@${silent ? '_' : ''}*$userGroupName*';
 
+// Corresponds to `topic_link_util.escape_invalid_stream_topic_characters`
+// in Zulip web:
+//   https://github.com/zulip/zulip/blob/b42d3e77e/web/src/topic_link_util.ts#L15-L34
+const _channelTopicFaultyCharsReplacements = {
+  '`': '&#96;',
+  '>': '&gt;',
+  '*': '&#42;',
+  '&': '&amp;',
+  '[': '&#91;',
+  ']': '&#93;',
+  r'$$': '&#36;&#36;',
+};
+
+final _channelTopicFaultyCharsRegex = RegExp(r'[`>*&[\]]|(?:\$\$)');
+
+/// Markdown link for channel, topic, or message when the channel or topic name
+/// includes characters that will break normal markdown rendering.
+///
+/// Refer to [_channelTopicFaultyCharsReplacements] for a complete list of
+/// these characters.
+// Corresponds to `topic_link_util.get_fallback_markdown_link` in Zulip web;
+//   https://github.com/zulip/zulip/blob/b42d3e77e/web/src/topic_link_util.ts#L96-L108
+String channelTopicFallbackMarkdownLink({
+  required PerAccountStore store,
+  required ZulipStream channel,
+  TopicName? topic,
+  int? nearMessageId,
+}) {
+  assert(nearMessageId == null || topic != null);
+
+  String replaceFaultyChars(String str) {
+    return str.replaceAllMapped(_channelTopicFaultyCharsRegex,
+      (match) => _channelTopicFaultyCharsReplacements[match[0]]!);
+  }
+
+  final text = StringBuffer('#${replaceFaultyChars(channel.name)}');
+  if (topic != null) {
+    text.write(' > ${replaceFaultyChars(topic.displayName ?? store.realmEmptyTopicDisplayName)}');
+  }
+  if (nearMessageId != null) {
+    text.write(' @ 💬');
+  }
+
+  final narrow = topic == null
+    ? ChannelNarrow(channel.streamId) : TopicNarrow(channel.streamId, topic);
+  final linkFragment = narrowLinkFragment(store, narrow, nearMessageId: nearMessageId);
+
+  return inlineLink(text.toString(), '#$linkFragment');
+}
+
+/// A #channel link syntax of a channel, like #**announce**.
+///
+/// [fallbackMarkdownLink] will be used if the channel name includes some faulty
+/// characters that will break normal #**channel** rendering.
+String channelLink(ZulipStream channel, {required PerAccountStore store}) {
+  if (_channelTopicFaultyCharsRegex.hasMatch(channel.name)) {
+    return channelTopicFallbackMarkdownLink(store: store, channel: channel);
+  }
+  return '#**${channel.name}**';
+}
+
 /// https://spec.commonmark.org/0.30/#inline-link
 ///
 /// The "link text" is made by enclosing [visibleText] in square brackets.
@@ -213,11 +274,11 @@ String quoteAndReplyPlaceholder(
   PerAccountStore store, {
   required Message message,
 }) {
-  final url = narrowLink(store,
+  final relativeUrl = '#${narrowLinkFragment(store,
     SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
-    nearMessageId: message.id);
+    nearMessageId: message.id)}';
   return '${userMentionFromMessage(message, silent: true, users: store)} '
-    '${inlineLink('said', url.toString())}: ' // TODO(#1285)
+    '${inlineLink('said', relativeUrl.toString())}: ' // TODO(#1285)
     '*${zulipLocalizations.composeBoxLoadingMessage(message.id)}*\n';
 }
 
@@ -229,18 +290,20 @@ String quoteAndReplyPlaceholder(
 ///     ```quote
 ///     message content
 ///     ```
+/// But with a minor difference in that web uses realm-absolute URL and we use
+/// the shorter realm-relative URL for the message link.
 String quoteAndReply(PerAccountStore store, {
   required Message message,
   required String rawContent,
 }) {
-  final url = narrowLink(store,
+  final relativeUrl = '#${narrowLinkFragment(store,
     SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
-    nearMessageId: message.id);
+    nearMessageId: message.id)}';
   // Could ask userMentionFromMessage to omit the |<id> part unless the mention
   // is ambiguous… but that would mean a linear scan through all users,
   // and the extra noise won't much matter with the already probably-long
   // message link in there too.
   return '${userMentionFromMessage(message, silent: true, users: store)} '
-    '${inlineLink('said', url.toString())}:\n' // TODO(#1285)
+    '${inlineLink('said', relativeUrl.toString())}:\n' // TODO(#1285)
     '${wrapWithBacktickFence(content: rawContent, infoString: 'quote')}';
 }

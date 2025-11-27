@@ -341,7 +341,8 @@ void main() {
 
         testWidgets('unknown channel', (tester) async {
           await prepare();
-          await store.handleEvent(ChannelDeleteEvent(id: 1, streams: [someChannel]));
+          await store.handleEvent(ChannelDeleteEvent(id: 1,
+            channelIds: [someChannel.streamId]));
           check(store.streams[someChannel.streamId]).isNull();
           await showFromTopicListAppBar(tester);
           check(findInHeader(find.byType(Icon))).findsNothing();
@@ -1650,7 +1651,7 @@ void main() {
         required TextEditingValue valueBefore,
         required Message message,
       }) {
-        check(contentController).value.equals((ComposeContentController()
+        check(contentController).value.equals((ComposeContentController(store: store)
           ..value = valueBefore
           ..insertPadded(quoteAndReplyPlaceholder(
               GlobalLocalizations.zulipLocalizations, store, message: message))
@@ -1663,7 +1664,7 @@ void main() {
         required Message message,
         required String rawContent,
       }) {
-        final builder = ComposeContentController()
+        final builder = ComposeContentController(store: store)
           ..value = valueBefore
           ..insertPadded(quoteAndReply(store, message: message, rawContent: rawContent));
         if (!valueBefore.selection.isValid) {
