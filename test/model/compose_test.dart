@@ -351,11 +351,11 @@ hello
 
     check(quoteAndReplyPlaceholder(
       GlobalLocalizations.zulipLocalizations, store, message: message)).equals('''
-@_**Full Name|123** [said](${eg.selfAccount.realmUrl}#narrow/channel/1-test-here/topic/some.20topic/near/${message.id}): *(loading message ${message.id})*
+@_**Full Name|123** [said](#narrow/channel/1-test-here/topic/some.20topic/near/${message.id}): *(loading message ${message.id})*
 ''');
 
     check(quoteAndReply(store, message: message, rawContent: 'Hello world!')).equals('''
-@_**Full Name|123** [said](${eg.selfAccount.realmUrl}#narrow/channel/1-test-here/topic/some.20topic/near/${message.id}):
+@_**Full Name|123** [said](#narrow/channel/1-test-here/topic/some.20topic/near/${message.id}):
 ```quote
 Hello world!
 ```
@@ -364,11 +364,11 @@ Hello world!
     store.connection.zulipFeatureLevel = 249;
     check(quoteAndReplyPlaceholder(
       GlobalLocalizations.zulipLocalizations, store, message: message)).equals('''
-@_**Full Name|123** [said](${eg.selfAccount.realmUrl}#narrow/stream/1-test-here/topic/some.20topic/near/${message.id}): *(loading message ${message.id})*
+@_**Full Name|123** [said](#narrow/stream/1-test-here/topic/some.20topic/near/${message.id}): *(loading message ${message.id})*
 ''');
 
     check(quoteAndReply(store, message: message, rawContent: 'Hello world!')).equals('''
-@_**Full Name|123** [said](${eg.selfAccount.realmUrl}#narrow/stream/1-test-here/topic/some.20topic/near/${message.id}):
+@_**Full Name|123** [said](#narrow/stream/1-test-here/topic/some.20topic/near/${message.id}):
 ```quote
 Hello world!
 ```

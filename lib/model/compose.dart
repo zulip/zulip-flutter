@@ -213,11 +213,11 @@ String quoteAndReplyPlaceholder(
   PerAccountStore store, {
   required Message message,
 }) {
-  final url = narrowLink(store,
+  final relativeUrl = '#${narrowLinkFragment(store,
     SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
-    nearMessageId: message.id);
+    nearMessageId: message.id)}';
   return '${userMentionFromMessage(message, silent: true, users: store)} '
-    '${inlineLink('said', url.toString())}: ' // TODO(#1285)
+    '${inlineLink('said', relativeUrl.toString())}: ' // TODO(#1285)
     '*${zulipLocalizations.composeBoxLoadingMessage(message.id)}*\n';
 }
 
@@ -229,18 +229,20 @@ String quoteAndReplyPlaceholder(
 ///     ```quote
 ///     message content
 ///     ```
+/// But with a minor difference in that web uses realm-absolute URL and we use
+/// the shorter realm-relative URL for the message link.
 String quoteAndReply(PerAccountStore store, {
   required Message message,
   required String rawContent,
 }) {
-  final url = narrowLink(store,
+  final relativeUrl = '#${narrowLinkFragment(store,
     SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
-    nearMessageId: message.id);
+    nearMessageId: message.id)}';
   // Could ask userMentionFromMessage to omit the |<id> part unless the mention
   // is ambiguous… but that would mean a linear scan through all users,
   // and the extra noise won't much matter with the already probably-long
   // message link in there too.
   return '${userMentionFromMessage(message, silent: true, users: store)} '
-    '${inlineLink('said', url.toString())}:\n' // TODO(#1285)
+    '${inlineLink('said', relativeUrl.toString())}:\n' // TODO(#1285)
     '${wrapWithBacktickFence(content: rawContent, infoString: 'quote')}';
 }
