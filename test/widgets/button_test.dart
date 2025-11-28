@@ -114,6 +114,39 @@ void main() {
       check(renderObject).size.equals(Size.square(40));
     });
 
+    group('AnimatedScaleOnTap', () {
+      void checkScale(WidgetTester tester, Finder finder, double expectedScale) {
+        final scale = tester.widget<AnimatedScale>(finder).scale;
+        check(scale).equals(expectedScale);
+      }
+
+      testWidgets('Animation happen instantly when tap down', (tester) async {
+        addTearDown(testBinding.reset);
+
+        await tester.pumpWidget(TestZulipApp(
+          child: AnimatedScaleOnTap(
+            scaleEnd: 0.95,
+            duration: Duration(milliseconds: 100),
+            child: UnconstrainedBox(
+              child: ZulipIconButton(
+                icon: ZulipIcons.follow,
+                onPressed: () {})))));
+        await tester.pump();
+
+        final animatedScaleFinder = find.byType(AnimatedScale);
+
+        // Now that the widget is being held down, its scale should be at the target scaleEnd i.e 0.95.
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(ZulipIconButton)));
+        await tester.pumpAndSettle();
+        checkScale(tester, animatedScaleFinder, 0.95);
+
+        // After releasing, the scale must return to 1.0.
+        await gesture.up();
+        await tester.pumpAndSettle();
+        checkScale(tester, animatedScaleFinder, 1.0);
+      });
+    });
+
     // TODO test that the touch feedback fills the whole square
   });
 }
