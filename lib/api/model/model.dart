@@ -390,13 +390,14 @@ enum Emojiset {
   google,
   googleBlob,
   twitter,
-  text;
+  text,
+  unknown;
 
   /// Get an [Emojiset] from a raw string. Throws if the string is unrecognized.
   ///
   /// Example:
   ///   'google-blob' -> Emojiset.googleBlob
-  static Emojiset fromRawString(String raw) => _byRawString[raw]!;
+  static Emojiset fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.kebab`
   static final _byRawString = _$EmojisetEnumMap

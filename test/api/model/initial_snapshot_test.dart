@@ -3,6 +3,7 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 
+import '../../example_data.dart' as eg;
 import '../../stdlib_checks.dart';
 
 void main() {
@@ -61,5 +62,14 @@ void main() {
       'user_ids_string': '1,2',
       'unread_message_ids': [11, 2, 3],
     })).throws<AssertionError>();
+  });
+
+  test('UserSettings.emojiset handles various unknown values', () {
+    final unknownValues = ['apple', ''];
+    for (final unknownValue in unknownValues) {
+      final json = eg.userSettings().toJson()..['emojiset'] = unknownValue;
+      final settings = UserSettings.fromJson(json);
+      check(settings.emojiset).equals(Emojiset.unknown);
+    }
   });
 }
