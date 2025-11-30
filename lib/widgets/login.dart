@@ -457,7 +457,7 @@ class _LoginPageState extends State<LoginPage> {
 
     final externalAuthenticationMethods = widget.serverSettings.externalAuthenticationMethods;
 
-    final loginForm = Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+    final loginContent = Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       _UsernamePasswordForm(loginPageState: this),
       if (externalAuthenticationMethods.isNotEmpty) ...[
         _AlternativeAuthDivider(),
@@ -497,7 +497,7 @@ class _LoginPageState extends State<LoginPage> {
               //   left or the right of this box
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 400),
-                child: loginForm))))));
+                child: loginContent))))));
   }
 }
 
