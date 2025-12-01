@@ -119,6 +119,8 @@ class InitialSnapshot {
 
   final Uri realmIconUrl;
 
+  final Map<String, RealmAvailableVideoChatProviders> realmAvailableVideoChatProviders;
+
   final bool realmPresenceDisabled;
 
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
@@ -210,6 +212,7 @@ class InitialSnapshot {
     required this.realmMessageContentEditLimitSeconds,
     required this.realmEnableReadReceipts,
     required this.realmIconUrl,
+    required this.realmAvailableVideoChatProviders,
     required this.realmPresenceDisabled,
     required this.realmDefaultExternalAccounts,
     required this.maxFileUploadSizeMib,
