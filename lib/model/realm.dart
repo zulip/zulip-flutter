@@ -84,6 +84,8 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   // TODO(server-10) simplify this
   String get realmEmptyTopicDisplayName;
 
+  Map<String, RealmAvailableVideoChatProviders> get realmAvailableVideoChatProviders;
+
   Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts;
 
   int get maxChannelNameLength;
@@ -209,6 +211,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   String get realmEmptyTopicDisplayName => realmStore.realmEmptyTopicDisplayName;
   @override
+  Map<String, RealmAvailableVideoChatProviders> get realmAvailableVideoChatProviders => realmStore.realmAvailableVideoChatProviders;
+  @override
   Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts => realmStore.realmDefaultExternalAccounts;
   @override
   int get maxChannelNameLength => realmStore.maxChannelNameLength;
@@ -267,6 +271,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmWildcardMentionPolicy = initialSnapshot.realmWildcardMentionPolicy,
     realmDeleteOwnMessagePolicy = initialSnapshot.realmDeleteOwnMessagePolicy,
     _realmEmptyTopicDisplayName = initialSnapshot.realmEmptyTopicDisplayName,
+    realmAvailableVideoChatProviders = initialSnapshot.realmAvailableVideoChatProviders,
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
     maxChannelNameLength = initialSnapshot.maxChannelNameLength,
     maxTopicLength = initialSnapshot.maxTopicLength,
@@ -441,6 +446,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     return _realmEmptyTopicDisplayName ?? 'general chat';
   }
   final String? _realmEmptyTopicDisplayName;
+
+  @override
+  final Map<String, RealmAvailableVideoChatProviders> realmAvailableVideoChatProviders;
 
   @override
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
