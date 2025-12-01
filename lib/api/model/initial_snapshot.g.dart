@@ -120,6 +120,16 @@ InitialSnapshot _$InitialSnapshotFromJson(
       (json['realm_message_content_edit_limit_seconds'] as num?)?.toInt(),
   realmEnableReadReceipts: json['realm_enable_read_receipts'] as bool,
   realmIconUrl: Uri.parse(json['realm_icon_url'] as String),
+  realmAvailableVideoChatProviders:
+      (json['realm_available_video_chat_providers'] as Map<String, dynamic>)
+          .map(
+            (k, e) => MapEntry(
+              k,
+              RealmAvailableVideoChatProviders.fromJson(
+                e as Map<String, dynamic>,
+              ),
+            ),
+          ),
   realmPresenceDisabled: json['realm_presence_disabled'] as bool,
   realmDefaultExternalAccounts:
       (json['realm_default_external_accounts'] as Map<String, dynamic>).map(
@@ -207,6 +217,8 @@ Map<String, dynamic> _$InitialSnapshotToJson(
       instance.realmMessageContentEditLimitSeconds,
   'realm_enable_read_receipts': instance.realmEnableReadReceipts,
   'realm_icon_url': instance.realmIconUrl.toString(),
+  'realm_available_video_chat_providers':
+      instance.realmAvailableVideoChatProviders,
   'realm_presence_disabled': instance.realmPresenceDisabled,
   'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
   'max_file_upload_size_mib': instance.maxFileUploadSizeMib,

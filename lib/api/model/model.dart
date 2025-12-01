@@ -56,6 +56,26 @@ class GroupSettingValueNameless extends GroupSettingValue {
   Map<String, dynamic> toJson() => _$GroupSettingValueNamelessToJson(this);
 }
 
+/// As in [InitialSnapshot.realmAvailableVideoChatProviders].
+///
+/// For docs, search for "realm_available_video_chat_providers:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmAvailableVideoChatProviders {
+  final String name;
+  final int id;
+
+  RealmAvailableVideoChatProviders({
+    required this.name,
+    required this.id,
+  });
+
+  factory RealmAvailableVideoChatProviders.fromJson(Map<String, dynamic> json) =>
+    _$RealmAvailableVideoChatProvidersFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RealmAvailableVideoChatProvidersToJson(this);
+}
+
 /// As in [InitialSnapshot.customProfileFields].
 ///
 /// For docs, search for "custom_profile_fields:"
