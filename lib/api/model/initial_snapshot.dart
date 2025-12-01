@@ -80,6 +80,8 @@ class InitialSnapshot {
 
   final Map<int, ClientDevice>? devices; // TODO(server-12)
 
+  final bool hasZoomToken;
+
   final GroupSettingValue? realmCanDeleteAnyMessageGroup; // TODO(server-10)
 
   final GroupSettingValue? realmCanDeleteOwnMessageGroup; // TODO(server-10)
@@ -199,6 +201,7 @@ class InitialSnapshot {
     required this.userSettings,
     required this.userTopics,
     required this.devices,
+    required this.hasZoomToken,
     required this.realmCanDeleteAnyMessageGroup,
     required this.realmCanDeleteOwnMessageGroup,
     required this.realmDeleteOwnMessagePolicy,

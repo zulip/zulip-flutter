@@ -95,6 +95,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
       ClientDevice.fromJson(e as Map<String, dynamic>),
     ),
   ),
+  hasZoomToken: json['has_zoom_token'] as bool,
   realmCanDeleteAnyMessageGroup:
       json['realm_can_delete_any_message_group'] == null
       ? null
@@ -215,6 +216,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'user_settings': instance.userSettings,
   'user_topics': instance.userTopics,
   'devices': instance.devices?.map((k, e) => MapEntry(k.toString(), e)),
+  'has_zoom_token': instance.hasZoomToken,
   'realm_can_delete_any_message_group': instance.realmCanDeleteAnyMessageGroup,
   'realm_can_delete_own_message_group': instance.realmCanDeleteOwnMessageGroup,
   'realm_delete_own_message_policy': instance.realmDeleteOwnMessagePolicy,
