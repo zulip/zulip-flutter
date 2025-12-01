@@ -118,6 +118,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
     _$RealmVideoChatProviderEnumMap,
     json['realm_video_chat_provider'],
   ),
+  realmJitsiServerUrl: json['realm_jitsi_server_url'] as String?,
   realmWaitingPeriodThreshold: (json['realm_waiting_period_threshold'] as num)
       .toInt(),
   realmMessageContentDeleteLimitSeconds:
@@ -145,6 +146,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
           RealmDefaultExternalAccount.fromJson(e as Map<String, dynamic>),
         ),
       ),
+  jitsiServerUrl: json['jitsi_server_url'] as String?,
   maxFileUploadSizeMib: (json['max_file_upload_size_mib'] as num).toInt(),
   serverThumbnailFormats:
       (json['server_thumbnail_formats'] as List<dynamic>?)
@@ -154,6 +156,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
   serverEmojiDataUrl: Uri.parse(json['server_emoji_data_url'] as String),
   realmModerationRequestChannelId:
       (json['realm_moderation_request_channel_id'] as num?)?.toInt(),
+  serverJitsiServerUrl: json['server_jitsi_server_url'] as String?,
   realmEmptyTopicDisplayName: json['realm_empty_topic_display_name'] as String?,
   realmUsers:
       (InitialSnapshot._readUsersIsActiveFallbackTrue(json, 'realm_users')
@@ -224,6 +227,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'realm_mandatory_topics': instance.realmMandatoryTopics,
   'realm_name': instance.realmName,
   'realm_video_chat_provider': instance.realmVideoChatProvider,
+  'realm_jitsi_server_url': instance.realmJitsiServerUrl,
   'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
   'realm_message_content_delete_limit_seconds':
       instance.realmMessageContentDeleteLimitSeconds,
@@ -236,11 +240,13 @@ Map<String, dynamic> _$InitialSnapshotToJson(
       instance.realmAvailableVideoChatProviders,
   'realm_presence_disabled': instance.realmPresenceDisabled,
   'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
+  'jitsi_server_url': instance.jitsiServerUrl,
   'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
   'server_thumbnail_formats': instance.serverThumbnailFormats,
   'server_emoji_data_url': instance.serverEmojiDataUrl.toString(),
   'realm_moderation_request_channel_id':
       instance.realmModerationRequestChannelId,
+  'server_jitsi_server_url': instance.serverJitsiServerUrl,
   'realm_empty_topic_display_name': instance.realmEmptyTopicDisplayName,
   'realm_users': instance.realmUsers,
   'realm_non_active_users': instance.realmNonActiveUsers,
