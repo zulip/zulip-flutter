@@ -1352,6 +1352,7 @@ InitialSnapshot initialSnapshot({
   Map<int, UserStatusChange>? userStatuses,
   UserSettings? userSettings,
   List<UserTopicItem>? userTopics,
+  bool? hasZoomToken,
   GroupSettingValue? realmCanDeleteAnyMessageGroup,
   GroupSettingValue? realmCanDeleteOwnMessageGroup,
   RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy,
@@ -1414,6 +1415,7 @@ InitialSnapshot initialSnapshot({
     userSettings: userSettings ?? _userSettings(),
     userTopics: userTopics ?? [],
     // no default; allow `null` to simulate servers without this
+    hasZoomToken: hasZoomToken ?? false,
     realmCanDeleteAnyMessageGroup: realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup: realmCanDeleteOwnMessageGroup,
     realmDeleteOwnMessagePolicy: realmDeleteOwnMessagePolicy,
