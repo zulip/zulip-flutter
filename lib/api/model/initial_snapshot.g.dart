@@ -89,6 +89,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
   userTopics: (json['user_topics'] as List<dynamic>)
       .map((e) => UserTopicItem.fromJson(e as Map<String, dynamic>))
       .toList(),
+  hasZoomToken: json['has_zoom_token'] as bool,
   realmCanDeleteAnyMessageGroup:
       json['realm_can_delete_any_message_group'] == null
       ? null
@@ -202,6 +203,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'user_status': instance.userStatuses.map((k, e) => MapEntry(k.toString(), e)),
   'user_settings': instance.userSettings,
   'user_topics': instance.userTopics,
+  'has_zoom_token': instance.hasZoomToken,
   'realm_can_delete_any_message_group': instance.realmCanDeleteAnyMessageGroup,
   'realm_can_delete_own_message_group': instance.realmCanDeleteOwnMessageGroup,
   'realm_delete_own_message_policy': instance.realmDeleteOwnMessagePolicy,
