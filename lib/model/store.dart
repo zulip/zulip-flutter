@@ -630,6 +630,7 @@ class PerAccountStore extends PerAccountStoreBase with
       userSettings: initialSnapshot.userSettings,
       pushDevices: PushDeviceManager(core: core,
         devices: initialSnapshot.devices ?? {}),
+      hasZoomToken: initialSnapshot.hasZoomToken,
       savedSnippets: SavedSnippetStoreImpl(core: core,
         savedSnippets: initialSnapshot.savedSnippets ?? []),
       typingNotifier: TypingNotifier(realm: realm),
@@ -655,6 +656,7 @@ class PerAccountStore extends PerAccountStoreBase with
     required RealmStoreImpl realm,
     required EmojiStoreImpl emoji,
     required this.userSettings,
+    required this.hasZoomToken,
     required this.pushDevices,
     required SavedSnippetStoreImpl savedSnippets,
     required this.typingNotifier,
@@ -727,6 +729,8 @@ class PerAccountStore extends PerAccountStoreBase with
   // Data attached to the self-account on the realm.
 
   final UserSettings userSettings;
+
+  bool hasZoomToken;
 
   final PushDeviceManager pushDevices;
 
