@@ -222,12 +222,14 @@ void main() {
       channel ??= someChannel;
 
       connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: true, messages: []).toJson());
-      if (narrow case ChannelNarrow()) {
-        // We auto-focus the topic input when there are no messages;
-        // this is for topic autocomplete.
-        connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
-      }
+        foundOldest: true,
+        // Include one message so that we don't auto-focus the topic input,
+        // which would trigger a topic-list fetch for topic autocomplete.
+        // That's helpful for the test that opens the topic-list page.
+        // With the topic-list fetch deferred until that page is opened,
+        // the test can prepare the fetch response as it chooses.
+        messages: [eg.streamMessage(stream: channel)],
+      ).toJson());
       await tester.pumpWidget(TestZulipApp(
         accountId: eg.selfAccount.id,
         child: MessageListPage(
