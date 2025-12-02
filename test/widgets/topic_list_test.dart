@@ -169,6 +169,18 @@ void main() {
     of: topicItemFinder.at(index),
     matching: finder);
 
+  testWidgets('sort topics by maxId', (tester) async {
+    await prepare(tester, topics: [
+      eg.getChannelTopicsEntry(name: 'A', maxId: 3),
+      eg.getChannelTopicsEntry(name: 'B', maxId: 2),
+      eg.getChannelTopicsEntry(name: 'C', maxId: 4),
+    ]);
+
+    check(findInTopicItemAt(0, find.text('C'))).findsOne();
+    check(findInTopicItemAt(1, find.text('A'))).findsOne();
+    check(findInTopicItemAt(2, find.text('B'))).findsOne();
+  });
+
   testWidgets('show topic action sheet', (tester) async {
     final channel = eg.stream();
     await prepare(tester, channel: channel,
@@ -190,16 +202,36 @@ void main() {
       });
   });
 
-  testWidgets('sort topics by maxId', (tester) async {
-    await prepare(tester, topics: [
-      eg.getChannelTopicsEntry(name: 'A', maxId: 3),
-      eg.getChannelTopicsEntry(name: 'B', maxId: 2),
-      eg.getChannelTopicsEntry(name: 'C', maxId: 4),
-    ]);
+  testWidgets('topic action sheet before and after moves', (tester) async {
+    final channel = eg.stream();
+    final message = eg.streamMessage(id: 100, stream: channel, topic: 'foo');
+    await prepare(tester, channel: channel,
+      topics: [eg.getChannelTopicsEntry(name: 'foo', maxId: 100)],
+      messages: [message]);
+    check(topicItemFinder).findsOne();
 
-    check(findInTopicItemAt(0, find.text('C'))).findsOne();
-    check(findInTopicItemAt(1, find.text('A'))).findsOne();
-    check(findInTopicItemAt(2, find.text('B'))).findsOne();
+    // Before the move, "foo"'s maxId is known to be accurate. This makes
+    // topic actions that require `someMessageIdInTopic` available.
+    await tester.longPress(find.text('foo'));
+    await tester.pump(Duration(milliseconds: 150)); // bottom-sheet animation
+    check(find.text('Mark as resolved')).findsOne();
+    await tester.tap(find.text('Cancel'));
+
+    await store.handleEvent(eg.updateMessageEventMoveFrom(
+      origMessages: [message],
+      newTopicStr: 'bar'));
+    await tester.pump();
+    // There's still one topic item ("foo") even though the new message is in
+    // topic "bar", but the topic list doesn't get updated.
+    check(topicItemFinder).findsOne();
+
+    // After the move, the message with maxId moved away from "foo". The topic
+    // actions that require `someMessageIdInTopic` are no longer available.
+    await tester.longPress(find.text('foo'));
+    await tester.pump(Duration(milliseconds: 150)); // bottom-sheet animation
+    check(find.text('Mark as resolved')).findsNothing();
+    await tester.tap(find.text('Cancel'));
+    await tester.pump();
   });
 
   testWidgets('resolved and unresolved topics', (tester) async {

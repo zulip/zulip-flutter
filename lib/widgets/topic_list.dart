@@ -235,6 +235,14 @@ class _TopicItem extends StatelessWidget {
 
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
+    // `maxId` might be incorrect (see [ChannelStore.getChannelTopics]).
+    // Check if it refers to a message that's currently in the topic;
+    // if not, we just won't have `someMessageIdInTopic` for the action sheet.
+    final maxIdMessage = store.messages[maxId];
+    final someMessageIdInTopic =
+      (maxIdMessage != null && TopicNarrow(streamId, topic).containsMessage(maxIdMessage))
+        ? maxIdMessage.id
+        : null;
 
     final visibilityPolicy = store.topicVisibilityPolicy(streamId, topic);
     final double opacity;
@@ -263,7 +271,7 @@ class _TopicItem extends StatelessWidget {
         onLongPress: () => showTopicActionSheet(context,
           channelId: streamId,
           topic: topic,
-          someMessageIdInTopic: maxId),
+          someMessageIdInTopic: someMessageIdInTopic),
         splashFactory: NoSplash.splashFactory,
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: 40),
