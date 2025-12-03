@@ -38,11 +38,13 @@ abstract final class ZulipAction {
       ChannelNarrow(:final streamId) => store.unreads.countInChannelNarrow(streamId),
       MentionsNarrow() => store.unreads.countInMentionsNarrow(),
       KeywordSearchNarrow() => store.unreads.countInKeywordSearchNarrow(),
+      StarredMessagesNarrow() => store.unreads.countInStarredMessagesNarrow(),
       _ => 0,
     };
 
     if (narrow is CombinedFeedNarrow || narrow is ChannelNarrow ||
-      narrow is MentionsNarrow || narrow is KeywordSearchNarrow) {
+      narrow is MentionsNarrow || narrow is KeywordSearchNarrow ||
+      narrow is StarredMessagesNarrow) {
       final didConfirm = showSuggestedActionDialog(context: context,
         title: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
         message: zulipLocalizations.markAllAsReadConfirmationDialogMessage(unreadCount),
