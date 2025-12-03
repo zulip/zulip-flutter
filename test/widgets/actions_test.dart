@@ -98,6 +98,30 @@ void main() {
             });
       });
 
+      testWidgets('MentionsNarrow sends API request when confirmed to mark as read', (tester) async {
+        const narrow = MentionsNarrow();
+        await prepare(tester);
+        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+          processedCount: 2, updatedCount: 2,
+          firstProcessedId: 1, lastProcessedId: 2,
+          foundOldest: true, foundNewest: true).toJson());
+        final unreadCount = store.unreads.countInMentionsNarrow();
+        await confirmToMarkNarrowAsRead(tester: tester, context: context, narrow: narrow, unreadCount: unreadCount);
+        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/messages/flags/narrow')
+          ..bodyFields.deepEquals({
+            'anchor': 'oldest',
+            'include_anchor': 'false',
+            'num_before': '0',
+            'num_after': '1000',
+            'narrow': jsonEncode(resolveApiNarrowForServer(apiNarrow, connection.zulipFeatureLevel!)),
+            'op': 'add',
+            'flag': 'read',
+          });
+      });
+
       testWidgets('use is:unread optimization', (tester) async {
         const narrow = CombinedFeedNarrow();
         await prepare(tester);
