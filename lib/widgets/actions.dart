@@ -35,10 +35,11 @@ abstract final class ZulipAction {
 
     final unreadCount = switch (narrow) {
       CombinedFeedNarrow() => store.unreads.countInCombinedFeedNarrow(),
+      ChannelNarrow(:final streamId) => store.unreads.countInChannelNarrow(streamId),
       _ => 0,
     };
 
-    if (narrow is CombinedFeedNarrow) {
+    if (narrow is CombinedFeedNarrow || narrow is ChannelNarrow) {
       final didConfirm = showSuggestedActionDialog(context: context,
         title: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
         message: zulipLocalizations.markAllAsReadConfirmationDialogMessage(unreadCount),
