@@ -126,10 +126,13 @@ void main() {
 
   group('sendMessage', () {
     test('smoke', () async {
+      final stream = eg.stream();
+      final subscription = eg.subscription(stream);
       final store = eg.store(initialSnapshot: eg.initialSnapshot(
         queueId: 'fb67bf8a-c031-47cc-84cf-ed80accacda8'));
+      await store.addStream(stream);
+      await store.addSubscription(subscription);
       final connection = store.connection as FakeApiConnection;
-      final stream = eg.stream();
       connection.prepare(json: SendMessageResult(id: 12345).toJson());
       await store.sendMessage(
         destination: StreamDestination(stream.streamId, eg.t('world')),
