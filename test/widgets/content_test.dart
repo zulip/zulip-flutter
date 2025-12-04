@@ -358,6 +358,29 @@ void main() {
 
   testContentSmoke(ContentExample.quotation);
 
+  group('emoji-only rendering', () {
+    testWidgets('Unicode emoji in span are rendered at double size', (tester) async {
+      final example = ContentExample.emojiUnicode;
+      await prepareContent(tester, messageContent(example.html));
+      final style = mergedStyleOf(tester, example.expectedText!);
+      check(style?.fontSize).equals(kBaseFontSize * 2);
+    });
+
+    testWidgets('plain-text emoji (text node) are not affected', (tester) async {
+      final example = ContentExample.emojiUnicodeLiteral;
+      await prepareContent(tester, messageContent(example.html));
+      final style = mergedStyleOf(tester, example.expectedText!);
+      check(style?.fontSize).equals(kBaseFontSize);
+    });
+
+    testWidgets('multi-paragraph message does not show large emojis', (tester) async {
+      const html = '<p>Text</p><p>🚀</p>';
+      await prepareContent(tester, messageContent(html));
+      final style = mergedStyleOf(tester, '🚀');
+      check(style?.fontSize).equals(kBaseFontSize);
+    });
+  });
+
   group('MessageImagePreview, MessageImagePreviewList', () {
     Future<void> prepare(WidgetTester tester, String html) async {
       await prepareContent(tester,

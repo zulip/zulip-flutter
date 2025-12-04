@@ -333,6 +333,10 @@ class BlockContentList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Filter out LineBreakNode to determine if there's only one meaningful content block
+    final meaningfulNodes = nodes.where((n) => n is! LineBreakNode).toList();
+    final isSoleContent = meaningfulNodes.length == 1;
+
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       ...nodes.map((node) {
         return switch (node) {
@@ -341,7 +345,7 @@ class BlockContentList extends StatelessWidget {
             // just use an empty Text.
             const Text(''),
           ThematicBreakNode() => const ThematicBreak(),
-          ParagraphNode() => Paragraph(node: node),
+          ParagraphNode() => Paragraph(node: node, isSoleContent: isSoleContent),
           HeadingNode() => Heading(node: node),
           QuotationNode() => Quotation(node: node),
           ListNode() => ListNodeWidget(node: node),
@@ -383,6 +387,27 @@ class BlockContentList extends StatelessWidget {
   }
 }
 
+// Return true when the paragraph contains one or more emoji nodes and
+// otherwise consists only of whitespace text nodes.  This matches the
+// "emoji-only paragraph" rule used to render large emoji on web.
+bool _isEmojiOnlyParagraph(ParagraphNode p) {
+  if (p.nodes.isEmpty) return false;
+  var foundEmoji = false;
+  for (final n in p.nodes) {
+    if (n is TextNode) {
+      if (n.text.trim().isEmpty) continue;
+      return false;
+    }
+    if (n is UnicodeEmojiNode || n is ImageEmojiNode) {
+      foundEmoji = true;
+      continue;
+    }
+    // Any other inline node disqualifies the paragraph
+    return false;
+  }
+  return foundEmoji;
+}
+
 class ThematicBreak extends StatelessWidget {
   const ThematicBreak({super.key});
 
@@ -400,9 +425,10 @@ class ThematicBreak extends StatelessWidget {
 }
 
 class Paragraph extends StatelessWidget {
-  const Paragraph({super.key, required this.node});
+  const Paragraph({super.key, required this.node, this.isSoleContent = false});
 
   final ParagraphNode node;
+  final bool isSoleContent;
 
   @override
   Widget build(BuildContext context) {
@@ -410,9 +436,19 @@ class Paragraph extends StatelessWidget {
     // The paragraph has vertical CSS margins, but those have no effect.
     if (node.nodes.isEmpty) return const SizedBox();
 
+    // Detect emoji-only paragraphs: a paragraph that contains one or more
+    // emoji nodes (Unicode or image emoji), and otherwise only whitespace.
+    // When present, render emoji at a larger size to match web behavior.
+    // Only apply this when the paragraph is the sole content block.
+    final baseStyle = DefaultTextStyle.of(context).style;
+    final isEmojiOnly = isSoleContent && _isEmojiOnlyParagraph(node);
+    final effectiveStyle = isEmojiOnly
+      ? baseStyle.copyWith(fontSize: baseStyle.fontSize! * 2)
+      : baseStyle;
+
     final text = _buildBlockInlineContainer(
       node: node,
-      style: DefaultTextStyle.of(context).style,
+      style: effectiveStyle,
     );
 
     // If the paragraph didn't actually have a `p` element in the HTML,
@@ -1267,18 +1303,21 @@ class MessageImageEmoji extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final resolvedSrc = store.tryResolveUrl(node.src);
-
-    const size = 20.0;
+    // Make image emoji scale with the ambient font size so they match
+    // Unicode emoji rendered via text spans.  Use the current DefaultTextStyle
+    // fontSize as the reference.
+    final ambientFontSize = DefaultTextStyle.of(context).style.fontSize ?? kBaseFontSize;
+    final size = ambientFontSize;
 
     return Stack(
       alignment: Alignment.center,
       clipBehavior: Clip.none,
       children: [
-        const SizedBox(width: size, height: kBaseFontSize),
+        SizedBox(width: size, height: ambientFontSize),
         Positioned(
-          // Web's css makes this seem like it should be -0.5, but that looks
-          // too low.
-          top: -1.5,
+          // Keep a small upward offset similar to previous value, scaled
+          // to current font size.
+          top: -1.5 * ambientFontSize / kBaseFontSize,
           child: resolvedSrc == null ? const SizedBox.shrink() // TODO(log)
             : RealmContentNetworkImage(
                 resolvedSrc,
