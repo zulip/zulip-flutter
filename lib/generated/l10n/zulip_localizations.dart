@@ -1269,6 +1269,12 @@ abstract class ZulipLocalizations {
   /// **'OR'**
   String get loginMethodDivider;
 
+  /// Semantic label for divider between the username/password form and the third-party login options.
+  ///
+  /// In en, this message translates to:
+  /// **'Log-in alternatives'**
+  String get loginMethodDividerSemanticLabel;
+
   /// Button to use {method} to sign in to the app.
   ///
   /// In en, this message translates to:
