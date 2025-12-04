@@ -383,6 +383,27 @@ class BlockContentList extends StatelessWidget {
   }
 }
 
+// Return true when the paragraph contains one or more emoji nodes and
+// otherwise consists only of whitespace text nodes.  This matches the
+// "emoji-only paragraph" rule used to render large emoji on web.
+bool _isEmojiOnlyParagraph(ParagraphNode p) {
+  if (p.nodes.isEmpty) return false;
+  var foundEmoji = false;
+  for (final n in p.nodes) {
+    if (n is TextNode) {
+      if (n.text.trim().isEmpty) continue;
+      return false;
+    }
+    if (n is UnicodeEmojiNode || n is ImageEmojiNode) {
+      foundEmoji = true;
+      continue;
+    }
+    // Any other inline node disqualifies the paragraph
+    return false;
+  }
+  return foundEmoji;
+}
+
 class ThematicBreak extends StatelessWidget {
   const ThematicBreak({super.key});
 
@@ -410,9 +431,18 @@ class Paragraph extends StatelessWidget {
     // The paragraph has vertical CSS margins, but those have no effect.
     if (node.nodes.isEmpty) return const SizedBox();
 
+    // Detect emoji-only paragraphs: a paragraph that contains one or more
+    // emoji nodes (Unicode or image emoji), and otherwise only whitespace.
+    // When present, render emoji at a larger size to match web behavior.
+    final baseStyle = DefaultTextStyle.of(context).style;
+    final isEmojiOnly = _isEmojiOnlyParagraph(node);
+    final effectiveStyle = isEmojiOnly
+      ? baseStyle.copyWith(fontSize: baseStyle.fontSize! * 2)
+      : baseStyle;
+
     final text = _buildBlockInlineContainer(
       node: node,
-      style: DefaultTextStyle.of(context).style,
+      style: effectiveStyle,
     );
 
     // If the paragraph didn't actually have a `p` element in the HTML,
@@ -1267,18 +1297,21 @@ class MessageImageEmoji extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final resolvedSrc = store.tryResolveUrl(node.src);
-
-    const size = 20.0;
+    // Make image emoji scale with the ambient font size so they match
+    // Unicode emoji rendered via text spans.  Use the current DefaultTextStyle
+    // fontSize as the reference.
+    final ambientFontSize = DefaultTextStyle.of(context).style.fontSize ?? kBaseFontSize;
+    final size = ambientFontSize;
 
     return Stack(
       alignment: Alignment.center,
       clipBehavior: Clip.none,
       children: [
-        const SizedBox(width: size, height: kBaseFontSize),
+        SizedBox(width: size, height: ambientFontSize),
         Positioned(
-          // Web's css makes this seem like it should be -0.5, but that looks
-          // too low.
-          top: -1.5,
+          // Keep a small upward offset similar to previous value, scaled
+          // to current font size.
+          top: -1.5 * ambientFontSize / kBaseFontSize,
           child: resolvedSrc == null ? const SizedBox.shrink() // TODO(log)
             : RealmContentNetworkImage(
                 resolvedSrc,
