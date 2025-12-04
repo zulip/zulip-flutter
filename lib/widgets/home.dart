@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
+import '../log.dart';
 import '../model/narrow.dart';
 import 'about_zulip.dart';
 import 'action_sheet.dart';
@@ -12,6 +13,7 @@ import 'app_bar.dart';
 import 'button.dart';
 import 'color.dart';
 import 'icons.dart';
+import 'image.dart';
 import 'inbox.dart';
 import 'inset_shadow.dart';
 import 'message_list.dart';
@@ -334,29 +336,6 @@ class _NavigationBarButton extends StatelessWidget {
 void _showMainMenu(BuildContext context, {
   required ValueNotifier<_HomePageTab> tabNotifier,
 }) {
-  final menuItems = <Widget>[
-    const _SearchButton(),
-    // const SizedBox(height: 8),
-    _InboxButton(tabNotifier: tabNotifier),
-    // TODO: Recent conversations
-    const _MentionsButton(),
-    const _StarredMessagesButton(),
-    const _CombinedFeedButton(),
-    // TODO: Drafts
-    _ChannelsButton(tabNotifier: tabNotifier),
-    _DirectMessagesButton(tabNotifier: tabNotifier),
-    // TODO(#1094): Users
-    const _MyProfileButton(),
-    const _SwitchAccountButton(),
-    // TODO(#198): Set my status
-    // const SizedBox(height: 8),
-    const _SettingsButton(),
-    // TODO(#661): Notifications
-    // const SizedBox(height: 8),
-    const _AboutZulipButton(),
-    // TODO(#1095): VersionInfo
-  ];
-
   final designVariables = DesignVariables.of(context);
   final accountId = PerAccountStoreWidget.accountIdOf(context);
   showModalBottomSheet<void>(
@@ -375,27 +354,123 @@ void _showMainMenu(BuildContext context, {
     builder: (BuildContext _) {
       return PerAccountStoreWidget(
         accountId: accountId,
-        child: SafeArea(
-          minimum: const EdgeInsets.only(bottom: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(child: InsetShadowBox(
-                top: 8, bottom: 8,
-                color: designVariables.bgBotBar,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                  child: Column(children: menuItems)))),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: AnimatedScaleOnTap(
-                  scaleEnd: 0.95,
-                  duration: Duration(milliseconds: 100),
-                  child: BottomSheetDismissButton(
-                    style: BottomSheetDismissButtonStyle.close))),
-            ])));
+        child: _MainMenu(tabNotifier: tabNotifier));
     });
+}
+
+/// The main-menu sheet.
+///
+/// Figma link:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=143-10939&t=s7AS3nEgNgjyqHck-4
+class _MainMenu extends StatelessWidget {
+  const _MainMenu({
+    required this.tabNotifier,
+  });
+
+  final ValueNotifier<_HomePageTab> tabNotifier;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    final menuItems = <Widget>[
+      const _SearchButton(),
+      // const SizedBox(height: 8),
+      _InboxButton(tabNotifier: tabNotifier),
+      // TODO: Recent conversations
+      const _MentionsButton(),
+      const _StarredMessagesButton(),
+      const _CombinedFeedButton(),
+      // TODO: Drafts
+      _ChannelsButton(tabNotifier: tabNotifier),
+      _DirectMessagesButton(tabNotifier: tabNotifier),
+      // TODO(#1094): Users
+      const _MyProfileButton(),
+      // TODO(#198): Set my status
+      // const SizedBox(height: 8),
+      const _SettingsButton(),
+      // TODO(#661): Notifications
+      // const SizedBox(height: 8),
+      const _AboutZulipButton(),
+      // TODO(#1095): VersionInfo
+    ];
+
+    return SafeArea(
+      minimum: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _MainMenuHeader(),
+          Flexible(child: InsetShadowBox(
+            top: 8, bottom: 8,
+            color: designVariables.bgBotBar,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              child: Column(children: menuItems)))),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: AnimatedScaleOnTap(
+              scaleEnd: 0.95,
+              duration: Duration(milliseconds: 100),
+              child: BottomSheetDismissButton(
+                style: BottomSheetDismissButtonStyle.close))),
+        ]));
+  }
+}
+
+class _MainMenuHeader extends StatelessWidget {
+  const _MainMenuHeader();
+
+  void _handleSwitchAccount(BuildContext context) {
+    Navigator.pop(context); // Close the main menu.
+    Navigator.push(context,
+      MaterialWidgetRoute(page: const ChooseAccountPage()));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
+
+    final placeholder = ColoredBox(color: designVariables.avatarPlaceholderBg);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, left: 12, right: 12),
+      child: Row(spacing: 12, children: [
+        Flexible(child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(spacing: 8, children: [
+            AvatarShape(
+              size: 28,
+              borderRadius: 4,
+              child: RealmContentNetworkImage(
+                store.resolvedRealmIcon,
+                filterQuality: FilterQuality.medium,
+                fit: BoxFit.cover,
+                frameBuilder: (_, child, frame, _) {
+                  if (frame == null) return placeholder;
+                  return child;
+                },
+                errorBuilder: (_, e, st) {
+                  assert(debugLog('$e\n$st'));
+                  return placeholder;
+                })),
+            Flexible(child: Text(store.realmName,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: designVariables.title,
+                fontSize: 20,
+                height: 24 / 20,
+              ).merge(weightVariableTextStyle(context, wght: 600)))),
+          ]))),
+        ZulipIconButton(
+          icon: ZulipIcons.arrow_left_right,
+          tooltip: zulipLocalizations.switchAccountButtonTooltip,
+          onPressed: () => _handleSwitchAccount(context)),
+      ]));
+  }
 }
 
 abstract class _MenuButton extends StatelessWidget {
@@ -640,23 +715,6 @@ class _MyProfileButton extends _MenuButton {
     final store = PerAccountStoreWidget.of(context);
     Navigator.of(context).push(
       ProfilePage.buildRoute(context: context, userId: store.selfUserId));
-  }
-}
-
-class _SwitchAccountButton extends _MenuButton {
-  const _SwitchAccountButton();
-
-  @override
-  IconData? get icon => ZulipIcons.arrow_left_right;
-
-  @override
-  String label(ZulipLocalizations zulipLocalizations) {
-    return zulipLocalizations.switchAccountButton;
-  }
-
-  @override
-  void onPressed(BuildContext context) {
-    Navigator.of(context).push(MaterialWidgetRoute(page: const ChooseAccountPage()));
   }
 }
 
