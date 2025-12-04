@@ -62,12 +62,23 @@ async function main() {
   fs.copyFileSync(path.join(tmpDir, `${fontName}.ttf`), path.join(destDir, `${fontFileBaseName}.ttf`));
 
   const template = fs.readFileSync(dataTemplateFile, 'utf8');
+
+  // Icons that should flip horizontally in RTL layout.
+  const directionalIconsFile = path.join(srcDir, 'directional_icons.js');
+  const directionalIcons = require(directionalIconsFile);
+
   const generated = Object.entries(codepoints).map(([name, codepoint]) => {
     const codepointHex = "0x" + codepoint.toString(16);
+
+    const namedParams = [`fontFamily: "${fontName}"`];
+    if (directionalIcons.includes(name)) {
+      namedParams.push('matchTextDirection: true');
+    }
+
     return `\
 
   /// The Zulip custom icon "${name}".
-  static const IconData ${name} = IconData(${codepointHex}, fontFamily: "${fontName}");
+  static const IconData ${name} = IconData(${codepointHex}, ${namedParams.join(', ')});
 `;
   }).join("");
   const output = template.replace(

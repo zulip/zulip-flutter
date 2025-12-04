@@ -18,6 +18,11 @@ abstract final class ZulipIcons {
   //    or otherwise edit the SVG files there.
   //    The files' names (before ".svg") should be valid Dart identifiers.
   //
+  //  * If the icon is directional (meaning it should point
+  //    the other way in RTL layouts), add its name in
+  //    `assets/icons/directional_icons.js`. For guidance, see:
+  //    https://m3.material.io/foundations/layout/understanding-layout/bidirectionality-rtl#ad90d075-6db4-457b-a15b-51fb6653c825
+  //
   //  * Then run the command `tools/icons/build-icon-font`.
   //    That will update this file and the generated icon font,
   //    `assets/icons/ZulipIcons.ttf`.
@@ -28,10 +33,10 @@ abstract final class ZulipIcons {
   static const IconData arrow_down = IconData(0xf101, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "arrow_left_right".
-  static const IconData arrow_left_right = IconData(0xf102, fontFamily: "Zulip Icons");
+  static const IconData arrow_left_right = IconData(0xf102, fontFamily: "Zulip Icons", matchTextDirection: true);
 
   /// The Zulip custom icon "arrow_right".
-  static const IconData arrow_right = IconData(0xf103, fontFamily: "Zulip Icons");
+  static const IconData arrow_right = IconData(0xf103, fontFamily: "Zulip Icons", matchTextDirection: true);
 
   /// The Zulip custom icon "at_sign".
   static const IconData at_sign = IconData(0xf104, fontFamily: "Zulip Icons");
@@ -64,7 +69,7 @@ abstract final class ZulipIcons {
   static const IconData chevron_down = IconData(0xf10d, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "chevron_right".
-  static const IconData chevron_right = IconData(0xf10e, fontFamily: "Zulip Icons");
+  static const IconData chevron_right = IconData(0xf10e, fontFamily: "Zulip Icons", matchTextDirection: true);
 
   /// The Zulip custom icon "circle_x".
   static const IconData circle_x = IconData(0xf10f, fontFamily: "Zulip Icons");
@@ -133,7 +138,7 @@ abstract final class ZulipIcons {
   static const IconData message_checked = IconData(0xf124, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "message_feed".
-  static const IconData message_feed = IconData(0xf125, fontFamily: "Zulip Icons");
+  static const IconData message_feed = IconData(0xf125, fontFamily: "Zulip Icons", matchTextDirection: true);
 
   /// The Zulip custom icon "more_horizontal".
   static const IconData more_horizontal = IconData(0xf126, fontFamily: "Zulip Icons");
@@ -160,7 +165,7 @@ abstract final class ZulipIcons {
   static const IconData see_who_reacted = IconData(0xf12d, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "send".
-  static const IconData send = IconData(0xf12e, fontFamily: "Zulip Icons");
+  static const IconData send = IconData(0xf12e, fontFamily: "Zulip Icons", matchTextDirection: true);
 
   /// The Zulip custom icon "settings".
   static const IconData settings = IconData(0xf12f, fontFamily: "Zulip Icons");
@@ -187,7 +192,7 @@ abstract final class ZulipIcons {
   static const IconData topic = IconData(0xf136, fontFamily: "Zulip Icons");
 
   /// The Zulip custom icon "topics".
-  static const IconData topics = IconData(0xf137, fontFamily: "Zulip Icons");
+  static const IconData topics = IconData(0xf137, fontFamily: "Zulip Icons", matchTextDirection: true);
 
   /// The Zulip custom icon "trash".
   static const IconData trash = IconData(0xf138, fontFamily: "Zulip Icons");
