@@ -16,6 +16,7 @@ import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
 import 'user.dart';
+import 'icons.dart';
 
 /// Identifies which [LightboxHero]s should match up with each other
 /// to produce a hero animation.
@@ -104,7 +105,7 @@ class _CopyLinkButton extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return IconButton(
       tooltip: zulipLocalizations.lightboxCopyLinkTooltip,
-      icon: const Icon(Icons.copy),
+      icon: const Icon(ZulipIcons.copy),
       onPressed: () async {
         PlatformActions.copyWithPopup(context: context,
           successContent: Text(zulipLocalizations.successLinkCopied),
