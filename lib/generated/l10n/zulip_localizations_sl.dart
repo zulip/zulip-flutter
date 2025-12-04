@@ -716,6 +716,9 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get loginMethodDivider => 'ALI';
 
   @override
+  String get loginMethodDividerSemanticLabel => 'Log-in alternatives';
+
+  @override
   String signInWithFoo(String method) {
     return 'Prijava z $method';
   }
