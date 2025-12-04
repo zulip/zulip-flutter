@@ -508,10 +508,9 @@ ZulipStream stream({
 }
 const _stream = stream;
 
-GetStreamTopicsEntry getStreamTopicsEntry({int? maxId, String? name}) {
+GetChannelTopicsEntry getChannelTopicsEntry({int? maxId, String? name}) {
   maxId ??= 123;
-  return GetStreamTopicsEntry(maxId: maxId,
-    name: TopicName(name ?? 'Test Topic #$maxId'));
+  return .new(maxId: maxId, name: TopicName(name ?? 'Test Topic #$maxId'));
 }
 
 /// Construct an example subscription from a stream.
