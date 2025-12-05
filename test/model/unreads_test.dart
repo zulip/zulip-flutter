@@ -254,12 +254,17 @@ void main() {
       final stream = eg.stream();
       prepare();
       await store.addStream(stream);
+      await store.setUserTopic(stream, 'a', UserTopicVisibilityPolicy.muted);
+      await store.setMutedUsers([eg.thirdUser.userId]);
       fillWithMessages([
         eg.streamMessage(stream: stream, flags: []),
         eg.streamMessage(stream: stream, flags: [MessageFlag.mentioned]),
+        eg.streamMessage(stream: stream, topic: 'a', flags: [MessageFlag.mentioned]),
         eg.streamMessage(stream: stream, flags: [MessageFlag.wildcardMentioned]),
+        eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
+        eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
       ]);
-      check(model.countInMentionsNarrow()).equals(2);
+      check(model.countInMentionsNarrow()).equals(4);
     });
 
     test('countInStarredMessagesNarrow', () async {
