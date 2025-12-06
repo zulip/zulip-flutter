@@ -111,7 +111,7 @@ class RealmContentNetworkImage extends StatelessWidget {
 
 /// Whether to show an animated image in its still or animated version.
 ///
-/// Use [resolve] to evaluate this for the given [BuildContext],
+/// Use [shouldAnimate] to evaluate this for the given [BuildContext],
 /// which reads device-setting data for [animateConditionally].
 enum ImageAnimationMode {
   /// Always show the animated version.
@@ -126,7 +126,7 @@ enum ImageAnimationMode {
   ;
 
   /// True if the image should be animated, false if it should be still.
-  bool resolve(BuildContext context) {
+  bool shouldAnimate(BuildContext context) {
     switch (this) {
       case animateAlways: return true;
       case animateNever: return false;
