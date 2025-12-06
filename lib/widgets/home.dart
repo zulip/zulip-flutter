@@ -287,7 +287,7 @@ class _NavigationBarButton extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     final color = selected ? designVariables.iconSelected : designVariables.icon;
 
-    Widget result = AnimatedScaleOnTap(
+    Widget result = AnimatedScaleOnPrimaryPointerDown(
       scaleEnd: 0.875,
       duration: const Duration(milliseconds: 100),
       child: Material(
@@ -389,7 +389,7 @@ void _showMainMenu(BuildContext context, {
                   child: Column(children: menuItems)))),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
-                child: AnimatedScaleOnTap(
+                child: AnimatedScaleOnPrimaryPointerDown(
                   scaleEnd: 0.95,
                   duration: Duration(milliseconds: 100),
                   child: BottomSheetDismissButton(
@@ -459,7 +459,7 @@ abstract class _MenuButton extends StatelessWidget {
         ~WidgetState.pressed: selected ? borderSideSelected : null,
       }));
 
-    return AnimatedScaleOnTap(
+    return AnimatedScaleOnPrimaryPointerDown(
       duration: const Duration(milliseconds: 100),
       scaleEnd: 0.95,
       child: ConstrainedBox(
