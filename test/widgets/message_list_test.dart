@@ -1211,6 +1211,48 @@ void main() {
       check(isMarkAsReadButtonVisible(tester)).isFalse();
     });
 
+    testWidgets('listens to Unreads model, not just PerAccountStore and MessageListView', (tester) async {
+      // Regression test for an edge case where the button wouldn't disappear
+      // when the narrow's unreads were cleared, because the button would only
+      // respond to notifications from PerAccountStore and MessageListView,
+      // not Unreads.
+      //
+      // For this test, there's one unread message in the narrow,
+      // and it's old enough that it hasn't been fetched yet.
+      // We simulate an event that removes the message from the narrow,
+      // thus causing Unreads but not MessageListView or PerAccountStore
+      // to notify listeners.
+      // And we check that the button responds by disappearing.
+
+      final message = eg.streamMessage(id: 100, flags: [MessageFlag.mentioned]);
+      final unreadMsgs = eg.unreadMsgs(
+        channels: [
+          UnreadChannelSnapshot(
+            topic: message.topic,
+            streamId: message.streamId,
+            unreadMessageIds: [message.id],
+          ),
+        ],
+        mentions: [message.id],
+      );
+      await setupMessageListPage(tester,
+        narrow: MentionsNarrow(),
+        unreadMsgs: unreadMsgs,
+        // omit `message`; if present, MessageListView would notify listeners
+        messages: List.generate(300, (i) =>
+          eg.streamMessage(id: 950 + i, sender: eg.selfUser,
+            flags: [MessageFlag.read, MessageFlag.mentioned])),
+        foundOldest: false);
+      check(isMarkAsReadButtonVisible(tester)).isTrue();
+
+      // The message no longer has an @-mention.
+      // It was the only unread message with an @-mention,
+      // so the button should disappear.
+      await store.handleEvent(eg.updateMessageEditEvent(message, flags: []));
+      await tester.pumpAndSettle();
+      check(isMarkAsReadButtonVisible(tester)).isFalse();
+    });
+
     testWidgets("messages don't shift position", (tester) async {
       final message = eg.streamMessage(flags: []);
       final unreadMsgs = eg.unreadMsgs(channels:[
