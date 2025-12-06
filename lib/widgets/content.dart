@@ -637,11 +637,11 @@ class MessageImagePreview extends StatelessWidget {
 
     // TODO image hover animation
     final srcUrl = node.srcUrl;
-    final thumbnailUrl = node.thumbnailUrl;
+    final thumbnailUrl = node.thumbnail?.defaultFormatSrc;
     final store = PerAccountStoreWidget.of(context);
     final resolvedSrcUrl = store.tryResolveUrl(srcUrl);
     final resolvedThumbnailUrl = thumbnailUrl == null
-      ? null : store.tryResolveUrl(thumbnailUrl);
+      ? null : store.tryResolveUrl(thumbnailUrl.toString());
 
     // TODO if src fails to parse, show an explicit "broken image"
 
