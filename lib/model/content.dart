@@ -539,7 +539,7 @@ class ImagePreviewNode extends BlockContentNode {
   const ImagePreviewNode({
     super.debugHtmlNode,
     required this.srcUrl,
-    required this.thumbnailUrl,
+    required this.thumbnail,
     required this.loading,
     required this.originalWidth,
     required this.originalHeight,
@@ -553,13 +553,12 @@ class ImagePreviewNode extends BlockContentNode {
 
   /// The thumbnail URL of the image.
   ///
-  /// This may be a relative URL string. It also may not work without adding
-  /// authentication credentials to the request.
+  /// [ImageThumbnailLocator.urlPath] is a relative URL string.
   ///
   /// This will be null if the server hasn't yet generated a thumbnail,
   /// or is a version that doesn't offer thumbnails.
   /// It will also be null when [loading] is true.
-  final String? thumbnailUrl;
+  final ImageThumbnailLocator? thumbnail;
 
   /// A flag to indicate whether to show the placeholder.
   ///
@@ -576,7 +575,7 @@ class ImagePreviewNode extends BlockContentNode {
   bool operator ==(Object other) {
     return other is ImagePreviewNode
       && other.srcUrl == srcUrl
-      && other.thumbnailUrl == thumbnailUrl
+      && other.thumbnail == thumbnail
       && other.loading == loading
       && other.originalWidth == originalWidth
       && other.originalHeight == originalHeight;
@@ -584,16 +583,47 @@ class ImagePreviewNode extends BlockContentNode {
 
   @override
   int get hashCode => Object.hash('ImagePreviewNode',
-    srcUrl, thumbnailUrl, loading, originalWidth, originalHeight);
+    srcUrl, thumbnail, loading, originalWidth, originalHeight);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(StringProperty('srcUrl', srcUrl));
-    properties.add(StringProperty('thumbnailUrl', thumbnailUrl));
+    properties.add(DiagnosticsProperty<ImageThumbnailLocator>('thumbnail', thumbnail));
     properties.add(FlagProperty('loading', value: loading, ifTrue: "is loading"));
     properties.add(DoubleProperty('originalWidth', originalWidth));
     properties.add(DoubleProperty('originalHeight', originalHeight));
+  }
+}
+
+/// Data to locate an image thumbnail.
+@immutable
+class ImageThumbnailLocator extends DiagnosticableTree {
+  ImageThumbnailLocator({
+    required this.urlPath,
+  }) : assert(urlPath.startsWith(urlPathPrefix));
+
+  /// The relative URL string for the default format,
+  /// starting with [urlPathPrefix].
+  ///
+  /// It may not work without adding authentication credentials to the request.
+  final String urlPath;
+
+  static const urlPathPrefix = '/user_uploads/thumbnail/';
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! ImageThumbnailLocator) return false;
+    return urlPath == other.urlPath;
+  }
+
+  @override
+  int get hashCode => Object.hash('ImageThumbnailLocator', urlPath);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('urlPath', urlPath));
   }
 }
 
@@ -1399,7 +1429,7 @@ class _ZulipContentParser {
     if (imgElement.className == 'image-loading-placeholder') {
       return ImagePreviewNode(
         srcUrl: href,
-        thumbnailUrl: null,
+        thumbnail: null,
         loading: true,
         originalWidth: null,
         originalHeight: null,
@@ -1411,19 +1441,19 @@ class _ZulipContentParser {
     }
 
     final String srcUrl;
-    final String? thumbnailUrl;
-    if (src.startsWith('/user_uploads/thumbnail/')) {
+    final ImageThumbnailLocator? thumbnail;
+    if (src.startsWith(ImageThumbnailLocator.urlPathPrefix)) {
       // For why we recognize this as the thumbnail form, see discussion:
       //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/documenting.20inline.20images/near/2279872
       srcUrl = href;
-      thumbnailUrl = src;
+      thumbnail = ImageThumbnailLocator(urlPath: src);
     } else {
       // Known cases this handles:
       // - `src` starts with CAMO_URI, a server variable (e.g. on Zulip Cloud
       //   it's "https://uploads.zulipusercontent.net/" in 2025-10).
       // - `src` matches `href`, e.g. from pre-thumbnailing servers.
       srcUrl = src;
-      thumbnailUrl = null;
+      thumbnail = null;
     }
 
     double? originalWidth, originalHeight;
@@ -1447,7 +1477,7 @@ class _ZulipContentParser {
 
     return ImagePreviewNode(
       srcUrl: srcUrl,
-      thumbnailUrl: thumbnailUrl,
+      thumbnail: thumbnail,
       loading: false,
       originalWidth: originalWidth,
       originalHeight: originalHeight,

@@ -637,7 +637,7 @@ class MessageImagePreview extends StatelessWidget {
 
     // TODO image hover animation
     final srcUrl = node.srcUrl;
-    final thumbnailUrl = node.thumbnailUrl;
+    final thumbnailUrl = node.thumbnail?.urlPath;
     final store = PerAccountStoreWidget.of(context);
     final resolvedSrcUrl = store.tryResolveUrl(srcUrl);
     final resolvedThumbnailUrl = thumbnailUrl == null
