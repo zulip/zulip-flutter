@@ -193,7 +193,7 @@ void main() {
       final colorSwatch = colorSwatchFor(element, maybeSubscription);
       check(icon).color.equals(colorSwatch.iconOnPlainBackground);
 
-      check(findInRow(find.text(channel.name))).findsOne();
+      check(findInRow(find.textContaining(channel.name, findRichText: true))).findsOne();
 
       final maybeToggle = tester.widgetList<Toggle>(
         findInRow(find.byType(Toggle))).singleOrNull;
@@ -230,8 +230,10 @@ void main() {
     await transitionDurationObserver.pumpPastTransition(tester);
 
     check(find.descendant(
-      of: find.byType(MessageListPage),
-      matching: find.text('some-channel')),
+      of: find.descendant(
+        of: find.byType(MessageListPage),
+        matching: find.byType(ZulipAppBar)),
+      matching: find.textContaining('some-channel', findRichText: true)),
     ).findsOne();
   });
 

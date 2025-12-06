@@ -305,7 +305,8 @@ abstract class _HeaderItem extends StatelessWidget {
               ).merge(weightVariableTextStyle(context, wght: 600)),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              title(zulipLocalizations)))),
+              title(zulipLocalizations))
+              )),
           const SizedBox(width: 12),
           if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
           Padding(padding: const EdgeInsetsDirectional.only(end: 16),
@@ -479,6 +480,53 @@ class _StreamHeaderItem extends _HeaderItem with _LongPressable {
   @override
   Future<void> onLongPress() async {
     showChannelActionSheet(sectionContext, channelId: subscription.streamId);
+  }
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+    return Material(
+      color: collapsed
+        ? designVariables.background // TODO(design) check if this is the right variable
+        : uncollapsedBackgroundColor(context),
+      child: InkWell(
+        // TODO use onRowTap to handle taps that are not on the collapse button.
+        //   Probably we should give the collapse button a 44px or 48px square
+        //   touch target:
+        //     <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680973>
+        //   But that's in tension with the Figma, which gives these header rows
+        //   40px min height.
+        onTap: onCollapseButtonTap,
+        onLongPress: onLongPress,
+        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          Padding(padding: const EdgeInsets.all(10),
+            child: Icon(size: 20, color: designVariables.sectionCollapseIcon,
+              collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down)),
+          const SizedBox(width: 5),
+          Expanded(child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Text.rich(
+              style: TextStyle(
+                fontSize: 17,
+                height: (20 / 17),
+                // TODO(design) check if this is the right variable
+                color: designVariables.labelMenuButton,
+              ).merge(weightVariableTextStyle(context, wght: 600)),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              channelTopicLabelSpan(
+                context: context,
+                channelId: subscription.streamId,
+                fontSize: 16,
+                color: designVariables.unreadCountBadgeTextForChannel,
+              )))),
+          const SizedBox(width: 12),
+          if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
+          Padding(padding: const EdgeInsetsDirectional.only(end: 16),
+            child: UnreadCountBadge(
+              channelIdForBackground: channelId,
+              count: count)),
+        ])));
   }
 }
 

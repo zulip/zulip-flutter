@@ -305,13 +305,6 @@ class SubscriptionItem extends StatelessWidget {
           showTopicListButton: showTopicListButtonInActionSheet),
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           const SizedBox(width: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 11),
-            child: Opacity(
-              opacity: opacity,
-              child: Icon(size: 18, color: swatch.iconOnPlainBackground,
-                iconDataForStream(subscription)))),
-          const SizedBox(width: 5),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
@@ -320,7 +313,7 @@ class SubscriptionItem extends StatelessWidget {
               //   https://github.com/zulip/zulip-flutter/pull/397#pullrequestreview-1742524205
               child: Opacity(
                 opacity: opacity,
-                child: Text(
+                child: Text.rich(
                   style: TextStyle(
                     fontSize: 18,
                     height: (20 / 18),
@@ -330,7 +323,12 @@ class SubscriptionItem extends StatelessWidget {
                       wght: hasUnreads && !subscription.isMuted ? 600 : null)),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  subscription.name)))),
+                  channelTopicLabelSpan(
+                    context: context,
+                    channelId: subscription.streamId,
+                    fontSize: 16,
+                    color: designVariables.unreadCountBadgeTextForChannel,
+                  ))))),
           if (hasUnreads) ...[
             const SizedBox(width: 12),
             // TODO(#747) show @-mention indicator when it applies

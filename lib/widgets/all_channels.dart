@@ -106,12 +106,8 @@ class AllChannelsListEntry extends StatelessWidget {
       child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 44),
         child: Padding(padding: const EdgeInsetsDirectional.only(start: 8, end: 12),
           child: Row(spacing: 6, children: [
-            Icon(
-              size: 20,
-              color: colorSwatchFor(context, subscription).iconOnPlainBackground,
-              iconDataForStream(channel)),
             Expanded(
-              child: Text(
+              child: Text.rich(
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -119,7 +115,12 @@ class AllChannelsListEntry extends StatelessWidget {
                   fontSize: 17,
                   height: 20 / 17,
                 ).merge(weightVariableTextStyle(context, wght: 600)),
-                channel.name)),
+                channelTopicLabelSpan(
+                  context: context,
+                  channelId: channel.streamId,
+                  fontSize: 16,
+                  color: designVariables.unreadCountBadgeTextForChannel,
+                ))),
             if (hasContentAccess) _SubscribeToggle(channel: channel),
           ]))));
   }

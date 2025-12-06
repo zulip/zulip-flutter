@@ -122,7 +122,7 @@ void main() {
   /// Find a row with the given label.
   Widget? findRowByLabel(WidgetTester tester, String label) {
     final rowLabel = tester.widgetList(
-      find.text(label),
+      find.textContaining(label, findRichText: true),
     ).firstOrNull;
     if (rowLabel == null) {
       return null;
@@ -550,7 +550,7 @@ void main() {
           check(collapseIcon).icon.equals(ZulipIcons.arrow_down);
           final streamIcon = findStreamHeaderIcon(tester, streamId);
           check(streamIcon).color.isNotNull().isSameColorAs(
-            ChannelColorSwatch.light(subscription.color).iconOnBarBackground);
+            ChannelColorSwatch.light(subscription.color).iconOnPlainBackground);
           check(streamHeaderBackgroundColor(tester, streamId))
             .isNotNull().isSameColorAs(ChannelColorSwatch.light(subscription.color).barBackground);
           check(tester.widgetList(findSectionContent)).isNotEmpty();
