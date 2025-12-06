@@ -14,6 +14,7 @@ import 'theme.dart';
 import 'unread_count_badge.dart';
 import 'user.dart';
 
+
 typedef OnDmSelectCallback = void Function(DmNarrow narrow);
 
 class RecentDmConversationsPageBody extends StatefulWidget {
@@ -179,31 +180,67 @@ class RecentDmConversationsItem extends StatelessWidget {
     int? userIdForPresence;
     switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
       case []:
-        title = TextSpan(text: store.selfUser.fullName, children: [
+        final youLabel = ZulipLocalizations.of(context).youLabel;
+        title = TextSpan(text: '${store.selfUser.fullName} $youLabel', children: [
           UserStatusEmoji.asWidgetSpan(userId: store.selfUserId,
-            fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
+              fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
         ]);
         avatar = AvatarImage(userId: store.selfUserId, size: _avatarSize);
+        break;
       case [var otherUserId]:
-        title = TextSpan(text: store.userDisplayName(otherUserId), children: [
-          UserStatusEmoji.asWidgetSpan(userId: otherUserId,
-            fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
-        ]);
+        final selfId = store.selfUserId;
+
+        if (otherUserId == selfId) {
+          final youLabel = ZulipLocalizations.of(context).youLabel;
+          title = TextSpan(
+            text: '${store.userDisplayName(otherUserId)} $youLabel',
+            children: [
+              UserStatusEmoji.asWidgetSpan(
+                userId: otherUserId,
+                fontSize: 17,
+                textScaler: MediaQuery.textScalerOf(context),
+              ),
+            ],
+          );
+        } else {
+          title = TextSpan(
+            text: store.userDisplayName(otherUserId),
+            children: [
+              UserStatusEmoji.asWidgetSpan(
+                userId: otherUserId,
+                fontSize: 17,
+                textScaler: MediaQuery.textScalerOf(context),
+              ),
+            ],
+          );
+        }
+
         avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
         userIdForPresence = otherUserId;
+        break;
       default:
-        title = TextSpan(
-          // TODO(i18n): List formatting, like you can do in JavaScript:
-          //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
-          //   // 'Chris、Greg、Alya'
-          text: narrow.otherRecipientIds.map(store.userDisplayName).join(', '));
-        avatar = ColoredBox(color: designVariables.avatarPlaceholderBg,
-          child: Center(
-            child: Icon(color: designVariables.avatarPlaceholderIcon,
-              ZulipIcons.group_dm)));
+        final names = narrow.otherRecipientIds
+            .map((id) => store.userDisplayName(id))
+            .toList();
+
+        title = TextSpan(text: names.join(', '));
+        // TODO(i18n): List formatting, like you can do in JavaScript:
+        //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
+        //   // 'Chris、Greg、Alya'
+
+        avatar = ColoredBox(
+          color: designVariables.avatarPlaceholderBg,
+          child: const Center(child: Icon(ZulipIcons.group_dm)),
+        );
+        break;
+
+
+
     }
 
-    // TODO(design) check if this is the right variable
+
+
+        // TODO(design) check if this is the right variable
     final backgroundColor = designVariables.background;
     return Material(
       color: backgroundColor,

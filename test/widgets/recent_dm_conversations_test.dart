@@ -23,7 +23,6 @@ import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../test_navigation.dart';
 import 'checks.dart';
-import 'finders.dart';
 import 'test_app.dart';
 
 late PerAccountStore store;
@@ -40,7 +39,7 @@ Future<void> setupPage(WidgetTester tester, {
   selfUser ??= eg.selfUser;
   final selfAccount = eg.account(user: selfUser);
   await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
-    realmUsers: [selfUser, ...users]));
+      realmUsers: [selfUser, ...users]));
   store = await testBinding.globalStore.perAccount(selfAccount.id);
 
   if (mutedUserIds != null) {
@@ -50,17 +49,17 @@ Future<void> setupPage(WidgetTester tester, {
   await store.addMessages(dmMessages);
 
   await tester.pumpWidget(TestZulipApp(
-    accountId: selfAccount.id,
-    navigatorObservers: navigatorObserver != null ? [navigatorObserver] : [],
-    child: const HomePage()));
+      accountId: selfAccount.id,
+      navigatorObservers: navigatorObserver != null ? [navigatorObserver] : [],
+      child: const HomePage()));
 
   // global store, per-account store, and page get loaded
   await tester.pumpAndSettle();
 
   // Switch to direct messages tab.
   await tester.tap(find.descendant(
-    of: find.byType(DecoratedBox),
-    matching: find.byIcon(ZulipIcons.two_person)));
+      of: find.byType(DecoratedBox),
+      matching: find.byIcon(ZulipIcons.two_person)));
   await tester.pump();
 }
 
@@ -68,7 +67,7 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   Finder findConversationItem(Narrow narrow) => find.byWidgetPredicate(
-    (widget) => widget is RecentDmConversationsItem && widget.narrow == narrow,
+        (widget) => widget is RecentDmConversationsItem && widget.narrow == narrow,
   );
 
   group('RecentDmConversationsPage', () {
@@ -87,7 +86,7 @@ void main() {
       final message3 = eg.dmMessage(id: 3, from: eg.selfUser, to: [user1, user2]); // group
 
       await setupPage(tester, users: [user1, user2],
-        dmMessages: [message1, message2, message3]);
+          dmMessages: [message1, message2, message3]);
 
       final items = tester.widgetList<RecentDmConversationsItem>(find.byType(RecentDmConversationsItem)).toList();
       check(items).length.equals(3);
@@ -108,11 +107,11 @@ void main() {
       await setupPage(tester, users: users, dmMessages: messages);
 
       final oldestConversationFinder = findConversationItem(
-        DmNarrow.ofMessage(messages.first, selfUserId: eg.selfUser.userId));
+          DmNarrow.ofMessage(messages.first, selfUserId: eg.selfUser.userId));
 
       check(tester.any(oldestConversationFinder)).isFalse(); // not onscreen
       await tester.fling(find.byType(RecentDmConversationsPageBody),
-        const Offset(0, -200), 4000);
+          const Offset(0, -200), 4000);
       await tester.pumpAndSettle();
       check(tester.any(oldestConversationFinder)).isTrue(); // onscreen
     });
@@ -125,7 +124,7 @@ void main() {
         ..onPopped = ((route, _) => lastPoppedRoute = route);
 
       await setupPage(tester, navigatorObserver: testNavObserver,
-        users: [], dmMessages: []);
+          users: [], dmMessages: []);
 
       await tester.tap(find.widgetWithText(GestureDetector, 'New DM'));
       await tester.pump();
@@ -137,9 +136,9 @@ void main() {
       await tester.pump();
       check(lastPoppedRoute).isA<ModalBottomSheetRoute<void>>();
       await tester.pump(
-        (lastPoppedRoute as TransitionRoute).reverseTransitionDuration
-        // TODO not sure why a 1ms fudge is needed; investigate.
-        + Duration(milliseconds: 1));
+          (lastPoppedRoute as TransitionRoute).reverseTransitionDuration
+              // TODO not sure why a 1ms fudge is needed; investigate.
+              + Duration(milliseconds: 1));
       check(find.byType(NewDmPicker)).findsNothing();
     });
   });
@@ -148,10 +147,10 @@ void main() {
     group('content/appearance', () {
       void checkAvatar(WidgetTester tester, DmNarrow narrow) {
         final shape = tester.widget<AvatarShape>(
-          find.descendant(
-            of: find.byType(RecentDmConversationsItem),
-            matching: find.byType(AvatarShape),
-          ));
+            find.descendant(
+              of: find.byType(RecentDmConversationsItem),
+              matching: find.byType(AvatarShape),
+            ));
         check(shape)
           ..size.equals(32)
           ..borderRadius.equals(3);
@@ -162,7 +161,7 @@ void main() {
           case [var otherUserId]: // 1:1
             check(shape).child.isA<AvatarImage>().userId.equals(otherUserId);
           default:                // group
-            // TODO(#232): syntax like `check(find(…), findsOneWidget)`
+          // TODO(#232): syntax like `check(find(…), findsOneWidget)`
             tester.widget(find.descendant(
               of: find.byWidget(shape.child),
               matching: find.byIcon(ZulipIcons.group_dm),
@@ -172,42 +171,63 @@ void main() {
 
       void checkTitle(WidgetTester tester, String expectedText, [int? expectedLines]) {
         // TODO(#232): syntax like `check(find(…), findsOneWidget)`
-        final widget = tester.widget(find.descendant(
+        // Find Text widgets inside the RecentDmConversationsItem whose rendered
+        // plain text starts with expectedText.
+        final matchedFinder = find.descendant(
           of: find.byType(RecentDmConversationsItem),
-          // The title might contain a WidgetSpan (for status emoji); exclude
-          // the resulting placeholder character from the text to be matched.
-          matching: findText(expectedText, includePlaceholders: false)));
+          matching: find.byWidgetPredicate(
+                (widget) {
+              if (widget is! Text) return false;
+              final textWidget = widget;
+              final fullText = textWidget.data ?? textWidget.textSpan?.toPlainText() ?? '';
+              return fullText.startsWith(expectedText);
+            },
+            description: 'Text starting with "$expectedText"',
+          ),
+        );
+
+
+        check(matchedFinder).findsOne();
+
+        // Grab the matched Text widget (use first in case of multiple matches).
+        final Text titleWidget = tester.widget<Text>(matchedFinder.first);
+        final String fullText = titleWidget.data ?? titleWidget.textSpan?.toPlainText() ?? '';
+
+        // (Optional) extra sanity check: ensure the fullText actually starts with the expected string.
+        check(fullText.startsWith(expectedText)).isTrue();
+
+        // Check number of lines if requested
         if (expectedLines != null) {
-          final renderObject = tester.renderObject<RenderParagraph>(find.byWidget(widget));
-          check(renderObject.size.height).equals(
-            20.0 // line height
-            * expectedLines);
+          final renderObject = tester.renderObject<RenderParagraph>(matchedFinder.first);
+          check(renderObject.size.height).equals(20.0 * expectedLines);
         }
       }
 
+
+
       void checkFindsStatusEmoji(WidgetTester tester, Finder emojiFinder) {
         final statusEmojiFinder = find.ancestor(of: emojiFinder,
-          matching: find.byType(UserStatusEmoji));
+            matching: find.byType(UserStatusEmoji));
         check(statusEmojiFinder).findsOne();
         check(tester.widget<UserStatusEmoji>(statusEmojiFinder)
-          .animationMode).equals(ImageAnimationMode.animateNever);
+            .animationMode).equals(ImageAnimationMode.animateNever);
         check(find.ancestor(of: statusEmojiFinder,
-          matching: find.byType(RecentDmConversationsItem))).findsOne();
+            matching: find.byType(RecentDmConversationsItem))).findsOne();
       }
 
       Future<void> markMessageAsRead(WidgetTester tester, Message message) async {
         final store = await testBinding.globalStore.perAccount(
-          testBinding.globalStore.accounts.single.id);
+            testBinding.globalStore.accounts.single.id);
         await store.handleEvent(UpdateMessageFlagsAddEvent(
-          id: 1, flag: MessageFlag.read, all: false, messages: [message.id]));
+            id: 1, flag: MessageFlag.read, all: false, messages: [message.id]));
         await tester.pump();
       }
 
       void checkUnreadCount(WidgetTester tester, int expectedCount) {
         final Text? textWidget = tester.widgetList<Text>(find.descendant(
-          of: find.byType(RecentDmConversationsItem),
-          matching: find.textContaining(RegExp(r'^\d+$'),
-        ))).singleOrNull;
+            of: find.byType(RecentDmConversationsItem),
+            matching: find.textContaining(RegExp(r'^\d+$'),
+            ))).singleOrNull;
 
         if (expectedCount == 0) {
           check(textWidget).isNull();
@@ -229,7 +249,7 @@ void main() {
           const name = 'Short name';
           final selfUser = eg.user(fullName: name);
           await setupPage(tester, selfUser: selfUser, users: [],
-            dmMessages: [eg.dmMessage(from: selfUser, to: [])]);
+              dmMessages: [eg.dmMessage(from: selfUser, to: [])]);
           checkTitle(tester, name, 1);
         });
 
@@ -237,7 +257,7 @@ void main() {
           const name = 'Long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name';
           final selfUser = eg.user(fullName: name);
           await setupPage(tester, selfUser: selfUser, users: [],
-            dmMessages: [eg.dmMessage(from: selfUser, to: [])]);
+              dmMessages: [eg.dmMessage(from: selfUser, to: [])]);
           checkTitle(tester, name, 2);
         });
 
@@ -246,9 +266,9 @@ void main() {
             final message = eg.dmMessage(from: eg.selfUser, to: []);
             await setupPage(tester, dmMessages: [message], users: []);
             await store.changeUserStatus(eg.selfUser.userId, UserStatusChange(
-              text: OptionSome('Busy'),
-              emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-                emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+                text: OptionSome('Busy'),
+                emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+                    emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
             await tester.pump();
 
             checkFindsStatusEmoji(tester, find.text('\u{1f6e0}'));
@@ -259,7 +279,7 @@ void main() {
             final message = eg.dmMessage(from: eg.selfUser, to: []);
             await setupPage(tester, dmMessages: [message], users: []);
             await store.changeUserStatus(eg.selfUser.userId, UserStatusChange(
-              text: OptionSome('Busy'), emoji: OptionNone()));
+                text: OptionSome('Busy'), emoji: OptionNone()));
             await tester.pump();
 
             check(find.textContaining('Busy')).findsNothing();
@@ -291,9 +311,9 @@ void main() {
             final user = eg.user(userId: 1);
             final message = eg.dmMessage(from: eg.selfUser, to: [user]);
             await setupPage(tester,
-              users: [user],
-              mutedUserIds: [user.userId],
-              dmMessages: [message]);
+                users: [user],
+                mutedUserIds: [user.userId],
+                dmMessages: [message]);
 
             final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
             check(findConversationItem(narrow)).findsNothing();
@@ -332,9 +352,9 @@ void main() {
             final message = eg.dmMessage(from: eg.selfUser, to: [user]);
             await setupPage(tester, users: [user], dmMessages: [message]);
             await store.changeUserStatus(user.userId, UserStatusChange(
-              text: OptionSome('Busy'),
-              emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-                emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+                text: OptionSome('Busy'),
+                emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+                    emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
             await tester.pump();
 
             checkFindsStatusEmoji(tester, find.text('\u{1f6e0}'));
@@ -346,7 +366,7 @@ void main() {
             final message = eg.dmMessage(from: eg.selfUser, to: [user]);
             await setupPage(tester, users: [user], dmMessages: [message]);
             await store.changeUserStatus(user.userId, UserStatusChange(
-              text: OptionSome('Busy'), emoji: OptionNone()));
+                text: OptionSome('Busy'), emoji: OptionNone()));
             await tester.pump();
 
             check(find.textContaining('Busy')).findsNothing();
@@ -390,9 +410,9 @@ void main() {
             final user1 = users[1];
             final message = eg.dmMessage(from: eg.selfUser, to: [user0, user1]);
             await setupPage(tester,
-              users: users,
-              mutedUserIds: [user0.userId],
-              dmMessages: [message]);
+                users: users,
+                mutedUserIds: [user0.userId],
+                dmMessages: [message]);
 
             checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
             checkTitle(tester, 'Muted user, ${user1.fullName}');
@@ -404,9 +424,9 @@ void main() {
             final user1 = users[1];
             final message = eg.dmMessage(from: eg.selfUser, to: [user0, user1]);
             await setupPage(tester,
-              users: users,
-              mutedUserIds: [user0.userId, user1.userId],
-              dmMessages: [message]);
+                users: users,
+                mutedUserIds: [user0.userId, user1.userId],
+                dmMessages: [message]);
 
             final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
             check(findConversationItem(narrow)).findsNothing();
@@ -446,9 +466,9 @@ void main() {
           final message = eg.dmMessage(from: eg.selfUser, to: users);
           await setupPage(tester, users: users, dmMessages: [message]);
           await store.changeUserStatus(users.first.userId, UserStatusChange(
-            text: OptionSome('Busy'),
-            emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-              emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+              text: OptionSome('Busy'),
+              emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+                  emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
           await tester.pump();
 
           check(find.text('\u{1f6e0}')).findsNothing();
@@ -477,33 +497,33 @@ void main() {
           ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
 
         await setupPage(tester, users: users,
-          dmMessages: [message],
-          navigatorObserver: testNavObserver);
+            dmMessages: [message],
+            navigatorObserver: testNavObserver);
 
         await tester.tap(find.byType(RecentDmConversationsItem));
         // no `tester.pump`, to avoid having to mock API response for [MessageListPage]
 
         check(pushedRoutes).last.isA<WidgetRoute>().page
-          .isA<MessageListPage>()
-          .initNarrow.equals(expectedNarrow);
+            .isA<MessageListPage>()
+            .initNarrow.equals(expectedNarrow);
       }
 
       testWidgets('1:1', (tester) async {
         final user = eg.user(userId: 1, fullName: 'User 1');
         await runAndCheck(tester, users: [user],
-          message: eg.dmMessage(from: eg.selfUser, to: [user]));
+            message: eg.dmMessage(from: eg.selfUser, to: [user]));
       });
 
       testWidgets('self-1:1', (tester) async {
         await runAndCheck(tester, users: [],
-          message: eg.dmMessage(from: eg.selfUser, to: []));
+            message: eg.dmMessage(from: eg.selfUser, to: []));
       });
 
       testWidgets('group', (tester) async {
         final user1 = eg.user(userId: 1, fullName: 'User 1');
         final user2 = eg.user(userId: 2, fullName: 'User 2');
         await runAndCheck(tester, users: [user1, user2],
-          message: eg.dmMessage(from: eg.selfUser, to: [user1, user2]));
+            message: eg.dmMessage(from: eg.selfUser, to: [user1, user2]));
       });
     });
   });
