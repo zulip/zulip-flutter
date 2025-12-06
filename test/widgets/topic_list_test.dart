@@ -43,7 +43,7 @@ void main() {
     await store.addSubscription(eg.subscription(channel));
     for (final userTopic in userTopics) {
       await store.setUserTopic(
-        channel, userTopic.topicName.apiName, userTopic.visibilityPolicy);
+          channel, userTopic.topicName.apiName, userTopic.visibilityPolicy);
     }
     topics ??= [eg.getStreamTopicsEntry()];
     messages ??= [eg.streamMessage(stream: channel, topic: topics.first.name.apiName)];
@@ -51,8 +51,8 @@ void main() {
 
     connection.prepare(json: GetStreamTopicsResult(topics: topics).toJson());
     await tester.pumpWidget(TestZulipApp(
-      accountId: eg.selfAccount.id,
-      child: TopicListPage(streamId: channel.streamId)));
+        accountId: eg.selfAccount.id,
+        child: TopicListPage(streamId: channel.streamId)));
     await tester.pump();
     await tester.pump(Duration.zero);
     check(connection.takeRequests()).single.isA<http.Request>()
@@ -69,10 +69,10 @@ void main() {
       final channel = eg.stream();
 
       (store.connection as FakeApiConnection).prepare(
-        json: GetStreamTopicsResult(topics: []).toJson());
+          json: GetStreamTopicsResult(topics: []).toJson());
       await tester.pumpWidget(TestZulipApp(
-        accountId: eg.selfAccount.id,
-        child: TopicListPage(streamId: channel.streamId)));
+          accountId: eg.selfAccount.id,
+          child: TopicListPage(streamId: channel.streamId)));
       await tester.pump();
       await tester.pump(Duration.zero);
       check(find.widgetWithText(ZulipAppBar, '(unknown channel)')).findsOne();
@@ -83,20 +83,20 @@ void main() {
       await prepare(tester, channel: channel);
 
       connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: true, messages: [eg.streamMessage(stream: channel)]).toJson());
+          foundOldest: true, messages: [eg.streamMessage(stream: channel)]).toJson());
       await tester.tap(find.byIcon(ZulipIcons.message_feed));
       await tester.pump();
       await tester.pump(Duration.zero);
       check(find.descendant(
-        of: find.byType(MessageListPage),
-        matching: find.text('channel foo')),
+          of: find.byType(MessageListPage),
+          matching: find.text('channel foo')),
       ).findsOne();
     });
 
     testWidgets('show channel action sheet', (tester) async {
       final channel = eg.stream(name: 'channel foo');
       await prepare(tester, channel: channel,
-        messages: [eg.streamMessage(stream: channel)]);
+          messages: [eg.streamMessage(stream: channel)]);
 
       await tester.longPress(find.text('channel foo'));
       await tester.pump(Duration(milliseconds: 100)); // bottom-sheet animation
@@ -114,14 +114,27 @@ void main() {
       json: GetStreamTopicsResult(topics: []).toJson(),
       delay: Duration(seconds: 1),
     );
-    await tester.pumpWidget(TestZulipApp(
-      accountId: eg.selfAccount.id,
-      child: TopicListPage(streamId: channel.streamId)));
-    await tester.pump();
-    check(find.byType(CircularProgressIndicator)).findsOne();
 
-    await tester.pump(Duration(seconds: 1));
-    check(find.byType(CircularProgressIndicator)).findsNothing();
+    // Enable semantics for this test so we can assert the accessibility label.
+    final SemanticsHandle semanticsHandle = tester.ensureSemantics();
+    try {
+      await tester.pumpWidget(TestZulipApp(
+          accountId: eg.selfAccount.id,
+          child: TopicListPage(streamId: channel.streamId)));
+      await tester.pump();
+      // Visual indicator present
+      check(find.byType(CircularProgressIndicator)).findsOne();
+      // Semantics label should be discoverable while loading.
+      expect(find.bySemanticsLabel('Loading…'), findsOneWidget);
+
+      await tester.pump(Duration(seconds: 1));
+      // Visual indicator gone after load completes
+      check(find.byType(CircularProgressIndicator)).findsNothing();
+      // Semantics label should also be gone.
+      expect(find.bySemanticsLabel('Loading…'), findsNothing);
+    } finally {
+      semanticsHandle.dispose();
+    }
   });
 
   testWidgets('fetch again when navigating away and back', (tester) async {
@@ -133,15 +146,15 @@ void main() {
 
     // Start from a message list page in a channel narrow.
     connection.prepare(json: eg.newestGetMessagesResult(
-      foundOldest: true, messages: []).toJson());
+        foundOldest: true, messages: []).toJson());
     await tester.pumpWidget(TestZulipApp(
-      accountId: eg.selfAccount.id,
-      child: MessageListPage(initNarrow: ChannelNarrow(channel.streamId))));
+        accountId: eg.selfAccount.id,
+        child: MessageListPage(initNarrow: ChannelNarrow(channel.streamId))));
     await tester.pump();
 
     // Tap "TOPICS" button navigating to the topic-list page…
     connection.prepare(json: GetStreamTopicsResult(
-      topics: [eg.getStreamTopicsEntry(name: 'topic A')]).toJson());
+        topics: [eg.getStreamTopicsEntry(name: 'topic A')]).toJson());
     await tester.tap(find.byIcon(ZulipIcons.topics));
     await tester.pump();
     await tester.pump(Duration.zero);
@@ -153,7 +166,7 @@ void main() {
 
     // … then back to the topic-list page, expecting to fetch again.
     connection.prepare(json: GetStreamTopicsResult(
-      topics: [eg.getStreamTopicsEntry(name: 'topic B')]).toJson());
+        topics: [eg.getStreamTopicsEntry(name: 'topic B')]).toJson());
     await tester.tap(find.byIcon(ZulipIcons.topics));
     await tester.pump();
     await tester.pump(Duration.zero);
@@ -162,17 +175,17 @@ void main() {
   });
 
   Finder topicItemFinder = find.descendant(
-    of: find.byType(ListView),
-    matching: find.byType(Material));
+      of: find.byType(ListView),
+      matching: find.byType(Material));
 
   Finder findInTopicItemAt(int index, Finder finder) => find.descendant(
-    of: topicItemFinder.at(index),
-    matching: finder);
+      of: topicItemFinder.at(index),
+      matching: finder);
 
   testWidgets('show topic action sheet', (tester) async {
     final channel = eg.stream();
     await prepare(tester, channel: channel,
-      topics: [eg.getStreamTopicsEntry(name: 'topic foo')]);
+        topics: [eg.getStreamTopicsEntry(name: 'topic foo')]);
     await tester.longPress(topicItemFinder);
     await tester.pump(Duration(milliseconds: 150)); // bottom-sheet animation
 
@@ -215,11 +228,11 @@ void main() {
 
     check(findInTopicItemAt(0, find.text('resolved'))).findsOne();
     check(findInTopicItemAt(0, find.byIcon(ZulipIcons.check).hitTestable()))
-      .findsOne();
+        .findsOne();
 
     check(findInTopicItemAt(1, find.text('unresolved'))).findsOne();
     check(findInTopicItemAt(1, find.byType(Icon)).hitTestable())
-      .findsNothing();
+        .findsNothing();
   });
 
   testWidgets('handle empty topics', (tester) async {
@@ -227,52 +240,52 @@ void main() {
       eg.getStreamTopicsEntry(name: ''),
     ]);
     check(findInTopicItemAt(0,
-      find.text(eg.defaultRealmEmptyTopicDisplayName))).findsOne();
+        find.text(eg.defaultRealmEmptyTopicDisplayName))).findsOne();
   });
 
   group('unreads', () {
     testWidgets('muted and non-muted topics', (tester) async {
       final channel = eg.stream();
       await prepare(tester, channel: channel,
-        topics: [
-          eg.getStreamTopicsEntry(maxId: 2, name: 'muted'),
-          eg.getStreamTopicsEntry(maxId: 1, name: 'non-muted'),
-        ],
-        userTopics: [
-          eg.userTopicItem(channel, 'muted', UserTopicVisibilityPolicy.muted),
-        ],
-        messages: [
-          eg.streamMessage(stream: channel, topic: 'muted'),
-          eg.streamMessage(stream: channel, topic: 'non-muted'),
-          eg.streamMessage(stream: channel, topic: 'non-muted'),
-        ]);
+          topics: [
+            eg.getStreamTopicsEntry(maxId: 2, name: 'muted'),
+            eg.getStreamTopicsEntry(maxId: 1, name: 'non-muted'),
+          ],
+          userTopics: [
+            eg.userTopicItem(channel, 'muted', UserTopicVisibilityPolicy.muted),
+          ],
+          messages: [
+            eg.streamMessage(stream: channel, topic: 'muted'),
+            eg.streamMessage(stream: channel, topic: 'non-muted'),
+            eg.streamMessage(stream: channel, topic: 'non-muted'),
+          ]);
 
       check(findInTopicItemAt(0, find.text('1'))).findsOne();
       check(findInTopicItemAt(0, find.text('muted'))).findsOne();
       check(findInTopicItemAt(0, find.byIcon(ZulipIcons.mute).hitTestable()))
-        .findsOne();
+          .findsOne();
 
       check(findInTopicItemAt(1, find.text('2'))).findsOne();
       check(findInTopicItemAt(1, find.text('non-muted'))).findsOne();
       check(findInTopicItemAt(1, find.byType(Icon).hitTestable()))
-        .findsNothing();
+          .findsNothing();
     });
 
     testWidgets('with and without unread mentions', (tester) async {
       final channel = eg.stream();
       await prepare(tester, channel: channel,
-        topics: [
-          eg.getStreamTopicsEntry(maxId: 2, name: 'not mentioned'),
-          eg.getStreamTopicsEntry(maxId: 1, name: 'mentioned'),
-        ],
-        messages: [
-          eg.streamMessage(stream: channel, topic: 'not mentioned'),
-          eg.streamMessage(stream: channel, topic: 'not mentioned'),
-          eg.streamMessage(stream: channel, topic: 'not mentioned',
-            flags: [MessageFlag.mentioned, MessageFlag.read]),
-          eg.streamMessage(stream: channel, topic: 'mentioned',
-            flags: [MessageFlag.mentioned]),
-        ]);
+          topics: [
+            eg.getStreamTopicsEntry(maxId: 2, name: 'not mentioned'),
+            eg.getStreamTopicsEntry(maxId: 1, name: 'mentioned'),
+          ],
+          messages: [
+            eg.streamMessage(stream: channel, topic: 'not mentioned'),
+            eg.streamMessage(stream: channel, topic: 'not mentioned'),
+            eg.streamMessage(stream: channel, topic: 'not mentioned',
+                flags: [MessageFlag.mentioned, MessageFlag.read]),
+            eg.streamMessage(stream: channel, topic: 'mentioned',
+                flags: [MessageFlag.mentioned]),
+          ]);
 
       check(findInTopicItemAt(0, find.text('2'))).findsOne();
       check(findInTopicItemAt(0, find.text('not mentioned'))).findsOne();
@@ -288,43 +301,43 @@ void main() {
     testWidgets('default', (tester) async {
       final channel = eg.stream();
       await prepare(tester, channel: channel,
-        topics: [eg.getStreamTopicsEntry(name: 'topic')]);
+          topics: [eg.getStreamTopicsEntry(name: 'topic')]);
 
       check(find.descendant(of: topicItemFinder,
-        matching: find.byType(Icons))).findsNothing();
+          matching: find.byType(Icons))).findsNothing();
     });
 
     testWidgets('muted', (tester) async {
       final channel = eg.stream();
       await prepare(tester, channel: channel,
-        topics: [eg.getStreamTopicsEntry(name: 'topic')],
-        userTopics: [
-          eg.userTopicItem(channel, 'topic', UserTopicVisibilityPolicy.muted),
-        ]);
+          topics: [eg.getStreamTopicsEntry(name: 'topic')],
+          userTopics: [
+            eg.userTopicItem(channel, 'topic', UserTopicVisibilityPolicy.muted),
+          ]);
       check(find.descendant(of: topicItemFinder,
-        matching: find.byIcon(ZulipIcons.mute))).findsOne();
+          matching: find.byIcon(ZulipIcons.mute))).findsOne();
     });
 
     testWidgets('unmuted', (tester) async {
       final channel = eg.stream();
       await prepare(tester, channel: channel,
-        topics: [eg.getStreamTopicsEntry(name: 'topic')],
-        userTopics: [
-          eg.userTopicItem(channel, 'topic', UserTopicVisibilityPolicy.unmuted),
-        ]);
+          topics: [eg.getStreamTopicsEntry(name: 'topic')],
+          userTopics: [
+            eg.userTopicItem(channel, 'topic', UserTopicVisibilityPolicy.unmuted),
+          ]);
       check(find.descendant(of: topicItemFinder,
-        matching: find.byIcon(ZulipIcons.unmute))).findsOne();
+          matching: find.byIcon(ZulipIcons.unmute))).findsOne();
     });
 
     testWidgets('followed', (tester) async {
       final channel = eg.stream();
       await prepare(tester, channel: channel,
-        topics: [eg.getStreamTopicsEntry(name: 'topic')],
-        userTopics: [
-          eg.userTopicItem(channel, 'topic', UserTopicVisibilityPolicy.followed),
-        ]);
+          topics: [eg.getStreamTopicsEntry(name: 'topic')],
+          userTopics: [
+            eg.userTopicItem(channel, 'topic', UserTopicVisibilityPolicy.followed),
+          ]);
       check(find.descendant(of: topicItemFinder,
-        matching: find.byIcon(ZulipIcons.follow))).findsOne();
+          matching: find.byIcon(ZulipIcons.follow))).findsOne();
     });
   });
 }

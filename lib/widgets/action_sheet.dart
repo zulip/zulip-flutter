@@ -255,7 +255,13 @@ class BottomSheetEmptyContentPlaceholder extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final child = loading
-      ? CircularProgressIndicator()
+      ? Semantics(
+      textDirection: Directionality.of(context),
+      focusable: true,
+      liveRegion: true,
+      label: 'Loading…',
+      child: CircularProgressIndicator(),
+    )
       : Text(
           textAlign: TextAlign.center,
           style: TextStyle(
@@ -627,6 +633,8 @@ class ChannelFeedButton extends ActionSheetMenuItemButton {
       MessageListPage.buildRoute(context: pageContext, narrow: ChannelNarrow(channelId)));
   }
 }
+
+
 
 class CopyChannelLinkButton extends ActionSheetMenuItemButton {
   const CopyChannelLinkButton({
