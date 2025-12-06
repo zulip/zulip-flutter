@@ -214,7 +214,7 @@ class ImageEmojiWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = textScaler.scale(this.size);
 
-    final resolvedUrl = animationMode.resolve(context)
+    final resolvedUrl = animationMode.shouldAnimate(context)
       ? emojiDisplay.resolvedUrl
       : (emojiDisplay.resolvedStillUrl ?? emojiDisplay.resolvedUrl);
 
