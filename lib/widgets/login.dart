@@ -457,7 +457,7 @@ class _LoginPageState extends State<LoginPage> {
 
     final externalAuthenticationMethods = widget.serverSettings.externalAuthenticationMethods;
 
-    final loginForm = Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+    final loginContent = Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       _UsernamePasswordForm(loginPageState: this),
       if (externalAuthenticationMethods.isNotEmpty) ...[
         const OrDivider(),
@@ -497,7 +497,7 @@ class _LoginPageState extends State<LoginPage> {
               //   left or the right of this box
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 400),
-                child: loginForm))))));
+                child: loginContent))))));
   }
 }
 
@@ -677,17 +677,20 @@ class OrDivider extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        divider,
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5),
-          child: Text(zulipLocalizations.loginMethodDivider,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: designVariables.loginOrDividerText,
-              height: 1.5,
-            ).merge(weightVariableTextStyle(context, wght: 600)))),
-        divider,
-      ]));
+      child: Semantics(
+        excludeSemantics: true,
+        label: zulipLocalizations.loginMethodDividerSemanticLabel,
+        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          divider,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: Text(zulipLocalizations.loginMethodDivider,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: designVariables.loginOrDividerText,
+                height: 1.5,
+              ).merge(weightVariableTextStyle(context, wght: 600)))),
+          divider,
+        ])));
   }
 }
