@@ -104,7 +104,7 @@ class _CopyLinkButton extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return IconButton(
       tooltip: zulipLocalizations.lightboxCopyLinkTooltip,
-      icon: const Icon(Icons.copy),
+      icon: const Icon(ZulipIcons.copy),
       onPressed: () async {
         PlatformActions.copyWithPopup(context: context,
           successContent: Text(zulipLocalizations.successLinkCopied),
