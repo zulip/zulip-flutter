@@ -292,7 +292,6 @@ class SubscriptionItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
-    final swatch = colorSwatchFor(context, subscription);
     final hasUnreads = (unreadCount > 0);
     final opacity = subscription.isMuted ? 0.55 : 1.0;
     return Material(

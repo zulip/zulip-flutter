@@ -10,7 +10,6 @@ import 'action_sheet.dart';
 import 'actions.dart';
 import 'app_bar.dart';
 import 'button.dart';
-import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'remote_settings.dart';
@@ -95,7 +94,6 @@ class AllChannelsListEntry extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
     final channel = this.channel;
-    final Subscription? subscription = channel is Subscription ? channel : null;
     final hasContentAccess = store.selfHasContentAccess(channel);
 
     return InkWell(

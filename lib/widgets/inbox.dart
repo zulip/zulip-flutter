@@ -483,7 +483,6 @@ class _StreamHeaderItem extends _HeaderItem with _LongPressable {
   }
   @override
   Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
     return Material(
       color: collapsed

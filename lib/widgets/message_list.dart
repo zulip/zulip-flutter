@@ -528,18 +528,8 @@ class MessageListAppBarTitle extends StatelessWidget {
   Widget _buildStreamRow(BuildContext context, {
     ZulipStream? stream,
   }) {
-    final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-
-    // A null [Icon.icon] makes a blank space.
-    IconData? icon;
-    Color? iconColor;
-    if (stream != null) {
-      icon = iconDataForStream(stream);
-      iconColor = colorSwatchFor(context, store.subscriptions[stream.streamId])
-        .iconOnBarBackground;
-    }
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -1712,7 +1702,6 @@ class StreamMessageRecipientHeader extends StatelessWidget {
 
     final swatch = colorSwatchFor(context, store.subscriptions[streamId]);
     final backgroundColor = swatch.barBackground;
-    final iconColor = swatch.iconOnBarBackground;
 
     final Widget streamWidget;
     if (!_containsDifferentChannels(narrow)) {
