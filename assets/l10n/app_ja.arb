@@ -104,6 +104,9 @@
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
+  "@allChannelsPageTitle": {
+    "description": "Title for the 'All channels' page."
+  },
   "@appVersionUnknownPlaceholder": {
     "description": "Placeholder to show in place of the app version when it is unknown."
   },
@@ -728,6 +731,9 @@
   "@mutedUser": {
     "description": "Text to display in place of a muted user's name."
   },
+  "@navButtonAllChannels": {
+    "description": "Title for a nav button that opens the 'All channels' page."
+  },
   "@newDmFabButtonLabel": {
     "description": "Label for the floating action button (FAB) that opens the new DM sheet."
   },
@@ -1215,6 +1221,7 @@
   "actionSheetReadReceiptsErrorReadCount": "既読情報の読み込みに失敗しました。",
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{このメッセージは <z-link>{count} 人</z-link>に読まれています:} other{このメッセージは <z-link>{count} 人</z-link>に読まれています:}}",
   "actionSheetReadReceiptsZeroReadCount": "このメッセージはまだ誰も読んでいません。",
+  "allChannelsPageTitle": "全てのチャンネル",
   "appVersionUnknownPlaceholder": "（…）",
   "channelFeedButtonTooltip": "チャンネルフィード",
   "channelsPageTitle": "チャンネル",
@@ -1363,6 +1370,7 @@
   "messageListGroupYouWithYourself": "自分とのメッセージ",
   "messageNotSentLabel": "メッセージ未送信",
   "mutedUser": "ミュート中のユーザー",
+  "navButtonAllChannels": "全てのチャンネル",
   "newDmFabButtonLabel": "新しいDM",
   "newDmSheetComposeButtonLabel": "作成",
   "newDmSheetNoUsersFound": "ユーザーが見つかりません",

@@ -783,6 +783,9 @@
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
   },
+  "@navBarMenuLabel": {
+    "description": "Label for the Menu button on the bottom navigation bar."
+  },
   "@navButtonAllChannels": {
     "description": "Title for a nav button that opens the 'All channels' page."
   },
@@ -1459,6 +1462,7 @@
   "messageListGroupYouWithYourself": "Повідомлення з собою",
   "messageNotSentLabel": "ПОВІДОМЛЕННЯ НЕ ВІДПРАВЛЕНО",
   "mutedUser": "Заглушений користувач",
+  "navBarMenuLabel": "Меню",
   "navButtonAllChannels": "Усі канали",
   "newDmFabButtonLabel": "Нове особисте повідомлення",
   "newDmSheetComposeButtonLabel": "Написати",
