@@ -18,7 +18,7 @@ jobs:
         env:
           WEBLATE_API_KEY: ${{ secrets.WEBLATE_API_KEY }}
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # Enough such that even a still-out-of-date weblate will have shared history
           fetch-depth: 50
