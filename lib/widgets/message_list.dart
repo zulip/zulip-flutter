@@ -1029,7 +1029,19 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    if (!model.fetched) return const Center(child: CircularProgressIndicator());
+    if (!model.fetched) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: Semantics(
+            label: 'Loading more messages',
+            textDirection: Directionality.of(context),
+            liveRegion: true,
+            child: const CircularProgressIndicator(),
+          ),
+        ),
+      );
+    }
 
     if (model.items.isEmpty && model.haveNewest && model.haveOldest) {
       final String header;
@@ -1283,10 +1295,15 @@ class _MessageListLoadingMore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 16.0),
-        child: CircularProgressIndicator())); // TODO perhaps a different indicator
+        child: Semantics(
+          textDirection: Directionality.of(context),
+          label: 'Loading more messages',
+          liveRegion: true,
+          child: CircularProgressIndicator(),
+        ))); // TODO perhaps a different indicator
   }
 }
 

@@ -397,115 +397,164 @@ void main () {
     }
 
     testWidgets('smoke', (tester) async {
-      addTearDown(testBinding.reset);
-      testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
-      await prepare(tester);
-      await tester.pump(loadPerAccountDuration);
-      checkOnHomePage(tester, expectedAccount: eg.selfAccount);
+      final SemanticsHandle semanticsHandle = tester.ensureSemantics();
+      try {
+        addTearDown(testBinding.reset);
+        testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
+        await prepare(tester);
+
+        // While loading, the loading page should be shown and have the semantics label.
+        checkOnLoadingPage();
+        expect(find.bySemanticsLabel('Loading…'), findsOneWidget);
+
+        await tester.pump(loadPerAccountDuration);
+        checkOnHomePage(tester, expectedAccount: eg.selfAccount);
+      } finally {
+        semanticsHandle.dispose();
+      }
     });
 
     testWidgets('"Try another account" button appears after timeout', (tester) async {
-      addTearDown(testBinding.reset);
-      testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
-      await prepare(tester);
-      checkOnLoadingPage();
-      check(find.text('Try another account').hitTestable()).findsNothing();
+      final SemanticsHandle semanticsHandle = tester.ensureSemantics();
+      try {
+        addTearDown(testBinding.reset);
+        testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
+        await prepare(tester);
+        checkOnLoadingPage();
+        // No try-another button immediately.
+        check(find.text('Try another account').hitTestable()).findsNothing();
 
-      await tester.pump(kTryAnotherAccountWaitPeriod);
-      checkOnLoadingPage();
-      check(find.text('Try another account').hitTestable()).findsOne();
+        // The loading semantics should already be present.
+        expect(find.bySemanticsLabel('Loading…'), findsOneWidget);
 
-      await tester.pump(loadPerAccountDuration);
-      checkOnHomePage(tester, expectedAccount: eg.selfAccount);
+        await tester.pump(kTryAnotherAccountWaitPeriod);
+        checkOnLoadingPage();
+        check(find.text('Try another account').hitTestable()).findsOne();
+
+        await tester.pump(loadPerAccountDuration);
+        checkOnHomePage(tester, expectedAccount: eg.selfAccount);
+      } finally {
+        semanticsHandle.dispose();
+      }
     });
 
     testWidgets('while loading, go back from ChooseAccountPage', (tester) async {
-      testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
-      await prepare(tester);
-      await tester.pump(kTryAnotherAccountWaitPeriod);
-      await tapTryAnotherAccount(tester);
+      final SemanticsHandle semanticsHandle = tester.ensureSemantics();
+      try {
+        testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
+        await prepare(tester);
+        await tester.pump(kTryAnotherAccountWaitPeriod);
+        await tapTryAnotherAccount(tester);
 
-      lastPoppedRoute = null;
-      await tester.tap(find.byType(BackButton));
-      await tester.pump();
-      check(lastPoppedRoute).isA<MaterialWidgetRoute>().page.isA<ChooseAccountPage>();
-      await tester.pump(
-        (lastPoppedRoute as TransitionRoute).reverseTransitionDuration
-        // TODO not sure why a 1ms fudge is needed; investigate.
-        + Duration(milliseconds: 1));
-      checkOnLoadingPage();
+        lastPoppedRoute = null;
+        await tester.tap(find.byType(BackButton));
+        await tester.pump();
+        check(lastPoppedRoute).isA<MaterialWidgetRoute>().page.isA<ChooseAccountPage>();
+        await tester.pump(
+            (lastPoppedRoute as TransitionRoute).reverseTransitionDuration
+                // TODO not sure why a 1ms fudge is needed; investigate.
+                + Duration(milliseconds: 1));
+        checkOnLoadingPage();
 
-      await tester.pump(loadPerAccountDuration);
-      checkOnHomePage(tester, expectedAccount: eg.selfAccount);
+        // Semantics check: loading label present
+        expect(find.bySemanticsLabel('Loading…'), findsOneWidget);
+
+        await tester.pump(loadPerAccountDuration);
+        checkOnHomePage(tester, expectedAccount: eg.selfAccount);
+      } finally {
+        semanticsHandle.dispose();
+      }
     });
 
     testWidgets('while loading, choose a different account', (tester) async {
-      testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
-      await prepare(tester);
-      await tester.pump(kTryAnotherAccountWaitPeriod);
-      await tapTryAnotherAccount(tester);
+      final SemanticsHandle semanticsHandle = tester.ensureSemantics();
+      try {
+        testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
+        await prepare(tester);
+        await tester.pump(kTryAnotherAccountWaitPeriod);
+        await tapTryAnotherAccount(tester);
 
-      testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration * 2;
-      await chooseAccountWithEmail(tester, eg.otherAccount.email);
+        testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration * 2;
+        await chooseAccountWithEmail(tester, eg.otherAccount.email);
 
-      await tester.pump(loadPerAccountDuration);
-      // The second loadPerAccount is still pending.
-      checkOnLoadingPage();
+        // While the second account is still loading, we should be on a loading page.
+        await tester.pump(loadPerAccountDuration);
+        checkOnLoadingPage();
+        expect(find.bySemanticsLabel('Loading…'), findsOneWidget);
 
-      await tester.pump(loadPerAccountDuration);
-      // The second loadPerAccount finished.
-      checkOnHomePage(tester, expectedAccount: eg.otherAccount);
+        await tester.pump(loadPerAccountDuration);
+        // The second load finished.
+        checkOnHomePage(tester, expectedAccount: eg.otherAccount);
+      } finally {
+        semanticsHandle.dispose();
+      }
     });
 
     testWidgets('while loading, choosing an account disallows going back', (tester) async {
-      testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
-      await prepare(tester);
-      await tester.pump(kTryAnotherAccountWaitPeriod);
-      await tapTryAnotherAccount(tester);
+      final SemanticsHandle semanticsHandle = tester.ensureSemantics();
+      try {
+        testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
+        await prepare(tester);
+        await tester.pump(kTryAnotherAccountWaitPeriod);
+        await tapTryAnotherAccount(tester);
 
-      // While still loading, choose a different account.
-      await chooseAccountWithEmail(tester, eg.otherAccount.email);
+        // While still loading, choose a different account.
+        await chooseAccountWithEmail(tester, eg.otherAccount.email);
 
-      // User cannot go back because the navigator stack
-      // was cleared after choosing an account.
-      check(getRouteOf(tester, find.byType(CircularProgressIndicator)))
-        .isNotNull().isFirst.isTrue();
+        // User cannot go back because the navigator stack was cleared after choosing an account.
+        check(getRouteOf(tester, find.byType(CircularProgressIndicator)))
+            .isNotNull().isFirst.isTrue();
 
-      await tester.pump(loadPerAccountDuration); // wait for loadPerAccount
-      checkOnHomePage(tester, expectedAccount: eg.otherAccount);
+        // Semantics check: ensure loading label present and first route is our account route.
+        expect(find.bySemanticsLabel('Loading…'), findsOneWidget);
+
+        await tester.pump(loadPerAccountDuration); // wait for loadPerAccount
+        checkOnHomePage(tester, expectedAccount: eg.otherAccount);
+      } finally {
+        semanticsHandle.dispose();
+      }
     });
 
     testWidgets('while loading, go to nested levels of ChooseAccountPage', (tester) async {
-      testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
-      final thirdAccount = eg.account(user: eg.thirdUser);
-      await testBinding.globalStore.add(thirdAccount, eg.initialSnapshot(
-        realmUsers: [eg.thirdUser]));
-      await prepare(tester);
+      final SemanticsHandle semanticsHandle = tester.ensureSemantics();
+      try {
+        testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
+        final thirdAccount = eg.account(user: eg.thirdUser);
+        await testBinding.globalStore.add(
+          thirdAccount,
+          eg.initialSnapshot(realmUsers: [eg.thirdUser]),
+        );
+        await prepare(tester);
 
-      await tester.pump(kTryAnotherAccountWaitPeriod);
-      // While still loading the first account, choose a different account.
-      await tapTryAnotherAccount(tester);
-      await chooseAccountWithEmail(tester, eg.otherAccount.email);
-      // User cannot go back because the navigator stack
-      // was cleared after choosing an account.
-      check(getRouteOf(tester, find.byType(CircularProgressIndicator)))
-        .isA<MaterialAccountWidgetRoute>()
+        await tester.pump(kTryAnotherAccountWaitPeriod);
+
+        // While loading the first account, navigate to ChooseAccountPage
+        // and select a different account.
+        await tapTryAnotherAccount(tester);
+        await chooseAccountWithEmail(tester, eg.otherAccount.email);
+        check(getRouteOf(tester, find.byType(CircularProgressIndicator)))
+            .isA<MaterialAccountWidgetRoute>()
           ..isFirst.isTrue()
           ..accountId.equals(eg.otherAccount.id);
 
-      await tester.pump(kTryAnotherAccountWaitPeriod);
-      // While still loading the second account, choose a different account.
-      await tapTryAnotherAccount(tester);
-      await chooseAccountWithEmail(tester, thirdAccount.email);
-      // User cannot go back because the navigator stack
-      // was cleared after choosing an account.
-      check(getRouteOf(tester, find.byType(CircularProgressIndicator)))
-        .isA<MaterialAccountWidgetRoute>()
+        // Semantics: loading label should appear during the account switch.
+        expect(find.bySemanticsLabel('Loading…'), findsOneWidget);
+
+        await tester.pump(kTryAnotherAccountWaitPeriod);
+
+        // While loading the second account, navigate again and select a third account.
+        await tapTryAnotherAccount(tester);
+        await chooseAccountWithEmail(tester, thirdAccount.email);
+        check(getRouteOf(tester, find.byType(CircularProgressIndicator)))
+            .isA<MaterialAccountWidgetRoute>()
           ..isFirst.isTrue()
           ..accountId.equals(thirdAccount.id);
 
-      await tester.pump(loadPerAccountDuration); // wait for loadPerAccount
-      checkOnHomePage(tester, expectedAccount: thirdAccount);
+        await tester.pump(loadPerAccountDuration); // Finish loading the third account.
+        checkOnHomePage(tester, expectedAccount: thirdAccount);
+      } finally {
+        semanticsHandle.dispose();
+      }
     });
 
     testWidgets('after finishing loading, go back from ChooseAccountPage', (tester) async {

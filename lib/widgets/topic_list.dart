@@ -166,7 +166,17 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
   @override
   Widget build(BuildContext context) {
     if (lastFetchedTopics == null) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: Semantics(
+            textDirection: Directionality.of(context),
+            label: 'Loading…',    // plain string (not localized)
+            liveRegion: true,
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
     }
 
     // TODO(design) handle the rare case when `lastFetchedTopics` is empty

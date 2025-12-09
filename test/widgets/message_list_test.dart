@@ -838,19 +838,29 @@ void main() {
       // The last message is spaced above the bottom of the viewport.
       check(tester.getRect(find.text('message 9')))
         .bottom..isGreaterThan(400)..isLessThan(570);
+
+      // Semantics check: ensure loading semantics label is not present
+      final SemanticsHandle semanticsHandle = tester.ensureSemantics();
+      try {
+        expect(find.bySemanticsLabel('Loading more messages'), findsNothing);
+      } finally {
+        semanticsHandle.dispose();
+      }
     });
 
     testWidgets('loading indicator displaces spacer etc.', (tester) async {
-      await setupMessageListPage(tester, narrow: CombinedFeedNarrow(),
-        skipPumpAndSettle: true,
-        // TODO(#1569) fix realism of this data: foundNewest false should mean
-        //   some messages found after anchor (and then we might need to scroll
-        //   to cause fetching newer messages).
-        fetchResult: eg.nearGetMessagesResult(anchor: 1000,
-          foundOldest: true, foundNewest: false,
-          messages: List.generate(10,
-            (i) => eg.streamMessage(id: 100 + i, content: '<p>message $i</p>'))));
-      await tester.pump();
+      final SemanticsHandle semanticsHandle = tester.ensureSemantics();
+      try {
+        await setupMessageListPage(tester, narrow: CombinedFeedNarrow(),
+            skipPumpAndSettle: true,
+            // TODO(#1569) fix realism of this data: foundNewest false should mean
+            //   some messages found after anchor (and then we might need to scroll
+            //   to cause fetching newer messages).
+            fetchResult: eg.nearGetMessagesResult(anchor: 1000,
+                foundOldest: true, foundNewest: false,
+                messages: List.generate(10,
+                        (i) => eg.streamMessage(id: 100 + i, content: '<p>message $i</p>'))));
+        await tester.pump();
 
       // The message list will immediately start fetching newer messages.
       connection.prepare(json: eg.newerGetMessagesResult(
@@ -869,7 +879,13 @@ void main() {
       // The last message is shortly above it; no spacer or anything else.
       check(tester.getRect(find.text('message 9')))
         .bottom.isGreaterThan(loadingIndicatorRect.top - 36); // TODO(#1569) where's this space going?
-      await tester.pumpAndSettle();
+        //Semantics check: ensure the loading indicator exposes the expected label
+        expect(find.bySemanticsLabel('Loading more messages'), findsOneWidget);
+
+        await tester.pumpAndSettle();
+      } finally {
+        semanticsHandle.dispose();
+      }
     });
 
     // TODO(#1569) test no typing status or mark-read button when not haveNewest

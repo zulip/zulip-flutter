@@ -255,8 +255,14 @@ class BottomSheetEmptyContentPlaceholder extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final child = loading
-      ? CircularProgressIndicator()
-      : Text(
+        ? Semantics(
+      label: 'Loading…',
+      textDirection: Directionality.of(context),
+      liveRegion: true,
+      focusable: true,
+      child: CircularProgressIndicator(),
+    )
+        : Text(
           textAlign: TextAlign.center,
           style: TextStyle(
             color: designVariables.labelSearchPrompt,
