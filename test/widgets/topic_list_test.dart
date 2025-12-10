@@ -124,6 +124,12 @@ void main() {
     check(find.byType(CircularProgressIndicator)).findsNothing();
   });
 
+  testWidgets('shows empty state when no topics', (tester) async {
+    final channel = eg.stream();
+    await prepare(tester, channel: channel, topics: [], messages: []);
+    check(find.text('There are no topics here yet.')).findsOne();
+  });
+
   testWidgets('fetch again when navigating away and back', (tester) async {
     addTearDown(testBinding.reset);
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());

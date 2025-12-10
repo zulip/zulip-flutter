@@ -1245,6 +1245,9 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
 
   @override
   String get zulipAppTitle => 'Zulip';
+
+  @override
+  String get topicListEmptyPlaceholderHeader => 'There are no topics here yet.';
 }
 
 /// The translations for Chinese, as used in China, using the Han script (`zh_Hans_CN`).
