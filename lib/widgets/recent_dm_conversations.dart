@@ -179,16 +179,39 @@ class RecentDmConversationsItem extends StatelessWidget {
     int? userIdForPresence;
     switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
       case []:
-        title = TextSpan(text: store.selfUser.fullName, children: [
+        final youLabel = ZulipLocalizations.of(context).youLabel;
+        title = TextSpan(children: [
+          TextSpan(text: store.selfUser.fullName),
+          TextSpan(text: ' $youLabel',
+            style: TextStyle(
+              color: designVariables.labelMenuButton.withValues(alpha: 0.5),),),
           UserStatusEmoji.asWidgetSpan(userId: store.selfUserId,
             fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
         ]);
         avatar = AvatarImage(userId: store.selfUserId, size: _avatarSize);
       case [var otherUserId]:
-        title = TextSpan(text: store.userDisplayName(otherUserId), children: [
-          UserStatusEmoji.asWidgetSpan(userId: otherUserId,
-            fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
-        ]);
+        final selfId = store.selfUserId;
+
+        if (otherUserId == selfId) {
+          final youLabel = ZulipLocalizations.of(context).youLabel;
+          title = TextSpan(children: [
+            TextSpan(text: store.userDisplayName(otherUserId)),
+            TextSpan(
+              text: ' $youLabel',
+              style: TextStyle(
+                color: designVariables.labelMenuButton.withValues(alpha: 0.5),),),
+              UserStatusEmoji.asWidgetSpan(
+                userId: otherUserId,
+                fontSize: 17,
+                textScaler: MediaQuery.textScalerOf(context),),],);}
+        else {
+          title = TextSpan(
+            text: store.userDisplayName(otherUserId),
+            children: [
+              UserStatusEmoji.asWidgetSpan(
+                userId: otherUserId,
+                fontSize: 17,
+                textScaler: MediaQuery.textScalerOf(context),),],);}
         avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
         userIdForPresence = otherUserId;
       default:

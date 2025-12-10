@@ -1041,6 +1041,12 @@ abstract class ZulipLocalizations {
   /// **'(unknown user)'**
   String get unknownUserName;
 
+  /// Label shown after the current user's display name in direct messages.
+  ///
+  /// In en, this message translates to:
+  /// **'(you)'**
+  String get youLabel;
+
   /// Message list page title for a DM group that only includes yourself.
   ///
   /// In en, this message translates to:

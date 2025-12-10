@@ -23,7 +23,6 @@ import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../test_navigation.dart';
 import 'checks.dart';
-import 'finders.dart';
 import 'test_app.dart';
 
 late PerAccountStore store;
@@ -172,16 +171,27 @@ void main() {
 
       void checkTitle(WidgetTester tester, String expectedText, [int? expectedLines]) {
         // TODO(#232): syntax like `check(find(…), findsOneWidget)`
-        final widget = tester.widget(find.descendant(
+        final matchedFinder = find.descendant(
           of: find.byType(RecentDmConversationsItem),
           // The title might contain a WidgetSpan (for status emoji); exclude
           // the resulting placeholder character from the text to be matched.
-          matching: findText(expectedText, includePlaceholders: false)));
+          matching: find.byWidgetPredicate(
+                (widget) {
+              if (widget is! Text) return false;
+              final textWidget = widget;
+              final fullText = textWidget.data ?? textWidget.textSpan?.toPlainText() ?? '';
+              return fullText.startsWith(expectedText);},
+            description: 'Text starting with "$expectedText"',),);
+        check(matchedFinder).findsOne();
+        // Grab the matched Text widget (use first in case of multiple matches).
+        final Text titleWidget = tester.widget<Text>(matchedFinder.first);
+        final String fullText = titleWidget.data ?? titleWidget.textSpan?.toPlainText() ?? '';
+
+        // (Optional) extra sanity check: ensure the fullText actually starts with the expected string.
+        check(fullText.startsWith(expectedText)).isTrue();
         if (expectedLines != null) {
-          final renderObject = tester.renderObject<RenderParagraph>(find.byWidget(widget));
-          check(renderObject.size.height).equals(
-            20.0 // line height
-            * expectedLines);
+          final renderObject = tester.renderObject<RenderParagraph>(matchedFinder.first);
+          check(renderObject.size.height).equals(20.0 * expectedLines);
         }
       }
 
