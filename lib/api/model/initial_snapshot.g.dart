@@ -257,7 +257,11 @@ UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
     json['twenty_four_hour_time'] as bool?,
   ),
   displayEmojiReactionUsers: json['display_emoji_reaction_users'] as bool,
-  emojiset: $enumDecode(_$EmojisetEnumMap, json['emojiset']),
+  emojiset: $enumDecode(
+    _$EmojisetEnumMap,
+    json['emojiset'],
+    unknownValue: Emojiset.unknown,
+  ),
   presenceEnabled: json['presence_enabled'] as bool,
 );
 
@@ -283,6 +287,7 @@ const _$EmojisetEnumMap = {
   Emojiset.googleBlob: 'google-blob',
   Emojiset.twitter: 'twitter',
   Emojiset.text: 'text',
+  Emojiset.unknown: 'unknown',
 };
 
 UserTopicItem _$UserTopicItemFromJson(Map<String, dynamic> json) =>

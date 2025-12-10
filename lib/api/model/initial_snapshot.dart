@@ -295,6 +295,7 @@ class UserSettings {
   TwentyFourHourTimeMode twentyFourHourTime;
 
   bool displayEmojiReactionUsers;
+  @JsonKey(unknownEnumValue: Emojiset.unknown)
   Emojiset emojiset;
   bool presenceEnabled;
 

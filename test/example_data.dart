@@ -1304,6 +1304,21 @@ const _globalStore = globalStore;
 
 const String defaultRealmEmptyTopicDisplayName = 'test general chat';
 
+UserSettings userSettings({
+  TwentyFourHourTimeMode? twentyFourHourTime,
+  bool? displayEmojiReactionUsers,
+  Emojiset? emojiset,
+  bool? presenceEnabled,
+}) {
+  return UserSettings(
+    twentyFourHourTime: twentyFourHourTime ?? TwentyFourHourTimeMode.twelveHour,
+    displayEmojiReactionUsers: displayEmojiReactionUsers ?? true,
+    emojiset: emojiset ?? Emojiset.google,
+    presenceEnabled: presenceEnabled ?? true,
+  );
+}
+const _userSettings = userSettings;
+
 InitialSnapshot initialSnapshot({
   String? queueId,
   int? lastEventId,
@@ -1387,12 +1402,7 @@ InitialSnapshot initialSnapshot({
     unreadMsgs: unreadMsgs ?? _unreadMsgs(),
     streams: streams ?? [], // TODO add streams to default
     userStatuses: userStatuses ?? {},
-    userSettings: userSettings ?? UserSettings(
-      twentyFourHourTime: TwentyFourHourTimeMode.twelveHour,
-      displayEmojiReactionUsers: true,
-      emojiset: Emojiset.google,
-      presenceEnabled: true,
-    ),
+    userSettings: userSettings ?? _userSettings(),
     userTopics: userTopics ?? [],
     // no default; allow `null` to simulate servers without this
     realmCanDeleteAnyMessageGroup: realmCanDeleteAnyMessageGroup,

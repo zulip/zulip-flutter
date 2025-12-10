@@ -533,6 +533,7 @@ const _$EmojisetEnumMap = {
   Emojiset.googleBlob: 'google-blob',
   Emojiset.twitter: 'twitter',
   Emojiset.text: 'text',
+  Emojiset.unknown: 'unknown',
 };
 
 const _$PresenceStatusEnumMap = {
