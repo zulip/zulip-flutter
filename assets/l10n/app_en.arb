@@ -1419,5 +1419,9 @@
   "zulipAppTitle": "Zulip",
   "@zulipAppTitle": {
     "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
-  }
+  },
+   "loading": "Loading…",
+    "@loading": {
+      "description": "Label shown for loading indicators"
+    }
 }

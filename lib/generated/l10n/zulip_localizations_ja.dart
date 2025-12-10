@@ -1154,4 +1154,7 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get zulipAppTitle => 'Zulip';
+
+  @override
+  String get loading => 'Loading…';
 }

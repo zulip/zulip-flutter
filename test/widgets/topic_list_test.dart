@@ -12,6 +12,7 @@ import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/topic_list.dart';
+import 'package:zulip/generated/l10n/zulip_localizations.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -116,6 +117,7 @@ void main() {
     );
     // Enable semantics for this test so we can assert the accessibility label.
     final SemanticsHandle semanticsHandle = tester.ensureSemantics();
+    final loc = await ZulipLocalizations.delegate.load(const Locale('en'));
     try {
       await tester.pumpWidget(TestZulipApp(
           accountId: eg.selfAccount.id,
@@ -124,13 +126,13 @@ void main() {
       // Visual indicator present
       check(find.byType(CircularProgressIndicator)).findsOne();
       // Semantics label should be discoverable while loading.
-      expect(find.bySemanticsLabel('Loading…'), findsOneWidget);
+      expect(find.bySemanticsLabel(loc.loading), findsOneWidget);
 
       await tester.pump(Duration(seconds: 1));
       // Visual indicator gone after load completes
       check(find.byType(CircularProgressIndicator)).findsNothing();
       // Semantics label should also be gone.
-      expect(find.bySemanticsLabel('Loading…'), findsNothing);
+      expect(find.bySemanticsLabel(loc.loading), findsNothing);
     } finally {
       semanticsHandle.dispose();
     }

@@ -253,10 +253,10 @@ class BottomSheetEmptyContentPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-
+    final loc = ZulipLocalizations.of(context);
     final child = loading
         ? Semantics(
-      label: 'Loading…',
+      label:loc.loading ,
       textDirection: Directionality.of(context),
       liveRegion: true,
       focusable: true,

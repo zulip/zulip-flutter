@@ -2066,6 +2066,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Zulip'**
   String get zulipAppTitle;
+
+  /// Label shown for loading indicators
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get loading;
 }
 
 class _ZulipLocalizationsDelegate

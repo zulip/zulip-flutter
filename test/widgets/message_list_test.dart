@@ -39,6 +39,7 @@ import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/theme.dart';
 import 'package:zulip/widgets/topic_list.dart';
 import 'package:zulip/widgets/user.dart';
+import 'package:zulip/generated/l10n/zulip_localizations.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -841,8 +842,9 @@ void main() {
 
       // Semantics check: ensure loading semantics label is not present
       final SemanticsHandle semanticsHandle = tester.ensureSemantics();
+      final loc = await ZulipLocalizations.delegate.load(const Locale('en'));
       try {
-        expect(find.bySemanticsLabel('Loading more messages'), findsNothing);
+        expect(find.bySemanticsLabel(loc.loading), findsNothing);
       } finally {
         semanticsHandle.dispose();
       }
@@ -880,8 +882,8 @@ void main() {
       check(tester.getRect(find.text('message 9')))
         .bottom.isGreaterThan(loadingIndicatorRect.top - 36); // TODO(#1569) where's this space going?
         //Semantics check: ensure the loading indicator exposes the expected label
-        expect(find.bySemanticsLabel('Loading more messages'), findsOneWidget);
-
+        final loc = await ZulipLocalizations.delegate.load(const Locale('en'));
+        expect(find.bySemanticsLabel(loc.loading), findsOneWidget);
         await tester.pumpAndSettle();
       } finally {
         semanticsHandle.dispose();
