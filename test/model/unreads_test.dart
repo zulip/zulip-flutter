@@ -250,16 +250,18 @@ void main() {
       check(model.countInDmNarrow(narrow)).equals(5);
     });
 
-    test('countInMentionsNarrow', () async {
-      final stream = eg.stream();
-      prepare();
-      await store.addStream(stream);
-      fillWithMessages([
-        eg.streamMessage(stream: stream, flags: []),
-        eg.streamMessage(stream: stream, flags: [MessageFlag.mentioned]),
-        eg.streamMessage(stream: stream, flags: [MessageFlag.wildcardMentioned]),
-      ]);
-      check(model.countInMentionsNarrow()).equals(2);
+    group('countInMentionsNarrow', () {
+      test('smoke', () async {
+        final stream = eg.stream();
+        prepare();
+        await store.addStream(stream);
+        fillWithMessages([
+          eg.streamMessage(stream: stream, flags: []),
+          eg.streamMessage(stream: stream, flags: [MessageFlag.mentioned]),
+          eg.streamMessage(stream: stream, flags: [MessageFlag.wildcardMentioned]),
+        ]);
+        check(model.countInMentionsNarrow()).equals(2);
+      });
     });
 
     test('countInStarredMessagesNarrow', () async {
