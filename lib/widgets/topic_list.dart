@@ -169,8 +169,12 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
       return const Center(child: CircularProgressIndicator());
     }
 
-    // TODO(design) handle the rare case when `lastFetchedTopics` is empty
-
+    if (lastFetchedTopics!.isEmpty) {
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      return PageBodyEmptyContentPlaceholder(
+        header: zulipLocalizations.topicListEmptyPlaceholderHeader);
+    }
+    
     // This is adapted from parts of the build method on [_InboxPageState].
     final topicItems = <_TopicItemData>[];
     for (final GetStreamTopicsEntry(:maxId, name: topic) in lastFetchedTopics!) {

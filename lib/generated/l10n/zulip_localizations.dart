@@ -2066,6 +2066,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Zulip'**
   String get zulipAppTitle;
+
+  /// Header text shown when a channel has no topics.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no topics here yet.'**
+  String get topicListEmptyPlaceholderHeader;
 }
 
 class _ZulipLocalizationsDelegate
