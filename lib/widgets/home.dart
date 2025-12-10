@@ -23,6 +23,7 @@ import 'store.dart';
 import 'subscription_list.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'unread_count_badge.dart';
 import 'user.dart';
 
 enum _HomePageTab {
@@ -398,8 +399,13 @@ void _showMainMenu(BuildContext context, {
     });
 }
 
-abstract class _MenuButton extends StatelessWidget {
-  const _MenuButton();
+/// A button in the main menu.
+///
+/// See Figma:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2037-243759&m=dev
+@visibleForTesting
+abstract class MenuButton extends StatelessWidget {
+  const MenuButton({super.key});
 
   String label(ZulipLocalizations zulipLocalizations);
 
@@ -419,6 +425,8 @@ abstract class _MenuButton extends StatelessWidget {
       color: selected ? designVariables.iconSelected : designVariables.icon);
   }
 
+  Widget? buildTrailing(BuildContext context) => null;
+
   void onPressed(BuildContext context);
 
   void _handlePress(BuildContext context) {
@@ -434,11 +442,20 @@ abstract class _MenuButton extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
+    // Make [TextButton] set 44 instead of 48 for the height.
+    final visualDensity = VisualDensity(vertical: -1);
+    // A value that [TextButton] adds to some of its layout parameters;
+    // we can cancel out those adjustments by subtracting it.
+    final densityVerticalAdjustment = visualDensity.baseSizeAdjustment.dy;
+
     final borderSideSelected = BorderSide(width: 1,
       strokeAlign: BorderSide.strokeAlignOutside,
       color: designVariables.borderMenuButtonSelected);
     final buttonStyle = TextButton.styleFrom(
-      padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
+      // Make the button 44px instead of 48px tall, to match the Figma.
+      visualDensity: visualDensity,
+      padding: EdgeInsets.symmetric(
+        vertical: 10 - densityVerticalAdjustment, horizontal: 8),
       foregroundColor: designVariables.labelMenuButton,
       // This has a default behavior of affecting the background color of the
       // button for states including "hovered", "focused" and "pressed".
@@ -459,28 +476,29 @@ abstract class _MenuButton extends StatelessWidget {
         ~WidgetState.pressed: selected ? borderSideSelected : null,
       }));
 
+    final trailing = buildTrailing(context);
+
     return AnimatedScaleOnTap(
       duration: const Duration(milliseconds: 100),
       scaleEnd: 0.95,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 44),
-        child: TextButton(
-          onPressed: () => _handlePress(context),
-          style: buttonStyle,
-          child: Row(spacing: 8, children: [
-            SizedBox.square(dimension: _iconSize,
-              child: buildLeading(context)),
-            Expanded(child: Text(label(zulipLocalizations),
-              // TODO(design): determine if we prefer to wrap
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 19, height: 26 / 19)
-                .merge(weightVariableTextStyle(context, wght: selected ? 600 : 400)))),
-          ]))));
+      child: TextButton(
+        onPressed: () => _handlePress(context),
+        style: buttonStyle,
+        child: Row(spacing: 8, children: [
+          SizedBox.square(dimension: _iconSize,
+            child: buildLeading(context)),
+          Expanded(child: Text(label(zulipLocalizations),
+            // TODO(design): determine if we prefer to wrap
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 19, height: 23 / 19)
+              .merge(weightVariableTextStyle(context, wght: selected ? 600 : 400)))),
+          ?trailing,
+        ])));
   }
 }
 
 /// A menu button controlling the selected [_HomePageTab] on the bottom nav bar.
-abstract class _NavigationBarMenuButton extends _MenuButton {
+abstract class _NavigationBarMenuButton extends MenuButton {
   const _NavigationBarMenuButton({required this.tabNotifier});
 
   final ValueNotifier<_HomePageTab> tabNotifier;
@@ -496,7 +514,7 @@ abstract class _NavigationBarMenuButton extends _MenuButton {
   }
 }
 
-class _SearchButton extends _MenuButton {
+class _SearchButton extends MenuButton {
   const _SearchButton();
 
   @override
@@ -526,10 +544,23 @@ class _InboxButton extends _NavigationBarMenuButton {
   }
 
   @override
+  Widget? buildTrailing(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final unreadCount = store.unreads.countInCombinedFeedNarrow();
+    if (unreadCount == 0) return null;
+    return Counter(
+      kind: CounterKind.unread,
+      style: CounterStyle.mainMenu,
+      count: unreadCount,
+      channelIdForBackground: null,
+    );
+  }
+
+  @override
   _HomePageTab get navigationTarget => _HomePageTab.inbox;
 }
 
-class _MentionsButton extends _MenuButton {
+class _MentionsButton extends MenuButton {
   const _MentionsButton();
 
   @override
@@ -541,13 +572,26 @@ class _MentionsButton extends _MenuButton {
   }
 
   @override
+  Widget? buildTrailing(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final unreadCount = store.unreads.countInMentionsNarrow();
+    if (unreadCount == 0) return null;
+    return Counter(
+      kind: CounterKind.unread,
+      style: CounterStyle.mainMenu,
+      count: unreadCount,
+      channelIdForBackground: null,
+    );
+  }
+
+  @override
   void onPressed(BuildContext context) {
     Navigator.of(context).push(MessageListPage.buildRoute(
       context: context, narrow: const MentionsNarrow()));
   }
 }
 
-class _StarredMessagesButton extends _MenuButton {
+class _StarredMessagesButton extends MenuButton {
   const _StarredMessagesButton();
 
   @override
@@ -559,13 +603,25 @@ class _StarredMessagesButton extends _MenuButton {
   }
 
   @override
+  Widget? buildTrailing(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    if (!store.userSettings.starredMessageCounts) return null;
+    return Counter(
+      kind: CounterKind.quantity,
+      style: CounterStyle.mainMenu,
+      count: store.starredMessages.length,
+      channelIdForBackground: null,
+    );
+  }
+
+  @override
   void onPressed(BuildContext context) {
     Navigator.of(context).push(MessageListPage.buildRoute(
       context: context, narrow: const StarredMessagesNarrow()));
   }
 }
 
-class _CombinedFeedButton extends _MenuButton {
+class _CombinedFeedButton extends MenuButton {
   const _CombinedFeedButton();
 
   @override
@@ -610,10 +666,23 @@ class _DirectMessagesButton extends _NavigationBarMenuButton {
   }
 
   @override
+  Widget? buildTrailing(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final unreadCount = store.unreads.countInAllDms();
+    if (unreadCount == 0) return null;
+    return Counter(
+      kind: CounterKind.unread,
+      style: CounterStyle.mainMenu,
+      count: unreadCount,
+      channelIdForBackground: null,
+    );
+  }
+
+  @override
   _HomePageTab get navigationTarget => _HomePageTab.directMessages;
 }
 
-class _MyProfileButton extends _MenuButton {
+class _MyProfileButton extends MenuButton {
   const _MyProfileButton();
 
   @override
@@ -624,7 +693,7 @@ class _MyProfileButton extends _MenuButton {
     final store = PerAccountStoreWidget.of(context);
     return Avatar(
       userId: store.selfUserId,
-      size: _MenuButton._iconSize,
+      size: MenuButton._iconSize,
       borderRadius: 4,
       showPresence: false,
     );
@@ -643,7 +712,7 @@ class _MyProfileButton extends _MenuButton {
   }
 }
 
-class _SwitchAccountButton extends _MenuButton {
+class _SwitchAccountButton extends MenuButton {
   const _SwitchAccountButton();
 
   @override
@@ -660,7 +729,7 @@ class _SwitchAccountButton extends _MenuButton {
   }
 }
 
-class _SettingsButton extends _MenuButton {
+class _SettingsButton extends MenuButton {
   const _SettingsButton();
 
   @override
@@ -677,7 +746,7 @@ class _SettingsButton extends _MenuButton {
   }
 }
 
-class _AboutZulipButton extends _MenuButton {
+class _AboutZulipButton extends MenuButton {
   const _AboutZulipButton();
 
   @override

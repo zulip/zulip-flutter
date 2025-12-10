@@ -303,7 +303,8 @@ class _TopicItem extends StatelessWidget {
                     if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
                     if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
                     if (unreadCount > 0)
-                      UnreadCountBadge(
+                      Counter(
+                        kind: CounterKind.unread,
                         count: unreadCount,
                         channelIdForBackground: null),
                   ])),

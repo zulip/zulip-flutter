@@ -24,6 +24,9 @@ mixin MessageStore on ChannelStore {
   /// All known messages, indexed by [Message.id].
   Map<int, Message> get messages;
 
+  /// All starred messages, as message IDs.
+  Set<int> get starredMessages;
+
   /// [OutboxMessage]s sent by the user, indexed by [OutboxMessage.localMessageId].
   Map<int, OutboxMessage> get outboxMessages;
 
@@ -208,6 +211,8 @@ mixin ProxyMessageStore on MessageStore {
   @override
   Map<int, Message> get messages => messageStore.messages;
   @override
+  Set<int> get starredMessages => messageStore.starredMessages;
+  @override
   Map<int, OutboxMessage> get outboxMessages => messageStore.outboxMessages;
   @override
   void registerMessageList(MessageListView view) =>
@@ -261,13 +266,18 @@ class _EditMessageRequestStatus {
 }
 
 class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessageStore {
-  MessageStoreImpl({required super.channels})
-    : // There are no messages in InitialSnapshot, so we don't have
-      // a use case for initializing MessageStore with nonempty [messages].
-      messages = {};
+  MessageStoreImpl({
+    required super.channels,
+    required List<int> initialStarredMessages,
+  }) :
+     messages = {},
+     starredMessages = Set.of(initialStarredMessages);
 
   @override
   final Map<int, Message> messages;
+
+  @override
+  final Set<int> starredMessages;
 
   @override
   final Set<MessageListView> _messageListViews = {};
@@ -717,23 +727,29 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     }
   }
 
-  void handleDeleteMessageEvent(DeleteMessageEvent event) {
+  /// Handle a [DeleteMessageEvent]
+  /// and return whether the [PerAccountStore] should notify listeners.
+  bool handleDeleteMessageEvent(DeleteMessageEvent event) {
+    bool perAccountStoreShouldNotify = false;
     for (final messageId in event.messageIds) {
       messages.remove(messageId);
+      perAccountStoreShouldNotify |= starredMessages.remove(messageId);
       _maybeStaleChannelMessages.remove(messageId);
       _editMessageRequests.remove(messageId);
     }
     for (final view in _messageListViews) {
       view.handleDeleteMessageEvent(event);
     }
+    return perAccountStoreShouldNotify;
   }
 
-  void handleUpdateMessageFlagsEvent(UpdateMessageFlagsEvent event) {
+  /// Handle an [UpdateMessageFlagsEvent]
+  /// and return whether the [PerAccountStore] should notify listeners.
+  bool handleUpdateMessageFlagsEvent(UpdateMessageFlagsEvent event) {
     final isAdd = switch (event) {
       UpdateMessageFlagsAddEvent()    => true,
       UpdateMessageFlagsRemoveEvent() => false,
     };
-
     if (isAdd && (event as UpdateMessageFlagsAddEvent).all) {
       for (final message in messages.values) {
         message.flags.add(event.flag);
@@ -766,6 +782,15 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
         _notifyMessageListViews(event.messages);
       }
     }
+
+    if (event.flag == MessageFlag.starred) {
+      isAdd
+        ? starredMessages.addAll(event.messages)
+        : starredMessages.removeAll(event.messages);
+      return true;
+    }
+
+    return false;
   }
 
   void handleReactionEvent(ReactionEvent event) {
