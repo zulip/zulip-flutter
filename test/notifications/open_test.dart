@@ -401,7 +401,7 @@ void main() {
       }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
     });
 
-    testWidgets('replaces HomePage with related account', (tester) async {
+    testWidgets('replaces HomePage when switching account', (tester) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(
         eg.selfAccount, eg.initialSnapshot(realmUsers: [eg.selfUser]));
@@ -409,11 +409,16 @@ void main() {
         eg.otherAccount, eg.initialSnapshot(realmUsers: [eg.otherUser]));
 
       await prepare(tester);
-      check(testBinding.globalStore).lastVisitedAccount.equals(eg.otherAccount);
 
+      // Same account as currently shown -> existing nav stack kept in place.
+      await checkOpenNotification(tester, eg.otherAccount, eg.streamMessage(),
+        expectHomePageReplaced: false);
+      // Different account -> replace HomePage.
       await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage(),
         expectHomePageReplaced: true);
-      check(testBinding.globalStore).lastVisitedAccount.equals(eg.selfAccount);
+      // Remain on that different account -> keep the new nav stack in place.
+      await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage(),
+        expectHomePageReplaced: false);
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
   });
 
