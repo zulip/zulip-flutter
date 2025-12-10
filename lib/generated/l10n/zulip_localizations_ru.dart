@@ -567,6 +567,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get unknownUserName => '(неизвестный пользователь)';
 
   @override
+  String get youLabel => '(you)';
+
+  @override
   String get dmsWithYourselfPageTitle => 'ЛС с собой';
 
   @override

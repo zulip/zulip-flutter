@@ -665,9 +665,13 @@
   "@unknownUserName": {
     "description": "Name placeholder to use for a user when we don't know their name."
   },
+  "youLabel": "(you)",
+  "@youLabel": {
+    "description": "Label shown after the current user's display name in direct messages."
+  },
   "dmsWithYourselfPageTitle": "DMs with yourself",
   "@dmsWithYourselfPageTitle": {
-    "description": "Message list page title for a DM group that only includes yourself."
+    "description": "Label shown after the self-user's name on the 'Direct messages' page"
   },
   "messageListGroupYouAndOthers": "You and {others}",
   "@messageListGroupYouAndOthers": {

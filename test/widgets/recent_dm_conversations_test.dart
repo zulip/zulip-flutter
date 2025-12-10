@@ -23,7 +23,6 @@ import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../test_navigation.dart';
 import 'checks.dart';
-import 'finders.dart';
 import 'test_app.dart';
 
 late PerAccountStore store;
@@ -172,13 +171,24 @@ void main() {
 
       void checkTitle(WidgetTester tester, String expectedText, [int? expectedLines]) {
         // TODO(#232): syntax like `check(find(…), findsOneWidget)`
-        final widget = tester.widget(find.descendant(
+        final finder = find.descendant(
           of: find.byType(RecentDmConversationsItem),
           // The title might contain a WidgetSpan (for status emoji); exclude
           // the resulting placeholder character from the text to be matched.
-          matching: findText(expectedText, includePlaceholders: false)));
+          matching: find.byWidgetPredicate(
+            (widget) {
+              if (widget is! Text) return false;
+              final text = widget.data ?? widget.textSpan?.toPlainText() ?? '';
+              return text.startsWith(expectedText);
+            },
+            description: 'Text starting with "$expectedText"',
+          ),
+        );
+
+        check(finder).findsOne();
+
         if (expectedLines != null) {
-          final renderObject = tester.renderObject<RenderParagraph>(find.byWidget(widget));
+          final renderObject = tester.renderObject<RenderParagraph>(finder.first);
           check(renderObject.size.height).equals(
             20.0 // line height
             * expectedLines);

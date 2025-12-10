@@ -4,6 +4,9 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
+import '../model/store.dart';
+
+import 'color.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'new_dm_sheet.dart';
@@ -169,26 +172,50 @@ class RecentDmConversationsItem extends StatelessWidget {
 
   static const double _avatarSize = 32;
 
+  TextSpan _buildUserTitleSpan(
+    BuildContext context, {
+    required int userId,
+    required PerAccountStore store,
+  }) {
+    final designVariables = DesignVariables.of(context);
+    final List<InlineSpan> spans = <InlineSpan>[];
+    spans.add(TextSpan(text: store.userDisplayName(userId)));
+    spans.add(UserStatusEmoji.asWidgetSpan(userId: userId,
+      fontSize: 17,
+      textScaler: MediaQuery.textScalerOf(context)),
+    );
+
+    if (userId == store.selfUserId) {
+      final youLabel = ZulipLocalizations.of(context).youLabel;
+      spans.add(TextSpan(text: ' $youLabel',
+        style: TextStyle(
+          color: designVariables.labelMenuButton.withFadedAlpha(0.5)),
+      ));
+    }
+
+    return TextSpan(children: spans);
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
-
     final InlineSpan title;
     final Widget avatar;
     int? userIdForPresence;
+
     switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
       case []:
-        title = TextSpan(text: store.selfUser.fullName, children: [
-          UserStatusEmoji.asWidgetSpan(userId: store.selfUserId,
-            fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
-        ]);
+        title = _buildUserTitleSpan(context,
+          userId: store.selfUserId,
+          store: store,
+        );
         avatar = AvatarImage(userId: store.selfUserId, size: _avatarSize);
       case [var otherUserId]:
-        title = TextSpan(text: store.userDisplayName(otherUserId), children: [
-          UserStatusEmoji.asWidgetSpan(userId: otherUserId,
-            fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
-        ]);
+        title = _buildUserTitleSpan(context,
+          userId: otherUserId,
+          store: store,
+        );
         avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
         userIdForPresence = otherUserId;
       default:
