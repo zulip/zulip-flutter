@@ -180,6 +180,7 @@ class MessageListPage extends StatefulWidget {
     super.key,
     required this.initNarrow,
     this.initAnchorMessageId,
+    this.initialQuoteText,
   });
 
   static AccountRoute<void> buildRoute({
@@ -188,6 +189,7 @@ class MessageListPage extends StatefulWidget {
     GlobalKey<MessageListPageState>? key,
     required Narrow narrow,
     int? initAnchorMessageId,
+    String? initialQuoteText,
   }) {
     return MaterialAccountWidgetRoute(
       accountId: accountId,
@@ -195,7 +197,8 @@ class MessageListPage extends StatefulWidget {
       page: MessageListPage(
         key: key,
         initNarrow: narrow,
-        initAnchorMessageId: initAnchorMessageId));
+        initAnchorMessageId: initAnchorMessageId,
+        initialQuoteText: initialQuoteText));
   }
 
   /// The "revealed" state of a message from a muted sender,
@@ -243,6 +246,7 @@ class MessageListPage extends StatefulWidget {
 
   final Narrow initNarrow;
   final int? initAnchorMessageId; // TODO(#1564) highlight target upon load
+  final String? initialQuoteText;
 
   @override
   State<MessageListPage> createState() => _MessageListPageState();
@@ -376,7 +380,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
                   markReadOnScroll: markReadOnScroll,
                 ))),
             if (ComposeBox.hasComposeBox(narrow))
-              ComposeBox(key: _composeBoxKey, narrow: narrow)
+              ComposeBox(key: _composeBoxKey, narrow: narrow, initialQuoteText: widget.initialQuoteText)
           ]);
         }));
 

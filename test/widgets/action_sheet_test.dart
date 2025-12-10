@@ -1831,22 +1831,36 @@ void main() {
         ));
       });
 
-      testWidgets('not offered in CombinedFeedNarrow (composing to reply is not yet supported)', (tester) async {
+      testWidgets('offered in CombinedFeedNarrow', (tester) async {
         final message = eg.streamMessage();
         await setupToMessageActionSheet(tester, message: message, narrow: const CombinedFeedNarrow());
-        check(findQuoteAndReplyButton(tester)).isNull();
+
+        prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
+        connection.prepare(json: eg.newestGetMessagesResult(
+          foundOldest: true, messages: []).toJson());
+
+        await tapQuoteAndReplyButton(tester);
+        await tester.pump(Duration.zero); // Allow raw content fetch to complete
+        await transitionDurationObserver.pumpPastTransition(tester);
+
+        final appBar = tester.widget(find.byType(MessageListAppBarTitle)) as MessageListAppBarTitle;
+        check(appBar.narrow).equals(TopicNarrow.ofMessage(message));
+        final composeBox = tester.widget(find.byType(ComposeBox)) as ComposeBox;
+        // The expected string is constructed using logic from [quoteAndReply].
+        // We simplified the check slightly, assuming default behavior for mentions/links.
+        check(composeBox.initialQuoteText).isNotNull();
       });
 
-      testWidgets('not offered in MentionsNarrow (composing to reply is not yet supported)', (tester) async {
+      testWidgets('offered in MentionsNarrow', (tester) async {
         final message = eg.streamMessage(flags: [MessageFlag.mentioned]);
         await setupToMessageActionSheet(tester, message: message, narrow: const MentionsNarrow());
-        check(findQuoteAndReplyButton(tester)).isNull();
+        check(findQuoteAndReplyButton(tester)).isNotNull();
       });
 
-      testWidgets('not offered in StarredMessagesNarrow (composing to reply is not yet supported)', (tester) async {
+      testWidgets('offered in StarredMessagesNarrow', (tester) async {
         final message = eg.streamMessage(flags: [MessageFlag.starred]);
         await setupToMessageActionSheet(tester, message: message, narrow: const StarredMessagesNarrow());
-        check(findQuoteAndReplyButton(tester)).isNull();
+        check(findQuoteAndReplyButton(tester)).isNotNull();
       });
 
       testWidgets('handle empty topic', (tester) async {

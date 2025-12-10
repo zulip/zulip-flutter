@@ -13,6 +13,7 @@ import '../api/route/channels.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
+import '../model/compose.dart';
 import '../model/content.dart';
 import '../model/emoji.dart';
 import '../model/internal_link.dart';
@@ -1064,9 +1065,6 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   // method; see its doc).
   // So we rely on the fact that isComposeBoxOffered for any given message list
   // will be constant through the page's life.
-  final messageListPage = MessageListPage.ancestorOf(pageContext);
-  final isComposeBoxOffered = messageListPage.composeBoxState != null;
-
   final isMessageRead = message.flags.contains(MessageFlag.read);
 
   final isSenderMuted = store.isUserMuted(message.senderId);
@@ -1080,8 +1078,7 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       if (readReceiptsEnabled)
         ViewReadReceiptsButton(message: message, pageContext: pageContext),
       StarButton(message: message, pageContext: pageContext),
-      if (isComposeBoxOffered)
-        QuoteAndReplyButton(message: message, pageContext: pageContext),
+      QuoteAndReplyButton(message: message, pageContext: pageContext),
       if (isMessageRead)
         MarkAsUnreadButton(message: message, pageContext: pageContext),
       if (isSenderMuted)
@@ -1406,7 +1403,30 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     // The compose box doesn't null out its controller; it's either always null
     // (e.g. in Combined Feed) or always non-null; it can't have been nulled out
     // after the action sheet opened.
-    composeBoxController!;
+
+    if (composeBoxController == null) {
+      // The user is not in a narrow where they can compose.
+      // Navigate to one.
+      final store = PerAccountStoreWidget.of(pageContext);
+      final rawContent = await ZulipAction.fetchRawContentWithFeedback(
+        context: pageContext,
+        messageId: message.id,
+        errorDialogTitle: zulipLocalizations.errorQuotationFailed,
+      );
+
+      if (rawContent == null) return;
+      if (!pageContext.mounted) return;
+
+      final narrow = SendableNarrow.ofMessage(message,
+        selfUserId: store.selfUserId);
+      final quoteText = quoteAndReply(store, message: message, rawContent: rawContent);
+      await Navigator.push(pageContext,
+        MessageListPage.buildRoute(context: pageContext,
+          narrow: narrow,
+          initialQuoteText: quoteText));
+      return;
+    }
+
     if (
       composeBoxController is StreamComposeBoxController
       && composeBoxController.topic.isTopicVacuous

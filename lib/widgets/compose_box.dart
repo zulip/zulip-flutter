@@ -1919,10 +1919,11 @@ class _EditMessageBannerTrailing extends StatelessWidget {
 /// Takes the full screen width, covering the horizontal insets with its surface.
 /// Also covers the bottom inset with its surface.
 class ComposeBox extends StatefulWidget {
-  ComposeBox({super.key, required this.narrow})
+  ComposeBox({super.key, required this.narrow, this.initialQuoteText})
     : assert(ComposeBox.hasComposeBox(narrow));
 
   final Narrow narrow;
+  final String? initialQuoteText;
 
   static bool hasComposeBox(Narrow narrow) {
     switch (narrow) {
@@ -2122,6 +2123,18 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     });
   }
 
+  void _handleInitQuoteText(String quoteText) {
+    final controller = this.controller;
+
+    // Use insertPadded to insert the text, which handles spacing if there was already content
+    // (though here we expect it to be empty usually).
+    controller.content.insertPadded(quoteText);
+
+    if (!controller.contentFocusNode.hasFocus) {
+      controller.contentFocusNode.requestFocus();
+    }
+  }
+
   @override
   void onNewStore() {
     final newStore = PerAccountStoreWidget.of(context);
@@ -2129,6 +2142,9 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     final controller = _controller;
     if (controller == null) {
       _setNewController(newStore);
+      if (widget.initialQuoteText != null) {
+        _handleInitQuoteText(widget.initialQuoteText!);
+      }
       return;
     }
 
