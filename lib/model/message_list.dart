@@ -691,6 +691,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return true;
 
       case MentionsNarrow():
+        // If changing this, consider whether [Unreads.countInMentionsNarrow]
+        // should be changed correspondingly, so the message-list view matches
+        // the unread-count badge.
       case StarredMessagesNarrow():
       case KeywordSearchNarrow():
         if (message.conversation case DmConversation(:final allRecipientIds)) {

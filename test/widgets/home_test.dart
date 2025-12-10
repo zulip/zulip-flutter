@@ -255,6 +255,22 @@ void main () {
         .isSameColorAs(designVariables.icon);
     }
 
+    testWidgets('buttons are 44px tall', (tester) async {
+      await prepare(tester);
+
+      await tapOpenMenuAndAwait(tester);
+      checkIconSelected(tester, inboxMenuIconFinder);
+      checkIconNotSelected(tester, channelsMenuIconFinder);
+
+      final inboxElement = tester.element(
+        find.ancestor(of: inboxMenuIconFinder, matching: find.bySubtype<MenuButton>()));
+      check((inboxElement.renderObject as RenderBox).size).height.equals(44);
+
+      final channelsElement = tester.element(
+        find.ancestor(of: inboxMenuIconFinder, matching: find.bySubtype<MenuButton>()));
+      check((channelsElement.renderObject as RenderBox).size).height.equals(44);
+    });
+
     testWidgets('navigation states reflect on navigation bar menu buttons', (tester) async {
       await prepare(tester);
 
