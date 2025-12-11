@@ -766,6 +766,9 @@ class PerAccountStore extends PerAccountStoreBase with
     assert(!_disposed);
 
     switch (event) {
+      case HasZoomTokenEvent():
+        assert(debugLog("server event: has_zoom_token"));
+
       case HeartbeatEvent():
         assert(debugLog("server event: heartbeat"));
 
