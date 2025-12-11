@@ -248,7 +248,6 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
           children: [
             Semantics(
               label: zulipLocalizations.loading,
-              textDirection: Directionality.of(context),
               liveRegion: true,
               child:const CircularProgressIndicator(),
             ),

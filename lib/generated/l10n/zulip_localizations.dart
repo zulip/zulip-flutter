@@ -2067,7 +2067,7 @@ abstract class ZulipLocalizations {
   /// **'Zulip'**
   String get zulipAppTitle;
 
-  /// Label shown for loading indicators
+  /// Semantic label for a loading indicator
   ///
   /// In en, this message translates to:
   /// **'Loading…'**

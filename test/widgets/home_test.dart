@@ -399,7 +399,7 @@ void main () {
 
     testWidgets('smoke', (tester) async {
       final SemanticsHandle semanticsHandle = tester.ensureSemantics();
-      final loc = await ZulipLocalizations.delegate.load(const Locale('en'));
+      final zulipLocalizations= await ZulipLocalizations.delegate.load(const Locale('en'));
       try {
         addTearDown(testBinding.reset);
         testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
@@ -407,7 +407,7 @@ void main () {
 
         // While loading, the loading page should be shown and have the semantics label.
         checkOnLoadingPage();
-        expect(find.bySemanticsLabel(loc.loading), findsOneWidget);
+        expect(find.bySemanticsLabel(zulipLocalizations.loading), findsOneWidget);
 
         await tester.pump(loadPerAccountDuration);
         checkOnHomePage(tester, expectedAccount: eg.selfAccount);
@@ -418,7 +418,7 @@ void main () {
 
     testWidgets('"Try another account" button appears after timeout', (tester) async {
       final SemanticsHandle semanticsHandle = tester.ensureSemantics();
-      final loc = await ZulipLocalizations.delegate.load(const Locale('en'));
+      final zulipLocalizations = await ZulipLocalizations.delegate.load(const Locale('en'));
       try {
         addTearDown(testBinding.reset);
         testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
@@ -428,7 +428,7 @@ void main () {
         check(find.text('Try another account').hitTestable()).findsNothing();
 
         // The loading semantics should already be present.
-        expect(find.bySemanticsLabel(loc.loading), findsOneWidget);
+        expect(find.bySemanticsLabel(zulipLocalizations.loading), findsOneWidget);
 
         await tester.pump(kTryAnotherAccountWaitPeriod);
         checkOnLoadingPage();
@@ -443,7 +443,7 @@ void main () {
 
     testWidgets('while loading, go back from ChooseAccountPage', (tester) async {
       final SemanticsHandle semanticsHandle = tester.ensureSemantics();
-      final loc = await ZulipLocalizations.delegate.load(const Locale('en'));
+      final zulipLocalizations = await ZulipLocalizations.delegate.load(const Locale('en'));
       try {
         testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
         await prepare(tester);
@@ -456,12 +456,12 @@ void main () {
         check(lastPoppedRoute).isA<MaterialWidgetRoute>().page.isA<ChooseAccountPage>();
         await tester.pump(
             (lastPoppedRoute as TransitionRoute).reverseTransitionDuration
-                // TODO not sure why a 1ms fudge is needed; investigate.
-                + Duration(milliseconds: 1));
+        // TODO not sure why a 1ms fudge is needed; investigate.
+        + Duration(milliseconds: 1));
         checkOnLoadingPage();
 
         // Semantics check: loading label present
-        expect(find.bySemanticsLabel(loc.loading), findsOneWidget);
+        expect(find.bySemanticsLabel(zulipLocalizations.loading), findsOneWidget);
 
         await tester.pump(loadPerAccountDuration);
         checkOnHomePage(tester, expectedAccount: eg.selfAccount);
@@ -472,7 +472,7 @@ void main () {
 
     testWidgets('while loading, choose a different account', (tester) async {
       final SemanticsHandle semanticsHandle = tester.ensureSemantics();
-      final loc = await ZulipLocalizations.delegate.load(const Locale('en'));
+      final zulipLocalizations = await ZulipLocalizations.delegate.load(const Locale('en'));
       try {
         testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
         await prepare(tester);
@@ -485,7 +485,7 @@ void main () {
         // While the second account is still loading, we should be on a loading page.
         await tester.pump(loadPerAccountDuration);
         checkOnLoadingPage();
-        expect(find.bySemanticsLabel(loc.loading), findsOneWidget);
+        expect(find.bySemanticsLabel(zulipLocalizations.loading), findsOneWidget);
 
         await tester.pump(loadPerAccountDuration);
         // The second load finished.
@@ -497,7 +497,7 @@ void main () {
 
     testWidgets('while loading, choosing an account disallows going back', (tester) async {
       final SemanticsHandle semanticsHandle = tester.ensureSemantics();
-      final loc = await ZulipLocalizations.delegate.load(const Locale('en'));
+      final zulipLocalizations = await ZulipLocalizations.delegate.load(const Locale('en'));
       try {
         testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
         await prepare(tester);
@@ -512,7 +512,7 @@ void main () {
             .isNotNull().isFirst.isTrue();
 
         // Semantics check: ensure loading label present and first route is our account route.
-        expect(find.bySemanticsLabel(loc.loading), findsOneWidget);
+        expect(find.bySemanticsLabel(zulipLocalizations.loading), findsOneWidget);
 
         await tester.pump(loadPerAccountDuration); // wait for loadPerAccount
         checkOnHomePage(tester, expectedAccount: eg.otherAccount);
@@ -523,7 +523,7 @@ void main () {
 
     testWidgets('while loading, go to nested levels of ChooseAccountPage', (tester) async {
       final SemanticsHandle semanticsHandle = tester.ensureSemantics();
-      final loc = await ZulipLocalizations.delegate.load(const Locale('en'));
+      final zulipLocalizations = await ZulipLocalizations.delegate.load(const Locale('en'));
       try {
         testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
         final thirdAccount = eg.account(user: eg.thirdUser);
@@ -545,7 +545,7 @@ void main () {
           ..accountId.equals(eg.otherAccount.id);
 
         // Semantics: loading label should appear during the account switch.
-        expect(find.bySemanticsLabel(loc.loading), findsOneWidget);
+        expect(find.bySemanticsLabel(zulipLocalizations.loading), findsOneWidget);
 
         await tester.pump(kTryAnotherAccountWaitPeriod);
 

@@ -842,9 +842,9 @@ void main() {
 
       // Semantics check: ensure loading semantics label is not present
       final SemanticsHandle semanticsHandle = tester.ensureSemantics();
-      final loc = await ZulipLocalizations.delegate.load(const Locale('en'));
+      final zulipLocalizations = await ZulipLocalizations.delegate.load(const Locale('en'));
       try {
-        expect(find.bySemanticsLabel(loc.loading), findsNothing);
+        expect(find.bySemanticsLabel(zulipLocalizations.loading), findsNothing);
       } finally {
         semanticsHandle.dispose();
       }
@@ -882,8 +882,8 @@ void main() {
       check(tester.getRect(find.text('message 9')))
         .bottom.isGreaterThan(loadingIndicatorRect.top - 36); // TODO(#1569) where's this space going?
         //Semantics check: ensure the loading indicator exposes the expected label
-        final loc = await ZulipLocalizations.delegate.load(const Locale('en'));
-        expect(find.bySemanticsLabel(loc.loading), findsOneWidget);
+        final zulipLocalizations = await ZulipLocalizations.delegate.load(const Locale('en'));
+        expect(find.bySemanticsLabel(zulipLocalizations.loading), findsOneWidget);
         await tester.pumpAndSettle();
       } finally {
         semanticsHandle.dispose();

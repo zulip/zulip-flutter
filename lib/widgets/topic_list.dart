@@ -166,16 +166,14 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
   @override
   Widget build(BuildContext context) {
     if (lastFetchedTopics == null) {
-      final loc = ZulipLocalizations.of(context);
+      final zulipLocalizations = ZulipLocalizations.of(context);
 
       return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
           child: Semantics(
-            textDirection: Directionality.of(context),
-            label: loc.loading,
+            label: zulipLocalizations.loading,
             liveRegion: true,
-            child: CircularProgressIndicator(),),),);}
+            child: CircularProgressIndicator()));
+    }
 
     // TODO(design) handle the rare case when `lastFetchedTopics` is empty
 

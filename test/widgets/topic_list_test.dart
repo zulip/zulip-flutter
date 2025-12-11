@@ -117,7 +117,7 @@ void main() {
     );
     // Enable semantics for this test so we can assert the accessibility label.
     final SemanticsHandle semanticsHandle = tester.ensureSemantics();
-    final loc = await ZulipLocalizations.delegate.load(const Locale('en'));
+    final zulipLocalizations = await ZulipLocalizations.delegate.load(const Locale('en'));
     try {
       await tester.pumpWidget(TestZulipApp(
           accountId: eg.selfAccount.id,
@@ -126,13 +126,13 @@ void main() {
       // Visual indicator present
       check(find.byType(CircularProgressIndicator)).findsOne();
       // Semantics label should be discoverable while loading.
-      expect(find.bySemanticsLabel(loc.loading), findsOneWidget);
+      expect(find.bySemanticsLabel(zulipLocalizations.loading), findsOneWidget);
 
       await tester.pump(Duration(seconds: 1));
       // Visual indicator gone after load completes
       check(find.byType(CircularProgressIndicator)).findsNothing();
       // Semantics label should also be gone.
-      expect(find.bySemanticsLabel(loc.loading), findsNothing);
+      expect(find.bySemanticsLabel(zulipLocalizations.loading), findsNothing);
     } finally {
       semanticsHandle.dispose();
     }

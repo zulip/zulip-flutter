@@ -1420,8 +1420,8 @@
   "@zulipAppTitle": {
     "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
   },
-   "loading": "Loading…",
-    "@loading": {
-      "description": "Label shown for loading indicators"
+  "loading": "Loading…",
+  "@loading": {
+      "description": "Semantic label for a loading indicator"
     }
 }
