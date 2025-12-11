@@ -121,19 +121,24 @@ void main() {
 
       await prepare(tester);
 
+      // Use the smallest format that's big enough.
       doCheck(tester, 200, 200, false, animated: false,
-        'https://chat.example/user_uploads/thumbnail/1/2/a/pic.jpg/500x850.jpg');
-      doCheck(tester, 250, 425, true, animated: false,
         'https://chat.example/user_uploads/thumbnail/1/2/a/pic.jpg/500x850.jpg');
       doCheck(tester, 250, 425, false, animated: false,
         'https://chat.example/user_uploads/thumbnail/1/2/a/pic.jpg/500x850.jpg');
-      // Different output from previous because it's is in physical pixels.
-      doCheck(tester, 300, 250, true, animated: false,
-        'https://chat.example/user_uploads/thumbnail/1/2/a/pic.jpg/840x560.webp');
+      // The format sizes are in physical pixels.
+      // This test set devicePixelRatio to 2, so 500 is too small for 300px.
       doCheck(tester, 300, 250, false, animated: false,
         'https://chat.example/user_uploads/thumbnail/1/2/a/pic.jpg/840x560.webp');
+      // When no format is big enough, use the largest format.
       doCheck(tester, 750, 1000, false, animated: false,
         'https://chat.example/user_uploads/thumbnail/1/2/a/pic.jpg/1000x2000.png');
+
+      // Given the image lacks an animated version, animationMode is ignored.
+      doCheck(tester, 250, 425, true, animated: false,
+        'https://chat.example/user_uploads/thumbnail/1/2/a/pic.jpg/500x850.jpg');
+      doCheck(tester, 300, 250, true, animated: false,
+        'https://chat.example/user_uploads/thumbnail/1/2/a/pic.jpg/840x560.webp');
     });
 
     testWidgets('animated version exists', (tester) async {
@@ -142,10 +147,14 @@ void main() {
 
       await prepare(tester);
 
-      doCheck(tester, 200, 200, false, animated: true,
-        'https://chat.example/user_uploads/thumbnail/1/2/a/pic.jpg/500x850.jpg');
+      // Use the smallest format that's big enough, but animated.
       doCheck(tester, 250, 425, true, animated: true,
         'https://chat.example/user_uploads/thumbnail/1/2/a/pic.jpg/500x850-anim.jpg');
+
+      // When animationMode says not to animate, though,
+      // the image's animated version is ignored.
+      doCheck(tester, 200, 200, false, animated: true,
+        'https://chat.example/user_uploads/thumbnail/1/2/a/pic.jpg/500x850.jpg');
       doCheck(tester, 250, 425, false, animated: true,
         'https://chat.example/user_uploads/thumbnail/1/2/a/pic.jpg/500x850.jpg');
       doCheck(tester, 750, 1000, false, animated: true,
