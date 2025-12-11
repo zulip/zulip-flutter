@@ -17,6 +17,7 @@ import '../api/route/events.dart';
 import '../api/backoff.dart';
 import '../api/route/realm.dart';
 import '../log.dart';
+import '../widgets/compose_box.dart';
 import 'actions.dart';
 import 'autocomplete.dart';
 import 'database.dart';
@@ -768,6 +769,12 @@ class PerAccountStore extends PerAccountStoreBase with
     switch (event) {
       case HasZoomTokenEvent():
         assert(debugLog("server event: has_zoom_token"));
+        final hasZoomTokenUpdated = event.value;
+        if (hasZoomToken != hasZoomTokenUpdated) {
+          hasZoomToken = hasZoomTokenUpdated;
+          if(hasZoomToken) await ComposeCall.handleHasZoomTokenEvent();
+          notifyListeners();
+        }
 
       case HeartbeatEvent():
         assert(debugLog("server event: heartbeat"));
