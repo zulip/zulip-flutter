@@ -1192,6 +1192,110 @@ void main() {
       );
     }
 
+    group('confirmation dialog', () {
+      Future<void> showsConfirmDialog({required WidgetTester tester,
+        required Narrow narrow, required List<Message> messages,
+        required UnreadMessagesSnapshot unreadMsgs,
+      }) async {
+        await setupMessageListPage(tester, narrow: narrow,
+          messages: messages, unreadMsgs: unreadMsgs);
+        check(isMarkAsReadButtonVisible(tester)).isTrue();
+
+        await tester.tap(find.byType(MarkAsReadWidget));
+        await tester.pump();
+
+        final unreadCount = store.unreads.countInNarrow(narrow);
+        checkConfirmDialog(tester, unreadCount);
+      }
+
+      Future<void> doesNotShowConfirmDialog({required WidgetTester tester,
+        required Narrow narrow, required List<Message> messages,
+        required UnreadMessagesSnapshot unreadMsgs,
+        required UpdateMessageFlagsForNarrowResult updateResult,
+      }) async {
+        await setupMessageListPage(tester,
+          narrow: narrow, messages: messages, unreadMsgs: unreadMsgs);
+
+        check(isMarkAsReadButtonVisible(tester)).isTrue();
+
+        connection.prepare(json: updateResult.toJson());
+        await tester.tap(find.byType(MarkAsReadWidget));
+        await tester.pump();
+
+        checkNoDialog(tester);
+        await tester.pump(Duration.zero);
+      }
+
+      testWidgets('CombinedFeedNarrow: show dialog', (tester) async {
+        final message = eg.streamMessage(flags: []);
+        final unreadMsgs = eg.unreadMsgs(channels:[
+          UnreadChannelSnapshot(topic: message.topic,
+            streamId: message.streamId, unreadMessageIds: [message.id])
+        ]);
+        final narrow = CombinedFeedNarrow();
+
+        await showsConfirmDialog(tester: tester,
+          narrow: narrow, messages: [message],unreadMsgs: unreadMsgs);
+      });
+
+      testWidgets('MentionsNarrow: show dialog', (tester) async {
+        final message = eg.streamMessage(flags: []);
+        final unreadMsgs = eg.unreadMsgs(mentions: [message.id],
+          channels: [UnreadChannelSnapshot(topic: message.topic,
+            streamId: message.streamId, unreadMessageIds: [message.id])
+        ]);
+        final narrow = MentionsNarrow();
+
+        await showsConfirmDialog(tester: tester,
+          narrow: narrow, messages: [message],unreadMsgs: unreadMsgs);
+      });
+
+      testWidgets('ChannelNarrow: show dialog', (tester) async {
+        final message = eg.streamMessage(flags: []);
+        final unreadMsgs = eg.unreadMsgs(channels:[
+          UnreadChannelSnapshot(topic: message.topic,
+            streamId: message.streamId, unreadMessageIds: [message.id])
+        ]);
+        final narrow = ChannelNarrow(message.streamId);
+
+        await showsConfirmDialog(tester: tester,
+          narrow: narrow, messages: [message],unreadMsgs: unreadMsgs);
+      });
+
+      testWidgets('DmNarrow: do not show dialog', (tester) async {
+        final selfUser = eg.selfUser;
+        final otherUser = eg.otherUser;
+        final message = eg.dmMessage(flags: [], from: selfUser, to: [otherUser]);
+        final unreadMsgs = eg.unreadMsgs(dms: [
+          UnreadDmSnapshot(otherUserId: otherUser.userId, unreadMessageIds: [message.id])
+        ]);
+        final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
+
+        final updateResult = UpdateMessageFlagsForNarrowResult(
+          processedCount: 1, updatedCount: 1,
+          firstProcessedId: message.id, lastProcessedId: message.id,
+          foundOldest: true, foundNewest: true);
+        await doesNotShowConfirmDialog(tester: tester, narrow: narrow,
+          messages: [message], unreadMsgs: unreadMsgs, updateResult: updateResult);
+      });
+
+      testWidgets('TopicNarrow: do not show dialog', (tester) async {
+        final message = eg.streamMessage(flags: []);
+        final unreadMsgs = eg.unreadMsgs(channels:[
+          UnreadChannelSnapshot(topic: message.topic,
+            streamId: message.streamId, unreadMessageIds: [message.id])
+        ]);
+        final narrow = TopicNarrow.ofMessage(message);
+
+        final updateResult = UpdateMessageFlagsForNarrowResult(
+          processedCount: 1, updatedCount: 1,
+          firstProcessedId: message.id, lastProcessedId: message.id,
+          foundOldest: true, foundNewest: true);
+        await doesNotShowConfirmDialog(tester: tester, narrow: narrow,
+          messages: [message], unreadMsgs: unreadMsgs, updateResult: updateResult);
+      });
+    });
+
     testWidgets('from read to unread', (tester) async {
       final message = eg.streamMessage(flags: [MessageFlag.read]);
       await setupMessageListPage(tester, messages: [message]);
