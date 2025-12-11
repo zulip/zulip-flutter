@@ -4,6 +4,8 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
+import '../model/store.dart';
+
 import 'icons.dart';
 import 'message_list.dart';
 import 'new_dm_sheet.dart';
@@ -173,45 +175,46 @@ class RecentDmConversationsItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
-
     final InlineSpan title;
     final Widget avatar;
     int? userIdForPresence;
+    TextSpan buildUserTitleSpan(
+    BuildContext context,{
+      required int userId,
+      required PerAccountStore store}){
+      final List<InlineSpan> spans = <InlineSpan>[];
+      // Use store.userDisplayName so rendering rules remain consistent.
+      spans.add(TextSpan(text: store.userDisplayName(userId)));
+      // Status emoji inserted after name (keeps existing emoji rendering).
+      spans.add(
+        UserStatusEmoji.asWidgetSpan(
+        userId: userId,
+        fontSize: 17,
+        textScaler: MediaQuery.textScalerOf(context)));
+      // If this is the self user, add the localized "(you)" label.
+      if (userId == store.selfUserId) {
+        final youLabel = ZulipLocalizations.of(context).youLabel;
+        spans.add(
+          TextSpan(
+          text: ' $youLabel',
+          style: TextStyle(
+          color: designVariables.labelMenuButton.withValues(alpha: 0.5))));}
+      return TextSpan(children: spans);
+    }
     switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
       case []:
-        final youLabel = ZulipLocalizations.of(context).youLabel;
-        title = TextSpan(children: [
-          TextSpan(text: store.selfUser.fullName),
-          TextSpan(text: ' $youLabel',
-            style: TextStyle(
-              color: designVariables.labelMenuButton.withValues(alpha: 0.5),),),
-          UserStatusEmoji.asWidgetSpan(userId: store.selfUserId,
-            fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
-        ]);
+        title = buildUserTitleSpan(
+        context,
+        userId: store.selfUserId,
+        store: store,
+        );
         avatar = AvatarImage(userId: store.selfUserId, size: _avatarSize);
       case [var otherUserId]:
-        final selfId = store.selfUserId;
-
-        if (otherUserId == selfId) {
-          final youLabel = ZulipLocalizations.of(context).youLabel;
-          title = TextSpan(children: [
-            TextSpan(text: store.userDisplayName(otherUserId)),
-            TextSpan(
-              text: ' $youLabel',
-              style: TextStyle(
-                color: designVariables.labelMenuButton.withValues(alpha: 0.5),),),
-              UserStatusEmoji.asWidgetSpan(
-                userId: otherUserId,
-                fontSize: 17,
-                textScaler: MediaQuery.textScalerOf(context),),],);}
-        else {
-          title = TextSpan(
-            text: store.userDisplayName(otherUserId),
-            children: [
-              UserStatusEmoji.asWidgetSpan(
-                userId: otherUserId,
-                fontSize: 17,
-                textScaler: MediaQuery.textScalerOf(context),),],);}
+        title = buildUserTitleSpan(
+        context,
+        userId: otherUserId,
+        store: store,
+        );
         avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
         userIdForPresence = otherUserId;
       default:
