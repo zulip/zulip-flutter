@@ -1504,7 +1504,7 @@ void main() {
             bannerLabel: zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend);
           final model = MessageListPage.ancestorOf(state.context).model!;
           check(model)
-            ..fetched.isTrue()..messages.length.equals(100);
+            ..initialFetched.isTrue()..messages.length.equals(100);
 
           connection.prepare(json:
             eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson(),
@@ -1512,10 +1512,10 @@ void main() {
           await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Refresh'));
           await tester.pump();
           check(model)
-            ..fetched.isFalse()..messages.length.equals(0);
+            ..initialFetched.isFalse()..messages.length.equals(0);
           await tester.pump(Duration(seconds: 1));
           check(model)
-            ..fetched.isTrue()..messages.length.equals(100);
+            ..initialFetched.isTrue()..messages.length.equals(100);
 
           connection.takeRequests();
 
@@ -1536,10 +1536,10 @@ void main() {
             });
           await tester.pump(Duration(milliseconds: 500));
           check(model)
-            ..fetched.isFalse()..messages.length.equals(0);
+            ..initialFetched.isFalse()..messages.length.equals(0);
           await tester.pump(Duration(seconds: 1));
           check(model)
-            ..fetched.isTrue()..messages.length.equals(100);
+            ..initialFetched.isTrue()..messages.length.equals(100);
         });
       }
 
