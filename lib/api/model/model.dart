@@ -76,6 +76,24 @@ class RealmAvailableVideoChatProviders {
   Map<String, dynamic> toJson() => _$RealmAvailableVideoChatProvidersToJson(this);
 }
 
+@JsonSerializable(fieldRename: FieldRename.snake)
+class VideoCallResponse {
+  final String msg;
+  final String result;
+  final String url;
+
+  VideoCallResponse({
+    required this.msg,
+    required this.result,
+    required this.url,
+  });
+
+  factory VideoCallResponse.fromJson(Map<String, dynamic> json)  =>
+      _$VideoCallResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$VideoCallResponseToJson(this);
+}
+
 /// As in [InitialSnapshot.customProfileFields].
 ///
 /// For docs, search for "custom_profile_fields:"
