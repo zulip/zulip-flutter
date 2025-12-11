@@ -29,6 +29,8 @@ abstract final class ZulipAction {
   ///
   /// This is mostly a wrapper around [updateMessageFlagsStartingFromAnchor];
   /// for details on the UI feedback, see there.
+  ///
+  /// A confirmation dialog is shown if the narrow is a non-conversation narrow.
   static Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
