@@ -345,6 +345,63 @@ abstract class GlobalStore extends ChangeNotifier {
     ));
   }
 
+  /// Attempt to refresh the realm metadata for each account.
+  ///
+  /// Fetches server settings for each account and then calls [updateRealmData]
+  /// to update the realm metadata (name and icon).
+  ///
+  /// The update for some accounts may be skipped if:
+  ///  - The [PerAccountStore] for the account is already loaded or is loading.
+  ///  - The Zulip Server version of the realm's server is unsupported.
+  ///
+  /// Returns immediately; the fetches and updates are done asynchronously.
+  void refreshRealmMetadata() {
+    for (final account in accounts) {
+      final accountId = account.id;
+
+      // Avoid updating realm metadata if per account store has already
+      // loaded or is being loaded. It will be updated with data from
+      // the initial snapshot or realm update events.
+      if (_perAccountStoresLoading.containsKey(accountId)) continue;
+      if (_perAccountStores.containsKey(accountId)) continue;
+
+      // Fetch the server settings and update the realm data without awaiting.
+      // This allows fetching server settings of all the accounts in parallel.
+      unawaited(() async {
+        final GetServerSettingsResult serverSettings;
+        final connection = apiConnection(
+          realmUrl: account.realmUrl,
+          zulipFeatureLevel: null);
+        try {
+          serverSettings = await getServerSettings(connection);
+          final zulipVersionData = ZulipVersionData.fromServerSettings(serverSettings);
+          if (zulipVersionData.isUnsupported) {
+            throw ServerVersionUnsupportedException(zulipVersionData);
+          }
+        } on MalformedServerResponseException catch (e) {
+          final zulipVersionData = ZulipVersionData.fromMalformedServerResponseException(e);
+          if (zulipVersionData != null && zulipVersionData.isUnsupported) {
+            throw ServerVersionUnsupportedException(zulipVersionData);
+          }
+          rethrow;
+        } finally {
+          connection.close();
+        }
+
+        // Account got logged out while fetching server settings.
+        if (getAccount(accountId) == null) return;
+
+        if (_perAccountStoresLoading.containsKey(accountId)) return;
+        if (_perAccountStores.containsKey(accountId)) return;
+
+        await updateRealmData(
+          accountId,
+          realmName: serverSettings.realmName,
+          realmIcon: serverSettings.realmIcon);
+      }());
+    }
+  }
+
   /// Update an account in the underlying data store.
   Future<void> doUpdateAccount(int accountId, AccountsCompanion data);
 
