@@ -65,6 +65,9 @@
   "@actionSheetOptionStarMessage": {
     "description": "Label for star button on action sheet."
   },
+  "@actionSheetOptionSubscribe": {
+    "description": "Label in the channel action sheet for subscribing to the channel."
+  },
   "@actionSheetOptionUnfollowTopic": {
     "description": "Label for unfollowing a topic on action sheet."
   },
@@ -98,6 +101,9 @@
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
+  "@allChannelsEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'All channels' page saying that there is no content to show."
+  },
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
   },
@@ -122,8 +128,17 @@
   "@composeBoxBannerButtonSave": {
     "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonSubscribe": {
+    "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxSendTooltip": {
+    "description": "Tooltip for send button in compose box."
+  },
+  "@composeBoxTopicHintText": {
+    "description": "Hint text for topic input widget in compose box."
   },
   "@deleteMessageConfirmationDialogConfirmButton": {
     "description": "Label for the 'Delete' button on a confirmation dialog for deleting a message."
@@ -366,6 +381,9 @@
   "@mentionsPageTitle": {
     "description": "Page title for the 'Mentions' message view."
   },
+  "@newDmSheetComposeButtonLabel": {
+    "description": "Label for the compose button in the new DM sheet that starts composing a message to the selected users."
+  },
   "@noStatusText": {
     "description": "The text part of the status button sub-label in self-user profile page when status text is not set."
   },
@@ -555,6 +573,9 @@
       }
     }
   },
+  "@unknownUserName": {
+    "description": "Name placeholder to use for a user when we don't know their name."
+  },
   "@unpinnedSubscriptionsLabel": {
     "description": "Label for the list of unpinned subscribed channels."
   },
@@ -637,6 +658,7 @@
   "actionSheetOptionSeeWhoReacted": "Voir qui a réagi",
   "actionSheetOptionShare": "Partager",
   "actionSheetOptionStarMessage": "Mettre le message en favori",
+  "actionSheetOptionSubscribe": "S'abonner",
   "actionSheetOptionUnfollowTopic": "Ne plus suivre le sujet",
   "actionSheetOptionUnmuteTopic": "Rendre le sujet non silencieux",
   "actionSheetOptionUnresolveTopic": "Marquer comme non résolu",
@@ -646,6 +668,7 @@
   "actionSheetReadReceiptsErrorReadCount": "Échec du chargement des accusés de réception.",
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{Ce message a été <z-link>lu</z-link> par {count} personne:} other{Ce message a été <z-link>lu</z-link> par {count} personnes :}}",
   "actionSheetReadReceiptsZeroReadCount": "Personne n'a encore lu ce message.",
+  "allChannelsEmptyPlaceholderHeader": "Il n'y a pas de canal que vous pouvez visualiser dans cette organisation.",
   "channelFeedButtonTooltip": "Fil de la chaîne",
   "channelsPageTitle": "Chaînes",
   "chooseAccountButtonAddAnAccount": "Ajouter un compte",
@@ -654,7 +677,10 @@
   "combinedFeedPageTitle": "Fil groupé",
   "composeBoxBannerButtonCancel": "Annuler",
   "composeBoxBannerButtonSave": "Sauvegarder",
+  "composeBoxBannerButtonSubscribe": "S'abonner",
   "composeBoxBannerLabelEditMessage": "Editer le message",
+  "composeBoxSendTooltip": "Envoyer",
+  "composeBoxTopicHintText": "Sujet",
   "deleteMessageConfirmationDialogConfirmButton": "Supprimer",
   "deleteMessageConfirmationDialogMessage": "Supprimer un message de façon permanente le supprime pour tout le monde.",
   "deleteMessageConfirmationDialogTitle": "Supprimer message ?",
@@ -706,6 +732,7 @@
   "mainMenuMyProfile": "Mon profil",
   "manyPeopleTyping": "Plusieurs personnes sont en train d'écrire…",
   "mentionsPageTitle": "Mentions",
+  "newDmSheetComposeButtonLabel": "Rédiger",
   "noStatusText": "Statut sans texte",
   "notifGroupDmConversationLabel": "{senderFullName} à vous et {numOthers, plural, =1{1 other} other{{numOthers} others}}",
   "notifSelfUser": "Vous",
@@ -747,6 +774,7 @@
   "tryAnotherAccountButton": "Essayer un autre compte",
   "tryAnotherAccountMessage": "Votre compte à {url} prend du temps à se charger.",
   "twoPeopleTyping": "{typist} et {otherTypist} sont en train d'écrire…",
+  "unknownUserName": "(utilisateur inconnu)",
   "unpinnedSubscriptionsLabel": "Désépingler",
   "unsubscribeConfirmationDialogConfirmButton": "Se désinscrire",
   "unsubscribeConfirmationDialogTitle": "Se désinscrire de {channelName}?",
