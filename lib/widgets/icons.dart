@@ -20,8 +20,7 @@ abstract final class ZulipIcons {
   //
   //  * If the icon is directional (meaning it should point
   //    the other way in RTL layouts), add its name in
-  //    `assets/icons/directional_icons.js`. For guidance, see:
-  //    https://m3.material.io/foundations/layout/understanding-layout/bidirectionality-rtl#ad90d075-6db4-457b-a15b-51fb6653c825
+  //    `assets/icons/directional_icons.js`.  See comments there.
   //
   //  * Then run the command `tools/icons/build-icon-font`.
   //    That will update this file and the generated icon font,
