@@ -1369,6 +1369,27 @@ abstract class ZulipLocalizations {
   /// **'Mark as read failed'**
   String get errorMarkAsReadFailedTitle;
 
+  /// Message in confirmation dialog when all messages to be marked as read are unmuted.
+  ///
+  /// In en, this message translates to:
+  /// **'{num, plural, =1{1 message} other{{num} messages}} will be marked as read.'**
+  String markAsReadConfirmationDialogMessage(int num);
+
+  /// Message in confirmation dialog when some messages to be marked as read are muted.
+  ///
+  /// In en, this message translates to:
+  /// **'{totalNum, plural, =1{1 message} other{{totalNum} messages}} will be marked as read, including {mutedNum, plural, =1{1 muted message} other{{mutedNum} muted messages}}.'**
+  String markAsReadConfirmationDialogMessageWithMuted(
+    int totalNum,
+    int mutedNum,
+  );
+
+  /// Label for the confirm button in the mark as read confirmation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as read'**
+  String get markAsReadConfirmationDialogConfirmButton;
+
   /// Message when marking messages as unread has completed.
   ///
   /// In en, this message translates to:

@@ -758,6 +758,40 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
   String get errorMarkAsReadFailedTitle => 'Mark as read failed';
 
   @override
+  String markAsReadConfirmationDialogMessage(int num) {
+    String _temp0 = intl.Intl.pluralLogic(
+      num,
+      locale: localeName,
+      other: '$num messages',
+      one: '1 message',
+    );
+    return '$_temp0 will be marked as read.';
+  }
+
+  @override
+  String markAsReadConfirmationDialogMessageWithMuted(
+    int totalNum,
+    int mutedNum,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      totalNum,
+      locale: localeName,
+      other: '$totalNum messages',
+      one: '1 message',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      mutedNum,
+      locale: localeName,
+      other: '$mutedNum muted messages',
+      one: '1 muted message',
+    );
+    return '$_temp0 will be marked as read, including $_temp1.';
+  }
+
+  @override
+  String get markAsReadConfirmationDialogConfirmButton => 'Mark as read';
+
+  @override
   String markAsUnreadComplete(int num) {
     String _temp0 = intl.Intl.pluralLogic(
       num,

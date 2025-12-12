@@ -917,6 +917,25 @@
   "@errorMarkAsReadFailedTitle": {
     "description": "Error title when mark as read action failed."
   },
+  "markAsReadConfirmationDialogMessage": "{num, plural, =1{1 message} other{{num} messages}} will be marked as read.",
+  "@markAsReadConfirmationDialogMessage": {
+    "description": "Message in confirmation dialog when all messages to be marked as read are unmuted.",
+    "placeholders": {
+      "num": {"type": "int", "example": "26"}
+    }
+  },
+  "markAsReadConfirmationDialogMessageWithMuted": "{totalNum, plural, =1{1 message} other{{totalNum} messages}} will be marked as read, including {mutedNum, plural, =1{1 muted message} other{{mutedNum} muted messages}}.",
+  "@markAsReadConfirmationDialogMessageWithMuted": {
+    "description": "Message in confirmation dialog when some messages to be marked as read are muted.",
+    "placeholders": {
+      "totalNum": {"type": "int", "example": "10026"},
+      "mutedNum": {"type": "int", "example": "10000"}
+    }
+  },
+  "markAsReadConfirmationDialogConfirmButton": "Mark as read",
+  "@markAsReadConfirmationDialogConfirmButton": {
+    "description": "Label for the confirm button in the mark as read confirmation dialog."
+  },
   "markAsUnreadComplete": "Marked {num, plural, =1{1 message} other{{num} messages}} as unread.",
   "@markAsUnreadComplete": {
     "description": "Message when marking messages as unread has completed.",
