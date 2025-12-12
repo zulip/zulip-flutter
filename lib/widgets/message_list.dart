@@ -15,6 +15,7 @@ import '../model/message_list.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
 import '../model/typing_status.dart';
+import '../model/unreads.dart';
 import 'action_sheet.dart';
 import 'actions.dart';
 import 'app_bar.dart';
@@ -1499,8 +1500,29 @@ class MarkAsReadWidget extends StatefulWidget {
   State<MarkAsReadWidget> createState() => _MarkAsReadWidgetState();
 }
 
-class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
+class _MarkAsReadWidgetState extends State<MarkAsReadWidget> with PerAccountStoreAwareStateMixin {
+  Unreads? unreadsModel;
+
   bool _loading = false;
+
+  void _unreadsModelChanged() {
+    setState(() {
+      // The actual state lives in [unreadsModel].
+    });
+  }
+
+  @override
+  void onNewStore() {
+    final newStore = PerAccountStoreWidget.of(context);
+    unreadsModel?.removeListener(_unreadsModelChanged);
+    unreadsModel = newStore.unreads..addListener(_unreadsModelChanged);
+  }
+
+  @override
+  void dispose() {
+    unreadsModel?.removeListener(_unreadsModelChanged);
+    super.dispose();
+  }
 
   void _handlePress(BuildContext context) async {
     if (!context.mounted) return;
@@ -1512,8 +1534,7 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = PerAccountStoreWidget.of(context);
-    final unreadCount = store.unreads.countInNarrow(widget.narrow);
+    final unreadCount = unreadsModel!.countInNarrow(widget.narrow);
     final shouldHide = unreadCount == 0;
 
     final messageListTheme = MessageListTheme.of(context);
