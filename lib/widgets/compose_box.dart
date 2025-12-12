@@ -1756,12 +1756,21 @@ class _Banner extends StatelessWidget {
   const _Banner({
     required this.intent,
     required this.label,
+    this.useSmallerText = false,
     this.trailing,
     this.padEnd = true, // ignore: unused_element_parameter
   });
 
   final _BannerIntent intent;
   final String label;
+
+  /// Whether to decrease the label's font size and line height slightly.
+  ///
+  /// When [label] is so long
+  /// that it doesn't fit on a single line in common device configurations,
+  /// consider passing `true` for this,
+  /// and consider shrinking [trailing], e.g. with [ZulipWebUiKitButton.size].
+  final bool useSmallerText;
 
   /// An optional trailing element.
   ///
@@ -1803,8 +1812,12 @@ class _Banner extends StatelessWidget {
     };
 
     final labelTextStyle = TextStyle(
-      fontSize: 17,
-      height: 22 / 17,
+      fontSize: useSmallerText
+        ? 16
+        : 17,
+      height: useSmallerText
+        ? 18 / 16
+        : 22 / 17,
       color: labelColor,
     ).merge(weightVariableTextStyle(context, wght: 600));
 
@@ -1854,12 +1867,14 @@ class _UnsubscribedChannelBannerTrailing extends StatelessWidget {
     return Row(mainAxisSize: MainAxisSize.min, spacing: 8, children: [
       ZulipWebUiKitButton(
         label: zulipLocalizations.composeBoxBannerButtonRefresh,
+        size: .small,
         intent: ZulipWebUiKitButtonIntent.warning,
         onPressed: () {
           MessageListPage.ancestorOf(pageContext).refresh();
         }),
       ZulipWebUiKitButton(
         label: zulipLocalizations.composeBoxBannerButtonSubscribe,
+        size: .small,
         intent: ZulipWebUiKitButtonIntent.warning,
         attention: ZulipWebUiKitButtonAttention.high,
         onPressed: () async {
@@ -2239,6 +2254,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
             : _Banner(
                 intent: _BannerIntent.warning,
                 label: zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend,
+                useSmallerText: true,
                 trailing: _UnsubscribedChannelBannerTrailing(channelId: streamId));
         }
 
