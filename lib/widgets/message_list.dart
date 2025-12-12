@@ -1975,7 +1975,7 @@ class RecipientHeaderDate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 0, 16, 0),
+      padding: const EdgeInsetsDirectional.fromSTEB(10, 0, 16, 0),
       child: DateText(
         fontSize: 16,
         // In Figma this has a line-height of 19, but using 18
