@@ -454,6 +454,10 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'You do not have permission to post in this channel.';
 
   @override
+  String get composeBoxBannerLabelUnsubscribed =>
+      'Replies to your messages will not appear automatically.';
+
+  @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
       'New messages will not appear automatically.';
 

@@ -839,6 +839,12 @@ abstract class ZulipLocalizations {
   /// **'You do not have permission to post in this channel.'**
   String get composeBoxBannerLabelCannotSendInChannel;
 
+  /// Label text for a compose-box banner when you are viewing an unsubscribed channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Replies to your messages will not appear automatically.'**
+  String get composeBoxBannerLabelUnsubscribed;
+
   /// Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages.
   ///
   /// In en, this message translates to:

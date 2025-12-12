@@ -2288,6 +2288,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final bannerComposingNotAllowed = _bannerComposingNotAllowed(context);
@@ -2299,8 +2300,31 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     final Widget? body;
     Widget? banner;
 
-    final controller = this.controller;
     final narrow = widget.narrow;
+    switch (narrow) {
+      case ChannelNarrow(:final streamId):
+      case TopicNarrow(:final streamId):
+        final channel = store.streams[streamId];
+        // (If the channel is unknown, we should have already decided
+        // what to show.)
+        assert(channel != null);
+        final subscription = store.subscriptions[streamId];
+        if (channel != null && subscription == null) {
+          banner = _Banner(
+            intent: _BannerIntent.warning,
+            label: zulipLocalizations.composeBoxBannerLabelUnsubscribed,
+            useSmallerText: true,
+            trailing: _UnsubscribedChannelBannerTrailing(channelId: streamId));
+        }
+
+      case DmNarrow():
+      case CombinedFeedNarrow():
+      case MentionsNarrow():
+      case StarredMessagesNarrow():
+      case KeywordSearchNarrow():
+    }
+
+    final controller = this.controller;
     switch (controller) {
       case StreamComposeBoxController(): {
         narrow as ChannelNarrow;
