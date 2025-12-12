@@ -626,6 +626,13 @@ class _KatexParser {
         case 'nobreak':
         case 'allowbreak':
         case 'mathdefault':
+        case 'overline':
+        case 'underline':
+        case 'overline-line':
+        case 'underline-line':
+          // .overline-line,
+          // .underline-line { width: 100%; border-bottom-style: solid; }
+          // Border applied via inline style: border-bottom-width: 0.04em;
           // Ignore these classes because they don't have a CSS definition
           // in katex.scss, but we encounter them in the generated HTML.
           // (Why are they there if they're not used?  The story seems to be:
@@ -657,6 +664,7 @@ class _KatexParser {
       marginRightEm: _takeStyleEm(inlineStyles, 'margin-right'),
       color: _takeStyleColor(inlineStyles, 'color'),
       position: _takeStylePosition(inlineStyles, 'position'),
+      borderBottomWidthEm: _takeStyleEm(inlineStyles, 'border-bottom-width')
       // TODO handle more CSS properties
     );
     if (inlineStyles != null && inlineStyles.isNotEmpty) {
@@ -893,6 +901,7 @@ class KatexSpanStyles {
 
   final KatexSpanColor? color;
   final KatexSpanPosition? position;
+  final double? borderBottomWidthEm;
 
   const KatexSpanStyles({
     this.widthEm,
@@ -907,6 +916,7 @@ class KatexSpanStyles {
     this.textAlign,
     this.color,
     this.position,
+    this.borderBottomWidthEm,
   });
 
   @override
@@ -924,6 +934,7 @@ class KatexSpanStyles {
     textAlign,
     color,
     position,
+    borderBottomWidthEm
   );
 
   @override
@@ -940,7 +951,8 @@ class KatexSpanStyles {
       other.fontStyle == fontStyle &&
       other.textAlign == textAlign &&
       other.color == color &&
-      other.position == position;
+      other.position == position &&
+      other.borderBottomWidthEm == borderBottomWidthEm;
   }
 
   @override
@@ -958,6 +970,7 @@ class KatexSpanStyles {
     if (textAlign != null) args.add('textAlign: $textAlign');
     if (color != null) args.add('color: $color');
     if (position != null) args.add('position: $position');
+    if (borderBottomWidthEm != null) args.add('borderBottomWidthEm: $borderBottomWidthEm');
     return '${objectRuntimeType(this, 'KatexSpanStyles')}(${args.join(', ')})';
   }
 
@@ -975,6 +988,7 @@ class KatexSpanStyles {
     bool textAlign = true,
     bool color = true,
     bool position = true,
+    bool borderBottomWidthEm = true,
   }) {
     return KatexSpanStyles(
       widthEm: widthEm ? this.widthEm : null,
@@ -989,6 +1003,7 @@ class KatexSpanStyles {
       textAlign: textAlign ? this.textAlign : null,
       color: color ? this.color : null,
       position: position ? this.position : null,
+      borderBottomWidthEm: borderBottomWidthEm ? this.borderBottomWidthEm : null,
     );
   }
 }
