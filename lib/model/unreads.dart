@@ -160,9 +160,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
   int countInCombinedFeedNarrow() {
     int c = 0;
-    for (final messageIds in dms.values) {
-      c = c + messageIds.length;
-    }
+    c += countInDms();
     for (final MapEntry(key: streamId, value: topics) in streams.entries) {
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
         if (channelStore.isTopicVisible(streamId, topic)) {
@@ -222,13 +220,49 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
 
   int countInDmNarrow(DmNarrow narrow) => dms[narrow]?.length ?? 0;
 
-  int countInMentionsNarrow() => mentions.length;
+  /// The unread count for the mentions narrow.
+  ///
+  /// This excludes DM messages in conversations that are considered muted,
+  /// by [UserStore.shouldMuteDmConversation].
+  // If changing which messages to exclude, consider whether the @-mentions
+  // view should change its "is-message-visible" code correspondingly,
+  // so the unread-count badge matches what you see in that view.
+  // TODO: deduplicate "is-message-visible" code
+  //   between [Unreads] and [MessageListView]?
+  // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
+  int countInMentionsNarrow() {
+    int c = 0;
+    for (final messageId in mentions) {
+      final narrow = locatorMap[messageId];
+      if (narrow == null) continue; // TODO(log)
+      switch (narrow) {
+        case DmNarrow():
+          if (channelStore.shouldMuteDmConversation(narrow)) continue;
+        case TopicNarrow():
+      }
+      c++;
+    }
+    return c;
+  }
 
   // TODO: Implement unreads handling.
   int countInStarredMessagesNarrow() => 0;
 
   // TODO: Implement unreads handling?
   int countInKeywordSearchNarrow() => 0;
+
+  /// The aggregated unread count for DM conversations.
+  ///
+  /// This excludes conversations that are considered muted,
+  /// by [UserStore.shouldMuteDmConversation].
+  int countInDms() {
+    int c = 0;
+    for (final MapEntry(key: narrow, value: messageIds) in dms.entries) {
+      if (channelStore.shouldMuteDmConversation(narrow)) continue;
+      c += messageIds.length;
+    }
+    return c;
+  }
 
   int countInNarrow(Narrow narrow) {
     switch (narrow) {

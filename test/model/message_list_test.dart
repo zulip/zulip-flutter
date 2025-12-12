@@ -359,7 +359,7 @@ void main() {
     test('ignore [OutboxMessage]s outside narrow or with `hidden: true`', () => awaitFakeAsync((async) async {
       final stream = eg.stream();
       final otherStream = eg.stream();
-      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await store.setUserTopic(stream, 'muted', UserTopicVisibilityPolicy.muted);
       await prepareOutboxMessagesTo([
         StreamDestination(stream.streamId, eg.t('topic')),
@@ -731,7 +731,7 @@ void main() {
   group('MessageEvent', () {
     test('in narrow', () async {
       final stream = eg.stream();
-      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages:
         List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
@@ -743,7 +743,7 @@ void main() {
 
     test('not in narrow', () async {
       final stream = eg.stream();
-      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages:
         List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
@@ -756,7 +756,7 @@ void main() {
 
     test('while in mid-history', () async {
       final stream = eg.stream();
-      await prepare(narrow: ChannelNarrow(stream.streamId),
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream,
         anchor: NumericAnchor(1000));
       await prepareMessages(foundOldest: true, foundNewest: false, messages:
         List.generate(30, (i) => eg.streamMessage(id: 1000 + i, stream: stream)));
@@ -769,7 +769,7 @@ void main() {
 
     test('before fetch', () async {
       final stream = eg.stream();
-      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await store.addMessage(eg.streamMessage(stream: stream));
       checkNotNotified();
       check(model).fetched.isFalse();
@@ -777,7 +777,7 @@ void main() {
 
     test('when there are outbox messages', () => awaitFakeAsync((async) async {
       final stream = eg.stream();
-      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages:
         List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
@@ -797,7 +797,7 @@ void main() {
 
     test('from another client (localMessageId present but unrecognized)', () => awaitFakeAsync((async) async {
       final stream = eg.stream();
-      await prepare(narrow: eg.topicNarrow(stream.streamId, 'topic'));
+      await prepare(narrow: eg.topicNarrow(stream.streamId, 'topic'), stream: stream);
       await prepareMessages(foundOldest: true, messages:
         List.generate(30, (i) => eg.streamMessage(stream: stream, topic: 'topic')));
 
@@ -820,7 +820,7 @@ void main() {
 
     test('for an OutboxMessage in the narrow', () => awaitFakeAsync((async) async {
       final stream = eg.stream();
-      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages:
         List.generate(30, (i) => eg.streamMessage(stream: stream)));
 
@@ -846,7 +846,7 @@ void main() {
 
     test('for an OutboxMessage outside the narrow', () => awaitFakeAsync((async) async {
       final stream = eg.stream();
-      await prepare(narrow: eg.topicNarrow(stream.streamId, 'topic'));
+      await prepare(narrow: eg.topicNarrow(stream.streamId, 'topic'), stream: stream);
       await prepareMessages(foundOldest: true, messages:
         List.generate(30, (i) => eg.streamMessage(stream: stream, topic: 'topic')));
 
@@ -897,7 +897,7 @@ void main() {
     }));
 
     test('before fetch', () => awaitFakeAsync((async) async {
-      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareOutboxMessages(count: 5, stream: stream);
       check(model)
         ..fetched.isFalse()
@@ -1337,8 +1337,8 @@ void main() {
     final stream = eg.stream();
     final messages = List.generate(30, (i) => eg.streamMessage(stream: stream));
 
-    test('in narrow', () async {
-      await prepare(narrow: ChannelNarrow(stream.streamId));
+    test('all deleted messages are in the msglist', () async {
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages: messages);
 
       check(model).messages.length.equals(30);
@@ -1347,8 +1347,8 @@ void main() {
       check(model).messages.length.equals(20);
     });
 
-    test('not all in narrow', () async {
-      await prepare(narrow: ChannelNarrow(stream.streamId));
+    test('some deleted messages are in the msglist, some not', () async {
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages: messages.sublist(5));
 
       check(model).messages.length.equals(25);
@@ -1357,8 +1357,8 @@ void main() {
       check(model).messages.length.equals(20);
     });
 
-    test('not in narrow', () async {
-      await prepare(narrow: ChannelNarrow(stream.streamId));
+    test('none of the deleted messages are in the msglist', () async {
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages: messages.sublist(5));
 
       check(model).messages.length.equals(25);
@@ -1367,8 +1367,8 @@ void main() {
       check(model).messages.length.equals(25);
     });
 
-    test('complete message deletion', () async {
-      await prepare(narrow: ChannelNarrow(stream.streamId));
+    test('deleted messages are exactly those in the msglist', () async {
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages: messages.sublist(0, 25));
 
       check(model).messages.length.equals(25);
@@ -1377,8 +1377,8 @@ void main() {
       check(model).messages.length.equals(0);
     });
 
-    test('non-consecutive message deletion', () async {
-      await prepare(narrow: ChannelNarrow(stream.streamId));
+    test('deleted messages are present non-consecutively in the msglist', () async {
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages: messages);
       final messagesToDelete = messages.sublist(2, 5) + messages.sublist(10, 15);
 
@@ -1502,7 +1502,7 @@ void main() {
     test('message absent', () async {
       final stream = eg.stream();
       final narrow = ChannelNarrow(stream.streamId);
-      await prepare(narrow: narrow);
+      await prepare(narrow: narrow, stream: stream);
 
       final messagesInNarrow = List<Message>.generate(10,
         (i) => eg.streamMessage(id: 10 + i, stream: stream));
@@ -2214,7 +2214,7 @@ void main() {
 
   test('reassemble', () async {
     final stream = eg.stream();
-    await prepare(narrow: ChannelNarrow(stream.streamId));
+    await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
     await prepareMessages(foundOldest: true, messages:
       List.generate(30, (i) => eg.streamMessage(stream: stream)));
     await store.addMessage(eg.streamMessage(stream: stream));
@@ -2721,7 +2721,7 @@ void main() {
   group('handle content parsing into subclasses of ZulipMessageContent', () {
     test('ZulipContent', () async {
       final stream = eg.stream();
-      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages: []);
 
       await store.addMessage(eg.streamMessage(stream: stream));
@@ -2735,7 +2735,7 @@ void main() {
 
     test('PollContent', () async {
       final stream = eg.stream();
-      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages: []);
 
       await store.addMessage(eg.streamMessage(
@@ -2759,7 +2759,7 @@ void main() {
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream, topic: 'topic',
         timestamp: eg.utcTimestamp(clock.daysAgo(1)));
-      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages: [message]);
 
       // `findItemWithMessageId` uses binary search.  Set up just enough
@@ -2782,7 +2782,7 @@ void main() {
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream, topic: 'topic',
         timestamp: eg.utcTimestamp(clock.now()));
-      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages: [message]);
 
       // `findItemWithMessageId` uses binary search.  Set up just enough

@@ -1045,8 +1045,8 @@
   "@successTopicLinkCopied": {
     "description": "Message when link of a topic was copied to the user's system clipboard."
   },
-  "@switchAccountButton": {
-    "description": "Label for main-menu button leading to the choose-account page."
+  "@switchAccountButtonTooltip": {
+    "description": "Tooltip message for main-menu button leading to the choose-account page."
   },
   "@themeSettingDark": {
     "description": "Label for dark theme setting."
@@ -1523,7 +1523,7 @@
   "successMessageLinkCopied": "Povezava do sporočila je bila kopirana",
   "successMessageTextCopied": "Besedilo sporočila je bilo kopirano",
   "successTopicLinkCopied": "Povezava do teme kopirana",
-  "switchAccountButton": "Preklopi račun",
+  "switchAccountButtonTooltip": "Preklopi račun",
   "themeSettingDark": "Temna",
   "themeSettingLight": "Svetla",
   "themeSettingSystem": "Sistemska",

@@ -191,6 +191,7 @@ void main() {
       await store.addSubscription(eg.subscription(stream2));
       await store.addSubscription(eg.subscription(stream3, isMuted: true));
       await store.setUserTopic(stream1, 'a', UserTopicVisibilityPolicy.muted);
+      await store.setMutedUsers([eg.thirdUser.userId]);
       fillWithMessages([
         eg.streamMessage(stream: stream1, topic: 'a', flags: []),
         eg.streamMessage(stream: stream1, topic: 'b', flags: []),
@@ -200,7 +201,7 @@ void main() {
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: []),
         eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser], flags: []),
       ]);
-      check(model.countInCombinedFeedNarrow()).equals(5);
+      check(model.countInCombinedFeedNarrow()).equals(4);
     });
 
     test('countInChannel/Narrow', () async {
@@ -249,16 +250,71 @@ void main() {
       check(model.countInDmNarrow(narrow)).equals(5);
     });
 
-    test('countInMentionsNarrow', () async {
-      final stream = eg.stream();
-      prepare();
-      await store.addStream(stream);
-      fillWithMessages([
-        eg.streamMessage(stream: stream, flags: []),
-        eg.streamMessage(stream: stream, flags: [MessageFlag.mentioned]),
-        eg.streamMessage(stream: stream, flags: [MessageFlag.wildcardMentioned]),
-      ]);
-      check(model.countInMentionsNarrow()).equals(2);
+    group('countInMentionsNarrow', () {
+      test('smoke', () async {
+        final stream = eg.stream();
+        prepare();
+        await store.addUser(eg.otherUser);
+        await store.addStream(stream);
+        fillWithMessages([
+          eg.streamMessage(stream: stream, flags: []),
+          eg.streamMessage(stream: stream, flags: [MessageFlag.mentioned]),
+          eg.streamMessage(stream: stream, flags: [MessageFlag.wildcardMentioned]),
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.wildcardMentioned]),
+        ]);
+        check(model.countInMentionsNarrow()).equals(4);
+      });
+
+      test('excludes unreads in muted DM conversations', () async {
+        // Regression test for https://github.com/zulip/zulip-flutter/issues/2026
+        prepare();
+        await store.addUser(eg.otherUser);
+        await store.setMutedUsers([eg.otherUser.userId]);
+
+        fillWithMessages([
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
+        ]);
+        check(model.countInMentionsNarrow()).equals(0);
+      });
+
+      test('not affected by DM sender being unknown', () async {
+        prepare();
+        final unknownUser = eg.user();
+        check(store.getUser(unknownUser.userId)).isNull();
+
+        fillWithMessages([
+          eg.dmMessage(from: unknownUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
+        ]);
+        check(model.countInMentionsNarrow()).equals(1);
+      });
+
+      test('not affected by channel being unknown/unsubscribed/muted, nor topic being muted', () async {
+        prepare();
+
+        final channel1 = eg.stream(); // unknown
+
+        final channel2 = eg.stream(); // unsubscribed
+        await store.addStream(channel2);
+        check(store.subscriptions[channel2.streamId]).isNull();
+
+        final channel3 = eg.stream(); // muted
+        await store.addStream(channel3);
+        await store.addSubscription(eg.subscription(channel3, isMuted: true));
+
+        final channel4 = eg.stream(); // unmuted, containing muted topic
+        await store.addStream(channel4);
+        await store.addSubscription(eg.subscription(channel4, isMuted: false));
+        await store.setUserTopic(channel4, 'a', UserTopicVisibilityPolicy.muted);
+
+        fillWithMessages([
+          eg.streamMessage(stream: channel1,             flags: [MessageFlag.mentioned]),
+          eg.streamMessage(stream: channel2,             flags: [MessageFlag.mentioned]),
+          eg.streamMessage(stream: channel3,             flags: [MessageFlag.mentioned]),
+          eg.streamMessage(stream: channel4, topic: 'a', flags: [MessageFlag.mentioned]),
+        ]);
+        check(model.countInMentionsNarrow()).equals(4);
+      });
     });
 
     test('countInStarredMessagesNarrow', () async {
@@ -270,6 +326,20 @@ void main() {
         eg.streamMessage(stream: stream, flags: [MessageFlag.starred]),
       ]);
       check(model.countInStarredMessagesNarrow()).equals(0);
+    });
+
+    test('countInDms', () async {
+      prepare();
+      await store.setMutedUsers([eg.thirdUser.userId]);
+      fillWithMessages([
+        // No one is muted: don't exclude
+        eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: []),
+        // Everyone is muted: exclude
+        eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser], flags: []),
+        // One is muted, one isn't: don't exclude
+        eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser], flags: []),
+      ]);
+      check(model.countInDms()).equals(2);
     });
   });
 

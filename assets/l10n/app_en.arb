@@ -39,9 +39,9 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
-  "switchAccountButton": "Switch account",
-  "@switchAccountButton": {
-    "description": "Label for main-menu button leading to the choose-account page."
+  "switchAccountButtonTooltip": "Switch account",
+  "@switchAccountButtonTooltip": {
+    "description": "Tooltip message for main-menu button leading to the choose-account page."
   },
   "tryAnotherAccountMessage": "Your account at {url} is taking a while to load.",
   "@tryAnotherAccountMessage": {
@@ -686,6 +686,75 @@
   "emptyMessageList": "There are no messages here.",
   "@emptyMessageList": {
     "description": "Placeholder for some message-list pages when there are no messages."
+  },
+  "emptyMessageListCombinedFeed": "There are no messages in your combined feed.",
+  "@emptyMessageListCombinedFeed": {
+    "description": "Placeholder for the 'Combined feed' page when there are no messages."
+  },
+  "emptyMessageListChannelWithoutContentAccess": "You don’t have <z-link>content access</z-link> to this channel.",
+  "@emptyMessageListChannelWithoutContentAccess": {
+    "description": "Placeholder for a channel or topic page when there are no messages and you don’t have content access."
+  },
+  "emptyMessageListChannelUnavailable": "This channel doesn’t exist, or you are not allowed to view it.",
+  "@emptyMessageListChannelUnavailable": {
+    "description": "Placeholder for a channel page when there are no messages and the channel does not exist or you don't have access to it."
+  },
+  "emptyMessageListSelfDmHeader": "You have not sent any direct messages to yourself yet!",
+  "@emptyMessageListSelfDmHeader": {
+    "description": "Placeholder for the self-DM page when there are no messages."
+  },
+  "emptyMessageListSelfDmMessage": "Use this space for personal notes, or to test out Zulip features.",
+  "@emptyMessageListSelfDmMessage": {
+    "description": "Extra detail in the placeholder for the self-DM page when there are no messages."
+  },
+  "emptyMessageListDm": "You have no direct messages with {person} yet.",
+  "@emptyMessageListDm": {
+    "description": "Placeholder for a 1:1 DM page when there are no messages.",
+    "placeholders": {
+      "person": {"type": "String", "example": "Alice"}
+    }
+  },
+  "emptyMessageListDmDeactivatedUser": "You have no direct messages with {person}.",
+  "@emptyMessageListDmDeactivatedUser": {
+    "description": "Placeholder for a 1:1 DM page when there are no messages and the other user is deactivated.",
+    "placeholders": {
+      "person": {"type": "String", "example": "Alice"}
+    }
+  },
+  "emptyMessageListDmUnknownUser": "You have no direct messages with this user.",
+  "@emptyMessageListDmUnknownUser": {
+    "description": "Placeholder for a 1:1 DM page when there are no messages and the other user's name is unavailable."
+  },
+  "emptyMessageListGroupDm": "You have no direct messages with these users yet.",
+  "@emptyMessageListGroupDm": {
+    "description": "Placeholder for a group DM page when there are no messages."
+  },
+  "emptyMessageListGroupDmDeactivatedUser": "You have no direct messages with these users.",
+  "@emptyMessageListGroupDmDeactivatedUser": {
+    "description": "Placeholder for a group DM page when there are no messages and one or more participants is deactivated."
+  },
+  "emptyMessageListDmStartConversation": "Why not start the conversation?",
+  "@emptyMessageListDmStartConversation": {
+    "description": "Extra detail in the placeholder for some DM pages when there are no messages."
+  },
+  "emptyMessageListMentionsHeader": "This view will show messages where you are <z-link>mentioned</z-link>.",
+  "@emptyMessageListMentionsHeader": {
+    "description": "Placeholder for the 'Mentions' page when there are no messages."
+  },
+  "emptyMessageListMentionsMessage": "To call attention to a message, you can mention a user, a group, topic participants, or all subscribers to a channel. Type @ in the compose box, and choose who you’d like to mention from the list of suggestions.",
+  "@emptyMessageListMentionsMessage": {
+    "description": "Extra detail in the placeholder for the 'Mentions' page when there are no messages."
+  },
+  "emptyMessageListStarredHeader": "You have no starred messages.",
+  "@emptyMessageListStarredHeader": {
+    "description": "Placeholder for the 'Starred' page when there are no messages."
+  },
+  "emptyMessageListStarredMessage": "<z-link>Starring</z-link> is a good way to keep track of important messages, such as tasks you need to go back to, or useful references. To star a message, long-press it and tap “{button}.”",
+  "@emptyMessageListStarredMessage": {
+    "description": "Extra detail in the placeholder for the 'Starred' page when there are no messages. The {button} placeholder will be the button's translated text.",
+    "placeholders": {
+      "button": {"type": "String", "example": "Star message"}
+    }
   },
   "emptyMessageListSearch": "No search results.",
   "@emptyMessageListSearch": {

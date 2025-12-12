@@ -10,23 +10,20 @@ import 'theme.dart';
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2037-186671&m=dev
 /// It looks like that component was created for the main menu,
 /// then adapted for various other contexts, like the Inbox page.
+/// See [UnreadCountBadgeStyle].
 ///
-/// Currently this widget supports only those other contexts (not the main menu)
-/// and only the component's "kind=unread" variant (not "kind=quantity").
-/// For example, the "Channels" page and the topic-list page:
-///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6205-26001&m=dev
-///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6823-37113&m=dev
-/// (We use this for the topic-list page even though the Figma makes it a bit
-/// more compact there…the inconsistency seems worse and might be accidental.)
-// TODO support the main-menu context, update dartdoc
+/// Currently this widget supports only the component's "kind=unread" variant,
+/// not "kind=quantity".
 // TODO support the "kind=quantity" variant, update dartdoc
 class UnreadCountBadge extends StatelessWidget {
   const UnreadCountBadge({
     super.key,
+    this.style = UnreadCountBadgeStyle.other,
     required this.count,
     required this.channelIdForBackground,
   });
 
+  final UnreadCountBadgeStyle style;
   final int count;
 
   /// An optional [Subscription.streamId], for a channel-colorized background.
@@ -55,21 +52,50 @@ class UnreadCountBadge extends StatelessWidget {
       backgroundColor = designVariables.bgCounterUnread;
     }
 
+    final padding = switch (style) {
+      UnreadCountBadgeStyle.mainMenu =>
+        const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+      UnreadCountBadgeStyle.other =>
+        const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+    };
+
+    final double wght = switch (style) {
+      UnreadCountBadgeStyle.mainMenu => 600,
+      UnreadCountBadgeStyle.other => 500,
+    };
+
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(5),
         color: backgroundColor,
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+        padding: padding,
         child: Text(
           style: TextStyle(
             fontSize: 16,
             height: (16 / 16),
             color: textColor,
-          ).merge(weightVariableTextStyle(context, wght: 500)),
+          ).merge(weightVariableTextStyle(context, wght: wght)),
           count.toString())));
   }
+}
+
+enum UnreadCountBadgeStyle {
+  /// The style to use in the main menu.
+  ///
+  /// Figma:
+  ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2037-185126&m=dev
+  mainMenu,
+
+  /// The style to use in other contexts besides the main menu.
+  ///
+  /// Other contexts include the "Channels" page and the topic-list page:
+  ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6205-26001&m=dev
+  ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6823-37113&m=dev
+  /// (We use this for the topic-list page even though the Figma makes it a bit
+  /// more compact there…the inconsistency seems worse and might be accidental.)
+  other,
 }
 
 class MutedUnreadBadge extends StatelessWidget {

@@ -26,6 +26,7 @@ import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/store_checks.dart';
 import '../model/test_store.dart';
+import '../test_images.dart';
 import '../test_navigation.dart';
 import 'checks.dart';
 import 'test_app.dart';
@@ -257,6 +258,7 @@ void main () {
     }
 
     testWidgets('navigation states reflect on navigation bar menu buttons', (tester) async {
+      prepareBoringImageHttpClient();
       await prepare(tester);
 
       await tapOpenMenuAndAwait(tester);
@@ -270,9 +272,11 @@ void main () {
       await tapOpenMenuAndAwait(tester);
       checkIconNotSelected(tester, inboxMenuIconFinder);
       checkIconSelected(tester, channelsMenuIconFinder);
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('navigation bar menu buttons control navigation states', (tester) async {
+      prepareBoringImageHttpClient();
       await prepare(tester);
 
       await tapOpenMenuAndAwait(tester);
@@ -288,21 +292,27 @@ void main () {
       await tapOpenMenuAndAwait(tester);
       checkIconNotSelected(tester, inboxMenuIconFinder);
       checkIconSelected(tester, channelsMenuIconFinder);
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('navigation bar menu buttons dismiss the menu', (tester) async {
+      prepareBoringImageHttpClient();
       await prepare(tester);
       await tapOpenMenuAndAwait(tester);
       await tapButtonAndAwaitTransition(tester, channelsMenuIconFinder);
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('close button dismisses the menu', (tester) async {
+      prepareBoringImageHttpClient();
       await prepare(tester);
       await tapOpenMenuAndAwait(tester);
       await tapButtonAndAwaitTransition(tester, find.text('Close'));
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('menu buttons dismiss the menu', (tester) async {
+      prepareBoringImageHttpClient();
       addTearDown(testBinding.reset);
       topRoute = null;
       previousTopRoute = null;
@@ -329,21 +339,36 @@ void main () {
       await tester.pump((topBeforePop as TransitionRoute).reverseTransitionDuration);
 
       check(find.byType(BottomSheet)).findsNothing();
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('_MainMenuHeader', (tester) async {
+      prepareBoringImageHttpClient();
+      await prepare(tester);
+      await tapOpenMenuAndAwait(tester);
+      await tapButtonAndAwaitTransition(tester, find.byIcon(ZulipIcons.arrow_left_right));
+      check(find.byType(ChooseAccountPage)).findsOne();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('_MyProfileButton', (tester) async {
+      prepareBoringImageHttpClient();
       await prepare(tester);
       await tapOpenMenuAndAwait(tester);
       await tapButtonAndAwaitTransition(tester, find.text('My profile'));
       check(find.byType(ProfilePage)).findsOne();
       check(find.text(eg.selfUser.fullName)).findsAny();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('_AboutZulipButton', (tester) async {
+      prepareBoringImageHttpClient();
       await prepare(tester);
       await tapOpenMenuAndAwait(tester);
+      await tester.ensureVisible(find.byIcon(ZulipIcons.info));
       await tapButtonAndAwaitTransition(tester, find.byIcon(ZulipIcons.info));
       check(find.byType(AboutZulipPage)).findsOne();
+      debugNetworkImageHttpClientProvider = null;
     });
   });
 

@@ -423,9 +423,14 @@ abstract class PerAccountStoreBase {
   /// Always equal to `account.realmUrl` and `connection.realmUrl`.
   Uri get realmUrl => connection.realmUrl;
 
-  String? get realmName => account.realmName;
+  /// Always equal to `account.realmName`.
+  String get realmName => account.realmName!;
 
-  Uri? get realmIcon => account.realmIcon;
+  /// The full, resolved URL for the Zulip realm icon.
+  ///
+  /// Returned URL is derived by resolving [account.realmIcon] (relative) URL
+  /// against the base [realmUrl].
+  Uri get resolvedRealmIcon => realmUrl.resolveUri(account.realmIcon!);
 
   /// Resolve [reference] as a URL relative to [realmUrl].
   ///
@@ -507,6 +512,8 @@ class PerAccountStore extends PerAccountStoreBase with
     assert(account.zulipVersion == initialSnapshot.zulipVersion
       && account.zulipMergeBase == initialSnapshot.zulipMergeBase
       && account.zulipFeatureLevel == initialSnapshot.zulipFeatureLevel);
+    assert(account.realmName == initialSnapshot.realmName
+      && account.realmIcon == initialSnapshot.realmIconUrl);
 
     connection ??= globalStore.apiConnectionFromAccount(account);
     assert(connection.zulipFeatureLevel == account.zulipFeatureLevel);

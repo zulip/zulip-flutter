@@ -468,12 +468,12 @@ class Quotation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 10),
+      padding: const EdgeInsetsDirectional.only(start: 10),
       child: Container(
-        padding: const EdgeInsets.only(left: 5),
+        padding: const EdgeInsetsDirectional.only(start: 5),
         decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(
+          border: BorderDirectional(
+            start: BorderSide(
               width: 5,
               // Web has the same color in light and dark mode.
               color: const HSLColor.fromAHSL(1, 0, 0, 0.87).toColor()))),
@@ -741,11 +741,11 @@ class MessageMediaContainer extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: UnconstrainedBox(
-        alignment: Alignment.centerLeft,
+        alignment: AlignmentDirectional.centerStart,
         child: Padding(
           // TODO clean up this padding by imitating web less precisely;
           //   in particular, avoid adding loose whitespace at end of message.
-          padding: const EdgeInsets.only(right: 5, bottom: 5),
+          padding: const EdgeInsetsDirectional.only(end: 5, bottom: 5),
           child: ColoredBox(
             color: ContentTheme.of(context).colorMessageMediaContainerBackground,
             child: Padding(
