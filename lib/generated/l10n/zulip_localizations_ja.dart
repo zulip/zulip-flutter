@@ -430,6 +430,10 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
       'このチャンネルに投稿する権限がありません。';
 
   @override
+  String get composeBoxBannerLabelUnsubscribed =>
+      'Replies to your messages will not appear automatically.';
+
+  @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
       'New messages will not appear automatically.';
 

@@ -452,6 +452,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'У вас нет права писать в этом канале.';
 
   @override
+  String get composeBoxBannerLabelUnsubscribed =>
+      'Replies to your messages will not appear automatically.';
+
+  @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
       'Новые сообщения не будут отображаться автоматически.';
 

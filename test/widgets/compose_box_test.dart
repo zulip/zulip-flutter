@@ -1573,10 +1573,12 @@ void main() {
         canSend: false,
         expected: false);
 
-      void testRefreshSubscribeButtons({required Narrow narrow}) {
-        testWidgets('Refresh/Subscribe buttons when cannot send and channel unsubscribed, $narrow', (tester) async {
+      void testRefreshSubscribeButtons({required Narrow narrow, required bool canSendMessages}) {
+        testWidgets('Refresh/Subscribe buttons; ${canSendMessages ? 'with' : 'without'} send-message permission; $narrow', (tester) async {
           final channel = eg.stream(streamId: 1,
-            canSendMessageGroup: eg.groupSetting(members: []));
+            canSendMessageGroup: canSendMessages
+              ? eg.groupSetting(members: [eg.selfUser.userId])
+              : eg.groupSetting(members: []));
           final messages = List.generate(100, (i) => eg.streamMessage(id: 1000 + i,
             stream: channel, topic: topicNarrow.topic.apiName));
 
@@ -1586,9 +1588,10 @@ void main() {
             streams: [channel],
             subscriptions: [],
             messages: messages);
-          checkComposeBoxParts(areShown: false);
-          checkBannerWithLabel(isShown: true,
-            zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend);
+          checkComposeBoxParts(areShown: canSendMessages);
+          checkBannerWithLabel(isShown: true, canSendMessages
+            ? zulipLocalizations.composeBoxBannerLabelUnsubscribed
+            : zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend);
           final model = MessageListPage.ancestorOf(state.context).model!;
           check(model)
             ..fetched.isTrue()..messages.length.equals(100);
@@ -1630,8 +1633,10 @@ void main() {
         });
       }
 
-      testRefreshSubscribeButtons(narrow: channelNarrow);
-      testRefreshSubscribeButtons(narrow: topicNarrow);
+      testRefreshSubscribeButtons(narrow: channelNarrow, canSendMessages: false);
+      testRefreshSubscribeButtons(narrow: topicNarrow, canSendMessages: false);
+      testRefreshSubscribeButtons(narrow: channelNarrow, canSendMessages: true);
+      testRefreshSubscribeButtons(narrow: topicNarrow, canSendMessages: true);
 
       testWidgets('user loses privilege -> compose box is replaced with the banner', (tester) async {
         final selfUser = eg.user(role: UserRole.administrator);

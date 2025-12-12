@@ -450,6 +450,10 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Nie masz uprawnień do dodawania wpisów w tym kanale.';
 
   @override
+  String get composeBoxBannerLabelUnsubscribed =>
+      'Replies to your messages will not appear automatically.';
+
+  @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
       'Nowe wiadomości nie pojawią się z automatu.';
 

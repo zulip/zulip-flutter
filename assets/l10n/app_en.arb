@@ -514,6 +514,10 @@
   "@composeBoxBannerLabelCannotSendInChannel": {
     "description": "Label text for a banner replacing the compose box when you do not have permission to send messages in the channel."
   },
+  "composeBoxBannerLabelUnsubscribed": "Replies to your messages will not appear automatically.",
+  "@composeBoxBannerLabelUnsubscribed": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel."
+  },
   "composeBoxBannerLabelUnsubscribedWhenCannotSend": "New messages will not appear automatically.",
   "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
     "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages."
