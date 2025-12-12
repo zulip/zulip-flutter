@@ -26,6 +26,31 @@ Map<String, dynamic> _$GroupSettingValueNamelessToJson(
   'direct_subgroups': instance.directSubgroups,
 };
 
+RealmAvailableVideoChatProviders _$RealmAvailableVideoChatProvidersFromJson(
+  Map<String, dynamic> json,
+) => RealmAvailableVideoChatProviders(
+  name: json['name'] as String,
+  id: (json['id'] as num).toInt(),
+);
+
+Map<String, dynamic> _$RealmAvailableVideoChatProvidersToJson(
+  RealmAvailableVideoChatProviders instance,
+) => <String, dynamic>{'name': instance.name, 'id': instance.id};
+
+VideoCallResponse _$VideoCallResponseFromJson(Map<String, dynamic> json) =>
+    VideoCallResponse(
+      msg: json['msg'] as String,
+      result: json['result'] as String,
+      url: json['url'] as String,
+    );
+
+Map<String, dynamic> _$VideoCallResponseToJson(VideoCallResponse instance) =>
+    <String, dynamic>{
+      'msg': instance.msg,
+      'result': instance.result,
+      'url': instance.url,
+    };
+
 CustomProfileField _$CustomProfileFieldFromJson(Map<String, dynamic> json) =>
     CustomProfileField(
       id: (json['id'] as num).toInt(),

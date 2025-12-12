@@ -47,6 +47,10 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   GroupSettingValue? get realmCanDeleteOwnMessageGroup; // TODO(server-10)
   bool get realmEnableReadReceipts;
   bool get realmMandatoryTopics;
+  int get realmVideoChatProvider;
+  String? get realmJitsiServerUrl;
+  String? get jitsiServerUrl;
+  String? get serverJitsiServerUrl;
   int get maxFileUploadSizeMib;
   int? get realmMessageContentDeleteLimitSeconds;
   Duration? get realmMessageContentEditLimit =>
@@ -73,6 +77,8 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   /// be empty otherwise.
   // TODO(server-10) simplify this
   String get realmEmptyTopicDisplayName;
+
+  Map<String, RealmAvailableVideoChatProviders> get realmAvailableVideoChatProviders;
 
   Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts;
 
@@ -176,6 +182,14 @@ mixin ProxyRealmStore on RealmStore {
   @override
   bool get realmMandatoryTopics => realmStore.realmMandatoryTopics;
   @override
+  int get realmVideoChatProvider => realmStore.realmVideoChatProvider;
+  @override
+  String? get realmJitsiServerUrl => realmStore.realmJitsiServerUrl;
+  @override
+  String? get jitsiServerUrl => realmStore.jitsiServerUrl;
+  @override
+  String? get serverJitsiServerUrl => realmStore.serverJitsiServerUrl;
+  @override
   int get maxFileUploadSizeMib => realmStore.maxFileUploadSizeMib;
   @override
   int? get realmMessageContentDeleteLimitSeconds => realmStore.realmMessageContentDeleteLimitSeconds;
@@ -191,6 +205,8 @@ mixin ProxyRealmStore on RealmStore {
   RealmDeleteOwnMessagePolicy? get realmDeleteOwnMessagePolicy => realmStore.realmDeleteOwnMessagePolicy;
   @override
   String get realmEmptyTopicDisplayName => realmStore.realmEmptyTopicDisplayName;
+  @override
+  Map<String, RealmAvailableVideoChatProviders> get realmAvailableVideoChatProviders => realmStore.realmAvailableVideoChatProviders;
   @override
   Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts => realmStore.realmDefaultExternalAccounts;
   @override
@@ -234,6 +250,10 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmCanDeleteAnyMessageGroup = initialSnapshot.realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup = initialSnapshot.realmCanDeleteOwnMessageGroup,
     realmMandatoryTopics = initialSnapshot.realmMandatoryTopics,
+    realmVideoChatProvider = initialSnapshot.realmVideoChatProvider,
+    realmJitsiServerUrl = initialSnapshot.realmJitsiServerUrl,
+    jitsiServerUrl = initialSnapshot.jitsiServerUrl,
+    serverJitsiServerUrl = initialSnapshot.serverJitsiServerUrl,
     maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib,
     realmMessageContentDeleteLimitSeconds = initialSnapshot.realmMessageContentDeleteLimitSeconds,
     realmMessageContentEditLimitSeconds = initialSnapshot.realmMessageContentEditLimitSeconds,
@@ -243,6 +263,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmWildcardMentionPolicy = initialSnapshot.realmWildcardMentionPolicy,
     realmDeleteOwnMessagePolicy = initialSnapshot.realmDeleteOwnMessagePolicy,
     _realmEmptyTopicDisplayName = initialSnapshot.realmEmptyTopicDisplayName,
+    realmAvailableVideoChatProviders = initialSnapshot.realmAvailableVideoChatProviders,
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
     maxTopicLength = initialSnapshot.maxTopicLength,
     customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields);
@@ -385,6 +406,14 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   @override
   final bool realmMandatoryTopics;
   @override
+  final int realmVideoChatProvider;
+  @override
+  final String? realmJitsiServerUrl;
+  @override
+  final String? jitsiServerUrl;
+  @override
+  final String? serverJitsiServerUrl;
+  @override
   final int maxFileUploadSizeMib;
   @override
   final int? realmMessageContentDeleteLimitSeconds;
@@ -407,6 +436,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     return _realmEmptyTopicDisplayName ?? 'general chat';
   }
   final String? _realmEmptyTopicDisplayName;
+
+  @override
+  final Map<String, RealmAvailableVideoChatProviders> realmAvailableVideoChatProviders;
 
   @override
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;

@@ -17,6 +17,7 @@ import '../api/route/events.dart';
 import '../api/backoff.dart';
 import '../api/route/realm.dart';
 import '../log.dart';
+import '../widgets/compose_box.dart';
 import 'actions.dart';
 import 'autocomplete.dart';
 import 'database.dart';
@@ -562,6 +563,7 @@ class PerAccountStore extends PerAccountStoreBase with
       emoji: EmojiStoreImpl(core: core,
         allRealmEmoji: initialSnapshot.realmEmoji),
       userSettings: initialSnapshot.userSettings,
+      hasZoomToken: initialSnapshot.hasZoomToken,
       pushDevices: PushDeviceManager(core: core),
       savedSnippets: SavedSnippetStoreImpl(core: core,
         savedSnippets: initialSnapshot.savedSnippets ?? []),
@@ -586,6 +588,7 @@ class PerAccountStore extends PerAccountStoreBase with
     required RealmStoreImpl realm,
     required EmojiStoreImpl emoji,
     required this.userSettings,
+    required this.hasZoomToken,
     required this.pushDevices,
     required SavedSnippetStoreImpl savedSnippets,
     required this.typingNotifier,
@@ -657,6 +660,8 @@ class PerAccountStore extends PerAccountStoreBase with
   // Data attached to the self-account on the realm.
 
   final UserSettings userSettings;
+
+  bool hasZoomToken;
 
   final PushDeviceManager pushDevices;
 
@@ -762,6 +767,15 @@ class PerAccountStore extends PerAccountStoreBase with
     assert(!_disposed);
 
     switch (event) {
+      case HasZoomTokenEvent():
+        assert(debugLog("server event: has_zoom_token"));
+        final hasZoomTokenUpdated = event.value;
+        if (hasZoomToken != hasZoomTokenUpdated) {
+          hasZoomToken = hasZoomTokenUpdated;
+          if(hasZoomToken) await ComposeCall.handleHasZoomTokenEvent();
+          notifyListeners();
+        }
+
       case HeartbeatEvent():
         assert(debugLog("server event: heartbeat"));
 
