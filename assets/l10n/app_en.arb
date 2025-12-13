@@ -632,7 +632,7 @@
   "@composeBoxSendTooltip":  {
     "description": "Tooltip for send button in compose box."
   },
-  "unknownChannelName": "(unknown channel)",
+  "unknownChannelName": "Unknown channel",
   "@unknownChannelName": {
     "description": "Replacement name for channel when it cannot be found in the store."
   },
@@ -661,7 +661,7 @@
       "messageId": {"type": "int", "example": "1234"}
     }
   },
-  "unknownUserName": "(unknown user)",
+  "unknownUserName": "unknown user",
   "@unknownUserName": {
     "description": "Name placeholder to use for a user when we don't know their name."
   },

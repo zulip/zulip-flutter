@@ -1008,7 +1008,7 @@ abstract class ZulipLocalizations {
   /// Replacement name for channel when it cannot be found in the store.
   ///
   /// In en, this message translates to:
-  /// **'(unknown channel)'**
+  /// **'Unknown channel'**
   String get unknownChannelName;
 
   /// Hint text for topic input widget in compose box.
@@ -1038,7 +1038,7 @@ abstract class ZulipLocalizations {
   /// Name placeholder to use for a user when we don't know their name.
   ///
   /// In en, this message translates to:
-  /// **'(unknown user)'**
+  /// **'unknown user'**
   String get unknownUserName;
 
   /// Message list page title for a DM group that only includes yourself.
