@@ -541,6 +541,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get unknownUserName => '（不明なユーザー）';
 
   @override
+  String get youLabel => '(you)';
+
+  @override
   String get dmsWithYourselfPageTitle => '自分とのDM';
 
   @override
