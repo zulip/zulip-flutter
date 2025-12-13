@@ -10,6 +10,7 @@ import 'action_sheet.dart';
 import 'actions.dart';
 import 'app_bar.dart';
 import 'button.dart';
+import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'remote_settings.dart';
@@ -94,6 +95,7 @@ class AllChannelsListEntry extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
     final channel = this.channel;
+    final Subscription? subscription = channel is Subscription ? channel : null;
     final hasContentAccess = store.selfHasContentAccess(channel);
 
     return InkWell(
@@ -104,8 +106,12 @@ class AllChannelsListEntry extends StatelessWidget {
       child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 44),
         child: Padding(padding: const EdgeInsetsDirectional.only(start: 8, end: 12),
           child: Row(spacing: 6, children: [
+            Icon(
+              size: 20,
+              color: colorSwatchFor(context, subscription).iconOnPlainBackground,
+              iconDataForStream(channel)),
             Expanded(
-              child: Text.rich(
+              child: Text(
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -113,12 +119,7 @@ class AllChannelsListEntry extends StatelessWidget {
                   fontSize: 17,
                   height: 20 / 17,
                 ).merge(weightVariableTextStyle(context, wght: 600)),
-                channelTopicLabelSpan(
-                  context: context,
-                  channelId: channel.streamId,
-                  fontSize: 16,
-                  color: designVariables.unreadCountBadgeTextForChannel,
-                ))),
+                channel.name)),
             if (hasContentAccess) _SubscribeToggle(channel: channel),
           ]))));
   }

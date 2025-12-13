@@ -543,7 +543,7 @@ class MessageListAppBarTitle extends StatelessWidget {
             channelTopicLabelSpan(
               context: context,
               channelId: stream.streamId,
-              fontSize: 16,
+              fontSize: 20,
               color: designVariables.unreadCountBadgeTextForChannel,
             )))
         else
@@ -1722,12 +1722,15 @@ class StreamMessageRecipientHeader extends StatelessWidget {
           children: [
             if (stream != null)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 11),
+                // Figma specifies 5px horizontal spacing around an icon that's
+                // 18x18 and includes 1px padding.  The icon SVG is flush with
+                // the edges, so make it 16x16 with 6px horizontal padding.
+                padding: const EdgeInsets.only(left: 6, right: 6),
                 child: Text.rich(
                   channelTopicLabelSpan(
                     context: context,
                     channelId: streamId,
-                    fontSize: 16,
+                    fontSize: 20,
                     color: designVariables.unreadCountBadgeTextForChannel,
                   ),
                   style: recipientHeaderTextStyle(context),
@@ -1735,13 +1738,15 @@ class StreamMessageRecipientHeader extends StatelessWidget {
               )
             else
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 11),
-                child: Text(streamName,
-                  style: recipientHeaderTextStyle(context).copyWith(
-                    fontStyle: FontStyle.italic,
-                    color: designVariables.unreadCountBadgeTextForChannel,
-                  ),
-                  overflow: TextOverflow.ellipsis),
+                padding: const EdgeInsets.only(left: 6, right: 6),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  child: Text(streamName,
+                    style: recipientHeaderTextStyle(context).copyWith(
+                      fontStyle: FontStyle.italic,
+                      color: designVariables.unreadCountBadgeTextForChannel,
+                    ),
+                    overflow: TextOverflow.ellipsis)),
               ),
             Padding(
               // Figma has 5px horizontal padding around an 8px wide icon.

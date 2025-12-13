@@ -193,7 +193,7 @@ void main() {
       final colorSwatch = colorSwatchFor(element, maybeSubscription);
       check(icon).color.equals(colorSwatch.iconOnPlainBackground);
 
-      check(findInRow(find.textContaining(channel.name, findRichText: true))).findsOne();
+      check(findInRow(find.text(channel.name))).findsOne();
 
       final maybeToggle = tester.widgetList<Toggle>(
         findInRow(find.byType(Toggle))).singleOrNull;

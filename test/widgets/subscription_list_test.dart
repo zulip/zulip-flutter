@@ -283,7 +283,7 @@ void main() {
 
   testWidgets('muted streams are displayed as faded', (tester) async {
     void checkOpacityForStreamAndBadge(String streamName, int unreadCount, double opacity) {
-      final streamFinder = find.textContaining(streamName, findRichText: true);
+      final streamFinder = find.text(streamName);
       final streamOpacity = tester.widget<Opacity>(
         find.ancestor(of: streamFinder, matching: find.byType(Opacity)));
       final badgeFinder = find.text('$unreadCount');
@@ -316,10 +316,8 @@ void main() {
 
   testWidgets('stream name of unmuted streams with unmuted unreads is bold', (tester) async {
     void checkStreamNameWght(String streamName, double? expectedWght) {
-      final streamFinder = find.textContaining(streamName, findRichText: true);
-      final textWidget = tester.widget(streamFinder);
-      final TextStyle? style = textWidget is Text ? textWidget.style : (textWidget as RichText).text.style;
-      final wght = wghtFromTextStyle(style!);
+      final streamFinder = find.text(streamName);
+      final wght = wghtFromTextStyle(tester.widget<Text>(streamFinder).style!);
       check(wght).equals(expectedWght);
     }
 
