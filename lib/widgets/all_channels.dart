@@ -109,7 +109,7 @@ class AllChannelsListEntry extends StatelessWidget {
             Icon(
               size: 20,
               color: colorSwatchFor(context, subscription).iconOnPlainBackground,
-              iconDataForStream(channel)),
+              channel.isArchived ? ZulipIcons.archive : iconDataForStream(channel)),
             Expanded(
               child: Text(
                 maxLines: 1,
