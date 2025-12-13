@@ -529,7 +529,7 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
   String get composeBoxSendTooltip => 'Send';
 
   @override
-  String get unknownChannelName => '(unknown channel)';
+  String get unknownChannelName => 'Unknown channel';
 
   @override
   String get composeBoxTopicHintText => 'Topic';
@@ -550,7 +550,7 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
   }
 
   @override
-  String get unknownUserName => '(unknown user)';
+  String get unknownUserName => 'unknown user';
 
   @override
   String get dmsWithYourselfPageTitle => 'DMs with yourself';
