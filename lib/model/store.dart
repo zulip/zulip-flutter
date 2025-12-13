@@ -32,6 +32,7 @@ import 'server_support.dart';
 import 'channel.dart';
 import 'saved_snippet.dart';
 import 'settings.dart';
+import 'topics.dart';
 import 'typing_status.dart';
 import 'unreads.dart';
 import 'user.dart';
@@ -571,6 +572,7 @@ class PerAccountStore extends PerAccountStoreBase with
       presence: Presence(realm: realm,
         initial: initialSnapshot.presences),
       channels: channels,
+      topics: Topics(core: core),
       messages: MessageStoreImpl(channels: channels),
       unreads: Unreads(core: core, channelStore: channels,
         initial: initialSnapshot.unreadMsgs),
@@ -593,6 +595,7 @@ class PerAccountStore extends PerAccountStoreBase with
     required this.typingStatus,
     required this.presence,
     required ChannelStoreImpl channels,
+    required this.topics,
     required MessageStoreImpl messages,
     required this.unreads,
     required this.recentDmConversationsView,
@@ -685,6 +688,8 @@ class PerAccountStore extends PerAccountStoreBase with
   @override
   ChannelStore get channelStore => _channels;
   final ChannelStoreImpl _channels;
+
+  final Topics topics;
 
   //|//////////////////////////////
   // Messages, and summaries of messages.
@@ -869,6 +874,7 @@ class PerAccountStore extends PerAccountStoreBase with
         unreads.handleMessageEvent(event);
         recentDmConversationsView.handleMessageEvent(event);
         recentSenders.handleMessage(event.message); // TODO(#824)
+        topics.handleMessageEvent(event);
         // When adding anything here (to handle [MessageEvent]),
         // it probably belongs in [reconcileMessages] too.
 
@@ -876,6 +882,7 @@ class PerAccountStore extends PerAccountStoreBase with
         assert(debugLog("server event: update_message ${event.messageId}"));
         _messages.handleUpdateMessageEvent(event);
         unreads.handleUpdateMessageEvent(event);
+        topics.handleUpdateMessageEvent(event);
 
       case DeleteMessageEvent():
         assert(debugLog("server event: delete_message ${event.messageIds}"));

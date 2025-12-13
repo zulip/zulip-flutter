@@ -222,12 +222,14 @@ void main() {
       channel ??= someChannel;
 
       connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: true, messages: []).toJson());
-      if (narrow case ChannelNarrow()) {
-        // We auto-focus the topic input when there are no messages;
-        // this is for topic autocomplete.
-        connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
-      }
+        foundOldest: true,
+        // Include one message so that we don't auto-focus the topic input,
+        // which would trigger a topic-list fetch for topic autocomplete.
+        // That's helpful for the test that opens the topic-list page.
+        // With the topic-list fetch deferred until that page is opened,
+        // the test can prepare the fetch response as it chooses.
+        messages: [eg.streamMessage(stream: channel)],
+      ).toJson());
       await tester.pumpWidget(TestZulipApp(
         accountId: eg.selfAccount.id,
         child: MessageListPage(
@@ -261,7 +263,7 @@ void main() {
       streamId ??= someChannel.streamId;
       final transitionDurationObserver = TransitionDurationObserver();
 
-      connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+      connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
       await tester.pumpWidget(TestZulipApp(
         navigatorObservers: [transitionDurationObserver],
         accountId: eg.selfAccount.id,
@@ -509,8 +511,8 @@ void main() {
         await showFromMsglistAppBar(tester,
           narrow: ChannelNarrow(someChannel.streamId));
 
-        connection.prepare(json: GetStreamTopicsResult(topics: [
-          eg.getStreamTopicsEntry(name: 'some topic foo'),
+        connection.prepare(json: GetChannelTopicsResult(topics: [
+          eg.getChannelTopicsEntry(name: 'some topic foo'),
         ]).toJson());
         await tester.tap(findButtonForLabel('List of topics'));
         await tester.pumpAndSettle();
@@ -564,7 +566,7 @@ void main() {
         connection.prepare(json: eg.newestGetMessagesResult(
           foundOldest: true, messages: []).toJson());
         // for topic autocomplete
-        connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+        connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
         await tapButtonAndPump(tester);
         await transitionDurationObserver.pumpPastTransition(tester);
 
@@ -1684,7 +1686,7 @@ void main() {
 
         // Ensure channel-topics are loaded before testing quote & reply behavior
         connection.prepare(body:
-          jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
+          jsonEncode(GetChannelTopicsResult(topics: [eg.getChannelTopicsEntry()]).toJson()));
         final topicController = composeBoxController.topic;
         topicController.value = TextEditingValue(text: 'other topic');
 
@@ -1709,7 +1711,7 @@ void main() {
 
         // Ensure channel-topics are loaded before testing quote & reply behavior
         connection.prepare(body:
-          jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
+          jsonEncode(GetChannelTopicsResult(topics: [eg.getChannelTopicsEntry()]).toJson()));
         final topicController = composeBoxController.topic;
         topicController.value = const TextEditingValue(text: '');
 

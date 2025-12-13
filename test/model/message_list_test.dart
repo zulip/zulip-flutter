@@ -754,6 +754,18 @@ void main() {
       check(model).messages.length.equals(30);
     });
 
+    test('in topic narrow: topics compared case-insensitively', () async {
+      final channel = eg.stream();
+      await prepare(narrow: eg.topicNarrow(channel.streamId, 't'));
+      await prepareMessages(foundOldest: true, messages:
+        .generate(30, (i) => eg.streamMessage(stream: channel, topic: 't')));
+
+      check(model).messages.length.equals(30);
+      await store.addMessage(eg.streamMessage(stream: channel, topic: 'T'));
+      checkNotifiedOnce();
+      check(model).messages.length.equals(31);
+    });
+
     test('while in mid-history', () async {
       final stream = eg.stream();
       await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream,
