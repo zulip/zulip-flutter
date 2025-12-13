@@ -56,6 +56,27 @@ void main() {
     }
 
     group('markNarrowAsRead', () {
+      (Widget, Widget) checkConfirmDialog(WidgetTester tester, int unreadCount) {
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        return checkSuggestedActionDialog(tester,
+          expectedTitle: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
+          expectedMessage: zulipLocalizations.markAllAsReadConfirmationDialogMessage(unreadCount),
+          expectDestructiveActionButton: false,
+          expectedActionButtonText: zulipLocalizations.markAllAsReadConfirmationDialogConfirmButton,
+        );
+      }
+
+      Future<void> confirmToMarkNarrowAsRead({required WidgetTester tester,
+        required BuildContext context, required Narrow narrow, required int unreadCount,
+      }) async {
+        final future = ZulipAction.markNarrowAsRead(context, narrow);
+        await tester.pump(); // confirmation dialog appears
+        final (confirmButton, _) = checkConfirmDialog(tester, unreadCount);
+        await tester.tap(find.byWidget(confirmButton));
+        await tester.pump(Duration.zero); // wait through API request
+        await future;
+      }
+
       testWidgets('smoke test on modern server', (tester) async {
         final narrow = TopicNarrow.ofMessage(eg.streamMessage());
         await prepare(tester);
@@ -88,9 +109,9 @@ void main() {
           processedCount: 11, updatedCount: 3,
           firstProcessedId: null, lastProcessedId: null,
           foundOldest: true, foundNewest: true).toJson());
-        final future = ZulipAction.markNarrowAsRead(context, narrow);
-        await tester.pump(Duration.zero);
-        await future;
+        final unreadCount = store.unreads.countInCombinedFeedNarrow();
+        await confirmToMarkNarrowAsRead(tester: tester,
+          context: context, narrow: narrow, unreadCount: unreadCount);
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('POST')
           ..url.path.equals('/api/v1/messages/flags/narrow')
@@ -114,9 +135,9 @@ void main() {
           processedCount: 11, updatedCount: 3,
           firstProcessedId: null, lastProcessedId: null,
           foundOldest: true, foundNewest: true).toJson());
-        final future = ZulipAction.markNarrowAsRead(context, narrow);
-        await tester.pump(Duration.zero);
-        await future;
+        final unreadCounts = store.unreads.countInCombinedFeedNarrow();
+        await confirmToMarkNarrowAsRead(tester: tester,
+          context: context, narrow: narrow, unreadCount: unreadCounts);
         check(store.unreads.oldUnreadsMissing).isFalse();
       });
     });
