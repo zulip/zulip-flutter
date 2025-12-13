@@ -1058,7 +1058,7 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   }
 
   @override
-  String get sharePageTitle => 'Deli';
+  String get shareChooseAccountLabel => 'Choose an account';
 
   @override
   String get mainMenuMyProfile => 'Moj profil';
