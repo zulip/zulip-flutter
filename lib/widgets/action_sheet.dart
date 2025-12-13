@@ -253,10 +253,13 @@ class BottomSheetEmptyContentPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-
-    final child = loading
-      ? CircularProgressIndicator()
-      : Text(
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final child = loading ? Semantics(
+      label:zulipLocalizations.loading ,
+      liveRegion: true,
+      focusable: true,
+      child: CircularProgressIndicator())
+        : Text(
           textAlign: TextAlign.center,
           style: TextStyle(
             color: designVariables.labelSearchPrompt,

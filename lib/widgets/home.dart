@@ -248,7 +248,11 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(),
+            Semantics(
+              label: zulipLocalizations.loading,
+              liveRegion: true,
+              child:const CircularProgressIndicator(),
+            ),
             Visibility(
               visible: showTryAnotherAccount,
               maintainSize: true,

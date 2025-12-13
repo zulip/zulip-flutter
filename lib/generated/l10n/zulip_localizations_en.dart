@@ -1242,6 +1242,9 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
 
   @override
   String get zulipAppTitle => 'Zulip';
+
+  @override
+  String get loading => 'Loading…';
 }
 
 /// The translations for English, as used in the United Kingdom (`en_GB`).
