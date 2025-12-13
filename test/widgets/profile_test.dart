@@ -348,7 +348,7 @@ void main() {
         customProfileFields: [eg.customProfileField(0, CustomProfileFieldType.user)],
       );
 
-      final textFinder = find.text('(unknown user)');
+      final textFinder = find.text('unknown user');
       check(textFinder.evaluate()).length.equals(1);
     });
 

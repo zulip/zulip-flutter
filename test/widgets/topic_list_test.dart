@@ -75,7 +75,7 @@ void main() {
         child: TopicListPage(streamId: channel.streamId)));
       await tester.pump();
       await tester.pump(Duration.zero);
-      check(find.widgetWithText(ZulipAppBar, '(unknown channel)')).findsOne();
+      check(find.widgetWithText(ZulipAppBar, 'Unknown channel')).findsOne();
     });
 
     testWidgets('navigate to channel feed', (tester) async {

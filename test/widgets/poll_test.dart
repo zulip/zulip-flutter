@@ -115,7 +115,7 @@ void main() {
   testWidgets('show unknown voter', (tester) async {
     await preparePollWidget(tester, pollWidgetData,
       users: [eg.selfUser], voterIdxPairs: [(eg.thirdUser, 1)]);
-    check(findInPoll(find.text('((unknown user))'))).findsOne();
+    check(findInPoll(find.text('(unknown user)'))).findsOne();
   });
 
   testWidgets('poll title missing', (tester) async {

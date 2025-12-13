@@ -24,7 +24,7 @@ void main() {
 
     test('on an unknown user', () {
       final store = eg.store();
-      check(store.userDisplayName(eg.user().userId)).equals('(unknown user)');
+      check(store.userDisplayName(eg.user().userId)).equals('unknown user');
     });
   });
 
@@ -54,7 +54,7 @@ void main() {
       check(store.senderDisplayName(message)).equals('Some User');
       // ... even though `store.userDisplayName` (with no message available
       // for fallback) only has a generic fallback name.
-      check(store.userDisplayName(message.senderId)).equals('(unknown user)');
+      check(store.userDisplayName(message.senderId)).equals('unknown user');
     });
   });
 

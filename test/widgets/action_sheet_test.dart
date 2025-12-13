@@ -268,7 +268,7 @@ void main() {
         child: TopicListPage(streamId: streamId)));
       await tester.pump();
 
-      final titleText = store.streams[streamId]?.name ?? '(unknown channel)';
+      final titleText = store.streams[streamId]?.name ?? 'Unknown channel';
       await tester.longPress(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text(titleText)));
@@ -345,7 +345,7 @@ void main() {
           check(store.streams[someChannel.streamId]).isNull();
           await showFromTopicListAppBar(tester);
           check(findInHeader(find.byType(Icon))).findsNothing();
-          check(findInHeader(find.textContaining('(unknown channel)'))).findsOne();
+          check(findInHeader(find.textContaining('Unknown channel'))).findsOne();
         });
       });
 

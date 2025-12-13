@@ -309,7 +309,7 @@ void main() {
           );
 
           checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-          checkTitle(tester, '(unknown user)');
+          checkTitle(tester, 'unknown user');
         });
 
         testWidgets('short name takes one line', (tester) async {
@@ -424,7 +424,7 @@ void main() {
           );
 
           checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-          checkTitle(tester, '${user0.fullName}, (unknown user)');
+          checkTitle(tester, '${user0.fullName}, unknown user');
         });
 
         testWidgets('few names takes one line', (tester) async {

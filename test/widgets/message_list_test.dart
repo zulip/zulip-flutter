@@ -504,7 +504,7 @@ void main() {
         narrow: DmNarrow.withUser(eg.user().userId, selfUserId: selfUserId), messages: [], users: [eg.selfUser]);
       check(findPlaceholder).findsOne();
       check(findTextInPlaceholder('this user')).findsOne();
-      check(findTextInPlaceholder('(unknown user)')).findsNothing();
+      check(findTextInPlaceholder('unknown user')).findsNothing();
 
       // No need to encourage starting a conversation...right?
       check(findTextInPlaceholder('yet.')).findsNothing();
@@ -1143,7 +1143,7 @@ void main() {
         narrow: narrow, users: [], messages: [streamMessage]);
       await checkTyping(tester,
         eg.typingEvent(narrow, TypingOp.start, 1000),
-        expected: '(unknown user) is typing…',
+        expected: 'unknown user is typing…',
       );
       // Wait for the pending timers to end.
       await tester.pump(const Duration(seconds: 15));
@@ -1795,7 +1795,7 @@ void main() {
         tester.widget(find.text(zulipLocalizations.messageListGroupYouAndOthers(
           zulipLocalizations.unknownUserName)));
         tester.widget(find.text(zulipLocalizations.messageListGroupYouAndOthers(
-          "${zulipLocalizations.unknownUserName}, ${eg.thirdUser.fullName}")));
+          "${eg.thirdUser.fullName}, ${zulipLocalizations.unknownUserName}")));
       });
 
       testWidgets('show "Muted user" label for muted users', (tester) async {

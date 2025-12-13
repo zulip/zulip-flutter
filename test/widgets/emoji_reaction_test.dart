@@ -239,7 +239,7 @@ void main() {
             runSmokeTest('same reaction, different users, with one unknown user', [
               Reaction.fromJson({ ...u1, 'user_id': user1.userId}),
               Reaction.fromJson({ ...u1, 'user_id': user2.userId}),
-              // unknown user; shouldn't crash (name should show as "(unknown user)")
+              // unknown user; shouldn't crash (name should show as "unknown user")
               Reaction.fromJson({ ...u1, 'user_id': eg.user().userId}),
             ], users: users, realmEmoji: realmEmoji);
 
@@ -385,7 +385,7 @@ void main() {
   // - Tapping a chip does the right thing
   // - When an image emoji fails to load, falls back to :text_emoji:
   // - Label text correctly chooses names or number
-  // - When a user isn't found, says "(unknown user)"
+  // - When a user isn't found, says "unknown user"
   // - More about layout? (not just that it's error-free)
   // - Non-animated image emoji is selected when intended
 
