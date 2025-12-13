@@ -704,6 +704,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get loginMethodDivider => 'LUB';
 
   @override
+  String get loginMethodDividerSemanticLabel => 'Log-in alternatives';
+
+  @override
   String signInWithFoo(String method) {
     return 'Logowanie z $method';
   }

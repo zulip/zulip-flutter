@@ -832,6 +832,10 @@
   "@loginMethodDivider": {
     "description": "Text on the divider between the username/password form and the third-party login options. Uppercase (for languages with letter case)."
   },
+  "loginMethodDividerSemanticLabel": "Log-in alternatives",
+  "@loginMethodDividerSemanticLabel": {
+    "description": "Semantic label for divider between the username/password form and the third-party login options."
+  },
   "signInWithFoo": "Sign in with {method}",
   "@signInWithFoo": {
     "description": "Button to use {method} to sign in to the app.",
