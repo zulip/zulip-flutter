@@ -545,6 +545,7 @@ class EmojiPickerListEntry extends StatelessWidget {
   final EmojiCandidate emoji;
 
   static const _emojiSize = 24.0;
+  static const _rowMinHeight = _emojiSize + 20;
 
   void _onPressed() {
     Navigator.pop(pageContext, emoji);
@@ -578,20 +579,22 @@ class EmojiPickerListEntry extends StatelessWidget {
           : Colors.transparent),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Row(spacing: 4, children: [
-          if (glyph != null)
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: glyph),
-          Flexible(child: Text(label,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 17,
-              height: 18 / 17,
-              color: designVariables.textMessage)))
-        ]),
-      ));
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: _rowMinHeight),
+          child: Row(spacing: 4, children: [
+            if (glyph != null)
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: glyph),
+            Flexible(child: Text(label,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 17,
+                height: 18 / 17,
+                color: designVariables.textMessage)))
+          ]),
+        )));
   }
 }
 
