@@ -1705,6 +1705,34 @@ void main() {
         check(store).messages.values
           .single.flags.deepEquals([MessageFlag.starred, MessageFlag.read]);
       });
+
+      test('avoid duplicate flags', () async {
+        // Regression test for https://github.com/zulip/zulip-flutter/issues/1986
+        await prepare();
+        final message = eg.streamMessage(flags: [MessageFlag.read]);
+        await prepareMessages([message]);
+
+        await store.handleEvent(mkAddEvent(MessageFlag.read, [message.id]));
+        check(store).messages.values.single.flags.deepEquals([MessageFlag.read]);
+      });
+
+      test('handle update_message_flags: add flag "all" is idempotent', () async {
+        // Regression test for https://github.com/zulip/zulip-flutter/issues/1986
+        await prepare();
+        final m1 = eg.streamMessage(flags: [MessageFlag.read]);
+        final m2 = eg.streamMessage(flags: []);
+        await prepareMessages([m1, m2]);
+
+        await store.handleEvent(UpdateMessageFlagsAddEvent(
+          id: 1,
+          all: true,
+          flag: MessageFlag.read,
+          messages: [],
+        ));
+
+        check(store.messages[m1.id]!.flags).deepEquals([MessageFlag.read]);
+        check(store.messages[m2.id]!.flags).deepEquals([MessageFlag.read]);
+      });
     });
 
     group('remove flag', () {
