@@ -129,10 +129,10 @@ void main() {
     doTest('email support@ with details of the issue^', null);
     doTest('email support@^ with details of the issue', null);
 
-    doTest('Ask @**Chris Bobbe**^', null); doTest('Ask @_**Chris Bobbe**^', null);
-    doTest('Ask @**Chris Bobbe^**', null); doTest('Ask @_**Chris Bobbe^**', null);
-    doTest('Ask @**Chris^ Bobbe**', null); doTest('Ask @_**Chris^ Bobbe**', null);
-    doTest('Ask @**^Chris Bobbe**', null); doTest('Ask @_**^Chris Bobbe**', null);
+    doTest('Ask ~@**Chris Bobbe**^', mention('Chris Bobbe'));doTest('Ask ~@_**Chris Bobbe**^', silentMention('Chris Bobbe'));
+    doTest('Ask ~@**Chris Bobbe^**', mention('Chris Bobbe'));doTest('Ask ~@_**Chris Bobbe^**', silentMention('Chris Bobbe'));
+    doTest('Ask ~@**Chris^ Bobbe**', mention('Chris'));      doTest('Ask ~@_**Chris^ Bobbe**', silentMention('Chris'));
+    doTest('Ask ~@**^Chris Bobbe**', mention(''));           doTest('Ask ~@_**^Chris Bobbe**', silentMention(''));
 
     doTest('`@chris^', null); doTest('`@_chris^', null);
 

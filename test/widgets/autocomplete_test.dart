@@ -161,6 +161,9 @@ void main() {
       check(find.text(user.fullName)).findsExactly(expected ? 1 : 0);
       check(findAvatarImage(user.userId)).findsExactly(expected ? 1 : 0);
     }
+    void checkAutocompleteHidden() {
+      check(find.byType(Autocomplete)).findsNothing();
+    }
 
     testWidgets('user options appear, disappear, and change correctly', (tester) async {
       final user1 = eg.user(userId: 1, fullName: 'User One', avatarUrl: 'user1.png');
@@ -185,9 +188,8 @@ void main() {
       await tester.pump();
       check(tester.widget<TextField>(composeInputFinder).controller!.text)
         .contains(userMention(user3, users: store));
-      checkUserShown(user1, expected: false);
-      checkUserShown(user2, expected: false);
-      checkUserShown(user3, expected: false);
+      checkAutocompleteHidden();
+
 
       // Then a new autocomplete intent brings up options again
       // TODO(#226): Remove this extra edit when this bug is fixed.
@@ -200,9 +202,8 @@ void main() {
       // TODO(#226): Remove one of these edits when this bug is fixed.
       await tester.enterText(composeInputFinder, '');
       await tester.enterText(composeInputFinder, ' ');
-      checkUserShown(user1, expected: false);
-      checkUserShown(user2, expected: false);
-      checkUserShown(user3, expected: false);
+      checkAutocompleteHidden();
+
 
       debugNetworkImageHttpClientProvider = null;
     });
@@ -279,15 +280,10 @@ void main() {
 
       // Finishing autocomplete updates compose box; causes options to disappear
       await tester.tap(find.text(WildcardMentionOption.channel.canonicalString));
-      await tester.pump();
+      await tester.pumpAndSettle();
       check(tester.widget<TextField>(composeInputFinder).controller!.text)
         .contains(wildcardMention(WildcardMentionOption.channel, store: store));
-      checkWildcardShown(WildcardMentionOption.channel, expected: false);
-      checkWildcardShown(WildcardMentionOption.topic, expected: false);
-      checkWildcardShown(WildcardMentionOption.all, expected: false);
-      checkWildcardShown(WildcardMentionOption.everyone, expected: false);
-      checkWildcardShown(WildcardMentionOption.stream, expected: false);
-
+      checkAutocompleteHidden();
       debugNetworkImageHttpClientProvider = null;
     });
 

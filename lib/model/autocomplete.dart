@@ -26,6 +26,12 @@ extension ComposeContentAutocomplete on ComposeContentController {
       return null;
     }
 
+    String stripMentionFormatting(String text) {
+      // Mentions are inserted as @**Name**; strip formatting so backspacing
+      // reopens autocomplete.
+      return text.replaceAll('**', '');
+    }
+
     // To avoid spending a lot of time searching for autocomplete intents
     // in long messages, we bound how far back we look for the intent's start.
     final earliest = max(0, selection.end - 30);
@@ -37,11 +43,15 @@ extension ComposeContentAutocomplete on ComposeContentController {
     }
 
     final textUntilCursor = text.substring(0, selection.end);
+    final rawTextUntilCursor = textUntilCursor;
     int pos;
     for (pos = selection.end - 1; pos > selection.start; pos--) {
       final charAtPos = textUntilCursor[pos];
       if (charAtPos == '@') {
-        final match = _mentionIntentRegex.matchAsPrefix(textUntilCursor, pos);
+        final candidate = rawTextUntilCursor.substring(pos);
+        final normalizedCandidate = stripMentionFormatting(candidate);
+        final normalizedText = rawTextUntilCursor.substring(0, pos) + normalizedCandidate;
+        final match = _mentionIntentRegex.matchAsPrefix(normalizedText,pos);
         if (match == null) continue;
       } else if (charAtPos == ':') {
         final match = _emojiIntentRegex.matchAsPrefix(textUntilCursor, pos);
@@ -57,7 +67,10 @@ extension ComposeContentAutocomplete on ComposeContentController {
       final charAtPos = textUntilCursor[pos];
       final ComposeAutocompleteQuery query;
       if (charAtPos == '@') {
-        final match = _mentionIntentRegex.matchAsPrefix(textUntilCursor, pos);
+        final candidate = rawTextUntilCursor.substring(pos);
+        final normalizedCandidate = stripMentionFormatting(candidate);
+        final normalizedText = rawTextUntilCursor.substring(0, pos) + normalizedCandidate;
+        final match = _mentionIntentRegex.matchAsPrefix(normalizedText,pos);
         if (match == null) continue;
         query = MentionAutocompleteQuery(match[2]!, silent: match[1]! == '_');
       } else if (charAtPos == ':') {
