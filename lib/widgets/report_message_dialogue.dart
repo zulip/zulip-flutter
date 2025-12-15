@@ -13,8 +13,10 @@ Future<bool?> showReportMessageDialog({
 }) {
   return showDialog<bool>(
     context: context,
-    builder: (context) =>
-        ReportMessageDialog(messageId: messageId, store: store),
+    builder: (context) => ReportMessageDialog(
+      messageId: messageId,
+      store: store,
+    ),
   );
 }
 
@@ -63,22 +65,51 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
     final reasons = <String, String>{
       'spam': 'Spam',
       'harassment': 'Harassment',
+      'inappropriate': 'Inappropriate',
+      'norms': 'Community norms violation',
       'other': 'Other',
+    };
+
+    final reasonIcons = <String, IconData>{
+      'spam': Icons.report_gmailerrorred,
+      'harassment': Icons.warning_amber_rounded,
+      'inappropriate': Icons.block_rounded,
+      'norms': Icons.gavel_rounded,
+      'other': Icons.more_horiz,
     };
 
     return AlertDialog(
       backgroundColor: designVariables.background,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-      contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-      actionsPadding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
-      title: Text(
-        zulipLocalizations.reportMessageDialogTitle,
-        style: TextStyle(
-          fontSize: 20,
-          height: 24 / 20,
-          color: designVariables.title,
-        ).merge(weightVariableTextStyle(context, wght: 600)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+      contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+      actionsPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: designVariables.contextMenuItemBgDanger.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              Icons.flag_rounded,
+              size: 24,
+              color: designVariables.contextMenuItemBgDanger,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              zulipLocalizations.reportMessageDialogTitle,
+              style: TextStyle(
+                fontSize: 20,
+                height: 24 / 20,
+                color: designVariables.title,
+              ).merge(weightVariableTextStyle(context, wght: 600)),
+            ),
+          ),
+        ],
       ),
       content: SingleChildScrollView(
         child: Column(
@@ -89,22 +120,26 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: designVariables.bannerBgIntInfo,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: designVariables.bannerTextIntInfo.withValues(alpha: 0.2),
+                ),
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
                     Icons.info_outline,
-                    size: 20,
+                    size: 18,
                     color: designVariables.bannerTextIntInfo,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'Your report will be sent to the private moderation requests channel for this organization.',
                       style: TextStyle(
-                        fontSize: 14,
-                        height: 18 / 14,
+                        fontSize: 13,
+                        height: 18 / 13,
                         color: designVariables.bannerTextIntInfo,
                       ),
                     ),
@@ -112,7 +147,7 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
             Text(
               'What\'s the problem with this message?',
@@ -122,39 +157,67 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
                 color: designVariables.labelMenuButton,
               ).merge(weightVariableTextStyle(context, wght: 600)),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Container(
               decoration: BoxDecoration(
-                border: Border.all(color: designVariables.borderBar),
-                borderRadius: BorderRadius.circular(4),
+                color: designVariables.bgSearchInput,
+                border: Border.all(
+                  color: _selectedReason != null
+                    ? designVariables.contextMenuItemBg.withValues(alpha: 0.3)
+                    : designVariables.borderBar,
+                  width: _selectedReason != null ? 1.5 : 1,
+                ),
+                borderRadius: BorderRadius.circular(6),
               ),
               child: DropdownButtonFormField<String>(
                 value: _selectedReason,
-                hint: Text(
-                  'Select a reason',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: designVariables.labelTime,
-                  ),
+                hint: Row(
+                  children: [
+                    Icon(
+                      Icons.chevron_right,
+                      size: 20,
+                      color: designVariables.labelTime,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Select a reason',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: designVariables.labelTime,
+                      ),
+                    ),
+                  ],
                 ),
                 isExpanded: true,
-                icon: Icon(Icons.arrow_drop_down, color: designVariables.icon),
+                icon: Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: designVariables.icon,
+                  size: 24,
+                ),
                 decoration: const InputDecoration(
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                 ),
+                dropdownColor: designVariables.background,
                 items: reasons.entries.map((entry) {
                   return DropdownMenuItem<String>(
                     value: entry.key,
-                    child: Text(
-                      entry.value,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: designVariables.labelMenuButton,
-                      ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          reasonIcons[entry.key],
+                          size: 20,
+                          color: designVariables.icon,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          entry.value,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: designVariables.labelMenuButton,
+                          ).merge(weightVariableTextStyle(context, wght: 500)),
+                        ),
+                      ],
                     ),
                   );
                 }).toList(),
@@ -163,9 +226,30 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
                     _selectedReason = value;
                   });
                 },
+                selectedItemBuilder: (context) {
+                  return reasons.entries.map((entry) {
+                    return Row(
+                      children: [
+                        Icon(
+                          reasonIcons[entry.key],
+                          size: 20,
+                          color: designVariables.contextMenuItemBg,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          entry.value,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: designVariables.labelMenuButton,
+                          ).merge(weightVariableTextStyle(context, wght: 600)),
+                        ),
+                      ],
+                    );
+                  }).toList();
+                },
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
             Text(
               'Can you provide more details?',
@@ -175,7 +259,7 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
                 color: designVariables.labelMenuButton,
               ).merge(weightVariableTextStyle(context, wght: 600)),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             TextField(
               controller: _detailsController,
               maxLength: 1000,
@@ -186,24 +270,28 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
                 color: designVariables.textInput,
               ),
               decoration: InputDecoration(
-                hintText: 'Optional',
+                hintText: 'Optional - Add any additional context...',
                 hintStyle: TextStyle(
-                  fontSize: 15,
+                  fontSize: 14,
                   color: designVariables.labelTime,
                 ),
-                contentPadding: const EdgeInsets.all(12),
+                contentPadding: const EdgeInsets.all(14),
                 filled: true,
-                fillColor: designVariables.composeBoxBg,
+                fillColor: designVariables.bgSearchInput,
+                counterStyle: TextStyle(
+                  fontSize: 12,
+                  color: designVariables.labelTime,
+                ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(6),
                   borderSide: BorderSide(color: designVariables.borderBar),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(6),
                   borderSide: BorderSide(color: designVariables.borderBar),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(6),
                   borderSide: BorderSide(
                     color: designVariables.contextMenuItemBg,
                     width: 2,
@@ -222,9 +310,9 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
                 ),
               ),
               child: Text(
@@ -235,29 +323,38 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
                 ).merge(weightVariableTextStyle(context, wght: 600)),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             ElevatedButton(
               onPressed: _canSubmit ? _handleSubmit : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _canSubmit
-                    ? designVariables.contextMenuItemBgDanger
-                    : designVariables.borderBar,
+                  ? designVariables.contextMenuItemBgDanger
+                  : designVariables.borderBar,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                elevation: _canSubmit ? 2 : 0,
+                shadowColor: designVariables.contextMenuItemBgDanger.withValues(alpha: 0.3),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(6),
                 ),
               ),
-              child: Text(
-                zulipLocalizations.reportMessageDialogConfirmButton,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.white,
-                ).merge(weightVariableTextStyle(context, wght: 600)),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.send_rounded,
+                    size: 18,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    zulipLocalizations.reportMessageDialogConfirmButton,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.white,
+                    ).merge(weightVariableTextStyle(context, wght: 600)),
+                  ),
+                ],
               ),
             ),
           ],

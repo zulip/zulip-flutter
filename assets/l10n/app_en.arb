@@ -277,6 +277,19 @@
   "@actionSheetOptionEditMessage": {
     "description": "Label for the 'Edit message' button in the message action sheet."
   },
+
+  "actionSheetOptionReportMessage": "Report message",
+  "@actionSheetOptionReportMessage": {
+    "description": "Label for the 'Report message' button in the message action sheet."
+  },
+  "reportMessageDialogTitle": "Report message",
+  "@reportMessageDialogTitle": {
+    "description": "Title for the report message dialog."
+  },
+  "reportMessageDialogConfirmButton": "Report",
+  "@reportMessageDialogConfirmButton": {
+    "description": "Label for the 'Report' button on the report message dialog."
+  },
   "actionSheetOptionDeleteMessage": "Delete message",
   "@actionSheetOptionDeleteMessage": {
     "description": "Label for the 'Delete message' button in the message action sheet."

@@ -243,6 +243,15 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get actionSheetOptionEditMessage => 'Modifica messaggio';
 
   @override
+  String get actionSheetOptionReportMessage => 'Report message';
+
+  @override
+  String get reportMessageDialogTitle => 'Report message';
+
+  @override
+  String get reportMessageDialogConfirmButton => 'Report';
+
+  @override
   String get actionSheetOptionDeleteMessage => 'Delete message';
 
   @override

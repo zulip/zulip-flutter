@@ -249,6 +249,15 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get actionSheetOptionEditMessage => 'Редактировать сообщение';
 
   @override
+  String get actionSheetOptionReportMessage => 'Report message';
+
+  @override
+  String get reportMessageDialogTitle => 'Report message';
+
+  @override
+  String get reportMessageDialogConfirmButton => 'Report';
+
+  @override
   String get actionSheetOptionDeleteMessage => 'Удалить сообщение';
 
   @override

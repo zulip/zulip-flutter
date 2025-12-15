@@ -529,6 +529,24 @@ abstract class ZulipLocalizations {
   /// **'Edit message'**
   String get actionSheetOptionEditMessage;
 
+  /// Label for the 'Report message' button in the message action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Report message'**
+  String get actionSheetOptionReportMessage;
+
+  /// Title for the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Report message'**
+  String get reportMessageDialogTitle;
+
+  /// Label for the 'Report' button on the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get reportMessageDialogConfirmButton;
+
   /// Label for the 'Delete message' button in the message action sheet.
   ///
   /// In en, this message translates to:
