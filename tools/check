@@ -29,7 +29,6 @@ this_dir=${BASH_SOURCE[0]%/*}
 
 default_suites=(
     analyze test
-    flutter_version
     build_runner l10n drift pigeon icons
     android  # This takes multiple minutes in CI, so do it last.
 )
@@ -225,9 +224,7 @@ run_test() {
 # Check the Flutter version in pubspec.yaml is commented with a commit ID,
 # which agrees with the version, and the commit is from upstream main.
 run_flutter_version() {
-    # Omitted from this files check:
-    #   tools/check
-    files_check pubspec.yaml \
+    files_check pubspec.yaml tools/check \
     || return 0
 
     local flutter_tree flutter_git

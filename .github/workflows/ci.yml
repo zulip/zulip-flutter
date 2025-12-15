@@ -42,5 +42,8 @@ jobs:
     - name: Download our dependencies (flutter pub get)
       run: flutter pub get
 
-    - name: Run tools/check
+    - name: Run tools/check (flutter_version)
+      run: TERM=dumb tools/check --verbose flutter_version
+
+    - name: Run tools/check (all default suites)
       run: TERM=dumb tools/check --all --verbose
