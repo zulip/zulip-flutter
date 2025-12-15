@@ -210,9 +210,17 @@ final _channelAvoidedCharsRegex = RegExp(r'[`>*&[\]]|\$\$');
 String _channelFallbackMarkdownLink(ZulipStream channel, {
   required PerAccountStore store,
 }) {
+  // Like Zulip web, we use a relative URL here, unlike [quoteAndReply] which
+  // uses an absolute URL.  There'd be little benefit to an absolute URL here
+  // because this isn't a likely flow when a user wants something to copy-paste
+  // elsewhere: this flow normally produces `#**…**` syntax, which wouldn't work
+  // for that at all.  And conversely, it's nice to keep reasonably short the
+  // markup that we put into the text box and which the user sees.  Discussion:
+  //   https://chat.zulip.org/#narrow/channel/101-design/topic/.22quote.20message.22.20uses.20absolute.20URL.20instead.20of.20realm-relative/near/2325588
+  final relativeLink = '#${narrowLinkFragment(store, ChannelNarrow(channel.streamId))}';
+
   final text = '#${channel.name.replaceAllMapped(_channelAvoidedCharsRegex,
     (match) => _channelAvoidedCharsReplacements[match[0]]!)}';
-  final relativeLink = '#${narrowLinkFragment(store, ChannelNarrow(channel.streamId))}';
   return inlineLink(text.toString(), relativeLink);
 }
 
@@ -250,6 +258,8 @@ String inlineLink(String visibleText, String destination) {
 }
 
 /// What we show while fetching the target message's raw Markdown.
+///
+/// Like [quoteAndReply], but the message content is replaced with a placeholder.
 String quoteAndReplyPlaceholder(
   ZulipLocalizations zulipLocalizations,
   PerAccountStore store, {
@@ -271,13 +281,23 @@ String quoteAndReplyPlaceholder(
 ///     ```quote
 ///     message content
 ///     ```
+///
+/// See also:
+///  * [quoteAndReplyPlaceholder].
 String quoteAndReply(PerAccountStore store, {
   required Message message,
   required String rawContent,
 }) {
+  // Just like the Zulip web app, we use an absolute URL in these "said" links,
+  // not relative.  That's (a) harmless even if the realm later moves, because
+  // the server turns such links into relative URLs in the message HTML anyway;
+  // and (b) helpful in case the user copy-pastes this outside of Zulip,
+  // including to a different Zulip realm, instead of sending the message here.
+  // Discussion: https://chat.zulip.org/#narrow/channel/101-design/topic/.22quote.20message.22.20uses.20absolute.20URL.20instead.20of.20realm-relative/near/2322862
   final url = narrowLink(store,
     SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
     nearMessageId: message.id);
+
   // Could ask userMentionFromMessage to omit the |<id> part unless the mention
   // is ambiguous… but that would mean a linear scan through all users,
   // and the extra noise won't much matter with the already probably-long
