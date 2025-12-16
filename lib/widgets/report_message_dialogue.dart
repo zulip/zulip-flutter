@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-
+import 'package:toastification/toastification.dart';
+import '../api/core.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/store.dart';
-import 'dialog.dart';
 import 'text.dart';
 import 'theme.dart';
 
@@ -13,10 +13,8 @@ Future<bool?> showReportMessageDialog({
 }) {
   return showDialog<bool>(
     context: context,
-    builder: (context) => ReportMessageDialog(
-      messageId: messageId,
-      store: store,
-    ),
+    builder: (context) =>
+        ReportMessageDialog(messageId: messageId, store: store),
   );
 }
 
@@ -37,6 +35,7 @@ class ReportMessageDialog extends StatefulWidget {
 class _ReportMessageDialogState extends State<ReportMessageDialog> {
   String? _selectedReason;
   final TextEditingController _detailsController = TextEditingController();
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -52,9 +51,65 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
     return true;
   }
 
-  void _handleSubmit() {
-    if (!_canSubmit) return;
-    Navigator.of(context).pop(true);
+  void _handleSubmit() async {
+    if (!_canSubmit || _isSubmitting) return;
+
+    setState(() => _isSubmitting = true);
+
+    final payload = {
+      'report_type': RawParameter(_selectedReason!),
+      if (_detailsController.text.trim().isNotEmpty)
+        'description': _detailsController.text
+            .trim(),
+    };
+
+    try {
+      await widget.store.connection.post<Map<String, dynamic>>(
+        'messages/${widget.messageId}/report',
+        (json) => json,
+        'messages/${widget.messageId}/report',
+        payload,
+      );
+
+      toastification.show(
+        type: ToastificationType.success,
+        foregroundColor: Colors.white,
+        title: Text("Sent !"),
+        description: Text("Report has been sent successfully"),
+        backgroundColor: Colors.green.withValues(alpha: 0.4),
+        icon: const Icon(Icons.check_circle, color: Colors.black),
+        autoCloseDuration: const Duration(seconds: 3),
+        showProgressBar: true,
+        progressBarTheme: ProgressIndicatorThemeData(
+          linearTrackColor: Colors.green,
+          color: Colors.white.withValues(alpha: 0.4),
+        ),
+        alignment: Alignment.topRight,
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } catch (e) {
+
+      toastification.show(
+        type: ToastificationType.error,
+        title: Text("Report Issue"),
+        description: Text("Failed to send report. Please try again."),
+        backgroundColor: Colors.red.withValues(alpha: 0.4),
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.error, color: Colors.black),
+        autoCloseDuration: const Duration(seconds: 3),
+        showProgressBar: true,
+        progressBarTheme: ProgressIndicatorThemeData(
+          linearTrackColor: Colors.red,
+          color: Colors.white.withValues(alpha: 0.4),
+        ),
+        alignment: Alignment.topRight,
+      );
+    } finally {
+      if (mounted){
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   @override
@@ -89,7 +144,9 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: designVariables.contextMenuItemBgDanger.withValues(alpha: 0.1),
+              color: designVariables.contextMenuItemBgDanger.withValues(
+                alpha: 0.1,
+              ),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
@@ -122,7 +179,9 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
                 color: designVariables.bannerBgIntInfo,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: designVariables.bannerTextIntInfo.withValues(alpha: 0.2),
+                  color: designVariables.bannerTextIntInfo.withValues(
+                    alpha: 0.2,
+                  ),
                 ),
               ),
               child: Row(
@@ -148,7 +207,6 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
               ),
             ),
             const SizedBox(height: 24),
-
             Text(
               'What\'s the problem with this message?',
               style: TextStyle(
@@ -163,14 +221,14 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
                 color: designVariables.bgSearchInput,
                 border: Border.all(
                   color: _selectedReason != null
-                    ? designVariables.contextMenuItemBg.withValues(alpha: 0.3)
-                    : designVariables.borderBar,
+                      ? designVariables.contextMenuItemBg.withValues(alpha: 0.3)
+                      : designVariables.borderBar,
                   width: _selectedReason != null ? 1.5 : 1,
                 ),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: DropdownButtonFormField<String>(
-                value: _selectedReason,
+                initialValue: _selectedReason,
                 hint: Row(
                   children: [
                     Icon(
@@ -196,7 +254,10 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
                 ),
                 decoration: const InputDecoration(
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 14,
+                  ),
                 ),
                 dropdownColor: designVariables.background,
                 items: reasons.entries.map((entry) {
@@ -226,31 +287,9 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
                     _selectedReason = value;
                   });
                 },
-                selectedItemBuilder: (context) {
-                  return reasons.entries.map((entry) {
-                    return Row(
-                      children: [
-                        Icon(
-                          reasonIcons[entry.key],
-                          size: 20,
-                          color: designVariables.contextMenuItemBg,
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          entry.value,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: designVariables.labelMenuButton,
-                          ).merge(weightVariableTextStyle(context, wght: 600)),
-                        ),
-                      ],
-                    );
-                  }).toList();
-                },
               ),
             ),
             const SizedBox(height: 24),
-
             Text(
               'Can you provide more details?',
               style: TextStyle(
@@ -278,10 +317,6 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
                 contentPadding: const EdgeInsets.all(14),
                 filled: true,
                 fillColor: designVariables.bgSearchInput,
-                counterStyle: TextStyle(
-                  fontSize: 12,
-                  color: designVariables.labelTime,
-                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(6),
                   borderSide: BorderSide(color: designVariables.borderBar),
@@ -310,7 +345,10 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
                 ),
@@ -325,15 +363,20 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
             ),
             const SizedBox(width: 12),
             ElevatedButton(
-              onPressed: _canSubmit ? _handleSubmit : null,
+              onPressed: _canSubmit && !_isSubmitting ? _handleSubmit : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _canSubmit
-                  ? designVariables.contextMenuItemBgDanger
-                  : designVariables.borderBar,
+                    ? designVariables.contextMenuItemBgDanger
+                    : designVariables.borderBar,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 elevation: _canSubmit ? 2 : 0,
-                shadowColor: designVariables.contextMenuItemBgDanger.withValues(alpha: 0.3),
+                shadowColor: designVariables.contextMenuItemBgDanger.withValues(
+                  alpha: 0.3,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
                 ),
@@ -341,11 +384,7 @@ class _ReportMessageDialogState extends State<ReportMessageDialog> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.send_rounded,
-                    size: 18,
-                    color: Colors.white,
-                  ),
+                  Icon(Icons.send_rounded, size: 18, color: Colors.white),
                   const SizedBox(width: 8),
                   Text(
                     zulipLocalizations.reportMessageDialogConfirmButton,

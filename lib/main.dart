@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:toastification/toastification.dart';
 
 import 'licenses.dart';
 import 'log.dart';
@@ -18,5 +19,5 @@ void main() {
   LiveZulipBinding.ensureInitialized();
   NotificationService.instance.start();
   ShareService.start();
-  runApp(const ZulipApp());
+  runApp(ToastificationWrapper(child: const ZulipApp()));
 }
