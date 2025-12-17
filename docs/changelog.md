@@ -2,6 +2,57 @@
 
 ## Unreleased
 
+### Highlights for users
+
+* Clearer navigation on opening a notification in a different
+  account. (#1210)
+* Autocomplete mentioning a channel, with "#". (PR #1902, toward #124)
+* Show current organization's name and icon atop main menu. (#1037)
+* Many small fixes for layout with right-to-left scripts.
+  (#1245, PR #2005, PR #2007, PR #2010, #1907)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* Merge log: PRs, with fixed issues and user-visible changes.
+  * #1976
+  * #1978
+  * #1979.  Fix a small memory leak.
+  * #2001: fix #2000.  Also Flutter upgrades.
+  * #1991: fix #1245.  Fix RTL layout for unread-message marker.
+  * #1879: fix #1857, fix #1960.  Labels and semantics for the
+    main-tabs icons.
+  * #1993: fix #1210.  Clearer navigation on opening a notification in
+    a different account.
+  * #1937: fix #1037.  Show current organization's name and icon atop
+    main menu.
+  * #1997: fix #2026, fix part of #1088.  Fix mismatch in mentions
+    narrow between mark-read button and message list.  Show unread
+    counts in main menu.
+  * #1988
+  * #2024
+  * #2023
+  * #2009.  Flutter and package upgrades.
+  * #1983: fix #1981.  Accept unknown/future "emojiset" setting values
+    from server.
+  * #2005.  Fix RTL layout of block quotes.
+  * #2007.  Fix RTL layout of inline message media.
+  * #1947.  Friendlier placeholder text in msglist when no messages.
+  * #2016.  Use Zulip's own "copy" icon for "copy link" button.
+  * #2010.  Fix RTL layout in reaction buttons.
+  * #1880: fix #1685.  Very slightly lighter background color in dark
+    theme.
+  * #1370: fix #1179.  Make whole channel side of recipient header lead
+    to channel on tap.
+  * #2015: fix #1907.  Flip certain icons in RTL layouts.
+  * #1902: fix part of #124.  Autocomplete mentioning a channel, with
+    "#".
+  * #1968: fix #1961.  Clarify semantics on login options.
+  * #2027: fix #2003.  Show placeholder on topic-list page when no
+    topics.
+  * #1998.  Tweak design of main-menu buttons.
+
 
 ## 30.0.267 (2025-11-06)
 
