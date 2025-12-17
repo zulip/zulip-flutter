@@ -1524,7 +1524,7 @@ void main() {
       final originalMessage = eg.streamMessage(
         content: "<p>Hello, world</p>");
       final updateEvent = eg.updateMessageEditEvent(originalMessage,
-        flags: [MessageFlag.starred],
+        flags: [MessageFlag.hasAlertWord],
         renderedContent: "<p>Hello, edited</p>",
         editTimestamp: 99999,
         isMeMessage: true,
