@@ -2214,12 +2214,12 @@ void main() {
       await checkApplied(
         mkEvent: (message) => UpdateMessageFlagsAddEvent(
           id: 1,
-          flag: MessageFlag.starred,
+          flag: MessageFlag.hasAlertWord,
           messages: [message.id],
           all: false,
         ),
         doCheckMessageAfterFetch:
-          (messageSubject) => messageSubject.flags.contains(MessageFlag.starred),
+          (messageSubject) => messageSubject.flags.contains(MessageFlag.hasAlertWord),
       );
     });
   });
