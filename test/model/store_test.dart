@@ -391,6 +391,90 @@ void main() {
         realmIcon: Value(Uri.parse('/image-b.png'))));
   });
 
+  group('GlobalStore.refreshRealmMetadata', () {
+    test('smoke; populates/updates realm data', () => awaitFakeAsync((async) async {
+      final account1 = eg.selfAccount.copyWith(
+        realmUrl: Uri.parse('https://realm1.example.com'),
+        realmName: const Value.absent(), // account without realm metadata
+        realmIcon: const Value.absent());
+      final account2 = eg.otherAccount.copyWith(
+        realmUrl: Uri.parse('https://realm2.example.com'),
+        realmName: Value('Old realm 2 name'), // account with old realm metadata
+        realmIcon: Value(Uri.parse('/old-realm-2-image.png')));
+
+      final globalStore = eg.globalStore(accounts: [account1, account2]);
+      globalStore.useCachedApiConnections = true;
+
+      final connection1 = globalStore.apiConnection(
+        realmUrl: account1.realmUrl, zulipFeatureLevel: null);
+      final serverSettings1 = eg.serverSettings(
+        realmUrl: account1.realmUrl,
+        realmName: 'Realm 1 name',
+        realmIcon: Uri.parse('/realm-1-image.png'));
+      connection1.prepare(json: serverSettings1.toJson());
+
+      final connection2 = globalStore.apiConnection(
+        realmUrl: account2.realmUrl, zulipFeatureLevel: null);
+      final serverSettings2 = eg.serverSettings(
+        realmUrl: account2.realmUrl,
+        realmName: 'New realm 2 name',
+        realmIcon: Uri.parse('/new-realm-2-image.png'));
+      connection2.prepare(json: serverSettings2.toJson());
+
+      globalStore.refreshRealmMetadata();
+      async.elapse(Duration.zero);
+
+      check(globalStore.getAccount(account1.id)).isNotNull()
+        ..realmName.equals('Realm 1 name')
+        ..realmIcon.equals(Uri.parse('/realm-1-image.png'));
+      check(globalStore.getAccount(account2.id)).isNotNull()
+        ..realmName.equals('New realm 2 name')
+        ..realmIcon.equals(Uri.parse('/new-realm-2-image.png'));
+    }));
+
+    test('ignores per account store loaded account', () => awaitFakeAsync((async) async {
+      final account1 = eg.selfAccount.copyWith(
+        realmUrl: Uri.parse('https://realm1.example.com'),
+        realmName: Value('Old realm 1 name'),
+        realmIcon: Value(Uri.parse('/old-realm-1-image.png')));
+      final account2 = eg.otherAccount.copyWith(
+        realmUrl: Uri.parse('https://realm2.example.com'),
+        realmName: Value('Old realm 2 name'),
+        realmIcon: Value(Uri.parse('/old-realm-2-image.png')));
+
+      final globalStore = eg.globalStore();
+      await globalStore.add(account1, eg.initialSnapshot(
+        realmName: account1.realmName,
+        realmIconUrl: account1.realmIcon,
+        realmUsers: [eg.selfUser]));
+      await globalStore.add(account2, eg.initialSnapshot(
+        realmName: account2.realmName,
+        realmIconUrl: account2.realmIcon,
+        realmUsers: [eg.otherUser]));
+      globalStore.useCachedApiConnections = true;
+
+      final connection1 = globalStore.apiConnection(
+        realmUrl: account1.realmUrl, zulipFeatureLevel: null);
+      final serverSettings1 = eg.serverSettings(
+        realmUrl: account1.realmUrl,
+        realmName: 'New realm 1 name',
+        realmIcon: Uri.parse('/new-realm-1-image.png'));
+      connection1.prepare(json: serverSettings1.toJson());
+
+      await globalStore.perAccount(account2.id);
+
+      globalStore.refreshRealmMetadata();
+      async.elapse(Duration.zero);
+
+      check(globalStore.getAccount(account1.id)).isNotNull()
+        ..realmName.equals('New realm 1 name')
+        ..realmIcon.equals(Uri.parse('/new-realm-1-image.png'));
+      check(globalStore.getAccount(account2.id)).isNotNull()
+        ..realmName.equals('Old realm 2 name')
+        ..realmIcon.equals(Uri.parse('/old-realm-2-image.png'));
+    }));
+  });
+
   group('GlobalStore.removeAccount', () {
     void checkGlobalStore(GlobalStore store, int accountId, {
       required bool expectAccount,
