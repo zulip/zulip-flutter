@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -153,14 +151,14 @@ void main() {
       switch (defaultTargetPlatform) {
         case TargetPlatform.android:
           final intentDataUrl = androidNotificationUrlForMessage(account, message);
-          unawaited(
-            WidgetsBinding.instance.handlePushRoute(intentDataUrl.toString()));
+          testBinding.notificationPigeonApi.addNotificationTapEvent(
+            AndroidNotificationTapEvent(dataUrl: intentDataUrl.toString()));
           await tester.idle(); // let navigateForNotification find navigator
 
         case TargetPlatform.iOS:
           final payload = messageApnsPayload(message, account: account);
           testBinding.notificationPigeonApi.addNotificationTapEvent(
-            NotificationTapEvent(payload: payload));
+            IosNotificationTapEvent(payload: payload));
           await tester.idle(); // let navigateForNotification find navigator
 
         default:
@@ -171,11 +169,11 @@ void main() {
     void setupNotificationDataForLaunch(WidgetTester tester, Account account, Message message) {
       switch (defaultTargetPlatform) {
         case TargetPlatform.android:
-          // Set up a value for `PlatformDispatcher.defaultRouteName` to return,
-          // for determining the initial route.
+          // Set up an event to be emitted, after the app is launched to
+          // generate a navigation.
           final intentDataUrl = androidNotificationUrlForMessage(account, message);
-          addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
-          tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
+          testBinding.notificationPigeonApi.addNotificationTapEvent(
+            AndroidNotificationTapEvent(dataUrl: intentDataUrl.toString()));
 
         case TargetPlatform.iOS:
           // Set up a value to return for
@@ -395,7 +393,12 @@ void main() {
         check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
 
         await tester.pump();
-        takeHomePageRouteForAccount(accountB.id); // because associated account
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          takeHomePageRouteForAccount(accountA.id); // initial account on launch
+          takeHomePageReplacement(accountB.id); // replaced by associated account
+        } else {
+          takeHomePageRouteForAccount(accountB.id); // because associated account
+        }
         matchesNavigation(check(pushedRoutes).single, accountB, message);
         check(testBinding.globalStore).lastVisitedAccount.equals(accountB);
       }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
