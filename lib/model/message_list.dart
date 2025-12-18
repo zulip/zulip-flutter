@@ -710,7 +710,23 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         // If changing this, consider whether [Unreads.countInMentionsNarrow]
         // should be changed correspondingly, so the message-list view matches
         // the unread-count badge.
+        if (message.conversation case DmConversation(:final allRecipientIds)) {
+          return !store.shouldMuteDmConversation(DmNarrow(
+            allRecipientIds: allRecipientIds, selfUserId: store.selfUserId));
+        }
+        return true;
+
       case StarredMessagesNarrow():
+        // Include messages even if muted in some way.
+        // Other users can't spam the starred-messages view by starring;
+        // the starred state is read/write by the self-user only.
+        //
+        // If we want to change this, consider that we need to compute a
+        // starred-message count without relying on fetched message data:
+        //   https://zulip.com/help/star-a-message#view-your-starred-messages
+        // ([MessageStore.starredMessages] is just a list of message IDs.)
+        return true;
+
       case KeywordSearchNarrow():
         if (message.conversation case DmConversation(:final allRecipientIds)) {
           return !store.shouldMuteDmConversation(DmNarrow(
@@ -734,7 +750,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return true;
 
       case MentionsNarrow():
+        return false;
+
       case StarredMessagesNarrow():
+        return true;
+
       case KeywordSearchNarrow():
         return false;
     }
@@ -773,7 +793,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return MutedUsersVisibilityEffect.none;
 
       case MentionsNarrow():
+        return store.mightChangeShouldMuteDmConversation(event);
+
       case StarredMessagesNarrow():
+        return MutedUsersVisibilityEffect.none;
+
       case KeywordSearchNarrow():
         return store.mightChangeShouldMuteDmConversation(event);
     }
