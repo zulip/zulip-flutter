@@ -195,6 +195,42 @@ struct IosNotificationTapEvent: NotificationTapEvent {
   }
 }
 
+/// On Android, an event emitted when a notification is tapped.
+///
+/// See [notificationTapEvents].
+///
+/// Generated class from Pigeon that represents data sent in messages.
+struct AndroidNotificationTapEvent: NotificationTapEvent {
+  /// The intent data URL of the notification.
+  ///
+  /// This is an internal URL that is generated using
+  /// `NotificationOpenPayload.buildAndroidNotificationUrl` while creating the
+  /// notification during `NotificationDisplayManager._onMessageFcmMessage`.
+  ///
+  /// See [notificationTapEvents].
+  var dataUrl: String
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> AndroidNotificationTapEvent? {
+    let dataUrl = pigeonVar_list[0] as! String
+
+    return AndroidNotificationTapEvent(
+      dataUrl: dataUrl
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      dataUrl
+    ]
+  }
+  static func == (lhs: AndroidNotificationTapEvent, rhs: AndroidNotificationTapEvent) -> Bool {
+    return deepEqualsNotifications(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashNotifications(value: toList(), hasher: &hasher)
+  }
+}
+
 private class NotificationsPigeonCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
@@ -202,6 +238,8 @@ private class NotificationsPigeonCodecReader: FlutterStandardReader {
       return NotificationDataFromLaunch.fromList(self.readValue() as! [Any?])
     case 130:
       return IosNotificationTapEvent.fromList(self.readValue() as! [Any?])
+    case 131:
+      return AndroidNotificationTapEvent.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
     }
@@ -215,6 +253,9 @@ private class NotificationsPigeonCodecWriter: FlutterStandardWriter {
       super.writeValue(value.toList())
     } else if let value = value as? IosNotificationTapEvent {
       super.writeByte(130)
+      super.writeValue(value.toList())
+    } else if let value = value as? AndroidNotificationTapEvent {
+      super.writeByte(131)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -328,8 +369,8 @@ class PigeonEventSink<ReturnType> {
 
 }
 
-/// An event stream that emits a notification payload when the app
-/// encounters a notification tap, while the app is running.
+/// An event stream that emits a notification payload
+/// when a notification is tapped.
 ///
 /// On iOS, emits [IosNotificationTapEvent] when
 /// `userNotificationCenter(_:didReceive:withCompletionHandler:)` gets
@@ -337,9 +378,11 @@ class PigeonEventSink<ReturnType> {
 /// emitted event carries a payload which will be the raw APNs data
 /// dictionary from the `UNNotificationResponse` passed to that method.
 ///
-/// On, Android this method is currently unimplemented.
-///
-/// TODO migrate handling of notification taps on Android to use this API.
+/// On Android, emits [AndroidNotificationTapEvent] when the initial launch
+/// intent (`MainActivity.intent`) or the intent received via
+/// `MainActivity.onNewIntent` is an ACTION_VIEW intent and the associated
+/// data URL has the "zulip" scheme, and "notification" authority. The
+/// emitted event will carry the intent data URL.
 class NotificationTapEventsStreamHandler: PigeonEventChannelWrapper<NotificationTapEvent> {
   static func register(with messenger: FlutterBinaryMessenger,
                       instanceName: String = "",

@@ -50,14 +50,18 @@ class NotificationOpenService {
     try {
       switch (defaultTargetPlatform) {
         case TargetPlatform.iOS:
+          // On iOS, the notification tap that causes a launch of the app is
+          // handled a bit differently than on Android where all types of
+          // notification tap events are served via the
+          // `notificationTapEventsStream`.
           _notifDataFromLaunch = await _notifPigeonApi.getNotificationDataFromLaunch();
+
           _notifPigeonApi.notificationTapEventsStream()
             .listen(_navigateForNotification);
 
         case TargetPlatform.android:
-          // Do nothing; we do notification routing differently on Android.
-          // TODO migrate Android to use the new Pigeon API.
-          break;
+          _notifPigeonApi.notificationTapEventsStream()
+            .listen(_navigateForNotification);
 
         case TargetPlatform.fuchsia:
         case TargetPlatform.linux:
@@ -179,6 +183,8 @@ class NotificationOpenService {
     switch (event) {
       case IosNotificationTapEvent():
         return _navigateForNotificationIos(event);
+      case AndroidNotificationTapEvent():
+        return _navigateForNotificationAndroid(event);
     }
   }
 
@@ -196,14 +202,11 @@ class NotificationOpenService {
     _navigateForNotificationPayload(navigator, notifNavData);
   }
 
-  /// Navigate appropriately for opening the notification described by
-  /// the given `zulip://notification/…` Android intent data URL.
-  ///
-  /// The URL should have been generated with
-  /// [NotificationOpenPayload.buildAndroidNotificationUrl]
-  /// when creating the notification.
-  static Future<void> navigateForAndroidNotificationUrl(Uri url) async {
+  static Future<void> _navigateForNotificationAndroid(AndroidNotificationTapEvent event) async {
     assert(defaultTargetPlatform == TargetPlatform.android);
+
+    final url = Uri.tryParse(event.dataUrl);
+    if (url == null) return; // TODO(log)
     assert(debugLog('opened notif: url: $url'));
 
     NavigatorState navigator = await ZulipApp.navigator;
@@ -212,7 +215,7 @@ class NotificationOpenService {
     if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
 
     assert(url.scheme == 'zulip' && url.host == 'notification');
-    final data = tryParseAndroidNotificationUrl(context: context, url: url);
+    final data = _tryParseAndroidNotificationUrl(context: context, url: url);
     if (data == null) return; // TODO(log)
     _navigateForNotificationPayload(navigator, data);
   }
@@ -232,7 +235,7 @@ class NotificationOpenService {
     }
   }
 
-  static NotificationOpenPayload? tryParseAndroidNotificationUrl({
+  static NotificationOpenPayload? _tryParseAndroidNotificationUrl({
     required BuildContext context,
     required Uri url,
   }) {

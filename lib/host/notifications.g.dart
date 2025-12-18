@@ -124,6 +124,57 @@ class IosNotificationTapEvent extends NotificationTapEvent {
 ;
 }
 
+/// On Android, an event emitted when a notification is tapped.
+///
+/// See [notificationTapEvents].
+class AndroidNotificationTapEvent extends NotificationTapEvent {
+  AndroidNotificationTapEvent({
+    required this.dataUrl,
+  });
+
+  /// The intent data URL of the notification.
+  ///
+  /// This is an internal URL that is generated using
+  /// `NotificationOpenPayload.buildAndroidNotificationUrl` while creating the
+  /// notification during `NotificationDisplayManager._onMessageFcmMessage`.
+  ///
+  /// See [notificationTapEvents].
+  String dataUrl;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      dataUrl,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static AndroidNotificationTapEvent decode(Object result) {
+    result as List<Object?>;
+    return AndroidNotificationTapEvent(
+      dataUrl: result[0]! as String,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! AndroidNotificationTapEvent || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(encode(), other.encode());
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => Object.hashAll(_toList())
+;
+}
+
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -138,6 +189,9 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is IosNotificationTapEvent) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
+    }    else if (value is AndroidNotificationTapEvent) {
+      buffer.putUint8(131);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -150,6 +204,8 @@ class _PigeonCodec extends StandardMessageCodec {
         return NotificationDataFromLaunch.decode(readValue(buffer)!);
       case 130: 
         return IosNotificationTapEvent.decode(readValue(buffer)!);
+      case 131: 
+        return AndroidNotificationTapEvent.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -202,8 +258,8 @@ class NotificationHostApi {
   }
 }
 
-/// An event stream that emits a notification payload when the app
-/// encounters a notification tap, while the app is running.
+/// An event stream that emits a notification payload
+/// when a notification is tapped.
 ///
 /// On iOS, emits [IosNotificationTapEvent] when
 /// `userNotificationCenter(_:didReceive:withCompletionHandler:)` gets
@@ -211,9 +267,11 @@ class NotificationHostApi {
 /// emitted event carries a payload which will be the raw APNs data
 /// dictionary from the `UNNotificationResponse` passed to that method.
 ///
-/// On, Android this method is currently unimplemented.
-///
-/// TODO migrate handling of notification taps on Android to use this API.
+/// On Android, emits [AndroidNotificationTapEvent] when the initial launch
+/// intent (`MainActivity.intent`) or the intent received via
+/// `MainActivity.onNewIntent` is an ACTION_VIEW intent and the associated
+/// data URL has the "zulip" scheme, and "notification" authority. The
+/// emitted event will carry the intent data URL.
 Stream<NotificationTapEvent> notificationTapEvents( {String instanceName = ''}) {
   if (instanceName.isNotEmpty) {
     instanceName = '.$instanceName';
