@@ -779,16 +779,16 @@ class FakeNotificationPigeonApi implements NotificationPigeonApi {
   Future<NotificationDataFromLaunch?> getNotificationDataFromLaunch() async =>
     _notificationDataFromLaunch;
 
-  StreamController<NotificationTapEvent>? _notificationTapEventsStreamController;
+  final _notificationTapEventsStreamController =
+    StreamController<NotificationTapEvent>();
 
   void addNotificationTapEvent(NotificationTapEvent event) {
-    _notificationTapEventsStreamController!.add(event);
+    _notificationTapEventsStreamController.add(event);
   }
 
   @override
   Stream<NotificationTapEvent> notificationTapEventsStream() {
-    _notificationTapEventsStreamController ??= StreamController();
-    return _notificationTapEventsStreamController!.stream;
+    return _notificationTapEventsStreamController.stream;
   }
 }
 
