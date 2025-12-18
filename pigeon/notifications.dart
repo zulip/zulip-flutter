@@ -5,6 +5,8 @@ import 'package:pigeon/pigeon.dart';
 @ConfigurePigeon(PigeonOptions(
   dartOut: 'lib/host/notifications.g.dart',
   swiftOut: 'ios/Runner/Notifications.g.swift',
+  kotlinOut: 'android/app/src/main/kotlin/com/zulip/flutter/notifications/Notifications.g.kt',
+  kotlinOptions: KotlinOptions(package: 'com.zulip.flutter.notifications'),
 ))
 
 class NotificationDataFromLaunch {
@@ -35,6 +37,20 @@ class IosNotificationTapEvent extends NotificationTapEvent {
   final Map<Object?, Object?> payload;
 }
 
+/// An event that is only emitted on Android platform when a notification is
+/// tapped on.
+///
+/// See [notificationTapEvents].
+class AndroidNotificationTapEvent extends NotificationTapEvent {
+  const AndroidNotificationTapEvent({required this.dataUrl});
+
+  /// The intent data URL that was provided when the notification was created
+  /// during `NotificationDisplayManager._onMessageFcmMessage`.
+  ///
+  /// Also see [notificationTapEvents].
+  final String dataUrl;
+}
+
 @HostApi()
 abstract class NotificationHostApi {
   /// Retrieves notification data if the app was launched by tapping on a notification.
@@ -50,12 +66,20 @@ abstract class NotificationHostApi {
 @EventChannelApi()
 abstract class NotificationEventChannelApi {
   /// An event stream that emits a notification payload when the app
-  /// encounters a notification tap, while the app is running.
+  /// encounters a notification tap, on iOS and Android while the app is
+  /// running, or only on Android when apps was launched by tapping a
+  /// notification.
   ///
-  /// Emits an event when
+  /// On iOS, emits an event when
   /// `userNotificationCenter(_:didReceive:withCompletionHandler:)` gets
   /// called, indicating that the user has tapped on a notification. The
   /// emitted payload will be the raw APNs data dictionary from the
   /// `UNNotificationResponse` passed to that method.
+  ///
+  /// On Android, emits an event when the initial launch intent
+  /// (`MainActivity.intent`) or the intent received via
+  /// `MainActivity.onNewIntent` is an ACTION_VIEW intent and the associated
+  /// data URL has the "zulip" scheme, and "notification" authority. The
+  /// emitted event will carry the intent data URL.
   NotificationTapEvent notificationTapEvents();
 }
