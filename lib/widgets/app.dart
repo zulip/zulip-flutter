@@ -188,40 +188,32 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
         .routeForNotificationFromLaunch(context: context);
   }
 
-  // TODO migrate Android's notification navigation to use the new Pigeon API.
-  AccountRoute<void>? _initialRouteAndroid(
-    BuildContext context,
-    String initialRoute,
-  ) {
-    final initialRouteUrl = Uri.tryParse(initialRoute);
-    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
-      assert(debugLog('got notif: url: $initialRouteUrl'));
-      final data = NotificationOpenService.tryParseAndroidNotificationUrl(
-        context: context,
-        url: initialRouteUrl);
-      if (data == null) return null; // TODO(log)
-      return NotificationOpenService.routeForNotification(
-        context: context,
-        data: data);
-    }
-
-    return null;
-  }
-
   List<Route<dynamic>> _handleGenerateInitialRoutes(String initialRoute) {
     // The `_ZulipAppState.context` lacks the required ancestors. Instead
     // we use the Navigator which should be available when this callback is
     // called and its context should have the required ancestors.
     final context = ZulipApp.navigatorKey.currentContext!;
 
-    final route = defaultTargetPlatform == TargetPlatform.iOS
-        ? _initialRouteIos(context)
-        : _initialRouteAndroid(context, initialRoute);
-    if (route != null) {
-      return [
-        HomePage.buildRoute(accountId: route.accountId),
-        route,
-      ];
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      final route = _initialRouteIos(context);
+      if (route != null) {
+        return [
+          HomePage.buildRoute(accountId: route.accountId),
+          route,
+        ];
+      }
+    } else {
+      // On Android, we ignore any notification at this step, and handle
+      // any initial notification by a navigation after the first frame.
+      // See [NotificationOpenService.start], and the buffering in
+      // NotificationTapEventListener.kt when onListen is not yet called.
+      //
+      // The navigation causes a small visible glitch where one loading spinner
+      // gets replaced by another; see recordings:
+      //   https://github.com/zulip/zulip-flutter/pull/2043#discussion_r2794138972
+      // TODO it'd be nice to avoid that glitch by controlling the initial route.
+      //   We accept this glitch as a workaround for an upstream issue:
+      //   https://github.com/flutter/flutter/issues/178305
     }
 
     final globalStore = GlobalStoreWidget.of(context);
@@ -241,9 +233,6 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     switch (routeInformation.uri) {
       case Uri(scheme: 'zulip', host: 'login') && var url:
         await LoginPage.handleWebAuthUrl(url);
-        return true;
-      case Uri(scheme: 'zulip', host: 'notification') && var url:
-        await NotificationOpenService.navigateForAndroidNotificationUrl(url);
         return true;
     }
     return super.didPushRouteInformation(routeInformation);

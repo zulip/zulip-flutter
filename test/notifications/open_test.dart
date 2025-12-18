@@ -162,8 +162,8 @@ void main() {
       switch (defaultTargetPlatform) {
         case TargetPlatform.android:
           final intentDataUrl = androidNotificationUrlForMessage(account, message);
-          unawaited(
-            WidgetsBinding.instance.handlePushRoute(intentDataUrl.toString()));
+          testBinding.notificationPigeonApi.addNotificationTapEvent(
+            AndroidNotificationTapEvent(dataUrl: intentDataUrl.toString()));
           await tester.idle(); // let navigateForNotification find navigator
 
         case TargetPlatform.iOS:
@@ -180,11 +180,11 @@ void main() {
     void setupNotificationDataForLaunch(WidgetTester tester, Account account, Message message) {
       switch (defaultTargetPlatform) {
         case TargetPlatform.android:
-          // Set up a value for `PlatformDispatcher.defaultRouteName` to return,
-          // for determining the initial route.
+          // Set up an event to be emitted from
+          // `notificationPigeonApi.notificationTapEventsStream`.
           final intentDataUrl = androidNotificationUrlForMessage(account, message);
-          addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
-          tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
+          testBinding.notificationPigeonApi.addNotificationTapEvent(
+            AndroidNotificationTapEvent(dataUrl: intentDataUrl.toString()));
 
         case TargetPlatform.iOS:
           // Set up a value to return for
@@ -500,7 +500,14 @@ void main() {
         check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
 
         await tester.pump();
-        takeHomePageRouteForAccount(accountB.id); // because associated account
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          takeHomePageRouteForAccount(accountA.id); // initial account on launch
+          takeHomePageReplacement(accountB.id); // replaced by associated account
+        } else {
+          // On iOS, associated account is determined early while generating
+          // initial routes. See `_ZulipAppState._handleGenerateInitialRoutes`.
+          takeHomePageRouteForAccount(accountB.id);
+        }
         matchesNavigation(check(pushedRoutes).single, accountB, message);
         check(testBinding.globalStore).lastVisitedAccount.equals(accountB);
       }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
