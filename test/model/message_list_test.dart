@@ -1265,8 +1265,8 @@ void main() {
       checkHasMessageIds([1, 2, 3]);
 
       await store.setMutedUsers([user1.userId]);
-      checkNotifiedOnce();
-      checkHasMessageIds([2, 3]);
+      checkNotNotified();
+      checkHasMessageIds([1, 2, 3]);
     });
 
     test('ChannelNarrow -> do nothing', () async {
@@ -3273,12 +3273,12 @@ void checkInvariants(MessageListView model) {
       switch (model.narrow) {
         case CombinedFeedNarrow():
         case MentionsNarrow():
-        case StarredMessagesNarrow():
         case KeywordSearchNarrow():
           check(model.store.shouldMuteDmConversation(narrow)).isFalse();
         case ChannelNarrow():
         case TopicNarrow():
         case DmNarrow():
+        case StarredMessagesNarrow():
       }
     }
   }
