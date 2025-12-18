@@ -197,6 +197,40 @@ struct IosNotificationTapEvent: NotificationTapEvent {
   }
 }
 
+/// An event that is only emitted on Android platform when a notification is
+/// tapped on.
+///
+/// See [notificationTapEvents].
+///
+/// Generated class from Pigeon that represents data sent in messages.
+struct AndroidNotificationTapEvent: NotificationTapEvent {
+  /// The intent data URL that was provided when the notification was created
+  /// during `NotificationDisplayManager._onMessageFcmMessage`.
+  ///
+  /// Also see [notificationTapEvents].
+  var dataUrl: String
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> AndroidNotificationTapEvent? {
+    let dataUrl = pigeonVar_list[0] as! String
+
+    return AndroidNotificationTapEvent(
+      dataUrl: dataUrl
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      dataUrl
+    ]
+  }
+  static func == (lhs: AndroidNotificationTapEvent, rhs: AndroidNotificationTapEvent) -> Bool {
+    return deepEqualsNotifications(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashNotifications(value: toList(), hasher: &hasher)
+  }
+}
+
 private class NotificationsPigeonCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
@@ -204,6 +238,8 @@ private class NotificationsPigeonCodecReader: FlutterStandardReader {
       return NotificationDataFromLaunch.fromList(self.readValue() as! [Any?])
     case 130:
       return IosNotificationTapEvent.fromList(self.readValue() as! [Any?])
+    case 131:
+      return AndroidNotificationTapEvent.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
     }
@@ -217,6 +253,9 @@ private class NotificationsPigeonCodecWriter: FlutterStandardWriter {
       super.writeValue(value.toList())
     } else if let value = value as? IosNotificationTapEvent {
       super.writeByte(130)
+      super.writeValue(value.toList())
+    } else if let value = value as? AndroidNotificationTapEvent {
+      super.writeByte(131)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
