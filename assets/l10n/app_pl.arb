@@ -302,8 +302,71 @@
   "@emptyMessageList": {
     "description": "Placeholder for some message-list pages when there are no messages."
   },
+  "@emptyMessageListChannelUnavailable": {
+    "description": "Placeholder for a channel page when there are no messages and the channel does not exist or you don't have access to it."
+  },
+  "@emptyMessageListChannelWithoutContentAccess": {
+    "description": "Placeholder for a channel or topic page when there are no messages and you don’t have content access."
+  },
+  "@emptyMessageListCombinedFeed": {
+    "description": "Placeholder for the 'Combined feed' page when there are no messages."
+  },
+  "@emptyMessageListDm": {
+    "description": "Placeholder for a 1:1 DM page when there are no messages.",
+    "placeholders": {
+      "person": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@emptyMessageListDmDeactivatedUser": {
+    "description": "Placeholder for a 1:1 DM page when there are no messages and the other user is deactivated.",
+    "placeholders": {
+      "person": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@emptyMessageListDmStartConversation": {
+    "description": "Extra detail in the placeholder for some DM pages when there are no messages."
+  },
+  "@emptyMessageListDmUnknownUser": {
+    "description": "Placeholder for a 1:1 DM page when there are no messages and the other user's name is unavailable."
+  },
+  "@emptyMessageListGroupDm": {
+    "description": "Placeholder for a group DM page when there are no messages."
+  },
+  "@emptyMessageListGroupDmDeactivatedUser": {
+    "description": "Placeholder for a group DM page when there are no messages and one or more participants is deactivated."
+  },
+  "@emptyMessageListMentionsHeader": {
+    "description": "Placeholder for the 'Mentions' page when there are no messages."
+  },
+  "@emptyMessageListMentionsMessage": {
+    "description": "Extra detail in the placeholder for the 'Mentions' page when there are no messages."
+  },
   "@emptyMessageListSearch": {
     "description": "Placeholder for the 'Search' page when there are no messages."
+  },
+  "@emptyMessageListSelfDmHeader": {
+    "description": "Placeholder for the self-DM page when there are no messages."
+  },
+  "@emptyMessageListSelfDmMessage": {
+    "description": "Extra detail in the placeholder for the self-DM page when there are no messages."
+  },
+  "@emptyMessageListStarredHeader": {
+    "description": "Placeholder for the 'Starred' page when there are no messages."
+  },
+  "@emptyMessageListStarredMessage": {
+    "description": "Extra detail in the placeholder for the 'Starred' page when there are no messages. The {button} placeholder will be the button's translated text.",
+    "placeholders": {
+      "button": {
+        "example": "Star message",
+        "type": "String"
+      }
+    }
   },
   "@errorAccountLoggedIn": {
     "description": "Error message on attempting to log into an account that's already logged in.",
@@ -693,6 +756,9 @@
   "@loginMethodDivider": {
     "description": "Text on the divider between the username/password form and the third-party login options. Uppercase (for languages with letter case)."
   },
+  "@loginMethodDividerSemanticLabel": {
+    "description": "Semantic label for divider between the username/password form and the third-party login options."
+  },
   "@loginPageTitle": {
     "description": "Title for login page."
   },
@@ -782,6 +848,9 @@
   },
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
+  },
+  "@navBarMenuLabel": {
+    "description": "Label for the Menu button on the bottom navigation bar."
   },
   "@navButtonAllChannels": {
     "description": "Title for a nav button that opens the 'All channels' page."
@@ -1062,6 +1131,9 @@
   },
   "@today": {
     "description": "Term to use to reference the current day."
+  },
+  "@topicListEmptyPlaceholderHeader": {
+    "description": "Header text shown when a channel has no topics."
   },
   "@topicValidationErrorMandatoryButEmpty": {
     "description": "Topic validation error when topic is required but was empty."
@@ -1348,7 +1420,22 @@
   "emojiPickerSearchEmoji": "Szukaj emoji",
   "emojiReactionsMore": "więcej",
   "emptyMessageList": "Póki co brak wiadomości.",
+  "emptyMessageListChannelUnavailable": "Nie ma takiego kanału lub nie masz uprawnień do jego podglądu.",
+  "emptyMessageListChannelWithoutContentAccess": "Nie masz <z-link>dostępu do zawartości</z-link> w tym kanale.",
+  "emptyMessageListCombinedFeed": "Brak wiadomości w widoku mieszanym.",
+  "emptyMessageListDm": "Nie wymieniono jeszcze wiadomości z {person}.",
+  "emptyMessageListDmDeactivatedUser": "Brak historii wymiany wiadomości z {person}.",
+  "emptyMessageListDmStartConversation": "A może by tak zacząć rozmowę?",
+  "emptyMessageListDmUnknownUser": "Nie wymieniono wiadomości bezpośrednich z tym użytkownikiem.",
+  "emptyMessageListGroupDm": "Nie wymieniono jeszcze wiadomości z tymi użytkownikami.",
+  "emptyMessageListGroupDmDeactivatedUser": "Brak historii wymiany wiadomości z tymi użytkownikami.",
+  "emptyMessageListMentionsHeader": "Ten widok pokaże wiadomości, w których Cię <z-link>wymieniono</z-link>.",
+  "emptyMessageListMentionsMessage": "Aby zwrócić uwagę na wiadomość możesz wymienić użytkownika, grupę, aktywnych w wątku a nawet wszystkich śledzących kanał. Użyj @ w polu wprowadzania wiadomości wybierz jedną z dostępnych opcji.",
   "emptyMessageListSearch": "Brak wyników wyszukiwania.",
+  "emptyMessageListSelfDmHeader": "Jeszcze nie wysłano wiadomości na własną skrzynkę!",
+  "emptyMessageListSelfDmMessage": "Użyj tego miejsca na osobiste notki lub na potrzeby testów funkcji Zulip.",
+  "emptyMessageListStarredHeader": "Brak wiadomości oznaczonych gwiazdką.",
+  "emptyMessageListStarredMessage": "<z-link>Oznaczanie gwiazdką</z-link> to dobra metoda aby śledzić ważne wiadomości oraz zadania, do których chcesz wrócić. Aby oznaczyć wiadomość gwiazdką wybierz “{button}.”",
   "errorAccountLoggedIn": "Konto {email} na {server} znajduje się już na liście dodanych kont.",
   "errorAccountLoggedInTitle": "Konto już wylogowane",
   "errorBannerCannotPostInChannelLabel": "Nie masz uprawnień do dodawania wpisów w tym kanale.",
@@ -1435,6 +1522,7 @@
   "loginFormSubmitLabel": "Zaloguj",
   "loginHidePassword": "Ukryj hasło",
   "loginMethodDivider": "LUB",
+  "loginMethodDividerSemanticLabel": "Inne sposoby logowania",
   "loginPageTitle": "Zaloguj",
   "loginPasswordLabel": "Hasło",
   "loginServerUrlLabel": "URL serwera Zulip",
@@ -1459,6 +1547,7 @@
   "messageListGroupYouWithYourself": "Zapiski na własne konto",
   "messageNotSentLabel": "NIE WYSŁANO WIADOMOŚCI",
   "mutedUser": "Wyciszony użytkownik",
+  "navBarMenuLabel": "Menu",
   "navButtonAllChannels": "Wszystkie kanały",
   "newDmFabButtonLabel": "Nowa DM",
   "newDmSheetComposeButtonLabel": "Utwórz",
@@ -1529,6 +1618,7 @@
   "themeSettingSystem": "Systemowy",
   "themeSettingTitle": "WYSTRÓJ",
   "today": "Dzisiaj",
+  "topicListEmptyPlaceholderHeader": "Póki co pusto, bo brak wątków.",
   "topicValidationErrorMandatoryButEmpty": "Wątki są wymagane przez tę organizację.",
   "topicValidationErrorTooLong": "Długość wątku nie może być dłuższa niż {maxLength, plural, =1{1 znak} other{{maxLength} znaków}}.",
   "topicsButtonTooltip": "Wątki",

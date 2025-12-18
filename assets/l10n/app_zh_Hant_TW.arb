@@ -107,6 +107,9 @@
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
+  "@allChannelsEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'All channels' page saying that there is no content to show."
+  },
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
   },
@@ -115,6 +118,18 @@
   },
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
+  },
+  "@channelsEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show."
+  },
+  "@channelsEmptyPlaceholderMessage": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show, with a link to 'All channels'.",
+    "placeholders": {
+      "allChannelsPageTitle": {
+        "example": "All channels",
+        "type": "String"
+      }
+    }
   },
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
@@ -609,6 +624,12 @@
       }
     }
   },
+  "@inboxEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'Inbox' page saying that there is no content to show."
+  },
+  "@inboxEmptyPlaceholderMessage": {
+    "description": "Additional centered text on the 'Inbox' page saying that there is no content to show."
+  },
   "@inboxPageTitle": {
     "description": "Title for the page with unreads."
   },
@@ -880,6 +901,12 @@
   },
   "@reactionChipsLabel": {
     "description": "Text identifying the container of reaction chips on a message. (An accessibility label for assistive technology.)"
+  },
+  "@recentDmConversationsEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "@recentDmConversationsEmptyPlaceholderMessage": {
+    "description": "Additional centered text on the 'Direct messages' page saying that there is no content to show."
   },
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
@@ -1268,9 +1295,12 @@
   "actionSheetReadReceiptsErrorReadCount": "載入已讀回條失敗。",
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{此訊息已被<z-link>閱讀</z-link>，共有 {count} 人：} other{此訊息已被<z-link>閱讀</z-link>，共有 {count} 人：}}",
   "actionSheetReadReceiptsZeroReadCount": "尚無人閱讀此訊息。",
+  "allChannelsEmptyPlaceholderHeader": "在此組織中沒有您可以查看的頻道。",
   "allChannelsPageTitle": "所有頻道",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "頻道饋給",
+  "channelsEmptyPlaceholderHeader": "您尚未訂閱任何頻道。",
+  "channelsEmptyPlaceholderMessage": "試著前往 <z-link>{allChannelsPageTitle}</z-link>，加入一些頻道吧。",
   "channelsPageTitle": "頻道",
   "chooseAccountButtonAddAnAccount": "增添帳號",
   "chooseAccountPageLogOutButton": "登出",
@@ -1380,6 +1410,8 @@
   "experimentalFeatureSettingsPageTitle": "實驗性功能",
   "experimentalFeatureSettingsWarning": "這些選項啟用的功能仍在開發中，尚未完善。它們可能無法正常運作，且可能導致應用程式其他部分出現問題。\n\n這些設定的目的是供參與 Zulip 開發的人員進行試驗使用。",
   "filenameAndSizeInMiB": "{filename}： {size} MiB",
+  "inboxEmptyPlaceholderHeader": "您的收件匣中沒有未讀訊息。",
+  "inboxEmptyPlaceholderMessage": "請使用下方按鈕查看綜合動態或頻道清單。",
   "inboxPageTitle": "收件匣",
   "initialAnchorSettingDescription": "您可以選擇將訊息串開啟在第一則未讀訊息，或是最新的訊息。",
   "initialAnchorSettingFirstUnreadAlways": "第一則未讀訊息",
@@ -1452,6 +1484,8 @@
   "reactionChipLabel": "{emojiName}： {votes}",
   "reactionChipVotesYouAndOthers": "{otherUsersCount, plural, =1 {你與其他 1 人} other {你與其他 {otherUsersCount} 人}}",
   "reactionChipsLabel": "反應",
+  "recentDmConversationsEmptyPlaceholderHeader": "您尚未有任何私人訊息！",
+  "recentDmConversationsEmptyPlaceholderMessage": "要不要開始一段對話呢？",
   "recentDmConversationsPageTitle": "私人訊息",
   "recentDmConversationsSectionHeader": "私人訊息",
   "revealButtonLabel": "顯示訊息",
