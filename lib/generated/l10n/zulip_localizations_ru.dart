@@ -102,7 +102,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get actionSheetOptionSubscribe => 'Подписаться';
 
   @override
-  String get subscribeFailedTitle => 'Подписаться не удалось';
+  String get subscribeFailedTitle => 'Не удалось подписаться';
 
   @override
   String get actionSheetOptionMarkChannelAsRead =>
@@ -151,7 +151,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get actionSheetOptionResolveTopic => 'Поставить отметку \"решено\"';
 
   @override
-  String get actionSheetOptionUnresolveTopic => 'Снять отметку \"решено\"';
+  String get actionSheetOptionUnresolveTopic => 'Пометить как нерешённое';
 
   @override
   String get errorResolveTopicFailedTitle =>
@@ -584,64 +584,64 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get emptyMessageListCombinedFeed =>
-      'There are no messages in your combined feed.';
+      'В вашей объединенной ленте нет сообщений.';
 
   @override
   String get emptyMessageListChannelWithoutContentAccess =>
-      'You don’t have <z-link>content access</z-link> to this channel.';
+      'У вас нет <z-link>доступа к содержимому</z-link> данного канала.';
 
   @override
   String get emptyMessageListChannelUnavailable =>
-      'This channel doesn’t exist, or you are not allowed to view it.';
+      'Этого канала нет, или у вас нет к нему доступа.';
 
   @override
   String get emptyMessageListSelfDmHeader =>
-      'You have not sent any direct messages to yourself yet!';
+      'Вы еще не отправляли себе личные сообщения!';
 
   @override
   String get emptyMessageListSelfDmMessage =>
-      'Use this space for personal notes, or to test out Zulip features.';
+      'Здесь вы можете делать заметки для себя и тестировать возможности Zulip.';
 
   @override
   String emptyMessageListDm(String person) {
-    return 'You have no direct messages with $person yet.';
+    return 'У вас пока нет личной переписки с пользователем $person.';
   }
 
   @override
   String emptyMessageListDmDeactivatedUser(String person) {
-    return 'You have no direct messages with $person.';
+    return 'У вас нет личной переписки с пользователем $person.';
   }
 
   @override
   String get emptyMessageListDmUnknownUser =>
-      'You have no direct messages with this user.';
+      'У вас нет личной переписки с этим пользователем.';
 
   @override
   String get emptyMessageListGroupDm =>
-      'You have no direct messages with these users yet.';
+      'У вас пока нет личной переписки с этими пользователями.';
 
   @override
   String get emptyMessageListGroupDmDeactivatedUser =>
-      'You have no direct messages with these users.';
+      'У вас нет личной переписки с этими пользователями.';
 
   @override
   String get emptyMessageListDmStartConversation =>
-      'Why not start the conversation?';
+      'Почему бы не начать общение?';
 
   @override
   String get emptyMessageListMentionsHeader =>
-      'This view will show messages where you are <z-link>mentioned</z-link>.';
+      'Этот вид показывает сообщения, в которых вас <z-link>упомянули</z-link>.';
 
   @override
   String get emptyMessageListMentionsMessage =>
-      'To call attention to a message, you can mention a user, a group, topic participants, or all subscribers to a channel. Type @ in the compose box, and choose who you’d like to mention from the list of suggestions.';
+      'Чтобы привлечь внимание к сообщению, вы можете упомянуть пользователя, группу, участников темы или всех подписчиков канала. Введите @ в поле для ввода текста и выберите из списка подсказок, кого вы хотите упомянуть.';
 
   @override
-  String get emptyMessageListStarredHeader => 'You have no starred messages.';
+  String get emptyMessageListStarredHeader => 'У вас нет отмеченных сообщений.';
 
   @override
   String emptyMessageListStarredMessage(String button) {
-    return '<z-link>Starring</z-link> is a good way to keep track of important messages, such as tasks you need to go back to, or useful references. To star a message, long-press it and tap “$button.”';
+    return '<z-link>Отметка</z-link> звездочкой — это хороший способ отслеживать важные сообщения, такие как задачи, к которым нужно вернуться, или полезные ссылки. Чтобы отметить сообщение, выберите его длинным нажатием, а затем нажмите «$button».';
   }
 
   @override
@@ -705,7 +705,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get loginMethodDivider => 'ИЛИ';
 
   @override
-  String get loginMethodDividerSemanticLabel => 'Log-in alternatives';
+  String get loginMethodDividerSemanticLabel => 'Другие варианты входа';
 
   @override
   String signInWithFoo(String method) {
@@ -1149,7 +1149,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Оповестить тему';
 
   @override
-  String get navBarMenuLabel => 'Menu';
+  String get navBarMenuLabel => 'Меню';
 
   @override
   String get messageIsEditedLabel => 'ИЗМЕНЕНО';
@@ -1279,5 +1279,5 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get zulipAppTitle => 'Zulip';
 
   @override
-  String get topicListEmptyPlaceholderHeader => 'There are no topics here yet.';
+  String get topicListEmptyPlaceholderHeader => 'Здесь пока нет тем.';
 }

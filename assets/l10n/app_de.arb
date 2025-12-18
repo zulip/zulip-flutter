@@ -107,6 +107,9 @@
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
+  "@allChannelsEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'All channels' page saying that there is no content to show."
+  },
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
   },
@@ -115,6 +118,18 @@
   },
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
+  },
+  "@channelsEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show."
+  },
+  "@channelsEmptyPlaceholderMessage": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show, with a link to 'All channels'.",
+    "placeholders": {
+      "allChannelsPageTitle": {
+        "example": "All channels",
+        "type": "String"
+      }
+    }
   },
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
@@ -336,6 +351,9 @@
   },
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
+  },
+  "@errorCouldNotAccessUploadedFileTitle": {
+    "description": "Error title on failure in opening a file someone previously uploaded to Zulip"
   },
   "@errorCouldNotConnectTitle": {
     "description": "Error title when the app could not connect to the server."
@@ -605,6 +623,12 @@
         "type": "String"
       }
     }
+  },
+  "@inboxEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'Inbox' page saying that there is no content to show."
+  },
+  "@inboxEmptyPlaceholderMessage": {
+    "description": "Additional centered text on the 'Inbox' page saying that there is no content to show."
   },
   "@inboxPageTitle": {
     "description": "Title for the page with unreads."
@@ -877,6 +901,12 @@
   },
   "@reactionChipsLabel": {
     "description": "Text identifying the container of reaction chips on a message. (An accessibility label for assistive technology.)"
+  },
+  "@recentDmConversationsEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "@recentDmConversationsEmptyPlaceholderMessage": {
+    "description": "Additional centered text on the 'Direct messages' page saying that there is no content to show."
   },
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
@@ -1267,9 +1297,12 @@
   "actionSheetReadReceiptsErrorReadCount": "Laden von Empfangsbestätigungen fehlgeschlagen.",
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{Diese Nachricht wurde von einer Person <z-link>gelesen</z-link>:} other{Diese Nachricht wurde von {count} Personen <z-link>gelesen</z-link>:}}",
   "actionSheetReadReceiptsZeroReadCount": "Niemand hat diese Nachricht bisher gelesen.",
+  "allChannelsEmptyPlaceholderHeader": "Es gibt keine Kanäle, die du in dieser Organisation anzeigen könntest.",
   "allChannelsPageTitle": "Alle Kanäle",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Kanal-Feed",
+  "channelsEmptyPlaceholderHeader": "Du hast noch keine Kanäle abonniert.",
+  "channelsEmptyPlaceholderMessage": "Versuche, nach <z-link>{allChannelsPageTitle}</z-link> zu gehen und einigen davon beizutreten.",
   "channelsPageTitle": "Kanäle",
   "chooseAccountButtonAddAnAccount": "Account hinzufügen",
   "chooseAccountPageLogOutButton": "Abmelden",
@@ -1325,6 +1358,7 @@
   "errorContentNotInsertedTitle": "Inhalt nicht eingefügt",
   "errorContentToInsertIsEmpty": "Die einzufügende Datei ist leer oder kann nicht geöffnet werden.",
   "errorCopyingFailed": "Kopieren fehlgeschlagen",
+  "errorCouldNotAccessUploadedFileTitle": "Konnte nicht auf die hochgeladene Datei zugreifen",
   "errorCouldNotConnectTitle": "Konnte nicht verbinden",
   "errorCouldNotEditMessageTitle": "Konnte Nachricht nicht bearbeiten",
   "errorCouldNotFetchMessageSource": "Konnte Nachrichtenquelle nicht abrufen.",
@@ -1378,6 +1412,8 @@
   "experimentalFeatureSettingsPageTitle": "Experimentelle Funktionen",
   "experimentalFeatureSettingsWarning": "Diese Optionen aktivieren Funktionen, die noch in Entwicklung und nicht bereit sind. Sie funktionieren möglicherweise nicht und können Problem in anderen Bereichen der App verursachen.\n\nDer Zweck dieser Einstellungen ist das Experimentieren der Leute, die an der Entwicklung von Zulip arbeiten.",
   "filenameAndSizeInMiB": "{filename}: {size} MiB",
+  "inboxEmptyPlaceholderHeader": "Es gibt keine ungelesenen Nachrichten in deinem Posteingang.",
+  "inboxEmptyPlaceholderMessage": "Nutze die Buttons unten, um den kombinierten Feed oder die Liste der Kanäle anzuzeigen.",
   "inboxPageTitle": "Eingang",
   "initialAnchorSettingDescription": "Du kannst auswählen ob Nachrichten-Feeds bei deiner ersten ungelesenen oder bei den neuesten Nachrichten geöffnet werden.",
   "initialAnchorSettingFirstUnreadAlways": "Erste ungelesene Nachricht",
@@ -1450,6 +1486,8 @@
   "reactionChipLabel": "{emojiName}: {votes}",
   "reactionChipVotesYouAndOthers": "{otherUsersCount, plural, =1{Du und ein weiterer} other{Du und {otherUsersCount} weitere}}",
   "reactionChipsLabel": "Reaktionen",
+  "recentDmConversationsEmptyPlaceholderHeader": "Du hast noch keine Direktnachrichten!",
+  "recentDmConversationsEmptyPlaceholderMessage": "Warum beginnst du nicht einfach eine Unterhaltung?",
   "recentDmConversationsPageTitle": "Direktnachrichten",
   "recentDmConversationsSectionHeader": "Direktnachrichten",
   "revealButtonLabel": "Nachricht anzeigen",
@@ -1492,7 +1530,7 @@
   "themeSettingTitle": "THEMA",
   "today": "Heute",
   "topicValidationErrorMandatoryButEmpty": "Themen sind in dieser Organisation erforderlich.",
-  "topicValidationErrorTooLong": "Länge des Themas sollte 60 Zeichen nicht überschreiten.",
+  "topicValidationErrorTooLong": "Länge des Themas sollte {maxLength, plural, =1{1 Zeichen} other{{maxLength} Zeichen}} nicht überschreiten.",
   "topicsButtonTooltip": "Themen",
   "tryAnotherAccountButton": "Anderen Account ausprobieren",
   "tryAnotherAccountMessage": "Dein Account bei {url} benötigt einige Zeit zum Laden.",

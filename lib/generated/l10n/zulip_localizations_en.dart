@@ -1255,6 +1255,12 @@ class ZulipLocalizationsEnGb extends ZulipLocalizationsEn {
   ZulipLocalizationsEnGb() : super('en_GB');
 
   @override
+  String get aboutPageTitle => 'About Zulip';
+
+  @override
+  String get aboutPageAppVersion => 'App Version';
+
+  @override
   String get topicValidationErrorMandatoryButEmpty =>
       'Topics are required in this organisation.';
 }

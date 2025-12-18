@@ -67,10 +67,10 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get chooseAccountButtonAddAnAccount => '新しいアカウントを追加';
 
   @override
-  String get navButtonAllChannels => 'All channels';
+  String get navButtonAllChannels => '全てのチャンネル';
 
   @override
-  String get allChannelsPageTitle => 'All channels';
+  String get allChannelsPageTitle => '全てのチャンネル';
 
   @override
   String get allChannelsEmptyPlaceholderHeader =>

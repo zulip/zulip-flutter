@@ -302,8 +302,71 @@
   "@emptyMessageList": {
     "description": "Placeholder for some message-list pages when there are no messages."
   },
+  "@emptyMessageListChannelUnavailable": {
+    "description": "Placeholder for a channel page when there are no messages and the channel does not exist or you don't have access to it."
+  },
+  "@emptyMessageListChannelWithoutContentAccess": {
+    "description": "Placeholder for a channel or topic page when there are no messages and you don’t have content access."
+  },
+  "@emptyMessageListCombinedFeed": {
+    "description": "Placeholder for the 'Combined feed' page when there are no messages."
+  },
+  "@emptyMessageListDm": {
+    "description": "Placeholder for a 1:1 DM page when there are no messages.",
+    "placeholders": {
+      "person": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@emptyMessageListDmDeactivatedUser": {
+    "description": "Placeholder for a 1:1 DM page when there are no messages and the other user is deactivated.",
+    "placeholders": {
+      "person": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@emptyMessageListDmStartConversation": {
+    "description": "Extra detail in the placeholder for some DM pages when there are no messages."
+  },
+  "@emptyMessageListDmUnknownUser": {
+    "description": "Placeholder for a 1:1 DM page when there are no messages and the other user's name is unavailable."
+  },
+  "@emptyMessageListGroupDm": {
+    "description": "Placeholder for a group DM page when there are no messages."
+  },
+  "@emptyMessageListGroupDmDeactivatedUser": {
+    "description": "Placeholder for a group DM page when there are no messages and one or more participants is deactivated."
+  },
+  "@emptyMessageListMentionsHeader": {
+    "description": "Placeholder for the 'Mentions' page when there are no messages."
+  },
+  "@emptyMessageListMentionsMessage": {
+    "description": "Extra detail in the placeholder for the 'Mentions' page when there are no messages."
+  },
   "@emptyMessageListSearch": {
     "description": "Placeholder for the 'Search' page when there are no messages."
+  },
+  "@emptyMessageListSelfDmHeader": {
+    "description": "Placeholder for the self-DM page when there are no messages."
+  },
+  "@emptyMessageListSelfDmMessage": {
+    "description": "Extra detail in the placeholder for the self-DM page when there are no messages."
+  },
+  "@emptyMessageListStarredHeader": {
+    "description": "Placeholder for the 'Starred' page when there are no messages."
+  },
+  "@emptyMessageListStarredMessage": {
+    "description": "Extra detail in the placeholder for the 'Starred' page when there are no messages. The {button} placeholder will be the button's translated text.",
+    "placeholders": {
+      "button": {
+        "example": "Star message",
+        "type": "String"
+      }
+    }
   },
   "@errorAccountLoggedIn": {
     "description": "Error message on attempting to log into an account that's already logged in.",
@@ -693,6 +756,9 @@
   "@loginMethodDivider": {
     "description": "Text on the divider between the username/password form and the third-party login options. Uppercase (for languages with letter case)."
   },
+  "@loginMethodDividerSemanticLabel": {
+    "description": "Semantic label for divider between the username/password form and the third-party login options."
+  },
   "@loginPageTitle": {
     "description": "Title for login page."
   },
@@ -782,6 +848,9 @@
   },
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
+  },
+  "@navBarMenuLabel": {
+    "description": "Label for the Menu button on the bottom navigation bar."
   },
   "@navButtonAllChannels": {
     "description": "Title for a nav button that opens the 'All channels' page."
@@ -1063,6 +1132,9 @@
   "@today": {
     "description": "Term to use to reference the current day."
   },
+  "@topicListEmptyPlaceholderHeader": {
+    "description": "Header text shown when a channel has no topics."
+  },
   "@topicValidationErrorMandatoryButEmpty": {
     "description": "Topic validation error when topic is required but was empty."
   },
@@ -1289,7 +1361,7 @@
   "actionSheetOptionSubscribe": "Подписаться",
   "actionSheetOptionUnfollowTopic": "Не отслеживать тему",
   "actionSheetOptionUnmuteTopic": "Включить оповещения темы",
-  "actionSheetOptionUnresolveTopic": "Снять отметку \"решено\"",
+  "actionSheetOptionUnresolveTopic": "Пометить как нерешённое",
   "actionSheetOptionUnstarMessage": "Снять отметку с сообщения",
   "actionSheetOptionUnsubscribe": "Отписаться",
   "actionSheetOptionViewReadReceipts": "Посмотреть подтверждения прочтения",
@@ -1348,7 +1420,22 @@
   "emojiPickerSearchEmoji": "Поиск эмодзи",
   "emojiReactionsMore": "ещё",
   "emptyMessageList": "Здесь нет сообщений.",
+  "emptyMessageListChannelUnavailable": "Этого канала нет, или у вас нет к нему доступа.",
+  "emptyMessageListChannelWithoutContentAccess": "У вас нет <z-link>доступа к содержимому</z-link> данного канала.",
+  "emptyMessageListCombinedFeed": "В вашей объединенной ленте нет сообщений.",
+  "emptyMessageListDm": "У вас пока нет личной переписки с пользователем {person}.",
+  "emptyMessageListDmDeactivatedUser": "У вас нет личной переписки с пользователем {person}.",
+  "emptyMessageListDmStartConversation": "Почему бы не начать общение?",
+  "emptyMessageListDmUnknownUser": "У вас нет личной переписки с этим пользователем.",
+  "emptyMessageListGroupDm": "У вас пока нет личной переписки с этими пользователями.",
+  "emptyMessageListGroupDmDeactivatedUser": "У вас нет личной переписки с этими пользователями.",
+  "emptyMessageListMentionsHeader": "Этот вид показывает сообщения, в которых вас <z-link>упомянули</z-link>.",
+  "emptyMessageListMentionsMessage": "Чтобы привлечь внимание к сообщению, вы можете упомянуть пользователя, группу, участников темы или всех подписчиков канала. Введите @ в поле для ввода текста и выберите из списка подсказок, кого вы хотите упомянуть.",
   "emptyMessageListSearch": "Ничего не найдено.",
+  "emptyMessageListSelfDmHeader": "Вы еще не отправляли себе личные сообщения!",
+  "emptyMessageListSelfDmMessage": "Здесь вы можете делать заметки для себя и тестировать возможности Zulip.",
+  "emptyMessageListStarredHeader": "У вас нет отмеченных сообщений.",
+  "emptyMessageListStarredMessage": "<z-link>Отметка</z-link> звездочкой — это хороший способ отслеживать важные сообщения, такие как задачи, к которым нужно вернуться, или полезные ссылки. Чтобы отметить сообщение, выберите его длинным нажатием, а затем нажмите «{button}».",
   "errorAccountLoggedIn": "Учетная запись {email} на {server} уже присутствует.",
   "errorAccountLoggedInTitle": "Вход в учетную запись уже выполнен",
   "errorBannerCannotPostInChannelLabel": "У вас нет права писать в этом канале.",
@@ -1435,6 +1522,7 @@
   "loginFormSubmitLabel": "Войти",
   "loginHidePassword": "Скрыть пароль",
   "loginMethodDivider": "ИЛИ",
+  "loginMethodDividerSemanticLabel": "Другие варианты входа",
   "loginPageTitle": "Вход в систему",
   "loginPasswordLabel": "Пароль",
   "loginServerUrlLabel": "URL вашего сервера Zulip",
@@ -1459,6 +1547,7 @@
   "messageListGroupYouWithYourself": "Сообщения с собой",
   "messageNotSentLabel": "СООБЩЕНИЕ НЕ ОТПРАВЛЕНО",
   "mutedUser": "Заглушенный пользователь",
+  "navBarMenuLabel": "Меню",
   "navButtonAllChannels": "Все каналы",
   "newDmFabButtonLabel": "Новое ЛС",
   "newDmSheetComposeButtonLabel": "Написать",
@@ -1517,7 +1606,7 @@
   "statusClearButtonLabel": "Очистить",
   "statusSaveButtonLabel": "Сохранить",
   "statusTextHint": "Ваш статус",
-  "subscribeFailedTitle": "Подписаться не удалось",
+  "subscribeFailedTitle": "Не удалось подписаться",
   "successChannelLinkCopied": "Ссылка на канал скопирована",
   "successLinkCopied": "Ссылка скопирована",
   "successMessageLinkCopied": "Ссылка на сообщение скопирована",
@@ -1529,6 +1618,7 @@
   "themeSettingSystem": "Системный",
   "themeSettingTitle": "РЕЖИМ",
   "today": "Сегодня",
+  "topicListEmptyPlaceholderHeader": "Здесь пока нет тем.",
   "topicValidationErrorMandatoryButEmpty": "Темы обязательны в этой организации.",
   "topicValidationErrorTooLong": "Длина темы не должна превышать {maxLength, plural, one{{maxLength} символ} few{{maxLength} символа} many{{maxLength} символов} other{{maxLength} символов}}.",
   "topicsButtonTooltip": "Темы",

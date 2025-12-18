@@ -1,6 +1,14 @@
 {
-  "topicValidationErrorMandatoryButEmpty": "Topics are required in this organisation.",
+  "@aboutPageAppVersion": {
+    "description": "Label for Zulip app version in About Zulip page"
+  },
+  "@aboutPageTitle": {
+    "description": "Title for About Zulip page."
+  },
   "@topicValidationErrorMandatoryButEmpty": {
     "description": "Topic validation error when topic is required but was empty."
-  }
+  },
+  "aboutPageAppVersion": "App Version",
+  "aboutPageTitle": "About Zulip",
+  "topicValidationErrorMandatoryButEmpty": "Topics are required in this organisation."
 }

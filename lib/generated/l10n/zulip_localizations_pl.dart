@@ -583,64 +583,65 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get emptyMessageListCombinedFeed =>
-      'There are no messages in your combined feed.';
+      'Brak wiadomości w widoku mieszanym.';
 
   @override
   String get emptyMessageListChannelWithoutContentAccess =>
-      'You don’t have <z-link>content access</z-link> to this channel.';
+      'Nie masz <z-link>dostępu do zawartości</z-link> w tym kanale.';
 
   @override
   String get emptyMessageListChannelUnavailable =>
-      'This channel doesn’t exist, or you are not allowed to view it.';
+      'Nie ma takiego kanału lub nie masz uprawnień do jego podglądu.';
 
   @override
   String get emptyMessageListSelfDmHeader =>
-      'You have not sent any direct messages to yourself yet!';
+      'Jeszcze nie wysłano wiadomości na własną skrzynkę!';
 
   @override
   String get emptyMessageListSelfDmMessage =>
-      'Use this space for personal notes, or to test out Zulip features.';
+      'Użyj tego miejsca na osobiste notki lub na potrzeby testów funkcji Zulip.';
 
   @override
   String emptyMessageListDm(String person) {
-    return 'You have no direct messages with $person yet.';
+    return 'Nie wymieniono jeszcze wiadomości z $person.';
   }
 
   @override
   String emptyMessageListDmDeactivatedUser(String person) {
-    return 'You have no direct messages with $person.';
+    return 'Brak historii wymiany wiadomości z $person.';
   }
 
   @override
   String get emptyMessageListDmUnknownUser =>
-      'You have no direct messages with this user.';
+      'Nie wymieniono wiadomości bezpośrednich z tym użytkownikiem.';
 
   @override
   String get emptyMessageListGroupDm =>
-      'You have no direct messages with these users yet.';
+      'Nie wymieniono jeszcze wiadomości z tymi użytkownikami.';
 
   @override
   String get emptyMessageListGroupDmDeactivatedUser =>
-      'You have no direct messages with these users.';
+      'Brak historii wymiany wiadomości z tymi użytkownikami.';
 
   @override
   String get emptyMessageListDmStartConversation =>
-      'Why not start the conversation?';
+      'A może by tak zacząć rozmowę?';
 
   @override
   String get emptyMessageListMentionsHeader =>
-      'This view will show messages where you are <z-link>mentioned</z-link>.';
+      'Ten widok pokaże wiadomości, w których Cię <z-link>wymieniono</z-link>.';
 
   @override
   String get emptyMessageListMentionsMessage =>
-      'To call attention to a message, you can mention a user, a group, topic participants, or all subscribers to a channel. Type @ in the compose box, and choose who you’d like to mention from the list of suggestions.';
+      'Aby zwrócić uwagę na wiadomość możesz wymienić użytkownika, grupę, aktywnych w wątku a nawet wszystkich śledzących kanał. Użyj @ w polu wprowadzania wiadomości wybierz jedną z dostępnych opcji.';
 
   @override
-  String get emptyMessageListStarredHeader => 'You have no starred messages.';
+  String get emptyMessageListStarredHeader =>
+      'Brak wiadomości oznaczonych gwiazdką.';
 
   @override
   String emptyMessageListStarredMessage(String button) {
-    return '<z-link>Starring</z-link> is a good way to keep track of important messages, such as tasks you need to go back to, or useful references. To star a message, long-press it and tap “$button.”';
+    return '<z-link>Oznaczanie gwiazdką</z-link> to dobra metoda aby śledzić ważne wiadomości oraz zadania, do których chcesz wrócić. Aby oznaczyć wiadomość gwiazdką wybierz “$button.”';
   }
 
   @override
@@ -704,7 +705,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get loginMethodDivider => 'LUB';
 
   @override
-  String get loginMethodDividerSemanticLabel => 'Log-in alternatives';
+  String get loginMethodDividerSemanticLabel => 'Inne sposoby logowania';
 
   @override
   String signInWithFoo(String method) {
@@ -1266,5 +1267,6 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get zulipAppTitle => 'Zulip';
 
   @override
-  String get topicListEmptyPlaceholderHeader => 'There are no topics here yet.';
+  String get topicListEmptyPlaceholderHeader =>
+      'Póki co pusto, bo brak wątków.';
 }

@@ -21,6 +21,7 @@ import 'zulip_localizations_ru.dart';
 import 'zulip_localizations_sk.dart';
 import 'zulip_localizations_sl.dart';
 import 'zulip_localizations_uk.dart';
+import 'zulip_localizations_vi.dart';
 import 'zulip_localizations_zh.dart';
 
 // ignore_for_file: type=lint
@@ -126,6 +127,7 @@ abstract class ZulipLocalizations {
     Locale('sk'),
     Locale('sl'),
     Locale('uk'),
+    Locale('vi'),
     Locale('zh'),
     Locale.fromSubtags(
       languageCode: 'zh',
@@ -2199,6 +2201,7 @@ class _ZulipLocalizationsDelegate
     'sk',
     'sl',
     'uk',
+    'vi',
     'zh',
   ].contains(locale.languageCode);
 
@@ -2261,6 +2264,8 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
       return ZulipLocalizationsSl();
     case 'uk':
       return ZulipLocalizationsUk();
+    case 'vi':
+      return ZulipLocalizationsVi();
     case 'zh':
       return ZulipLocalizationsZh();
   }
