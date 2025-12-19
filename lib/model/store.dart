@@ -869,6 +869,9 @@ class PerAccountStore extends PerAccountStoreBase with
         }
         notifyListeners();
 
+      case HasZoomTokenEvent():
+        assert(debugLog("server event: has_zoom_token"));
+
       case CustomProfileFieldsEvent():
         assert(debugLog("server event: custom_profile_fields"));
         _realm.handleCustomProfileFieldsEvent(event);
