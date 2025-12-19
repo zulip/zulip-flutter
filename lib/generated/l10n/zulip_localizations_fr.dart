@@ -69,14 +69,14 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get chooseAccountButtonAddAnAccount => 'Ajouter un compte';
 
   @override
-  String get navButtonAllChannels => 'All channels';
+  String get navButtonAllChannels => 'Tous les canaux';
 
   @override
-  String get allChannelsPageTitle => 'All channels';
+  String get allChannelsPageTitle => 'Tous les canaux';
 
   @override
   String get allChannelsEmptyPlaceholderHeader =>
-      'There are no channels you can view in this organization.';
+      'Il n\'y a pas de canal que vous pouvez visualiser dans cette organisation.';
 
   @override
   String get profileButtonSendDirectMessage => 'Envoyer un message direct';
@@ -100,10 +100,10 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Pour charger des fichiers, merci d\'accorder des autorisations supplémentaires à Zulip, dans les préférences.';
 
   @override
-  String get actionSheetOptionSubscribe => 'Subscribe';
+  String get actionSheetOptionSubscribe => 'S\'abonner';
 
   @override
-  String get subscribeFailedTitle => 'Failed to subscribe';
+  String get subscribeFailedTitle => 'Échec de l’abonnement';
 
   @override
   String get actionSheetOptionMarkChannelAsRead => 'Marquer le canal comme lu';
@@ -115,10 +115,10 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get actionSheetOptionListOfTopics => 'Liste des sujets';
 
   @override
-  String get actionSheetOptionChannelFeed => 'Channel feed';
+  String get actionSheetOptionChannelFeed => 'Fil du canal';
 
   @override
-  String get actionSheetOptionUnsubscribe => 'Unsubscribe';
+  String get actionSheetOptionUnsubscribe => 'Se désabonner';
 
   @override
   String unsubscribeConfirmationDialogTitle(String channelName) {
@@ -127,13 +127,13 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
 
   @override
   String get unsubscribeConfirmationDialogMessageCannotResubscribe =>
-      'Once you leave this channel, you will not be able to rejoin.';
+      'Une fois que vous aurez quitté ce canal, vous ne pourrez plus le rejoindre.';
 
   @override
   String get unsubscribeConfirmationDialogConfirmButton => 'Se désinscrire';
 
   @override
-  String get unsubscribeFailedTitle => 'Failed to unsubscribe';
+  String get unsubscribeFailedTitle => 'Échec du désabonnement';
 
   @override
   String get actionSheetOptionMuteTopic => 'Rendre le sujet silencieux';
@@ -453,7 +453,7 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get composeBoxBannerButtonRefresh => 'Refresh';
 
   @override
-  String get composeBoxBannerButtonSubscribe => 'Subscribe';
+  String get composeBoxBannerButtonSubscribe => 'S\'abonner';
 
   @override
   String get composeBoxBannerLabelEditMessage => 'Editer le message';
@@ -505,7 +505,7 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get composeBoxGenericContentHint => 'Type a message';
 
   @override
-  String get newDmSheetComposeButtonLabel => 'Compose';
+  String get newDmSheetComposeButtonLabel => 'Rédiger';
 
   @override
   String get newDmSheetScreenTitle => 'New DM';
@@ -542,13 +542,13 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get preparingEditMessageContentInput => 'Preparing…';
 
   @override
-  String get composeBoxSendTooltip => 'Send';
+  String get composeBoxSendTooltip => 'Envoyer';
 
   @override
   String get unknownChannelName => '(unknown channel)';
 
   @override
-  String get composeBoxTopicHintText => 'Topic';
+  String get composeBoxTopicHintText => 'Sujet';
 
   @override
   String composeBoxEnterTopicOrSkipHintText(String defaultTopicName) {
@@ -566,7 +566,7 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   }
 
   @override
-  String get unknownUserName => '(unknown user)';
+  String get unknownUserName => '(utilisateur inconnu)';
 
   @override
   String get dmsWithYourselfPageTitle => 'DMs with yourself';
