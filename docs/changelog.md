@@ -52,6 +52,7 @@
   * #2027: fix #2003.  Show placeholder on topic-list page when no
     topics.
   * #1998.  Tweak design of main-menu buttons.
+  * #2044.  Update translations.
 
 
 ## 30.0.267 (2025-11-06)
