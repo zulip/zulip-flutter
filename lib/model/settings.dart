@@ -176,6 +176,10 @@ enum BoolGlobalSetting {
   /// A pseudo-setting recording whether the user has been shown the
   /// welcome dialog for upgrading from the legacy app.
   upgradeWelcomeDialogShown(GlobalSettingType.internal, false),
+  inboxIntroModalShown(GlobalSettingType.internal, false),
+  combinedFeedIntroModalShown(GlobalSettingType.internal, false),
+
+
 
   /// An experimental flag to enable rendering KaTeX even when some
   /// errors are encountered.

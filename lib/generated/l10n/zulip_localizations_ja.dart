@@ -34,6 +34,23 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get upgradeWelcomeDialogDismiss => 'はじめよう';
 
   @override
+  String get introModalDismissButton => 'Got it';
+
+  @override
+  String get inboxIntroModalTitle => 'Welcome to your inbox!';
+
+  @override
+  String get inboxIntroModalMessage =>
+      'You’ll see a list of conversations where you have unread messages, organized by channel. Each conversation is labeled with a topic by the person who started it.';
+
+  @override
+  String get combinedFeedIntroModalTitle => 'Welcome to your combined feed!';
+
+  @override
+  String get combinedFeedIntroModalMessage =>
+      'You\'ll see a feed of all the unmuted messages you\'ve received. You can click on a colored header bar to view a conversation.';
+
+  @override
   String get chooseAccountPageTitle => 'アカウントを選択';
 
   @override

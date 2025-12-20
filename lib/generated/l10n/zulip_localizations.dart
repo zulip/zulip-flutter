@@ -198,6 +198,36 @@ abstract class ZulipLocalizations {
   /// **'Let\'s go'**
   String get upgradeWelcomeDialogDismiss;
 
+  /// Label for button dismissing intro modals.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get introModalDismissButton;
+
+  /// Title for the inbox intro modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to your inbox!'**
+  String get inboxIntroModalTitle;
+
+  /// Message content for the inbox intro modal.
+  ///
+  /// In en, this message translates to:
+  /// **'You’ll see a list of conversations where you have unread messages, organized by channel. Each conversation is labeled with a topic by the person who started it.'**
+  String get inboxIntroModalMessage;
+
+  /// Title for the combined feed intro modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to your combined feed!'**
+  String get combinedFeedIntroModalTitle;
+
+  /// Message content for the combined feed intro modal.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll see a feed of all the unmuted messages you\'ve received. You can click on a colored header bar to view a conversation.'**
+  String get combinedFeedIntroModalMessage;
+
   /// Title for the page to choose between Zulip accounts.
   ///
   /// In en, this message translates to:
