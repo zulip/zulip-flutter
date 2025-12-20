@@ -185,7 +185,9 @@ class UpgradeWelcomeDialog extends StatelessWidget {
     final navigator = await ZulipApp.navigator;
     final context = navigator.context;
     assert(context.mounted);
-    if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+    if (!context.mounted) {
+      return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+    }
 
     final globalSettings = GlobalStoreWidget.settingsOf(context);
     switch (globalSettings.legacyUpgradeState) {
@@ -242,4 +244,69 @@ class UpgradeWelcomeDialog extends StatelessWidget {
           text: zulipLocalizations.upgradeWelcomeDialogDismiss)
       ]);
   }
+}
+
+class IntroModal extends StatelessWidget {
+  const IntroModal({
+    super.key,
+    required this.title,
+    required this.message,
+  });
+
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return AlertDialog.adaptive(
+      title: Text(title),
+      content: _adaptiveContent(Text(message)),
+      actions: [
+        _adaptiveAction(
+          onPressed: () => Navigator.pop(context),
+          isDefaultAction: true,
+          text: zulipLocalizations.introModalDismissButton)
+      ]);
+  }
+}
+
+Future<void> showInboxIntroModal(BuildContext context) async {
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    final store = GlobalStoreWidget.settingsOf(context);
+    if (store.getBool(BoolGlobalSetting.inboxIntroModalShown)) {
+      return;
+    }
+
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final future = showDialog<void>(
+      context: context,
+      builder: (context) => IntroModal(
+        title: zulipLocalizations.inboxIntroModalTitle,
+        message: zulipLocalizations.inboxIntroModalMessage,
+      ),
+    );
+    await future;
+    await store.setBool(BoolGlobalSetting.inboxIntroModalShown, true);
+  });
+}
+
+Future<void> showCombinedFeedIntroModal(BuildContext context) async {
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    final store = GlobalStoreWidget.settingsOf(context);
+    if (store.getBool(BoolGlobalSetting.combinedFeedIntroModalShown)) {
+      return;
+    }
+
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final future = showDialog<void>(
+      context: context,
+      builder: (context) => IntroModal(
+        title: zulipLocalizations.combinedFeedIntroModalTitle,
+        message: zulipLocalizations.combinedFeedIntroModalMessage,
+      ),
+    );
+    await future;
+    await store.setBool(BoolGlobalSetting.combinedFeedIntroModalShown, true);
+  });
 }

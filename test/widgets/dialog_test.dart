@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/dialog.dart';
-
+import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
@@ -163,7 +163,41 @@ void main() {
 
       final expectedMessage = 'You’ll find a familiar experience in a faster, sleeker package.';
       check(find.ancestor(of: find.text(expectedMessage),
-        matching: find.byType(SingleChildScrollView))).findsOne();
-    }, variant: TargetPlatformVariant.all());
+        matching: find.byType(SingleChildScrollView),)).findsOne();
+    }, variant: TargetPlatformVariant.all(),);
+  });
+
+  group('IntroModal', () {
+    testWidgets('IntroModal widget displays correctly', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
+      const modal = IntroModal(title: 'Test Title', message: 'Test Message');
+
+      await tester.pumpWidget(TestZulipApp(child: modal));
+      await tester.pumpAndSettle();
+
+      check(find.text('Test Title')).findsOne();
+      check(find.text('Test Message')).findsOne();
+      check(find.text('Got it')).findsOne();
+    });
+
+    testWidgets('settings track inbox modal shown state', (tester) async {
+      addTearDown(testBinding.reset);
+      // Reset to false since tests now default to true
+      await testBinding.globalStore.settings.setBool(BoolGlobalSetting.inboxIntroModalShown, false);
+      check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.inboxIntroModalShown)).isFalse();
+      await testBinding.globalStore.settings.setBool(BoolGlobalSetting.inboxIntroModalShown, true);
+      check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.inboxIntroModalShown)).isTrue();
+    });
+
+    testWidgets('settings track combined feed modal shown state', (tester) async {
+      addTearDown(testBinding.reset);
+      // Reset to false since tests now default to true
+      await testBinding.globalStore.settings.setBool(BoolGlobalSetting.combinedFeedIntroModalShown, false);
+      check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.combinedFeedIntroModalShown)).isFalse();
+      await testBinding.globalStore.settings.setBool(BoolGlobalSetting.combinedFeedIntroModalShown, true);
+      check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.combinedFeedIntroModalShown)).isTrue();
+    });
   });
 }
