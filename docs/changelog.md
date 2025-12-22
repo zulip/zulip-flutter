@@ -2,8 +2,29 @@
 
 ## Unreleased
 
+### Highlights for users (since last general release, v30.0.267)
+
+* Clearer navigation on opening a notification in a different
+  account. (#1210)
+* Autocomplete mentioning a channel, with "#". (PR #1902, toward #124)
+* Show current organization's name and icon atop main menu. (#1037)
+* Many small fixes for layout with right-to-left scripts.
+  (#1245, PR #2005, PR #2007, PR #2010, #1907)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* Merge log: PRs, with fixed issues and user-visible changes.
+  * #2050: fix #2049.  Revert the Flutter upgrade from #2009.
+
 
 ## 30.0.268 (2025-12-19)
+
+This was an alpha-only, Android-only release.
+
+An iOS release from this version was impossible: #2049.
+
 
 ### Highlights for users
 
