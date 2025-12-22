@@ -691,6 +691,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return true;
 
       case DmNarrow():
+        assert((narrow as DmNarrow).containsMessage(message));
         return true;
 
       case MentionsNarrow():
