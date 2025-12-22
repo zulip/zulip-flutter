@@ -360,10 +360,10 @@ void main() {
       final mutedUsers = [1, 3];
 
       await setupMessageListPage(tester,
-        narrow: DmNarrow.withOtherUsers([1, 2, 3], selfUserId: 10),
+        narrow: DmNarrow.withOtherUsers([1, 2, 3], selfUserId: eg.selfUser.userId),
         users: [user1, user2, user3],
         mutedUserIds: mutedUsers,
-        messageCount: 1,
+        messages: [eg.dmMessage(from: user1, to: [user2, user3, eg.selfUser])],
       );
 
       check(find.text('DMs with Muted user, User 2, Muted user')).findsOne();
@@ -2335,7 +2335,7 @@ void main() {
       doTest(expected: false, TopicNarrow(subscription.streamId, eg.t(topic)),
         mkMessage: () => eg.streamMessage(stream: subscription, topic: topic));
       doTest(expected: false, DmNarrow.withUsers([], selfUserId: eg.selfUser.userId),
-        mkMessage: () => eg.streamMessage(stream: subscription, topic: topic));
+        mkMessage: () => eg.dmMessage(from: eg.selfUser, to: []));
       doTest(expected: true, StarredMessagesNarrow(),
         mkMessage: () => eg.streamMessage(flags: [MessageFlag.starred]));
       doTest(expected: true, MentionsNarrow(),
