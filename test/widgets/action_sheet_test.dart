@@ -1922,15 +1922,13 @@ void main() {
 
           final newStream = eg.stream();
           const newTopic = 'other topic';
-          // This result isn't quite realistic for this request: it should get
-          // the updated channel/stream ID and topic, because we don't even
-          // start the request until after we get the move event.
-          // But constructing the right result is annoying at the moment, and
-          // it doesn't matter anyway: [MessageStoreImpl.reconcileMessages] will
-          // keep the version updated by the event.  If that somehow changes in
-          // some future refactor, it'll cause this test to fail.
           connection.prepare(json: eg.newestGetMessagesResult(
-            foundOldest: true, messages: [message]).toJson());
+            foundOldest: true,
+            messages: [
+              Message.fromJson(deepToJson(message) as Map<String, dynamic>
+                                 ..['stream_id'] = newStream.streamId
+                                 ..['subject'] = newTopic)
+            ]).toJson());
           await store.handleEvent(eg.updateMessageEventMoveFrom(
             newStreamId: newStream.streamId, newTopicStr: newTopic,
             propagateMode: PropagateMode.changeAll,
