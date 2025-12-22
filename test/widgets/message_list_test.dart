@@ -165,11 +165,14 @@ void main() {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/1717
       final stream = eg.stream();
       // Open the page on a topic with the literal name "general chat".
-      final topic = eg.defaultRealmEmptyTopicDisplayName;
-      final topicNarrow = eg.topicNarrow(stream.streamId, topic);
+      final topicNarrow = eg.topicNarrow(
+        stream.streamId,
+        eg.defaultRealmEmptyTopicDisplayName);
+      final message = eg.streamMessage(
+        stream: stream, topic: '', content: "<p>a message</p>");
       await setupMessageListPage(tester, narrow: topicNarrow,
         subscriptions: [eg.subscription(stream)],
-        messages: [eg.streamMessage(stream: stream, topic: topic, content: "<p>a message</p>")]);
+        messages: [message]);
       final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
       // The page's narrow has been updated; the topic is "", not "general chat".
       check(state.narrow).equals(eg.topicNarrow(stream.streamId, ''));
@@ -240,7 +243,7 @@ void main() {
       await setupMessageListPage(tester,
         narrow: eg.topicNarrow(channel.streamId, ''),
         subscriptions: [eg.subscription(channel)],
-        messageCount: 1);
+        messages: [eg.streamMessage(stream: channel, topic: '')]);
       checkAppBarChannelTopic(
         channel.name, eg.defaultRealmEmptyTopicDisplayName);
     });
@@ -282,7 +285,8 @@ void main() {
       final channel = eg.stream();
       await setupMessageListPage(tester, narrow: eg.topicNarrow(channel.streamId, 'hi'),
         navObservers: [navObserver],
-        subscriptions: [eg.subscription(channel)], messageCount: 1);
+        subscriptions: [eg.subscription(channel)],
+        messages: [eg.streamMessage(stream: channel, topic: 'hi')]);
 
       // Clear out initial route.
       assert(pushedRoutes.length == 1);
@@ -320,7 +324,7 @@ void main() {
       await setupMessageListPage(tester,
         narrow: eg.topicNarrow(channel.streamId, topic),
         streams: [channel], subscriptions: [eg.subscription(channel)],
-        messageCount: 1);
+        messages: [eg.streamMessage(stream: channel, topic: topic)]);
       await store.handleEvent(eg.userTopicEvent(
         channel.streamId, topic, UserTopicVisibilityPolicy.muted));
       await tester.pump();
@@ -1442,9 +1446,9 @@ void main() {
     final otherSubscription = eg.subscription(otherChannel);
     final narrow = eg.topicNarrow(channel.streamId, topic);
 
-    void prepareGetMessageResponse(List<Message> messages) {
+    void prepareGetMessageResponse(List<Message> messages, {bool foundOldest = false}) {
       connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: false, messages: messages).toJson());
+        foundOldest: foundOldest, messages: messages).toJson());
     }
 
     Future<void> handleMessageMoveEvent(List<StreamMessage> messages, String newTopic, {int? newChannelId}) async {
@@ -1505,10 +1509,23 @@ void main() {
       check(find.textContaining('Existing message').evaluate()).length.equals(0);
       check(find.textContaining('Message to move').evaluate()).length.equals(1);
 
+      final newChannel = eg.stream();
       final existingMessage = eg.streamMessage(
-        stream: eg.stream(), topic: 'new topic', content: 'Existing message');
-      prepareGetMessageResponse([existingMessage, message]);
-      await handleMessageMoveEvent([message], 'new topic');
+        stream: newChannel, topic: 'new topic', content: 'Existing message');
+      prepareGetMessageResponse(
+        // `foundOldest: true` just to avoid having to prepare a fetch-older
+        // response when a scroll-metrics notification occurs. (I don't really
+        // understand what causes that scroll-metrics notification, but it's not
+        // the focus of this test.)
+        foundOldest: true,
+        [
+          existingMessage,
+          Message.fromJson(deepToJson(message) as Map<String, dynamic>
+                             ..['stream_id'] = newChannel.streamId
+                             ..['subject'] = 'new topic'),
+        ]);
+      await handleMessageMoveEvent([message],
+        'new topic', newChannelId: newChannel.streamId);
       await tester.pump(const Duration(seconds: 1));
 
       check(find.textContaining('Existing message').evaluate()).length.equals(1);
@@ -2316,7 +2333,7 @@ void main() {
       doTest(expected: false, ChannelNarrow(subscription.streamId),
         mkMessage: () => eg.streamMessage(stream: subscription));
       doTest(expected: false, TopicNarrow(subscription.streamId, eg.t(topic)),
-        mkMessage: () => eg.streamMessage(stream: subscription));
+        mkMessage: () => eg.streamMessage(stream: subscription, topic: topic));
       doTest(expected: false, DmNarrow.withUsers([], selfUserId: eg.selfUser.userId),
         mkMessage: () => eg.streamMessage(stream: subscription, topic: topic));
       doTest(expected: true, StarredMessagesNarrow(),

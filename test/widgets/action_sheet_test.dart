@@ -223,12 +223,17 @@ void main() {
 
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true,
-        // Include one message so that we don't auto-focus the topic input,
-        // which would trigger a topic-list fetch for topic autocomplete.
-        // That's helpful for the test that opens the topic-list page.
-        // With the topic-list fetch deferred until that page is opened,
-        // the test can prepare the fetch response as it chooses.
-        messages: [eg.streamMessage(stream: channel)],
+        messages: narrow is ChannelNarrow
+          ? () {
+              assert(channel != null && channel.streamId == narrow.streamId);
+              // Include one message so that we don't auto-focus the topic input,
+              // which would trigger a topic-list fetch for topic autocomplete.
+              // That's helpful for the test that opens the topic-list page.
+              // With the topic-list fetch deferred until that page is opened,
+              // the test can prepare the fetch response as it chooses.
+              return [eg.streamMessage(stream: channel)];
+            }()
+          : [],
       ).toJson());
       await tester.pumpWidget(TestZulipApp(
         accountId: eg.selfAccount.id,
@@ -1924,15 +1929,13 @@ void main() {
 
           final newStream = eg.stream();
           const newTopic = 'other topic';
-          // This result isn't quite realistic for this request: it should get
-          // the updated channel/stream ID and topic, because we don't even
-          // start the request until after we get the move event.
-          // But constructing the right result is annoying at the moment, and
-          // it doesn't matter anyway: [MessageStoreImpl.reconcileMessages] will
-          // keep the version updated by the event.  If that somehow changes in
-          // some future refactor, it'll cause this test to fail.
           connection.prepare(json: eg.newestGetMessagesResult(
-            foundOldest: true, messages: [message]).toJson());
+            foundOldest: true,
+            messages: [
+              Message.fromJson(deepToJson(message) as Map<String, dynamic>
+                                 ..['stream_id'] = newStream.streamId
+                                 ..['subject'] = newTopic)
+            ]).toJson());
           await store.handleEvent(eg.updateMessageEventMoveFrom(
             newStreamId: newStream.streamId, newTopicStr: newTopic,
             propagateMode: PropagateMode.changeAll,

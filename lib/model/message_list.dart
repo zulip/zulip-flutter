@@ -687,6 +687,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return store.isTopicVisibleInStream(streamId, message.conversation.topic);
 
       case TopicNarrow():
+        assert((narrow as TopicNarrow).containsMessage(message));
+        return true;
+
       case DmNarrow():
         return true;
 
