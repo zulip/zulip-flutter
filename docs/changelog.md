@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 30.0.269 (2025-12-22)
+
 ### Highlights for users (since last general release, v30.0.267)
 
 * Clearer navigation on opening a notification in a different
