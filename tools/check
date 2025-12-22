@@ -242,7 +242,7 @@ run_flutter_version() {
              print "$1 $2" if (
                  /^  sdk: .*\n  flutter: '\''>=(\S+)'\''\s*# ([0-9a-f]{40})$/m)'
     ) ) || return
-    if [ -z "${#parsed[@]}" ]; then
+    if (( ! "${#parsed[@]}" )); then
         echo >&2 "error: Flutter version spec not recognized in pubspec.yaml"
         return 1
     fi
