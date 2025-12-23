@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/settings.dart';
 import 'app_bar.dart';
+import 'button.dart';
 import 'icons.dart';
 import 'page.dart';
 import 'store.dart';
@@ -130,12 +131,16 @@ class _BrowserPreferenceSetting extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final globalSettings = GlobalStoreWidget.settingsOf(context);
+    final designVariables = DesignVariables.of(context);
     final openLinksWithInAppBrowser =
       globalSettings.effectiveBrowserPreference == BrowserPreference.inApp;
-    return SwitchListTile.adaptive(
-      title: Text(zulipLocalizations.openLinksWithInAppBrowser),
-      value: openLinksWithInAppBrowser,
-      onChanged: (newValue) => _handleChange(context, newValue));
+    return ListTile(
+      title: Text(zulipLocalizations.openLinksWithInAppBrowser,
+        style: TextStyle(
+          color: designVariables.contextMenuItemText, fontSize: 20).merge(weightVariableTextStyle(context, wght: 600))),
+      trailing: Toggle(
+        value: openLinksWithInAppBrowser,
+        onChanged: (newValue) => _handleChange(context, newValue)));
   }
 }
 
