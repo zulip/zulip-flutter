@@ -606,6 +606,10 @@ class _ContentInput extends StatelessWidget {
               minLines: 2,
               maxLines: null,
               textCapitalization: TextCapitalization.sentences,
+              // Disable scribble to maintain keyboard continuity on iOS
+              // when switching between topic and content inputs.
+              // See: https://github.com/zulip/zulip-flutter/issues/1974
+              scribbleEnabled: false,
               decoration: InputDecoration(
                 // This padding ensures that the user can always scroll long
                 // content entirely out of the top or bottom shadow if desired.
@@ -867,7 +871,11 @@ class _TopicInputState extends State<_TopicInput> {
           focusNode: widget.controller.topicFocusNode,
           textInputAction: TextInputAction.next,
           style: topicTextStyle,
-          decoration: decoration)));
+          decoration: decoration,
+          // Disable scribble to maintain keyboard continuity on iOS
+          // when switching between topic and content inputs.
+          // See: https://github.com/zulip/zulip-flutter/issues/1974
+          scribbleEnabled: false)));
   }
 }
 
