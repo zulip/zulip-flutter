@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/settings.dart';
 import 'app_bar.dart';
+import 'button.dart';
 import 'icons.dart';
 import 'page.dart';
 import 'store.dart';
@@ -345,5 +346,22 @@ class RadioTile<T> extends StatelessWidget {
                       )])),
             ]))),
     );
+  }
+}
+class _SwitchTile extends StatelessWidget {
+  const _SwitchTile({
+    required this.value,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () => onChanged(!value),
+      child: Toggle(value: value, onChanged: onChanged ));
   }
 }
