@@ -287,3 +287,65 @@ class ExperimentalFeaturesPage extends StatelessWidget {
       ]));
   }
 }
+
+class RadioTile<T> extends StatelessWidget {
+  final T value;
+  final T groupValue;
+  final String title;
+  final ValueChanged<T?> onChanged;
+  final String? subtitle;
+
+  const RadioTile({
+    super.key,
+    required this.value,
+    required this.groupValue,
+    required this.title,
+    required this.onChanged,
+    this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = value == groupValue;
+    final size = 20.0;
+    final colr = const Color(0xff4370f0);
+
+    return Semantics(
+      label: subtitle == null ? title : '$title\n$subtitle',
+      checked: selected,
+      inMutuallyExclusiveGroup: true,
+      onTap: () => onChanged(value),
+      child: InkWell(
+        onTap: () => onChanged(value),
+        borderRadius: BorderRadius.circular(6),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: const EdgeInsets.only(top: 4),
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  color: selected ? colr : Colors.transparent,
+                  border: Border.all(color: selected ? colr : Colors.grey.shade400, width: 2),
+                  borderRadius: BorderRadius.circular(size / 2)),
+                child: selected? const Icon(ZulipIcons.check, size: 16, color: Colors.white): null),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,style: TextStyle(fontSize: 18).merge(weightVariableTextStyle(context, wght: 500))),
+                    if (subtitle != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(subtitle!,
+                          style: TextStyle(fontSize: 17).merge(weightVariableTextStyle(context, wght: 400)),),
+                      )])),
+            ]))),
+    );
+  }
+}
