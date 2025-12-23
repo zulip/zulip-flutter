@@ -181,22 +181,6 @@ class VisitFirstUnreadSettingPage extends StatelessWidget {
   }
 }
 
-class _MarkReadOnScrollSetting extends StatelessWidget {
-  const _MarkReadOnScrollSetting();
-
-  @override
-  Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    final globalSettings = GlobalStoreWidget.settingsOf(context);
-    return ListTile(
-      title: Text(zulipLocalizations.markReadOnScrollSettingTitle),
-      subtitle: Text(MarkReadOnScrollSettingPage._valueDisplayName(
-        globalSettings.markReadOnScroll, zulipLocalizations: zulipLocalizations)),
-      onTap: () => Navigator.push(context,
-        MarkReadOnScrollSettingPage.buildRoute()));
-  }
-}
-
 class MarkReadOnScrollSettingPage extends StatelessWidget {
   const MarkReadOnScrollSettingPage({super.key});
 
