@@ -26,7 +26,14 @@ class SettingsPage extends StatelessWidget {
         _ThemeSettingTitle(title: ZulipLocalizations.of(context).themeSettingTitle),
         const _ThemeSetting(),
         const _BrowserPreferenceSetting(),
-        const _VisitFirstUnreadSetting(),
+        _SettingsNavitem(
+          title: 'Open message feeds at',
+          subtitle: VisitFirstUnreadSettingPage._valueDisplayName(
+            GlobalStoreWidget.settingsOf(context).visitFirstUnread,
+            zulipLocalizations: zulipLocalizations),
+          onTap: () => Navigator.push(context,
+            VisitFirstUnreadSettingPage.buildRoute()),
+        ),
         const _MarkReadOnScrollSetting(),
         if (GlobalSettingsStore.experimentalFeatureFlags.isNotEmpty)
           ListTile(
