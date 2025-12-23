@@ -263,20 +263,27 @@ class ExperimentalFeaturesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final globalSettings = GlobalStoreWidget.settingsOf(context);
+    final designVariables = DesignVariables.of(context);
     final flags = GlobalSettingsStore.experimentalFeatureFlags;
     assert(flags.isNotEmpty);
     return Scaffold(
       appBar: AppBar(
         title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle)),
-      body: Column(children: [
-        ListTile(
-          title: Text(zulipLocalizations.experimentalFeatureSettingsWarning)),
-        for (final flag in flags)
-          SwitchListTile.adaptive(
-            title: Text(flag.name), // no i18n; these are developer-facing settings
-            value: globalSettings.getBool(flag),
-            onChanged: (value) => globalSettings.setBool(flag, value)),
-      ]));
+      body: ListView(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        children: [Text(zulipLocalizations.experimentalFeatureSettingsWarning,
+            style: TextStyle(fontSize: 17).merge(weightVariableTextStyle(context, wght: 400))),
+            const SizedBox(height: 8),
+            for (final flag in flags)
+              Row(
+                children: [Expanded(
+                    child: Text(flag.name,  // no i18n; these are developer-facing settings
+                      style: TextStyle(fontSize: 20, color: designVariables.contextMenuItemText).merge(weightVariableTextStyle(context, wght: 600)))),
+                  Toggle(
+                    value: globalSettings.getBool(flag),
+                    onChanged: (value) => globalSettings.setBool(flag, value)),
+                ]),
+        ]));
   }
 }
 
