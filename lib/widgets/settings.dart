@@ -145,12 +145,18 @@ class _BrowserPreferenceSetting extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final globalSettings = GlobalStoreWidget.settingsOf(context);
+    final designVariables = DesignVariables.of(context);
     final openLinksWithInAppBrowser =
       globalSettings.effectiveBrowserPreference == BrowserPreference.inApp;
-    return SwitchListTile.adaptive(
-      title: Text(zulipLocalizations.openLinksWithInAppBrowser),
-      value: openLinksWithInAppBrowser,
-      onChanged: (newValue) => _handleChange(context, newValue));
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        title: Text(zulipLocalizations.openLinksWithInAppBrowser,
+          style: TextStyle(
+            color: designVariables.contextMenuItemText, fontSize: 20).merge(weightVariableTextStyle(context, wght: 600))),
+        trailing: _SwitchTile(
+          value: openLinksWithInAppBrowser,
+          onChanged: (newValue) => _handleChange(context, newValue))));
   }
 }
 
