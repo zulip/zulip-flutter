@@ -129,7 +129,7 @@ is an open TODO.
 
   * Upload both the AAB and the APK.
 
-  * Check the box "This is a pre-release".
+  * Check the box "Set as a pre-release".
 
 
 * iOS via TestFlight:
@@ -148,7 +148,7 @@ is an open TODO.
 
   * Also submit for App Store review, to save latency in the prod rollout:
 
-    * In App Store Connect for the app, [go to the "App Store"
+    * In App Store Connect for the app, [go to the "Distribution"
       tab][asc-main], and hit the "+" button next to "iOS App" at the
       top of the left sidebar.  Enter the version number.  This
       creates a new draft listing.
@@ -166,10 +166,7 @@ is an open TODO.
         this version").
 
       * Back at the top, hit "Save" and then "Add for Review", and hit
-        "Continue" in the resulting dialog box.
-
-      * In the resulting "Confirm Submission" page, hit
-        "Submit to App Review".
+        "Submit for Review" in the resulting modal sidebar.
 
     * The draft listing should enter state "Waiting for Review".  From
       here, it typically takes a day or so to get a result from the
@@ -177,7 +174,7 @@ is an open TODO.
       button to roll it out.
 
 [asc-external]: https://appstoreconnect.apple.com/apps/1203036395/testflight/groups/1bf18c25-da12-4bad-8384-9dd872ce447f
-[asc-main]: https://appstoreconnect.apple.com/apps/1203036395/appstore/info
+[asc-main]: https://appstoreconnect.apple.com/apps/1203036395/distribution/info
 
 
 ## Announce
