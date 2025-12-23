@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/settings.dart';
 import 'app_bar.dart';
+import 'icons.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
+import 'theme.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -32,6 +34,35 @@ class SettingsPage extends StatelessWidget {
               ExperimentalFeaturesPage.buildRoute()))
       ]));
   }
+}
+
+class _SettingsNavitem extends StatelessWidget {
+  const _SettingsNavitem({
+    required this.title,
+    this.subtitle,
+    required this.onTap,
+  });
+
+  final String title;
+  final String? subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return ListTile(
+      title:  Text(title,
+        style: TextStyle(
+          color: designVariables.contextMenuItemText,
+          fontSize: 20).merge(weightVariableTextStyle(context, wght: 600))),
+      subtitle: subtitle != null ? Text(
+          subtitle!,
+          style: TextStyle(fontSize: 17).merge(weightVariableTextStyle(context, wght: 400))) : null,
+      onTap: onTap,
+      trailing: Icon(
+          ZulipIcons.chevron_right,
+          color: designVariables.contextMenuItemIcon,),
+    );}
 }
 
 class _ThemeSetting extends StatelessWidget {
