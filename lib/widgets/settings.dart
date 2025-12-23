@@ -33,7 +33,14 @@ class SettingsPage extends StatelessWidget {
           onTap: () => Navigator.push(context,
             VisitFirstUnreadSettingPage.buildRoute()),
         ),
-        const _MarkReadOnScrollSetting(),
+        _SettingsNavitem(
+          title: 'Mark messages as read on scroll',
+          subtitle: MarkReadOnScrollSettingPage._valueDisplayName(
+            GlobalStoreWidget.settingsOf(context).markReadOnScroll,
+            zulipLocalizations: zulipLocalizations),
+          onTap: () => Navigator.push(context,
+            MarkReadOnScrollSettingPage.buildRoute()),
+        ),
         if (GlobalSettingsStore.experimentalFeatureFlags.isNotEmpty)
           ListTile(
             title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
