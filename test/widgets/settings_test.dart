@@ -51,7 +51,7 @@ void main() {
 
   Finder findRadioListTileWithTitle<T>(String title) => find.ancestor(
     of: find.text(title),
-    matching: find.byType(RadioListTile<T>));
+    matching: find.byType(RadioTile<T>));
 
   void checkRadioButtonAppearsChecked<T>(WidgetTester tester,
       String title, bool expectedIsChecked, {String? subtitle}) {
@@ -317,3 +317,4 @@ void main() {
   //   [GlobalSettingsStore.experimentalFeatureFlags] so that tests can
   //   control making it empty, or non-empty, at will.)
 }
+
