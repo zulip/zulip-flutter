@@ -42,6 +42,8 @@ An iOS release from this version was impossible: #2049.
 
 ### Highlights for developers
 
+* New changelog format.  See commit 2b7ab49ff.
+
 * Merge log: PRs, with fixed issues and user-visible changes.
   * #1976
   * #1978
