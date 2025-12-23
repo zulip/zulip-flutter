@@ -128,22 +128,6 @@ class _BrowserPreferenceSetting extends StatelessWidget {
   }
 }
 
-class _VisitFirstUnreadSetting extends StatelessWidget {
-  const _VisitFirstUnreadSetting();
-
-  @override
-  Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    final globalSettings = GlobalStoreWidget.settingsOf(context);
-    return ListTile(
-      title: Text(zulipLocalizations.initialAnchorSettingTitle),
-      subtitle: Text(VisitFirstUnreadSettingPage._valueDisplayName(
-        globalSettings.visitFirstUnread, zulipLocalizations: zulipLocalizations)),
-      onTap: () => Navigator.push(context,
-        VisitFirstUnreadSettingPage.buildRoute()));
-  }
-}
-
 class VisitFirstUnreadSettingPage extends StatelessWidget {
   const VisitFirstUnreadSettingPage({super.key});
 
