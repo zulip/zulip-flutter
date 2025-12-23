@@ -114,17 +114,18 @@ class _ThemeSetting extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final globalSettings = GlobalStoreWidget.settingsOf(context);
-    return RadioGroup<ThemeSetting?>(
-      groupValue: globalSettings.themeSetting,
-      onChanged: (newValue) => _handleChange(context, newValue),
+    return Material(
+      color: Colors.transparent,
       child: Column(
         children: [
           for (final themeSettingOption in [null, ...ThemeSetting.values])
-            RadioListTile<ThemeSetting?>.adaptive(
-              title: Text(ThemeSetting.displayName(
+            RadioTile<ThemeSetting?>(
+              value: themeSettingOption,
+              groupValue: globalSettings.themeSetting,
+              title: ThemeSetting.displayName(
                 themeSetting: themeSettingOption,
-                zulipLocalizations: zulipLocalizations)),
-              value: themeSettingOption),
+                zulipLocalizations: zulipLocalizations),
+              onChanged: (newValue) => _handleChange(context, newValue)),
         ]));
   }
 }
@@ -184,17 +185,18 @@ class VisitFirstUnreadSettingPage extends StatelessWidget {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.initialAnchorSettingTitle)),
-      body: RadioGroup<VisitFirstUnreadSetting>(
-        groupValue: globalSettings.visitFirstUnread,
-        onChanged: (newValue) => _handleChange(context, newValue),
-        child: Column(children: [
-          ListTile(title: Text(zulipLocalizations.initialAnchorSettingDescription)),
-          for (final value in VisitFirstUnreadSetting.values)
-            RadioListTile<VisitFirstUnreadSetting>.adaptive(
-              title: Text(_valueDisplayName(value,
-                zulipLocalizations: zulipLocalizations)),
-              value: value),
-        ])));
+      body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(zulipLocalizations.initialAnchorSettingDescription,
+            style: TextStyle(fontSize: 17).merge(weightVariableTextStyle(context, wght: 400)))),
+        for (final value in VisitFirstUnreadSetting.values)
+          RadioTile(
+            value: value,
+            groupValue: globalSettings.visitFirstUnread,
+            title: _valueDisplayName(value, zulipLocalizations: zulipLocalizations),
+            onChanged:(newValue) => _handleChange(context, newValue))
+      ]));
   }
 }
 
@@ -241,22 +243,18 @@ class MarkReadOnScrollSettingPage extends StatelessWidget {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.markReadOnScrollSettingTitle)),
-      body: RadioGroup<MarkReadOnScrollSetting>(
-        groupValue: globalSettings.markReadOnScroll,
-        onChanged: (newValue) => _handleChange(context, newValue),
-        child: Column(children: [
-          ListTile(title: Text(zulipLocalizations.markReadOnScrollSettingDescription)),
-          for (final value in MarkReadOnScrollSetting.values)
-            RadioListTile<MarkReadOnScrollSetting>.adaptive(
-              title: Text(_valueDisplayName(value,
-                zulipLocalizations: zulipLocalizations)),
-              subtitle: () {
-                final result = _valueDescription(value,
-                  zulipLocalizations: zulipLocalizations);
-                return result == null ? null : Text(result);
-              }(),
-              value: value),
-        ])));
+      body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Padding(padding: const EdgeInsets.all(16.0),
+          child: Text(zulipLocalizations.markReadOnScrollSettingDescription,
+            style: TextStyle(fontSize: 17).merge(weightVariableTextStyle(context, wght: 400)))),
+        for (final value in MarkReadOnScrollSetting.values)
+          RadioTile(
+            value: value,
+            groupValue: globalSettings.markReadOnScroll,
+            title: _valueDisplayName(value, zulipLocalizations: zulipLocalizations),
+            onChanged: (newValue) => _handleChange(context, newValue),
+            subtitle: _valueDescription(value, zulipLocalizations: zulipLocalizations))
+      ]));
   }
 }
 
@@ -301,7 +299,7 @@ class RadioTile<T> extends StatelessWidget {
     required this.groupValue,
     required this.title,
     required this.onChanged,
-    this.subtitle,
+    this.subtitle
   });
 
   @override
