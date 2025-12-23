@@ -275,3 +275,60 @@ class ExperimentalFeaturesPage extends StatelessWidget {
       ]));
   }
 }
+
+
+class RadioTile<T> extends StatelessWidget {
+  final T value;
+  final T groupValue;
+  final String title;
+  final ValueChanged<T?> onChanged;
+  final String? subtitle;
+
+  const RadioTile({
+    super.key,
+    required this.value,
+    required this.groupValue,
+    required this.title,
+    required this.onChanged,
+    this.subtitle
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = value == groupValue;
+    final designVariables = DesignVariables.of(context);
+
+    return Semantics(
+      label: subtitle == null ? title : '$title\n$subtitle',
+      checked: isSelected,
+      inMutuallyExclusiveGroup: true,
+      onTap: () => onChanged(value),
+      child: InkWell(
+        onTap: () => onChanged(value),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: Row(
+            children: [
+              isSelected
+              ? Icon(size: 24,
+                  color: designVariables.radioFillSelected,
+                  ZulipIcons.check_circle_checked)
+              : Icon(size: 24,
+                  color: designVariables.radioBorder,
+                  ZulipIcons.check_circle_unchecked),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,style: TextStyle(fontSize: 18).merge(weightVariableTextStyle(context, wght: 500))),
+                    if (subtitle != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(subtitle!,
+                          style: TextStyle(fontSize: 17).merge(weightVariableTextStyle(context, wght: 400)),),
+                      )])),
+            ]))),
+    );
+  }
+}
