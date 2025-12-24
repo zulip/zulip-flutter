@@ -344,8 +344,46 @@ public and users are still vulnerable.
 
 ## One-time or annual setup
 
-* You'll need the Google Play upload key.  The setup is similar to
-  what we use for the React Native app, but the key is a fresh one.
+### Prepare Android
+
+You'll need the Google Play upload key.
+This key also serves as the [app signing key][] for
+the APK and AAB files we publish directly via GitHub releases.
+As the linked upstream doc explains, this is a highly sensitive secret
+which it's very important to handle securely.
+
+[app signing key]: https://developer.android.com/studio/publish/app-signing#secure_key
+
+(This setup is similar to what we used for the legacy mobile app,
+but the key is a fresh one.)
+
+* Get the keystore file, and the keystore properties file.
+  An existing/previous release manager can send these to you,
+  encrypted to your PGP key.
+
+  * Never make an unencrypted version visible to the network or to a
+    cloud service (including Zulip).
+
+* Put the release-signing keystore, PGP-encrypted to yourself,
+  at `android/release.keystore.pgp`.
+
+  * Don't leave an unencrypted version on disk, except temporarily.
+    The script `tools/checkout-keystore` will help manage this; see
+    `tools/checkout-keystore --help` and release instructions above.
+
+* Put the keystore properties file at
+  `android/release-keystore.properties`.
+  It looks like this (passwords redacted):
+
+```
+storeFile=release.keystore
+keyAlias=zulip-mobile
+storePassword=*****
+keyPassword=*****
+```
+
+
+### Prepare iOS
 
 * You'll need an "Apple Distribution" certificate and its key,
   and also an iOS "provisioning profile" that refers to that
