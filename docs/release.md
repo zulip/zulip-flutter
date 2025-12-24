@@ -3,6 +3,9 @@
 This doc explains how to make a release of the Zulip mobile app to the
 iOS App Store, to the Google Play Store, and as APKs on the web.
 
+If you're reading this page for the first time, see the sections on
+[terminology](#terminology) and [setup](#setup) below.
+
 (Some additional information can be found in the [legacy app's release
 instructions][].  Incorporating those remaining pieces into this doc
 is an open TODO.
@@ -341,6 +344,8 @@ public and users are still vulnerable.
 
 * Discuss freely.
 
+
+<div id="setup" />
 
 ## One-time or annual setup
 
