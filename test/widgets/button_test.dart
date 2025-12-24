@@ -114,6 +114,37 @@ void main() {
       check(renderObject).size.equals(Size.square(40));
     });
 
+    group('AnimatedScaleOnPrimaryPointerDown', () {
+      void checkScale(WidgetTester tester, Finder finder, double expectedScale) {
+        final scale = tester.widget<AnimatedScale>(finder).scale;
+        check(scale).equals(expectedScale);
+      }
+
+      testWidgets('Animation happen instantly when pointer down', (tester) async {
+        addTearDown(testBinding.reset);
+
+        await tester.pumpWidget(TestZulipApp(
+          child: AnimatedScaleOnPrimaryPointerDown(
+            scaleEnd: 0.95,
+            duration: Duration(milliseconds: 100),
+            child: UnconstrainedBox(
+              child: ZulipIconButton(
+                icon: ZulipIcons.follow,
+                onPressed: () {})))));
+        await tester.pump();
+
+        final animatedScaleFinder = find.byType(AnimatedScale);
+
+        final gesture = await tester.startGesture(tester.getCenter(find.byType(ZulipIconButton)));
+        await tester.pump();
+        checkScale(tester, animatedScaleFinder, 0.95);
+
+        await gesture.up();
+        await tester.pump();
+        checkScale(tester, animatedScaleFinder, 1.0);
+      });
+    });
+
     // TODO test that the touch feedback fills the whole square
   });
 }
