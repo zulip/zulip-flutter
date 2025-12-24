@@ -402,3 +402,73 @@ keyPassword=*****
   <https://apps.apple.com/us/app/transporter/id1450874784>
 
   Install the app, open it, and log in.
+
+
+## Terminology
+
+This section defines the terms **alpha**, **beta**, and **production**
+(or **prod**) as used in this document and in our release process.
+
+Google and Apple each have different terminology for the various
+channels of progressively wider release.  We don't use or need the
+full complexity of either one, and for sanity's sake we use a common,
+simple terminology for the process we follow with both.
+
+* **Alpha**: A release only to active developers of the app.
+  See [instructions][join-alpha] for joining.
+
+  * What this means on each platform:
+    * Google Play: release to "Internal testing"
+    * iOS: release in TestFlight to "App Store Connect Users"
+    * GitHub: a Git tag
+
+  * On both Google Play and TestFlight, a new version in this channel
+    is available for update immediately on devices.  We use it for
+    final manual QA before releasing to beta or production.
+
+  * NB Google Play has its own feature it calls "Alpha"
+    (aka "Closed testing"), which is sort of intermediate between
+    "Internal testing" and "Open testing".
+    We don't use that feature.
+
+[join-alpha]: https://github.com/zulip/zulip-mobile/blob/main/docs/howto/alpha.md
+
+
+* **Beta**: A release to users who have volunteered to get new versions
+  early and give us feedback.  See
+  [instructions](https://github.com/zulip/zulip-mobile#using-the-beta) for
+  joining.
+
+  * What this means on each platform:
+    * Google Play: release to "Open testing"
+    * iOS: release to all our TestFlight users (through the
+      "External Testers" group)
+    * GitHub: a GitHub release with binaries and description,
+      marked as pre-release
+
+  * We sometimes use this channel for wider testing of a release
+    before sending to production: historically about 2-4 days for a
+    typical new release.  More recently we tend to leave a release in
+    beta for at most 1 day before sending to prod; see discussion
+    above.
+
+  * NB Google Play also calls this "Beta track" or "Open track", as
+    well as "Open testing".
+
+
+* **Production** (aka **prod**): A general release to all users.
+
+  * What this means on each platform:
+    * Google Play: release to "Production"
+    * iOS: release to the App Store
+    * GitHub: a GitHub release with binaries and description,
+      not marked pre-release
+
+  * On iOS there is a gotcha we've occasionally fallen for in the
+    past: because releasing to the App Store is mostly a separate
+    process from releasing to TestFlight, it's easy to release a given
+    version to the App Store without ever interacting with TestFlight.
+    If we do, our beta users will simply never get that version, and
+    stay on the (older) last version we gave them.
+    Naturally this isn't good for our kind beta users, nor for us; so
+    don't do this. :)
