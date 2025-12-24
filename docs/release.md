@@ -1,17 +1,15 @@
 # Making releases
 
-## NOTE: This document is out of date.
+This doc explains how to make a release of the Zulip mobile app to the
+iOS App Store, to the Google Play Store, and as APKs on the web.
 
-Now that this is the main Zulip mobile app,
-the actual release process is roughly a hybrid of the steps below
-and those from the legacy app's release instructions.
-
-The steps below have been updated up through "Promote to beta".
-After that, announce the release following a hybrid of the two docs;
-and release to production following the other doc.
-
-Revising this further into a single coherent set of instructions
+(Some additional information can be found in the [legacy app's release
+instructions][].  Incorporating those remaining pieces into this doc
 is an open TODO.
+
+The main release process, however, is all fully set forth below.)
+
+[legacy app's release instructions]: https://github.com/zulip/zulip-mobile/blob/main/docs/howto/release.md
 
 
 ## Prepare source tree
@@ -177,16 +175,64 @@ is an open TODO.
 [asc-main]: https://appstoreconnect.apple.com/apps/1203036395/distribution/info
 
 
+## Release to production
+
+Historically we would wait a couple of days after sending to beta
+before sending to production.  More recently (since 2025) we've
+been sending a typical release to production promptly after beta.
+Discussion thread: [#mobile-team > mobile releases @ 💬](https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/mobile.20releases/near/2218205)
+
+
+* Android via Play Store:
+
+  * In the Play Console, go to [Release > Testing >
+    Open testing][play-open-testing].
+
+  * Under the release you want to promote, choose "Promote release >
+    Production".
+
+  * Under "Staged roll-out", set 100% as the roll-out percentage.
+
+    * Occasionally we start with a smaller percentage.  In that case,
+      remember to come back later to make a 100% rollout.
+
+  * Confirm and send to Google for review.
+
+[play-open-testing]: https://play.google.com/console/developers/8060868091387311598/app/4976350040864490411/tracks/open-testing
+
+
+* Android via GitHub:
+
+  * Edit the release [on GitHub][gh-releases].  Uncheck
+    "Set as a pre-release", and check "Set as the latest release".
+
+[gh-releases]: https://github.com/zulip/zulip-flutter/releases
+
+
+* iOS via App Store:
+
+  * (This assumes the new version was submitted for App Store review
+    at the time of the beta rollout, and accepted.  See beta steps
+    above for how to submit it.)
+
+  * In App Store Connect for the app, go to [Distribution > iOS App >
+    (the draft release)][asc-inflight].
+
+  * Hit the big blue button at top right to release to the App Store.
+
+[asc-inflight]: https://appstoreconnect.apple.com/apps/1203036395/appstore/ios/version/inflight
+
+
 ## Announce
 
 * Announce the updated beta in
-  [#announce > mobile beta][releases-thread].
+  [#announce > mobile releases][releases-thread].
 
   For release notes, use `tools/format-changelog czo`.
 
-[releases-thread]: https://chat.zulip.org/#narrow/stream/1-announce/topic/mobile.20beta
+[releases-thread]: https://chat.zulip.org/#narrow/stream/1-announce/topic/mobile.20releases
 
-* For any fixed issues that were tagged "beta feedback", or otherwise
+* For any fixed issues that were tagged "user feedback", or otherwise
   had people outside the mobile team specifically interested in them,
   follow up with the requesters: post on the relevant thread (in
   GitHub or Zulip) and @-mention the individuals who asked for the
