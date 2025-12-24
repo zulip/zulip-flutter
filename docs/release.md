@@ -6,14 +6,6 @@ iOS App Store, to the Google Play Store, and as APKs on the web.
 If you're reading this page for the first time, see the sections on
 [terminology](#terminology) and [setup](#setup) below.
 
-(Some additional information can be found in the [legacy app's release
-instructions][].  Incorporating those remaining pieces into this doc
-is an open TODO.
-
-The main release process, however, is all fully set forth below.)
-
-[legacy app's release instructions]: https://github.com/zulip/zulip-mobile/blob/main/docs/howto/release.md
-
 
 ## Prepare source tree
 
@@ -420,7 +412,7 @@ full complexity of either one, and for sanity's sake we use a common,
 simple terminology for the process we follow with both.
 
 * **Alpha**: A release only to active developers of the app.
-  See [instructions][join-alpha] for joining.
+  See [instructions](howto/alpha.md) for joining.
 
   * What this means on each platform:
     * Google Play: release to "Internal testing"
@@ -436,13 +428,12 @@ simple terminology for the process we follow with both.
     "Internal testing" and "Open testing".
     We don't use that feature.
 
-[join-alpha]: https://github.com/zulip/zulip-mobile/blob/main/docs/howto/alpha.md
 
-
-* **Beta**: A release to users who have volunteered to get new versions
-  early and give us feedback.  See
-  [instructions](https://github.com/zulip/zulip-mobile#using-the-beta) for
-  joining.
+* **Beta**: Historically, a release to users who have volunteered to
+  get new versions early and give us feedback.
+  More recently, we usually don't make use of this channel;
+  we send a release here just before sending the same release to prod.
+  See [discussion above](#release-to-production).
 
   * What this means on each platform:
     * Google Play: release to "Open testing"
@@ -450,12 +441,6 @@ simple terminology for the process we follow with both.
       "External Testers" group)
     * GitHub: a GitHub release with binaries and description,
       marked as pre-release
-
-  * We sometimes use this channel for wider testing of a release
-    before sending to production: historically about 2-4 days for a
-    typical new release.  More recently we tend to leave a release in
-    beta for at most 1 day before sending to prod; see discussion
-    above.
 
   * NB Google Play also calls this "Beta track" or "Open track", as
     well as "Open testing".
