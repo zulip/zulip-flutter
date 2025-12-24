@@ -274,6 +274,74 @@ Steps specific to this type of release are:
   (with the correct version number), and push.
 
 
+## Security releases
+
+Very occasionally, we find a security vulnerability in the app.
+When a release fixes a vulnerability which isn't already public,
+we follow a variation of the process above.
+
+The goal is to get the update onto most users' phones almost before
+the issue is disclosed, minimizing the window where the issue is
+public and users are still vulnerable.
+
+### Preparing commit
+
+* Write the fixes on a private branch, but don't push to the main repo (or
+  other public repos.)
+
+* Prepare and QA the commit as usual.  We'll be skipping the beta phase, so
+  be especially diligent with the QA, and choosy in what commits to include.
+  Definitely make it a stable release, with only hand-picked changes on top
+  of the last release.
+
+* Tag the commit, but don't push it yet.
+
+### Android prep
+
+* Build and upload to Google Play, but release only to alpha for now.
+  Repeat manual QA with the alpha.
+
+* Also send for Google's review to promote to both beta and
+  production, but adjust settings so that it will wait to roll out
+  until we later hit a button saying so.
+
+  (The last time we needed this procedure was years ago, before the
+  Play Store had blocking reviews on updates, so we've not yet
+  actually done this step in practice.)
+
+* Don't upload to GitHub yet.
+
+### iOS prep
+
+* Build and upload to App Store Connect, but release only to alpha for now.
+  Repeat manual QA with the alpha.
+
+* Follow the steps to release to production, with one change: in the draft
+  listing, find the option for "Manually release this version", and select it.
+
+### Release
+
+* Wait for Apple's review; on success, the app will enter state "Pending
+  Developer Release".  (On failure, try to fix the issue, then resubmit.)
+  Similarly wait for Google's review.
+
+* Now release the app to both the App Store and the Play Store.
+
+* Also now submit to TestFlight, for beta users on iOS.
+  Wait for that to go out before discussing further in public.
+
+### Followup
+
+* Wait for the release to be approved for TestFlight.
+  (On failure, try to fix, then resubmit.)
+
+* Push the tagged commit, and also push the corresponding changes to main.
+
+* Upload the APKs to GitHub as usual.
+
+* Discuss freely.
+
+
 ## One-time or annual setup
 
 * You'll need the Google Play upload key.  The setup is similar to
