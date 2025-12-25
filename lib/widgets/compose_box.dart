@@ -1439,7 +1439,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 
   ComposeBoxController get controller;
 
-  Widget? buildTopicInput();
+  Widget? buildTopicInput(BuildContext context);
   Widget buildContentInput();
   bool getComposeButtonsEnabled(BuildContext context);
   Widget? buildSendButton();
@@ -1475,7 +1475,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
     ];
 
-    final topicInput = buildTopicInput();
+    final topicInput = buildTopicInput(context);
     final sendButton = buildSendButton();
     return Column(children: [
       Padding(
@@ -1513,10 +1513,21 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   @override
   final StreamComposeBoxController controller;
 
-  @override Widget buildTopicInput() => _TopicInput(
-    streamId: narrow.streamId,
-    controller: controller,
-  );
+  @override
+  Widget? buildTopicInput(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final stream = store.streams[narrow.streamId];
+    final topicsPolicy = stream?.topicsPolicy;
+
+    if (topicsPolicy == TopicsPolicy.emptyTopicOnly) {
+      return null;
+    }
+
+    return _TopicInput(
+      streamId: narrow.streamId,
+      controller: controller,
+    );
+  }
 
   @override Widget buildContentInput() => _StreamContentInput(
     narrow: narrow,
@@ -1541,7 +1552,7 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
   @override
   final FixedDestinationComposeBoxController controller;
 
-  @override Widget? buildTopicInput() => null;
+  @override Widget? buildTopicInput(BuildContext context) => null;
 
   @override Widget buildContentInput() => _FixedDestinationContentInput(
     narrow: narrow,
@@ -1566,7 +1577,7 @@ class _EditMessageComposeBoxBody extends _ComposeBoxBody {
   @override
   final EditMessageComposeBoxController controller;
 
-  @override Widget? buildTopicInput() => null;
+  @override Widget? buildTopicInput(BuildContext context) => null;
 
   @override Widget buildContentInput() => _EditMessageContentInput(
     narrow: narrow,
