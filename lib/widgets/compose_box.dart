@@ -1242,6 +1242,29 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
   }
 }
 
+class _AttachGlobalTimeButton extends StatelessWidget {
+  const _AttachGlobalTimeButton({required this.controller, required this.enabled});
+
+  final ComposeBoxController controller;
+  final bool enabled;
+
+  void _handlePress(BuildContext context) async {
+    await controller.insertGlobalTime(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    
+    return SizedBox(
+      width: _composeButtonSize,
+      child: IconButton(
+        icon: Icon(ZulipIcons.clock, color: designVariables.foreground.withFadedAlpha(0.5)),
+        tooltip: "Insert Global Time",
+        onPressed: enabled ? () => _handlePress(context) : null));
+  }
+}
+
 class _SendButton extends StatefulWidget {
   const _SendButton({required this.controller, required this.getDestination});
 
@@ -1473,6 +1496,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
       _AttachFileButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
+      _AttachGlobalTimeButton(controller: controller, enabled: composeButtonsEnabled),
     ];
 
     final topicInput = buildTopicInput();
@@ -1620,12 +1644,72 @@ sealed class ComposeBoxController {
       files: files);
   }
 
+  Future<void> insertGlobalTime(BuildContext context) async {
+    final now = DateTime.now(); 
+
+    final date = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: DateTime(now.year - 5),
+      lastDate: DateTime(now.year + 5),
+      helpText: "Select Date", 
+      cancelText: "Cancel");
+
+    if (date == null || !context.mounted) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(now),
+      helpText: "Select Time");
+
+    if (time == null) return;
+
+    final combined = date.copyWith(
+      hour: time.hour,
+      minute: time.minute);
+
+    final insert = '<time:${formatGlobalTime(combined)}>';
+    
+    _insertTextAtCursor(insert);
+  }
+
+  void _insertTextAtCursor(String insertion) {
+    final currentSelection = content.selection;
+    final currentText = content.text;
+
+    final newText = currentSelection.isValid
+        ? currentText.replaceRange(currentSelection.start, currentSelection.end, insertion)
+        : currentText + insertion;
+
+    final newSelectionIndex = currentSelection.isValid
+        ? currentSelection.start + insertion.length
+        : newText.length;
+
+    content.value = TextEditingValue(text: newText,
+      selection: TextSelection.collapsed(offset: newSelectionIndex),
+      composing: TextRange.empty, 
+    );
+  }
+
+  String formatGlobalTime(DateTime date) {
+    final iso = date.toIso8601String();
+    final trimmedIso = iso.contains('.') ? iso.substring(0, iso.indexOf('.')) : iso;
+    final offset = date.timeZoneOffset;
+    final sign = offset.isNegative ? '-' : '+';
+    final hours = offset.inHours.abs().toString().padLeft(2, '0');
+    final minutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
+
+    return '$trimmedIso$sign$hours:$minutes';
+  }
+
   @mustCallSuper
   void dispose() {
     content.dispose();
     contentFocusNode.dispose();
   }
 }
+
+
 
 /// Represent how a user has interacted with topic and content inputs.
 ///
