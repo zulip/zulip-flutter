@@ -108,7 +108,9 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
       labelTime: labelTime ?? this.labelTime,
       senderBotIcon: senderBotIcon ?? this.senderBotIcon,
-      streamRecipientHeaderChevronRight: streamRecipientHeaderChevronRight ?? this.streamRecipientHeaderChevronRight,
+      streamRecipientHeaderChevronRight:
+          streamRecipientHeaderChevronRight ??
+          this.streamRecipientHeaderChevronRight,
       unreadMarker: unreadMarker ?? this.unreadMarker,
       unreadMarkerGap: unreadMarkerGap ?? this.unreadMarkerGap,
     );
@@ -120,10 +122,18 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       return this;
     }
     return MessageListTheme._(
-      dmRecipientHeaderBg: Color.lerp(dmRecipientHeaderBg, other.dmRecipientHeaderBg, t)!,
+      dmRecipientHeaderBg: Color.lerp(
+        dmRecipientHeaderBg,
+        other.dmRecipientHeaderBg,
+        t,
+      )!,
       labelTime: Color.lerp(labelTime, other.labelTime, t)!,
       senderBotIcon: Color.lerp(senderBotIcon, other.senderBotIcon, t)!,
-      streamRecipientHeaderChevronRight: Color.lerp(streamRecipientHeaderChevronRight, other.streamRecipientHeaderChevronRight, t)!,
+      streamRecipientHeaderChevronRight: Color.lerp(
+        streamRecipientHeaderChevronRight,
+        other.streamRecipientHeaderChevronRight,
+        t,
+      )!,
       unreadMarker: Color.lerp(unreadMarker, other.unreadMarker, t)!,
       unreadMarkerGap: Color.lerp(unreadMarkerGap, other.unreadMarkerGap, t)!,
     );
@@ -195,7 +205,9 @@ class MessageListPage extends StatefulWidget {
       page: MessageListPage(
         key: key,
         initNarrow: narrow,
-        initAnchorMessageId: initAnchorMessageId));
+        initAnchorMessageId: initAnchorMessageId,
+      ),
+    );
   }
 
   /// The "revealed" state of a message from a muted sender,
@@ -206,10 +218,12 @@ class MessageListPage extends StatefulWidget {
   ///
   /// Uses the efficient [BuildContext.dependOnInheritedWidgetOfExactType],
   /// so this is safe to call in a build method.
-  static RevealedMutedMessagesState? maybeRevealedMutedMessagesOf(BuildContext context) {
-    final state =
-      context.dependOnInheritedWidgetOfExactType<_RevealedMutedMessagesProvider>()
-      ?.state;
+  static RevealedMutedMessagesState? maybeRevealedMutedMessagesOf(
+    BuildContext context,
+  ) {
+    final state = context
+        .dependOnInheritedWidgetOfExactType<_RevealedMutedMessagesProvider>()
+        ?.state;
     return state;
   }
 
@@ -260,6 +274,7 @@ class MessageListPage extends StatefulWidget {
     }());
     return result;
   }
+
   static bool _debugEnableMarkReadOnScroll = true;
   static set debugEnableMarkReadOnScroll(bool value) {
     assert(() {
@@ -274,7 +289,8 @@ class MessageListPage extends StatefulWidget {
   }
 }
 
-class _MessageListPageState extends State<MessageListPage> implements MessageListPageState {
+class _MessageListPageState extends State<MessageListPage>
+    implements MessageListPageState {
   @override
   late Narrow narrow;
 
@@ -337,7 +353,9 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
       initAnchor = NumericAnchor(widget.initAnchorMessageId!);
     } else {
       final globalSettings = GlobalStoreWidget.settingsOf(context);
-      final useFirstUnread = globalSettings.shouldVisitFirstUnread(narrow: narrow);
+      final useFirstUnread = globalSettings.shouldVisitFirstUnread(
+        narrow: narrow,
+      );
       initAnchor = useFirstUnread ? AnchorCode.firstUnread : AnchorCode.newest;
     }
 
@@ -352,40 +370,47 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
       body: Builder(
         builder: (BuildContext context) {
           return Column(
-          // Children are expected to take the full horizontal space
-          // and handle the horizontal device insets.
-          // The bottom inset should be handled by the last child only.
-          children: [
-            MediaQuery.removePadding(
-              // Scaffold knows about the app bar, and so has run this
-              // BuildContext, which is under `body`, through
-              // MediaQuery.removePadding with `removeTop: true`.
-              context: context,
+            // Children are expected to take the full horizontal space
+            // and handle the horizontal device insets.
+            // The bottom inset should be handled by the last child only.
+            children: [
+              MediaQuery.removePadding(
+                // Scaffold knows about the app bar, and so has run this
+                // BuildContext, which is under `body`, through
+                // MediaQuery.removePadding with `removeTop: true`.
+                context: context,
 
-              // The compose box, when present, pads the bottom inset.
-              // TODO(#311) If we have a bottom nav, it will pad the bottom
-              //   inset, and this should always be true.
-              removeBottom: ComposeBox.hasComposeBox(narrow),
+                // The compose box, when present, pads the bottom inset.
+                // TODO(#311) If we have a bottom nav, it will pad the bottom
+                //   inset, and this should always be true.
+                removeBottom: ComposeBox.hasComposeBox(narrow),
 
-              child: Expanded(
-                child: MessageList(
-                  key: _messageListKey,
-                  narrow: narrow,
-                  initAnchor: initAnchor,
-                  onNarrowChanged: _narrowChanged,
-                  markReadOnScroll: markReadOnScroll,
-                ))),
-            if (ComposeBox.hasComposeBox(narrow))
-              ComposeBox(key: _composeBoxKey, narrow: narrow)
-          ]);
-        }));
+                child: Expanded(
+                  child: MessageList(
+                    key: _messageListKey,
+                    narrow: narrow,
+                    initAnchor: initAnchor,
+                    onNarrowChanged: _narrowChanged,
+                    markReadOnScroll: markReadOnScroll,
+                  ),
+                ),
+              ),
+              if (ComposeBox.hasComposeBox(narrow))
+                ComposeBox(key: _composeBoxKey, narrow: narrow),
+            ],
+          );
+        },
+      ),
+    );
 
     // Insert a PageRoot here (under MessageListPage),
     // to provide a context that can be used for MessageListPage.ancestorOf.
     result = PageRoot(child: result);
 
-    result = _RevealedMutedMessagesProvider(state: _revealedMutedMessages,
-      child: result);
+    result = _RevealedMutedMessagesProvider(
+      state: _revealedMutedMessages,
+      child: result,
+    );
 
     return result;
   }
@@ -409,7 +434,7 @@ abstract class _MessageListAppBar {
 
     final Color? appBarBackgroundColor;
     bool removeAppBarBottomBorder = false;
-    switch(narrow) {
+    switch (narrow) {
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
@@ -419,8 +444,10 @@ abstract class _MessageListAppBar {
       case ChannelNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         final subscription = store.subscriptions[streamId];
-        appBarBackgroundColor =
-          colorSwatchFor(context, subscription).barBackground;
+        appBarBackgroundColor = colorSwatchFor(
+          context,
+          subscription,
+        ).barBackground;
         // All recipient headers will match this color; remove distracting line
         // (but are recipient headers even needed for topic narrows?)
         removeAppBarBottomBorder = true;
@@ -443,31 +470,39 @@ abstract class _MessageListAppBar {
       case ChannelNarrow(:final streamId):
         actions.add(_TopicListButton(streamId: streamId));
       case TopicNarrow(:final streamId):
-        actions.add(IconButton(
-          icon: const Icon(ZulipIcons.message_feed),
-          tooltip: zulipLocalizations.channelFeedButtonTooltip,
-          onPressed: () => Navigator.push(context,
-            MessageListPage.buildRoute(context: context,
-              narrow: ChannelNarrow(streamId)))));
+        actions.add(
+          IconButton(
+            icon: const Icon(ZulipIcons.message_feed),
+            tooltip: zulipLocalizations.channelFeedButtonTooltip,
+            onPressed: () => Navigator.push(
+              context,
+              MessageListPage.buildRoute(
+                context: context,
+                narrow: ChannelNarrow(streamId),
+              ),
+            ),
+          ),
+        );
         actions.add(_TopicListButton(streamId: streamId));
     }
 
     return ZulipAppBar(
       centerTitle: switch (narrow) {
-        CombinedFeedNarrow() || ChannelNarrow()
-            || TopicNarrow() || DmNarrow()
-            || MentionsNarrow() || StarredMessagesNarrow()
-          => null,
-        KeywordSearchNarrow()
-          => false,
+        CombinedFeedNarrow() ||
+        ChannelNarrow() ||
+        TopicNarrow() ||
+        DmNarrow() ||
+        MentionsNarrow() ||
+        StarredMessagesNarrow() => null,
+        KeywordSearchNarrow() => false,
       },
-      buildTitle: (willCenterTitle) =>
-        MessageListAppBarTitle(narrow: narrow, willCenterTitle: willCenterTitle),
+      buildTitle: (willCenterTitle) => MessageListAppBarTitle(
+        narrow: narrow,
+        willCenterTitle: willCenterTitle,
+      ),
       actions: actions,
       backgroundColor: appBarBackgroundColor,
-      shape: removeAppBarBottomBorder
-        ? const Border()
-        : null, // i.e., inherit
+      shape: removeAppBarBottomBorder ? const Border() : null, // i.e., inherit
     );
   }
 }
@@ -476,7 +511,7 @@ class RevealedMutedMessagesState extends ChangeNotifier {
   final Set<int> _revealedMessages = {};
 
   bool isMutedMessageRevealed(int messageId) =>
-    _revealedMessages.contains(messageId);
+      _revealedMessages.contains(messageId);
 
   void _add(int messageId) {
     _revealedMessages.add(messageId);
@@ -489,7 +524,8 @@ class RevealedMutedMessagesState extends ChangeNotifier {
   }
 }
 
-class _RevealedMutedMessagesProvider extends InheritedNotifier<RevealedMutedMessagesState> {
+class _RevealedMutedMessagesProvider
+    extends InheritedNotifier<RevealedMutedMessagesState> {
   const _RevealedMutedMessagesProvider({
     required RevealedMutedMessagesState state,
     required super.child,
@@ -509,9 +545,11 @@ class _TopicListButton extends StatelessWidget {
     return IconButton(
       icon: const Icon(ZulipIcons.topics),
       tooltip: zulipLocalizations.topicsButtonTooltip,
-      onPressed: () => Navigator.push(context,
-        TopicListPage.buildRoute(context: context,
-          streamId: streamId)));
+      onPressed: () => Navigator.push(
+        context,
+        TopicListPage.buildRoute(context: context, streamId: streamId),
+      ),
+    );
   }
 }
 
@@ -525,9 +563,7 @@ class MessageListAppBarTitle extends StatelessWidget {
   final Narrow narrow;
   final bool willCenterTitle;
 
-  Widget _buildStreamRow(BuildContext context, {
-    ZulipStream? stream,
-  }) {
+  Widget _buildStreamRow(BuildContext context, {ZulipStream? stream}) {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
@@ -536,8 +572,10 @@ class MessageListAppBarTitle extends StatelessWidget {
     Color? iconColor;
     if (stream != null) {
       icon = iconDataForStream(stream);
-      iconColor = colorSwatchFor(context, store.subscriptions[stream.streamId])
-        .iconOnBarBackground;
+      iconColor = colorSwatchFor(
+        context,
+        store.subscriptions[stream.streamId],
+      ).iconOnBarBackground;
     }
 
     return Row(
@@ -549,33 +587,48 @@ class MessageListAppBarTitle extends StatelessWidget {
       children: [
         Icon(size: 16, color: iconColor, icon),
         const SizedBox(width: 4),
-        Flexible(child: Text(
-          stream?.name ?? zulipLocalizations.unknownChannelName)),
-      ]);
+        Flexible(
+          child: Text(stream?.name ?? zulipLocalizations.unknownChannelName),
+        ),
+      ],
+    );
   }
 
-  Widget _buildTopicRow(BuildContext context, {
+  Widget _buildTopicRow(
+    BuildContext context, {
     required ZulipStream? stream,
     required TopicName topic,
   }) {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
-    final icon = stream == null ? null
-      : iconDataForTopicVisibilityPolicy(
-          store.topicVisibilityPolicy(stream.streamId, topic));
+    final icon = stream == null
+        ? null
+        : iconDataForTopicVisibilityPolicy(
+            store.topicVisibilityPolicy(stream.streamId, topic),
+          );
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Flexible(child: Text(topic.displayName ?? store.realmEmptyTopicDisplayName, style: TextStyle(
-          fontSize: 13,
-          fontStyle: topic.displayName == null ? FontStyle.italic : null,
-        ).merge(weightVariableTextStyle(context)))),
+        Flexible(
+          child: Text(
+            topic.displayName ?? store.realmEmptyTopicDisplayName,
+            style: TextStyle(
+              fontSize: 13,
+              fontStyle: topic.displayName == null ? FontStyle.italic : null,
+            ).merge(weightVariableTextStyle(context)),
+          ),
+        ),
         if (icon != null)
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 4),
-            child: Icon(icon,
-              color: designVariables.title.withFadedAlpha(0.5), size: 14)),
-      ]);
+            child: Icon(
+              icon,
+              color: designVariables.title.withFadedAlpha(0.5),
+              size: 14,
+            ),
+          ),
+      ],
+    );
   }
 
   @override
@@ -596,8 +649,8 @@ class MessageListAppBarTitle extends StatelessWidget {
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
         final alignment = willCenterTitle
-          ? Alignment.center
-          : AlignmentDirectional.centerStart;
+            ? Alignment.center
+            : AlignmentDirectional.centerStart;
         return SizedBox(
           width: double.infinity,
           child: GestureDetector(
@@ -605,15 +658,19 @@ class MessageListAppBarTitle extends StatelessWidget {
             onLongPress: () {
               showChannelActionSheet(context, channelId: streamId);
             },
-            child: Align(alignment: alignment,
-              child: _buildStreamRow(context, stream: stream))));
+            child: Align(
+              alignment: alignment,
+              child: _buildStreamRow(context, stream: stream),
+            ),
+          ),
+        );
 
       case TopicNarrow(:var streamId, :var topic):
         final store = PerAccountStoreWidget.of(context);
         final stream = store.streams[streamId];
         final alignment = willCenterTitle
-          ? Alignment.center
-          : AlignmentDirectional.centerStart;
+            ? Alignment.center
+            : AlignmentDirectional.centerStart;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -622,27 +679,39 @@ class MessageListAppBarTitle extends StatelessWidget {
               onLongPress: () {
                 showChannelActionSheet(context, channelId: streamId);
               },
-              child: Align(alignment: alignment,
-                child: _buildStreamRow(context, stream: stream))),
+              child: Align(
+                alignment: alignment,
+                child: _buildStreamRow(context, stream: stream),
+              ),
+            ),
             GestureDetector(
               behavior: HitTestBehavior.translucent,
               onLongPress: () {
-                final someMessage = MessageListPage.ancestorOf(context)
-                  .model?.messages.lastOrNull;
+                final someMessage = MessageListPage.ancestorOf(
+                  context,
+                ).model?.messages.lastOrNull;
                 // If someMessage is null, the topic action sheet won't have a
                 // resolve/unresolve button. That seems OK; in that case we're
                 // either still fetching messages (and the user can reopen the
                 // sheet after that finishes) or there aren't any messages to
                 // act on anyway.
-                assert(someMessage == null || narrow.containsMessage(someMessage)!);
-                showTopicActionSheet(context,
+                assert(
+                  someMessage == null || narrow.containsMessage(someMessage)!,
+                );
+                showTopicActionSheet(
+                  context,
                   channelId: streamId,
                   topic: topic,
-                  someMessageIdInTopic: someMessage?.id);
+                  someMessageIdInTopic: someMessage?.id,
+                );
               },
-              child: Align(alignment: alignment,
-                child: _buildTopicRow(context, stream: stream, topic: topic))),
-          ]);
+              child: Align(
+                alignment: alignment,
+                child: _buildTopicRow(context, stream: stream, topic: topic),
+              ),
+            ),
+          ],
+        );
 
       case DmNarrow(:var otherRecipientIds):
         final store = PerAccountStoreWidget.of(context);
@@ -652,15 +721,19 @@ class MessageListAppBarTitle extends StatelessWidget {
           final names = otherRecipientIds.map(store.userDisplayName);
           // TODO show avatars
           return Text(
-            zulipLocalizations.dmsWithOthersPageTitle(names.join(', ')));
+            zulipLocalizations.dmsWithOthersPageTitle(names.join(', ')),
+          );
         }
 
       case KeywordSearchNarrow():
         assert(!willCenterTitle);
-        return _SearchBar(onSubmitted: (narrow) {
-          MessageListPage.ancestorOf(context).model!
-            .renarrowAndFetch(narrow, AnchorCode.newest);
-        });
+        return _SearchBar(
+          onSubmitted: (narrow) {
+            MessageListPage.ancestorOf(
+              context,
+            ).model!.renarrowAndFetch(narrow, AnchorCode.newest);
+          },
+        );
     }
   }
 }
@@ -678,7 +751,7 @@ class _SearchBarState extends State<_SearchBar> {
   late TextEditingController _controller;
 
   static KeywordSearchNarrow _valueToNarrow(String value) =>
-    KeywordSearchNarrow(value.trim());
+      KeywordSearchNarrow(value.trim());
 
   @override
   void initState() {
@@ -723,7 +796,8 @@ class _SearchBarState extends State<_SearchBar> {
         hintStyle: TextStyle(color: designVariables.labelSearchPrompt),
         prefixIcon: Padding(
           padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 0, 8),
-          child: Icon(size: 24, ZulipIcons.search)),
+          child: Icon(size: 24, ZulipIcons.search),
+        ),
         prefixIconColor: designVariables.labelSearchPrompt,
         prefixIconConstraints: BoxConstraints(),
         suffixIcon: IconButton(
@@ -737,7 +811,8 @@ class _SearchBarState extends State<_SearchBar> {
             splashFactory: NoSplash.splashFactory,
           ),
           iconSize: 24,
-          icon: Icon(ZulipIcons.remove)),
+          icon: Icon(ZulipIcons.remove),
+        ),
         suffixIconColor: designVariables.textMessageMuted,
         suffixIconConstraints: BoxConstraints(minWidth: 42, minHeight: 42),
         contentPadding: const EdgeInsetsDirectional.symmetric(vertical: 7),
@@ -745,11 +820,12 @@ class _SearchBarState extends State<_SearchBar> {
         fillColor: designVariables.bgSearchInput,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide.none),
-      ));
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
   }
 }
-
 
 /// The approximate height of a short message in the message list.
 const _kShortMessageHeight = 80;
@@ -762,7 +838,8 @@ const _kShortMessageHeight = 80;
 //
 // When the user reaches this point, they're at least halfway through the
 // previous batch.
-const kFetchMessagesBufferPixels = (kMessageListFetchBatchSize / 2) * _kShortMessageHeight;
+const kFetchMessagesBufferPixels =
+    (kMessageListFetchBatchSize / 2) * _kShortMessageHeight;
 
 /// The message list.
 ///
@@ -788,13 +865,15 @@ class MessageList extends StatefulWidget {
   State<StatefulWidget> createState() => _MessageListState();
 }
 
-class _MessageListState extends State<MessageList> with PerAccountStoreAwareStateMixin<MessageList> {
+class _MessageListState extends State<MessageList>
+    with PerAccountStoreAwareStateMixin<MessageList> {
   final GlobalKey _scrollViewKey = GlobalKey();
 
   MessageListView get model => _model!;
   MessageListView? _model;
 
-  final MessageListScrollController scrollController = MessageListScrollController();
+  final MessageListScrollController scrollController =
+      MessageListScrollController();
 
   final ValueNotifier<bool> _scrollToBottomVisible = ValueNotifier<bool>(false);
 
@@ -805,7 +884,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   @override
-  void onNewStore() { // TODO(#464) try to keep using old model until new one gets messages
+  void onNewStore() {
+    // TODO(#464) try to keep using old model until new one gets messages
     final anchor = _model == null ? widget.initAnchor : _model!.anchor;
     _model?.dispose();
     _initModel(PerAccountStoreWidget.of(context), anchor);
@@ -823,17 +903,18 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     var narrow = widget.narrow;
     if (narrow is TopicNarrow) {
       // Normalize topic name.  See #1717.
-      narrow = TopicNarrow(narrow.streamId,
+      narrow = TopicNarrow(
+        narrow.streamId,
         store.processTopicLikeServer(narrow.topic),
-        with_: narrow.with_);
+        with_: narrow.with_,
+      );
       if (narrow != widget.narrow) {
         SchedulerBinding.instance.scheduleFrameCallback((_) {
           widget.onNarrowChanged(narrow);
         });
       }
     }
-    _model = MessageListView.init(store: store,
-      narrow: narrow, anchor: anchor);
+    _model = MessageListView.init(store: store, narrow: narrow, anchor: anchor);
     model.addListener(_modelChanged);
     model.fetchInitial();
   }
@@ -870,8 +951,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       // If the fetch came up empty, there's nothing to read,
       // so opening the keyboard won't be bothersome and could be helpful.
       // It's definitely helpful if we got here from the new-DM page.
-      MessageListPage.ancestorOf(context)
-        .composeBoxState?.controller.requestFocusIfUnfocused();
+      MessageListPage.ancestorOf(
+        context,
+      ).composeBoxState?.controller.requestFocusIfUnfocused();
     }
     _prevFetched = model.fetched;
   }
@@ -902,7 +984,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
         case MessageItem(item: MessageListMessageItem(:final message)):
           final isInViewport = _isMessageItemInViewport(
-            element, scrollViewRenderObject: scrollViewRenderObject);
+            element,
+            scrollViewRenderObject: scrollViewRenderObject,
+          );
           if (isInViewport) {
             if (first == null) {
               assert(last == null);
@@ -923,6 +1007,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           element.visitChildElements(visit);
       }
     }
+
     scrollViewElement.visitChildElements(visit);
 
     if (first == null) {
@@ -936,15 +1021,20 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     Element element, {
     required RenderBox scrollViewRenderObject,
   }) {
-    assert(element.widget is MessageItem
-      && (element.widget as MessageItem).item is MessageListMessageItem);
+    assert(
+      element.widget is MessageItem &&
+          (element.widget as MessageItem).item is MessageListMessageItem,
+    );
     final viewportHeight = scrollViewRenderObject.size.height;
 
     final messageRenderObject = element.renderObject as RenderBox;
 
-    final messageBottom = messageRenderObject.localToGlobal(
-      Offset(0, messageRenderObject.size.height),
-      ancestor: scrollViewRenderObject).dy;
+    final messageBottom = messageRenderObject
+        .localToGlobal(
+          Offset(0, messageRenderObject.size.height),
+          ancestor: scrollViewRenderObject,
+        )
+        .dy;
 
     return 0 < messageBottom && messageBottom <= viewportHeight;
   }
@@ -961,12 +1051,12 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     // ("Hull" as in the "convex hull" around the old and new ranges.)
     final firstOfHull = switch ((prevFirst, currentFirst)) {
       (int previous, int current) => previous < current ? previous : current,
-      (           _, int current) => current,
+      (_, int current) => current,
     };
 
     final lastOfHull = switch ((prevLast, currentLast)) {
       (int previous, int current) => previous > current ? previous : current,
-      (           _, int current) => current,
+      (_, int current) => current,
     };
 
     final sublist = model.getMessagesRange(firstOfHull, lastOfHull);
@@ -981,8 +1071,10 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   bool _effectiveMarkReadOnScroll() {
     if (!MessageListPage.debugEnableMarkReadOnScroll) return false;
-    return widget.markReadOnScroll
-      ?? GlobalStoreWidget.settingsOf(context).markReadOnScrollForNarrow(widget.narrow);
+    return widget.markReadOnScroll ??
+        GlobalStoreWidget.settingsOf(
+          context,
+        ).markReadOnScrollForNarrow(widget.narrow);
   }
 
   void _handleScrollMetrics(ScrollMetrics scrollMetrics) {
@@ -1014,7 +1106,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     _handleScrollMetrics(scrollController.position);
   }
 
-  bool _handleScrollMetricsNotification(ScrollMetricsNotification notification) {
+  bool _handleScrollMetricsNotification(
+    ScrollMetricsNotification notification,
+  ) {
     if (notification.depth > 0) {
       // This notification came from some Viewport nested more deeply than the
       // one for the message list itself (e.g., from a CodeBlock).  Ignore it.
@@ -1064,8 +1158,16 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
                     child: ScrollToBottomButton(
                       model: model,
                       scrollController: scrollController,
-                      visible: _scrollToBottomVisible))),
-              ])))));
+                      visible: _scrollToBottomVisible,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildListView(BuildContext context) {
@@ -1112,9 +1214,14 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
           final itemIndex = totalItems - 1 - (childIndex + bottomItems);
           final data = model.items[itemIndex];
-          final item = _buildItem(data, isLastInFeed: itemIndex == totalItems - 1);
+          final item = _buildItem(
+            data,
+            isLastInFeed: itemIndex == totalItems - 1,
+          );
           return item;
-        }));
+        },
+      ),
+    );
 
     // The bottom sliver has its child 0 as the item just after the
     // sliver boundary (just after child 0 of the top sliver),
@@ -1153,21 +1260,29 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           final itemIndex = topItems + childIndex;
           final data = model.items[itemIndex];
           return _buildItem(data, isLastInFeed: itemIndex == totalItems - 1);
-        }));
+        },
+      ),
+    );
 
     if (!ComposeBox.hasComposeBox(widget.narrow)) {
       // TODO(#311) If we have a bottom nav, it will pad the bottom inset,
       //   and this can be removed; also remove mention in MessageList dartdoc
-      bottomSliver = SliverSafeArea(key: bottomSliver.key, sliver: bottomSliver);
-      topSliver = MediaQuery.removePadding(context: context,
+      bottomSliver = SliverSafeArea(
+        key: bottomSliver.key,
+        sliver: bottomSliver,
+      );
+      topSliver = MediaQuery.removePadding(
+        context: context,
         // In the top sliver, forget the bottom inset;
         // we're having the bottom sliver take care of it.
         removeBottom: true,
         // (Also forget the left and right insets; the outer SafeArea, above,
         // does that, but the `context` we're passing to this `removePadding`
         // is from outside that SafeArea, so we need to repeat it.)
-        removeLeft: true, removeRight: true,
-        child: topSliver);
+        removeLeft: true,
+        removeRight: true,
+        child: topSliver,
+      );
     }
 
     return MessageListScrollView(
@@ -1185,14 +1300,13 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       },
 
       controller: scrollController,
-      semanticChildCount: totalItems, // TODO(#537): what's the right value for this?
+      semanticChildCount:
+          totalItems, // TODO(#537): what's the right value for this?
       center: centerSliverKey,
       paintOrder: SliverPaintOrder.firstIsTop,
 
-      slivers: [
-        topSliver,
-        bottomSliver,
-      ]);
+      slivers: [topSliver, bottomSliver],
+    );
   }
 
   Widget _buildStartCap() {
@@ -1203,21 +1317,26 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     // in backoff from it; and even if the fetch is/was for the other direction.
     // The loading indicator really means "busy, working on it"; and that's the
     // right summary even if the fetch is internally queued behind other work.
-    return model.haveOldest ? const _MessageListHistoryStart()
-      : model.busyFetchingMore ? const _MessageListLoadingMore()
-      : const SizedBox.shrink();
+    return model.haveOldest
+        ? const _MessageListHistoryStart()
+        : model.busyFetchingMore
+        ? const _MessageListLoadingMore()
+        : const SizedBox.shrink();
   }
 
   Widget _buildEndCap() {
     if (model.haveNewest) {
-      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        TypingStatusWidget(narrow: widget.narrow),
-        // TODO perhaps offer mark-as-read even when not done fetching?
-        MarkAsReadWidget(narrow: widget.narrow),
-        // To reinforce that the end of the feed has been reached:
-        //   https://chat.zulip.org/#narrow/channel/48-mobile/topic/space.20at.20end.20of.20thread/near/2203391
-        const SizedBox(height: 12),
-      ]);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TypingStatusWidget(narrow: widget.narrow),
+          // TODO perhaps offer mark-as-read even when not done fetching?
+          MarkAsReadWidget(narrow: widget.narrow),
+          // To reinforce that the end of the feed has been reached:
+          //   https://chat.zulip.org/#narrow/channel/48-mobile/topic/space.20at.20end.20of.20thread/near/2203391
+          const SizedBox(height: 12),
+        ],
+      );
     } else if (model.busyFetchingMore) {
       // See [_buildStartCap] for why this condition shows a loading indicator.
       return const _MessageListLoadingMore();
@@ -1229,29 +1348,48 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   Widget _buildItem(MessageListItem data, {required bool isLastInFeed}) {
     switch (data) {
       case MessageListRecipientHeaderItem():
-        final header = RecipientHeader(message: data.message, narrow: widget.narrow);
-        return StickyHeaderItem(allowOverflow: true,
-          header: header, child: header);
-      case MessageListDateSeparatorItem():
-        final header = RecipientHeader(message: data.message, narrow: widget.narrow);
-        return StickyHeaderItem(allowOverflow: true,
+        final header = RecipientHeader(
+          message: data.message,
+          narrow: widget.narrow,
+        );
+        return StickyHeaderItem(
+          allowOverflow: true,
           header: header,
-          child: DateSeparator(message: data.message));
+          child: header,
+        );
+      case MessageListDateSeparatorItem():
+        final header = RecipientHeader(
+          message: data.message,
+          narrow: widget.narrow,
+        );
+        return StickyHeaderItem(
+          allowOverflow: true,
+          header: header,
+          child: DateSeparator(message: data.message),
+        );
       case MessageListMessageItem():
-        final header = RecipientHeader(message: data.message, narrow: widget.narrow);
+        final header = RecipientHeader(
+          message: data.message,
+          narrow: widget.narrow,
+        );
         return MessageItem(
           key: ValueKey(data.message.id),
           narrow: widget.narrow,
           header: header,
           isLastInFeed: isLastInFeed,
-          item: data);
+          item: data,
+        );
       case MessageListOutboxMessageItem():
-        final header = RecipientHeader(message: data.message, narrow: widget.narrow);
+        final header = RecipientHeader(
+          message: data.message,
+          narrow: widget.narrow,
+        );
         return MessageItem(
           narrow: widget.narrow,
           header: header,
           isLastInFeed: isLastInFeed,
-          item: data);
+          item: data,
+        );
     }
   }
 }
@@ -1269,45 +1407,61 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
     switch (narrow) {
       case CombinedFeedNarrow():
         return PageBodyEmptyContentPlaceholder(
-          header: zulipLocalizations.emptyMessageListCombinedFeed);
+          header: zulipLocalizations.emptyMessageListCombinedFeed,
+        );
 
       case ChannelNarrow(:final streamId) || TopicNarrow(:final streamId):
         final channel = store.streams[streamId];
         if (channel == null) {
           return PageBodyEmptyContentPlaceholder(
-            header: zulipLocalizations.emptyMessageListChannelUnavailable);
+            header: zulipLocalizations.emptyMessageListChannelUnavailable,
+          );
         } else if (!store.selfHasContentAccess(channel)) {
           return PageBodyEmptyContentPlaceholder(
-            headerWithLinkMarkup: zulipLocalizations.emptyMessageListChannelWithoutContentAccess,
-            onTapHeaderLink: () => PlatformActions.launchUrl(context,
-              store.tryResolveUrl('/help/channel-permissions')!));
+            headerWithLinkMarkup:
+                zulipLocalizations.emptyMessageListChannelWithoutContentAccess,
+            onTapHeaderLink: () => PlatformActions.launchUrl(
+              context,
+              store.tryResolveUrl('/help/channel-permissions')!,
+            ),
+          );
         } else {
           return PageBodyEmptyContentPlaceholder(
-            header: zulipLocalizations.emptyMessageList);
+            header: zulipLocalizations.emptyMessageList,
+          );
         }
 
       case DmNarrow(:final otherRecipientIds) when otherRecipientIds.isEmpty:
         return PageBodyEmptyContentPlaceholder(
           header: zulipLocalizations.emptyMessageListSelfDmHeader,
-          message: zulipLocalizations.emptyMessageListSelfDmMessage);
+          message: zulipLocalizations.emptyMessageListSelfDmMessage,
+        );
 
-      case DmNarrow(:final otherRecipientIds) when otherRecipientIds.length == 1:
+      case DmNarrow(:final otherRecipientIds)
+          when otherRecipientIds.length == 1:
         final user = store.getUser(otherRecipientIds.single);
         switch (user) {
           case null:
             return PageBodyEmptyContentPlaceholder(
-              header: zulipLocalizations.emptyMessageListDmUnknownUser);
+              header: zulipLocalizations.emptyMessageListDmUnknownUser,
+            );
           case User(isActive: false):
             return PageBodyEmptyContentPlaceholder(
               header: zulipLocalizations.emptyMessageListDmDeactivatedUser(
-                store.userDisplayName(user.userId, replaceIfMuted: false)));
+                store.userDisplayName(user.userId, replaceIfMuted: false),
+              ),
+            );
           case User():
-            final displayName = store.userDisplayName(user.userId, replaceIfMuted: false);
+            final displayName = store.userDisplayName(
+              user.userId,
+              replaceIfMuted: false,
+            );
             return PageBodyEmptyContentPlaceholder(
               header: zulipLocalizations.emptyMessageListDm(displayName),
               message: store.isUserMuted(user.userId)
-                ? null
-                : zulipLocalizations.emptyMessageListDmStartConversation);
+                  ? null
+                  : zulipLocalizations.emptyMessageListDmStartConversation,
+            );
         }
 
       case DmNarrow(:final otherRecipientIds)
@@ -1316,34 +1470,46 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
             return user != null && !user.isActive;
           }):
         return PageBodyEmptyContentPlaceholder(
-          header: zulipLocalizations.emptyMessageListGroupDmDeactivatedUser);
+          header: zulipLocalizations.emptyMessageListGroupDmDeactivatedUser,
+        );
 
       case DmNarrow():
         return PageBodyEmptyContentPlaceholder(
           header: zulipLocalizations.emptyMessageListGroupDm,
-          message: zulipLocalizations.emptyMessageListDmStartConversation);
+          message: zulipLocalizations.emptyMessageListDmStartConversation,
+        );
 
       case MentionsNarrow():
         return PageBodyEmptyContentPlaceholder(
-          headerWithLinkMarkup: zulipLocalizations.emptyMessageListMentionsHeader,
-          onTapHeaderLink: () => PlatformActions.launchUrl(context,
-            store.tryResolveUrl('/help/mention-a-user-or-group')!),
+          headerWithLinkMarkup:
+              zulipLocalizations.emptyMessageListMentionsHeader,
+          onTapHeaderLink: () => PlatformActions.launchUrl(
+            context,
+            store.tryResolveUrl('/help/mention-a-user-or-group')!,
+          ),
           message: store.zulipFeatureLevel >= 224
-            // This string mentions @topic, which is new in Server 8.
-            ? zulipLocalizations.emptyMessageListMentionsMessage
-            : null); // TODO(server-8)
+              // This string mentions @topic, which is new in Server 8.
+              ? zulipLocalizations.emptyMessageListMentionsMessage
+              : null,
+        ); // TODO(server-8)
 
       case StarredMessagesNarrow():
         return PageBodyEmptyContentPlaceholder(
           header: zulipLocalizations.emptyMessageListStarredHeader,
-          messageWithLinkMarkup: zulipLocalizations.emptyMessageListStarredMessage(
-            zulipLocalizations.actionSheetOptionStarMessage),
-          onTapMessageLink: () => PlatformActions.launchUrl(context,
-            store.tryResolveUrl('/help/star-a-message')!));
+          messageWithLinkMarkup: zulipLocalizations
+              .emptyMessageListStarredMessage(
+                zulipLocalizations.actionSheetOptionStarMessage,
+              ),
+          onTapMessageLink: () => PlatformActions.launchUrl(
+            context,
+            store.tryResolveUrl('/help/star-a-message')!,
+          ),
+        );
 
       case KeywordSearchNarrow():
         return PageBodyEmptyContentPlaceholder(
-          header: zulipLocalizations.emptyMessageListSearch);
+          header: zulipLocalizations.emptyMessageListSearch,
+        );
     }
   }
 }
@@ -1357,7 +1523,9 @@ class _MessageListHistoryStart extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16.0),
-        child: Text(zulipLocalizations.noEarlierMessages))); // TODO use an icon
+        child: Text(zulipLocalizations.noEarlierMessages),
+      ),
+    ); // TODO use an icon
   }
 }
 
@@ -1369,7 +1537,9 @@ class _MessageListLoadingMore extends StatelessWidget {
     return const Center(
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 16.0),
-        child: CircularProgressIndicator())); // TODO perhaps a different indicator
+        child: CircularProgressIndicator(),
+      ),
+    ); // TODO perhaps a different indicator
   }
 }
 
@@ -1425,7 +1595,9 @@ class ScrollToBottomButton extends StatelessWidget {
         iconSize: 40,
         // Web has the same color in light and dark mode.
         color: const HSLColor.fromAHSL(0.5, 240, 0.96, 0.68).toColor(),
-        onPressed: _scrollToBottom));
+        onPressed: _scrollToBottom,
+      ),
+    );
   }
 }
 
@@ -1438,7 +1610,8 @@ class TypingStatusWidget extends StatefulWidget {
   State<StatefulWidget> createState() => _TypingStatusWidgetState();
 }
 
-class _TypingStatusWidgetState extends State<TypingStatusWidget> with PerAccountStoreAwareStateMixin<TypingStatusWidget> {
+class _TypingStatusWidgetState extends State<TypingStatusWidget>
+    with PerAccountStoreAwareStateMixin<TypingStatusWidget> {
   TypingStatus? model;
 
   @override
@@ -1473,20 +1646,26 @@ class _TypingStatusWidgetState extends State<TypingStatusWidget> with PerAccount
     if (filteredTypistIds.isEmpty) return const SizedBox();
     final text = switch (filteredTypistIds.length) {
       1 => zulipLocalizations.onePersonTyping(
-             store.userDisplayName(filteredTypistIds.first)),
+        store.userDisplayName(filteredTypistIds.first),
+      ),
       2 => zulipLocalizations.twoPeopleTyping(
-             store.userDisplayName(filteredTypistIds.first),
-             store.userDisplayName(filteredTypistIds.last)),
+        store.userDisplayName(filteredTypistIds.first),
+        store.userDisplayName(filteredTypistIds.last),
+      ),
       _ => zulipLocalizations.manyPeopleTyping,
     };
 
     return Padding(
       padding: const EdgeInsetsDirectional.only(start: 16, top: 2),
-      child: Text(text,
+      child: Text(
+        text,
         style: const TextStyle(
           // Web has the same color in light and dark mode.
           color: HslColor(0, 0, 53),
-          fontStyle: FontStyle.italic)));
+          fontStyle: FontStyle.italic,
+        ),
+      ),
+    );
   }
 }
 
@@ -1523,39 +1702,58 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
       child: MarkAsReadAnimation(
         loading: _loading,
         hidden: shouldHide,
-        child: SizedBox(width: double.infinity,
+        child: SizedBox(
+          width: double.infinity,
           // Design referenced from:
           //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=132-9684&mode=design&t=jJwHzloKJ0TMOG4M-0
           child: Padding(
             // vertical padding adjusted for tap target height (48px) of button
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10 - ((48 - 38) / 2)),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 10 - ((48 - 38) / 2),
+            ),
             child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-                splashFactory: NoSplash.splashFactory,
-                minimumSize: const Size.fromHeight(38),
-                textStyle:
-                  // Restate [FilledButton]'s default, which inherits from
-                  // [zulipTypography]…
-                  Theme.of(context).textTheme.labelLarge!
-                    // …then clobber some attributes to follow Figma:
-                    .merge(TextStyle(
-                      fontSize: 18,
-                      letterSpacing: proportionalLetterSpacing(context,
-                        kButtonTextLetterSpacingProportion, baseFontSize: 18),
-                      height: (23 / 18))
-                    .merge(weightVariableTextStyle(context, wght: 400))),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
-              ).copyWith(
-                // Give the buttons a constant color regardless of whether their
-                // state is disabled, pressed, etc.  We handle those states
-                // separately, via MarkAsReadAnimation.
-                foregroundColor: const WidgetStatePropertyAll(Colors.white),
-                iconColor: const WidgetStatePropertyAll(Colors.white),
-                backgroundColor: WidgetStatePropertyAll(messageListTheme.unreadMarker),
-              ),
+              style:
+                  FilledButton.styleFrom(
+                    splashFactory: NoSplash.splashFactory,
+                    minimumSize: const Size.fromHeight(38),
+                    textStyle:
+                        // Restate [FilledButton]'s default, which inherits from
+                        // [zulipTypography]…
+                        Theme.of(context).textTheme.labelLarge!
+                        // …then clobber some attributes to follow Figma:
+                        .merge(
+                          TextStyle(
+                            fontSize: 18,
+                            letterSpacing: proportionalLetterSpacing(
+                              context,
+                              kButtonTextLetterSpacingProportion,
+                              baseFontSize: 18,
+                            ),
+                            height: (23 / 18),
+                          ).merge(weightVariableTextStyle(context, wght: 400)),
+                        ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                  ).copyWith(
+                    // Give the buttons a constant color regardless of whether their
+                    // state is disabled, pressed, etc.  We handle those states
+                    // separately, via MarkAsReadAnimation.
+                    foregroundColor: const WidgetStatePropertyAll(Colors.white),
+                    iconColor: const WidgetStatePropertyAll(Colors.white),
+                    backgroundColor: WidgetStatePropertyAll(
+                      messageListTheme.unreadMarker,
+                    ),
+                  ),
               onPressed: _loading ? null : () => _handlePress(context),
               icon: const Icon(ZulipIcons.message_checked),
-              label: Text(zulipLocalizations.markAllAsReadLabel))))));
+              label: Text(zulipLocalizations.markAllAsReadLabel),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -1568,7 +1766,7 @@ class MarkAsReadAnimation extends StatefulWidget {
     super.key,
     required this.loading,
     required this.hidden,
-    required this.child
+    required this.child,
   });
 
   @override
@@ -1595,15 +1793,26 @@ class _MarkAsReadAnimationState extends State<MarkAsReadAnimation> {
         duration: const Duration(milliseconds: 100),
         curve: Curves.easeOut,
         child: AnimatedOpacity(
-          opacity: widget.hidden ? 0 : widget.loading ? 0.5 : 1,
+          opacity: widget.hidden
+              ? 0
+              : widget.loading
+              ? 0.5
+              : 1,
           duration: const Duration(milliseconds: 500),
           curve: Curves.easeOut,
-          child: widget.child)));
+          child: widget.child,
+        ),
+      ),
+    );
   }
 }
 
 class RecipientHeader extends StatelessWidget {
-  const RecipientHeader({super.key, required this.message, required this.narrow});
+  const RecipientHeader({
+    super.key,
+    required this.message,
+    required this.narrow,
+  });
 
   final MessageBase message;
   final Narrow narrow;
@@ -1612,12 +1821,17 @@ class RecipientHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = this.message;
     return switch (message) {
-      MessageBase<StreamConversation>() =>
-        StreamMessageRecipientHeader(message: message, narrow: narrow),
-      MessageBase<DmConversation>() =>
-        DmRecipientHeader(message: message, narrow: narrow),
-      MessageBase<Conversation>() =>
-        throw StateError('Bad concrete subclass of MessageBase'),
+      MessageBase<StreamConversation>() => StreamMessageRecipientHeader(
+        message: message,
+        narrow: narrow,
+      ),
+      MessageBase<DmConversation>() => DmRecipientHeader(
+        message: message,
+        narrow: narrow,
+      ),
+      MessageBase<Conversation>() => throw StateError(
+        'Bad concrete subclass of MessageBase',
+      ),
     };
   }
 }
@@ -1638,27 +1852,38 @@ class DateSeparator extends StatelessWidget {
     final line = BorderSide(width: 0, color: designVariables.foreground);
 
     // TODO(#681) use different color for DM messages
-    return ColoredBox(color: designVariables.bgMessageRegular,
+    return ColoredBox(
+      color: designVariables.bgMessageRegular,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
-        child: Row(children: [
-          Expanded(
-            child: SizedBox(height: 0,
+        child: Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 0,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(border: Border(bottom: line)),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(2, 0, 2, textBottomPadding),
+              child: DateText(
+                fontSize: 16,
+                height: (16 / 16),
+                timestamp: message.timestamp,
+              ),
+            ),
+            SizedBox(
+              height: 0,
+              width: 12,
               child: DecoratedBox(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: line))))),
-          Padding(padding: const EdgeInsets.fromLTRB(2, 0, 2, textBottomPadding),
-            child: DateText(
-              fontSize: 16,
-              height: (16 / 16),
-              timestamp: message.timestamp)),
-          SizedBox(height: 0, width: 12,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: line)))),
-        ])),
+                decoration: BoxDecoration(border: Border(bottom: line)),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -1684,28 +1909,36 @@ class MessageItem extends StatelessWidget {
     final item = this.item;
     Widget child = ColoredBox(
       color: designVariables.bgMessageRegular,
-      child: Column(children: [
-        switch (item) {
-          MessageListMessageItem() => MessageWithPossibleSender(
-            narrow: narrow,
-            item: item),
-          MessageListOutboxMessageItem() => OutboxMessageWithPossibleSender(item: item),
-        },
-        // TODO write tests for this padding logic
-        if (isLastInFeed)
-          const SizedBox(height: 5)
-        else if (item.isLastInBlock)
-          const SizedBox(height: 11),
-      ]));
+      child: Column(
+        children: [
+          switch (item) {
+            MessageListMessageItem() => MessageWithPossibleSender(
+              narrow: narrow,
+              item: item,
+            ),
+            MessageListOutboxMessageItem() => OutboxMessageWithPossibleSender(
+              item: item,
+            ),
+          },
+          // TODO write tests for this padding logic
+          if (isLastInFeed)
+            const SizedBox(height: 5)
+          else if (item.isLastInBlock)
+            const SizedBox(height: 11),
+        ],
+      ),
+    );
     if (item case MessageListMessageItem(:final message)) {
       child = _UnreadMarker(
         isRead: message.flags.contains(MessageFlag.read),
-        child: child);
+        child: child,
+      );
     }
     return StickyHeaderItem(
       allowOverflow: !item.isLastInBlock,
       header: header,
-      child: child);
+      child: child,
+    );
   }
 }
 
@@ -1736,10 +1969,18 @@ class _UnreadMarker extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: messageListTheme.unreadMarker,
-                border: BorderDirectional(start: BorderSide(
-                  width: 1,
-                  color: messageListTheme.unreadMarkerGap)))))),
-      ]);
+                border: BorderDirectional(
+                  start: BorderSide(
+                    width: 1,
+                    color: messageListTheme.unreadMarkerGap,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -1790,15 +2031,20 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       streamWidget = const SizedBox(width: 16);
     } else {
       final stream = store.streams[streamId];
-      final streamName = stream?.name
-        ?? message.conversation.displayRecipient
-        ?? zulipLocalizations.unknownChannelName; // TODO(log)
+      final streamName =
+          stream?.name ??
+          message.conversation.displayRecipient ??
+          zulipLocalizations.unknownChannelName; // TODO(log)
 
       streamWidget = GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => Navigator.push(context,
-          MessageListPage.buildRoute(context: context,
-            narrow: ChannelNarrow(streamId))),
+        onTap: () => Navigator.push(
+          context,
+          MessageListPage.buildRoute(
+            context: context,
+            narrow: ChannelNarrow(streamId),
+          ),
+        ),
         onLongPress: () => showChannelActionSheet(context, channelId: streamId),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -1810,23 +2056,34 @@ class StreamMessageRecipientHeader extends StatelessWidget {
               // Bottom padding added here to shift icon up to
               // match alignment with text visually.
               padding: const EdgeInsets.only(left: 6, right: 6, bottom: 3),
-              child: Icon(size: 16, color: iconColor,
+              child: Icon(
+                size: 16,
+                color: iconColor,
                 // A null [Icon.icon] makes a blank space.
-                stream != null ? iconDataForStream(stream) : null)),
+                stream != null ? iconDataForStream(stream) : null,
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 11),
-              child: Text(streamName,
+              child: Text(
+                streamName,
                 style: recipientHeaderTextStyle(context),
-                overflow: TextOverflow.ellipsis),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             Padding(
               // Figma has 5px horizontal padding around an 8px wide icon.
               // Icon is 16px wide here so horizontal padding is 1px.
               padding: const EdgeInsets.symmetric(horizontal: 1),
-              child: Icon(size: 16,
+              child: Icon(
+                size: 16,
                 color: messageListTheme.streamRecipientHeaderChevronRight,
-                ZulipIcons.chevron_right)),
-          ]));
+                ZulipIcons.chevron_right,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     final topicWidget = Padding(
@@ -1834,33 +2091,50 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       child: Row(
         children: [
           Flexible(
-            child: Text(topic.displayName ?? store.realmEmptyTopicDisplayName,
+            child: Text(
+              topic.displayName ?? store.realmEmptyTopicDisplayName,
               // TODO: Give a way to see the whole topic (maybe a
               //   long-press interaction?)
               overflow: TextOverflow.ellipsis,
-              style: recipientHeaderTextStyle(context,
+              style: recipientHeaderTextStyle(
+                context,
                 fontStyle: topic.displayName == null ? FontStyle.italic : null,
-              ))),
+              ),
+            ),
+          ),
           const SizedBox(width: 4),
-          Icon(size: 14, color: designVariables.title.withFadedAlpha(0.5),
+          Icon(
+            size: 14,
+            color: designVariables.title.withFadedAlpha(0.5),
             // A null [Icon.icon] makes a blank space.
             iconDataForTopicVisibilityPolicy(
-              store.topicVisibilityPolicy(streamId, topic))),
-        ]));
+              store.topicVisibilityPolicy(streamId, topic),
+            ),
+          ),
+        ],
+      ),
+    );
 
     return GestureDetector(
       // When already in a topic narrow, disable tap interaction that would just
       // push a MessageListPage for the same topic narrow.
       // TODO(#1039) simplify by removing topic-narrow condition if we remove
       //   recipient headers in topic narrows
-      onTap: narrow is TopicNarrow ? null
-        : () => Navigator.push(context,
-            MessageListPage.buildRoute(context: context,
-              narrow: TopicNarrow.ofMessage(message))),
-      onLongPress: () => showTopicActionSheet(context,
+      onTap: narrow is TopicNarrow
+          ? null
+          : () => Navigator.push(
+              context,
+              MessageListPage.buildRoute(
+                context: context,
+                narrow: TopicNarrow.ofMessage(message),
+              ),
+            ),
+      onLongPress: () => showTopicActionSheet(
+        context,
         channelId: streamId,
         topic: topic,
-        someMessageIdInTopic: message.id),
+        someMessageIdInTopic: message.id,
+      ),
       child: ColoredBox(
         color: backgroundColor,
         child: Row(
@@ -1872,7 +2146,10 @@ class StreamMessageRecipientHeader extends StatelessWidget {
             // TODO topic links?
             // Then web also has edit/resolve/mute buttons. Skip those for mobile.
             RecipientHeaderDate(message: message),
-          ])));
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -1894,10 +2171,11 @@ class DmRecipientHeader extends StatelessWidget {
     if (message.conversation.allRecipientIds.length > 1) {
       title = zulipLocalizations.messageListGroupYouAndOthers(
         message.conversation.allRecipientIds
-          .where((id) => id != store.selfUserId)
-          .map(store.userDisplayName)
-          .sorted()
-          .join(", "));
+            .where((id) => id != store.selfUserId)
+            .map(store.userDisplayName)
+            .sorted()
+            .join(", "),
+      );
     } else {
       title = zulipLocalizations.messageListGroupYouWithYourself;
     }
@@ -1910,10 +2188,18 @@ class DmRecipientHeader extends StatelessWidget {
       // push a MessageListPage for the same DM narrow.
       // TODO(#1244) simplify by removing DM-narrow condition if we remove
       //   recipient headers in DM narrows
-      onTap: narrow is DmNarrow ? null
-        : () => Navigator.push(context,
-            MessageListPage.buildRoute(context: context,
-              narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
+      onTap: narrow is DmNarrow
+          ? null
+          : () => Navigator.push(
+              context,
+              MessageListPage.buildRoute(
+                context: context,
+                narrow: DmNarrow.ofMessage(
+                  message,
+                  selfUserId: store.selfUserId,
+                ),
+              ),
+            ),
       child: ColoredBox(
         color: messageListTheme.dmRecipientHeaderBg,
         child: Padding(
@@ -1926,17 +2212,29 @@ class DmRecipientHeader extends StatelessWidget {
                 child: Icon(
                   color: designVariables.title,
                   size: 16,
-                  ZulipIcons.two_person)),
+                  ZulipIcons.two_person,
+                ),
+              ),
               Expanded(
-                child: Text(title,
+                child: Text(
+                  title,
                   style: recipientHeaderTextStyle(context),
-                  overflow: TextOverflow.ellipsis)),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
               RecipientHeaderDate(message: message),
-            ]))));
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
-TextStyle recipientHeaderTextStyle(BuildContext context, {FontStyle? fontStyle}) {
+TextStyle recipientHeaderTextStyle(
+  BuildContext context, {
+  FontStyle? fontStyle,
+}) {
   return TextStyle(
     color: DesignVariables.of(context).title,
     fontSize: 16,
@@ -1961,7 +2259,9 @@ class RecipientHeaderDate extends StatelessWidget {
         // here to match the stream/topic text widgets helps
         // to align all the text to the same baseline.
         height: (18 / 16),
-        timestamp: message.timestamp));
+        timestamp: message.timestamp,
+      ),
+    );
   }
 }
 
@@ -1986,7 +2286,8 @@ class DateText extends StatelessWidget {
       timestamp,
       now: ZulipBinding.instance.utcNow().toLocal(),
       twentyFourHourTimeMode: store.userSettings.twentyFourHourTime,
-      zulipLocalizations: zulipLocalizations)!;
+      zulipLocalizations: zulipLocalizations,
+    )!;
     return Text(
       style: TextStyle(
         color: messageListTheme.labelTime,
@@ -1994,14 +2295,22 @@ class DateText extends StatelessWidget {
         height: height,
         // This is equivalent to css `all-small-caps`, see:
         //   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps#all-small-caps
-        fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
+        fontFeatures: const [
+          FontFeature.enable('c2sc'),
+          FontFeature.enable('smcp'),
+        ],
       ),
-      formattedTimestamp);
+      formattedTimestamp,
+    );
   }
 }
 
 class SenderRow extends StatelessWidget {
-  const SenderRow({super.key, required this.message, required this.timestampStyle});
+  const SenderRow({
+    super.key,
+    required this.message,
+    required this.timestampStyle,
+  });
 
   final MessageBase message;
   final MessageTimestampStyle timestampStyle;
@@ -2011,7 +2320,7 @@ class SenderRow extends StatelessWidget {
     if (!store.isUserMuted(message.senderId)) return false;
     if (message is! Message) return false; // i.e., if an outbox message
     final revealedMutedMessagesState =
-      MessageListPage.maybeRevealedMutedMessagesOf(context);
+        MessageListPage.maybeRevealedMutedMessagesOf(context);
     // The "unrevealed" state only exists in the message list,
     // and we show a sender row in at least one place outside the message list
     // (the message action sheet).
@@ -2027,11 +2336,12 @@ class SenderRow extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final sender = store.getUser(message.senderId);
-    final timestamp = timestampStyle
-      .format(message.timestamp,
-        now: DateTime.now(),
-        twentyFourHourTimeMode: store.userSettings.twentyFourHourTime,
-        zulipLocalizations: zulipLocalizations);
+    final timestamp = timestampStyle.format(
+      message.timestamp,
+      now: DateTime.now(),
+      twentyFourHourTimeMode: store.userSettings.twentyFourHourTime,
+      zulipLocalizations: zulipLocalizations,
+    );
 
     final showAsMuted = _showAsMuted(context, store);
 
@@ -2043,9 +2353,15 @@ class SenderRow extends StatelessWidget {
         children: [
           Flexible(
             child: GestureDetector(
-              onTap: () => showAsMuted ? null : Navigator.push(context,
-                ProfilePage.buildRoute(context: context,
-                  userId: message.senderId)),
+              onTap: () => showAsMuted
+                  ? null
+                  : Navigator.push(
+                      context,
+                      ProfilePage.buildRoute(
+                        context: context,
+                        userId: message.senderId,
+                      ),
+                    ),
               child: Row(
                 children: [
                   Avatar(
@@ -2053,23 +2369,32 @@ class SenderRow extends StatelessWidget {
                     borderRadius: 3,
                     showPresence: false,
                     replaceIfMuted: showAsMuted,
-                    userId: message.senderId),
+                    userId: message.senderId,
+                  ),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text(message is Message
-                        ? store.senderDisplayName(message as Message,
-                            replaceIfMuted: showAsMuted)
-                        : store.userDisplayName(message.senderId),
+                    child: Text(
+                      message is Message
+                          ? store.senderDisplayName(
+                              message as Message,
+                              replaceIfMuted: showAsMuted,
+                            )
+                          : store.userDisplayName(message.senderId),
                       style: TextStyle(
                         fontSize: 18,
                         height: (22 / 18),
                         color: showAsMuted
-                          ? designVariables.title.withFadedAlpha(0.5)
-                          : designVariables.title,
+                            ? designVariables.title.withFadedAlpha(0.5)
+                            : designVariables.title,
                       ).merge(weightVariableTextStyle(context, wght: 600)),
-                      overflow: TextOverflow.ellipsis)),
-                  UserStatusEmoji(userId: message.senderId, size: 18,
-                    padding: const EdgeInsetsDirectional.only(start: 5.0)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  UserStatusEmoji(
+                    userId: message.senderId,
+                    size: 18,
+                    padding: const EdgeInsetsDirectional.only(start: 5.0),
+                  ),
                   if (sender?.isBot ?? false) ...[
                     const SizedBox(width: 5),
                     Icon(
@@ -2078,18 +2403,28 @@ class SenderRow extends StatelessWidget {
                       color: messageListTheme.senderBotIcon,
                     ),
                   ],
-                ]))),
+                ],
+              ),
+            ),
+          ),
           if (timestamp != null) ...[
             const SizedBox(width: 4),
-            Text(timestamp,
+            Text(
+              timestamp,
               style: TextStyle(
                 color: messageListTheme.labelTime,
                 fontSize: 16,
                 height: (18 / 16),
-                fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
-              ).merge(weightVariableTextStyle(context))),
+                fontFeatures: const [
+                  FontFeature.enable('c2sc'),
+                  FontFeature.enable('smcp'),
+                ],
+              ).merge(weightVariableTextStyle(context)),
+            ),
           ],
-        ]));
+        ],
+      ),
+    );
   }
 }
 
@@ -2112,16 +2447,17 @@ enum MessageTimestampStyle {
   /// or traveling and they know their device timezone setting is wrong, etc.
   // TODO(design) show "Today"/etc. after all? Discussion:
   //   https://github.com/zulip/zulip-flutter/pull/1624#issuecomment-3050296488
-  full,
-  ;
+  full;
 
   static String _formatDateOnlyRelative(
     DateTime dateTime, {
     required DateTime now,
     required ZulipLocalizations zulipLocalizations,
   }) {
-    assert(!dateTime.isUtc && !now.isUtc,
-      '`dateTime` and `now` need to be in local time.');
+    assert(
+      !dateTime.isUtc && !now.isUtc,
+      '`dateTime` and `now` need to be in local time.',
+    );
 
     if (dateTime.year == now.year &&
         dateTime.month == now.month &&
@@ -2130,8 +2466,14 @@ enum MessageTimestampStyle {
     }
 
     final yesterday = now
-      .copyWith(hour: 12, minute: 0, second: 0, millisecond: 0, microsecond: 0)
-      .add(const Duration(days: -1));
+        .copyWith(
+          hour: 12,
+          minute: 0,
+          second: 0,
+          millisecond: 0,
+          microsecond: 0,
+        )
+        .add(const Duration(days: -1));
     if (dateTime.year == yesterday.year &&
         dateTime.month == yesterday.month &&
         dateTime.day == yesterday.day) {
@@ -2150,20 +2492,23 @@ enum MessageTimestampStyle {
     }
   }
 
-  static final _timeFormat12 =                       DateFormat('h:mm aa');
-  static final _timeFormat24 =                       DateFormat('Hm');
-  static final _timeFormatLocaleDefault =            DateFormat('jm');
-  static final _timeFormat12WithSeconds =            DateFormat('h:mm:ss aa');
-  static final _timeFormat24WithSeconds =            DateFormat('Hms');
+  static final _timeFormat12 = DateFormat('h:mm aa');
+  static final _timeFormat24 = DateFormat('Hm');
+  static final _timeFormatLocaleDefault = DateFormat('jm');
+  static final _timeFormat12WithSeconds = DateFormat('h:mm:ss aa');
+  static final _timeFormat24WithSeconds = DateFormat('Hms');
   static final _timeFormatLocaleDefaultWithSeconds = DateFormat('jms');
 
-  static DateFormat _resolveTimeFormat(TwentyFourHourTimeMode mode) => switch (mode) {
-    TwentyFourHourTimeMode.twelveHour => _timeFormat12,
-    TwentyFourHourTimeMode.twentyFourHour => _timeFormat24,
-    TwentyFourHourTimeMode.localeDefault => _timeFormatLocaleDefault,
-  };
+  static DateFormat _resolveTimeFormat(TwentyFourHourTimeMode mode) =>
+      switch (mode) {
+        TwentyFourHourTimeMode.twelveHour => _timeFormat12,
+        TwentyFourHourTimeMode.twentyFourHour => _timeFormat24,
+        TwentyFourHourTimeMode.localeDefault => _timeFormatLocaleDefault,
+      };
 
-  static DateFormat _resolveTimeFormatWithSeconds(TwentyFourHourTimeMode mode) => switch (mode) {
+  static DateFormat _resolveTimeFormatWithSeconds(
+    TwentyFourHourTimeMode mode,
+  ) => switch (mode) {
     TwentyFourHourTimeMode.twelveHour => _timeFormat12WithSeconds,
     TwentyFourHourTimeMode.twentyFourHour => _timeFormat24WithSeconds,
     TwentyFourHourTimeMode.localeDefault => _timeFormatLocaleDefaultWithSeconds,
@@ -2177,26 +2522,31 @@ enum MessageTimestampStyle {
     required ZulipLocalizations zulipLocalizations,
     required TwentyFourHourTimeMode twentyFourHourTimeMode,
   }) {
-    final asDateTime =
-      DateTime.fromMillisecondsSinceEpoch(1000 * messageTimestamp);
+    final asDateTime = DateTime.fromMillisecondsSinceEpoch(
+      1000 * messageTimestamp,
+    );
 
     switch (this) {
-      case none:     return null;
+      case none:
+        return null;
       case dateOnlyRelative:
-        return _formatDateOnlyRelative(asDateTime,
-          now: now, zulipLocalizations: zulipLocalizations);
+        return _formatDateOnlyRelative(
+          asDateTime,
+          now: now,
+          zulipLocalizations: zulipLocalizations,
+        );
       case timeOnly:
         return _resolveTimeFormat(twentyFourHourTimeMode).format(asDateTime);
       case lightbox:
-        return DateFormat
-          .yMMMd()
-          .addPattern(_resolveTimeFormatWithSeconds(twentyFourHourTimeMode).pattern)
-          .format(asDateTime);
+        return DateFormat.yMMMd()
+            .addPattern(
+              _resolveTimeFormatWithSeconds(twentyFourHourTimeMode).pattern,
+            )
+            .format(asDateTime);
       case full:
-        return DateFormat
-          .yMMMd()
-          .addPattern(_resolveTimeFormat(twentyFourHourTimeMode).pattern)
-          .format(asDateTime);
+        return DateFormat.yMMMd()
+            .addPattern(_resolveTimeFormat(twentyFourHourTimeMode).pattern)
+            .format(asDateTime);
     }
   }
 }
@@ -2239,7 +2589,12 @@ class MessageWithPossibleSender extends StatelessWidget {
       };
       star = Transform.translate(
         offset: Offset(starOffset, 0),
-        child: Icon(ZulipIcons.star_filled, size: 16, color: designVariables.star));
+        child: Icon(
+          ZulipIcons.star_filled,
+          size: 16,
+          color: designVariables.star,
+        ),
+      );
     }
 
     Widget content = MessageContent(message: message, content: item.content);
@@ -2256,94 +2611,146 @@ class MessageWithPossibleSender extends StatelessWidget {
         // this seemed appropriate along with the faded appearance.
         content = IgnorePointer(child: content);
       } else {
-        content = _RestoreEditMessageGestureDetector(messageId: message.id,
-          child: content);
+        content = _RestoreEditMessageGestureDetector(
+          messageId: message.id,
+          child: content,
+        );
       }
     }
 
     final tapOpensConversation = switch (narrow) {
-      CombinedFeedNarrow()
-        || ChannelNarrow()
-        || TopicNarrow()
-        || DmNarrow() => false,
-      MentionsNarrow()
-        || StarredMessagesNarrow()
-        || KeywordSearchNarrow() => true,
+      CombinedFeedNarrow() ||
+      ChannelNarrow() ||
+      TopicNarrow() ||
+      DmNarrow() => false,
+      MentionsNarrow() ||
+      StarredMessagesNarrow() ||
+      KeywordSearchNarrow() => true,
     };
 
-    final showAsMuted = store.isUserMuted(message.senderId)
-      && !MessageListPage.maybeRevealedMutedMessagesOf(context)!
-                         .isMutedMessageRevealed(message.id);
+    final showAsMuted =
+        store.isUserMuted(message.senderId) &&
+        !MessageListPage.maybeRevealedMutedMessagesOf(
+          context,
+        )!.isMutedMessageRevealed(message.id);
 
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: tapOpensConversation
-        ? () => unawaited(Navigator.push(context,
-            MessageListPage.buildRoute(context: context,
-              narrow: SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
-              // TODO(#1655) "this view does not mark messages as read on scroll"
-              initAnchorMessageId: message.id)))
-        : null,
-      onLongPress: showAsMuted
-        ? null // TODO write a test for this
-        : () => showMessageActionSheet(context: context, message: message),
-      child: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Column(children: [
-          if (item.showSender)
-            SenderRow(message: message,
-              timestampStyle: MessageTimestampStyle.timeOnly),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: localizedTextBaseline(context),
+    // Fix for #1965: Ensure message is scrolled into view when focused by screen reader.
+    // When navigating backwards (to older messages) with a screen reader, this prevents
+    // focus from moving to the sticky header or off-screen. The ensureVisible call
+    // scrolls the message into view with the keepVisibleAtEnd policy, which keeps
+    // older messages visible when navigating upward through the list.
+    return Semantics(
+      onDidGainAccessibilityFocus: () {
+        Scrollable.maybeOf(context)?.position.ensureVisible(
+          context.findRenderObject()!,
+          alignment: 0.0,
+          alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+        );
+      },
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: tapOpensConversation
+            ? () => unawaited(
+                Navigator.push(
+                  context,
+                  MessageListPage.buildRoute(
+                    context: context,
+                    narrow: SendableNarrow.ofMessage(
+                      message,
+                      selfUserId: store.selfUserId,
+                    ),
+                    // TODO(#1655) "this view does not mark messages as read on scroll"
+                    initAnchorMessageId: message.id,
+                  ),
+                ),
+              )
+            : null,
+        onLongPress: showAsMuted
+            ? null // TODO write a test for this
+            : () => showMessageActionSheet(context: context, message: message),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Column(
             children: [
-              const SizedBox(width: 16),
-              Expanded(child: showAsMuted
-                ? Align(
-                    alignment: AlignmentDirectional.topStart,
-                    child: ZulipWebUiKitButton(
-                      label: zulipLocalizations.revealButtonLabel,
-                      icon: ZulipIcons.eye,
-                      size: ZulipWebUiKitButtonSize.small,
-                      intent: ZulipWebUiKitButtonIntent.neutral,
-                      attention: ZulipWebUiKitButtonAttention.minimal,
-                      onPressed: () {
-                        MessageListPage.ancestorOf(context).revealMutedMessage(message.id);
-                      }))
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      content,
-                      if ((message.reactions?.total ?? 0) > 0)
-                        ReactionChipsList(messageId: message.id, reactions: message.reactions!),
-                      if (editMessageErrorStatus != null)
-                        _EditMessageStatusRow(messageId: message.id, status: editMessageErrorStatus)
-                      else if (editStateText != null)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Text(editStateText,
-                            textAlign: TextAlign.end,
-                            style: TextStyle(
-                              color: designVariables.labelEdited,
-                              fontSize: 12,
-                              height: (12 / 12),
-                              letterSpacing: proportionalLetterSpacing(context,
-                                0.05, baseFontSize: 12))))
-                      else
-                        Padding(padding: const EdgeInsets.only(bottom: 4))
-                    ])),
-              SizedBox(width: 16,
-                child: star),
-            ]),
-        ])));
+              if (item.showSender)
+                SenderRow(
+                  message: message,
+                  timestampStyle: MessageTimestampStyle.timeOnly,
+                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: localizedTextBaseline(context),
+                children: [
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: showAsMuted
+                        ? Align(
+                            alignment: AlignmentDirectional.topStart,
+                            child: ZulipWebUiKitButton(
+                              label: zulipLocalizations.revealButtonLabel,
+                              icon: ZulipIcons.eye,
+                              size: ZulipWebUiKitButtonSize.small,
+                              intent: ZulipWebUiKitButtonIntent.neutral,
+                              attention: ZulipWebUiKitButtonAttention.minimal,
+                              onPressed: () {
+                                MessageListPage.ancestorOf(
+                                  context,
+                                ).revealMutedMessage(message.id);
+                              },
+                            ),
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              content,
+                              if ((message.reactions?.total ?? 0) > 0)
+                                ReactionChipsList(
+                                  messageId: message.id,
+                                  reactions: message.reactions!,
+                                ),
+                              if (editMessageErrorStatus != null)
+                                _EditMessageStatusRow(
+                                  messageId: message.id,
+                                  status: editMessageErrorStatus,
+                                )
+                              else if (editStateText != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: Text(
+                                    editStateText,
+                                    textAlign: TextAlign.end,
+                                    style: TextStyle(
+                                      color: designVariables.labelEdited,
+                                      fontSize: 12,
+                                      height: (12 / 12),
+                                      letterSpacing: proportionalLetterSpacing(
+                                        context,
+                                        0.05,
+                                        baseFontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              else
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                ),
+                            ],
+                          ),
+                  ),
+                  SizedBox(width: 16, child: star),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
 class _EditMessageStatusRow extends StatelessWidget {
-  const _EditMessageStatusRow({
-    required this.messageId,
-    required this.status,
-  });
+  const _EditMessageStatusRow({required this.messageId, required this.status});
 
   final int messageId;
   final bool status;
@@ -2356,8 +2763,8 @@ class _EditMessageStatusRow extends StatelessWidget {
     final baseTextStyle = TextStyle(
       fontSize: 12,
       height: 12 / 12,
-      letterSpacing: proportionalLetterSpacing(context,
-        0.05, baseFontSize: 12));
+      letterSpacing: proportionalLetterSpacing(context, 0.05, baseFontSize: 12),
+    );
 
     return switch (status) {
       // TODO parse markdown and show new content as local echo?
@@ -2368,27 +2775,37 @@ class _EditMessageStatusRow extends StatelessWidget {
           spacing: 1.5,
           children: [
             Text(
-              style: baseTextStyle
-                .copyWith(color: designVariables.btnLabelAttLowIntInfo),
+              style: baseTextStyle.copyWith(
+                color: designVariables.btnLabelAttLowIntInfo,
+              ),
               textAlign: TextAlign.end,
-              zulipLocalizations.savingMessageEditLabel),
+              zulipLocalizations.savingMessageEditLabel,
+            ),
             // TODO instead place within bottom outer padding:
             //   https://github.com/zulip/zulip-flutter/pull/1498#discussion_r2087576108
             LinearProgressIndicator(
               minHeight: 2,
               color: designVariables.foreground.withValues(alpha: 0.5),
-              backgroundColor: designVariables.foreground.withValues(alpha: 0.2),
+              backgroundColor: designVariables.foreground.withValues(
+                alpha: 0.2,
+              ),
             ),
-          ])),
+          ],
+        ),
+      ),
       true => Padding(
         padding: const EdgeInsets.only(bottom: 4),
         child: _RestoreEditMessageGestureDetector(
           messageId: messageId,
           child: Text(
-            style: baseTextStyle
-              .copyWith(color: designVariables.btnLabelAttLowIntDanger),
+            style: baseTextStyle.copyWith(
+              color: designVariables.btnLabelAttLowIntDanger,
+            ),
             textAlign: TextAlign.end,
-            zulipLocalizations.savingMessageEditFailedLabel))),
+            zulipLocalizations.savingMessageEditFailedLabel,
+          ),
+        ),
+      ),
     };
   }
 }
@@ -2407,12 +2824,15 @@ class _RestoreEditMessageGestureDetector extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        final composeBoxState = MessageListPage.ancestorOf(context).composeBoxState;
+        final composeBoxState = MessageListPage.ancestorOf(
+          context,
+        ).composeBoxState;
         // TODO(#1518) allow restore-edit-message from any message-list page
         if (composeBoxState == null) return;
         composeBoxState.startEditInteraction(messageId);
       },
-      child: child);
+      child: child,
+    );
   }
 }
 
@@ -2434,11 +2854,14 @@ class OutboxMessageWithPossibleSender extends StatelessWidget {
     //   to support local echoing images and lightbox.
     Widget content = DefaultTextStyle(
       style: ContentTheme.of(context).textStylePlainParagraph,
-      child: BlockContentList(nodes: item.content.nodes));
+      child: BlockContentList(nodes: item.content.nodes),
+    );
 
     switch (message.state) {
       case OutboxMessageState.hidden:
-        throw StateError('Hidden OutboxMessage messages should not appear in message lists');
+        throw StateError(
+          'Hidden OutboxMessage messages should not appear in message lists',
+        );
       case OutboxMessageState.waiting:
         break;
       case OutboxMessageState.failed:
@@ -2448,23 +2871,47 @@ class OutboxMessageWithPossibleSender extends StatelessWidget {
         //   like we do for the failed-message-edit state
         content = _RestoreOutboxMessageGestureDetector(
           localMessageId: localMessageId,
-          child: Opacity(opacity: 0.6, child: content));
+          child: Opacity(opacity: 0.6, child: content),
+        );
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: Column(children: [
-        if (item.showSender)
-          SenderRow(message: message, timestampStyle: MessageTimestampStyle.none),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              content,
-              _OutboxMessageStatusRow(
-                localMessageId: localMessageId, outboxMessageState: message.state),
-            ])),
-      ]));
+    // Fix for #1965: Ensure outbox message is scrolled into view when focused by screen reader.
+    // Same fix as in MessageWithPossibleSender to handle screen reader navigation
+    // to older messages, preventing focus issues with sticky headers.
+    return Semantics(
+      onDidGainAccessibilityFocus: () {
+        Scrollable.maybeOf(context)?.position.ensureVisible(
+          context.findRenderObject()!,
+          alignment: 0.0,
+          alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Column(
+          children: [
+            if (item.showSender)
+              SenderRow(
+                message: message,
+                timestampStyle: MessageTimestampStyle.none,
+              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  content,
+                  _OutboxMessageStatusRow(
+                    localMessageId: localMessageId,
+                    outboxMessageState: message.state,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -2481,8 +2928,10 @@ class _OutboxMessageStatusRow extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (outboxMessageState) {
       case OutboxMessageState.hidden:
-        assert(false,
-          'Hidden OutboxMessage messages should not appear in message lists');
+        assert(
+          false,
+          'Hidden OutboxMessage messages should not appear in message lists',
+        );
         return SizedBox.shrink();
 
       case OutboxMessageState.waiting:
@@ -2492,7 +2941,9 @@ class _OutboxMessageStatusRow extends StatelessWidget {
           child: LinearProgressIndicator(
             minHeight: 2,
             color: designVariables.foreground.withFadedAlpha(0.5),
-            backgroundColor: designVariables.foreground.withFadedAlpha(0.2)));
+            backgroundColor: designVariables.foreground.withFadedAlpha(0.2),
+          ),
+        );
 
       case OutboxMessageState.failed:
       case OutboxMessageState.waitPeriodExpired:
@@ -2510,7 +2961,14 @@ class _OutboxMessageStatusRow extends StatelessWidget {
                 fontSize: 12,
                 height: 12 / 12,
                 letterSpacing: proportionalLetterSpacing(
-                  context, 0.05, baseFontSize: 12)))));
+                  context,
+                  0.05,
+                  baseFontSize: 12,
+                ),
+              ),
+            ),
+          ),
+        );
     }
   }
 }
@@ -2529,11 +2987,14 @@ class _RestoreOutboxMessageGestureDetector extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        final composeBoxState = MessageListPage.ancestorOf(context).composeBoxState;
+        final composeBoxState = MessageListPage.ancestorOf(
+          context,
+        ).composeBoxState;
         // TODO(#1518) allow restore-outbox-message from any message-list page
         if (composeBoxState == null) return;
         composeBoxState.restoreMessageNotSent(localMessageId);
       },
-      child: child);
+      child: child,
+    );
   }
 }
