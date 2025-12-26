@@ -17,6 +17,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/message.dart';
 import 'package:zulip/model/narrow.dart';
@@ -1369,6 +1370,136 @@ void main() {
           expectedMessage: 'The file to be inserted is empty or cannot be accessed.');
         checkAppearsLoading(tester, false);
       });
+    });
+  });
+
+  group('global time button', () {
+    final channel = eg.stream();
+    final narrow = eg.topicNarrow(channel.streamId, 'topic');
+
+    Future<void> prepare(WidgetTester tester) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+      await prepareComposeBox(tester,
+        narrow: narrow,
+        subscriptions: [eg.subscription(channel)]);
+    }
+
+    Finder globalTimeButtonFinder() => find.descendant(
+      of: find.byType(ComposeBox),
+      matching: find.byIcon(ZulipIcons.clock));
+
+    testWidgets('global time button is present', (tester) async {
+      await prepare(tester);
+      check(globalTimeButtonFinder()).findsOne();
+    });
+
+    testWidgets('tapping global time button shows date picker', (tester) async {
+      await prepare(tester);
+      await tester.tap(globalTimeButtonFinder());
+      await tester.pumpAndSettle();
+
+      check(find.byType(DatePickerDialog)).findsOne();
+    });
+
+    testWidgets('selecting date and time inserts formatted timestamp', (tester) async {
+      await prepare(tester);
+      await tester.tap(globalTimeButtonFinder());
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, 'OK'));
+      await tester.pumpAndSettle();
+
+      check(find.byType(TimePickerDialog)).findsOne();
+
+      await tester.tap(find.widgetWithText(TextButton, 'OK'));
+      await tester.pumpAndSettle();
+
+      final contentText = controller!.content.text;
+      check(contentText).contains('<time:');
+      check(contentText).contains('>');
+    });
+
+    testWidgets('canceling date picker does not insert timestamp', (tester) async {
+      await prepare(tester);
+
+      final initialContent = 'existing text';
+      await enterContent(tester, initialContent);
+
+      await tester.tap(globalTimeButtonFinder());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+
+      check(controller!.content.text).equals(initialContent);
+    });
+
+    testWidgets('canceling time picker does not insert timestamp', (tester) async {
+      await prepare(tester);
+
+      final initialContent = 'existing text';
+      await enterContent(tester, initialContent);
+
+      await tester.tap(globalTimeButtonFinder());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'OK'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+
+      check(controller!.content.text).equals(initialContent);
+    });
+
+    testWidgets('timestamp inserted at cursor position', (tester) async {
+      await prepare(tester);
+
+      await enterContent(tester, 'before after');
+
+      final textField = tester.widget<TextField>(contentInputFinder);
+      textField.controller!.selection = const TextSelection.collapsed(offset: 7);
+
+      await tester.tap(globalTimeButtonFinder());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'OK'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'OK'));
+      await tester.pumpAndSettle();
+
+      final contentText = controller!.content.text;
+      check(contentText).startsWith('before <time:');
+      check(contentText).endsWith('after');
+    });
+
+    test('formatGlobalTime produces correct format', () {
+      final testStore = eg.store();
+      final controller = StreamComposeBoxController(store: testStore);
+
+      final testDate = DateTime(2025, 12, 31, 13, 30);
+      final formatted = globalTime(testDate);
+
+      check(formatted).startsWith('2025-12-31T13:30:00');
+
+      final regExp = RegExp(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$');
+      check(formatted).has((s) => regExp.hasMatch(s), 'matches ISO 8601 with timezone').isTrue();
+
+      controller.dispose();
+    });
+
+    test('formatGlobalTime handles timezone offset correctly', () {
+      final testStore = eg.store();
+      final controller = StreamComposeBoxController(store: testStore);
+
+      final testDate = DateTime(2025, 1, 1, 0, 0);
+      final formatted = globalTime(testDate);
+
+      final regExp = RegExp(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$');
+      check(formatted).has((s) => regExp.hasMatch(s), 'matches ISO 8601 with timezone').isTrue();
+
+      controller.dispose();
     });
   });
 

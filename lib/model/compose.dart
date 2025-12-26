@@ -306,3 +306,18 @@ String quoteAndReply(PerAccountStore store, {
     '${inlineLink('said', url.toString())}:\n' // TODO(#1285)
     '${wrapWithBacktickFence(content: rawContent, infoString: 'quote')}';
 }
+
+
+  /// Formats a [DateTime] as an ISO 8601 string with timezone offset.
+  ///
+  /// Example: `2025-12-31T13:30:00+05:30`
+  String globalTime(DateTime date) {
+    final iso = date.toIso8601String();
+    final trimmedIso = iso.contains('.') ? iso.substring(0, iso.indexOf('.')) : iso;
+    final offset = date.timeZoneOffset;
+    final sign = offset.isNegative ? '-' : '+';
+    final hours = offset.inHours.abs().toString().padLeft(2, '0');
+    final minutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
+
+    return '$trimmedIso$sign$hours:$minutes';
+  }
