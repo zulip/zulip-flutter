@@ -1255,12 +1255,13 @@ class _AttachGlobalTimeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     
     return SizedBox(
       width: _composeButtonSize,
       child: IconButton(
         icon: Icon(ZulipIcons.clock, color: designVariables.foreground.withFadedAlpha(0.5)),
-        tooltip: "Insert Global Time",
+        tooltip: zulipLocalizations.composeBoxAttachGlobalTimeTooltip,
         onPressed: enabled ? () => _handlePress(context) : null));
   }
 }
@@ -1646,21 +1647,23 @@ sealed class ComposeBoxController {
 
   Future<void> insertGlobalTime(BuildContext context) async {
     final now = DateTime.now(); 
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     final date = await showDatePicker(
       context: context,
       initialDate: now,
       firstDate: DateTime(now.year - 5),
       lastDate: DateTime(now.year + 5),
-      helpText: "Select Date", 
-      cancelText: "Cancel");
+      helpText: zulipLocalizations.composeBoxGlobalTimeDatePickerHelpText, 
+      cancelText: zulipLocalizations.dialogCancel);
 
     if (date == null || !context.mounted) return;
 
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(now),
-      helpText: "Select Time");
+      helpText: zulipLocalizations.composeBoxGlobalTimeTimePickerHelpText,
+      cancelText: zulipLocalizations.dialogCancel,);
 
     if (time == null) return;
 
