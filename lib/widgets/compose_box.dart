@@ -1242,6 +1242,10 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
   }
 }
 
+/// A button to insert a global time timestamp into the compose box.
+///
+/// Shows date and time pickers sequentially, then inserts a formatted
+/// timestamp in Zulip's global time format: `<time:YYYY-MM-DDTHH:mm:ss±HH:mm>`
 class _AttachGlobalTimeButton extends StatelessWidget {
   const _AttachGlobalTimeButton({required this.controller, required this.enabled});
 
@@ -1645,6 +1649,13 @@ sealed class ComposeBoxController {
       files: files);
   }
 
+  /// Shows date and time pickers, then inserts a formatted timestamp.
+  ///
+  /// First shows a date picker, then a time picker. If either is cancelled,
+  /// the operation is aborted without inserting anything.
+  ///
+  /// The timestamp is inserted at the current cursor position, or at the end
+  /// of the text if there is no cursor position.
   Future<void> insertGlobalTime(BuildContext context) async {
     final now = DateTime.now(); 
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -1694,6 +1705,9 @@ sealed class ComposeBoxController {
     );
   }
 
+  /// Formats a [DateTime] as an ISO 8601 string with timezone offset.
+  ///
+  /// Example: `2025-12-31T13:30:00+05:30`
   String formatGlobalTime(DateTime date) {
     final iso = date.toIso8601String();
     final trimmedIso = iso.contains('.') ? iso.substring(0, iso.indexOf('.')) : iso;
