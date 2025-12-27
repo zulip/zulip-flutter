@@ -1,17 +1,10 @@
 # Making releases
 
-## NOTE: This document is out of date.
+This doc explains how to make a release of the Zulip mobile app to the
+iOS App Store, to the Google Play Store, and as APKs on the web.
 
-Now that this is the main Zulip mobile app,
-the actual release process is roughly a hybrid of the steps below
-and those from the legacy app's release instructions.
-
-The steps below have been updated up through "Promote to beta".
-After that, announce the release following a hybrid of the two docs;
-and release to production following the other doc.
-
-Revising this further into a single coherent set of instructions
-is an open TODO.
+If you're reading this page for the first time, see the sections on
+[terminology](#terminology) and [setup](#setup) below.
 
 
 ## Prepare source tree
@@ -129,7 +122,7 @@ is an open TODO.
 
   * Upload both the AAB and the APK.
 
-  * Check the box "This is a pre-release".
+  * Check the box "Set as a pre-release".
 
 
 * iOS via TestFlight:
@@ -148,7 +141,7 @@ is an open TODO.
 
   * Also submit for App Store review, to save latency in the prod rollout:
 
-    * In App Store Connect for the app, [go to the "App Store"
+    * In App Store Connect for the app, [go to the "Distribution"
       tab][asc-main], and hit the "+" button next to "iOS App" at the
       top of the left sidebar.  Enter the version number.  This
       creates a new draft listing.
@@ -166,10 +159,7 @@ is an open TODO.
         this version").
 
       * Back at the top, hit "Save" and then "Add for Review", and hit
-        "Continue" in the resulting dialog box.
-
-      * In the resulting "Confirm Submission" page, hit
-        "Submit to App Review".
+        "Submit for Review" in the resulting modal sidebar.
 
     * The draft listing should enter state "Waiting for Review".  From
       here, it typically takes a day or so to get a result from the
@@ -177,19 +167,67 @@ is an open TODO.
       button to roll it out.
 
 [asc-external]: https://appstoreconnect.apple.com/apps/1203036395/testflight/groups/1bf18c25-da12-4bad-8384-9dd872ce447f
-[asc-main]: https://appstoreconnect.apple.com/apps/1203036395/appstore/info
+[asc-main]: https://appstoreconnect.apple.com/apps/1203036395/distribution/info
+
+
+## Release to production
+
+Historically we would wait a couple of days after sending to beta
+before sending to production.  More recently (since 2025) we've
+been sending a typical release to production promptly after beta.
+Discussion thread: [#mobile-team > mobile releases @ 💬](https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/mobile.20releases/near/2218205)
+
+
+* Android via Play Store:
+
+  * In the Play Console, go to [Release > Testing >
+    Open testing][play-open-testing].
+
+  * Under the release you want to promote, choose "Promote release >
+    Production".
+
+  * Under "Staged roll-out", set 100% as the roll-out percentage.
+
+    * Occasionally we start with a smaller percentage.  In that case,
+      remember to come back later to make a 100% rollout.
+
+  * Confirm and send to Google for review.
+
+[play-open-testing]: https://play.google.com/console/developers/8060868091387311598/app/4976350040864490411/tracks/open-testing
+
+
+* Android via GitHub:
+
+  * Edit the release [on GitHub][gh-releases].  Uncheck
+    "Set as a pre-release", and check "Set as the latest release".
+
+[gh-releases]: https://github.com/zulip/zulip-flutter/releases
+
+
+* iOS via App Store:
+
+  * (This assumes the new version was submitted for App Store review
+    at the time of the beta rollout, and accepted.  See beta steps
+    above for how to submit it.)
+
+  * In App Store Connect for the app, go to [Distribution > iOS App >
+    (the draft release)][asc-inflight].
+
+  * Hit the big blue button at top right to release to the App Store.
+
+[asc-inflight]: https://appstoreconnect.apple.com/apps/1203036395/appstore/ios/version/inflight
 
 
 ## Announce
 
 * Announce the updated beta in
-  [#announce > mobile beta][releases-thread].
+  [#announce > mobile releases][releases-thread].
 
   For release notes, use `tools/format-changelog czo`.
 
-[releases-thread]: https://chat.zulip.org/#narrow/stream/1-announce/topic/mobile.20beta
+[releases-thread]: https://chat.zulip.org/#narrow/stream/1-announce/topic/mobile.20releases
 
-* For any fixed issues that were tagged "beta feedback", or otherwise
+* For any fixed issues that were tagged "user feedback", or otherwise
   had people outside the mobile team specifically interested in them,
   follow up with the requesters: post on the relevant thread (in
   GitHub or Zulip) and @-mention the individuals who asked for the
@@ -231,10 +269,118 @@ Steps specific to this type of release are:
   (with the correct version number), and push.
 
 
+## Security releases
+
+Very occasionally, we find a security vulnerability in the app.
+When a release fixes a vulnerability which isn't already public,
+we follow a variation of the process above.
+
+The goal is to get the update onto most users' phones almost before
+the issue is disclosed, minimizing the window where the issue is
+public and users are still vulnerable.
+
+### Preparing commit
+
+* Write the fixes on a private branch, but don't push to the main repo (or
+  other public repos.)
+
+* Prepare and QA the commit as usual.  We'll be skipping the beta phase, so
+  be especially diligent with the QA, and choosy in what commits to include.
+  Definitely make it a stable release, with only hand-picked changes on top
+  of the last release.
+
+* Tag the commit, but don't push it yet.
+
+### Android prep
+
+* Build and upload to Google Play, but release only to alpha for now.
+  Repeat manual QA with the alpha.
+
+* Also send for Google's review to promote to both beta and
+  production, but adjust settings so that it will wait to roll out
+  until we later hit a button saying so.
+
+  (The last time we needed this procedure was years ago, before the
+  Play Store had blocking reviews on updates, so we've not yet
+  actually done this step in practice.)
+
+* Don't upload to GitHub yet.
+
+### iOS prep
+
+* Build and upload to App Store Connect, but release only to alpha for now.
+  Repeat manual QA with the alpha.
+
+* Follow the steps to release to production, with one change: in the draft
+  listing, find the option for "Manually release this version", and select it.
+
+### Release
+
+* Wait for Apple's review; on success, the app will enter state "Pending
+  Developer Release".  (On failure, try to fix the issue, then resubmit.)
+  Similarly wait for Google's review.
+
+* Now release the app to both the App Store and the Play Store.
+
+* Also now submit to TestFlight, for beta users on iOS.
+  Wait for that to go out before discussing further in public.
+
+### Followup
+
+* Wait for the release to be approved for TestFlight.
+  (On failure, try to fix, then resubmit.)
+
+* Push the tagged commit, and also push the corresponding changes to main.
+
+* Upload the APKs to GitHub as usual.
+
+* Discuss freely.
+
+
+<div id="setup" />
+
 ## One-time or annual setup
 
-* You'll need the Google Play upload key.  The setup is similar to
-  what we use for the React Native app, but the key is a fresh one.
+### Prepare Android
+
+You'll need the Google Play upload key.
+This key also serves as the [app signing key][] for
+the APK and AAB files we publish directly via GitHub releases.
+As the linked upstream doc explains, this is a highly sensitive secret
+which it's very important to handle securely.
+
+[app signing key]: https://developer.android.com/studio/publish/app-signing#secure_key
+
+(This setup is similar to what we used for the legacy mobile app,
+but the key is a fresh one.)
+
+* Get the keystore file, and the keystore properties file.
+  An existing/previous release manager can send these to you,
+  encrypted to your PGP key.
+
+  * Never make an unencrypted version visible to the network or to a
+    cloud service (including Zulip).
+
+* Put the release-signing keystore, PGP-encrypted to yourself,
+  at `android/release.keystore.pgp`.
+
+  * Don't leave an unencrypted version on disk, except temporarily.
+    The script `tools/checkout-keystore` will help manage this; see
+    `tools/checkout-keystore --help` and release instructions above.
+
+* Put the keystore properties file at
+  `android/release-keystore.properties`.
+  It looks like this (passwords redacted):
+
+```
+storeFile=release.keystore
+keyAlias=zulip-mobile
+storePassword=*****
+keyPassword=*****
+```
+
+
+### Prepare iOS
 
 * You'll need an "Apple Distribution" certificate and its key,
   and also an iOS "provisioning profile" that refers to that
@@ -253,3 +399,66 @@ Steps specific to this type of release are:
   <https://apps.apple.com/us/app/transporter/id1450874784>
 
   Install the app, open it, and log in.
+
+
+## Terminology
+
+This section defines the terms **alpha**, **beta**, and **production**
+(or **prod**) as used in this document and in our release process.
+
+Google and Apple each have different terminology for the various
+channels of progressively wider release.  We don't use or need the
+full complexity of either one, and for sanity's sake we use a common,
+simple terminology for the process we follow with both.
+
+* **Alpha**: A release only to active developers of the app.
+  See [instructions](howto/alpha.md) for joining.
+
+  * What this means on each platform:
+    * Google Play: release to "Internal testing"
+    * iOS: release in TestFlight to "App Store Connect Users"
+    * GitHub: a Git tag
+
+  * On both Google Play and TestFlight, a new version in this channel
+    is available for update immediately on devices.  We use it for
+    final manual QA before releasing to beta or production.
+
+  * NB Google Play has its own feature it calls "Alpha"
+    (aka "Closed testing"), which is sort of intermediate between
+    "Internal testing" and "Open testing".
+    We don't use that feature.
+
+
+* **Beta**: Historically, a release to users who have volunteered to
+  get new versions early and give us feedback.
+  More recently, we usually don't make use of this channel;
+  we send a release here just before sending the same release to prod.
+  See [discussion above](#release-to-production).
+
+  * What this means on each platform:
+    * Google Play: release to "Open testing"
+    * iOS: release to all our TestFlight users (through the
+      "External Testers" group)
+    * GitHub: a GitHub release with binaries and description,
+      marked as pre-release
+
+  * NB Google Play also calls this "Beta track" or "Open track", as
+    well as "Open testing".
+
+
+* **Production** (aka **prod**): A general release to all users.
+
+  * What this means on each platform:
+    * Google Play: release to "Production"
+    * iOS: release to the App Store
+    * GitHub: a GitHub release with binaries and description,
+      not marked pre-release
+
+  * On iOS there is a gotcha we've occasionally fallen for in the
+    past: because releasing to the App Store is mostly a separate
+    process from releasing to TestFlight, it's easy to release a given
+    version to the App Store without ever interacting with TestFlight.
+    If we do, our beta users will simply never get that version, and
+    stay on the (older) last version we gave them.
+    Naturally this isn't good for our kind beta users, nor for us; so
+    don't do this. :)
