@@ -199,7 +199,7 @@ void main() {
       await tester.pump();
       check(find.byType(InboxPageBody)).findsOne();
 
-      await tester.longPress(find.text(someChannel.name).hitTestable());
+      await tester.longPress(find.textContaining(someChannel.name, findRichText: true).hitTestable());
       await tester.pump(const Duration(milliseconds: 250));
     }
 
@@ -211,7 +211,7 @@ void main() {
       await tester.pump();
       check(find.byType(SubscriptionListPageBody)).findsOne();
 
-      await tester.longPress(find.text(someChannel.name).hitTestable());
+      await tester.longPress(find.textContaining(someChannel.name, findRichText: true).hitTestable());
       await tester.pump(const Duration(milliseconds: 250));
     }
 
@@ -236,7 +236,7 @@ void main() {
 
       await tester.longPress(find.descendant(
         of: find.byType(ZulipAppBar),
-        matching: find.text(channel.name)));
+        matching: find.textContaining(channel.name, findRichText: true)));
       await tester.pump(const Duration(milliseconds: 250));
     }
 
@@ -253,7 +253,7 @@ void main() {
 
       await tester.longPress(find.descendant(
         of: find.byType(RecipientHeader),
-        matching: find.text(message.displayRecipient ?? '')));
+        matching: find.textContaining(message.displayRecipient ?? '', findRichText: true)));
       await tester.pump(const Duration(milliseconds: 250));
     }
 
