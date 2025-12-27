@@ -122,6 +122,11 @@ InitialSnapshot _$InitialSnapshotFromJson(
         ),
       ),
   maxFileUploadSizeMib: (json['max_file_upload_size_mib'] as num).toInt(),
+  serverThumbnailFormats:
+      (json['server_thumbnail_formats'] as List<dynamic>?)
+          ?.map((e) => ThumbnailFormat.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      [],
   serverEmojiDataUrl: Uri.parse(json['server_emoji_data_url'] as String),
   realmEmptyTopicDisplayName: json['realm_empty_topic_display_name'] as String?,
   realmUsers:
@@ -196,6 +201,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'realm_presence_disabled': instance.realmPresenceDisabled,
   'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
   'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
+  'server_thumbnail_formats': instance.serverThumbnailFormats,
   'server_emoji_data_url': instance.serverEmojiDataUrl.toString(),
   'realm_empty_topic_display_name': instance.realmEmptyTopicDisplayName,
   'realm_users': instance.realmUsers,
@@ -237,6 +243,24 @@ Map<String, dynamic> _$RealmDefaultExternalAccountToJson(
   'hint': instance.hint,
   'url_pattern': instance.urlPattern,
 };
+
+ThumbnailFormat _$ThumbnailFormatFromJson(Map<String, dynamic> json) =>
+    ThumbnailFormat(
+      name: json['name'] as String,
+      maxWidth: (json['max_width'] as num).toInt(),
+      maxHeight: (json['max_height'] as num).toInt(),
+      animated: json['animated'] as bool,
+      format: json['format'] as String,
+    );
+
+Map<String, dynamic> _$ThumbnailFormatToJson(ThumbnailFormat instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'max_width': instance.maxWidth,
+      'max_height': instance.maxHeight,
+      'animated': instance.animated,
+      'format': instance.format,
+    };
 
 RecentDmConversation _$RecentDmConversationFromJson(
   Map<String, dynamic> json,

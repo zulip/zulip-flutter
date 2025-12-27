@@ -119,6 +119,9 @@ class InitialSnapshot {
 
   final int maxFileUploadSizeMib;
 
+  @JsonKey(defaultValue: []) // TODO(server-9) remove default value
+  final List<ThumbnailFormat> serverThumbnailFormats;
+
   final Uri serverEmojiDataUrl;
 
   final String? realmEmptyTopicDisplayName; // TODO(server-10)
@@ -197,6 +200,7 @@ class InitialSnapshot {
     required this.realmPresenceDisabled,
     required this.realmDefaultExternalAccounts,
     required this.maxFileUploadSizeMib,
+    required this.serverThumbnailFormats,
     required this.serverEmojiDataUrl,
     required this.realmEmptyTopicDisplayName,
     required this.realmUsers,
@@ -263,6 +267,32 @@ class RealmDefaultExternalAccount {
     _$RealmDefaultExternalAccountFromJson(json);
 
   Map<String, dynamic> toJson() => _$RealmDefaultExternalAccountToJson(this);
+}
+
+/// An item in `server_thumbnail_formats`.
+///
+/// For docs, search for "server_thumbnail_formats:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class ThumbnailFormat {
+  ThumbnailFormat({
+    required this.name,
+    required this.maxWidth,
+    required this.maxHeight,
+    required this.animated,
+    required this.format,
+  });
+
+  final String name;
+  final int maxWidth;
+  final int maxHeight;
+  final bool animated;
+  final String format;
+
+  factory ThumbnailFormat.fromJson(Map<String, dynamic> json) =>
+    _$ThumbnailFormatFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ThumbnailFormatToJson(this);
 }
 
 /// An item in `recent_private_conversations`.

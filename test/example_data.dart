@@ -1367,6 +1367,7 @@ InitialSnapshot initialSnapshot({
   bool? realmPresenceDisabled,
   Map<String, RealmDefaultExternalAccount>? realmDefaultExternalAccounts,
   int? maxFileUploadSizeMib,
+  List<ThumbnailFormat>? serverThumbnailFormats,
   Uri? serverEmojiDataUrl,
   String? realmEmptyTopicDisplayName,
   List<User>? realmUsers,
@@ -1427,6 +1428,7 @@ InitialSnapshot initialSnapshot({
     realmPresenceDisabled: realmPresenceDisabled ?? false,
     realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
+    serverThumbnailFormats: serverThumbnailFormats ?? [],
     serverEmojiDataUrl: serverEmojiDataUrl
       ?? realmUrl.replace(path: '/static/emoji.json'),
     realmEmptyTopicDisplayName: realmEmptyTopicDisplayName ?? defaultRealmEmptyTopicDisplayName,
