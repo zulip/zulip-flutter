@@ -1242,6 +1242,34 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
   }
 }
 
+/// A button to insert a global time timestamp into the compose box.
+///
+/// Shows date and time pickers sequentially, then inserts a formatted
+/// timestamp in Zulip's global time format: `<time:YYYY-MM-DDTHH:mm:ss±HH:mm>`
+class _AttachGlobalTimeButton extends StatelessWidget {
+  const _AttachGlobalTimeButton({required this.controller, required this.enabled});
+
+  final ComposeBoxController controller;
+  final bool enabled;
+
+  void _handlePress(BuildContext context) async {
+    await controller.insertGlobalTime(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    
+    return SizedBox(
+      width: _composeButtonSize,
+      child: IconButton(
+        icon: Icon(ZulipIcons.clock, color: designVariables.foreground.withFadedAlpha(0.5)),
+        tooltip: zulipLocalizations.composeBoxAttachGlobalTimeTooltip,
+        onPressed: enabled ? () => _handlePress(context) : null));
+  }
+}
+
 class _SendButton extends StatefulWidget {
   const _SendButton({required this.controller, required this.getDestination});
 
@@ -1473,6 +1501,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
       _AttachFileButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
+      _AttachGlobalTimeButton(controller: controller, enabled: composeButtonsEnabled),
     ];
 
     final topicInput = buildTopicInput();
@@ -1620,12 +1649,84 @@ sealed class ComposeBoxController {
       files: files);
   }
 
+  /// Shows date and time pickers, then inserts a formatted timestamp.
+  ///
+  /// First shows a date picker, then a time picker. If either is cancelled,
+  /// the operation is aborted without inserting anything.
+  ///
+  /// The timestamp is inserted at the current cursor position, or at the end
+  /// of the text if there is no cursor position.
+  Future<void> insertGlobalTime(BuildContext context) async {
+    final now = DateTime.now(); 
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final date = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: DateTime(now.year - 5),
+      lastDate: DateTime(now.year + 5),
+      helpText: zulipLocalizations.composeBoxGlobalTimeDatePickerHelpText, 
+      cancelText: zulipLocalizations.dialogCancel);
+
+    if (date == null || !context.mounted) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(now),
+      helpText: zulipLocalizations.composeBoxGlobalTimeTimePickerHelpText,
+      cancelText: zulipLocalizations.dialogCancel,);
+
+    if (time == null) return;
+
+    final combined = date.copyWith(
+      hour: time.hour,
+      minute: time.minute);
+
+    final insert = '<time:${formatGlobalTime(combined)}>';
+    
+    _insertTextAtCursor(insert);
+  }
+
+  void _insertTextAtCursor(String insertion) {
+    final currentSelection = content.selection;
+    final currentText = content.text;
+
+    final newText = currentSelection.isValid
+        ? currentText.replaceRange(currentSelection.start, currentSelection.end, insertion)
+        : currentText + insertion;
+
+    final newSelectionIndex = currentSelection.isValid
+        ? currentSelection.start + insertion.length
+        : newText.length;
+
+    content.value = TextEditingValue(text: newText,
+      selection: TextSelection.collapsed(offset: newSelectionIndex),
+      composing: TextRange.empty, 
+    );
+  }
+
+  /// Formats a [DateTime] as an ISO 8601 string with timezone offset.
+  ///
+  /// Example: `2025-12-31T13:30:00+05:30`
+  String formatGlobalTime(DateTime date) {
+    final iso = date.toIso8601String();
+    final trimmedIso = iso.contains('.') ? iso.substring(0, iso.indexOf('.')) : iso;
+    final offset = date.timeZoneOffset;
+    final sign = offset.isNegative ? '-' : '+';
+    final hours = offset.inHours.abs().toString().padLeft(2, '0');
+    final minutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
+
+    return '$trimmedIso$sign$hours:$minutes';
+  }
+
   @mustCallSuper
   void dispose() {
     content.dispose();
     contentFocusNode.dispose();
   }
 }
+
+
 
 /// Represent how a user has interacted with topic and content inputs.
 ///
