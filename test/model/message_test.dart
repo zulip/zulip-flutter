@@ -38,25 +38,22 @@ void main() {
   // Each test case calls [prepare] to initialize them.
   late Subscription? subscription;
   late PerAccountStore store;
-
   late int perAccountStoreNotifiedCount;
-  void checkPerAccountStoreNotified({required int count}) {
-    check(perAccountStoreNotifiedCount).equals(count);
-    perAccountStoreNotifiedCount = 0;
-  }
-  void checkPerAccountStoreNotNotified() => checkPerAccountStoreNotified(count: 0);
-  void checkPerAccountStoreNotifiedOnce() => checkPerAccountStoreNotified(count: 1);
 
   late FakeApiConnection connection;
 
   // [messageList] is here only for the sake of checking when it notifies.
   // For anything deeper than that, use `message_list_test.dart`.
   late MessageListView messageList;
-  late int notifiedCount;
+  late int msglistNotifiedCount;
 
-  void checkNotified({required int count}) {
-    check(notifiedCount).equals(count);
-    notifiedCount = 0;
+  void checkNotified({required int count, int storeCount = 0}) {
+    check(because: 'checking number of MessageListView.notifyListeners calls',
+      msglistNotifiedCount).equals(count);
+    msglistNotifiedCount = 0;
+    check(because: 'checking number of PerAccountStore.notifyListeners calls',
+      perAccountStoreNotifiedCount).equals(storeCount);
+    perAccountStoreNotifiedCount = 0;
   }
   void checkNotNotified() => checkNotified(count: 0);
   void checkNotifiedOnce() => checkNotified(count: 1);
@@ -87,16 +84,15 @@ void main() {
     store.addListener(() {
       perAccountStoreNotifiedCount++;
     });
-    checkPerAccountStoreNotNotified();
 
     connection = store.connection as FakeApiConnection;
 
-    notifiedCount = 0;
+    msglistNotifiedCount = 0;
     messageList = MessageListView.init(store: store,
         narrow: narrow,
         anchor: AnchorCode.newest)
       ..addListener(() {
-        notifiedCount++;
+        msglistNotifiedCount++;
       });
     addTearDown(messageList.dispose);
     check(messageList).fetched.isFalse();
@@ -1753,7 +1749,7 @@ void main() {
 
       check(store).starredMessages.single.equals(message.id);
       await store.handleEvent(eg.deleteMessageEvent([message]));
-      checkPerAccountStoreNotifiedOnce();
+      checkNotified(count: 0, storeCount: 1);
       check(store).starredMessages.isEmpty();
     });
   });
@@ -1833,7 +1829,7 @@ void main() {
         check(store).starredMessages.isEmpty();
         await store.handleEvent(
           mkAddEvent(MessageFlag.starred, [message1.id, message2.id]));
-        checkPerAccountStoreNotifiedOnce();
+        checkNotified(count: 1, storeCount: 1);
         check(store).starredMessages.deepEquals([message1.id, message2.id]);
       });
     });
@@ -1880,7 +1876,7 @@ void main() {
         check(store).starredMessages.deepEquals([message1.id, message2.id]);
         await store.handleEvent(
           mkRemoveEvent(MessageFlag.starred, [message1, message2]));
-        checkPerAccountStoreNotifiedOnce();
+        checkNotified(count: 1, storeCount: 1);
         check(store).starredMessages.isEmpty();
       });
     });
