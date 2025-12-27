@@ -32,6 +32,8 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   Duration get serverTypingStartedWaitPeriod => Duration(milliseconds: serverTypingStartedWaitPeriodMilliseconds);
   int get serverTypingStartedWaitPeriodMilliseconds;
 
+  String? get serverJitsiServerUrl;
+
   //|//////////////////////////////////////////////////////////////
   // Realm settings.
 
@@ -46,6 +48,7 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   GroupSettingValue? get realmCanDeleteAnyMessageGroup; // TODO(server-10)
   GroupSettingValue? get realmCanDeleteOwnMessageGroup; // TODO(server-10)
   bool get realmEnableReadReceipts;
+  String? get realmJitsiServerUrl;
   bool get realmMandatoryTopics;
   int get maxFileUploadSizeMib;
   int? get realmMessageContentDeleteLimitSeconds;
@@ -54,6 +57,7 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
       : Duration(seconds: realmMessageContentEditLimitSeconds!);
   int? get realmMessageContentEditLimitSeconds;
   bool get realmPresenceDisabled;
+  RealmVideoChatProvider get realmVideoChatProvider;
   int get realmWaitingPeriodThreshold;
 
   //|//////////////////////////////
@@ -74,10 +78,14 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   // TODO(server-10) simplify this
   String get realmEmptyTopicDisplayName;
 
+  Map<String, RealmAvailableVideoChatProviders> get realmAvailableVideoChatProviders;
+
   Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts;
 
   int get maxChannelNameLength;
   int get maxTopicLength;
+
+  String? get jitsiServerUrl;
 
   //|//////////////////////////////
   // Realm settings with their own events.
@@ -167,6 +175,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   int get serverTypingStartedWaitPeriodMilliseconds => realmStore.serverTypingStartedWaitPeriodMilliseconds;
   @override
+  String? get serverJitsiServerUrl => realmStore.serverJitsiServerUrl;
+  @override
   bool get realmAllowMessageEditing => realmStore.realmAllowMessageEditing;
   @override
   GroupSettingValue? get realmCanDeleteAnyMessageGroup => realmStore.realmCanDeleteAnyMessageGroup;
@@ -174,6 +184,8 @@ mixin ProxyRealmStore on RealmStore {
   GroupSettingValue? get realmCanDeleteOwnMessageGroup => realmStore.realmCanDeleteOwnMessageGroup;
   @override
   bool get realmEnableReadReceipts => realmStore.realmEnableReadReceipts;
+  @override
+  String? get realmJitsiServerUrl => realmStore.realmJitsiServerUrl;
   @override
   bool get realmMandatoryTopics => realmStore.realmMandatoryTopics;
   @override
@@ -185,6 +197,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   bool get realmPresenceDisabled => realmStore.realmPresenceDisabled;
   @override
+  RealmVideoChatProvider get realmVideoChatProvider => realmStore.realmVideoChatProvider;
+  @override
   int get realmWaitingPeriodThreshold => realmStore.realmWaitingPeriodThreshold;
   @override
   RealmWildcardMentionPolicy get realmWildcardMentionPolicy => realmStore.realmWildcardMentionPolicy;
@@ -193,11 +207,15 @@ mixin ProxyRealmStore on RealmStore {
   @override
   String get realmEmptyTopicDisplayName => realmStore.realmEmptyTopicDisplayName;
   @override
+  Map<String, RealmAvailableVideoChatProviders> get realmAvailableVideoChatProviders => realmStore.realmAvailableVideoChatProviders;
+  @override
   Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts => realmStore.realmDefaultExternalAccounts;
   @override
   int get maxChannelNameLength => realmStore.maxChannelNameLength;
   @override
   int get maxTopicLength => realmStore.maxTopicLength;
+  @override
+  String? get jitsiServerUrl => realmStore.jitsiServerUrl;
   @override
   List<CustomProfileField> get customProfileFields => realmStore.customProfileFields;
   @override
@@ -233,22 +251,27 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     serverTypingStartedExpiryPeriodMilliseconds = initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds,
     serverTypingStoppedWaitPeriodMilliseconds = initialSnapshot.serverTypingStoppedWaitPeriodMilliseconds,
     serverTypingStartedWaitPeriodMilliseconds = initialSnapshot.serverTypingStartedWaitPeriodMilliseconds,
+    serverJitsiServerUrl = initialSnapshot.serverJitsiServerUrl,
     realmAllowMessageEditing = initialSnapshot.realmAllowMessageEditing,
     realmCanDeleteAnyMessageGroup = initialSnapshot.realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup = initialSnapshot.realmCanDeleteOwnMessageGroup,
+    realmEnableReadReceipts = initialSnapshot.realmEnableReadReceipts,
+    realmJitsiServerUrl = initialSnapshot.realmJitsiServerUrl,
     realmMandatoryTopics = initialSnapshot.realmMandatoryTopics,
     maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib,
     realmMessageContentDeleteLimitSeconds = initialSnapshot.realmMessageContentDeleteLimitSeconds,
     realmMessageContentEditLimitSeconds = initialSnapshot.realmMessageContentEditLimitSeconds,
-    realmEnableReadReceipts = initialSnapshot.realmEnableReadReceipts,
     realmPresenceDisabled = initialSnapshot.realmPresenceDisabled,
+    realmVideoChatProvider = initialSnapshot.realmVideoChatProvider,
     realmWaitingPeriodThreshold = initialSnapshot.realmWaitingPeriodThreshold,
     realmWildcardMentionPolicy = initialSnapshot.realmWildcardMentionPolicy,
     realmDeleteOwnMessagePolicy = initialSnapshot.realmDeleteOwnMessagePolicy,
     _realmEmptyTopicDisplayName = initialSnapshot.realmEmptyTopicDisplayName,
+    realmAvailableVideoChatProviders = initialSnapshot.realmAvailableVideoChatProviders,
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
     maxChannelNameLength = initialSnapshot.maxChannelNameLength,
     maxTopicLength = initialSnapshot.maxTopicLength,
+    jitsiServerUrl = initialSnapshot.jitsiServerUrl,
     customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields);
 
   @override
@@ -377,6 +400,8 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   final int serverTypingStoppedWaitPeriodMilliseconds;
   @override
   final int serverTypingStartedWaitPeriodMilliseconds;
+  @override
+  final String? serverJitsiServerUrl;
 
   @override
   final bool realmAllowMessageEditing;
@@ -387,6 +412,8 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   @override
   final bool realmEnableReadReceipts;
   @override
+  final String? realmJitsiServerUrl;
+  @override
   final bool realmMandatoryTopics;
   @override
   final int maxFileUploadSizeMib;
@@ -396,6 +423,8 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   final int? realmMessageContentEditLimitSeconds;
   @override
   final bool realmPresenceDisabled;
+  @override
+  final RealmVideoChatProvider realmVideoChatProvider;
   @override
   final int realmWaitingPeriodThreshold;
 
@@ -413,12 +442,18 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   final String? _realmEmptyTopicDisplayName;
 
   @override
+  final Map<String, RealmAvailableVideoChatProviders> realmAvailableVideoChatProviders;
+
+  @override
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
 
   @override
   final int maxChannelNameLength;
   @override
   final int maxTopicLength;
+
+  @override
+  final String? jitsiServerUrl;
 
   @override
   List<CustomProfileField> customProfileFields;
