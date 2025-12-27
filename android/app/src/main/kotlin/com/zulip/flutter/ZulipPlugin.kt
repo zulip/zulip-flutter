@@ -1,6 +1,7 @@
 package com.zulip.flutter
 
 import android.annotation.SuppressLint
+import android.app.DownloadManager
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
@@ -19,6 +20,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import org.json.JSONObject
 import androidx.core.net.toUri
 
 private const val TAG = "ZulipPlugin"
@@ -284,17 +286,42 @@ private class AndroidNotificationHost(val context: Context)
     }
 }
 
+/** Host class for handling downloads via DownloadManager */
+class DownloadHost(private val context: Context) : DownloadManagerHostApi {
+
+    /** Downloads a file from the given URL and saves it to the specified filename in the Downloads folder. */
+    override fun downloadFile(fileUrl: String, fileName: String, callback: (Result<String>) -> Unit) {
+        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+
+        val uri = fileUrl.toUri()
+
+        val request = DownloadManager.Request(uri).apply {
+            setTitle("Downloading $fileName")
+            setDescription("File is being downloaded...")
+            setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+            setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+        }
+        // Queue the download
+        downloadManager.enqueue(request)
+        callback(Result.success("Download started successfully for: $fileName"))
+    }
+}
+
 /** A Flutter plugin for the Zulip app's ad-hoc needs. */
 // @Keep is needed because this class is used only
 // from ZulipShimPlugin, via reflection.
 @Keep
 class ZulipPlugin : FlutterPlugin { // TODO ActivityAware too?
     private var notificationHost: AndroidNotificationHost? = null
+    private var downloadHost: DownloadHost? = null
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         Log.d(TAG, "Attaching to Flutter engine.")
         notificationHost = AndroidNotificationHost(binding.applicationContext)
+        downloadHost = DownloadHost(binding.applicationContext)
+
         AndroidNotificationHostApi.setUp(binding.binaryMessenger, notificationHost)
+        DownloadManagerHostApi.setUp(binding.binaryMessenger, downloadHost)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
@@ -303,6 +330,9 @@ class ZulipPlugin : FlutterPlugin { // TODO ActivityAware too?
             return
         }
         AndroidNotificationHostApi.setUp(binding.binaryMessenger, null)
+        DownloadManagerHostApi.setUp(binding.binaryMessenger, null)
+
         notificationHost = null
+        downloadHost = null
     }
 }
