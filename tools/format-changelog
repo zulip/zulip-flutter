@@ -30,8 +30,45 @@ extract_highlights() {
 }
 
 # Undo line-wrapping.
+_do_unwrap() {
+    # Implemented by rewrapping paragraphs in Vim.
+    # (Emacs works equally well, interactively; but seems more annoying
+    # to integrate into a CLI pipeline.)
+
+    # The Vim "filetype" plugin for Markdown, relative to
+    # the Vim runtime path (typically "/usr/share/vim/vim$version").
+    # The file's upstream source is here:
+    #   https://github.com/tpope/vim-markdown/blob/f9f845f28/ftplugin/markdown.vim
+    # The parts we actually use are the variables `comments`,
+    # `formatoptions`, and `formatlistpat`.
+    local vim_markdown_settings=ftplugin/markdown.vim
+
+    # The Vim command "gq" rewraps paragraphs; "G" makes it do so
+    # from the current point to the end, and "gg" first goes to the start.
+    vim -es /dev/stdin \
+      "+runtime! ${vim_markdown_settings}" \
+      '+set textwidth=2000' \
+      '+normal gggqG' '+%print' '+:q!'
+}
+
+# Undo line-wrapping; print an error if missing needed dependencies.
 unwrap() {
-    fmt --tagged-paragraph --width=2000
+    # A test string which gets rewrapped differently as plain text vs Markdown.
+    local test_markdown=$'* a\n  * b'
+    if [ "$(_do_unwrap <<<"${test_markdown}")" != "${test_markdown}" ]; then
+        # As plain text, the test string wraps to "* a * b".
+        # But as Markdown, it's already wrapped, so shouldn't have changed.
+        cat >&2 <<EOF
+error: Could not rewrap Markdown.
+  Most likely either there is no \`vim\` command,
+  or it is from a minimal Vim installation without the usual plugins.
+
+  Try installing Vim; e.g. on Debian, \`sudo apt install vim\`.
+EOF
+        exit 1
+    fi
+
+    _do_unwrap
 }
 
 # Print changelog entry, with line-wrapping removed.

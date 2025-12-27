@@ -18,9 +18,17 @@ import 'page.dart';
 class GlobalStoreWidget extends StatefulWidget {
   const GlobalStoreWidget({
     super.key,
-    this.placeholder = const LoadingPlaceholder(),
+    this.blockingFuture,
+    this.placeholder = const BlankLoadingPlaceholder(),
     required this.child,
   });
+
+  /// An additional future to await before showing the child.
+  ///
+  /// If [blockingFuture] is non-null, then this widget will build [child]
+  /// only after the future completes.  This widget's behavior is not affected
+  /// by whether the future's completion is with a value or with an error.
+  final Future<void>? blockingFuture;
 
   final Widget placeholder;
   final Widget child;
@@ -87,6 +95,9 @@ class _GlobalStoreWidgetState extends State<GlobalStoreWidget> {
     super.initState();
     (() async {
       final store = await ZulipBinding.instance.getGlobalStoreUniquely();
+      if (widget.blockingFuture != null) {
+        await widget.blockingFuture!.catchError((_) {});
+      }
       setState(() {
         this.store = store;
       });
@@ -328,6 +339,15 @@ class _PerAccountStoreInheritedWidget extends InheritedNotifier<PerAccountStore>
   @override
   bool updateShouldNotify(covariant _PerAccountStoreInheritedWidget oldWidget) =>
     store != oldWidget.store;
+}
+
+class BlankLoadingPlaceholder extends StatelessWidget {
+  const BlankLoadingPlaceholder({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox.shrink();
+  }
 }
 
 class LoadingPlaceholder extends StatelessWidget {

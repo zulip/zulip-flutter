@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
+import '../notifications/display.dart';
 import '../notifications/receive.dart';
 import 'store.dart';
 
@@ -10,6 +13,10 @@ Future<void> logOutAccount(GlobalStore globalStore, int accountId) async {
 
   // Unawaited, to not block removing the account on this request.
   unawaited(unregisterToken(globalStore, accountId));
+
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    unawaited(NotificationDisplayManager.removeNotificationsForAccount(account.realmUrl, account.userId));
+  }
 
   await globalStore.removeAccount(accountId);
 }

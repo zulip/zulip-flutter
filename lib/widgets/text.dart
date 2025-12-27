@@ -1,7 +1,14 @@
 import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+
+import '../api/model/model.dart';
+import '../generated/l10n/zulip_localizations.dart';
+import 'icons.dart';
+import 'store.dart';
+import 'theme.dart';
 
 /// An app-wide [Typography] for Zulip, customized from the Material default.
 ///
@@ -285,8 +292,11 @@ double bolderWght(double baseWght, {double by = 300}) {
   return clampDouble(baseWght + by, kWghtMin, kWghtMax);
 }
 
-/// A [TextStyle] whose [FontVariation] "wght" and [TextStyle.fontWeight]
-/// have been raised using [bolderWght].
+/// A [TextStyle] with [FontVariation] "wght" and [TextStyle.fontWeight]
+/// that have been raised from the input using [bolderWght].
+///
+/// Non-weight attributes in [style] are ignored
+/// and will not appear in the result.
 ///
 /// [style] must have already been processed with [weightVariableTextStyle],
 /// and [by] must be positive.
@@ -308,12 +318,9 @@ TextStyle bolderWghtTextStyle(TextStyle style, {double by = 300}) {
 
   final newWght = bolderWght(wghtFromTextStyle(style)!, by: by);
 
-  TextStyle result = style.copyWith(
-    fontVariations: style.fontVariations!.map((v) => v.axis == 'wght'
-      ? FontVariation('wght', newWght)
-      : v).toList(),
-    fontWeight: clampVariableFontWeight(newWght),
-  );
+  TextStyle result = TextStyle(
+    fontVariations: [FontVariation('wght', newWght)],
+    fontWeight: clampVariableFontWeight(newWght));
 
   assert(() {
     result = result.copyWith(debugLabel: 'bolderWghtTextStyle(by: $by)');
@@ -414,4 +421,277 @@ TextBaseline localizedTextBaseline(BuildContext context) {
     ScriptCategory.englishLike => TextBaseline.alphabetic,
     ScriptCategory.tall => TextBaseline.alphabetic,
   };
+}
+
+/// A text widget with an embedded link.
+///
+/// The text and link are given in [markup], in a simple HTML-like markup.
+/// The markup string must not contain arbitrary user-controlled text.
+///
+/// The portion of the text that is the link will be styled as a link,
+/// and will respond to taps by calling the [onTap] callback.
+///
+/// If the entire text is meant to be a link, there's no need for this widget;
+/// instead, use [Text] inside a [GestureDetector], with [GestureDetector.onTap]
+/// invoking [PlatformActions.launchUrl].
+///
+/// TODO(#1285): Integrate this with l10n so that the markup can be parsed
+///   from the constant translated string, with placeholders for any variables,
+///   rather than the string that results from interpolating variables.
+///   That way it'll be fine to interpolate variables with arbitrary text.
+/// TODO(#1285): Generalize this to other styling, like code font and italics.
+/// TODO(#1553): Generalize this to multiple links in one string.
+class TextWithLink extends StatefulWidget {
+  const TextWithLink({
+    super.key,
+    this.style,
+    this.textAlign,
+    required this.onTap,
+    required this.markup,
+  });
+
+  final TextStyle? style;
+  final TextAlign? textAlign;
+
+  /// A callback to be called when the user taps the link.
+  ///
+  /// Consider using [PlatformActions.launchUrl] to open a web page,
+  /// or [Navigator.push] to open a page of the app.
+  final VoidCallback onTap;
+
+  /// The text to display, in a simple HTML-like markup.
+  ///
+  /// This string must contain the tags `<z-link>` and `</z-link>` as substrings,
+  /// in that order, and must contain no other `<` characters.
+  ///
+  /// In particular this means the string must not contain any arbitrary
+  /// user-controlled text, which might have '<' characters.
+  ///
+  /// The contents other than the two tags will be shown as text.
+  /// The portion between the tags will be the link.
+  //
+  // (Why the name `<z-link>`?  Well, it matches Zulip web's practice;
+  // and here's the reasoning for that name there:
+  //   https://github.com/zulip/zulip/pull/18075#discussion_r611067127
+  // )
+  final String markup;
+
+  @override
+  State<TextWithLink> createState() => _TextWithLinkState();
+}
+
+class _TextWithLinkState extends State<TextWithLink> {
+  late final GestureRecognizer _recognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _recognizer = TapGestureRecognizer()
+      ..onTap = widget.onTap;
+  }
+
+  @override
+  void dispose() {
+    _recognizer.dispose();
+    super.dispose();
+  }
+
+  static final _markupPattern = RegExp(r'^([^<]*)<z-link>([^<]*)</z-link>([^<]*)$');
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    final match = _markupPattern.firstMatch(widget.markup);
+    final InlineSpan span;
+    if (match == null) {
+      // TODO(log): The markup text was invalid.
+      // Probably a translation (used by this widget's caller) didn't carry the
+      // syntax through correctly.
+      // This can also happen if the markup string contains user-controlled
+      // text (which is a bug) and that introduced a '<' character.
+      // Fall back to showing plain text.
+      // (It's important not to try to interpret any markup here, in case it
+      // comes buggily from user-controlled text.)
+      span = TextSpan(text: widget.markup);
+    } else {
+      span = TextSpan(children: [
+        TextSpan(text: match.group(1)),
+        TextSpan(text: match.group(2), recognizer: _recognizer,
+          style: TextStyle(
+            decoration: TextDecoration.underline,
+            // TODO(design): work out what decorationThickness to use;
+            //   the Figma design calls for 4% of the font size, but Flutter
+            //   expects it as a ratio of the font's default stroke thickness.
+            // decorationThickness: 1, // (the default)
+            // decorationOffset: // TODO(upstream): https://github.com/flutter/flutter/issues/30541
+            color: designVariables.link,
+            decorationColor: designVariables.link)),
+        TextSpan(text: match.group(3)),
+      ]);
+    }
+
+    return Text.rich(
+      style: widget.style,
+      textAlign: widget.textAlign,
+      span);
+  }
+}
+
+/// Data to size and position a square icon in a span of text.
+class InlineIconGeometryData {
+  /// What size the icon should be,
+  /// as a fraction of the surrounding text's font size.
+  final double sizeFactor;
+
+  /// Where to assign the icon's baseline, as a fraction of the icon's size,
+  /// when the span is rendered with [TextBaseline.alphabetic].
+  ///
+  /// This is ignored when the span is rendered with [TextBaseline.ideographic];
+  /// zero is used instead.
+  final double alphabeticBaselineFactor;
+
+  /// How much horizontal padding should separate the icon from surrounding text,
+  /// as a fraction of the icon's size.
+  final double paddingFactor;
+
+  const InlineIconGeometryData._({
+    required this.sizeFactor,
+    required this.alphabeticBaselineFactor,
+    required this.paddingFactor,
+  });
+
+  factory InlineIconGeometryData.forIcon(IconData icon) {
+    final result = _inlineIconGeometries[icon];
+    assert(result != null);
+    return result ?? _defaultGeometry;
+  }
+
+  // Values are ad hoc unless otherwise specified.
+  static final Map<IconData, InlineIconGeometryData> _inlineIconGeometries = {
+    ZulipIcons.globe: InlineIconGeometryData._(
+      sizeFactor: 0.8,
+      alphabeticBaselineFactor: 1 / 8,
+      paddingFactor: 1 / 4),
+
+    ZulipIcons.hash_sign: InlineIconGeometryData._(
+      sizeFactor: 0.8,
+      alphabeticBaselineFactor: 1 / 16,
+      paddingFactor: 1 / 4),
+
+    ZulipIcons.lock: InlineIconGeometryData._(
+      sizeFactor: 0.8,
+      alphabeticBaselineFactor: 1 / 16,
+      paddingFactor: 1 / 4),
+
+    ZulipIcons.chevron_right: InlineIconGeometryData._(
+      sizeFactor: 1,
+      alphabeticBaselineFactor: 5 / 24,
+      paddingFactor: 0),
+ };
+
+  static final _defaultGeometry = InlineIconGeometryData._(
+    sizeFactor: 0.8,
+    alphabeticBaselineFactor: 1 / 16,
+    paddingFactor: 1 / 4,
+  );
+}
+
+/// An icon, sized and aligned for use in a span of text.
+WidgetSpan iconWidgetSpan({
+  required IconData icon,
+  required double fontSize,
+  required TextBaseline baselineType,
+  required Color? color,
+  bool padBefore = false,
+  bool padAfter = false,
+}) {
+  final InlineIconGeometryData(
+    :sizeFactor,
+    :alphabeticBaselineFactor,
+    :paddingFactor,
+  ) = InlineIconGeometryData.forIcon(icon);
+
+  final size = sizeFactor * fontSize;
+
+  final effectiveBaselineOffset = switch (baselineType) {
+    TextBaseline.alphabetic => alphabeticBaselineFactor * size,
+    TextBaseline.ideographic => 0.0,
+  };
+
+  Widget child = Icon(size: size, color: color, icon);
+
+  if (effectiveBaselineOffset != 0) {
+    child = Transform.translate(
+      offset: Offset(0, effectiveBaselineOffset),
+      child: child);
+  }
+
+  if (padBefore || padAfter) {
+    final padding = paddingFactor * size;
+    child = Padding(
+      padding: EdgeInsetsDirectional.only(
+        start: padBefore ? padding : 0,
+        end: padAfter ? padding : 0,
+      ),
+      child: child);
+  }
+
+  return WidgetSpan(
+    alignment: PlaceholderAlignment.baseline,
+    baseline: baselineType,
+    child: child);
+}
+
+/// An [InlineSpan] with a channel privacy icon, channel name,
+/// and optionally a chevron-right icon plus topic.
+///
+/// Pass this to [Text.rich], which can be styled arbitrarily.
+/// Pass the [fontSize] and [color] of surrounding text
+/// so that the icons are sized and colored appropriately.
+InlineSpan channelTopicLabelSpan({
+  required BuildContext context,
+  required int channelId,
+  TopicName? topic,
+  required double fontSize,
+  required Color color,
+}) {
+  final zulipLocalizations = ZulipLocalizations.of(context);
+  final store = PerAccountStoreWidget.of(context);
+  final channel = store.streams[channelId];
+  final subscription = store.subscriptions[channelId];
+  final swatch = colorSwatchFor(context, subscription);
+  final channelIcon = channel != null ? iconDataForStream(channel) : null;
+  final baselineType = localizedTextBaseline(context);
+
+  return TextSpan(children: [
+    if (channelIcon != null)
+      iconWidgetSpan(
+        icon: channelIcon,
+        fontSize: fontSize,
+        baselineType: baselineType,
+        color: swatch.iconOnPlainBackground,
+        padAfter: true),
+    if (channel != null)
+      TextSpan(text: channel.name)
+    else
+      TextSpan(
+        style: TextStyle(fontStyle: FontStyle.italic),
+        text: zulipLocalizations.unknownChannelName),
+    if (topic != null) ...[
+      iconWidgetSpan(
+        icon: ZulipIcons.chevron_right,
+        fontSize: fontSize,
+        baselineType: baselineType,
+        color: color,
+        padBefore: true,
+        padAfter: true),
+      if (topic.displayName != null)
+        TextSpan(text: topic.displayName)
+      else
+        TextSpan(
+          style: TextStyle(fontStyle: FontStyle.italic),
+          text: store.realmEmptyTopicDisplayName),
+    ],
+  ]);
 }

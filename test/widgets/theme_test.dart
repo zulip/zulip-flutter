@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/channel_colors.dart';
@@ -13,7 +14,6 @@ import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/store_checks.dart';
-import 'colors_checks.dart';
 import 'test_app.dart';
 
 void main() {
@@ -22,11 +22,11 @@ void main() {
   group('button text size and letter spacing', () {
     const buttonText = 'Zulip';
 
-    Future<void> doCheck(
+    void doCheck(
       String description, {
       required Widget button,
       double? ambientTextScaleFactor,
-    }) async {
+    }) {
       testWidgets(description, (tester) async {
         addTearDown(testBinding.reset);
         if (ambientTextScaleFactor != null) {
@@ -177,6 +177,14 @@ void main() {
       await tester.pump(kThemeAnimationDuration * 0.6);
       check(colorSwatchFor(element, subscription))
         .isSameColorSwatchAs(ChannelColorSwatch.dark(baseColor));
+    });
+
+    testWidgets('fallback to default base color when no subscription', (tester) async {
+      await tester.pumpWidget(const TestZulipApp());
+      await tester.pump();
+      final element = tester.element(find.byType(Placeholder));
+      check(colorSwatchFor(element, null)).isSameColorSwatchAs(
+        ChannelColorSwatch.light(kDefaultChannelColorSwatchBaseColor));
     });
   });
 }

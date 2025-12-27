@@ -18,6 +18,8 @@ Future<InitialSnapshot> registerQueue(ApiConnection connection) {
       'user_avatar_url_field_optional': false, // TODO(#254): turn on
       'stream_typing_notifications': true,
       'user_settings_object': true,
+      'include_deactivated_groups': true,
+      'empty_topic_name': true,
     },
   });
 }

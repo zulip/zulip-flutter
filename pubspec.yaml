@@ -8,14 +8,14 @@ description: A Zulip client for Android and iOS
 publish_to: 'none'
 
 # Keep the last two numbers equal; see docs/release.md.
-version: 0.0.27+27
+version: 30.0.269+269
 
 environment:
   # We use a recent version of Flutter from its main channel, and
   # the corresponding recent version of the Dart SDK.
   # Feel free to update these regularly; see README.md for instructions.
-  sdk: '>=3.8.0-227.0.dev <4.0.0'
-  flutter: '>=3.31.0-1.0.pre.274'  # 3b6d9666f8e34f277d45fc9ce37080a1979b2411
+  sdk: '>=3.11.0-169.0.dev <4.0.0'
+  flutter: '>=3.39.0-1.0.pre-300'  # 0e4cb8e86de0861c49875d04faa7b221c737e471
 
 # To update dependencies, see instructions in README.md.
 dependencies:
@@ -35,15 +35,16 @@ dependencies:
              # https://github.com/dart-lang/i18n/issues/759#issuecomment-1864316701
              # https://github.com/flutter/flutter/issues/117163
 
-  app_settings: ^5.0.0
+  app_settings: ^6.1.1
   collection: ^1.17.2
   convert: ^3.1.1
   crypto: ^3.0.3
-  device_info_plus: ^11.2.0
+  csslib: ^1.0.2
+  device_info_plus: ^12.0.0
   drift: ^2.23.0
-  file_picker: ^9.0.2
-  firebase_core: ^3.3.0
-  firebase_messaging: ^15.0.1
+  file_picker: ^10.1.2
+  firebase_core: ^4.0.0
+  firebase_messaging: ^16.0.0
   flutter_color_models: ^1.3.3+2
   html: ^0.15.1
   http: ^1.0.0
@@ -51,19 +52,20 @@ dependencies:
   image_picker: ^1.0.0
   json_annotation: ^4.9.0
   mime: ^2.0.0
-  package_info_plus: ^8.0.0
+  package_info_plus: ^9.0.0
   path: ^1.8.3
   path_provider: ^2.0.13
-  share_plus: ^10.1.3
-  share_plus_platform_interface: ^5.0.2
+  share_plus: ^12.0.0
+  share_plus_platform_interface: ^6.0.0
   sqlite3: ^2.4.0
   sqlite3_flutter_libs: ^0.5.13
   url_launcher: ^6.1.11
   url_launcher_android: ">=6.1.0"
-  video_player: ^2.8.3
+  video_player: ^2.10.0
   wakelock_plus: ^1.2.8
   zulip_plugin:
     path: ./packages/zulip_plugin
+  unorm_dart: ^0.3.1+1
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
 
 dependency_overrides:
@@ -96,13 +98,12 @@ dev_dependencies:
   clock: ^1.1.1
   drift_dev: ^2.5.2
   fake_async: ^1.3.1
-  flutter_checks: ^0.1.1
-  flutter_lints: ^5.0.0
+  flutter_checks: ^0.1.2
+  flutter_lints: ^6.0.0
   ini: ^2.1.0
   json_serializable: ^6.5.4
   legacy_checks: ^0.1.0
-  pigeon: ^25.0.0
-  plugin_platform_interface: ^2.1.8
+  pigeon: ^26.0.0
   stack_trace: ^1.11.1
   test: ^1.23.1
   test_api: ^0.7.3
@@ -114,6 +115,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/KaTeX/LICENSE
     - assets/Noto_Color_Emoji/LICENSE
     - assets/Pygments/AUTHORS.txt
     - assets/Pygments/LICENSE.txt
@@ -121,6 +123,74 @@ flutter:
     - assets/Source_Sans_3/LICENSE.md
 
   fonts:
+    # KaTeX's custom fonts.
+    - family: KaTeX_AMS
+      fonts:
+        - asset: assets/KaTeX/KaTeX_AMS-Regular.ttf
+
+    - family: KaTeX_Caligraphic
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Caligraphic-Regular.ttf
+        - asset: assets/KaTeX/KaTeX_Caligraphic-Bold.ttf
+          weight: 700
+
+    - family: KaTeX_Fraktur
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Fraktur-Regular.ttf
+        - asset: assets/KaTeX/KaTeX_Fraktur-Bold.ttf
+          weight: 700
+
+    - family: KaTeX_Main
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Main-Regular.ttf
+        - asset: assets/KaTeX/KaTeX_Main-Bold.ttf
+          weight: 700
+        - asset: assets/KaTeX/KaTeX_Main-Italic.ttf
+          style: italic
+        - asset: assets/KaTeX/KaTeX_Main-BoldItalic.ttf
+          weight: 700
+          style: italic
+
+    - family: KaTeX_Math
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Math-Italic.ttf
+          style: italic
+        - asset: assets/KaTeX/KaTeX_Math-BoldItalic.ttf
+          weight: 700
+          style: italic
+
+    - family: KaTeX_SansSerif
+      fonts:
+        - asset: assets/KaTeX/KaTeX_SansSerif-Regular.ttf
+        - asset: assets/KaTeX/KaTeX_SansSerif-Bold.ttf
+          weight: 700
+        - asset: assets/KaTeX/KaTeX_SansSerif-Italic.ttf
+          style: italic
+
+    - family: KaTeX_Script
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Script-Regular.ttf
+
+    - family: KaTeX_Size1
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Size1-Regular.ttf
+
+    - family: KaTeX_Size2
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Size2-Regular.ttf
+
+    - family: KaTeX_Size3
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Size3-Regular.ttf
+
+    - family: KaTeX_Size4
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Size4-Regular.ttf
+
+    - family: KaTeX_Typewriter
+      fonts:
+        - asset: assets/KaTeX/KaTeX_Typewriter-Regular.ttf
+
     # Google's emoji font. (Web uses these emoji for the "Google" emojiset.)
     #
     # This should not be used on iOS.

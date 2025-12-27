@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import 'binding.dart';
 import 'database.dart';
+import 'narrow.dart';
 import 'store.dart';
 
 /// The user's choice of visual theme for the app.
@@ -45,6 +46,65 @@ enum BrowserPreference {
   external,
 }
 
+/// The user's choice of when to open a message list at their first unread,
+/// rather than at the newest message.
+///
+/// This setting has no effect when navigating to a specific message:
+/// in that case the message list opens at that message,
+/// regardless of this setting.
+enum VisitFirstUnreadSetting {
+  /// Always go to the first unread, rather than the newest message.
+  always,
+
+  /// Go to the first unread in conversations,
+  /// and the newest in interleaved views.
+  conversations,
+
+  /// Always go to the newest message, rather than the first unread.
+  never;
+
+  /// The effective value of this setting if the user hasn't set it.
+  static VisitFirstUnreadSetting _default = conversations;
+}
+
+/// The user's choice of which message-list views should
+/// automatically mark messages as read when scrolling through them.
+///
+/// This can be overridden by local state: for example, if you've just tapped
+/// "Mark as unread from here" the view will stop marking as read automatically,
+/// regardless of this setting.
+enum MarkReadOnScrollSetting {
+  /// All views.
+  always,
+
+  /// Only conversation views.
+  conversations,
+
+  /// No views.
+  never;
+
+  /// The effective value of this setting if the user hasn't set it.
+  static MarkReadOnScrollSetting _default = conversations;
+}
+
+/// The outcome, or in-progress status, of migrating data from the legacy app.
+enum LegacyUpgradeState {
+  /// It's not yet known whether there was data from the legacy app.
+  unknown,
+
+  /// No legacy data was found.
+  noLegacy,
+
+  /// Legacy data was found, but not yet migrated into this app's database.
+  found,
+
+  /// Legacy data was found and migrated.
+  migrated,
+  ;
+
+  static LegacyUpgradeState _default = unknown;
+}
+
 /// A general category of account-independent setting the user might set.
 ///
 /// Different kinds of settings call for different treatment in the UI,
@@ -58,6 +118,9 @@ enum GlobalSettingType {
   /// (so that it stands ready to accept a future feature flag),
   /// we give it a placeholder value which isn't a real setting.
   placeholder,
+
+  /// Describes a pseudo-setting not directly exposed in the UI.
+  internal,
 
   /// Describes a setting which enables an in-progress feature of the app.
   ///
@@ -110,9 +173,18 @@ enum BoolGlobalSetting {
   /// (Having one stable value in this enum is also handy for tests.)
   placeholderIgnore(GlobalSettingType.placeholder, false),
 
+  /// A pseudo-setting recording whether the user has been shown the
+  /// welcome dialog for upgrading from the legacy app.
+  upgradeWelcomeDialogShown(GlobalSettingType.internal, false),
+
+  /// An experimental flag to enable rendering KaTeX even when some
+  /// errors are encountered.
+  forceRenderKatex(GlobalSettingType.experimentalFeatureFlag, false),
+
   // Former settings which might exist in the database,
   // whose names should therefore not be reused:
-  // (this list is empty so far)
+  //   openFirstUnread  // v0.0.30
+  //   renderKatex      // v0.0.29 - v30.0.261
   ;
 
   const BoolGlobalSetting(this.type, this.default_);
@@ -131,6 +203,55 @@ enum BoolGlobalSetting {
   };
 }
 
+/// An int-valued, account-independent setting the user might set.
+///
+/// These are recorded in the table [IntGlobalSettings].
+/// To read the value of one of these settings, use [GlobalSettingsStore.getInt];
+/// to set the value, use [GlobalSettingsStore.setInt].
+///
+/// To introduce a new setting, add a value to this enum.
+/// Avoid re-using any old names found in the "former settings" list.
+///
+/// To remove a setting, comment it out and move to the "former settings" list.
+/// Tracking the names of settings that formerly existed is important because
+/// they may still appear in users' databases, which means that if we were to
+/// accidentally reuse one for an unrelated new setting then users would
+/// unwittingly get those values applied to the new setting,
+/// which could cause very confusing buggy behavior.
+///
+/// (If the list of former settings gets long, we could do a migration to clear
+/// them from existing installs, and then drop the list.  We don't do that
+/// eagerly each time, to avoid creating a new schema version each time we
+/// finish an experimental feature.)
+enum IntGlobalSetting {
+  /// A non-setting to ensure this enum has at least one value.
+  ///
+  /// (This is also handy to use in tests.)
+  placeholderIgnore,
+
+  /// A pseudo-setting recording the id of the account the user has visited most
+  /// recently, from the list of all the available accounts on the device.
+  ///
+  /// In some cases, this may point to an account that doesn't actually exist on
+  /// the device, for example, when the last visited account is logged out and
+  /// another account is not visited during the same running session. For cases
+  /// like these, it's the responsibility of the code that reads this value to
+  /// check for the availability of the account that corresponds to this id.
+  lastVisitedAccountId,
+
+  // Former settings which might exist in the database,
+  // whose names should therefore not be reused:
+  // (this list is empty so far)
+  ;
+
+  static IntGlobalSetting? byName(String name) => _byName[name];
+
+  static final Map<String, IntGlobalSetting> _byName = {
+    for (final v in values)
+      v.name: v,
+  };
+}
+
 /// Store for the user's account-independent settings.
 ///
 /// From UI code, use [GlobalStoreWidget.settingsOf] to get hold of
@@ -140,7 +261,8 @@ class GlobalSettingsStore extends ChangeNotifier {
     required GlobalStoreBackend backend,
     required GlobalSettingsData data,
     required Map<BoolGlobalSetting, bool> boolData,
-  }) : _backend = backend, _data = data, _boolData = boolData;
+    required Map<IntGlobalSetting, int> intData,
+  }) : _backend = backend, _data = data, _boolData = boolData, _intData = intData;
 
   static final List<BoolGlobalSetting> experimentalFeatureFlags =
     BoolGlobalSetting.values.where((setting) =>
@@ -221,6 +343,73 @@ class GlobalSettingsStore extends ChangeNotifier {
     }
   }
 
+  /// The user's choice of [VisitFirstUnreadSetting], applying our default.
+  ///
+  /// See also [shouldVisitFirstUnread] and [setVisitFirstUnread].
+  VisitFirstUnreadSetting get visitFirstUnread {
+    return _data.visitFirstUnread ?? VisitFirstUnreadSetting._default;
+  }
+
+  /// Set [visitFirstUnread], persistently for future runs of the app.
+  Future<void> setVisitFirstUnread(VisitFirstUnreadSetting value) async {
+    await _update(GlobalSettingsCompanion(visitFirstUnread: Value(value)));
+  }
+
+  /// The value that [visitFirstUnread] works out to for the given narrow.
+  bool shouldVisitFirstUnread({required Narrow narrow}) {
+    return switch (visitFirstUnread) {
+      VisitFirstUnreadSetting.always => true,
+      VisitFirstUnreadSetting.never => false,
+      VisitFirstUnreadSetting.conversations => switch (narrow) {
+        TopicNarrow() || DmNarrow()
+          => true,
+        CombinedFeedNarrow() || ChannelNarrow()
+        || MentionsNarrow() || StarredMessagesNarrow()
+        || KeywordSearchNarrow()
+          => false,
+      },
+    };
+  }
+
+  /// The user's choice of [MarkReadOnScrollSetting], applying our default.
+  ///
+  /// See also [markReadOnScrollForNarrow] and [setMarkReadOnScroll].
+  MarkReadOnScrollSetting get markReadOnScroll {
+    return _data.markReadOnScroll ?? MarkReadOnScrollSetting._default;
+  }
+
+  /// Set [markReadOnScroll], persistently for future runs of the app.
+  Future<void> setMarkReadOnScroll(MarkReadOnScrollSetting value) async {
+    await _update(GlobalSettingsCompanion(markReadOnScroll: Value(value)));
+  }
+
+  /// The value that [markReadOnScroll] works out to for the given narrow.
+  bool markReadOnScrollForNarrow(Narrow narrow) {
+    return switch (markReadOnScroll) {
+      MarkReadOnScrollSetting.always => true,
+      MarkReadOnScrollSetting.never => false,
+      MarkReadOnScrollSetting.conversations => switch (narrow) {
+        TopicNarrow() || DmNarrow()
+          => true,
+        CombinedFeedNarrow() || ChannelNarrow()
+        || MentionsNarrow() || StarredMessagesNarrow()
+        || KeywordSearchNarrow()
+          => false,
+      },
+    };
+  }
+
+  /// The outcome, or in-progress status, of migrating data from the legacy app.
+  LegacyUpgradeState get legacyUpgradeState {
+    return _data.legacyUpgradeState ?? LegacyUpgradeState._default;
+  }
+
+  /// Set [legacyUpgradeState], persistently for future runs of the app.
+  @visibleForTesting
+  Future<void> debugSetLegacyUpgradeState(LegacyUpgradeState value) async {
+    await _update(GlobalSettingsCompanion(legacyUpgradeState: Value(value)));
+  }
+
   /// The user's choice of the given bool-valued setting, or our default for it.
   ///
   /// See also [setBool].
@@ -237,13 +426,49 @@ class GlobalSettingsStore extends ChangeNotifier {
   /// A value of null means the setting will revert to following
   /// the app's default.
   ///
+  /// If [value] equals the setting's current value, the database operation
+  /// and [notifyListeners] are skipped.
+  ///
   /// See also [getBool].
   Future<void> setBool(BoolGlobalSetting setting, bool? value) async {
+    if (value == _boolData[setting]) return;
+
     await _backend.doSetBoolGlobalSetting(setting, value);
     if (value == null) {
       _boolData.remove(setting);
     } else {
       _boolData[setting] = value;
+    }
+    notifyListeners();
+  }
+
+  /// The user's choice of the given int-valued setting, or null if not set.
+  ///
+  /// See also [setInt].
+  int? getInt(IntGlobalSetting setting) {
+    return _intData[setting];
+  }
+
+  /// A cache of the [IntGlobalSettings] table in the underlying data store.
+  final Map<IntGlobalSetting, int> _intData;
+
+  /// Set or unset the given int-valued setting,
+  /// persistently for future runs of the app.
+  ///
+  /// A value of null means the setting will be cleared out.
+  ///
+  /// If [value] equals the setting's current value, the database operation
+  /// and [notifyListeners] are skipped.
+  ///
+  /// See also [getInt].
+  Future<void> setInt(IntGlobalSetting setting, int? value) async {
+    if (value == _intData[setting]) return;
+
+    await _backend.doSetIntGlobalSetting(setting, value);
+    if (value == null) {
+      _intData.remove(setting);
+    } else {
+      _intData[setting] = value;
     }
     notifyListeners();
   }

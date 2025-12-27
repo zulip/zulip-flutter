@@ -1,19 +1,35 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
 import '../api/model/events.dart';
 import '../api/model/model.dart';
 import '../api/route/channels.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../widgets/compose_box.dart';
+import 'algorithms.dart';
+import 'channel.dart';
 import 'compose.dart';
 import 'emoji.dart';
 import 'narrow.dart';
 import 'store.dart';
 
 extension ComposeContentAutocomplete on ComposeContentController {
+  // To avoid spending a lot of time searching for autocomplete intents
+  // in long messages, we bound how far back we look for the intent's start.
+  int get _maxLookbackForAutocompleteIntent {
+    return 1 // intent character, e.g. "#"
+      + 2 // some optional characters e.g., "_" for silent mention or "**"
+
+      // Per the API doc, maxChannelNameLength is in Unicode code points.
+      // We walk the string by UTF-16 code units, and there might be one or two
+      // of those encoding each Unicode code point.
+      + 2 * store.maxChannelNameLength;
+  }
+
   AutocompleteIntent<ComposeAutocompleteQuery>? autocompleteIntent() {
     if (!selection.isValid || !selection.isNormalized) {
       // We don't require [isCollapsed] to be true because we've seen that
@@ -24,9 +40,7 @@ extension ComposeContentAutocomplete on ComposeContentController {
       return null;
     }
 
-    // To avoid spending a lot of time searching for autocomplete intents
-    // in long messages, we bound how far back we look for the intent's start.
-    final earliest = max(0, selection.end - 30);
+    final earliest = max(0, selection.end - _maxLookbackForAutocompleteIntent);
 
     if (selection.start < earliest) {
       // The selection extends to before any position we'd consider
@@ -43,6 +57,9 @@ extension ComposeContentAutocomplete on ComposeContentController {
         if (match == null) continue;
       } else if (charAtPos == ':') {
         final match = _emojiIntentRegex.matchAsPrefix(textUntilCursor, pos);
+        if (match == null) continue;
+      } else if (charAtPos == '#') {
+        final match = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
         if (match == null) continue;
       } else {
         continue;
@@ -62,6 +79,10 @@ extension ComposeContentAutocomplete on ComposeContentController {
         final match = _emojiIntentRegex.matchAsPrefix(textUntilCursor, pos);
         if (match == null) continue;
         query = EmojiAutocompleteQuery(match[1]!);
+      } else if (charAtPos == '#') {
+        final match = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
+        if (match == null) continue;
+        query = ChannelLinkAutocompleteQuery(match[1] ?? match[2]!);
       } else {
         continue;
       }
@@ -95,6 +116,7 @@ final RegExp _mentionIntentRegex = (() {
   // full_name, find uses of UserProfile.NAME_INVALID_CHARS in zulip/zulip.)
   const fullNameAndEmailCharExclusions = r'\*`\\>"\p{Other}';
 
+  // TODO(#1967): ignore immediate "**" after '@' sign
   return RegExp(
     beforeAtSign
     + r'@(_?)' // capture, so we can distinguish silent mentions
@@ -161,6 +183,60 @@ final RegExp _emojiIntentRegex = (() {
     + r')$');
 })();
 
+final RegExp _channelLinkIntentRegex = () {
+  // What's likely to come just before #channel syntax: the start of the string,
+  // whitespace, or punctuation. Letters are unlikely; in that case a GitHub-
+  // style "zulip/zulip-flutter#124" link might be intended (as on CZO where
+  // there's a custom linkifier for that).
+  //
+  // Only some punctuation, like "(", is actually likely here. We don't
+  // currently try to be specific about that, except we exclude "#" and "@"
+  // in order to allow typing "##channel" for the channel query "#channel"
+  // and "@#user" for the mention query "#user". See discussion:
+  //   https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/channel.20autocomplete.3A.20channels.20with.20.22.23.22.20in.20name/near/2288883
+  const before = r'(?<=^|\s|\p{Punctuation})(?<![#@])';
+  // TODO(dart-future): Regexps in ES 2024 have a /v aka unicodeSets flag;
+  //   if Dart matches that, we could combine into one character class
+  //   meaning "whitespace and punctuation, except not `#` or `@`":
+  //     r'(?<=^|[[\s\p{Punctuation}]--[#@]])'
+
+  // In a channel name, the server accepts a wide range of characters.
+  // It excludes only portions of the `\p{C}` major category,
+  // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
+  //   - https://github.com/zulip/zulip/blob/9467296e0/zerver/lib/string_validation.py#L8-L56
+  //
+  // TODO: match the server constraints
+  const nameCharExclusions = r'\r\n';
+
+  // TODO(upstream): maybe use duplicate-named capture groups for better readability?
+  //   https://github.com/dart-lang/sdk/issues/61337
+  return RegExp(unicode: true,
+    before
+    + r'#'
+    // As Web, match both '#channel' and '#**channel'. In both cases, the raw
+    // query is going to be 'channel'. Matching the second case ('#**channel')
+    // is useful when the user selects a channel from the autocomplete list, but
+    // then starts pressing "backspace" to edit the query and choose another
+    // option, instead of clearing the entire query and starting from scratch.
+    + r'(?:'
+      // Case '#channel': right after '#', reject whitespace as well as '**'.
+      + r'(?!\s|\*\*)([^' + nameCharExclusions + r']*)'
+      + r'|'
+      // Case '#**channel': right after '#**', reject whitespace.
+      // Also, make sure that the remaining query doesn't contain '**',
+      // otherwise '#**channel**' (which is a completed channel link syntax) and
+      // any text followed by that will always match.
+      + r'\*\*(?!\s)'
+      + r'((?:'
+        + r'[^*' + nameCharExclusions + r']'
+        + r'|'
+        + r'\*[^*' + nameCharExclusions + r']'
+        + r'|'
+        + r'\*$'
+      + r')*)'
+    + r')$');
+}();
+
 /// The text controller's recognition that the user might want autocomplete UI.
 class AutocompleteIntent<QueryT extends AutocompleteQuery> {
   AutocompleteIntent({
@@ -204,39 +280,17 @@ class AutocompleteIntent<QueryT extends AutocompleteQuery> {
 ///
 /// On reassemble, call [reassemble].
 class AutocompleteViewManager {
-  final Set<MentionAutocompleteView> _mentionAutocompleteViews = {};
-  final Set<TopicAutocompleteView> _topicAutocompleteViews = {};
-  final Set<EmojiAutocompleteView> _emojiAutocompleteViews = {};
+  final Set<AutocompleteView> _autocompleteViews = {};
 
   AutocompleteDataCache autocompleteDataCache = AutocompleteDataCache();
 
-  void registerMentionAutocomplete(MentionAutocompleteView view) {
-    final added = _mentionAutocompleteViews.add(view);
+  void registerAutocomplete(AutocompleteView view) {
+    final added = _autocompleteViews.add(view);
     assert(added);
   }
 
-  void unregisterMentionAutocomplete(MentionAutocompleteView view) {
-    final removed = _mentionAutocompleteViews.remove(view);
-    assert(removed);
-  }
-
-  void registerTopicAutocomplete(TopicAutocompleteView view) {
-    final added = _topicAutocompleteViews.add(view);
-    assert(added);
-  }
-
-  void unregisterTopicAutocomplete(TopicAutocompleteView view) {
-    final removed = _topicAutocompleteViews.remove(view);
-    assert(removed);
-  }
-
-  void registerEmojiAutocomplete(EmojiAutocompleteView view) {
-    final added = _emojiAutocompleteViews.add(view);
-    assert(added);
-  }
-
-  void unregisterEmojiAutocomplete(EmojiAutocompleteView view) {
-    final removed = _emojiAutocompleteViews.remove(view);
+  void unregisterAutocomplete(AutocompleteView view) {
+    final removed = _autocompleteViews.remove(view);
     assert(removed);
   }
 
@@ -248,15 +302,30 @@ class AutocompleteViewManager {
     autocompleteDataCache.invalidateUser(event.userId);
   }
 
+  void handleUserGroupRemoveEvent(UserGroupRemoveEvent event) {
+    autocompleteDataCache.invalidateUserGroup(event.groupId);
+  }
+
+  void handleUserGroupUpdateEvent(UserGroupUpdateEvent event) {
+    autocompleteDataCache.invalidateUserGroup(event.groupId);
+  }
+
+  void handleChannelDeleteEvent(ChannelDeleteEvent event) {
+    for (final channelId in event.channelIds) {
+      autocompleteDataCache.invalidateChannel(channelId);
+    }
+  }
+
+  void handleChannelUpdateEvent(ChannelUpdateEvent event) {
+    autocompleteDataCache.invalidateChannel(event.streamId);
+  }
+
   /// Called when the app is reassembled during debugging, e.g. for hot reload.
   ///
   /// Calls [AutocompleteView.reassemble] for all that are registered.
   ///
   void reassemble() {
-    for (final view in _mentionAutocompleteViews) {
-      view.reassemble();
-    }
-    for (final view in _topicAutocompleteViews) {
+    for (final view in _autocompleteViews) {
       view.reassemble();
     }
   }
@@ -298,6 +367,7 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   AutocompleteView({required this.store, required QueryT query})
       : _query = query {
     _startSearch();
+    store.autocompleteViewManager.registerAutocomplete(this);
   }
 
   final PerAccountStore store;
@@ -407,6 +477,15 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
     }
     return false;
   }
+
+  @override
+  void dispose() {
+    store.autocompleteViewManager.unregisterAutocomplete(this);
+    // We cancel in-progress computations by checking [hasListeners] between tasks.
+    // After [super.dispose] is called, [hasListeners] returns false.
+    // TODO test that logic (may involve detecting an unhandled Future rejection; how?)
+    super.dispose();
+  }
 }
 
 /// An [AutocompleteView] for an autocomplete interaction
@@ -422,6 +501,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     required this.localizations,
     required this.narrow,
     required this.sortedUsers,
+    required this.sortedUserGroups,
   });
 
   factory MentionAutocompleteView.init({
@@ -430,19 +510,19 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     required Narrow narrow,
     required MentionAutocompleteQuery query,
   }) {
-    final view = MentionAutocompleteView._(
+    return MentionAutocompleteView._(
       store: store,
       query: query,
       localizations: localizations,
       narrow: narrow,
       sortedUsers: _usersByRelevance(store: store, narrow: narrow),
+      sortedUserGroups: _userGroupsByRelevance(store: store),
     );
-    store.autocompleteViewManager.registerMentionAutocomplete(view);
-    return view;
   }
 
   final Narrow narrow;
   final List<User> sortedUsers;
+  final List<UserGroup> sortedUserGroups;
   final ZulipLocalizations localizations;
 
   static List<User> _usersByRelevance({
@@ -454,18 +534,23 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   }
 
   /// Compare the users the same way they would be sorted as
-  /// autocomplete candidates.
+  /// autocomplete candidates, given [query].
+  ///
+  /// The users must both match the query.
   ///
   /// This behaves the same as the comparator used for sorting in
-  /// [_usersByRelevance], but calling this for each comparison would be a bit
-  /// less efficient because some of the logic is independent of the users and
-  /// can be precomputed.
+  /// [_usersByRelevance], combined with the ranking applied at the end
+  /// of [computeResults].
   ///
   /// This is useful for tests in order to distinguish "A comes before B"
   /// from "A ranks equal to B, and the sort happened to put A before B",
   /// particularly because [List.sort] makes no guarantees about the order
   /// of items that compare equal.
   int debugCompareUsers(User userA, User userB) {
+    final rankA = query.testUser(userA, store)!.rank;
+    final rankB = query.testUser(userB, store)!.rank;
+    if (rankA != rankB) return rankA.compareTo(rankB);
+
     return _comparator(store: store, narrow: narrow)(userA, userB);
   }
 
@@ -473,6 +558,9 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     required PerAccountStore store,
     required Narrow narrow,
   }) {
+    // See also [MentionAutocompleteQuery._rankUserResult];
+    // that ranking takes precedence over this.
+
     int? streamId;
     TopicName? topic;
     switch (narrow) {
@@ -486,6 +574,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
+      case KeywordSearchNarrow():
         assert(false, 'No compose box, thus no autocomplete is available in ${narrow.runtimeType}.');
     }
     return (userA, userB) => _compareByRelevance(userA, userB,
@@ -556,7 +645,6 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   /// returns a positive number if [userB] is more recent than [userA],
   /// and returns `0` if both [userA] and [userB] are equally recent
   /// or there is no DM exchanged with them whatsoever.
-  @visibleForTesting
   static int compareByDms(User userA, User userB, {required PerAccountStore store}) {
     final recentDms = store.recentDmConversationsView;
     final aLatestMessageId = recentDms.latestMessagesByRecipient[userA.userId];
@@ -602,6 +690,33 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     return userAName.compareTo(userBName); // TODO(i18n): add locale-aware sorting
   }
 
+  static List<UserGroup> _userGroupsByRelevance({required PerAccountStore store}) {
+    return store.activeGroups
+      // TODO(#1776) Follow new "Who can mention this group" setting instead
+      .where((userGroup) => !userGroup.isSystemGroup)
+      .toList()
+      ..sort(_userGroupComparator(store: store));
+  }
+
+  static int Function(UserGroup, UserGroup) _userGroupComparator({
+    required PerAccountStore store,
+  }) {
+    // See also [MentionAutocompleteQuery._rankUserGroupResult];
+    // that ranking takes precedence over this.
+
+    return (userGroupA, userGroupB) =>
+      compareGroupsByAlphabeticalOrder(userGroupA, userGroupB, store: store);
+  }
+
+  static int compareGroupsByAlphabeticalOrder(UserGroup userGroupA, UserGroup userGroupB,
+      {required PerAccountStore store}) {
+    final groupAName = store.autocompleteViewManager.autocompleteDataCache
+      .normalizedNameForUserGroup(userGroupA);
+    final groupBName = store.autocompleteViewManager.autocompleteDataCache
+      .normalizedNameForUserGroup(userGroupB);
+    return groupAName.compareTo(groupBName); // TODO(i18n): add locale-aware sorting
+  }
+
   void computeWildcardMentionResults({
     required List<MentionAutocompleteResult> results,
     required bool isComposingChannelMessage,
@@ -609,11 +724,10 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     if (query.silent) return;
 
     bool tryOption(WildcardMentionOption option) {
-      if (query.testWildcardOption(option, localizations: localizations)) {
-        results.add(WildcardMentionAutocompleteResult(wildcardOption: option));
-        return true;
-      }
-      return false;
+      final result = query.testWildcardOption(option, localizations: localizations);
+      if (result == null) return false;
+      results.add(result);
+      return true;
     }
 
     // Only one of the (all, everyone, channel, stream) channel wildcards are
@@ -636,32 +750,31 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
 
   @override
   Future<List<MentionAutocompleteResult>?> computeResults() async {
-    final results = <MentionAutocompleteResult>[];
+    final unsorted = <MentionAutocompleteResult>[];
     // Give priority to wildcard mentions.
-    computeWildcardMentionResults(results: results,
+    computeWildcardMentionResults(results: unsorted,
       isComposingChannelMessage: narrow is ChannelNarrow || narrow is TopicNarrow);
 
     if (await filterCandidates(filter: _testUser,
-        candidates: sortedUsers, results: results)) {
+        candidates: sortedUsers, results: unsorted)) {
       return null;
     }
-    return results;
+
+    if (await filterCandidates(filter: _testUserGroup,
+        candidates: sortedUserGroups, results: unsorted)) {
+      return null;
+    }
+
+    return bucketSort(unsorted,
+      (r) => r.rank, numBuckets: MentionAutocompleteQuery._numResultRanks);
   }
 
   MentionAutocompleteResult? _testUser(MentionAutocompleteQuery query, User user) {
-    if (query.testUser(user, store.autocompleteViewManager.autocompleteDataCache)) {
-      return UserMentionAutocompleteResult(userId: user.userId);
-    }
-    return null;
+    return query.testUser(user, store);
   }
 
-  @override
-  void dispose() {
-    store.autocompleteViewManager.unregisterMentionAutocomplete(this);
-    // We cancel in-progress computations by checking [hasListeners] between tasks.
-    // After [super.dispose] is called, [hasListeners] returns false.
-    // TODO test that logic (may involve detecting an unhandled Future rejection; how?)
-    super.dispose();
+  MentionAutocompleteResult? _testUserGroup(MentionAutocompleteQuery query, UserGroup userGroup) {
+    return query.testUserGroup(userGroup, store);
   }
 }
 
@@ -678,43 +791,95 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
 /// An [AutocompleteQuery] object stores the user's actual query string
 /// as [raw].
 /// It may also store processed forms of the query
-/// (for example, converted to lowercase or split on whitespace)
+/// (for example, normalized by case and diacritics, or split on whitespace)
 /// to prepare for whatever particular form of searching will be done
 /// for the given type of autocomplete interaction.
 abstract class AutocompleteQuery {
   AutocompleteQuery(this.raw) {
-    _lowercase = raw.toLowerCase();
-    _lowercaseWords = _lowercase.split(' ');
+    _normalized = lowercaseAndStripDiacritics(raw);
+    // TODO(#1805) split on space characters that the user is actually using
+    //   (e.g. U+3000 IDEOGRAPHIC SPACE);
+    //   could check active keyboard or just split on all kinds of spaces
+    _normalizedWords = _normalized.split(' ');
   }
 
   /// The actual string the user entered.
   final String raw;
 
-  late final String _lowercase;
+  late final String _normalized;
 
-  late final List<String> _lowercaseWords;
+  late final List<String> _normalizedWords;
 
-  /// Whether all of this query's words have matches in [words] that appear in order.
+  static final RegExp _regExpStripMarkCharacters = RegExp(r'\p{M}', unicode: true);
+
+  static String lowercaseAndStripDiacritics(String input) {
+    // Anders reports that this is what web does; see discussion:
+    //   https://chat.zulip.org/#narrow/channel/48-mobile/topic/deps.3A.20Add.20new.20package.20to.20handle.20diacritics/near/2244487
+    final lowercase = input.toLowerCase();
+    final compatibilityNormalized = unorm.nfkd(lowercase);
+    return compatibilityNormalized.replaceAll(_regExpStripMarkCharacters, '');
+  }
+
+  NameMatchQuality? _matchName({
+    required String normalizedName,
+    required List<String> normalizedNameWords,
+  }) {
+    if (normalizedName.startsWith(_normalized)) {
+      if (normalizedName.length == _normalized.length) {
+        return NameMatchQuality.exact;
+      } else {
+        return NameMatchQuality.totalPrefix;
+      }
+    }
+
+    if (_testContainsQueryWords(normalizedNameWords)) {
+      return NameMatchQuality.wordPrefixes;
+    }
+
+    return null;
+  }
+
+  /// Whether all of this query's words have matches in [words],
+  /// insensitively to case and diacritics, that appear in order.
   ///
   /// A "match" means the word in [words] starts with the query word.
+  ///
+  /// [words] must all have been passed through [lowercaseAndStripDiacritics].
   bool _testContainsQueryWords(List<String> words) {
-    // TODO(#237) test with diacritics stripped, where appropriate
     int wordsIndex = 0;
     int queryWordsIndex = 0;
     while (true) {
-      if (queryWordsIndex == _lowercaseWords.length) {
+      if (queryWordsIndex == _normalizedWords.length) {
         return true;
       }
       if (wordsIndex == words.length) {
         return false;
       }
 
-      if (words[wordsIndex].startsWith(_lowercaseWords[queryWordsIndex])) {
+      if (words[wordsIndex].startsWith(_normalizedWords[queryWordsIndex])) {
         queryWordsIndex++;
       }
       wordsIndex++;
     }
   }
+}
+
+/// The match quality of some kind of name (e.g. [User.fullName])
+/// to an autocomplete query.
+///
+/// All matches are case-insensitive.
+enum NameMatchQuality {
+  /// The query matches the whole name exactly.
+  exact,
+
+  /// The name starts with the query.
+  totalPrefix,
+
+  /// All of the query's words have matches in the words of the name
+  /// that appear in order.
+  ///
+  /// A "match" means the word in the name starts with the query word.
+  wordPrefixes,
 }
 
 /// Any autocomplete query in the compose box's content input.
@@ -747,23 +912,102 @@ class MentionAutocompleteQuery extends ComposeAutocompleteQuery {
       store: store, localizations: localizations, narrow: narrow, query: this);
   }
 
-  bool testWildcardOption(WildcardMentionOption wildcardOption, {
+  WildcardMentionAutocompleteResult? testWildcardOption(WildcardMentionOption wildcardOption, {
       required ZulipLocalizations localizations}) {
-    // TODO(#237): match insensitively to diacritics
-    return wildcardOption.canonicalString.contains(_lowercase)
-      || wildcardOption.localizedCanonicalString(localizations).contains(_lowercase);
+    final localized = wildcardOption.localizedCanonicalString(localizations);
+    final matches = wildcardOption.canonicalString.contains(_normalized)
+      || AutocompleteQuery.lowercaseAndStripDiacritics(localized).contains(_normalized);
+    if (!matches) return null;
+    return WildcardMentionAutocompleteResult(
+      wildcardOption: wildcardOption, rank: _rankWildcardResult);
   }
 
-  bool testUser(User user, AutocompleteDataCache cache) {
-    // TODO(#236) test email too, not just name
-    if (!user.isActive) return false;
+  MentionAutocompleteResult? testUser(User user, PerAccountStore store) {
+    if (!user.isActive) return null;
+    if (store.isUserMuted(user.userId)) return null;
 
-    return _testName(user, cache);
+    final cache = store.autocompleteViewManager.autocompleteDataCache;
+    final nameMatchQuality = _matchName(
+      normalizedName: cache.normalizedNameForUser(user),
+      normalizedNameWords: cache.normalizedNameWordsForUser(user));
+    bool? matchesEmail;
+    if (nameMatchQuality == null) {
+      matchesEmail = _matchEmail(user, cache);
+      if (!matchesEmail) return null;
+    }
+
+    return UserMentionAutocompleteResult(
+      userId: user.userId,
+      rank: _rankUserResult(user,
+        nameMatchQuality: nameMatchQuality, matchesEmail: matchesEmail));
   }
 
-  bool _testName(User user, AutocompleteDataCache cache) {
-    return _testContainsQueryWords(cache.nameWordsForUser(user));
+  bool _matchEmail(User user, AutocompleteDataCache cache) {
+    final normalizedEmail = cache.normalizedEmailForUser(user);
+    if (normalizedEmail == null) return false; // Email not known
+    return normalizedEmail.startsWith(_normalized);
   }
+
+  MentionAutocompleteResult? testUserGroup(UserGroup userGroup, PerAccountStore store) {
+    final cache = store.autocompleteViewManager.autocompleteDataCache;
+
+    final nameMatchQuality = _matchName(
+      normalizedName: cache.normalizedNameForUserGroup(userGroup),
+      normalizedNameWords: cache.normalizedNameWordsForUserGroup(userGroup));
+
+    if (nameMatchQuality == null) return null;
+
+    return UserGroupMentionAutocompleteResult(
+      groupId: userGroup.id,
+      rank: _rankUserGroupResult(userGroup, nameMatchQuality: nameMatchQuality));
+  }
+
+  /// A measure of a wildcard result's quality in the context of the query,
+  /// from 0 (best) to one less than [_numResultRanks].
+  ///
+  /// See also [_rankUserResult] and [_rankUserGroupResult].
+  static const _rankWildcardResult = 0;
+
+  /// A measure of a user result's quality in the context of the query,
+  /// from 0 (best) to one less than [_numResultRanks].
+  ///
+  /// When [nameMatchQuality] is non-null (the name matches),
+  /// callers should skip computing [matchesEmail] and pass null for that.
+  ///
+  /// See also [_rankWildcardResult] and [_rankUserGroupResult].
+  static int _rankUserResult(User user, {
+    required NameMatchQuality? nameMatchQuality,
+    required bool? matchesEmail,
+  }) {
+    if (nameMatchQuality != null) {
+      assert(matchesEmail == null);
+      return switch (nameMatchQuality) {
+        NameMatchQuality.exact =>        1,
+        NameMatchQuality.totalPrefix =>  2,
+        NameMatchQuality.wordPrefixes => 3,
+      };
+    }
+    assert(matchesEmail == true);
+    return 7;
+  }
+
+  /// A measure of a user-group result's quality in the context of the query,
+  /// from 0 (best) to one less than [_numResultRanks].
+  ///
+  /// See also [_rankWildcardResult] and [_rankUserResult].
+  static int _rankUserGroupResult(UserGroup userGroup, {
+    required NameMatchQuality nameMatchQuality,
+  }) {
+    return switch (nameMatchQuality) {
+      NameMatchQuality.exact =>        4,
+      NameMatchQuality.totalPrefix =>  5,
+      NameMatchQuality.wordPrefixes => 6,
+    };
+  }
+
+  /// The number of possible values returned by
+  /// [_rankWildcardResult], [_rankUserResult], and [_rankUserGroupResult]..
+  static const _numResultRanks = 8;
 
   @override
   String toString() {
@@ -796,23 +1040,79 @@ extension WildcardMentionOptionExtension on WildcardMentionOption {
 /// but kept around in between autocomplete interactions.
 ///
 /// An instance of this class is managed by [AutocompleteViewManager].
+// TODO(#1805) when splitting words, split on space characters that are likely
+//   to be used (e.g. U+3000 IDEOGRAPHIC SPACE);
+//   could check server language or just split on all kinds of spaces
 class AutocompleteDataCache {
   final Map<int, String> _normalizedNamesByUser = {};
 
-  /// The lowercase `fullName` of [user].
+  /// The normalized `fullName` of [user].
   String normalizedNameForUser(User user) {
-    return _normalizedNamesByUser[user.userId] ??= user.fullName.toLowerCase();
+    return _normalizedNamesByUser[user.userId]
+      ??= AutocompleteQuery.lowercaseAndStripDiacritics(user.fullName);
   }
 
-  final Map<int, List<String>> _nameWordsByUser = {};
+  final Map<int, List<String>> _normalizedNameWordsByUser = {};
 
-  List<String> nameWordsForUser(User user) {
-    return _nameWordsByUser[user.userId] ??= normalizedNameForUser(user).split(' ');
+  List<String> normalizedNameWordsForUser(User user) {
+    return _normalizedNameWordsByUser[user.userId]
+      ??= normalizedNameForUser(user).split(' ');
+  }
+
+  final Map<int, String?> _normalizedEmailsByUser = {};
+
+  /// The normalized `deliveryEmail` of [user], or null if that's null.
+  String? normalizedEmailForUser(User user) {
+    return _normalizedEmailsByUser[user.userId]
+      ??= (user.deliveryEmail != null
+            ? AutocompleteQuery.lowercaseAndStripDiacritics(user.deliveryEmail!)
+            : null);
+  }
+
+  final Map<int, String> _normalizedNamesByUserGroup = {};
+
+  /// The normalized `name` of [userGroup].
+  String normalizedNameForUserGroup(UserGroup userGroup) {
+    return _normalizedNamesByUserGroup[userGroup.id]
+      ??= AutocompleteQuery.lowercaseAndStripDiacritics(userGroup.name);
+  }
+
+  final Map<int, List<String>> _normalizedNameWordsByUserGroup = {};
+
+  List<String> normalizedNameWordsForUserGroup(UserGroup userGroup) {
+    return _normalizedNameWordsByUserGroup[userGroup.id]
+      ??= normalizedNameForUserGroup(userGroup).split(' ');
+  }
+
+  final Map<int, String> _normalizedNamesByChannel = {};
+
+  /// The normalized `name` of [channel].
+  String normalizedNameForChannel(ZulipStream channel) {
+    return _normalizedNamesByChannel[channel.streamId]
+      ??= AutocompleteQuery.lowercaseAndStripDiacritics(channel.name);
+  }
+
+  final Map<int, List<String>> _normalizedNameWordsByChannel = {};
+
+  List<String> normalizedNameWordsForChannel(ZulipStream channel) {
+    return _normalizedNameWordsByChannel[channel.streamId]
+      ?? normalizedNameForChannel(channel).split(' ');
   }
 
   void invalidateUser(int userId) {
     _normalizedNamesByUser.remove(userId);
-    _nameWordsByUser.remove(userId);
+    _normalizedNameWordsByUser.remove(userId);
+    _normalizedEmailsByUser.remove(userId);
+  }
+
+  void invalidateUserGroup(int id) {
+    _normalizedNamesByUserGroup.remove(id);
+    _normalizedNameWordsByUserGroup.remove(id);
+  }
+
+  void invalidateChannel(int channelId) {
+    _normalizedNamesByChannel.remove(channelId);
+    _normalizedNameWordsByChannel.remove(channelId);
   }
 }
 
@@ -851,23 +1151,72 @@ class EmojiAutocompleteResult extends ComposeAutocompleteResult {
 /// This is abstract because there are several kinds of result
 /// that can all be offered in the same @-mention autocomplete interaction:
 /// a user, a wildcard, or a user group.
-sealed class MentionAutocompleteResult extends ComposeAutocompleteResult {}
+sealed class MentionAutocompleteResult extends ComposeAutocompleteResult {
+  /// A measure of the result's quality in the context of the query.
+  ///
+  /// Used internally by [MentionAutocompleteView] for ranking the results.
+  // See also [MentionAutocompleteView._usersByRelevance];
+  // results with equal [rank] will appear in the order they were put in
+  // by that method.
+  //
+  // Compare sort_recipients in Zulip web:
+  //   https://github.com/zulip/zulip/blob/afdf20c67/web/src/typeahead_helper.ts#L472
+  //
+  // Behavior we have that web doesn't and might like to follow:
+  // - A "word-prefixes" match quality on user and user-group names:
+  //   see [NameMatchQuality.wordPrefixes], which we rank on.
+  //
+  // Behavior web has that seems undesired, which we don't plan to follow:
+  // - Ranking humans above bots, even when the bots have higher relevance
+  //   and better match quality. If there's a bot participating in the
+  //   current conversation and I start typing its name, why wouldn't we want
+  //   that as a top result? Issue: https://github.com/zulip/zulip/issues/35467
+  // - A "word-boundary" match quality on user and user-group names:
+  //   special rank when the whole query appears contiguously
+  //   right after a word-boundary character.
+  //   Our [NameMatchQuality.wordPrefixes] seems smarter.
+  // - An "exact" match quality on emails: probably not worth its complexity.
+  //   Emails are much more uniform in their endings than users' names are,
+  //   so a prefix match should be adequate. (If I've typed "email@example.co",
+  //   that'll probably be the only result. There might be an "email@example.com",
+  //   and an "exact" match would downrank that, but still that's just two items
+  //   to scan through.)
+  // - A "word-boundary" match quality on user emails:
+  //   "words" is a wrong abstraction when matching on emails.
+  // - Ranking some case-sensitive matches differently from case-insensitive
+  //   matches. Users will expect a lowercase query to be adequate.
+  int get rank;
+}
 
 /// An autocomplete result for an @-mention of an individual user.
 class UserMentionAutocompleteResult extends MentionAutocompleteResult {
-  UserMentionAutocompleteResult({required this.userId});
+  UserMentionAutocompleteResult({required this.userId, required this.rank});
 
   final int userId;
+
+  @override
+  final int rank;
 }
 
 /// An autocomplete result for an @-mention of all the users in a conversation.
 class WildcardMentionAutocompleteResult extends MentionAutocompleteResult {
-  WildcardMentionAutocompleteResult({required this.wildcardOption});
+  WildcardMentionAutocompleteResult({required this.wildcardOption, required this.rank});
 
   final WildcardMentionOption wildcardOption;
+
+  @override
+  final int rank;
 }
 
-// TODO(#233): // class UserGroupMentionAutocompleteResult extends MentionAutocompleteResult {
+/// An autocomplete result for an @-mention of a user group.
+class UserGroupMentionAutocompleteResult extends MentionAutocompleteResult {
+  UserGroupMentionAutocompleteResult({required this.groupId, required this.rank});
+
+  final int groupId;
+
+  @override
+  final int rank;
+}
 
 /// An autocomplete interaction for choosing a topic for a message.
 class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, TopicAutocompleteResult> {
@@ -882,11 +1231,8 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
     required int streamId,
     required TopicAutocompleteQuery query,
   }) {
-    final view = TopicAutocompleteView._(
-      store: store, streamId: streamId, query: query);
-    store.autocompleteViewManager.registerTopicAutocomplete(view);
-    view._fetch();
-    return view;
+    return TopicAutocompleteView._(store: store, streamId: streamId, query: query)
+      .._fetch();
   }
 
   /// The channel/stream the eventual message will be sent to.
@@ -904,7 +1250,9 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   Future<void> _fetch() async {
      assert(!_isFetching);
     _isFetching = true;
-    final result = await getStreamTopics(store.connection, streamId: streamId);
+    final result = await getStreamTopics(store.connection, streamId: streamId,
+      allowEmptyTopicName: true,
+    );
     _topics = result.topics.map((e) => e.name);
     _isFetching = false;
     return _startSearch();
@@ -926,12 +1274,6 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
     }
     return null;
   }
-
-  @override
-  void dispose() {
-    store.autocompleteViewManager.unregisterTopicAutocomplete(this);
-    super.dispose();
-  }
 }
 
 /// A query for autocompleting a topic to send to,
@@ -942,14 +1284,12 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
   bool testTopic(TopicName topic, PerAccountStore store) {
     // TODO(#881): Sort by match relevance, like web does.
 
-    // ignore: unnecessary_null_comparison // null topic names soon to be enabled
     if (topic.displayName == null) {
-      return store.realmEmptyTopicDisplayName.toLowerCase()
-        .contains(raw.toLowerCase());
+      return AutocompleteQuery.lowercaseAndStripDiacritics(store.realmEmptyTopicDisplayName)
+        .contains(_normalized);
     }
     return topic.displayName != raw
-      // ignore: unnecessary_non_null_assertion // null topic names soon to be enabled
-      && topic.displayName!.toLowerCase().contains(raw.toLowerCase());
+      && AutocompleteQuery.lowercaseAndStripDiacritics(topic.displayName!).contains(_normalized);
   }
 
   @override
@@ -971,4 +1311,282 @@ class TopicAutocompleteResult extends AutocompleteResult {
   final TopicName topic;
 
   TopicAutocompleteResult({required this.topic});
+}
+
+/// An [AutocompleteView] for a #channel autocomplete interaction,
+/// an example of a [ComposeAutocompleteView].
+class ChannelLinkAutocompleteView extends AutocompleteView<ChannelLinkAutocompleteQuery, ChannelLinkAutocompleteResult> {
+  ChannelLinkAutocompleteView._({
+    required super.store,
+    required super.query,
+    required this.narrow,
+    required this.sortedChannels,
+  });
+
+  factory ChannelLinkAutocompleteView.init({
+    required PerAccountStore store,
+    required Narrow narrow,
+    required ChannelLinkAutocompleteQuery query,
+  }) {
+    return ChannelLinkAutocompleteView._(
+      store: store,
+      query: query,
+      narrow: narrow,
+      sortedChannels: _channelsByRelevance(store: store, narrow: narrow),
+    );
+  }
+
+  final Narrow narrow;
+  final List<ZulipStream> sortedChannels;
+
+  static List<ZulipStream> _channelsByRelevance({
+    required PerAccountStore store,
+    required Narrow narrow,
+  }) {
+    return store.streams.values.sorted(_comparator(narrow: narrow));
+  }
+
+  /// Compare the channels the same way they would be sorted as
+  /// autocomplete candidates, given [query].
+  ///
+  /// The channels must both match the query.
+  ///
+  /// This behaves the same as the comparator used for sorting in
+  /// [_channelsByRelevance], combined with the ranking applied at the end
+  /// of [computeResults].
+  ///
+  /// This is useful for tests in order to distinguish "A comes before B"
+  /// from "A ranks equal to B, and the sort happened to put A before B",
+  /// particularly because [List.sort] makes no guarantees about the order
+  /// of items that compare equal.
+  int debugCompareChannels(ZulipStream a, ZulipStream b) {
+    final rankA = query.testChannel(a, store)!.rank;
+    final rankB = query.testChannel(b, store)!.rank;
+    if (rankA != rankB) return rankA.compareTo(rankB);
+
+    return _comparator(narrow: narrow)(a, b);
+  }
+
+  static Comparator<ZulipStream> _comparator({required Narrow narrow}) {
+    // See also [ChannelLinkAutocompleteQuery._rankResult];
+    // that ranking takes precedence over this.
+
+    int? channelId;
+    switch (narrow) {
+      case ChannelNarrow(:var streamId):
+      case TopicNarrow(:var streamId):
+        channelId = streamId;
+      case DmNarrow():
+        break;
+      case CombinedFeedNarrow():
+      case MentionsNarrow():
+      case StarredMessagesNarrow():
+      case KeywordSearchNarrow():
+        assert(false, 'No compose box, thus no autocomplete is available in ${narrow.runtimeType}.');
+    }
+    return (a, b) => _compareByRelevance(a, b, composingToChannelId: channelId);
+  }
+
+  static int _compareByRelevance(ZulipStream a, ZulipStream b, {
+    required int? composingToChannelId,
+  }) {
+    // Compare `typeahead_helper.compare_by_activity` in Zulip web;
+    //   https://github.com/zulip/zulip/blob/c3fdee6ed/web/src/typeahead_helper.ts#L972-L988
+    //
+    // Behavior difference that Web should probably fix, TODO(Web):
+    //  * Web compares "recent activity" only for subscribed channels,
+    //    but we do it for unsubscribed ones too.
+    //  * We exclude archived channels from autocomplete results,
+    //    but Web doesn't.
+    //    See: [ChannelLinkAutocompleteQuery.testChannel]
+
+    if (composingToChannelId != null) {
+      final composingToResult = compareByComposingTo(a, b,
+        composingToChannelId: composingToChannelId);
+      if (composingToResult != 0) return composingToResult;
+    }
+
+    final beingSubscribedResult = compareByBeingSubscribed(a, b);
+    if (beingSubscribedResult != 0) return beingSubscribedResult;
+
+    final recentActivityResult = compareByRecentActivity(a, b);
+    if (recentActivityResult != 0) return recentActivityResult;
+
+    final weeklyTrafficResult = compareByWeeklyTraffic(a, b);
+    if (weeklyTrafficResult != 0) return weeklyTrafficResult;
+
+    return ChannelStore.compareChannelsByName(a, b);
+  }
+
+  /// Comparator that puts the channel being composed to, before other ones.
+  @visibleForTesting
+  static int compareByComposingTo(ZulipStream a, ZulipStream b, {
+    required int composingToChannelId,
+  }) {
+    final composingToA = composingToChannelId == a.streamId;
+    final composingToB = composingToChannelId == b.streamId;
+    return switch((composingToA, composingToB)) {
+      (true,  false) => -1,
+      (false,  true) =>  1,
+      _              =>  0,
+    };
+  }
+
+  /// Comparator that puts subscribed channels before unsubscribed ones.
+  ///
+  /// For subscribed channels, it puts them in the following order:
+  ///   pinned unmuted > unpinned unmuted > pinned muted > unpinned muted
+  @visibleForTesting
+  static int compareByBeingSubscribed(ZulipStream a, ZulipStream b) {
+    if (a is  Subscription && b is! Subscription) return -1;
+    if (a is! Subscription && b is  Subscription) return  1;
+
+    return switch((a, b)) {
+      (Subscription(isMuted:  false), Subscription(isMuted:   true)) => -1,
+      (Subscription(isMuted:   true), Subscription(isMuted:  false)) =>  1,
+      (Subscription(pinToTop:  true), Subscription(pinToTop: false)) => -1,
+      (Subscription(pinToTop: false), Subscription(pinToTop:  true)) =>  1,
+      _                                                              =>  0,
+    };
+  }
+
+  /// Comparator that puts recently-active channels before inactive ones.
+  ///
+  /// Being recently-active is determined by [ZulipStream.isRecentlyActive].
+  @visibleForTesting
+  static int compareByRecentActivity(ZulipStream a, ZulipStream b) {
+    // Compare `stream_list_sort.has_recent_activity` in Zulip web:
+    //   https://github.com/zulip/zulip/blob/925ae0f9b/web/src/stream_list_sort.ts#L84-L96
+    //
+    // There are a few other criteria that Web considers for a channel being
+    // recently-active, for which we don't have all the data at the moment:
+    //  * If the user don't want to filter out inactive streams to the
+    //    bottom, then every channel is considered as recently-active.
+    //  * A channel pinned to the top is also considered as recently-active,
+    //    but we already favor that criterion before even reaching to this one.
+    //  * If the channel is newly subscribed, then it's considered as
+    //    recently-active.
+
+    return switch((a.isRecentlyActive, b.isRecentlyActive)) {
+      (true, false) => -1,
+      (false, true) =>  1,
+      // The combination of `null` and `bool` is not possible as they're both
+      // either `null` or `bool`, before or after server-10, respectively.
+      // TODO(server-10): remove the preceding comment
+      _             =>  0,
+    };
+  }
+
+  /// Comparator that puts channels with more [ZulipStream.streamWeeklyTraffic] first.
+  ///
+  /// A channel with undefined weekly traffic (`null`) is put after
+  /// the channel with weekly traffic defined, but zero and `null`
+  /// traffic are considered the same.
+  @visibleForTesting
+  static int compareByWeeklyTraffic(ZulipStream a, ZulipStream b) {
+    return -(a.streamWeeklyTraffic ?? 0).compareTo(b.streamWeeklyTraffic ?? 0);
+  }
+
+  @override
+  Future<List<ChannelLinkAutocompleteResult>?> computeResults() async {
+    final unsorted = <ChannelLinkAutocompleteResult>[];
+    if (await filterCandidates(filter: _testChannel,
+          candidates: sortedChannels, results: unsorted)) {
+      return null;
+    }
+
+    return bucketSort(unsorted,
+      (r) => r.rank, numBuckets: ChannelLinkAutocompleteQuery._numResultRanks);
+  }
+
+  ChannelLinkAutocompleteResult? _testChannel(ChannelLinkAutocompleteQuery query, ZulipStream channel) {
+    return query.testChannel(channel, store);
+  }
+}
+
+/// A #channel autocomplete query, used by [ChannelLinkAutocompleteView].
+class ChannelLinkAutocompleteQuery extends ComposeAutocompleteQuery {
+  ChannelLinkAutocompleteQuery(super.raw);
+
+  @override
+  ChannelLinkAutocompleteView initViewModel({
+    required PerAccountStore store,
+    required ZulipLocalizations localizations,
+    required Narrow narrow,
+  }) {
+    return ChannelLinkAutocompleteView.init(store: store, query: this, narrow: narrow);
+  }
+
+  ChannelLinkAutocompleteResult? testChannel(ZulipStream channel, PerAccountStore store) {
+    if (channel.isArchived) return null;
+
+    final cache = store.autocompleteViewManager.autocompleteDataCache;
+    final matchQuality = _matchName(
+      normalizedName: cache.normalizedNameForChannel(channel),
+      normalizedNameWords: cache.normalizedNameWordsForChannel(channel));
+    if (matchQuality == null) return null;
+    return ChannelLinkAutocompleteResult(
+      channelId: channel.streamId, rank: _rankResult(matchQuality));
+  }
+
+  /// A measure of a channel result's quality in the context of the query,
+  /// from 0 (best) to one less than [_numResultRanks].
+  static int _rankResult(NameMatchQuality matchQuality) {
+    return switch(matchQuality) {
+      NameMatchQuality.exact        => 0,
+      NameMatchQuality.totalPrefix  => 1,
+      NameMatchQuality.wordPrefixes => 2,
+    };
+  }
+
+  /// The number of possible values returned by [_rankResult].
+  static const _numResultRanks = 3;
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'ChannelLinkAutocompleteQuery')}($raw)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ChannelLinkAutocompleteQuery && other.raw == raw;
+  }
+
+  @override
+  int get hashCode => Object.hash('ChannelLinkAutocompleteQuery', raw);
+}
+
+/// An autocomplete result for a #channel.
+class ChannelLinkAutocompleteResult extends ComposeAutocompleteResult {
+  ChannelLinkAutocompleteResult({required this.channelId, required this.rank});
+
+  final int channelId;
+
+  /// A measure of the result's quality in the context of the query.
+  ///
+  /// Used internally by [ChannelLinkAutocompleteView] for ranking the results.
+  // See also [ChannelLinkAutocompleteView._channelsByRelevance];
+  // results with equal [rank] will appear in the order they were put in
+  // by that method.
+  //
+  // Compare sort_streams in Zulip web:
+  //   https://github.com/zulip/zulip/blob/a5d25826b/web/src/typeahead_helper.ts#L998-L1008
+  //
+  // Behavior we have that web doesn't and might like to follow:
+  // - A "word-prefixes" match quality on channel names:
+  //   see [NameMatchQuality.wordPrefixes], which we rank on.
+  //
+  // Behavior web has that seems undesired, which we don't plan to follow:
+  // - A "word-boundary" match quality on channel names:
+  //   special rank when the whole query appears contiguously
+  //   right after a word-boundary character.
+  //   Our [NameMatchQuality.wordPrefixes] seems smarter.
+  // - Ranking some case-sensitive matches differently from case-insensitive
+  //   matches. Users will expect a lowercase query to be adequate.
+  // - Matching and ranking on channel descriptions but only when the query
+  //   is present (but not an exact match, total-prefix, or word-boundary match)
+  //   in the channel name. This doesn't seem to be helpful in most cases,
+  //   because it is hard for a query to be present in the name (the way
+  //   mentioned before) and also present in the description.
+  final int rank;
 }

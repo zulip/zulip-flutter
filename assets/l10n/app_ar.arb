@@ -1,11 +1,56 @@
 {
+  "@aboutPageAppVersion": {
+    "description": "Label for Zulip app version in About Zulip page"
+  },
+  "@aboutPageOpenSourceLicenses": {
+    "description": "Item title in About Zulip page to navigate to Licenses page"
+  },
+  "@aboutPageTapToView": {
+    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
+  },
+  "@aboutPageTitle": {
+    "description": "Title for About Zulip page."
+  },
+  "@chooseAccountPageTitle": {
+    "description": "Title for the page to choose between Zulip accounts."
+  },
+  "@settingsPageTitle": {
+    "description": "Title for the settings page."
+  },
+  "@switchAccountButtonTooltip": {
+    "description": "Tooltip message for main-menu button leading to the choose-account page."
+  },
+  "@upgradeWelcomeDialogDismiss": {
+    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "@upgradeWelcomeDialogTitle": {
+    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "@wildcardMentionAll": {},
+  "@wildcardMentionAllDmDescription": {},
+  "@wildcardMentionChannel": {},
+  "@wildcardMentionChannelDescription": {},
+  "@wildcardMentionEveryone": {},
+  "@wildcardMentionStream": {},
+  "@wildcardMentionStreamDescription": {},
+  "@wildcardMentionTopic": {},
+  "@wildcardMentionTopicDescription": {},
+  "aboutPageAppVersion": "نسخة التطبيق",
+  "aboutPageOpenSourceLicenses": "10.0.151.1",
+  "aboutPageTapToView": "اضغط للعرض",
+  "aboutPageTitle": "عن زوليب",
+  "chooseAccountPageTitle": "اختر حساب",
+  "settingsPageTitle": "الإعدادات",
+  "switchAccountButtonTooltip": "تبديل الحساب",
+  "upgradeWelcomeDialogDismiss": "هيا بنا",
+  "upgradeWelcomeDialogTitle": "أهلا بك في تطبيق زوليب الجديد !",
   "wildcardMentionAll": "الجميع",
-  "wildcardMentionEveryone": "الكل",
-  "wildcardMentionChannel": "القناة",
-  "wildcardMentionStream": "الدفق",
-  "wildcardMentionTopic": "الموضوع",
-  "wildcardMentionChannelDescription": "إخطار القناة",
-  "wildcardMentionStreamDescription": "إخطار الدفق",
   "wildcardMentionAllDmDescription": "إخطار المستلمين",
+  "wildcardMentionChannel": "القناة",
+  "wildcardMentionChannelDescription": "إخطار القناة",
+  "wildcardMentionEveryone": "الكل",
+  "wildcardMentionStream": "الدفق",
+  "wildcardMentionStreamDescription": "إخطار الدفق",
+  "wildcardMentionTopic": "الموضوع",
   "wildcardMentionTopicDescription": "إخطار الموضوع"
 }

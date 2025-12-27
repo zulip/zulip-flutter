@@ -2,28 +2,29 @@ name: CI
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4.1.7
+    - uses: actions/checkout@v6
 
     - name: Install system dependencies
       run: TERM=dumb sudo apt install libsqlite3-dev -y
 
     - name: Set up JDK
-      uses: actions/setup-java@v4.2.1
+      uses: actions/setup-java@v5
       with:
         java-version: 17
         distribution: temurin
 
     - name: Clone Flutter SDK
-      # We can't do a depth-1 clone, because we need the most recent tag
-      # so that Flutter knows its version and sees the constraint in our
-      # pubspec is satisfied.  It's uncommon for flutter/flutter to go
-      # more than 100 commits between tags.  Fetch 1000 for good measure.
+      # Upstream's version calculation fails with a shallow clone,
+      # so instead clone with `--filter=blob:none`.
       run: |
-        git clone --depth=1000 -b main https://github.com/flutter/flutter ~/flutter
+        git clone --filter=blob:none -b main https://github.com/flutter/flutter ~/flutter
         TZ=UTC git --git-dir ~/flutter/.git log -1 --format='%h | %ci | %s' --date=iso8601-local
         echo ~/flutter/bin >> "$GITHUB_PATH"
 

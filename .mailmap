@@ -12,9 +12,12 @@
 #     # shows raw names/emails, filtered by mapped name:
 #   $ git log --format='%an %ae' --author=$NAME | uniq -c
 
+Brynly Mitchell <u7088495@anu.edu.au>
+Chinmay Ajith <chinmayajith30@gmail.com>
 Chris Bobbe <cbobbe@zulip.com> <csbobbe@gmail.com>
 Greg Price <greg@zulip.com> <gnprice@gmail.com>
 K Akhil <kssakhilraj@gmail.com>
+Lakshya Goel <lakshya1234goel@gmail.com>
 Lalit Kumar Singh <lalitkumarsingh3716@gmail.com>
 Rajesh Malviya <rmalviya@zulip.com> <rajveer0malviya@gmail.com>
 Shu Chen <shu@zulip.com> <shu.chen@freelancedreams.com>

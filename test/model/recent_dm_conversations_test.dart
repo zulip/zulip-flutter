@@ -1,12 +1,12 @@
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
-import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/recent_dm_conversations.dart';
 
 import '../example_data.dart' as eg;
 import 'recent_dm_conversations_checks.dart';
+import 'store_checks.dart';
 
 void main() {
   group('RecentDmConversationsView', () {
@@ -19,18 +19,19 @@ void main() {
     }
 
     test('construct from initial data', () {
-      check(RecentDmConversationsView(selfUserId: eg.selfUser.userId,
-        initial: []))
+      check(eg.store(initialSnapshot: eg.initialSnapshot(
+        recentPrivateConversations: [],
+      ))).recentDmConversationsView
           ..map.isEmpty()
           ..sorted.isEmpty()
           ..latestMessagesByRecipient.isEmpty();
 
-      check(RecentDmConversationsView(selfUserId: eg.selfUser.userId,
-        initial: [
+      check(eg.store(initialSnapshot: eg.initialSnapshot(
+        recentPrivateConversations: [
           RecentDmConversation(userIds: [],     maxMessageId: 200),
           RecentDmConversation(userIds: [1],    maxMessageId: 100),
           RecentDmConversation(userIds: [2, 1], maxMessageId: 300), // userIds out of order
-        ]))
+        ]))).recentDmConversationsView
           ..map.deepEquals({
             key([1, 2]): 300,
             key([]):     200,
@@ -42,11 +43,11 @@ void main() {
 
     group('message event (new message)', () {
       RecentDmConversationsView setupView() {
-        return RecentDmConversationsView(selfUserId: eg.selfUser.userId,
-          initial: [
+        return eg.store(initialSnapshot: eg.initialSnapshot(
+          recentPrivateConversations: [
             RecentDmConversation(userIds: [1],    maxMessageId: 200),
             RecentDmConversation(userIds: [1, 2], maxMessageId: 100),
-          ]);
+          ])).recentDmConversationsView;
       }
 
       test('(check base state)', () {
@@ -66,7 +67,7 @@ void main() {
         final expected = setupView();
         check(setupView()
           ..addListener(() { listenersNotified = true; })
-          ..handleMessageEvent(MessageEvent(id: 1, message: eg.streamMessage()))
+          ..handleMessageEvent(eg.messageEvent(eg.streamMessage()))
         ) ..map.deepEquals(expected.map)
           ..sorted.deepEquals(expected.sorted)
           ..latestMessagesByRecipient.deepEquals(expected.latestMessagesByRecipient);
@@ -78,7 +79,7 @@ void main() {
         final message = eg.dmMessage(id: 300, from: eg.selfUser, to: [eg.user(userId: 2)]);
         check(setupView()
           ..addListener(() { listenersNotified = true; })
-          ..handleMessageEvent(MessageEvent(id: 1, message: message))
+          ..handleMessageEvent(eg.messageEvent(message))
         ) ..map.deepEquals({
             key([2]):    300,
             key([1]):    200,
@@ -94,7 +95,7 @@ void main() {
         final message = eg.dmMessage(id: 150, from: eg.selfUser, to: [eg.user(userId: 2)]);
         check(setupView()
           ..addListener(() { listenersNotified = true; })
-          ..handleMessageEvent(MessageEvent(id: 1, message: message))
+          ..handleMessageEvent(eg.messageEvent(message))
         ) ..map.deepEquals({
             key([1]):    200,
             key([2]):    150,
@@ -111,7 +112,7 @@ void main() {
           to: [eg.user(userId: 1), eg.user(userId: 2)]);
         check(setupView()
           ..addListener(() { listenersNotified = true; })
-          ..handleMessageEvent(MessageEvent(id: 1, message: message))
+          ..handleMessageEvent(eg.messageEvent(message))
         ) ..map.deepEquals({
             key([1, 2]): 300,
             key([1]):    200,
@@ -126,7 +127,7 @@ void main() {
         final message = eg.dmMessage(id: 300, from: eg.selfUser, to: [eg.user(userId: 1)]);
         check(setupView()
           ..addListener(() { listenersNotified = true; })
-          ..handleMessageEvent(MessageEvent(id: 1, message: message))
+          ..handleMessageEvent(eg.messageEvent(message))
         ) ..map.deepEquals({
             key([1]):    300,
             key([1, 2]): 100,
@@ -143,7 +144,7 @@ void main() {
         final expected = setupView();
         check(setupView()
           // ..addListener(() { listenersNotified = true; })
-          ..handleMessageEvent(MessageEvent(id: 1, message: message))
+          ..handleMessageEvent(eg.messageEvent(message))
         ) ..map.deepEquals(expected.map)
           ..sorted.deepEquals(expected.sorted)
           ..latestMessagesByRecipient.deepEquals(expected.latestMessagesByRecipient);
@@ -157,7 +158,7 @@ void main() {
           to: [eg.user(userId: 1), eg.user(userId: 3)]);
         check(setupView()
           ..addListener(() { listenersNotified = true; })
-          ..handleMessageEvent(MessageEvent(id: 1, message: message))
+          ..handleMessageEvent(eg.messageEvent(message))
         ) ..map.deepEquals({
             key([1, 3]): 300,
             key([1]):    200,
@@ -174,7 +175,7 @@ void main() {
           to: [eg.user(userId: 1), eg.user(userId: 3)]);
         check(setupView()
           ..addListener(() { listenersNotified = true; })
-          ..handleMessageEvent(MessageEvent(id: 1, message: message))
+          ..handleMessageEvent(eg.messageEvent(message))
         ) ..map.deepEquals({
             key([1]):    200,
             key([1, 3]): 150,

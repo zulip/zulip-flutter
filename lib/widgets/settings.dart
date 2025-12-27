@@ -20,9 +20,11 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       appBar: ZulipAppBar(
         title: Text(zulipLocalizations.settingsPageTitle)),
-      body: Column(children: [
+      body: ListView(children: [
         const _ThemeSetting(),
         const _BrowserPreferenceSetting(),
+        const _VisitFirstUnreadSetting(),
+        const _MarkReadOnScrollSetting(),
         if (GlobalSettingsStore.experimentalFeatureFlags.isNotEmpty)
           ListTile(
             title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
@@ -44,18 +46,19 @@ class _ThemeSetting extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final globalSettings = GlobalStoreWidget.settingsOf(context);
-    return Column(
-      children: [
-        ListTile(title: Text(zulipLocalizations.themeSettingTitle)),
-        for (final themeSettingOption in [null, ...ThemeSetting.values])
-          RadioListTile<ThemeSetting?>.adaptive(
-            title: Text(ThemeSetting.displayName(
-              themeSetting: themeSettingOption,
-              zulipLocalizations: zulipLocalizations)),
-            value: themeSettingOption,
-            groupValue: globalSettings.themeSetting,
-            onChanged: (newValue) => _handleChange(context, newValue)),
-      ]);
+    return RadioGroup<ThemeSetting?>(
+      groupValue: globalSettings.themeSetting,
+      onChanged: (newValue) => _handleChange(context, newValue),
+      child: Column(
+        children: [
+          ListTile(title: Text(zulipLocalizations.themeSettingTitle)),
+          for (final themeSettingOption in [null, ...ThemeSetting.values])
+            RadioListTile<ThemeSetting?>.adaptive(
+              title: Text(ThemeSetting.displayName(
+                themeSetting: themeSettingOption,
+                zulipLocalizations: zulipLocalizations)),
+              value: themeSettingOption),
+        ]));
   }
 }
 
@@ -79,6 +82,146 @@ class _BrowserPreferenceSetting extends StatelessWidget {
       title: Text(zulipLocalizations.openLinksWithInAppBrowser),
       value: openLinksWithInAppBrowser,
       onChanged: (newValue) => _handleChange(context, newValue));
+  }
+}
+
+class _VisitFirstUnreadSetting extends StatelessWidget {
+  const _VisitFirstUnreadSetting();
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    return ListTile(
+      title: Text(zulipLocalizations.initialAnchorSettingTitle),
+      subtitle: Text(VisitFirstUnreadSettingPage._valueDisplayName(
+        globalSettings.visitFirstUnread, zulipLocalizations: zulipLocalizations)),
+      onTap: () => Navigator.push(context,
+        VisitFirstUnreadSettingPage.buildRoute()));
+  }
+}
+
+class VisitFirstUnreadSettingPage extends StatelessWidget {
+  const VisitFirstUnreadSettingPage({super.key});
+
+  static WidgetRoute<void> buildRoute() {
+    return MaterialWidgetRoute(page: const VisitFirstUnreadSettingPage());
+  }
+
+  static String _valueDisplayName(VisitFirstUnreadSetting value, {
+    required ZulipLocalizations zulipLocalizations,
+  }) {
+    return switch (value) {
+      VisitFirstUnreadSetting.always =>
+        zulipLocalizations.initialAnchorSettingFirstUnreadAlways,
+      VisitFirstUnreadSetting.conversations =>
+        zulipLocalizations.initialAnchorSettingFirstUnreadConversations,
+      VisitFirstUnreadSetting.never =>
+        zulipLocalizations.initialAnchorSettingNewestAlways,
+    };
+  }
+
+  void _handleChange(BuildContext context, VisitFirstUnreadSetting? value) {
+    if (value == null) return; // TODO(log); can this actually happen? how?
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    globalSettings.setVisitFirstUnread(value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(zulipLocalizations.initialAnchorSettingTitle)),
+      body: RadioGroup<VisitFirstUnreadSetting>(
+        groupValue: globalSettings.visitFirstUnread,
+        onChanged: (newValue) => _handleChange(context, newValue),
+        child: Column(children: [
+          ListTile(title: Text(zulipLocalizations.initialAnchorSettingDescription)),
+          for (final value in VisitFirstUnreadSetting.values)
+            RadioListTile<VisitFirstUnreadSetting>.adaptive(
+              title: Text(_valueDisplayName(value,
+                zulipLocalizations: zulipLocalizations)),
+              value: value),
+        ])));
+  }
+}
+
+class _MarkReadOnScrollSetting extends StatelessWidget {
+  const _MarkReadOnScrollSetting();
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    return ListTile(
+      title: Text(zulipLocalizations.markReadOnScrollSettingTitle),
+      subtitle: Text(MarkReadOnScrollSettingPage._valueDisplayName(
+        globalSettings.markReadOnScroll, zulipLocalizations: zulipLocalizations)),
+      onTap: () => Navigator.push(context,
+        MarkReadOnScrollSettingPage.buildRoute()));
+  }
+}
+
+class MarkReadOnScrollSettingPage extends StatelessWidget {
+  const MarkReadOnScrollSettingPage({super.key});
+
+  static WidgetRoute<void> buildRoute() {
+    return MaterialWidgetRoute(page: const MarkReadOnScrollSettingPage());
+  }
+
+  static String _valueDisplayName(MarkReadOnScrollSetting value, {
+    required ZulipLocalizations zulipLocalizations,
+  }) {
+    return switch (value) {
+      MarkReadOnScrollSetting.always =>
+        zulipLocalizations.markReadOnScrollSettingAlways,
+      MarkReadOnScrollSetting.conversations =>
+        zulipLocalizations.markReadOnScrollSettingConversations,
+      MarkReadOnScrollSetting.never =>
+        zulipLocalizations.markReadOnScrollSettingNever,
+    };
+  }
+
+  static String? _valueDescription(MarkReadOnScrollSetting value, {
+    required ZulipLocalizations zulipLocalizations,
+  }) {
+    return switch (value) {
+      MarkReadOnScrollSetting.always => null,
+      MarkReadOnScrollSetting.conversations =>
+        zulipLocalizations.markReadOnScrollSettingConversationsDescription,
+      MarkReadOnScrollSetting.never => null,
+    };
+  }
+
+  void _handleChange(BuildContext context, MarkReadOnScrollSetting? value) {
+    if (value == null) return; // TODO(log); can this actually happen? how?
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    globalSettings.setMarkReadOnScroll(value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(zulipLocalizations.markReadOnScrollSettingTitle)),
+      body: RadioGroup<MarkReadOnScrollSetting>(
+        groupValue: globalSettings.markReadOnScroll,
+        onChanged: (newValue) => _handleChange(context, newValue),
+        child: Column(children: [
+          ListTile(title: Text(zulipLocalizations.markReadOnScrollSettingDescription)),
+          for (final value in MarkReadOnScrollSetting.values)
+            RadioListTile<MarkReadOnScrollSetting>.adaptive(
+              title: Text(_valueDisplayName(value,
+                zulipLocalizations: zulipLocalizations)),
+              subtitle: () {
+                final result = _valueDescription(value,
+                  zulipLocalizations: zulipLocalizations);
+                return result == null ? null : Text(result);
+              }(),
+              value: value),
+        ])));
   }
 }
 

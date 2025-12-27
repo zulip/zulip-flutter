@@ -1,5 +1,5 @@
-
 import 'package:checks/checks.dart';
+import 'package:collection/collection.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
@@ -7,10 +7,15 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/channel.dart';
 
+import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
+import '../stdlib_checks.dart';
+import 'binding.dart';
 import 'test_store.dart';
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   group('Unified stream/sub data', () {
     /// Check that `streams`, `streamsByName`, and `subscriptions` all agree
     /// and point to the same objects where applicable.
@@ -68,6 +73,38 @@ void main() {
       ));
       checkUnified(store);
     });
+
+    test('unsubscribed then subscribed by events', () async {
+      // Regression test for: https://chat.zulip.org/#narrow/channel/48-mobile/topic/Unsubscribe.20then.20resubscribe.20to.20channel/with/2160241
+      final stream = eg.stream();
+      final store = eg.store();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      checkUnified(store);
+
+      await store.handleEvent(SubscriptionRemoveEvent(id: 1,
+        streamIds: [stream.streamId]));
+      checkUnified(store);
+
+      await store.handleEvent(SubscriptionAddEvent(id: 1,
+        subscriptions: [eg.subscription(stream)]));
+      checkUnified(store);
+    });
+  });
+
+  group('channelFolderComparator', () {
+    final folder1 = eg.channelFolder(id: 1, order: null, name: 'M');
+    final folder2 = eg.channelFolder(id: 2, order: null, name: 'n');
+    final folder3 = eg.channelFolder(id: 3, order: 2, name: 'a');
+    final folder4 = eg.channelFolder(id: 4, order: 0, name: 'b');
+    final folder5 = eg.channelFolder(id: 5, order: 1, name: 'c');
+
+    final store = eg.store(initialSnapshot: eg.initialSnapshot(
+      channelFolders: [folder1, folder2, folder3, folder4, folder5]));
+
+    final sorted = store.channelFolders.values.toList()
+      .sorted(ChannelStore.compareChannelFolders);
+    check(sorted).deepEquals([folder1, folder2, folder4, folder5, folder3]);
   });
 
   group('SubscriptionEvent', () {
@@ -100,19 +137,87 @@ void main() {
         value: true));
       check(store.subscriptions[stream.streamId]!.isMuted).isTrue();
     });
+  });
 
-    test('SubscriptionProperty.inHomeView updates isMuted instead', () async {
-      final store = eg.store(initialSnapshot: eg.initialSnapshot(
-        streams: [stream],
-        subscriptions: [eg.subscription(stream, isMuted: false)],
+  group('ChannelFolderEvent', () {
+    group('add', () {
+      test('smoke', () async {
+        final folder1 = eg.channelFolder(id: 1);
+        final folder2 = eg.channelFolder(id: 2);
+        final store = eg.store(initialSnapshot: eg.initialSnapshot(
+          channelFolders: [folder1]));
+
+        await store.handleEvent(ChannelFolderAddEvent(
+          id: 1, channelFolder: folder2));
+        check(store.channelFolders).deepEquals({1: folder1, 2: folder2});
+      });
+    });
+
+    group('update', () {
+      void doTest(ChannelFolderChange change) {
+        final ChannelFolderChange(
+          :name, :description, :renderedDescription, :isArchived) = change;
+        final testDescription = [
+          if (name != null)                'name: $name',
+          if (description != null)         'description: $description',
+          if (renderedDescription != null) 'renderedDescription: $renderedDescription',
+          if (isArchived != null)          'isArchived: $isArchived',
+        ].join(', ');
+        test(testDescription, () async {
+          final channelFolder = eg.channelFolder();
+          assert(name == null || name != channelFolder.name);
+          assert(description == null || description != channelFolder.description);
+          assert(renderedDescription == null || renderedDescription != channelFolder.renderedDescription);
+          assert(isArchived == null || isArchived != channelFolder.isArchived);
+
+          final store = eg.store(initialSnapshot: eg.initialSnapshot(
+            channelFolders: [channelFolder]));
+          await store.handleEvent(ChannelFolderUpdateEvent(id: 1,
+            channelFolderId: channelFolder.id, data: change));
+          check(store.channelFolders.values.single)
+            ..name.equals(name ?? channelFolder.name)
+            ..description.equals(description ?? channelFolder.description)
+            ..renderedDescription.equals(renderedDescription ?? channelFolder.renderedDescription)
+            ..isArchived.equals(isArchived ?? channelFolder.isArchived);
+        });
+      }
+
+      doTest(eg.channelFolderChange(name: 'new name'));
+      doTest(eg.channelFolderChange(description: 'new description'));
+      doTest(eg.channelFolderChange(renderedDescription: '<p>new description</p>'));
+      doTest(eg.channelFolderChange(isArchived: true));
+
+      doTest(eg.channelFolderChange(
+        name: 'new name',
+        description: 'new description',
+        renderedDescription: '<p>new description</p>',
+        isArchived: true,
       ));
-      check(store.subscriptions[stream.streamId]!.isMuted).isFalse();
+    });
 
-      await store.handleEvent(SubscriptionUpdateEvent(id: 1,
-        streamId: stream.streamId,
-        property: SubscriptionProperty.inHomeView,
-        value: false));
-      check(store.subscriptions[stream.streamId]!.isMuted).isTrue();
+    group('reorder', () {
+      List<ChannelFolder> foldersFromStoreInOrder(PerAccountStore store) {
+        return store.channelFolders.values.toList()
+          ..sort((a, b) => a.order!.compareTo(b.order!));
+      }
+
+      test('smoke', () async {
+        final folderA = eg.channelFolder(order: 0);
+        final folderB = eg.channelFolder(order: 1);
+        final folderC = eg.channelFolder(order: 2);
+
+        final store = eg.store(initialSnapshot: eg.initialSnapshot(
+          channelFolders: [folderA, folderB, folderC]));
+        check(foldersFromStoreInOrder(store)).deepEquals([folderA, folderB, folderC]);
+
+        await store.handleEvent(ChannelFolderReorderEvent(id: 1,
+          order: [folderA.id, folderC.id, folderB.id]));
+        check(foldersFromStoreInOrder(store)).deepEquals([folderA, folderC, folderB]);
+
+        await store.handleEvent(ChannelFolderReorderEvent(id: 1,
+          order: [folderC.id, folderB.id, folderA.id]));
+        check(foldersFromStoreInOrder(store)).deepEquals([folderC, folderB, folderA]);
+      });
     });
   });
 
@@ -129,7 +234,7 @@ void main() {
 
       test('with nothing for topic', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.muted);
         check(store.topicVisibilityPolicy(stream1.streamId, eg.t('topic')))
           .equals(UserTopicVisibilityPolicy.none);
       });
@@ -141,8 +246,12 @@ void main() {
           UserTopicVisibilityPolicy.unmuted,
           UserTopicVisibilityPolicy.followed,
         ]) {
-          await store.addUserTopic(stream1, 'topic', policy);
+          await store.setUserTopic(stream1, 'topic', policy);
           check(store.topicVisibilityPolicy(stream1.streamId, eg.t('topic')))
+            .equals(policy);
+
+          // Case-insensitive
+          check(store.topicVisibilityPolicy(stream1.streamId, eg.t('ToPiC')))
             .equals(policy);
         }
       });
@@ -176,27 +285,39 @@ void main() {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
         check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isFalse();
         check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isFalse();
+
+        // Case-insensitive
+        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('ToPiC'))).isFalse();
+        check(store.isTopicVisible        (stream1.streamId, eg.t('ToPiC'))).isFalse();
       });
 
       test('with policy unmuted', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
         check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
         check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isTrue();
+
+        // Case-insensitive
+        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('tOpIc'))).isTrue();
+        check(store.isTopicVisible        (stream1.streamId, eg.t('tOpIc'))).isTrue();
       });
 
       test('with policy followed', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.followed);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.followed);
         check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
         check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isTrue();
+
+        // Case-insensitive
+        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('TOPIC'))).isTrue();
+        check(store.isTopicVisible        (stream1.streamId, eg.t('TOPIC'))).isTrue();
       });
     });
 
@@ -204,12 +325,29 @@ void main() {
       UserTopicEvent mkEvent(UserTopicVisibilityPolicy policy) =>
         eg.userTopicEvent(stream1.streamId, 'topic', policy);
 
+      // For testing case-insensitivity
+      UserTopicEvent mkEventDifferentlyCased(UserTopicVisibilityPolicy policy) =>
+        eg.userTopicEvent(stream1.streamId, 'ToPiC', policy);
+
+      assert(() {
+        // (sanity check on mkEvent and mkEventDifferentlyCased)
+        final event1 = mkEvent(UserTopicVisibilityPolicy.followed);
+        final event2 = mkEventDifferentlyCased(UserTopicVisibilityPolicy.followed);
+        return event1.topicName.isSameAs(event2.topicName)
+          && event1.topicName.apiName != event2.topicName.apiName;
+      }());
+
       void checkChanges(PerAccountStore store,
           UserTopicVisibilityPolicy newPolicy,
-          VisibilityEffect expectedInStream, VisibilityEffect expectedOverall) {
+          UserTopicVisibilityEffect expectedInStream,
+          UserTopicVisibilityEffect expectedOverall) {
         final event = mkEvent(newPolicy);
         check(store.willChangeIfTopicVisibleInStream(event)).equals(expectedInStream);
         check(store.willChangeIfTopicVisible        (event)).equals(expectedOverall);
+
+        final event2 = mkEventDifferentlyCased(newPolicy);
+        check(store.willChangeIfTopicVisibleInStream(event2)).equals(expectedInStream);
+        check(store.willChangeIfTopicVisible        (event2)).equals(expectedOverall);
       }
 
       test('stream not muted, policy none -> followed, no change', () async {
@@ -217,7 +355,7 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
         checkChanges(store, UserTopicVisibilityPolicy.followed,
-          VisibilityEffect.none, VisibilityEffect.none);
+          UserTopicVisibilityEffect.none, UserTopicVisibilityEffect.none);
       });
 
       test('stream not muted, policy none -> muted, means muted', () async {
@@ -225,7 +363,7 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
         checkChanges(store, UserTopicVisibilityPolicy.muted,
-          VisibilityEffect.muted, VisibilityEffect.muted);
+          UserTopicVisibilityEffect.muted, UserTopicVisibilityEffect.muted);
       });
 
       test('stream muted, policy none -> followed, means none/unmuted', () async {
@@ -233,7 +371,7 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
         checkChanges(store, UserTopicVisibilityPolicy.followed,
-          VisibilityEffect.none, VisibilityEffect.unmuted);
+          UserTopicVisibilityEffect.none, UserTopicVisibilityEffect.unmuted);
       });
 
       test('stream muted, policy none -> muted, means muted/none', () async {
@@ -241,7 +379,7 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
         checkChanges(store, UserTopicVisibilityPolicy.muted,
-          VisibilityEffect.muted, VisibilityEffect.none);
+          UserTopicVisibilityEffect.muted, UserTopicVisibilityEffect.none);
       });
 
       final policies = [
@@ -276,10 +414,10 @@ void main() {
               final newVisibleInStream = store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'));
               final newVisible         = store.isTopicVisible(stream1.streamId, eg.t('topic'));
 
-              VisibilityEffect fromOldNew(bool oldVisible, bool newVisible) {
-                if (newVisible == oldVisible) return VisibilityEffect.none;
-                if (newVisible) return VisibilityEffect.unmuted;
-                return VisibilityEffect.muted;
+              UserTopicVisibilityEffect fromOldNew(bool oldVisible, bool newVisible) {
+                if (newVisible == oldVisible) return UserTopicVisibilityEffect.none;
+                if (newVisible) return UserTopicVisibilityEffect.unmuted;
+                return UserTopicVisibilityEffect.muted;
               }
               check(willChangeInStream)
                 .equals(fromOldNew(oldVisibleInStream, newVisibleInStream));
@@ -323,7 +461,7 @@ void main() {
     group('events', () {
       test('add with new stream', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
         compareTopicVisibility(store, [
           eg.userTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.muted),
         ]);
@@ -331,8 +469,8 @@ void main() {
 
       test('add in existing stream', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.addUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted);
         compareTopicVisibility(store, [
           eg.userTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.muted),
           eg.userTopicItem(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted),
@@ -341,18 +479,24 @@ void main() {
 
       test('update existing policy', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
         compareTopicVisibility(store, [
           eg.userTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.unmuted),
+        ]);
+
+        // case-insensitivity
+        await store.setUserTopic(stream1, 'ToPiC', UserTopicVisibilityPolicy.followed);
+        compareTopicVisibility(store, [
+          eg.userTopicItem(stream1, 'topic', UserTopicVisibilityPolicy.followed),
         ]);
       });
 
       test('remove, with others in stream', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.addUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted);
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.none);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.none);
         compareTopicVisibility(store, [
           eg.userTopicItem(stream1, 'other topic', UserTopicVisibilityPolicy.unmuted),
         ]);
@@ -360,16 +504,18 @@ void main() {
 
       test('remove, as last in stream', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.none);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        // case-insensitivity
+        await store.setUserTopic(stream1, 'ToPiC', UserTopicVisibilityPolicy.none);
         compareTopicVisibility(store, [
         ]);
       });
 
       test('treat unknown enum value as removing', () async {
         final store = eg.store();
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        await store.addUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unknown);
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        // case-insensitivity
+        await store.setUserTopic(stream1, 'ToPiC', UserTopicVisibilityPolicy.unknown);
         compareTopicVisibility(store, [
         ]);
       });
@@ -386,12 +532,146 @@ void main() {
         ]));
       check(store.topicVisibilityPolicy(stream.streamId, eg.t('topic 1')))
         .equals(UserTopicVisibilityPolicy.muted);
-      check(store.topicVisibilityPolicy(stream.streamId, eg.t('topic 2')))
+      // case-insensitivity
+      check(store.topicVisibilityPolicy(stream.streamId, eg.t('ToPiC 2')))
         .equals(UserTopicVisibilityPolicy.unmuted);
       check(store.topicVisibilityPolicy(stream.streamId, eg.t('topic 3')))
         .equals(UserTopicVisibilityPolicy.followed);
       check(store.topicVisibilityPolicy(stream.streamId, eg.t('topic 4')))
         .equals(UserTopicVisibilityPolicy.none);
+    });
+  });
+
+  group('selfCanSendMessage', () {
+    test('in group', () {
+      addTearDown(testBinding.reset);
+      final now = testBinding.utcNow();
+
+      final canSendMessageGroup = eg.groupSetting(members: [eg.selfUser.userId]);
+      final channel = eg.stream(canSendMessageGroup: canSendMessageGroup);
+      final store = eg.store(
+        initialSnapshot: eg.initialSnapshot(streams: [channel]));
+      check(store.selfCanSendMessage(inChannel: channel, byDate: now))
+        .isTrue();
+    });
+
+    test('not in group', () {
+      addTearDown(testBinding.reset);
+      final now = testBinding.utcNow();
+
+      final canSendMessageGroup = eg.groupSetting(members: []);
+      final channel = eg.stream(canSendMessageGroup: canSendMessageGroup);
+      final store = eg.store(
+        initialSnapshot: eg.initialSnapshot(streams: [channel]));
+      check(store.selfCanSendMessage(inChannel: channel, byDate: now))
+        .isFalse();
+    });
+  });
+
+  group('selfCanSendMessage, legacy', () {
+    final testCases = [
+      (ChannelPostPolicy.unknown,        UserRole.guest,         true),
+      (ChannelPostPolicy.unknown,        UserRole.member,        true),
+      (ChannelPostPolicy.unknown,        UserRole.moderator,     true),
+      (ChannelPostPolicy.unknown,        UserRole.administrator, true),
+      (ChannelPostPolicy.unknown,        UserRole.owner,         true),
+      (ChannelPostPolicy.any,            UserRole.guest,         true),
+      (ChannelPostPolicy.any,            UserRole.member,        true),
+      (ChannelPostPolicy.any,            UserRole.moderator,     true),
+      (ChannelPostPolicy.any,            UserRole.administrator, true),
+      (ChannelPostPolicy.any,            UserRole.owner,         true),
+      (ChannelPostPolicy.fullMembers,    UserRole.guest,         false),
+      // The fullMembers/member case gets its own tests further below.
+      // (ChannelPostPolicy.fullMembers,    UserRole.member,        /* complicated */),
+      (ChannelPostPolicy.fullMembers,    UserRole.moderator,     true),
+      (ChannelPostPolicy.fullMembers,    UserRole.administrator, true),
+      (ChannelPostPolicy.fullMembers,    UserRole.owner,         true),
+      (ChannelPostPolicy.moderators,     UserRole.guest,         false),
+      (ChannelPostPolicy.moderators,     UserRole.member,        false),
+      (ChannelPostPolicy.moderators,     UserRole.moderator,     true),
+      (ChannelPostPolicy.moderators,     UserRole.administrator, true),
+      (ChannelPostPolicy.moderators,     UserRole.owner,         true),
+      (ChannelPostPolicy.administrators, UserRole.guest,         false),
+      (ChannelPostPolicy.administrators, UserRole.member,        false),
+      (ChannelPostPolicy.administrators, UserRole.moderator,     false),
+      (ChannelPostPolicy.administrators, UserRole.administrator, true),
+      (ChannelPostPolicy.administrators, UserRole.owner,         true),
+    ];
+
+    for (final (ChannelPostPolicy policy, UserRole role, bool canPost) in testCases) {
+      test('"${role.name}" user ${canPost ? 'can' : "can't"} post in channel '
+          'with "${policy.name}" policy', () {
+        final selfUserWithRole = eg.user(role: role);
+        final store = eg.store(
+          selfUser: selfUserWithRole,
+          initialSnapshot: eg.initialSnapshot(realmUsers: [selfUserWithRole]));
+        final actual = store.selfCanSendMessage(
+          inChannel: eg.stream(channelPostPolicy: policy),
+          // [byDate] is not actually relevant for these test cases; for the
+          // ones which it is, they're practiced below.
+          byDate: DateTime.now());
+        check(actual).equals(canPost);
+      });
+    }
+
+    group('"member" user posting in a channel with "fullMembers" policy', () {
+      PerAccountStore localStore({
+        required User selfUser,
+        required int realmWaitingPeriodThreshold,
+      }) => eg.store(
+        selfUser: selfUser,
+        initialSnapshot: eg.initialSnapshot(
+          realmWaitingPeriodThreshold: realmWaitingPeriodThreshold,
+          realmUsers: [selfUser]));
+
+      User memberUser({required String dateJoined}) => eg.user(
+        role: UserRole.member, dateJoined: dateJoined);
+
+      test('a "full" member -> can post in the channel', () {
+        final store = localStore(
+          selfUser: memberUser(dateJoined: '2024-11-25T10:00+00:00'),
+          realmWaitingPeriodThreshold: 3);
+        final hasPermission = store.selfCanSendMessage(
+          inChannel: eg.stream(channelPostPolicy: ChannelPostPolicy.fullMembers),
+          byDate: DateTime.utc(2024, 11, 28, 10, 00));
+        check(hasPermission).isTrue();
+      });
+
+      test('not a "full" member -> cannot post in the channel', () {
+        final store = localStore(
+          selfUser: memberUser(dateJoined: '2024-11-25T10:00+00:00'),
+          realmWaitingPeriodThreshold: 3);
+        final actual = store.selfCanSendMessage(
+          inChannel: eg.stream(channelPostPolicy: ChannelPostPolicy.fullMembers),
+          byDate: DateTime.utc(2024, 11, 28, 09, 59));
+        check(actual).isFalse();
+      });
+    });
+  });
+
+  group('makeTopicKeyedMap', () {
+    test('"a" equals "A"', () {
+      final map = makeTopicKeyedMap<int>()
+        ..[eg.t('a')] = 1
+        ..[eg.t('A')] = 2;
+      check(map)
+        ..[eg.t('a')].equals(2)
+        ..[eg.t('A')].equals(2)
+        ..entries.which((it) => it.single
+          ..key.apiName.equals('a')
+          ..value.equals(2));
+    });
+
+    test('"A" equals "a"', () {
+      final map = makeTopicKeyedMap<int>()
+        ..[eg.t('A')] = 1
+        ..[eg.t('a')] = 2;
+      check(map)
+        ..[eg.t('A')].equals(2)
+        ..[eg.t('a')].equals(2)
+        ..entries.which((it) => it.single
+          ..key.apiName.equals('A')
+          ..value.equals(2));
     });
   });
 }

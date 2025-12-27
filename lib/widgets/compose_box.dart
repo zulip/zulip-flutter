@@ -1,23 +1,32 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:mime/mime.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart' as path;
+
 import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
 import '../model/compose.dart';
+import '../model/message.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
+import 'actions.dart';
 import 'autocomplete.dart';
+import 'button.dart';
 import 'color.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
+import 'message_list.dart';
+import 'page.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -81,6 +90,10 @@ const double _composeButtonSize = 44;
 ///
 /// Subclasses must ensure that [_update] is called in all exposed constructors.
 abstract class ComposeController<ErrorT> extends TextEditingController {
+  ComposeController({super.text, required this.store});
+
+  PerAccountStore store;
+
   int get maxLengthUnicodeCodePoints;
 
   String get textNormalized => _textNormalized;
@@ -131,10 +144,10 @@ enum TopicValidationError {
   mandatoryButEmpty,
   tooLong;
 
-  String message(ZulipLocalizations zulipLocalizations) {
+  String message(ZulipLocalizations zulipLocalizations, {required int maxLength}) {
     switch (this) {
       case tooLong:
-        return zulipLocalizations.topicValidationErrorTooLong;
+        return zulipLocalizations.topicValidationErrorTooLong(maxLength);
       case mandatoryButEmpty:
         return zulipLocalizations.topicValidationErrorMandatoryButEmpty;
     }
@@ -142,17 +155,14 @@ enum TopicValidationError {
 }
 
 class ComposeTopicController extends ComposeController<TopicValidationError> {
-  ComposeTopicController({required this.store}) {
+  ComposeTopicController({super.text, required super.store}) {
     _update();
   }
-
-  PerAccountStore store;
 
   // TODO(#668): listen to [PerAccountStore] once we subscribe to this value
   bool get mandatory => store.realmMandatoryTopics;
 
-  // TODO(#307) use `max_topic_length` instead of hardcoded limit
-  @override final maxLengthUnicodeCodePoints = kMaxTopicLengthCodePoints;
+  @override int get maxLengthUnicodeCodePoints => store.maxTopicLength;
 
   @override
   String _computeTextNormalized() {
@@ -200,7 +210,6 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   void setTopic(TopicName newTopic) {
-    // ignore: dead_null_aware_expression // null topic names soon to be enabled
     value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
@@ -226,9 +235,16 @@ enum ContentValidationError {
 }
 
 class ComposeContentController extends ComposeController<ContentValidationError> {
-  ComposeContentController() {
+  ComposeContentController({
+    super.text,
+    required super.store,
+    this.requireNotEmpty = true,
+  }) {
     _update();
   }
+
+  /// Whether to produce [ContentValidationError.empty].
+  final bool requireNotEmpty;
 
   // TODO(#1237) use `max_message_length` instead of hardcoded limit
   @override final maxLengthUnicodeCodePoints = kMaxMessageLengthCodePoints;
@@ -341,7 +357,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
     final tag = _nextUploadTag;
     _nextUploadTag += 1;
     final linkText = zulipLocalizations.composeBoxUploadingFilename(filename);
-    final placeholder = inlineLink(linkText, null);
+    final placeholder = inlineLink(linkText, '');
     _uploads[tag] = (filename: filename, placeholder: placeholder);
     notifyListeners(); // _uploads change could affect validationErrors
     value = value.replaced(insertionIndex(), '$placeholder\n\n');
@@ -350,9 +366,9 @@ class ComposeContentController extends ComposeController<ContentValidationError>
 
   /// Tells the controller that a file upload has ended, with success or error.
   ///
-  /// To indicate success, pass the URL to be used for the Markdown link.
+  /// To indicate success, pass the URL string to be used for the Markdown link.
   /// If `url` is null, failure is assumed.
-  void registerUploadEnd(int tag, Uri? url) {
+  void registerUploadEnd(int tag, String? url) {
     final val = _uploads[tag];
     assert(val != null, 'registerUploadEnd called twice for same tag');
     final (:filename, :placeholder) = val!;
@@ -376,7 +392,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   @override
   List<ContentValidationError> _computeValidationErrors() {
     return [
-      if (textNormalized.isEmpty)
+      if (requireNotEmpty && textNormalized.isEmpty)
         ContentValidationError.empty,
 
       if (
@@ -394,24 +410,22 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   }
 }
 
-class _ContentInput extends StatefulWidget {
-  const _ContentInput({
-    required this.narrow,
+class _TypingNotifier extends StatefulWidget {
+  const _TypingNotifier({
     required this.destination,
     required this.controller,
-    required this.hintText,
+    required this.child,
   });
 
-  final Narrow narrow;
   final SendableNarrow destination;
   final ComposeBoxController controller;
-  final String hintText;
+  final Widget child;
 
   @override
-  State<_ContentInput> createState() => _ContentInputState();
+  State<_TypingNotifier> createState() => _TypingNotifierState();
 }
 
-class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserver {
+class _TypingNotifierState extends State<_TypingNotifier> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -421,7 +435,7 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
   }
 
   @override
-  void didUpdateWidget(covariant _ContentInput oldWidget) {
+  void didUpdateWidget(covariant _TypingNotifier oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.controller != oldWidget.controller) {
       oldWidget.controller.content.removeListener(_contentChanged);
@@ -484,6 +498,55 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
     }
   }
 
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+class _ContentInput extends StatelessWidget {
+  const _ContentInput({
+    required this.narrow,
+    required this.controller,
+    this.hintText,
+    this.enabled = true,
+  });
+
+  final Narrow narrow;
+  final ComposeBoxController controller;
+  final String? hintText;
+  final bool enabled;
+
+  void _handleContentInserted(BuildContext context, KeyboardInsertedContent content) async {
+    if (content.data == null || content.data!.isEmpty) {
+      // As of writing, the engine implementation never leaves `content.data` as
+      // `null`, but ideally it should be when the data cannot be read for
+      // errors.
+      //
+      // When `content.data` is empty, the data is not literally empty — this
+      // can also happen when the data can't be read from the input stream
+      // provided by the Android SDK because of an IO exception.
+      //
+      // See Flutter engine implementation that prepares this data:
+      //   https://github.com/flutter/flutter/blob/0ffc4ce00/engine/src/flutter/shell/platform/android/io/flutter/plugin/editing/InputConnectionAdaptor.java#L497-L548
+      // TODO(upstream): improve the API for this
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorContentNotInsertedTitle,
+        message: zulipLocalizations.errorContentToInsertIsEmpty);
+      return;
+    }
+
+    final file = FileToUpload(
+      content: Stream.fromIterable([content.data!]),
+      length: content.data!.length,
+      filename: path.basename(content.uri),
+      mimeType: content.mimeType);
+
+    await controller.uploadFiles(
+      context: context,
+      files: [file],
+      shouldRequestFocus: true);
+  }
+
   static double maxHeight(BuildContext context) {
     final clampingTextScaler = MediaQuery.textScalerOf(context)
       .clamp(maxScaleFactor: 1.5);
@@ -514,9 +577,9 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
     final designVariables = DesignVariables.of(context);
 
     return ComposeAutocomplete(
-      narrow: widget.narrow,
-      controller: widget.controller.content,
-      focusNode: widget.controller.contentFocusNode,
+      narrow: narrow,
+      controller: controller.content,
+      focusNode: controller.contentFocusNode,
       fieldViewBuilder: (context) => ConstrainedBox(
         constraints: BoxConstraints(maxHeight: maxHeight(context)),
         // This [ClipRect] replaces the [TextField] clipping we disable below.
@@ -525,8 +588,11 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
             top: _verticalPadding, bottom: _verticalPadding,
             color: designVariables.composeBoxBg,
             child: TextField(
-              controller: widget.controller.content,
-              focusNode: widget.controller.contentFocusNode,
+              enabled: enabled,
+              controller: controller.content,
+              focusNode: controller.contentFocusNode,
+              contentInsertionConfiguration: ContentInsertionConfiguration(
+                onContentInserted: (content) => _handleContentInserted(context, content)),
               // Let the content show through the `contentPadding` so that
               // our [InsetShadowBox] can fade it smoothly there.
               clipBehavior: Clip.none,
@@ -552,7 +618,7 @@ class _ContentInputState extends State<_ContentInput> with WidgetsBindingObserve
                 // that 54px distance while also making the scrolling work like
                 // this and offering two lines of touchable area.
                 contentPadding: const EdgeInsets.symmetric(vertical: _verticalPadding),
-                hintText: widget.hintText,
+                hintText: hintText,
                 hintStyle: TextStyle(
                   color: designVariables.textInput.withFadedAlpha(0.5))))))));
   }
@@ -582,11 +648,18 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     });
   }
 
+  void _topicInteractionStatusChanged() {
+    setState(() {
+      // The relevant state lives on widget.controller.topicInteractionStatus itself.
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     widget.controller.topic.addListener(_topicChanged);
     widget.controller.contentFocusNode.addListener(_contentFocusChanged);
+    widget.controller.topicInteractionStatus.addListener(_topicInteractionStatusChanged);
   }
 
   @override
@@ -600,12 +673,17 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       oldWidget.controller.contentFocusNode.removeListener(_contentFocusChanged);
       widget.controller.contentFocusNode.addListener(_contentFocusChanged);
     }
+    if (widget.controller.topicInteractionStatus != oldWidget.controller.topicInteractionStatus) {
+      oldWidget.controller.topicInteractionStatus.removeListener(_topicInteractionStatusChanged);
+      widget.controller.topicInteractionStatus.addListener(_topicInteractionStatusChanged);
+    }
   }
 
   @override
   void dispose() {
     widget.controller.topic.removeListener(_topicChanged);
     widget.controller.contentFocusNode.removeListener(_contentFocusChanged);
+    widget.controller.topicInteractionStatus.removeListener(_topicInteractionStatusChanged);
     super.dispose();
   }
 
@@ -616,11 +694,11 @@ class _StreamContentInputState extends State<_StreamContentInput> {
         // The chosen topic can't be sent to, so don't show it.
         return null;
       }
-      if (!widget.controller.contentFocusNode.hasFocus) {
-        // Do not fall back to a vacuous topic unless the user explicitly chooses
-        // to do so (by skipping topic input and moving focus to content input),
-        // so that the user is not encouraged to use vacuous topic when they
-        // have not interacted with the inputs at all.
+      if (widget.controller.topicInteractionStatus.value !=
+            ComposeTopicInteractionStatus.hasChosen) {
+        // Do not fall back to a vacuous topic unless the user explicitly
+        // chooses to do so, so that the user is not encouraged to use vacuous
+        // topic before they have interacted with the inputs at all.
         return null;
       }
     }
@@ -642,53 +720,155 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       // so don't make sense to translate. See:
       //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
       ? '#$streamName'
-      // ignore: dead_null_aware_expression // null topic names soon to be enabled
       : '#$streamName > ${hintTopic.displayName ?? store.realmEmptyTopicDisplayName}';
 
-    return _ContentInput(
-      narrow: widget.narrow,
+    return _TypingNotifier(
       destination: TopicNarrow(widget.narrow.streamId,
         TopicName(widget.controller.topic.textNormalized)),
       controller: widget.controller,
-      hintText: zulipLocalizations.composeBoxChannelContentHint(hintDestination));
+      child: _ContentInput(
+        narrow: widget.narrow,
+        controller: widget.controller,
+        hintText: zulipLocalizations.composeBoxChannelContentHint(hintDestination)));
   }
 }
 
-class _TopicInput extends StatelessWidget {
+class _TopicInput extends StatefulWidget {
   const _TopicInput({required this.streamId, required this.controller});
 
   final int streamId;
   final StreamComposeBoxController controller;
 
   @override
+  State<_TopicInput> createState() => _TopicInputState();
+}
+
+class _TopicInputState extends State<_TopicInput> {
+  void _topicOrContentFocusChanged() {
+    setState(() {
+      final status = widget.controller.topicInteractionStatus;
+      if (widget.controller.topicFocusNode.hasFocus) {
+        // topic input gains focus
+        status.value = ComposeTopicInteractionStatus.isEditing;
+      } else if (widget.controller.contentFocusNode.hasFocus) {
+        // content input gains focus
+        status.value = ComposeTopicInteractionStatus.hasChosen;
+      } else {
+        // neither input has focus, the new value of topicInteractionStatus
+        // depends on its previous value
+        if (status.value == ComposeTopicInteractionStatus.isEditing) {
+          // topic input loses focus
+          status.value = ComposeTopicInteractionStatus.notEditingNotChosen;
+        } else {
+          // content input loses focus; stay in hasChosen
+          assert(status.value == ComposeTopicInteractionStatus.hasChosen);
+        }
+      }
+    });
+  }
+
+  void _topicInteractionStatusChanged() {
+    setState(() {
+      // The actual state lives in widget.controller.topicInteractionStatus
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.topicFocusNode.addListener(_topicOrContentFocusChanged);
+    widget.controller.contentFocusNode.addListener(_topicOrContentFocusChanged);
+    widget.controller.topicInteractionStatus.addListener(_topicInteractionStatusChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _TopicInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.topicFocusNode.removeListener(_topicOrContentFocusChanged);
+      widget.controller.topicFocusNode.addListener(_topicOrContentFocusChanged);
+      oldWidget.controller.contentFocusNode.removeListener(_topicOrContentFocusChanged);
+      widget.controller.contentFocusNode.addListener(_topicOrContentFocusChanged);
+      oldWidget.controller.topicInteractionStatus.removeListener(_topicInteractionStatusChanged);
+      widget.controller.topicInteractionStatus.addListener(_topicInteractionStatusChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.topicFocusNode.removeListener(_topicOrContentFocusChanged);
+    widget.controller.contentFocusNode.removeListener(_topicOrContentFocusChanged);
+    widget.controller.topicInteractionStatus.removeListener(_topicInteractionStatusChanged);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
-    TextStyle topicTextStyle = TextStyle(
+    final store = PerAccountStoreWidget.of(context);
+
+    final topicTextStyle = TextStyle(
       fontSize: 20,
       height: 22 / 20,
       color: designVariables.textInput.withFadedAlpha(0.9),
     ).merge(weightVariableTextStyle(context, wght: 600));
 
+    // TODO(server-10) simplify away
+    final emptyTopicsSupported = store.zulipFeatureLevel >= 334;
+
+    final String hintText;
+    TextStyle hintStyle = topicTextStyle.copyWith(
+      color: designVariables.textInput.withFadedAlpha(0.5));
+
+    if (store.realmMandatoryTopics) {
+      // Something short and not distracting.
+      hintText = zulipLocalizations.composeBoxTopicHintText;
+    } else {
+      switch (widget.controller.topicInteractionStatus.value) {
+        case ComposeTopicInteractionStatus.notEditingNotChosen:
+          // Something short and not distracting.
+          hintText = zulipLocalizations.composeBoxTopicHintText;
+        case ComposeTopicInteractionStatus.isEditing:
+          // The user is actively interacting with the input.  Since topics are
+          // not mandatory, show a long hint text mentioning that they can be
+          // left empty.
+          hintText = zulipLocalizations.composeBoxEnterTopicOrSkipHintText(
+            emptyTopicsSupported
+              ? store.realmEmptyTopicDisplayName
+              : kNoTopicTopic);
+        case ComposeTopicInteractionStatus.hasChosen:
+          // The topic has likely been chosen.  Since topics are not mandatory,
+          // show the default topic display name as if the user has entered that
+          // when they left the input empty.
+          if (emptyTopicsSupported) {
+            hintText = store.realmEmptyTopicDisplayName;
+            hintStyle = topicTextStyle.copyWith(fontStyle: FontStyle.italic);
+          } else {
+            hintText = kNoTopicTopic;
+            hintStyle = topicTextStyle;
+          }
+      }
+    }
+
+    final decoration = InputDecoration(hintText: hintText, hintStyle: hintStyle);
+
     return TopicAutocomplete(
-      streamId: streamId,
-      controller: controller.topic,
-      focusNode: controller.topicFocusNode,
-      contentFocusNode: controller.contentFocusNode,
+      streamId: widget.streamId,
+      controller: widget.controller.topic,
+      focusNode: widget.controller.topicFocusNode,
+      contentFocusNode: widget.controller.contentFocusNode,
       fieldViewBuilder: (context) => Container(
         padding: const EdgeInsets.only(top: 10, bottom: 9),
         decoration: BoxDecoration(border: Border(bottom: BorderSide(
           width: 1,
           color: designVariables.foreground.withFadedAlpha(0.2)))),
         child: TextField(
-          controller: controller.topic,
-          focusNode: controller.topicFocusNode,
+          controller: widget.controller.topic,
+          focusNode: widget.controller.topicFocusNode,
           textInputAction: TextInputAction.next,
           style: topicTextStyle,
-          decoration: InputDecoration(
-            hintText: zulipLocalizations.composeBoxTopicHintText,
-            hintStyle: topicTextStyle.copyWith(
-              color: designVariables.textInput.withFadedAlpha(0.5))))));
+          decoration: decoration)));
   }
 }
 
@@ -713,7 +893,6 @@ class _FixedDestinationContentInput extends StatelessWidget {
           // Zulip expresses channels and topics, not any normal English punctuation,
           // so don't make sense to translate. See:
           //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-          // ignore: dead_null_aware_expression // null topic names soon to be enabled
           '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
@@ -721,9 +900,11 @@ class _FixedDestinationContentInput extends StatelessWidget {
 
       case DmNarrow(otherRecipientIds: [final otherUserId]):
         final store = PerAccountStoreWidget.of(context);
-        final fullName = store.getUser(otherUserId)?.fullName;
-        if (fullName == null) return zulipLocalizations.composeBoxGenericContentHint;
-        return zulipLocalizations.composeBoxDmContentHint(fullName);
+        final user = store.getUser(otherUserId);
+        if (user == null) return zulipLocalizations.composeBoxGenericContentHint;
+        // TODO write a test where the user is muted
+        return zulipLocalizations.composeBoxDmContentHint(
+          store.userDisplayName(otherUserId, replaceIfMuted: false));
 
       case DmNarrow(): // A group DM thread.
         return zulipLocalizations.composeBoxGroupDmContentHint;
@@ -732,11 +913,38 @@ class _FixedDestinationContentInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ContentInput(
-      narrow: narrow,
+    return _TypingNotifier(
       destination: narrow,
       controller: controller,
-      hintText: _hintText(context));
+      child: _ContentInput(
+        narrow: narrow,
+        controller: controller,
+        hintText: _hintText(context)));
+  }
+}
+
+class _EditMessageContentInput extends StatelessWidget {
+  const _EditMessageContentInput({
+    required this.narrow,
+    required this.controller,
+  });
+
+  final Narrow narrow;
+  final EditMessageComposeBoxController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final awaitingRawContent = ComposeBoxInheritedWidget.of(context)
+      .awaitingRawMessageContentForEdit;
+    return _ContentInput(
+      narrow: narrow,
+      controller: controller,
+      enabled: !awaitingRawContent,
+      hintText: awaitingRawContent
+        ? zulipLocalizations.preparingEditMessageContentInput
+        : null,
+    );
   }
 }
 
@@ -744,8 +952,8 @@ class _FixedDestinationContentInput extends StatelessWidget {
 ///
 /// A convenience class to represent data from the generic file picker,
 /// the media library, and the camera, in a single form.
-class _File {
-  _File({
+class FileToUpload {
+  FileToUpload({
     required this.content,
     required this.length,
     required this.filename,
@@ -762,14 +970,15 @@ Future<void> _uploadFiles({
   required BuildContext context,
   required ComposeContentController contentController,
   required FocusNode contentFocusNode,
-  required Iterable<_File> files,
+  bool shouldRequestFocus = true,
+  required Iterable<FileToUpload> files,
 }) async {
   assert(context.mounted);
   final store = PerAccountStoreWidget.of(context);
   final zulipLocalizations = ZulipLocalizations.of(context);
 
-  final List<_File> tooLargeFiles = [];
-  final List<_File> rightSizeFiles = [];
+  final List<FileToUpload> tooLargeFiles = [];
+  final List<FileToUpload> rightSizeFiles = [];
   for (final file in files) {
     if ((file.length / (1 << 20)) > store.maxFileUploadSizeMib) {
       tooLargeFiles.add(file);
@@ -792,19 +1001,19 @@ Future<void> _uploadFiles({
         listMessage));
   }
 
-  final List<(int, _File)> uploadsInProgress = [];
+  final List<(int, FileToUpload)> uploadsInProgress = [];
   for (final file in rightSizeFiles) {
     final tag = contentController.registerUploadStart(file.filename,
       zulipLocalizations);
     uploadsInProgress.add((tag, file));
   }
-  if (!contentFocusNode.hasFocus) {
+  if (shouldRequestFocus && !contentFocusNode.hasFocus) {
     contentFocusNode.requestFocus();
   }
 
   for (final (tag, file) in uploadsInProgress) {
-    final _File(:content, :length, :filename, :mimeType) = file;
-    Uri? url;
+    final FileToUpload(:content, :length, :filename, :mimeType) = file;
+    String? url;
     try {
       final result = await uploadFile(store.connection,
         content: content,
@@ -812,7 +1021,7 @@ Future<void> _uploadFiles({
         filename: filename,
         contentType: mimeType,
       );
-      url = Uri.parse(result.uri);
+      url = result.url;
     } catch (e) {
       if (!context.mounted) return;
       // TODO(#741): Specifically handle `413 Payload Too Large`
@@ -827,9 +1036,10 @@ Future<void> _uploadFiles({
 }
 
 abstract class _AttachUploadsButton extends StatelessWidget {
-  const _AttachUploadsButton({required this.controller});
+  const _AttachUploadsButton({required this.controller, required this.enabled});
 
   final ComposeBoxController controller;
+  final bool enabled;
 
   IconData get icon;
   String tooltip(ZulipLocalizations zulipLocalizations);
@@ -841,7 +1051,7 @@ abstract class _AttachUploadsButton extends StatelessWidget {
   ///
   /// To signal exiting the interaction with no files chosen,
   /// return an empty [Iterable] after showing user feedback as appropriate.
-  Future<Iterable<_File>> getFiles(BuildContext context);
+  Future<Iterable<FileToUpload>> getFiles(BuildContext context);
 
   void _handlePress(BuildContext context) async {
     final files = await getFiles(context);
@@ -855,11 +1065,10 @@ abstract class _AttachUploadsButton extends StatelessWidget {
       return;
     }
 
-    await _uploadFiles(
+    await controller.uploadFiles(
       context: context,
-      contentController: controller.content,
-      contentFocusNode: controller.contentFocusNode,
-      files: files);
+      files: files,
+      shouldRequestFocus: true);
   }
 
   @override
@@ -871,11 +1080,11 @@ abstract class _AttachUploadsButton extends StatelessWidget {
       child: IconButton(
         icon: Icon(icon, color: designVariables.foreground.withFadedAlpha(0.5)),
         tooltip: tooltip(zulipLocalizations),
-        onPressed: () => _handlePress(context)));
+        onPressed: enabled ? () => _handlePress(context) : null));
   }
 }
 
-Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type) async {
+Future<Iterable<FileToUpload>> _getFilePickerFiles(BuildContext context, FileType type) async {
   FilePickerResult? result;
   try {
     result = await ZulipBinding.instance
@@ -890,13 +1099,13 @@ Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type)
       // If the user hasn't checked "Don't ask again", they can always dismiss
       // our prompt and retry, and the permissions request will reappear,
       // letting them grant permissions and complete the upload.
-      showSuggestedActionDialog(context: context,
+      final dialog = showSuggestedActionDialog(context: context,
         title: zulipLocalizations.permissionsNeededTitle,
         message: zulipLocalizations.permissionsDeniedReadExternalStorage,
-        actionButtonText: zulipLocalizations.permissionsNeededOpenSettings,
-        onActionButtonPress: () {
-          AppSettings.openAppSettings();
-        });
+        actionButtonText: zulipLocalizations.permissionsNeededOpenSettings);
+      if (await dialog.result == true) {
+        unawaited(AppSettings.openAppSettings());
+      }
     } else {
       showErrorDialog(context: context,
         title: zulipLocalizations.errorDialogTitle,
@@ -920,7 +1129,7 @@ Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type)
       f.path ?? '',
       headerBytes: f.bytes?.take(defaultMagicNumbersMaxLength).toList(),
     );
-    return _File(
+    return FileToUpload(
       content: f.readStream!,
       length: f.size,
       filename: f.name,
@@ -930,7 +1139,7 @@ Future<Iterable<_File>> _getFilePickerFiles(BuildContext context, FileType type)
 }
 
 class _AttachFileButton extends _AttachUploadsButton {
-  const _AttachFileButton({required super.controller});
+  const _AttachFileButton({required super.controller, required super.enabled});
 
   @override
   IconData get icon => ZulipIcons.attach_file;
@@ -940,13 +1149,13 @@ class _AttachFileButton extends _AttachUploadsButton {
     zulipLocalizations.composeBoxAttachFilesTooltip;
 
   @override
-  Future<Iterable<_File>> getFiles(BuildContext context) async {
+  Future<Iterable<FileToUpload>> getFiles(BuildContext context) async {
     return _getFilePickerFiles(context, FileType.any);
   }
 }
 
 class _AttachMediaButton extends _AttachUploadsButton {
-  const _AttachMediaButton({required super.controller});
+  const _AttachMediaButton({required super.controller, required super.enabled});
 
   @override
   IconData get icon => ZulipIcons.image;
@@ -956,14 +1165,14 @@ class _AttachMediaButton extends _AttachUploadsButton {
     zulipLocalizations.composeBoxAttachMediaTooltip;
 
   @override
-  Future<Iterable<_File>> getFiles(BuildContext context) async {
+  Future<Iterable<FileToUpload>> getFiles(BuildContext context) async {
     // TODO(#114): This doesn't give quite the right UI on Android.
     return _getFilePickerFiles(context, FileType.media);
   }
 }
 
 class _AttachFromCameraButton extends _AttachUploadsButton {
-  const _AttachFromCameraButton({required super.controller});
+  const _AttachFromCameraButton({required super.controller, required super.enabled});
 
   @override
   IconData get icon => ZulipIcons.camera;
@@ -973,7 +1182,7 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
       zulipLocalizations.composeBoxAttachFromCameraTooltip;
 
   @override
-  Future<Iterable<_File>> getFiles(BuildContext context) async {
+  Future<Iterable<FileToUpload>> getFiles(BuildContext context) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final XFile? result;
     try {
@@ -991,13 +1200,13 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
         // permission-request alert once, the first time the app wants to
         // use a protected resource. After that, the only way the user can
         // grant it is in Settings.
-        showSuggestedActionDialog(context: context,
+        final dialog = showSuggestedActionDialog(context: context,
           title: zulipLocalizations.permissionsNeededTitle,
           message: zulipLocalizations.permissionsDeniedCameraAccess,
-          actionButtonText: zulipLocalizations.permissionsNeededOpenSettings,
-          onActionButtonPress: () {
-            AppSettings.openAppSettings();
-          });
+          actionButtonText: zulipLocalizations.permissionsNeededOpenSettings);
+        if (await dialog.result == true) {
+          unawaited(AppSettings.openAppSettings());
+        }
       } else {
         showErrorDialog(context: context,
           title: zulipLocalizations.errorDialogTitle,
@@ -1024,7 +1233,7 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
     } catch (e) {
       // TODO(log)
     }
-    return [_File(
+    return [FileToUpload(
       content: result.openRead(),
       length: length,
       filename: result.name,
@@ -1166,11 +1375,12 @@ class _SendButtonState extends State<_SendButton> {
 
     if (_hasValidationErrors) {
       final zulipLocalizations = ZulipLocalizations.of(context);
+      final store = PerAccountStoreWidget.of(context);
       List<String> validationErrorMessages = [
         for (final error in (controller is StreamComposeBoxController
                               ? controller.topic.validationErrors
                               : const <TopicValidationError>[]))
-          error.message(zulipLocalizations),
+          error.message(zulipLocalizations, maxLength: store.maxTopicLength),
         for (final error in controller.content.validationErrors)
           error.message(zulipLocalizations),
       ];
@@ -1185,15 +1395,8 @@ class _SendButtonState extends State<_SendButton> {
     final content = controller.content.textNormalized;
 
     controller.content.clear();
-    // The following `stoppedComposing` call is currently redundant,
-    // because clearing input sends a "typing stopped" notice.
-    // It will be necessary once we resolve #720.
-    store.typingNotifier.stoppedComposing();
 
     try {
-      // TODO(#720) clear content input only on success response;
-      //   while waiting, put input(s) and send button into a disabled
-      //   "working on it" state (letting input text be selected for copying).
       await store.sendMessage(destination: widget.getDestination(), content: content);
     } on ApiRequestException catch (e) {
       if (!mounted) return;
@@ -1285,7 +1488,6 @@ class _ComposeBoxContainer extends StatelessWidget {
         border: Border(top: BorderSide(color: designVariables.borderBar)),
         boxShadow: ComposeBoxTheme.of(context).boxShadow,
       ),
-      // TODO(#720) try a Stack for the overlaid linear progress indicator
       child: Material(
         color: designVariables.composeBoxBg,
         child: Column(
@@ -1302,7 +1504,8 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 
   Widget? buildTopicInput();
   Widget buildContentInput();
-  Widget buildSendButton();
+  bool getComposeButtonsEnabled(BuildContext context);
+  Widget? buildSendButton();
 
   @override
   Widget build(BuildContext context) {
@@ -1328,14 +1531,19 @@ abstract class _ComposeBoxBody extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(4)))));
 
+    final composeButtonsEnabled = getComposeButtonsEnabled(context);
     final composeButtons = [
       _AttachFileButton(controller: controller),
       _AttachMediaButton(controller: controller),
       _AttachFromCameraButton(controller: controller),
       _AttachGlobalTimeButton(controller: controller),
+      _AttachFileButton(controller: controller, enabled: composeButtonsEnabled),
+      _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
+      _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
     ];
 
     final topicInput = buildTopicInput();
+    final sendButton = buildSendButton();
     return Column(children: [
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -1353,7 +1561,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(children: composeButtons),
-              buildSendButton(),
+              if (sendButton != null) sendButton,
             ]))),
     ]);
   }
@@ -1382,6 +1590,8 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
     controller: controller,
   );
 
+  @override bool getComposeButtonsEnabled(BuildContext context) => true;
+
   @override Widget buildSendButton() => _SendButton(
     controller: controller,
     getDestination: () => StreamDestination(
@@ -1405,15 +1615,77 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
     controller: controller,
   );
 
+  @override bool getComposeButtonsEnabled(BuildContext context) => true;
+
   @override Widget buildSendButton() => _SendButton(
     controller: controller,
     getDestination: () => narrow.destination,
   );
 }
 
+/// A compose box for editing an already-sent message.
+class _EditMessageComposeBoxBody extends _ComposeBoxBody {
+  _EditMessageComposeBoxBody({required this.narrow, required this.controller});
+
+  @override
+  final Narrow narrow;
+
+  @override
+  final EditMessageComposeBoxController controller;
+
+  @override Widget? buildTopicInput() => null;
+
+  @override Widget buildContentInput() => _EditMessageContentInput(
+    narrow: narrow,
+    controller: controller);
+
+  @override bool getComposeButtonsEnabled(BuildContext context) =>
+    !ComposeBoxInheritedWidget.of(context).awaitingRawMessageContentForEdit;
+
+  @override Widget? buildSendButton() => null;
+}
+
 sealed class ComposeBoxController {
-  final content = ComposeContentController();
+  ComposeBoxController({required PerAccountStore store})
+    : content = ComposeContentController(store: store);
+
+  final ComposeContentController content;
   final contentFocusNode = FocusNode();
+
+  /// If no input is focused, requests focus on the appropriate input.
+  ///
+  /// This encapsulates choosing the topic or content input
+  /// when both exist (see [StreamComposeBoxController.requestFocusIfUnfocused]).
+  void requestFocusIfUnfocused() {
+    if (contentFocusNode.hasFocus) return;
+    contentFocusNode.requestFocus();
+  }
+
+  /// Uploads the provided files, populating the content input with their links.
+  ///
+  /// If any of the files are larger than maximum file size allowed by the
+  /// server, an error dialog is shown mentioning their names and actual
+  /// file sizes.
+  ///
+  /// While uploading, a placeholder link is inserted in the content input and
+  /// if [shouldRequestFocus] is true it will be focused. And then after
+  /// uploading completes successfully the placeholder link will be replaced
+  /// with an actual link.
+  ///
+  /// If there is an error while uploading a file, then an error dialog is
+  /// shown mentioning the corresponding file name.
+  Future<void> uploadFiles({
+    required BuildContext context,
+    required Iterable<FileToUpload> files,
+    required bool shouldRequestFocus,
+  }) async {
+    await _uploadFiles(
+      context: context,
+      contentController: content,
+      contentFocusNode: contentFocusNode,
+      shouldRequestFocus: shouldRequestFocus,
+      files: files);
+  }
 
   @mustCallSuper
   void dispose() {
@@ -1422,102 +1694,301 @@ sealed class ComposeBoxController {
   }
 }
 
+/// Represent how a user has interacted with topic and content inputs.
+///
+/// State-transition diagram:
+///
+/// ```
+///                       (default)
+///    Topic input            │          Content input
+///    lost focus.            ▼          gained focus.
+///   ┌────────────► notEditingNotChosen ────────────┐
+///   │                                 │            │
+///   │         Topic input             │            │
+///   │         gained focus.           │            │
+///   │       ◄─────────────────────────┘            ▼
+/// isEditing ◄───────────────────────────── hasChosen
+///   │         Focus moved from             ▲ │     ▲
+///   │         content to topic.            │ │     │
+///   │                                      │ │     │
+///   └──────────────────────────────────────┘ └─────┘
+///    Focus moved from                        Content input loses focus
+///    topic to content.                       without topic input gaining it.
+/// ```
+///
+/// This state machine offers the following invariants:
+/// - When topic input has focus, the status must be [isEditing].
+/// - When content input has focus, the status must be [hasChosen].
+/// - When neither input has focus, and content input was the last
+///   input among the two to be focused, the status must be [hasChosen].
+/// - Otherwise, the status must be [notEditingNotChosen].
+enum ComposeTopicInteractionStatus {
+  /// The topic has likely not been chosen if left empty,
+  /// and is not being actively edited.
+  ///
+  /// When in this status neither the topic input nor the content input has focus.
+  notEditingNotChosen,
+
+  /// The topic is being actively edited.
+  ///
+  /// When in this status, the topic input must have focus.
+  isEditing,
+
+  /// The topic has likely been chosen, even if it is left empty.
+  ///
+  /// When in this status, the topic input must have no focus;
+  /// the content input might have focus.
+  hasChosen,
+}
+
 class StreamComposeBoxController extends ComposeBoxController {
-  StreamComposeBoxController({required PerAccountStore store})
+  StreamComposeBoxController({required super.store})
     : topic = ComposeTopicController(store: store);
 
   final ComposeTopicController topic;
   final topicFocusNode = FocusNode();
+  final ValueNotifier<ComposeTopicInteractionStatus> topicInteractionStatus =
+    ValueNotifier(ComposeTopicInteractionStatus.notEditingNotChosen);
+
+  @override void requestFocusIfUnfocused() {
+    if (topicFocusNode.hasFocus || contentFocusNode.hasFocus) return;
+    switch (topicInteractionStatus.value) {
+      case ComposeTopicInteractionStatus.notEditingNotChosen:
+        topicFocusNode.requestFocus();
+      case ComposeTopicInteractionStatus.isEditing:
+        // (should be impossible given early-return on topicFocusNode.hasFocus)
+        break;
+      case ComposeTopicInteractionStatus.hasChosen:
+        contentFocusNode.requestFocus();
+    }
+  }
 
   @override
   void dispose() {
     topic.dispose();
     topicFocusNode.dispose();
+    topicInteractionStatus.dispose();
     super.dispose();
   }
 }
 
-class FixedDestinationComposeBoxController extends ComposeBoxController {}
+class FixedDestinationComposeBoxController extends ComposeBoxController {
+  FixedDestinationComposeBoxController({required super.store});
+}
 
-abstract class _Banner extends StatelessWidget {
-  const _Banner();
+class EditMessageComposeBoxController extends ComposeBoxController {
+  EditMessageComposeBoxController({
+    required super.store,
+    required this.messageId,
+    required this.originalRawContent,
+    required String? initialText,
+  }) : _content = ComposeContentController(
+                    text: initialText,
+                    store: store,
+                    // Editing to delete the content is a supported form of
+                    // deletion: https://zulip.com/help/delete-a-message#delete-message-content
+                    requireNotEmpty: false);
 
-  String getLabel(ZulipLocalizations zulipLocalizations);
-  Color getLabelColor(DesignVariables designVariables);
-  Color getBackgroundColor(DesignVariables designVariables);
+  factory EditMessageComposeBoxController.empty(PerAccountStore store, int messageId) =>
+    EditMessageComposeBoxController(store: store, messageId: messageId,
+      originalRawContent: null, initialText: null);
 
-  /// A trailing element, with no outer padding for spacing/positioning.
+  @override ComposeContentController get content => _content;
+  final ComposeContentController _content;
+
+  final int messageId;
+  String? originalRawContent;
+}
+
+/// A banner to display over or instead of interactive compose-box content.
+///
+/// Must have a [PageRoot] ancestor.
+class _Banner extends StatelessWidget {
+  const _Banner({
+    required this.intent,
+    required this.label,
+    this.trailing,
+    this.padEnd = true, // ignore: unused_element_parameter
+  });
+
+  final _BannerIntent intent;
+  final String label;
+
+  /// An optional trailing element.
   ///
-  /// To control the element's distance from the end edge, override [padEnd].
-  Widget? buildTrailing(BuildContext context);
+  /// It should include vertical but not horizontal outer padding
+  /// for spacing/positioning.
+  ///
+  /// An interactive element's touchable area should have height at least 44px,
+  /// with some of that as "slop" vertical outer padding above and below
+  /// what gets painted:
+  ///   https://github.com/zulip/zulip-flutter/pull/1432#discussion_r2023907300
+  ///
+  /// To control the element's distance from the end edge, use [padEnd].
+  // An "x" button could go here.
+  // 24px square with 8px touchable padding in all directions?
+  // and `padEnd: false`; see Figma:
+  //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=4031-17029&m=dev
+  final Widget? trailing;
 
   /// Whether to apply `end: 8` in [SafeArea.minimum].
   ///
-  /// Subclasses can use `false` when the [buildTrailing] element
+  /// Pass `false` when the [trailing] element
   /// is meant to abut the edge of the screen
   /// in the common case that there are no horizontal device insets.
-  bool get padEnd => true;
+  ///
+  /// Defaults to `true`.
+  final bool padEnd;
 
   @override
   Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
+
+    final (labelColor, backgroundColor) = switch (intent) {
+      _BannerIntent.info =>
+        (designVariables.bannerTextIntInfo, designVariables.bannerBgIntInfo),
+      _BannerIntent.warning =>
+        (designVariables.btnLabelAttMediumIntWarning, designVariables.bannerBgIntWarning),
+      _BannerIntent.danger =>
+        (designVariables.btnLabelAttMediumIntDanger, designVariables.bannerBgIntDanger),
+    };
+
     final labelTextStyle = TextStyle(
       fontSize: 17,
       height: 22 / 17,
-      color: getLabelColor(designVariables),
+      color: labelColor,
     ).merge(weightVariableTextStyle(context, wght: 600));
 
-    final trailing = buildTrailing(context);
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: getBackgroundColor(designVariables)),
+      decoration: BoxDecoration(color: backgroundColor),
       child: SafeArea(
         minimum: EdgeInsetsDirectional.only(start: 8, end: padEnd ? 8 : 0)
           // (SafeArea.minimum doesn't take an EdgeInsetsDirectional)
           .resolve(Directionality.of(context)),
         child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(8, 5, 0, 5),
+          padding: const EdgeInsetsDirectional.only(start: 8),
           child: Row(
             children: [
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(style: labelTextStyle,
-                    getLabel(zulipLocalizations)))),
+                  padding: const EdgeInsets.symmetric(vertical: 9),
+                  child: Text(
+                    style: labelTextStyle,
+                    textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
+                    label))),
               if (trailing != null) ...[
                 const SizedBox(width: 8),
-                trailing,
+                trailing!,
               ],
             ]))));
   }
 }
 
-class _ErrorBanner extends _Banner {
-  const _ErrorBanner({
-    required String Function(ZulipLocalizations) getLabel,
-  }) : _getLabel = getLabel;
+enum _BannerIntent {
+  info,
+  warning,
+  danger,
+}
+
+class _UnsubscribedChannelBannerTrailing extends StatelessWidget {
+  const _UnsubscribedChannelBannerTrailing({required this.channelId});
+
+  final int channelId;
 
   @override
-  String getLabel(ZulipLocalizations zulipLocalizations) =>
-    _getLabel(zulipLocalizations);
-  final String Function(ZulipLocalizations) _getLabel;
+  Widget build(BuildContext context) {
+    // (A BuildContext that's expected to remain mounted until the whole page
+    // disappears, which may be long after the banner disappears.)
+    final pageContext = PageRoot.contextOf(context);
+
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
+    return Row(mainAxisSize: MainAxisSize.min, spacing: 8, children: [
+      ZulipWebUiKitButton(
+        label: zulipLocalizations.composeBoxBannerButtonRefresh,
+        intent: ZulipWebUiKitButtonIntent.warning,
+        onPressed: () {
+          MessageListPage.ancestorOf(pageContext).refresh();
+        }),
+      ZulipWebUiKitButton(
+        label: zulipLocalizations.composeBoxBannerButtonSubscribe,
+        intent: ZulipWebUiKitButtonIntent.warning,
+        attention: ZulipWebUiKitButtonAttention.high,
+        onPressed: () async {
+          await ZulipAction.subscribeToChannel(pageContext, channelId: channelId);
+          if (!pageContext.mounted) return;
+          MessageListPage.ancestorOf(pageContext).refresh();
+        }),
+    ]);
+  }
+}
+
+class _EditMessageBannerTrailing extends StatelessWidget {
+  const _EditMessageBannerTrailing({required this.composeBoxState});
+
+  final ComposeBoxState composeBoxState;
+
+  void _handleTapSave (BuildContext context) async {
+    // (A BuildContext that's expected to remain mounted until the whole page
+    // disappears, which may be long after the banner disappears.)
+    final pageContext = PageRoot.contextOf(context);
+
+    final store = PerAccountStoreWidget.of(pageContext);
+    final controller = composeBoxState.controller;
+    if (controller is! EditMessageComposeBoxController) return; // TODO(log)
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
+
+    if (controller.content.hasValidationErrors.value) {
+      final validationErrorMessages =
+        controller.content.validationErrors.map((error) =>
+          error.message(zulipLocalizations));
+      showErrorDialog(context: pageContext,
+        title: zulipLocalizations.errorMessageEditNotSaved,
+        message: validationErrorMessages.join('\n\n'));
+      return;
+    }
+
+    final originalRawContent = controller.originalRawContent;
+    if (originalRawContent == null) {
+      // Fetch-raw-content request hasn't finished; try again later.
+      // TODO show error dialog?
+      return;
+    }
+
+    final messageId = controller.messageId;
+    final newContent = controller.content.textNormalized;
+    composeBoxState.endEditInteraction();
+
+    try {
+      await store.editMessage(
+        messageId: messageId,
+        originalRawContent: originalRawContent,
+        newContent: newContent);
+    } on ApiRequestException catch (e) {
+      if (!pageContext.mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(pageContext);
+      final message = switch (e) {
+        ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
+        _ => e.message,
+      };
+      showErrorDialog(context: pageContext,
+        title: zulipLocalizations.errorMessageEditNotSaved,
+        message: message);
+      return;
+    }
+  }
 
   @override
-  Color getLabelColor(DesignVariables designVariables) =>
-    designVariables.btnLabelAttMediumIntDanger;
-
-  @override
-  Color getBackgroundColor(DesignVariables designVariables) =>
-    designVariables.bannerBgIntDanger;
-
-  @override
-  Widget? buildTrailing(context) {
-    // TODO(#720) "x" button goes here.
-    //   24px square with 8px touchable padding in all directions?
-    //   and `bool get padEnd => false`; see Figma:
-    //     https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=4031-17029&m=dev
-    return null;
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return Row(mainAxisSize: MainAxisSize.min, spacing: 8, children: [
+      ZulipWebUiKitButton(label: zulipLocalizations.composeBoxBannerButtonCancel,
+        onPressed: composeBoxState.endEditInteraction),
+      // TODO(#1481) disabled appearance when there are validation errors
+      //   or the original raw content hasn't loaded yet
+      ZulipWebUiKitButton(label: zulipLocalizations.composeBoxBannerButtonSave,
+        attention: ZulipWebUiKitButtonAttention.high,
+        onPressed: () => _handleTapSave(context)),
+    ]);
   }
 }
 
@@ -1541,6 +2012,7 @@ class ComposeBox extends StatefulWidget {
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
+      case KeywordSearchNarrow():
         return false;
     }
   }
@@ -1552,6 +2024,32 @@ class ComposeBox extends StatefulWidget {
 /// The interface for the state of a [ComposeBox].
 abstract class ComposeBoxState extends State<ComposeBox> {
   ComposeBoxController get controller;
+
+  /// Fills the compose box with the content of an [OutboxMessage]
+  /// for a failed [sendMessage] request.
+  ///
+  /// If there is already text in the compose box, gives a confirmation dialog
+  /// to confirm that it is OK to discard that text.
+  ///
+  /// [localMessageId], as in [OutboxMessage.localMessageId], must be present
+  /// in the message store.
+  void restoreMessageNotSent(int localMessageId);
+
+  /// Switch the compose box to editing mode.
+  ///
+  /// If there is already text in the compose box, gives a confirmation dialog
+  /// to confirm that it is OK to discard that text.
+  ///
+  /// If called from the message action sheet, fetches the raw message content
+  /// to fill in the edit-message compose box.
+  ///
+  /// If called by tapping a message in the message list with 'EDIT NOT SAVED',
+  /// fills the edit-message compose box with the content the user wanted
+  /// in the edit request that failed.
+  void startEditInteraction(int messageId);
+
+  /// Switch the compose box back to regular non-edit mode, with no content.
+  void endEditInteraction();
 }
 
 class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateMixin<ComposeBox> implements ComposeBoxState {
@@ -1559,21 +2057,183 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   ComposeBoxController? _controller;
 
   @override
+  void restoreMessageNotSent(int localMessageId) async {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final abort = await _abortBecauseContentInputNotEmpty(
+      dialogMessage: zulipLocalizations.discardDraftForOutboxConfirmationDialogMessage);
+    if (abort || !mounted) return;
+
+    final store = PerAccountStoreWidget.of(context);
+    final outboxMessage = store.takeOutboxMessage(localMessageId);
+    setState(() {
+      _setNewController(store);
+      final controller = this.controller;
+      controller
+        ..content.value = TextEditingValue(text: outboxMessage.contentMarkdown)
+        ..contentFocusNode.requestFocus();
+      if (controller is StreamComposeBoxController) {
+        controller.topic.setTopic(
+          (outboxMessage.conversation as StreamConversation).topic);
+      }
+    });
+  }
+
+  @override
+  void startEditInteraction(int messageId) async {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final abort = await _abortBecauseContentInputNotEmpty(
+      dialogMessage: zulipLocalizations.discardDraftForEditConfirmationDialogMessage);
+    if (abort || !mounted) return;
+
+    final store = PerAccountStoreWidget.of(context);
+
+    switch (store.getEditMessageErrorStatus(messageId)) {
+      case null:
+        _editFromRawContentFetch(messageId);
+      case true:
+        _editByRestoringFailedEdit(messageId);
+      case false:
+        // This can happen if you start an edit interaction on one
+        // MessageListPage and then do an edit on a different MessageListPage,
+        // and the second edit is still saving when you return to the first.
+        //
+        // Abort rather than sending a request with a prevContentSha256
+        // that the server might not accept, and don't clear the compose
+        // box, so the user can try again after the request settles.
+        // TODO could write a test for this
+        showErrorDialog(context: context,
+          title: zulipLocalizations.editAlreadyInProgressTitle,
+          message: zulipLocalizations.editAlreadyInProgressMessage);
+        return;
+    }
+  }
+
+  /// If there's text in the compose box, give a confirmation dialog
+  /// asking if it can be discarded and await the result.
+  Future<bool> _abortBecauseContentInputNotEmpty({
+    required String dialogMessage,
+  }) async {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    if (controller.content.textNormalized.isNotEmpty) {
+      final dialog = showSuggestedActionDialog(context: context,
+        title: zulipLocalizations.discardDraftConfirmationDialogTitle,
+        message: dialogMessage,
+        destructiveActionButton: true,
+        actionButtonText: zulipLocalizations.discardDraftConfirmationDialogConfirmButton);
+      if (await dialog.result != true) return true;
+    }
+    return false;
+  }
+
+  void _editByRestoringFailedEdit(int messageId) {
+    final store = PerAccountStoreWidget.of(context);
+    // Fill the content input with the content the user wanted in the failed
+    // edit attempt, not the original content.
+    // Side effect: Clears the "EDIT NOT SAVED" text in the message list.
+    final failedEdit = store.takeFailedMessageEdit(messageId);
+    setState(() {
+      controller.dispose();
+      _controller = EditMessageComposeBoxController(
+        store: store,
+        messageId: messageId,
+        originalRawContent: failedEdit.originalRawContent,
+        initialText: failedEdit.newContent,
+      )
+        ..contentFocusNode.requestFocus();
+    });
+  }
+
+  void _editFromRawContentFetch(int messageId) async {
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final emptyEditController = EditMessageComposeBoxController.empty(store, messageId);
+    setState(() {
+      controller.dispose();
+      _controller = emptyEditController;
+    });
+    final fetchedRawContent = await ZulipAction.fetchRawContentWithFeedback(
+      context: context,
+      messageId: messageId,
+      errorDialogTitle: zulipLocalizations.errorCouldNotEditMessageTitle,
+    );
+    // TODO timeout this request?
+    if (!mounted) return;
+    if (!identical(controller, emptyEditController)) {
+      // During the fetch-raw-content request, the user tapped Cancel
+      // or tapped a failed message edit or failed outbox message to restore.
+      // TODO in this case we don't want the error dialog caused by
+      //   ZulipAction.fetchRawContentWithFeedback; suppress that
+      return;
+    }
+    if (fetchedRawContent == null) {
+      // Fetch-raw-content failed; abort the edit session.
+      // An error dialog was already shown, by fetchRawContentWithFeedback.
+      setState(() {
+        _setNewController(PerAccountStoreWidget.of(context));
+      });
+      return;
+    }
+    // TODO scroll message list to ensure the message is still in view;
+    //   highlight it?
+    assert(controller is EditMessageComposeBoxController);
+    final editMessageController = controller as EditMessageComposeBoxController;
+    setState(() {
+      // setState to refresh the input, upload buttons, etc.
+      // out of the disabled "Preparing…" state.
+      editMessageController.originalRawContent = fetchedRawContent;
+    });
+    editMessageController.content.value = TextEditingValue(text: fetchedRawContent);
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      // post-frame callback so this happens after the input is enabled
+      editMessageController.contentFocusNode.requestFocus();
+    });
+  }
+
+  @override
+  void endEditInteraction() {
+    assert(controller is EditMessageComposeBoxController);
+    if (controller is! EditMessageComposeBoxController) return; // TODO(log)
+
+    final store = PerAccountStoreWidget.of(context);
+    setState(() {
+      _setNewController(store);
+    });
+  }
+
+  @override
   void onNewStore() {
+    final newStore = PerAccountStoreWidget.of(context);
+
+    final controller = _controller;
+    if (controller == null) {
+      _setNewController(newStore);
+      return;
+    }
+
+    switch (controller) {
+      case StreamComposeBoxController():
+        controller.content.store = newStore;
+        controller.topic.store = newStore;
+      case FixedDestinationComposeBoxController():
+      case EditMessageComposeBoxController():
+        controller.content.store = newStore;
+    }
+  }
+
+  void _setNewController(PerAccountStore store) {
+    _controller?.dispose(); // `?.` because this might be the first call
     switch (widget.narrow) {
       case ChannelNarrow():
-        final store = PerAccountStoreWidget.of(context);
-        if (_controller == null) {
-          _controller = StreamComposeBoxController(store: store);
-        } else {
-          (controller as StreamComposeBoxController).topic.store = store;
-        }
+        _controller = StreamComposeBoxController(store: store);
       case TopicNarrow():
       case DmNarrow():
-        _controller = FixedDestinationComposeBoxController();
+        _controller = FixedDestinationComposeBoxController(store: store);
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
+      case KeywordSearchNarrow():
         assert(false);
     }
   }
@@ -1584,30 +2244,48 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     super.dispose();
   }
 
-  /// An [_ErrorBanner] that replaces the compose box's text inputs.
-  Widget? _errorBannerComposingNotAllowed(BuildContext context) {
+  /// A [_Banner] that replaces the compose box's text inputs.
+  Widget? _bannerComposingNotAllowed(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     switch (widget.narrow) {
       case ChannelNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         final channel = store.streams[streamId];
-        if (channel == null || !store.hasPostingPermission(inChannel: channel,
-            user: store.selfUser, byDate: DateTime.now())) {
-          return _ErrorBanner(getLabel: (zulipLocalizations) =>
-            zulipLocalizations.errorBannerCannotPostInChannelLabel);
+        if (channel == null) {
+          return _Banner(
+            intent: _BannerIntent.info,
+            // TODO this doesn't seem like exactly the right message --
+            //   it makes it sound like the channel exists, which might not be
+            //   true. (We'll get here if the channel doesn't exist or if it
+            //   exists but we don't have permission to know about it.)
+            label: zulipLocalizations.errorBannerCannotPostInChannelLabel);
+        }
+
+        if (!store.selfCanSendMessage(inChannel: channel, byDate: DateTime.now())) {
+          return (channel is Subscription)
+            ? _Banner(
+                intent: _BannerIntent.info,
+                label: zulipLocalizations.errorBannerCannotPostInChannelLabel)
+            : _Banner(
+                intent: _BannerIntent.warning,
+                label: zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend,
+                trailing: _UnsubscribedChannelBannerTrailing(channelId: streamId));
         }
 
       case DmNarrow(:final otherRecipientIds):
         final hasDeactivatedUser = otherRecipientIds.any((id) =>
           !(store.getUser(id)?.isActive ?? true));
         if (hasDeactivatedUser) {
-          return _ErrorBanner(getLabel: (zulipLocalizations) =>
-            zulipLocalizations.errorBannerDeactivatedDmLabel);
+          return _Banner(
+            intent: _BannerIntent.info,
+            label: zulipLocalizations.errorBannerDeactivatedDmLabel);
         }
 
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
+      case KeywordSearchNarrow():
         return null;
     }
     return null;
@@ -1615,12 +2293,16 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   @override
   Widget build(BuildContext context) {
-    final Widget? body;
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final errorBanner = _errorBannerComposingNotAllowed(context);
-    if (errorBanner != null) {
-      return _ComposeBoxContainer(body: null, banner: errorBanner);
+    final bannerComposingNotAllowed = _bannerComposingNotAllowed(context);
+    if (bannerComposingNotAllowed != null) {
+      return ComposeBoxInheritedWidget.fromComposeBoxState(this,
+        child: _ComposeBoxContainer(body: null, banner: bannerComposingNotAllowed));
     }
+
+    final Widget? body;
+    Widget? banner;
 
     final controller = this.controller;
     final narrow = widget.narrow;
@@ -1633,13 +2315,50 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         narrow as SendableNarrow;
         body = _FixedDestinationComposeBoxBody(controller: controller, narrow: narrow);
       }
+      case EditMessageComposeBoxController(): {
+        body = _EditMessageComposeBoxBody(controller: controller, narrow: narrow);
+        banner = _Banner(
+          intent: _BannerIntent.info,
+          label: zulipLocalizations.composeBoxBannerLabelEditMessage,
+          trailing: _EditMessageBannerTrailing(composeBoxState: this));
+      }
     }
 
-    // TODO(#720) dismissable message-send error, maybe something like:
-    //     if (controller.sendMessageError.value != null) {
-    //       errorBanner = _ErrorBanner(label:
-    //         ZulipLocalizations.of(context).errorSendMessageTimeout);
-    //     }
-    return _ComposeBoxContainer(body: body, banner: null);
+    return ComposeBoxInheritedWidget.fromComposeBoxState(this,
+      child: _ComposeBoxContainer(body: body, banner: banner));
+  }
+}
+
+/// An [InheritedWidget] to provide data to leafward [StatelessWidget]s,
+/// such as flags that should cause the upload buttons to be disabled.
+class ComposeBoxInheritedWidget extends InheritedWidget {
+  factory ComposeBoxInheritedWidget.fromComposeBoxState(
+    ComposeBoxState state, {
+    required Widget child,
+  }) {
+    final controller = state.controller;
+    return ComposeBoxInheritedWidget._(
+      awaitingRawMessageContentForEdit:
+        controller is EditMessageComposeBoxController
+        && controller.originalRawContent == null,
+      child: child,
+    );
+  }
+
+  const ComposeBoxInheritedWidget._({
+    required this.awaitingRawMessageContentForEdit,
+    required super.child,
+  });
+
+  final bool awaitingRawMessageContentForEdit;
+
+  @override
+  bool updateShouldNotify(covariant ComposeBoxInheritedWidget oldWidget) =>
+    awaitingRawMessageContentForEdit != oldWidget.awaitingRawMessageContentForEdit;
+
+  static ComposeBoxInheritedWidget of(BuildContext context) {
+    final widget = context.dependOnInheritedWidgetOfExactType<ComposeBoxInheritedWidget>();
+    assert(widget != null, 'No ComposeBoxInheritedWidget ancestor');
+    return widget!;
   }
 }

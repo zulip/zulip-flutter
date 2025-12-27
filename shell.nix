@@ -12,7 +12,7 @@ mkShell {
     gtk3  # Curiously `nix-env -i` can't handle this one adequately.
           # But `nix-shell` on this shell.nix does fine.
     pcre
-    epoxy
+    libepoxy
 
     # This group all seem not strictly necessary -- commands like
     # `flutter run -d linux` seem to *work* fine without them, but
@@ -34,9 +34,11 @@ mkShell {
     xorg.libXtst.out
     pcre2.dev
 
-    jdk11
+    jdk17
     android-studio
     android-tools
+
+    nodejs
   ];
 
   LD_LIBRARY_PATH = lib.makeLibraryPath [

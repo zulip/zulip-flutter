@@ -19,7 +19,10 @@ sealed class Narrow {
   /// This does not necessarily mean the message list would show this message
   /// when navigated to this narrow; in particular it does not address the
   /// question of whether the stream or topic, or the sending user, is muted.
-  bool containsMessage(Message message);
+  ///
+  /// Null when the client is unable to predict whether the message
+  /// satisfies the filters of this narrow, e.g. when this is a search narrow.
+  bool? containsMessage(MessageBase message);
 
   /// This narrow, expressed as an [ApiNarrow].
   ApiNarrow apiEncode();
@@ -47,7 +50,7 @@ class CombinedFeedNarrow extends Narrow {
   const CombinedFeedNarrow();
 
   @override
-  bool containsMessage(Message message) {
+  bool containsMessage(MessageBase message) {
     return true;
   }
 
@@ -71,12 +74,13 @@ class ChannelNarrow extends Narrow {
   final int streamId;
 
   @override
-  bool containsMessage(Message message) {
-    return message is StreamMessage && message.streamId == streamId;
+  bool containsMessage(MessageBase message) {
+    final conversation = message.conversation;
+    return conversation is StreamConversation && conversation.streamId == streamId;
   }
 
   @override
-  ApiNarrow apiEncode() => [ApiNarrowStream(streamId)];
+  ApiNarrow apiEncode() => [ApiNarrowChannel(streamId)];
 
   @override
   String toString() => 'ChannelNarrow($streamId)';
@@ -94,8 +98,8 @@ class ChannelNarrow extends Narrow {
 class TopicNarrow extends Narrow implements SendableNarrow {
   const TopicNarrow(this.streamId, this.topic, {this.with_});
 
-  factory TopicNarrow.ofMessage(StreamMessage message) {
-    return TopicNarrow(message.streamId, message.topic);
+  factory TopicNarrow.ofMessage(MessageBase<StreamConversation> message) {
+    return TopicNarrow(message.conversation.streamId, message.conversation.topic);
   }
 
   final int streamId;
@@ -105,14 +109,15 @@ class TopicNarrow extends Narrow implements SendableNarrow {
   TopicNarrow sansWith() => TopicNarrow(streamId, topic);
 
   @override
-  bool containsMessage(Message message) {
-    return (message is StreamMessage
-      && message.streamId == streamId && message.topic == topic);
+  bool containsMessage(MessageBase message) {
+    final conversation = message.conversation;
+    return conversation is StreamConversation
+      && conversation.streamId == streamId && conversation.topic == topic;
   }
 
   @override
   ApiNarrow apiEncode() => [
-    ApiNarrowStream(streamId),
+    ApiNarrowChannel(streamId),
     ApiNarrowTopic(topic),
     if (with_ != null) ApiNarrowWith(with_!),
   ];
@@ -194,9 +199,21 @@ class DmNarrow extends Narrow implements SendableNarrow {
     );
   }
 
-  factory DmNarrow.ofMessage(DmMessage message, {required int selfUserId}) {
+  factory DmNarrow.ofMessage(MessageBase<DmConversation> message, {
+    required int selfUserId,
+  }) {
     return DmNarrow(
-      allRecipientIds: List.unmodifiable(message.allRecipientIds),
+      // TODO should this really be making a copy of `allRecipientIds`?
+      allRecipientIds: List.unmodifiable(message.conversation.allRecipientIds),
+      selfUserId: selfUserId,
+    );
+  }
+
+  factory DmNarrow.ofConversation(DmConversation conversation, {
+    required int selfUserId,
+  }) {
+    return DmNarrow(
+      allRecipientIds: conversation.allRecipientIds,
       selfUserId: selfUserId,
     );
   }
@@ -235,6 +252,7 @@ class DmNarrow extends Narrow implements SendableNarrow {
   /// See also:
   /// * [otherRecipientIds], an alternate way of identifying the conversation.
   /// * [DmMessage.allRecipientIds], which provides this same format.
+  /// * [DmConversation.allRecipientIds], which also provides this same format.
   final List<int> allRecipientIds;
 
   /// The user ID of the self-user.
@@ -260,11 +278,12 @@ class DmNarrow extends Narrow implements SendableNarrow {
   late final String _key = otherRecipientIds.join(',');
 
   @override
-  bool containsMessage(Message message) {
-    if (message is! DmMessage) return false;
-    if (message.allRecipientIds.length != allRecipientIds.length) return false;
+  bool containsMessage(MessageBase message) {
+    final conversation = message.conversation;
+    if (conversation is! DmConversation) return false;
+    if (conversation.allRecipientIds.length != allRecipientIds.length) return false;
     int i = 0;
-    for (final userId in message.allRecipientIds) {
+    for (final userId in conversation.allRecipientIds) {
       if (userId != allRecipientIds[i]) return false;
       i++;
     }
@@ -304,7 +323,8 @@ class MentionsNarrow extends Narrow {
   const MentionsNarrow();
 
   @override
-  bool containsMessage(Message message) {
+  bool containsMessage(MessageBase message) {
+    if (message is! Message) return false;
     return message.flags.any((flag) {
       switch (flag) {
         case MessageFlag.mentioned:
@@ -343,7 +363,8 @@ class StarredMessagesNarrow extends Narrow {
   ApiNarrow apiEncode() => [ApiNarrowIs(IsOperand.starred)];
 
   @override
-  bool containsMessage(Message message) {
+  bool containsMessage(MessageBase message) {
+    if (message is! Message) return false;
     return message.flags.contains(MessageFlag.starred);
   }
 
@@ -356,4 +377,32 @@ class StarredMessagesNarrow extends Narrow {
 
   @override
   int get hashCode => 'StarredMessagesNarrow'.hashCode;
+}
+
+/// A keyword-search narrow.
+///
+/// [keyword] must have been trimmed with [String.trim].
+class KeywordSearchNarrow extends Narrow {
+  KeywordSearchNarrow(this.keyword)
+    : assert(keyword.trim() == keyword);
+
+  final String keyword;
+
+  @override
+  bool? containsMessage(MessageBase message) => null;
+
+  @override
+  ApiNarrow apiEncode() => [ApiNarrowSearch(keyword)];
+
+  @override
+  String toString() => 'KeywordSearchNarrow($keyword)';
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! KeywordSearchNarrow) return false;
+    return other.keyword == keyword;
+  }
+
+  @override
+  int get hashCode => Object.hash('KeywordSearchNarrow', keyword);
 }

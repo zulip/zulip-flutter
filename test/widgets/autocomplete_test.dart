@@ -7,15 +7,19 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/realm.dart';
+import 'package:zulip/basic.dart';
 import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
+import 'package:zulip/widgets/autocomplete.dart';
 import 'package:zulip/widgets/compose_box.dart';
-import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/user.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -25,9 +29,11 @@ import '../model/test_store.dart';
 import '../test_images.dart';
 import 'test_app.dart';
 
+late PerAccountStore store;
+
 /// Simulates loading a [MessageListPage] and tapping to focus the compose input.
 ///
-/// Also adds [users] to the [PerAccountStore],
+/// Also adds [users] and [channels] to the [PerAccountStore],
 /// so they can show up in autocomplete.
 ///
 /// Also sets [debugNetworkImageHttpClientProvider] to return a constant image.
@@ -36,6 +42,7 @@ import 'test_app.dart';
 /// before the end of the test.
 Future<Finder> setupToComposeInput(WidgetTester tester, {
   List<User> users = const [],
+  List<ZulipStream> channels = const [],
   Narrow? narrow,
 }) async {
   assert(narrow is ChannelNarrow? || narrow is SendableNarrow?);
@@ -44,9 +51,10 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
 
   addTearDown(testBinding.reset);
   await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-  final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+  store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
   await store.addUsers([eg.selfUser, eg.otherUser]);
   await store.addUsers(users);
+  await store.addStreams(channels);
   final connection = store.connection as FakeApiConnection;
 
   narrow ??= DmNarrow(
@@ -145,6 +153,7 @@ typedef ExpectedEmoji = (String label, EmojiDisplay display);
 
 void main() {
   TestZulipBinding.ensureInitialized();
+  MessageListPage.debugEnableMarkReadOnScroll = false;
 
   group('@-mentions', () {
 
@@ -199,6 +208,55 @@ void main() {
       checkUserShown(user3, expected: false);
 
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    group('User status', () {
+      void checkFindsStatusEmoji(WidgetTester tester, Finder emojiFinder) {
+        final statusEmojiFinder = find.ancestor(of: emojiFinder,
+          matching: find.byType(UserStatusEmoji));
+        check(statusEmojiFinder).findsOne();
+        check(tester.widget<UserStatusEmoji>(statusEmojiFinder)
+          .animationMode).equals(ImageAnimationMode.animateNever);
+        check(find.ancestor(of: statusEmojiFinder,
+          matching: find.byType(MentionAutocompleteItem))).findsOne();
+      }
+
+      testWidgets('emoji & text are set -> emoji is displayed, text is not', (tester) async {
+        final user = eg.user(fullName: 'User');
+        final composeInputFinder = await setupToComposeInput(tester, users: [user]);
+        await store.changeUserStatus(user.userId, UserStatusChange(
+          text: OptionSome('Busy'),
+          emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
+            emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+        await tester.pump();
+
+        // // TODO(#226): Remove this extra edit when this bug is fixed.
+        await tester.enterText(composeInputFinder, 'hello @u');
+        await tester.enterText(composeInputFinder, 'hello @');
+        await tester.pumpAndSettle(); // async computation; options appear
+
+        checkFindsStatusEmoji(tester, find.text('\u{1f6e0}'));
+        check(find.textContaining('Busy')).findsNothing();
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('emoji is not set, text is set -> text is not displayed', (tester) async {
+        final user = eg.user(fullName: 'User');
+        final composeInputFinder = await setupToComposeInput(tester, users: [user]);
+        await store.changeUserStatus(user.userId, UserStatusChange(
+          text: OptionSome('Busy'), emoji: OptionNone()));
+        await tester.pump();
+
+        // // TODO(#226): Remove this extra edit when this bug is fixed.
+        await tester.enterText(composeInputFinder, 'hello @u');
+        await tester.enterText(composeInputFinder, 'hello @');
+        await tester.pumpAndSettle(); // async computation; options appear
+
+        check(find.textContaining('Busy')).findsNothing();
+
+        debugNetworkImageHttpClientProvider = null;
+      });
     });
 
     void checkWildcardShown(WildcardMentionOption wildcard, {required bool expected}) {
@@ -295,6 +353,60 @@ void main() {
 
         debugNetworkImageHttpClientProvider = null;
       });
+    });
+  });
+
+  group('#channel link', () {
+    void checkChannelShown(ZulipStream channel, {required bool expected}) {
+      check(find.ancestor(of: find.byIcon(iconDataForStream(channel)),
+        matching: find.ancestor(of: find.text(channel.name),
+          matching: find.byType(Row)))
+      ).findsExactly(expected ? 1 : 0);
+    }
+
+    testWidgets('options appear, disappear, and change correctly', (tester) async {
+      final channel1 = eg.stream(name: 'mobile');
+      final channel2 = eg.stream(name: 'mobile design');
+      final channel3 = eg.stream(name: 'mobile dev help');
+      final composeInputFinder = await setupToComposeInput(tester,
+        channels: [channel1, channel2, channel3]);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      // Options are filtered correctly for query.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check #mobile ');
+      await tester.enterText(composeInputFinder, 'check #mobile de');
+      await tester.pumpAndSettle(); // async computation; options appear
+
+      checkChannelShown(channel1, expected: false);
+      checkChannelShown(channel2, expected: true);
+      checkChannelShown(channel3, expected: true);
+
+      // Finishing autocomplete updates compose box; causes options to disappear.
+      await tester.tap(find.text('mobile design'));
+      await tester.pump();
+      check(tester.widget<TextField>(composeInputFinder).controller!.text)
+        .contains(channelLink(channel2, store: store));
+      checkChannelShown(channel1, expected: false);
+      checkChannelShown(channel2, expected: false);
+      checkChannelShown(channel3, expected: false);
+
+      // Then a new autocomplete intent brings up options again.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check #mobile de');
+      await tester.enterText(composeInputFinder, 'check #mobile dev');
+      await tester.pumpAndSettle(); // async computation; options appear
+      checkChannelShown(channel3, expected: true);
+
+      // Removing autocomplete intent causes options to disappear.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check ');
+      await tester.enterText(composeInputFinder, 'check');
+      checkChannelShown(channel1, expected: false);
+      checkChannelShown(channel2, expected: false);
+      checkChannelShown(channel3, expected: false);
+
+      debugNetworkImageHttpClientProvider = null;
     });
   });
 
@@ -415,7 +527,7 @@ void main() {
       await tester.tap(find.text('Topic three'));
       await tester.pumpAndSettle();
       check(tester.widget<TextField>(topicInputFinder).controller!.text)
-        .equals(topic3.name.displayName);
+        .equals(topic3.name.displayName!);
       check(find.text('Topic one'  )).findsNothing();
       check(find.text('Topic two'  )).findsNothing();
       check(find.text('Topic three')).findsOne(); // shown in `_TopicInput` once
@@ -473,7 +585,7 @@ void main() {
       await tester.pumpAndSettle();
 
       check(find.text('some display name')).findsOne();
-    }, skip: true); // null topic names soon to be enabled
+    });
 
     testWidgets('match realmEmptyTopicDisplayName in autocomplete', (tester) async {
       final topic = eg.getStreamTopicsEntry(name: '');
@@ -486,7 +598,7 @@ void main() {
       await tester.pumpAndSettle();
 
       check(find.text('general chat')).findsOne();
-    }, skip: true); // null topic names soon to be enabled
+    });
 
     testWidgets('autocomplete to realmEmptyTopicDisplayName sets topic to empty string', (tester) async {
       final topic = eg.getStreamTopicsEntry(name: '');
@@ -502,6 +614,6 @@ void main() {
       await tester.tap(find.text('general chat'));
       await tester.pump(Duration.zero);
       check(controller.value).text.equals('');
-    }, skip: true); // null topic names soon to be enabled
+    });
   });
 }

@@ -64,6 +64,7 @@ class Submessage {
           widgetData: widgetData,
           pollEventSubmessages: submessages.skip(1),
           messageSenderId: messageSenderId,
+          debugSubmessages: kDebugMode ? submessages : null,
         );
       case UnsupportedWidgetData():
         assert(debugLog('Unsupported widgetData: ${widgetData.json}'));
@@ -368,11 +369,13 @@ class Poll extends ChangeNotifier {
     required PollWidgetData widgetData,
     required Iterable<Submessage> pollEventSubmessages,
     required int messageSenderId,
+    required List<Submessage>? debugSubmessages,
   }) {
     final poll = Poll._(
       messageSenderId: messageSenderId,
       question: widgetData.extraData.question,
       options: widgetData.extraData.options,
+      debugSubmessages: debugSubmessages,
     );
 
     for (final submessage in pollEventSubmessages) {
@@ -386,16 +389,22 @@ class Poll extends ChangeNotifier {
     required this.messageSenderId,
     required this.question,
     required List<String> options,
+    required List<Submessage>? debugSubmessages,
   }) {
     for (int index = 0; index < options.length; index += 1) {
       // Initial poll options use a placeholder senderId.
       // See [PollEventSubmessage.optionKey] for details.
       _addOption(senderId: null, idx: index, option: options[index]);
     }
+    if (kDebugMode) {
+      _debugSubmessages = debugSubmessages;
+    }
   }
 
   final int messageSenderId;
   String question;
+
+  List<Submessage>? _debugSubmessages;
 
   /// The limit of options any single user can add to a poll.
   ///
@@ -417,6 +426,14 @@ class Poll extends ChangeNotifier {
     }
     _applyEvent(event.senderId, pollEventSubmessage);
     notifyListeners();
+
+    if (kDebugMode) {
+      assert(_debugSubmessages != null);
+      _debugSubmessages!.add(Submessage(
+        senderId: event.senderId,
+        msgType: event.msgType,
+        content: event.content));
+    }
   }
 
   void _applyEvent(int senderId, PollEventSubmessage event) {
@@ -472,9 +489,18 @@ class Poll extends ChangeNotifier {
   }
 
   static List<Submessage> toJson(Poll? poll) {
-    // Rather than maintaining a up-to-date submessages list, return as if it is
-    // empty, because we are not sending the submessages to the server anyway.
-    return [];
+    List<Submessage>? result;
+
+    if (kDebugMode) {
+      // Useful for setting up a message list with a poll message, which goes
+      // through this codepath (when preparing a fetch response).
+      result = poll?._debugSubmessages;
+    }
+
+    // In prod, rather than maintaining a up-to-date submessages list,
+    // return as if it is empty, because we are not sending the submessages
+    // to the server anyway.
+    return result ?? [];
   }
 }
 

@@ -15,120 +15,18 @@ import '../fake_api.dart';
 import 'route_checks.dart';
 
 void main() {
-  group('getMessageCompat', () {
-    Future<Message?> checkGetMessageCompat(FakeApiConnection connection, {
-      required bool expectLegacy,
-      required int messageId,
-      bool? applyMarkdown,
-    }) async {
-      final result = await getMessageCompat(connection,
-        messageId: messageId,
-        applyMarkdown: applyMarkdown,
-      );
-      if (expectLegacy) {
-        check(connection.lastRequest).isA<http.Request>()
-          ..method.equals('GET')
-          ..url.path.equals('/api/v1/messages')
-          ..url.queryParameters.deepEquals({
-            'narrow': jsonEncode([ApiNarrowMessageId(messageId)]),
-            'anchor': messageId.toString(),
-            'num_before': '0',
-            'num_after': '0',
-            if (applyMarkdown != null) 'apply_markdown': applyMarkdown.toString(),
-            'client_gravatar': 'true',
-          });
-      } else {
-        check(connection.lastRequest).isA<http.Request>()
-          ..method.equals('GET')
-          ..url.path.equals('/api/v1/messages/$messageId')
-          ..url.queryParameters.deepEquals({
-            if (applyMarkdown != null) 'apply_markdown': applyMarkdown.toString(),
-          });
-      }
-      return result;
-    }
-
-    test('modern; message found', () {
-      return FakeApiConnection.with_((connection) async {
-        final message = eg.streamMessage();
-        final fakeResult = GetMessageResult(message: message);
-        connection.prepare(json: fakeResult.toJson());
-        final result = await checkGetMessageCompat(connection,
-          expectLegacy: false,
-          messageId: message.id,
-          applyMarkdown: true,
-        );
-        check(result).isNotNull().jsonEquals(message);
-      });
-    });
-
-    test('modern; message not found', () {
-      return FakeApiConnection.with_((connection) async {
-        final message = eg.streamMessage();
-        connection.prepare(
-          apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
-        final result = await checkGetMessageCompat(connection,
-          expectLegacy: false,
-          messageId: message.id,
-          applyMarkdown: true,
-        );
-        check(result).isNull();
-      });
-    });
-
-    test('legacy; message found', () {
-      return FakeApiConnection.with_(zulipFeatureLevel: 119, (connection) async {
-        final message = eg.streamMessage();
-        final fakeResult = GetMessagesResult(
-          anchor: message.id,
-          foundNewest: false,
-          foundOldest: false,
-          foundAnchor: true,
-          historyLimited: false,
-          messages: [message],
-        );
-        connection.prepare(json: fakeResult.toJson());
-        final result = await checkGetMessageCompat(connection,
-          expectLegacy: true,
-          messageId: message.id,
-          applyMarkdown: true,
-        );
-        check(result).isNotNull().jsonEquals(message);
-      });
-    });
-
-    test('legacy; message not found', () {
-      return FakeApiConnection.with_(zulipFeatureLevel: 119, (connection) async {
-        final message = eg.streamMessage();
-        final fakeResult = GetMessagesResult(
-          anchor: message.id,
-          foundNewest: false,
-          foundOldest: false,
-          foundAnchor: false,
-          historyLimited: false,
-          messages: [],
-        );
-        connection.prepare(json: fakeResult.toJson());
-        final result = await checkGetMessageCompat(connection,
-          expectLegacy: true,
-          messageId: message.id,
-          applyMarkdown: true,
-        );
-        check(result).isNull();
-      });
-    });
-  });
-
   group('getMessage', () {
     Future<GetMessageResult> checkGetMessage(
       FakeApiConnection connection, {
       required int messageId,
       bool? applyMarkdown,
+      required bool allowEmptyTopicName,
       required Map<String, String> expected,
     }) async {
       final result = await getMessage(connection,
         messageId: messageId,
         applyMarkdown: applyMarkdown,
+        allowEmptyTopicName: allowEmptyTopicName,
       );
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('GET')
@@ -145,7 +43,11 @@ void main() {
         await checkGetMessage(connection,
           messageId: 1,
           applyMarkdown: true,
-          expected: {'apply_markdown': 'true'});
+          allowEmptyTopicName: true,
+          expected: {
+            'apply_markdown': 'true',
+            'allow_empty_topic_name': 'true',
+          });
       });
     });
 
@@ -155,16 +57,21 @@ void main() {
         await checkGetMessage(connection,
           messageId: 1,
           applyMarkdown: false,
-          expected: {'apply_markdown': 'false'});
+          allowEmptyTopicName: true,
+          expected: {
+            'apply_markdown': 'false',
+            'allow_empty_topic_name': 'true',
+          });
       });
     });
 
-    test('Throws assertion error when FL <120', () {
-      return FakeApiConnection.with_(zulipFeatureLevel: 119, (connection) async {
+    test('allow empty topic name', () {
+      return FakeApiConnection.with_((connection) async {
         connection.prepare(json: fakeResult.toJson());
-        check(() => getMessage(connection,
+        await checkGetMessage(connection,
           messageId: 1,
-        )).throws<AssertionError>();
+          allowEmptyTopicName: true,
+          expected: {'allow_empty_topic_name': 'true'});
       });
     });
   });
@@ -185,14 +92,14 @@ void main() {
 
       checkNarrow(const CombinedFeedNarrow().apiEncode(), jsonEncode([]));
       checkNarrow(const ChannelNarrow(12).apiEncode(), jsonEncode([
-        {'operator': 'stream', 'operand': 12},
+        {'operator': 'channel', 'operand': 12},
       ]));
       checkNarrow(eg.topicNarrow(12, 'stuff').apiEncode(), jsonEncode([
-        {'operator': 'stream', 'operand': 12},
+        {'operator': 'channel', 'operand': 12},
         {'operator': 'topic', 'operand': 'stuff'},
       ]));
       checkNarrow(eg.topicNarrow(12, 'stuff', with_: 1).apiEncode(), jsonEncode([
-        {'operator': 'stream', 'operand': 12},
+        {'operator': 'channel', 'operand': 12},
         {'operator': 'topic', 'operand': 'stuff'},
         {'operator': 'with', 'operand': 1},
       ]));
@@ -206,7 +113,7 @@ void main() {
 
       connection.zulipFeatureLevel = 270;
       checkNarrow(eg.topicNarrow(12, 'stuff', with_: 1).apiEncode(), jsonEncode([
-        {'operator': 'stream', 'operand': 12},
+        {'operator': 'channel', 'operand': 12},
         {'operator': 'topic', 'operand': 'stuff'},
       ]));
       checkNarrow([ApiNarrowDm([123, 234])], jsonEncode([
@@ -214,6 +121,19 @@ void main() {
       ]));
       checkNarrow([ApiNarrowDm([123, 234]), ApiNarrowWith(1)], jsonEncode([
         {'operator': 'dm', 'operand': [123, 234]},
+      ]));
+
+      connection.zulipFeatureLevel = 249;
+      checkNarrow(const ChannelNarrow(12).apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+      ]));
+      checkNarrow(eg.topicNarrow(12, 'stuff').apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+        {'operator': 'topic', 'operand': 'stuff'},
+      ]));
+      checkNarrow(eg.topicNarrow(12, 'stuff', with_: 1).apiEncode(), jsonEncode([
+        {'operator': 'stream', 'operand': 12},
+        {'operator': 'topic', 'operand': 'stuff'},
       ]));
 
       connection.zulipFeatureLevel = 176;
@@ -255,12 +175,14 @@ void main() {
       required int numAfter,
       bool? clientGravatar,
       bool? applyMarkdown,
+      required bool allowEmptyTopicName,
       required Map<String, String> expected,
     }) async {
       final result = await getMessages(connection,
         narrow: narrow, anchor: anchor, includeAnchor: includeAnchor,
         numBefore: numBefore, numAfter: numAfter,
         clientGravatar: clientGravatar, applyMarkdown: applyMarkdown,
+        allowEmptyTopicName: allowEmptyTopicName,
       );
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('GET')
@@ -279,11 +201,13 @@ void main() {
         await checkGetMessages(connection,
           narrow: const CombinedFeedNarrow().apiEncode(),
           anchor: AnchorCode.newest, numBefore: 10, numAfter: 20,
+          allowEmptyTopicName: true,
           expected: {
             'narrow': jsonEncode([]),
             'anchor': 'newest',
             'num_before': '10',
             'num_after': '20',
+            'allow_empty_topic_name': 'true',
           });
       });
     });
@@ -294,6 +218,7 @@ void main() {
         await checkGetMessages(connection,
           narrow: [ApiNarrowDm([123, 234])],
           anchor: AnchorCode.newest, numBefore: 10, numAfter: 20,
+          allowEmptyTopicName: true,
           expected: {
             'narrow': jsonEncode([
               {'operator': 'pm-with', 'operand': [123, 234]},
@@ -301,6 +226,7 @@ void main() {
             'anchor': 'newest',
             'num_before': '10',
             'num_after': '20',
+            'allow_empty_topic_name': 'true',
           });
       });
     });
@@ -312,11 +238,13 @@ void main() {
           narrow: const CombinedFeedNarrow().apiEncode(),
           anchor: const NumericAnchor(42),
           numBefore: 10, numAfter: 20,
+          allowEmptyTopicName: true,
           expected: {
             'narrow': jsonEncode([]),
             'anchor': '42',
             'num_before': '10',
             'num_after': '20',
+            'allow_empty_topic_name': 'true',
           });
       });
     });
@@ -362,8 +290,8 @@ void main() {
             'to': streamId.toString(),
             'topic': topic,
             'content': content,
-            'queue_id': '"abc:123"',
-            'local_id': '"456"',
+            'queue_id': 'abc:123',
+            'local_id': '456',
             'read_by_sender': 'true',
           });
       });
@@ -454,6 +382,7 @@ void main() {
       bool? sendNotificationToOldThread,
       bool? sendNotificationToNewThread,
       String? content,
+      String? prevContentSha256,
       int? streamId,
       required Map<String, String> expected,
     }) async {
@@ -464,6 +393,7 @@ void main() {
         sendNotificationToOldThread: sendNotificationToOldThread,
         sendNotificationToNewThread: sendNotificationToNewThread,
         content: content,
+        prevContentSha256: prevContentSha256,
         streamId: streamId,
       );
       check(connection.lastRequest).isA<http.Request>()
@@ -472,6 +402,20 @@ void main() {
         ..bodyFields.deepEquals(expected);
       return result;
     }
+
+    test('pure content change', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: UpdateMessageResult().toJson());
+        await checkUpdateMessage(connection,
+          messageId: eg.streamMessage().id,
+          content: 'asdf',
+          prevContentSha256: '34a780ad578b997db55b260beb60b501f3e04d30ba1a51fcf43cd8dd1241780d',
+          expected: {
+            'content': 'asdf',
+            'prev_content_sha256': '34a780ad578b997db55b260beb60b501f3e04d30ba1a51fcf43cd8dd1241780d',
+          });
+      });
+    });
 
     test('topic/content change', () {
       // A separate test exercises `streamId`;
@@ -506,6 +450,18 @@ void main() {
     });
   });
 
+  group('updateMessage', () {
+    test('smoke', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: {});
+        await deleteMessage(connection, messageId: 123321);
+        check(connection.takeRequests()).single.isA<http.Request>()
+          ..method.equals('DELETE')
+          ..url.path.equals('/api/v1/messages/123321');
+      });
+    });
+  });
+
   group('uploadFile', () {
     Future<void> checkUploadFile(FakeApiConnection connection, {
       required List<List<int>> content,
@@ -514,7 +470,7 @@ void main() {
       required String? contentType,
     }) async {
       connection.prepare(json:
-        UploadFileResult(uri: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/$filename').toJson());
+        UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/$filename').toJson());
       await uploadFile(connection,
         content: Stream.fromIterable(content),
         length: length,
@@ -777,75 +733,14 @@ void main() {
     });
   });
 
-  group('markAllAsRead', () {
-    Future<void> checkMarkAllAsRead(
-      FakeApiConnection connection, {
-      required Map<String, String> expected,
-    }) async {
-      connection.prepare(json: {});
-      await markAllAsRead(connection);
-      check(connection.lastRequest).isA<http.Request>()
-        ..method.equals('POST')
-        ..url.path.equals('/api/v1/mark_all_as_read')
-        ..bodyFields.deepEquals(expected);
-    }
-
-    test('smoke', () {
-      return FakeApiConnection.with_((connection) async {
-        await checkMarkAllAsRead(connection, expected: {});
-      });
-    });
-  });
-
-  group('markStreamAsRead', () {
-    Future<void> checkMarkStreamAsRead(
-      FakeApiConnection connection, {
-      required int streamId,
-      required Map<String, String> expected,
-    }) async {
-      connection.prepare(json: {});
-      await markStreamAsRead(connection, streamId: streamId);
-      check(connection.lastRequest).isA<http.Request>()
-        ..method.equals('POST')
-        ..url.path.equals('/api/v1/mark_stream_as_read')
-        ..bodyFields.deepEquals(expected);
-    }
-
-    test('smoke', () {
-      return FakeApiConnection.with_((connection) async {
-        await checkMarkStreamAsRead(connection,
-          streamId: 10,
-          expected: {'stream_id': '10'});
-      });
-    });
-  });
-
-  group('markTopicAsRead', () {
-    Future<void> checkMarkTopicAsRead(
-      FakeApiConnection connection, {
-      required int streamId,
-      required String topicName,
-      required Map<String, String> expected,
-    }) async {
-      connection.prepare(json: {});
-      await markTopicAsRead(connection,
-        streamId: streamId, topicName: eg.t(topicName));
-      check(connection.lastRequest).isA<http.Request>()
-        ..method.equals('POST')
-        ..url.path.equals('/api/v1/mark_topic_as_read')
-        ..bodyFields.deepEquals(expected);
-    }
-
-    test('smoke', () {
-      return FakeApiConnection.with_((connection) async {
-        await checkMarkTopicAsRead(connection,
-          streamId: 10,
-          topicName: 'topic',
-          expected: {
-            'stream_id': '10',
-            'topic_name': 'topic',
-          });
-      });
+  test('smoke getReadReceipts', () {
+    return FakeApiConnection.with_((connection) async {
+      final response = GetReadReceiptsResult(userIds: [7, 6543, 210]);
+      connection.prepare(json: response.toJson());
+      await getReadReceipts(connection, messageId: 123321);
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('GET')
+        ..url.path.equals('/api/v1/messages/123321/read_receipts');
     });
   });
 }

@@ -73,6 +73,11 @@ class _TestGlobalStoreBackend implements GlobalStoreBackend {
   Future<void> doSetBoolGlobalSetting(BoolGlobalSetting setting, bool? value) async {
     // Nothing to do.
   }
+
+  @override
+  Future<void> doSetIntGlobalSetting(IntGlobalSetting setting, int? value) async {
+    // Nothing to do.
+  }
 }
 
 mixin _DatabaseMixin on GlobalStore {
@@ -95,6 +100,8 @@ mixin _DatabaseMixin on GlobalStore {
     return Account(
       id: accountId,
       realmUrl: data.realmUrl.value,
+      realmName: data.realmName.value,
+      realmIcon: data.realmIcon.value,
       userId: data.userId.value,
       email: data.email.value,
       apiKey: data.apiKey.value,
@@ -146,10 +153,12 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
   TestGlobalStore({
     GlobalSettingsData? globalSettings,
     Map<BoolGlobalSetting, bool>? boolGlobalSettings,
+    Map<IntGlobalSetting, int>? intGlobalSettings,
     required super.accounts,
   }) : super(backend: _TestGlobalStoreBackend(),
          globalSettings: globalSettings ?? GlobalSettingsData(),
          boolGlobalSettings: boolGlobalSettings ?? {},
+         intGlobalSettings: intGlobalSettings ?? {},
        );
 
   final Map<int, InitialSnapshot> _initialSnapshots = {};
@@ -162,13 +171,24 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
   /// The given initial snapshot will be used to initialize a corresponding
   /// [PerAccountStore] when [perAccount] is subsequently called for this
   /// account, in particular when a [PerAccountStoreWidget] is mounted.
-  Future<void> add(Account account, InitialSnapshot initialSnapshot) async {
+  ///
+  /// By default, [setLastVisitedAccount] is called for the account.
+  /// Pass false for [markLastVisited] to skip that.
+  Future<void> add(
+    Account account,
+    InitialSnapshot initialSnapshot, {
+    bool markLastVisited = true,
+  }) async {
     assert(initialSnapshot.zulipVersion == account.zulipVersion);
     assert(initialSnapshot.zulipMergeBase == account.zulipMergeBase);
     assert(initialSnapshot.zulipFeatureLevel == account.zulipFeatureLevel);
     await insertAccount(account.toCompanion(false));
     assert(!_initialSnapshots.containsKey(account.id));
     _initialSnapshots[account.id] = initialSnapshot;
+
+    if (markLastVisited) {
+      await setLastVisitedAccount(account.id);
+    }
   }
 
   Duration? loadPerAccountDuration;
@@ -214,10 +234,12 @@ class UpdateMachineTestGlobalStore extends GlobalStore with _ApiConnectionsMixin
   UpdateMachineTestGlobalStore({
     GlobalSettingsData? globalSettings,
     Map<BoolGlobalSetting, bool>? boolGlobalSettings,
+    Map<IntGlobalSetting, int>? intGlobalSettings,
     required super.accounts,
   }) : super(backend: _TestGlobalStoreBackend(),
          globalSettings: globalSettings ?? GlobalSettingsData(),
          boolGlobalSettings: boolGlobalSettings ?? {},
+         intGlobalSettings: intGlobalSettings ?? {},
        );
 
   // [doLoadPerAccount] depends on the cache to prepare the API responses.
@@ -267,12 +289,49 @@ extension PerAccountStoreTestExtension on PerAccountStore {
     }
   }
 
+  Future<void> addUserGroup(UserGroup userGroup) async {
+    await handleEvent(UserGroupAddEvent(id: 1, group: userGroup));
+  }
+
+  Future<void> addUserGroups(Iterable<UserGroup> userGroups) async {
+    for (final userGroup in userGroups) {
+      await addUserGroup(userGroup);
+    }
+  }
+
+  Future<void> setMutedUsers(List<int> userIds) async {
+    await handleEvent(eg.mutedUsersEvent(userIds));
+  }
+
+  Future<void> changeUserStatus(int userId, UserStatusChange change) async {
+    await handleEvent(UserStatusEvent(id: 1, userId: userId, change: change));
+  }
+
+  Future<void> changeUserStatuses(Map<int, UserStatusChange> changes) async {
+    for (final MapEntry(key: userId, value: change) in changes.entries) {
+      await changeUserStatus(userId, change);
+    }
+  }
+
   Future<void> addStream(ZulipStream stream) async {
     await addStreams([stream]);
   }
 
   Future<void> addStreams(List<ZulipStream> streams) async {
     await handleEvent(ChannelCreateEvent(id: 1, streams: streams));
+  }
+
+  Future<void> updateChannel(
+    int channelId,
+    ChannelPropertyName property,
+    Object? value,
+  ) async {
+    await handleEvent(ChannelUpdateEvent(
+      id: 1,
+      streamId: channelId,
+      name: 'some channel name', // (not true, of course, but that's fine)
+      property: property,
+      value: value));
   }
 
   Future<void> addSubscription(Subscription subscription) async {
@@ -283,12 +342,24 @@ extension PerAccountStoreTestExtension on PerAccountStore {
     await handleEvent(SubscriptionAddEvent(id: 1, subscriptions: subscriptions));
   }
 
-  Future<void> addUserTopic(ZulipStream stream, String topic, UserTopicVisibilityPolicy visibilityPolicy) async {
+  Future<void> removeSubscription(int channelId) async {
+    await removeSubscriptions([channelId]);
+  }
+
+  Future<void> removeSubscriptions(List<int> channelIds) async {
+    await handleEvent(SubscriptionRemoveEvent(id: 1, streamIds: channelIds));
+  }
+
+  Future<void> addChannelFolder(ChannelFolder channelFolder) async {
+    await handleEvent(ChannelFolderAddEvent(id: 1, channelFolder: channelFolder));
+  }
+
+  Future<void> setUserTopic(ZulipStream stream, String topic, UserTopicVisibilityPolicy visibilityPolicy) async {
     await handleEvent(eg.userTopicEvent(stream.streamId, topic, visibilityPolicy));
   }
 
   Future<void> addMessage(Message message) async {
-    await handleEvent(MessageEvent(id: 1, message: message));
+    await handleEvent(eg.messageEvent(message));
   }
 
   Future<void> addMessages(Iterable<Message> messages) async {

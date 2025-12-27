@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/emoji.dart';
 import '../model/store.dart';
-import 'content.dart';
 import 'emoji.dart';
 import 'icons.dart';
 import 'store.dart';
@@ -13,6 +12,7 @@ import '../model/narrow.dart';
 import 'compose_box.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'user.dart';
 
 abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends StatefulWidget {
   const AutocompleteField({
@@ -130,7 +130,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
       //   `optionsBuilder` we pass is just a function that returns
       //   _resultsToDisplay, which is computed with lots of help from
       //   AutocompleteView.
-      optionsViewBuilder: (context, _, __) {
+      optionsViewBuilder: (context, _, _) {
         return Align(
           alignment: Alignment.bottomLeft,
           child: Material(
@@ -153,7 +153,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
       // The third isn't helpful; it lets us opt into behavior we don't actually
       // want (see discussion:
       //   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/autocomplete.20UI/near/1599994>)
-      fieldViewBuilder: (context, _, __, ___) => widget.fieldViewBuilder(context),
+      fieldViewBuilder: (context, _, _, _) => widget.fieldViewBuilder(context),
     );
   }
 }
@@ -178,8 +178,8 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
   @override
   ComposeAutocompleteView initViewModel(BuildContext context, ComposeAutocompleteQuery query) {
     final store = PerAccountStoreWidget.of(context);
-    final localizations = ZulipLocalizations.of(context);
-    return query.initViewModel(store: store, localizations: localizations,
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return query.initViewModel(store: store, localizations: zulipLocalizations,
       narrow: narrow);
   }
 
@@ -202,12 +202,38 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
         if (query is! MentionAutocompleteQuery) {
           return; // Shrug; similar to `intent == null` case above.
         }
-        final user = store.getUser(userId)!; // must exist because UserMentionAutocompleteResult
-        // TODO(i18n) language-appropriate space character; check active keyboard?
+        final user = store.getUser(userId);
+        if (user == null) {
+          // Don't crash on theoretical race between async results-filtering
+          // and losing data for the user.
+          return;
+        }
+        // TODO(#1805) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
         replacementString = '${userMention(user, silent: query.silent, users: store)} ';
       case WildcardMentionAutocompleteResult(:var wildcardOption):
         replacementString = '${wildcardMention(wildcardOption, store: store)} ';
+      case UserGroupMentionAutocompleteResult(:final groupId):
+        if (query is! MentionAutocompleteQuery) {
+          return; // Shrug; similar to `intent == null` case above.
+        }
+        final userGroup = store.getGroup(groupId);
+        if (userGroup == null) {
+          // Don't crash on theoretical race between async results-filtering
+          // and losing data for the group.
+          return;
+        }
+        // TODO(#1805) language-appropriate space character; check active keyboard?
+        //   (maybe handle centrally in `controller`)
+        replacementString = '${userGroupMention(userGroup.name, silent: query.silent)} ';
+      case ChannelLinkAutocompleteResult(:final channelId):
+        final channel = store.streams[channelId];
+        if (channel == null) {
+          // Don't crash on theoretical race between async results-filtering
+          // and losing data for the channel.
+          return;
+        }
+        replacementString = '${channelLink(channel, store: store)} ';
     }
 
     controller.value = intent.textEditingValue.replaced(
@@ -223,8 +249,9 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
     final designVariables = DesignVariables.of(context);
 
     final child = switch (option) {
-      MentionAutocompleteResult() => _MentionAutocompleteItem(
+      MentionAutocompleteResult() => MentionAutocompleteItem(
         option: option, narrow: narrow),
+      ChannelLinkAutocompleteResult() => _ChannelLinkAutocompleteItem(option: option),
       EmojiAutocompleteResult() => _EmojiAutocompleteItem(option: option),
     };
     return InkWell(
@@ -238,8 +265,13 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
   }
 }
 
-class _MentionAutocompleteItem extends StatelessWidget {
-  const _MentionAutocompleteItem({required this.option, required this.narrow});
+@visibleForTesting
+class MentionAutocompleteItem extends StatelessWidget {
+  const MentionAutocompleteItem({
+    super.key,
+    required this.option,
+    required this.narrow,
+  });
 
   final MentionAutocompleteResult option;
   final Narrow narrow;
@@ -250,18 +282,18 @@ class _MentionAutocompleteItem extends StatelessWidget {
   }) {
     final isDmNarrow = narrow is DmNarrow;
     final isChannelWildcardAvailable = store.zulipFeatureLevel >= 247; // TODO(server-9)
-    final localizations = ZulipLocalizations.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     return switch (wildcardOption) {
       WildcardMentionOption.all || WildcardMentionOption.everyone => isDmNarrow
-        ? localizations.wildcardMentionAllDmDescription
+        ? zulipLocalizations.wildcardMentionAllDmDescription
         : isChannelWildcardAvailable
-            ? localizations.wildcardMentionChannelDescription
-            : localizations.wildcardMentionStreamDescription,
-      WildcardMentionOption.channel => localizations.wildcardMentionChannelDescription,
+            ? zulipLocalizations.wildcardMentionChannelDescription
+            : zulipLocalizations.wildcardMentionStreamDescription,
+      WildcardMentionOption.channel => zulipLocalizations.wildcardMentionChannelDescription,
       WildcardMentionOption.stream => isChannelWildcardAvailable
-        ? localizations.wildcardMentionChannelDescription
-        : localizations.wildcardMentionStreamDescription,
-      WildcardMentionOption.topic => localizations.wildcardMentionTopicDescription,
+        ? zulipLocalizations.wildcardMentionChannelDescription
+        : zulipLocalizations.wildcardMentionStreamDescription,
+      WildcardMentionOption.topic => zulipLocalizations.wildcardMentionTopicDescription,
     };
   }
 
@@ -272,30 +304,45 @@ class _MentionAutocompleteItem extends StatelessWidget {
 
     Widget avatar;
     String label;
+    Widget? emoji;
     String? sublabel;
     switch (option) {
       case UserMentionAutocompleteResult(:var userId):
-        final user = store.getUser(userId)!; // must exist because UserMentionAutocompleteResult
         avatar = Avatar(userId: userId, size: 36, borderRadius: 4);
-        label = user.fullName;
-        sublabel = store.userDisplayEmail(user);
+        label = store.userDisplayName(userId);
+        emoji = UserStatusEmoji(userId: userId, size: 18,
+          padding: const EdgeInsetsDirectional.only(start: 5.0));
+        sublabel = store.getUser(userId)?.deliveryEmail;
+      case UserGroupMentionAutocompleteResult(:final groupId):
+        final group = store.getGroup(groupId);
+        avatar = SizedBox.square(dimension: 36,
+          child: const Icon(ZulipIcons.three_person, size: 24));
+        label = group?.name
+          // Don't crash on theoretical race between async results-filtering
+          // and losing data for the group.
+          ?? '';
+        emoji = null;
+        sublabel = group?.description;
       case WildcardMentionAutocompleteResult(:var wildcardOption):
         avatar = SizedBox.square(dimension: 36,
           child: const Icon(ZulipIcons.three_person, size: 24));
         label = wildcardOption.canonicalString;
+        emoji = null;
         sublabel = wildcardSublabel(wildcardOption, context: context, store: store);
     }
 
-    final labelWidget = Text(
-      label,
-      style: TextStyle(
-        fontSize: 18,
-        height: 20 / 18,
-        color: designVariables.contextMenuItemLabel,
-      ).merge(weightVariableTextStyle(context,
-          wght: sublabel == null ? 500 : 600)),
-      overflow: TextOverflow.ellipsis,
-      maxLines: 1);
+    final labelWidget = Row(children: [
+      Flexible(child: Text(label,
+        style: TextStyle(
+          fontSize: 18,
+          height: 20 / 18,
+          color: designVariables.contextMenuItemLabel,
+        ).merge(weightVariableTextStyle(context,
+            wght: sublabel == null ? 500 : 600)),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1)),
+      ?emoji,
+    ]);
 
     final sublabelWidget = sublabel == null ? null : Text(
       sublabel,
@@ -314,11 +361,39 @@ class _MentionAutocompleteItem extends StatelessWidget {
         Expanded(child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            labelWidget,
-            if (sublabelWidget != null) sublabelWidget,
-          ])),
+          children: [labelWidget, ?sublabelWidget])),
       ]));
+  }
+}
+
+class _ChannelLinkAutocompleteItem extends StatelessWidget {
+  const _ChannelLinkAutocompleteItem({required this.option});
+
+  final ChannelLinkAutocompleteResult option;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final channel = store.streams[option.channelId];
+
+    if (channel == null) return SizedBox.shrink();
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: 44),
+      child: Padding(
+        padding: EdgeInsetsDirectional.fromSTEB(12, 4, 10, 4),
+        child: Row(spacing: 10, children: [
+          SizedBox.square(dimension: 24, child: Icon(iconDataForStream(channel),
+            size: 18, color: colorSwatchFor(context, store.subscriptions[channel.streamId]))),
+          Expanded(child: Text(channel.name,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 18, height: 20 / 18,
+              color: DesignVariables.of(context).contextMenuItemLabel,
+            ).merge(weightVariableTextStyle(context, wght: 600)))),
+          // TODO(#1945): show channel description
+        ])),
+    );
   }
 }
 
@@ -328,7 +403,6 @@ class _EmojiAutocompleteItem extends StatelessWidget {
   final EmojiAutocompleteResult option;
 
   static const _size = 24.0;
-  static const _notoColorEmojiTextSize = 19.3;
 
   @override
   Widget build(BuildContext context) {
@@ -336,15 +410,13 @@ class _EmojiAutocompleteItem extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     final candidate = option.candidate;
 
-    // TODO deduplicate this logic with [EmojiPickerListEntry]
     final emojiDisplay = candidate.emojiDisplay.resolve(store.userSettings);
     final Widget? glyph = switch (emojiDisplay) {
-      ImageEmojiDisplay() =>
-        ImageEmojiWidget(size: _size, emojiDisplay: emojiDisplay),
-      UnicodeEmojiDisplay() =>
-        UnicodeEmojiWidget(
-          size: _size, notoColorEmojiTextSize: _notoColorEmojiTextSize,
-          emojiDisplay: emojiDisplay),
+      ImageEmojiDisplay() || UnicodeEmojiDisplay() => EmojiWidget(
+        emojiDisplay: emojiDisplay,
+        squareDimension: _size,
+        imagePlaceholderStyle: EmojiImagePlaceholderStyle.square,
+      ),
       TextEmojiDisplay() => null, // The text is already shown separately.
     };
 
@@ -416,13 +488,11 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
   @override
   Widget buildItem(BuildContext context, int index, TopicAutocompleteResult option) {
     final Widget child;
-    // ignore: unnecessary_null_comparison // null topic names soon to be enabled
     if (option.topic.displayName == null) {
       final store = PerAccountStoreWidget.of(context);
       child = Text(store.realmEmptyTopicDisplayName,
         style: const TextStyle(fontStyle: FontStyle.italic));
     } else {
-      // ignore: unnecessary_non_null_assertion // null topic names soon to be enabled
       child = Text(option.topic.displayName!);
     }
 

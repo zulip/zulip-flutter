@@ -60,15 +60,16 @@ void main() {
         .equals(store.realmUrl.resolve('#narrow/is/starred/near/1'));
     });
 
-    test('ChannelNarrow / TopicNarrow', () {
+    group('ChannelNarrow / TopicNarrow', () {
       void checkNarrow(String expectedFragment, {
         required int streamId,
         required String name,
         String? topic,
         int? nearMessageId,
+        int? zulipFeatureLevel = eg.futureZulipFeatureLevel,
       }) async {
         assert(expectedFragment.startsWith('#'), 'wrong-looking expectedFragment');
-        final store = eg.store();
+        final store = eg.store()..connection.zulipFeatureLevel = zulipFeatureLevel;
         await store.addStream(eg.stream(streamId: streamId, name: name));
         final narrow = topic == null
           ? ChannelNarrow(streamId)
@@ -77,22 +78,32 @@ void main() {
           .equals(store.realmUrl.resolve(expectedFragment));
       }
 
-      checkNarrow(streamId: 1,   name: 'announce',       '#narrow/stream/1-announce');
-      checkNarrow(streamId: 378, name: 'api design',     '#narrow/stream/378-api-design');
-      checkNarrow(streamId: 391, name: 'Outreachy',      '#narrow/stream/391-Outreachy');
-      checkNarrow(streamId: 415, name: 'chat.zulip.org', '#narrow/stream/415-chat.2Ezulip.2Eorg');
-      checkNarrow(streamId: 419, name: 'français',       '#narrow/stream/419-fran.C3.A7ais');
-      checkNarrow(streamId: 403, name: 'Hshs[™~}(.',     '#narrow/stream/403-Hshs.5B.E2.84.A2~.7D.28.2E');
-      checkNarrow(streamId: 60,  name: 'twitter', nearMessageId: 1570686, '#narrow/stream/60-twitter/near/1570686');
+      test('modern including "channel" operator', () {
+        checkNarrow(streamId: 1,   name: 'announce',       '#narrow/channel/1-announce');
+        checkNarrow(streamId: 378, name: 'api design',     '#narrow/channel/378-api-design');
+        checkNarrow(streamId: 391, name: 'Outreachy',      '#narrow/channel/391-Outreachy');
+        checkNarrow(streamId: 415, name: 'chat.zulip.org', '#narrow/channel/415-chat.2Ezulip.2Eorg');
+        checkNarrow(streamId: 419, name: 'français',       '#narrow/channel/419-fran.C3.A7ais');
+        checkNarrow(streamId: 403, name: 'Hshs[™~}(.',     '#narrow/channel/403-Hshs.5B.E2.84.A2~.7D.28.2E');
+        checkNarrow(streamId: 60,  name: 'twitter', nearMessageId: 1570686, '#narrow/channel/60-twitter/near/1570686');
 
-      checkNarrow(streamId: 48,  name: 'mobile', topic: 'Welcome screen UI',
-                  '#narrow/stream/48-mobile/topic/Welcome.20screen.20UI');
-      checkNarrow(streamId: 243, name: 'mobile-team', topic: 'Podfile.lock clash #F92',
-                  '#narrow/stream/243-mobile-team/topic/Podfile.2Elock.20clash.20.23F92');
-      checkNarrow(streamId: 377, name: 'translation/zh_tw', topic: '翻譯 "stream"',
-                  '#narrow/stream/377-translation.2Fzh_tw/topic/.E7.BF.BB.E8.AD.AF.20.22stream.22');
-      checkNarrow(streamId: 42,  name: 'Outreachy 2016-2017', topic: '2017-18 Stream?', nearMessageId: 302690,
-                  '#narrow/stream/42-Outreachy-2016-2017/topic/2017-18.20Stream.3F/near/302690');
+        checkNarrow(streamId: 48,  name: 'mobile', topic: 'Welcome screen UI',
+                    '#narrow/channel/48-mobile/topic/Welcome.20screen.20UI');
+        checkNarrow(streamId: 243, name: 'mobile-team', topic: 'Podfile.lock clash #F92',
+                    '#narrow/channel/243-mobile-team/topic/Podfile.2Elock.20clash.20.23F92');
+        checkNarrow(streamId: 377, name: 'translation/zh_tw', topic: '翻譯 "stream"',
+                    '#narrow/channel/377-translation.2Fzh_tw/topic/.E7.BF.BB.E8.AD.AF.20.22stream.22');
+        checkNarrow(streamId: 42,  name: 'Outreachy 2016-2017', topic: '2017-18 Stream?', nearMessageId: 302690,
+                    '#narrow/channel/42-Outreachy-2016-2017/topic/2017-18.20Stream.3F/near/302690');
+      });
+
+      test('legacy including "stream" operator', () {
+        checkNarrow(streamId: 1,   name: 'announce',       zulipFeatureLevel: 249,
+                    '#narrow/stream/1-announce');
+        checkNarrow(streamId: 48,  name: 'mobile-team', topic: 'Welcome screen UI',
+                    zulipFeatureLevel: 249,
+                    '#narrow/stream/48-mobile-team/topic/Welcome.20screen.20UI');
+      });
     });
 
     test('DmNarrow', () {
@@ -160,7 +171,14 @@ void main() {
         test(urlString, () async {
           final store = await setupStore(realmUrl: realmUrl, streams: streams, users: users);
           final url = store.tryResolveUrl(urlString)!;
-          check(parseInternalLink(url, store)).equals(expected);
+          final result = parseInternalLink(url, store);
+          if (expected == null) {
+            check(result).isNull();
+          } else {
+            check(result).isA<NarrowLink>()
+              ..realmUrl.equals(realmUrl)
+              ..narrow.equals(expected);
+          }
         });
       }
     }
@@ -258,6 +276,9 @@ void main() {
           final url = store.tryResolveUrl(urlString)!;
           final result = parseInternalLink(url, store);
           check(result != null).equals(expected);
+          if (result != null) {
+            check(result).realmUrl.equals(realmUrl);
+          }
         });
       }
     }
@@ -369,6 +390,8 @@ void main() {
         testExpectedNarrows(testCases, streams: streams);
       }
     });
+
+    // TODO(#1570): test parsing /near/ operator
 
     group('unexpected link shapes are rejected', () {
       final testCases = [
@@ -563,4 +586,40 @@ void main() {
       });
     });
   });
+
+  group('parseInternalLink uploads', () {
+    for (final (expectParse, urlPath) in [
+      (true,  '/user_uploads/123/abc.pdf'),
+      (true,  '/user_uploads/123/4/ab/5/cde'),
+      (false, '/user_uploads/123/'),
+      (false, '/user_uploads/123'),
+      (false, '/user_uploads/'),
+      (false, '/user_uploads'),
+      (false, '/user_uploads//abc.pdf'),
+      (false, '/user_uploads/-123/abc.pdf'),
+      (false, '/user_upload/123/abc.pdf'),
+    ]) {
+      test('$urlPath -> ${expectParse ? 'parse' : 'reject'}', () {
+        final store = eg.store();
+        final url = store.tryResolveUrl(urlPath)!;
+        final result = parseInternalLink(url, store);
+        if (!expectParse) {
+          check(result).isNull();
+        } else {
+          check(result).isA<UserUploadLink>();
+          result as UserUploadLink;
+          final reconstructedPath = '/user_uploads/${result.realmId}/${result.path}';
+          check(reconstructedPath).equals(urlPath);
+        }
+      });
+    }
+  });
+}
+
+extension InternalLinkChecks on Subject<InternalLink> {
+  Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
+}
+
+extension NarrowLinkChecks on Subject<NarrowLink> {
+  Subject<Narrow> get narrow => has((x) => x.narrow, 'narrow');
 }

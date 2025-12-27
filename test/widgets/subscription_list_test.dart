@@ -2,6 +2,7 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legacy_checks/legacy_checks.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/widgets/color.dart';
@@ -57,11 +58,13 @@ void main() {
     return find.byType(SubscriptionItem).evaluate().length;
   }
 
-  testWidgets('smoke', (tester) async {
+  testWidgets('empty', (tester) async {
     await setupStreamListPage(tester, subscriptions: []);
     check(getItemCount()).equals(0);
     check(isPinnedHeaderInTree()).isFalse();
     check(isUnpinnedHeaderInTree()).isFalse();
+    check(find.text('You’re not subscribed to any channels yet.')).findsOne();
+    check(find.text('Try going to All channels and joining some of them.')).findsOne();
   });
 
   testWidgets('basic subscriptions', (tester) async {
@@ -270,8 +273,12 @@ void main() {
     check(getItemCount()).equals(1);
     check(tester.widget<Icon>(find.byIcon(iconDataForStream(stream))).color)
       .isNotNull().isSameColorAs(swatch.iconOnPlainBackground);
-    check(tester.widget<UnreadCountBadge>(find.byType(UnreadCountBadge)).backgroundColor)
-      .isNotNull().isSameColorAs(swatch);
+
+    final unreadCountBadgeRenderBox = tester.renderObject<RenderBox>(find.byType(UnreadCountBadge));
+    check(unreadCountBadgeRenderBox).legacyMatcher(
+      // `paints` isn't a [Matcher] so we wrap it with `equals`;
+      // awkward but it works
+      equals(paints..rrect(color: swatch.unreadCountBadgeBackground)));
   });
 
   testWidgets('muted streams are displayed as faded', (tester) async {

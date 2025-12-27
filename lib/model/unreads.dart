@@ -10,6 +10,7 @@ import '../log.dart';
 import 'algorithms.dart';
 import 'narrow.dart';
 import 'channel.dart';
+import 'store.dart';
 
 /// The view-model for unread messages.
 ///
@@ -34,59 +35,90 @@ import 'channel.dart';
 //   sync to those unreads, because the user has shown an interest in them.
 // TODO When loading a message list with stream messages, check all the stream
 //   messages and refresh [mentions] (see [mentions] dartdoc).
-class Unreads extends ChangeNotifier {
+class Unreads extends PerAccountStoreBase with ChangeNotifier {
   factory Unreads({
-    required UnreadMessagesSnapshot initial,
-    required int selfUserId,
+    required CorePerAccountStore core,
     required ChannelStore channelStore,
+    required UnreadMessagesSnapshot initial,
   }) {
-    final streams = <int, Map<TopicName, QueueList<int>>>{};
+    final locatorMap = <int, SendableNarrow>{};
+    final streams = <int, TopicKeyedMap<QueueList<int>>>{};
     final dms = <DmNarrow, QueueList<int>>{};
     final mentions = Set.of(initial.mentions);
 
     for (final unreadChannelSnapshot in initial.channels) {
       final streamId = unreadChannelSnapshot.streamId;
       final topic = unreadChannelSnapshot.topic;
-      (streams[streamId] ??= {})[topic] = QueueList.from(unreadChannelSnapshot.unreadMessageIds);
+      final topics = (streams[streamId] ??= makeTopicKeyedMap());
+      topics.update(topic,
+        // Older servers differentiate topics case-sensitively, but shouldn't:
+        //   https://github.com/zulip/zulip/pull/31869
+        // Our topic-keyed map is case-insensitive. When we've seen this
+        // topic before, modulo case, aggregate instead of clobbering.
+        // TODO(server-10) simplify away
+        (value) => setUnion(value, unreadChannelSnapshot.unreadMessageIds),
+        ifAbsent: () => QueueList.from(unreadChannelSnapshot.unreadMessageIds));
+      final narrow = TopicNarrow(streamId, topic);
+      for (final messageId in unreadChannelSnapshot.unreadMessageIds) {
+        locatorMap[messageId] = narrow;
+      }
     }
 
     for (final unreadDmSnapshot in initial.dms) {
       final otherUserId = unreadDmSnapshot.otherUserId;
-      final narrow = DmNarrow.withUser(otherUserId, selfUserId: selfUserId);
+      final narrow = DmNarrow.withUser(otherUserId, selfUserId: core.selfUserId);
       dms[narrow] = QueueList.from(unreadDmSnapshot.unreadMessageIds);
+      for (final messageId in dms[narrow]!) {
+        locatorMap[messageId] = narrow;
+      }
     }
 
     for (final unreadHuddleSnapshot in initial.huddles) {
-      final narrow = DmNarrow.ofUnreadHuddleSnapshot(unreadHuddleSnapshot, selfUserId: selfUserId);
+      final narrow = DmNarrow.ofUnreadHuddleSnapshot(unreadHuddleSnapshot,
+          selfUserId: core.selfUserId);
       dms[narrow] = QueueList.from(unreadHuddleSnapshot.unreadMessageIds);
+      for (final messageId in dms[narrow]!) {
+        locatorMap[messageId] = narrow;
+      }
     }
 
     return Unreads._(
+      core: core,
       channelStore: channelStore,
+      locatorMap: locatorMap,
       streams: streams,
       dms: dms,
       mentions: mentions,
       oldUnreadsMissing: initial.oldUnreadsMissing,
-      selfUserId: selfUserId,
     );
   }
 
   Unreads._({
+    required super.core,
     required this.channelStore,
+    required this.locatorMap,
     required this.streams,
     required this.dms,
     required this.mentions,
     required this.oldUnreadsMissing,
-    required this.selfUserId,
   });
 
   final ChannelStore channelStore;
+
+  /// All unread messages, as: message ID → narrow ([TopicNarrow] or [DmNarrow]).
+  ///
+  /// Enables efficient [isUnread] and efficient lookups in [streams] and [dms].
+  @visibleForTesting
+  final Map<int, SendableNarrow> locatorMap;
 
   // TODO excluded for now; would need to handle nuances around muting etc.
   // int count;
 
   /// Unread stream messages, as: stream ID → topic → message IDs (sorted).
-  final Map<int, Map<TopicName, QueueList<int>>> streams;
+  ///
+  /// The topic-keyed map is case-insensitive and case-preserving;
+  /// it comes from [makeTopicKeyedMap].
+  final Map<int, TopicKeyedMap<QueueList<int>>> streams;
 
   /// Unread DM messages, as: DM narrow → message IDs (sorted).
   final Map<DmNarrow, QueueList<int>> dms;
@@ -125,14 +157,10 @@ class Unreads extends ChangeNotifier {
   /// Is set to false when the user clears out all unreads.
   bool oldUnreadsMissing;
 
-  final int selfUserId;
-
   // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
   int countInCombinedFeedNarrow() {
     int c = 0;
-    for (final messageIds in dms.values) {
-      c = c + messageIds.length;
-    }
+    c += countInDms();
     for (final MapEntry(key: streamId, value: topics) in streams.entries) {
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
         if (channelStore.isTopicVisible(streamId, topic)) {
@@ -192,10 +220,49 @@ class Unreads extends ChangeNotifier {
 
   int countInDmNarrow(DmNarrow narrow) => dms[narrow]?.length ?? 0;
 
-  int countInMentionsNarrow() => mentions.length;
+  /// The unread count for the mentions narrow.
+  ///
+  /// This excludes DM messages in conversations that are considered muted,
+  /// by [UserStore.shouldMuteDmConversation].
+  // If changing which messages to exclude, consider whether the @-mentions
+  // view should change its "is-message-visible" code correspondingly,
+  // so the unread-count badge matches what you see in that view.
+  // TODO: deduplicate "is-message-visible" code
+  //   between [Unreads] and [MessageListView]?
+  // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
+  int countInMentionsNarrow() {
+    int c = 0;
+    for (final messageId in mentions) {
+      final narrow = locatorMap[messageId];
+      if (narrow == null) continue; // TODO(log)
+      switch (narrow) {
+        case DmNarrow():
+          if (channelStore.shouldMuteDmConversation(narrow)) continue;
+        case TopicNarrow():
+      }
+      c++;
+    }
+    return c;
+  }
 
   // TODO: Implement unreads handling.
   int countInStarredMessagesNarrow() => 0;
+
+  // TODO: Implement unreads handling?
+  int countInKeywordSearchNarrow() => 0;
+
+  /// The aggregated unread count for DM conversations.
+  ///
+  /// This excludes conversations that are considered muted,
+  /// by [UserStore.shouldMuteDmConversation].
+  int countInDms() {
+    int c = 0;
+    for (final MapEntry(key: narrow, value: messageIds) in dms.entries) {
+      if (channelStore.shouldMuteDmConversation(narrow)) continue;
+      c += messageIds.length;
+    }
+    return c;
+  }
 
   int countInNarrow(Narrow narrow) {
     switch (narrow) {
@@ -211,17 +278,16 @@ class Unreads extends ChangeNotifier {
         return countInMentionsNarrow();
       case StarredMessagesNarrow():
         return countInStarredMessagesNarrow();
+      case KeywordSearchNarrow():
+        return countInKeywordSearchNarrow();
     }
   }
 
   /// The unread state for [messageId], or null if unknown.
   ///
   /// May be unknown only if [oldUnreadsMissing].
-  ///
-  /// This is inefficient; it iterates through [dms] and [channels].
-  // TODO implement efficiently
   bool? isUnread(int messageId) {
-    final isPresent = _slowIsPresentInDms(messageId) || _slowIsPresentInStreams(messageId);
+    final isPresent = locatorMap.containsKey(messageId);
     if (oldUnreadsMissing && !isPresent) return null;
     return isPresent;
   }
@@ -234,9 +300,12 @@ class Unreads extends ChangeNotifier {
 
     switch (message) {
       case StreamMessage():
+        final narrow = TopicNarrow.ofMessage(message);
+        locatorMap[event.message.id] = narrow;
         _addLastInStreamTopic(message.id, message.streamId, message.topic);
       case DmMessage():
         final narrow = DmNarrow.ofMessage(message, selfUserId: selfUserId);
+        locatorMap[event.message.id] = narrow;
         _addLastInDm(message.id, narrow);
     }
     if (
@@ -330,9 +399,16 @@ class Unreads extends ChangeNotifier {
       // Unreads moved to an unsubscribed channel; just drop them.
       // See also:
       //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/mark-as-read.20events.20with.20message.20moves.3F/near/2101926
+      for (final messageId in messageToMoveIds) {
+        locatorMap.remove(messageId);
+      }
       return true;
     }
 
+    final narrow = TopicNarrow(newStreamId, newTopic);
+    for (final messageId in messageToMoveIds) {
+      locatorMap[messageId] = narrow;
+    }
     _addAllInStreamTopic(messageToMoveIds, newStreamId, newTopic);
 
     return true;
@@ -340,14 +416,18 @@ class Unreads extends ChangeNotifier {
 
   void handleDeleteMessageEvent(DeleteMessageEvent event) {
     mentions.removeAll(event.messageIds);
-    final messageIdsSet = Set.of(event.messageIds);
     switch (event.messageType) {
       case MessageType.stream:
+        // All the messages are in [event.streamId] and [event.topic],
+        // so we can be more efficient than _removeAllInStreamsAndDms.
         final streamId = event.streamId!;
         final topic = event.topic!;
-        _removeAllInStreamTopic(messageIdsSet, streamId, topic);
+        _removeAllInStreamTopic(Set.of(event.messageIds), streamId, topic);
       case MessageType.direct:
-        _slowRemoveAllInDms(messageIdsSet);
+        _removeAllInStreamsAndDms(event.messageIds, expectOnlyDms: true);
+    }
+    for (final messageId in event.messageIds) {
+      locatorMap.remove(messageId);
     }
 
     // TODO skip notifyListeners if unchanged?
@@ -389,38 +469,40 @@ class Unreads extends ChangeNotifier {
         switch (event) {
           case UpdateMessageFlagsAddEvent():
             if (event.all) {
+              locatorMap.clear();
               streams.clear();
               dms.clear();
               mentions.clear();
               oldUnreadsMissing = false;
             } else {
-              final messageIdsSet = Set.of(event.messages);
-              mentions.removeAll(messageIdsSet);
-              _slowRemoveAllInStreams(messageIdsSet);
-              _slowRemoveAllInDms(messageIdsSet);
+              final messageIds = event.messages;
+              mentions.removeAll(messageIds);
+              _removeAllInStreamsAndDms(messageIds);
+              for (final messageId in messageIds) {
+                locatorMap.remove(messageId);
+              }
             }
           case UpdateMessageFlagsRemoveEvent():
-            final newlyUnreadInStreams = <int, Map<TopicName, QueueList<int>>>{};
+            final newlyUnreadInStreams = <int, TopicKeyedMap<QueueList<int>>>{};
             final newlyUnreadInDms = <DmNarrow, QueueList<int>>{};
             for (final messageId in event.messages) {
               final detail = event.messageDetails![messageId];
-              if (detail == null) { // TODO(log) if on Zulip 6.0+
-                // Happens as a bug in some cases before fixed in Zulip 6.0:
-                //   https://chat.zulip.org/#narrow/stream/378-api-design/topic/unreads.20in.20unsubscribed.20streams/near/1458467
-                // TODO(server-6) remove Zulip 6.0 comment
-                continue;
-              }
+              if (detail == null) continue; // TODO(log)
+
               if (detail.mentioned == true) {
                 mentions.add(messageId);
               }
               switch (detail.type) {
                 case MessageType.stream:
-                  final topics = (newlyUnreadInStreams[detail.streamId!] ??= {});
-                  final messageIds = (topics[detail.topic!] ??= QueueList());
+                  final UpdateMessageFlagsMessageDetail(:streamId, :topic) = detail;
+                  locatorMap[messageId] = TopicNarrow(streamId!, topic!);
+                  final topics = (newlyUnreadInStreams[streamId] ??= makeTopicKeyedMap());
+                  final messageIds = (topics[topic] ??= QueueList());
                   messageIds.add(messageId);
                 case MessageType.direct:
                   final narrow = DmNarrow.ofUpdateMessageFlagsMessageDetail(selfUserId: selfUserId,
                     detail);
+                  locatorMap[messageId] = narrow;
                   (newlyUnreadInDms[narrow] ??= QueueList())
                     .add(messageId);
               }
@@ -441,22 +523,20 @@ class Unreads extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// To be called on success of a mark-all-as-read task in the modern protocol.
+  /// To be called on success of a mark-all-as-read task.
   ///
   /// When the user successfully marks all messages as read,
   /// there can't possibly be ancient unreads we don't know about.
   /// So this updates [oldUnreadsMissing] to false and calls [notifyListeners].
   ///
-  /// When we use POST /messages/flags/narrow (FL 155+) for mark-all-as-read,
-  /// we don't expect to get a mark-as-read event with `all: true`,
+  /// We don't expect to get a mark-as-read event with `all: true`,
   /// even on completion of the last batch of unreads.
-  /// If we did get an event with `all: true` (as we do in the legacy mark-all-
+  /// If we did get an event with `all: true` (as we did in a legacy mark-all-
   /// as-read protocol), this would be handled naturally, in
   /// [handleUpdateMessageFlagsEvent].
   ///
   /// Discussion:
   ///   <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680275>
-  // TODO(server-6) Delete mentions of legacy protocol.
   void handleAllMessagesReadSuccess() {
     oldUnreadsMissing = false;
 
@@ -475,53 +555,47 @@ class Unreads extends ChangeNotifier {
     notifyListeners();
   }
 
-  // TODO use efficient lookups
-  bool _slowIsPresentInStreams(int messageId) {
-    return streams.values.any(
-      (topics) => topics.values.any(
-        (messageIds) => messageIds.contains(messageId),
-      ),
-    );
-  }
-
   void _addLastInStreamTopic(int messageId, int streamId, TopicName topic) {
-    ((streams[streamId] ??= {})[topic] ??= QueueList()).addLast(messageId);
+    ((streams[streamId] ??= makeTopicKeyedMap())[topic] ??= QueueList())
+      .addLast(messageId);
   }
 
   // [messageIds] must be sorted ascending and without duplicates.
   void _addAllInStreamTopic(QueueList<int> messageIds, int streamId, TopicName topic) {
     assert(messageIds.isNotEmpty);
     assert(isSortedWithoutDuplicates(messageIds));
-    final topics = streams[streamId] ??= {};
+    final topics = streams[streamId] ??= makeTopicKeyedMap();
     topics.update(topic,
       ifAbsent: () => messageIds,
-      // setUnion dedupes existing and incoming unread IDs,
-      // so we tolerate zulip/zulip#22164, fixed in 6.0
-      // TODO(server-6) remove 6.0 comment
-      (existing) => setUnion(existing, messageIds),
-    );
+      (existing) => setUnion(existing, messageIds));
   }
 
-  // TODO use efficient model lookups
-  void _slowRemoveAllInStreams(Set<int> idsToRemove) {
-    final newlyEmptyStreams = <int>[];
-    for (final MapEntry(key: streamId, value: topics) in streams.entries) {
-      final newlyEmptyTopics = <TopicName>[];
-      for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
-        messageIds.removeWhere((id) => idsToRemove.contains(id));
-        if (messageIds.isEmpty) {
-          newlyEmptyTopics.add(topic);
-        }
-      }
-      for (final topic in newlyEmptyTopics) {
-        topics.remove(topic);
-      }
-      if (topics.isEmpty) {
-        newlyEmptyStreams.add(streamId);
-      }
+  /// Remove [idsToRemove] from [streams] and [dms].
+  void _removeAllInStreamsAndDms(Iterable<int> idsToRemove, {bool expectOnlyDms = false}) {
+    final idsPresentByNarrow = <SendableNarrow, Set<int>>{};
+    for (final id in idsToRemove) {
+      final narrow = locatorMap[id];
+      if (narrow == null) continue;
+      (idsPresentByNarrow[narrow] ??= {}).add(id);
     }
-    for (final streamId in newlyEmptyStreams) {
-      streams.remove(streamId);
+
+    for (final MapEntry(key: narrow, value: ids) in idsPresentByNarrow.entries) {
+      switch (narrow) {
+        case TopicNarrow():
+          if (expectOnlyDms) {
+            // TODO(log)?
+          }
+          _removeAllInStreamTopic(ids, narrow.streamId, narrow.topic);
+        case DmNarrow():
+          final messageIds = dms[narrow];
+          if (messageIds == null) return;
+
+          // ([QueueList] doesn't have a `removeAll`)
+          messageIds.removeWhere((id) => ids.contains(id));
+          if (messageIds.isEmpty) {
+            dms.remove(narrow);
+          }
+      }
     }
   }
 
@@ -584,11 +658,6 @@ class Unreads extends ChangeNotifier {
     return poppedMessageIds;
   }
 
-  // TODO use efficient model lookups
-  bool _slowIsPresentInDms(int messageId) {
-    return dms.values.any((ids) => ids.contains(messageId));
-  }
-
   void _addLastInDm(int messageId, DmNarrow narrow) {
     (dms[narrow] ??= QueueList()).addLast(messageId);
   }
@@ -597,24 +666,6 @@ class Unreads extends ChangeNotifier {
   void _addAllInDm(QueueList<int> messageIds, DmNarrow dmNarrow) {
     dms.update(dmNarrow,
       ifAbsent: () => messageIds,
-      // setUnion dedupes existing and incoming unread IDs,
-      // so we tolerate zulip/zulip#22164, fixed in 6.0
-      // TODO(server-6) remove 6.0 comment
-      (existing) => setUnion(existing, messageIds),
-    );
-  }
-
-  // TODO use efficient model lookups
-  void _slowRemoveAllInDms(Set<int> idsToRemove) {
-    final newlyEmptyDms = <DmNarrow>[];
-    for (final MapEntry(key: dmNarrow, value: messageIds) in dms.entries) {
-      messageIds.removeWhere((id) => idsToRemove.contains(id));
-      if (messageIds.isEmpty) {
-        newlyEmptyDms.add(dmNarrow);
-      }
-    }
-    for (final dmNarrow in newlyEmptyDms) {
-      dms.remove(dmNarrow);
-    }
+      (existing) => setUnion(existing, messageIds));
   }
 }

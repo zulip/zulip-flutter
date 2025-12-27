@@ -79,7 +79,7 @@ class _ZulipAppBarBottom extends StatelessWidget implements PreferredSizeWidget 
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    if (!store.isLoading) return const SizedBox.shrink();
+    if (!store.isRecoveringEventStream) return const SizedBox.shrink();
     return LinearProgressIndicator(minHeight: 4.0, backgroundColor: backgroundColor);
   }
 }

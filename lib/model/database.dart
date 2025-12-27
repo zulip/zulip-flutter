@@ -1,9 +1,16 @@
 import 'package:drift/drift.dart';
 import 'package:drift/internal/versioned_schema.dart';
+// `package:drift/remote.dart` says:
+//   The public apis of this libraries are stable. The present [experimental]
+//   annotation refers to the underlying protocol implementation.
+// We use it only for the public API, and only of DriftRemoteException.
+// ignore: experimental_member_use  // see explanation above
 import 'package:drift/remote.dart';
 import 'package:sqlite3/common.dart';
 
+import '../api/route/realm.dart';
 import '../log.dart';
+import 'legacy_app_data.dart';
 import 'schema_versions.g.dart';
 import 'settings.dart';
 
@@ -24,8 +31,18 @@ class GlobalSettings extends Table {
   Column<String> get browserPreference => textEnum<BrowserPreference>()
     .nullable()();
 
+  Column<String> get visitFirstUnread => textEnum<VisitFirstUnreadSetting>()
+    .nullable()();
+
+  Column<String> get markReadOnScroll => textEnum<MarkReadOnScrollSetting>()
+    .nullable()();
+
+  Column<String> get legacyUpgradeState => textEnum<LegacyUpgradeState>()
+    .nullable()();
+
   // If adding a new column to this table, consider whether [BoolGlobalSettings]
-  // can do the job instead (by adding a value to the [BoolGlobalSetting] enum).
+  // or [IntGlobalSettings] can do the job instead (by adding a value to the
+  // [BoolGlobalSetting] or [IntGlobalSetting] enum).
   // That way is more convenient, when it works, because
   // it avoids a migration and therefore several added copies of our schema
   // in the Drift generated files.
@@ -40,6 +57,9 @@ class GlobalSettings extends Table {
 /// referring to a possible setting from [BoolGlobalSetting].
 /// For settings in [BoolGlobalSetting] without a row in this table,
 /// the setting's value is that of [BoolGlobalSetting.default_].
+///
+/// See also:
+/// - [IntGlobalSettings], the int-valued counterpart of this table.
 @DataClassName('BoolGlobalSettingRow')
 class BoolGlobalSettings extends Table {
   /// The setting's name, a possible name from [BoolGlobalSetting].
@@ -63,6 +83,37 @@ class BoolGlobalSettings extends Table {
   Set<Column<Object>>? get primaryKey => {name};
 }
 
+/// The table of the user's int-valued, account-independent settings.
+///
+/// These apply across all the user's accounts on this client
+/// (i.e. on this install of the app on this device).
+///
+/// Each row is a [IntGlobalSettingRow],
+/// referring to a possible setting from [IntGlobalSetting].
+/// For settings in [IntGlobalSetting] without a row in this table,
+/// the setting's value is `null`.
+///
+/// See also:
+/// - [BoolGlobalSettings], the bool-valued counterpart of this table.
+@DataClassName('IntGlobalSettingRow')
+class IntGlobalSettings extends Table {
+  /// The setting's name, a possible name from [IntGlobalSetting].
+  ///
+  /// The table may have rows where [name] is not the name of any
+  /// enum value in [IntGlobalSetting].
+  /// This happens if the app has previously run at a future or modified
+  /// version which had additional values in that enum,
+  /// and the user set one of those additional settings.
+  /// The app ignores any such unknown rows.
+  TextColumn get name => text()();
+
+  /// The user's chosen value for the setting.
+  IntColumn get value => integer()();
+
+  @override
+  Set<Column<Object>>? get primaryKey => {name};
+}
+
 /// The table of [Account] records in the app's database.
 class Accounts extends Table {
   /// The ID of this account in the app's local database.
@@ -77,6 +128,20 @@ class Accounts extends Table {
   /// This corresponds to [GetServerSettingsResult.realmUrl].
   /// It never changes for a given account.
   Column<String> get realmUrl => text().map(const UriConverter())();
+
+  /// The name of the Zulip realm this account is on.
+  ///
+  /// This corresponds to [GetServerSettingsResult.realmName].
+  ///
+  /// Nullable just because older versions of the app didn't store this.
+  Column<String> get realmName => text().nullable()();
+
+  /// The icon URL of the Zulip realm this account is on.
+  ///
+  /// This corresponds to [GetServerSettingsResult.realmIcon].
+  ///
+  /// Nullable just because older versions of the app didn't store this.
+  Column<String> get realmIcon => text().map(const UriConverter()).nullable()();
 
   /// The Zulip user ID of this account.
   ///
@@ -106,7 +171,7 @@ class UriConverter extends TypeConverter<Uri, String> {
   @override Uri fromSql(String fromDb) => Uri.parse(fromDb);
 }
 
-@DriftDatabase(tables: [GlobalSettings, BoolGlobalSettings, Accounts])
+@DriftDatabase(tables: [GlobalSettings, BoolGlobalSettings, IntGlobalSettings, Accounts])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
@@ -119,7 +184,7 @@ class AppDatabase extends _$AppDatabase {
   //    information on using the build_runner.
   //  * Write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 6; // See note.
+  static const int latestSchemaVersion = 12; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -174,12 +239,59 @@ class AppDatabase extends _$AppDatabase {
     from5To6: (m, schema) async {
       await m.createTable(schema.boolGlobalSettings);
     },
+    from6To7: (m, schema) async {
+      await m.addColumn(schema.globalSettings,
+        schema.globalSettings.visitFirstUnread);
+    },
+    from7To8: (m, schema) async {
+      await m.addColumn(schema.globalSettings,
+        schema.globalSettings.markReadOnScroll);
+    },
+    from8To9: (m, schema) async {
+      await m.addColumn(schema.globalSettings,
+        schema.globalSettings.legacyUpgradeState);
+      // Earlier versions of this app weren't built to be installed over
+      // the legacy app.  So if upgrading from an earlier version of this app,
+      // assume there wasn't also the legacy app before that.
+      await m.database.update(schema.globalSettings).write(
+        RawValuesInsertable({'legacy_upgrade_state': Constant('noLegacy')}));
+    },
+    from9To10: (m, schema) async {
+      await m.createTable(schema.intGlobalSettings);
+    },
+    from10To11: (Migrator m, Schema11 schema) async {
+      // To provide a smooth experience for users when they first install a new
+      // version of the app with support for the "last visited account" feature,
+      // we set the first available account as the last visited one. This way,
+      // the user is still taken straight to the first account, just as they
+      // were used to before, instead of being shown the "choose account" page.
+      final firstAccountId = await (m.database.selectOnly(schema.accounts)
+        ..addColumns([schema.accounts.id])
+        ..limit(1)
+      ).map((row) => row.read(schema.accounts.id)).getSingleOrNull();
+      if (firstAccountId == null) return;
+
+      // Like `globalStore.setLastVisitedAccount(firstAccountId)`,
+      // as of the schema at the time of this migration.
+      await m.database.into(schema.intGlobalSettings).insert(
+        RawValuesInsertable({
+          'name': Variable('lastVisitedAccountId'),
+          'value': Variable(firstAccountId),
+        }));
+    },
+    from11To12: (Migrator m, Schema12 schema) async {
+      await m.addColumn(schema.accounts, schema.accounts.realmName);
+      await m.addColumn(schema.accounts, schema.accounts.realmIcon);
+    },
   );
 
   Future<void> _createLatestSchema(Migrator m) async {
+    assert(debugLog('Creating DB schema from scratch.'));
     await m.createAll();
     // Corresponds to `from4to5` above.
     await into(globalSettings).insert(GlobalSettingsCompanion());
+    // Corresponds to (but differs from) part of `from8To9` above.
+    await migrateLegacyAppData(this);
   }
 
   @override
@@ -191,7 +303,7 @@ class AppDatabase extends _$AppDatabase {
           // This should only ever happen in dev.  As a dev convenience,
           // drop everything from the database and start over.
           // TODO(log): log schema downgrade as an error
-          assert(debugLog('Downgrading schema from v$from to v$to.'));
+          assert(debugLog('Downgrading DB schema from v$from to v$to.'));
 
           // In the actual app, the target schema version is always
           // the latest version as of the code that's being run.
@@ -205,6 +317,7 @@ class AppDatabase extends _$AppDatabase {
         }
         assert(1 <= from && from <= to && to <= latestSchemaVersion);
 
+        assert(debugLog('Upgrading DB schema from v$from to v$to.'));
         await m.runMigrationSteps(from: from, to: to, steps: _migrationSteps);
       });
   }
@@ -223,6 +336,14 @@ class AppDatabase extends _$AppDatabase {
       result[setting] = row.value;
     }
     return result;
+  }
+
+  Future<Map<IntGlobalSetting, int>> getIntGlobalSettings() async {
+    return {
+      for (final row in await select(intGlobalSettings).get())
+        if (IntGlobalSetting.byName(row.name) case final setting?)
+          setting: row.value
+    };
   }
 
   Future<int> createAccount(AccountsCompanion values) async {

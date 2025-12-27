@@ -36,7 +36,7 @@ class GetServerSettingsResult {
 
   final int zulipFeatureLevel;
   final String zulipVersion;
-  final String? zulipMergeBase; // TODO(server-5)
+  final String zulipMergeBase;
 
   final bool pushNotificationsEnabled;
   final bool isIncompatible;
@@ -48,9 +48,9 @@ class GetServerSettingsResult {
   final Uri realmUrl;
 
   final String realmName;
-  final String realmIcon;
+  final Uri realmIcon;
   final String realmDescription;
-  final bool? realmWebPublicAccessEnabled; // TODO(server-5)
+  final bool realmWebPublicAccessEnabled;
 
   GetServerSettingsResult({
     required this.authenticationMethods,

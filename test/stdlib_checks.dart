@@ -16,6 +16,11 @@ extension ListChecks<T> on Subject<List<T>> {
   Subject<T> operator [](int index) => has((l) => l[index], '[$index]');
 }
 
+extension MapEntryChecks<K, V> on Subject<MapEntry<K, V>> {
+  Subject<K> get key => has((e) => e.key, 'key');
+  Subject<V> get value => has((e) => e.value, 'value');
+}
+
 extension NullableMapChecks<K, V> on Subject<Map<K, V>?> {
   void deepEquals(Map<Object?, Object?>? expected) {
     if (expected == null) {

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../api/core.dart';
 import '../api/exception.dart';
 import '../api/model/web_auth.dart';
 import '../api/route/account.dart';
@@ -13,6 +14,7 @@ import '../api/route/users.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/binding.dart';
+import '../model/server_support.dart';
 import '../model/store.dart';
 import 'dialog.dart';
 import 'home.dart';
@@ -180,25 +182,43 @@ class _AddAccountPageState extends State<AddAccountPage> {
         final connection = globalStore.apiConnection(realmUrl: url!, zulipFeatureLevel: null);
         try {
           serverSettings = await getServerSettings(connection);
+          final zulipVersionData = ZulipVersionData.fromServerSettings(serverSettings);
+          if (zulipVersionData.isUnsupported) {
+            throw ServerVersionUnsupportedException(zulipVersionData);
+          }
+        } on MalformedServerResponseException catch (e) {
+          final zulipVersionData = ZulipVersionData.fromMalformedServerResponseException(e);
+          if (zulipVersionData != null && zulipVersionData.isUnsupported) {
+            throw ServerVersionUnsupportedException(zulipVersionData);
+          }
+          rethrow;
         } finally {
           connection.close();
         }
       } catch (e) {
-        if (!context.mounted) {
-          return;
+        if (!context.mounted) return;
+
+        String? message;
+        Uri? learnMoreButtonUrl;
+        switch (e) {
+          case ServerVersionUnsupportedException(:final data):
+            message = zulipLocalizations.errorServerVersionUnsupportedMessage(
+              url.toString(),
+              data.zulipVersion,
+              kMinSupportedZulipVersion);
+            learnMoreButtonUrl = kServerSupportDocUrl;
+          default:
+            // TODO(#105) give more helpful feedback; see `fetchServerSettings`
+            //   in zulip-mobile's src/message/fetchActions.js.
+            message = zulipLocalizations.errorLoginCouldNotConnect(url.toString());
         }
-        // TODO(#105) give more helpful feedback; see `fetchServerSettings`
-        //   in zulip-mobile's src/message/fetchActions.js.
         showErrorDialog(context: context,
           title: zulipLocalizations.errorCouldNotConnectTitle,
-          message: zulipLocalizations.errorLoginCouldNotConnect(url.toString()));
+          message: message,
+          learnMoreButtonUrl: learnMoreButtonUrl);
         return;
       }
-      // https://github.com/dart-lang/linter/issues/4007
-      // ignore: use_build_context_synchronously
-      if (!context.mounted) {
-        return;
-      }
+      if (!context.mounted) return;
 
       unawaited(Navigator.push(context,
         LoginPage.buildRoute(serverSettings: serverSettings)));
@@ -309,8 +329,7 @@ class _LoginPageState extends State<LoginPage> {
       if (payload.realm.origin != widget.serverSettings.realmUrl.origin) throw Error();
       final apiKey = payload.decodeApiKey(_otp!);
       await _tryInsertAccountAndNavigate(
-        // TODO(server-5): Rely on userId from payload.
-        userId: payload.userId ?? await _getUserId(payload.email, apiKey),
+        userId: payload.userId,
         email: payload.email,
         apiKey: apiKey,
       );
@@ -343,6 +362,9 @@ class _LoginPageState extends State<LoginPage> {
       // Could set [_inProgress]… but we'd need to unset it if the web-auth
       // attempt is aborted (by the user closing the browser, for example),
       // and I don't think we can reliably know when that happens.
+
+      // Not using [PlatformActions.launchUrl] because web auth needs special
+      // error handling.
       await ZulipBinding.instance.launchUrl(url, mode: LaunchMode.inAppBrowserView);
     } catch (e) {
       assert(debugLog(e.toString()));
@@ -384,6 +406,8 @@ class _LoginPageState extends State<LoginPage> {
     try {
       accountId = await globalStore.insertAccount(AccountsCompanion.insert(
         realmUrl: realmUrl,
+        realmName: Value(widget.serverSettings.realmName),
+        realmIcon: Value(widget.serverSettings.realmIcon),
         email: email,
         apiKey: apiKey,
         userId: userId,
@@ -433,10 +457,10 @@ class _LoginPageState extends State<LoginPage> {
 
     final externalAuthenticationMethods = widget.serverSettings.externalAuthenticationMethods;
 
-    final loginForm = Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+    final loginContent = Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       _UsernamePasswordForm(loginPageState: this),
       if (externalAuthenticationMethods.isNotEmpty) ...[
-        const OrDivider(),
+        _AlternativeAuthDivider(),
         ...externalAuthenticationMethods.map((method) {
           final icon = method.displayIcon;
           return OutlinedButton.icon(
@@ -473,7 +497,7 @@ class _LoginPageState extends State<LoginPage> {
               //   left or the right of this box
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 400),
-                child: loginForm))))));
+                child: loginContent))))));
   }
 }
 
@@ -640,9 +664,7 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
 }
 
 // Loosely based on the corresponding element in the web app.
-class OrDivider extends StatelessWidget {
-  const OrDivider({super.key});
-
+class _AlternativeAuthDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -653,17 +675,20 @@ class OrDivider extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        divider,
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5),
-          child: Text(zulipLocalizations.loginMethodDivider,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: designVariables.loginOrDividerText,
-              height: 1.5,
-            ).merge(weightVariableTextStyle(context, wght: 600)))),
-        divider,
-      ]));
+      child: Semantics(
+        excludeSemantics: true,
+        label: zulipLocalizations.loginMethodDividerSemanticLabel,
+        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          divider,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: Text(zulipLocalizations.loginMethodDivider,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: designVariables.loginOrDividerText,
+                height: 1.5,
+              ).merge(weightVariableTextStyle(context, wght: 600)))),
+          divider,
+        ])));
   }
 }

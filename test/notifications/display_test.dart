@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -6,7 +5,6 @@ import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart' hide Notification;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http_testing;
@@ -18,24 +16,15 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/display.dart';
+import 'package:zulip/notifications/open.dart';
 import 'package:zulip/notifications/receive.dart';
-import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/color.dart';
-import 'package:zulip/widgets/home.dart';
-import 'package:zulip/widgets/message_list.dart';
-import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/theme.dart';
 
+import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../model/binding.dart';
-import '../example_data.dart' as eg;
-import '../model/narrow_checks.dart';
-import '../stdlib_checks.dart';
 import '../test_images.dart';
-import '../test_navigation.dart';
-import '../widgets/dialog_checks.dart';
-import '../widgets/message_list_checks.dart';
-import '../widgets/page_checks.dart';
 
 MessageFcmMessage messageFcmMessage(
   Message zulipMessage, {
@@ -114,7 +103,10 @@ void main() {
     return http.runWithClient(callback, httpClientFactory ?? () => fakeHttpClientGivingSuccess);
   }
 
-  Future<void> init() async {
+  Future<void> init({bool addSelfAccount = true}) async {
+    if (addSelfAccount) {
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    }
     addTearDown(testBinding.reset);
     testBinding.firebaseMessagingInitialToken = '012abc';
     addTearDown(NotificationService.debugReset);
@@ -218,8 +210,8 @@ void main() {
       NotificationChannelManager.kDefaultNotificationSound.resourceName;
     String fakeStoredUrl(String resourceName) =>
       testBinding.androidNotificationHost.fakeStoredNotificationSoundUrl(resourceName);
-    String fakeResourceUrl(String resourceName) =>
-      'android.resource://com.zulip.flutter/raw/$resourceName';
+    String fakeResourceUrl({required String resourceName, String? packageName}) =>
+      'android.resource://${packageName ?? eg.packageInfo().packageName}/raw/$resourceName';
 
     test('on Android 28 (and lower) resource file is used for notification sound', () async {
       addTearDown(testBinding.reset);
@@ -235,7 +227,30 @@ void main() {
         .isEmpty();
       check(androidNotificationHost.takeCreatedChannels())
         .single
-        .soundUrl.equals(fakeResourceUrl(defaultSoundResourceName));
+        .soundUrl.equals(fakeResourceUrl(resourceName: defaultSoundResourceName));
+    });
+
+    test('generates resource file URL from app package name', () async {
+      addTearDown(testBinding.reset);
+      final androidNotificationHost = testBinding.androidNotificationHost;
+
+      testBinding.packageInfoResult = eg.packageInfo(packageName: 'com.example.test');
+
+      // Force the default sound URL to be the resource file URL, by forcing
+      // the Android version to the one where we don't store sounds through the
+      // media store.
+      testBinding.deviceInfoResult =
+        const AndroidDeviceInfo(sdkInt: 28, release: '9');
+
+      await NotificationChannelManager.ensureChannel();
+      check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
+        .isEmpty();
+      check(androidNotificationHost.takeCreatedChannels())
+        .single
+        .soundUrl.equals(fakeResourceUrl(
+          resourceName: defaultSoundResourceName,
+          packageName: 'com.example.test',
+        ));
     });
 
     test('notification sound resource files are being copied to the media store', () async {
@@ -323,7 +338,7 @@ void main() {
         .isEmpty();
       check(androidNotificationHost.takeCreatedChannels())
         .single
-        .soundUrl.equals(fakeResourceUrl(defaultSoundResourceName));
+        .soundUrl.equals(fakeResourceUrl(resourceName: defaultSoundResourceName));
     });
   });
 
@@ -351,7 +366,7 @@ void main() {
           TopicNarrow(streamId, topic),
         FcmMessageDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildUrl();
+      }).buildAndroidNotificationUrl();
 
       final messageStyleMessagesChecks =
         messageStyleMessages.mapIndexed((i, messageData) {
@@ -872,7 +887,8 @@ void main() {
     })));
 
     test('remove: different realm URLs but same user-ids and same message-ids', () => runWithHttpClient(() => awaitFakeAsync((async) async {
-      await init();
+      await init(addSelfAccount: false);
+
       final stream = eg.stream();
       const topic = 'Some Topic';
       final conversationKey = 'stream:${stream.streamId}:some topic';
@@ -881,6 +897,7 @@ void main() {
         realmUrl: Uri.parse('https://1.chat.example'),
         id: 1001,
         user: eg.user(userId: 1001));
+      await testBinding.globalStore.add(account1, eg.initialSnapshot());
       final message1 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data1 =
         messageFcmMessage(message1, account: account1, streamName: stream.name);
@@ -890,6 +907,7 @@ void main() {
         realmUrl: Uri.parse('https://2.chat.example'),
         id: 1002,
         user: eg.user(userId: 1001));
+      await testBinding.globalStore.add(account2, eg.initialSnapshot());
       final message2 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data2 =
         messageFcmMessage(message2, account: account2, streamName: stream.name);
@@ -917,19 +935,21 @@ void main() {
     })));
 
     test('remove: different user-ids but same realm URL and same message-ids', () => runWithHttpClient(() => awaitFakeAsync((async) async {
-      await init();
+      await init(addSelfAccount: false);
       final realmUrl = eg.realmUrl;
       final stream = eg.stream();
       const topic = 'Some Topic';
       final conversationKey = 'stream:${stream.streamId}:some topic';
 
       final account1 = eg.account(id: 1001, user: eg.user(userId: 1001), realmUrl: realmUrl);
+      await testBinding.globalStore.add(account1, eg.initialSnapshot());
       final message1 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data1 =
         messageFcmMessage(message1, account: account1, streamName: stream.name);
       final groupKey1 = '${account1.realmUrl}|${account1.userId}';
 
       final account2 = eg.account(id: 1002, user: eg.user(userId: 1002), realmUrl: realmUrl);
+      await testBinding.globalStore.add(account2, eg.initialSnapshot());
       final message2 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data2 =
         messageFcmMessage(message2, account: account2, streamName: stream.name);
@@ -955,423 +975,76 @@ void main() {
       receiveFcmMessage(async, removeFcmMessage([message2], account: account2));
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
-  });
 
-  group('NotificationDisplayManager open', () {
-    late List<Route<void>> pushedRoutes;
-
-    void takeStartingRoutes({Account? account, bool withAccount = true}) {
-      account ??= eg.selfAccount;
-      final expected = <Condition<Object?>>[
-        if (withAccount)
-          (it) => it.isA<MaterialAccountWidgetRoute>()
-            ..accountId.equals(account!.id)
-            ..page.isA<HomePage>()
-        else
-          (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
-      ];
-      check(pushedRoutes.take(expected.length)).deepEquals(expected);
-      pushedRoutes.removeRange(0, expected.length);
-    }
-
-    Future<void> prepare(WidgetTester tester,
-        {bool early = false, bool withAccount = true}) async {
+    test('removeNotificationsForAccount: removes notifications', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
-      pushedRoutes = [];
-      final testNavObserver = TestNavigatorObserver()
-        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
-      // This uses [ZulipApp] instead of [TestZulipApp] because notification
-      // logic uses `await ZulipApp.navigator`.
-      await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
-      if (early) {
-        check(pushedRoutes).isEmpty();
-        return;
-      }
-      await tester.pump();
-      takeStartingRoutes(withAccount: withAccount);
-      check(pushedRoutes).isEmpty();
-    }
+      final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
+      receiveFcmMessage(async, messageFcmMessage(message));
+      check(testBinding.androidNotificationHost.activeNotifications).isNotEmpty();
 
-    Future<void> openNotification(WidgetTester tester, Account account, Message message) async {
-      final data = messageFcmMessage(message, account: account);
-      final intentDataUrl = NotificationOpenPayload(
-        realmUrl: data.realmUrl,
-        userId: data.userId,
-        narrow: switch (data.recipient) {
-        FcmMessageChannelRecipient(:var streamId, :var topic) =>
-          TopicNarrow(streamId, topic),
-        FcmMessageDmRecipient(:var allRecipientIds) =>
-          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildUrl();
-      unawaited(
-        WidgetsBinding.instance.handlePushRoute(intentDataUrl.toString()));
-      await tester.idle(); // let navigateForNotification find navigator
-    }
+      await NotificationDisplayManager.removeNotificationsForAccount(
+        eg.selfAccount.realmUrl, eg.selfAccount.userId);
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+    })));
 
-    void matchesNavigation(Subject<Route<void>> route, Account account, Message message) {
-      route.isA<MaterialAccountWidgetRoute>()
-        ..accountId.equals(account.id)
-        ..page.isA<MessageListPage>()
-          .initNarrow.equals(SendableNarrow.ofMessage(message,
-            selfUserId: account.userId));
-    }
+    test('removeNotificationsForAccount: leaves notifications for other accounts (same realm URL)', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init(addSelfAccount: false);
 
-    Future<void> checkOpenNotification(WidgetTester tester, Account account, Message message) async {
-      await openNotification(tester, account, message);
-      matchesNavigation(check(pushedRoutes).single, account, message);
-      pushedRoutes.clear();
-    }
+      final realmUrl = eg.realmUrl;
+      final account1 = eg.account(id: 1001, user: eg.user(userId: 1001), realmUrl: realmUrl);
+      final account2 = eg.account(id: 1002, user: eg.user(userId: 1002), realmUrl: realmUrl);
+      await testBinding.globalStore.add(account1, eg.initialSnapshot());
+      await testBinding.globalStore.add(account2, eg.initialSnapshot());
 
-    testWidgets('stream message', (tester) async {
-      addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      await prepare(tester);
-      await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage());
-    });
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
-    testWidgets('direct message', (tester) async {
-      addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      await prepare(tester);
-      await checkOpenNotification(tester, eg.selfAccount,
-        eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]));
-    });
+      final message1 = eg.streamMessage();
+      final message2 = eg.streamMessage();
+      receiveFcmMessage(async, messageFcmMessage(message1, account: account1));
+      receiveFcmMessage(async, messageFcmMessage(message2, account: account2));
+      check(testBinding.androidNotificationHost.activeNotifications)
+        .length.equals(4);
 
-    testWidgets('account queried by realmUrl origin component', (tester) async {
-      addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(
-        eg.selfAccount.copyWith(realmUrl: Uri.parse('http://chat.example')),
-        eg.initialSnapshot());
-      await prepare(tester);
+      await NotificationDisplayManager.removeNotificationsForAccount(
+        realmUrl, account1.userId);
+      check(testBinding.androidNotificationHost.activeNotifications)
+        ..length.equals(2)
+        ..first.notification.group.equals('$realmUrl|${account2.userId}');
+    })));
 
-      await checkOpenNotification(tester,
-        eg.selfAccount.copyWith(realmUrl: Uri.parse('http://chat.example/')),
-        eg.streamMessage());
-      await checkOpenNotification(tester,
-        eg.selfAccount.copyWith(realmUrl: Uri.parse('http://chat.example')),
-        eg.streamMessage());
-    });
+    test('removeNotificationsForAccount leaves notifications for other accounts (same user-ids)', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init(addSelfAccount: false);
 
-    testWidgets('no accounts', (tester) async {
-      await prepare(tester, withAccount: false);
-      await openNotification(tester, eg.selfAccount, eg.streamMessage());
-      await tester.pump();
-      check(pushedRoutes.single).isA<DialogRoute<void>>();
-      await tester.tap(find.byWidget(checkErrorDialog(tester,
-        expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
-        expectedMessage: zulipLocalizations.errorNotificationOpenAccountMissing)));
-    });
+      final userId = 1001;
+      final account1 = eg.account(
+        id: 1001, user: eg.user(userId: userId),
+        realmUrl: Uri.parse('https://realm1.example'));
+      final account2 = eg.account(
+        id: 1002, user: eg.user(userId: userId),
+        realmUrl: Uri.parse('https://realm2.example'));
+      await testBinding.globalStore.add(account1, eg.initialSnapshot());
+      await testBinding.globalStore.add(account2, eg.initialSnapshot());
 
-    testWidgets('mismatching account', (tester) async {
-      addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      await prepare(tester);
-      await openNotification(tester, eg.otherAccount, eg.streamMessage());
-      await tester.pump();
-      check(pushedRoutes.single).isA<DialogRoute<void>>();
-      await tester.tap(find.byWidget(checkErrorDialog(tester,
-        expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
-        expectedMessage: zulipLocalizations.errorNotificationOpenAccountMissing)));
-    });
+      final message1 = eg.streamMessage();
+      final message2 = eg.streamMessage();
+      receiveFcmMessage(async, messageFcmMessage(message1, account: account1));
+      receiveFcmMessage(async, messageFcmMessage(message2, account: account2));
+      check(testBinding.androidNotificationHost.activeNotifications)
+        .length.equals(4);
 
-    testWidgets('find account among several', (tester) async {
-      addTearDown(testBinding.reset);
-      final realmUrlA = Uri.parse('https://a-chat.example/');
-      final realmUrlB = Uri.parse('https://chat-b.example/');
-      final user1 = eg.user();
-      final user2 = eg.user();
-      final accounts = [
-        eg.account(id: 1001, realmUrl: realmUrlA, user: user1),
-        eg.account(id: 1002, realmUrl: realmUrlA, user: user2),
-        eg.account(id: 1003, realmUrl: realmUrlB, user: user1),
-        eg.account(id: 1004, realmUrl: realmUrlB, user: user2),
-      ];
-      for (final account in accounts) {
-        await testBinding.globalStore.add(account, eg.initialSnapshot());
-      }
-      await prepare(tester);
+      await NotificationDisplayManager.removeNotificationsForAccount(account1.realmUrl, userId);
+      check(testBinding.androidNotificationHost.activeNotifications)
+        ..length.equals(2)
+        ..first.notification.group.equals('${account2.realmUrl}|$userId');
+    })));
 
-      await checkOpenNotification(tester, accounts[0], eg.streamMessage());
-      await checkOpenNotification(tester, accounts[1], eg.streamMessage());
-      await checkOpenNotification(tester, accounts[2], eg.streamMessage());
-      await checkOpenNotification(tester, accounts[3], eg.streamMessage());
-    });
+    test('removeNotificationsForAccount does nothing if there are no notifications', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
-    testWidgets('wait for app to become ready', (tester) async {
-      addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      await prepare(tester, early: true);
-      final message = eg.streamMessage();
-      await openNotification(tester, eg.selfAccount, message);
-      // The app should still not be ready (or else this test won't work right).
-      check(ZulipApp.ready.value).isFalse();
-      check(ZulipApp.navigatorKey.currentState).isNull();
-      // And the openNotification hasn't caused any navigation yet.
-      check(pushedRoutes).isEmpty();
-
-      // Now let the GlobalStore get loaded and the app's main UI get mounted.
-      await tester.pump();
-      // The navigator first pushes the starting routes…
-      takeStartingRoutes();
-      // … and then the one the notification leads to.
-      matchesNavigation(check(pushedRoutes).single, eg.selfAccount, message);
-    });
-
-    testWidgets('at app launch', (tester) async {
-      addTearDown(testBinding.reset);
-      // Set up a value for `PlatformDispatcher.defaultRouteName` to return,
-      // for determining the intial route.
-      final account = eg.selfAccount;
-      final message = eg.streamMessage();
-      final data = messageFcmMessage(message, account: account);
-      final intentDataUrl = NotificationOpenPayload(
-        realmUrl: data.realmUrl,
-        userId: data.userId,
-        narrow: switch (data.recipient) {
-          FcmMessageChannelRecipient(:var streamId, :var topic) =>
-            TopicNarrow(streamId, topic),
-          FcmMessageDmRecipient(:var allRecipientIds) =>
-            DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-        }).buildUrl();
-      addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
-      tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
-
-      // Now start the app.
-      await testBinding.globalStore.add(account, eg.initialSnapshot());
-      await prepare(tester, early: true);
-      check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
-
-      // Once the app is ready, we navigate to the conversation.
-      await tester.pump();
-      takeStartingRoutes();
-      matchesNavigation(check(pushedRoutes).single, account, message);
-    });
-
-    testWidgets('uses associated account as initial account; if initial route', (tester) async {
-      addTearDown(testBinding.reset);
-
-      final accountA = eg.selfAccount;
-      final accountB = eg.otherAccount;
-      final message = eg.streamMessage();
-      final data = messageFcmMessage(message, account: accountB);
-      await testBinding.globalStore.add(accountA, eg.initialSnapshot());
-      await testBinding.globalStore.add(accountB, eg.initialSnapshot());
-
-      final intentDataUrl = NotificationOpenPayload(
-        realmUrl: data.realmUrl,
-        userId: data.userId,
-        narrow: switch (data.recipient) {
-          FcmMessageChannelRecipient(:var streamId, :var topic) =>
-            TopicNarrow(streamId, topic),
-          FcmMessageDmRecipient(:var allRecipientIds) =>
-            DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-        }).buildUrl();
-      addTearDown(tester.binding.platformDispatcher.clearDefaultRouteNameTestValue);
-      tester.binding.platformDispatcher.defaultRouteNameTestValue = intentDataUrl.toString();
-
-      await prepare(tester, early: true);
-      check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
-
-      await tester.pump();
-      takeStartingRoutes(account: accountB);
-      matchesNavigation(check(pushedRoutes).single, accountB, message);
-    });
-  });
-
-  group('NotificationOpenPayload', () {
-    test('smoke round-trip', () {
-      // DM narrow
-      var payload = NotificationOpenPayload(
-        realmUrl: Uri.parse('http://chat.example'),
-        userId: 1001,
-        narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
-      );
-      var url = payload.buildUrl();
-      check(NotificationOpenPayload.parseUrl(url))
-        ..realmUrl.equals(payload.realmUrl)
-        ..userId.equals(payload.userId)
-        ..narrow.equals(payload.narrow);
-
-      // Topic narrow
-      payload = NotificationOpenPayload(
-        realmUrl: Uri.parse('http://chat.example'),
-        userId: 1001,
-        narrow: eg.topicNarrow(1, 'topic A'),
-      );
-      url = payload.buildUrl();
-      check(NotificationOpenPayload.parseUrl(url))
-        ..realmUrl.equals(payload.realmUrl)
-        ..userId.equals(payload.userId)
-        ..narrow.equals(payload.narrow);
-    });
-
-    test('buildUrl: smoke DM', () {
-      final url = NotificationOpenPayload(
-        realmUrl: Uri.parse('http://chat.example'),
-        userId: 1001,
-        narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
-      ).buildUrl();
-      check(url)
-        ..scheme.equals('zulip')
-        ..host.equals('notification')
-        ..queryParameters.deepEquals({
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'dm',
-          'all_recipient_ids': '1001,1002',
-        });
-    });
-
-    test('buildUrl: smoke topic', () {
-      final url = NotificationOpenPayload(
-        realmUrl: Uri.parse('http://chat.example'),
-        userId: 1001,
-        narrow: eg.topicNarrow(1, 'topic A'),
-      ).buildUrl();
-      check(url)
-        ..scheme.equals('zulip')
-        ..host.equals('notification')
-        ..queryParameters.deepEquals({
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'topic',
-          'channel_id': '1',
-          'topic': 'topic A',
-        });
-    });
-
-    test('parse: smoke DM', () {
-      final url = Uri(
-        scheme: 'zulip',
-        host: 'notification',
-        queryParameters: <String, String>{
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'dm',
-          'all_recipient_ids': '1001,1002',
-        });
-      check(NotificationOpenPayload.parseUrl(url))
-        ..realmUrl.equals(Uri.parse('http://chat.example'))
-        ..userId.equals(1001)
-        ..narrow.which((it) => it.isA<DmNarrow>()
-          ..allRecipientIds.deepEquals([1001, 1002])
-          ..otherRecipientIds.deepEquals([1002]));
-    });
-
-    test('parse: smoke topic', () {
-      final url = Uri(
-        scheme: 'zulip',
-        host: 'notification',
-        queryParameters: <String, String>{
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'topic',
-          'channel_id': '1',
-          'topic': 'topic A',
-        });
-      check(NotificationOpenPayload.parseUrl(url))
-        ..realmUrl.equals(Uri.parse('http://chat.example'))
-        ..userId.equals(1001)
-        ..narrow.which((it) => it.isA<TopicNarrow>()
-          ..streamId.equals(1)
-          ..topic.equals(eg.t('topic A')));
-    });
-
-    test('parse: fails when missing any expected query parameters', () {
-      final testCases = <Map<String, String>>[
-        {
-          // 'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'topic',
-          'channel_id': '1',
-          'topic': 'topic A',
-        },
-        {
-          'realm_url': 'http://chat.example',
-          // 'user_id': '1001',
-          'narrow_type': 'topic',
-          'channel_id': '1',
-          'topic': 'topic A',
-        },
-        {
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          // 'narrow_type': 'topic',
-          'channel_id': '1',
-          'topic': 'topic A',
-        },
-        {
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'topic',
-          // 'channel_id': '1',
-          'topic': 'topic A',
-        },
-        {
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'topic',
-          'channel_id': '1',
-          // 'topic': 'topic A',
-        },
-        {
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          // 'narrow_type': 'dm',
-          'all_recipient_ids': '1001,1002',
-        },
-        {
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'dm',
-          // 'all_recipient_ids': '1001,1002',
-        },
-      ];
-      for (final params in testCases) {
-        check(() => NotificationOpenPayload.parseUrl(Uri(
-          scheme: 'zulip',
-          host: 'notification',
-          queryParameters: params,
-        )))
-          // Missing 'realm_url', 'user_id' and 'narrow_type'
-          // throws 'FormatException'.
-          // Missing 'channel_id', 'topic', when narrow_type == 'topic'
-          // throws 'TypeError'.
-          // Missing 'all_recipient_ids', when narrow_type == 'dm'
-          // throws 'TypeError'.
-          .throws<Object>();
-      }
-    });
-
-    test('parse: fails when scheme is not "zulip"', () {
-      final url = Uri(
-        scheme: 'http',
-        host: 'notification',
-        queryParameters: <String, String>{
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'topic',
-          'channel_id': '1',
-          'topic': 'topic A',
-        });
-      check(() => NotificationOpenPayload.parseUrl(url))
-        .throws<FormatException>();
-    });
-
-    test('parse: fails when host is not "notification"', () {
-      final url = Uri(
-        scheme: 'zulip',
-        host: 'example',
-        queryParameters: <String, String>{
-          'realm_url': 'http://chat.example',
-          'user_id': '1001',
-          'narrow_type': 'topic',
-          'channel_id': '1',
-          'topic': 'topic A',
-        });
-      check(() => NotificationOpenPayload.parseUrl(url))
-        .throws<FormatException>();
-    });
+      await NotificationDisplayManager.removeNotificationsForAccount(eg.selfAccount.realmUrl, eg.selfAccount.userId);
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+    })));
   });
 }
 
@@ -1451,10 +1124,4 @@ extension on Subject<StatusBarNotification> {
   Subject<int> get id => has((x) => x.id, 'id');
   Subject<Notification> get notification => has((x) => x.notification, 'notification');
   Subject<String> get tag => has((x) => x.tag, 'tag');
-}
-
-extension on Subject<NotificationOpenPayload> {
-  Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
-  Subject<int> get userId => has((x) => x.userId, 'userId');
-  Subject<Narrow> get narrow => has((x) => x.narrow, 'narrow');
 }

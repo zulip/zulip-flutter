@@ -29,10 +29,9 @@ Map<String, dynamic> _$RealmEmojiUpdateEventToJson(
 AlertWordsEvent _$AlertWordsEventFromJson(Map<String, dynamic> json) =>
     AlertWordsEvent(
       id: (json['id'] as num).toInt(),
-      alertWords:
-          (json['alert_words'] as List<dynamic>)
-              .map((e) => e as String)
-              .toList(),
+      alertWords: (json['alert_words'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$AlertWordsEventToJson(AlertWordsEvent instance) =>
@@ -60,7 +59,7 @@ Map<String, dynamic> _$UserSettingsUpdateEventToJson(
   'id': instance.id,
   'type': instance.type,
   'op': instance.op,
-  'property': _$UserSettingNameEnumMap[instance.property],
+  'property': instance.property,
   'value': instance.value,
 };
 
@@ -68,16 +67,16 @@ const _$UserSettingNameEnumMap = {
   UserSettingName.twentyFourHourTime: 'twenty_four_hour_time',
   UserSettingName.displayEmojiReactionUsers: 'display_emoji_reaction_users',
   UserSettingName.emojiset: 'emojiset',
+  UserSettingName.presenceEnabled: 'presence_enabled',
 };
 
 CustomProfileFieldsEvent _$CustomProfileFieldsEventFromJson(
   Map<String, dynamic> json,
 ) => CustomProfileFieldsEvent(
   id: (json['id'] as num).toInt(),
-  fields:
-      (json['fields'] as List<dynamic>)
-          .map((e) => CustomProfileField.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  fields: (json['fields'] as List<dynamic>)
+      .map((e) => CustomProfileField.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$CustomProfileFieldsEventToJson(
@@ -86,6 +85,149 @@ Map<String, dynamic> _$CustomProfileFieldsEventToJson(
   'id': instance.id,
   'type': instance.type,
   'fields': instance.fields,
+};
+
+UserGroupAddEvent _$UserGroupAddEventFromJson(Map<String, dynamic> json) =>
+    UserGroupAddEvent(
+      id: (json['id'] as num).toInt(),
+      group: UserGroup.fromJson(json['group'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$UserGroupAddEventToJson(UserGroupAddEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'op': instance.op,
+      'group': instance.group,
+    };
+
+UserGroupUpdateEvent _$UserGroupUpdateEventFromJson(
+  Map<String, dynamic> json,
+) => UserGroupUpdateEvent(
+  id: (json['id'] as num).toInt(),
+  groupId: (json['group_id'] as num).toInt(),
+  data: UserGroupUpdateData.fromJson(json['data'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$UserGroupUpdateEventToJson(
+  UserGroupUpdateEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'group_id': instance.groupId,
+  'data': instance.data,
+};
+
+UserGroupUpdateData _$UserGroupUpdateDataFromJson(Map<String, dynamic> json) =>
+    UserGroupUpdateData(
+      name: json['name'] as String?,
+      description: json['description'] as String?,
+      deactivated: json['deactivated'] as bool?,
+    );
+
+Map<String, dynamic> _$UserGroupUpdateDataToJson(
+  UserGroupUpdateData instance,
+) => <String, dynamic>{
+  'name': instance.name,
+  'description': instance.description,
+  'deactivated': instance.deactivated,
+};
+
+UserGroupAddMembersEvent _$UserGroupAddMembersEventFromJson(
+  Map<String, dynamic> json,
+) => UserGroupAddMembersEvent(
+  id: (json['id'] as num).toInt(),
+  groupId: (json['group_id'] as num).toInt(),
+  userIds: (json['user_ids'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+);
+
+Map<String, dynamic> _$UserGroupAddMembersEventToJson(
+  UserGroupAddMembersEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'group_id': instance.groupId,
+  'user_ids': instance.userIds,
+};
+
+UserGroupRemoveMembersEvent _$UserGroupRemoveMembersEventFromJson(
+  Map<String, dynamic> json,
+) => UserGroupRemoveMembersEvent(
+  id: (json['id'] as num).toInt(),
+  groupId: (json['group_id'] as num).toInt(),
+  userIds: (json['user_ids'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+);
+
+Map<String, dynamic> _$UserGroupRemoveMembersEventToJson(
+  UserGroupRemoveMembersEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'group_id': instance.groupId,
+  'user_ids': instance.userIds,
+};
+
+UserGroupAddSubgroupsEvent _$UserGroupAddSubgroupsEventFromJson(
+  Map<String, dynamic> json,
+) => UserGroupAddSubgroupsEvent(
+  id: (json['id'] as num).toInt(),
+  groupId: (json['group_id'] as num).toInt(),
+  directSubgroupIds: (json['direct_subgroup_ids'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+);
+
+Map<String, dynamic> _$UserGroupAddSubgroupsEventToJson(
+  UserGroupAddSubgroupsEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'group_id': instance.groupId,
+  'direct_subgroup_ids': instance.directSubgroupIds,
+};
+
+UserGroupRemoveSubgroupsEvent _$UserGroupRemoveSubgroupsEventFromJson(
+  Map<String, dynamic> json,
+) => UserGroupRemoveSubgroupsEvent(
+  id: (json['id'] as num).toInt(),
+  groupId: (json['group_id'] as num).toInt(),
+  directSubgroupIds: (json['direct_subgroup_ids'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+);
+
+Map<String, dynamic> _$UserGroupRemoveSubgroupsEventToJson(
+  UserGroupRemoveSubgroupsEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'group_id': instance.groupId,
+  'direct_subgroup_ids': instance.directSubgroupIds,
+};
+
+UserGroupRemoveEvent _$UserGroupRemoveEventFromJson(
+  Map<String, dynamic> json,
+) => UserGroupRemoveEvent(
+  id: (json['id'] as num).toInt(),
+  groupId: (json['group_id'] as num).toInt(),
+);
+
+Map<String, dynamic> _$UserGroupRemoveEventToJson(
+  UserGroupRemoveEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'group_id': instance.groupId,
 };
 
 RealmUserAddEvent _$RealmUserAddEventFromJson(Map<String, dynamic> json) =>
@@ -122,8 +264,8 @@ RealmUserUpdateEvent _$RealmUserUpdateEventFromJson(
   Map<String, dynamic> json,
 ) => RealmUserUpdateEvent(
   id: (json['id'] as num).toInt(),
-  userId:
-      (RealmUserUpdateEvent._readFromPerson(json, 'user_id') as num).toInt(),
+  userId: (RealmUserUpdateEvent._readFromPerson(json, 'user_id') as num)
+      .toInt(),
   fullName: RealmUserUpdateEvent._readFromPerson(json, 'full_name') as String?,
   avatarUrl:
       RealmUserUpdateEvent._readFromPerson(json, 'avatar_url') as String?,
@@ -139,8 +281,6 @@ RealmUserUpdateEvent _$RealmUserUpdateEventFromJson(
     RealmUserUpdateEvent._readFromPerson(json, 'role'),
     unknownValue: UserRole.unknown,
   ),
-  isBillingAdmin:
-      RealmUserUpdateEvent._readFromPerson(json, 'is_billing_admin') as bool?,
   deliveryEmail:
       _$JsonConverterFromJson<JsonNullable<String>, JsonNullable<String>>(
         RealmUserUpdateEvent._readNullableStringFromPerson(
@@ -151,11 +291,11 @@ RealmUserUpdateEvent _$RealmUserUpdateEventFromJson(
       ),
   customProfileField:
       RealmUserUpdateEvent._readFromPerson(json, 'custom_profile_field') == null
-          ? null
-          : RealmUserUpdateCustomProfileField.fromJson(
-            RealmUserUpdateEvent._readFromPerson(json, 'custom_profile_field')
-                as Map<String, dynamic>,
-          ),
+      ? null
+      : RealmUserUpdateCustomProfileField.fromJson(
+          RealmUserUpdateEvent._readFromPerson(json, 'custom_profile_field')
+              as Map<String, dynamic>,
+        ),
   newEmail: RealmUserUpdateEvent._readFromPerson(json, 'new_email') as String?,
   isActive: RealmUserUpdateEvent._readFromPerson(json, 'is_active') as bool?,
 );
@@ -173,7 +313,6 @@ Map<String, dynamic> _$RealmUserUpdateEventToJson(
   'timezone': instance.timezone,
   'bot_owner_id': instance.botOwnerId,
   'role': instance.role,
-  'is_billing_admin': instance.isBillingAdmin,
   'delivery_email':
       _$JsonConverterToJson<JsonNullable<String>, JsonNullable<String>>(
         instance.deliveryEmail,
@@ -203,13 +342,61 @@ Json? _$JsonConverterToJson<Json, Value>(
   Json? Function(Value value) toJson,
 ) => value == null ? null : toJson(value);
 
+SavedSnippetsAddEvent _$SavedSnippetsAddEventFromJson(
+  Map<String, dynamic> json,
+) => SavedSnippetsAddEvent(
+  id: (json['id'] as num).toInt(),
+  savedSnippet: SavedSnippet.fromJson(
+    json['saved_snippet'] as Map<String, dynamic>,
+  ),
+);
+
+Map<String, dynamic> _$SavedSnippetsAddEventToJson(
+  SavedSnippetsAddEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'saved_snippet': instance.savedSnippet,
+};
+
+SavedSnippetsUpdateEvent _$SavedSnippetsUpdateEventFromJson(
+  Map<String, dynamic> json,
+) => SavedSnippetsUpdateEvent(
+  id: (json['id'] as num).toInt(),
+  savedSnippet: SavedSnippet.fromJson(
+    json['saved_snippet'] as Map<String, dynamic>,
+  ),
+);
+
+Map<String, dynamic> _$SavedSnippetsUpdateEventToJson(
+  SavedSnippetsUpdateEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'saved_snippet': instance.savedSnippet,
+};
+
+SavedSnippetsRemoveEvent _$SavedSnippetsRemoveEventFromJson(
+  Map<String, dynamic> json,
+) => SavedSnippetsRemoveEvent(
+  id: (json['id'] as num).toInt(),
+  savedSnippetId: (json['saved_snippet_id'] as num).toInt(),
+);
+
+Map<String, dynamic> _$SavedSnippetsRemoveEventToJson(
+  SavedSnippetsRemoveEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'saved_snippet_id': instance.savedSnippetId,
+};
+
 ChannelCreateEvent _$ChannelCreateEventFromJson(Map<String, dynamic> json) =>
     ChannelCreateEvent(
       id: (json['id'] as num).toInt(),
-      streams:
-          (json['streams'] as List<dynamic>)
-              .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      streams: (json['streams'] as List<dynamic>)
+          .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$ChannelCreateEventToJson(ChannelCreateEvent instance) =>
@@ -223,9 +410,10 @@ Map<String, dynamic> _$ChannelCreateEventToJson(ChannelCreateEvent instance) =>
 ChannelDeleteEvent _$ChannelDeleteEventFromJson(Map<String, dynamic> json) =>
     ChannelDeleteEvent(
       id: (json['id'] as num).toInt(),
-      streams:
-          (json['streams'] as List<dynamic>)
-              .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
+      channelIds:
+          (ChannelDeleteEvent._readChannelIds(json, 'stream_ids')
+                  as List<dynamic>)
+              .map((e) => (e as num).toInt())
               .toList(),
     );
 
@@ -234,7 +422,7 @@ Map<String, dynamic> _$ChannelDeleteEventToJson(ChannelDeleteEvent instance) =>
       'id': instance.id,
       'type': instance.type,
       'op': instance.op,
-      'streams': instance.streams,
+      'stream_ids': instance.channelIds,
     };
 
 ChannelUpdateEvent _$ChannelUpdateEventFromJson(Map<String, dynamic> json) =>
@@ -270,11 +458,19 @@ Map<String, dynamic> _$ChannelUpdateEventToJson(ChannelUpdateEvent instance) =>
 
 const _$ChannelPropertyNameEnumMap = {
   ChannelPropertyName.name: 'name',
+  ChannelPropertyName.isArchived: 'is_archived',
   ChannelPropertyName.description: 'description',
   ChannelPropertyName.firstMessageId: 'first_message_id',
   ChannelPropertyName.inviteOnly: 'invite_only',
   ChannelPropertyName.messageRetentionDays: 'message_retention_days',
   ChannelPropertyName.channelPostPolicy: 'stream_post_policy',
+  ChannelPropertyName.folderId: 'folder_id',
+  ChannelPropertyName.canAddSubscribersGroup: 'can_add_subscribers_group',
+  ChannelPropertyName.canDeleteAnyMessageGroup: 'can_delete_any_message_group',
+  ChannelPropertyName.canDeleteOwnMessageGroup: 'can_delete_own_message_group',
+  ChannelPropertyName.canSendMessageGroup: 'can_send_message_group',
+  ChannelPropertyName.canSubscribeGroup: 'can_subscribe_group',
+  ChannelPropertyName.isRecentlyActive: 'is_recently_active',
   ChannelPropertyName.streamWeeklyTraffic: 'stream_weekly_traffic',
 };
 
@@ -282,10 +478,9 @@ SubscriptionAddEvent _$SubscriptionAddEventFromJson(
   Map<String, dynamic> json,
 ) => SubscriptionAddEvent(
   id: (json['id'] as num).toInt(),
-  subscriptions:
-      (json['subscriptions'] as List<dynamic>)
-          .map((e) => Subscription.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  subscriptions: (json['subscriptions'] as List<dynamic>)
+      .map((e) => Subscription.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$SubscriptionAddEventToJson(
@@ -322,7 +517,11 @@ SubscriptionUpdateEvent _$SubscriptionUpdateEventFromJson(
 ) => SubscriptionUpdateEvent(
   id: (json['id'] as num).toInt(),
   streamId: (json['stream_id'] as num).toInt(),
-  property: $enumDecode(_$SubscriptionPropertyEnumMap, json['property']),
+  property: $enumDecode(
+    _$SubscriptionPropertyEnumMap,
+    json['property'],
+    unknownValue: SubscriptionProperty.unknown,
+  ),
   value: SubscriptionUpdateEvent._readValue(json, 'value'),
 );
 
@@ -340,7 +539,6 @@ Map<String, dynamic> _$SubscriptionUpdateEventToJson(
 const _$SubscriptionPropertyEnumMap = {
   SubscriptionProperty.color: 'color',
   SubscriptionProperty.isMuted: 'is_muted',
-  SubscriptionProperty.inHomeView: 'in_home_view',
   SubscriptionProperty.pinToTop: 'pin_to_top',
   SubscriptionProperty.desktopNotifications: 'desktop_notifications',
   SubscriptionProperty.audibleNotifications: 'audible_notifications',
@@ -354,14 +552,12 @@ SubscriptionPeerAddEvent _$SubscriptionPeerAddEventFromJson(
   Map<String, dynamic> json,
 ) => SubscriptionPeerAddEvent(
   id: (json['id'] as num).toInt(),
-  streamIds:
-      (json['stream_ids'] as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toList(),
-  userIds:
-      (json['user_ids'] as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toList(),
+  streamIds: (json['stream_ids'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+  userIds: (json['user_ids'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
 );
 
 Map<String, dynamic> _$SubscriptionPeerAddEventToJson(
@@ -378,14 +574,12 @@ SubscriptionPeerRemoveEvent _$SubscriptionPeerRemoveEventFromJson(
   Map<String, dynamic> json,
 ) => SubscriptionPeerRemoveEvent(
   id: (json['id'] as num).toInt(),
-  streamIds:
-      (json['stream_ids'] as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toList(),
-  userIds:
-      (json['user_ids'] as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toList(),
+  streamIds: (json['stream_ids'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+  userIds: (json['user_ids'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
 );
 
 Map<String, dynamic> _$SubscriptionPeerRemoveEventToJson(
@@ -397,6 +591,86 @@ Map<String, dynamic> _$SubscriptionPeerRemoveEventToJson(
   'stream_ids': instance.streamIds,
   'user_ids': instance.userIds,
 };
+
+ChannelFolderAddEvent _$ChannelFolderAddEventFromJson(
+  Map<String, dynamic> json,
+) => ChannelFolderAddEvent(
+  id: (json['id'] as num).toInt(),
+  channelFolder: ChannelFolder.fromJson(
+    json['channel_folder'] as Map<String, dynamic>,
+  ),
+);
+
+Map<String, dynamic> _$ChannelFolderAddEventToJson(
+  ChannelFolderAddEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'channel_folder': instance.channelFolder,
+};
+
+ChannelFolderUpdateEvent _$ChannelFolderUpdateEventFromJson(
+  Map<String, dynamic> json,
+) => ChannelFolderUpdateEvent(
+  id: (json['id'] as num).toInt(),
+  channelFolderId: (json['channel_folder_id'] as num).toInt(),
+  data: ChannelFolderChange.fromJson(json['data'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$ChannelFolderUpdateEventToJson(
+  ChannelFolderUpdateEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'channel_folder_id': instance.channelFolderId,
+  'data': instance.data,
+};
+
+ChannelFolderChange _$ChannelFolderChangeFromJson(Map<String, dynamic> json) =>
+    ChannelFolderChange(
+      name: json['name'] as String?,
+      description: json['description'] as String?,
+      renderedDescription: json['rendered_description'] as String?,
+      isArchived: json['is_archived'] as bool?,
+    );
+
+Map<String, dynamic> _$ChannelFolderChangeToJson(
+  ChannelFolderChange instance,
+) => <String, dynamic>{
+  'name': instance.name,
+  'description': instance.description,
+  'rendered_description': instance.renderedDescription,
+  'is_archived': instance.isArchived,
+};
+
+ChannelFolderReorderEvent _$ChannelFolderReorderEventFromJson(
+  Map<String, dynamic> json,
+) => ChannelFolderReorderEvent(
+  id: (json['id'] as num).toInt(),
+  order: (json['order'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+);
+
+Map<String, dynamic> _$ChannelFolderReorderEventToJson(
+  ChannelFolderReorderEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'order': instance.order,
+};
+
+UserStatusEvent _$UserStatusEventFromJson(Map<String, dynamic> json) =>
+    UserStatusEvent(
+      id: (json['id'] as num).toInt(),
+      userId: (json['user_id'] as num).toInt(),
+      change: UserStatusChange.fromJson(
+        UserStatusEvent._readChange(json, 'change') as Map<String, dynamic>,
+      ),
+    );
 
 UserTopicEvent _$UserTopicEventFromJson(Map<String, dynamic> json) =>
     UserTopicEvent(
@@ -428,21 +702,49 @@ const _$UserTopicVisibilityPolicyEnumMap = {
   UserTopicVisibilityPolicy.unknown: null,
 };
 
+MutedUsersEvent _$MutedUsersEventFromJson(Map<String, dynamic> json) =>
+    MutedUsersEvent(
+      id: (json['id'] as num).toInt(),
+      mutedUsers: (json['muted_users'] as List<dynamic>)
+          .map((e) => MutedUserItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$MutedUsersEventToJson(MutedUsersEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'muted_users': instance.mutedUsers,
+    };
+
+MessageEvent _$MessageEventFromJson(Map<String, dynamic> json) => MessageEvent(
+  id: (json['id'] as num).toInt(),
+  message: Message.fromJson(
+    MessageEvent._readMessageValue(json, 'message') as Map<String, dynamic>,
+  ),
+  localMessageId: json['local_message_id'] as String?,
+);
+
+Map<String, dynamic> _$MessageEventToJson(MessageEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'local_message_id': instance.localMessageId,
+    };
+
 UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
     UpdateMessageEvent(
       id: (json['id'] as num).toInt(),
       userId: (json['user_id'] as num?)?.toInt(),
-      renderingOnly: json['rendering_only'] as bool?,
+      renderingOnly: json['rendering_only'] as bool,
       messageId: (json['message_id'] as num).toInt(),
-      messageIds:
-          (json['message_ids'] as List<dynamic>)
-              .map((e) => (e as num).toInt())
-              .toList(),
-      flags:
-          (json['flags'] as List<dynamic>)
-              .map((e) => $enumDecode(_$MessageFlagEnumMap, e))
-              .toList(),
-      editTimestamp: (json['edit_timestamp'] as num?)?.toInt(),
+      messageIds: (json['message_ids'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList(),
+      flags: (json['flags'] as List<dynamic>)
+          .map((e) => $enumDecode(_$MessageFlagEnumMap, e))
+          .toList(),
+      editTimestamp: (json['edit_timestamp'] as num).toInt(),
       moveData: UpdateMessageMoveData.tryParseFromJson(
         UpdateMessageEvent._readMoveData(json, 'move_data')
             as Map<String, Object?>,
@@ -485,18 +787,16 @@ const _$MessageFlagEnumMap = {
 DeleteMessageEvent _$DeleteMessageEventFromJson(Map<String, dynamic> json) =>
     DeleteMessageEvent(
       id: (json['id'] as num).toInt(),
-      messageIds:
-          (json['message_ids'] as List<dynamic>)
-              .map((e) => (e as num).toInt())
-              .toList(),
+      messageIds: (json['message_ids'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList(),
       messageType: const MessageTypeConverter().fromJson(
         json['message_type'] as String,
       ),
       streamId: (json['stream_id'] as num?)?.toInt(),
-      topic:
-          json['topic'] == null
-              ? null
-              : TopicName.fromJson(json['topic'] as String),
+      topic: json['topic'] == null
+          ? null
+          : TopicName.fromJson(json['topic'] as String),
     );
 
 Map<String, dynamic> _$DeleteMessageEventToJson(DeleteMessageEvent instance) =>
@@ -518,10 +818,9 @@ UpdateMessageFlagsAddEvent _$UpdateMessageFlagsAddEventFromJson(
     json['flag'],
     unknownValue: MessageFlag.unknown,
   ),
-  messages:
-      (json['messages'] as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toList(),
+  messages: (json['messages'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
   all: json['all'] as bool,
 );
 
@@ -545,10 +844,9 @@ UpdateMessageFlagsRemoveEvent _$UpdateMessageFlagsRemoveEventFromJson(
     json['flag'],
     unknownValue: MessageFlag.unknown,
   ),
-  messages:
-      (json['messages'] as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toList(),
+  messages: (json['messages'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
   messageDetails: (json['message_details'] as Map<String, dynamic>?)?.map(
     (k, e) => MapEntry(
       int.parse(k),
@@ -575,15 +873,13 @@ UpdateMessageFlagsMessageDetail _$UpdateMessageFlagsMessageDetailFromJson(
 ) => UpdateMessageFlagsMessageDetail(
   type: const MessageTypeConverter().fromJson(json['type'] as String),
   mentioned: json['mentioned'] as bool?,
-  userIds:
-      (json['user_ids'] as List<dynamic>?)
-          ?.map((e) => (e as num).toInt())
-          .toList(),
+  userIds: (json['user_ids'] as List<dynamic>?)
+      ?.map((e) => (e as num).toInt())
+      .toList(),
   streamId: (json['stream_id'] as num?)?.toInt(),
-  topic:
-      json['topic'] == null
-          ? null
-          : TopicName.fromJson(json['topic'] as String),
+  topic: json['topic'] == null
+      ? null
+      : TopicName.fromJson(json['topic'] as String),
 );
 
 Map<String, dynamic> _$UpdateMessageFlagsMessageDetailToJson(
@@ -635,10 +931,9 @@ TypingEvent _$TypingEventFromJson(Map<String, dynamic> json) => TypingEvent(
   senderId: (TypingEvent._readSenderId(json, 'sender_id') as num).toInt(),
   recipientIds: TypingEvent._recipientIdsFromJson(json['recipients']),
   streamId: (json['stream_id'] as num?)?.toInt(),
-  topic:
-      json['topic'] == null
-          ? null
-          : TopicName.fromJson(json['topic'] as String),
+  topic: json['topic'] == null
+      ? null
+      : TopicName.fromJson(json['topic'] as String),
 );
 
 Map<String, dynamic> _$TypingEventToJson(TypingEvent instance) =>
@@ -654,6 +949,47 @@ Map<String, dynamic> _$TypingEventToJson(TypingEvent instance) =>
     };
 
 const _$TypingOpEnumMap = {TypingOp.start: 'start', TypingOp.stop: 'stop'};
+
+PresenceEvent _$PresenceEventFromJson(Map<String, dynamic> json) =>
+    PresenceEvent(
+      id: (json['id'] as num).toInt(),
+      userId: (json['user_id'] as num).toInt(),
+      serverTimestamp: (json['server_timestamp'] as num).toInt(),
+      presence: (json['presence'] as Map<String, dynamic>).map(
+        (k, e) =>
+            MapEntry(k, PerClientPresence.fromJson(e as Map<String, dynamic>)),
+      ),
+    );
+
+Map<String, dynamic> _$PresenceEventToJson(PresenceEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'user_id': instance.userId,
+      'server_timestamp': instance.serverTimestamp,
+      'presence': instance.presence,
+    };
+
+PerClientPresence _$PerClientPresenceFromJson(Map<String, dynamic> json) =>
+    PerClientPresence(
+      client: json['client'] as String,
+      status: $enumDecode(_$PresenceStatusEnumMap, json['status']),
+      timestamp: (json['timestamp'] as num).toInt(),
+      pushable: json['pushable'] as bool,
+    );
+
+Map<String, dynamic> _$PerClientPresenceToJson(PerClientPresence instance) =>
+    <String, dynamic>{
+      'client': instance.client,
+      'status': instance.status,
+      'timestamp': instance.timestamp,
+      'pushable': instance.pushable,
+    };
+
+const _$PresenceStatusEnumMap = {
+  PresenceStatus.active: 'active',
+  PresenceStatus.idle: 'idle',
+};
 
 ReactionEvent _$ReactionEventFromJson(Map<String, dynamic> json) =>
     ReactionEvent(

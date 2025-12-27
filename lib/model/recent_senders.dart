@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../api/model/events.dart';
 import '../api/model/model.dart';
 import 'algorithms.dart';
+import 'channel.dart';
 
 /// Tracks the latest messages sent by each user, in each stream and topic.
 ///
@@ -16,7 +17,7 @@ class RecentSenders {
 
   // topicSenders[streamId][topic][senderId] = MessageIdTracker
   @visibleForTesting
-  final Map<int, Map<TopicName, Map<int, MessageIdTracker>>> topicSenders = {};
+  final Map<int, TopicKeyedMap<Map<int, MessageIdTracker>>> topicSenders = {};
 
   /// The latest message the given user sent to the given stream,
   /// or null if no such message is known.
@@ -27,6 +28,8 @@ class RecentSenders {
 
   /// The latest message the given user sent to the given topic,
   /// or null if no such message is known.
+  ///
+  /// Topics are treated case-insensitively; see [TopicName.isSameAs].
   int? latestMessageIdOfSenderInTopic({
     required int streamId,
     required TopicName topic,
@@ -53,7 +56,7 @@ class RecentSenders {
     }
     for (final entry in messagesByUserInTopic.entries) {
       final (streamId, topic, senderId) = entry.key;
-      (((topicSenders[streamId] ??= {})[topic] ??= {})
+      (((topicSenders[streamId] ??= makeTopicKeyedMap())[topic] ??= {})
         [senderId] ??= MessageIdTracker()).addAll(entry.value);
     }
   }
@@ -64,7 +67,7 @@ class RecentSenders {
     final StreamMessage(:streamId, :topic, :senderId, id: int messageId) = message;
     ((streamSenders[streamId] ??= {})
       [senderId] ??= MessageIdTracker()).add(messageId);
-    (((topicSenders[streamId] ??= {})[topic] ??= {})
+    (((topicSenders[streamId] ??= makeTopicKeyedMap())[topic] ??= {})
       [senderId] ??= MessageIdTracker()).add(messageId);
   }
 

@@ -30,11 +30,29 @@ sealed class Event {
           default: return UnexpectedEvent.fromJson(json);
         }
       case 'custom_profile_fields': return CustomProfileFieldsEvent.fromJson(json);
+      case 'user_group':
+        switch (json['op'] as String) {
+          case 'add': return UserGroupAddEvent.fromJson(json);
+          case 'update': return UserGroupUpdateEvent.fromJson(json);
+          case 'add_members': return UserGroupAddMembersEvent.fromJson(json);
+          case 'remove_members': return UserGroupRemoveMembersEvent.fromJson(json);
+          case 'add_subgroups': return UserGroupAddSubgroupsEvent.fromJson(json);
+          case 'remove_subgroups': return UserGroupRemoveSubgroupsEvent.fromJson(json);
+          case 'remove': return UserGroupRemoveEvent.fromJson(json);
+          default: return UnexpectedEvent.fromJson(json);
+        }
       case 'realm_user':
         switch (json['op'] as String) {
           case 'add': return RealmUserAddEvent.fromJson(json);
           case 'remove': return RealmUserRemoveEvent.fromJson(json);
           case 'update': return RealmUserUpdateEvent.fromJson(json);
+          default: return UnexpectedEvent.fromJson(json);
+        }
+      case 'saved_snippets':
+        switch (json['op'] as String) {
+          case 'add': return SavedSnippetsAddEvent.fromJson(json);
+          case 'update': return SavedSnippetsUpdateEvent.fromJson(json);
+          case 'remove': return SavedSnippetsRemoveEvent.fromJson(json);
           default: return UnexpectedEvent.fromJson(json);
         }
       case 'stream':
@@ -53,8 +71,16 @@ sealed class Event {
           case 'peer_remove': return SubscriptionPeerRemoveEvent.fromJson(json);
           default: return UnexpectedEvent.fromJson(json);
         }
-      // case 'muted_topics': … // TODO(#422) we ignore this feature on older servers
+      case 'channel_folder':
+        switch (json['op'] as String) {
+          case 'add': return ChannelFolderAddEvent.fromJson(json);
+          case 'reorder': return ChannelFolderReorderEvent.fromJson(json);
+          case 'update': return ChannelFolderUpdateEvent.fromJson(json);
+          default: return UnexpectedEvent.fromJson(json);
+        }
+      case 'user_status': return UserStatusEvent.fromJson(json);
       case 'user_topic': return UserTopicEvent.fromJson(json);
+      case 'muted_users': return MutedUsersEvent.fromJson(json);
       case 'message': return MessageEvent.fromJson(json);
       case 'update_message': return UpdateMessageEvent.fromJson(json);
       case 'delete_message': return DeleteMessageEvent.fromJson(json);
@@ -66,6 +92,7 @@ sealed class Event {
         }
       case 'submessage': return SubmessageEvent.fromJson(json);
       case 'typing': return TypingEvent.fromJson(json);
+      case 'presence': return PresenceEvent.fromJson(json);
       case 'reaction': return ReactionEvent.fromJson(json);
       case 'heartbeat': return HeartbeatEvent.fromJson(json);
       // TODO add many more event types
@@ -157,10 +184,13 @@ class UserSettingsUpdateEvent extends Event {
     final value = json['value'];
     switch (UserSettingName.fromRawString(json['property'] as String)) {
       case UserSettingName.twentyFourHourTime:
+        return TwentyFourHourTimeMode.fromApiValue(value as bool?);
       case UserSettingName.displayEmojiReactionUsers:
         return value as bool;
       case UserSettingName.emojiset:
         return Emojiset.fromRawString(value as String);
+      case UserSettingName.presenceEnabled:
+        return value as bool;
       case null:
         return null;
     }
@@ -195,6 +225,157 @@ class CustomProfileFieldsEvent extends Event {
 
   @override
   Map<String, dynamic> toJson() => _$CustomProfileFieldsEventToJson(this);
+}
+
+/// A Zulip event of type `user_group`.
+///
+/// See API docs starting at:
+///   https://zulip.com/api/get-events#user_group-add
+sealed class UserGroupEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'user_group';
+
+  String get op;
+
+  UserGroupEvent({required super.id});
+}
+
+/// A [UserGroupEvent] with op `add`: https://zulip.com/api/get-events#user_group-add
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserGroupAddEvent extends UserGroupEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'add';
+
+  final UserGroup group;
+
+  UserGroupAddEvent({required super.id, required this.group});
+
+  factory UserGroupAddEvent.fromJson(Map<String, dynamic> json) => _$UserGroupAddEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$UserGroupAddEventToJson(this);
+}
+
+/// A [UserGroupEvent] with op `update`: https://zulip.com/api/get-events#user_group-update
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserGroupUpdateEvent extends UserGroupEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'update';
+
+  final int groupId;
+  final UserGroupUpdateData data;
+
+  UserGroupUpdateEvent({required super.id, required this.groupId, required this.data});
+
+  factory UserGroupUpdateEvent.fromJson(Map<String, dynamic> json) => _$UserGroupUpdateEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$UserGroupUpdateEventToJson(this);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserGroupUpdateData {
+  final String? name;
+  final String? description;
+  final bool? deactivated;
+
+  UserGroupUpdateData({required this.name, required this.description, required this.deactivated});
+
+  factory UserGroupUpdateData.fromJson(Map<String, dynamic> json) => _$UserGroupUpdateDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserGroupUpdateDataToJson(this);
+}
+
+/// A [UserGroupEvent] with op `add_members`: https://zulip.com/api/get-events#user_group-add_members
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserGroupAddMembersEvent extends UserGroupEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'add_members';
+
+  final int groupId;
+  final List<int> userIds;
+
+  UserGroupAddMembersEvent({required super.id, required this.groupId, required this.userIds});
+
+  factory UserGroupAddMembersEvent.fromJson(Map<String, dynamic> json) => _$UserGroupAddMembersEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$UserGroupAddMembersEventToJson(this);
+}
+
+/// A [UserGroupEvent] with op `remove_members`: https://zulip.com/api/get-events#user_group-remove_members
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserGroupRemoveMembersEvent extends UserGroupEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'remove_members';
+
+  final int groupId;
+  final List<int> userIds;
+
+  UserGroupRemoveMembersEvent({required super.id, required this.groupId, required this.userIds});
+
+  factory UserGroupRemoveMembersEvent.fromJson(Map<String, dynamic> json) => _$UserGroupRemoveMembersEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$UserGroupRemoveMembersEventToJson(this);
+}
+
+/// A [UserGroupEvent] with op `add_subgroups`: https://zulip.com/api/get-events#user_group-add_subgroups
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserGroupAddSubgroupsEvent extends UserGroupEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'add_subgroups';
+
+  final int groupId;
+  final List<int> directSubgroupIds;
+
+  UserGroupAddSubgroupsEvent({required super.id, required this.groupId, required this.directSubgroupIds});
+
+  factory UserGroupAddSubgroupsEvent.fromJson(Map<String, dynamic> json) => _$UserGroupAddSubgroupsEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$UserGroupAddSubgroupsEventToJson(this);
+}
+
+/// A [UserGroupEvent] with op `remove_subgroups`: https://zulip.com/api/get-events#user_group-remove_subgroups
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserGroupRemoveSubgroupsEvent extends UserGroupEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'remove_subgroups';
+
+  final int groupId;
+  final List<int> directSubgroupIds;
+
+  UserGroupRemoveSubgroupsEvent({required super.id, required this.groupId, required this.directSubgroupIds});
+
+  factory UserGroupRemoveSubgroupsEvent.fromJson(Map<String, dynamic> json) => _$UserGroupRemoveSubgroupsEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$UserGroupRemoveSubgroupsEventToJson(this);
+}
+
+/// A [UserGroupEvent] with op `remove`: https://zulip.com/api/get-events#user_group-remove
+@JsonSerializable(fieldRename: FieldRename.snake)
+class UserGroupRemoveEvent extends UserGroupEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'remove';
+
+  final int groupId;
+
+  UserGroupRemoveEvent({required super.id, required this.groupId});
+
+  factory UserGroupRemoveEvent.fromJson(Map<String, dynamic> json) => _$UserGroupRemoveEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$UserGroupRemoveEventToJson(this);
 }
 
 /// A Zulip event of type `realm_user`.
@@ -283,7 +464,6 @@ class RealmUserUpdateEvent extends RealmUserEvent {
   @JsonKey(readValue: _readFromPerson) final String? timezone;
   @JsonKey(readValue: _readFromPerson) final int? botOwnerId;
   @JsonKey(readValue: _readFromPerson, unknownEnumValue: UserRole.unknown) final UserRole? role;
-  @JsonKey(readValue: _readFromPerson) final bool? isBillingAdmin;
 
   @JsonKey(readValue: _readNullableStringFromPerson)
   @NullableStringJsonConverter()
@@ -321,7 +501,6 @@ class RealmUserUpdateEvent extends RealmUserEvent {
     this.timezone,
     this.botOwnerId,
     this.role,
-    this.isBillingAdmin,
     this.deliveryEmail,
     this.customProfileField,
     this.newEmail,
@@ -334,6 +513,68 @@ class RealmUserUpdateEvent extends RealmUserEvent {
   // TODO make round-trip (see _readFromPerson)
   @override
   Map<String, dynamic> toJson() => _$RealmUserUpdateEventToJson(this);
+}
+
+/// A Zulip event of type `saved_snippets`: https://zulip.com/api/get-events#saved_snippets-add
+sealed class SavedSnippetsEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'saved_snippets';
+
+  String get op;
+
+  SavedSnippetsEvent({required super.id});
+}
+
+/// A [SavedSnippetsEvent] with op `add`: https://zulip.com/api/get-events#saved_snippets-add
+@JsonSerializable(fieldRename: FieldRename.snake)
+class SavedSnippetsAddEvent extends SavedSnippetsEvent {
+  @override
+  String get op => 'add';
+
+  final SavedSnippet savedSnippet;
+
+  SavedSnippetsAddEvent({required super.id, required this.savedSnippet});
+
+  factory SavedSnippetsAddEvent.fromJson(Map<String, dynamic> json) =>
+    _$SavedSnippetsAddEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$SavedSnippetsAddEventToJson(this);
+}
+
+/// A [SavedSnippetsEvent] with op `update`: https://zulip.com/api/get-events#saved_snippets-update
+@JsonSerializable(fieldRename: FieldRename.snake)
+class SavedSnippetsUpdateEvent extends SavedSnippetsEvent {
+  @override
+  String get op => 'update';
+
+  final SavedSnippet savedSnippet;
+
+  SavedSnippetsUpdateEvent({required super.id, required this.savedSnippet});
+
+  factory SavedSnippetsUpdateEvent.fromJson(Map<String, dynamic> json) =>
+    _$SavedSnippetsUpdateEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$SavedSnippetsUpdateEventToJson(this);
+}
+
+/// A [SavedSnippetsEvent] with op `remove`: https://zulip.com/api/get-events#saved_snippets-remove
+@JsonSerializable(fieldRename: FieldRename.snake)
+class SavedSnippetsRemoveEvent extends SavedSnippetsEvent {
+  @override
+  String get op => 'remove';
+
+  final int savedSnippetId;
+
+  SavedSnippetsRemoveEvent({required super.id, required this.savedSnippetId});
+
+  factory SavedSnippetsRemoveEvent.fromJson(Map<String, dynamic> json) =>
+    _$SavedSnippetsRemoveEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$SavedSnippetsRemoveEventToJson(this);
 }
 
 /// A Zulip event of type `stream`.
@@ -375,9 +616,21 @@ class ChannelDeleteEvent extends ChannelEvent {
   @JsonKey(includeToJson: true)
   String get op => 'delete';
 
-  final List<ZulipStream> streams;
+  @JsonKey(name: 'stream_ids', readValue: _readChannelIds)
+  final List<int> channelIds;
 
-  ChannelDeleteEvent({required super.id, required this.streams});
+  // TODO(server-10) simplify away; rely on stream_ids
+  static List<int> _readChannelIds(Map<dynamic, dynamic> json, String key) {
+    final channelIds = json['stream_ids'] as List<dynamic>?;
+    if (channelIds != null) return channelIds.map((id) => id as int).toList();
+
+    final channels = json['streams'] as List<dynamic>;
+    return channels
+      .map((c) => (c as Map<String, dynamic>)['stream_id'] as int)
+      .toList();
+  }
+
+  ChannelDeleteEvent({required super.id, required this.channelIds});
 
   factory ChannelDeleteEvent.fromJson(Map<String, dynamic> json) =>
     _$ChannelDeleteEventFromJson(json);
@@ -429,6 +682,9 @@ class ChannelUpdateEvent extends ChannelEvent {
     final value = json['value'];
     switch (ChannelPropertyName.fromRawString(json['property'] as String)) {
       case ChannelPropertyName.name:
+        return value as String;
+      case ChannelPropertyName.isArchived:
+        return value as bool;
       case ChannelPropertyName.description:
         return value as String;
       case ChannelPropertyName.firstMessageId:
@@ -439,6 +695,16 @@ class ChannelUpdateEvent extends ChannelEvent {
         return value as int?;
       case ChannelPropertyName.channelPostPolicy:
         return ChannelPostPolicy.fromApiValue(value as int);
+      case ChannelPropertyName.folderId:
+        return value as int?;
+      case ChannelPropertyName.canAddSubscribersGroup:
+      case ChannelPropertyName.canDeleteAnyMessageGroup:
+      case ChannelPropertyName.canDeleteOwnMessageGroup:
+      case ChannelPropertyName.canSendMessageGroup:
+      case ChannelPropertyName.canSubscribeGroup:
+        return GroupSettingValue.fromJson(value);
+      case ChannelPropertyName.isRecentlyActive:
+        return value as bool;
       case ChannelPropertyName.streamWeeklyTraffic:
         return value as int?;
       case null:
@@ -519,6 +785,7 @@ class SubscriptionUpdateEvent extends SubscriptionEvent {
 
   final int streamId;
 
+  @JsonKey(unknownEnumValue: SubscriptionProperty.unknown)
   final SubscriptionProperty property;
 
   /// The new value, or null if we don't recognize the setting.
@@ -539,7 +806,6 @@ class SubscriptionUpdateEvent extends SubscriptionEvent {
         assert(RegExp(r'^#[0-9a-f]{6}$').hasMatch(str));
         return 0xff000000 | int.parse(str.substring(1), radix: 16);
       case SubscriptionProperty.isMuted:
-      case SubscriptionProperty.inHomeView:
       case SubscriptionProperty.pinToTop:
       case SubscriptionProperty.desktopNotifications:
       case SubscriptionProperty.audibleNotifications:
@@ -576,13 +842,18 @@ enum SubscriptionProperty {
   color,
 
   isMuted,
-  inHomeView,
   pinToTop,
   desktopNotifications,
   audibleNotifications,
   pushNotifications,
   emailNotifications,
   wildcardMentionsNotify,
+
+  /// A new, unrecognized property, or a deprecated one we don't use.
+  ///
+  /// Could be `in_home_view`, deprecated in FL 139 (Server 6) but still sent
+  /// as of CZO on 2025-10-03.
+  // TODO(server-future) Remove `in_home_view` comment once it stops being sent.
   unknown;
 
   static SubscriptionProperty fromRawString(String raw) => _byRawString[raw] ?? unknown;
@@ -637,6 +908,138 @@ class SubscriptionPeerRemoveEvent extends SubscriptionEvent {
   Map<String, dynamic> toJson() => _$SubscriptionPeerRemoveEventToJson(this);
 }
 
+/// A Zulip event of type `channel_folder`.
+///
+/// The corresponding API docs are in several places for
+/// different values of `op`; see subclasses.
+sealed class ChannelFolderEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'channel_folder';
+
+  String get op;
+
+  ChannelFolderEvent({required super.id});
+}
+
+/// A [ChannelFolderEvent] with op `add`:
+///   https://zulip.com/api/get-events#channel_folder-add
+@JsonSerializable(fieldRename: FieldRename.snake)
+class ChannelFolderAddEvent extends ChannelFolderEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'add';
+
+  final ChannelFolder channelFolder;
+
+  ChannelFolderAddEvent({required super.id, required this.channelFolder});
+
+  factory ChannelFolderAddEvent.fromJson(Map<String, dynamic> json) =>
+    _$ChannelFolderAddEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$ChannelFolderAddEventToJson(this);
+}
+
+/// A [ChannelFolderEvent] with op `update`:
+///   https://zulip.com/api/get-events#channel_folder-update
+@JsonSerializable(fieldRename: FieldRename.snake)
+class ChannelFolderUpdateEvent extends ChannelFolderEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'update';
+
+  final int channelFolderId;
+  final ChannelFolderChange data;
+
+  ChannelFolderUpdateEvent({
+    required super.id,
+    required this.channelFolderId,
+    required this.data,
+  });
+
+  factory ChannelFolderUpdateEvent.fromJson(Map<String, dynamic> json) =>
+    _$ChannelFolderUpdateEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$ChannelFolderUpdateEventToJson(this);
+}
+
+/// Details of a channel-folder change, as in [ChannelFolderUpdateEvent.data].
+@JsonSerializable(fieldRename: FieldRename.snake)
+class ChannelFolderChange {
+  final String? name;
+  final String? description;
+  final String? renderedDescription;
+  final bool? isArchived;
+
+  ChannelFolderChange({
+    required this.name,
+    required this.description,
+    required this.renderedDescription,
+    required this.isArchived,
+  });
+
+  factory ChannelFolderChange.fromJson(Map<String, dynamic> json) =>
+    _$ChannelFolderChangeFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ChannelFolderChangeToJson(this);
+}
+
+/// A [ChannelFolderEvent] with op `update`:
+///   https://zulip.com/api/get-events#channel_folder-update
+@JsonSerializable(fieldRename: FieldRename.snake)
+class ChannelFolderReorderEvent extends ChannelFolderEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'reorder';
+
+  final List<int> order;
+
+  ChannelFolderReorderEvent({required super.id, required this.order});
+
+  factory ChannelFolderReorderEvent.fromJson(Map<String, dynamic> json) =>
+    _$ChannelFolderReorderEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$ChannelFolderReorderEventToJson(this);
+}
+
+/// A Zulip event of type `user_status`: https://zulip.com/api/get-events#user_status
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
+class UserStatusEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'user_status';
+
+  final int userId;
+
+  @JsonKey(readValue: _readChange)
+  final UserStatusChange change;
+
+  static Object? _readChange(Map<dynamic, dynamic> json, String key) {
+    assert(json is Map<String, dynamic>); // value came through `fromJson` with this type
+    return json;
+  }
+
+  UserStatusEvent({
+    required super.id,
+    required this.userId,
+    required this.change,
+  });
+
+  factory UserStatusEvent.fromJson(Map<String, dynamic> json) =>
+    _$UserStatusEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'type': type,
+    'user_id': userId,
+    ...change.toJson(),
+  };
+}
+
 /// A Zulip event of type `user_topic`: https://zulip.com/api/get-events#user_topic
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UserTopicEvent extends Event {
@@ -664,9 +1067,26 @@ class UserTopicEvent extends Event {
   Map<String, dynamic> toJson() => _$UserTopicEventToJson(this);
 }
 
+/// A Zulip event of type `muted_users`: https://zulip.com/api/get-events#muted_users
+@JsonSerializable(fieldRename: FieldRename.snake)
+class MutedUsersEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'muted_users';
+
+  final List<MutedUserItem> mutedUsers;
+
+  MutedUsersEvent({required super.id, required this.mutedUsers});
+
+  factory MutedUsersEvent.fromJson(Map<String, dynamic> json) =>
+    _$MutedUsersEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$MutedUsersEventToJson(this);
+}
+
 /// A Zulip event of type `message`: https://zulip.com/api/get-events#message
-// TODO use [JsonSerializable] here too, using its customization features,
-//   in order to skip the boilerplate in [fromJson] and [toJson].
+@JsonSerializable(fieldRename: FieldRename.snake)
 class MessageEvent extends Event {
   @override
   @JsonKey(includeToJson: true)
@@ -680,24 +1100,30 @@ class MessageEvent extends Event {
   // events and in the get-messages results is that `matchContent` and
   // `matchTopic` are absent here.  Already [Message.matchContent] and
   // [Message.matchTopic] are optional, so no action is needed on that.
+  @JsonKey(readValue: _readMessageValue, fromJson: Message.fromJson, includeToJson: false)
   final Message message;
 
-  MessageEvent({required super.id, required this.message});
+  // When present, this equals the "local_id" parameter
+  // from a previous [sendMessage] call by us.
+  //
+  // This is not yet fully documented.  See CZO discussion for reference:
+  //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/local_id.2C.20queue_id.2Fsender_queue_id/near/2135340
+  final String? localMessageId;
 
-  factory MessageEvent.fromJson(Map<String, dynamic> json) => MessageEvent(
-    id: json['id'] as int,
-    message: Message.fromJson({
-      ...json['message'] as Map<String, dynamic>,
-      'flags': (json['flags'] as List<dynamic>).map((e) => e as String).toList(),
-    }),
-  );
+  MessageEvent({required super.id, required this.message, required this.localMessageId});
+
+  static Map<String, dynamic> _readMessageValue(Map<dynamic, dynamic> json, String key) =>
+    {...json['message'] as Map<String, dynamic>, 'flags': json['flags']};
+
+  factory MessageEvent.fromJson(Map<String, dynamic> json) =>
+    _$MessageEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() {
     final messageJson = message.toJson();
     final flags = messageJson['flags'];
     messageJson.remove('flags');
-    return {'id': id, 'type': type, 'message': messageJson, 'flags': flags};
+    return {..._$MessageEventToJson(this), 'message': messageJson, 'flags': flags};
   }
 }
 
@@ -708,13 +1134,13 @@ class UpdateMessageEvent extends Event {
   @JsonKey(includeToJson: true)
   String get type => 'update_message';
 
-  final int? userId; // TODO(server-5)
-  final bool? renderingOnly; // TODO(server-5)
+  final int? userId;
+  final bool renderingOnly;
   final int messageId;
   final List<int> messageIds;
 
   final List<MessageFlag> flags;
-  final int? editTimestamp; // TODO(server-5)
+  final int editTimestamp;
 
   // final String? streamName; // ignore
 
@@ -953,10 +1379,7 @@ class UpdateMessageFlagsRemoveEvent extends UpdateMessageFlagsEvent {
   factory UpdateMessageFlagsRemoveEvent.fromJson(Map<String, dynamic> json) {
     final result = _$UpdateMessageFlagsRemoveEventFromJson(json);
     // Crunchy-shell validation
-    if (
-      result.flag == MessageFlag.read
-      && true // (we assume `event_types` has `message` and `update_message_flags`)
-    ) {
+    if (result.flag == MessageFlag.read) {
       result.messageDetails as Map<int, UpdateMessageFlagsMessageDetail>;
     }
     return result;
@@ -1100,6 +1523,69 @@ enum TypingOp {
   stop;
 
   String toJson() => _$TypingOpEnumMap[this]!;
+}
+
+/// A Zulip event of type `presence`.
+///
+/// See:
+///   https://zulip.com/api/get-events#presence
+@JsonSerializable(fieldRename: FieldRename.snake)
+class PresenceEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'presence';
+
+  final int userId;
+  // final String email; // deprecated; ignore
+  final int serverTimestamp;
+  final Map<String, PerClientPresence> presence;
+
+  PresenceEvent({
+    required super.id,
+    required this.userId,
+    required this.serverTimestamp,
+    required this.presence,
+  });
+
+  factory PresenceEvent.fromJson(Map<String, dynamic> json) =>
+    _$PresenceEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$PresenceEventToJson(this);
+}
+
+/// A value in [PresenceEvent.presence].
+///
+/// The "per client" name follows the event's structure,
+/// but that structure is already an API wart; see the doc's "Changes" note
+/// on [client] and on the `client_name` key of the map that holds these values:
+///
+/// https://zulip.com/api/get-events#presence
+/// > Starting with Zulip 7.0 (feature level 178), this will always be "website"
+/// > as the server no longer stores which client submitted presence updates.
+///
+/// This will probably be deprecated in favor of a form like [PerUserPresence].
+/// See #1611 and discussion:
+///   https://chat.zulip.org/#narrow/channel/378-api-design/topic/presence.20rewrite/near/2200812
+// TODO(#1611) update comment about #1611
+@JsonSerializable(fieldRename: FieldRename.snake)
+class PerClientPresence {
+  final String client; // always "website" (on 7.0+, so on all supported servers)
+  final PresenceStatus status;
+  final int timestamp;
+  final bool pushable; // always false (on 7.0+, so on all supported servers)
+
+  PerClientPresence({
+    required this.client,
+    required this.status,
+    required this.timestamp,
+    required this.pushable,
+  });
+
+  factory PerClientPresence.fromJson(Map<String, dynamic> json) =>
+    _$PerClientPresenceFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PerClientPresenceToJson(this);
 }
 
 /// A Zulip event of type `reaction`, with op `add` or `remove`.

@@ -6,29 +6,31 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:zulip/api/core.dart';
+import 'package:zulip/api/model/initial_snapshot.dart';
+import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/content.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/image.dart';
+import 'package:zulip/widgets/katex.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
-import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/text.dart';
 
+import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/content_test.dart';
 import '../model/test_store.dart';
-import '../stdlib_checks.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
+import 'checks.dart';
 import 'dialog_checks.dart';
-import 'message_list_checks.dart';
-import 'page_checks.dart';
 import 'test_app.dart';
 
 /// Simulate a nested "inner" span's style by merging all ancestor-span
@@ -105,6 +107,44 @@ TextStyle? mergedStyleOf(WidgetTester tester, Pattern spanPattern, {
 /// and reports the target's font size.
 typedef TargetFontSizeFinder = double Function(InlineSpan rootSpan);
 
+Widget plainContent(String html) {
+  return Builder(builder: (context) =>
+    DefaultTextStyle(
+      style: ContentTheme.of(context).textStylePlainParagraph,
+      child: BlockContentList(nodes: parseContent(html).nodes)));
+}
+
+// TODO(#488) For content that we need to show outside a per-message context
+//   or a context without a full PerAccountStore, make sure to include tests
+//   that don't provide such context.
+Future<void> prepareContent(WidgetTester tester, Widget child, {
+  List<NavigatorObserver> navObservers = const [],
+  bool wrapWithPerAccountStoreWidget = false,
+  InitialSnapshot? initialSnapshot,
+}) async {
+  if (wrapWithPerAccountStoreWidget) {
+    initialSnapshot ??= eg.initialSnapshot();
+    await testBinding.globalStore.add(eg.selfAccount, initialSnapshot);
+  } else {
+    assert(initialSnapshot == null);
+  }
+
+  addTearDown(testBinding.reset);
+
+  prepareBoringImageHttpClient();
+
+  await tester.pumpWidget(TestZulipApp(
+    accountId: wrapWithPerAccountStoreWidget ? eg.selfAccount.id : null,
+    navigatorObservers: navObservers,
+    child: child));
+  await tester.pump(); // global store
+  if (wrapWithPerAccountStoreWidget) {
+    await tester.pump();
+  }
+
+  debugNetworkImageHttpClientProvider = null;
+}
+
 void main() {
   // For testing a new content feature:
   //
@@ -119,43 +159,9 @@ void main() {
 
   TestZulipBinding.ensureInitialized();
 
-  Widget plainContent(String html) {
-    return Builder(builder: (context) =>
-      DefaultTextStyle(
-        style: ContentTheme.of(context).textStylePlainParagraph,
-        child: BlockContentList(nodes: parseContent(html).nodes)));
-  }
-
   Widget messageContent(String html) {
     return MessageContent(message: eg.streamMessage(content: html),
        content: parseContent(html));
-  }
-
-  // TODO(#488) For content that we need to show outside a per-message context
-  //   or a context without a full PerAccountStore, make sure to include tests
-  //   that don't provide such context.
-  Future<void> prepareContent(WidgetTester tester, Widget child, {
-    List<NavigatorObserver> navObservers = const [],
-    bool wrapWithPerAccountStoreWidget = false,
-  }) async {
-    if (wrapWithPerAccountStoreWidget) {
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-    }
-
-    addTearDown(testBinding.reset);
-
-    prepareBoringImageHttpClient();
-
-    await tester.pumpWidget(TestZulipApp(
-      accountId: wrapWithPerAccountStoreWidget ? eg.selfAccount.id : null,
-      navigatorObservers: navObservers,
-      child: child));
-    await tester.pump(); // global store
-    if (wrapWithPerAccountStoreWidget) {
-      await tester.pump();
-    }
-
-    debugNetworkImageHttpClientProvider = null;
   }
 
   /// Test that the given content example renders without throwing an exception.
@@ -181,11 +187,11 @@ void main() {
   /// [styleFinder] must return the [TextStyle] containing the "wght"
   /// (in [TextStyle.fontVariations]) and the [TextStyle.fontWeight]
   /// to be checked.
-  Future<void> testFontWeight(String description, {
+  void testFontWeight(String description, {
     required Widget content,
     required double expectedWght,
     required TextStyle Function(WidgetTester tester) styleFinder,
-  }) async {
+  }) {
     for (final platformRequestsBold in [false, true]) {
       testWidgets(
         description + (platformRequestsBold ? ' (platform requests bold)' : ''),
@@ -306,7 +312,7 @@ void main() {
           ..status.equals(expected ? AnimationStatus.completed : AnimationStatus.dismissed);
       }
 
-      const example = ContentExample.spoilerHeaderHasImage;
+      const example = ContentExample.spoilerHeaderHasImagePreview;
 
       testWidgets('tap image', (tester) async {
         final pushedRoutes = await prepare(tester, example.html);
@@ -352,7 +358,7 @@ void main() {
 
   testContentSmoke(ContentExample.quotation);
 
-  group('MessageImage, MessageImageList', () {
+  group('MessageImagePreview, MessageImagePreviewList', () {
     Future<void> prepare(WidgetTester tester, String html) async {
       await prepareContent(tester,
         // Message is needed for an image's lightbox.
@@ -363,9 +369,9 @@ void main() {
     }
 
     testWidgets('single image', (tester) async {
-      const example = ContentExample.imageSingle;
+      const example = ContentExample.imagePreviewSingle;
       await prepare(tester, example.html);
-      final expectedImages = (example.expectedNodes[0] as ImageNodeList).images;
+      final expectedImages = (example.expectedNodes[0] as ImagePreviewNodeList).imagePreviews;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
       check(images.map((i) => i.src.toString()).toList())
@@ -373,9 +379,9 @@ void main() {
     });
 
     testWidgets('single image no thumbnail', (tester) async {
-      const example = ContentExample.imageSingleNoThumbnail;
+      const example = ContentExample.imagePreviewSingleNoThumbnail;
       await prepare(tester, example.html);
-      final expectedImages = (example.expectedNodes[0] as ImageNodeList).images;
+      final expectedImages = (example.expectedNodes[0] as ImagePreviewNodeList).imagePreviews;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
       check(images.map((i) => i.src.toString()).toList())
@@ -383,27 +389,28 @@ void main() {
     });
 
     testWidgets('single image loading placeholder', (tester) async {
-      const example = ContentExample.imageSingleLoadingPlaceholder;
+      const example = ContentExample.imagePreviewSingleLoadingPlaceholder;
       await prepare(tester, example.html);
       await tester.ensureVisible(find.byType(CupertinoActivityIndicator));
     });
 
     testWidgets('image with invalid src URL', (tester) async {
-      const example = ContentExample.imageInvalidUrl;
+      const example = ContentExample.imagePreviewInvalidUrl;
       await prepare(tester, example.html);
       // The image indeed has an invalid URL.
-      final expectedImages = (example.expectedNodes[0] as ImageNodeList).images;
+      final expectedImages = (example.expectedNodes[0] as ImagePreviewNodeList).imagePreviews;
       check(() => Uri.parse(expectedImages.single.srcUrl)).throws<void>();
       check(tryResolveUrl(eg.realmUrl, expectedImages.single.srcUrl)).isNull();
-      // The MessageImage has shown up, but it doesn't attempt a RealmContentNetworkImage.
-      check(tester.widgetList(find.byType(MessageImage))).isNotEmpty();
+      // The MessageImagePreview has shown up,
+      // but it doesn't attempt a RealmContentNetworkImage.
+      check(tester.widgetList(find.byType(MessageImagePreview))).isNotEmpty();
       check(tester.widgetList(find.byType(RealmContentNetworkImage))).isEmpty();
     });
 
     testWidgets('multiple images', (tester) async {
-      const example = ContentExample.imageCluster;
+      const example = ContentExample.imagePreviewCluster;
       await prepare(tester, example.html);
-      final expectedImages = (example.expectedNodes[1] as ImageNodeList).images;
+      final expectedImages = (example.expectedNodes[1] as ImagePreviewNodeList).imagePreviews;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
       check(images.map((i) => i.src.toString()).toList())
@@ -411,9 +418,9 @@ void main() {
     });
 
     testWidgets('multiple images no thumbnails', (tester) async {
-      const example = ContentExample.imageClusterNoThumbnails;
+      const example = ContentExample.imagePreviewClusterNoThumbnails;
       await prepare(tester, example.html);
-      final expectedImages = (example.expectedNodes[1] as ImageNodeList).images;
+      final expectedImages = (example.expectedNodes[1] as ImagePreviewNodeList).imagePreviews;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
       check(images.map((i) => i.src.toString()).toList())
@@ -421,9 +428,9 @@ void main() {
     });
 
     testWidgets('content after image cluster', (tester) async {
-      const example = ContentExample.imageClusterThenContent;
+      const example = ContentExample.imagePreviewClusterThenContent;
       await prepare(tester, example.html);
-      final expectedImages = (example.expectedNodes[1] as ImageNodeList).images;
+      final expectedImages = (example.expectedNodes[1] as ImagePreviewNodeList).imagePreviews;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
       check(images.map((i) => i.src.toString()).toList())
@@ -431,10 +438,10 @@ void main() {
     });
 
     testWidgets('multiple clusters of images', (tester) async {
-      const example = ContentExample.imageMultipleClusters;
+      const example = ContentExample.imagePreviewMultipleClusters;
       await prepare(tester, example.html);
-      final expectedImages = (example.expectedNodes[1] as ImageNodeList).images
-        + (example.expectedNodes[4] as ImageNodeList).images;
+      final expectedImages = (example.expectedNodes[1] as ImagePreviewNodeList).imagePreviews
+        + (example.expectedNodes[4] as ImagePreviewNodeList).imagePreviews;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
       check(images.map((i) => i.src.toString()).toList())
@@ -442,10 +449,10 @@ void main() {
     });
 
     testWidgets('image as immediate child in implicit paragraph', (tester) async {
-      const example = ContentExample.imageInImplicitParagraph;
+      const example = ContentExample.imagePreviewInImplicitParagraph;
       await prepare(tester, example.html);
       final expectedImages = ((example.expectedNodes[0] as ListNode)
-        .items[0][0] as ImageNodeList).images;
+        .items[0][0] as ImagePreviewNodeList).imagePreviews;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
       check(images.map((i) => i.src.toString()).toList())
@@ -453,10 +460,10 @@ void main() {
     });
 
     testWidgets('image cluster in implicit paragraph', (tester) async {
-      const example = ContentExample.imageClusterInImplicitParagraph;
+      const example = ContentExample.imagePreviewClusterInImplicitParagraph;
       await prepare(tester, example.html);
       final expectedImages = ((example.expectedNodes[0] as ListNode)
-        .items[0][1] as ImageNodeList).images;
+        .items[0][1] as ImagePreviewNodeList).imagePreviews;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
       check(images.map((i) => i.src.toString()).toList())
@@ -553,7 +560,23 @@ void main() {
       styleFinder: (tester) => mergedStyleOf(tester, 'A')!);
   });
 
-  testContentSmoke(ContentExample.mathBlock);
+  group('MathBlock', () {
+    // See also katex_test.dart for detailed tests of
+    // how we render the inside of a math block.
+    // These tests check how it relates to the enclosing Zulip message.
+
+    testContentSmoke(ContentExample.mathBlock);
+
+    testWidgets('displays KaTeX content', (tester) async {
+      await prepareContent(tester, plainContent(ContentExample.mathBlock.html));
+      tester.widget(find.text('λ', findRichText: true));
+    });
+
+    testWidgets('fallback to displaying KaTeX source if unsupported KaTeX HTML', (tester) async {
+      await prepareContent(tester, plainContent(ContentExample.mathBlockUnknown.html));
+      tester.widget(find.text(r'\lambda', findRichText: true));
+    });
+  });
 
   /// Make a [TargetFontSizeFinder] to pass to [checkFontSizeRatio],
   /// from a target [Pattern] (such as a string).
@@ -573,10 +596,12 @@ void main() {
   Future<void> checkFontSizeRatio(WidgetTester tester, {
     required String targetHtml,
     required TargetFontSizeFinder targetFontSizeFinder,
+    bool wrapWithPerAccountStoreWidget = false,
   }) async {
-    await prepareContent(tester, plainContent(
-      '<h1>header-plain $targetHtml</h1>\n'
-      '<p>paragraph-plain $targetHtml</p>'));
+    await prepareContent(tester, wrapWithPerAccountStoreWidget: wrapWithPerAccountStoreWidget,
+      plainContent(
+        '<h1>header-plain $targetHtml</h1>\n'
+        '<p>paragraph-plain $targetHtml</p>'));
 
     final headerRootSpan = tester.renderObject<RenderParagraph>(find.textContaining('header')).text;
     final headerPlainStyle = mergedStyleOfSubstring(headerRootSpan, 'header-plain ');
@@ -684,7 +709,17 @@ void main() {
           '<tbody>\n<tr>\n<td>text</td>\n</tr>\n</tbody>\n'
           '</table>'),
       styleFinder: findWordBold);
+
+    testWidgets('has strike-through line in strike-through', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/1817
+      await prepareContent(tester,
+        plainContent('<p><del><strong>bold</strong></del></p>'));
+      final style = mergedStyleOf(tester, 'bold');
+      check(style!.decoration).equals(TextDecoration.lineThrough);
+    });
   });
+
+  testContentSmoke(ContentExample.deleted);
 
   testContentSmoke(ContentExample.emphasis);
 
@@ -695,6 +730,22 @@ void main() {
       await checkFontSizeRatio(tester,
         targetHtml: '<code>code</code>',
         targetFontSizeFinder: mkTargetFontSizeFinderFromPattern('code'));
+    });
+
+    testFontWeight('is bold in bold span',
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/1812
+      expectedWght: 600,
+      // **`bold`**
+      content: plainContent('<p><strong><code>bold</code></strong></p>'),
+      styleFinder: (tester) => mergedStyleOf(tester, 'bold')!,
+    );
+
+    testWidgets('is link-colored in link span', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/806
+      await prepareContent(tester,
+        plainContent('<p><a href="https://example/"><code>code</code></a></p>'));
+      final style = mergedStyleOf(tester, 'code');
+      check(style!.color).equals(const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor());
     });
   });
 
@@ -895,6 +946,9 @@ void main() {
   });
 
   group('LinkNode on internal links', () {
+    late PerAccountStore store;
+    late FakeApiConnection connection;
+
     Future<List<Route<dynamic>>> prepare(WidgetTester tester, String html) async {
       final pushedRoutes = <Route<dynamic>>[];
       final testNavObserver = TestNavigatorObserver()
@@ -910,12 +964,13 @@ void main() {
       assert(pushedRoutes.length == 1);
       pushedRoutes.removeLast();
 
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      connection = store.connection as FakeApiConnection;
       await store.addStream(eg.stream(name: 'stream'));
       return pushedRoutes;
     }
 
-    testWidgets('valid internal links are navigated to within app', (tester) async {
+    testWidgets('narrow links are navigated to within app', (tester) async {
       final pushedRoutes = await prepare(tester,
         '<p><a href="/#narrow/stream/1-check">stream</a></p>');
 
@@ -923,6 +978,24 @@ void main() {
       check(testBinding.takeLaunchUrlCalls()).isEmpty();
       check(pushedRoutes).single.isA<WidgetRoute>()
         .page.isA<MessageListPage>().initNarrow.equals(const ChannelNarrow(1));
+    });
+
+    // TODO(#1570): test links with /near/ go to the specific message
+
+    testWidgets('uploaded-file links are opened with temporary authed URL', (tester) async {
+      final pushedRoutes = await prepare(tester,
+        '<p><a href="/user_uploads/123/ab/paper.pdf">paper.pdf</a></p>');
+
+      final tempUrlString = '/temp/s3kr1t-auth-token/paper.pdf';
+      final expectedUrl = eg.realmUrl.resolve(tempUrlString);
+
+      connection.prepare(json: GetFileTemporaryUrlResult(
+        url: tempUrlString).toJson());
+      await tapText(tester, find.text('paper.pdf'));
+      await tester.pump(Duration.zero);
+      check(testBinding.takeLaunchUrlCalls())
+        .single.equals((url: expectedUrl, mode: LaunchMode.inAppBrowserView));
+      check(pushedRoutes).isEmpty();
     });
 
     testWidgets('invalid internal links are opened in browser', (tester) async {
@@ -955,9 +1028,21 @@ void main() {
           _ => throw StateError('unexpected platform in test'),
         });
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+
+    testWidgets('has strike-through line in strike-through', (tester) async {
+      // Regression test for https://github.com/zulip/zulip-flutter/issues/1818
+      await prepareContent(tester,
+        plainContent('<p><del>foo<span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span>bar</del></p>'));
+      final style = mergedStyleOf(tester, '\u{1f44d}');
+      check(style!.decoration).equals(TextDecoration.lineThrough);
+    });
   });
 
   group('inline math', () {
+    // See also katex_test.dart for detailed tests of
+    // how we render the inside of a math span.
+    // These tests check how it relates to the enclosing Zulip message.
+
     testContentSmoke(ContentExample.mathInline);
 
     testWidgets('maintains font-size ratio with surrounding text', (tester) async {
@@ -967,7 +1052,49 @@ void main() {
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span>';
       await checkFontSizeRatio(tester,
         targetHtml: html,
-        targetFontSizeFinder: mkTargetFontSizeFinderFromPattern(r'\lambda'));
+        targetFontSizeFinder: (rootSpan) {
+          late final double result;
+          rootSpan.visitChildren((span) {
+            if (span case WidgetSpan(child: KatexWidget() && var widget)) {
+              result = mergedStyleOf(tester,
+                findAncestor: find.byWidget(widget), r'λ')!.fontSize!;
+              return false;
+            }
+            return true;
+          });
+          return result;
+        });
+    });
+
+    group('fallback to displaying KaTeX source if unsupported KaTeX HTML', () {
+      testContentSmoke(ContentExample.mathInlineUnknown);
+
+      assert(ContentExample.mathInlineUnknown.html.startsWith('<p>'));
+      assert(ContentExample.mathInlineUnknown.html.endsWith('</p>'));
+      final unsupportedKatexHtml = ContentExample.mathInlineUnknown.html
+        .substring(3, ContentExample.mathInlineUnknown.html.length - 4);
+      final expectedText = ContentExample.mathInlineUnknown.expectedText!;
+
+      testWidgets('maintains font-size ratio with surrounding text, when falling back to TeX source', (tester) async {
+        await checkFontSizeRatio(tester,
+          targetHtml: unsupportedKatexHtml,
+          targetFontSizeFinder: mkTargetFontSizeFinderFromPattern(expectedText));
+      });
+
+      testFontWeight('is bold in bold span',
+        // Regression test for: https://github.com/zulip/zulip-flutter/issues/1812
+        expectedWght: 600,
+        content: plainContent('<p><strong>$unsupportedKatexHtml</strong></p>'),
+        styleFinder: (tester) => mergedStyleOf(tester, expectedText)!,
+      );
+
+      testWidgets('is link-colored in link span', (tester) async {
+        // Regression test for: https://github.com/zulip/zulip-flutter/issues/806
+        await prepareContent(tester,
+          plainContent('<p><a href="https://example/">$unsupportedKatexHtml</a></p>'));
+        final style = mergedStyleOf(tester, expectedText);
+        check(style!.color).equals(const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor());
+      });
     });
   });
 
@@ -978,16 +1105,52 @@ void main() {
     // the timezone of the environment running these tests. Accept here a wide
     // range of times. See comments in "show dates" test in
     // `test/widgets/message_list_test.dart`.
-    final renderedTextRegexp = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d [AP]M$');
+    final renderedTextRegexp = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d(?: [AP]M)?$');
+    final renderedTextRegexpTwelveHour = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d [AP]M$');
+    final renderedTextRegexpTwentyFourHour = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d$');
+
+    Future<void> prepare(
+      WidgetTester tester,
+      [TwentyFourHourTimeMode twentyFourHourTimeMode = TwentyFourHourTimeMode.localeDefault]
+    ) async {
+      final initialSnapshot = eg.initialSnapshot()
+        ..userSettings.twentyFourHourTime = twentyFourHourTimeMode;
+      await prepareContent(tester,
+        // We use the self-account's time-format setting.
+        wrapWithPerAccountStoreWidget: true,
+        initialSnapshot: initialSnapshot,
+        plainContent('<p>$timeSpanHtml</p>'));
+    }
 
     testWidgets('smoke', (tester) async {
-      await prepareContent(tester, plainContent('<p>$timeSpanHtml</p>'));
+      await prepare(tester);
       tester.widget(find.textContaining(renderedTextRegexp));
+    });
+
+    testWidgets('TwentyFourHourTimeMode.twelveHour', (tester) async {
+      await prepare(tester, TwentyFourHourTimeMode.twelveHour);
+      check(find.textContaining(renderedTextRegexpTwelveHour)).findsOne();
+    });
+
+    testWidgets('TwentyFourHourTimeMode.twentyFourHour', (tester) async {
+      await prepare(tester, TwentyFourHourTimeMode.twentyFourHour);
+      check(find.textContaining(renderedTextRegexpTwentyFourHour)).findsOne();
+    });
+
+    testWidgets('TwentyFourHourTimeMode.localeDefault', (tester) async {
+      await prepare(tester, TwentyFourHourTimeMode.localeDefault);
+      // This expectation holds as long as we're always formatting in en_US,
+      // the default locale, which uses the twelve-hour format.
+      // TODO(#1727) follow the actual locale; test with different locales
+      check(find.textContaining(renderedTextRegexpTwelveHour)).findsOne();
     });
 
     void testIconAndTextSameColor(String description, String html) {
       testWidgets('clock icon and text are the same color: $description', (tester) async {
-        await prepareContent(tester, plainContent(html));
+        await prepareContent(tester,
+          // We use the self-account's time-format setting.
+          wrapWithPerAccountStoreWidget: true,
+          plainContent(html));
 
         final icon = tester.widget<Icon>(
           find.descendant(of: find.byType(GlobalTime),
@@ -1007,6 +1170,8 @@ void main() {
     group('maintains font-size ratio with surrounding text', () {
       Future<void> doCheck(WidgetTester tester, double Function(GlobalTime widget) sizeFromWidget) async {
         await checkFontSizeRatio(tester,
+          // We use the self-account's time-format setting.
+          wrapWithPerAccountStoreWidget: true,
           targetHtml: '<time datetime="2024-01-30T17:33:00Z">2024-01-30T17:33:00Z</time>',
           targetFontSizeFinder: (rootSpan) {
             late final double result;
@@ -1037,6 +1202,30 @@ void main() {
         });
       });
     });
+  });
+
+  group('InlineAudio', () {
+    Future<void> prepare(WidgetTester tester, String html) async {
+      await prepareContent(tester, plainContent(html),
+        // We try to resolve relative links on the self-account's realm.
+        wrapWithPerAccountStoreWidget: true);
+    }
+
+    testWidgets('tapping on audio link opens it in browser', (tester) async {
+      await prepare(tester, ContentExample.audioInline.html);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      final connection = store.connection as FakeApiConnection;
+
+      final url = eg.realmUrl.resolve('/temp/token/crab-rave.mp3');
+      connection.prepare(json: GetFileTemporaryUrlResult(url: url.path).toJson());
+      await tapText(tester, find.text('crab-rave.mp3'));
+      await tester.pump(Duration.zero);
+
+      final expectedLaunchMode = defaultTargetPlatform == TargetPlatform.iOS ?
+        LaunchMode.externalApplication : LaunchMode.inAppBrowserView;
+      check(testBinding.takeLaunchUrlCalls())
+        .single.equals((url: url, mode: expectedLaunchMode));
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
   });
 
   group('MessageImageEmoji', () {
@@ -1126,109 +1315,6 @@ void main() {
       await tester.tap(find.byType(RealmContentNetworkImage));
       check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: url, mode: LaunchMode.inAppBrowserView));
-      debugNetworkImageHttpClientProvider = null;
-    });
-  });
-
-  group('RealmContentNetworkImage', () {
-    final authHeaders = authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey);
-
-    Future<Map<String, List<String>>> actualHeaders(WidgetTester tester, Uri src) async {
-      addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-
-      final httpClient = prepareBoringImageHttpClient();
-
-      await tester.pumpWidget(GlobalStoreWidget(
-        child: PerAccountStoreWidget(accountId: eg.selfAccount.id,
-          child: RealmContentNetworkImage(src))));
-      await tester.pump();
-      await tester.pump();
-
-      return httpClient.request.headers.values;
-    }
-
-    testWidgets('includes auth header if `src` on-realm', (tester) async {
-      check(await actualHeaders(tester, Uri.parse('https://chat.example/image.png')))
-        .deepEquals({
-          'Authorization': [authHeaders['Authorization']!],
-          'User-Agent': [userAgentHeader()['User-Agent']!],
-        });
-      debugNetworkImageHttpClientProvider = null;
-    });
-
-    testWidgets('excludes auth header if `src` off-realm', (tester) async {
-      check(await actualHeaders(tester, Uri.parse('https://other.example/image.png')))
-        .deepEquals({'User-Agent': [userAgentHeader()['User-Agent']!]});
-      debugNetworkImageHttpClientProvider = null;
-    });
-
-    testWidgets('throws if no `PerAccountStoreWidget` ancestor', (tester) async {
-      await tester.pumpWidget(
-        RealmContentNetworkImage(Uri.parse('https://zulip.invalid/path/to/image.png'), filterQuality: FilterQuality.medium));
-      check(tester.takeException()).isA<AssertionError>();
-    });
-  });
-
-  group('AvatarImage', () {
-    late PerAccountStore store;
-
-    Future<Uri?> actualUrl(WidgetTester tester, String avatarUrl, [double? size]) async {
-      addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-      final user = eg.user(avatarUrl: avatarUrl);
-      await store.addUser(user);
-
-      prepareBoringImageHttpClient();
-      await tester.pumpWidget(GlobalStoreWidget(
-        child: PerAccountStoreWidget(accountId: eg.selfAccount.id,
-          child: AvatarImage(userId: user.userId, size: size ?? 30))));
-      await tester.pump();
-      await tester.pump();
-      tester.widget(find.byType(AvatarImage));
-      final widgets = tester.widgetList<RealmContentNetworkImage>(
-        find.byType(RealmContentNetworkImage));
-      return widgets.firstOrNull?.src;
-    }
-
-    testWidgets('smoke with absolute URL', (tester) async {
-      const avatarUrl = 'https://example/avatar.png';
-      check(await actualUrl(tester, avatarUrl)).isNotNull()
-        .asString.equals(avatarUrl);
-      debugNetworkImageHttpClientProvider = null;
-    });
-
-    testWidgets('smoke with relative URL', (tester) async {
-      const avatarUrl = '/avatar.png';
-      check(await actualUrl(tester, avatarUrl))
-        .equals(store.tryResolveUrl(avatarUrl)!);
-      debugNetworkImageHttpClientProvider = null;
-    });
-
-   testWidgets('absolute URL, larger size', (tester) async {
-      tester.view.devicePixelRatio = 2.5;
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      const avatarUrl = 'https://example/avatar.png';
-      check(await actualUrl(tester, avatarUrl, 50)).isNotNull()
-        .asString.equals(avatarUrl.replaceAll('.png', '-medium.png'));
-      debugNetworkImageHttpClientProvider = null;
-    });
-
-    testWidgets('relative URL, larger size', (tester) async {
-      tester.view.devicePixelRatio = 2.5;
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      const avatarUrl = '/avatar.png';
-      check(await actualUrl(tester, avatarUrl, 50))
-        .equals(store.tryResolveUrl('/avatar-medium.png')!);
-      debugNetworkImageHttpClientProvider = null;
-    });
-
-    testWidgets('smoke with invalid URL', (tester) async {
-      const avatarUrl = '::not a URL::';
-      check(await actualUrl(tester, avatarUrl)).isNull();
       debugNetworkImageHttpClientProvider = null;
     });
   });

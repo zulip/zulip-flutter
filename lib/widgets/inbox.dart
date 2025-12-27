@@ -8,6 +8,7 @@ import '../model/unreads.dart';
 import 'action_sheet.dart';
 import 'icons.dart';
 import 'message_list.dart';
+import 'page.dart';
 import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
@@ -82,6 +83,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
     final subscriptions = store.subscriptions;
 
@@ -160,9 +162,14 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       sections.add(_StreamSectionData(streamId, countInStream, streamHasMention, topicItems));
     }
 
-    return SafeArea(
-      // Don't pad the bottom here; we want the list content to do that.
-      bottom: false,
+    if (sections.isEmpty) {
+      return PageBodyEmptyContentPlaceholder(
+        // TODO(#315) add e.g. "You might be interested in recent conversations."
+        header: zulipLocalizations.inboxEmptyPlaceholderHeader,
+        message: zulipLocalizations.inboxEmptyPlaceholderMessage);
+    }
+
+    return SafeArea( // horizontal insets
       child: StickyHeaderListView.builder(
         itemCount: sections.length,
         itemBuilder: (context, index) {
@@ -243,7 +250,9 @@ abstract class _HeaderItem extends StatelessWidget {
   Color collapsedIconColor(BuildContext context);
   Color uncollapsedIconColor(BuildContext context);
   Color uncollapsedBackgroundColor(BuildContext context);
-  Color? unreadCountBadgeBackgroundColor(BuildContext context);
+
+  /// A channel ID, if this represents a channel, else null.
+  int? get channelId;
 
   Future<void> onCollapseButtonTap() async {
     if (!collapsed) {
@@ -301,8 +310,7 @@ abstract class _HeaderItem extends StatelessWidget {
           if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
           Padding(padding: const EdgeInsetsDirectional.only(end: 16),
             child: UnreadCountBadge(
-              backgroundColor: unreadCountBadgeBackgroundColor(context),
-              bold: true,
+              channelIdForBackground: channelId,
               count: count)),
         ])));
   }
@@ -319,14 +327,14 @@ class _AllDmsHeaderItem extends _HeaderItem {
 
   @override String title(ZulipLocalizations zulipLocalizations) =>
     zulipLocalizations.recentDmConversationsSectionHeader;
-  @override IconData get icon => ZulipIcons.user;
+  @override IconData get icon => ZulipIcons.two_person;
 
   // TODO(design) check if this is the right variable for these
   @override Color collapsedIconColor(context) => DesignVariables.of(context).labelMenuButton;
   @override Color uncollapsedIconColor(context) => DesignVariables.of(context).labelMenuButton;
 
   @override Color uncollapsedBackgroundColor(context) => DesignVariables.of(context).dmHeaderBg;
-  @override Color? unreadCountBadgeBackgroundColor(context) => null;
+  @override int? get channelId => null;
 
   @override Future<void> onCollapseButtonTap() async {
     await super.onCollapseButtonTap();
@@ -387,6 +395,7 @@ class _DmItem extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
 
+    // TODO write a test where a/the recipient is muted
     final title = switch (narrow.otherRecipientIds) { // TODO dedupe with [RecentDmConversationsItem]
       [] => store.selfUser.fullName,
       [var otherUserId] => store.userDisplayName(otherUserId),
@@ -422,7 +431,7 @@ class _DmItem extends StatelessWidget {
             const SizedBox(width: 12),
             if (hasMention) const  _IconMarker(icon: ZulipIcons.at_sign),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-              child: UnreadCountBadge(backgroundColor: null,
+              child: UnreadCountBadge(channelIdForBackground: null,
                 count: count)),
           ]))));
   }
@@ -455,8 +464,7 @@ class _StreamHeaderItem extends _HeaderItem with _LongPressable {
     colorSwatchFor(context, subscription).iconOnBarBackground;
   @override Color uncollapsedBackgroundColor(context) =>
     colorSwatchFor(context, subscription).barBackground;
-  @override Color? unreadCountBadgeBackgroundColor(context) =>
-    colorSwatchFor(context, subscription).unreadCountBadgeBackground;
+  @override int? get channelId => subscription.streamId;
 
   @override Future<void> onCollapseButtonTap() async {
     await super.onCollapseButtonTap();
@@ -519,7 +527,6 @@ class _TopicItem extends StatelessWidget {
       :topic, :count, :hasMention, :lastUnreadId) = data;
 
     final store = PerAccountStoreWidget.of(context);
-    final subscription = store.subscriptions[streamId]!;
 
     final designVariables = DesignVariables.of(context);
     final visibilityIcon = iconDataForTopicVisibilityPolicy(
@@ -546,14 +553,12 @@ class _TopicItem extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 17,
                   height: (20 / 17),
-                  // ignore: unnecessary_null_comparison // null topic names soon to be enabled
                   fontStyle: topic.displayName == null ? FontStyle.italic : null,
                   // TODO(design) check if this is the right variable
                   color: designVariables.labelMenuButton,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                // ignore: dead_null_aware_expression // null topic names soon to be enabled
                 topic.displayName ?? store.realmEmptyTopicDisplayName))),
             const SizedBox(width: 12),
             if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
@@ -561,7 +566,7 @@ class _TopicItem extends StatelessWidget {
             if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
               child: UnreadCountBadge(
-                backgroundColor: colorSwatchFor(context, subscription),
+                channelIdForBackground: streamId,
                 count: count)),
           ]))));
   }

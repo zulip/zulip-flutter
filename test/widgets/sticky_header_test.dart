@@ -230,19 +230,24 @@ void main() {
   });
 
   testWidgets('hit-testing for header overflowing sliver', (tester) async {
+    const centerKey = ValueKey('center');
     final controller = ScrollController();
     await tester.pumpWidget(Directionality(textDirection: TextDirection.ltr,
       child: CustomScrollView(
         controller: controller,
+        anchor: 0.0,
+        center: centerKey,
+        paintOrder: SliverPaintOrder.firstIsTop,
         slivers: [
           SliverStickyHeaderList(
             headerPlacement: HeaderPlacement.scrollingStart,
             delegate: SliverChildListDelegate(
               List.generate(100, (i) => StickyHeaderItem(
                 allowOverflow: true,
-                header: _Header(i, height: 20),
-                child: _Item(i, height: 100))))),
+                header: _Header(99 - i, height: 20),
+                child: _Item(99 - i, height: 100))))),
           SliverStickyHeaderList(
+            key: centerKey,
             headerPlacement: HeaderPlacement.scrollingStart,
             delegate: SliverChildListDelegate(
               List.generate(100, (i) => StickyHeaderItem(
@@ -251,9 +256,8 @@ void main() {
                 child: _Item(100 + i, height: 100))))),
         ])));
 
-    const topExtent = 100 * 100;
     for (double topHeight in [5, 10, 15, 20]) {
-      controller.jumpTo(topExtent - topHeight);
+      controller.jumpTo(-topHeight);
       await tester.pump();
       // The top sliver occupies height [topHeight].
       // Its header overhangs by `20 - topHeight`.
@@ -327,36 +331,20 @@ Future<void> _checkSequence(
   ];
 
   final double anchor;
-  bool paintOrderGood;
   if (reverseGrowth) {
     slivers.reverseRange(0, slivers.length);
     anchor = 1.0;
-    paintOrderGood = switch (sliverConfig) {
-      _SliverConfig.single => true,
-      // The last sliver will paint last.
-      _SliverConfig.backToBack => headerPlacement == HeaderPlacement.scrollingEnd,
-      // The last sliver will paint last.
-      _SliverConfig.followed => headerPlacement == HeaderPlacement.scrollingEnd,
-    };
   } else {
     anchor = 0.0;
-    paintOrderGood = switch (sliverConfig) {
-      _SliverConfig.single => true,
-      // The last sliver will paint last.
-      _SliverConfig.backToBack => headerPlacement == HeaderPlacement.scrollingEnd,
-      // The first sliver will paint last.
-      _SliverConfig.followed => headerPlacement == HeaderPlacement.scrollingStart,
-    };
   }
 
-  final skipBecausePaintOrder = allowOverflow && !paintOrderGood;
-  if (skipBecausePaintOrder) {
-    // TODO need to control paint order of slivers within viewport in order to
-    //   make some configurations behave properly when headers overflow slivers
-    markTestSkipped('sliver paint order');
-    // Don't return yet; we'll still check layout, and skip specific affected checks below.
+  SliverPaintOrder paintOrder = SliverPaintOrder.firstIsTop;
+  if (!allowOverflow || (sliverConfig == _SliverConfig.single)) {
+    // The paint order doesn't matter.
+  } else {
+    paintOrder = headerPlacement == HeaderPlacement.scrollingStart
+      ? SliverPaintOrder.firstIsTop : SliverPaintOrder.lastIsTop;
   }
-
 
   final controller = ScrollController();
   await tester.pumpWidget(Directionality(
@@ -367,9 +355,10 @@ Future<void> _checkSequence(
       reverse: reverse,
       anchor: anchor,
       center: center,
+      paintOrder: paintOrder,
       slivers: slivers)));
 
-  final overallSize = tester.getSize(find.byType(CustomScrollView));
+  final overallSize = tester.getSize(find.bySubtype<CustomScrollView>());
   final extent = overallSize.onAxis(axis);
   assert(extent % 100 == 0);
   assert(sliverScrollExtent - extent > 100);
@@ -418,7 +407,6 @@ Future<void> _checkSequence(
     check(insetExtent(find.byType(_Header))).equals(expectedHeaderInsetExtent);
 
     // Check the header gets hit when it should, and not when it shouldn't.
-    if (skipBecausePaintOrder) return;
     await tester.tapAt(headerInset(1));
     await tester.tapAt(headerInset(expectedHeaderInsetExtent - 1));
     check(_TapLogged.takeTapLog())..length.equals(2)

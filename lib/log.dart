@@ -62,7 +62,11 @@ void profilePrint(String message) {
 // `null` for the `message` parameter and promptly dismiss the reported errors.
 typedef ReportErrorCancellablyCallback = void Function(String? message, {String? details});
 
-typedef ReportErrorCallback = void Function(String title, {String? message});
+typedef ReportErrorCallback = void Function(
+  String title, {
+  String? message,
+  Uri? learnMoreButtonUrl,
+});
 
 /// Show the user an error message, without requiring them to interact with it.
 ///
@@ -76,6 +80,7 @@ typedef ReportErrorCallback = void Function(String title, {String? message});
 ///
 /// If `details` is non-null, the [SnackBar] will contain a button that would
 /// open a dialog containing the error details.
+/// Prose in `details` should have final punctuation.
 // This gets set in [ZulipApp].  We need this indirection to keep `lib/log.dart`
 // from importing widget code, because the file is a dependency for the rest of
 // the app.
@@ -87,6 +92,8 @@ ReportErrorCancellablyCallback reportErrorToUserBriefly = defaultReportErrorToUs
 /// as the body.  If called before the app's widget tree is ready
 /// (see [ZulipApp.ready]), then we give up on showing the message to the user,
 /// and just log the message to the console.
+///
+/// Prose in `message` should have final punctuation.
 // This gets set in [ZulipApp].  We need this indirection to keep `lib/log.dart`
 // from importing widget code, because the file is a dependency for the rest of
 // the app.
@@ -96,7 +103,11 @@ void defaultReportErrorToUserBriefly(String? message, {String? details}) {
   _reportErrorToConsole(message, details);
 }
 
-void defaultReportErrorToUserModally(String title, {String? message}) {
+void defaultReportErrorToUserModally(
+  String title, {
+  String? message,
+  Uri? learnMoreButtonUrl,
+}) {
   _reportErrorToConsole(title, message);
 }
 

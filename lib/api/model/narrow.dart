@@ -14,24 +14,29 @@ typedef ApiNarrow = List<ApiNarrowElement>;
 /// reasonably be omitted will be omitted.
 ApiNarrow resolveApiNarrowForServer(ApiNarrow narrow, int zulipFeatureLevel) {
   final supportsOperatorDm = zulipFeatureLevel >= 177; // TODO(server-7)
+  final supportsOperatorChannel = zulipFeatureLevel >= 250; // TODO(server-9)
   final supportsOperatorWith = zulipFeatureLevel >= 271; // TODO(server-9)
 
   bool hasDmElement = false;
+  bool hasChannelElement = false;
   bool hasWithElement = false;
   for (final element in narrow) {
     switch (element) {
-      case ApiNarrowDm():   hasDmElement = true;
-      case ApiNarrowWith(): hasWithElement = true;
+      case ApiNarrowChannel(): hasChannelElement = true;
+      case ApiNarrowDm():      hasDmElement = true;
+      case ApiNarrowWith():    hasWithElement = true;
       default:
     }
   }
-  if (!(hasDmElement || (hasWithElement && !supportsOperatorWith))) {
+  if (!(hasChannelElement || hasDmElement || (hasWithElement && !supportsOperatorWith))) {
     return narrow;
   }
 
   final result = <ApiNarrowElement>[];
   for (final element in narrow) {
     switch (element) {
+      case ApiNarrowChannel():
+        result.add(element.resolve(legacy: !supportsOperatorChannel));
       case ApiNarrowDm():
         result.add(element.resolve(legacy: !supportsOperatorDm));
       case ApiNarrowWith() when !supportsOperatorWith:
@@ -93,17 +98,51 @@ sealed class ApiNarrowElement {
   };
 }
 
-class ApiNarrowStream extends ApiNarrowElement {
-  @override String get operator => 'stream';
+class ApiNarrowChannel extends ApiNarrowElement {
+  @override String get operator {
+    assert(false,
+      "The [operator] getter was called on a plain [ApiNarrowChannel].  "
+      "Before passing to [jsonEncode] or otherwise getting [operator], "
+      "the [ApiNarrowChannel] must be replaced by the result of [ApiNarrowChannel.resolve]."
+    );
+    return "channel";
+  }
 
   @override final int operand;
 
-  ApiNarrowStream(this.operand, {super.negated});
+  ApiNarrowChannel(this.operand, {super.negated});
 
-  factory ApiNarrowStream.fromJson(Map<String, dynamic> json) => ApiNarrowStream(
-    json['operand'] as int,
-    negated: json['negated'] as bool? ?? false,
-  );
+  factory ApiNarrowChannel.fromJson(Map<String, dynamic> json) {
+    var operand = (json['operand'] as int);
+    var negated = json['negated'] as bool? ?? false;
+    return json['operator'] == 'stream'
+      ? ApiNarrowStream._(operand, negated: negated)
+      : ApiNarrowChannelModern._(operand, negated: negated);
+  }
+
+  /// This element resolved, as either an [ApiNarrowChannelModern] or an [ApiNarrowStream].
+  ApiNarrowChannel resolve({required bool legacy}) {
+    return legacy ? ApiNarrowStream._(operand, negated: negated)
+                  : ApiNarrowChannelModern._(operand, negated: negated);
+  }
+}
+
+/// An [ApiNarrowElement] with the 'channel' operator (and not the legacy 'stream').
+///
+/// To construct one of these, use [ApiNarrowChannel.resolve].
+class ApiNarrowChannelModern extends ApiNarrowChannel {
+  @override String get operator => 'channel';
+
+  ApiNarrowChannelModern._(super.operand, {super.negated});
+}
+
+/// An [ApiNarrowElement] with the legacy 'stream' operator.
+///
+/// To construct one of these, use [ApiNarrowChannel.resolve].
+class ApiNarrowStream extends ApiNarrowChannel {
+  @override String get operator => 'stream';
+
+  ApiNarrowStream._(super.operand, {super.negated});
 }
 
 class ApiNarrowTopic extends ApiNarrowElement {
@@ -173,18 +212,16 @@ class ApiNarrowPmWith extends ApiNarrowDm {
   ApiNarrowPmWith._(super.operand, {super.negated});
 }
 
-/// An [ApiNarrowElement] with the 'with' operator.
-///
-/// If part of [ApiNarrow] use [resolveApiNarrowForServer].
-class ApiNarrowWith extends ApiNarrowElement {
-  @override String get operator => 'with';
+/// An [ApiNarrowElement] with the 'search' operator.
+class ApiNarrowSearch extends ApiNarrowElement {
+  @override String get operator => 'search';
 
-  @override final int operand;
+  @override final String operand;
 
-  ApiNarrowWith(this.operand, {super.negated});
+  ApiNarrowSearch(this.operand, {super.negated});
 
-  factory ApiNarrowWith.fromJson(Map<String, dynamic> json) => ApiNarrowWith(
-    json['operand'] as int,
+  factory ApiNarrowSearch.fromJson(Map<String, dynamic> json) => ApiNarrowSearch(
+    json['operand'] as String,
     negated: json['negated'] as bool? ?? false,
   );
 }
@@ -227,6 +264,22 @@ enum IsOperand {
   String toString() => _$IsOperandEnumMap[this]!;
 
   String toJson() => toString();
+}
+
+/// An [ApiNarrowElement] with the 'with' operator.
+///
+/// If part of [ApiNarrow] use [resolveApiNarrowForServer].
+class ApiNarrowWith extends ApiNarrowElement {
+  @override String get operator => 'with';
+
+  @override final int operand;
+
+  ApiNarrowWith(this.operand, {super.negated});
+
+  factory ApiNarrowWith.fromJson(Map<String, dynamic> json) => ApiNarrowWith(
+    json['operand'] as int,
+    negated: json['negated'] as bool? ?? false,
+  );
 }
 
 class ApiNarrowMessageId extends ApiNarrowElement {

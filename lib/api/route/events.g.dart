@@ -10,10 +10,9 @@ part of 'events.dart';
 
 GetEventsResult _$GetEventsResultFromJson(Map<String, dynamic> json) =>
     GetEventsResult(
-      events:
-          (json['events'] as List<dynamic>)
-              .map((e) => Event.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      events: (json['events'] as List<dynamic>)
+          .map((e) => Event.fromJson(e as Map<String, dynamic>))
+          .toList(),
       queueId: json['queue_id'] as String?,
     );
 

@@ -1,26 +1,20 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart' hide Notification;
+import 'package:http/http.dart' as http;
 
 import '../api/model/model.dart';
 import '../api/notifications.dart';
-import '../generated/l10n/zulip_localizations.dart';
 import '../host/android_notifications.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
-import '../widgets/app.dart';
 import '../widgets/color.dart';
-import '../widgets/dialog.dart';
-import '../widgets/message_list.dart';
-import '../widgets/page.dart';
-import '../widgets/store.dart';
 import '../widgets/theme.dart';
+import 'open.dart';
 
 AndroidNotificationHostApi get _androidHost => ZulipBinding.instance.androidNotificationHost;
 
@@ -43,11 +37,12 @@ enum NotificationSound {
 class NotificationChannelManager {
   /// The channel ID we use for our one notification channel, which we use for
   /// all notifications.
-  // TODO(launch) check this doesn't match zulip-mobile's current or previous
-  //   channel IDs
-  // Previous values: 'messages-1'
+  // Previous values from Zulip Flutter Beta:
+  //   'messages-1'
+  // Previous values from Zulip Mobile:
+  //   'default', 'messages-1', (alpha-only: 'messages-2'), 'messages-3'
   @visibleForTesting
-  static const kChannelId = 'messages-2';
+  static const kChannelId = 'messages-4';
 
   @visibleForTesting
   static const kDefaultNotificationSound = NotificationSound.chime3;
@@ -64,14 +59,14 @@ class NotificationChannelManager {
   /// For example, for a resource `@raw/chime3`, where `raw` would be the
   /// resource type and `chime3` would be the resource name it generates the
   /// following URL:
-  ///   `android.resource://com.zulip.flutter/raw/chime3`
+  ///   `android.resource://com.zulipmobile/raw/chime3`
   ///
   /// Based on: https://stackoverflow.com/a/38340580
-  static Uri _resourceUrlFromName({
+  static Future<String> _resourceUrlFromName({
     required String resourceTypeName,
     required String resourceEntryName,
-  }) {
-    const packageName = 'com.zulip.flutter'; // TODO(#407)
+  }) async {
+    final packageInfo = await ZulipBinding.instance.packageInfo;
 
     // URL scheme for Android resource url.
     // See: https://developer.android.com/reference/android/content/ContentResolver#SCHEME_ANDROID_RESOURCE
@@ -79,9 +74,9 @@ class NotificationChannelManager {
 
     return Uri(
       scheme: schemeAndroidResource,
-      host: packageName,
+      host: packageInfo!.packageName,
       pathSegments: <String>[resourceTypeName, resourceEntryName],
-    );
+    ).toString();
   }
 
   /// Prepare our notification sounds; return a URL for our default sound.
@@ -92,9 +87,9 @@ class NotificationChannelManager {
   /// Returns a URL for our default notification sound: either in shared storage
   /// if we successfully copied it there, or else as our internal resource file.
   static Future<String> _ensureInitNotificationSounds() async {
-    String defaultSoundUrl = _resourceUrlFromName(
+    String defaultSoundUrl = await _resourceUrlFromName(
       resourceTypeName: 'raw',
-      resourceEntryName: kDefaultNotificationSound.resourceName).toString();
+      resourceEntryName: kDefaultNotificationSound.resourceName);
 
     final shouldUseResourceFile = switch (await ZulipBinding.instance.deviceInfo) {
       // Before Android 10 Q, we don't attempt to put the sounds in shared media storage.
@@ -217,10 +212,12 @@ class NotificationChannelManager {
 /// Service for managing the notifications shown to the user.
 class NotificationDisplayManager {
   static Future<void> init() async {
+    assert(defaultTargetPlatform == TargetPlatform.android);
     await NotificationChannelManager.ensureChannel();
   }
 
   static void onFcmMessage(FcmMessage data, Map<String, dynamic> dataJson) {
+    assert(defaultTargetPlatform == TargetPlatform.android);
     switch (data) {
       case MessageFcmMessage(): _onMessageFcmMessage(data, dataJson);
       case RemoveFcmMessage(): _onRemoveFcmMessage(data);
@@ -231,8 +228,20 @@ class NotificationDisplayManager {
   static Future<void> _onMessageFcmMessage(MessageFcmMessage data, Map<String, dynamic> dataJson) async {
     assert(debugLog('notif message content: ${data.content}'));
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-    final groupKey = _groupKey(data);
+    final groupKey = _groupKey(data.realmUrl, data.userId);
     final conversationKey = _conversationKey(data, groupKey);
+
+    final globalStore = await ZulipBinding.instance.getGlobalStore();
+    final account = globalStore.accounts.firstWhereOrNull((account) =>
+      account.realmUrl.origin == data.realmUrl.origin && account.userId == data.userId);
+
+    // Skip showing notifications for a logged-out account. This can occur if
+    // the unregisterToken request failed previously. It would be annoying
+    // to the user if notifications keep showing up after they've logged out.
+    // (Also alarming: it suggests the logout didn't fully work.)
+    if (account == null) {
+      return;
+    }
 
     final oldMessagingStyle = await _androidHost
       .getActiveNotificationMessagingStyleByTag(conversationKey);
@@ -288,7 +297,7 @@ class NotificationDisplayManager {
           TopicNarrow(streamId, topic),
         FcmMessageDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildUrl();
+      }).buildAndroidNotificationUrl();
 
     await _androidHost.notify(
       id: kNotificationId,
@@ -365,7 +374,7 @@ class NotificationDisplayManager {
     // There may be a lot of messages mentioned here, across a lot of
     // conversations.  But they'll all be for one account, so they'll
     // fall under one notification group.
-    final groupKey = _groupKey(data);
+    final groupKey = _groupKey(data.realmUrl, data.userId);
 
     // Find any conversations we can cancel the notification for.
     // The API doesn't lend itself to removing individual messages as
@@ -421,6 +430,20 @@ class NotificationDisplayManager {
     }
   }
 
+  static Future<void> removeNotificationsForAccount(Uri realmUrl, int userId) async {
+    assert(defaultTargetPlatform == TargetPlatform.android);
+
+    final groupKey = _groupKey(realmUrl, userId);
+    final activeNotifications = await _androidHost.getActiveNotifications(
+      desiredExtras: []);
+    for (final statusBarNotification in activeNotifications) {
+      if (statusBarNotification.notification.group == groupKey) {
+        await _androidHost.cancel(
+          tag: statusBarNotification.tag, id: statusBarNotification.id);
+      }
+    }
+  }
+
   /// The constant numeric "ID" we use for all non-test notifications,
   /// along with unique tags.
   ///
@@ -445,66 +468,13 @@ class NotificationDisplayManager {
     return '$groupKey|$conversation';
   }
 
-  static String _groupKey(FcmMessageWithIdentity data) {
+  static String _groupKey(Uri realmUrl, int userId) {
     // The realm URL can't contain a `|`, because `|` is not a URL code point:
     //   https://url.spec.whatwg.org/#url-code-points
-    return "${data.realmUrl}|${data.userId}";
+    return "$realmUrl|$userId";
   }
 
   static String _personKey(Uri realmUrl, int userId) => "$realmUrl|$userId";
-
-  /// Provides the route and the account ID by parsing the notification URL.
-  ///
-  /// The URL must have been generated using [NotificationOpenPayload.buildUrl]
-  /// while creating the notification.
-  ///
-  /// Returns null and shows an error dialog if the associated account is not
-  /// found in the global store.
-  static AccountRoute<void>? routeForNotification({
-    required BuildContext context,
-    required Uri url,
-  }) {
-    final globalStore = GlobalStoreWidget.of(context);
-
-    assert(debugLog('got notif: url: $url'));
-    assert(url.scheme == 'zulip' && url.host == 'notification');
-    final payload = NotificationOpenPayload.parseUrl(url);
-
-    final account = globalStore.accounts.firstWhereOrNull(
-      (account) => account.realmUrl.origin == payload.realmUrl.origin
-                && account.userId == payload.userId);
-    if (account == null) { // TODO(log)
-      final zulipLocalizations = ZulipLocalizations.of(context);
-      showErrorDialog(context: context,
-        title: zulipLocalizations.errorNotificationOpenTitle,
-        message: zulipLocalizations.errorNotificationOpenAccountMissing);
-      return null;
-    }
-
-    return MessageListPage.buildRoute(
-      accountId: account.id,
-      // TODO(#82): Open at specific message, not just conversation
-      narrow: payload.narrow);
-  }
-
-  /// Navigates to the [MessageListPage] of the specific conversation
-  /// given the `zulip://notification/…` Android intent data URL,
-  /// generated with [NotificationOpenPayload.buildUrl] while creating
-  /// the notification.
-  static Future<void> navigateForNotification(Uri url) async {
-    assert(debugLog('opened notif: url: $url'));
-
-    NavigatorState navigator = await ZulipApp.navigator;
-    final context = navigator.context;
-    assert(context.mounted);
-    if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
-
-    final route = routeForNotification(context: context, url: url);
-    if (route == null) return; // TODO(log)
-
-    // TODO(nav): Better interact with existing nav stack on notif open
-    unawaited(navigator.push(route));
-  }
 
   static Future<Uint8List?> _fetchBitmap(Uri url) async {
     try {
@@ -517,88 +487,5 @@ class NotificationDisplayManager {
       // TODO(log)
     }
     return null;
-  }
-}
-
-/// The information contained in 'zulip://notification/…' internal
-/// Android intent data URL, used for notification-open flow.
-class NotificationOpenPayload {
-  final Uri realmUrl;
-  final int userId;
-  final Narrow narrow;
-
-  NotificationOpenPayload({
-    required this.realmUrl,
-    required this.userId,
-    required this.narrow,
-  });
-
-  factory NotificationOpenPayload.parseUrl(Uri url) {
-    if (url case Uri(
-      scheme: 'zulip',
-      host: 'notification',
-      queryParameters: {
-        'realm_url': var realmUrlStr,
-        'user_id': var userIdStr,
-        'narrow_type': var narrowType,
-        // In case of narrowType == 'topic':
-        // 'channel_id' and 'topic' handled below.
-
-        // In case of narrowType == 'dm':
-        // 'all_recipient_ids' handled below.
-      },
-    )) {
-      final realmUrl = Uri.parse(realmUrlStr);
-      final userId = int.parse(userIdStr, radix: 10);
-
-      final Narrow narrow;
-      switch (narrowType) {
-        case 'topic':
-          final channelIdStr = url.queryParameters['channel_id']!;
-          final channelId = int.parse(channelIdStr, radix: 10);
-          final topicStr = url.queryParameters['topic']!;
-          narrow = TopicNarrow(channelId, TopicName(topicStr));
-        case 'dm':
-          final allRecipientIdsStr = url.queryParameters['all_recipient_ids']!;
-          final allRecipientIds = allRecipientIdsStr.split(',')
-            .map((idStr) => int.parse(idStr, radix: 10))
-            .toList(growable: false);
-          narrow = DmNarrow(allRecipientIds: allRecipientIds, selfUserId: userId);
-        default:
-          throw const FormatException();
-      }
-
-      return NotificationOpenPayload(
-        realmUrl: realmUrl,
-        userId: userId,
-        narrow: narrow,
-      );
-    } else {
-      // TODO(dart): simplify after https://github.com/dart-lang/language/issues/2537
-      throw const FormatException();
-    }
-  }
-
-  Uri buildUrl() {
-    return Uri(
-      scheme: 'zulip',
-      host: 'notification',
-      queryParameters: <String, String>{
-        'realm_url': realmUrl.toString(),
-        'user_id': userId.toString(),
-        ...(switch (narrow) {
-          TopicNarrow(streamId: var channelId, :var topic) => {
-            'narrow_type': 'topic',
-            'channel_id': channelId.toString(),
-            'topic': topic.apiName,
-          },
-          DmNarrow(:var allRecipientIds) => {
-            'narrow_type': 'dm',
-            'all_recipient_ids': allRecipientIds.join(','),
-          },
-          _ => throw UnsupportedError('Found an unexpected Narrow of type ${narrow.runtimeType}.'),
-        })
-      },
-    );
   }
 }

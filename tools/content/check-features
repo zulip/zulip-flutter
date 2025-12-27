@@ -29,6 +29,11 @@ The steps are:
             file.
             This wraps around tools/content/unimplemented_features_test.dart.
 
+  katex-check
+            Check for unimplemented KaTeX features.  This requires the corpus
+            directory \`CORPUS_DIR\` to contain at least one corpus file.
+            This wraps around tools/content/unimplemented_katex_test.dart.
+
 Options:
 
   --config <FILE>
@@ -50,7 +55,7 @@ opt_verbose=
 opt_steps=()
 while (( $# )); do
     case "$1" in
-        fetch|check) opt_steps+=("$1"); shift;;
+        fetch|check|katex-check) opt_steps+=("$1"); shift;;
         --config) shift; opt_zuliprc="$1"; shift;;
         --verbose) opt_verbose=1; shift;;
         --help) usage; exit 0;;
@@ -98,11 +103,19 @@ run_check() {
     || return 1
 }
 
+run_katex_check() {
+    flutter test tools/content/unimplemented_katex_test.dart \
+        --dart-define=corpusDir="$opt_corpus_dir" \
+        --dart-define=verbose="$opt_verbose" \
+    || return 1
+}
+
 for step in "${opt_steps[@]}"; do
     echo "Running ${step}"
     case "${step}" in
         fetch) run_fetch ;;
         check) run_check ;;
+        katex-check) run_katex_check ;;
         *)     echo >&2 "Internal error: unknown step ${step}" ;;
     esac
 done

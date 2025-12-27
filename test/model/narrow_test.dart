@@ -22,12 +22,56 @@ void main() {
     });
   });
 
+  group('ChannelNarrow', () {
+    test('containsMessage', () {
+      final stream = eg.stream();
+      final otherStream = eg.stream();
+      final narrow = ChannelNarrow(stream.streamId);
+      check(narrow.containsMessage(
+        eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamMessage(stream: otherStream, topic: 'topic'))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamMessage(stream: stream,      topic: 'topic'))).isTrue();
+
+      check(narrow.containsMessage(
+        eg.dmOutboxMessage(from: eg.selfUser, to: [eg.otherUser]))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamOutboxMessage(stream: otherStream, topic: 'topic'))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamOutboxMessage(stream: stream,      topic: 'topic'))).isTrue();
+    });
+  });
+
   group('TopicNarrow', () {
     test('ofMessage', () {
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
       final actual = TopicNarrow.ofMessage(message);
       check(actual).equals(TopicNarrow(stream.streamId, message.topic));
+    });
+
+    test('containsMessage', () {
+      final stream = eg.stream();
+      final otherStream = eg.stream();
+      final narrow = eg.topicNarrow(stream.streamId, 'topic');
+      check(narrow.containsMessage(
+        eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamMessage(stream: otherStream, topic: 'topic'))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamMessage(stream: stream,      topic: 'topic2'))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamMessage(stream: stream,      topic: 'topic'))).isTrue();
+
+      check(narrow.containsMessage(
+        eg.dmOutboxMessage(from: eg.selfUser, to: [eg.otherUser]))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamOutboxMessage(stream: otherStream, topic: 'topic'))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamOutboxMessage(stream: stream,      topic: 'topic2'))).isFalse();
+      check(narrow.containsMessage(
+        eg.streamOutboxMessage(stream: stream,      topic: 'topic'))).isTrue();
     });
   });
 
@@ -148,6 +192,22 @@ void main() {
       check(narrow123.containsMessage(dm(user2, [user1, user3]))).isTrue();
       check(narrow123.containsMessage(dm(user3, [user1, user2]))).isTrue();
     });
+
+    test('containsMessage with non-Message', () {
+      final user1 = eg.user(userId: 1);
+      final user2 = eg.user(userId: 2);
+      final user3 = eg.user(userId: 3);
+      final narrow = DmNarrow(allRecipientIds: [1, 2], selfUserId: 2);
+
+      check(narrow.containsMessage(
+        eg.streamOutboxMessage(stream: eg.stream(), topic: 'topic'))).isFalse();
+      check(narrow.containsMessage(
+        eg.dmOutboxMessage(from: user2, to: []))).isFalse();
+      check(narrow.containsMessage(
+        eg.dmOutboxMessage(from: user2, to: [user3]))).isFalse();
+      check(narrow.containsMessage(
+        eg.dmOutboxMessage(from: user2, to: [user1]))).isTrue();
+    });
   });
 
   group('MentionsNarrow', () {
@@ -160,6 +220,11 @@ void main() {
         eg.streamMessage(flags:[MessageFlag.mentioned]))).isTrue();
       check(narrow.containsMessage(
         eg.streamMessage(flags: [MessageFlag.wildcardMentioned]))).isTrue();
+
+      check(narrow.containsMessage(
+        eg.streamOutboxMessage(stream: eg.stream(), topic: 'topic'))).isFalse();
+      check(narrow.containsMessage(
+        eg.dmOutboxMessage(from: eg.selfUser, to: []))).isFalse();
     });
   });
 
@@ -171,6 +236,11 @@ void main() {
         eg.streamMessage(flags: []))).isFalse();
       check(narrow.containsMessage(
         eg.streamMessage(flags:[MessageFlag.starred]))).isTrue();
+
+      check(narrow.containsMessage(
+        eg.streamOutboxMessage(stream: eg.stream(), topic: 'topic'))).isFalse();
+      check(narrow.containsMessage(
+        eg.dmOutboxMessage(from: eg.selfUser, to: []))).isFalse();
     });
   });
 }

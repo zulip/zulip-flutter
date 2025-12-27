@@ -18,9 +18,9 @@ sealed class EmojiDisplay {
 
   EmojiDisplay({required this.emojiName});
 
-  EmojiDisplay resolve(UserSettings? userSettings) { // TODO(server-5)
+  EmojiDisplay resolve(UserSettings userSettings) {
     if (this is TextEmojiDisplay) return this;
-    if (userSettings?.emojiset == Emojiset.text) {
+    if (userSettings.emojiset == Emojiset.text) {
       return TextEmojiDisplay(emojiName: emojiName);
     }
     return this;
@@ -74,10 +74,22 @@ final class EmojiCandidate {
   /// This might not be the only name this emoji has; see [aliases].
   final String emojiName;
 
+  /// [emojiName], but via [AutocompleteQuery.lowercaseAndStripDiacritics]
+  /// to support fuzzy matching.
+  String get normalizedEmojiName => _normalizedEmojiName
+    ??= AutocompleteQuery.lowercaseAndStripDiacritics(emojiName);
+  String? _normalizedEmojiName;
+
   /// Additional Zulip "emoji name" values for this emoji,
   /// to show in the emoji picker UI.
   Iterable<String> get aliases => _aliases ?? const [];
   final List<String>? _aliases;
+
+  /// [aliases], but via [AutocompleteQuery.lowercaseAndStripDiacritics]
+  /// to support fuzzy matching.
+  Iterable<String> get normalizedAliases => _normalizedAliases
+    ??= aliases.map((alias) => AutocompleteQuery.lowercaseAndStripDiacritics(alias));
+  Iterable<String>? _normalizedAliases;
 
   final EmojiDisplay emojiDisplay;
 
@@ -104,6 +116,14 @@ final class EmojiCandidate {
 
 /// The portion of [PerAccountStore] describing what emoji exist.
 mixin EmojiStore {
+  /// An [EmojiDisplay] for the specified emoji.
+  ///
+  /// Use [EmojiDisplay.resolve] on the result to apply the user's [Emojiset]
+  /// setting.
+  ///
+  /// May be a [TextEmojiDisplay] even if the emojiset is not [Emojiset.text];
+  /// this happens when we can't understand the data that describes the emoji
+  /// (e.g. when an image emoji's URL doesn't parse)..
   EmojiDisplay emojiDisplayFor({
     required ReactionType emojiType,
     required String emojiCode,
@@ -115,21 +135,43 @@ mixin EmojiStore {
   ///
   /// See description in the web code:
   ///   https://github.com/zulip/zulip/blob/83a121c7e/web/shared/src/typeahead.ts#L3-L21
-  // Someday this list may start varying rather than being hard-coded,
-  // and then this will become a non-static member on EmojiStore.
-  // For now, though, the fact it's constant is convenient when writing
-  // tests of the logic that uses this data; so we guarantee it in the API.
-  static Iterable<EmojiCandidate> get popularEmojiCandidates {
-    return EmojiStoreImpl._popularCandidates;
-  }
+  Iterable<EmojiCandidate> popularEmojiCandidates();
 
   Iterable<EmojiCandidate> allEmojiCandidates();
+
+  String? getUnicodeEmojiNameByCode(String emojiCode);
 
   // TODO cut debugServerEmojiData once we can query for lists of emoji;
   //   have tests make those queries end-to-end
   Map<String, List<String>>? get debugServerEmojiData;
+}
 
-  void setServerEmojiData(ServerEmojiData data);
+mixin ProxyEmojiStore on EmojiStore {
+  @protected
+  EmojiStore get emojiStore;
+
+  @override
+  EmojiDisplay emojiDisplayFor({
+    required ReactionType emojiType,
+    required String emojiCode,
+    required String emojiName
+  }) {
+    return emojiStore.emojiDisplayFor(
+      emojiType: emojiType, emojiCode: emojiCode, emojiName: emojiName);
+  }
+
+  @override
+  Iterable<EmojiCandidate> popularEmojiCandidates() => emojiStore.popularEmojiCandidates();
+
+  @override
+  Iterable<EmojiCandidate> allEmojiCandidates() => emojiStore.allEmojiCandidates();
+
+  @override
+  String? getUnicodeEmojiNameByCode(String emojiCode) =>
+    emojiStore.getUnicodeEmojiNameByCode(emojiCode);
+
+  @override
+  Map<String, List<String>>? get debugServerEmojiData => emojiStore.debugServerEmojiData;
 }
 
 /// The implementation of [EmojiStore] that does the work.
@@ -137,14 +179,11 @@ mixin EmojiStore {
 /// Generally the only code that should need this class is [PerAccountStore]
 /// itself.  Other code accesses this functionality through [PerAccountStore],
 /// or through the mixin [EmojiStore] which describes its interface.
-class EmojiStoreImpl with EmojiStore {
+class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
   EmojiStoreImpl({
-    required this.realmUrl,
+    required super.core,
     required this.allRealmEmoji,
   }) : _serverEmojiData = null; // TODO(#974) maybe start from a hard-coded baseline
-
-  /// The same as [PerAccountStore.realmUrl].
-  final Uri realmUrl;
 
   /// The realm's custom emoji, indexed by their [RealmEmojiItem.emojiCode],
   /// including deactivated emoji not available for new uses.
@@ -195,19 +234,19 @@ class EmojiStoreImpl with EmojiStore {
     required String? stillUrl,
     required String emojiName,
   }) {
-    final source = Uri.tryParse(sourceUrl);
-    if (source == null) return TextEmojiDisplay(emojiName: emojiName);
+    final resolvedUrl = this.tryResolveUrl(sourceUrl);
+    if (resolvedUrl == null) return TextEmojiDisplay(emojiName: emojiName);
 
-    Uri? still;
+    Uri? resolvedStillUrl;
     if (stillUrl != null) {
-      still = Uri.tryParse(stillUrl);
-      if (still == null) return TextEmojiDisplay(emojiName: emojiName);
+      resolvedStillUrl = this.tryResolveUrl(stillUrl);
+      if (resolvedStillUrl == null) return TextEmojiDisplay(emojiName: emojiName);
     }
 
     return ImageEmojiDisplay(
       emojiName: emojiName,
-      resolvedUrl: realmUrl.resolveUri(source),
-      resolvedStillUrl: still == null ? null : realmUrl.resolveUri(still),
+      resolvedUrl: resolvedUrl,
+      resolvedStillUrl: resolvedStillUrl,
     );
   }
 
@@ -221,35 +260,52 @@ class EmojiStoreImpl with EmojiStore {
   /// retrieving the data.
   Map<String, List<String>>? _serverEmojiData;
 
-  static final _popularCandidates = _generatePopularCandidates();
+  List<EmojiCandidate>? _popularCandidates;
 
-  static List<EmojiCandidate> _generatePopularCandidates() {
-    EmojiCandidate candidate(String emojiCode, String emojiUnicode,
-        List<String> names) {
-      final emojiName = names.removeAt(0);
-      assert(emojiUnicode == tryParseEmojiCodeToUnicode(emojiCode));
+  @override
+  Iterable<EmojiCandidate> popularEmojiCandidates() {
+    return _popularCandidates ??= _generatePopularCandidates();
+  }
+
+  List<EmojiCandidate> _generatePopularCandidates() {
+    EmojiCandidate candidate(String emojiCode, List<String> names) {
+      final [emojiName, ...aliases] = names;
+      final emojiUnicode = tryParseEmojiCodeToUnicode(emojiCode)!;
       return EmojiCandidate(emojiType: ReactionType.unicodeEmoji,
-        emojiCode: emojiCode, emojiName: emojiName, aliases: names,
+        emojiCode: emojiCode, emojiName: emojiName, aliases: aliases,
         emojiDisplay: UnicodeEmojiDisplay(
           emojiName: emojiName, emojiUnicode: emojiUnicode));
     }
-    return [
-      // This list should match web:
-      //   https://github.com/zulip/zulip/blob/83a121c7e/web/shared/src/typeahead.ts#L22-L29
-      candidate('1f44d', '👍', ['+1', 'thumbs_up', 'like']),
-      candidate('1f389', '🎉', ['tada']),
-      candidate('1f642', '🙂', ['smile']),
-      candidate( '2764', '❤', ['heart', 'love', 'love_you']),
-      candidate('1f6e0', '🛠', ['working_on_it', 'hammer_and_wrench', 'tools']),
-      candidate('1f419', '🐙', ['octopus']),
-    ];
+    if (_serverEmojiData == null) return [];
+
+    final result = <EmojiCandidate>[];
+    for (final emojiCode in _popularEmojiCodesList) {
+      final names = _serverEmojiData![emojiCode];
+      if (names == null) continue; // TODO(log)
+      result.add(candidate(emojiCode, names));
+    }
+    return result;
   }
 
-  static final _popularEmojiCodes = (() {
-    assert(_popularCandidates.every((c) =>
-      c.emojiType == ReactionType.unicodeEmoji));
-    return Set.of(_popularCandidates.map((c) => c.emojiCode));
+  /// Codes for the popular emoji, in order; all are Unicode emoji.
+  // This list should match web:
+  //   https://github.com/zulip/zulip/blob/9feba0f16/web/shared/src/typeahead.ts#L22-L29
+  static final List<String> _popularEmojiCodesList = (() {
+    String check(String emojiCode, String emojiUnicode) {
+      assert(emojiUnicode == tryParseEmojiCodeToUnicode(emojiCode));
+      return emojiCode;
+    }
+    return [
+      check('1f44d', '👍'),
+      check('1f389', '🎉'),
+      check('1f642', '🙂'),
+      check('2764', '❤'),
+      check('1f6e0', '🛠'),
+      check('1f419', '🐙'),
+    ];
   })();
+
+  static final Set<String> _popularEmojiCodes = Set.of(_popularEmojiCodesList);
 
   static bool _isPopularEmoji(EmojiCandidate candidate) {
     return candidate.emojiType == ReactionType.unicodeEmoji
@@ -310,7 +366,7 @@ class EmojiStoreImpl with EmojiStore {
 
     // Include the "popular" emoji, in their canonical order
     // relative to each other.
-    results.addAll(_popularCandidates);
+    results.addAll(popularEmojiCandidates());
 
     final namesOverridden = {
       for (final emoji in activeRealmEmoji) emoji.name,
@@ -367,8 +423,12 @@ class EmojiStoreImpl with EmojiStore {
   }
 
   @override
+  String? getUnicodeEmojiNameByCode(String emojiCode) =>
+    _serverEmojiData?[emojiCode]?.first; // TODO(log) if null
+
   void setServerEmojiData(ServerEmojiData data) {
     _serverEmojiData = data.codeToNames;
+    _popularCandidates = null;
     _allEmojiCandidates = null;
   }
 
@@ -421,9 +481,7 @@ class EmojiAutocompleteView extends AutocompleteView<EmojiAutocompleteQuery, Emo
     required PerAccountStore store,
     required EmojiAutocompleteQuery query,
   }) {
-    final view = EmojiAutocompleteView._(store: store, query: query);
-    store.autocompleteViewManager.registerEmojiAutocomplete(view);
-    return view;
+    return EmojiAutocompleteView._(store: store, query: query);
   }
 
   @override
@@ -461,9 +519,8 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
 
   static const _separator = '_';
 
-  static String _adjustQuery(String raw) {
-    return raw.toLowerCase().replaceAll(' ', '_'); // TODO(#1067) remove diacritics too
-  }
+  static String _adjustQuery(String raw) =>
+    AutocompleteQuery.lowercaseAndStripDiacritics(raw.replaceAll(' ', '_'));
 
   @override
   EmojiAutocompleteView initViewModel({
@@ -493,29 +550,28 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
       }
     }
 
-    EmojiMatchQuality? result = _matchName(candidate.emojiName);
-    for (final alias in candidate.aliases) {
+    EmojiMatchQuality? result = _matchName(candidate.normalizedEmojiName);
+    for (final normalizedAlias in candidate.normalizedAliases) {
       if (result == EmojiMatchQuality.best) return result;
-      result = EmojiMatchQuality.bestOf(result, _matchName(alias));
+      result = EmojiMatchQuality.bestOf(result, _matchName(normalizedAlias));
     }
     return result;
   }
 
-  EmojiMatchQuality? _matchName(String emojiName) {
+  EmojiMatchQuality? _matchName(String normalizedName) {
     // Compare query_matches_string_in_order in Zulip web:shared/src/typeahead.ts
     // for a Boolean version of this logic (match vs. no match),
     // and triage_raw in the same file web:shared/src/typeahead.ts
     // for the finer distinctions.
     // See also commentary in [_rankResult].
 
-    // TODO(#1067) this assumes emojiName is already lower-case (and no diacritics)
-    if (emojiName == _adjusted)           return EmojiMatchQuality.exact;
-    if (emojiName.startsWith(_adjusted))  return EmojiMatchQuality.prefix;
-    if (emojiName.contains(_sepAdjusted)) return EmojiMatchQuality.wordAligned;
+    if (normalizedName == _adjusted)           return EmojiMatchQuality.exact;
+    if (normalizedName.startsWith(_adjusted))  return EmojiMatchQuality.prefix;
+    if (normalizedName.contains(_sepAdjusted)) return EmojiMatchQuality.wordAligned;
     if (!_adjusted.contains(_separator)) {
       // If the query is a single token (doesn't contain a separator),
       // allow a match anywhere in the string, too.
-      if (emojiName.contains(_adjusted))  return EmojiMatchQuality.other;
+      if (normalizedName.contains(_adjusted))  return EmojiMatchQuality.other;
     } else {
       // Otherwise, require at least a word-aligned match.
     }

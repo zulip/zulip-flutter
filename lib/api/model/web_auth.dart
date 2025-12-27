@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 class WebAuthPayload {
   final Uri realm;
   final String email;
-  final int? userId; // TODO(server-5) new in FL 108
+  final int userId;
   final String otpEncryptedApiKey;
 
   WebAuthPayload._({
@@ -25,7 +25,7 @@ class WebAuthPayload {
         queryParameters: {
           'realm': String realmStr,
           'email': String email,
-          // 'user_id' handled below
+          'user_id': String userIdStr,
           'otp_encrypted_api_key': String otpEncryptedApiKey,
         },
       )
@@ -33,13 +33,8 @@ class WebAuthPayload {
       final Uri? realm = Uri.tryParse(realmStr);
       if (realm == null) throw const FormatException();
 
-      // TODO(server-5) require in queryParameters (new in FL 108)
-      final userIdStr = url.queryParameters['user_id'];
-      int? userId;
-      if (userIdStr != null) {
-        userId = int.tryParse(userIdStr, radix: 10);
-        if (userId == null) throw const FormatException();
-      }
+      final int? userId = int.tryParse(userIdStr, radix: 10);
+      if (userId == null) throw const FormatException();
 
       if (!RegExp(r'^[0-9a-fA-F]{64}$').hasMatch(otpEncryptedApiKey)) {
         throw const FormatException();

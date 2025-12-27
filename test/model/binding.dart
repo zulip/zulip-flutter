@@ -7,7 +7,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:test/fake.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
+import 'package:zulip/host/android_intents.dart';
 import 'package:zulip/host/android_notifications.dart';
+import 'package:zulip/host/notifications.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
@@ -105,6 +107,9 @@ class TestZulipBinding extends ZulipBinding {
   Future<GlobalStore> getGlobalStore() => Future.value(globalStore);
 
   @override
+  GlobalStore? getGlobalStoreSync() => globalStore;
+
+  @override
   Future<GlobalStore> getGlobalStoreUniquely() {
     assert(() {
       if (_debugAlreadyLoadedStore) {
@@ -161,11 +166,21 @@ class TestZulipBinding extends ZulipBinding {
 
   /// The value that `ZulipBinding.instance.launchUrl()` should return.
   ///
-  /// See also [takeLaunchUrlCalls].
+  /// See also:
+  ///   * [launchUrlException]
+  ///   * [takeLaunchUrlCalls]
   bool launchUrlResult = true;
+
+  /// The [PlatformException] that `ZulipBinding.instance.launchUrl()` should throw.
+  ///
+  /// See also:
+  ///   * [launchUrlResult]
+  ///   * [takeLaunchUrlCalls]
+  PlatformException? launchUrlException;
 
   void _resetLaunchUrl() {
     launchUrlResult = true;
+    launchUrlException = null;
     _launchUrlCalls = null;
   }
 
@@ -189,6 +204,22 @@ class TestZulipBinding extends ZulipBinding {
     url_launcher.LaunchMode mode = url_launcher.LaunchMode.platformDefault,
   }) async {
     (_launchUrlCalls ??= []).add((url: url, mode: mode));
+
+    if (!launchUrlResult && launchUrlException != null) {
+      throw FlutterError.fromParts([
+        ErrorSummary(
+          'TestZulipBinding.launchUrl called '
+          'with launchUrlResult: false and non-null launchUrlException'),
+        ErrorHint(
+          'Tests should either set launchUrlResult or launchUrlException, '
+          'but not both.'),
+      ]);
+    }
+
+    if (launchUrlException != null) {
+      throw launchUrlException!;
+    }
+
     return launchUrlResult;
   }
 
@@ -213,6 +244,9 @@ class TestZulipBinding extends ZulipBinding {
   }
 
   @override
+  DateTime utcNow() => clock.now().toUtc();
+
+  @override
   Stopwatch stopwatch() => clock.stopwatch();
 
   /// The value that `ZulipBinding.instance.deviceInfo` should return.
@@ -231,7 +265,7 @@ class TestZulipBinding extends ZulipBinding {
 
   /// The value that `ZulipBinding.instance.packageInfo` should return.
   PackageInfo packageInfoResult = _defaultPackageInfo;
-  static const _defaultPackageInfo = PackageInfo(version: '0.0.1', buildNumber: '1');
+  static final _defaultPackageInfo = eg.packageInfo();
 
   void _resetPackageInfo() {
     packageInfoResult = _defaultPackageInfo;
@@ -279,14 +313,18 @@ class TestZulipBinding extends ZulipBinding {
 
   void _resetNotifications() {
     _androidNotificationHostApi = null;
+    _notificationPigeonApi = null;
   }
 
+  @override
+  FakeAndroidNotificationHostApi get androidNotificationHost =>
+    (_androidNotificationHostApi ??= FakeAndroidNotificationHostApi());
   FakeAndroidNotificationHostApi? _androidNotificationHostApi;
 
   @override
-  FakeAndroidNotificationHostApi get androidNotificationHost {
-    return (_androidNotificationHostApi ??= FakeAndroidNotificationHostApi());
-  }
+  FakeNotificationPigeonApi get notificationPigeonApi =>
+    (_notificationPigeonApi ??= FakeNotificationPigeonApi());
+  FakeNotificationPigeonApi? _notificationPigeonApi;
 
   /// The value that `ZulipBinding.instance.pickFiles()` should return.
   ///
@@ -382,10 +420,14 @@ class TestZulipBinding extends ZulipBinding {
   Future<void> toggleWakelock({required bool enable}) async {
     _wakelockEnabled = enable;
   }
+
+  @override
+  // TODO(#1787) implement androidIntentEvents and write related tests
+  Stream<AndroidIntentEvent> get androidIntentEvents => throw UnimplementedError();
 }
 
 class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
-  ////////////////////////////////
+  //|//////////////////////////////
   // Permissions.
 
   NotificationSettings requestPermissionResult = const NotificationSettings(
@@ -434,7 +476,7 @@ class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
     return requestPermissionResult;
   }
 
-  ////////////////////////////////
+  //|//////////////////////////////
   // Tokens.
 
   String? _initialToken;
@@ -490,7 +532,7 @@ class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
     }
   }
 
-  ////////////////////////////////
+  //|//////////////////////////////
   // Messages.
 
   StreamController<RemoteMessage> onMessage = StreamController.broadcast();
@@ -721,6 +763,32 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   @override
   Future<void> cancel({String? tag, required int id}) async {
     _activeNotifications.remove((id, tag));
+  }
+}
+
+class FakeNotificationPigeonApi implements NotificationPigeonApi {
+  NotificationDataFromLaunch? _notificationDataFromLaunch;
+
+  /// Populates the notification data for launch to be returned
+  /// by [getNotificationDataFromLaunch].
+  void setNotificationDataFromLaunch(NotificationDataFromLaunch? data) {
+    _notificationDataFromLaunch = data;
+  }
+
+  @override
+  Future<NotificationDataFromLaunch?> getNotificationDataFromLaunch() async =>
+    _notificationDataFromLaunch;
+
+  StreamController<NotificationTapEvent>? _notificationTapEventsStreamController;
+
+  void addNotificationTapEvent(NotificationTapEvent event) {
+    _notificationTapEventsStreamController!.add(event);
+  }
+
+  @override
+  Stream<NotificationTapEvent> notificationTapEventsStream() {
+    _notificationTapEventsStreamController ??= StreamController();
+    return _notificationTapEventsStreamController!.stream;
   }
 }
 

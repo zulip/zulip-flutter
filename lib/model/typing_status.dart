@@ -2,28 +2,22 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import '../api/core.dart';
 import '../api/model/events.dart';
 import '../api/route/typing.dart';
 import 'binding.dart';
 import 'narrow.dart';
+import 'realm.dart';
 
 /// The model for tracking the typing status organized by narrows.
 ///
 /// Listeners are notified when a typist is added or removed from any narrow.
-class TypingStatus extends ChangeNotifier {
-  TypingStatus({
-    required this.selfUserId,
-    required this.typingStartedExpiryPeriod,
-  });
-
-  final int selfUserId;
-  final Duration typingStartedExpiryPeriod;
+class TypingStatus extends HasRealmStore with ChangeNotifier {
+  TypingStatus({required super.realm});
 
   Iterable<SendableNarrow> get debugActiveNarrows => _timerMapsByNarrow.keys;
 
   Iterable<int> typistIdsInNarrow(SendableNarrow narrow) =>
-    _timerMapsByNarrow[narrow]?.keys ?? [];
+    _timerMapsByNarrow[narrow]?.keys ?? const [];
 
   // Using SendableNarrow as the key covers the narrows
   // where typing notices are supported (topics and DMs).
@@ -48,7 +42,7 @@ class TypingStatus extends ChangeNotifier {
     final typistTimer = narrowTimerMap[typistUserId];
     final isNewTypist = typistTimer == null;
     typistTimer?.cancel();
-    narrowTimerMap[typistUserId] = Timer(typingStartedExpiryPeriod, () {
+    narrowTimerMap[typistUserId] = Timer(serverTypingStartedExpiryPeriod, () {
       if (_removeTypist(narrow, typistUserId)) {
         notifyListeners();
       }
@@ -93,16 +87,8 @@ class TypingStatus extends ChangeNotifier {
 /// See also:
 ///  * https://github.com/zulip/zulip/blob/52a9846cdf4abfbe937a94559690d508e95f4065/web/shared/src/typing_status.ts
 ///  * https://zulip.readthedocs.io/en/latest/subsystems/typing-indicators.html
-class TypingNotifier {
-  TypingNotifier({
-    required this.connection,
-    required this.typingStoppedWaitPeriod,
-    required this.typingStartedWaitPeriod,
-  });
-
-  final ApiConnection connection;
-  final Duration typingStoppedWaitPeriod;
-  final Duration typingStartedWaitPeriod;
+class TypingNotifier extends HasRealmStore {
+  TypingNotifier({required super.realm});
 
   SendableNarrow? _currentDestination;
 
@@ -139,7 +125,7 @@ class TypingNotifier {
       if (destination == _currentDestination) {
         // Nothing has really changed, except we may need
         // to send a ping to the server and extend out our idle time.
-        if (_sinceLastPing!.elapsed > typingStartedWaitPeriod) {
+        if (_sinceLastPing!.elapsed > serverTypingStartedWaitPeriod) {
           _actuallyPingServer();
         }
         _startOrExtendIdleTimer();
@@ -181,7 +167,7 @@ class TypingNotifier {
 
   void _startOrExtendIdleTimer() {
     _idleTimer?.cancel();
-    _idleTimer = Timer(typingStoppedWaitPeriod, _stopLastNotification);
+    _idleTimer = Timer(serverTypingStoppedWaitPeriod, _stopLastNotification);
   }
 
   void _actuallyPingServer() {

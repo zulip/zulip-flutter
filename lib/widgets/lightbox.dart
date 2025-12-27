@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
 
 import '../api/core.dart';
@@ -9,51 +8,77 @@ import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/binding.dart';
+import 'actions.dart';
 import 'content.dart';
 import 'dialog.dart';
+import 'image.dart';
+import 'message_list.dart';
 import 'page.dart';
-import 'clipboard.dart';
 import 'store.dart';
+import 'user.dart';
+import 'icons.dart';
 
-// TODO(#44): Add index of the image preview in the message, to not break if
-//   there are multiple image previews with the same URL in the same
-//   message. Maybe keep `src`, so that on exit the lightbox image doesn't
-//   fly to an image preview with a different URL, following a message edit
-//   while the lightbox was open.
+/// Identifies which [LightboxHero]s should match up with each other
+/// to produce a hero animation.
+///
+/// See [Hero.tag], the field where we use instances of this class.
+///
+/// The intended behavior is that when the user acts on an image
+/// in the message list to have the app expand it in the lightbox,
+/// a hero animation goes from the original view of the image
+/// to the version in the lightbox,
+/// and back to the original upon exiting the lightbox.
 class _LightboxHeroTag {
-  _LightboxHeroTag({required this.messageId, required this.src});
+  _LightboxHeroTag({
+    required this.messageImageContext,
+    required this.src,
+  });
 
-  final int messageId;
+  /// The [BuildContext] for the [MessageImagePreview] being expanded into the lightbox.
+  ///
+  /// In particular this prevents hero animations between
+  /// different message lists that happen to have the same message.
+  /// It also distinguishes different copies of the same image
+  /// in a given message list.
+  // TODO: write a regression test for #44, duplicate images within a message
+  final BuildContext messageImageContext;
+
+  /// The image source URL.
+  ///
+  /// This ensures the animation only occurs between matching images, even if
+  /// the message was edited before navigating back to the message list
+  /// so that the original [MessageImagePreview] has been replaced in the tree
+  /// by a different image.
   final Uri src;
 
   @override
   bool operator ==(Object other) {
     return other is _LightboxHeroTag &&
-      other.messageId == messageId &&
+      other.messageImageContext == messageImageContext &&
       other.src == src;
   }
 
   @override
-  int get hashCode => Object.hash('_LightboxHeroTag', messageId, src);
+  int get hashCode => Object.hash('_LightboxHeroTag', messageImageContext, src);
 }
 
 /// Builds a [Hero] from an image in the message list to the lightbox page.
 class LightboxHero extends StatelessWidget {
   const LightboxHero({
     super.key,
-    required this.message,
+    required this.messageImageContext,
     required this.src,
     required this.child,
   });
 
-  final Message message;
+  final BuildContext messageImageContext;
   final Uri src;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return Hero(
-      tag: _LightboxHeroTag(messageId: message.id, src: src),
+      tag: _LightboxHeroTag(messageImageContext: messageImageContext, src: src),
       flightShuttleBuilder: (
         BuildContext flightContext,
         Animation<double> animation,
@@ -80,9 +105,9 @@ class _CopyLinkButton extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return IconButton(
       tooltip: zulipLocalizations.lightboxCopyLinkTooltip,
-      icon: const Icon(Icons.copy),
+      icon: const Icon(ZulipIcons.copy),
       onPressed: () async {
-        copyWithPopup(context: context,
+        PlatformActions.copyWithPopup(context: context,
           successContent: Text(zulipLocalizations.successLinkCopied),
           data: ClipboardData(text: url.toString()));
       });
@@ -144,6 +169,8 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
     final themeData = Theme.of(context);
 
     final appBarBackgroundColor = Colors.grey.shade900.withValues(alpha: 0.87);
@@ -152,11 +179,11 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
 
     PreferredSizeWidget? appBar;
     if (_headerFooterVisible) {
-      // TODO(#45): Format with e.g. "Yesterday at 4:47 PM"
-      final timestampText = DateFormat
-        .yMMMd(/* TODO(#278): Pass selected language here, I think? */)
-        .add_Hms()
-        .format(DateTime.fromMillisecondsSinceEpoch(widget.message.timestamp * 1000));
+      final timestampText = MessageTimestampStyle.lightbox
+        .format(widget.message.timestamp,
+          now: DateTime.now(),
+          twentyFourHourTimeMode: store.userSettings.twentyFourHourTime,
+          zulipLocalizations: zulipLocalizations);
 
       // We use plain [AppBar] instead of [ZulipAppBar], even though this page
       // has a [PerAccountStore], because:
@@ -172,13 +199,19 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
         shape: const Border(), // Remove bottom border from [AppBarTheme]
         elevation: appBarElevation,
         title: Row(children: [
-          Avatar(size: 36, borderRadius: 36 / 8, userId: widget.message.senderId),
+          Avatar(
+            size: 36,
+            borderRadius: 36 / 8,
+            userId: widget.message.senderId,
+            replaceIfMuted: false,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: RichText(
               text: TextSpan(children: [
                 TextSpan(
-                  text: '${widget.message.senderFullName}\n', // TODO(#716): use `store.senderDisplayName`
+                  // TODO write a test where the sender is muted; check this and avatar
+                  text: '${store.senderDisplayName(widget.message, replaceIfMuted: false)}\n',
 
                   // Restate default
                   style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),
@@ -226,6 +259,7 @@ class _ImageLightboxPage extends StatefulWidget {
   const _ImageLightboxPage({
     required this.routeEntranceAnimation,
     required this.message,
+    required this.messageImageContext,
     required this.src,
     required this.thumbnailUrl,
     required this.originalWidth,
@@ -234,6 +268,7 @@ class _ImageLightboxPage extends StatefulWidget {
 
   final Animation<double> routeEntranceAnimation;
   final Message message;
+  final BuildContext messageImageContext;
   final Uri src;
   final Uri? thumbnailUrl;
   final double? originalWidth;
@@ -315,9 +350,10 @@ class _ImageLightboxPageState extends State<_ImageLightboxPage> {
       buildBottomAppBar: _buildBottomAppBar,
       child: SizedBox.expand(
         child: InteractiveViewer(
+          maxScale: 10, // TODO adjust based on device and image size; see #1091
           child: SafeArea(
             child: LightboxHero(
-              message: widget.message,
+              messageImageContext: widget.messageImageContext,
               src: widget.src,
               child: RealmContentNetworkImage(widget.src,
                 filterQuality: FilterQuality.medium,
@@ -484,7 +520,7 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
         context: context,
         title: zulipLocalizations.errorDialogTitle,
         message: zulipLocalizations.errorVideoPlayerFailed);
-      await dialog.closed;
+      await dialog.result;
       if (!mounted) return;
       Navigator.pop(context); // Pops the lightbox
     }
@@ -599,6 +635,7 @@ Route<void> getImageLightboxRoute({
   int? accountId,
   BuildContext? context,
   required Message message,
+  required BuildContext messageImageContext,
   required Uri src,
   required Uri? thumbnailUrl,
   required double? originalWidth,
@@ -611,6 +648,7 @@ Route<void> getImageLightboxRoute({
       return _ImageLightboxPage(
         routeEntranceAnimation: animation,
         message: message,
+        messageImageContext: messageImageContext,
         src: src,
         thumbnailUrl: thumbnailUrl,
         originalWidth: originalWidth,

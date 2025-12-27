@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 8.10.0" type="baseline" client="gradle" dependencies="false" name="AGP (8.10.0)" variant="all" version="8.10.0">
+
+    <!--TODO(#855) see if this is no longer needed-->
+    <issue
+        id="InvalidPackage"
+        message="Invalid package reference in library; not included in Android: `javax.xml.stream`. Referenced from `org.apache.tika.utils.XMLReaderUtils`.">
+        <location
+            file="$GRADLE_USER_HOME/caches/modules-2/files-2.1/org.apache.tika/tika-core/3.2.0/9232bb3c71f231e8228f570071c0e1ea29d40115/tika-core-3.2.0.jar"/>
+    </issue>
+
+</issues>

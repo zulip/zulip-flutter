@@ -4,26 +4,27 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:html/dom.dart' as dom;
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' as intl;
 
-import '../api/core.dart';
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
-import '../model/avatar_url.dart';
-import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
+import 'actions.dart';
 import 'code_block.dart';
 import 'dialog.dart';
 import 'icons.dart';
+import 'image.dart';
 import 'inset_shadow.dart';
+import 'katex.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
+import 'scrolling.dart';
 import 'store.dart';
 import 'text.dart';
+import 'theme.dart';
 
 /// A central place for styles for Zulip content (rendered Zulip Markdown).
 ///
@@ -347,13 +348,13 @@ class BlockContentList extends StatelessWidget {
           SpoilerNode() => Spoiler(node: node),
           CodeBlockNode() => CodeBlock(node: node),
           MathBlockNode() => MathBlock(node: node),
-          ImageNodeList() => MessageImageList(node: node),
-          ImageNode() => (){
+          ImagePreviewNodeList() => MessageImagePreviewList(node: node),
+          ImagePreviewNode() => (){
             assert(false,
-              "[ImageNode] not allowed in [BlockContentList]. "
-              "It should be wrapped in [ImageNodeList]."
+              "[ImagePreviewNode] not allowed in [BlockContentList]. "
+              "It should be wrapped in [ImagePreviewNodeList]."
             );
-            return MessageImage(node: node);
+            return MessageImagePreview(node: node);
           }(),
           InlineVideoNode() => MessageInlineVideo(node: node),
           EmbedVideoNode() => MessageEmbedVideo(node: node),
@@ -467,12 +468,12 @@ class Quotation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 10),
+      padding: const EdgeInsetsDirectional.only(start: 10),
       child: Container(
-        padding: const EdgeInsets.only(left: 5),
+        padding: const EdgeInsetsDirectional.only(start: 5),
         decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(
+          border: BorderDirectional(
+            start: BorderSide(
               width: 5,
               // Web has the same color in light and dark mode.
               color: const HSLColor.fromAHSL(1, 0, 0, 0.87).toColor()))),
@@ -613,22 +614,22 @@ class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
   }
 }
 
-class MessageImageList extends StatelessWidget {
-  const MessageImageList({super.key, required this.node});
+class MessageImagePreviewList extends StatelessWidget {
+  const MessageImagePreviewList({super.key, required this.node});
 
-  final ImageNodeList node;
+  final ImagePreviewNodeList node;
 
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      children: node.images.map((imageNode) => MessageImage(node: imageNode)).toList());
+      children: node.imagePreviews.map((node) => MessageImagePreview(node: node)).toList());
   }
 }
 
-class MessageImage extends StatelessWidget {
-  const MessageImage({super.key, required this.node});
+class MessageImagePreview extends StatelessWidget {
+  const MessageImagePreview({super.key, required this.node});
 
-  final ImageNode node;
+  final ImagePreviewNode node;
 
   @override
   Widget build(BuildContext context) {
@@ -649,6 +650,7 @@ class MessageImage extends StatelessWidget {
         Navigator.of(context).push(getImageLightboxRoute(
           context: context,
           message: message,
+          messageImageContext: context,
           src: resolvedSrcUrl,
           thumbnailUrl: resolvedThumbnailUrl,
           originalWidth: node.originalWidth,
@@ -657,7 +659,7 @@ class MessageImage extends StatelessWidget {
       child: node.loading
         ? const CupertinoActivityIndicator()
         : resolvedSrcUrl == null ? null : LightboxHero(
-            message: message,
+            messageImageContext: context,
             src: resolvedSrcUrl,
             child: RealmContentNetworkImage(
               resolvedThumbnailUrl ?? resolvedSrcUrl,
@@ -739,11 +741,11 @@ class MessageMediaContainer extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: UnconstrainedBox(
-        alignment: Alignment.centerLeft,
+        alignment: AlignmentDirectional.centerStart,
         child: Padding(
           // TODO clean up this padding by imitating web less precisely;
           //   in particular, avoid adding loose whitespace at end of message.
-          padding: const EdgeInsets.only(right: 5, bottom: 5),
+          padding: const EdgeInsetsDirectional.only(end: 5, bottom: 5),
           child: ColoredBox(
             color: ContentTheme.of(context).colorMessageMediaContainerBackground,
             child: Padding(
@@ -796,33 +798,6 @@ class _CodeBlockContainer extends StatelessWidget {
   }
 }
 
-class SingleChildScrollViewWithScrollbar extends StatefulWidget {
-  const SingleChildScrollViewWithScrollbar(
-    {super.key, required this.scrollDirection, required this.child});
-
-  final Axis scrollDirection;
-  final Widget child;
-
-  @override
-  State<SingleChildScrollViewWithScrollbar> createState() =>
-    _SingleChildScrollViewWithScrollbarState();
-}
-
-class _SingleChildScrollViewWithScrollbarState
-    extends State<SingleChildScrollViewWithScrollbar> {
-  final ScrollController controller = ScrollController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scrollbar(
-      controller: controller,
-      child: SingleChildScrollView(
-        controller: controller,
-        scrollDirection: widget.scrollDirection,
-        child: widget.child));
-  }
-}
-
 class MathBlock extends StatelessWidget {
   const MathBlock({super.key, required this.node});
 
@@ -831,11 +806,24 @@ class MathBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final contentTheme = ContentTheme.of(context);
-    return _CodeBlockContainer(
-      borderColor: contentTheme.colorMathBlockBorder,
-      child: Text.rich(TextSpan(
-        style: contentTheme.codeBlockTextStyles.plain,
-        children: [TextSpan(text: node.texSource)])));
+
+    final nodes = node.nodes;
+    if (nodes == null) {
+      return _CodeBlockContainer(
+        borderColor: contentTheme.colorMathBlockBorder,
+        child: Text.rich(TextSpan(
+          style: contentTheme.codeBlockTextStyles.plain,
+          children: [TextSpan(text: node.texSource)])));
+    }
+
+    return Center(
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: SingleChildScrollViewWithScrollbar(
+          scrollDirection: Axis.horizontal,
+          child: KatexWidget(
+            textStyle: ContentTheme.of(context).textStylePlainParagraph,
+            nodes: nodes))));
   }
 }
 
@@ -883,7 +871,7 @@ class WebsitePreview extends StatelessWidget {
         // TODO(#488) use different color for non-message contexts
         // TODO(#647) use different color for highlighted messages
         // TODO(#681) use different color for DM messages
-        color: MessageListTheme.of(context).bgMessageRegular,
+        color: DesignVariables.of(context).bgMessageRegular,
         child: ClipRect(
           child: ConstrainedBox(
             constraints: BoxConstraints(maxHeight: 80),
@@ -1139,19 +1127,23 @@ class _InlineContentBuilder {
 
       case UnicodeEmojiNode():
         return TextSpan(text: node.emojiUnicode, recognizer: _recognizer,
-          style: widget.style
-            .merge(ContentTheme.of(_context!).textStyleEmoji));
+          style: ContentTheme.of(_context!).textStyleEmoji);
 
       case ImageEmojiNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
           child: MessageImageEmoji(node: node));
 
       case MathInlineNode():
-        return TextSpan(
-          style: widget.style
-            .merge(ContentTheme.of(_context!).textStyleInlineMath)
-            .apply(fontSizeFactor: kInlineCodeFontSizeFactor),
-          children: [TextSpan(text: node.texSource)]);
+        final nodes = node.nodes;
+        return nodes == null
+          ? TextSpan(
+              style: ContentTheme.of(_context!).textStyleInlineMath
+                .copyWith(fontSize: widget.style.fontSize! * kInlineCodeFontSizeFactor),
+              children: [TextSpan(text: node.texSource)])
+          : WidgetSpan(
+              alignment: PlaceholderAlignment.baseline,
+              baseline: TextBaseline.alphabetic,
+              child: KatexWidget(textStyle: widget.style, nodes: nodes));
 
       case GlobalTimeNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
@@ -1187,11 +1179,9 @@ class _InlineContentBuilder {
     // TODO `code`: find equivalent of web's `unicode-bidi: embed; direction: ltr`
 
     return _buildNodes(
-      style: widget.style
-        .merge(ContentTheme.of(_context!).textStyleInlineCode)
-        .apply(fontSizeFactor: kInlineCodeFontSizeFactor),
-      node.nodes,
-    );
+      style: ContentTheme.of(_context!).textStyleInlineCode
+        .copyWith(fontSize: widget.style.fontSize! * kInlineCodeFontSizeFactor),
+      node.nodes);
 
     // Another fun solution -- we can in fact have a border!  Like so:
     //   TextStyle(
@@ -1234,7 +1224,7 @@ class UserMention extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
       child: InlineContent(
         // If an @-mention is inside a link, let the @-mention override it.
-        recognizer: null,  // TODO make @-mentions tappable, for info on user
+        recognizer: null,  // TODO(#1867) make @-mentions tappable, for info on user
         // One hopes an @-mention can't contain an embedded link.
         // (The parser on creating a UserMentionNode has a TODO to check that.)
         linkRecognizers: null,
@@ -1310,13 +1300,26 @@ class GlobalTime extends StatelessWidget {
   final GlobalTimeNode node;
   final TextStyle ambientTextStyle;
 
-  static final _dateFormat = DateFormat('EEE, MMM d, y, h:mm a'); // TODO(i18n): localize date
+  static final _format12 =
+    intl.DateFormat('EEE, MMM d, y').addPattern('h:mm aa', ', ');
+  static final _format24 =
+    intl.DateFormat('EEE, MMM d, y').addPattern('Hm', ', ');
+  static final _formatLocaleDefault =
+    intl.DateFormat('EEE, MMM d, y').addPattern('jm', ', ');
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final twentyFourHourTimeMode = store.userSettings.twentyFourHourTime;
     // Design taken from css for `.rendered_markdown & time` in web,
     //   see zulip:web/styles/rendered_markdown.css .
-    final text = _dateFormat.format(node.datetime.toLocal());
+    // TODO(i18n): localize; see plan with ffi in #45
+    final format = switch (twentyFourHourTimeMode) {
+      TwentyFourHourTimeMode.twelveHour => _format12,
+      TwentyFourHourTimeMode.twentyFourHour => _format24,
+      TwentyFourHourTimeMode.localeDefault => _formatLocaleDefault,
+    };
+    final text = format.format(node.datetime.toLocal());
     final contentTheme = ContentTheme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -1414,238 +1417,33 @@ class MessageTableCell extends StatelessWidget {
 }
 
 void _launchUrl(BuildContext context, String urlString) async {
-  DialogStatus showError(BuildContext context, String? message) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    return showErrorDialog(context: context,
-      title: zulipLocalizations.errorCouldNotOpenLinkTitle,
-      message: [
-        zulipLocalizations.errorCouldNotOpenLink(urlString),
-        if (message != null) message,
-      ].join("\n\n"));
-  }
-
   final store = PerAccountStoreWidget.of(context);
   final url = store.tryResolveUrl(urlString);
   if (url == null) { // TODO(log)
-    showError(context, null);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    showErrorDialog(context: context,
+      title: zulipLocalizations.errorCouldNotOpenLinkTitle,
+      message: zulipLocalizations.errorCouldNotOpenLink(urlString));
     return;
   }
 
-  final internalNarrow = parseInternalLink(url, store);
-  if (internalNarrow != null) {
-    unawaited(Navigator.push(context,
-      MessageListPage.buildRoute(context: context,
-        narrow: internalNarrow)));
-    return;
-  }
+  final internalLink = parseInternalLink(url, store);
+  assert(internalLink == null || internalLink.realmUrl == store.realmUrl);
+  switch (internalLink) {
+    case NarrowLink():
+      unawaited(Navigator.push(context,
+        MessageListPage.buildRoute(context: context,
+          narrow: internalLink.narrow,
+          initAnchorMessageId: internalLink.nearMessageId)));
 
-  final globalSettings = GlobalStoreWidget.settingsOf(context);
-  bool launched = false;
-  String? errorMessage;
-  try {
-    launched = await ZulipBinding.instance.launchUrl(url,
-      mode: globalSettings.getUrlLaunchMode(url));
-  } on PlatformException catch (e) {
-    errorMessage = e.message;
-  }
-  if (!launched) { // TODO(log)
-    if (!context.mounted) return;
-    showError(context, errorMessage);
-  }
-}
+    case UserUploadLink():
+      final tempUrl = await ZulipAction.getFileTemporaryUrl(context, internalLink);
+      if (!context.mounted) return null;
+      if (tempUrl == null) return;
+      await PlatformActions.launchUrl(context, tempUrl);
 
-/// Like [Image.network], but includes [authHeader] if [src] is on-realm.
-///
-/// Use this to present image content in the ambient realm: avatars, images in
-/// messages, etc. Must have a [PerAccountStoreWidget] ancestor.
-///
-/// If [src] is an on-realm URL (it has the same origin as the ambient
-/// [Auth.realmUrl]), then an HTTP request to fetch the image will include the
-/// user's [authHeader].
-///
-/// If [src] is off-realm (e.g., a Gravatar URL), no auth header will be sent.
-///
-/// The image will be cached according to the cache behavior of [Image.network],
-/// which may mean the cache is shared between realms.
-class RealmContentNetworkImage extends StatelessWidget {
-  const RealmContentNetworkImage(
-    this.src, {
-    super.key,
-    this.scale = 1.0,
-    this.frameBuilder,
-    this.loadingBuilder,
-    this.errorBuilder,
-    this.semanticLabel,
-    this.excludeFromSemantics = false,
-    this.width,
-    this.height,
-    this.color,
-    this.opacity,
-    this.colorBlendMode,
-    this.fit,
-    this.alignment = Alignment.center,
-    this.repeat = ImageRepeat.noRepeat,
-    this.centerSlice,
-    this.matchTextDirection = false,
-    this.gaplessPlayback = false,
-    this.filterQuality = FilterQuality.low,
-    this.isAntiAlias = false,
-    // `headers` skipped
-    this.cacheWidth,
-    this.cacheHeight,
-  });
-
-  final Uri src;
-
-  final double scale;
-  final ImageFrameBuilder? frameBuilder;
-  final ImageLoadingBuilder? loadingBuilder;
-  final ImageErrorWidgetBuilder? errorBuilder;
-  final String? semanticLabel;
-  final bool excludeFromSemantics;
-  final double? width;
-  final double? height;
-  final Color? color;
-  final Animation<double>? opacity;
-  final BlendMode? colorBlendMode;
-  final BoxFit? fit;
-  final AlignmentGeometry alignment;
-  final ImageRepeat repeat;
-  final Rect? centerSlice;
-  final bool matchTextDirection;
-  final bool gaplessPlayback;
-  final FilterQuality filterQuality;
-  final bool isAntiAlias;
-  // `headers` skipped
-  final int? cacheWidth;
-  final int? cacheHeight;
-
-  @override
-  Widget build(BuildContext context) {
-    final account = PerAccountStoreWidget.of(context).account;
-
-    return Image.network(
-      src.toString(),
-
-      scale: scale,
-      frameBuilder: frameBuilder,
-      loadingBuilder: loadingBuilder,
-      errorBuilder: errorBuilder,
-      semanticLabel: semanticLabel,
-      excludeFromSemantics: excludeFromSemantics,
-      width: width,
-      height: height,
-      color: color,
-      opacity: opacity,
-      colorBlendMode: colorBlendMode,
-      fit: fit,
-      alignment: alignment,
-      repeat: repeat,
-      centerSlice: centerSlice,
-      matchTextDirection: matchTextDirection,
-      gaplessPlayback: gaplessPlayback,
-      filterQuality: filterQuality,
-      isAntiAlias: isAntiAlias,
-      headers: {
-        // Only send the auth header to the server `auth` belongs to.
-        if (src.origin == account.realmUrl.origin) ...authHeader(
-          email: account.email, apiKey: account.apiKey,
-        ),
-        ...userAgentHeader(),
-      },
-      cacheWidth: cacheWidth,
-      cacheHeight: cacheHeight,
-    );
-  }
-}
-
-/// A rounded square with size [size] showing a user's avatar.
-class Avatar extends StatelessWidget {
-  const Avatar({
-    super.key,
-    required this.userId,
-    required this.size,
-    required this.borderRadius,
-  });
-
-  final int userId;
-  final double size;
-  final double borderRadius;
-
-  @override
-  Widget build(BuildContext context) {
-    return AvatarShape(
-      size: size,
-      borderRadius: borderRadius,
-      child: AvatarImage(userId: userId, size: size));
-  }
-}
-
-/// The appropriate avatar image for a user ID.
-///
-/// If the user isn't found, gives a [SizedBox.shrink].
-///
-/// Wrap this with [AvatarShape].
-class AvatarImage extends StatelessWidget {
-  const AvatarImage({
-    super.key,
-    required this.userId,
-    required this.size,
-  });
-
-  final int userId;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
-    final user = store.getUser(userId);
-
-    if (user == null) { // TODO(log)
-      return const SizedBox.shrink();
-    }
-
-    final resolvedUrl = switch (user.avatarUrl) {
-      null          => null, // TODO(#255): handle computing gravatars
-      var avatarUrl => store.tryResolveUrl(avatarUrl),
-    };
-
-    if (resolvedUrl == null) {
-      return const SizedBox.shrink();
-    }
-
-    final avatarUrl = AvatarUrl.fromUserData(resolvedUrl: resolvedUrl);
-    final physicalSize = (MediaQuery.devicePixelRatioOf(context) * size).ceil();
-
-    return RealmContentNetworkImage(
-      avatarUrl.get(physicalSize),
-      filterQuality: FilterQuality.medium,
-      fit: BoxFit.cover,
-    );
-  }
-}
-
-/// A rounded square shape, to wrap an [AvatarImage] or similar.
-class AvatarShape extends StatelessWidget {
-  const AvatarShape({
-    super.key,
-    required this.size,
-    required this.borderRadius,
-    required this.child,
-  });
-
-  final double size;
-  final double borderRadius;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: size,
-      child: ClipRRect(
-        borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
-        clipBehavior: Clip.antiAlias,
-        child: child));
+    case null:
+      await PlatformActions.launchUrl(context, url);
   }
 }
 

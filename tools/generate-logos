@@ -45,9 +45,8 @@ jq --version >/dev/null 2>&1 \
     || die "Need jq -- try 'apt install jq'."
 
 
-# White Z above "BETA", on transparent background.
-# TODO(#715): use the non-beta version
-src_icon_foreground="${root_dir}"/assets/app-icons/zulip-white-z-beta-on-transparent.svg
+# White Z, on transparent background.
+src_icon_foreground="${root_dir}"/assets/app-icons/zulip-white-z-on-transparent.svg
 
 # Gradient-colored square, full-bleed.
 src_icon_background="${root_dir}"/assets/app-icons/zulip-gradient.svg
@@ -55,8 +54,7 @@ src_icon_background="${root_dir}"/assets/app-icons/zulip-gradient.svg
 # Combination of ${src_icon_foreground} upon ${src_icon_background}...
 # more or less.  (The foreground layer is larger, with less padding,
 # and the SVG is different in random other ways.)
-# TODO(#715): use the non-beta version
-src_icon_combined="${root_dir}"/assets/app-icons/zulip-beta-combined.svg
+src_icon_combined="${root_dir}"/assets/app-icons/zulip-combined.svg
 
 
 make_one_ios_app_icon() {

@@ -23,7 +23,6 @@ extension RealmUserUpdateEventChecks on Subject<RealmUserUpdateEvent> {
   Subject<String?> get timezone => has((e) => e.timezone, 'timezone');
   Subject<int?> get botOwnerId => has((e) => e.botOwnerId, 'botOwnerId');
   Subject<UserRole?> get role => has((e) => e.role, 'role');
-  Subject<bool?> get isBillingAdmin => has((e) => e.isBillingAdmin, 'isBillingAdmin');
   Subject<RealmUserUpdateCustomProfileField?> get customProfileField => has((e) => e.customProfileField, 'customProfileField');
   Subject<String?> get newEmail => has((e) => e.newEmail, 'newEmail');
   Subject<JsonNullable<String>?> get deliveryEmail => has((e) => e.deliveryEmail, 'deliveryEmail');
@@ -39,15 +38,16 @@ extension SubscriptionUpdateEventChecks on Subject<SubscriptionUpdateEvent> {
 
 extension MessageEventChecks on Subject<MessageEvent> {
   Subject<Message> get message => has((e) => e.message, 'message');
+  Subject<String?> get localMessageId => has((e) => e.localMessageId, 'localMessageId');
 }
 
 extension UpdateMessageEventChecks on Subject<UpdateMessageEvent> {
   Subject<int?> get userId => has((e) => e.userId, 'userId');
-  Subject<bool?> get renderingOnly => has((e) => e.renderingOnly, 'renderingOnly');
+  Subject<bool> get renderingOnly => has((e) => e.renderingOnly, 'renderingOnly');
   Subject<int> get messageId => has((e) => e.messageId, 'messageId');
   Subject<List<int>> get messageIds => has((e) => e.messageIds, 'messageIds');
   Subject<List<MessageFlag>> get flags => has((e) => e.flags, 'flags');
-  Subject<int?> get editTimestamp => has((e) => e.editTimestamp, 'editTimestamp');
+  Subject<int> get editTimestamp => has((e) => e.editTimestamp, 'editTimestamp');
   Subject<UpdateMessageMoveData?> get moveData => has((e) => e.moveData, 'moveData');
   Subject<String?> get origContent => has((e) => e.origContent, 'origContent');
   Subject<String?> get origRenderedContent => has((e) => e.origRenderedContent, 'origRenderedContent');

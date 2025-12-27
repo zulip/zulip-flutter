@@ -1,25 +1,25 @@
-# Zulip Flutter (beta)
+# Zulip Flutter
 
-A Zulip client for Android and iOS, using Flutter.
+The official Zulip app for Android and iOS, built with Flutter.
 
-This app is currently [in beta][beta].
-When it's ready, it [will become the new][] official mobile Zulip client.
-To see what work is planned before that launch,
-see the [milestones][] and the [project board][].
+This app [was launched][] as the main Zulip mobile app
+in June 2025.
+It replaced the [previous Zulip mobile app][] built with React Native.
 
-[beta]: https://chat.zulip.org/#narrow/stream/2-general/topic/Flutter/near/1708728
-[will become the new]: https://chat.zulip.org/#narrow/stream/2-general/topic/Flutter/near/1582367
-[milestones]: https://github.com/zulip/zulip-flutter/milestones?direction=asc&sort=title
-[project board]: https://github.com/orgs/zulip/projects/5/views/4
+[was launched]: https://blog.zulip.com/flutter-mobile-app-launch
+[previous Zulip mobile app]: https://github.com/zulip/zulip-mobile#readme
 
 
-## Using Zulip
+## Get the app
 
-To use Zulip on iOS or Android, install the [official mobile Zulip client][].
-
-You can also [try out this beta app][beta].
-
-[official mobile Zulip client]: https://github.com/zulip/zulip-mobile#readme
+Release versions of the app are available here:
+* [Zulip for iOS](https://apps.apple.com/app/zulip/id1203036395)
+  on Apple's App Store
+* [Zulip for Android](https://play.google.com/store/apps/details?id=com.zulipmobile)
+  on the Google Play Store
+  * Or if you don't use Google Play, you can
+    [download an APK](https://github.com/zulip/zulip-flutter/releases/latest)
+    from the official build we post on GitHub.
 
 
 ## Contributing
@@ -27,8 +27,8 @@ You can also [try out this beta app][beta].
 Contributions to this app are welcome.
 
 If you're looking to participate in Google Summer of Code with Zulip,
-this is one of the projects we intend to accept [GSoC 2025 applications][gsoc]
-for.
+this was among the projects we accepted [GSoC applications][gsoc] for
+in 2024 and 2025.
 
 [gsoc]: https://zulip.readthedocs.io/en/latest/outreach/gsoc.html#mobile-app
 
@@ -42,7 +42,7 @@ browsing through recent commits and the codebase,
 and the Zulip guide to Git.
 
 To find possible issues to work on, see our [project board][].
-Look for issues up through the "Launch" milestone,
+Look for issues in the earliest milestone,
 and that aren't already assigned.
 
 Follow the Zulip guide to [picking an issue to work on][],
@@ -55,6 +55,7 @@ and describing your progress.
 
 [your first codebase contribution]: https://zulip.readthedocs.io/en/latest/contributing/contributing.html#your-first-codebase-contribution
 [what makes a great Zulip contributor]: https://zulip.readthedocs.io/en/latest/contributing/contributing.html#what-makes-a-great-zulip-contributor
+[project board]: https://github.com/orgs/zulip/projects/5/views/4
 [picking an issue to work on]: https://zulip.readthedocs.io/en/latest/contributing/contributing.html#picking-an-issue-to-work-on
 
 
@@ -96,6 +97,8 @@ Two specific points to expand on:
  * Your changes will need to be organized into
    [clear and coherent commits][commit-style],
    following [Zulip's commit style guide][commit-style].
+   (Use Greg's ["secret" to using `git log -p`][git-log-p-secret]
+   and/or a graphical Git client to see examples of mergeable commits.)
 
    This is always required before we can merge your PR.  Depending on
    your changes' complexity, it may also be required before we can
@@ -106,9 +109,10 @@ Two specific points to expand on:
 [working on an issue]: https://zulip.readthedocs.io/en/latest/contributing/contributing.html#working-on-an-issue
 [submitting a pull request]: https://zulip.readthedocs.io/en/latest/contributing/review-process.html
 [commit-style]: https://zulip.readthedocs.io/en/latest/contributing/commit-discipline.html
+[git-log-p-secret]: https://github.com/zulip/zulip-mobile/blob/main/docs/howto/git.md#git-log-secret
 
 
-## Getting started in developing this beta app
+## Getting started in developing
 
 ### Setting up
 
@@ -289,7 +293,7 @@ good time to [report them as issues][dart-test-tracker].
 
 #### Server compatibility
 
-We support Zulip Server 4.0 and later.
+We support Zulip Server 7.0 and later.
 
 For API features added in newer versions, use `TODO(server-N)`
 comments (like those you see in the existing code.)

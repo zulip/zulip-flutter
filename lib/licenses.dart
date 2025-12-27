@@ -13,6 +13,9 @@ Stream<LicenseEntry> additionalLicenses() async* {
   // Alphabetic by path.
 
   yield LicenseEntryWithLineBreaks(
+    ['KaTeX'],
+    await rootBundle.loadString('assets/KaTeX/LICENSE'));
+  yield LicenseEntryWithLineBreaks(
     ['Noto Color Emoji'],
     await rootBundle.loadString('assets/Noto_Color_Emoji/LICENSE'));
   yield LicenseEntryWithLineBreaks(

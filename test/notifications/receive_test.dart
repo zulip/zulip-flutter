@@ -20,8 +20,7 @@ void main() {
   // are tested end-to-end in `display_test.dart`, by posting FCM messages
   // to the respective streams and checking that the right logic then runs.
 
-  // The token logic is tested end-to-end in `test/model/store_test.dart` in the
-  // `UpdateMachine.registerNotificationToken` tests.
+  // The token logic is tested end-to-end in `test/model/push_device_test.dart`.
 
   group('permissions', () {
     testWidgets('request permission', (tester) async {

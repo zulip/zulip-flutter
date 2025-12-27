@@ -1,13 +1,19 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/model/narrow.dart';
 import '../api/route/messages.dart';
+import '../api/route/messages.dart' as messages_api;
+import '../api/route/channels.dart' as channels_api;
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/binding.dart';
+import '../model/internal_link.dart';
 import '../model/narrow.dart';
+import '../model/realm.dart';
 import 'dialog.dart';
 import 'store.dart';
 
@@ -24,25 +30,7 @@ abstract final class ZulipAction {
   /// This is mostly a wrapper around [updateMessageFlagsStartingFromAnchor];
   /// for details on the UI feedback, see there.
   static Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
-    final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final useLegacy = store.zulipFeatureLevel < 155; // TODO(server-6)
-    if (useLegacy) {
-      try {
-        await _legacyMarkNarrowAsRead(context, narrow);
-        return;
-      } catch (e) {
-        if (!context.mounted) return;
-        final message = switch (e) {
-          ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
-          _ => e.toString(), // TODO(#741): extract user-facing message better
-        };
-        showErrorDialog(context: context,
-          title: zulipLocalizations.errorMarkAsReadFailedTitle,
-          message: message);
-        return;
-      }
-    }
 
     final didPass = await updateMessageFlagsStartingFromAnchor(
       context: context,
@@ -82,7 +70,6 @@ abstract final class ZulipAction {
     Message message,
     Narrow narrow,
   ) async {
-    assert(PerAccountStoreWidget.of(context).zulipFeatureLevel >= 155); // TODO(server-6)
     final zulipLocalizations = ZulipLocalizations.of(context);
     await updateMessageFlagsStartingFromAnchor(
       context: context,
@@ -206,36 +193,239 @@ abstract final class ZulipAction {
     }
   }
 
-  static Future<void> _legacyMarkNarrowAsRead(BuildContext context, Narrow narrow) async {
+  /// Fetch and return the raw Markdown content for [messageId],
+  /// showing an error dialog on failure.
+  static Future<String?> fetchRawContentWithFeedback({
+    required BuildContext context,
+    required int messageId,
+    required String errorDialogTitle,
+  }) async {
+    Message? fetchedMessage;
+    String? errorMessage;
+    // TODO, supported by reusable code:
+    // - (?) Retry with backoff on plausibly transient errors.
+    // - If request(s) take(s) a long time, show snackbar with cancel
+    //   button, like "Still working on quote-and-reply…".
+    //   On final failure or success, auto-dismiss the snackbar.
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    try {
+      fetchedMessage = (await getMessage(PerAccountStoreWidget.of(context).connection,
+        messageId: messageId,
+        applyMarkdown: false,
+        allowEmptyTopicName: true,
+      )).message;
+    } catch (e) {
+      switch (e) {
+        case ZulipApiException(code: 'BAD_REQUEST'):
+          // Servers use this code when the message doesn't exist, according to
+          // the example in the doc: https://zulip.com/api/get-message
+          errorMessage = zulipLocalizations.errorMessageDoesNotSeemToExist;
+        case ZulipApiException():
+          errorMessage = e.message;
+        // TODO specific messages for common errors, like network errors
+        //   (support with reusable code)
+        default:
+          errorMessage = zulipLocalizations.errorCouldNotFetchMessageSource;
+      }
+    }
+
+    if (!context.mounted) return null;
+
+    if (fetchedMessage == null) {
+      assert(errorMessage != null);
+      // TODO(?) give no feedback on error conditions we expect to
+      //   flag centrally in event polling, like invalid auth,
+      //   user/realm deactivated. (Support with reusable code.)
+      showErrorDialog(context: context,
+        title: errorDialogTitle, message: errorMessage);
+    }
+
+    return fetchedMessage?.content;
+  }
+
+  /// Fetch and parse a URL from [messages_api.getFileTemporaryUrl];
+  /// on failure, show an error dialog and return null.
+  static Future<Uri?> getFileTemporaryUrl(BuildContext context, UserUploadLink link) async {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    String? resultUrl;
+    try {
+      final store = PerAccountStoreWidget.of(context);
+      resultUrl = (await messages_api.getFileTemporaryUrl(store.connection,
+        realmId: link.realmId, filename: link.path)).url;
+    } catch (e) {
+      if (!context.mounted) return null;
+      final errorMessage = switch (e) {
+        ZulipApiException() => e.message,
+        // TODO specific messages for common errors, like network errors
+        //   (support with reusable code)
+        _ => null,
+      };
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorCouldNotAccessUploadedFileTitle,
+        message: errorMessage);
+      return null;
+    }
+    if (!context.mounted) return null;
+
+    final tempUrl = PerAccountStoreWidget.of(context).tryResolveUrl(resultUrl);
+    if (tempUrl == null) {
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorCouldNotAccessUploadedFileTitle,
+        message: zulipLocalizations.errorInvalidResponse);
+      return null;
+    }
+
+    return tempUrl;
+  }
+
+  static Future<void> subscribeToChannel(BuildContext context, {
+    required int channelId,
+  }) async {
     final store = PerAccountStoreWidget.of(context);
-    final connection = store.connection;
-    switch (narrow) {
-      case CombinedFeedNarrow():
-        await markAllAsRead(connection);
-      case ChannelNarrow(:final streamId):
-        await markStreamAsRead(connection, streamId: streamId);
-      case TopicNarrow(:final streamId, :final topic):
-        await markTopicAsRead(connection, streamId: streamId, topicName: topic);
-      case DmNarrow():
-        final unreadDms = store.unreads.dms[narrow];
-        // Silently ignore this race-condition as the outcome
-        // (no unreads in this narrow) was the desired end-state
-        // of pushing the button.
-        if (unreadDms == null) return;
-        await updateMessageFlags(connection,
-          messages: unreadDms,
-          op: UpdateMessageFlagsOp.add,
-          flag: MessageFlag.read);
-      case MentionsNarrow():
-        final unreadMentions = store.unreads.mentions.toList();
-        if (unreadMentions.isEmpty) return;
-        await updateMessageFlags(connection,
-          messages: unreadMentions,
-          op: UpdateMessageFlagsOp.add,
-          flag: MessageFlag.read);
-      case StarredMessagesNarrow():
-        // TODO: Implement unreads handling.
-        return;
+    final channel = store.streams[channelId];
+    if (channel == null || channel is Subscription) return; // TODO could give feedback
+
+    try {
+      await channels_api.subscribeToChannel(store.connection, subscriptions: [channel.name]);
+    } catch (e) {
+      if (!context.mounted) return;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      final title = ZulipLocalizations.of(context).subscribeFailedTitle;
+      showErrorDialog(context: context, title: title, message: errorMessage);
+    }
+  }
+
+  /// Unsubscribe from a channel, possibly after a confirmation dialog,
+  /// showing an error dialog on failure.
+  ///
+  /// A confirmation dialog is shown if the user would not have permission
+  /// to resubscribe.
+  /// If [alwaysAsk] is true (the default),
+  /// a confirmation dialog is shown unconditionally.
+  static Future<void> unsubscribeFromChannel(BuildContext context, {
+    required int channelId,
+    bool alwaysAsk = true,
+  }) async {
+    final store = PerAccountStoreWidget.of(context);
+    final subscription = store.subscriptions[channelId];
+    if (subscription == null) return; // TODO could give feedback
+
+    // TODO(future) check if the self-user is a guest and the channel is not web-public
+    final couldResubscribe = !subscription.inviteOnly
+      || store.selfHasPermissionForGroupSetting(subscription.canSubscribeGroup,
+           GroupSettingType.stream, 'can_subscribe_group');
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    if (!couldResubscribe) {
+      // TODO(#1788) warn if org would lose content access (nobody can subscribe)
+
+      final dialog = showSuggestedActionDialog(context: context,
+        title: zulipLocalizations.unsubscribeConfirmationDialogTitle('#${subscription.name}'),
+        message: zulipLocalizations.unsubscribeConfirmationDialogMessageCannotResubscribe,
+        destructiveActionButton: true,
+        actionButtonText: zulipLocalizations.unsubscribeConfirmationDialogConfirmButton);
+      if (await dialog.result != true) return;
+      if (!context.mounted) return;
+    } else if (alwaysAsk) {
+      final dialog = showSuggestedActionDialog(context: context,
+        title: zulipLocalizations.unsubscribeConfirmationDialogTitle('#${subscription.name}'),
+        actionButtonText: zulipLocalizations.unsubscribeConfirmationDialogConfirmButton);
+      if (await dialog.result != true) return;
+      if (!context.mounted) return;
+    }
+
+    try {
+      await channels_api.unsubscribeFromChannel(PerAccountStoreWidget.of(context).connection,
+        subscriptions: [subscription.name]);
+    } catch (e) {
+      if (!context.mounted) return;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      final title = ZulipLocalizations.of(context).unsubscribeFailedTitle;
+      showErrorDialog(context: context, title: title, message: errorMessage);
+    }
+  }
+}
+
+/// Methods that act through platform APIs and show feedback in the UI.
+///
+/// The static methods on this class can be thought of as higher-level wrappers
+/// for some of the platform binding methods in [ZulipBinding].
+/// But they don't belong there, because they also interact with widgets
+/// in order to present success or error feedback to the user through the UI.
+abstract final class PlatformActions {
+  /// Copies [data] to the clipboard and shows a popup on success.
+  ///
+  /// Must have a [Scaffold] ancestor.
+  ///
+  /// On newer Android the popup is defined and shown by the platform. On older
+  /// Android and on iOS, shows a [Snackbar] with [successContent].
+  ///
+  /// In English, the text in [successContent] should be short, should start with
+  /// a capital letter, and should have no ending punctuation: "{noun} copied".
+  static void copyWithPopup({
+    required BuildContext context,
+    required ClipboardData data,
+    required Widget successContent,
+  }) async {
+    await Clipboard.setData(data);
+    final deviceInfo = await ZulipBinding.instance.deviceInfo;
+
+    if (!context.mounted) return;
+
+    final shouldShowSnackbar = switch (deviceInfo) {
+      // Android 13+ shows its own popup on copying to the clipboard,
+      // so we suppress ours, following the advice at:
+      //   https://developer.android.com/develop/ui/views/touch-and-input/copy-paste#duplicate-notifications
+      // TODO(android-sdk-33): Simplify this and dartdoc
+      AndroidDeviceInfo(:var sdkInt) => sdkInt <= 32,
+      _                              => true,
+    };
+    if (shouldShowSnackbar) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(behavior: SnackBarBehavior.floating, content: successContent));
+    }
+  }
+
+  /// Opens a URL with [ZulipBinding.launchUrl], with an error dialog on failure.
+  static Future<void> launchUrl(BuildContext context, Uri url) async {
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+
+    bool launched = false;
+    String? errorMessage;
+    try {
+      launched = await ZulipBinding.instance.launchUrl(url,
+        mode: globalSettings.getUrlLaunchMode(url));
+    } on PlatformException catch (e) {
+      errorMessage = e.message;
+    }
+    if (!launched) { // TODO(log)
+      if (!context.mounted) return;
+
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorCouldNotOpenLinkTitle,
+        message: [
+          zulipLocalizations.errorCouldNotOpenLink(url.toString()),
+          if (errorMessage != null) errorMessage,
+        ].join("\n\n"));
     }
   }
 }

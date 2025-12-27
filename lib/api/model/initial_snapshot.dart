@@ -18,21 +18,18 @@ class InitialSnapshot {
   final int lastEventId;
   final int zulipFeatureLevel;
   final String zulipVersion;
-  final String? zulipMergeBase; // TODO(server-5)
+  final String zulipMergeBase;
 
   final List<String> alertWords;
 
   final List<CustomProfileField> customProfileFields;
 
-  /// The realm-level policy, on pre-FL 163 servers, for visibility of real email addresses.
-  ///
-  /// Search for "email_address_visibility" in https://zulip.com/api/register-queue.
-  ///
-  /// This field is removed in Zulip 7.0 (FL 163) and replaced with a user-level
-  /// setting:
-  ///   * https://zulip.com/api/update-settings#parameter-email_address_visibility
-  ///   * https://zulip.com/api/update-realm-user-settings-defaults#parameter-email_address_visibility
-  final EmailAddressVisibility? emailAddressVisibility; // TODO(server-7): remove
+  @JsonKey(name: 'max_stream_name_length')
+  final int maxChannelNameLength;
+  final int maxTopicLength;
+
+  final int serverPresencePingIntervalSeconds;
+  final int serverPresenceOfflineThresholdSeconds;
 
   // TODO(server-8): Remove the default values.
   @JsonKey(defaultValue: 15000)
@@ -42,27 +39,53 @@ class InitialSnapshot {
   @JsonKey(defaultValue: 10000)
   final int serverTypingStartedWaitPeriodMilliseconds;
 
-  // final List<…> mutedTopics; // TODO(#422) we ignore this feature on older servers
+  final List<MutedUserItem> mutedUsers;
+
+  // In the modern format because we pass `slim_presence`.
+  // TODO(#1611) stop passing and mentioning the deprecated slim_presence;
+  //   presence_last_update_id will be why we get the modern format.
+  final Map<int, PerUserPresence> presences;
 
   final Map<String, RealmEmojiItem> realmEmoji;
 
+  final List<UserGroup> realmUserGroups;
+
   final List<RecentDmConversation> recentPrivateConversations;
 
+  final List<SavedSnippet>? savedSnippets; // TODO(server-10)
+
   final List<Subscription> subscriptions;
+
+  final List<ChannelFolder>? channelFolders; // TODO(server-11)
 
   final UnreadMessagesSnapshot unreadMsgs;
 
   final List<ZulipStream> streams;
 
-  // Servers pre-5.0 don't have `user_settings`, and instead provide whatever
-  // user settings they support at toplevel in the initial snapshot. Since we're
-  // likely to desupport pre-5.0 servers before wide release, we prefer to
-  // ignore the toplevel fields and use `user_settings` where present instead,
-  // even at the expense of functionality with pre-5.0 servers.
-  // TODO(server-5) remove pre-5.0 comment
-  final UserSettings? userSettings; // TODO(server-5)
+  // In register-queue, the name of this field is the singular "user_status",
+  // even though it actually contains user status information for all the users
+  // that the self-user has access to. Therefore, we prefer to use the plural form.
+  //
+  // The API expresses each status as a change from the "zero status" (see
+  // [UserStatus.zero]), with entries omitted for users whose status is the
+  // zero status.
+  @JsonKey(name: 'user_status')
+  final Map<int, UserStatusChange> userStatuses;
 
-  final List<UserTopicItem>? userTopics; // TODO(server-6)
+  final UserSettings userSettings;
+
+  final List<UserTopicItem> userTopics;
+
+  final GroupSettingValue? realmCanDeleteAnyMessageGroup; // TODO(server-10)
+
+  final GroupSettingValue? realmCanDeleteOwnMessageGroup; // TODO(server-10)
+
+  /// The policy for who can delete their own messages,
+  /// on supported servers below version 10.
+  ///
+  /// Removed in FL 291, so absent in the current API doc;
+  /// see zulip/zulip@0cd51f2fe.
+  final RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy; // TODO(server-10)
 
   /// The policy for who can use wildcard mentions in large channels.
   ///
@@ -70,6 +93,8 @@ class InitialSnapshot {
   final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
 
   final bool realmMandatoryTopics;
+
+  final String realmName;
 
   /// The number of days until a user's account is treated as a full member.
   ///
@@ -79,11 +104,22 @@ class InitialSnapshot {
   ///   https://zulip.com/api/roles-and-permissions#determining-if-a-user-is-a-full-member
   final int realmWaitingPeriodThreshold;
 
+  final int? realmMessageContentDeleteLimitSeconds;
+
+  final bool realmAllowMessageEditing;
+  final int? realmMessageContentEditLimitSeconds;
+
+  final bool realmEnableReadReceipts;
+
+  final Uri realmIconUrl;
+
+  final bool realmPresenceDisabled;
+
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
 
   final int maxFileUploadSizeMib;
 
-  final Uri? serverEmojiDataUrl; // TODO(server-6)
+  final Uri serverEmojiDataUrl;
 
   final String? realmEmptyTopicDisplayName; // TODO(server-10)
 
@@ -93,6 +129,9 @@ class InitialSnapshot {
   final List<User> realmNonActiveUsers;
   @JsonKey(readValue: _readUsersIsActiveFallbackTrue)
   final List<User> crossRealmBots;
+
+  // TODO(server): Get this API stabilized, to replace [SupportedPermissionSettings.fixture].
+  // final SupportedPermissionSettings? serverSupportedPermissionSettings;
 
   // TODO etc., etc.
   // If adding fields, keep them all in the order they appear in the API docs.
@@ -123,20 +162,39 @@ class InitialSnapshot {
     required this.zulipMergeBase,
     required this.alertWords,
     required this.customProfileFields,
-    required this.emailAddressVisibility,
+    required this.maxChannelNameLength,
+    required this.maxTopicLength,
+    required this.serverPresencePingIntervalSeconds,
+    required this.serverPresenceOfflineThresholdSeconds,
     required this.serverTypingStartedExpiryPeriodMilliseconds,
     required this.serverTypingStoppedWaitPeriodMilliseconds,
     required this.serverTypingStartedWaitPeriodMilliseconds,
+    required this.mutedUsers,
+    required this.presences,
     required this.realmEmoji,
+    required this.realmUserGroups,
     required this.recentPrivateConversations,
+    required this.savedSnippets,
     required this.subscriptions,
+    required this.channelFolders,
     required this.unreadMsgs,
     required this.streams,
+    required this.userStatuses,
     required this.userSettings,
     required this.userTopics,
+    required this.realmCanDeleteAnyMessageGroup,
+    required this.realmCanDeleteOwnMessageGroup,
+    required this.realmDeleteOwnMessagePolicy,
     required this.realmWildcardMentionPolicy,
     required this.realmMandatoryTopics,
+    required this.realmName,
     required this.realmWaitingPeriodThreshold,
+    required this.realmMessageContentDeleteLimitSeconds,
+    required this.realmAllowMessageEditing,
+    required this.realmMessageContentEditLimitSeconds,
+    required this.realmEnableReadReceipts,
+    required this.realmIconUrl,
+    required this.realmPresenceDisabled,
     required this.realmDefaultExternalAccounts,
     required this.maxFileUploadSizeMib,
     required this.serverEmojiDataUrl,
@@ -150,14 +208,6 @@ class InitialSnapshot {
     _$InitialSnapshotFromJson(json);
 
   Map<String, dynamic> toJson() => _$InitialSnapshotToJson(this);
-}
-
-enum EmailAddressVisibility {
-  @JsonValue(1) everyone,
-  @JsonValue(2) members,
-  @JsonValue(3) admins,
-  @JsonValue(4) nobody,
-  @JsonValue(5) moderators,
 }
 
 @JsonEnum(valueField: 'apiValue')
@@ -174,6 +224,21 @@ enum RealmWildcardMentionPolicy {
   final int? apiValue;
 
   int? toJson() => apiValue;
+}
+
+@JsonEnum(valueField: 'apiValue')
+enum RealmDeleteOwnMessagePolicy {
+  members(apiValue: 1),
+  admins(apiValue: 2),
+  fullMembers(apiValue: 3),
+  moderators(apiValue: 4),
+  everyone(apiValue: 5);
+
+  const RealmDeleteOwnMessagePolicy({required this.apiValue});
+
+  final int apiValue;
+
+  int toJson() => apiValue;
 }
 
 /// An item in `realm_default_external_accounts`.
@@ -226,19 +291,28 @@ class RecentDmConversation {
 /// in <https://zulip.com/api/register-queue>.
 @JsonSerializable(fieldRename: FieldRename.snake, createFieldMap: true)
 class UserSettings {
-  bool twentyFourHourTime;
-  bool? displayEmojiReactionUsers; // TODO(server-6)
+  @JsonKey(
+    fromJson: TwentyFourHourTimeMode.fromApiValue,
+    toJson: TwentyFourHourTimeMode.staticToJson,
+  )
+  TwentyFourHourTimeMode twentyFourHourTime;
+
+  bool displayEmojiReactionUsers;
+  @JsonKey(unknownEnumValue: Emojiset.unknown)
   Emojiset emojiset;
+  bool presenceEnabled;
 
   // TODO more, as needed. When adding a setting here, please also:
   // (1) add it to the [UserSettingName] enum
   // (2) then re-run the command to refresh the .g.dart files
   // (3) handle the event that signals an update to the setting
+  // (4) add the setting to the [updateSettings] route binding
 
   UserSettings({
     required this.twentyFourHourTime,
     required this.displayEmojiReactionUsers,
     required this.emojiset,
+    required this.presenceEnabled,
   });
 
   factory UserSettings.fromJson(Map<String, dynamic> json) =>
@@ -315,14 +389,8 @@ class UnreadMessagesSnapshot {
 /// An item in [UnreadMessagesSnapshot.dms].
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UnreadDmSnapshot {
-  @JsonKey(readValue: _readOtherUserId)
   final int otherUserId;
   final List<int> unreadMessageIds;
-
-  // TODO(server-5): Simplify away.
-  static dynamic _readOtherUserId(Map<dynamic, dynamic> json, String key) {
-    return json[key] ?? json['sender_id'];
-  }
 
   UnreadDmSnapshot({
     required this.otherUserId,

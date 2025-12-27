@@ -1,7 +1,8 @@
-
 import 'package:flutter/material.dart';
 
 import 'store.dart';
+import 'text.dart';
+import 'theme.dart';
 
 /// An [InheritedWidget] for near the root of a page's widget subtree,
 /// providing its [BuildContext].
@@ -208,5 +209,114 @@ class LoadingPlaceholderPage extends StatelessWidget {
       appBar: AppBar(),
       body: const LoadingPlaceholder(),
     );
+  }
+}
+
+/// A "no content here" message for when a page has no content to show.
+///
+/// Suitable for the inbox, the message-list page, etc.
+///
+/// Specify a header and optionally a message.
+///
+/// This handles the horizontal device insets
+/// and the bottom inset when needed (in a message list with no compose box).
+/// The top inset is handled externally by the app bar.
+///
+/// See also:
+///  * [BottomSheetEmptyContentPlaceholder], for a similar element to use in
+///    a bottom sheet.
+// TODO(#311) If the message list gets a bottom nav, the bottom inset will
+//   always be handled externally too; simplify implementation and dartdoc.
+class PageBodyEmptyContentPlaceholder extends StatelessWidget {
+  const PageBodyEmptyContentPlaceholder({
+    super.key,
+    this.header,
+    this.headerWithLinkMarkup,
+    this.onTapHeaderLink,
+    this.message,
+    this.messageWithLinkMarkup,
+    this.onTapMessageLink,
+  }) : assert(
+         (header != null)
+         ^ (headerWithLinkMarkup != null && onTapHeaderLink != null));
+
+  final String? header;
+  final String? headerWithLinkMarkup;
+  final VoidCallback? onTapHeaderLink;
+  final String? message;
+  final String? messageWithLinkMarkup;
+  final VoidCallback? onTapMessageLink;
+
+  TextStyle _headerStyle(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    return TextStyle(
+      color: designVariables.labelSearchPrompt,
+      fontSize: 22,
+      height: 1.30,
+    ).merge(weightVariableTextStyle(context, wght: 600));
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    if (header != null) {
+      return Text(
+        textAlign: TextAlign.center,
+        style: _headerStyle(context),
+        header!);
+    }
+    return TextWithLink(
+      onTap: onTapHeaderLink!,
+      textAlign: TextAlign.center,
+      style: _headerStyle(context),
+      markup: headerWithLinkMarkup!);
+  }
+
+  TextStyle _messageStyle(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    return TextStyle(
+      color: designVariables.labelSearchPrompt,
+      fontSize: 17,
+      height: 23 / 17,
+    ).merge(weightVariableTextStyle(context, wght: 500));
+  }
+
+  Widget? _buildMessage(BuildContext context) {
+    if (message != null) {
+      return Text(
+        textAlign: TextAlign.center,
+        style: _messageStyle(context),
+        message!);
+    }
+    if (messageWithLinkMarkup != null) {
+      return TextWithLink(
+        onTap: onTapMessageLink!,
+        textAlign: TextAlign.center,
+        style: _messageStyle(context),
+        markup: messageWithLinkMarkup!);
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final header = _buildHeader(context);
+    final message = _buildMessage(context);
+
+    return SafeArea(
+      minimum: EdgeInsets.fromLTRB(24, 0, 24, 16),
+      child: Padding(
+        padding: EdgeInsets.only(top: 48),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: Column(
+            spacing: 16,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // TODO leading and trailing elements, like in Figma (given as SVGs):
+              //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=5957-167736&m=dev
+              header,
+              ?message,
+            ]))));
   }
 }

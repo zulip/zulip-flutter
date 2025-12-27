@@ -9,7 +9,7 @@ import '../log.dart';
 import '../model/actions.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
-import '../notifications/display.dart';
+import '../notifications/open.dart';
 import 'about_zulip.dart';
 import 'dialog.dart';
 import 'home.dart';
@@ -112,7 +112,7 @@ class ZulipApp extends StatefulWidget {
       return;
     }
 
-    final localizations = ZulipLocalizations.of(navigatorKey.currentContext!);
+    final zulipLocalizations = ZulipLocalizations.of(navigatorKey.currentContext!);
     final newSnackBar = scaffoldMessenger!.showSnackBar(
       snackBarAnimationStyle: AnimationStyle(
         duration: const Duration(milliseconds: 200),
@@ -120,9 +120,9 @@ class ZulipApp extends StatefulWidget {
       SnackBar(
         content: Text(message),
         action: (details == null) ? null : SnackBarAction(
-          label: localizations.snackBarDetails,
+          label: zulipLocalizations.snackBarDetails,
           onPressed: () => showErrorDialog(context: navigatorKey.currentContext!,
-            title: localizations.errorDialogTitle,
+            title: zulipLocalizations.errorDialogTitle,
             message: details))));
 
     _snackBarCount++;
@@ -130,13 +130,18 @@ class ZulipApp extends StatefulWidget {
   }
 
   /// The callback we normally use as [reportErrorToUserModally].
-  static void _reportErrorToUserModally(String title, {String? message}) {
+  static void _reportErrorToUserModally(
+    String title, {
+    String? message,
+    Uri? learnMoreButtonUrl,
+  }) {
     assert(_ready.value);
 
     showErrorDialog(
       context: navigatorKey.currentContext!,
       title: title,
-      message: message);
+      message: message,
+      learnMoreButtonUrl: learnMoreButtonUrl);
   }
 
   void _declareReady() {
@@ -155,6 +160,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    UpgradeWelcomeDialog.maybeShow();
   }
 
   @override
@@ -163,37 +169,56 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  AccountRoute<void>? _initialRouteIos(BuildContext context) {
+    return NotificationOpenService.instance
+        .routeForNotificationFromLaunch(context: context);
+  }
+
+  // TODO migrate Android's notification navigation to use the new Pigeon API.
+  AccountRoute<void>? _initialRouteAndroid(
+    BuildContext context,
+    String initialRoute,
+  ) {
+    final initialRouteUrl = Uri.tryParse(initialRoute);
+    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
+      assert(debugLog('got notif: url: $initialRouteUrl'));
+      final data = NotificationOpenService.tryParseAndroidNotificationUrl(
+        context: context,
+        url: initialRouteUrl);
+      if (data == null) return null; // TODO(log)
+      return NotificationOpenService.routeForNotification(
+        context: context,
+        data: data);
+    }
+
+    return null;
+  }
+
   List<Route<dynamic>> _handleGenerateInitialRoutes(String initialRoute) {
     // The `_ZulipAppState.context` lacks the required ancestors. Instead
     // we use the Navigator which should be available when this callback is
-    // called and it's context should have the required ancestors.
+    // called and its context should have the required ancestors.
     final context = ZulipApp.navigatorKey.currentContext!;
 
-    final initialRouteUrl = Uri.tryParse(initialRoute);
-    if (initialRouteUrl case Uri(scheme: 'zulip', host: 'notification')) {
-      final route = NotificationDisplayManager.routeForNotification(
-        context: context,
-        url: initialRouteUrl);
-
-      if (route != null) {
-        return [
-          HomePage.buildRoute(accountId: route.accountId),
-          route,
-        ];
-      } else {
-        // The account didn't match any existing accounts,
-        // fall through to show the default route below.
-      }
+    final route = defaultTargetPlatform == TargetPlatform.iOS
+        ? _initialRouteIos(context)
+        : _initialRouteAndroid(context, initialRoute);
+    if (route != null) {
+      return [
+        HomePage.buildRoute(accountId: route.accountId),
+        route,
+      ];
     }
 
     final globalStore = GlobalStoreWidget.of(context);
-    // TODO(#524) choose initial account as last one used
-    final initialAccountId = globalStore.accounts.firstOrNull?.id;
+    final lastVisitedAccountId = globalStore.lastVisitedAccount?.id;
+
     return [
-      if (initialAccountId == null)
+      if (lastVisitedAccountId == null)
+        // There are no accounts, or the last-visited account was logged out.
         MaterialWidgetRoute(page: const ChooseAccountPage())
       else
-        HomePage.buildRoute(accountId: initialAccountId),
+        HomePage.buildRoute(accountId: lastVisitedAccountId),
     ];
   }
 
@@ -204,7 +229,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
         await LoginPage.handleWebAuthUrl(url);
         return true;
       case Uri(scheme: 'zulip', host: 'notification') && var url:
-        await NotificationDisplayManager.navigateForNotification(url);
+        await NotificationOpenService.navigateForAndroidNotificationUrl(url);
         return true;
     }
     return super.didPushRouteInformation(routeInformation);
@@ -213,6 +238,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return GlobalStoreWidget(
+      blockingFuture: NotificationOpenService.instance.initialized,
       child: Builder(builder: (context) {
         return MaterialApp(
           onGenerateTitle: (BuildContext context) {
@@ -229,6 +255,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
             if (widget.navigatorObservers != null)
               ...widget.navigatorObservers!,
             _PreventEmptyStack(),
+            _UpdateLastVisitedAccount(GlobalStoreWidget.of(context)),
           ],
           builder: (BuildContext context, Widget? child) {
             if (!ZulipApp.ready.value) {
@@ -280,6 +307,19 @@ class _PreventEmptyStack extends NavigatorObserver {
   }
 }
 
+class _UpdateLastVisitedAccount extends NavigatorObserver {
+  _UpdateLastVisitedAccount(this.globalStore);
+
+  final GlobalStore globalStore;
+
+  @override
+  void didChangeTop(Route<void> topRoute, _) {
+    if (topRoute case AccountPageRouteMixin(:var accountId)) {
+      globalStore.setLastVisitedAccount(accountId);
+    }
+  }
+}
+
 class ChooseAccountPage extends StatelessWidget {
   const ChooseAccountPage({super.key});
 
@@ -303,16 +343,17 @@ class ChooseAccountPage extends StatelessWidget {
         trailing: MenuAnchor(
           menuChildren: [
             MenuItemButton(
-              onPressed: () {
-                showSuggestedActionDialog(context: context,
+              onPressed: () async {
+                final dialog = showSuggestedActionDialog(context: context,
                   title: zulipLocalizations.logOutConfirmationDialogTitle,
                   message: zulipLocalizations.logOutConfirmationDialogMessage,
-                  // TODO(#1032) "destructive" style for action button
-                  actionButtonText: zulipLocalizations.logOutConfirmationDialogConfirmButton,
-                  onActionButtonPress: () {
-                    // TODO error handling if db write fails?
-                    logOutAccount(GlobalStoreWidget.of(context), accountId);
-                  });
+                  destructiveActionButton: true,
+                  actionButtonText: zulipLocalizations.logOutConfirmationDialogConfirmButton);
+                if (await dialog.result == true) {
+                  if (!context.mounted) return;
+                  // TODO error handling if db write fails?
+                  unawaited(logOutAccount(GlobalStoreWidget.of(context), accountId));
+                }
               },
               child: Text(zulipLocalizations.chooseAccountPageLogOutButton)),
           ],

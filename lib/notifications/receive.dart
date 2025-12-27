@@ -8,6 +8,7 @@ import '../firebase_options.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import 'display.dart';
+import 'open.dart';
 
 @pragma('vm:entry-point')
 class NotificationService {
@@ -24,6 +25,7 @@ class NotificationService {
     instance.token.dispose();
     _instance = null;
     assert(debugBackgroundIsolateIsLive = true);
+    NotificationOpenService.debugReset();
   }
 
   /// Whether a background isolate should initialize [LiveZulipBinding].
@@ -77,6 +79,8 @@ class NotificationService {
         await _getFcmToken();
 
       case TargetPlatform.iOS: // TODO(#324): defer requesting notif permission
+        await NotificationOpenService.instance.start();
+
         await ZulipBinding.instance.firebaseInitializeApp(
           options: kFirebaseOptionsIos);
 
@@ -143,14 +147,19 @@ class NotificationService {
     token.value = value;
   }
 
-  static Future<void> registerToken(ApiConnection connection, {required String token}) async {
+  Future<void> registerToken(ApiConnection connection) async {
+    final token = this.token.value;
+    if (token == null) return;
+
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         await addFcmToken(connection, token: token);
 
       case TargetPlatform.iOS:
-        const appBundleId = 'com.zulip.flutter'; // TODO(#407) find actual value live
-        await addApnsToken(connection, token: token, appid: appBundleId);
+        final packageInfo = await ZulipBinding.instance.packageInfo;
+        await addApnsToken(connection,
+          token: token,
+          appid: packageInfo!.packageName);
 
       case TargetPlatform.linux:
       case TargetPlatform.macOS:
