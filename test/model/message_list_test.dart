@@ -81,13 +81,14 @@ void main() {
   Future<void> prepare({
     Narrow narrow = const CombinedFeedNarrow(),
     Anchor anchor = AnchorCode.newest,
+    List<int>? starredMessages,
     ZulipStream? stream,
     List<User>? users,
     List<int>? mutedUserIds,
   }) async {
     stream ??= eg.stream(streamId: eg.defaultStreamMessageStreamId);
     subscription = eg.subscription(stream);
-    store = eg.store();
+    store = eg.store(initialSnapshot: eg.initialSnapshot(starredMessages: starredMessages));
     await store.addStream(stream);
     await store.addSubscription(subscription);
     await store.addUsers([...?users, eg.selfUser]);
@@ -1238,7 +1239,10 @@ void main() {
     });
 
     test('StarredMessagesNarrow', () async {
-      await prepare(narrow: StarredMessagesNarrow(), users: users);
+      await prepare(
+        narrow: StarredMessagesNarrow(),
+        starredMessages: [1, 2, 3],
+        users: users);
       await prepareMessages(foundOldest: true, messages: [
         eg.dmMessage(id: 1, from: eg.selfUser, to: [user1],
           flags: [MessageFlag.starred]),
@@ -1249,8 +1253,8 @@ void main() {
       checkHasMessageIds([1, 2, 3]);
 
       await store.setMutedUsers([user1.userId]);
-      checkNotifiedOnce();
-      checkHasMessageIds([2, 3]);
+      checkNotNotified();
+      checkHasMessageIds([1, 2, 3]);
     });
 
     test('ChannelNarrow -> do nothing', () async {
@@ -2202,12 +2206,12 @@ void main() {
       await checkApplied(
         mkEvent: (message) => UpdateMessageFlagsAddEvent(
           id: 1,
-          flag: MessageFlag.starred,
+          flag: MessageFlag.hasAlertWord,
           messages: [message.id],
           all: false,
         ),
         doCheckMessageAfterFetch:
-          (messageSubject) => messageSubject.flags.contains(MessageFlag.starred),
+          (messageSubject) => messageSubject.flags.contains(MessageFlag.hasAlertWord),
       );
     });
   });
@@ -2447,7 +2451,10 @@ void main() {
     test('in StarredMessagesNarrow', () async {
       final stream = eg.stream(streamId: 1, name: 'muted stream');
       const mutedTopic = 'muted';
-      await prepare(narrow: const StarredMessagesNarrow());
+      await prepare(
+        narrow: const StarredMessagesNarrow(),
+        starredMessages: [101, 102, 201, 202, 301, 302],
+      );
       await store.addStream(stream);
       await store.setUserTopic(stream, mutedTopic, UserTopicVisibilityPolicy.muted);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
@@ -2939,6 +2946,7 @@ void main() {
 
         await prepare(
           narrow: narrow,
+          starredMessages: [message1.id, message2.id],
           stream: channel,
         );
         connection.prepare(json: newestResult(
@@ -3253,12 +3261,12 @@ void checkInvariants(MessageListView model) {
       switch (model.narrow) {
         case CombinedFeedNarrow():
         case MentionsNarrow():
-        case StarredMessagesNarrow():
         case KeywordSearchNarrow():
           check(model.store.shouldMuteDmConversation(narrow)).isFalse();
         case ChannelNarrow():
         case TopicNarrow():
         case DmNarrow():
+        case StarredMessagesNarrow():
       }
     }
   }

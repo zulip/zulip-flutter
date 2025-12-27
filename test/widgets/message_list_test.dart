@@ -71,6 +71,7 @@ void main() {
     List<int>? mutedUserIds,
     List<Subscription>? subscriptions,
     UnreadMessagesSnapshot? unreadMsgs,
+    List<int>? starredMessages,
     int? zulipFeatureLevel,
     List<NavigatorObserver> navObservers = const [],
     bool skipAssertAccountExists = false,
@@ -84,7 +85,10 @@ void main() {
     final selfAccount = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
     await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
       zulipFeatureLevel: zulipFeatureLevel,
-      streams: streams, subscriptions: subscriptions, unreadMsgs: unreadMsgs));
+      streams: streams,
+      subscriptions: subscriptions,
+      unreadMsgs: unreadMsgs,
+      starredMessages: starredMessages));
     store = await testBinding.globalStore.perAccount(selfAccount.id);
     connection = store.connection as FakeApiConnection;
 
@@ -2272,11 +2276,16 @@ void main() {
           final navObserver = TestNavigatorObserver()
             ..onPushed = ((route, prevRoute) => lastPushedRoute = route);
 
+          final messages = [message];
+
           await setupMessageListPage(
             tester,
             narrow: narrow,
-            messages: [message],
+            messages: messages,
             subscriptions: [subscription],
+            starredMessages: messages
+              .where((message) => message.flags.contains(MessageFlag.starred))
+              .map((message) => message.id).toList(),
             navObservers: [navObserver]
           );
           lastPushedRoute = null;
@@ -2487,13 +2496,15 @@ void main() {
   group('Starred messages', () {
     testWidgets('unstarred message', (tester) async {
       final message = eg.streamMessage(flags: []);
-      await setupMessageListPage(tester, messages: [message]);
+      await setupMessageListPage(tester,
+        messages: [message], starredMessages: []);
       check(find.byIcon(ZulipIcons.star_filled).evaluate()).isEmpty();
     });
 
     testWidgets('starred message', (tester) async {
       final message = eg.streamMessage(flags: [MessageFlag.starred]);
-      await setupMessageListPage(tester, messages: [message]);
+      await setupMessageListPage(tester,
+        messages: [message], starredMessages: [message.id]);
       check(find.byIcon(ZulipIcons.star_filled).evaluate()).length.equals(1);
     });
   });
