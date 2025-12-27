@@ -2165,6 +2165,11 @@ abstract class ZulipLocalizations {
   /// **'Zulip'**
   String get zulipAppTitle;
 
+  /// Tooltip for the button to attach a global time to the compose box.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach a global time'**
+  String get composeBoxAttachGlobalTimeTooltip;
   /// Header text shown when a channel has no topics.
   ///
   /// In en, this message translates to:

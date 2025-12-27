@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:mime/mime.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 
 import '../api/exception.dart';
@@ -1242,6 +1243,68 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
   }
 }
 
+class _AttachGlobalTimeButton extends _AttachUploadsButton {
+  const _AttachGlobalTimeButton({required super.controller});
+
+  @override
+  IconData get icon => ZulipIcons.clock;
+
+  @override
+  String tooltip(ZulipLocalizations zulipLocalizations) =>
+      zulipLocalizations.composeBoxAttachGlobalTimeTooltip;
+
+  @override
+  Future<Iterable<_File>> getFiles(BuildContext context) async {
+    // Ensure the context is still valid
+    if (!context.mounted) return [];
+
+    // Request a date and time from the user.
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    // Recheck context after async operation
+    if (!context.mounted) return [];
+
+    if (pickedDate == null) {
+      return []; // User canceled, no action needed.
+    }
+
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    // Recheck context after async operation
+    if (!context.mounted) return [];
+
+    if (pickedTime == null) {
+      return [];
+    }
+
+    // Combine the picked date and time.
+    final DateTime fullDateTime = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+
+    // Format the date-time for the new markup.
+    final String timeMarkup =
+        "<time:${DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(fullDateTime.toUtc())}>";
+
+    // Safely update the content controller
+    controller.content.text += timeMarkup;
+
+    return [];
+  }
+}
+
 class _SendButton extends StatefulWidget {
   const _SendButton({required this.controller, required this.getDestination});
 
@@ -1470,6 +1533,10 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 
     final composeButtonsEnabled = getComposeButtonsEnabled(context);
     final composeButtons = [
+      _AttachFileButton(controller: controller),
+      _AttachMediaButton(controller: controller),
+      _AttachFromCameraButton(controller: controller),
+      _AttachGlobalTimeButton(controller: controller),
       _AttachFileButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),

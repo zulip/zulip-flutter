@@ -1493,6 +1493,9 @@
   "@zulipAppTitle": {
     "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
   },
+  "composeBoxAttachGlobalTimeTooltip": "Attach a global time",
+      "@composeBoxAttachGlobalTimeTooltip": {
+        "description": "Tooltip for the button to attach a global time to the compose box."
   "topicListEmptyPlaceholderHeader": "There are no topics here yet.",
   "@topicListEmptyPlaceholderHeader": {
     "description": "Header text shown when a channel has no topics."
