@@ -4,6 +4,7 @@ import '../api/model/model.dart';
 import '../api/route/channels.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
+import '../model/topics.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
 import 'app_bar.dart';
@@ -125,27 +126,28 @@ class _TopicList extends StatefulWidget {
 
 class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMixin {
   Unreads? unreadsModel;
-  // TODO(#1499): store the results on [ChannelStore], and keep them
-  //   up-to-date by handling events
-  List<GetStreamTopicsEntry>? lastFetchedTopics;
+  Topics? topicsModel;
 
   @override
   void onNewStore() {
+    final newStore = PerAccountStoreWidget.of(context);
     unreadsModel?.removeListener(_modelChanged);
-    final store = PerAccountStoreWidget.of(context);
-    unreadsModel = store.unreads..addListener(_modelChanged);
+    unreadsModel = newStore.unreads..addListener(_modelChanged);
+    topicsModel?.removeListener(_modelChanged);
+    topicsModel = newStore.topics..addListener(_modelChanged);
     _fetchTopics();
   }
 
   @override
   void dispose() {
     unreadsModel?.removeListener(_modelChanged);
+    topicsModel?.removeListener(_modelChanged);
     super.dispose();
   }
 
   void _modelChanged() {
     setState(() {
-      // The actual state lives in `unreadsModel`.
+      // The actual states live in `unreadsModel` and `topicsModel`.
     });
   }
 
@@ -153,23 +155,21 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
     // Do nothing when the fetch fails; the topic-list will stay on
     // the loading screen, until the user navigates away and back.
     // TODO(design) show a nice error message on screen when this fails
-    final store = PerAccountStoreWidget.of(context);
-    final result = await getStreamTopics(store.connection,
-      streamId: widget.streamId,
-      allowEmptyTopicName: true);
+    await topicsModel!.fetchChannelTopics(widget.streamId);
     if (!mounted) return;
     setState(() {
-      lastFetchedTopics = result.topics;
+      // The actual state lives in the `topicsModel`.
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (lastFetchedTopics == null) {
+    final channelTopics = topicsModel!.getChannelTopics(widget.streamId);
+    if (channelTopics == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (lastFetchedTopics!.isEmpty) {
+    if (channelTopics.isEmpty) {
       final zulipLocalizations = ZulipLocalizations.of(context);
       return PageBodyEmptyContentPlaceholder(
         header: zulipLocalizations.topicListEmptyPlaceholderHeader);
@@ -177,7 +177,7 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
 
     // This is adapted from parts of the build method on [_InboxPageState].
     final topicItems = <_TopicItemData>[];
-    for (final GetStreamTopicsEntry(:maxId, name: topic) in lastFetchedTopics!) {
+    for (final GetChannelTopicsEntry(:maxId, name: topic) in channelTopics) {
       final unreadMessageIds =
         unreadsModel!.streams[widget.streamId]?[topic] ?? <int>[];
       final countInTopic = unreadMessageIds.length;
@@ -187,17 +187,9 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
         topic: topic,
         unreadCount: countInTopic,
         hasMention: hasMention,
-        // `lastFetchedTopics.maxId` can become outdated when a new message
-        // arrives or when there are message moves, until we re-fetch.
-        // TODO(#1499): track changes to this
         maxId: maxId,
       ));
     }
-    topicItems.sort((a, b) {
-      final aMaxId = a.maxId;
-      final bMaxId = b.maxId;
-      return bMaxId.compareTo(aMaxId);
-    });
 
     return SafeArea(
       // Don't pad the bottom here; we want the list content to do that.
@@ -239,6 +231,14 @@ class _TopicItem extends StatelessWidget {
 
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
+    // `maxId` might be incorrect (see [ChannelStore.getChannelTopics]).
+    // Check if it refers to a message that's currently in the topic;
+    // if not, we just won't have `someMessageIdInTopic` for the action sheet.
+    final maxIdMessage = store.messages[maxId];
+    final someMessageIdInTopic =
+      (maxIdMessage != null && TopicNarrow(streamId, topic).containsMessage(maxIdMessage))
+        ? maxIdMessage.id
+        : null;
 
     final visibilityPolicy = store.topicVisibilityPolicy(streamId, topic);
     final double opacity;
@@ -267,7 +267,7 @@ class _TopicItem extends StatelessWidget {
         onLongPress: () => showTopicActionSheet(context,
           channelId: streamId,
           topic: topic,
-          someMessageIdInTopic: maxId),
+          someMessageIdInTopic: someMessageIdInTopic),
         splashFactory: NoSplash.splashFactory,
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: 40),

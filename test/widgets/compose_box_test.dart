@@ -75,7 +75,7 @@ void main() {
       if (narrow is ChannelNarrow) {
         // By default, bypass the complexity where the topic input is autofocused
         // on an empty fetch, by making the fetch not empty. (In particular that
-        // complexity includes a getStreamTopics fetch for topic autocomplete.)
+        // complexity includes a getChannelTopics fetch for topic autocomplete.)
         messages ??= [eg.streamMessage(stream: channel)];
       }
     }
@@ -102,8 +102,8 @@ void main() {
     connection.prepare(json:
       eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson());
     if (narrow is ChannelNarrow && messages.isEmpty) {
-      // The topic input will autofocus, triggering a getStreamTopics request.
-      connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+      // The topic input will autofocus, triggering a getChannelTopics request.
+      connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
     }
     await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
       child: MessageListPage(initNarrow: narrow)));
@@ -126,7 +126,7 @@ void main() {
     required String topic,
   }) async {
     connection.prepare(body:
-      jsonEncode(GetStreamTopicsResult(topics: [eg.getStreamTopicsEntry()]).toJson()));
+      jsonEncode(GetChannelTopicsResult(topics: [eg.getChannelTopicsEntry()]).toJson()));
     await tester.enterText(topicInputFinder, topic);
     check(connection.takeRequests()).single
       ..method.equals('GET')
@@ -1797,7 +1797,7 @@ void main() {
         otherUsers: otherUsers);
 
       if (narrow is ChannelNarrow) {
-        connection.prepare(json: GetStreamTopicsResult(topics: []).toJson());
+        connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
         await enterTopic(tester, narrow: narrow, topic: topic);
       }
       await enterContent(tester, failedMessageContent);
