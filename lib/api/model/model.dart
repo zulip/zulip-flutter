@@ -1113,7 +1113,10 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   @override
   final int id;
   bool isMeMessage;
+  @JsonKey(readValue: _readLastEditTimestamp)
   int? lastEditTimestamp;
+  @JsonKey(readValue: _readLastMovedTimestamp)
+  int? lastMovedTimestamp;
 
   @JsonKey(fromJson: _reactionsFromJson, toJson: _reactionsToJson)
   Reactions? reactions; // null is equivalent to an empty [Reactions]
@@ -1164,6 +1167,65 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
     );
   }
 
+  /// Reads `last_edit_timestamp` from JSON.
+  ///
+  /// On new servers (Zulip 10+, feature level 364), this field is only present
+  /// if the message's content has been edited. On older servers, it was also
+  /// present when the message was moved, so we need to derive it from
+  /// `edit_history` when available.
+  static int? _readLastEditTimestamp(Map<dynamic, dynamic> json, String key) {
+    final lastEditTimestamp = json['last_edit_timestamp'] as int?;
+    final lastMovedTimestamp = json['last_moved_timestamp'] as int?;
+
+    // New server: last_moved_timestamp is present, so last_edit_timestamp
+    // already has the correct semantics (content-edit only).
+    if (lastMovedTimestamp != null) return lastEditTimestamp;
+
+    // Old server: need to scan edit_history to determine if content was edited.
+    final editHistory = json['edit_history'] as List<dynamic>?;
+    if (editHistory == null) return lastEditTimestamp;
+
+    // Find the timestamp of the first content edit.
+    for (final entry in editHistory) {
+      if (entry['prev_content'] != null) {
+        return entry['timestamp'] as int?;
+      }
+    }
+    return null;
+  }
+
+  /// Reads `last_moved_timestamp` from JSON, or derives it from `edit_history`.
+  ///
+  /// On new servers (Zulip 10+, feature level 364), this field is provided
+  /// directly. On older servers, we scan `edit_history` to find the timestamp
+  /// of the most recent move (channel or topic change, excluding resolve/unresolve).
+  static int? _readLastMovedTimestamp(Map<dynamic, dynamic> json, String key) {
+    // New server: use the field directly.
+    final lastMovedTimestamp = json['last_moved_timestamp'] as int?;
+    if (lastMovedTimestamp != null) return lastMovedTimestamp;
+
+    // Old server: scan edit_history to find the most recent move.
+    final editHistory = json['edit_history'] as List<dynamic>?;
+    if (editHistory == null) return null;
+
+    // edit_history is ordered newest-first, so find the first move entry.
+    for (final entry in editHistory) {
+      if (entry['prev_stream'] != null) {
+        return entry['timestamp'] as int?;
+      }
+
+      final prevTopicStr = entry['prev_topic'] as String?;
+      if (prevTopicStr != null) {
+        final prevTopic = TopicName.fromJson(prevTopicStr);
+        final topic = TopicName.fromJson(entry['topic'] as String);
+        if (!MessageEditState.topicMoveWasResolveOrUnresolve(topic, prevTopic)) {
+          return entry['timestamp'] as int?;
+        }
+      }
+    }
+    return null;
+  }
+
   Message({
     required this.client,
     required this.content,
@@ -1172,6 +1234,7 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
     required this.id,
     required this.isMeMessage,
     required this.lastEditTimestamp,
+    required this.lastMovedTimestamp,
     required this.reactions,
     required this.recipientId,
     required this.senderEmail,
@@ -1257,6 +1320,7 @@ class StreamMessage extends Message<StreamConversation> {
     required super.id,
     required super.isMeMessage,
     required super.lastEditTimestamp,
+    required super.lastMovedTimestamp,
     required super.reactions,
     required super.recipientId,
     required super.senderEmail,
@@ -1319,6 +1383,7 @@ class DmMessage extends Message<DmConversation> {
     required super.id,
     required super.isMeMessage,
     required super.lastEditTimestamp,
+    required super.lastMovedTimestamp,
     required super.reactions,
     required super.recipientId,
     required super.senderEmail,
@@ -1373,12 +1438,22 @@ enum MessageEditState {
   }
 
   static MessageEditState _readFromMessage(Map<dynamic, dynamic> json, String key) {
-    // Adapted from `analyze_edit_history` in the web app:
-    //   https://github.com/zulip/zulip/blob/c31cebbf68a93927d41e9947427c2dd4d46503e3/web/src/message_list_view.js#L68-L118
+    // Derive editState from the timestamps that Message._readLastEditTimestamp
+    // and Message._readLastMovedTimestamp computed (or will compute).
+    // We use the same logic they use to determine the values.
+    final lastMovedTimestampRaw = json['last_moved_timestamp'] as int?;
+    final lastEditTimestampRaw = json['last_edit_timestamp'] as int?;
+
+    // New server: both fields have correct semantics.
+    if (lastMovedTimestampRaw != null) {
+      if (lastEditTimestampRaw != null) return MessageEditState.edited;
+      return MessageEditState.moved;
+    }
+
+    // Old server: scan edit_history.
     final editHistory = json['edit_history'] as List<dynamic>?;
-    final lastEditTimestamp = json['last_edit_timestamp'] as int?;
     if (editHistory == null) {
-      return (lastEditTimestamp != null)
+      return (lastEditTimestampRaw != null)
         ? MessageEditState.edited
         : MessageEditState.none;
     }
