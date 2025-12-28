@@ -99,6 +99,17 @@ class ZulipContent extends ContentNode implements ZulipMessageContent {
 
   final List<BlockContentNode> nodes;
 
+  /// Whether this content consists of a single paragraph containing only emoji.
+  ///
+  /// When true, the emoji should be displayed at a larger size.
+  bool get isEmojiOnly {
+    if (nodes.length != 1) return false;
+    final node = nodes.single;
+    if (node is! ParagraphNode) return false;
+    if (node.nodes.isEmpty) return false;
+    return node.nodes.every((n) => n is EmojiNode);
+  }
+
   @override
   List<DiagnosticsNode> debugDescribeChildren() {
     return nodes.map((node) => node.toDiagnosticsNode()).toList();

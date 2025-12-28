@@ -282,6 +282,11 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 /// The font size for message content in a plain unstyled paragraph.
 const double kBaseFontSize = 17;
 
+/// The scale factor for large emoji in emoji-only messages.
+///
+/// See [ZulipContent.isEmojiOnly].
+const double kLargeEmojiScaleFactor = 2.0;
+
 /// The entire content of a message, aka its body.
 ///
 /// This does not include metadata like the sender's name and avatar, the time,
@@ -295,14 +300,31 @@ class MessageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = this.content;
+    final isLargeEmoji = content is ZulipContent && content.isEmojiOnly;
     return InheritedMessage(message: message,
-      child: DefaultTextStyle(
-        style: ContentTheme.of(context).textStylePlainParagraph,
-        child: switch (content) {
-          ZulipContent() => BlockContentList(nodes: content.nodes),
-          PollContent()  => PollWidget(messageId: message.id, poll: content.poll),
-        }));
+      child: _LargeEmojiSetting(isLargeEmoji: isLargeEmoji,
+        child: DefaultTextStyle(
+          style: ContentTheme.of(context).textStylePlainParagraph,
+          child: switch (content) {
+            ZulipContent() => BlockContentList(nodes: content.nodes),
+            PollContent()  => PollWidget(messageId: message.id, poll: content.poll),
+          })));
   }
+}
+
+class _LargeEmojiSetting extends InheritedWidget {
+  const _LargeEmojiSetting({required this.isLargeEmoji, required super.child});
+
+  final bool isLargeEmoji;
+
+  static bool of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<_LargeEmojiSetting>()
+      ?.isLargeEmoji ?? false;
+  }
+
+  @override
+  bool updateShouldNotify(covariant _LargeEmojiSetting oldWidget) =>
+    isLargeEmoji != oldWidget.isLargeEmoji;
 }
 
 class InheritedMessage extends InheritedWidget {
@@ -1126,8 +1148,12 @@ class _InlineContentBuilder {
           child: UserMention(ambientTextStyle: widget.style, node: node));
 
       case UnicodeEmojiNode():
+        final emojiStyle = ContentTheme.of(_context!).textStyleEmoji;
+        final isLargeEmoji = _LargeEmojiSetting.of(_context!);
         return TextSpan(text: node.emojiUnicode, recognizer: _recognizer,
-          style: ContentTheme.of(_context!).textStyleEmoji);
+          style: isLargeEmoji
+            ? emojiStyle.copyWith(fontSize: kBaseFontSize * kLargeEmojiScaleFactor)
+            : emojiStyle);
 
       case ImageEmojiNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
@@ -1263,22 +1289,26 @@ class MessageImageEmoji extends StatelessWidget {
 
   final ImageEmojiNode node;
 
+  static const _baseSize = 20.0;
+
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final resolvedSrc = store.tryResolveUrl(node.src);
 
-    const size = 20.0;
+    final isLargeEmoji = _LargeEmojiSetting.of(context);
+    final size = isLargeEmoji ? _baseSize * kLargeEmojiScaleFactor : _baseSize;
+    final lineHeight = isLargeEmoji ? kBaseFontSize * kLargeEmojiScaleFactor : kBaseFontSize;
 
     return Stack(
       alignment: Alignment.center,
       clipBehavior: Clip.none,
       children: [
-        const SizedBox(width: size, height: kBaseFontSize),
+        SizedBox(width: size, height: lineHeight),
         Positioned(
           // Web's css makes this seem like it should be -0.5, but that looks
           // too low.
-          top: -1.5,
+          top: isLargeEmoji ? -3.0 : -1.5,
           child: resolvedSrc == null ? const SizedBox.shrink() // TODO(log)
             : RealmContentNetworkImage(
                 resolvedSrc,
