@@ -311,6 +311,29 @@ mixin NavigationStack {
     }
     return null;
   }
+
+  /// The topmost page route on the stack, if any.
+  ///
+  /// In particular this excludes dialogs and modal bottom sheets.
+  PageRoute<dynamic>? get currentPageRoute {
+    for (final route in routes.reversed) {
+      switch (route) {
+        case PageRoute():
+          return route;
+
+        case PopupRoute():
+          // This case includes dialogs and modal bottom sheets.
+          continue;
+
+        default:
+          // TODO(log) All known concrete Route subclasses are either of
+          //   PageRoute or PopupRoute.  If something else appears, we should
+          //   decide how the callers of this method want to treat it.
+          continue;
+      }
+    }
+    return null;
+  }
 }
 
 // TODO(upstream): why doesn't Navigator expose the list of routes itself?
