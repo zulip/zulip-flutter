@@ -11,6 +11,7 @@ import '../host/notifications.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/narrow.dart';
+import '../model/store.dart' show Account;
 import '../widgets/app.dart';
 import '../widgets/dialog.dart';
 import '../widgets/home.dart';
@@ -90,13 +91,13 @@ class NotificationOpenService {
     return routeForNotification(context: context, data: notifNavData);
   }
 
-  /// Provides the route to open by parsing the notification payload.
+  /// Finds the account associated with the given notification.
   ///
   /// Returns null and shows an error dialog if the associated account is not
   /// found in the global store.
   ///
   /// The context argument should be a descendant of the app's main [Navigator].
-  static AccountRoute<void>? routeForNotification({
+  static Account? _accountForNotification({
     required BuildContext context,
     required NotificationOpenPayload data,
   }) {
@@ -112,6 +113,21 @@ class NotificationOpenService {
         message: zulipLocalizations.errorNotificationOpenAccountNotFound);
       return null;
     }
+    return account;
+  }
+
+  /// Provides the route to open by parsing the notification payload.
+  ///
+  /// Returns null and shows an error dialog if the associated account is not
+  /// found in the global store.
+  ///
+  /// The context argument should be a descendant of the app's main [Navigator].
+  static AccountRoute<void>? routeForNotification({
+    required BuildContext context,
+    required NotificationOpenPayload data,
+  }) {
+    final account = _accountForNotification(context: context, data: data);
+    if (account == null) return null;
 
     return MessageListPage.buildRoute(
       accountId: account.id,
