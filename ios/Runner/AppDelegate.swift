@@ -66,6 +66,6 @@ class NotificationTapEventListener: NotificationTapEventsStreamHandler {
   }
 
   func onNotificationTapEvent(payload: [AnyHashable : Any]) {
-    eventSink?.success(NotificationTapEvent(payload: payload))
+    eventSink?.success(IosNotificationTapEvent(payload: payload))
   }
 }

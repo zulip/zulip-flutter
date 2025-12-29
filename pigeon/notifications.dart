@@ -17,11 +17,17 @@ class NotificationDataFromLaunch {
   final Map<Object?, Object?> payload;
 }
 
-class NotificationTapEvent {
-  const NotificationTapEvent({required this.payload});
+sealed class NotificationTapEvent {
+  const NotificationTapEvent();
+}
 
-  /// The raw payload that is attached to the notification,
-  /// holding the information required to carry out the navigation.
+/// On iOS, an event emitted when a notification is tapped.
+///
+/// See [notificationTapEvents].
+class IosNotificationTapEvent extends NotificationTapEvent {
+  const IosNotificationTapEvent({required this.payload});
+
+  /// The iOS APNs payload of the notification.
   ///
   /// See [notificationTapEvents].
   final Map<Object?, Object?> payload;
@@ -42,11 +48,15 @@ abstract class NotificationHostApi {
 /// An event stream that emits a notification payload when the app
 /// encounters a notification tap, while the app is running.
 ///
-/// Emits an event when
+/// On iOS, emits [IosNotificationTapEvent] when
 /// `userNotificationCenter(_:didReceive:withCompletionHandler:)` gets
 /// called, indicating that the user has tapped on a notification. The
-/// emitted payload will be the raw APNs data dictionary from the
-/// `UNNotificationResponse` passed to that method.
+/// emitted event carries a payload which will be the raw APNs data
+/// dictionary from the `UNNotificationResponse` passed to that method.
+///
+/// On, Android this method is currently unimplemented.
+///
+/// TODO migrate handling of notification taps on Android to use this API.
 @EventChannelApi()
 abstract class NotificationEventChannelApi {
   NotificationTapEvent notificationTapEvents();

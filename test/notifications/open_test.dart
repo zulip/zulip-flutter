@@ -169,7 +169,7 @@ void main() {
         case TargetPlatform.iOS:
           final payload = messageApnsPayload(message, account: account);
           testBinding.notificationPigeonApi.addNotificationTapEvent(
-            NotificationTapEvent(payload: payload));
+            IosNotificationTapEvent(payload: payload));
           await tester.idle(); // let navigateForNotification find navigator
 
         default:
