@@ -119,6 +119,21 @@ class NotificationOpenService {
       narrow: data.narrow);
   }
 
+  /// Navigate appropriately for opening the given notification.
+  static void _navigateForNotificationPayload(
+      NavigatorState navigator, NotificationOpenPayload data) {
+    assert(navigator.mounted);
+    final context = navigator.context;
+
+    final route = routeForNotification(context: context, data: data);
+    if (route == null) return; // TODO(log)
+
+    if (GlobalStoreWidget.of(context).lastVisitedAccount?.id != route.accountId) {
+      HomePage.navigate(context, accountId: route.accountId);
+    }
+    unawaited(navigator.push(route));
+  }
+
   /// Navigate appropriately for opening the notification described by
   /// the given [NotificationTapEvent].
   static Future<void> _navigateForNotification(NotificationTapEvent event) async {
@@ -132,13 +147,7 @@ class NotificationOpenService {
 
     final notifNavData = _tryParseIosApnsPayload(context, event.payload);
     if (notifNavData == null) return; // TODO(log)
-    final route = routeForNotification(context: context, data: notifNavData);
-    if (route == null) return; // TODO(log)
-
-    if (GlobalStoreWidget.of(context).lastVisitedAccount?.id != route.accountId) {
-      HomePage.navigate(context, accountId: route.accountId);
-    }
-    unawaited(navigator.push(route));
+    _navigateForNotificationPayload(navigator, notifNavData);
   }
 
   /// Navigate appropriately for opening the notification described by
@@ -159,13 +168,7 @@ class NotificationOpenService {
     assert(url.scheme == 'zulip' && url.host == 'notification');
     final data = tryParseAndroidNotificationUrl(context: context, url: url);
     if (data == null) return; // TODO(log)
-    final route = routeForNotification(context: context, data: data);
-    if (route == null) return; // TODO(log)
-
-    if (GlobalStoreWidget.of(context).lastVisitedAccount?.id != route.accountId) {
-      HomePage.navigate(context, accountId: route.accountId);
-    }
-    unawaited(navigator.push(route));
+    _navigateForNotificationPayload(navigator, data);
   }
 
   static NotificationOpenPayload? _tryParseIosApnsPayload(
