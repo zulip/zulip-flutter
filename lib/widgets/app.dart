@@ -295,8 +295,22 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   }
 }
 
+/// A view of the app's navigation stack, plus convenient helpers to inspect it.
 mixin NavigationStack {
   List<Route<dynamic>> get routes;
+
+  /// The Zulip account ID being viewed topmost in the navigation, if any.
+  ///
+  /// Typically there should be only one account present in the nav stack
+  /// at a time, in which case this is that one account's ID.
+  int? get currentAccountId {
+    for (final route in routes.reversed) {
+      if (route case AccountPageRouteMixin(:final accountId)) {
+        return accountId;
+      }
+    }
+    return null;
+  }
 }
 
 // TODO(upstream): why doesn't Navigator expose the list of routes itself?

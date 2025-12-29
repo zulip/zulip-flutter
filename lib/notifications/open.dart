@@ -128,7 +128,7 @@ class NotificationOpenService {
     final route = routeForNotification(context: context, data: data);
     if (route == null) return; // TODO(log)
 
-    if (GlobalStoreWidget.of(context).lastVisitedAccount?.id != route.accountId) {
+    if (ZulipApp.navigationStack!.currentAccountId != route.accountId) {
       HomePage.navigate(context, accountId: route.accountId);
     }
     unawaited(navigator.push(route));
