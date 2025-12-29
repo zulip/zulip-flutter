@@ -158,7 +158,18 @@ struct NotificationDataFromLaunch: Hashable {
 }
 
 /// Generated class from Pigeon that represents data sent in messages.
-struct NotificationTapEvent: Hashable {
+/// This protocol should not be extended by any user class outside of the generated file.
+protocol NotificationTapEvent {
+
+}
+
+/// An event that is only emitted on iOS platform when a notification is
+/// tapped on.
+///
+/// See [notificationTapEvents].
+///
+/// Generated class from Pigeon that represents data sent in messages.
+struct IosNotificationTapEvent: NotificationTapEvent {
   /// The raw payload that is attached to the notification,
   /// holding the information required to carry out the navigation.
   ///
@@ -167,10 +178,10 @@ struct NotificationTapEvent: Hashable {
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
-  static func fromList(_ pigeonVar_list: [Any?]) -> NotificationTapEvent? {
+  static func fromList(_ pigeonVar_list: [Any?]) -> IosNotificationTapEvent? {
     let payload = pigeonVar_list[0] as! [AnyHashable?: Any?]
 
-    return NotificationTapEvent(
+    return IosNotificationTapEvent(
       payload: payload
     )
   }
@@ -179,7 +190,7 @@ struct NotificationTapEvent: Hashable {
       payload
     ]
   }
-  static func == (lhs: NotificationTapEvent, rhs: NotificationTapEvent) -> Bool {
+  static func == (lhs: IosNotificationTapEvent, rhs: IosNotificationTapEvent) -> Bool {
     return deepEqualsNotifications(lhs.toList(), rhs.toList())  }
   func hash(into hasher: inout Hasher) {
     deepHashNotifications(value: toList(), hasher: &hasher)
@@ -192,7 +203,7 @@ private class NotificationsPigeonCodecReader: FlutterStandardReader {
     case 129:
       return NotificationDataFromLaunch.fromList(self.readValue() as! [Any?])
     case 130:
-      return NotificationTapEvent.fromList(self.readValue() as! [Any?])
+      return IosNotificationTapEvent.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
     }
@@ -204,7 +215,7 @@ private class NotificationsPigeonCodecWriter: FlutterStandardWriter {
     if let value = value as? NotificationDataFromLaunch {
       super.writeByte(129)
       super.writeValue(value.toList())
-    } else if let value = value as? NotificationTapEvent {
+    } else if let value = value as? IosNotificationTapEvent {
       super.writeByte(130)
       super.writeValue(value.toList())
     } else {

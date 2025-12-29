@@ -74,8 +74,15 @@ class NotificationDataFromLaunch {
 ;
 }
 
-class NotificationTapEvent {
-  NotificationTapEvent({
+sealed class NotificationTapEvent {
+}
+
+/// An event that is only emitted on iOS platform when a notification is
+/// tapped on.
+///
+/// See [notificationTapEvents].
+class IosNotificationTapEvent extends NotificationTapEvent {
+  IosNotificationTapEvent({
     required this.payload,
   });
 
@@ -94,9 +101,9 @@ class NotificationTapEvent {
   Object encode() {
     return _toList();  }
 
-  static NotificationTapEvent decode(Object result) {
+  static IosNotificationTapEvent decode(Object result) {
     result as List<Object?>;
-    return NotificationTapEvent(
+    return IosNotificationTapEvent(
       payload: (result[0] as Map<Object?, Object?>?)!.cast<Object?, Object?>(),
     );
   }
@@ -104,7 +111,7 @@ class NotificationTapEvent {
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   bool operator ==(Object other) {
-    if (other is! NotificationTapEvent || other.runtimeType != runtimeType) {
+    if (other is! IosNotificationTapEvent || other.runtimeType != runtimeType) {
       return false;
     }
     if (identical(this, other)) {
@@ -130,7 +137,7 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is NotificationDataFromLaunch) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
-    }    else if (value is NotificationTapEvent) {
+    }    else if (value is IosNotificationTapEvent) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
     } else {
@@ -144,7 +151,7 @@ class _PigeonCodec extends StandardMessageCodec {
       case 129: 
         return NotificationDataFromLaunch.decode(readValue(buffer)!);
       case 130: 
-        return NotificationTapEvent.decode(readValue(buffer)!);
+        return IosNotificationTapEvent.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }

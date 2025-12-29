@@ -119,10 +119,17 @@ class NotificationOpenService {
       narrow: data.narrow);
   }
 
+  static Future<void> _navigateForNotification(NotificationTapEvent event) async {
+    switch (event) {
+      case IosNotificationTapEvent():
+        return _navigateForNotificationIos(event);
+    }
+  }
+
   /// Navigates to the [MessageListPage] of the specific conversation
   /// for the provided payload that was attached while creating the
   /// notification.
-  static Future<void> _navigateForNotification(NotificationTapEvent event) async {
+  static Future<void> _navigateForNotificationIos(IosNotificationTapEvent event) async {
     assert(defaultTargetPlatform == TargetPlatform.iOS);
     assert(debugLog('opened notif: ${jsonEncode(event.payload)}'));
 
