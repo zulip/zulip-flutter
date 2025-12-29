@@ -141,13 +141,16 @@ class NotificationOpenService {
     assert(navigator.mounted);
     final context = navigator.context;
 
-    final route = routeForNotification(context: context, data: data);
-    if (route == null) return; // TODO(log)
+    final account = _accountForNotification(context: context, data: data);
+    if (account == null) return; // TODO(log)
 
-    if (ZulipApp.navigationStack!.currentAccountId != route.accountId) {
-      HomePage.navigate(context, accountId: route.accountId);
+    if (ZulipApp.navigationStack!.currentAccountId != account.id) {
+      HomePage.navigate(context, accountId: account.id);
     }
-    unawaited(navigator.push(route));
+    unawaited(navigator.push(MessageListPage.buildRoute(
+      accountId: account.id,
+      // TODO(#1565): Open at specific message, not just conversation
+      narrow: data.narrow)));
   }
 
   /// Navigate appropriately for opening the notification described by
