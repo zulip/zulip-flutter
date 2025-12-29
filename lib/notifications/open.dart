@@ -140,11 +140,31 @@ class NotificationOpenService {
       NavigatorState navigator, NotificationOpenPayload data) {
     assert(navigator.mounted);
     final context = navigator.context;
+    final navStack = ZulipApp.navigationStack!;
 
     final account = _accountForNotification(context: context, data: data);
     if (account == null) return; // TODO(log)
 
-    if (ZulipApp.navigationStack!.currentAccountId != account.id) {
+    final currentPageRoute = navStack.currentPageRoute;
+    if (currentPageRoute is MaterialAccountWidgetRoute
+        && currentPageRoute.accountId == account.id
+        && currentPageRoute.page is MessageListPage
+        && MessageListPage.currentNarrow(currentPageRoute) == data.narrow
+    ) {
+      // The current page is already a MessageListPage at the desired narrow.
+      // Instead of pushing another copy of it, stay there; see #1852.
+
+      // Do dismiss any non-page routes, like dialogs and bottom sheets, though.
+      // That way we're presenting the page directly, like the user asked for
+      // by opening the notification.
+      navigator.popUntil((route) => route is PageRoute);
+
+      // TODO(#1565): Scroll to the specific message if nearby; else jump there,
+      //   or push a new page anchored there.
+      return;
+    }
+
+    if (navStack.currentAccountId != account.id) {
       HomePage.navigate(context, accountId: account.id);
     }
     unawaited(navigator.push(MessageListPage.buildRoute(
