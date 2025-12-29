@@ -74,13 +74,18 @@ class NotificationDataFromLaunch {
 ;
 }
 
-class NotificationTapEvent {
-  NotificationTapEvent({
+sealed class NotificationTapEvent {
+}
+
+/// On iOS, an event emitted when a notification is tapped.
+///
+/// See [notificationTapEvents].
+class IosNotificationTapEvent extends NotificationTapEvent {
+  IosNotificationTapEvent({
     required this.payload,
   });
 
-  /// The raw payload that is attached to the notification,
-  /// holding the information required to carry out the navigation.
+  /// The iOS APNs payload of the notification.
   ///
   /// See [notificationTapEvents].
   Map<Object?, Object?> payload;
@@ -94,9 +99,9 @@ class NotificationTapEvent {
   Object encode() {
     return _toList();  }
 
-  static NotificationTapEvent decode(Object result) {
+  static IosNotificationTapEvent decode(Object result) {
     result as List<Object?>;
-    return NotificationTapEvent(
+    return IosNotificationTapEvent(
       payload: (result[0] as Map<Object?, Object?>?)!.cast<Object?, Object?>(),
     );
   }
@@ -104,7 +109,7 @@ class NotificationTapEvent {
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   bool operator ==(Object other) {
-    if (other is! NotificationTapEvent || other.runtimeType != runtimeType) {
+    if (other is! IosNotificationTapEvent || other.runtimeType != runtimeType) {
       return false;
     }
     if (identical(this, other)) {
@@ -130,7 +135,7 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is NotificationDataFromLaunch) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
-    }    else if (value is NotificationTapEvent) {
+    }    else if (value is IosNotificationTapEvent) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
     } else {
@@ -144,7 +149,7 @@ class _PigeonCodec extends StandardMessageCodec {
       case 129: 
         return NotificationDataFromLaunch.decode(readValue(buffer)!);
       case 130: 
-        return NotificationTapEvent.decode(readValue(buffer)!);
+        return IosNotificationTapEvent.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -200,11 +205,15 @@ class NotificationHostApi {
 /// An event stream that emits a notification payload when the app
 /// encounters a notification tap, while the app is running.
 ///
-/// Emits an event when
+/// On iOS, emits [IosNotificationTapEvent] when
 /// `userNotificationCenter(_:didReceive:withCompletionHandler:)` gets
 /// called, indicating that the user has tapped on a notification. The
-/// emitted payload will be the raw APNs data dictionary from the
-/// `UNNotificationResponse` passed to that method.
+/// emitted event carries a payload which will be the raw APNs data
+/// dictionary from the `UNNotificationResponse` passed to that method.
+///
+/// On, Android this method is currently unimplemented.
+///
+/// TODO migrate handling of notification taps on Android to use this API.
 Stream<NotificationTapEvent> notificationTapEvents( {String instanceName = ''}) {
   if (instanceName.isNotEmpty) {
     instanceName = '.$instanceName';
