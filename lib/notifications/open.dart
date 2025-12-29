@@ -176,6 +176,15 @@ class NotificationOpenService {
   /// Navigate appropriately for opening the notification described by
   /// the given [NotificationTapEvent].
   static Future<void> _navigateForNotification(NotificationTapEvent event) async {
+    switch (event) {
+      case IosNotificationTapEvent():
+        return _navigateForNotificationIos(event);
+    }
+  }
+
+  /// Navigate appropriately for opening the notification described by
+  /// the given [IosNotificationTapEvent] which carries the iOS APNs payload.
+  static Future<void> _navigateForNotificationIos(IosNotificationTapEvent event) async {
     assert(defaultTargetPlatform == TargetPlatform.iOS);
     assert(debugLog('opened notif: ${jsonEncode(event.payload)}'));
 

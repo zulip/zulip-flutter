@@ -17,8 +17,16 @@ class NotificationDataFromLaunch {
   final Map<Object?, Object?> payload;
 }
 
-class NotificationTapEvent {
-  const NotificationTapEvent({required this.payload});
+sealed class NotificationTapEvent {
+  const NotificationTapEvent();
+}
+
+/// An event that is only emitted on iOS platform when a notification is
+/// tapped on.
+///
+/// See [notificationTapEvents].
+class IosNotificationTapEvent extends NotificationTapEvent {
+  const IosNotificationTapEvent({required this.payload});
 
   /// The raw payload that is attached to the notification,
   /// holding the information required to carry out the navigation.
