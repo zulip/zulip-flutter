@@ -199,6 +199,41 @@ class MessageListPage extends StatefulWidget {
         initAnchorMessageId: initAnchorMessageId));
   }
 
+  /// The [MessageListPageState] for the page at the given route.
+  ///
+  /// The route must be a [WidgetRoute] for [MessageListPage].
+  ///
+  /// Null if the route is not mounted in the widget tree.
+  static MessageListPageState? stateOfRoute(Route<void> route) {
+    if (!(route is WidgetRoute && route.page is MessageListPage)) {
+      assert(false, 'MessageListPage.stateOfRoute expects a MessageListPage route');
+      return null;
+    }
+    final element = route.pageElement;
+    if (element == null) return null;
+    assert(element.widget == route.page);
+
+    return (element as StatefulElement).state as MessageListPageState;
+  }
+
+  /// The current narrow, as updated, for the given [MessageListPage] route.
+  ///
+  /// The route must be a [WidgetRoute] for [MessageListPage].
+  ///
+  /// This uses [MessageListPageState.narrow] to take into account any updates
+  /// that have happened since the route was navigated to.
+  static Narrow currentNarrow(Route<void> route) {
+    final state = stateOfRoute(route);
+    if (state == null) {
+      // The page is not yet mounted.  Either the route has not yet been
+      // navigated to, or there hasn't yet been a new frame since it was.
+      // Either way, there's been no change to its narrow.
+      return ((route as WidgetRoute).page as MessageListPage).initNarrow;
+    }
+    // The page is mounted, and may have changed its narrow.
+    return state.narrow;
+  }
+
   /// The "revealed" state of a message from a muted sender,
   /// if there is a [MessageListPage] ancestor, else null.
   ///
