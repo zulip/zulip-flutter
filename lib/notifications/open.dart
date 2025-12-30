@@ -119,9 +119,8 @@ class NotificationOpenService {
       narrow: data.narrow);
   }
 
-  /// Navigates to the [MessageListPage] of the specific conversation
-  /// for the provided payload that was attached while creating the
-  /// notification.
+  /// Navigate appropriately for opening the notification described by
+  /// the given [NotificationTapEvent].
   static Future<void> _navigateForNotification(NotificationTapEvent event) async {
     assert(defaultTargetPlatform == TargetPlatform.iOS);
     assert(debugLog('opened notif: ${jsonEncode(event.payload)}'));
@@ -142,10 +141,12 @@ class NotificationOpenService {
     unawaited(navigator.push(route));
   }
 
-  /// Navigates to the [MessageListPage] of the specific conversation
-  /// given the `zulip://notification/…` Android intent data URL,
-  /// generated with [NotificationOpenPayload.buildAndroidNotificationUrl]
-  /// while creating the notification.
+  /// Navigate appropriately for opening the notification described by
+  /// the given `zulip://notification/…` Android intent data URL.
+  ///
+  /// The URL should have been generated with
+  /// [NotificationOpenPayload.buildAndroidNotificationUrl]
+  /// when creating the notification.
   static Future<void> navigateForAndroidNotificationUrl(Uri url) async {
     assert(defaultTargetPlatform == TargetPlatform.android);
     assert(debugLog('opened notif: url: $url'));
