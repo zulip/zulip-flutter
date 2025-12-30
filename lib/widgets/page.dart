@@ -30,10 +30,32 @@ class PageRoot extends InheritedWidget {
 
 /// A page route that always builds the same widget.
 ///
-/// This is useful for making the route more transparent for a test to inspect.
-abstract class WidgetRoute<T extends Object?> extends PageRoute<T> {
+/// In addition to the [pageElement] getter,
+/// this is useful for making the route more transparent for a test to inspect.
+mixin WidgetRoute<T extends Object?> on PageRoute<T> {
   /// The widget that this page route always builds.
   Widget get page;
+
+  /// The element built from [page] for this route.
+  ///
+  /// Null if the route is not mounted in the widget tree.
+  Element? get pageElement {
+    final context = subtreeContext;
+    if (context == null) return null;
+    // Now subtreeContext is an element built by the ModalRoute implementation
+    // which tightly encloses the element built from [page].
+
+    Element? result;
+    void visitor(Element element) {
+      if (element.widget == page) {
+        result = element;
+      } else {
+        element.visitChildElements(visitor);
+      }
+    }
+    context.visitChildElements(visitor);
+    return result!;
+  }
 }
 
 /// A page route that specifies a particular Zulip account to use, by ID.
@@ -49,7 +71,7 @@ abstract class AccountRoute<T extends Object?> extends PageRoute<T> {
 /// See also:
 ///  * [MaterialAccountWidgetRoute], a subclass which automates providing a
 ///    per-account store on the new route.
-class MaterialWidgetRoute<T extends Object?> extends MaterialPageRoute<T> implements WidgetRoute<T> {
+class MaterialWidgetRoute<T extends Object?> extends MaterialPageRoute<T> with WidgetRoute<T> {
   MaterialWidgetRoute({
     required this.page,
     super.settings,
@@ -131,7 +153,7 @@ class MaterialAccountPageRoute<T extends Object?> extends MaterialPageRoute<T> w
 ///
 /// See also:
 ///  * [MaterialWidgetRoute], for routes that need no per-account store.
-class MaterialAccountWidgetRoute<T extends Object?> extends MaterialAccountPageRoute<T> implements WidgetRoute<T> {
+class MaterialAccountWidgetRoute<T extends Object?> extends MaterialAccountPageRoute<T> with WidgetRoute<T> {
   /// Construct a [MaterialAccountWidgetRoute] using either the given account ID,
   /// or the ambient one from the given context.
   ///
