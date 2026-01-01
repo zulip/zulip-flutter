@@ -553,6 +553,9 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
   String get unknownUserName => '(unknown user)';
 
   @override
+  String get youIndicator => '(you)';
+
+  @override
   String get dmsWithYourselfPageTitle => 'DMs with yourself';
 
   @override

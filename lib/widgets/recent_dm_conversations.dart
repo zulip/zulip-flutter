@@ -36,10 +36,13 @@ class RecentDmConversationsPageBody extends StatefulWidget {
   final OnDmSelectCallback? onDmSelect;
 
   @override
-  State<RecentDmConversationsPageBody> createState() => _RecentDmConversationsPageBodyState();
+  State<RecentDmConversationsPageBody> createState() =>
+      _RecentDmConversationsPageBodyState();
 }
 
-class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPageBody> with PerAccountStoreAwareStateMixin<RecentDmConversationsPageBody> {
+class _RecentDmConversationsPageBodyState
+    extends State<RecentDmConversationsPageBody>
+    with PerAccountStoreAwareStateMixin<RecentDmConversationsPageBody> {
   RecentDmConversationsView? model;
   Unreads? unreadsModel;
 
@@ -72,9 +75,10 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
     if (widget.onDmSelect case final onDmSelect?) {
       onDmSelect(narrow);
     } else {
-      Navigator.push(context,
-        MessageListPage.buildRoute(context: context,
-          narrow: narrow));
+      Navigator.push(
+        context,
+        MessageListPage.buildRoute(context: context, narrow: narrow),
+      );
     }
   }
 
@@ -84,9 +88,10 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
       Navigator.pop(context);
       onDmSelect(narrow);
     } else {
-      Navigator.pushReplacement(context,
-        MessageListPage.buildRoute(context: context,
-          narrow: narrow));
+      Navigator.pushReplacement(
+        context,
+        MessageListPage.buildRoute(context: context, narrow: narrow),
+      );
     }
   }
 
@@ -107,8 +112,11 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
       children: [
         if (sorted.isEmpty)
           PageBodyEmptyContentPlaceholder(
-            header: zulipLocalizations.recentDmConversationsEmptyPlaceholderHeader,
-            message: zulipLocalizations.recentDmConversationsEmptyPlaceholderMessage)
+            header:
+                zulipLocalizations.recentDmConversationsEmptyPlaceholderHeader,
+            message:
+                zulipLocalizations.recentDmConversationsEmptyPlaceholderMessage,
+          )
         else
           SafeArea(
             // Don't pad the bottom here; we want the list content to do that.
@@ -136,9 +144,9 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
                 }
                 if (widget.hideDmsIfUserCantPost) {
                   // TODO(#791) handle other cases where user can't post
-                  final hasDeactivatedUser =
-                    narrow.otherRecipientIds.any(
-                      (id) => !(store.getUser(id)?.isActive ?? true));
+                  final hasDeactivatedUser = narrow.otherRecipientIds.any(
+                    (id) => !(store.getUser(id)?.isActive ?? true),
+                  );
                   if (hasDeactivatedUser) {
                     return SizedBox.shrink();
                   }
@@ -146,12 +154,17 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
                 return RecentDmConversationsItem(
                   narrow: narrow,
                   unreadCount: unreadsModel!.countInDmNarrow(narrow),
-                  onDmSelect: _handleDmSelect);
-              })),
+                  onDmSelect: _handleDmSelect,
+                );
+              },
+            ),
+          ),
         Positioned(
           bottom: bottomInsets + 21,
-          child: _NewDmButton(onDmSelect: _handleDmSelectForNewDms)),
-      ]);
+          child: _NewDmButton(onDmSelect: _handleDmSelectForNewDms),
+        ),
+      ],
+    );
   }
 }
 
@@ -177,18 +190,31 @@ class RecentDmConversationsItem extends StatelessWidget {
     final InlineSpan title;
     final Widget avatar;
     int? userIdForPresence;
-    switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
+    switch (narrow.otherRecipientIds) {
+      // TODO dedupe with DM items in [InboxPage]
       case []:
-        title = TextSpan(text: store.selfUser.fullName, children: [
-          UserStatusEmoji.asWidgetSpan(userId: store.selfUserId,
-            fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
-        ]);
+        title = TextSpan(
+          text: store.selfUser.fullName,
+          children: [
+            UserStatusEmoji.asWidgetSpan(
+              userId: store.selfUserId,
+              fontSize: 17,
+              textScaler: MediaQuery.textScalerOf(context),
+            ),
+          ],
+        );
         avatar = AvatarImage(userId: store.selfUserId, size: _avatarSize);
       case [var otherUserId]:
-        title = TextSpan(text: store.userDisplayName(otherUserId), children: [
-          UserStatusEmoji.asWidgetSpan(userId: otherUserId,
-            fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
-        ]);
+        title = TextSpan(
+          text: store.userDisplayName(otherUserId),
+          children: [
+            UserStatusEmoji.asWidgetSpan(
+              userId: otherUserId,
+              fontSize: 17,
+              textScaler: MediaQuery.textScalerOf(context),
+            ),
+          ],
+        );
         avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
         userIdForPresence = otherUserId;
       default:
@@ -196,11 +222,17 @@ class RecentDmConversationsItem extends StatelessWidget {
           // TODO(i18n): List formatting, like you can do in JavaScript:
           //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
           //   // 'Chris、Greg、Alya'
-          text: narrow.otherRecipientIds.map(store.userDisplayName).join(', '));
-        avatar = ColoredBox(color: designVariables.avatarPlaceholderBg,
+          text: narrow.otherRecipientIds.map(store.userDisplayName).join(', '),
+        );
+        avatar = ColoredBox(
+          color: designVariables.avatarPlaceholderBg,
           child: Center(
-            child: Icon(color: designVariables.avatarPlaceholderIcon,
-              ZulipIcons.group_dm)));
+            child: Icon(
+              color: designVariables.avatarPlaceholderIcon,
+              ZulipIcons.group_dm,
+            ),
+          ),
+        );
     }
 
     // TODO(design) check if this is the right variable
@@ -209,44 +241,61 @@ class RecentDmConversationsItem extends StatelessWidget {
       color: backgroundColor,
       child: InkWell(
         onTap: () => onDmSelect(narrow),
-        child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 48),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            Padding(padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 0, 8),
-              child: AvatarShape(
-                size: _avatarSize,
-                borderRadius: 3,
-                backgroundColor: userIdForPresence != null ? backgroundColor : null,
-                userIdForPresence: userIdForPresence,
-                child: avatar)),
-            const SizedBox(width: 8),
-            Expanded(child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text.rich(
-                style: TextStyle(
-                  fontSize: 17,
-                  height: (20 / 17),
-                  // TODO(design) check if this is the right variable
-                  color: designVariables.labelMenuButton,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 0, 8),
+                child: AvatarShape(
+                  size: _avatarSize,
+                  borderRadius: 3,
+                  backgroundColor: userIdForPresence != null
+                      ? backgroundColor
+                      : null,
+                  userIdForPresence: userIdForPresence,
+                  child: avatar,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                title))),
-            const SizedBox(width: 12),
-            unreadCount > 0
-              ? Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-                child: CounterBadge(
-                  kind: CounterBadgeKind.unread,
-                  channelIdForBackground: null,
-                  count: unreadCount))
-            : const SizedBox(),
-          ]))));
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text.rich(
+                    style: TextStyle(
+                      fontSize: 17,
+                      height: (20 / 17),
+                      // TODO(design) check if this is the right variable
+                      color: designVariables.labelMenuButton,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    title,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              unreadCount > 0
+                  ? Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 16),
+                      child: CounterBadge(
+                        kind: CounterBadgeKind.unread,
+                        channelIdForBackground: null,
+                        count: unreadCount,
+                      ),
+                    )
+                  : const SizedBox(),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
 class _NewDmButton extends StatefulWidget {
-  const _NewDmButton({
-    required this.onDmSelect,
-  });
+  const _NewDmButton({required this.onDmSelect});
 
   final OnDmSelectCallback onDmSelect;
 
@@ -263,11 +312,11 @@ class _NewDmButtonState extends State<_NewDmButton> {
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final fabBgColor = _pressed
-      ? designVariables.fabBgPressed
-      : designVariables.fabBg;
+        ? designVariables.fabBgPressed
+        : designVariables.fabBg;
     final fabLabelColor = _pressed
-      ? designVariables.fabLabelPressed
-      : designVariables.fabLabel;
+        ? designVariables.fabLabelPressed
+        : designVariables.fabLabel;
 
     return GestureDetector(
       onTap: () => showNewDmSheet(context, widget.onDmSelect),
@@ -281,13 +330,14 @@ class _NewDmButtonState extends State<_NewDmButton> {
         decoration: BoxDecoration(
           color: fabBgColor,
           borderRadius: BorderRadius.circular(28),
-          boxShadow: [BoxShadow(
-            color: designVariables.fabShadow,
-            blurRadius: _pressed ? 12 : 16,
-            offset: _pressed
-              ? const Offset(0, 2)
-              : const Offset(0, 4)),
-          ]),
+          boxShadow: [
+            BoxShadow(
+              color: designVariables.fabShadow,
+              blurRadius: _pressed ? 12 : 16,
+              offset: _pressed ? const Offset(0, 2) : const Offset(0, 4),
+            ),
+          ],
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -299,7 +349,11 @@ class _NewDmButtonState extends State<_NewDmButton> {
                 fontSize: 20,
                 height: 24 / 20,
                 color: fabLabelColor,
-              ).merge(weightVariableTextStyle(context, wght: 500))),
-          ])));
+              ).merge(weightVariableTextStyle(context, wght: 500)),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
