@@ -541,7 +541,7 @@ class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
   ///
   /// Calling [StreamController.add] on this will cause a call
   /// to any handler registered through that method.
-  StreamController<RemoteMessage> onBackgroundMessage = StreamController.broadcast();
+  StreamController<RemoteMessage> onBackgroundMessage =StreamController.broadcast();
 }
 
 typedef FirebaseMessagingRequestPermissionCall = ({
@@ -654,10 +654,11 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
       sourceResourceName: sourceResourceName));
 
     final url = fakeStoredNotificationSoundUrl(sourceResourceName);
-    _storedNotificationSounds.add(StoredNotificationSound(
-      fileName: targetFileDisplayName,
-      isOwned: true,
-      contentUrl: url));
+    _storedNotificationSounds.add(
+      StoredNotificationSound(
+        fileName: targetFileDisplayName,
+        isOwned: true,
+        contentUrl: url));
     return url;
   }
 
@@ -731,7 +732,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
             user: messagingStyle.user,
             conversationTitle: messagingStyle.conversationTitle,
             isGroupConversation: messagingStyle.isGroupConversation,
-            messages: messagingStyle.messages.map((message) =>
+            messages: messagingStyle.messages.map((message) => 
               MessagingStyleMessage(
                 text: message.text,
                 timestampMs: message.timestampMs,
@@ -750,14 +751,14 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   @override
   Future<List<StatusBarNotification>> getActiveNotifications({required List<String> desiredExtras}) async {
     return _activeNotifications.values.map((statusNotif) {
-      final notificationExtras = statusNotif.notification.extras;
-      statusNotif.notification.extras = {
-        for (final key in desiredExtras)
-          if (notificationExtras[key] != null)
-            key: notificationExtras[key]!,
-      };
-      return statusNotif;
-    }).toList(growable: false);
+        final notificationExtras = statusNotif.notification.extras;
+        statusNotif.notification.extras = {
+          for (final key in desiredExtras)
+            if (notificationExtras[key] != null)
+              key: notificationExtras[key]!,
+        };
+        return statusNotif;
+      }).toList(growable: false);
   }
 
   @override

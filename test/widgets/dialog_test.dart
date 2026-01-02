@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/dialog.dart';
-
+import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
@@ -61,7 +61,7 @@ void main() {
       await tester.tap(find.text('Learn more'));
       final expectedMode = switch (defaultTargetPlatform) {
         TargetPlatform.android => LaunchMode.inAppBrowserView,
-        TargetPlatform.iOS =>     LaunchMode.externalApplication,
+        TargetPlatform.iOS => LaunchMode.externalApplication,
         _ => throw StateError('attempted to test with $defaultTargetPlatform'),
       };
       check(testBinding.takeLaunchUrlCalls()).single
@@ -75,7 +75,7 @@ void main() {
       await tester.pump();
       checkErrorDialog(tester, expectedTitle: title, expectedMessage: message);
 
-      check(find.ancestor(of: find.text(message),
+      check(find.ancestor(of: find.text(message), 
         matching: find.byType(SingleChildScrollView))).findsOne();
     }, variant: TargetPlatformVariant.all());
   });
@@ -94,7 +94,7 @@ void main() {
       await tester.pump();
       await tester.tap(find.text('Sure'));
       await check(dialog.result).completes((it) => it.equals(true));
-    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+    },variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('tap cancel', (tester) async {
       addTearDown(testBinding.reset);
@@ -109,7 +109,7 @@ void main() {
       await tester.pump();
       await tester.tap(find.text('Cancel'));
       await check(dialog.result).completes((it) => it.equals(null));
-    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+    },variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('tap outside dialog area', (tester) async {
       addTearDown(testBinding.reset);
@@ -124,7 +124,7 @@ void main() {
       await tester.pump();
       await tester.tapAt(tester.getTopLeft(find.byType(TestZulipApp)));
       await check(dialog.result).completes((it) => it.equals(null));
-    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+    },variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
   });
 
   testWidgets('only one SingleChildScrollView created', (tester) async {
@@ -140,7 +140,7 @@ void main() {
     await tester.pump();
 
     check(find.ancestor(of: find.text('Do the thing?'),
-      matching: find.byType(SingleChildScrollView))).findsOne();
+      matching: find.byType(SingleChildScrollView),)).findsOne();
   }, variant: TargetPlatformVariant.all());
 
   group('UpgradeWelcomeDialog', () {
@@ -163,7 +163,41 @@ void main() {
 
       final expectedMessage = 'You’ll find a familiar experience in a faster, sleeker package.';
       check(find.ancestor(of: find.text(expectedMessage),
-        matching: find.byType(SingleChildScrollView))).findsOne();
-    }, variant: TargetPlatformVariant.all());
+        matching: find.byType(SingleChildScrollView),)).findsOne();
+    }, variant: TargetPlatformVariant.all(),);
+  });
+
+  group('IntroModal', () {
+    testWidgets('IntroModal widget displays correctly', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
+      const modal = IntroModal(title: 'Test Title', message: 'Test Message');
+
+      await tester.pumpWidget(TestZulipApp(child: modal));
+      await tester.pumpAndSettle();
+
+      check(find.text('Test Title')).findsOne();
+      check(find.text('Test Message')).findsOne();
+      check(find.text('Got it')).findsOne();
+    });
+
+    testWidgets('settings track inbox modal shown state', (tester) async {
+      addTearDown(testBinding.reset);
+      // Reset to false since tests now default to true
+      await testBinding.globalStore.settings.setBool(BoolGlobalSetting.inboxIntroModalShown, false);
+      check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.inboxIntroModalShown)).isFalse();
+      await testBinding.globalStore.settings.setBool(BoolGlobalSetting.inboxIntroModalShown, true);
+      check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.inboxIntroModalShown)).isTrue();
+    });
+
+    testWidgets('settings track combined feed modal shown state', (tester) async {
+      addTearDown(testBinding.reset);
+      // Reset to false since tests now default to true
+      await testBinding.globalStore.settings.setBool(BoolGlobalSetting.combinedFeedIntroModalShown, false);
+      check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.combinedFeedIntroModalShown)).isFalse();
+      await testBinding.globalStore.settings.setBool(BoolGlobalSetting.combinedFeedIntroModalShown, true);
+      check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.combinedFeedIntroModalShown)).isTrue();
+    });
   });
 }

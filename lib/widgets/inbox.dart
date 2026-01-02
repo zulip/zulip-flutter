@@ -6,6 +6,7 @@ import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
+import 'dialog.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
@@ -55,6 +56,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
     recentDmConversationsModel?.removeListener(_modelChanged);
     recentDmConversationsModel = newStore.recentDmConversationsView
       ..addListener(_modelChanged);
+    showInboxIntroModal(context);
   }
 
   @override
