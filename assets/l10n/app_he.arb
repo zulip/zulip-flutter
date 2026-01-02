@@ -1,1 +1,110 @@
-{}
+{
+  "@aboutPageOpenSourceLicenses": {
+    "description": "Item title in About Zulip page to navigate to Licenses page"
+  },
+  "@aboutPageTapToView": {
+    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
+  },
+  "@actionSheetOptionFollowTopic": {
+    "description": "Label for following a topic on action sheet."
+  },
+  "@actionSheetOptionMuteTopic": {
+    "description": "Label for muting a topic on action sheet."
+  },
+  "@actionSheetOptionUnfollowTopic": {
+    "description": "Label for unfollowing a topic on action sheet."
+  },
+  "@actionSheetOptionUnmuteTopic": {
+    "description": "Label for unmuting a topic on action sheet."
+  },
+  "@allChannelsEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'All channels' page saying that there is no content to show."
+  },
+  "@allChannelsPageTitle": {
+    "description": "Title for the 'All channels' page."
+  },
+  "@chooseAccountButtonAddAnAccount": {
+    "description": "Label for ChooseAccountPage button to add an account"
+  },
+  "@chooseAccountPageLogOutButton": {
+    "description": "Label for the 'Log out' button for an account on the choose-account page"
+  },
+  "@chooseAccountPageTitle": {
+    "description": "Title for the page to choose between Zulip accounts."
+  },
+  "@errorCouldNotShowUserProfile": {
+    "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
+  "@logOutConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Log out' button on a confirmation dialog for logging out."
+  },
+  "@logOutConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for logging out."
+  },
+  "@logOutConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for logging out."
+  },
+  "@navButtonAllChannels": {
+    "description": "Title for a nav button that opens the 'All channels' page."
+  },
+  "@profileButtonSendDirectMessage": {
+    "description": "Label for button in profile screen to navigate to DMs with the shown user."
+  },
+  "@seeWhoReactedSheetNoReactions": {
+    "description": "Explanation on the 'See who reacted' sheet when the message has no reactions (because they were removed after the sheet was opened)."
+  },
+  "@settingsPageTitle": {
+    "description": "Title for the settings page."
+  },
+  "@switchAccountButtonTooltip": {
+    "description": "Tooltip message for main-menu button leading to the choose-account page."
+  },
+  "@tryAnotherAccountButton": {
+    "description": "Label for loading screen button prompting user to try another account."
+  },
+  "@tryAnotherAccountMessage": {
+    "description": "Message that appears on the loading screen after waiting for some time.",
+    "url": {
+      "example": "http://chat.example.com/",
+      "type": "String"
+    }
+  },
+  "@upgradeWelcomeDialogDismiss": {
+    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "@upgradeWelcomeDialogLinkText": {
+    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "@upgradeWelcomeDialogMessage": {
+    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "@upgradeWelcomeDialogTitle": {
+    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "aboutPageOpenSourceLicenses": "רישיונות קוד פתוח",
+  "aboutPageTapToView": "הקש כדי להציג",
+  "actionSheetOptionFollowTopic": "עקוב אחר הנושא",
+  "actionSheetOptionMuteTopic": "השתקת נושא",
+  "actionSheetOptionUnfollowTopic": "בטל מעקב אחר נושא",
+  "actionSheetOptionUnmuteTopic": "בטל את ההשתקה של נושא",
+  "allChannelsEmptyPlaceholderHeader": "אין ערוצים שתוכלו להציג בארגון זה.",
+  "allChannelsPageTitle": "כל הערוצים",
+  "chooseAccountButtonAddAnAccount": "הוספת חשבון",
+  "chooseAccountPageLogOutButton": "התנתק",
+  "chooseAccountPageTitle": "בחר חשבון",
+  "errorCouldNotShowUserProfile": "לא ניתן להציג פרופיל משתמש.",
+  "logOutConfirmationDialogConfirmButton": "התנתק",
+  "logOutConfirmationDialogMessage": "כדי להשתמש בחשבון זה בעתיד, יהיה עליך להכניס מחדש את כתובת האתר של הארגון שלך ואת פרטי החשבון שלך.",
+  "logOutConfirmationDialogTitle": "להתנתק?",
+  "navButtonAllChannels": "כל הערוצים",
+  "profileButtonSendDirectMessage": "שלח הודעה ישירה",
+  "seeWhoReactedSheetNoReactions": "להודעה זו אין תגובות.",
+  "settingsPageTitle": "הגדרות",
+  "switchAccountButtonTooltip": "החלף חשבון",
+  "tryAnotherAccountButton": "נסה חשבון אחר",
+  "tryAnotherAccountMessage": "החשבון שלך ב- {url} לוקח זמן לטעון.",
+  "upgradeWelcomeDialogDismiss": "בא נלך",
+  "upgradeWelcomeDialogLinkText": "עיין בפוסט בבלוג ההכרזה!",
+  "upgradeWelcomeDialogMessage": "תוכלו למצוא חוויה מוכרת בחבילה מהירה וחלקה יותר.",
+  "upgradeWelcomeDialogTitle": "ברוכים הבאים לאפליקציית Zulip החדשה!"
+}
