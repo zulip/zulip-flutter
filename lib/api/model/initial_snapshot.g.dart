@@ -86,6 +86,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
   userTopics: (json['user_topics'] as List<dynamic>)
       .map((e) => UserTopicItem.fromJson(e as Map<String, dynamic>))
       .toList(),
+  hasZoomToken: json['has_zoom_token'] as bool,
   realmCanDeleteAnyMessageGroup:
       json['realm_can_delete_any_message_group'] == null
       ? null
@@ -104,6 +105,11 @@ InitialSnapshot _$InitialSnapshotFromJson(
   ),
   realmMandatoryTopics: json['realm_mandatory_topics'] as bool,
   realmName: json['realm_name'] as String,
+  realmVideoChatProvider: $enumDecode(
+    _$RealmVideoChatProviderEnumMap,
+    json['realm_video_chat_provider'],
+  ),
+  realmJitsiServerUrl: json['realm_jitsi_server_url'] as String?,
   realmWaitingPeriodThreshold: (json['realm_waiting_period_threshold'] as num)
       .toInt(),
   realmMessageContentDeleteLimitSeconds:
@@ -113,6 +119,16 @@ InitialSnapshot _$InitialSnapshotFromJson(
       (json['realm_message_content_edit_limit_seconds'] as num?)?.toInt(),
   realmEnableReadReceipts: json['realm_enable_read_receipts'] as bool,
   realmIconUrl: Uri.parse(json['realm_icon_url'] as String),
+  realmAvailableVideoChatProviders:
+      (json['realm_available_video_chat_providers'] as Map<String, dynamic>)
+          .map(
+            (k, e) => MapEntry(
+              k,
+              RealmAvailableVideoChatProviders.fromJson(
+                e as Map<String, dynamic>,
+              ),
+            ),
+          ),
   realmPresenceDisabled: json['realm_presence_disabled'] as bool,
   realmDefaultExternalAccounts:
       (json['realm_default_external_accounts'] as Map<String, dynamic>).map(
@@ -121,8 +137,10 @@ InitialSnapshot _$InitialSnapshotFromJson(
           RealmDefaultExternalAccount.fromJson(e as Map<String, dynamic>),
         ),
       ),
+  jitsiServerUrl: json['jitsi_server_url'] as String?,
   maxFileUploadSizeMib: (json['max_file_upload_size_mib'] as num).toInt(),
   serverEmojiDataUrl: Uri.parse(json['server_emoji_data_url'] as String),
+  serverJitsiServerUrl: json['server_jitsi_server_url'] as String?,
   realmEmptyTopicDisplayName: json['realm_empty_topic_display_name'] as String?,
   realmUsers:
       (InitialSnapshot._readUsersIsActiveFallbackTrue(json, 'realm_users')
@@ -179,12 +197,15 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'user_status': instance.userStatuses.map((k, e) => MapEntry(k.toString(), e)),
   'user_settings': instance.userSettings,
   'user_topics': instance.userTopics,
+  'has_zoom_token': instance.hasZoomToken,
   'realm_can_delete_any_message_group': instance.realmCanDeleteAnyMessageGroup,
   'realm_can_delete_own_message_group': instance.realmCanDeleteOwnMessageGroup,
   'realm_delete_own_message_policy': instance.realmDeleteOwnMessagePolicy,
   'realm_wildcard_mention_policy': instance.realmWildcardMentionPolicy,
   'realm_mandatory_topics': instance.realmMandatoryTopics,
   'realm_name': instance.realmName,
+  'realm_video_chat_provider': instance.realmVideoChatProvider,
+  'realm_jitsi_server_url': instance.realmJitsiServerUrl,
   'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
   'realm_message_content_delete_limit_seconds':
       instance.realmMessageContentDeleteLimitSeconds,
@@ -193,10 +214,14 @@ Map<String, dynamic> _$InitialSnapshotToJson(
       instance.realmMessageContentEditLimitSeconds,
   'realm_enable_read_receipts': instance.realmEnableReadReceipts,
   'realm_icon_url': instance.realmIconUrl.toString(),
+  'realm_available_video_chat_providers':
+      instance.realmAvailableVideoChatProviders,
   'realm_presence_disabled': instance.realmPresenceDisabled,
   'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
+  'jitsi_server_url': instance.jitsiServerUrl,
   'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
   'server_emoji_data_url': instance.serverEmojiDataUrl.toString(),
+  'server_jitsi_server_url': instance.serverJitsiServerUrl,
   'realm_empty_topic_display_name': instance.realmEmptyTopicDisplayName,
   'realm_users': instance.realmUsers,
   'realm_non_active_users': instance.realmNonActiveUsers,
@@ -218,6 +243,15 @@ const _$RealmWildcardMentionPolicyEnumMap = {
   RealmWildcardMentionPolicy.admins: 5,
   RealmWildcardMentionPolicy.nobody: 6,
   RealmWildcardMentionPolicy.moderators: 7,
+};
+
+const _$RealmVideoChatProviderEnumMap = {
+  RealmVideoChatProvider.none: 0,
+  RealmVideoChatProvider.jitsiMeet: 1,
+  RealmVideoChatProvider.zoomUserOAuth: 3,
+  RealmVideoChatProvider.bigBlueButton: 4,
+  RealmVideoChatProvider.zoomServerToServerOAuth: 5,
+  RealmVideoChatProvider.unknown: null,
 };
 
 RealmDefaultExternalAccount _$RealmDefaultExternalAccountFromJson(
