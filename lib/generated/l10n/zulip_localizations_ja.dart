@@ -1221,5 +1221,6 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get zulipAppTitle => 'Zulip';
 
   @override
+  String get composeBoxAttachGlobalTimeTooltip => 'Attach a global time';
   String get topicListEmptyPlaceholderHeader => 'There are no topics here yet.';
 }
