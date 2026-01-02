@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/model/settings.dart';
+import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/settings.dart';
 import 'package:zulip/widgets/store.dart';
@@ -51,7 +52,7 @@ void main() {
 
   Finder findRadioListTileWithTitle<T>(String title) => find.ancestor(
     of: find.text(title),
-    matching: find.byType(RadioListTile<T>));
+    matching: find.byType(RadioTile<T>));
 
   void checkRadioButtonAppearsChecked<T>(WidgetTester tester,
       String title, bool expectedIsChecked, {String? subtitle}) {
@@ -132,15 +133,17 @@ void main() {
   });
 
   group('BrowserPreference', () {
-    Finder useInAppBrowserSwitchFinder = find.ancestor(
-      of: find.text('Open links with in-app browser'),
-      matching: find.byType(SwitchListTile));
+    Finder useInAppBrowserSwitchFinder = find.descendant(
+      of: find.ancestor(
+        of: find.text('Open links with in-app browser'),
+        matching: find.byType(ListTile)),
+      matching: find.byType(Toggle));
 
     void checkSwitchAndGlobalSettings(WidgetTester tester, {
       required bool checked,
       required BrowserPreference? expectedBrowserPreference,
     }) {
-      check(tester.widget<SwitchListTile>(useInAppBrowserSwitchFinder))
+      check(tester.widget<Toggle>(useInAppBrowserSwitchFinder))
         .value.equals(checked);
       check(testBinding.globalStore)
         .settings.browserPreference.equals(expectedBrowserPreference);
@@ -317,3 +320,4 @@ void main() {
   //   [GlobalSettingsStore.experimentalFeatureFlags] so that tests can
   //   control making it empty, or non-empty, at will.)
 }
+
