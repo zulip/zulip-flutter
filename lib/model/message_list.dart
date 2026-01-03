@@ -665,10 +665,22 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// Whether [message] should actually appear in this message list,
   /// given that it does belong to the narrow.
   ///
-  /// This depends in particular on whether the message is muted in
-  /// one way or another.
+  /// This depends in particular on whether the message's conversation is muted
+  /// in one way or another.
+  ///
+  /// The muted-users state can influence the result,
+  /// but only via [UserStore.shouldMuteDmConversation];
+  /// this never returns false just because [message]'s sender is muted.
+  /// UI logic mitigates harassment by obscuring messages from muted senders,
+  /// with a "reveal" button;
+  /// see [RevealedMutedMessagesState] in lib/widgets/message_list.dart.
   ///
   /// See also [_allMessagesVisible].
+  // When updating this, check [_allMessagesVisible], [_canAffectVisibility],
+  // and [_mutedUsersEventCanAffectVisibility] to see whether they need to be
+  // updated too.
+  // Also check the unread-count methods in [Unreads] to make sure they count
+  // exactly the unread messages for which this would return true.
   bool _messageVisible(MessageBase message) {
     switch (narrow) {
       case CombinedFeedNarrow():
