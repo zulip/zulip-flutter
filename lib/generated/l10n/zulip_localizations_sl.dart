@@ -578,6 +578,9 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get unknownUserName => '(neznan uporabnik)';
 
   @override
+  String get youIndicator => '(you)';
+
+  @override
   String get dmsWithYourselfPageTitle => 'Neposredna sporočila s samim seboj';
 
   @override
