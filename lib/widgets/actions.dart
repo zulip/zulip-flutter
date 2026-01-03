@@ -29,8 +29,35 @@ abstract final class ZulipAction {
   ///
   /// This is mostly a wrapper around [updateMessageFlagsStartingFromAnchor];
   /// for details on the UI feedback, see there.
+  ///
+  /// A confirmation dialog is shown if the narrow is a non-conversation narrow.
   static Future<void> markNarrowAsRead(BuildContext context, Narrow narrow) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
+
+    // See link when deciding behavior for a new narrow:
+    // https://chat.zulip.org/#narrow/channel/48-mobile/topic/mark.20all.20messages.20as.20read/near/2261768
+    final isNonConversationalNarrow = switch (narrow) {
+      CombinedFeedNarrow()
+        || MentionsNarrow()
+        || StarredMessagesNarrow()
+        || KeywordSearchNarrow()
+        || ChannelNarrow() => true,
+      DmNarrow() || TopicNarrow() => false,
+    };
+    if (isNonConversationalNarrow) {
+      final stepSize = 25;
+      final unreadCount = store.unreads.countInNarrow(narrow);
+      if (unreadCount >= stepSize) {
+        final roundDownCount = (unreadCount ~/ stepSize) * stepSize;
+        final didConfirm = showSuggestedActionDialog(context: context,
+          title: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
+          message: zulipLocalizations.markAllAsReadConfirmationDialogMessage(roundDownCount),
+          actionButtonText: zulipLocalizations.markAllAsReadConfirmationDialogConfirmButton);
+        if (await didConfirm.result != true) return;
+        if (!context.mounted) return;
+      }
+    }
 
     final didPass = await updateMessageFlagsStartingFromAnchor(
       context: context,
