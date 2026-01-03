@@ -317,7 +317,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   /// Inserts at [insertionIndex]. If that's zero, no empty line is added before.
   ///
   /// If there is already an empty line before or after, does not add another.
-  void insertPadded(String newText) {
+  void insertBlock(String newText) {
     assert(newText.isNotEmpty);
     assert(newText.endsWith('\n'));
     final i = insertionIndex();
@@ -353,7 +353,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
       zulipLocalizations, store, message: message);
     _quoteAndReplies[tag] = (messageId: message.id, placeholder: placeholder);
     notifyListeners(); // _quoteAndReplies change could affect validationErrors
-    insertPadded(placeholder);
+    insertBlock(placeholder);
     return tag;
   }
 
@@ -376,8 +376,8 @@ class ComposeContentController extends ComposeController<ContentValidationError>
         TextRange(start: startIndex, end: startIndex + val.placeholder.length),
         replacementText,
       );
-    } else if (replacementText != '') { // insertPadded requires non-empty string
-      insertPadded(replacementText);
+    } else if (replacementText != '') { // insertBlock requires non-empty string
+      insertBlock(replacementText);
     }
     _quoteAndReplies.remove(tag);
     notifyListeners(); // _quoteAndReplies change could affect validationErrors

@@ -1764,7 +1764,7 @@ void main() {
       }) {
         check(contentController).value.equals((ComposeContentController(store: store)
           ..value = valueBefore
-          ..insertPadded(quoteAndReplyPlaceholder(
+          ..insertBlock(quoteAndReplyPlaceholder(
               GlobalLocalizations.zulipLocalizations, store, message: message))
         ).value);
         check(contentController).validationErrors.contains(ContentValidationError.quoteAndReplyInProgress);
@@ -1777,7 +1777,7 @@ void main() {
       }) {
         final builder = ComposeContentController(store: store)
           ..value = valueBefore
-          ..insertPadded(quoteAndReply(store, message: message, rawContent: rawContent));
+          ..insertBlock(quoteAndReply(store, message: message, rawContent: rawContent));
         if (!valueBefore.selection.isValid) {
           // (At the end of the process, we focus the input, which puts a cursor
           // at text's end, if there was no cursor at the time.)
@@ -1935,7 +1935,7 @@ void main() {
 
         check(contentController.value).equals(const TextEditingValue(
           // The placeholder was removed. (A newline from the placeholder's
-          // insertPadded remains; I guess ideally we'd try to prevent that.)
+          // insertBlock remains; I guess ideally we'd try to prevent that.)
           text: '\n',
 
           // (At the end of the process, we focus the input.)
