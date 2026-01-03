@@ -78,6 +78,18 @@ class ZulipApp extends StatefulWidget {
     return ScaffoldMessenger.of(context);
   }
 
+  /// The app's stack of navigation routes.
+  ///
+  /// This is null when the navigator is not mounted,
+  /// i.e. until [ready] becomes true.
+  static NavigationStack? get navigationStack {
+    final navigatorState = navigatorKey.currentState;
+    if (navigatorState == null) return null;
+    final appState = navigatorState.context
+      .findAncestorStateOfType<_ZulipAppState>()!;
+    return appState._navStackTracker;
+  }
+
   /// Reset the state of [ZulipApp] statics, for testing.
   ///
   /// TODO refactor this better, perhaps unify with ZulipBinding
@@ -156,6 +168,8 @@ class ZulipApp extends StatefulWidget {
 }
 
 class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
+  final _navStackTracker = _TrackNavigationStack();
+
   @override
   void initState() {
     super.initState();
@@ -255,6 +269,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
             if (widget.navigatorObservers != null)
               ...widget.navigatorObservers!,
             _PreventEmptyStack(),
+            _navStackTracker,
             _UpdateLastVisitedAccount(GlobalStoreWidget.of(context)),
           ],
           builder: (BuildContext context, Widget? child) {
@@ -278,6 +293,87 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
           onGenerateInitialRoutes: _handleGenerateInitialRoutes);
       }));
   }
+}
+
+/// A view of the app's navigation stack, plus convenient helpers to inspect it.
+mixin NavigationStack {
+  List<Route<dynamic>> get routes;
+
+  /// The Zulip account ID being viewed topmost in the navigation, if any.
+  ///
+  /// Typically there should be only one account present in the nav stack
+  /// at a time, in which case this is that one account's ID.
+  int? get currentAccountId {
+    for (final route in routes.reversed) {
+      if (route case AccountPageRouteMixin(:final accountId)) {
+        return accountId;
+      }
+    }
+    return null;
+  }
+
+  /// The topmost page route on the stack, if any.
+  ///
+  /// In particular this excludes dialogs and modal bottom sheets.
+  PageRoute<dynamic>? get currentPageRoute {
+    for (final route in routes.reversed) {
+      switch (route) {
+        case PageRoute():
+          return route;
+
+        case PopupRoute():
+          // This case includes dialogs and modal bottom sheets.
+          continue;
+
+        default:
+          // TODO(log) All known concrete Route subclasses are either of
+          //   PageRoute or PopupRoute.  If something else appears, we should
+          //   decide how the callers of this method want to treat it.
+          continue;
+      }
+    }
+    return null;
+  }
+}
+
+// TODO(upstream): why doesn't Navigator expose the list of routes itself?
+class _TrackNavigationStack extends NavigatorObserver with NavigationStack {
+  @override
+  final List<Route<dynamic>> routes = [];
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    assert(identical(routes.lastOrNull, previousRoute));
+    routes.add(route);
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    assert(identical(routes.lastOrNull, route));
+    routes.removeLast();
+    assert(identical(routes.lastOrNull, previousRoute));
+  }
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    final index = routes.lastIndexOf(route);
+    assert(index >= 0);
+    routes.removeAt(index);
+    assert((previousRoute == null && index == 0)
+        || (previousRoute != null && routes[index - 1] == previousRoute));
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    assert(newRoute != null); // TODO(upstream) why doesn't signature say this?
+    assert(oldRoute != null); // TODO(upstream) why doesn't signature say this?
+    final index = routes.lastIndexOf(oldRoute!);
+    assert(index >= 0);
+    routes[index] = newRoute!;
+  }
+
+  // No didChangeTop; it summarizes changes that the observer was already
+  // notified of through the other methods above.
 }
 
 /// Pushes a route whenever the observed navigator stack becomes empty.
