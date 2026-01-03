@@ -4,18 +4,13 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 
-/// A widget to display a given number of unreads in a conversation.
+/// A widget to display a given number (e.g. of unread messages or of users).
 ///
 /// See Figma's "counter-menu" component, which this is based on:
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2037-186671&m=dev
 /// It looks like that component was created for the main menu,
 /// then adapted for various other contexts, like the Inbox page.
-/// See [CounterBadgeStyle].
-///
-/// Currently this widget supports only the component's "kind=unread" variant,
-/// not "kind=quantity".
-// TODO support the "kind=quantity" variant
-//   (i.e. add/implement [CounterBadgeKind.quantity]) and update dartdoc
+/// See [CounterBadgeStyle] and [CounterBadgeKind] for the possible variants.
 class CounterBadge extends StatelessWidget {
   const CounterBadge({
     super.key,
@@ -23,7 +18,13 @@ class CounterBadge extends StatelessWidget {
     required this.kind,
     required this.count,
     required this.channelIdForBackground,
-  });
+  }) :
+       // The API is awkward for callers who want [CounterBadgeKind.quantity] --
+       // they're required to pass null for an irrelevant param --
+       //   https://github.com/zulip/zulip-flutter/pull/1999#discussion_r2663221201
+       // But [channelIdForBackground] has a TODO for being removed,
+       // and that'll resolve the awkwardness.
+       assert(!(kind == CounterBadgeKind.quantity && channelIdForBackground != null));
 
   final CounterBadgeStyle style;
   final CounterBadgeKind kind;
@@ -31,7 +32,7 @@ class CounterBadge extends StatelessWidget {
 
   /// An optional [Subscription.streamId], for a channel-colorized background.
   ///
-  /// Useful when this badge represents messages in one specific channel.
+  /// Useful when this counter represents unreads in one specific channel.
   ///
   /// If null, the default neutral background will be used.
   // TODO remove; the Figma doesn't use this anymore.
@@ -51,7 +52,10 @@ class CounterBadge extends StatelessWidget {
       final swatch = colorSwatchFor(context, subscription);
       backgroundColor = swatch.unreadCountBadgeBackground;
     } else {
-      textColor = designVariables.labelCounterUnread;
+      textColor = switch (kind) {
+        CounterBadgeKind.unread => designVariables.labelCounterUnread,
+        CounterBadgeKind.quantity => designVariables.labelCounterQuantity,
+      };
       backgroundColor = designVariables.bgCounterUnread;
     }
 
@@ -62,25 +66,36 @@ class CounterBadge extends StatelessWidget {
         const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
     };
 
-    final double wght = switch (style) {
-      CounterBadgeStyle.mainMenu => 600,
-      CounterBadgeStyle.other => 500,
+    final double wght = switch ((style, kind)) {
+      (CounterBadgeStyle.mainMenu, CounterBadgeKind.unread  ) => 600,
+      (CounterBadgeStyle.mainMenu, CounterBadgeKind.quantity) => 500,
+      (CounterBadgeStyle.other,    CounterBadgeKind.unread  ) => 500,
+      (CounterBadgeStyle.other,    CounterBadgeKind.quantity) => 500,
     };
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-        color: backgroundColor,
-      ),
-      child: Padding(
-        padding: padding,
-        child: Text(
-          style: TextStyle(
-            fontSize: 16,
-            height: (16 / 16),
-            color: textColor,
-          ).merge(weightVariableTextStyle(context, wght: wght)),
-          count.toString())));
+    Widget result = Padding(
+      padding: padding,
+      child: Text(
+        style: TextStyle(
+          fontSize: 16,
+          height: (16 / 16),
+          color: textColor,
+        ).merge(weightVariableTextStyle(context, wght: wght)),
+        count.toString()));
+
+    switch (kind) {
+      case CounterBadgeKind.unread:
+        result = DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            color: backgroundColor,
+          ),
+          child: result);
+      case CounterBadgeKind.quantity:
+        // no decoration
+    }
+
+    return result;
   }
 }
 
@@ -102,12 +117,24 @@ enum CounterBadgeStyle {
 }
 
 enum CounterBadgeKind {
-  /// The counter counts unread messages.
+  /// A counter specifically for unread messages.
+  ///
+  /// A rounded-rectangle background draws attention to the presence of unreads
+  /// and distinguishes this kind of counter from any nearby [quantity] counters
+  /// that do not track unread counts (e.g. a starred-messages counter).
   ///
   /// Figma:
   ///   Main-menu style: https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2037-185125&m=dev
   ///   Other style: https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6205-26001&m=dev
   unread,
+
+  /// A generic counter for a quantity of something,
+  /// such as starred messages or users.
+  ///
+  /// Figma:
+  ///   Main-menu style: https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2037-186672&m=dev
+  ///   Other style: https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6025-293468&m=dev
+  quantity,
 }
 
 class MutedUnreadBadge extends StatelessWidget {

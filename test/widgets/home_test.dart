@@ -4,6 +4,8 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/api/model/events.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -25,6 +27,7 @@ import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/store_checks.dart';
 import '../model/test_store.dart';
+import '../stdlib_checks.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
 import 'checks.dart';
@@ -366,6 +369,33 @@ void main () {
       await tapOpenMenuAndAwait(tester);
       await tapButtonAndAwaitTransition(tester, find.byIcon(ZulipIcons.arrow_left_right));
       check(find.byType(ChooseAccountPage)).findsOne();
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('_StarredMessagesButton', (tester) async {
+      prepareBoringImageHttpClient();
+
+      final findButton = find.byWidgetPredicate((widget) =>
+        widget is MenuButton && widget.icon == ZulipIcons.star);
+
+      await prepare(tester);
+      final message = eg.streamMessage();
+      await store.addMessage(message);
+      await store.handleEvent(UpdateMessageFlagsAddEvent(
+        id: 1, flag: MessageFlag.starred, messages: [message.id], all: false));
+
+      await tapOpenMenuAndAwait(tester);
+      check(find.descendant(of: findButton, matching: find.text('1'))).findsOne();
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true,
+        messages: [
+          Message.fromJson((deepToJson(message) as Map<String, dynamic>)
+                              ..['flags'] = ['starred'])
+        ]).toJson());
+      await tapButtonAndAwaitTransition(tester, findButton);
+      check(find.byType(MessageListPage)).findsOne();
+      check(find.text('Starred messages')).findsOne();
       debugNetworkImageHttpClientProvider = null;
     });
 

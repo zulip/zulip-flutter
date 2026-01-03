@@ -690,6 +690,18 @@ class _StarredMessagesButton extends MenuButton {
   }
 
   @override
+  Widget? buildTrailing(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    if (!store.userSettings.starredMessageCounts) return null;
+    return CounterBadge(
+      kind: CounterBadgeKind.quantity,
+      style: CounterBadgeStyle.mainMenu,
+      count: store.starredMessages.length,
+      channelIdForBackground: null,
+    );
+  }
+
+  @override
   void onPressed(BuildContext context) {
     Navigator.of(context).push(MessageListPage.buildRoute(
       context: context, narrow: const StarredMessagesNarrow()));
