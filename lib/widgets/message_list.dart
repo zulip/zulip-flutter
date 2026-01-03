@@ -1054,9 +1054,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
             child: Stack(
               children: <Widget>[
                 _buildListView(context),
-                Positioned(
+                PositionedDirectional(
                   bottom: 0,
-                  right: 0,
+                  end: 0,
                   // TODO(#311) SafeArea shouldn't be needed if we have a
                   //   bottom nav; that will pad the bottom inset. Remove it,
                   //   and the mention of bottom-inset handling in
