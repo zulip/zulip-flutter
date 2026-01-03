@@ -573,7 +573,8 @@ class PerAccountStore extends PerAccountStoreBase with
         initial: initialSnapshot.presences),
       channels: channels,
       topics: Topics(core: core),
-      messages: MessageStoreImpl(channels: channels),
+      messages: MessageStoreImpl(channels: channels,
+        initialStarredMessages: initialSnapshot.starredMessages),
       unreads: Unreads(core: core, channelStore: channels,
         initial: initialSnapshot.unreadMsgs),
       recentDmConversationsView: RecentDmConversationsView(core: core,
@@ -788,6 +789,8 @@ class PerAccountStore extends PerAccountStoreBase with
         switch (event.property!) {
           case UserSettingName.twentyFourHourTime:
             userSettings.twentyFourHourTime        = event.value as TwentyFourHourTimeMode;
+          case UserSettingName.starredMessageCounts:
+            userSettings.starredMessageCounts      = event.value as bool;
           case UserSettingName.displayEmojiReactionUsers:
             userSettings.displayEmojiReactionUsers = event.value as bool;
           case UserSettingName.emojiset:
@@ -896,18 +899,22 @@ class PerAccountStore extends PerAccountStoreBase with
 
       case DeleteMessageEvent():
         assert(debugLog("server event: delete_message ${event.messageIds}"));
+        bool shouldNotify = false;
         // This should be called before [_messages.handleDeleteMessageEvent(event)],
         // as we need to know about each message for [event.messageIds],
         // specifically, their `senderId`s. By calling this after the
         // aforementioned line, we'll lose reference to those messages.
         recentSenders.handleDeleteMessageEvent(event, messages);
-        _messages.handleDeleteMessageEvent(event);
+        shouldNotify |= _messages.handleDeleteMessageEvent(event);
         unreads.handleDeleteMessageEvent(event);
+        if (shouldNotify) notifyListeners();
 
       case UpdateMessageFlagsEvent():
         assert(debugLog("server event: update_message_flags/${event.op} ${event.flag.toJson()}"));
-        _messages.handleUpdateMessageFlagsEvent(event);
+        bool shouldNotify = false;
+        shouldNotify |= _messages.handleUpdateMessageFlagsEvent(event);
         unreads.handleUpdateMessageFlagsEvent(event);
+        if (shouldNotify) notifyListeners();
 
       case SubmessageEvent():
         assert(debugLog("server event: submessage ${event.content}"));

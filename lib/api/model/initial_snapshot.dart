@@ -60,6 +60,8 @@ class InitialSnapshot {
 
   final UnreadMessagesSnapshot unreadMsgs;
 
+  final List<int> starredMessages;
+
   final List<ZulipStream> streams;
 
   // In register-queue, the name of this field is the singular "user_status",
@@ -181,6 +183,7 @@ class InitialSnapshot {
     required this.subscriptions,
     required this.channelFolders,
     required this.unreadMsgs,
+    required this.starredMessages,
     required this.streams,
     required this.userStatuses,
     required this.userSettings,
@@ -327,6 +330,7 @@ class UserSettings {
   )
   TwentyFourHourTimeMode twentyFourHourTime;
 
+  bool starredMessageCounts;
   bool displayEmojiReactionUsers;
   @JsonKey(unknownEnumValue: Emojiset.unknown)
   Emojiset emojiset;
@@ -340,6 +344,7 @@ class UserSettings {
 
   UserSettings({
     required this.twentyFourHourTime,
+    required this.starredMessageCounts,
     required this.displayEmojiReactionUsers,
     required this.emojiset,
     required this.presenceEnabled,

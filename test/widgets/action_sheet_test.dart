@@ -82,6 +82,9 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   await testBinding.globalStore.add(
     selfAccount,
     eg.initialSnapshot(
+      starredMessages: [
+        if (message.flags.contains(MessageFlag.starred)) message.id,
+      ],
       realmUsers: [selfUser],
       realmAllowMessageEditing: realmAllowMessageEditing,
       realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
@@ -1853,7 +1856,9 @@ void main() {
 
       testWidgets('not offered in StarredMessagesNarrow (composing to reply is not yet supported)', (tester) async {
         final message = eg.streamMessage(flags: [MessageFlag.starred]);
-        await setupToMessageActionSheet(tester, message: message, narrow: const StarredMessagesNarrow());
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: const StarredMessagesNarrow());
         check(findQuoteAndReplyButton(tester)).isNull();
       });
 
