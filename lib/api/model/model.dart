@@ -1178,19 +1178,8 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
     final lastMovedTimestamp = json['last_moved_timestamp'] as int?;
 
     // New server: last_moved_timestamp is present, so last_edit_timestamp
-    // already has the correct semantics (content-edit only).
     if (lastMovedTimestamp != null) return lastEditTimestamp;
 
-    // Old server: need to scan edit_history to determine if content was edited.
-    final editHistory = json['edit_history'] as List<dynamic>?;
-    if (editHistory == null) return lastEditTimestamp;
-
-    // Find the timestamp of the first content edit.
-    for (final entry in editHistory) {
-      if (entry['prev_content'] != null) {
-        return entry['timestamp'] as int?;
-      }
-    }
     return null;
   }
 
