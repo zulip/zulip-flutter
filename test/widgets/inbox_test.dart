@@ -10,7 +10,7 @@ import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/theme.dart';
-import 'package:zulip/widgets/unread_count_badge.dart';
+import 'package:zulip/widgets/counter_badge.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
@@ -222,7 +222,7 @@ void main() {
         find.descendant(
           of: find.byWidget(findRowByLabel(tester, channel.name)!),
           matching: find.descendant(
-            of: find.byType(UnreadCountBadge),
+            of: find.byType(CounterBadge),
             matching: find.text('1'))));
 
       final expectedTextColor = DesignVariables.light.unreadCountBadgeTextForChannel;
@@ -406,19 +406,19 @@ void main() {
 
         check(find.descendant(
           of: find.byWidget(findRowByLabel(tester, 'aaa')!),
-          matching: find.widgetWithText(UnreadCountBadge, '1'))).findsOne();
+          matching: find.widgetWithText(CounterBadge, '1'))).findsOne();
 
         await store.handleEvent(eg.updateMessageFlagsRemoveEvent(MessageFlag.read, [message2]));
         await tester.pump();
         check(find.descendant(
           of: find.byWidget(findRowByLabel(tester, 'aaa')!),
-          matching: find.widgetWithText(UnreadCountBadge, '2'))).findsOne();
+          matching: find.widgetWithText(CounterBadge, '2'))).findsOne();
 
         await store.handleEvent(eg.updateMessageFlagsRemoveEvent(MessageFlag.read, [message3]));
         await tester.pump();
         check(find.descendant(
           of: find.byWidget(findRowByLabel(tester, 'aaa')!),
-          matching: find.widgetWithText(UnreadCountBadge, '3'))).findsOne();
+          matching: find.widgetWithText(CounterBadge, '3'))).findsOne();
       });
     });
 
