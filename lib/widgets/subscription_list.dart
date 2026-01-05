@@ -14,7 +14,7 @@ import 'page.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
-import 'unread_count_badge.dart';
+import 'counter_badge.dart';
 
 typedef OnChannelSelectCallback = void Function(ChannelNarrow narrow);
 
@@ -336,7 +336,7 @@ class SubscriptionItem extends StatelessWidget {
             // TODO(#747) show @-mention indicator when it applies
             Opacity(
               opacity: opacity,
-              child: UnreadCountBadge(
+              child: CounterBadge(
                 count: unreadCount,
                 channelIdForBackground: subscription.streamId)),
           ] else if (showMutedUnreadBadge) ...[

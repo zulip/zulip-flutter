@@ -11,7 +11,7 @@ import 'page.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
-import 'unread_count_badge.dart';
+import 'counter_badge.dart';
 import 'user.dart';
 
 typedef OnDmSelectCallback = void Function(DmNarrow narrow);
@@ -234,7 +234,7 @@ class RecentDmConversationsItem extends StatelessWidget {
             const SizedBox(width: 12),
             unreadCount > 0
               ? Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-                child: UnreadCountBadge(channelIdForBackground: null,
+                child: CounterBadge(channelIdForBackground: null,
                   count: unreadCount))
             : const SizedBox(),
           ]))));

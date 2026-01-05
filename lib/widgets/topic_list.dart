@@ -15,7 +15,7 @@ import 'page.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
-import 'unread_count_badge.dart';
+import 'counter_badge.dart';
 
 class TopicListPage extends StatelessWidget {
   const TopicListPage({super.key, required this.streamId});
@@ -305,7 +305,7 @@ class _TopicItem extends StatelessWidget {
                     if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
                     if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
                     if (unreadCount > 0)
-                      UnreadCountBadge(
+                      CounterBadge(
                         count: unreadCount,
                         channelIdForBackground: null),
                   ])),

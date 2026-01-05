@@ -24,7 +24,7 @@ import 'store.dart';
 import 'subscription_list.dart';
 import 'text.dart';
 import 'theme.dart';
-import 'unread_count_badge.dart';
+import 'counter_badge.dart';
 import 'user.dart';
 
 enum _HomePageTab {
@@ -635,8 +635,8 @@ class _InboxButton extends _NavigationBarMenuButton {
     final store = PerAccountStoreWidget.of(context);
     final unreadCount = store.unreads.countInCombinedFeedNarrow();
     if (unreadCount == 0) return null;
-    return UnreadCountBadge(
-      style: UnreadCountBadgeStyle.mainMenu,
+    return CounterBadge(
+      style: CounterBadgeStyle.mainMenu,
       count: unreadCount,
       channelIdForBackground: null,
     );
@@ -662,8 +662,8 @@ class _MentionsButton extends MenuButton {
     final store = PerAccountStoreWidget.of(context);
     final unreadCount = store.unreads.countInMentionsNarrow();
     if (unreadCount == 0) return null;
-    return UnreadCountBadge(
-      style: UnreadCountBadgeStyle.mainMenu,
+    return CounterBadge(
+      style: CounterBadgeStyle.mainMenu,
       count: unreadCount,
       channelIdForBackground: null,
     );
@@ -743,8 +743,8 @@ class _DirectMessagesButton extends _NavigationBarMenuButton {
     final store = PerAccountStoreWidget.of(context);
     final unreadCount = store.unreads.countInDms();
     if (unreadCount == 0) return null;
-    return UnreadCountBadge(
-      style: UnreadCountBadgeStyle.mainMenu,
+    return CounterBadge(
+      style: CounterBadgeStyle.mainMenu,
       count: unreadCount,
       channelIdForBackground: null,
     );

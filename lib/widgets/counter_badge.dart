@@ -10,20 +10,20 @@ import 'theme.dart';
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2037-186671&m=dev
 /// It looks like that component was created for the main menu,
 /// then adapted for various other contexts, like the Inbox page.
-/// See [UnreadCountBadgeStyle].
+/// See [CounterBadgeStyle].
 ///
 /// Currently this widget supports only the component's "kind=unread" variant,
 /// not "kind=quantity".
 // TODO support the "kind=quantity" variant, update dartdoc
-class UnreadCountBadge extends StatelessWidget {
-  const UnreadCountBadge({
+class CounterBadge extends StatelessWidget {
+  const CounterBadge({
     super.key,
-    this.style = UnreadCountBadgeStyle.other,
+    this.style = CounterBadgeStyle.other,
     required this.count,
     required this.channelIdForBackground,
   });
 
-  final UnreadCountBadgeStyle style;
+  final CounterBadgeStyle style;
   final int count;
 
   /// An optional [Subscription.streamId], for a channel-colorized background.
@@ -53,15 +53,15 @@ class UnreadCountBadge extends StatelessWidget {
     }
 
     final padding = switch (style) {
-      UnreadCountBadgeStyle.mainMenu =>
+      CounterBadgeStyle.mainMenu =>
         const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
-      UnreadCountBadgeStyle.other =>
+      CounterBadgeStyle.other =>
         const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
     };
 
     final double wght = switch (style) {
-      UnreadCountBadgeStyle.mainMenu => 600,
-      UnreadCountBadgeStyle.other => 500,
+      CounterBadgeStyle.mainMenu => 600,
+      CounterBadgeStyle.other => 500,
     };
 
     return DecoratedBox(
@@ -81,7 +81,7 @@ class UnreadCountBadge extends StatelessWidget {
   }
 }
 
-enum UnreadCountBadgeStyle {
+enum CounterBadgeStyle {
   /// The style to use in the main menu.
   ///
   /// Figma:
