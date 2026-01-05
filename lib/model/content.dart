@@ -969,7 +969,10 @@ class UserMentionNode extends InlineContainerNode {
   const UserMentionNode({
     super.debugHtmlNode,
     required super.nodes,
+    required this.userId,
   });
+
+  final int? userId;
 
   // For the legacy design, we don't need this information in code; instead,
   // the inner text already shows how to communicate it to the user
@@ -1124,7 +1127,9 @@ class _ZulipInlineContentParser {
     //   either a debug-mode check, or perhaps we can make expectations much
     //   tighter on a UserMentionNode's contents overall.
     final nodes = parseInlineContentList(element.nodes);
-    return UserMentionNode(nodes: nodes, debugHtmlNode: debugHtmlNode);
+
+    final int? userId = int.tryParse(element.attributes['data-user-id'] ?? '');
+    return UserMentionNode(nodes: nodes, userId: userId, debugHtmlNode: debugHtmlNode);
   }
 
   /// The links found so far in the current block inline container.
