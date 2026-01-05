@@ -346,6 +346,30 @@ abstract class GlobalStore extends ChangeNotifier {
     ));
   }
 
+  /// Fetches the server settings for the given [realmUrl].
+  ///
+  /// The caller is responsible for checking if the returned
+  /// [GetServerSettingsResult] represents a supported version, by
+  /// parsing it via [ZulipVersionData.fromServerSettings] and checking
+  /// [ZulipVersionData.isUnsupported].
+  Future<GetServerSettingsResult> fetchServerSettings(Uri realmUrl) async {
+    final connection = apiConnection(
+      realmUrl: realmUrl,
+      zulipFeatureLevel: null);
+    try {
+      final serverSettings = await getServerSettings(connection);
+      return serverSettings;
+    } on MalformedServerResponseException catch (e) {
+      final zulipVersionData = ZulipVersionData.fromMalformedServerResponseException(e);
+      if (zulipVersionData != null && zulipVersionData.isUnsupported) {
+        throw ServerVersionUnsupportedException(zulipVersionData);
+      }
+      rethrow;
+    } finally {
+      connection.close();
+    }
+  }
+
   /// Update an account in the underlying data store.
   Future<void> doUpdateAccount(int accountId, AccountsCompanion data);
 

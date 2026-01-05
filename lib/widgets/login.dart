@@ -179,21 +179,11 @@ class _AddAccountPageState extends State<AddAccountPage> {
       final GetServerSettingsResult serverSettings;
       try {
         final globalStore = GlobalStoreWidget.of(context);
-        final connection = globalStore.apiConnection(realmUrl: url!, zulipFeatureLevel: null);
-        try {
-          serverSettings = await getServerSettings(connection);
-          final zulipVersionData = ZulipVersionData.fromServerSettings(serverSettings);
-          if (zulipVersionData.isUnsupported) {
-            throw ServerVersionUnsupportedException(zulipVersionData);
-          }
-        } on MalformedServerResponseException catch (e) {
-          final zulipVersionData = ZulipVersionData.fromMalformedServerResponseException(e);
-          if (zulipVersionData != null && zulipVersionData.isUnsupported) {
-            throw ServerVersionUnsupportedException(zulipVersionData);
-          }
-          rethrow;
-        } finally {
-          connection.close();
+        serverSettings = await globalStore.fetchServerSettings(url!);
+
+        final zulipVersionData = ZulipVersionData.fromServerSettings(serverSettings);
+        if (zulipVersionData.isUnsupported) {
+          throw ServerVersionUnsupportedException(zulipVersionData);
         }
       } catch (e) {
         if (!context.mounted) return;
