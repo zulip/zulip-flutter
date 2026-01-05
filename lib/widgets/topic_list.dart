@@ -306,6 +306,7 @@ class _TopicItem extends StatelessWidget {
                     if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
                     if (unreadCount > 0)
                       CounterBadge(
+                        kind: CounterBadgeKind.unread,
                         count: unreadCount,
                         channelIdForBackground: null),
                   ])),

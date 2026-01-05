@@ -310,6 +310,7 @@ abstract class _HeaderItem extends StatelessWidget {
           if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
           Padding(padding: const EdgeInsetsDirectional.only(end: 16),
             child: CounterBadge(
+              kind: CounterBadgeKind.unread,
               channelIdForBackground: channelId,
               count: count)),
         ])));
@@ -431,7 +432,9 @@ class _DmItem extends StatelessWidget {
             const SizedBox(width: 12),
             if (hasMention) const  _IconMarker(icon: ZulipIcons.at_sign),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-              child: CounterBadge(channelIdForBackground: null,
+              child: CounterBadge(
+                kind: CounterBadgeKind.unread,
+                channelIdForBackground: null,
                 count: count)),
           ]))));
   }
@@ -566,6 +569,7 @@ class _TopicItem extends StatelessWidget {
             if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
               child: CounterBadge(
+                kind: CounterBadgeKind.unread,
                 channelIdForBackground: streamId,
                 count: count)),
           ]))));

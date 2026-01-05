@@ -14,16 +14,19 @@ import 'theme.dart';
 ///
 /// Currently this widget supports only the component's "kind=unread" variant,
 /// not "kind=quantity".
-// TODO support the "kind=quantity" variant, update dartdoc
+// TODO support the "kind=quantity" variant
+//   (i.e. add/implement [CounterBadgeKind.quantity]) and update dartdoc
 class CounterBadge extends StatelessWidget {
   const CounterBadge({
     super.key,
     this.style = CounterBadgeStyle.other,
+    required this.kind,
     required this.count,
     required this.channelIdForBackground,
   });
 
   final CounterBadgeStyle style;
+  final CounterBadgeKind kind;
   final int count;
 
   /// An optional [Subscription.streamId], for a channel-colorized background.
@@ -96,6 +99,15 @@ enum CounterBadgeStyle {
   /// (We use this for the topic-list page even though the Figma makes it a bit
   /// more compact there…the inconsistency seems worse and might be accidental.)
   other,
+}
+
+enum CounterBadgeKind {
+  /// The counter counts unread messages.
+  ///
+  /// Figma:
+  ///   Main-menu style: https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2037-185125&m=dev
+  ///   Other style: https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6205-26001&m=dev
+  unread,
 }
 
 class MutedUnreadBadge extends StatelessWidget {

@@ -636,6 +636,7 @@ class _InboxButton extends _NavigationBarMenuButton {
     final unreadCount = store.unreads.countInCombinedFeedNarrow();
     if (unreadCount == 0) return null;
     return CounterBadge(
+      kind: CounterBadgeKind.unread,
       style: CounterBadgeStyle.mainMenu,
       count: unreadCount,
       channelIdForBackground: null,
@@ -663,6 +664,7 @@ class _MentionsButton extends MenuButton {
     final unreadCount = store.unreads.countInMentionsNarrow();
     if (unreadCount == 0) return null;
     return CounterBadge(
+      kind: CounterBadgeKind.unread,
       style: CounterBadgeStyle.mainMenu,
       count: unreadCount,
       channelIdForBackground: null,
@@ -744,6 +746,7 @@ class _DirectMessagesButton extends _NavigationBarMenuButton {
     final unreadCount = store.unreads.countInDms();
     if (unreadCount == 0) return null;
     return CounterBadge(
+      kind: CounterBadgeKind.unread,
       style: CounterBadgeStyle.mainMenu,
       count: unreadCount,
       channelIdForBackground: null,

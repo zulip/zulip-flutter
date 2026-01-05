@@ -234,7 +234,9 @@ class RecentDmConversationsItem extends StatelessWidget {
             const SizedBox(width: 12),
             unreadCount > 0
               ? Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-                child: CounterBadge(channelIdForBackground: null,
+                child: CounterBadge(
+                  kind: CounterBadgeKind.unread,
+                  channelIdForBackground: null,
                   count: unreadCount))
             : const SizedBox(),
           ]))));
