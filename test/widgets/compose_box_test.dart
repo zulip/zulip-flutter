@@ -64,7 +64,13 @@ void main() {
     List<ZulipStream>? streams,
     List<Subscription> subscriptions = const [],
     List<Message>? messages,
+    bool? hasZoomToken,
     bool? mandatoryTopics,
+    RealmVideoChatProvider? realmVideoChatProvider,
+    String? realmJitsiServerUrl,
+    Map<String, RealmAvailableVideoChatProviders>? realmAvailableVideoChatProviders,
+    String? jitsiServerUrl,
+    String? serverJitsiServerUrl,
     int? zulipFeatureLevel,
     int? maxTopicLength,
   }) async {
@@ -92,6 +98,10 @@ void main() {
       subscriptions: subscriptions,
       zulipFeatureLevel: zulipFeatureLevel,
       realmMandatoryTopics: mandatoryTopics,
+      realmVideoChatProvider: realmVideoChatProvider,
+      hasZoomToken: hasZoomToken,
+      realmAvailableVideoChatProviders: realmAvailableVideoChatProviders,
+      jitsiServerUrl: jitsiServerUrl,
       realmAllowMessageEditing: true,
       realmMessageContentEditLimitSeconds: null,
       maxTopicLength: maxTopicLength,
@@ -1110,6 +1120,46 @@ void main() {
     });
   });
 
+  group('compose call button', () {
+    Future<void> prepare(WidgetTester tester, {
+      String? jitsiServerUrl,
+      Map<String, RealmAvailableVideoChatProviders>? realmAvailableVideoChatProvider,
+      RealmVideoChatProvider? realmVideoChatProvider,
+      bool? hasZoomToken,
+      String? serverJitsiServerUrl,
+    }) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
+      final channel = eg.stream();
+      final narrow = ChannelNarrow(channel.streamId);
+      await prepareComposeBox(tester,
+        narrow: narrow,
+        streams: [channel],
+        realmVideoChatProvider : realmVideoChatProvider,
+        realmAvailableVideoChatProviders: realmAvailableVideoChatProvider,
+        jitsiServerUrl : jitsiServerUrl,
+        hasZoomToken: hasZoomToken,
+      );
+
+      await enterTopic(tester, narrow: narrow, topic: 'some topic');
+      await tester.pump();
+    }
+
+    group('add video call link', () {
+      testWidgets('jitsi success', (tester) async {
+        await prepare(tester);
+        connection.prepare();
+
+        await tester.tap(find.byIcon(ZulipIcons.video));
+        await tester.pump();
+        check(controller!.content.text)
+          ..startsWith('[Join video call.](https://meet.jit.si')
+          ..endsWith('#config.startWithVideoMuted=false)\n\n');
+      });
+    });
+  });
+
   group('uploads', () {
     void checkAppearsLoading(WidgetTester tester, bool expected) {
       final sendButtonElement = tester.element(find.ancestor(
@@ -1389,6 +1439,7 @@ void main() {
       check(attachButtonFinder(ZulipIcons.attach_file).evaluate().length).equals(areShown ? 1 : 0);
       check(attachButtonFinder(ZulipIcons.image).evaluate().length).equals(areShown ? 1 : 0);
       check(attachButtonFinder(ZulipIcons.camera).evaluate().length).equals(areShown ? 1 : 0);
+      check(attachButtonFinder(ZulipIcons.video).evaluate().length).equals(areShown ? 1 : 0);
     }
 
     void checkBannerWithLabel(String label, {required bool isShown}) {

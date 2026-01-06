@@ -1034,6 +1034,110 @@ Future<void> _uploadFiles({
   }
 }
 
+class ComposeCall {
+  static int generateRandomId(int min, int max) {
+    return min + (DateTime.now().microsecondsSinceEpoch % (max - min));
+  }
+}
+
+class _AddComposeCallUrlButton extends StatefulWidget {
+  const _AddComposeCallUrlButton({
+    required this.controller,
+    required this.enabled,
+    required this.isVideoCall,
+  });
+  final ComposeBoxController controller;
+  final bool enabled;
+  final bool isVideoCall;
+
+  @override
+  State<_AddComposeCallUrlButton> createState() => _AddComposeCallUrlButtonState();
+}
+
+class _AddComposeCallUrlButtonState extends State<_AddComposeCallUrlButton> {
+
+  static String getJitsiServerUrl(PerAccountStore store) {
+    return store.realmJitsiServerUrl ?? store.serverJitsiServerUrl ??
+      store.jitsiServerUrl ?? 'https://meet.jit.si';
+  }
+
+  void _insertCallUrl(String url, String visibleText) {
+    final placeholder = inlineLink(visibleText, url);
+    final contentController = widget.controller.content;
+    final insertionRange = contentController.insertionIndex();
+    contentController.value = contentController.value.replaced(insertionRange, '$placeholder\n\n');
+    widget.controller.contentFocusNode.requestFocus();
+  }
+
+  void _handleJitsiCall({
+    required ComposeContentController contentController,
+    required bool isAudioCall,
+  }) {
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalization = ZulipLocalizations.of(context);
+    final videoCallId = ComposeCall.generateRandomId(100000000000000, 999999999999999);
+    final jitsiServerUrl = getJitsiServerUrl(store);
+    final videoCallLink = '$jitsiServerUrl/$videoCallId';
+
+    if (!isAudioCall) {
+      _insertCallUrl('$videoCallLink#config.startWithVideoMuted=false',
+        zulipLocalization.composeBoxVideoCallLinkText);
+    } else {
+      _insertCallUrl('$videoCallLink#config.startWithVideoMuted=true',
+        zulipLocalization.composeBoxVoiceCallLinkText);
+    }
+
+  }
+
+  Future<void> generateComposeCallUrl({
+    required ComposeContentController contentController,
+    required bool isAudioCall,
+    int? editMessageId,
+  }) async {
+    final store = PerAccountStoreWidget.of(context);
+    final realmAvailableVideoChatProviders = store.realmAvailableVideoChatProviders;
+    final realmVideoChatProvider = store.realmVideoChatProvider;
+
+    final providerIsZoom = realmAvailableVideoChatProviders['zoom'] != null &&
+      realmVideoChatProvider.apiValue == realmAvailableVideoChatProviders['zoom']!.id;
+    final providerIsZoomServerToServer =
+      realmAvailableVideoChatProviders['zoom_server_to_server'] != null &&
+        realmVideoChatProvider.apiValue == realmAvailableVideoChatProviders['zoom_server_to_server']!.id;
+
+    if (providerIsZoom || providerIsZoomServerToServer) {
+      //TODO: Handle Zoom call
+    } else if (realmAvailableVideoChatProviders['big_blue_button'] != null &&
+        realmVideoChatProvider.apiValue == realmAvailableVideoChatProviders['big_blue_button']!.id) {
+      //TODO: Handle Big Blue Button call
+    } else {
+      _handleJitsiCall(
+        contentController: contentController,
+        isAudioCall: isAudioCall,
+      );
+    }
+  }
+
+
+  Future<void> _handlePress(BuildContext context) async {
+    final contentController = widget.controller.content;
+    await generateComposeCallUrl(contentController: contentController,
+      isAudioCall: !widget.isVideoCall, editMessageId: null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    return SizedBox(
+      width: _composeButtonSize,
+      child: IconButton(
+        icon: Icon(ZulipIcons.video, color: designVariables.foreground.withFadedAlpha(0.5)),
+        tooltip: zulipLocalizations.composeBoxAddVideoCallTooltip,
+        onPressed: widget.enabled ? () => _handlePress(context) : null));
+  }
+}
+
 abstract class _AttachUploadsButton extends StatelessWidget {
   const _AttachUploadsButton({required this.controller, required this.enabled});
 
@@ -1489,6 +1593,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
       _AttachFileButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
+      _AddComposeCallUrlButton(controller: controller, enabled: composeButtonsEnabled, isVideoCall: true),
     ];
 
     final topicInput = buildTopicInput();
