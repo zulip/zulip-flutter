@@ -162,7 +162,7 @@ extension ImageThumbnailLocatorExtension on ImageThumbnailLocator {
   ///
   /// The returned URL may not work
   /// without adding authentication credentials to the request.
-  Uri? resolve(
+  Uri resolve(
     BuildContext context, {
     required double width,
     required double height,
