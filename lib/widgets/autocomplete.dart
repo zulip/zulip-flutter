@@ -378,21 +378,41 @@ class _ChannelLinkAutocompleteItem extends StatelessWidget {
 
     if (channel == null) return SizedBox.shrink();
 
+    final designVariables = DesignVariables.of(context);
+
     return ConstrainedBox(
       constraints: BoxConstraints(minHeight: 44),
       child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(12, 4, 10, 4),
-        child: Row(spacing: 10, children: [
-          SizedBox.square(dimension: 24, child: Icon(iconDataForStream(channel),
-            size: 18, color: colorSwatchFor(context, store.subscriptions[channel.streamId]))),
-          Expanded(child: Text(channel.name,
+      padding: EdgeInsetsDirectional.fromSTEB(12, 4, 10, 4),
+      child: Row(spacing: 10, children: [
+        SizedBox.square(dimension: 24, child: Icon(iconDataForStream(channel),
+        size: 18, color: colorSwatchFor(context, store.subscriptions[channel.streamId]))),
+        Expanded(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+          Text(channel.name,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 18, height: 20 / 18,
-              color: DesignVariables.of(context).contextMenuItemLabel,
-            ).merge(weightVariableTextStyle(context, wght: 600)))),
-          // TODO(#1945): show channel description
-        ])),
+            fontSize: 18, height: 20 / 18,
+            color: designVariables.contextMenuItemLabel,
+            ).merge(weightVariableTextStyle(context, wght: 600))),
+          if (channel.description != null && channel.description!.isNotEmpty)
+            Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(channel.description!,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: TextStyle(
+              fontSize: 14, height: 16 / 14,
+              color: designVariables.contextMenuItemMeta),
+            ),
+            ),
+          ],
+        ),
+        ),
+      ])),
     );
   }
 }
