@@ -418,6 +418,9 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Impossibile modificare il messaggio';
 
   @override
+  String get errorCouldNotAppendCallUrl => 'Fail to get call URL';
+
+  @override
   String get successLinkCopied => 'Collegamento copiato';
 
   @override
@@ -499,6 +502,12 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get composeBoxAttachFromCameraTooltip => 'Fai una foto';
 
   @override
+  String get composeBoxAddVideoCallTooltip => 'Add video call';
+
+  @override
+  String get composeBoxAddVoiceCallTooltip => 'Add voice call';
+
+  @override
   String get composeBoxGenericContentHint => 'Batti un messaggio';
 
   @override
@@ -556,6 +565,12 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String composeBoxUploadingFilename(String filename) {
     return 'Caricamento $filename…';
   }
+
+  @override
+  String get composeBoxVideoCallLinkText => 'Join video call.';
+
+  @override
+  String get composeBoxVoiceCallLinkText => 'Join voice call.';
 
   @override
   String composeBoxLoadingMessage(int messageId) {
