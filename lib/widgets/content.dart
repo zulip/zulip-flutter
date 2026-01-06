@@ -1163,6 +1163,10 @@ class _InlineContentBuilder {
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
           child: MessageImageEmoji(node: node));
 
+      case InlineImageNode():
+        return WidgetSpan(alignment: PlaceholderAlignment.middle,
+          child: InlineImage(node: node, ambientTextStyle: widget.style));
+
       case MathInlineNode():
         final nodes = node.nodes;
         return nodes == null
@@ -1317,6 +1321,114 @@ class MessageImageEmoji extends StatelessWidget {
                 height: size,
               )),
       ]);
+  }
+}
+
+class InlineImage extends StatelessWidget {
+  const InlineImage({
+    super.key,
+    required this.node,
+    required this.ambientTextStyle,
+  });
+
+  final InlineImageNode node;
+  final TextStyle ambientTextStyle;
+
+  Widget _buildContent(BuildContext context, {required Size size}) {
+    final store = PerAccountStoreWidget.of(context);
+
+    if (node.loading) {
+      return CupertinoActivityIndicator();
+    }
+
+    final src = node.src;
+    final resolvedSrc = switch (src) {
+      ImageNodeSrcThumbnail() => src.value.resolve(context,
+        width: size.width,
+        height: size.height,
+        animationMode: .animateConditionally),
+      ImageNodeSrcOther() => store.tryResolveUrl(src.value),
+    };
+    if (resolvedSrc == null) {
+      // TODO(#265) use an error-case placeholder here
+      return SizedBox.shrink();
+    }
+
+    Widget result;
+    result = RealmContentNetworkImage(
+      // TODO(#265) use an error-case placeholder for `errorBuilder`
+      semanticLabel: node.alt,
+      resolvedSrc);
+
+    final resolvedOriginalSrc = node.originalSrc == null ? null
+      : store.tryResolveUrl(node.originalSrc!);
+    if (resolvedOriginalSrc != null) {
+      result = GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(getImageLightboxRoute(
+            context: context,
+            message: InheritedMessage.of(context),
+            messageImageContext: context,
+            src: resolvedOriginalSrc,
+            thumbnailUrl: resolvedSrc,
+            originalWidth: node.originalWidth,
+            originalHeight: node.originalHeight));
+        },
+        child: LightboxHero(
+          messageImageContext: context,
+          src: resolvedOriginalSrc,
+          child: result));
+    }
+
+    return result;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+
+    // Follow web's max-height behavior (10em);
+    // see image_box_em in web/src/postprocess_content.ts.
+    final maxHeight = ambientTextStyle.fontSize! * 10;
+
+    final imageSize = (node.originalWidth != null && node.originalHeight != null)
+      ? Size(node.originalWidth!, node.originalHeight!) / devicePixelRatio
+      // Layout plan when original dimensions are unknown:
+      // a [MessageMediaContainer]-sized and -colored rectangle.
+      : Size(MessageMediaContainer.width, MessageMediaContainer.height);
+
+    // (a) Don't let tall, thin images take up too much vertical space,
+    //     which could be annoying to scroll through. And:
+    // (b) Don't let small images grow to occupy more physical pixels
+    //     than they have data for.
+    //     It looks like web has code for this in web/src/postprocess_content.ts
+    //     but it doesn't account for the device pixel ratio, in 2026-01.
+    //     So in web, small images do get blown up and blurry on modern devices:
+    //       https://chat.zulip.org/#narrow/channel/101-design/topic/Inline.20images.20blown.20up.20and.20blurry/near/2346831
+    final size = BoxConstraints(maxHeight: maxHeight)
+      .constrainSizeAndAttemptToPreserveAspectRatio(imageSize);
+
+    Widget child = _buildContent(context, size: size);
+    if (node.alt != null) {
+      child = Tooltip(
+        message: node.alt,
+        // (Instead of setting a semantics label here,
+        // we give the alt text to [RealmContentNetworkImage].)
+        excludeFromSemantics: true,
+        child: child);
+    }
+
+    return Padding(
+      // Separate images vertically when they flow onto separate lines.
+      // (3px follows web; see web/styles/rendered_markdown.css.)
+      padding: const EdgeInsets.only(top: 3),
+      child: ConstrainedBox(
+        constraints: BoxConstraints.loose(size),
+        child: AspectRatio(
+          aspectRatio: size.aspectRatio,
+          child: ColoredBox(
+            color: ContentTheme.of(context).colorMessageMediaContainerBackground,
+            child: child))));
   }
 }
 

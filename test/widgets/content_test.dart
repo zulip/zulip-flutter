@@ -1484,6 +1484,53 @@ void main() {
     });
   });
 
+  group('InlineImage', () {
+    late TransitionDurationObserver transitionDurationObserver;
+
+    Future<void> prepare(WidgetTester tester, String html) async {
+      transitionDurationObserver = TransitionDurationObserver();
+      await prepareContent(tester,
+        // Message is needed for the image's lightbox.
+        messageContent(html),
+        navObservers: [transitionDurationObserver],
+        // We try to resolve the image's URL on the self-account's realm.
+        wrapWithPerAccountStoreWidget: true);
+    }
+
+    testWidgets('smoke: inline image', (tester) async {
+      await prepare(tester, ContentExample.inlineImage.html);
+      check(find.byType(InlineImage)).findsOne();
+
+      prepareBoringImageHttpClient();
+      await tester.tap(find.byType(InlineImage));
+      await transitionDurationObserver.pumpPastTransition(tester);
+      check(find.byType(InteractiveViewer)).findsOne(); // recognize the lightbox
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('smoke: inline image, loading', (tester) async {
+      await prepare(tester, ContentExample.inlineImageLoading.html);
+      check(find.byType(InlineImage)).findsOne();
+      check(find.byType(CupertinoActivityIndicator)).findsOne();
+    });
+
+    testWidgets('smoke: inline image, animated', (tester) async {
+      await prepare(tester, ContentExample.inlineImageAnimated.html);
+      check(find.byType(InlineImage)).findsOne();
+    });
+
+    testWidgets('table with inline image', (tester) async {
+      await prepare(tester, ContentExample.tableWithInlineImage.html);
+      check(find.byType(InlineImage)).findsOne();
+
+      prepareBoringImageHttpClient();
+      await tester.tap(find.byType(InlineImage));
+      await transitionDurationObserver.pumpPastTransition(tester);
+      check(find.byType(InteractiveViewer)).findsOne(); // recognize the lightbox
+      debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
   group('WebsitePreview', () {
     Future<void> prepare(WidgetTester tester, String html) async {
       await prepareContent(tester, plainContent(html),

@@ -260,6 +260,78 @@ class ContentExample {
     const ImageEmojiNode(
       src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:'));
 
+  static final inlineImage = ContentExample.inline(
+    'inline image',
+    '![image.png](/user_uploads/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png)',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Chris/near/2346984
+    '<p><img alt="image.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="186x142" '
+      'data-original-src="/user_uploads/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png" '
+      'src="/user_uploads/thumbnail/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png/840x560.webp"></p>',
+    InlineImageNode(
+      loading: false,
+      src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+        defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png/840x560.webp'))),
+      alt: 'image.png',
+      originalSrc: '/user_uploads/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png',
+      originalWidth: 186,
+      originalHeight: 142));
+
+  static final inlineImageLoading = ContentExample.inline(
+    'inline image, loading',
+    '![image.png](/user_uploads/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png)',
+    // HTML constructed from the API doc in the pull request for this feature:
+    //   https://github.com/zulip/zulip/pull/36226
+    '<p><img alt="example image" class="inline-image image-loading-placeholder" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="1050x700" '
+      'data-original-src="/user_uploads/path/to/example.png" '
+      'src="/path/to/spinner.png"></p>',
+    InlineImageNode(
+      loading: true,
+      src: ImageNodeSrcOther('/path/to/spinner.png'),
+      alt: 'example image',
+      originalSrc: '/user_uploads/path/to/example.png',
+      originalWidth: 1050,
+      originalHeight: 700));
+
+  static final inlineImageLoadingClassOrderReversed = ContentExample.inline(
+    'inline image, loading, class order reversed',
+    '![image.png](/user_uploads/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png)',
+    // Hypothetical server variation on inlineImageLoading.
+    '<p><img alt="example image" class="image-loading-placeholder inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="1050x700" '
+      'data-original-src="/user_uploads/path/to/example.png" '
+      'src="/path/to/spinner.png"></p>',
+    InlineImageNode(
+      loading: true,
+      src: ImageNodeSrcOther('/path/to/spinner.png'),
+      alt: 'example image',
+      originalSrc: '/user_uploads/path/to/example.png',
+      originalWidth: 1050,
+      originalHeight: 700));
+
+  static final inlineImageAnimated = ContentExample.inline(
+    'inline image, animated',
+    '![2451eb2d.gif](/user_uploads/2/1a/igMNAkwVOP7NLJy-Hye6WiKP/2451eb2d.gif)',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Chris/near/2346992
+    '<p><img alt="2451eb2d.gif" class="inline-image" '
+      'data-animated="true" '
+      'data-original-content-type="image/gif" '
+      'data-original-dimensions="64x64" '
+      'data-original-src="/user_uploads/2/1a/igMNAkwVOP7NLJy-Hye6WiKP/2451eb2d.gif" '
+      'src="/user_uploads/thumbnail/2/1a/igMNAkwVOP7NLJy-Hye6WiKP/2451eb2d.gif/840x560-anim.webp"></p>',
+    InlineImageNode(
+      loading: false,
+      src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: true,
+        defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/1a/igMNAkwVOP7NLJy-Hye6WiKP/2451eb2d.gif/840x560-anim.webp'))),
+      alt: '2451eb2d.gif',
+      originalSrc: '/user_uploads/2/1a/igMNAkwVOP7NLJy-Hye6WiKP/2451eb2d.gif',
+      originalWidth: 64,
+      originalHeight: 64));
+
   static final globalTime = ContentExample.inline(
     'global time',
     "<time:2024-03-07T15:00:00-08:00>",
@@ -1563,6 +1635,37 @@ class ContentExample {
     ]),
   ]);
 
+  static final tableWithInlineImage = ContentExample(
+    'table with inline image',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Chris/near/2347028
+    '| a |\n| - |\n| ![image2.jpg](/user_uploads/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg) |',
+    '<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n'
+      '<tbody>\n<tr>\n<td>'
+      '<img alt="image2.jpg" class="inline-image" '
+      'data-original-content-type="image/jpeg" '
+      'data-original-dimensions="2760x4912" '
+      'data-original-src="/user_uploads/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg" '
+      'src="/user_uploads/thumbnail/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg/840x560.webp">'
+      '</td>\n</tr>\n</tbody>\n</table>', [
+    TableNode(rows: [
+      TableRowNode(cells: [
+        TableCellNode(nodes: [TextNode('a')], links: [], textAlignment: TableColumnTextAlignment.defaults),
+      ], isHeader: true),
+      TableRowNode(cells: [
+        TableCellNode(nodes: [
+          InlineImageNode(
+            loading: false,
+            src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+              defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg/840x560.webp'))),
+            alt: 'image2.jpg',
+            originalSrc: '/user_uploads/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg',
+            originalWidth: 2760,
+            originalHeight: 4912),
+        ], links: [], textAlignment: TableColumnTextAlignment.defaults),
+      ], isHeader: false),
+    ]),
+  ]);
+
   // As is, this HTML doesn't look particularly different to our parser.
   // But if Zulip's table support followed GFM, this would have no <tbody>:
   //   https://github.github.com/gfm/#example-205
@@ -1789,6 +1892,12 @@ void main() async {
   testParseExample(ContentExample.emojiCustom);
   testParseExample(ContentExample.emojiCustomInvalidUrl);
   testParseExample(ContentExample.emojiZulipExtra);
+
+  testParseExample(ContentExample.inlineImage);
+  testParseExample(ContentExample.inlineImageLoading);
+  testParseExample(ContentExample.inlineImageLoadingClassOrderReversed);
+  testParseExample(ContentExample.inlineImageAnimated);
+  testParseExample(ContentExample.tableWithInlineImage);
 
   testParseExample(ContentExample.mathInline);
   testParseExample(ContentExample.mathInlineUnknown);

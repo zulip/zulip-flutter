@@ -540,6 +540,7 @@ sealed class ImageNode extends ContentNode {
   const ImageNode({
     super.debugHtmlNode,
     required this.loading,
+    required this.alt,
     required this.src,
     required this.originalSrc,
     required this.originalWidth,
@@ -554,6 +555,8 @@ sealed class ImageNode extends ContentNode {
   /// When this is true, [src] will point to a "spinner" image.
   /// Clients are invited to show a custom loading indicator instead; we do.
   final bool loading;
+
+  final String? alt;
 
   /// A URL for the image intended to be shown here in Zulip content.
   ///
@@ -593,9 +596,30 @@ sealed class ImageNode extends ContentNode {
   final double? originalHeight;
 
   @override
+  bool operator ==(Object other) {
+    return other is ImageNode
+      && other.loading == loading
+      && other.alt == alt
+      && other.src == src
+      && other.originalSrc == originalSrc
+      && other.originalWidth == originalWidth
+      && other.originalHeight == originalHeight;
+  }
+
+  @override
+  int get hashCode => Object.hash('ImageNode',
+    loading,
+    alt,
+    src,
+    originalSrc,
+    originalWidth,
+    originalHeight);
+
+  @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(FlagProperty('loading', value: loading, ifTrue: "is loading"));
+    properties.add(StringProperty('alt', alt));
     properties.add(DiagnosticsProperty<ImageNodeSrc>('src', src));
     properties.add(StringProperty('originalSrc', originalSrc));
     properties.add(DoubleProperty('originalWidth', originalWidth));
@@ -611,21 +635,16 @@ class ImagePreviewNode extends ImageNode implements BlockContentNode {
     required super.originalSrc,
     required super.originalWidth,
     required super.originalHeight,
-  });
+  }) : super(alt: null);
 
   @override
   bool operator ==(Object other) {
     return other is ImagePreviewNode
-      && other.loading == loading
-      && other.src == src
-      && other.originalSrc == originalSrc
-      && other.originalWidth == originalWidth
-      && other.originalHeight == originalHeight;
+      && super == other;
   }
 
   @override
-  int get hashCode => Object.hash('ImagePreviewNode',
-    loading, src, originalSrc, originalWidth, originalHeight);
+  int get hashCode => Object.hash('ImagePreviewNode', super.hashCode);
 }
 
 /// A value of [ImagePreviewNode.src].
@@ -1115,6 +1134,41 @@ class ImageEmojiNode extends EmojiNode {
   }
 }
 
+/// An "inline image" / "Markdown-style image" node,
+/// from the ![alt text](url) syntax.
+///
+/// See `api_docs/message-formatting.md` in the web PR for this feature:
+///   https://github.com/zulip/zulip/pull/36226
+///
+/// This class accommodates forms not expected from servers in 2026-01,
+/// to avoid being a landmine for possible future servers that send such forms.
+/// Notably, in 2026-01, servers are expected to produce this content
+/// just for uploaded images, which means the images' dimensions are available.
+/// UI code should nevertheless do something reasonable when the dimensions
+/// are not available. Discussion:
+///   https://chat.zulip.org/#narrow/channel/378-api-design/topic/HTML.20pattern.20for.20truly.20inline.20images/near/2348085
+// TODO: Link to the merged API doc when it lands.
+class InlineImageNode extends ImageNode implements InlineContentNode {
+  const InlineImageNode({
+    super.debugHtmlNode,
+    required super.loading,
+    required super.alt,
+    required super.src,
+    required super.originalSrc,
+    required super.originalWidth,
+    required super.originalHeight,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    return other is InlineImageNode
+      && super == other;
+  }
+
+  @override
+  int get hashCode => Object.hash('InlineImageNode', super.hashCode);
+}
+
 class MathInlineNode extends MathNode implements InlineContentNode {
   const MathInlineNode({
     super.debugHtmlNode,
@@ -1189,6 +1243,28 @@ final _imageDimensionsRegExp = RegExp(r'^(\d+)x(\d+)$');
 /// instance has been reset to its starting state, and can be re-used for
 /// parsing other subtrees.
 class _ZulipInlineContentParser {
+  InlineContentNode? parseInlineImage(dom.Element imgElement, {required bool loading}) {
+    assert(imgElement.localName == 'img');
+    assert(imgElement.className.contains('inline-image'));
+    assert(loading == imgElement.className.contains('image-loading-placeholder'));
+
+    final src = _tryParseImgSrc(imgElement);
+    if (src == null) return null;
+    final originalSrc = imgElement.attributes['data-original-src'];
+    final originalDimensions = _tryParseOriginalDimensions(imgElement);
+
+    final alt = imgElement.attributes['alt'];
+
+    return InlineImageNode(
+      loading: loading,
+      src: src,
+      alt: alt,
+      originalSrc: originalSrc,
+      originalWidth: originalDimensions?.originalWidth,
+      originalHeight: originalDimensions?.originalHeight,
+    );
+  }
+
   InlineContentNode? parseInlineMath(dom.Element element) {
     final debugHtmlNode = kDebugMode ? element : null;
     final parsed = parseMath(element, block: false);
@@ -1339,6 +1415,15 @@ class _ZulipInlineContentParser {
         final src = element.attributes['src'];
         if (src == null) return unimplemented();
         return ImageEmojiNode(src: src, alt: alt, debugHtmlNode: debugHtmlNode);
+      }
+
+      if (className == 'inline-image') {
+        return parseInlineImage(element, loading: false) ?? unimplemented();
+      } else if (
+        className == 'inline-image image-loading-placeholder'
+        || className == 'image-loading-placeholder inline-image'
+      ) {
+        return parseInlineImage(element, loading: true) ?? unimplemented();
       }
     }
 
