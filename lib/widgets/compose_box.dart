@@ -11,6 +11,7 @@ import 'package:path/path.dart' as path;
 import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
+import '../api/route/video_call.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
 import '../model/compose.dart';
@@ -1089,6 +1090,37 @@ class _AddComposeCallUrlButtonState extends State<_AddComposeCallUrlButton> {
 
   }
 
+  Future<void> _createBigBlueButtonCall ({
+    required ComposeContentController contentController,
+    required bool voiceOnly,
+  }) async {
+    final zulipLocalization = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    try {
+      final connection = store.connection;
+      final result = await createBigBlueButtonCall(
+        connection, meetingName: "Null", //TODO: Fetch message stream title
+        voiceOnly: voiceOnly);
+
+      if (!voiceOnly) {
+        _insertCallUrl(result.url, zulipLocalization.composeBoxVideoCallLinkText);
+      } else {
+        _insertCallUrl(result.url, zulipLocalization.composeBoxVoiceCallLinkText);
+      }
+    } on ApiRequestException catch (e) {
+      if (!mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      final message = switch (e) {
+        ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
+        _ => e.message,
+      };
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorCouldNotAppendCallUrl,
+        message: message);
+      return;
+    }
+  }
+
   Future<void> generateComposeCallUrl({
     required ComposeContentController contentController,
     required bool isAudioCall,
@@ -1108,7 +1140,10 @@ class _AddComposeCallUrlButtonState extends State<_AddComposeCallUrlButton> {
       //TODO: Handle Zoom call
     } else if (realmAvailableVideoChatProviders['big_blue_button'] != null &&
         realmVideoChatProvider.apiValue == realmAvailableVideoChatProviders['big_blue_button']!.id) {
-      //TODO: Handle Big Blue Button call
+      await _createBigBlueButtonCall(
+        contentController: contentController,
+        voiceOnly: isAudioCall,
+      );
     } else {
       _handleJitsiCall(
         contentController: contentController,
