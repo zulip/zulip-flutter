@@ -419,6 +419,9 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String get errorCouldNotEditMessageTitle => 'Could not edit message';
 
   @override
+  String get errorCouldNotAppendCallUrl => 'Fail to get call URL';
+
+  @override
   String get successLinkCopied => 'Link copied';
 
   @override
@@ -510,6 +513,12 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String get composeBoxAttachFromCameraTooltip => 'Take a photo';
 
   @override
+  String get composeBoxAddVideoCallTooltip => 'Add video call';
+
+  @override
+  String get composeBoxAddVoiceCallTooltip => 'Add voice call';
+
+  @override
   String get composeBoxGenericContentHint => 'Type a message';
 
   @override
@@ -567,6 +576,12 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String composeBoxUploadingFilename(String filename) {
     return 'Uploading $filename…';
   }
+
+  @override
+  String get composeBoxVideoCallLinkText => 'Join video call.';
+
+  @override
+  String get composeBoxVoiceCallLinkText => 'Join voice call.';
 
   @override
   String composeBoxLoadingMessage(int messageId) {
