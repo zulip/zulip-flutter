@@ -1033,7 +1033,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     }
 
     if (scrollMetrics.extentBefore < kFetchMessagesBufferPixels) {
-      // TODO: This ends up firing a second time shortly after we fetch a batch.
+      // TODO(#2104): This ends up firing a second time shortly after we fetch a batch.
       //   The result is that each time we decide to fetch a batch, we end up
       //   fetching two batches in quick succession.  This is basically harmless
       //   but makes things a bit more complicated to reason about.
