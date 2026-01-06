@@ -7,6 +7,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../api/exception.dart';
 import '../api/model/model.dart';
@@ -1036,6 +1037,20 @@ Future<void> _uploadFiles({
 }
 
 class ComposeCall {
+  static final Map<String, Future<void> Function()> _zoomTokenCallbacks = {};
+  static void clearZoomCallbacks(int? editMessageId) {
+    final key = editMessageId?.toString() ?? '';
+    _zoomTokenCallbacks.remove(key);
+  }
+
+  static Future<void> handleHasZoomTokenEvent() async {
+    final callbacks = Map<String, Future<void> Function()>.from(_zoomTokenCallbacks);
+    _zoomTokenCallbacks.clear();
+    for (final callback in callbacks.values) {
+      await callback();
+    }
+  }
+
   static int generateRandomId(int min, int max) {
     return min + (DateTime.now().microsecondsSinceEpoch % (max - min));
   }
@@ -1060,6 +1075,13 @@ class _AddComposeCallUrlButtonState extends State<_AddComposeCallUrlButton> {
   static String getJitsiServerUrl(PerAccountStore store) {
     return store.realmJitsiServerUrl ?? store.serverJitsiServerUrl ??
       store.jitsiServerUrl ?? 'https://meet.jit.si';
+  }
+
+  Future<void> _openZoomOAuthWindow() async {
+    final store = PerAccountStoreWidget.of(context);
+    final url = store.realmUrl.resolve('/calls/zoom/register');
+
+    await launchUrl(url, mode: LaunchMode.platformDefault);
   }
 
   void _insertCallUrl(String url, String visibleText) {
@@ -1121,6 +1143,52 @@ class _AddComposeCallUrlButtonState extends State<_AddComposeCallUrlButton> {
     }
   }
 
+  Future<void> handleZoomCall({
+    required ComposeContentController contentController,
+    required bool isVideoCall,
+    required bool isServerToServer,
+    int? editMessageId,
+  }) async {
+    final store = PerAccountStoreWidget.of(context);
+    final key = editMessageId?.toString() ?? '';
+    ComposeCall.clearZoomCallbacks(editMessageId);
+    Future<void> prepareZoomCall() async {
+      final zulipLocalization = ZulipLocalizations.of(context);
+      final store = PerAccountStoreWidget.of(context);
+      try {
+        final connection = store.connection;
+        final result = await createZoomCall(connection, isVideoCall: isVideoCall);
+
+        if (isVideoCall) {
+          _insertCallUrl(result.url, zulipLocalization.composeBoxVideoCallLinkText);
+        } else {
+          _insertCallUrl(result.url, zulipLocalization.composeBoxVoiceCallLinkText);
+        }
+
+      } on ApiRequestException catch (e) {
+        if (!mounted) return;
+        store.hasZoomToken = false;
+        ComposeCall.clearZoomCallbacks(editMessageId);
+        final zulipLocalizations = ZulipLocalizations.of(context);
+        final message = switch (e) {
+          ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
+          _ => e.message,
+        };
+        showErrorDialog(context: context,
+          title: zulipLocalizations.errorCouldNotAppendCallUrl,
+          message: message);
+        return;
+      }
+    }
+
+    if (store.hasZoomToken || isServerToServer) {
+      await prepareZoomCall();
+    } else {
+      ComposeCall._zoomTokenCallbacks[key] = prepareZoomCall;
+      await _openZoomOAuthWindow();
+    }
+  }
+
   Future<void> generateComposeCallUrl({
     required ComposeContentController contentController,
     required bool isAudioCall,
@@ -1137,7 +1205,11 @@ class _AddComposeCallUrlButtonState extends State<_AddComposeCallUrlButton> {
         realmVideoChatProvider.apiValue == realmAvailableVideoChatProviders['zoom_server_to_server']!.id;
 
     if (providerIsZoom || providerIsZoomServerToServer) {
-      //TODO: Handle Zoom call
+      await handleZoomCall(
+        contentController: contentController,
+        isVideoCall: !isAudioCall,
+        isServerToServer: providerIsZoomServerToServer,
+      );
     } else if (realmAvailableVideoChatProviders['big_blue_button'] != null &&
         realmVideoChatProvider.apiValue == realmAvailableVideoChatProviders['big_blue_button']!.id) {
       await _createBigBlueButtonCall(

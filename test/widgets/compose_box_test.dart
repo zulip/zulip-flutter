@@ -1157,6 +1157,28 @@ void main() {
           ..startsWith('[Join video call.](https://meet.jit.si')
           ..endsWith('#config.startWithVideoMuted=false)\n\n');
       });
+
+      testWidgets('zoom success with token', (tester) async {
+        await prepare(tester, hasZoomToken: true,
+          realmVideoChatProvider: RealmVideoChatProvider.zoomUserOAuth,
+          realmAvailableVideoChatProvider: {
+            'zoom' : RealmAvailableVideoChatProviders(
+              name: 'zoom',
+              id: 3)
+        });
+
+        connection.prepare(json: {
+          'result': 'success',
+          'msg': '',
+          'url': 'https://zoom.us/j/1234567890?pwd=abcdef',
+        });
+
+        await tester.tap(find.byIcon(ZulipIcons.video));
+        await tester.pumpAndSettle();
+        check(controller!.content.text)
+          .equals('[Join video call.](https://zoom.us/j/1234567890?pwd=abcdef)\n\n');
+      });
+
     });
   });
 
