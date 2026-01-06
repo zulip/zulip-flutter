@@ -13,7 +13,7 @@ import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
-import 'unread_count_badge.dart';
+import 'counter_badge.dart';
 
 class InboxPageBody extends StatefulWidget {
   const InboxPageBody({super.key});
@@ -309,7 +309,9 @@ abstract class _HeaderItem extends StatelessWidget {
           const SizedBox(width: 12),
           if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
           Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-            child: UnreadCountBadge(
+            child: CounterBadge(
+              // TODO(design) use CounterKind.quantity, following Figma
+              kind: CounterBadgeKind.unread,
               channelIdForBackground: channelId,
               count: count)),
         ])));
@@ -431,7 +433,10 @@ class _DmItem extends StatelessWidget {
             const SizedBox(width: 12),
             if (hasMention) const  _IconMarker(icon: ZulipIcons.at_sign),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-              child: UnreadCountBadge(channelIdForBackground: null,
+              child: CounterBadge(
+                // TODO(design) use CounterKind.quantity, following Figma
+                kind: CounterBadgeKind.unread,
+                channelIdForBackground: null,
                 count: count)),
           ]))));
   }
@@ -565,7 +570,9 @@ class _TopicItem extends StatelessWidget {
             // TODO(design) copies the "@" marker color; is there a better color?
             if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-              child: UnreadCountBadge(
+              child: CounterBadge(
+                // TODO(design) use CounterKind.quantity, following Figma
+                kind: CounterBadgeKind.unread,
                 channelIdForBackground: streamId,
                 count: count)),
           ]))));

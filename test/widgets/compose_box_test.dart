@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/localizations.dart';
@@ -34,6 +35,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/content_test.dart';
 import '../model/message_list_test.dart';
 import '../model/store_checks.dart';
 import '../model/test_store.dart';
@@ -974,6 +976,59 @@ void main() {
         expectedMessage: zulipLocalizations.errorServerMessage(
           'You do not have permission to initiate direct message conversations.'),
       )));
+    });
+
+    testWidgets('if channel is unsubscribed, refresh on message-send success', (tester) async {
+      // Regression test for the "first buggy behavior"
+      // in https://github.com/zulip/zulip-flutter/issues/1798 .
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+      assert(MessageStoreImpl.debugOutboxEnable);
+
+      final channel = eg.stream();
+      final narrow = eg.topicNarrow(channel.streamId, 'some topic');
+      final messages = [eg.streamMessage(stream: channel, topic: 'some topic')];
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      await prepareComposeBox(tester,
+        narrow: narrow,
+        streams: [channel],
+        messages: messages);
+      assert(store.subscriptions[channel.streamId] == null);
+
+      await enterContent(tester, 'hello world');
+
+      connection.prepare(
+        json: SendMessageResult(id: 456).toJson(), delay: Duration(seconds: 1));
+      await tester.tap(find.byTooltip(zulipLocalizations.composeBoxSendTooltip));
+      await tester.pump(Duration(milliseconds: 500));
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages');
+
+      final newMessage = eg.streamMessage(
+        stream: channel, topic: 'some topic',
+        content: '<p>hello world</p>');
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [...messages, newMessage]).toJson());
+      await tester.pump(Duration(milliseconds: 500));
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('GET')
+        ..url.path.equals('/api/v1/messages')
+        ..url.queryParameters.deepEquals({
+          'narrow': jsonEncode(resolveApiNarrowForServer(
+            narrow.apiEncode(), connection.zulipFeatureLevel!)),
+          'anchor': 'newest',
+          'num_before': '100',
+          'num_after': '100',
+          'allow_empty_topic_name': 'true',
+        });
+      check(find.descendant(
+        of: find.byType(MessageWithPossibleSender),
+        matching: find.text('hello world'))
+      ).findsOne();
+      // Regression coverage for the "third buggy behavior"
+      // in https://github.com/zulip/zulip-flutter/issues/1798 .
+      check(find.byType(OutboxMessageWithPossibleSender)).findsNothing();
     });
   });
 
@@ -2055,6 +2110,21 @@ void main() {
       checkContentInputValue(tester, expectedContentText);
     }
 
+    /// Check whether the message in the message list says "SAVING EDIT…".
+    ///
+    /// This state is tested more thoroughly
+    /// in test/widgets/message_list_test.dart, naturally.
+    void checkEditInProgressInMsglist(WidgetTester tester,
+        {required int messageId, required bool expected}) {
+      final messageFinder = find.byWidgetPredicate((widget) =>
+        widget is MessageWithPossibleSender && widget.item.message.id == messageId);
+
+      check(find.descendant(
+        of: messageFinder,
+        matching: find.text('SAVING EDIT…'),
+      ).evaluate().length).equals(expected ? 1 : 0);
+    }
+
     void testSmoke({required Narrow narrow, required _EditInteractionStart start}) {
       testWidgets('smoke: $narrow, ${start.message()}', (tester) async {
         await prepareEditMessage(tester, narrow: narrow);
@@ -2105,6 +2175,10 @@ void main() {
           prevContent: 'foo', content: 'some new content[file.jpg](/path/file.jpg)');
         await tester.pump(Duration.zero);
         checkNotInEditingMode(tester, narrow: narrow);
+
+        // We'll say "SAVING EDIT…" in the message list until the event arrives.
+        // (No need to make the event arrive here; message-list tests do that.)
+        checkEditInProgressInMsglist(tester, messageId: messageId, expected: true);
       });
     }
     testSmoke(narrow: channelNarrow, start: _EditInteractionStart.actionSheet);
@@ -2362,6 +2436,57 @@ void main() {
     testCancel(narrow: channelNarrow, start: _EditInteractionStart.restoreFailedEdit);
     // testCancel(narrow: topicNarrow,   start: _EditInteractionStart.restoreFailedEdit);
     // testCancel(narrow: dmNarrow,      start: _EditInteractionStart.restoreFailedEdit);
+
+    testWidgets('if channel is unsubscribed, refresh on message-edit success', (tester) async {
+      // Regression test for the "first buggy behavior"
+      // in https://github.com/zulip/zulip-flutter/issues/1798 .
+
+      final channel = eg.stream();
+      final narrow = ChannelNarrow(channel.streamId);
+      final message = eg.streamMessage(stream: channel, sender: eg.selfUser);
+
+      await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+      await store.addMessages([message]);
+      check(store.subscriptions[channel.streamId]).isNull();
+      await tester.pump(); // message list updates
+
+      await startEditInteractionFromActionSheet(tester,
+        messageId: message.id, originalRawContent: 'foo');
+      await tester.pump(Duration(seconds: 1)); // fetch-raw-content request
+      checkContentInputValue(tester, 'foo');
+
+      final newMarkdownContent = ContentExample.emojiUnicode.markdown!;
+      await enterContent(tester, newMarkdownContent);
+
+      connection.prepare(json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+      await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
+      await tester.pump(Duration(milliseconds: 500));
+      checkRequest(message.id, prevContent: 'foo', content: newMarkdownContent);
+
+      final updatedMessage =
+        Message.fromJson(message.toJson()..['content'] = ContentExample.emojiUnicode.html);
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [updatedMessage]).toJson());
+      await tester.pump(Duration(milliseconds: 500));
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('GET')
+        ..url.path.equals('/api/v1/messages')
+        ..url.queryParameters.deepEquals({
+          'narrow': jsonEncode(resolveApiNarrowForServer(
+            narrow.apiEncode(), connection.zulipFeatureLevel!)),
+          'anchor': '${message.id}',
+          'num_before': '100',
+          'num_after': '100',
+          'allow_empty_topic_name': 'true',
+        });
+      check(find.descendant(
+        of: find.byType(MessageWithPossibleSender),
+        matching: find.text(ContentExample.emojiUnicode.expectedText!))
+      ).findsOne();
+      // Regression coverage for the "third buggy behavior"
+      // in https://github.com/zulip/zulip-flutter/issues/1798 .
+      checkEditInProgressInMsglist(tester, messageId: message.id, expected: false);
+    });
   });
 }
 

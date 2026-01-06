@@ -68,6 +68,7 @@ extension PerAccountStoreChecks on Subject<PerAccountStore> {
   Subject<Map<String, ZulipStream>> get streamsByName => has((x) => x.streamsByName, 'streamsByName');
   Subject<Map<int, Subscription>> get subscriptions => has((x) => x.subscriptions, 'subscriptions');
   Subject<Map<int, Message>> get messages => has((x) => x.messages, 'messages');
+  Subject<Set<int>> get starredMessages => has((x) => x.starredMessages, 'starredMessages');
   Subject<Unreads> get unreads => has((x) => x.unreads, 'unreads');
   Subject<RecentDmConversationsView> get recentDmConversationsView => has((x) => x.recentDmConversationsView, 'recentDmConversationsView');
   Subject<AutocompleteViewManager> get autocompleteViewManager => has((x) => x.autocompleteViewManager, 'autocompleteViewManager');

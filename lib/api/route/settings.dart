@@ -16,6 +16,7 @@ Future<void> updateSettings(ApiConnection connection, {
         // TODO(server-future) allow localeDefault for servers that support it
         assert(mode != TwentyFourHourTimeMode.localeDefault);
         value = mode.toJson();
+      case UserSettingName.starredMessageCounts:
       case UserSettingName.displayEmojiReactionUsers:
         value = valueRaw as bool;
       case UserSettingName.emojiset:

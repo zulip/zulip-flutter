@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/widgets/channel_colors.dart';
-import 'package:zulip/widgets/unread_count_badge.dart';
+import 'package:zulip/widgets/counter_badge.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
@@ -15,7 +15,7 @@ import 'test_app.dart';
 void main() {
   TestZulipBinding.ensureInitialized();
 
-  group('UnreadCountBadge', () {
+  group('CounterBadge', () {
     Future<void> prepare(WidgetTester tester, {
       required Widget child,
       Subscription? subscription,
@@ -36,7 +36,10 @@ void main() {
 
     testWidgets('smoke test; no crash', (tester) async {
       await prepare(tester,
-        child: const UnreadCountBadge(count: 1, channelIdForBackground: null));
+        child: CounterBadge(
+          kind: CounterBadgeKind.unread,
+          count: 1,
+          channelIdForBackground: null));
       tester.widget(find.text("1"));
     });
 
@@ -49,7 +52,10 @@ void main() {
 
       testWidgets('default color', (tester) async {
         await prepare(tester,
-          child: UnreadCountBadge(count: 1, channelIdForBackground: null));
+          child: CounterBadge(
+            kind: CounterBadgeKind.unread,
+            count: 1,
+            channelIdForBackground: null));
         check(findBackgroundColor(tester)).isNotNull().isSameColorAs(const Color(0x26666699));
       });
 
@@ -57,7 +63,8 @@ void main() {
         final subscription = eg.subscription(eg.stream(), color: 0xff76ce90);
         await prepare(tester,
           subscription: subscription,
-          child: UnreadCountBadge(
+          child: CounterBadge(
+            kind: CounterBadgeKind.unread,
             count: 1,
             channelIdForBackground: subscription.streamId));
         check(findBackgroundColor(tester)).isNotNull()

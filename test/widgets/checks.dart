@@ -17,7 +17,7 @@ import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/profile.dart';
 import 'package:zulip/widgets/store.dart';
-import 'package:zulip/widgets/unread_count_badge.dart';
+import 'package:zulip/widgets/counter_badge.dart';
 import 'package:zulip/widgets/user.dart';
 
 extension ChannelColorSwatchChecks on Subject<ChannelColorSwatch> {
@@ -92,7 +92,7 @@ extension PerAccountStoreWidgetChecks on Subject<PerAccountStoreWidget> {
   Subject<Widget> get child => has((x) => x.child, 'child');
 }
 
-extension UnreadCountBadgeChecks on Subject<UnreadCountBadge> {
+extension CounterBadgeChecks on Subject<CounterBadge> {
   Subject<int> get count => has((b) => b.count, 'count');
   Subject<int?> get channelIdForBackground => has((b) => b.channelIdForBackground, 'channelIdForBackground');
 }

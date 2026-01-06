@@ -11,7 +11,7 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/subscription_list.dart';
 import 'package:zulip/widgets/text.dart';
-import 'package:zulip/widgets/unread_count_badge.dart';
+import 'package:zulip/widgets/counter_badge.dart';
 
 import '../flutter_checks.dart';
 import '../model/binding.dart';
@@ -186,7 +186,7 @@ void main() {
     await setupStreamListPage(tester, subscriptions: [
       eg.subscription(stream),
     ], unreadMsgs: unreadMsgs);
-    check(find.byType(UnreadCountBadge).evaluate()).length.equals(1);
+    check(find.byType(CounterBadge).evaluate()).length.equals(1);
     check(find.byType(MutedUnreadBadge).evaluate().length).equals(0);
   });
 
@@ -206,7 +206,7 @@ void main() {
         )],
         unreadMsgs: unreadMsgs);
     check(tester.widget<Text>(find.descendant(
-        of: find.byType(UnreadCountBadge), matching: find.byType(Text))))
+        of: find.byType(CounterBadge), matching: find.byType(Text))))
       .data.equals('1');
     check(find.byType(MutedUnreadBadge).evaluate().length).equals(0);
   });
@@ -217,7 +217,7 @@ void main() {
     await setupStreamListPage(tester, subscriptions: [
       eg.subscription(stream),
     ], unreadMsgs: unreadMsgs);
-    check(find.byType(UnreadCountBadge).evaluate()).length.equals(0);
+    check(find.byType(CounterBadge).evaluate()).length.equals(0);
     check(find.byType(MutedUnreadBadge).evaluate().length).equals(0);
   });
 
@@ -274,7 +274,7 @@ void main() {
     check(tester.widget<Icon>(find.byIcon(iconDataForStream(stream))).color)
       .isNotNull().isSameColorAs(swatch.iconOnPlainBackground);
 
-    final unreadCountBadgeRenderBox = tester.renderObject<RenderBox>(find.byType(UnreadCountBadge));
+    final unreadCountBadgeRenderBox = tester.renderObject<RenderBox>(find.byType(CounterBadge));
     check(unreadCountBadgeRenderBox).legacyMatcher(
       // `paints` isn't a [Matcher] so we wrap it with `equals`;
       // awkward but it works

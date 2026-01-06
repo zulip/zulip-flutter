@@ -24,6 +24,9 @@ mixin MessageStore on ChannelStore {
   /// All known messages, indexed by [Message.id].
   Map<int, Message> get messages;
 
+  /// All starred messages, as message IDs.
+  Set<int> get starredMessages;
+
   /// [OutboxMessage]s sent by the user, indexed by [OutboxMessage.localMessageId].
   Map<int, OutboxMessage> get outboxMessages;
 
@@ -208,6 +211,8 @@ mixin ProxyMessageStore on MessageStore {
   @override
   Map<int, Message> get messages => messageStore.messages;
   @override
+  Set<int> get starredMessages => messageStore.starredMessages;
+  @override
   Map<int, OutboxMessage> get outboxMessages => messageStore.outboxMessages;
   @override
   void registerMessageList(MessageListView view) =>
@@ -261,13 +266,18 @@ class _EditMessageRequestStatus {
 }
 
 class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessageStore {
-  MessageStoreImpl({required super.channels})
-    : // There are no messages in InitialSnapshot, so we don't have
-      // a use case for initializing MessageStore with nonempty [messages].
-      messages = {};
+  MessageStoreImpl({
+    required super.channels,
+    required List<int> initialStarredMessages,
+  }) :
+     messages = {},
+     starredMessages = Set.of(initialStarredMessages);
 
   @override
   final Map<int, Message> messages;
+
+  @override
+  final Set<int> starredMessages;
 
   @override
   final Set<MessageListView> _messageListViews = {};
@@ -410,6 +420,17 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     assert(!_disposed);
     for (int i = 0; i < messages.length; i++) {
       final message = messages[i];
+
+      // TODO(#649) update Unreads, if [Unreads.oldUnreadsMissing]
+      // TODO(#650) update RecentDmConversationsView
+
+      // It's tempting to update [starredMessages] based on fetched messages,
+      // like Unreads and RecentDmConversationsView.
+      // But we don't need to: per the API doc, InitialSnapshot.starredMessages
+      // is the complete list of starred message IDs. So we can maintain it
+      // using just the event system, avoiding the fetch/event race
+      // as a cause of inaccuracies.
+
       messages[i] = this.messages.update(message.id,
         ifAbsent: () => _reconcileUnrecognizedMessage(message),
         (current) => _reconcileRecognizedMessage(current, message));
@@ -519,7 +540,8 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
         content: newContent,
         prevContentSha256: sha256.convert(utf8.encode(originalRawContent)).toString());
       // On success, we'll clear the status from _editMessageRequests
-      // when we get the event.
+      // when we get the event (or below, if in an unsubscribed channel).
+      if (_disposed) return;
     } catch (e) {
       // TODO(log) if e is something unexpected
 
@@ -535,6 +557,19 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
       status.hasError = true;
       _notifyMessageListViewsForOneMessage(messageId);
       rethrow;
+    }
+
+    final message = messages[messageId];
+    if (message is StreamMessage && subscriptions[message.streamId] == null) {
+      // The message is in an unsubscribed channel.
+      // We don't expect an event (see "third buggy behavior" in #1798)
+      // but we know the edit request succeeded, so, clear the pending-edit state.
+      // We simultaneously reload the affected message lists from scratch, so
+      // the user won't see a state where the edit appears to be forgotten.
+      // (See _EditMessageBannerTrailing._handleTapSave in
+      // lib/widgets/compose_box.dart.)
+      _editMessageRequests.remove(messageId);
+      _notifyMessageListViewsForOneMessage(messageId);
     }
   }
 
@@ -592,6 +627,13 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
 
   void handleMessageEvent(MessageEvent event) {
     final message = event.message;
+
+    if (message.flags.contains(MessageFlag.starred)) { // TODO(log)
+      // It would be surprising if a newly-sent message could be starred.
+      // (I notice that the send-message endpoint doesn't offer a way to
+      // set the starred flag.)
+      // If it turns out to be possible, we should update [starredMessages].
+    }
 
     // If the message is one we already know about (from a fetch),
     // clobber it with the one from the event system.
@@ -716,18 +758,25 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     }
   }
 
-  void handleDeleteMessageEvent(DeleteMessageEvent event) {
+  /// Handle a [DeleteMessageEvent]
+  /// and return true if the [PerAccountStore] should notify listeners.
+  bool handleDeleteMessageEvent(DeleteMessageEvent event) {
+    bool perAccountStoreShouldNotify = false;
     for (final messageId in event.messageIds) {
       messages.remove(messageId);
+      perAccountStoreShouldNotify |= starredMessages.remove(messageId);
       _maybeStaleChannelMessages.remove(messageId);
       _editMessageRequests.remove(messageId);
     }
     for (final view in _messageListViews) {
       view.handleDeleteMessageEvent(event);
     }
+    return perAccountStoreShouldNotify;
   }
 
-  void handleUpdateMessageFlagsEvent(UpdateMessageFlagsEvent event) {
+  /// Handle an [UpdateMessageFlagsEvent]
+  /// and return true if the [PerAccountStore] should notify listeners.
+  bool handleUpdateMessageFlagsEvent(UpdateMessageFlagsEvent event) {
     final isAdd = switch (event) {
       UpdateMessageFlagsAddEvent()    => true,
       UpdateMessageFlagsRemoveEvent() => false,
@@ -765,6 +814,15 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
         _notifyMessageListViews(event.messages);
       }
     }
+
+    if (event.flag == MessageFlag.starred) {
+      isAdd
+        ? starredMessages.addAll(event.messages)
+        : starredMessages.removeAll(event.messages);
+      return true;
+    }
+
+    return false;
   }
 
   void handleReactionEvent(ReactionEvent event) {
@@ -888,13 +946,18 @@ const kSendMessageOfferRestoreWaitPeriod = Duration(seconds: 10);  // TODO(#1441
 ///         timed out.   not finished when
 ///                      wait period timed out.
 ///
-///              Event received.
-/// (any state) ─────────────────► (delete)
+///              Event received.  Or [sendMessage]
+///              request succeeds and we're sending to
+///              an unsubscribed channel.
+/// (any state) ───────────────────────────────────────► (delete)
 /// ```
 ///
 /// During its lifecycle, it is guaranteed that the outbox message is deleted
 /// as soon a message event with a matching [MessageEvent.localMessageId]
 /// arrives.
+/// If we're sending to an unsubscribed channel, we don't expect an event
+/// (see "third buggy behavior" in #1798) so in that case
+/// the outbox message is deleted when the [sendMessage] request succeeds.
 enum OutboxMessageState {
   /// The [sendMessage] HTTP request has started but the resulting
   /// [MessageEvent] hasn't arrived, and nor has the request failed.  In this
@@ -1147,6 +1210,22 @@ mixin _OutboxMessageStore on HasChannelStore {
       // The message event already arrived; nothing to do.
       return;
     }
+
+    if (destination is StreamDestination && subscriptions[destination.streamId] == null) {
+      // We don't expect an event (we're sending to an unsubscribed channel);
+      // clear the loading spinner.
+      // We simultaneously reload the affected message lists from scratch, so
+      // the user won't see a state where the message appears to have vanished.
+      // (See _SendButtonState._send in lib/widgets/compose_box.dart.)
+      _outboxMessages.remove(localMessageId);
+      _outboxMessageDebounceTimers.remove(localMessageId)?.cancel();
+      _outboxMessageWaitPeriodTimers.remove(localMessageId)?.cancel();
+      for (final view in _messageListViews) {
+        view.notifyListenersIfOutboxMessagePresent(localMessageId);
+      }
+      return;
+    }
+
     // The send request succeeded, so the message was definitely sent.
     // Cancel the timer that would have had us start presuming that the
     // send might have failed.
