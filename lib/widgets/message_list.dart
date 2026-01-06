@@ -1033,15 +1033,29 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     }
 
     if (scrollMetrics.extentBefore < kFetchMessagesBufferPixels) {
-      // TODO: This ends up firing a second time shortly after we fetch a batch.
-      //   The result is that each time we decide to fetch a batch, we end up
-      //   fetching two batches in quick succession.  This is basically harmless
-      //   but makes things a bit more complicated to reason about.
-      //   The cause seems to be that this gets called again with maxScrollExtent
-      //   still not yet updated to account for the newly-added messages.
+      // This ends up firing a second time shortly after we fetch a batch while
+      // there is a fling going on.
+      // The result is that each time we decide to fetch a batch, we end up
+      // fetching two batches in quick succession. This is basically harmless
+      // but makes things a bit more complicated to reason about.
+      // The cause is that this gets called again with minScrollExtent
+      // still not yet updated to account for the newly-added messages.
+      // This relates to how [SchedulerBinding] executes different tasks when
+      // producing a new frame, like first executing transient callbacks
+      // (typically ticking animations) followed by persistent callbacks
+      // (typically the build/layout/paint pipeline), and so on.
+      // So when there is a new message batch received, the related widgets are
+      // marked dirty for the next frame. With the ongoing fling, the underlying
+      // animation registers transient callback(s) for [ScrollPosition.setPixels]
+      // to be executed in the transient callbacks phase at the start of
+      // the frame. It will then notify its listeners, eventually calling
+      // `_scrollChanged` and in turn current method with old minScrollExtent,
+      // causing the second batch fetch. Then in the persistent callbacks phase,
+      // minScrollExtent will be updated, effective in the next frame.
       model.fetchOlder();
     }
     if (scrollMetrics.extentAfter < kFetchMessagesBufferPixels) {
+      // The comments above about the double-fetch glitch apply here too.
       model.fetchNewer();
     }
   }
