@@ -1288,12 +1288,14 @@ class _ZulipInlineContentParser {
       return UnicodeEmojiNode(emojiUnicode: unicode, debugHtmlNode: debugHtmlNode);
     }
 
-    if (localName == 'img' && className == 'emoji') {
-      final alt = element.attributes['alt'];
-      if (alt == null) return unimplemented();
-      final src = element.attributes['src'];
-      if (src == null) return unimplemented();
-      return ImageEmojiNode(src: src, alt: alt, debugHtmlNode: debugHtmlNode);
+    if (localName == 'img') {
+      if (className == 'emoji') {
+        final alt = element.attributes['alt'];
+        if (alt == null) return unimplemented();
+        final src = element.attributes['src'];
+        if (src == null) return unimplemented();
+        return ImageEmojiNode(src: src, alt: alt, debugHtmlNode: debugHtmlNode);
+      }
     }
 
     if (localName == 'time' && className.isEmpty) {
