@@ -1135,6 +1135,21 @@ class GlobalTimeNode extends InlineContentNode {
   }
 }
 
+final _imageDimensionsRegExp = RegExp(r'^(\d+)x(\d+)$');
+
+/// Parse an `img`'s `data-original-dimensions` attribute,
+/// which servers encode as "{width}x{height}" (e.g., "300x400").
+({double originalWidth, double originalHeight})? _tryParseOriginalDimensions(dom.Element imgElement) {
+  final attribute = imgElement.attributes['data-original-dimensions'];
+  if (attribute == null) return null;
+  final match = _imageDimensionsRegExp.firstMatch(attribute);
+  if (match == null) return null;
+  final width = int.tryParse(match.group(1)!, radix: 10);
+  final height = int.tryParse(match.group(2)!, radix: 10);
+  if (width == null || height == null) return null;
+  return (originalWidth: width.toDouble(), originalHeight: height.toDouble());
+}
+
 //|//////////////////////////////////////////////////////////////
 
 /// Parser for the inline-content subtrees within Zulip content HTML.
@@ -1487,8 +1502,6 @@ class _ZulipContentParser {
     return CodeBlockNode(spans, debugHtmlNode: debugHtmlNode);
   }
 
-  static final _imageDimensionsRegExp = RegExp(r'^(\d+)x(\d+)$');
-
   BlockContentNode? parseImagePreviewNode(dom.Element divElement) {
     final elements = () {
       assert(divElement.localName == 'div'
@@ -1527,24 +1540,7 @@ class _ZulipContentParser {
         animated: imgElement.attributes['data-animated'] == 'true');
     }
 
-    double? originalWidth, originalHeight;
-    final originalDimensions = imgElement.attributes['data-original-dimensions'];
-    if (originalDimensions != null) {
-      // Server encodes this string as "{width}x{height}" (eg. "300x400")
-      final match = _imageDimensionsRegExp.firstMatch(originalDimensions);
-      if (match != null) {
-        final width = int.tryParse(match.group(1)!, radix: 10);
-        final height = int.tryParse(match.group(2)!, radix: 10);
-        if (width != null && height != null) {
-          originalWidth = width.toDouble();
-          originalHeight = height.toDouble();
-        }
-      }
-
-      if (originalWidth == null || originalHeight == null) {
-        return null;
-      }
-    }
+    final originalDimensions = _tryParseOriginalDimensions(imgElement);
 
     return ImagePreviewNode(
       originalSrc: href,
@@ -1552,8 +1548,8 @@ class _ZulipContentParser {
         ? ImagePreviewNodeSrcThumbnail(thumbnailSrc)
         : ImagePreviewNodeSrcOther(src),
       loading: loading,
-      originalWidth: originalWidth,
-      originalHeight: originalHeight,
+      originalWidth: originalDimensions?.originalWidth,
+      originalHeight: originalDimensions?.originalHeight,
       debugHtmlNode: debugHtmlNode);
   }
 
