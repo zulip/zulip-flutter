@@ -182,22 +182,88 @@ void main() {
       check(find.text('Got it')).findsOne();
     });
 
-    testWidgets('settings track inbox modal shown state', (tester) async {
-      addTearDown(testBinding.reset);
-      // Reset to false since tests now default to true
-      await testBinding.globalStore.settings.setBool(BoolGlobalSetting.inboxIntroModalShown, false);
-      check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.inboxIntroModalShown)).isFalse();
-      await testBinding.globalStore.settings.setBool(BoolGlobalSetting.inboxIntroModalShown, true);
-      check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.inboxIntroModalShown)).isTrue();
+    group('showInboxIntroModal', () {
+      testWidgets('shows modal on first visit to inbox', (tester) async {
+        addTearDown(testBinding.reset);
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        await testBinding.globalStore.settings.setBool(BoolGlobalSetting.inboxIntroModalShown, false);
+        
+        await tester.pumpWidget(TestZulipApp(child: Builder(
+          builder: (context) {
+            showInboxIntroModal(context);
+            return const Placeholder();
+          }
+        )));
+        await tester.pump();
+        await tester.pump(); 
+        
+        check(find.byType(IntroModal)).findsOne();
+        check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.inboxIntroModalShown)).isFalse();
+        
+        await tester.tap(find.text('Got it'));
+        await tester.pumpAndSettle();
+        
+        check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.inboxIntroModalShown)).isTrue();
+      });
+
+      testWidgets('does not show modal on subsequent visits', (tester) async {
+        addTearDown(testBinding.reset);
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        await testBinding.globalStore.settings.setBool(BoolGlobalSetting.inboxIntroModalShown, true);
+        
+        await tester.pumpWidget(TestZulipApp(child: Builder(
+          builder: (context) {
+            showInboxIntroModal(context);
+            return const Placeholder();
+          }
+        )));
+        await tester.pump();
+        await tester.pump(); 
+        
+        check(find.byType(IntroModal)).findsNothing();
+      });
     });
 
-    testWidgets('settings track combined feed modal shown state', (tester) async {
-      addTearDown(testBinding.reset);
-      // Reset to false since tests now default to true
-      await testBinding.globalStore.settings.setBool(BoolGlobalSetting.combinedFeedIntroModalShown, false);
-      check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.combinedFeedIntroModalShown)).isFalse();
-      await testBinding.globalStore.settings.setBool(BoolGlobalSetting.combinedFeedIntroModalShown, true);
-      check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.combinedFeedIntroModalShown)).isTrue();
+    group('showCombinedFeedIntroModal', () {
+      testWidgets('shows modal on first visit to combined feed', (tester) async {
+        addTearDown(testBinding.reset);
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        await testBinding.globalStore.settings.setBool(BoolGlobalSetting.combinedFeedIntroModalShown, false);
+        
+        await tester.pumpWidget(TestZulipApp(child: Builder(
+          builder: (context) {
+            showCombinedFeedIntroModal(context);
+            return const Placeholder();
+          }
+        )));
+        await tester.pump();
+        await tester.pump(); 
+        
+        check(find.byType(IntroModal)).findsOne();
+        check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.combinedFeedIntroModalShown)).isFalse();
+        
+        await tester.tap(find.text('Got it'));
+        await tester.pumpAndSettle();
+        
+        check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.combinedFeedIntroModalShown)).isTrue();
+      });
+
+      testWidgets('does not show modal on subsequent visits', (tester) async {
+        addTearDown(testBinding.reset);
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        await testBinding.globalStore.settings.setBool(BoolGlobalSetting.combinedFeedIntroModalShown, true);
+        
+        await tester.pumpWidget(TestZulipApp(child: Builder(
+          builder: (context) {
+            showCombinedFeedIntroModal(context);
+            return const Placeholder();
+          }
+        )));
+        await tester.pump();
+        await tester.pump();
+
+        check(find.byType(IntroModal)).findsNothing();
+      });
     });
   });
 }
