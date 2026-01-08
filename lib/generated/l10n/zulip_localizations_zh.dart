@@ -2437,7 +2437,7 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get actionSheetOptionCopyChannelLink => '複製頻道連結';
 
   @override
-  String get actionSheetOptionListOfTopics => '議題列表';
+  String get actionSheetOptionListOfTopics => '話題列表';
 
   @override
   String get actionSheetOptionChannelFeed => '頻道動態';
@@ -2580,7 +2580,7 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get actionSheetOptionMarkTopicAsRead => '標註話題為已讀';
 
   @override
-  String get actionSheetOptionCopyTopicLink => '複製議題的連結';
+  String get actionSheetOptionCopyTopicLink => '複製話題的連結';
 
   @override
   String get errorWebAuthOperationalErrorTitle => '出錯了';
@@ -2734,7 +2734,7 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get successMessageLinkCopied => '已複製訊息連結';
 
   @override
-  String get successTopicLinkCopied => '議題連結已複製';
+  String get successTopicLinkCopied => '話題連結已複製';
 
   @override
   String get successChannelLinkCopied => '頻道連結已複製';
@@ -2845,11 +2845,11 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get unknownChannelName => '(未知頻道)';
 
   @override
-  String get composeBoxTopicHintText => '議題';
+  String get composeBoxTopicHintText => '話題';
 
   @override
   String composeBoxEnterTopicOrSkipHintText(String defaultTopicName) {
-    return '輸入議題（留空則使用「$defaultTopicName」）';
+    return '輸入話題（留空則使用「$defaultTopicName」）';
   }
 
   @override
@@ -3330,7 +3330,7 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get wildcardMentionStream => '串流';
 
   @override
-  String get wildcardMentionTopic => '議題';
+  String get wildcardMentionTopic => '話題';
 
   @override
   String get wildcardMentionChannelDescription => '通知頻道';

@@ -589,19 +589,19 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get emptyMessageListCombinedFeed =>
-      'There are no messages in your combined feed.';
+      'Es befinden sich keine Nachrichten in deinem gesammelten Feed.';
 
   @override
   String get emptyMessageListChannelWithoutContentAccess =>
-      'You don’t have <z-link>content access</z-link> to this channel.';
+      'Du hast keinen <z-link>Inhaltszugriff</z-link> zu diesem Kanal.';
 
   @override
   String get emptyMessageListChannelUnavailable =>
-      'This channel doesn’t exist, or you are not allowed to view it.';
+      'Entweder existiert dieser Kanal nicht oder du bist nicht berechtigt, ihn anzusehen.';
 
   @override
   String get emptyMessageListSelfDmHeader =>
-      'You have not sent any direct messages to yourself yet!';
+      'Bisher hast du keine Direktnachrichten an dich selbst geschickt!';
 
   @override
   String get emptyMessageListSelfDmMessage =>

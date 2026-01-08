@@ -302,8 +302,20 @@
   "@emptyMessageList": {
     "description": "Placeholder for some message-list pages when there are no messages."
   },
+  "@emptyMessageListChannelUnavailable": {
+    "description": "Placeholder for a channel page when there are no messages and the channel does not exist or you don't have access to it."
+  },
+  "@emptyMessageListChannelWithoutContentAccess": {
+    "description": "Placeholder for a channel or topic page when there are no messages and you don’t have content access."
+  },
+  "@emptyMessageListCombinedFeed": {
+    "description": "Placeholder for the 'Combined feed' page when there are no messages."
+  },
   "@emptyMessageListSearch": {
     "description": "Placeholder for the 'Search' page when there are no messages."
+  },
+  "@emptyMessageListSelfDmHeader": {
+    "description": "Placeholder for the self-DM page when there are no messages."
   },
   "@errorAccountLoggedIn": {
     "description": "Error message on attempting to log into an account that's already logged in.",
@@ -1345,7 +1357,11 @@
   "emojiPickerSearchEmoji": "Emoji suchen",
   "emojiReactionsMore": "mehr",
   "emptyMessageList": "Hier gibt es keine Nachrichten.",
+  "emptyMessageListChannelUnavailable": "Entweder existiert dieser Kanal nicht oder du bist nicht berechtigt, ihn anzusehen.",
+  "emptyMessageListChannelWithoutContentAccess": "Du hast keinen <z-link>Inhaltszugriff</z-link> zu diesem Kanal.",
+  "emptyMessageListCombinedFeed": "Es befinden sich keine Nachrichten in deinem gesammelten Feed.",
   "emptyMessageListSearch": "Keine Suchergebnisse.",
+  "emptyMessageListSelfDmHeader": "Bisher hast du keine Direktnachrichten an dich selbst geschickt!",
   "errorAccountLoggedIn": "Der Account {email} auf {server} ist bereits in deiner Account-Liste.",
   "errorAccountLoggedInTitle": "Account bereits angemeldet",
   "errorBannerCannotPostInChannelLabel": "Du hast keine Berechtigung in diesen Kanal zu schreiben.",
