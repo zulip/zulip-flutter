@@ -136,8 +136,14 @@ void main() {
     return findScrollView(tester).controller;
   }
 
+  int? messageListItemCount(WidgetTester tester) =>
+    findScrollView(tester).semanticChildCount;
+
   final contentInputFinder = find.byWidgetPredicate(
     (widget) => widget is TextField && widget.controller is ComposeContentController);
+
+  final findPlaceholder = find.byType(PageBodyEmptyContentPlaceholder);
+  final findLoadingIndicator = find.byType(CircularProgressIndicator);
 
   group('MessageListPage', () {
     testWidgets('ancestorOf finds page state from message', (tester) async {
@@ -375,8 +381,6 @@ void main() {
   });
 
   group('no-messages placeholder', () {
-    final findPlaceholder = find.byType(PageBodyEmptyContentPlaceholder);
-
     Finder findTextInPlaceholder(String text) =>
       find.descendant(of: findPlaceholder, matching: find.textContaining(text));
 
@@ -788,13 +792,10 @@ void main() {
     //   in particular test it happens even when near top as well as bottom
     //   (because may have haveOldest true but haveNewest false)
 
-    int? itemCount(WidgetTester tester) =>
-      findScrollView(tester).semanticChildCount;
-
     testWidgets('basic', (tester) async {
       await setupMessageListPage(tester, foundOldest: false,
         messages: List.generate(300, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
-      check(itemCount(tester)).equals(301);
+      check(messageListItemCount(tester)).equals(301);
 
       // Fling-scroll upward...
       await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
@@ -807,7 +808,7 @@ void main() {
       await tester.pump(Duration.zero); // Allow a frame for the response to arrive.
 
       // Now we have more messages.
-      check(itemCount(tester)).equals(401);
+      check(messageListItemCount(tester)).equals(401);
     });
 
     testWidgets('no double-fetch glitch', (tester) async {
@@ -815,7 +816,7 @@ void main() {
       await setupMessageListPage(tester, foundOldest: false,
         messages: List.generate(300, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
       connection.takeRequests();
-      check(itemCount(tester)).equals(301);
+      check(messageListItemCount(tester)).equals(301);
 
       // Fling-scroll upward...
       await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
@@ -833,7 +834,7 @@ void main() {
 
       // Allow a delayed frame for the response to arrive.
       await tester.pump(Duration(milliseconds: 1));
-      check(itemCount(tester)).equals(401);
+      check(messageListItemCount(tester)).equals(401);
       await tester.pumpAndSettle();
       // Check there is no additional request made to cause double-fetch glitch.
       check(connection.takeRequests()).isEmpty();
@@ -847,7 +848,7 @@ void main() {
         ...List.generate(100, (i) => eg.streamMessage(id: 1302 + i)),
       ]);
       final lastRequest = connection.lastRequest;
-      check(itemCount(tester)).equals(402);
+      check(messageListItemCount(tester)).equals(402);
 
       // Fling-scroll upward...
       await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
@@ -1039,8 +1040,6 @@ void main() {
   // TODO test markers at start of list (`_buildStartCap`)
 
   group('markers at end of list', () {
-    final findLoadingIndicator = find.byType(CircularProgressIndicator);
-
     testWidgets('spacer when have newest', (tester) async {
       final messages = List.generate(10,
         (i) => eg.streamMessage(content: '<p>message $i</p>'));
