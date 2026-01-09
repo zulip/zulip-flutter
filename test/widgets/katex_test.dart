@@ -81,6 +81,10 @@ void main() {
         ('a', Offset(2.47, 3.36), Size(10.88, 25.00)),
         ('b', Offset(15.81, 3.36), Size(8.82, 25.00)),
       ]),
+     (KatexExample.notEqual, skip: false, [
+        ('=', Offset(0.0, 8.64), Size(16.0, 25.0)),
+        ('', Offset(0.0, 10.1), Size(0.0, 25.0)),
+      ]),
     ];
 
     for (final testCase in testCases) {
