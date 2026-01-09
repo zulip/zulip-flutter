@@ -377,6 +377,14 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
       initAnchor = useFirstUnread ? AnchorCode.firstUnread : AnchorCode.newest;
     }
 
+    if (narrow case ChannelNarrow(:final streamId)) {
+      final stream = PerAccountStoreWidget.of(context).streams[streamId];
+      final topicsPolicy = stream?.topicsPolicy;
+      if (topicsPolicy == TopicsPolicy.emptyTopicOnly) {
+        narrow = TopicNarrow(streamId, TopicName("general chat"));
+      }
+    }
+
     Widget result = Scaffold(
       appBar: _MessageListAppBar.build(context, narrow: narrow),
       // TODO question for Vlad: for a stream view, should we set the Scaffold's
