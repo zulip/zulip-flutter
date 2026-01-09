@@ -491,13 +491,19 @@ abstract class _MessageListAppBar {
       case ChannelNarrow(:final streamId):
         actions.add(_TopicListButton(streamId: streamId));
       case TopicNarrow(:final streamId):
-        actions.add(IconButton(
-          icon: const Icon(ZulipIcons.message_feed),
-          tooltip: zulipLocalizations.channelFeedButtonTooltip,
-          onPressed: () => Navigator.push(context,
-            MessageListPage.buildRoute(context: context,
-              narrow: ChannelNarrow(streamId)))));
-        actions.add(_TopicListButton(streamId: streamId));
+        final stream = PerAccountStoreWidget.of(context).streams[streamId];
+        final isStreamEmptyTopicOnly = stream?.topicsPolicy == TopicsPolicy.emptyTopicOnly;
+        if (!isStreamEmptyTopicOnly){
+          actions.add(IconButton(
+            icon: const Icon(ZulipIcons.message_feed),
+            tooltip: zulipLocalizations.channelFeedButtonTooltip,
+            onPressed: () => Navigator.push(context,
+              MessageListPage.buildRoute(context: context,
+                narrow: ChannelNarrow(streamId)))));
+          actions.add(_TopicListButton(streamId: streamId));
+        } else {
+          actions.add(ConstrainedBox(constraints: const BoxConstraints(minWidth: 48)));
+        }
     }
 
     return ZulipAppBar(
