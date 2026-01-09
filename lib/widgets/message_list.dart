@@ -358,6 +358,18 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
     narrow = widget.initNarrow;
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (narrow case ChannelNarrow(:final streamId)) {
+      final stream = PerAccountStoreWidget.of(context).streams[streamId];
+      final topicsPolicy = stream?.topicsPolicy;
+      if (topicsPolicy == TopicsPolicy.emptyTopicOnly) {
+        narrow = TopicNarrow(streamId, TopicName(''));
+      }
+    }
+  }
+
   void _narrowChanged(Narrow newNarrow) {
     setState(() {
       narrow = newNarrow;
