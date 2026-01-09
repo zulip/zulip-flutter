@@ -109,10 +109,10 @@ packages:
     dependency: transitive
     description:
       name: characters
-      sha256: f71061c654a3380576a52b451dd5532377954cf9dbd272a78fc8479606670803
+      sha256: faf38497bda5ead2a8c7615f4f7939df04333478bf32e4173fcb06d428b5716b
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.0"
+    version: "1.4.1"
   charcode:
     dependency: transitive
     description:
@@ -1323,5 +1323,5 @@ packages:
     source: path
     version: "0.0.1"
 sdks:
-  dart: ">=3.11.0-169.0.dev <4.0.0"
-  flutter: ">=3.39.0-1.0.pre-300"
+  dart: ">=3.11.0-296.2.beta <4.0.0"
+  flutter: ">=3.40.0-1.0.pre-487"
