@@ -1409,7 +1409,7 @@ class _ZulipContentParser {
 
   static final _imageDimensionsRegExp = RegExp(r'^(\d+)x(\d+)$');
 
-  BlockContentNode parseImagePreviewNode(dom.Element divElement) {
+  BlockContentNode? parseImagePreviewNode(dom.Element divElement) {
     final elements = () {
       assert(divElement.localName == 'div'
           && divElement.className == 'message_inline_image');
@@ -1428,15 +1428,11 @@ class _ZulipContentParser {
     }();
 
     final debugHtmlNode = kDebugMode ? divElement : null;
-    if (elements == null) {
-      return UnimplementedBlockContentNode(htmlNode: divElement);
-    }
+    if (elements == null) return null;
 
     final (linkElement, imgElement) = elements;
     final href = linkElement.attributes['href'];
-    if (href == null) {
-      return UnimplementedBlockContentNode(htmlNode: divElement);
-    }
+    if (href == null) return null;
     if (imgElement.className == 'image-loading-placeholder') {
       return ImagePreviewNode(
         srcUrl: href,
@@ -1447,15 +1443,13 @@ class _ZulipContentParser {
         debugHtmlNode: debugHtmlNode);
     }
     final src = imgElement.attributes['src'];
-    if (src == null) {
-      return UnimplementedBlockContentNode(htmlNode: divElement);
-    }
+    if (src == null) return null;
 
     final String srcUrl;
     final ImageThumbnailLocator? thumbnail;
     if (src.startsWith(ImageThumbnailLocator.srcPrefix)) {
       final parsedSrc = Uri.tryParse(src);
-      if (parsedSrc == null) return UnimplementedBlockContentNode(htmlNode: divElement);
+      if (parsedSrc == null) return null;
 
       // For why we recognize this as the thumbnail form, see discussion:
       //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/documenting.20inline.20images/near/2279872
@@ -1487,7 +1481,7 @@ class _ZulipContentParser {
       }
 
       if (originalWidth == null || originalHeight == null) {
-        return UnimplementedBlockContentNode(htmlNode: divElement);
+        return null;
       }
     }
 
@@ -1916,7 +1910,8 @@ class _ZulipContentParser {
     }
 
     if (localName == 'div' && className == 'message_inline_image') {
-      return parseImagePreviewNode(element);
+      return parseImagePreviewNode(element)
+        ?? UnimplementedBlockContentNode(htmlNode: element);
     }
 
     if (localName == 'div') {
