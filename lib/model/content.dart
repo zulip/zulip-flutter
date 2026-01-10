@@ -1435,19 +1435,16 @@ class _ZulipContentParser {
     if (href == null) return null;
     final src = imgElement.attributes['src'];
     if (src == null) return null;
-    if (imgElement.className == 'image-loading-placeholder') {
-      return ImagePreviewNode(
-        srcUrl: href,
-        thumbnail: null,
-        loading: true,
-        originalWidth: null,
-        originalHeight: null,
-        debugHtmlNode: debugHtmlNode);
-    }
+    final loading = imgElement.className == 'image-loading-placeholder';
 
     final String srcUrl;
     final ImageThumbnailLocator? thumbnail;
-    if (src.startsWith(ImageThumbnailLocator.srcPrefix)) {
+    if (loading) {
+      // This lets us offer a lightbox showing the full image,
+      // even while the thumbnail is loading.
+      srcUrl = href;
+      thumbnail = null; // (The thumbnail is the thing that's loading.)
+    } else if (src.startsWith(ImageThumbnailLocator.srcPrefix)) {
       final parsedSrc = Uri.tryParse(src);
       if (parsedSrc == null) return null;
 
@@ -1488,7 +1485,7 @@ class _ZulipContentParser {
     return ImagePreviewNode(
       srcUrl: srcUrl,
       thumbnail: thumbnail,
-      loading: false,
+      loading: loading,
       originalWidth: originalWidth,
       originalHeight: originalHeight,
       debugHtmlNode: debugHtmlNode);
