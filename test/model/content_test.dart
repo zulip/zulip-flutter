@@ -814,7 +814,7 @@ class ContentExample {
     ImagePreviewNodeList([
       ImagePreviewNode(srcUrl: '/user_uploads/path/to/example.png',
         thumbnail: null, loading: true,
-        originalWidth: null, originalHeight: null),
+        originalWidth: 1920, originalHeight: 1080),
     ]),
   ]);
 
