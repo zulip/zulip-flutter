@@ -636,25 +636,18 @@ class MessageImagePreview extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final message = InheritedMessage.of(context);
 
-    final Uri? resolvedSrc;
-    final Uri? resolvedOriginalSrc;
-    if (node.loading) {
-      resolvedSrc = null;
-      resolvedOriginalSrc = store.tryResolveUrl(node.srcUrl);
-    } else if (node.thumbnail != null) {
-      resolvedSrc = node.thumbnail!.resolve(context,
+    final resolvedSrc = switch (node.src) {
+      ImagePreviewNodeSrcThumbnail(:final value) => value.resolve(context,
         width: MessageMediaContainer.width,
         height: MessageMediaContainer.height,
-        animationMode: ImageAnimationMode.animateConditionally);
-      resolvedOriginalSrc = store.tryResolveUrl(node.srcUrl);
-    } else {
-      resolvedSrc = store.tryResolveUrl(node.srcUrl);
-      resolvedOriginalSrc = null;
-    }
+        animationMode: .animateConditionally),
+      ImagePreviewNodeSrcOther(:final value) => store.tryResolveUrl(value),
+    };
+    final resolvedOriginalSrc = store.tryResolveUrl(node.originalSrc);
 
     final child = switch ((node.loading, resolvedSrc)) {
-      // Use our own progress indicator.
-      // (resolvedSrc will actually be null when node.loading is true.)
+      // resolvedSrc would be a "spinner" image URL.
+      // Use our own progress indicator instead.
       (true, _) => const CupertinoActivityIndicator(),
 
       // TODO(#265) use an error-case placeholder
@@ -667,7 +660,7 @@ class MessageImagePreview extends StatelessWidget {
         resolvedSrc!),
     };
 
-    final lightboxDisplayUrl = (node.loading || node.thumbnail != null)
+    final lightboxDisplayUrl = (node.loading || node.src is ImagePreviewNodeSrcThumbnail)
       ? resolvedOriginalSrc
       : resolvedSrc;
     if (lightboxDisplayUrl == null) {
@@ -682,7 +675,7 @@ class MessageImagePreview extends StatelessWidget {
           message: message,
           messageImageContext: context,
           src: lightboxDisplayUrl,
-          thumbnailUrl: node.thumbnail != null
+          thumbnailUrl: node.src is ImagePreviewNodeSrcThumbnail
             ? resolvedSrc
             : null,
           originalWidth: node.originalWidth,
