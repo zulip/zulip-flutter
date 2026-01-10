@@ -1433,6 +1433,8 @@ class _ZulipContentParser {
     final (linkElement, imgElement) = elements;
     final href = linkElement.attributes['href'];
     if (href == null) return null;
+    final src = imgElement.attributes['src'];
+    if (src == null) return null;
     if (imgElement.className == 'image-loading-placeholder') {
       return ImagePreviewNode(
         srcUrl: href,
@@ -1442,8 +1444,6 @@ class _ZulipContentParser {
         originalHeight: null,
         debugHtmlNode: debugHtmlNode);
     }
-    final src = imgElement.attributes['src'];
-    if (src == null) return null;
 
     final String srcUrl;
     final ImageThumbnailLocator? thumbnail;
