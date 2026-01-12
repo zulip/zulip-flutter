@@ -590,6 +590,7 @@ class _ContentInput extends StatelessWidget {
               enabled: enabled,
               controller: controller.content,
               focusNode: controller.contentFocusNode,
+              onTap: controller.requestFocusIfUnfocused,
               contentInsertionConfiguration: ContentInsertionConfiguration(
                 onContentInserted: (content) => _handleContentInserted(context, content)),
               // Let the content show through the `contentPadding` so that
