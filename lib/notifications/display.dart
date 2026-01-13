@@ -293,8 +293,8 @@ class NotificationDisplayManager {
       realmUrl: data.realmUrl,
       userId: data.userId,
       narrow: switch (data.recipient) {
-        FcmMessageChannelRecipient(:var streamId, :var topic) =>
-          TopicNarrow(streamId, topic),
+        FcmMessageChannelRecipient(:var channelId, :var topic) =>
+          TopicNarrow(channelId, topic),
         FcmMessageDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
       }).buildAndroidNotificationUrl();
@@ -462,7 +462,7 @@ class NotificationDisplayManager {
 
   static String _conversationKey(MessageFcmMessage data, String groupKey) {
     final conversation = switch (data.recipient) {
-      FcmMessageChannelRecipient(:var streamId, :var topic) => 'stream:$streamId:${topic.canonicalize()}',
+      FcmMessageChannelRecipient(:var channelId, :var topic) => 'stream:$channelId:${topic.canonicalize()}',
       FcmMessageDmRecipient(:var allRecipientIds) => 'dm:${allRecipientIds.join(',')}',
     };
     return '$groupKey|$conversation';

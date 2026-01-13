@@ -80,7 +80,7 @@ void main() {
         ..senderFullName.equals(streamJson['sender_full_name']!)
         ..messageId.equals(12345)
         ..recipient.isA<FcmMessageChannelRecipient>().which((it) => it
-          ..streamId.equals(42)
+          ..channelId.equals(42)
           ..streamName.equals(streamJson['stream']!)
           ..topic.jsonEquals(streamJson['topic']!))
         ..content.equals(streamJson['content']!)
@@ -98,7 +98,7 @@ void main() {
     test('optional fields missing cause no error', () {
       check(parse({ ...streamJson }..remove('stream')))
         .recipient.isA<FcmMessageChannelRecipient>().which((it) => it
-          ..streamId.equals(42)
+          ..channelId.equals(42)
           ..streamName.isNull());
     });
 
@@ -278,7 +278,7 @@ extension MessageFcmMessageChecks on Subject<MessageFcmMessage> {
 }
 
 extension FcmMessageChannelRecipientChecks on Subject<FcmMessageChannelRecipient> {
-  Subject<int> get streamId => has((x) => x.streamId, 'streamId');
+  Subject<int> get channelId => has((x) => x.channelId, 'channelId');
   Subject<String?> get streamName => has((x) => x.streamName, 'streamName');
   Subject<TopicName> get topic => has((x) => x.topic, 'topic');
 }

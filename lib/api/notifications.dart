@@ -158,7 +158,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
       case FcmMessageDmRecipient(:var allRecipientIds):
         result['pm_users'] = const _IntListConverter().toJson(allRecipientIds);
       case FcmMessageChannelRecipient():
-        result['stream_id'] = const _IntConverter().toJson(recipient.streamId);
+        result['stream_id'] = const _IntConverter().toJson(recipient.channelId);
         if (recipient.streamName != null) result['stream'] = recipient.streamName;
         result['topic'] = recipient.topic;
     }
@@ -183,8 +183,9 @@ sealed class FcmMessageRecipient {
 /// An [FcmMessageRecipient] for a Zulip message to a stream.
 @JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
 class FcmMessageChannelRecipient extends FcmMessageRecipient {
+  @JsonKey(name: 'stream_id')
   @_IntConverter()
-  final int streamId;
+  final int channelId;
 
   // Current servers (as of 2025) always send the stream name.  But
   // future servers might not, once clients get the name from local data.
@@ -194,7 +195,7 @@ class FcmMessageChannelRecipient extends FcmMessageRecipient {
 
   final TopicName topic;
 
-  FcmMessageChannelRecipient({required this.streamId, required this.streamName, required this.topic});
+  FcmMessageChannelRecipient({required this.channelId, required this.streamName, required this.topic});
 
   factory FcmMessageChannelRecipient.fromJson(Map<String, dynamic> json) =>
     _$FcmMessageChannelRecipientFromJson(json);
