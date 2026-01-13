@@ -56,15 +56,8 @@ class UnexpectedFcmMessage extends FcmMessage {
 /// (all [FcmMessage] subclasses other than [UnexpectedFcmMessage]),
 /// and it seems likely that it always will.
 sealed class FcmMessageWithIdentity extends FcmMessage {
-  /// The server's `EXTERNAL_HOST` setting.  This is a hostname,
-  /// or a colon-separated hostname-plus-port.
-  ///
-  /// For documentation, see zulip-server:zproject/prod_settings_template.py .
-  final String server;
-
-  /// The realm's ID within the server.
-  @_IntConverter()
-  final int realmId;
+  // final String server; // ignore; never used, gone with E2EE notifs
+  // final int realmId; // ignore; never used, gone with E2EE notifs
 
   /// The realm's own URL.
   ///
@@ -81,8 +74,6 @@ sealed class FcmMessageWithIdentity extends FcmMessage {
   final int userId;
 
   FcmMessageWithIdentity({
-    required this.server,
-    required this.realmId,
     required this.realmUrl,
     required this.userId,
   });
@@ -130,8 +121,6 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
   static Object? _readWhole(Map<dynamic, dynamic> json, String key) => json;
 
   MessageFcmMessage({
-    required super.server,
-    required super.realmId,
     required super.realmUrl,
     required super.userId,
     required this.senderId,
@@ -247,8 +236,6 @@ class RemoveFcmMessage extends FcmMessageWithIdentity {
   // final String? zulipMessageId; // obsolete; ignore
 
   RemoveFcmMessage({
-    required super.server,
-    required super.realmId,
     required super.realmUrl,
     required super.userId,
     required this.messageIds,

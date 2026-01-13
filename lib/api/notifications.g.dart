@@ -10,8 +10,6 @@ part of 'notifications.dart';
 
 MessageFcmMessage _$MessageFcmMessageFromJson(Map<String, dynamic> json) =>
     MessageFcmMessage(
-      server: json['server'] as String,
-      realmId: const _IntConverter().fromJson(json['realm_id'] as String),
       realmUrl: Uri.parse(
         FcmMessageWithIdentity._readRealmUrl(json, 'realm_url') as String,
       ),
@@ -31,8 +29,6 @@ MessageFcmMessage _$MessageFcmMessageFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$MessageFcmMessageToJson(MessageFcmMessage instance) =>
     <String, dynamic>{
-      'server': instance.server,
-      'realm_id': const _IntConverter().toJson(instance.realmId),
       'realm_url': instance.realmUrl.toString(),
       'user_id': const _IntConverter().toJson(instance.userId),
       'event': instance.type,
@@ -54,8 +50,6 @@ FcmMessageChannelRecipient _$FcmMessageChannelRecipientFromJson(
 
 RemoveFcmMessage _$RemoveFcmMessageFromJson(Map<String, dynamic> json) =>
     RemoveFcmMessage(
-      server: json['server'] as String,
-      realmId: const _IntConverter().fromJson(json['realm_id'] as String),
       realmUrl: Uri.parse(
         FcmMessageWithIdentity._readRealmUrl(json, 'realm_url') as String,
       ),
@@ -67,8 +61,6 @@ RemoveFcmMessage _$RemoveFcmMessageFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$RemoveFcmMessageToJson(RemoveFcmMessage instance) =>
     <String, dynamic>{
-      'server': instance.server,
-      'realm_id': const _IntConverter().toJson(instance.realmId),
       'realm_url': instance.realmUrl.toString(),
       'user_id': const _IntConverter().toJson(instance.userId),
       'event': instance.type,

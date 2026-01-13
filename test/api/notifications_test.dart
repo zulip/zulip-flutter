@@ -7,8 +7,6 @@ import '../stdlib_checks.dart';
 
 void main() {
   final baseBaseJson = <String, Object?>{ // TODO(#1764) finish updating these test fixtures
-    "server": "zulip.example.cloud",
-    "realm_id": "4",
     "realm_uri": "https://zulip.example.com/",  // TODO(server-9)
     "realm_url": "https://zulip.example.com/",
     "user_id": "234",
@@ -116,8 +114,6 @@ void main() {
 
     test("fields get parsed right in happy path", () {
       check(parse(streamJson))
-        ..server.equals(baseJson['server'] as String)
-        ..realmId.equals(4)
         ..realmUrl.equals(Uri.parse(baseJson['realm_url'] as String))
         ..realmUrl.equals(Uri.parse(baseJson['realm_uri'] as String)) // TODO(server-9)
         ..userId.equals(234)
@@ -169,6 +165,8 @@ void main() {
       check(parse({ ...streamJson }..remove('recipient_type'))).jsonEquals(baseline);
       check(parse({ ...streamJson }..remove('content_truncated'))).jsonEquals(baseline);
       check(parse({ ...streamJson }..remove('sender_email'))).jsonEquals(baseline);
+      check(parse({ ...streamJsonPreE2ee }..remove('server'))).jsonEquals(baseline);
+      check(parse({ ...streamJsonPreE2ee }..remove('realm_id'))).jsonEquals(baseline);
     });
 
     test('obsolete or novel fields have no effect', () {
@@ -204,10 +202,6 @@ void main() {
 
     group("parse failures on malformed 'message'", () {
       int n = 1;
-      test("${n++}", () => checkParseFails({ ...dmJson }..remove('server')));
-      test("${n++}", () => checkParseFails({ ...dmJson }..remove('realm_id')));
-      test("${n++}", () => checkParseFails({ ...dmJson, 'realm_id': '12,34' }));
-      test("${n++}", () => checkParseFails({ ...dmJson, 'realm_id': 'abc' }));
       test("${n++}", () => checkParseFails({ ...dmJson }
                                             ..remove('realm_url')
                                             ..remove('realm_uri'))); // TODO(server-9)
@@ -263,8 +257,6 @@ void main() {
 
     test('fields get parsed right in happy path', () {
       check(parse(baseJson))
-        ..server.equals(baseJson['server'] as String)
-        ..realmId.equals(4)
         ..realmUrl.equals(Uri.parse(baseJson['realm_url'] as String))
         ..realmUrl.equals(Uri.parse(baseJson['realm_uri'] as String)) // TODO(server-9)
         ..userId.equals(234)
@@ -279,6 +271,8 @@ void main() {
     test('ignored fields missing have no effect', () {
       final baseline = parse(baseJson);
       check(parse({ ...baseJson }..remove('zulip_message_id'))).jsonEquals(baseline);
+      check(parse({ ...preE2eeJson }..remove('server'))).jsonEquals(baseline);
+      check(parse({ ...preE2eeJson }..remove('realm_id'))).jsonEquals(baseline);
     });
 
     test('obsolete or novel fields have no effect', () {
@@ -303,10 +297,6 @@ void main() {
     group('parse failures on malformed data', () {
       int n = 1;
 
-      test("${n++}", () => checkParseFails({ ...baseJson }..remove('server')));
-      test("${n++}", () => checkParseFails({ ...baseJson }..remove('realm_id')));
-      test("${n++}", () => checkParseFails({ ...baseJson, 'realm_id': 'abc' }));
-      test("${n++}", () => checkParseFails({ ...baseJson, 'realm_id': '12,34' }));
       test("${n++}", () => checkParseFails({ ...baseJson }
                                             ..remove('realm_url')
                                             ..remove('realm_uri'))); // TODO(server-9)
@@ -327,8 +317,6 @@ extension UnexpectedFcmMessageChecks on Subject<UnexpectedFcmMessage> {
 }
 
 extension FcmMessageWithIdentityChecks on Subject<FcmMessageWithIdentity> {
-  Subject<String> get server => has((x) => x.server, 'server');
-  Subject<int> get realmId => has((x) => x.realmId, 'realmId');
   Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
   Subject<int> get userId => has((x) => x.userId, 'userId');
 }
