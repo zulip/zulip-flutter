@@ -295,6 +295,7 @@ enum LegacyReportMessageType {
   String toJson() => _$LegacyReportMessageTypeEnumMap[this]!;
 }
 
+
 /// https://zulip.com/api/upload-file
 Future<UploadFileResult> uploadFile(
   ApiConnection connection, {
