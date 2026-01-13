@@ -7,6 +7,9 @@ part 'notifications.g.dart';
 
 /// Parsed version of an FCM message, of any type.
 ///
+/// For partial API docs, see:
+///   https://zulip.com/api/mobile-notifications
+///
 /// Firebase Cloud Messaging (FCM) is the service run by Google that we use
 /// for delivering notifications to Android devices.  An FCM message may
 /// be to tell us we should show a notification, or something else like
