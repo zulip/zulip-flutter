@@ -594,6 +594,78 @@ abstract class ZulipLocalizations {
   /// **'Failed to delete message'**
   String get errorDeleteMessageFailedTitle;
 
+  /// Label for the 'Report message' button in the message action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Report message'**
+  String get actionSheetOptionReportMessage;
+
+  /// Error title when reporting a message failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to report message'**
+  String get errorReportMessageFailedTitle;
+
+  /// Title for the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a message'**
+  String get reportMessageDialogTitle;
+
+  /// Description text in the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Your report will be sent to the private moderation requests channel for this organization.'**
+  String get reportMessageDialogDescription;
+
+  /// Label for the reason dropdown in the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s the problem with this message?'**
+  String get reportMessageReasonLabel;
+
+  /// Report reason option: Spam
+  ///
+  /// In en, this message translates to:
+  /// **'Spam'**
+  String get reportMessageReasonSpam;
+
+  /// Report reason option: Harassment
+  ///
+  /// In en, this message translates to:
+  /// **'Harassment'**
+  String get reportMessageReasonHarassment;
+
+  /// Report reason option: Inappropriate content
+  ///
+  /// In en, this message translates to:
+  /// **'Inappropriate content'**
+  String get reportMessageReasonInappropriate;
+
+  /// Report reason option: Violates community norms
+  ///
+  /// In en, this message translates to:
+  /// **'Violates community norms'**
+  String get reportMessageReasonNorms;
+
+  /// Report reason option: Other reason
+  ///
+  /// In en, this message translates to:
+  /// **'Other reason'**
+  String get reportMessageReasonOther;
+
+  /// Label for the optional details text field in the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Can you provide more details?'**
+  String get reportMessageDetailsLabel;
+
+  /// Label for the submit button in the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get reportMessageSubmitButton;
+
   /// Option to mark a specific topic as read in the action sheet.
   ///
   /// In en, this message translates to:
