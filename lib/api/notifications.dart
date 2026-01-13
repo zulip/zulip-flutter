@@ -147,10 +147,8 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
     final result = _$MessageFcmMessageToJson(this);
     final recipient = this.recipient;
     switch (recipient) {
-      case FcmMessageDmRecipient(allRecipientIds: [_] || [_, _]):
-        break;
       case FcmMessageDmRecipient(:var allRecipientIds):
-        result['pm_users'] = const _IntListConverter().toJson(allRecipientIds);
+        result['recipient_user_ids'] = allRecipientIds;
       case FcmMessageChannelRecipient():
         result['channel_id'] = recipient.channelId;
         if (recipient.channelName != null) result['channel_name'] = recipient.channelName;
@@ -210,6 +208,10 @@ class FcmMessageDmRecipient extends FcmMessageRecipient {
 
   factory FcmMessageDmRecipient.fromJson(Map<String, dynamic> json) {
     return FcmMessageDmRecipient(allRecipientIds: switch (json) {
+      // TODO(server-12) accept only the recipient_user_ids form
+      {'recipient_user_ids': List<dynamic> userIds} =>
+        userIds.map((id) => id as int).toList(),
+
       // Group DM conversations ("huddles") are represented with `pm_users`,
       // which lists all the user IDs in the conversation.
       // TODO check they're sorted.

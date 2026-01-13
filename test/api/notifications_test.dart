@@ -87,7 +87,7 @@ void main() {
     final groupDmJson = {
       ...baseJson,
       "recipient_type": "direct",
-      "pm_users": "123,234,345",
+      "recipient_user_ids": [123, 234, 345],
     };
 
     final groupDmJsonPreE2ee = {
@@ -99,6 +99,7 @@ void main() {
     final dmJson = {
       ...baseJson,
       "recipient_type": "direct",
+      "recipient_user_ids": [123, 234],
     };
 
     final dmJsonPreE2ee = <String, String>{
@@ -213,9 +214,10 @@ void main() {
       test("${n++}", () => checkParseFails({ ...streamJsonPreE2ee, 'stream_id': 'abc' }));
       test("${n++}", () => checkParseFails({ ...streamJsonPreE2ee, 'stream_id': '12,34' }));
       test("${n++}", () => checkParseFails({ ...streamJson }..remove('topic')));
-      test("${n++}", () => checkParseFails({ ...groupDmJson, 'pm_users': 'abc,34' }));
-      test("${n++}", () => checkParseFails({ ...groupDmJson, 'pm_users': '12,abc' }));
-      test("${n++}", () => checkParseFails({ ...groupDmJson, 'pm_users': '12,' }));
+      test("${n++}", () => checkParseFails({ ...groupDmJson, 'recipient_user_ids': ['12'] }));
+      test("${n++}", () => checkParseFails({ ...groupDmJsonPreE2ee, 'pm_users': 'abc,34' }));
+      test("${n++}", () => checkParseFails({ ...groupDmJsonPreE2ee, 'pm_users': '12,abc' }));
+      test("${n++}", () => checkParseFails({ ...groupDmJsonPreE2ee, 'pm_users': '12,' }));
 
       test("${n++}", () => checkParseFails({ ...dmJson }..remove('sender_avatar_url')));
       test(skip: true, // Dart's Uri.parse is lax in what it accepts.
