@@ -313,6 +313,54 @@
   "@errorDeleteMessageFailedTitle": {
     "description": "Error title when deleting a message failed."
   },
+  "actionSheetOptionReportMessage": "Report message",
+  "@actionSheetOptionReportMessage": {
+    "description": "Label for the 'Report message' button in the message action sheet."
+  },
+  "errorReportMessageFailedTitle": "Failed to report message",
+  "@errorReportMessageFailedTitle": {
+    "description": "Error title when reporting a message failed."
+  },
+  "reportMessageDialogTitle": "Report a message",
+  "@reportMessageDialogTitle": {
+    "description": "Title for the report message dialog."
+  },
+  "reportMessageDialogDescription": "Your report will be sent to the private moderation requests channel for this organization.",
+  "@reportMessageDialogDescription": {
+    "description": "Description text in the report message dialog."
+  },
+  "reportMessageReasonLabel": "What's the problem with this message?",
+  "@reportMessageReasonLabel": {
+    "description": "Label for the reason dropdown in the report message dialog."
+  },
+  "reportMessageReasonSpam": "Spam",
+  "@reportMessageReasonSpam": {
+    "description": "Report reason option: Spam"
+  },
+  "reportMessageReasonHarassment": "Harassment",
+  "@reportMessageReasonHarassment": {
+    "description": "Report reason option: Harassment"
+  },
+  "reportMessageReasonInappropriate": "Inappropriate content",
+  "@reportMessageReasonInappropriate": {
+    "description": "Report reason option: Inappropriate content"
+  },
+  "reportMessageReasonNorms": "Violates community norms",
+  "@reportMessageReasonNorms": {
+    "description": "Report reason option: Violates community norms"
+  },
+  "reportMessageReasonOther": "Other reason",
+  "@reportMessageReasonOther": {
+    "description": "Report reason option: Other reason"
+  },
+  "reportMessageDetailsLabel": "Can you provide more details?",
+  "@reportMessageDetailsLabel": {
+    "description": "Label for the optional details text field in the report message dialog."
+  },
+  "reportMessageSubmitButton": "Submit",
+  "@reportMessageSubmitButton": {
+    "description": "Label for the submit button in the report message dialog."
+  },
   "actionSheetOptionMarkTopicAsRead": "Mark topic as read",
   "@actionSheetOptionMarkTopicAsRead": {
     "description": "Option to mark a specific topic as read in the action sheet."
