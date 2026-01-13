@@ -69,7 +69,7 @@ void main() {
 
     final streamJson = {
       ...baseJson,
-      "recipient_type": "stream",
+      "recipient_type": "channel",
       "stream_id": "42",
       "stream": "denmark",
       "topic": "play",
@@ -85,7 +85,7 @@ void main() {
 
     final groupDmJson = {
       ...baseJson,
-      "recipient_type": "private",
+      "recipient_type": "direct",
       "pm_users": "123,234,345",
     };
 
@@ -97,7 +97,7 @@ void main() {
 
     final dmJson = {
       ...baseJson,
-      "recipient_type": "private",
+      "recipient_type": "direct",
     };
 
     final dmJsonPreE2ee = <String, String>{
