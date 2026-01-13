@@ -63,6 +63,7 @@ sealed class FcmMessageWithIdentity extends FcmMessage {
   final String server;
 
   /// The realm's ID within the server.
+  @_IntConverter()
   final int realmId;
 
   /// The realm's own URL.
@@ -76,6 +77,7 @@ sealed class FcmMessageWithIdentity extends FcmMessage {
   ///
   /// Useful mainly in the case where the user has multiple accounts in the
   /// same realm.
+  @_IntConverter()
   final int userId;
 
   FcmMessageWithIdentity({
@@ -99,12 +101,11 @@ sealed class FcmMessageWithIdentity extends FcmMessage {
 /// The word "message" can be confusing in this context.
 /// See [FcmMessage] for discussion.
 @JsonSerializable(fieldRename: FieldRename.snake)
-@_IntConverter()
-@_IntListConverter()
 class MessageFcmMessage extends FcmMessageWithIdentity {
   @JsonKey(includeToJson: true, name: 'event')
   String get type => 'message';
 
+  @_IntConverter()
   final int senderId;
   // final String senderEmail; // obsolete; ignore
   final Uri senderAvatarUrl;
@@ -113,7 +114,9 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
   @JsonKey(includeToJson: false, readValue: _readWhole)
   final FcmMessageRecipient recipient;
 
+  @_IntConverter()
   final int zulipMessageId;
+  @_IntConverter()
   final int time; // in Unix seconds UTC, like [Message.timestamp]
 
   /// The content of the Zulip message, rendered as plain text.
@@ -178,8 +181,8 @@ sealed class FcmMessageRecipient {
 
 /// An [FcmMessageRecipient] for a Zulip message to a stream.
 @JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
-@_IntConverter()
 class FcmMessageChannelRecipient extends FcmMessageRecipient {
+  @_IntConverter()
   final int streamId;
 
   // Current servers (as of 2025) always send the stream name.  But
@@ -228,8 +231,6 @@ class FcmMessageDmRecipient extends FcmMessageRecipient {
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-@_IntConverter()
-@_IntListConverter()
 class RemoveFcmMessage extends FcmMessageWithIdentity {
   @JsonKey(includeToJson: true, name: 'event')
   String get type => 'remove';
@@ -238,6 +239,7 @@ class RemoveFcmMessage extends FcmMessageWithIdentity {
   // and just sending the first ID there redundantly, since 2019.
   // See zulip-mobile@4acd07376.
 
+  @_IntListConverter()
   final List<int> zulipMessageIds;
   // final String? zulipMessageId; // obsolete; ignore
 
