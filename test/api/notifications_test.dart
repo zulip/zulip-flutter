@@ -42,7 +42,6 @@ void main() {
       "event": "message",
 
       "sender_id": "123",
-      "sender_email": "sender@example.com",
       "sender_avatar_url": "https://zulip.example.com/avatar/123.jpeg",
       "sender_full_name": "A Sender",
 
@@ -50,7 +49,6 @@ void main() {
       "zulip_message_id": "12345",
 
       "content": "This is a message",
-      "content_truncated": "This is a m…",
     };
 
     final baseJsonPreE2ee = <String, String>{
@@ -148,8 +146,6 @@ void main() {
         check(parse(json).toJson())
           .deepEquals({ ...json }
             ..remove('recipient_type') // Redundant with stream_id.
-            ..remove('content_truncated') // Redundant with content.
-            ..remove('sender_email') // Redundant with sender_id.
           );
       }
 
@@ -162,8 +158,6 @@ void main() {
     test('ignored fields missing have no effect', () {
       final baseline = parse(streamJson);
       check(parse({ ...streamJson }..remove('recipient_type'))).jsonEquals(baseline);
-      check(parse({ ...streamJson }..remove('content_truncated'))).jsonEquals(baseline);
-      check(parse({ ...streamJson }..remove('sender_email'))).jsonEquals(baseline);
       check(parse({ ...streamJsonPreE2ee }..remove('server'))).jsonEquals(baseline);
       check(parse({ ...streamJsonPreE2ee }..remove('realm_id'))).jsonEquals(baseline);
     });
