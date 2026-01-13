@@ -22,6 +22,7 @@ import 'katex.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
+import 'profile.dart';
 import 'scrolling.dart';
 import 'store.dart';
 import 'text.dart';
@@ -1222,7 +1223,7 @@ class Mention extends StatelessWidget {
       case UserMentionNode(userId: null):
     }
 
-    return Container(
+    Widget result = Container(
       decoration: BoxDecoration(
         // TODO(#646) different for wildcard mentions
         color: contentTheme.colorDirectMentionBackground,
@@ -1230,7 +1231,7 @@ class Mention extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
       child: InlineContent(
         // If an @-mention is inside a link, let the @-mention override it.
-        recognizer: null,  // TODO(#1867) make @-mentions tappable, for info on user
+        recognizer: null,
         // One hopes an @-mention can't contain an embedded link.
         // (The parser on creating a MentionNode has a TODO to check that.)
         linkRecognizers: null,
@@ -1240,6 +1241,17 @@ class Mention extends StatelessWidget {
         style: ambientTextStyle,
 
         nodes: nodes));
+
+    if (node case UserMentionNode(:final userId?)) {
+      result = GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(
+            ProfilePage.buildRoute(context: context, userId: userId));
+        },
+        child: result);
+    }
+
+    return result;
   }
 
 // This is a more literal translation of Zulip web's CSS.
