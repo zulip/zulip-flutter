@@ -72,7 +72,7 @@ void main() {
       ...baseJson,
       "recipient_type": "channel",
       "channel_id": 42,
-      "stream": "denmark",
+      "channel_name": "denmark",
       "topic": "play",
     };
 
@@ -121,7 +121,7 @@ void main() {
         ..messageId.equals(12345)
         ..recipient.isA<FcmMessageChannelRecipient>().which((it) => it
           ..channelId.equals(42)
-          ..channelName.equals(streamJson['stream'] as String)
+          ..channelName.equals(streamJson['channel_name'] as String)
           ..topic.jsonEquals(streamJson['topic']!))
         ..content.equals(streamJson['content'] as String)
         ..time.equals(1546300800);
@@ -136,7 +136,12 @@ void main() {
     });
 
     test('optional fields missing cause no error', () {
-      check(parse({ ...streamJson }..remove('stream')))
+      check(parse({ ...streamJson }..remove('channel_name')))
+        .recipient.isA<FcmMessageChannelRecipient>().which((it) => it
+          ..channelId.equals(42)
+          ..channelName.isNull());
+
+      check(parse({ ...streamJsonPreE2ee }..remove('stream')))
         .recipient.isA<FcmMessageChannelRecipient>().which((it) => it
           ..channelId.equals(42)
           ..channelName.isNull());
@@ -153,7 +158,7 @@ void main() {
       checkRoundTrip(streamJson);
       checkRoundTrip(groupDmJson);
       checkRoundTrip(dmJson);
-      checkRoundTrip({ ...streamJson }..remove('stream'));
+      checkRoundTrip({ ...streamJson }..remove('channel_name'));
     });
 
     test('ignored fields missing have no effect', () {

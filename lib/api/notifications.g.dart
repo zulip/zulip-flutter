@@ -45,7 +45,9 @@ FcmMessageChannelRecipient _$FcmMessageChannelRecipientFromJson(
   channelId:
       (FcmMessageChannelRecipient._readChannelId(json, 'channel_id') as num)
           .toInt(),
-  channelName: json['stream'] as String?,
+  channelName:
+      FcmMessageChannelRecipient._readChannelName(json, 'channel_name')
+          as String?,
   topic: TopicName.fromJson(json['topic'] as String),
 );
 

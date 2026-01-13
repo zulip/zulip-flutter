@@ -153,7 +153,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
         result['pm_users'] = const _IntListConverter().toJson(allRecipientIds);
       case FcmMessageChannelRecipient():
         result['channel_id'] = recipient.channelId;
-        if (recipient.channelName != null) result['stream'] = recipient.channelName;
+        if (recipient.channelName != null) result['channel_name'] = recipient.channelName;
         result['topic'] = recipient.topic;
     }
     return result;
@@ -182,7 +182,7 @@ class FcmMessageChannelRecipient extends FcmMessageRecipient {
   // Current servers (as of 2025) always send the channel name.  But
   // future servers might not, once clients get the name from local data.
   // So might as well be ready.
-  @JsonKey(name: 'stream')
+  @JsonKey(readValue: _readChannelName)
   final String? channelName;
 
   final TopicName topic;
@@ -192,6 +192,10 @@ class FcmMessageChannelRecipient extends FcmMessageRecipient {
   static Object? _readChannelId(Map<dynamic, dynamic> json, String key) {
     return json['channel_id']
       ?? const _IntConverter().fromJson(json['stream_id'] as String); // TODO(server-12)
+  }
+
+  static Object? _readChannelName(Map<dynamic, dynamic> json, String key) {
+    return json['channel_name'] ?? json['stream']; // TODO(server-12)
   }
 
   factory FcmMessageChannelRecipient.fromJson(Map<String, dynamic> json) =>
