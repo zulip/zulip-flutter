@@ -30,7 +30,8 @@ sealed class FcmMessage {
   FcmMessage();
 
   factory FcmMessage.fromJson(Map<String, dynamic> json) {
-    switch (json['event']) {
+    final notifType = json['type'] ?? json['event']; // TODO(server-12)
+    switch (notifType) {
       case 'message': return MessageFcmMessage.fromJson(json);
       case 'remove': return RemoveFcmMessage.fromJson(json);
       default: return UnexpectedFcmMessage.fromJson(json);
@@ -93,7 +94,7 @@ sealed class FcmMessageWithIdentity extends FcmMessage {
 /// See [FcmMessage] for discussion.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class MessageFcmMessage extends FcmMessageWithIdentity {
-  @JsonKey(includeToJson: true, name: 'event')
+  @JsonKey(includeToJson: true)
   String get type => 'message';
 
   @_IntConverter()
@@ -133,7 +134,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
   });
 
   factory MessageFcmMessage.fromJson(Map<String, dynamic> json) {
-    assert(json['event'] == 'message');
+    assert((json['type'] ?? json['event']) == 'message'); // TODO(server-12)
     return _$MessageFcmMessageFromJson(json);
   }
 
@@ -222,7 +223,7 @@ class FcmMessageDmRecipient extends FcmMessageRecipient {
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class RemoveFcmMessage extends FcmMessageWithIdentity {
-  @JsonKey(includeToJson: true, name: 'event')
+  @JsonKey(includeToJson: true)
   String get type => 'remove';
 
   // Servers have sent zulip_message_ids, obsoleting the singular zulip_message_id
@@ -241,7 +242,7 @@ class RemoveFcmMessage extends FcmMessageWithIdentity {
   });
 
   factory RemoveFcmMessage.fromJson(Map<String, dynamic> json) {
-    assert(json['event'] == 'remove');
+    assert((json['type'] ?? json['event']) == 'remove'); // TODO(server-12)
     return _$RemoveFcmMessageFromJson(json);
   }
 

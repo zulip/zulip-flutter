@@ -27,8 +27,9 @@ void main() {
   }
 
   group('FcmMessage', () {
-    test('parse fails on missing or bad event type', () {
+    test('parse fails on missing or bad type', () {
       check(FcmMessage.fromJson({})).isA<UnexpectedFcmMessage>();
+      check(FcmMessage.fromJson({'type': 'nonsense'})).isA<UnexpectedFcmMessage>();
       check(FcmMessage.fromJson({'event': 'nonsense'})).isA<UnexpectedFcmMessage>();
     });
   });
@@ -39,7 +40,7 @@ void main() {
 
     final baseJson = {
       ...baseBaseJson,
-      "event": "message",
+      "type": "message",
 
       "sender_id": "123",
       "sender_avatar_url": "https://zulip.example.com/avatar/123.jpeg",
@@ -230,7 +231,7 @@ void main() {
   group('RemoveFcmMessage', () {
     final baseJson = {
       ...baseBaseJson,
-      'event': 'remove',
+      'type': 'remove',
 
       'zulip_message_ids': '123,234',
       'zulip_message_id': '123',
