@@ -396,7 +396,7 @@ void main() {
     });
 
     testWidgets('image with invalid src URL', (tester) async {
-      const example = ContentExample.imagePreviewInvalidUrl;
+      const example = ContentExample.imagePreviewInvalidSrcAndHref;
       await prepare(tester, example.html);
       // The image indeed has an invalid URL.
       final expectedImages = (example.expectedNodes[0] as ImagePreviewNodeList).imagePreviews;
