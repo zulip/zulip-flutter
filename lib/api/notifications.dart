@@ -71,7 +71,7 @@ sealed class FcmMessageWithIdentity extends FcmMessage {
   ///
   /// Useful mainly in the case where the user has multiple accounts in the
   /// same realm.
-  @_IntConverter()
+  @JsonKey(readValue: _readIntOrString) // TODO(server-12)
   final int userId;
 
   FcmMessageWithIdentity({
@@ -97,7 +97,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
   @JsonKey(includeToJson: true)
   String get type => 'message';
 
-  @_IntConverter()
+  @JsonKey(readValue: _readIntOrString) // TODO(server-12)
   final int senderId;
   // final String senderEmail; // obsolete; ignore
   final Uri senderAvatarUrl;
@@ -108,7 +108,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
 
   @JsonKey(readValue: _readMessageId)
   final int messageId;
-  @_IntConverter()
+  @JsonKey(readValue: _readIntOrString) // TODO(server-12)
   final int time; // in Unix seconds UTC, like [Message.timestamp]
 
   /// The content of the Zulip message, rendered as plain text.
@@ -286,6 +286,12 @@ class _IntConverter extends JsonConverter<int, String> {
 
   @override
   String toJson(int value) => value.toString();
+}
+
+Object? _readIntOrString(Map<dynamic, dynamic> json, String key) {
+  final jsonValue = json[key];
+  if (jsonValue is String) return _parseInt(jsonValue);
+  return jsonValue;
 }
 
 int _parseInt(String string) => int.parse(string, radix: 10);

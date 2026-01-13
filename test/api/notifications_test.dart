@@ -6,9 +6,9 @@ import 'package:zulip/api/notifications.dart';
 import '../stdlib_checks.dart';
 
 void main() {
-  final baseBaseJson = <String, Object?>{ // TODO(#1764) finish updating these test fixtures
+  final baseBaseJson = <String, Object?>{
     "realm_url": "https://zulip.example.com/",
-    "user_id": "234",
+    "user_id": 234,
   };
 
   // Before E2EE notifications, the data comes directly as FCM payloads,
@@ -42,11 +42,11 @@ void main() {
       ...baseBaseJson,
       "type": "message",
 
-      "sender_id": "123",
+      "sender_id": 123,
       "sender_avatar_url": "https://zulip.example.com/avatar/123.jpeg",
       "sender_full_name": "A Sender",
 
-      "time": "1546300800",
+      "time": 1546300800,
       "message_id": 12345,
 
       "content": "This is a message",

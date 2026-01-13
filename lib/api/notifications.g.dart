@@ -13,8 +13,8 @@ MessageFcmMessage _$MessageFcmMessageFromJson(Map<String, dynamic> json) =>
       realmUrl: Uri.parse(
         FcmMessageWithIdentity._readRealmUrl(json, 'realm_url') as String,
       ),
-      userId: const _IntConverter().fromJson(json['user_id'] as String),
-      senderId: const _IntConverter().fromJson(json['sender_id'] as String),
+      userId: (_readIntOrString(json, 'user_id') as num).toInt(),
+      senderId: (_readIntOrString(json, 'sender_id') as num).toInt(),
       senderAvatarUrl: Uri.parse(json['sender_avatar_url'] as String),
       senderFullName: json['sender_full_name'] as String,
       recipient: FcmMessageRecipient.fromJson(
@@ -23,19 +23,19 @@ MessageFcmMessage _$MessageFcmMessageFromJson(Map<String, dynamic> json) =>
       messageId: (MessageFcmMessage._readMessageId(json, 'message_id') as num)
           .toInt(),
       content: json['content'] as String,
-      time: const _IntConverter().fromJson(json['time'] as String),
+      time: (_readIntOrString(json, 'time') as num).toInt(),
     );
 
 Map<String, dynamic> _$MessageFcmMessageToJson(MessageFcmMessage instance) =>
     <String, dynamic>{
       'realm_url': instance.realmUrl.toString(),
-      'user_id': const _IntConverter().toJson(instance.userId),
+      'user_id': instance.userId,
       'type': instance.type,
-      'sender_id': const _IntConverter().toJson(instance.senderId),
+      'sender_id': instance.senderId,
       'sender_avatar_url': instance.senderAvatarUrl.toString(),
       'sender_full_name': instance.senderFullName,
       'message_id': instance.messageId,
-      'time': const _IntConverter().toJson(instance.time),
+      'time': instance.time,
       'content': instance.content,
     };
 
@@ -56,7 +56,7 @@ RemoveFcmMessage _$RemoveFcmMessageFromJson(Map<String, dynamic> json) =>
       realmUrl: Uri.parse(
         FcmMessageWithIdentity._readRealmUrl(json, 'realm_url') as String,
       ),
-      userId: const _IntConverter().fromJson(json['user_id'] as String),
+      userId: (_readIntOrString(json, 'user_id') as num).toInt(),
       messageIds:
           (RemoveFcmMessage._readMessageIds(json, 'message_ids')
                   as List<dynamic>)
@@ -67,7 +67,7 @@ RemoveFcmMessage _$RemoveFcmMessageFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$RemoveFcmMessageToJson(RemoveFcmMessage instance) =>
     <String, dynamic>{
       'realm_url': instance.realmUrl.toString(),
-      'user_id': const _IntConverter().toJson(instance.userId),
+      'user_id': instance.userId,
       'type': instance.type,
       'message_ids': instance.messageIds,
     };
