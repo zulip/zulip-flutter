@@ -836,6 +836,23 @@ class ContentExample {
     ]),
   ]);
 
+  static final imagePreviewSingleLoadingPlaceholderSpinnerIsThumbnail = ContentExample(
+    'single image preview loading placeholder, spinner image URL is thumbnail URL',
+    // Theoretical; I'm not aware of real servers producing this in 2026-01.
+    null,
+    '<div class="message_inline_image">'
+      '<a href="/user_uploads/path/to/spinner.png" title="spinner.png">'
+        '<img class="image-loading-placeholder" '
+          'data-original-dimensions="1920x1080" '
+          'data-original-content-type="image/png" '
+          'src="/user_uploads/thumbnail/path/to/spinner.png/840x560.webp"></a></div>', [
+    ImagePreviewNodeList([
+      ImagePreviewNode(srcUrl: '/user_uploads/path/to/spinner.png',
+        thumbnail: null, loading: true,
+        originalWidth: null, originalHeight: null),
+    ]),
+  ]);
+
   static const imagePreviewSingleExternal1 = ContentExample(
     'single image preview external, src starts with /external_content',
     // https://chat.zulip.org/#narrow/stream/7-test-here/topic/Greg/near/1892172
@@ -1961,6 +1978,7 @@ void main() async {
   testParseExample(ContentExample.imagePreviewSingleNoThumbnail);
   testParseExample(ContentExample.imagePreviewSingleLoadingPlaceholder);
   testParseExample(ContentExample.imagePreviewSingleLoadingPlaceholderNoDimensions);
+  testParseExample(ContentExample.imagePreviewSingleLoadingPlaceholderSpinnerIsThumbnail);
   testParseExample(ContentExample.imagePreviewSingleExternal1);
   testParseExample(ContentExample.imagePreviewSingleExternal2);
   testParseExample(ContentExample.imagePreviewSingleExternal3);

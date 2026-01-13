@@ -17,6 +17,7 @@ import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/katex.dart';
+import 'package:zulip/widgets/lightbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/text.dart';
@@ -359,14 +360,273 @@ void main() {
   testContentSmoke(ContentExample.quotation);
 
   group('MessageImagePreview, MessageImagePreviewList', () {
-    Future<void> prepare(WidgetTester tester, String html) async {
+    Future<void> prepare(WidgetTester tester, String html, {
+      List<NavigatorObserver> navObservers = const [],
+    }) async {
       await prepareContent(tester,
+        navObservers: navObservers,
         // Message is needed for an image's lightbox.
         messageContent(html),
         // We try to resolve image URLs on the self-account's realm.
         // For URLs on the self-account's realm, we include the auth credential.
         wrapWithPerAccountStoreWidget: true);
     }
+
+    group('single image; URLs handled correctly', () {
+      /// Test that the right URLs are used for the right things.
+      ///
+      /// [rawHref] and [rawSrc] are redundant with [example],
+      /// but included so they're directly visible at the callsites.
+      /// (The test asserts that the example HTML contains 'href="$rawHref"'
+      /// and 'src="$rawSrc"'.)
+      ///
+      /// Pass null for [expectUrlInPreview]
+      /// if [expectLoadingIndicator] is true
+      /// or if we don't expect a preview image because of an invalid src.
+      ///
+      /// Pass null for [expectThumbnailUrlInLightbox] and [expectUrlInLightbox]
+      /// if we don't expect to be able to offer the lightbox.
+      Future<void> doTest(WidgetTester tester, {
+        required String rawHref,
+        required String rawSrc,
+        required bool expectLoadingIndicator,
+        required Uri? expectUrlInPreview,
+        required Uri? expectThumbnailUrlInLightbox,
+        required Uri? expectUrlInLightbox,
+        // TODO(#42) required Uri expectUrlForDownload,
+        required ContentExample example,
+      }) async {
+        assert(!(expectUrlInPreview != null && expectLoadingIndicator));
+        check(example.html)
+          ..contains('href="$rawHref"')
+          ..contains('src="$rawSrc"');
+
+        final findImagePreview = find.byType(MessageImagePreview);
+        final findLoadingIndicator = find.descendant(
+          of: findImagePreview, matching: find.byType(CupertinoActivityIndicator));
+
+        final findLightboxPage = find.byType(ImageLightboxPage);
+
+        final transitionDurationObserver = TransitionDurationObserver();
+        await prepare(tester, example.html,
+          navObservers: [transitionDurationObserver]);
+        final imageInPreview = tester.widgetList<RealmContentNetworkImage>(
+          find.descendant(
+            of: findImagePreview, matching: find.byType(RealmContentNetworkImage))
+        ).singleOrNull;
+        check(imageInPreview?.src).equals(expectUrlInPreview);
+        check(findLoadingIndicator).findsExactly(expectLoadingIndicator ? 1 : 0);
+
+        prepareBoringImageHttpClient();
+
+        final lightboxHeroInPreview = tester.widgetList<LightboxHero>(
+          find.descendant(of: findImagePreview, matching: find.byType(LightboxHero))
+        ).singleOrNull;
+
+        if (!expectLoadingIndicator && expectUrlInLightbox != null) {
+          // TODO when the implementation decides to open the lightbox,
+          //   because it has a URL to load there, it should always create
+          //   a LightboxHero, even if node.loading is true. (We'll fix soon.)
+          check(lightboxHeroInPreview).isNotNull().src.equals(expectUrlInLightbox);
+        } else {
+          check(lightboxHeroInPreview).isNull();
+        }
+
+        await tester.tap(findImagePreview);
+        await transitionDurationObserver.pumpPastTransition(tester);
+
+        final lightboxPage = tester.widgetList<ImageLightboxPage>(findLightboxPage)
+          .singleOrNull;
+        check(lightboxPage?.thumbnailUrl).equals(expectThumbnailUrlInLightbox);
+        check(lightboxPage?.src).equals(expectUrlInLightbox);
+
+        debugNetworkImageHttpClientProvider = null;
+      }
+
+      Uri url(String reference) => eg.realmUrl.resolve(reference);
+
+      testWidgets('thumbnail', (tester) async {
+        final rawHref = '/user_uploads/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg';
+        final rawSrc = '/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp';
+        await doTest(tester,
+          rawHref: rawHref,
+          rawSrc: rawSrc,
+          expectLoadingIndicator: false,
+          expectUrlInPreview: url(rawSrc),
+          expectThumbnailUrlInLightbox: url('/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp'),
+          expectUrlInLightbox: url(rawHref),
+          example: ContentExample.imagePreviewSingle);
+      });
+
+      testWidgets('thumbnail (pre-FL 276)', (tester) async {
+        final rawHref = '/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg';
+        final rawSrc = '/user_uploads/thumbnail/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg/840x560.webp';
+        await doTest(tester,
+          rawHref: rawHref,
+          rawSrc: rawSrc,
+          expectLoadingIndicator: false,
+          expectUrlInPreview: url(rawSrc),
+          expectThumbnailUrlInLightbox: url(rawSrc),
+          expectUrlInLightbox: url(rawHref),
+          example: ContentExample.imagePreviewSingleNoDimensions);
+      });
+
+      testWidgets('thumbnail, animated', (tester) async {
+        final rawHref = '/user_uploads/2/9f/tZ9c5ZmsI_cSDZ6ZdJmW8pt4/2c8d985d.gif';
+        final rawSrc = '/user_uploads/thumbnail/2/9f/tZ9c5ZmsI_cSDZ6ZdJmW8pt4/2c8d985d.gif/840x560-anim.webp';
+        await doTest(tester,
+          rawHref: rawHref,
+          rawSrc: rawSrc,
+          expectLoadingIndicator: false,
+          expectUrlInPreview: url(rawSrc),
+          expectThumbnailUrlInLightbox: url(rawSrc),
+          expectUrlInLightbox: url(rawHref),
+          example: ContentExample.imagePreviewSingleAnimated);
+      });
+
+      testWidgets('thumbnail, loading', (tester) async {
+        final rawHref = '/user_uploads/path/to/example.png';
+        final rawSrc = '/static/images/loading/loader-black.svg';
+        await doTest(tester,
+          rawHref: rawHref,
+          rawSrc: rawSrc,
+          expectLoadingIndicator: true,
+          expectUrlInPreview: null,
+          expectThumbnailUrlInLightbox: null,
+          expectUrlInLightbox: url(rawHref),
+          example: ContentExample.imagePreviewSingleLoadingPlaceholder);
+      });
+
+      testWidgets('thumbnail, loading (pre-FL 278)', (tester) async {
+        final rawHref = '/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg';
+        final rawSrc = '/static/images/loading/loader-black.svg';
+        await doTest(tester,
+          rawHref: rawHref,
+          rawSrc: rawSrc,
+          expectLoadingIndicator: true,
+          expectUrlInPreview: null,
+          expectThumbnailUrlInLightbox: null,
+          expectUrlInLightbox: url(rawHref),
+          example: ContentExample.imagePreviewSingleLoadingPlaceholderNoDimensions);
+      });
+
+      testWidgets('thumbnail, loading, spinner image itself is a thumbnail', (tester) async {
+        final rawHref = '/user_uploads/path/to/spinner.png';
+        final rawSrc = '/user_uploads/thumbnail/path/to/spinner.png/840x560.webp';
+        await doTest(tester,
+          rawHref: rawHref,
+          rawSrc: rawSrc,
+          expectLoadingIndicator: true,
+          expectUrlInPreview: null,
+          expectThumbnailUrlInLightbox: null,
+          expectUrlInLightbox: url(rawHref),
+          example: ContentExample.imagePreviewSingleLoadingPlaceholderSpinnerIsThumbnail);
+      });
+
+      testWidgets('no thumbnail', (tester) async {
+        final rawHref = 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3';
+        final rawSrc = 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3';
+        await doTest(tester,
+          rawHref: rawHref,
+          rawSrc: rawSrc,
+          expectLoadingIndicator: false,
+          expectUrlInPreview: Uri.parse(rawSrc),
+          expectThumbnailUrlInLightbox: null,
+          expectUrlInLightbox: Uri.parse(rawHref),
+          example: ContentExample.imagePreviewSingleNoThumbnail);
+      });
+
+      testWidgets('external; src starts with /external_content', (tester) async {
+        final rawHref = 'https://upload.wikimedia.org/wikipedia/commons/7/78/Verregende_bloem_van_een_Helenium_%27El_Dorado%27._22-07-2023._%28d.j.b%29.jpg';
+        final rawSrc = '/external_content/de28eb3abf4b7786de4545023dc42d434a2ea0c2/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067';
+        await doTest(tester,
+          rawHref: rawHref,
+          rawSrc: rawSrc,
+          expectLoadingIndicator: false,
+          expectUrlInPreview: url(rawSrc),
+          expectThumbnailUrlInLightbox: null,
+          expectUrlInLightbox: url(rawSrc),
+          example: ContentExample.imagePreviewSingleExternal1);
+      });
+
+      testWidgets('external; src starts with https://uploads.zulipusercontent.net/', (tester) async {
+        final rawHref = 'https://upload.wikimedia.org/wikipedia/commons/7/78/Verregende_bloem_van_een_Helenium_%27El_Dorado%27._22-07-2023._%28d.j.b%29.jpg';
+        final rawSrc = 'https://uploads.zulipusercontent.net/99742b0f992be15283c428dd42f3b9f5db138d69/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067';
+        await doTest(tester,
+          rawHref: rawHref,
+          rawSrc: rawSrc,
+          expectLoadingIndicator: false,
+          expectUrlInPreview: Uri.parse(rawSrc),
+          expectThumbnailUrlInLightbox: null,
+          expectUrlInLightbox: Uri.parse(rawSrc),
+          example: ContentExample.imagePreviewSingleExternal2);
+      });
+
+      testWidgets('external; src starts with https://custom.camo-uri.example/', (tester) async {
+        final rawHref = 'https://upload.wikimedia.org/wikipedia/commons/7/78/Verregende_bloem_van_een_Helenium_%27El_Dorado%27._22-07-2023._%28d.j.b%29.jpg';
+        final rawSrc = 'https://custom.camo-uri.example/99742b0f992be15283c428dd42f3b9f5db138d69/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067';
+        await doTest(tester,
+          rawHref: rawHref,
+          rawSrc: rawSrc,
+          expectLoadingIndicator: false,
+          expectUrlInPreview: Uri.parse(rawSrc),
+          expectThumbnailUrlInLightbox: null,
+          expectUrlInLightbox: Uri.parse(rawSrc),
+          example: ContentExample.imagePreviewSingleExternal3);
+      });
+
+      testWidgets('invalid src', (tester) async {
+        final rawHref = '/user_uploads/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg';
+        final rawSrc = '::not a URL::';
+        await doTest(tester,
+          rawHref: rawHref,
+          rawSrc: rawSrc,
+          expectLoadingIndicator: false,
+          expectUrlInPreview: null,
+          expectThumbnailUrlInLightbox: null,
+          expectUrlInLightbox: null,
+          example: ContentExample.imagePreviewInvalidSrc);
+      });
+
+      testWidgets('invalid href; external src', (tester) async {
+        final rawHref = '::not a URL::';
+        final rawSrc = '/external_content/de28eb3abf4b7786de4545023dc42d434a2ea0c2/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067';
+        await doTest(tester,
+          rawHref: rawHref,
+          rawSrc: rawSrc,
+          expectLoadingIndicator: false,
+          expectUrlInPreview: url(rawSrc),
+          expectThumbnailUrlInLightbox: null,
+          expectUrlInLightbox: url(rawSrc),
+          example: ContentExample.imagePreviewInvalidHref1);
+      });
+
+      testWidgets('invalid href; thumbnail src', (tester) async {
+        final rawHref = '::not a URL::';
+        final rawSrc = '/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp';
+        await doTest(tester,
+          rawHref: rawHref,
+          rawSrc: rawSrc,
+          expectLoadingIndicator: false,
+          expectUrlInPreview: null,
+          expectThumbnailUrlInLightbox: null,
+          expectUrlInLightbox: null,
+          example: ContentExample.imagePreviewInvalidHref2);
+      });
+
+      testWidgets('invalid src and href', (tester) async {
+        final rawHref = '::not a URL::';
+        final rawSrc = '::not a URL::';
+        await doTest(tester,
+          rawHref: rawHref,
+          rawSrc: rawSrc,
+          expectLoadingIndicator: false,
+          expectUrlInPreview: null,
+          expectThumbnailUrlInLightbox: null,
+          expectUrlInLightbox: null,
+          example: ContentExample.imagePreviewInvalidSrcAndHref);
+      });
+    });
 
     testWidgets('single image', (tester) async {
       final example = ContentExample.imagePreviewSingle;

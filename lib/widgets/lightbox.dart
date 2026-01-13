@@ -255,8 +255,10 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
   }
 }
 
-class _ImageLightboxPage extends StatefulWidget {
-  const _ImageLightboxPage({
+@visibleForTesting
+class ImageLightboxPage extends StatefulWidget {
+  const ImageLightboxPage({
+    super.key,
     required this.routeEntranceAnimation,
     required this.message,
     required this.messageImageContext,
@@ -275,10 +277,10 @@ class _ImageLightboxPage extends StatefulWidget {
   final double? originalHeight;
 
   @override
-  State<_ImageLightboxPage> createState() => _ImageLightboxPageState();
+  State<ImageLightboxPage> createState() => _ImageLightboxPageState();
 }
 
-class _ImageLightboxPageState extends State<_ImageLightboxPage> {
+class _ImageLightboxPageState extends State<ImageLightboxPage> {
   double? _loadingProgress;
 
   PreferredSizeWidget? _buildAppBarBottom(BuildContext context) {
@@ -645,7 +647,7 @@ Route<void> getImageLightboxRoute({
     accountId: accountId,
     context: context,
     pageBuilder: (context, animation, secondaryAnimation) {
-      return _ImageLightboxPage(
+      return ImageLightboxPage(
         routeEntranceAnimation: animation,
         message: message,
         messageImageContext: messageImageContext,
